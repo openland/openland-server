@@ -1,7 +1,0 @@
-type User {
-
-}
-
-type TypeName implements IName {
-
-}
