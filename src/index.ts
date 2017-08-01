@@ -76,4 +76,10 @@ var schema = makeExecutableSchema({ typeDefs: [typeDefs], resolvers: resolvers }
 app.use("/graphql", bodyParser.json(), graphqlExpress({ schema: schema }));
 app.use('/sandbox', graphiqlExpress({ endpointURL: '/graphql' }));
 
-app.listen(3000);
+// Starting
+var port = process.env.PORT
+var dport = 3000
+if (port != undefined && port != "") {
+  dport = parseInt(process.env.PORT as string)
+}
+app.listen(dport);
