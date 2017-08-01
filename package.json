@@ -8,6 +8,7 @@
   "dependencies": {
     "@types/base-64": "^0.1.2",
     "@types/body-parser": "^1.16.4",
+    "@types/cors": "^2.8.1",
     "@types/express": "^4.0.36",
     "@types/lodash": "^4.14.71",
     "@types/node": "^8.0.17",
@@ -17,6 +18,7 @@
     "body-parser": "^1.17.2",
     "buffer": "^5.0.6",
     "concurrently": "^3.5.0",
+    "cors": "^2.8.4",
     "express": "^4.15.3",
     "graphql": "^0.10.5",
     "graphql-tools": "^1.1.0",
