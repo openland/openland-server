@@ -26,7 +26,7 @@
     "build": "./node_modules/.bin/tsc -p tsconfig.json",
     "build:watch": "./node_modules/.bin/tsc -w -p tsconfig.json",
     "start:watch": "nodemon build/index.js",
-    "start": "nodemon ./build/index.js",
+    "start": "node ./build/index.js",
     "dev": "./node_modules/.bin/concurrently --kill-others \"yarn build:watch\" \"yarn start:watch\"",
     "heroku-postbuild": "yarn build"
   }
