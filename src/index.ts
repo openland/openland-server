@@ -32,14 +32,6 @@ const typeDefs = `
   }
 `;
 
-interface IAuthor {
-  id: number;
-}
-
-interface IPost {
-  authorId: number;
-}
-
 // example data
 const authors = [
   { id: 1, firstName: "Tom", lastName: "Coleman" },
@@ -48,15 +40,15 @@ const authors = [
 ];
 
 const posts = [
-  { id: 1, authorId: 1, title: "Introduction to GraphQL", votes: 2 },
-  { id: 2, authorId: 2, title: "Welcome to Meteor", votes: 3 },
-  { id: 3, authorId: 2, title: "Advanced GraphQL", votes: 1 },
-  { id: 4, authorId: 3, title: "Launchpad is Cool", votes: 7 },
+  { id: 1, authorId: 1, title: "Introduction to GraphQL", votes: 2, did: 1 },
+  { id: 2, authorId: 2, title: "Welcome to Meteor", votes: 3, did: 2 },
+  { id: 3, authorId: 2, title: "Advanced GraphQL", votes: 1, did: 3 },
+  { id: 4, authorId: 3, title: "Launchpad is Cool", votes: 7, did: 3 },
 ];
 const resolvers = {
   Query: {
     posts: () => posts,
-    author: (_: any, params: IAuthor) => find(authors, { id: params.id }),
+    author: (_: any, params: { id: number }) => find(authors, { id: params.id }),
   },
   Mutation: {
     upvotePost: (a: any, param: { postId: number }) => {
@@ -75,13 +67,13 @@ const resolvers = {
     }
   },
   Post: {
-    author: (post: IPost) => find(authors, { id: post.authorId }),
+    author: (post: { did: number }) => find(authors, { id: post.did }),
   },
 };
 
 var schema = makeExecutableSchema({ typeDefs: [typeDefs], resolvers: resolvers })
 
 app.use("/graphql", bodyParser.json(), graphqlExpress({ schema: schema }));
-app.use('/sandbox', graphiqlExpress({endpointURL: '/graphql'}));
+app.use('/sandbox', graphiqlExpress({ endpointURL: '/graphql' }));
 
 app.listen(3000);
