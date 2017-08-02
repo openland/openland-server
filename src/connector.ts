@@ -1,4 +1,8 @@
 import * as sequelize from 'sequelize'
+import * as cls from 'continuation-local-storage';
+
+var namespace = cls.createNamespace('tx-namespace');
+(<any>sequelize).useCLS(namespace)
 
 export var connection: sequelize.Sequelize
 
@@ -33,4 +37,8 @@ export const Votes = connection.define('votes', {
             key: 'id',
         }
     }
-},{ indexes: [{ unique: true, fields: ['userId', 'vote'] }] })
+}, { indexes: [{ unique: true, fields: ['userId', 'vote'] }] })
+
+export async function tx<A>(handler: () => PromiseLike<A>): Promise<A> {
+    return await connection.transaction((_: sequelize.Transaction) => handler());
+}

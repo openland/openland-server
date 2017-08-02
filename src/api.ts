@@ -6,6 +6,7 @@ import * as cors from 'cors';
 import { Context } from './Models/Context';
 import * as jwt from 'express-jwt'
 import * as jwksRsa from 'jwks-rsa'
+import * as DB from './connector'
 
 const checkJwt = jwt({
     // Dynamically provide a signing key
@@ -27,10 +28,29 @@ const checkJwt = jwt({
     algorithms: ['RS256'],
 });
 
-function context(src: express.Request): Context {
+async function context(src: express.Request): Promise<Context> {
     if (src.user != null && src.user != undefined) {
+        var userKey = src.user.sub
+        var userId: number = await DB.tx(async () => {
+            var exists = await DB.User.find({
+                where: {
+                    authId: userKey
+                }
+            })
+            var id: number
+            if (exists == null) {
+                var res = await DB.User.create({
+                    authKey: userKey
+                })
+                id = (<any>res).id
+            } else {
+                id = (<any>exists).id
+            }
+            return id
+        })
+
         return {
-            userKey: src.user.sub
+            userKey: userId
         }
     } else {
         return {}
