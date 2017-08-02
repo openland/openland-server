@@ -16,6 +16,7 @@ const RootQuery = `
 const RootMutation = `
   type Mutation {
     vote(id: ID!): Vote
+    unvote(id: ID!): Vote
   }
 `;
 

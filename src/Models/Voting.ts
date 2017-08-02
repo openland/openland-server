@@ -25,13 +25,14 @@ async function resolveVote(id: number, user?: number) {
         }
     })
     var ownSet = false
+    console.warn(user)
     if (user != null) {
         ownSet = await DB.Votes.count({
             where: {
                 vote: id,
                 userId: user
             }
-        }).any() as boolean
+        }) > 0
     }
     return {
         id: b64.encode((res.id as number).toString()),
@@ -45,12 +46,34 @@ export const Resolver = {
     Query: {
         vote: async function (_: any, params: { id: string }, context: Promise<Context>) {
             var convid = parseInt(b64.decode(params.id))
-            console.warn((await context).userKey)
-            return resolveVote(convid)
+            var uid = (await context).userKey
+            return resolveVote(convid, uid)
         }
     },
     Mutation: {
         vote: async function (_: any, params: { id: string }, context: Promise<Context>) {
+            var convid = parseInt(b64.decode(params.id))
+            var uid = (await context).userKey
+            if (uid == null){
+                throw Error("Voting could be done only for logged in users")
+            }
+
+            await resolveVote(convid, uid)
+
+            try {
+                await DB.Votes.create({
+                    userId: uid,
+                    vote: convid
+                })
+            } catch (e) {
+                // console.error(e)
+                // Ignore...
+            }
+
+            return resolveVote(convid, uid)
+        },
+
+        unvote: async function (_: any, params: { id: string }, context: Promise<Context>) {
 
             var convid = parseInt(b64.decode(params.id))
 
@@ -60,19 +83,22 @@ export const Resolver = {
                 throw Error("Voting could be done only for logged in users")
             }
 
-            await resolveVote(convid)
+            await resolveVote(convid, uid)
 
             try {
-                await DB.Votes.create({
-                    userId: uid,
-                    vote: convid
+                var r = await DB.Votes.destroy({
+                    where: {
+                        userId: uid,
+                        vote: convid   
+                    }
                 })
+                console.warn(r)
             } catch (e) {
                 console.error(e)
                 // Ignore...
             }
 
-            return resolveVote(convid)
+            return resolveVote(convid, uid)
         }
     }
 }
