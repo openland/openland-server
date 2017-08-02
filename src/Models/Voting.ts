@@ -9,7 +9,7 @@ export interface Vote {
 
 export const Schema =
     `type Vote {
-        key: String!
+        id: ID!
         count: Int!
         own_set: Boolean!
     }`
@@ -34,7 +34,7 @@ async function resolveVote(id: number, user?: number) {
         }).any() as boolean
     }
     return {
-        key: b64.encode(res.id),
+        id: b64.encode((res.id as number).toString()),
         count: count,
         own_set: ownSet
     }
@@ -43,31 +43,36 @@ export const Query = ["vote(id: Int!): Vote"]
 export const Mutation = ["vote(id: Int!): Vote"]
 export const Resolver = {
     Query: {
-        vote: async function (_: any, params: { id: number }, context: Promise<Context>) {
+        vote: async function (_: any, params: { id: string }, context: Promise<Context>) {
+            var convid = parseInt(b64.decode(params.id))
             console.warn((await context).userKey)
-            return resolveVote(params.id)
+            return resolveVote(convid)
         }
     },
     Mutation: {
-        vote: async function (_: any, params: { id: number }, context: Promise<Context>) {
+        vote: async function (_: any, params: { id: string }, context: Promise<Context>) {
+
+            var convid = parseInt(b64.decode(params.id))
+
             console.warn(context)
             var uid = (await context).userKey
             if (uid == null){
                 throw Error("Voting could be done only for logged in users")
             }
 
-            await resolveVote(params.id)
+            await resolveVote(convid)
 
             try {
                 await DB.Votes.create({
                     userId: uid,
-                    vote: params.id
+                    vote: convid
                 })
             } catch (e) {
+                console.error(e)
                 // Ignore...
             }
 
-            return resolveVote(params.id)
+            return resolveVote(convid)
         }
     }
 }

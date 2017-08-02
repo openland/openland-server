@@ -40,7 +40,7 @@ async function context(src: express.Request): Promise<Context> {
             var id: number
             if (exists == null) {
                 var res = await DB.User.create({
-                    authKey: userKey
+                    authId: userKey
                 })
                 id = (<any>res).id
             } else {

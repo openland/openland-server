@@ -9,13 +9,13 @@ import { merge } from 'lodash';
 
 const RootQuery = `
   type Query {
-    vote(id: Int!): Vote
+    vote(id: ID!): Vote
   }
 `;
 
 const RootMutation = `
   type Mutation {
-    vote(id: Int!): Vote
+    vote(id: ID!): Vote
   }
 `;
 
