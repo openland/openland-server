@@ -1,6 +1,6 @@
 import * as DB from '../connector'
 import * as b64 from 'base-64'
-
+import { Context } from './Context'
 export interface Vote {
     key: string
     count: number
@@ -34,7 +34,8 @@ export const Query = ["vote(id: Int!): Vote"]
 export const Mutation = ["vote(id: Int!): Vote"]
 export const Resolver = {
     Query: {
-        vote: async function (_: any, params: { id: number }) {
+        vote: async function (_: any, params: { id: number }, context: Context) {
+            console.warn(context.userKey)
             return resolveVote(params.id)
         }
     },
