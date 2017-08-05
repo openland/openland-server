@@ -1,5 +1,4 @@
 import * as DB from '../tables'
-import * as b64 from 'base-64'
 import { Context } from './Context'
 
 // Types
@@ -93,7 +92,7 @@ export const Resolver = {
                 throw Error("Voting could be done only for logged in users")
             }
 
-            await resolveVote(params.id, context.uid)
+            var vote = await resolveVote(params.id, context.uid)
 
             try {
                 var r = await DB.UserVote.destroy({
