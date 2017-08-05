@@ -4,7 +4,7 @@ import * as api from './api'
 async function init() {
   try {
     console.info("Connecting to database")
-    await db.connection.sync({alter: true})
+    await db.connection.sync({force: true})
     console.info("Starting API endpoint")
     await api.default()
   } catch (e) {
