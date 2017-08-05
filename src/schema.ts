@@ -1,6 +1,7 @@
 import { makeExecutableSchema } from 'graphql-tools';
 import * as Voting from './Models/Voting'
 import { merge } from 'lodash';
+import { Context } from './Models/Context';
 
 // const Schemas = [Voting.Schema]
 // const Queries = [Voting.Query]
@@ -9,14 +10,13 @@ import { merge } from 'lodash';
 
 const RootQuery = `
   type Query {
-    vote(id: ID!): Vote
+    healthCheck: String!
   }
 `;
 
 const RootMutation = `
   type Mutation {
-    vote(id: ID!): Vote
-    unvote(id: ID!): Vote
+    healthCheck: String!    
   }
 `;
 
@@ -27,7 +27,20 @@ const SchemaDefinition = `
   }
 `;
 
+const rootResolver = {
+  Query: {
+        healthCheck: async function(_obj: any, _params: { }, _context: Promise<Context>) {
+            return "Hello World!"
+        }
+    },
+    Mutation: {
+        healthCheck: async function(_obj: any, _params: { }, _context: Promise<Context>) {
+            return "Hello World!"
+        }
+    }
+}
+
 export const Schema = makeExecutableSchema({
-    typeDefs: [RootQuery, RootMutation, SchemaDefinition, Voting.Schema],
-    resolvers: merge(Voting.Resolver)
+  typeDefs: [RootQuery, RootMutation, SchemaDefinition, Voting.Schema],
+  resolvers: merge(rootResolver, Voting.Resolver)
 })

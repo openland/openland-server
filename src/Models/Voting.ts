@@ -1,18 +1,27 @@
 import * as DB from '../connector'
 import * as b64 from 'base-64'
 import { Context } from './Context'
+
 export interface Vote {
     key: string
     count: number
     own_set: boolean
 }
 
-export const Schema =
-    `type Vote {
+export const Schema = `
+    type Vote {
         id: ID!
         count: Int!
         own_set: Boolean!
-    }`
+    }
+    extend type Query {
+        vote(id: ID!): Vote
+    }
+    extend type Mutation {
+        vote(id: ID!): Vote
+        unvote(id: ID!): Vote
+    }
+`
 
 async function resolveVote(id: number, user?: number) {
     var res = await DB.Vote.find({ where: { id: id } }) as any
@@ -40,8 +49,7 @@ async function resolveVote(id: number, user?: number) {
         own_set: ownSet
     }
 }
-export const Query = ["vote(id: Int!): Vote"]
-export const Mutation = ["vote(id: Int!): Vote"]
+
 export const Resolver = {
     Query: {
         vote: async function (_: any, params: { id: string }, context: Promise<Context>) {
@@ -54,7 +62,7 @@ export const Resolver = {
         vote: async function (_: any, params: { id: string }, context: Promise<Context>) {
             var convid = parseInt(b64.decode(params.id))
             var uid = (await context).userKey
-            if (uid == null){
+            if (uid == null) {
                 throw Error("Voting could be done only for logged in users")
             }
 
@@ -79,7 +87,7 @@ export const Resolver = {
 
             console.warn(context)
             var uid = (await context).userKey
-            if (uid == null){
+            if (uid == null) {
                 throw Error("Voting could be done only for logged in users")
             }
 
@@ -89,7 +97,7 @@ export const Resolver = {
                 var r = await DB.Votes.destroy({
                     where: {
                         userId: uid,
-                        vote: convid   
+                        vote: convid
                     }
                 })
                 console.warn(r)
