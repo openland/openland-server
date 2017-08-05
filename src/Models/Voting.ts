@@ -30,13 +30,14 @@ export const Schema = `
 // Implementation
 
 async function resolveVote(id: string, user?: number) {
-    var res = await DB.Vote.find({ where: { id: id } }) as any
+    var res = await DB.Vote.find({ where: { slug: id } }) as any
     if (res == null) {
-        res = await DB.Vote.create({ id: id })
+        res = await DB.Vote.create({ slug: id })
     }
+    
     var count = await DB.UserVote.count({
         where: {
-            vote: id
+            vote: res.id
         }
     })
     var ownSet = false
@@ -44,13 +45,14 @@ async function resolveVote(id: string, user?: number) {
     if (user != null) {
         ownSet = await DB.UserVote.count({
             where: {
-                vote: id,
+                vote: res.id,
                 userId: user
             }
         }) > 0
     }
     return {
-        id: b64.encode((res.id as number).toString()),
+        _dbid: res.id,
+        id: res.slug,
         count: count,
         own_set: ownSet
     }
@@ -71,12 +73,12 @@ export const Resolver = {
 
             
 
-            await resolveVote(params.id, context.uid)
+            var vote = await resolveVote(params.id, context.uid)
 
             try {
                 await DB.UserVote.create({
                     userId: context.uid,
-                    vote: params.id
+                    vote: vote._dbid
                 })
             } catch (e) {
                 // console.error(e)
@@ -97,7 +99,7 @@ export const Resolver = {
                 var r = await DB.UserVote.destroy({
                     where: {
                         userId: context.uid,
-                        vote: params.id
+                        vote: vote._dbid
                     }
                 })
                 console.warn(r)

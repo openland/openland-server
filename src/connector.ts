@@ -15,8 +15,4 @@ if (process.env.DATABASE_URL != undefined) {
     });
 }
 
-export async function tx<A>(handler: () => PromiseLike<A>): Promise<A> {
-    return await connection.transaction((_: sequelize.Transaction) => handler());
-}
-
 require('./tables')
