@@ -77,7 +77,7 @@ export default async function () {
     }
     var FOREST_AUTH_SECRET = "tKGo4P00KjKOGHmuu3IdC6icwLNu3uFB"
     if (process.env.FOREST_AUTH_SECRET != "" && process.env.FOREST_AUTH_SECRET != undefined) {
-        FOREST_ENV_SECRET = process.env.FOREST_AUTH_SECRET!
+        FOREST_AUTH_SECRET = process.env.FOREST_AUTH_SECRET!
     }
 
     app.use(require('forest-express-sequelize').init({
