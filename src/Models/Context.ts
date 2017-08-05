@@ -1,3 +1,3 @@
 export interface Context {
-    userKey?: number
+    uid?: number
 }

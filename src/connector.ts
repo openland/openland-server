@@ -15,30 +15,8 @@ if (process.env.DATABASE_URL != undefined) {
     });
 }
 
-export const Vote = connection.define('vote', {
-    id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
-})
-
-export const User = connection.define('user', {
-    id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
-    authId: { type: sequelize.STRING, unique: true }
-})
-
-export const Votes = connection.define('votes', {
-    userId: {
-        type: sequelize.INTEGER, references: {
-            model: User,
-            key: 'id',
-        }
-    },
-    vote: {
-        type: sequelize.INTEGER, references: {
-            model: Vote,
-            key: 'id',
-        }
-    }
-}, { indexes: [{ unique: true, fields: ['userId', 'vote'] }] })
-
 export async function tx<A>(handler: () => PromiseLike<A>): Promise<A> {
     return await connection.transaction((_: sequelize.Transaction) => handler());
 }
+
+require('./tables')

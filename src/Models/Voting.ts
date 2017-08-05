@@ -1,12 +1,16 @@
-import * as DB from '../connector'
+import * as DB from '../tables'
 import * as b64 from 'base-64'
 import { Context } from './Context'
+
+// Types
 
 export interface Vote {
     key: string
     count: number
     own_set: boolean
 }
+
+// Schema
 
 export const Schema = `
     type Vote {
@@ -23,12 +27,14 @@ export const Schema = `
     }
 `
 
-async function resolveVote(id: number, user?: number) {
+// Implementation
+
+async function resolveVote(id: string, user?: number) {
     var res = await DB.Vote.find({ where: { id: id } }) as any
     if (res == null) {
         res = await DB.Vote.create({ id: id })
     }
-    var count = await DB.Votes.count({
+    var count = await DB.UserVote.count({
         where: {
             vote: id
         }
@@ -36,7 +42,7 @@ async function resolveVote(id: number, user?: number) {
     var ownSet = false
     console.warn(user)
     if (user != null) {
-        ownSet = await DB.Votes.count({
+        ownSet = await DB.UserVote.count({
             where: {
                 vote: id,
                 userId: user
@@ -52,52 +58,46 @@ async function resolveVote(id: number, user?: number) {
 
 export const Resolver = {
     Query: {
-        vote: async function (_: any, params: { id: string }, context: Promise<Context>) {
-            var convid = parseInt(b64.decode(params.id))
-            var uid = (await context).userKey
-            return resolveVote(convid, uid)
+        vote: async function (_: any, params: { id: string }, context: Context) {
+            return resolveVote(params.id, context.uid)
         }
     },
     Mutation: {
-        vote: async function (_: any, params: { id: string }, context: Promise<Context>) {
-            var convid = parseInt(b64.decode(params.id))
-            var uid = (await context).userKey
-            if (uid == null) {
+        vote: async function (_: any, params: { id: string }, context: Context) {
+            // var convid = parseInt(b64.decode(params.id))
+            if (context.uid == null) {
                 throw Error("Voting could be done only for logged in users")
             }
 
-            await resolveVote(convid, uid)
+            
+
+            await resolveVote(params.id, context.uid)
 
             try {
-                await DB.Votes.create({
-                    userId: uid,
-                    vote: convid
+                await DB.UserVote.create({
+                    userId: context.uid,
+                    vote: params.id
                 })
             } catch (e) {
                 // console.error(e)
                 // Ignore...
             }
 
-            return resolveVote(convid, uid)
+            return resolveVote(params.id, context.uid)
         },
 
-        unvote: async function (_: any, params: { id: string }, context: Promise<Context>) {
-
-            var convid = parseInt(b64.decode(params.id))
-
-            console.warn(context)
-            var uid = (await context).userKey
-            if (uid == null) {
+        unvote: async function (_: any, params: { id: string }, context: Context) {            
+            if (context.uid == null) {
                 throw Error("Voting could be done only for logged in users")
             }
 
-            await resolveVote(convid, uid)
+            await resolveVote(params.id, context.uid)
 
             try {
-                var r = await DB.Votes.destroy({
+                var r = await DB.UserVote.destroy({
                     where: {
-                        userId: uid,
-                        vote: convid
+                        userId: context.uid,
+                        vote: params.id
                     }
                 })
                 console.warn(r)
@@ -106,7 +106,7 @@ export const Resolver = {
                 // Ignore...
             }
 
-            return resolveVote(convid, uid)
+            return resolveVote(params.id, context.uid)
         }
     }
 }
