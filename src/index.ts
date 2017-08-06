@@ -7,10 +7,10 @@ async function init() {
     if (process.env.NODE_ENV == "development") {
       console.info("Connecting to database in DEVELOPMENT mode")
       await db.connection.sync({ force: true })
-      // await dev.InitSampleData()
+      await dev.InitSampleData()
     } else {
       console.info("Connecting to database in RELEASE mode")
-      await db.connection.sync()
+      await db.connection.sync({ alter: true })
     }
     console.info("Starting API endpoint")
     await api.default()
