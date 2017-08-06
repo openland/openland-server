@@ -1,8 +1,8 @@
 import { makeExecutableSchema } from 'graphql-tools';
-import * as Voting from './Models/Voting'
-import * as City from './Models/City'
+import * as Voting from './models/Voting'
+import * as City from './models/City'
 import { merge } from 'lodash';
-import { Context } from './Models/Context';
+import { Context } from './models/Context';
 
 // const Schemas = [Voting.Schema]
 // const Queries = [Voting.Query]
