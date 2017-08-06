@@ -4,7 +4,13 @@ export async function InitSampleData() {
         authId: "facebook|10213268338843701"
     })
     var sf = await DB.City.create({
-        name: "San Francisco"
+        name: "San Francisco",
+        slug: "sf",
+        activated: true
+    })
+    await DB.City.create({
+        name: "New York",
+        slug: "nyc"
     })
     var sec = await DB.Sector.create({
         name: "Housing"

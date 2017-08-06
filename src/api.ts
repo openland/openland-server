@@ -92,6 +92,6 @@ export default async function () {
     if (port != undefined && port != "") {
         dport = parseInt(process.env.PORT as string)
     }
-    console.info("Binding to port " + port);
+    console.info("Binding to port " + dport);
     app.listen(dport);
 }
