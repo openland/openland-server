@@ -9,7 +9,7 @@ export interface Vote {
     own_set: boolean
 }
 
-// Schema
+// Schema 
 
 export const Schema = `
     type Vote {
@@ -33,17 +33,19 @@ async function resolveVote(id: string, user?: number) {
     if (res == null) {
         res = await DB.Vote.create({ slug: id })
     }
+
     var count = await DB.UserVote.count({
         where: {
             vote: res.id!!
         }
     })
     var ownSet = false
+    console.warn(user)
     if (user != null) {
         ownSet = await DB.UserVote.count({
             where: {
                 vote: res.id!!,
-                userId: user!!
+                userId: user
             }
         }) > 0
     }

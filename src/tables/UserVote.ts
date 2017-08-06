@@ -11,13 +11,13 @@ export interface UserVote extends sequelize.Instance<UserVoteAttributes>, UserVo
 export const UserVoteTable = connection.define<UserVote, UserVoteAttributes>('user_vote', {
     userId: {
         type: sequelize.INTEGER, references: {
-            model: 'user',
+            model: 'users',
             key: 'id',
         }
     },
     vote: {
         type: sequelize.INTEGER, references: {
-            model: 'vote',
+            model: 'votes',
             key: 'id',
         }
     }
