@@ -1,4 +1,4 @@
-import { City } from '../tables'
+import { DB } from '../tables'
 export interface City {
     id: string;
     name: string;
@@ -17,7 +17,7 @@ export const Schema = `
 export const Resolver = {
     Query: {
         cities: async function () {
-            return await City.findAll()
+            return await DB.City.findAll()
         }
     }
 }

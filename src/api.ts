@@ -7,7 +7,7 @@ import * as cors from 'cors';
 import { Context } from './Models/Context';
 import * as jwt from 'express-jwt';
 import * as jwksRsa from 'jwks-rsa';
-import * as DB from './tables';
+import { DB } from './tables';
 
 const checkJwt = jwt({
     // Dynamically provide a signing key
@@ -32,7 +32,7 @@ const checkJwt = jwt({
 async function context(src: express.Request): Promise<Context> {
     if (src.user != null && src.user != undefined) {
         var userKey = src.user.sub
-        var userId: number = await DB.tx(async () => {
+        var userId = await DB.tx(async () => {
             var exists = await DB.User.find({
                 where: {
                     authId: userKey
@@ -43,9 +43,9 @@ async function context(src: express.Request): Promise<Context> {
                 var res = await DB.User.create({
                     authId: userKey
                 })
-                id = (<any>res).id
+                id = res.id!!
             } else {
-                id = (<any>exists).id
+                id = exists.id!!
             }
             return id
         })

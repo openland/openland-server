@@ -1,4 +1,4 @@
-import * as DB from '../tables'
+import { DB } from '../tables'
 import { Context } from './Context'
 
 // Types
@@ -29,28 +29,26 @@ export const Schema = `
 // Implementation
 
 async function resolveVote(id: string, user?: number) {
-    var res = await DB.Vote.find({ where: { slug: id } }) as any
+    var res = await DB.Vote.find({ where: { slug: id } })
     if (res == null) {
         res = await DB.Vote.create({ slug: id })
     }
-    
     var count = await DB.UserVote.count({
         where: {
-            vote: res.id
+            vote: res.id!!
         }
     })
     var ownSet = false
-    console.warn(user)
     if (user != null) {
         ownSet = await DB.UserVote.count({
             where: {
-                vote: res.id,
-                userId: user
+                vote: res.id!!,
+                userId: user!!
             }
         }) > 0
     }
     return {
-        _dbid: res.id,
+        _dbid: res.id!!,
         id: res.slug,
         count: count,
         own_set: ownSet
@@ -70,7 +68,7 @@ export const Resolver = {
                 throw Error("Voting could be done only for logged in users")
             }
 
-            
+
 
             var vote = await resolveVote(params.id, context.uid)
 
@@ -87,7 +85,7 @@ export const Resolver = {
             return resolveVote(params.id, context.uid)
         },
 
-        unvote: async function (_: any, params: { id: string }, context: Context) {            
+        unvote: async function (_: any, params: { id: string }, context: Context) {
             if (context.uid == null) {
                 throw Error("Voting could be done only for logged in users")
             }
