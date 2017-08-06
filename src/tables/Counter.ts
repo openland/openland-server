@@ -34,7 +34,7 @@ export const CounterValueTable = connection.define<CounterValue, CounterValueAtt
     id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
     counter: {
         type: sequelize.INTEGER, references: {
-            model: 'counterss',
+            model: 'counters',
             key: 'id',
         }
     },
