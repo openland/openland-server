@@ -10,7 +10,7 @@ async function init() {
       await dev.InitSampleData()
     } else {
       console.info("Connecting to database in RELEASE mode")
-      await db.connection.sync({})
+      await db.connection.sync({ alter: false })
     }
     console.info("Starting API endpoint")
     await api.default()
