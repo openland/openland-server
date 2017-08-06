@@ -3,7 +3,14 @@ export async function InitSampleData() {
     await DB.User.create({
         authId: "facebook|10213268338843701"
     })
-    await DB.City.create({
+    var sf = await DB.City.create({
         name: "San Francisco"
+    })
+    var sec = await DB.Sector.create({
+        name: "Housing"
+    })
+    await DB.SectorActivation.create({
+        sectorId: sec.id!!,
+        cityId: sf.id!!
     })
 }
