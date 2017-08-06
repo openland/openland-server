@@ -30,15 +30,15 @@ const SchemaDefinition = `
 
 const rootResolver = {
   Query: {
-        healthCheck: async function(_obj: any, _params: { }, _context: Promise<Context>) {
-            return "Hello World!"
-        }
-    },
-    Mutation: {
-        healthCheck: async function(_obj: any, _params: { }, _context: Promise<Context>) {
-            return "Hello World!"
-        }
+    healthCheck: async function (_obj: any, _params: {}, _context: Promise<Context>) {
+      return "Hello World!"
     }
+  },
+  Mutation: {
+    healthCheck: async function (_obj: any, _params: {}, _context: Promise<Context>) {
+      return "Hello World!"
+    }
+  }
 }
 
 export const Schema = makeExecutableSchema({

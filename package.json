@@ -5,6 +5,9 @@
   "repository": "https://github.com/ex3ndr/statecraft-ts.git",
   "author": "Steve Kite <korshakov.stepan@gmail.com>",
   "license": "MIT",
+  "engines": {
+    "node": ">=v8.0.0"
+  },
   "dependencies": {
     "@types/base-64": "^0.1.2",
     "@types/body-parser": "^1.16.4",
