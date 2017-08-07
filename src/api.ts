@@ -8,6 +8,7 @@ import { Context } from './models/Context';
 import * as jwt from 'express-jwt';
 import * as jwksRsa from 'jwks-rsa';
 import { DB } from './tables';
+import * as fetch from 'node-fetch';
 
 const checkJwt = jwt({
     // Dynamically provide a signing key
@@ -32,35 +33,33 @@ const checkJwt = jwt({
 async function context(src: express.Request): Promise<Context> {
     if (src.user != null && src.user != undefined) {
         var userKey = src.user.sub
-        var userId = await DB.tx(async () => {
-            var exists = await DB.User.find({
-                where: {
-                    authId: userKey
-                }
-            })
-            var id: number
-            if (exists == null) {
-                var res = await DB.User.create({
-                    authId: userKey
-                })
-                id = res.id!!
-            } else {
-                id = exists.id!!
+        var exists = await DB.User.find({
+            where: {
+                authId: userKey
             }
-            return id
         })
-
-        return {
-            uid: userId
+        if (exists != null) {
+            return {
+                uid: exists.id!!
+            }
         }
-    } else {
-        return {}
     }
+    return {}
 }
 
 async function handleRequest(req: express.Request): Promise<GraphQLOptions> {
     var cont = await context(req)
     return { schema: Schema.Schema, context: cont }
+}
+
+interface Profile {
+    name: string;
+    given_name: string;
+    family_name: string;
+    nickname: string;
+    picture: string;
+    gender: string;
+    email: string;
 }
 
 export default async function () {
@@ -70,6 +69,44 @@ export default async function () {
     app.use(cors())
     app.use("/graphql", checkJwt, bodyParser.json(), graphqlExpress(handleRequest));
     app.use('/sandbox', checkJwt, graphiqlExpress({ endpointURL: '/graphql' }));
+    app.post('/auth', checkJwt, bodyParser.json(), async function (req: express.Request, response: express.Response) {
+        var accessToken = req.headers['access-token']
+        var res = await fetch.default('https://statecraft.auth0.com/userinfo', {
+            headers: {
+                authorization: 'Bearer ' + accessToken
+            }
+        })
+        var b = await res.json<Profile>()
+        await DB.tx(async () => {
+            var userKey = req.user.sub
+            var user = await DB.User.find({
+                where: {
+                    authId: userKey
+                }
+            })
+            if (user != null) {
+                await DB.User.update({
+                    firstName: b.given_name,
+                    lastName: b.family_name,
+                    email: b.email,
+                    picture: b.picture
+                }, {
+                        where: {
+                            authId: userKey
+                        },
+                    });
+            } else {
+                await DB.User.create({
+                    authId: userKey,
+                    firstName: b.given_name,
+                    lastName: b.family_name,
+                    email: b.email,
+                    picture: b.picture
+                })
+            }
+        });
+        response.json({ ok: true })
+    })
 
     var FOREST_ENV_SECRET = "831f4cf62bc3cb635214043c62961a8a23486c0f638f16ddee106653a5bc334c"
     if (process.env.FOREST_ENV_SECRET != "" && process.env.FOREST_ENV_SECRET != undefined) {
