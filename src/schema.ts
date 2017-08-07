@@ -1,13 +1,9 @@
 import { makeExecutableSchema } from 'graphql-tools';
 import * as Voting from './models/Voting'
 import * as City from './models/City'
+import * as Me from './models/Me';
 import { merge } from 'lodash';
 import { Context } from './models/Context';
-
-// const Schemas = [Voting.Schema]
-// const Queries = [Voting.Query]
-// const Mutations = [Voting.Mutation]
-// const Resolvers = [Voting.Resolver]
 
 const RootQuery = `
   type Query {
@@ -42,6 +38,6 @@ const rootResolver = {
 }
 
 export const Schema = makeExecutableSchema({
-  typeDefs: [RootQuery, RootMutation, SchemaDefinition, Voting.Schema, City.Schema],
-  resolvers: merge(rootResolver, Voting.Resolver, City.Resolver)
+  typeDefs: [RootQuery, RootMutation, SchemaDefinition, Voting.Schema, City.Schema, Me.Schema],
+  resolvers: merge(rootResolver, Voting.Resolver, City.Resolver, Me.Resolver)
 })

@@ -1,8 +1,5 @@
 import { DB } from '../tables'
-export interface City {
-    id: string;
-    name: string;
-}
+
 export const Schema = `
     type City {
         id: ID!
@@ -30,7 +27,7 @@ export const Resolver = {
                     activated: true
                 }
             })
-            if (res != null){
+            if (res != null) {
                 return {
                     id: res.slug,
                     name: res.name
