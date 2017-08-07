@@ -7,6 +7,7 @@ export const Schema = `
         name: String!
         firstName: String!
         lastName: String!
+        picture: String!
     }
     extend type Query {
         city(id: ID!): City
@@ -25,7 +26,8 @@ export const Resolver = {
                     id: res!!.id,
                     name: res!!.firstName + " " + res!!.lastName,
                     firstName: res!!.firstName,
-                    lastName: res!!.lastName
+                    lastName: res!!.lastName,
+                    picture: res!!.picture
                 }
             }
         }
