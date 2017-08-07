@@ -2,13 +2,15 @@ import { DB } from '../tables'
 import { Context } from './Context';
 
 export const Schema = `
-    type Me {
+    type User {
         id: ID!
         name: String!
+        firstName: String!
+        lastName: String!
     }
     extend type Query {
         city(id: ID!): City
-        me: Me
+        me: User
     }
 `
 
@@ -21,7 +23,9 @@ export const Resolver = {
                 var res = await DB.User.findById(context.uid)!!
                 return {
                     id: res!!.id,
-                    name: "Some Name"
+                    name: res!!.firstName + " " + res!!.lastName,
+                    firstName: res!!.firstName,
+                    lastName: res!!.lastName
                 }
             }
         }
