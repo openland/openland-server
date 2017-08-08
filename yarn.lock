@@ -93,17 +93,17 @@
   version "0.0.4"
   resolved "https://registry.yarnpkg.com/@types/reflect-metadata/-/reflect-metadata-0.0.4.tgz#b6477ca9a97e5265f2ac67f9ea704eae5e0eaf4d"
 
-"@types/sequelize@4.0.60":
-  version "4.0.60"
-  resolved "https://registry.yarnpkg.com/@types/sequelize/-/sequelize-4.0.60.tgz#8774de81fb28416eb24e964efc8af0d755e0c732"
+"@types/sequelize@*", "@types/sequelize@^4.0.67":
+  version "4.0.67"
+  resolved "https://registry.yarnpkg.com/@types/sequelize/-/sequelize-4.0.67.tgz#e3bf56cbc9189ae2da5aa7b10c9ef2a3943d9d82"
   dependencies:
     "@types/bluebird" "*"
     "@types/lodash" "*"
     "@types/validator" "*"
 
-"@types/sequelize@^4.0.67":
-  version "4.0.67"
-  resolved "https://registry.yarnpkg.com/@types/sequelize/-/sequelize-4.0.67.tgz#e3bf56cbc9189ae2da5aa7b10c9ef2a3943d9d82"
+"@types/sequelize@4.0.60":
+  version "4.0.60"
+  resolved "https://registry.yarnpkg.com/@types/sequelize/-/sequelize-4.0.60.tgz#8774de81fb28416eb24e964efc8af0d755e0c732"
   dependencies:
     "@types/bluebird" "*"
     "@types/lodash" "*"
@@ -115,6 +115,12 @@
   dependencies:
     "@types/express-serve-static-core" "*"
     "@types/mime" "*"
+
+"@types/umzug@^1.8.32":
+  version "1.8.32"
+  resolved "https://registry.yarnpkg.com/@types/umzug/-/umzug-1.8.32.tgz#57cb1ed93f30fb77a06d78d316331e080a8f6cfb"
+  dependencies:
+    "@types/sequelize" "*"
 
 "@types/validator@*":
   version "6.2.1"
