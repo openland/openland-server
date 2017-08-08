@@ -1,17 +1,20 @@
 import * as db from './connector'
 import * as api from './api'
-import * as dev from './dev'
 
 async function init() {
   try {
     if (process.env.NODE_ENV == "development") {
       console.info("Connecting to database in DEVELOPMENT mode")
-      await db.connection.sync({ force: true })
-      await dev.InitSampleData()
+      try {
+        await db.migrate()
+        await db.connection.sync()
+      } catch (e) {
+        await db.connection.getQueryInterface().dropAllTables()
+        await db.migrate()
+      }
     } else {
       console.info("Connecting to database in RELEASE mode")
-      await db.connection.sync({ force: true })
-      await dev.InitSampleData()
+      await db.migrate()
     }
     console.info("Starting API endpoint")
     await api.default()
