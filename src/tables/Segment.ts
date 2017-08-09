@@ -11,7 +11,7 @@ export interface SegmentAttributes {
 
 export interface Segment extends sequelize.Instance<SegmentAttributes>, SegmentAttributes { }
 
-export const CityTable = connection.define<Segment, SegmentAttributes>('city', {
+export const SegmentTable = connection.define<Segment, SegmentAttributes>('segments', {
     id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
     name: { type: sequelize.STRING },
     city: {

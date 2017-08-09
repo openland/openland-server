@@ -18,7 +18,13 @@ export const Resolver = {
                 where: {
                     activated: true
                 }
-            }).map((city: { id: number, name: string, slug: string }) => { return { id: city.slug, name: city.name } })
+            }).map((city: { id: number, name: string, slug: string }) => {
+                return {
+                    _dbid: city.id,
+                    id: city.slug,
+                    name: city.name
+                }
+            })
         },
         city: async function (_: any, args: { id: string }) {
             var res = await DB.City.find({
@@ -29,6 +35,7 @@ export const Resolver = {
             })
             if (res != null) {
                 return {
+                    _dbid: res.id,
                     id: res.slug,
                     name: res.name
                 }
