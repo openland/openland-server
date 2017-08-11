@@ -14,9 +14,9 @@ export const Schema = `
 
     extend type Query {
         city(id: ID!): City
-        cities: [City]
+        cities: [City!]
 
-        adminCities: [AdminCity]
+        adminCities: [AdminCity!]
     }
 
     extend type Mutation {

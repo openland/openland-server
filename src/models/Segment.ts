@@ -5,14 +5,47 @@ export const Schema = `
         id: ID!
         name: String!
     }
+
+    type AdminProject {
+        id: ID!
+        name: String!
+        activated: Boolean!
+    }
+
     extend type City {
         segments: [Segment]
         segment(id: ID!): Segment
+    }
+
+    extend type Query {
+        adminProjects(city: ID!): [AdminProject!]
     }
 `
 
 
 export const Resolver = {
+
+    Query: {
+        adminProjects: async function (obj: any, args: { id: string }) {
+            var city = (await DB.City.findOne({
+                where: {
+                    slug: args.id
+                }
+            }))!!
+            return (await DB.Segment.findAll({
+                where: {
+                    city: city.id
+                }
+            })).map((src) => {
+                return {
+                    id: src.slug,
+                    name: src.name,
+                    activated: src.activated
+                }
+            })
+        }
+    },
+
     City: {
         segments: async function (city: { _dbid: number }) {
             return await DB.Segment.findAll({
