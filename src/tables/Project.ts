@@ -1,7 +1,7 @@
 import { connection } from '../connector';
 import * as sequelize from 'sequelize'
 
-export interface SegmentAttributes {
+export interface ProjectAttributes {
     id?: number;
     name?: string;
     city?: number;
@@ -9,9 +9,9 @@ export interface SegmentAttributes {
     activated?: boolean;
 }
 
-export interface Segment extends sequelize.Instance<SegmentAttributes>, SegmentAttributes { }
+export interface Project extends sequelize.Instance<ProjectAttributes>, ProjectAttributes { }
 
-export const SegmentTable = connection.define<Segment, SegmentAttributes>('segments', {
+export const ProjectTable = connection.define<Project, ProjectAttributes>('projects', {
     id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
     name: { type: sequelize.STRING },
     city: {

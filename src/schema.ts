@@ -2,7 +2,7 @@ import { makeExecutableSchema } from 'graphql-tools';
 import * as Voting from './models/Voting'
 import * as City from './models/City'
 import * as Me from './models/Me';
-import * as Segment from './models/Segment'
+import * as Project from './models/Project'
 import * as DataSet from './models/Dataset'
 import { merge } from 'lodash';
 import { Context } from './models/Context';
@@ -45,14 +45,14 @@ export const Schema = makeExecutableSchema({
     Voting.Schema,
     City.Schema,
     Me.Schema,
-    Segment.Schema,
+    Project.Schema,
     DataSet.Schema
   ],
   resolvers: merge(rootResolver,
     Voting.Resolver,
     City.Resolver,
     Me.Resolver,
-    Segment.Resolver,
+    Project.Resolver,
     DataSet.Resolver
   )
 })

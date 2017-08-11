@@ -8,13 +8,13 @@ export const Schema = `
         link: String!
     }
     enum DataSetKind { REPORT, DATASET }
-    extend type Segment {
-        datasets(kind: DataSetKind): [DataSet]
+    extend type Project {
+        datasets(kind: DataSetKind): [DataSet!]
     }
 `
 
 export const Resolver = {
-    Segment: {
+    Project: {
         async datasets(segment: { _dbid: number }, args: { kind?: string }) {
             var datasets = await DB.DataSet.findAll({
                 where: {

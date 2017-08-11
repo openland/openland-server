@@ -5,7 +5,7 @@ import { UserTable } from './User';
 import { VoteTable } from './Vote';
 import { UserVoteTable } from './UserVote';
 import { CityTable } from './City';
-import { SegmentTable } from './Segment';
+import { ProjectTable } from './Project';
 import { DataSetTable } from './DataSet';
 
 export const DB = {
@@ -13,7 +13,7 @@ export const DB = {
     Vote: VoteTable,
     UserVote: UserVoteTable,
     City: CityTable,
-    Segment: SegmentTable,
+    Project: ProjectTable,
     DataSet: DataSetTable,
 
     tx: async function tx<A>(handler: () => PromiseLike<A>): Promise<A> {

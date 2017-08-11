@@ -1,7 +1,7 @@
 import { DB } from '../tables'
 
 export const Schema = `
-    type Segment {
+    type Project {
         id: ID!
         name: String!
     }
@@ -13,8 +13,8 @@ export const Schema = `
     }
 
     extend type City {
-        segments: [Segment]
-        segment(id: ID!): Segment
+        projects: [Project!]
+        project(id: ID!): Project
     }
 
     extend type Query {
@@ -26,13 +26,13 @@ export const Schema = `
 export const Resolver = {
 
     Query: {
-        adminProjects: async function (obj: any, args: { id: string }) {
+        adminProjects: async function (obj: any, args: { city: string }) {
             var city = (await DB.City.findOne({
                 where: {
-                    slug: args.id
+                    slug: args.city
                 }
             }))!!
-            return (await DB.Segment.findAll({
+            return (await DB.Project.findAll({
                 where: {
                     city: city.id
                 }
@@ -47,22 +47,22 @@ export const Resolver = {
     },
 
     City: {
-        segments: async function (city: { _dbid: number }) {
-            return await DB.Segment.findAll({
+        projects: async function (city: { _dbid: number }) {
+            return (await DB.Project.findAll({
                 where: {
                     city: city._dbid,
                     activated: true
                 }
-            }).map((segment: { id: number, name: string, slug: string }) => {
+            })).map((project) => {
                 return {
-                    _dbid: segment.id,
-                    id: segment.slug,
-                    name: segment.name
+                    _dbid: project.id,
+                    id: project.slug,
+                    name: project.name
                 }
             })
         },
-        segment: async function (city: { _dbid: number }, args: { id: string }) {
-            var res = await DB.Segment.find({
+        project: async function (city: { _dbid: number }, args: { id: string }) {
+            var res = await DB.Project.find({
                 where: {
                     city: city._dbid,
                     slug: args.id,
