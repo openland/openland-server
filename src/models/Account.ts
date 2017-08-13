@@ -20,7 +20,7 @@ export const Schema = `
     }
 
     extend type Query {
-        account(id: String!): Account!
+        account(domain: String!): Account!
         admin: Admin!
     }
 
