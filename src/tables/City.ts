@@ -10,7 +10,7 @@ export interface CityAttributes {
 
 export interface City extends sequelize.Instance<CityAttributes>, CityAttributes { }
 
-export const CityTable = connection.define<City, CityAttributes>('city', {
+export const CityTable = connection.define<City, CityAttributes>('account', {
     id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
     name: { type: sequelize.STRING },
     slug: { type: sequelize.STRING, unique: true },

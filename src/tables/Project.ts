@@ -16,7 +16,7 @@ export const ProjectTable = connection.define<Project, ProjectAttributes>('proje
     name: { type: sequelize.STRING },
     city: {
         type: sequelize.INTEGER, references: {
-            model: 'cities',
+            model: 'accounts',
             key: 'id',
         }
     },

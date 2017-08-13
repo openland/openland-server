@@ -17,6 +17,7 @@ export const Schema = `
         cities: [City!]
 
         adminCities: [AdminCity!]
+        adminCity(id: ID!): AdminCity!
     }
 
     extend type Mutation {
@@ -49,6 +50,19 @@ export const Resolver = {
                     activated: city.activated
                 }
             })
+        },
+        adminCity: async function (_: any, args: { id: string }) {
+            var city = (await DB.City.findOne({
+                where: {
+                    slug: args.id
+                }
+            }))!!;
+            return {
+                _dbid: city.id,
+                id: city.slug,
+                name: city.name,
+                activated: city.activated
+            }
         },
         city: async function (_: any, args: { id: string }) {
             var res = await DB.City.find({
