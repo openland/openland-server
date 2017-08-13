@@ -31,6 +31,14 @@ const checkJwt = jwt({
 });
 
 async function context(src: express.Request): Promise<Context> {
+    var domain: string | undefined = undefined;
+    if (src.headers["x-statecraft-domain"]) {
+        domain = src.headers["x-statecraft-domain"] as string
+    }
+
+    var n = new Context();
+    n.domain = domain
+
     if (src.user != null && src.user != undefined) {
         var userKey = src.user.sub
         var exists = await DB.User.find({
@@ -39,12 +47,11 @@ async function context(src: express.Request): Promise<Context> {
             }
         })
         if (exists != null) {
-            return {
-                uid: exists.id!!
-            }
+            n.uid = exists.id!!
         }
     }
-    return {}
+
+    return n
 }
 
 async function handleRequest(req: express.Request): Promise<GraphQLOptions> {

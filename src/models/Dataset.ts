@@ -1,4 +1,6 @@
 import { DB } from '../tables'
+import { Context } from './Context';
+import { resolveAccountId } from './Account';
 
 export const Schema = `
     type DataSet {
@@ -6,20 +8,21 @@ export const Schema = `
         name: String!
         description: String!
         link: String!
-        kind: DataSetKind!
+        kind: String!
     }
-    enum DataSetKind { DOCUMENT, DATASET }
-    extend type Project {
-        datasets(kind: DataSetKind): [DataSet!]
+    extend type Query {
+        datasets(domain: String, kind: String): [DataSet!]
     }
 `
 
 export const Resolver = {
-    Project: {
-        async datasets(segment: { _dbid: number }, args: { kind?: string }) {
+    Query: {
+        async datasets(_: any, args: { domain?: string, kind?: string }, context: Context) {
+            var domain = context.resolveDomain(args.domain)
+            var accountId = await resolveAccountId(domain)
             var datasets = (await DB.DataSet.findAll({
                 where: {
-                    segment: segment._dbid
+                    account: accountId
                 }
             }))
 

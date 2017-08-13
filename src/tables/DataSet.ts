@@ -5,7 +5,7 @@ export interface DataSetAttributes {
     id?: number;
     name?: string;
     description?: string;
-    segment?: number;
+    account?: number;
     kind?: DataSetKind;
     activated?: boolean;
     link?: string;
@@ -13,7 +13,7 @@ export interface DataSetAttributes {
 
 export enum DataSetKind {
     DataSet = 'dataset',
-    Report = 'report'
+    Report = 'document'
 }
 
 export interface DataSet extends sequelize.Instance<DataSetAttributes>, DataSetAttributes { }
@@ -37,16 +37,16 @@ export const DataSetTable = connection.define<DataSet, DataSetAttributes>('datas
         type: sequelize.STRING,
         allowNull: false
     },
-    segment: {
+    account: {
         type: sequelize.INTEGER,
         references: {
-            model: 'segments',
+            model: 'accounts',
             key: 'id',
         },
         allowNull: false
     },
     kind: {
-        type: sequelize.ENUM(['dataset', 'report']),
+        type: sequelize.ENUM(['dataset', 'document']),
         allowNull: false
     },
     activated: {

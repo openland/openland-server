@@ -1,4 +1,5 @@
 import { DB, Account } from '../tables'
+import { Context } from './Context'
 
 export const Schema = `
     type Account {
@@ -20,7 +21,7 @@ export const Schema = `
     }
 
     extend type Query {
-        account(domain: String!): Account!
+        account(domain: String): Account!
         admin: Admin!
     }
 
@@ -43,13 +44,26 @@ function convertAccount(city: Account | undefined | null) {
     }
 }
 
+export async function resolveAccountId(domain: string) {
+    var res = (await DB.Account.findOne({
+        where: {
+            slug: domain
+        }
+    }))
+    if (res == null){
+        throw "Unable to find account " + domain
+    }
+    return res.id!!
+}
+
 export const Resolver = {
     Query: {
         admin: () => { return {} },
-        account: async function (_: any, args: { domain: string }) {
+        account: async function (_: any, args: { domain?: string }, context: Context) {
+            var domain = context.resolveDomain(args.domain)
             return convertAccount(await DB.Account.findOne({
                 where: {
-                    slug: args.domain,
+                    slug: domain,
                     activated: true
                 }
             }))
