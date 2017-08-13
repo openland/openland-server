@@ -9,19 +9,19 @@ export async function up(queryInterface: QueryInterface, dataTypes: DataTypes) {
         createdAt: { type: dataTypes.DATE },
         updatedAt: { type: dataTypes.DATE }
     })
-    await queryInterface.bulkInsert('cities', [{
-        name: "San Francisco",
-        slug: "sf",
-        activated: true,
-        createdAt: new Date(),
-        updatedAt: new Date()
-    }, {
-        name: "New York",
-        slug: "nyc",
-        activated: false,
-        createdAt: new Date(),
-        updatedAt: new Date()
-    }])
+    // await queryInterface.bulkInsert('cities', [{
+    //     name: "San Francisco",
+    //     slug: "sf",
+    //     activated: true,
+    //     createdAt: new Date(),
+    //     updatedAt: new Date()
+    // }, {
+    //     name: "New York",
+    //     slug: "nyc",
+    //     activated: false,
+    //     createdAt: new Date(),
+    //     updatedAt: new Date()
+    // }])
 }
 
 export async function down(queryInterface: QueryInterface, dataTypes: DataTypes) {

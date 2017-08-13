@@ -17,16 +17,16 @@ export async function up(queryInterface: QueryInterface, dataTypes: DataTypes) {
     })
 
     // Insert default segment
-    var city = await queryInterface.sequelize.query('SELECT id from cities WHERE slug = \'sf\'').any()
-    var id = (<any>city)[0].id as number
-    await queryInterface.bulkInsert('segments', [{
-        name: 'Housing',
-        slug: 'housing',
-        city: id,
-        activated: true,
-        createdAt: new Date(),
-        updatedAt: new Date()
-    }])
+    // var city = await queryInterface.sequelize.query('SELECT id from cities WHERE slug = \'sf\'').any()
+    // var id = (<any>city)[0].id as number
+    // await queryInterface.bulkInsert('segments', [{
+    //     name: 'Housing',
+    //     slug: 'housing',
+    //     city: id,
+    //     activated: true,
+    //     createdAt: new Date(),
+    //     updatedAt: new Date()
+    // }])
 }
 
 export async function down(queryInterface: QueryInterface, dataTypes: DataTypes) {
