@@ -6,14 +6,9 @@ export interface DataSetAttributes {
     name?: string;
     description?: string;
     account?: number;
-    kind?: DataSetKind;
+    kind?: string;
     activated?: boolean;
     link?: string;
-}
-
-export enum DataSetKind {
-    DataSet = 'dataset',
-    Report = 'document'
 }
 
 export interface DataSet extends sequelize.Instance<DataSetAttributes>, DataSetAttributes { }

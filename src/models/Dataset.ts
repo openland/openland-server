@@ -1,4 +1,4 @@
-import { DB } from '../tables'
+import { DB, DataSet } from '../tables'
 import { Context } from './Context';
 import { resolveAccountId } from './Account';
 
@@ -7,13 +7,35 @@ export const Schema = `
         id: ID!
         name: String!
         description: String!
-        link: String!
+        url: String!
         kind: String!
     }
     extend type Query {
         datasets(domain: String, kind: String): [DataSet!]
     }
+    extend type Mutation {
+        createDataset(domain: String, name: String!, url: String!, kind: String!, description: String!): DataSet!
+        alterDataset(id: ID!, newName: String, newUrl: String, newKind: String, newDescription: String): DataSet!
+        deleteDataset(id: ID!): ID
+    }
 `
+
+function convertDataset(dataset: DataSet) {
+    return {
+        _dbid: dataset.id,
+        id: dataset.id,
+        name: dataset.name,
+        description: dataset.description,
+        url: dataset.link,
+        kind: dataset.kind
+    }
+}
+
+function checkKind(kind: string) {
+    if (kind! in ["document", "dataset"]) {
+        throw "Kind " + kind + "is invalid"
+    }
+}
 
 export const Resolver = {
     Query: {
@@ -26,16 +48,60 @@ export const Resolver = {
                 }
             }))
 
-            return datasets.map((args) => {
-                return {
-                    _dbid: args.id,
-                    id: args.id,
-                    name: args.name,
-                    description: args.description,
-                    link: args.link,
-                    kind: args.kind
+            return datasets.map(convertDataset);
+        }
+    },
+    Mutation: {
+        createDataset: async (_: any, args: { domain: string, name: string, url: string, kind: string, description: string }, context: Context) => {
+            var domain = context.resolveDomain(args.domain)
+            var accountId = await resolveAccountId(domain)
+            checkKind(args.kind)
+            var created = await DB.DataSet.create({
+                name: args.name,
+                description: args.description,
+                account: accountId,
+                kind: args.kind,
+                link: args.url
+            })
+            return convertDataset(created)
+        },
+        alterDataset: async (_: any, args: { id: string, newName?: string, newUrl?: string, newKind?: string, newDescription?: string }, context: Context) => {
+            var updated = (await DB.DataSet.findOne({
+                where: {
+                    id: parseInt(args.id)
                 }
-            });
+            }))
+            if (updated == null) {
+                throw "Dataset not found"
+            }
+            if (args.newName != null) {
+                updated.name = args.newName
+            }
+            if (args.newUrl != null) {
+                updated.link = args.newUrl
+            }
+            if (args.newDescription != null) {
+                updated.description = args.newDescription
+            }
+            if (args.newKind != null) {
+                checkKind(args.newKind)
+                updated.kind = args.newKind
+            }
+            updated.save()
+            return convertDataset(updated)
+        },
+        deleteDataset: async (_: any, args: { id: string }) => {
+            var toDelete = (await DB.DataSet.findOne({
+                where: {
+                    id: parseInt(args.id)
+                }
+            }))
+            if (toDelete == null) {
+                return null
+            } else {
+                toDelete.destroy()
+                return args.id
+            }
         }
     }
 }
