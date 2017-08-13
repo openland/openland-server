@@ -12,7 +12,7 @@ export const Schema = `
         activated: Boolean!
     }
 
-    extend type City {
+    extend type Account {
         projects: [Project!]
         project(id: ID!): Project
     }
@@ -27,7 +27,7 @@ export const Resolver = {
 
     Query: {
         adminProjects: async function (obj: any, args: { city: string }) {
-            var city = (await DB.City.findOne({
+            var city = (await DB.Account.findOne({
                 where: {
                     slug: args.city
                 }
@@ -46,7 +46,7 @@ export const Resolver = {
         }
     },
 
-    City: {
+    Account: {
         projects: async function (city: { _dbid: number }) {
             return (await DB.Project.findAll({
                 where: {

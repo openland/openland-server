@@ -10,7 +10,6 @@ export const Schema = `
         picture: String!
     }
     extend type Query {
-        city(id: ID!): City
         me: User
     }
 `

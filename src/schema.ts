@@ -1,6 +1,6 @@
 import { makeExecutableSchema } from 'graphql-tools';
 import * as Voting from './models/Voting'
-import * as City from './models/City'
+import * as Account from './models/Account'
 import * as Me from './models/Me';
 import * as Project from './models/Project'
 import * as DataSet from './models/Dataset'
@@ -43,14 +43,14 @@ export const Schema = makeExecutableSchema({
   typeDefs: [
     RootQuery, RootMutation, SchemaDefinition,
     Voting.Schema,
-    City.Schema,
+    Account.Schema,
     Me.Schema,
     Project.Schema,
     DataSet.Schema
   ],
   resolvers: merge(rootResolver,
     Voting.Resolver,
-    City.Resolver,
+    Account.Resolver,
     Me.Resolver,
     Project.Resolver,
     DataSet.Resolver
