@@ -12,7 +12,7 @@ export const Schema = `
     }
     extend type Query {
         projects(domain: String, showDeactivated: Boolean): [Project!]
-        project(domain: String, slug: String!): Project
+        project(domain: String, slug: String!): Project!
     }
     extend type Mutation {
         createProject(domain: String, name: String!, slug: String!): Project!
@@ -63,7 +63,7 @@ export const Resolver = {
             if (res != null) {
                 return convertProject(res)
             } else {
-                return null
+                throw "Unable to find project"
             }
         }
     },
