@@ -30,4 +30,11 @@ export async function createEmptyData() {
         kind: 'dataset',
         activated: true
     })
+
+    await DB.Project.create({
+        account: sf.id,
+        name: "Building Permits",
+        slug: "housing",
+        activated: true
+    })
 }

@@ -4,7 +4,7 @@ import * as sequelize from 'sequelize'
 export interface ProjectAttributes {
     id?: number;
     name?: string;
-    city?: number;
+    account?: number;
     slug?: string;
     activated?: boolean;
 }
@@ -14,7 +14,7 @@ export interface Project extends sequelize.Instance<ProjectAttributes>, ProjectA
 export const ProjectTable = connection.define<Project, ProjectAttributes>('projects', {
     id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
     name: { type: sequelize.STRING },
-    city: {
+    account: {
         type: sequelize.INTEGER, references: {
             model: 'accounts',
             key: 'id',
