@@ -3,13 +3,21 @@ import { Context } from './Context';
 import { resolveAccountId } from './Account';
 
 export const Schema = `
+    
     type Project {
         id: ID!
         name: String!
         slug: String!
         activated: Boolean!
         isOpen: Boolean!
+        events: [Event!]!
     }
+
+    type Event {
+        id: ID!
+        title: String!
+    }
+
     extend type Query {
         projects(domain: String, showDeactivated: Boolean): [Project!]
         project(domain: String, slug: String!): Project!
@@ -25,7 +33,8 @@ function convertProject(project: Project) {
         id: project.id,
         slug: project.slug,
         name: project.name,
-        isOpen: true
+        isOpen: true,
+        events: []
     }
 }
 

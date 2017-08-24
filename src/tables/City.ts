@@ -6,6 +6,7 @@ export interface AccountAttributes {
     name?: string;
     slug?: string;
     activated?: boolean;
+    city?: string;
 }
 
 export interface Account extends sequelize.Instance<AccountAttributes>, AccountAttributes { }
@@ -14,5 +15,6 @@ export const AccountTable = connection.define<Account, AccountAttributes>('accou
     id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
     name: { type: sequelize.STRING },
     slug: { type: sequelize.STRING, unique: true },
-    activated: { type: sequelize.BOOLEAN, defaultValue: false }
+    activated: { type: sequelize.BOOLEAN, defaultValue: false },
+    city: { type: sequelize.STRING, allowNull: true },
 })

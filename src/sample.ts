@@ -13,7 +13,8 @@ export async function createEmptyData() {
 
     var sf = await DB.Account.create({
         slug: "sf",
-        name: "San Francisco Housing",
+        name: "Housing",
+        city: "San Francisco",
         activated: true
     })
     await DB.Account.create({

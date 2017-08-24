@@ -6,12 +6,14 @@ export const Schema = `
         id: ID!
         domain: String!
         name: String!
+        city: String
     }
 
     type AdminAccount {
         id: ID!
         domain: String!
         name: String!
+        city: String
         activated: Boolean!
     }
 
@@ -26,21 +28,22 @@ export const Schema = `
     }
 
     extend type Mutation {
-        adminCreateAccount(domain: String!, name: String!): AdminAccount
-        adminAlterAccount(domain: String!, newName: String, newActivated: Boolean, newDomain: String): AdminAccount
+        adminCreateAccount(domain: String!, name: String!, city: String): AdminAccount
+        adminAlterAccount(domain: String!, newName: String, newActivated: Boolean, newDomain: String, newCity: String): AdminAccount
     }
 `
 
-function convertAccount(city: Account | undefined | null) {
-    if (city == null || city == undefined) {
+function convertAccount(account: Account | undefined | null) {
+    if (account == null || account == undefined) {
         return null
     }
     return {
-        _dbid: city.id,
-        id: city.id,
-        domain: city.slug,
-        name: city.name,
-        activated: city.activated
+        _dbid: account.id,
+        id: account.id,
+        domain: account.slug,
+        name: account.name,
+        activated: account.activated,
+        city: account.city
     }
 }
 
@@ -50,7 +53,7 @@ export async function resolveAccountId(domain: string) {
             slug: domain
         }
     }))
-    if (res == null){
+    if (res == null) {
         throw "Unable to find account " + domain
     }
     return res.id!!
@@ -80,13 +83,14 @@ export const Resolver = {
         }
     },
     Mutation: {
-        adminCreateAccount: async function (_: any, args: { domain: string, name: string }) {
+        adminCreateAccount: async function (_: any, args: { domain: string, name: string, city: string }) {
             return convertAccount(await DB.Account.create({
                 slug: args.domain,
-                name: args.name
+                name: args.name,
+                city: args.city
             }));
         },
-        adminAlterAccount: async function (_: any, args: { domain: string, newName?: string, newActivated?: boolean, newDomain?: string }) {
+        adminAlterAccount: async function (_: any, args: { domain: string, newName?: string, newActivated?: boolean, newDomain?: string, newCity?: string }) {
             var res = (await DB.Account.findOne({
                 where: {
                     slug: args.domain.toLowerCase()
@@ -100,6 +104,13 @@ export const Resolver = {
             }
             if (args.newDomain != null) {
                 res.slug = args.newDomain.toLowerCase()
+            }
+            if (args.newCity != null) {
+                if (args.newCity === '') {
+                    res.city = undefined
+                } else {
+                    res.city = args.newCity
+                }
             }
             res.save()
             return convertAccount(res)
