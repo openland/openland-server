@@ -4,6 +4,7 @@ import * as Account from './models/Account'
 import * as Me from './models/Me';
 import * as Project from './models/Project'
 import * as DataSet from './models/Dataset'
+import * as Findings from './models/Findings'
 import { merge } from 'lodash';
 import { Context } from './models/Context';
 
@@ -46,13 +47,15 @@ export const Schema = makeExecutableSchema({
     Account.Schema,
     Me.Schema,
     Project.Schema,
-    DataSet.Schema
+    DataSet.Schema,
+    Findings.Schema
   ],
   resolvers: merge(rootResolver,
     Voting.Resolver,
     Account.Resolver,
     Me.Resolver,
     Project.Resolver,
-    DataSet.Resolver
+    DataSet.Resolver,
+    Findings.Resolver
   )
 })
