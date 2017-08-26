@@ -94,7 +94,7 @@ export const Resolver = {
                 slug: args.slug,
                 activated: true,
                 description: args.description,
-                into: args.intro,
+                intro: args.intro,
                 findings: args.findings
             }))
             return convertProject(res)
@@ -116,13 +116,25 @@ export const Resolver = {
                 res.slug = args.slug
             }
             if (args.description != null) {
-                res.description = args.description
+                if (args.description === '') {
+                    res.description = undefined
+                } else {
+                    res.description = args.description;
+                }
             }
             if (args.intro != null) {
-                res.intro = args.intro
+                if (args.intro === '') {
+                    res.intro = undefined
+                } else {
+                    res.intro = args.intro;
+                }
             }
             if (args.findings != null) {
-                res.findings = args.findings
+                if (args.findings === '') {
+                    res.findings = undefined;
+                } else {
+                    res.findings = args.findings;
+                }
             }
             await res.save()
             return convertProject(res)
