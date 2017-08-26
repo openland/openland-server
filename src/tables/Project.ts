@@ -25,7 +25,7 @@ export const ProjectTable = connection.define<Project, ProjectAttributes>('proje
     },
     slug: { type: sequelize.STRING, unique: true },
     activated: { type: sequelize.BOOLEAN, defaultValue: false },
-    description: { type: sequelize.STRING, allowNull: true },
+    description: { type: sequelize.STRING(65536), allowNull: true },
     intro: { type: sequelize.STRING, allowNull: true },
     findings: { type: sequelize.STRING, allowNull: true },
 })

@@ -95,7 +95,10 @@ export const Resolver = {
                 where: {
                     slug: args.domain.toLowerCase()
                 }
-            }))!!
+            }))
+            if (res == null) {
+                throw "Unable to find account"
+            }
             if (args.newName != null) {
                 res.name = args.newName
             }
