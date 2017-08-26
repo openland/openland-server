@@ -11,6 +11,10 @@ export const Schema = `
         activated: Boolean!
         isOpen: Boolean!
         events: [Event!]!
+        email: String
+        description: String
+        findings: String
+        intro: String
     }
 
     type Event {
@@ -23,7 +27,8 @@ export const Schema = `
         project(domain: String, slug: String!): Project!
     }
     extend type Mutation {
-        createProject(domain: String, name: String!, slug: String!): Project!
+        createProject(domain: String, name: String!, slug: String!, description: String, findings: String, intro: String): Project!
+        alterProject(id: ID!, name: String, slug: String, description: String, findings: String, intro: String): Project!
     }
 `
 
@@ -34,7 +39,10 @@ function convertProject(project: Project) {
         slug: project.slug,
         name: project.name,
         isOpen: true,
-        events: []
+        events: [],
+        intro: project.intro,
+        description: project.description,
+        findings: project.findings
     }
 }
 
@@ -77,15 +85,46 @@ export const Resolver = {
         }
     },
     Mutation: {
-        createProject: async function (_: any, args: { domain?: string, name: string, slug: string }, context: Context) {
+        createProject: async function (_: any, args: { domain?: string, name: string, slug: string, description?: string, intro?: string, findings?: string }, context: Context) {
             var domain = context.resolveDomain(args.domain)
             var accountId = await resolveAccountId(domain)
             var res = (await DB.Project.create({
                 account: accountId,
                 name: args.name,
                 slug: args.slug,
-                activated: true
+                activated: true,
+                description: args.description,
+                into: args.intro,
+                findings: args.findings
             }))
+            return convertProject(res)
+        },
+
+        alterProject: async function (_: any, args: { id: string, name?: string, slug?: string, description?: string, intro?: string, findings?: string }, context: Context) {
+            var res = await DB.Project.findOne({
+                where: {
+                    id: args.id
+                }
+            });
+            if (res == null) {
+                throw "Unable to find project"
+            }
+            if (args.name != null) {
+                res.name = args.name
+            }
+            if (args.slug != null) {
+                res.slug = args.slug
+            }
+            if (args.description != null) {
+                res.description = args.description
+            }
+            if (args.intro != null) {
+                res.intro = args.intro
+            }
+            if (args.findings != null) {
+                res.findings = args.findings
+            }
+            await res.save()
             return convertProject(res)
         }
     }
