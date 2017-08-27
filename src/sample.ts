@@ -23,14 +23,27 @@ export async function createEmptyData() {
         activated: true
     })
 
-    await DB.DataSet.create({
-        name: 'Housing Element 2014',
-        description: 'Complete 200+ pages report that have all information about housing research in SF government',
-        link: 'http://208.121.200.84/ftp/files/plans-and-programs/planning-for-the-city/housing-element/2014HousingElement-AllParts_ADOPTED_web.pdf',
-        account: sf.id,
-        kind: 'dataset',
-        activated: true
-    })
+    for (let i = 0; i < 10; i++) {
+        await DB.DataSet.create({
+            name: 'Housing Element 2014',
+            description: 'Complete 200+ pages report that have all information about housing research in SF government',
+            link: 'http://208.121.200.84/ftp/files/plans-and-programs/planning-for-the-city/housing-element/2014HousingElement-AllParts_ADOPTED_web.pdf',
+            account: sf.id,
+            kind: 'dataset',
+            activated: true
+        })
+    }
+
+    for (let i = 0; i < 10; i++) {
+        await DB.DataSet.create({
+            name: 'Housing Element 2014',
+            description: 'Complete 200+ pages report that have all information about housing research in SF government',
+            link: 'http://208.121.200.84/ftp/files/plans-and-programs/planning-for-the-city/housing-element/2014HousingElement-AllParts_ADOPTED_web.pdf',
+            account: sf.id,
+            kind: 'document',
+            activated: true
+        })
+    }
 
     await DB.Project.create({
         account: sf.id!!,
@@ -45,6 +58,7 @@ export async function createEmptyData() {
         account: sf.id!!,
         title: "San Francisco Housing",
         intro: "Blah blah blah",
-        description: "Some description"
+        description: "Some description",
+        recomendations: "Some findings"
     })
 }
