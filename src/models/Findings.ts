@@ -7,6 +7,8 @@ export const Schema = `
         id: ID!
         title: String!
         intro: String!
+        description: String
+        recomendations: String
     }
 
     extend type Query {
@@ -15,7 +17,7 @@ export const Schema = `
 
     extend type Mutation {
         createFindings(domain: String, title: String!, intro: String!): Findings
-        alterFindings(domain: String, newTitle: String, newIntro: String): Findings
+        alterFindings(domain: String, title: String, intro: String, description: String, recomendations: String): Findings
     }
 `
 
@@ -24,7 +26,9 @@ function convertFindings(findings: Findings) {
         _dbid: findings.id,
         id: findings.id,
         intro: findings.intro,
-        title: findings.title
+        title: findings.title,
+        description: findings.description,
+        recomendations: findings.recomendations
     }
 }
 
@@ -55,7 +59,7 @@ export const Resolver = {
             })
             return convertFindings(res)
         },
-        alterFindings: async function (_: any, args: { domain?: string, newTitle?: string, newIntro?: string }, context: Context) {
+        alterFindings: async function (_: any, args: { domain?: string, title?: string, intro?: string, description?: string, recomendations?: string }, context: Context) {
             var domain = context.resolveDomain(args.domain)
             var accountId = await resolveAccountId(domain)
             var res = await DB.Findings.findOne({
@@ -66,11 +70,17 @@ export const Resolver = {
             if (res == null) {
                 throw "Unable to find Findings"
             }
-            if (args.newIntro != null) {
-                res.intro = args.newIntro
+            if (args.intro != null) {
+                res.intro = args.intro
             }
-            if (args.newTitle != null) {
-                res.title = args.newTitle
+            if (args.title != null) {
+                res.title = args.title
+            }
+            if (args.description != null) {
+                res.description = args.description
+            }
+            if (args.recomendations != null) {
+                res.recomendations = args.recomendations
             }
             await res.save()
             return convertFindings(res)

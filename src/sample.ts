@@ -40,4 +40,11 @@ export async function createEmptyData() {
         outputs: '[]',
         sources: '[]'
     })
+
+    await DB.Findings.create({
+        account: sf.id!!,
+        title: "San Francisco Housing",
+        intro: "Blah blah blah",
+        description: "Some description"
+    })
 }

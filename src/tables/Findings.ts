@@ -6,6 +6,8 @@ export interface FindigsAttributes {
     account: number;
     intro: string;
     title: string;
+    description?: string;
+    recomendations?: string;
 }
 
 export interface Findings extends sequelize.Instance<FindigsAttributes>, FindigsAttributes { }
@@ -22,4 +24,6 @@ export const FindingsTable = connection.define<Findings, FindigsAttributes>('fin
     },
     intro: { type: sequelize.STRING, allowNull: false },
     title: { type: sequelize.STRING, allowNull: false },
+    description: { type: sequelize.STRING(65536), allowNull: true },
+    recomendations: { type: sequelize.STRING(65536), allowNull: true }
 })
