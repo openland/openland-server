@@ -36,6 +36,8 @@ export async function createEmptyData() {
         account: sf.id!!,
         name: "Building Permits",
         slug: "housing",
-        activated: true
+        activated: true,
+        outputs: '[]',
+        sources: '[]'
     })
 }
