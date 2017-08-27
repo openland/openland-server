@@ -4,6 +4,16 @@ import { resolveAccountId } from './Account';
 
 export const Schema = `
     
+    input LinkInput {
+        title: String!
+        url: String!
+    }
+
+    type Link {
+        title: String!
+        url: String!
+    }
+
     type Project {
         id: ID!
         name: String!
@@ -15,6 +25,8 @@ export const Schema = `
         description: String
         findings: String
         intro: String
+        sources: [Link!]!
+        outputs: [Link!]!
     }
 
     type Event {
@@ -28,9 +40,22 @@ export const Schema = `
     }
     extend type Mutation {
         createProject(domain: String, name: String!, slug: String!, description: String, findings: String, intro: String): Project!
-        alterProject(id: ID!, name: String, slug: String, description: String, findings: String, intro: String): Project!
+        alterProject(id: ID!, name: String, slug: String, description: String, findings: String, intro: String, outputs: [LinkInput!], sources: [LinkInput!]): Project!
     }
 `
+
+interface LinkRef {
+    title: string;
+    url: string;
+}
+
+function parseLinks(src: string): LinkRef[] {
+    return JSON.parse(src) as LinkRef[];
+}
+
+function saveLinks(links: LinkRef[]): string {
+    return JSON.stringify(links);
+}
 
 function convertProject(project: Project) {
     return {
@@ -42,7 +67,9 @@ function convertProject(project: Project) {
         events: [],
         intro: project.intro,
         description: project.description,
-        findings: project.findings
+        findings: project.findings,
+        sources: parseLinks(project.sources),
+        outputs: parseLinks(project.outputs)
     }
 }
 
@@ -95,12 +122,14 @@ export const Resolver = {
                 activated: true,
                 description: args.description,
                 intro: args.intro,
-                findings: args.findings
+                findings: args.findings,
+                outputs: saveLinks([]),
+                sources: saveLinks([]),
             }))
             return convertProject(res)
         },
 
-        alterProject: async function (_: any, args: { id: string, name?: string, slug?: string, description?: string, intro?: string, findings?: string }, context: Context) {
+        alterProject: async function (_: any, args: { id: string, name?: string, slug?: string, description?: string, intro?: string, findings?: string, outputs?: [LinkRef], sources?: [LinkRef] }, context: Context) {
             var res = await DB.Project.findOne({
                 where: {
                     id: args.id
@@ -135,6 +164,12 @@ export const Resolver = {
                 } else {
                     res.findings = args.findings;
                 }
+            }
+            if (args.outputs != null) {
+                res.outputs = saveLinks(args.outputs)
+            }
+            if (args.sources != null) {
+                res.sources = saveLinks(args.sources)
             }
             await res.save()
             return convertProject(res)

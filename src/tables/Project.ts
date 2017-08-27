@@ -10,6 +10,8 @@ export interface ProjectAttributes {
     description?: string;
     intro?: string;
     findings?: string;
+    outputs: string;
+    sources: string;
 }
 
 export interface Project extends sequelize.Instance<ProjectAttributes>, ProjectAttributes { }
@@ -28,4 +30,6 @@ export const ProjectTable = connection.define<Project, ProjectAttributes>('proje
     description: { type: sequelize.STRING(65536), allowNull: true },
     intro: { type: sequelize.STRING, allowNull: true },
     findings: { type: sequelize.STRING, allowNull: true },
+    outputs: { type: sequelize.STRING, allowNull: false, defaultValue: "[]" },
+    sources: { type: sequelize.STRING, allowNull: false, defaultValue: "[]" }
 })
