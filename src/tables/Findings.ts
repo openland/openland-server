@@ -22,7 +22,7 @@ export const FindingsTable = connection.define<Findings, FindigsAttributes>('fin
         },
         unique: true
     },
-    intro: { type: sequelize.STRING, allowNull: false },
+    intro: { type: sequelize.STRING(65536), allowNull: false },
     title: { type: sequelize.STRING, allowNull: false },
     description: { type: sequelize.STRING(65536), allowNull: true },
     recomendations: { type: sequelize.STRING(65536), allowNull: true }
