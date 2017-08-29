@@ -9,13 +9,14 @@ export const Schema = `
         description: String!
         url: String!
         kind: String!
+        group: String
     }
     extend type Query {
         datasets(domain: String, kind: String): [DataSet!]
     }
     extend type Mutation {
-        createDataset(domain: String, name: String!, url: String!, kind: String!, description: String!): DataSet!
-        alterDataset(id: ID!, newName: String, newUrl: String, newKind: String, newDescription: String): DataSet!
+        createDataset(domain: String, name: String!, url: String!, kind: String!, description: String!, group: String): DataSet!
+        alterDataset(id: ID!, newName: String, newUrl: String, newKind: String, newDescription: String, newGroup: String): DataSet!
         deleteDataset(id: ID!): ID
     }
 `
@@ -27,12 +28,13 @@ function convertDataset(dataset: DataSet) {
         name: dataset.name,
         description: dataset.description,
         url: dataset.link,
-        kind: dataset.kind
+        kind: dataset.kind,
+        group: dataset.group
     }
 }
 
 function checkKind(kind: string) {
-    if (kind! in ["document", "dataset"]) {
+    if (!(kind in ["document", "dataset", "link", "data-need"])) {
         throw "Kind " + kind + "is invalid"
     }
 }
@@ -52,7 +54,7 @@ export const Resolver = {
         }
     },
     Mutation: {
-        createDataset: async (_: any, args: { domain: string, name: string, url: string, kind: string, description: string }, context: Context) => {
+        createDataset: async (_: any, args: { domain: string, name: string, url: string, kind: string, description: string, group?: string }, context: Context) => {
             var domain = context.resolveDomain(args.domain)
             var accountId = await resolveAccountId(domain)
             checkKind(args.kind)
@@ -65,7 +67,7 @@ export const Resolver = {
             })
             return convertDataset(created)
         },
-        alterDataset: async (_: any, args: { id: string, newName?: string, newUrl?: string, newKind?: string, newDescription?: string }, context: Context) => {
+        alterDataset: async (_: any, args: { id: string, newName?: string, newUrl?: string, newKind?: string, newDescription?: string, newGroup?: string }, context: Context) => {
             var updated = (await DB.DataSet.findOne({
                 where: {
                     id: parseInt(args.id)
@@ -87,7 +89,10 @@ export const Resolver = {
                 checkKind(args.newKind)
                 updated.kind = args.newKind
             }
-            updated.save()
+            if (args.newGroup != null) {
+                updated.group = args.newGroup
+            }
+            await updated.save()
             return convertDataset(updated)
         },
         deleteDataset: async (_: any, args: { id: string }) => {

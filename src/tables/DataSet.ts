@@ -9,6 +9,7 @@ export interface DataSetAttributes {
     kind?: string;
     activated?: boolean;
     link?: string;
+    group?: string;
 }
 
 export interface DataSet extends sequelize.Instance<DataSetAttributes>, DataSetAttributes { }
@@ -48,5 +49,9 @@ export const DataSetTable = connection.define<DataSet, DataSetAttributes>('datas
         type: sequelize.BOOLEAN,
         defaultValue: false,
         allowNull: false
+    },
+    group: {
+        type: sequelize.STRING,
+        allowNull: true
     }
 })

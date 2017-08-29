@@ -36,12 +36,13 @@ export async function createEmptyData() {
 
     for (let i = 0; i < 10; i++) {
         await DB.DataSet.create({
-            name: 'Housing Element 2014',
+            name: '2014',
             description: 'Complete 200+ pages report that have all information about housing research in SF government',
             link: 'http://208.121.200.84/ftp/files/plans-and-programs/planning-for-the-city/housing-element/2014HousingElement-AllParts_ADOPTED_web.pdf',
             account: sf.id,
             kind: 'document',
-            activated: true
+            activated: true,
+            group: 'Housing Element'
         })
     }
 
