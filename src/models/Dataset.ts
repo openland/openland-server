@@ -34,7 +34,7 @@ function convertDataset(dataset: DataSet) {
 }
 
 function checkKind(kind: string) {
-    if (!(kind in ["document", "dataset", "link", "data-need"])) {
+    if (["document", "dataset", "link", "data-need"].indexOf(kind) < 0) {
         throw "Kind " + kind + "is invalid"
     }
 }
