@@ -52,7 +52,18 @@ export async function createEmptyData() {
         slug: "housing",
         activated: true,
         outputs: '[]',
-        sources: '[]'
+        sources: '[]',
+        isPrivate: false
+    })
+
+    await DB.Project.create({
+        account: sf.id!!,
+        name: "Building Production",
+        slug: "prod",
+        activated: true,
+        outputs: '[]',
+        sources: '[]',
+        isPrivate: true
     })
 
     await DB.Findings.create({

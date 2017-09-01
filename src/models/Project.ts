@@ -19,19 +19,14 @@ export const Schema = `
         name: String!
         slug: String!
         activated: Boolean!
-        isOpen: Boolean!
-        events: [Event!]!
-        email: String
+        isPrivate: Boolean!
+
         description: String
         findings: String
         intro: String
+        
         sources: [Link!]!
         outputs: [Link!]!
-    }
-
-    type Event {
-        id: ID!
-        title: String!
     }
 
     extend type Query {
@@ -58,18 +53,31 @@ function saveLinks(links: LinkRef[]): string {
 }
 
 function convertProject(project: Project) {
-    return {
-        _dbid: project.id,
-        id: project.id,
-        slug: project.slug,
-        name: project.name,
-        isOpen: true,
-        events: [],
-        intro: project.intro,
-        description: project.description,
-        findings: project.findings,
-        sources: parseLinks(project.sources),
-        outputs: parseLinks(project.outputs)
+    console.warn(project.isPrivate)
+    if (project.isPrivate) {
+        return {
+            _dbid: project.id,
+            id: project.id,
+            slug: project.slug,
+            name: project.name,
+            intro: project.intro,
+            sources: [],
+            outputs: [],
+            isPrivate: false,
+        }
+    } else {
+        return {
+            _dbid: project.id,
+            id: project.id,
+            slug: project.slug,
+            name: project.name,
+            intro: project.intro,
+            description: project.description,
+            findings: project.findings,
+            sources: parseLinks(project.sources),
+            outputs: parseLinks(project.outputs),
+            isPrivate: true
+        }
     }
 }
 
@@ -125,6 +133,7 @@ export const Resolver = {
                 findings: args.findings,
                 outputs: saveLinks([]),
                 sources: saveLinks([]),
+                isPrivate: false,
             }))
             return convertProject(res)
         },
