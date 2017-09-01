@@ -35,7 +35,7 @@ export const Schema = `
     }
     extend type Mutation {
         createProject(domain: String, name: String!, slug: String!, description: String, findings: String, intro: String): Project!
-        alterProject(id: ID!, name: String, slug: String, description: String, findings: String, intro: String, outputs: [LinkInput!], sources: [LinkInput!]): Project!
+        alterProject(id: ID!, name: String, slug: String, description: String, findings: String, intro: String, outputs: [LinkInput!], sources: [LinkInput!], isPrivate: Boolean): Project!
     }
 `
 
@@ -138,7 +138,7 @@ export const Resolver = {
             return convertProject(res)
         },
 
-        alterProject: async function (_: any, args: { id: string, name?: string, slug?: string, description?: string, intro?: string, findings?: string, outputs?: [LinkRef], sources?: [LinkRef] }, context: Context) {
+        alterProject: async function (_: any, args: { id: string, name?: string, slug?: string, description?: string, intro?: string, findings?: string, outputs?: [LinkRef], sources?: [LinkRef], isPrivate?: boolean }, context: Context) {
             var res = await DB.Project.findOne({
                 where: {
                     id: args.id
@@ -179,6 +179,9 @@ export const Resolver = {
             }
             if (args.sources != null) {
                 res.sources = saveLinks(args.sources)
+            }
+            if (args.isPrivate != null) {
+                res.isPrivate = args.isPrivate
             }
             await res.save()
             return convertProject(res)
