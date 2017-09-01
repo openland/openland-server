@@ -45,6 +45,14 @@ export async function createEmptyData() {
             group: 'Housing Element'
         })
     }
+    await DB.DataSet.create({
+        name: '2014 Q1',
+        description: 'Complete 200+ pages report that have all information about housing research in SF government',
+        link: 'http://208.121.200.84/ftp/files/plans-and-programs/planning-for-the-city/housing-element/2014HousingElement-AllParts_ADOPTED_web.pdf',
+        account: sf.id,
+        kind: 'document',
+        activated: true,
+    })
 
     await DB.Project.create({
         account: sf.id!!,
