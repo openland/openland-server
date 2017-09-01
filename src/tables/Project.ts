@@ -13,6 +13,7 @@ export interface ProjectAttributes {
     outputs: string;
     sources: string;
     isPrivate: boolean;
+    sorting?: string;
 }
 
 export interface Project extends sequelize.Instance<ProjectAttributes>, ProjectAttributes { }
@@ -33,5 +34,6 @@ export const ProjectTable = connection.define<Project, ProjectAttributes>('proje
     findings: { type: sequelize.STRING, allowNull: true },
     outputs: { type: sequelize.STRING, allowNull: false, defaultValue: "[]" },
     sources: { type: sequelize.STRING, allowNull: false, defaultValue: "[]" },
-    isPrivate: { type: sequelize.BOOLEAN, allowNull: false, defaultValue: false }
+    isPrivate: { type: sequelize.BOOLEAN, allowNull: false, defaultValue: false },
+    sorting: { type: sequelize.STRING, allowNull: true }
 })

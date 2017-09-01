@@ -27,6 +27,8 @@ export const Schema = `
         
         sources: [Link!]!
         outputs: [Link!]!
+
+        sortKey: String
     }
 
     extend type Query {
@@ -35,7 +37,7 @@ export const Schema = `
     }
     extend type Mutation {
         createProject(domain: String, name: String!, slug: String!, description: String, findings: String, intro: String): Project!
-        alterProject(id: ID!, name: String, slug: String, description: String, findings: String, intro: String, outputs: [LinkInput!], sources: [LinkInput!], isPrivate: Boolean): Project!
+        alterProject(id: ID!, name: String, slug: String, description: String, findings: String, intro: String, outputs: [LinkInput!], sources: [LinkInput!], isPrivate: Boolean, sortKey: String): Project!
     }
 `
 
@@ -63,6 +65,7 @@ function convertProject(project: Project) {
             intro: project.intro,
             sources: [],
             outputs: [],
+            sortKey: project.sorting,
             isPrivate: true,
         }
     } else {
@@ -76,6 +79,7 @@ function convertProject(project: Project) {
             findings: project.findings,
             sources: parseLinks(project.sources),
             outputs: parseLinks(project.outputs),
+            sortKey: project.sorting,
             isPrivate: false
         }
     }
@@ -91,14 +95,22 @@ export const Resolver = {
                 return (await DB.Project.findAll({
                     where: {
                         account: accountId
-                    }
+                    },
+                    order: [
+                        ['sorting', 'ASC'],
+                        ['name', 'ASC']
+                    ]
                 })).map(convertProject)
             } else {
                 return (await DB.Project.findAll({
                     where: {
                         account: accountId,
                         activated: true
-                    }
+                    },
+                    order: [
+                        ['sorting', 'ASC'],
+                        ['name', 'ASC']
+                    ]
                 })).map(convertProject)
             }
         },
@@ -138,7 +150,7 @@ export const Resolver = {
             return convertProject(res)
         },
 
-        alterProject: async function (_: any, args: { id: string, name?: string, slug?: string, description?: string, intro?: string, findings?: string, outputs?: [LinkRef], sources?: [LinkRef], isPrivate?: boolean }, context: Context) {
+        alterProject: async function (_: any, args: { id: string, name?: string, slug?: string, description?: string, intro?: string, findings?: string, outputs?: [LinkRef], sources?: [LinkRef], isPrivate?: boolean, sortKey?: string }, context: Context) {
             var res = await DB.Project.findOne({
                 where: {
                     id: args.id
@@ -182,6 +194,9 @@ export const Resolver = {
             }
             if (args.isPrivate != null) {
                 res.isPrivate = args.isPrivate
+            }
+            if (args.sortKey != null) {
+                res.sorting = args.sortKey
             }
             await res.save()
             return convertProject(res)
