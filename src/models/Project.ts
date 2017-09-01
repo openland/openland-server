@@ -63,7 +63,7 @@ function convertProject(project: Project) {
             intro: project.intro,
             sources: [],
             outputs: [],
-            isPrivate: false,
+            isPrivate: true,
         }
     } else {
         return {
@@ -76,7 +76,7 @@ function convertProject(project: Project) {
             findings: project.findings,
             sources: parseLinks(project.sources),
             outputs: parseLinks(project.outputs),
-            isPrivate: true
+            isPrivate: false
         }
     }
 }
