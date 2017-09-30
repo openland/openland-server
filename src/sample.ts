@@ -59,7 +59,7 @@ export async function createEmptyData() {
         name: "Building Permits",
         slug: "housing",
         activated: true,
-        outputs: '[]',
+        outputs: '[{"url":"https://github.com", "title": "Some Outputs"}]',
         sources: '[]',
         isPrivate: false
     })
