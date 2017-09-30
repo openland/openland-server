@@ -54,7 +54,7 @@ export async function resolveAccountId(domain: string) {
         }
     }))
     if (res == null) {
-        throw "Unable to find account " + domain
+        throw new Error("404: Unable to find account " + domain)
     }
     return res.id!!
 }
@@ -64,12 +64,17 @@ export const Resolver = {
         admin: () => { return {} },
         account: async function (_: any, args: { domain?: string }, context: Context) {
             var domain = context.resolveDomain(args.domain)
-            return convertAccount(await DB.Account.findOne({
+            console.warn(domain);
+            var account = await DB.Account.findOne({
                 where: {
                     slug: domain,
                     activated: true
                 }
-            }))
+            });
+            if (account == null) {
+                throw new Error("404: Unable to find account " + domain)
+            }
+            return convertAccount(account)
         }
     },
     Admin: {
