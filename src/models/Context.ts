@@ -1,14 +1,13 @@
 export class Context {
     uid?: number
     domain?: string
+    accountId?: number
 
-    resolveDomain(name?: string) {
-        if (this.domain == null && name == null) {
+    requireAccount(): number {
+        if (this.accountId == undefined) {
             throw "Domain need to be specified"
+        } else {
+            return this.accountId
         }
-        if (name != null) {
-            return name
-        }
-        return this.domain!!;
     }
 }

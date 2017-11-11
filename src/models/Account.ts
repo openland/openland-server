@@ -27,7 +27,7 @@ export const Schema = `
     }
 
     extend type Query {
-        account(domain: String): Account!
+        account: Account!
         admin: Admin!
     }
 
@@ -69,16 +69,16 @@ export async function resolveAccountId(domain: string) {
 export const Resolver = {
     Query: {
         admin: () => { return {} },
-        account: async function (_: any, args: { domain?: string }, context: Context) {
-            var domain = context.resolveDomain(args.domain)
+        account: async function (_: any, args: {}, context: Context) {
+            var domainId = context.requireAccount()
             var account = await DB.Account.findOne({
                 where: {
-                    slug: domain,
+                    id: domainId,
                     activated: true
                 }
             });
             if (account == null) {
-                throw new Error("404: Unable to find account " + domain)
+                throw new Error("404: Unable to find account " + context.domain)
             }
             var member: AccountMember | null = null
             if (context.uid != null) {

@@ -1,6 +1,5 @@
 import { DB, Findings } from '../tables'
 import { Context } from './Context'
-import { resolveAccountId } from './Account';
 
 export const Schema = `
     type Findings {
@@ -12,12 +11,12 @@ export const Schema = `
     }
 
     extend type Query {
-        findings(domain: String): Findings
+        findings: Findings
     }
 
     extend type Mutation {
-        createFindings(domain: String, title: String!, intro: String!): Findings
-        alterFindings(domain: String, title: String, intro: String, description: String, recomendations: String): Findings
+        createFindings(title: String!, intro: String!): Findings
+        alterFindings(title: String, intro: String, description: String, recomendations: String): Findings
     }
 `
 
@@ -34,9 +33,8 @@ function convertFindings(findings: Findings) {
 
 export const Resolver = {
     Query: {
-        findings: async function (_: any, args: { domain?: string }, context: Context) {
-            var domain = context.resolveDomain(args.domain)
-            var accountId = await resolveAccountId(domain)
+        findings: async function (_: any, args: { }, context: Context) {
+            var accountId = context.requireAccount()
             var res = await DB.Findings.findOne({
                 where: {
                     account: accountId
@@ -49,9 +47,8 @@ export const Resolver = {
         }
     },
     Mutation: {
-        createFindings: async function (_: any, args: { domain?: string, title: string, intro: string }, context: Context) {
-            var domain = context.resolveDomain(args.domain)
-            var accountId = await resolveAccountId(domain)
+        createFindings: async function (_: any, args: { title: string, intro: string }, context: Context) {
+            var accountId = context.requireAccount()
             var res = await DB.Findings.create({
                 account: accountId,
                 title: args.title,
@@ -59,9 +56,8 @@ export const Resolver = {
             })
             return convertFindings(res)
         },
-        alterFindings: async function (_: any, args: { domain?: string, title?: string, intro?: string, description?: string, recomendations?: string }, context: Context) {
-            var domain = context.resolveDomain(args.domain)
-            var accountId = await resolveAccountId(domain)
+        alterFindings: async function (_: any, args: { title?: string, intro?: string, description?: string, recomendations?: string }, context: Context) {
+            var accountId = context.requireAccount()
             var res = await DB.Findings.findOne({
                 where: {
                     account: accountId

@@ -39,6 +39,19 @@ async function context(src: express.Request): Promise<Context> {
     var n = new Context();
     n.domain = domain
 
+    if (domain !== undefined) {
+        var accId = (await DB.Account.findOne({
+            where: {
+                slug: domain,
+                activated: true
+            }
+        }))
+        if (accId == null) {
+            throw new Error("404: Unable to find account " + domain)
+        }
+        n.accountId = accId.id
+    }
+
     if (src.user != null && src.user != undefined) {
         var userKey = src.user.sub
         var exists = await DB.User.find({

@@ -1,6 +1,5 @@
 import { DB, DataSet } from '../tables'
 import { Context } from './Context';
-import { resolveAccountId } from './Account';
 
 export const Schema = `
     type DataSet {
@@ -12,10 +11,10 @@ export const Schema = `
         group: String
     }
     extend type Query {
-        datasets(domain: String, kind: String): [DataSet!]
+        datasets(kind: String): [DataSet!]
     }
     extend type Mutation {
-        createDataset(domain: String, name: String!, url: String!, kind: String!, description: String!, group: String): DataSet!
+        createDataset(name: String!, url: String!, kind: String!, description: String!, group: String): DataSet!
         alterDataset(id: ID!, newName: String, newUrl: String, newKind: String, newDescription: String, newGroup: String): DataSet!
         deleteDataset(id: ID!): ID
     }
@@ -41,9 +40,8 @@ function checkKind(kind: string) {
 
 export const Resolver = {
     Query: {
-        async datasets(_: any, args: { domain?: string, kind?: string }, context: Context) {
-            var domain = context.resolveDomain(args.domain)
-            var accountId = await resolveAccountId(domain)
+        async datasets(_: any, args: { kind?: string }, context: Context) {
+            var accountId = context.requireAccount()
             var datasets = (await DB.DataSet.findAll({
                 where: {
                     account: accountId
@@ -54,9 +52,8 @@ export const Resolver = {
         }
     },
     Mutation: {
-        createDataset: async (_: any, args: { domain: string, name: string, url: string, kind: string, description: string, group?: string }, context: Context) => {
-            var domain = context.resolveDomain(args.domain)
-            var accountId = await resolveAccountId(domain)
+        createDataset: async (_: any, args: { name: string, url: string, kind: string, description: string, group?: string }, context: Context) => {
+            var accountId = context.requireAccount()
             checkKind(args.kind)
             var created = await DB.DataSet.create({
                 name: args.name,
