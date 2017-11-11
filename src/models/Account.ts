@@ -1,5 +1,6 @@
 import { DB, Account } from '../tables'
 import { Context } from './Context'
+import { AccountMember } from '../tables/Account';
 
 export const Schema = `
     type Account {
@@ -7,6 +8,9 @@ export const Schema = `
         domain: String!
         name: String!
         city: String
+        needAuthentication: Boolean!
+        readAccess: Boolean!
+        writeAccess: Boolean!
     }
 
     type AdminAccount {
@@ -33,7 +37,7 @@ export const Schema = `
     }
 `
 
-function convertAccount(account: Account | undefined | null) {
+function convertAccount(account: Account | undefined | null, member: AccountMember | null) {
     if (account == null || account == undefined) {
         return null
     }
@@ -43,7 +47,10 @@ function convertAccount(account: Account | undefined | null) {
         domain: account.slug,
         name: account.name,
         activated: account.activated,
-        city: account.city
+        city: account.city,
+        needAuthentication: false,
+        readAccess: true,
+        writeAccess: member != null && member.owner
     }
 }
 
@@ -64,7 +71,6 @@ export const Resolver = {
         admin: () => { return {} },
         account: async function (_: any, args: { domain?: string }, context: Context) {
             var domain = context.resolveDomain(args.domain)
-            console.warn(domain);
             var account = await DB.Account.findOne({
                 where: {
                     slug: domain,
@@ -74,17 +80,26 @@ export const Resolver = {
             if (account == null) {
                 throw new Error("404: Unable to find account " + domain)
             }
-            return convertAccount(account)
+            var member: AccountMember | null = null
+            if (context.uid != null) {
+                member = await DB.AccountMember.findOne({
+                    where: {
+                        accountId: account.id,
+                        userId: context.uid
+                    }
+                })
+            }
+            return convertAccount(account, member)
         }
     },
     Admin: {
-        accounts: () => DB.Account.findAll().map(convertAccount),
+        accounts: () => DB.Account.findAll().map(acc => { convertAccount(acc as Account, null) }),
         account: async function (_: any, args: { domain: string }) {
             return convertAccount((await DB.Account.findOne({
                 where: {
                     slug: args.domain.toLowerCase()
                 }
-            }))!!);
+            }))!!, null);
         }
     },
     Mutation: {
@@ -93,7 +108,7 @@ export const Resolver = {
                 slug: args.domain,
                 name: args.name,
                 city: args.city
-            }));
+            }), null);
         },
         adminAlterAccount: async function (_: any, args: { domain: string, newName?: string, newActivated?: boolean, newDomain?: string, newCity?: string }) {
             var res = (await DB.Account.findOne({
@@ -121,7 +136,7 @@ export const Resolver = {
                 }
             }
             res.save()
-            return convertAccount(res)
+            return convertAccount(res, null)
         }
     }
 }

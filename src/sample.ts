@@ -3,7 +3,7 @@ import { DB } from './tables/'
 export async function createEmptyData() {
 
 
-    await DB.User.create({
+    var usr = await DB.User.create({
         authId: "facebook|10213268338843701",
         firstName: "Stepan",
         lastName: "Korshakov",
@@ -21,6 +21,12 @@ export async function createEmptyData() {
         slug: "nyc",
         name: "New York",
         activated: true
+    })
+
+    await DB.AccountMember.create({
+        accountId: sf.id,
+        userId: usr.id!!,
+        owner: true
     })
 
     for (let i = 0; i < 10; i++) {

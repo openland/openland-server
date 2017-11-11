@@ -20,23 +20,24 @@ export const AccountTable = connection.define<Account, AccountAttributes>('accou
 })
 
 export interface AccountMemberAttributes {
-    accountId: number;
-    userId: number;
-    owner: boolean;
+    accountId?: number;
+    userId?: number;
+    owner?: boolean;
 }
 
 export interface AccountMember extends sequelize.Instance<AccountMemberAttributes>, AccountMemberAttributes { }
 
-export const AccountMemberTable = connection.define<Account, AccountAttributes>('account_members', {
+export const AccountMemberTable = connection.define<AccountMember, AccountMemberAttributes>('account_members', {
+    id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
     accountId: {
         type: sequelize.INTEGER, references: {
-            model: 'accounts',
+            model: 'account',
             key: 'id',
         }
     },
     userId: {
         type: sequelize.INTEGER, references: {
-            model: 'users',
+            model: 'user',
             key: 'id',
         }
     },
