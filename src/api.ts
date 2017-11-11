@@ -54,9 +54,13 @@ async function context(src: express.Request): Promise<Context> {
     return n
 }
 
-async function handleRequest(req: express.Request): Promise<GraphQLOptions> {
-    var cont = await context(req)
-    return { schema: Schema.Schema, context: cont }
+async function handleRequest(req?: express.Request): Promise<GraphQLOptions> {
+    if (req == undefined) {
+        return { schema: Schema.Schema, context: new Context() }
+    } else {
+        var cont = await context(req)
+        return { schema: Schema.Schema, context: cont }
+    }
 }
 
 interface Profile {
