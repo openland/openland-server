@@ -34,10 +34,9 @@ function convertFindings(findings: Findings) {
 export const Resolver = {
     Query: {
         findings: async function (_: any, args: { }, context: Context) {
-            var accountId = context.requireAccount()
             var res = await DB.Findings.findOne({
                 where: {
-                    account: accountId
+                    account: context.accountId
                 }
             })
             if (res == null) {
@@ -48,19 +47,19 @@ export const Resolver = {
     },
     Mutation: {
         createFindings: async function (_: any, args: { title: string, intro: string }, context: Context) {
-            var accountId = context.requireAccount()
+            context.requireWriteAccess()
             var res = await DB.Findings.create({
-                account: accountId,
+                account: context.accountId,
                 title: args.title,
                 intro: args.intro
             })
             return convertFindings(res)
         },
         alterFindings: async function (_: any, args: { title?: string, intro?: string, description?: string, recomendations?: string }, context: Context) {
-            var accountId = context.requireAccount()
+            context.requireWriteAccess()
             var res = await DB.Findings.findOne({
                 where: {
-                    account: accountId
+                    account: context.accountId
                 }
             })
             if (res == null) {

@@ -88,11 +88,10 @@ export const Resolver = {
 
     Query: {
         projects: async function (_: any, args: { showDeactivated?: boolean }, context: Context) {
-            var accountId = context.requireAccount()
             if (args.showDeactivated != null && args.showDeactivated) {
                 return (await DB.Project.findAll({
                     where: {
-                        account: accountId
+                        account: context.accountId
                     },
                     order: [
                         ['sorting', 'ASC'],
@@ -102,7 +101,7 @@ export const Resolver = {
             } else {
                 return (await DB.Project.findAll({
                     where: {
-                        account: accountId,
+                        account: context.accountId,
                         activated: true
                     },
                     order: [
@@ -113,10 +112,9 @@ export const Resolver = {
             }
         },
         project: async function (_: any, args: { slug: string }, context: Context) {
-            var accountId = context.requireAccount()
             var res = await DB.Project.find({
                 where: {
-                    account: accountId,
+                    account: context.accountId,
                     slug: args.slug,
                     activated: true
                 }
@@ -130,9 +128,8 @@ export const Resolver = {
     },
     Mutation: {
         createProject: async function (_: any, args: { name: string, slug: string, description?: string, intro?: string, findings?: string }, context: Context) {
-            var accountId = context.requireAccount()
             var res = (await DB.Project.create({
-                account: accountId,
+                account: context.accountId,
                 name: args.name,
                 slug: args.slug,
                 activated: true,

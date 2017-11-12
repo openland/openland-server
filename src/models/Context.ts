@@ -1,13 +1,13 @@
 export class Context {
     uid?: number
-    domain?: string
-    accountId?: number
+    owner: boolean
 
-    requireAccount(): number {
-        if (this.accountId == undefined) {
-            throw "Domain need to be specified"
-        } else {
-            return this.accountId
+    domain: string
+    accountId: number
+
+    requireWriteAccess() {
+        if (!this.owner) {
+            throw Error("You don't have permission to do this operation")
         }
     }
 }

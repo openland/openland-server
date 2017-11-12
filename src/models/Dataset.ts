@@ -41,10 +41,9 @@ function checkKind(kind: string) {
 export const Resolver = {
     Query: {
         async datasets(_: any, args: { kind?: string }, context: Context) {
-            var accountId = context.requireAccount()
             var datasets = (await DB.DataSet.findAll({
                 where: {
-                    account: accountId
+                    account: context.accountId
                 }
             }))
 
@@ -53,18 +52,19 @@ export const Resolver = {
     },
     Mutation: {
         createDataset: async (_: any, args: { name: string, url: string, kind: string, description: string, group?: string }, context: Context) => {
-            var accountId = context.requireAccount()
+            context.requireWriteAccess()
             checkKind(args.kind)
             var created = await DB.DataSet.create({
                 name: args.name,
                 description: args.description,
-                account: accountId,
+                account: context.accountId,
                 kind: args.kind,
                 link: args.url
             })
             return convertDataset(created)
         },
         alterDataset: async (_: any, args: { id: string, newName?: string, newUrl?: string, newKind?: string, newDescription?: string, newGroup?: string }, context: Context) => {
+            context.requireWriteAccess()
             var updated = (await DB.DataSet.findOne({
                 where: {
                     id: parseInt(args.id)
@@ -92,7 +92,8 @@ export const Resolver = {
             await updated.save()
             return convertDataset(updated)
         },
-        deleteDataset: async (_: any, args: { id: string }) => {
+        deleteDataset: async (_: any, args: { id: string }, context: Context) => {
+            context.requireWriteAccess()
             var toDelete = (await DB.DataSet.findOne({
                 where: {
                     id: parseInt(args.id)

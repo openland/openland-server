@@ -1,6 +1,5 @@
 import { DB, Account } from '../tables'
 import { Context } from './Context'
-import { AccountMember } from '../tables/Account';
 
 export const Schema = `
     type Account {
@@ -38,7 +37,23 @@ export const AdminSchema = `
     }
 `
 
-function convertAccount(account: Account | undefined | null, member: AccountMember | null) {
+function convertAccount(account: Account | undefined | null, context: Context) {
+    if (account == null || account == undefined) {
+        return null
+    }
+    return {
+        _dbid: account.id,
+        id: account.id,
+        domain: account.slug,
+        name: account.name,
+        city: account.city,
+        needAuthentication: false,
+        readAccess: true,
+        writeAccess: context.owner
+    }
+}
+
+function convertAdminAccount(account: Account | undefined | null) {
     if (account == null || account == undefined) {
         return null
     }
@@ -48,10 +63,7 @@ function convertAccount(account: Account | undefined | null, member: AccountMemb
         domain: account.slug,
         name: account.name,
         activated: account.activated,
-        city: account.city,
-        needAuthentication: false,
-        readAccess: true,
-        writeAccess: member != null && member.owner
+        city: account.city
     }
 }
 
@@ -70,48 +82,36 @@ export async function resolveAccountId(domain: string) {
 export const Resolver = {
     Query: {
         account: async function (_: any, args: {}, context: Context) {
-            var domainId = context.requireAccount()
             var account = await DB.Account.findOne({
                 where: {
-                    id: domainId,
+                    id: context.accountId,
                     activated: true
                 }
-            });
-            if (account == null) {
-                throw new Error("404: Unable to find account " + context.domain)
-            }
-            var member: AccountMember | null = null
-            if (context.uid != null) {
-                member = await DB.AccountMember.findOne({
-                    where: {
-                        accountId: account.id,
-                        userId: context.uid
-                    }
-                })
-            }
-            return convertAccount(account, member)
+            })!!;
+            return convertAccount(account, context)
         }
     }
 }
 
 export const AdminResolver = {
     Query: {
-        accounts: () => DB.Account.findAll().map(acc => convertAccount(acc as Account, null)),
+        accounts: (_: any, args: {}) =>
+            DB.Account.findAll().map(acc => convertAdminAccount(acc as Account)),
         account: async function (_: any, args: { domain: string }) {
-            return convertAccount((await DB.Account.findOne({
+            return convertAdminAccount((await DB.Account.findOne({
                 where: {
                     slug: args.domain.toLowerCase()
                 }
-            }))!!, null);
+            }))!!);
         }
     },
     Mutation: {
         createAccount: async function (_: any, args: { domain: string, name: string, city: string }) {
-            return convertAccount(await DB.Account.create({
+            return convertAdminAccount(await DB.Account.create({
                 slug: args.domain,
                 name: args.name,
                 city: args.city
-            }), null);
+            }));
         },
         alterAccount: async function (_: any, args: { domain: string, newName?: string, newActivated?: boolean, newDomain?: string, newCity?: string }) {
             var res = (await DB.Account.findOne({
@@ -139,7 +139,7 @@ export const AdminResolver = {
                 }
             }
             res.save()
-            return convertAccount(res, null)
+            return convertAdminAccount(res)
         }
     }
 }

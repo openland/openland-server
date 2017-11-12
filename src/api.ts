@@ -50,7 +50,8 @@ async function context(src: express.Request): Promise<Context> {
 
     var n = new Context();
     n.domain = domain
-    n.accountId = accId.id
+    n.accountId = accId.id!!
+    n.owner = false
 
     if (src.user != null && src.user != undefined) {
         var userKey = src.user.sub
@@ -61,6 +62,19 @@ async function context(src: express.Request): Promise<Context> {
         })
         if (exists != null) {
             n.uid = exists.id!!
+        }
+    }
+
+    if (n.uid != null) {
+        var member = await DB.AccountMember.findOne({
+            where: {
+                accountId: n.accountId,
+                userId: n.uid
+            }
+        })
+
+        if (member) {
+            n.owner = member.owner!!
         }
     }
 
