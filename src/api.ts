@@ -76,6 +76,10 @@ async function handleRequest(req?: express.Request): Promise<GraphQLOptions> {
     }
 }
 
+async function handleAdminRequest(req?: express.Request): Promise<GraphQLOptions> {
+    return { schema: Schema.AdminSchema }
+}
+
 interface Profile {
     name: string;
     given_name: string;
@@ -92,7 +96,9 @@ export default async function () {
     // Routes
     app.use(cors())
     app.use("/graphql", checkJwt, bodyParser.json(), graphqlExpress(handleRequest));
-    app.use('/sandbox', checkJwt, graphiqlExpress({ endpointURL: '/graphql' }));
+    app.use("/api", checkJwt, bodyParser.json(), graphqlExpress(handleRequest));
+    app.use("/admin-api", checkJwt, bodyParser.json(), graphqlExpress(handleAdminRequest));
+    app.use('/sandbox', checkJwt, graphiqlExpress({ endpointURL: '/admin-api' }));
     app.post('/auth', checkJwt, bodyParser.json(), async function (req: express.Request, response: express.Response) {
         var accessToken = req.headers['access-token']
         var res = await fetch.default('https://statecraft.auth0.com/userinfo', {

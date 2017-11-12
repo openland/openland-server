@@ -59,3 +59,14 @@ export const Schema = makeExecutableSchema({
     Findings.Resolver
   )
 })
+
+export const AdminSchema = makeExecutableSchema({
+  typeDefs: [
+    RootQuery, RootMutation, SchemaDefinition,
+    Account.AdminSchema,
+  ],
+  resolvers: merge(
+    // rootResolver,
+    Account.AdminResolver
+  )
+})

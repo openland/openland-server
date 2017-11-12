@@ -13,7 +13,14 @@ export const Schema = `
         writeAccess: Boolean!
     }
 
-    type AdminAccount {
+    extend type Query {
+        account: Account!
+    }
+`
+
+export const AdminSchema = `
+
+    type Account {
         id: ID!
         domain: String!
         name: String!
@@ -21,19 +28,13 @@ export const Schema = `
         activated: Boolean!
     }
 
-    type Admin {
-        accounts: [AdminAccount!]
-        account(domain: String!): AdminAccount!
-    }
-
     extend type Query {
-        account: Account!
-        admin: Admin!
+        accounts: [Account!]
+        account(domain: String!): Account!
     }
-
     extend type Mutation {
-        adminCreateAccount(domain: String!, name: String!, city: String): AdminAccount
-        adminAlterAccount(domain: String!, newName: String, newActivated: Boolean, newDomain: String, newCity: String): AdminAccount
+        createAccount(domain: String!, name: String!, city: String): Account
+        alterAccount(domain: String!, newName: String, newActivated: Boolean, newDomain: String, newCity: String): Account
     }
 `
 
@@ -68,7 +69,6 @@ export async function resolveAccountId(domain: string) {
 
 export const Resolver = {
     Query: {
-        admin: () => { return {} },
         account: async function (_: any, args: {}, context: Context) {
             var domainId = context.requireAccount()
             var account = await DB.Account.findOne({
@@ -91,9 +91,12 @@ export const Resolver = {
             }
             return convertAccount(account, member)
         }
-    },
-    Admin: {
-        accounts: () => DB.Account.findAll().map(acc => { convertAccount(acc as Account, null) }),
+    }
+}
+
+export const AdminResolver = {
+    Query: {
+        accounts: () => DB.Account.findAll().map(acc => convertAccount(acc as Account, null)),
         account: async function (_: any, args: { domain: string }) {
             return convertAccount((await DB.Account.findOne({
                 where: {
@@ -103,14 +106,14 @@ export const Resolver = {
         }
     },
     Mutation: {
-        adminCreateAccount: async function (_: any, args: { domain: string, name: string, city: string }) {
+        createAccount: async function (_: any, args: { domain: string, name: string, city: string }) {
             return convertAccount(await DB.Account.create({
                 slug: args.domain,
                 name: args.name,
                 city: args.city
             }), null);
         },
-        adminAlterAccount: async function (_: any, args: { domain: string, newName?: string, newActivated?: boolean, newDomain?: string, newCity?: string }) {
+        alterAccount: async function (_: any, args: { domain: string, newName?: string, newActivated?: boolean, newDomain?: string, newCity?: string }) {
             var res = (await DB.Account.findOne({
                 where: {
                     slug: args.domain.toLowerCase()
