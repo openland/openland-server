@@ -31,26 +31,26 @@ const checkJwt = jwt({
 });
 
 async function context(src: express.Request): Promise<Context> {
-    var domain: string | undefined = undefined;
+    var domain: string = "";
     if (src.headers["x-statecraft-domain"]) {
         domain = src.headers["x-statecraft-domain"] as string
+    } else {
+        throw Error("x-statecraft-domain header is not present")
+    }
+
+    var accId = (await DB.Account.findOne({
+        where: {
+            slug: domain,
+            activated: true
+        }
+    }))
+    if (accId == null) {
+        throw new Error("404: Unable to find account " + domain)
     }
 
     var n = new Context();
     n.domain = domain
-
-    if (domain !== undefined) {
-        var accId = (await DB.Account.findOne({
-            where: {
-                slug: domain,
-                activated: true
-            }
-        }))
-        if (accId == null) {
-            throw new Error("404: Unable to find account " + domain)
-        }
-        n.accountId = accId.id
-    }
+    n.accountId = accId.id
 
     if (src.user != null && src.user != undefined) {
         var userKey = src.user.sub
@@ -67,13 +67,24 @@ async function context(src: express.Request): Promise<Context> {
     return n
 }
 
-async function handleRequest(req?: express.Request): Promise<GraphQLOptions> {
-    if (req == undefined) {
-        return { schema: Schema.Schema, context: new Context() }
+async function handleRequest(req?: express.Request, res?: express.Response): Promise<GraphQLOptions> {
+    if (req == undefined || res == undefined) {
+        throw Error("Unexpected error!")
     } else {
-        var cont = await context(req)
-        return { schema: Schema.Schema, context: cont }
+        return { schema: Schema.Schema, context: res.locals.ctx }
     }
+}
+
+async function buildContext(req: express.Request, res: express.Response, next: express.NextFunction) {
+    var ctx: Context
+    try {
+        ctx = await context(req);
+    } catch (e) {
+        res!!.status(404).send("Unable to find domain")
+        return
+    }
+    res.locals.ctx = ctx
+    next()
 }
 
 async function handleAdminRequest(req?: express.Request): Promise<GraphQLOptions> {
@@ -93,12 +104,18 @@ interface Profile {
 export default async function () {
     const app = express();
 
-    // Routes
+    // Allow All Domains
     app.use(cors())
-    app.use("/graphql", checkJwt, bodyParser.json(), graphqlExpress(handleRequest));
-    app.use("/api", checkJwt, bodyParser.json(), graphqlExpress(handleRequest));
+
+    // APIs
+    app.use("/graphql", checkJwt, bodyParser.json(), buildContext, graphqlExpress(handleRequest));
+    app.use("/api", checkJwt, bodyParser.json(), buildContext, graphqlExpress(handleRequest));
     app.use("/admin-api", checkJwt, bodyParser.json(), graphqlExpress(handleAdminRequest));
+
+    // Sandbox
     app.use('/sandbox', checkJwt, graphiqlExpress({ endpointURL: '/admin-api' }));
+
+    // Authentication
     app.post('/auth', checkJwt, bodyParser.json(), async function (req: express.Request, response: express.Response) {
         var accessToken = req.headers['access-token']
         var res = await fetch.default('https://statecraft.auth0.com/userinfo', {
