@@ -11,6 +11,14 @@ export async function createEmptyData() {
         picture: "https://scontent.xx.fbcdn.net/v/t1.0-1/p50x50/12799449_10208337398773281_8543476314381451147_n.jpg?oh=f5e1fb63405ecf5dc1f88950fdcb4257&oe=5A2F17E5"
     })
 
+    var usr2 = await DB.User.create({
+        authId: "facebook|485751831805536",
+        firstName: "Fred",
+        lastName: "Morozov",
+        email: "hi@freddy.work",
+        picture: "https://scontent.xx.fbcdn.net/v/t1.0-1/p50x50/12509241_131788243868565_7512146090752482485_n.jpg?oh=38c21ff49fe278657738b9e67112620f&oe=5AA690C6"
+    })
+
     var sf = await DB.Account.create({
         slug: "sf",
         name: "Housing",
@@ -26,6 +34,11 @@ export async function createEmptyData() {
     await DB.AccountMember.create({
         accountId: sf.id,
         userId: usr.id!!,
+        owner: true
+    })
+    await DB.AccountMember.create({
+        accountId: sf.id,
+        userId: usr2.id!!,
         owner: true
     })
 
