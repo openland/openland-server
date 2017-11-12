@@ -128,6 +128,7 @@ export const Resolver = {
     },
     Mutation: {
         createProject: async function (_: any, args: { name: string, slug: string, description?: string, intro?: string, findings?: string }, context: Context) {
+            context.requireWriteAccess()
             var res = (await DB.Project.create({
                 account: context.accountId,
                 name: args.name,
@@ -144,6 +145,7 @@ export const Resolver = {
         },
 
         alterProject: async function (_: any, args: { id: string, name?: string, slug?: string, description?: string, intro?: string, findings?: string, outputs?: [LinkRef], sources?: [LinkRef], isPrivate?: boolean, sortKey?: string }, context: Context) {
+            context.requireWriteAccess()
             var res = await DB.Project.findOne({
                 where: {
                     id: args.id

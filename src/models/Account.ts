@@ -1,5 +1,6 @@
 import { DB, Account } from '../tables'
 import { Context } from './Context'
+import { User } from '../tables/User';
 
 export const Schema = `
     type Account {
@@ -27,13 +28,23 @@ export const AdminSchema = `
         activated: Boolean!
     }
 
+    type User {
+        id: ID!
+        firstName: String!
+        lastName: String!
+        email: String!
+    }
+
     extend type Query {
         accounts: [Account!]
         account(domain: String!): Account!
+        users: [User]
     }
     extend type Mutation {
         createAccount(domain: String!, name: String!, city: String): Account
         alterAccount(domain: String!, newName: String, newActivated: Boolean, newDomain: String, newCity: String): Account
+        addOwner(domain: String!, uid: ID!): Boolean
+        removeOwner(domain: String!, uid: ID!): Boolean
     }
 `
 
@@ -50,6 +61,16 @@ function convertAccount(account: Account | undefined | null, context: Context) {
         needAuthentication: false,
         readAccess: true,
         writeAccess: context.owner
+    }
+}
+
+function convertUser(user: User) {
+    return {
+        _dbid: user.id,
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
     }
 }
 
@@ -103,7 +124,9 @@ export const AdminResolver = {
                     slug: args.domain.toLowerCase()
                 }
             }))!!);
-        }
+        },
+        users: () =>
+            DB.User.findAll().map(src => convertUser(src as User))
     },
     Mutation: {
         createAccount: async function (_: any, args: { domain: string, name: string, city: string }) {
@@ -114,32 +137,106 @@ export const AdminResolver = {
             }));
         },
         alterAccount: async function (_: any, args: { domain: string, newName?: string, newActivated?: boolean, newDomain?: string, newCity?: string }) {
-            var res = (await DB.Account.findOne({
-                where: {
-                    slug: args.domain.toLowerCase()
+            return DB.tx(async (tx) => {
+                var res = (await DB.Account.findOne({
+                    where: {
+                        slug: args.domain.toLowerCase()
+                    },
+                    lock: tx.LOCK.UPDATE
+                }))
+                if (res == null) {
+                    throw "Unable to find account"
                 }
-            }))
-            if (res == null) {
-                throw "Unable to find account"
-            }
-            if (args.newName != null) {
-                res.name = args.newName
-            }
-            if (args.newActivated != null) {
-                res.activated = args.newActivated
-            }
-            if (args.newDomain != null) {
-                res.slug = args.newDomain.toLowerCase()
-            }
-            if (args.newCity != null) {
-                if (args.newCity === '') {
-                    res.city = undefined
+                if (args.newName != null) {
+                    res.name = args.newName
+                }
+                if (args.newActivated != null) {
+                    res.activated = args.newActivated
+                }
+                if (args.newDomain != null) {
+                    res.slug = args.newDomain.toLowerCase()
+                }
+                if (args.newCity != null) {
+                    if (args.newCity === '') {
+                        res.city = undefined
+                    } else {
+                        res.city = args.newCity
+                    }
+                }
+                res.save()
+                return convertAdminAccount(res)
+            })
+        },
+        addOwner: async function (_: any, args: { domain: string, uid: number }) {
+            return DB.tx(async (tx) => {
+                var res = (await DB.Account.findOne({
+                    where: {
+                        slug: args.domain.toLowerCase()
+                    }
+                }))
+                if (res == null) {
+                    throw "Unable to find account"
+                }
+
+                var user = await DB.User.findById(args.uid)
+                if (user == null) {
+                    throw "Unable to find user"
+                }
+
+                var m = await DB.AccountMember.findOne({
+                    where: {
+                        userId: user.id,
+                        accountId: res.id
+                    },
+                    lock: tx.LOCK.UPDATE
+                })
+                if (m != null) {
+                    if (!m.owner) {
+                        m.owner = true
+                        await m.save()
+                    }
                 } else {
-                    res.city = args.newCity
+                    DB.AccountMember.create({
+                        userId: user.id,
+                        accountId: res.id,
+                        owner: true
+                    })
                 }
-            }
-            res.save()
-            return convertAdminAccount(res)
+                return true
+            })
+        },
+
+        removeOwner: async function (_: any, args: { domain: string, uid: number }) {
+            return DB.tx(async (tx) => {
+                var res = (await DB.Account.findOne({
+                    where: {
+                        slug: args.domain.toLowerCase()
+                    }
+                }))
+                if (res == null) {
+                    throw "Unable to find account"
+                }
+
+                var user = await DB.User.findById(args.uid)
+                if (user == null) {
+                    throw "Unable to find user"
+                }
+
+                var m = await DB.AccountMember.findOne({
+                    where: {
+                        userId: user.id,
+                        accountId: res.id
+                    },
+                    lock: tx.LOCK.UPDATE
+                })
+                if (m != null) {
+                    if (m.owner) {
+                        m.owner = false
+                        await m.save()
+                    }
+                }
+                return true
+            })
         }
     }
 }

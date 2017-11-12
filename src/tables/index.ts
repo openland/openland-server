@@ -29,7 +29,7 @@ export const DB = {
     DataSet: DataSetTable,
     Findings: FindingsTable,
 
-    tx: async function tx<A>(handler: () => PromiseLike<A>): Promise<A> {
-        return await connection.transaction((_: sequelize.Transaction) => handler());
+    tx: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>): Promise<A> {
+        return await connection.transaction((tx: sequelize.Transaction) => handler(tx));
     }
 }
