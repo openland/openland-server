@@ -7,7 +7,12 @@ var namespace = cls.createNamespace('tx-namespace');
 export var connection: sequelize.Sequelize
 
 if (process.env.DATABASE_URL != undefined) {
-    connection = new sequelize(process.env.DATABASE_URL!);
+    connection = new sequelize(process.env.DATABASE_URL!, {
+        dialect: 'postgres',
+        dialectOptions: {
+            ssl: true
+        }
+    });
 } else {
     connection = new sequelize('postgres', 'steve', '', {
         host: 'localhost',
