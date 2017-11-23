@@ -3,6 +3,7 @@ import * as sequelize from 'sequelize'
 
 export interface PermitAttributes {
     id?: number;
+    permitId?: string;
     account?: number;
     address?: string;
     permitStatus?: "filled" | "issued" | "completed" | "expired";
@@ -16,6 +17,7 @@ export interface Permit extends sequelize.Instance<PermitAttributes>, PermitAttr
 
 export const PermitTable = connection.define<Permit, PermitAttributes>('permits', {
     id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
+    permitId: { type: sequelize.STRING },
     account: {
         type: sequelize.INTEGER, references: {
             model: 'accounts',
@@ -28,4 +30,4 @@ export const PermitTable = connection.define<Permit, PermitAttributes>('permits'
     permitIssued: { type: sequelize.DATEONLY, allowNull: true },
     permitCompleted: { type: sequelize.DATEONLY, allowNull: true },
     permitExpired: { type: sequelize.DATEONLY, allowNull: true },
-})
+}, { indexes: [{ unique: true, fields: ['permitId', 'account'] }] })
