@@ -1,0 +1,106 @@
+import { Context } from "./Context";
+import { DB } from "../tables/index";
+
+
+export const Schema = `
+    type Permit {
+        id: ID!
+        status: String!
+        address: String
+        createdAt: String!
+        issuedAt: String
+        completedAt: String
+        expiredAt: String
+    }
+
+    extend type Query {
+        permits: [Permit!]!
+    }
+
+    input PermitInfo {
+        id: ID!
+        status: String
+        address: String
+        createdAt: String
+        issuedAt: String
+        completedAt: String
+        expiredAt: String
+    }
+
+    extend type Mutation {
+        updatePermits(permits: [PermitInfo]!): String
+    }
+`
+
+interface PermitInfo {
+    id: string
+    status?: "filled" | "issued" | "expired" | "completed"
+    address?: string
+    createdAt?: string
+    issuedAt?: string
+    completedAt?: string
+    expiredAt?: string
+}
+
+function convertDate(src?: string): Date | undefined {
+    if (src) {
+        return new Date(src)
+    } else {
+        return undefined
+    }
+}
+
+export const Resolver = {
+    Query: {
+        permits() {
+            return []
+        }
+    },
+    Mutation: {
+        updatePermits: async function (_: any, args: { permits: [PermitInfo] }, context: Context) {
+            await DB.tx(async (tx) => {
+                for (let p of args.permits) {
+                    let existing = await DB.Permit.findOne({
+                        where: {
+                            account: context.accountId,
+                            permitId: p.id
+                        }
+                    })
+                    if (existing != null) {
+                        if (p.createdAt) {
+                            existing.permitCreated = convertDate(p.createdAt)
+                        }
+                        if (p.expiredAt) {
+                            existing.permitExpired = convertDate(p.createdAt)
+                        }
+                        if (p.issuedAt) {
+                            existing.permitIssued = convertDate(p.issuedAt)
+                        }
+                        if (p.completedAt) {
+                            existing.permitCompleted = convertDate(p.completedAt)
+                        }
+                        if (p.address) {
+                            existing.address = p.address
+                        }
+                        if (p.status) {
+                            existing.permitStatus = p.status
+                        }
+                        await existing.save()
+                    } else {
+                        await DB.Permit.create({
+                            account: context.accountId,
+                            permitId: p.id,
+                            address: p.address,
+                            permitStatus: p.status,
+                            permitCreated: convertDate(p.createdAt),
+                            permitIssued: convertDate(p.issuedAt),
+                            permitExpired: convertDate(p.expiredAt),
+                            permitCompleted: convertDate(p.completedAt)
+                        })
+                    }
+                }
+            });
+            return "ok"
+        }
+    }
+}

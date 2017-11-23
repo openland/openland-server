@@ -18,6 +18,7 @@ import { AccountMemberTable } from './Account';
 import { ProjectTable } from './Project';
 import { DataSetTable } from './DataSet';
 import { FindingsTable } from './Findings';
+import { PermitTable } from './Permit';
 
 export const DB = {
     User: UserTable,
@@ -28,6 +29,7 @@ export const DB = {
     Project: ProjectTable,
     DataSet: DataSetTable,
     Findings: FindingsTable,
+    Permit: PermitTable,
 
     tx: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>): Promise<A> {
         return await connection.transaction((tx: sequelize.Transaction) => handler(tx));
