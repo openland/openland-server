@@ -1,6 +1,6 @@
 import { Context } from "./Context";
 import { DB } from "../tables/index";
-import { PermitAttributes } from "../tables/Permit";
+import { PermitAttributes, Permit } from "../tables/Permit";
 
 
 export const Schema = `
@@ -59,39 +59,44 @@ export const Resolver = {
     },
     Mutation: {
         updatePermits: async function (_: any, args: { permits: [PermitInfo] }, context: Context) {
-
-        
+            console.info("Starting bulk insert/update of permits")
+            console.time("bulk_all")
             await DB.tx(async (tx) => {
+                console.time("load_all")
+                let existing = await DB.Permit.findAll({
+                    where: {
+                        account: context.accountId,
+                        permitId: args.permits.map(p => p.id)
+                    },
+                    lock: tx.LOCK.UPDATE
+                })
+                console.timeEnd("load_all")
+
                 console.time("prepare")
                 var pending = Array<PermitAttributes>()
-                var waits = Array<Promise<void>>()
-                async function updatePermit(p: PermitInfo) {
-                    let existing = await DB.Permit.findOne({
-                        where: {
-                            account: context.accountId,
-                            permitId: p.id
-                        }
-                    })
-                    if (existing != null) {
+                var waits = Array<PromiseLike<Permit>>()
+                for (let p of args.permits) {
+                    let ex = existing.find(p => p.permitId === p.id)
+                    if (ex != null) {
                         if (p.createdAt) {
-                            existing.permitCreated = convertDate(p.createdAt)
+                            ex.permitCreated = convertDate(p.createdAt)
                         }
                         if (p.expiredAt) {
-                            existing.permitExpired = convertDate(p.createdAt)
+                            ex.permitExpired = convertDate(p.createdAt)
                         }
                         if (p.issuedAt) {
-                            existing.permitIssued = convertDate(p.issuedAt)
+                            ex.permitIssued = convertDate(p.issuedAt)
                         }
                         if (p.completedAt) {
-                            existing.permitCompleted = convertDate(p.completedAt)
+                            ex.permitCompleted = convertDate(p.completedAt)
                         }
                         if (p.address) {
-                            existing.address = p.address
+                            ex.address = p.address
                         }
                         if (p.status) {
-                            existing.permitStatus = p.status
+                            ex.permitStatus = p.status
                         }
-                        await existing.save()
+                        waits.push(ex.save())
                     } else {
                         pending.push({
                             account: context.accountId,
@@ -105,24 +110,24 @@ export const Resolver = {
                         })
                     }
                 }
-
-                for (let p of args.permits) {
-                    waits.push(updatePermit(p))
-                }
                 console.timeEnd("prepare")
-
-                console.time("waiting")
-                for (let p of waits) {
-                    await p
-                }
-                console.timeEnd("waiting")
 
                 if (pending.length > 0) {
                     console.time("insert")
                     await DB.Permit.bulkCreate(pending)
                     console.timeEnd("insert")
                 }
+
+
+                if (waits.length > 0) {
+                    console.time("waiting")
+                    for (let p of waits) {
+                        await p
+                    }
+                    console.timeEnd("waiting")
+                }
             });
+            console.timeEnd("bulk_all")
             return "ok"
         }
     }
