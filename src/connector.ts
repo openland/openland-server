@@ -11,8 +11,7 @@ if (process.env.DATABASE_URL != undefined) {
         dialect: 'postgres',
         dialectOptions: {
             ssl: true
-        },
-        logging: false
+        }
     });
 } else {
     connection = new sequelize('postgres', 'steve', '', {
