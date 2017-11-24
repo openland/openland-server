@@ -9,7 +9,7 @@ import * as jwt from 'express-jwt';
 import * as jwksRsa from 'jwks-rsa';
 import { DB } from './tables';
 import * as fetch from 'node-fetch';
-
+import * as morgan from 'morgan';
 const checkJwt = jwt({
     // Dynamically provide a signing key
     // based on the kid in the header and 
@@ -120,6 +120,7 @@ export default async function () {
 
     // Allow All Domains
     app.use(cors())
+    app.use(morgan("tiny"))
 
     // APIs
     app.use("/graphql", checkJwt, bodyParser.json(), buildContext, graphqlExpress(handleRequest));
@@ -168,21 +169,6 @@ export default async function () {
         });
         response.json({ ok: true })
     })
-
-    var FOREST_ENV_SECRET = "831f4cf62bc3cb635214043c62961a8a23486c0f638f16ddee106653a5bc334c"
-    if (process.env.FOREST_ENV_SECRET != "" && process.env.FOREST_ENV_SECRET != undefined) {
-        FOREST_ENV_SECRET = process.env.FOREST_ENV_SECRET!
-    }
-    var FOREST_AUTH_SECRET = "tKGo4P00KjKOGHmuu3IdC6icwLNu3uFB"
-    if (process.env.FOREST_AUTH_SECRET != "" && process.env.FOREST_AUTH_SECRET != undefined) {
-        FOREST_AUTH_SECRET = process.env.FOREST_AUTH_SECRET!
-    }
-
-    app.use(require('forest-express-sequelize').init({
-        envSecret: FOREST_ENV_SECRET,
-        authSecret: FOREST_AUTH_SECRET,
-        sequelize: require('./connector').connection
-    }));
 
     // Starting Api
     var port = process.env.PORT
