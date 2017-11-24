@@ -75,8 +75,13 @@ export const Resolver = {
                 console.time("prepare")
                 var pending = Array<PermitAttributes>()
                 var waits = Array<PromiseLike<Permit>>()
+
+                var map: { [key: string]: Permit } = {}
+                for (let p of existing) {
+                    map[p.permitId!!] = p
+                }
                 for (let p of args.permits) {
-                    let ex = existing.find(it => it.permitId === p.id)
+                    let ex = map[p.id]
                     if (ex) {
                         if (p.createdAt) {
                             ex.permitCreated = convertDate(p.createdAt)
