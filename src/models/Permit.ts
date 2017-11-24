@@ -62,6 +62,7 @@ export const Resolver = {
 
         
             await DB.tx(async (tx) => {
+                console.time("prepare")
                 var pending = Array<PermitAttributes>()
                 var waits = Array<Promise<void>>()
                 async function updatePermit(p: PermitInfo) {
@@ -108,11 +109,18 @@ export const Resolver = {
                 for (let p of args.permits) {
                     waits.push(updatePermit(p))
                 }
+                console.timeEnd("prepare")
+
+                console.time("waiting")
                 for (let p of waits) {
                     await p
                 }
+                console.timeEnd("waiting")
+
                 if (pending.length > 0) {
+                    console.time("insert")
                     await DB.Permit.bulkCreate(pending)
+                    console.timeEnd("insert")
                 }
             });
             return "ok"
