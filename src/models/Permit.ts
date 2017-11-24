@@ -1,5 +1,6 @@
 import { Context } from "./Context";
 import { DB } from "../tables/index";
+import { PermitAttributes } from "../tables/Permit";
 
 
 export const Schema = `
@@ -58,8 +59,12 @@ export const Resolver = {
     },
     Mutation: {
         updatePermits: async function (_: any, args: { permits: [PermitInfo] }, context: Context) {
+
+        
             await DB.tx(async (tx) => {
-                for (let p of args.permits) {
+                var pending = Array<PermitAttributes>()
+                var waits = Array<Promise<void>>()
+                async function updatePermit(p: PermitInfo) {
                     let existing = await DB.Permit.findOne({
                         where: {
                             account: context.accountId,
@@ -87,7 +92,7 @@ export const Resolver = {
                         }
                         await existing.save()
                     } else {
-                        await DB.Permit.create({
+                        pending.push({
                             account: context.accountId,
                             permitId: p.id,
                             address: p.address,
@@ -98,6 +103,16 @@ export const Resolver = {
                             permitCompleted: convertDate(p.completedAt)
                         })
                     }
+                }
+
+                for (let p of args.permits) {
+                    waits.push(updatePermit(p))
+                }
+                for (let p of waits) {
+                    await p
+                }
+                if (pending.length > 0) {
+                    await DB.Permit.bulkCreate(pending)
                 }
             });
             return "ok"
