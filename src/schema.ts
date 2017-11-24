@@ -10,12 +10,15 @@ import { merge } from 'lodash';
 import { Context } from './models/Context';
 
 const RootQuery = `
+  
+  type PageInfo {
+    hasNextPage: Boolean!
+    hasPreviousPage: Boolean!
+  }
+
   type Query {
     healthCheck: String!
   }
-`;
-
-const RootMutation = `
   type Mutation {
     healthCheck: String!    
   }
@@ -43,7 +46,7 @@ const rootResolver = {
 
 export const Schema = makeExecutableSchema({
   typeDefs: [
-    RootQuery, RootMutation, SchemaDefinition,
+    RootQuery, SchemaDefinition,
     Voting.Schema,
     Account.Schema,
     Me.Schema,
@@ -65,7 +68,7 @@ export const Schema = makeExecutableSchema({
 
 export const AdminSchema = makeExecutableSchema({
   typeDefs: [
-    RootQuery, RootMutation, SchemaDefinition,
+    RootQuery, SchemaDefinition,
     Account.AdminSchema,
   ],
   resolvers: merge(

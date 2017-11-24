@@ -4,18 +4,29 @@ import { PermitAttributes, Permit } from "../tables/Permit";
 
 
 export const Schema = `
+
     type Permit {
         id: ID!
-        status: String!
+        status: String
         address: String
-        createdAt: String!
+        createdAt: String
         issuedAt: String
         completedAt: String
         expiredAt: String
     }
 
+    type PermitEdge {
+        node: Permit!
+        cursor: String!
+    }
+
+    type PermitsConnection {
+        edges: [PermitEdge!]!
+        pageInfo: PageInfo!
+    }
+
     extend type Query {
-        permits: [Permit!]!
+        permits(first: Int!, after: String): PermitsConnection
     }
 
     input PermitInfo {
@@ -53,8 +64,42 @@ function convertDate(src?: string): Date | undefined {
 
 export const Resolver = {
     Query: {
-        permits() {
-            return []
+        permits: async function (_: any, args: { first: number, after?: string }, context: Context) {
+            if (args.first > 100) {
+                throw "first can't be bigger than 100"
+            }
+            let res = await DB.Permit.findAndCountAll({
+                where: args.after
+                    ? {
+                        account: context.accountId,
+                        permitId: {
+                            $gt: args.after
+                        }
+                    } : {
+                        account: context.accountId
+                    },
+                order: [['permitId', 'ASC']],
+                limit: args.first
+            })
+            return {
+                edges: res.rows.map((p) => {
+                    return {
+                        node: {
+                            id: p.permitId,
+                            status: p.permitStatus,
+                            createdAt: p.permitCreated,
+                            issuedAt: p.permitIssued,
+                            expiredAt: p.permitExpired,
+                            completedAt: p.permitCompleted,
+                        },
+                        cursor: p.permitId
+                    }
+                }),
+                pageInfo: {
+                    hasNextPage: res.count > res.rows.length,
+                    hasPreviousPage: false
+                }
+            }
         }
     },
     Mutation: {
