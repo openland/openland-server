@@ -5,7 +5,7 @@ export interface StreetAttributes {
     id?: number;
     account?: number;
     name?: string;
-    suffix?: number;
+    suffix?: string;
 }
 export interface Street extends sequelize.Instance<StreetAttributes>, StreetAttributes { }
 
