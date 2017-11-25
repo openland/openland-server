@@ -9,6 +9,7 @@ export { AccountMember } from './Account';
 export { Project } from './Project';
 export { DataSet } from './DataSet';
 export { Findings } from './Findings';
+export { Street } from './Street';
 
 import { UserTable } from './User';
 import { VoteTable } from './Vote';
@@ -19,6 +20,7 @@ import { ProjectTable } from './Project';
 import { DataSetTable } from './DataSet';
 import { FindingsTable } from './Findings';
 import { PermitTable } from './Permit';
+import { StreetTable } from './Street';
 
 export const DB = {
     User: UserTable,
@@ -30,6 +32,7 @@ export const DB = {
     DataSet: DataSetTable,
     Findings: FindingsTable,
     Permit: PermitTable,
+    Street: StreetTable,
 
     tx: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>): Promise<A> {
         return await connection.transaction((tx: sequelize.Transaction) => handler(tx));
