@@ -20,23 +20,3 @@ export const StreetTable = connection.define<Street, StreetAttributes>('street',
     name: { type: sequelize.STRING, allowNull: false },
     suffix: { type: sequelize.STRING, allowNull: true },
 }, { indexes: [{ unique: true, fields: ['account', 'name', 'suffix'] }] })
-
-export interface StreetNumberAttributes {
-    id?: number;
-    account?: number;
-    number?: number;
-    suffix?: number;
-}
-
-export interface BlockAttributes {
-    id?: number;
-    account?: number;
-    number?: string;
-}
-
-export interface LotAttributes {
-    id?: number;
-    account?: number;
-    block?: number;
-    number?: string;
-}
