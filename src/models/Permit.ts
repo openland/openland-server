@@ -26,7 +26,7 @@ export const Schema = `
     }
 
     extend type Query {
-        permits(first: Int!, after: String): PermitsConnection
+        permits(filter: String, first: Int!, after: String): PermitsConnection
     }
 
     input PermitInfo {
@@ -64,20 +64,36 @@ function convertDate(src?: string): Date | undefined {
 
 export const Resolver = {
     Query: {
-        permits: async function (_: any, args: { first: number, after?: string }, context: Context) {
+        permits: async function (_: any, args: { filter?: string, first: number, after?: string }, context: Context) {
             if (args.first > 100) {
                 throw "first can't be bigger than 100"
             }
             let res = await DB.Permit.findAndCountAll({
-                where: args.after
-                    ? {
-                        account: context.accountId,
-                        permitId: {
-                            $gt: args.after
-                        }
-                    } : {
-                        account: context.accountId
-                    },
+                where: (args.filter && args.filter != "")
+                    ? (
+                        args.after
+                            ? {
+                                account: context.accountId,
+                                permitId: {
+                                    $like: args.filter,
+                                    $gt: args.after
+                                }
+                            } : {
+                                account: context.accountId,
+                                permitId: {
+                                    $like: args.filter
+                                }
+                            }
+                    )
+                    : args.after
+                        ? {
+                            account: context.accountId,
+                            permitId: {
+                                $gt: args.after
+                            }
+                        } : {
+                            account: context.accountId
+                        },
                 order: [['permitId', 'ASC']],
                 limit: args.first
             })
