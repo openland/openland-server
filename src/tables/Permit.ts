@@ -13,6 +13,7 @@ export interface PermitAttributes {
     streetNumbers?: Array<StreetNumber>;
     getStreetNumbers?(): Promise<Array<StreetNumber>>;
     setStreetNumbers?(streets: Array<StreetNumber>): Promise<void>;
+    addStreetNumber?(id: number): Promise<StreetNumber>;
 }
 
 export interface Permit extends sequelize.Instance<PermitAttributes>, PermitAttributes { }

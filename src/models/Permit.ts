@@ -1,7 +1,8 @@
 import { Context } from "./Context";
 import { DB } from "../tables/index";
 import { PermitAttributes, Permit } from "../tables/Permit";
-import { StreetNumberTable } from "../tables/StreetNumber";
+import { StreetNumberTable, StreetNumber } from "../tables/StreetNumber";
+import { applyStreetNumbers } from "../repositories/Streets";
 
 
 export const Schema = `
@@ -33,11 +34,18 @@ export const Schema = `
     input PermitInfo {
         id: ID!
         status: String
-        address: String
         createdAt: String
         issuedAt: String
         completedAt: String
         expiredAt: String
+        street: [StreetNumberInfo!]
+    }
+
+    input StreetNumberInfo {
+        streetName: String!
+        streetNameSuffix: String
+        streetNumber: Int!
+        streetNumberSuffix: String
     }
 
     extend type Mutation {
@@ -48,11 +56,18 @@ export const Schema = `
 interface PermitInfo {
     id: string
     status?: "filled" | "issued" | "expired" | "completed"
-    address?: string
     createdAt?: string
     issuedAt?: string
     completedAt?: string
     expiredAt?: string
+    street?: [StreetNumberInfo]
+}
+
+interface StreetNumberInfo {
+    streetName: string
+    streetNameSuffix?: string
+    streetNumber: number
+    streetNumberSuffix?: string
 }
 
 function convertDate(src?: string): Date | undefined {
@@ -126,6 +141,16 @@ export const Resolver = {
     Mutation: {
         updatePermits: async function (_: any, args: { permits: [PermitInfo] }, context: Context) {
             console.info("Starting bulk insert/update of permits")
+
+            console.time("street_numbers")
+            let streetNumbers = args.permits
+                .filter((p) => p.street)
+                .map((p) => p.street!!)
+                .reduce((list, x) => list.concat(x), Array<StreetNumberInfo>())
+            let loadedNumbers = (await applyStreetNumbers(context.accountId, streetNumbers)).map((p) => p.id!!)
+            var streetIndex = 0
+            console.timeEnd("street_numbers")
+
             console.time("bulk_all")
             await DB.tx(async (tx) => {
                 console.time("load_all")
@@ -133,7 +158,11 @@ export const Resolver = {
                     where: {
                         account: context.accountId,
                         permitId: args.permits.map(p => p.id)
-                    }
+                    },
+                    include: [{
+                        model: StreetNumberTable,
+                        as: 'streetNumbers'
+                    }]
                 })
                 console.timeEnd("load_all")
 
@@ -164,6 +193,18 @@ export const Resolver = {
                             ex.permitStatus = p.status
                         }
                         waits.push(ex.save())
+
+                        //
+                        // Create Street
+                        //
+                        if (p.street) {
+                            for (let _ of p.street) {
+                                if (!ex.streetNumbers!!.find((p, v) => p.id == loadedNumbers[streetIndex])) {
+                                    await ex.addStreetNumber!!(loadedNumbers[streetIndex])
+                                }
+                                streetIndex++
+                            }
+                        }
                     } else {
                         pending.push({
                             account: context.accountId,
