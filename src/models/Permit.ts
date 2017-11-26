@@ -52,7 +52,7 @@ export const Schema = `
 
 interface PermitInfo {
     id: string
-    status?: "filled" | "issued" | "expired" | "completed"
+    status?: "filed" | "issued" | "expired" | "completed"
     createdAt?: string
     issuedAt?: string
     completedAt?: string

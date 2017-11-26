@@ -5,7 +5,7 @@ export interface PermitAttributes {
     id?: number;
     permitId?: string;
     account?: number;
-    permitStatus?: "filled" | "issued" | "completed" | "expired";
+    permitStatus?: "filed" | "issued" | "completed" | "expired";
     permitCreated?: Date;
     permitIssued?: Date;
     permitCompleted?: Date;
@@ -27,7 +27,7 @@ export const PermitTable = connection.define<Permit, PermitAttributes>('permits'
             key: 'id',
         }
     },
-    permitStatus: { type: sequelize.ENUM('filled', 'issued', 'completed', 'expired'), allowNull: true },
+    permitStatus: { type: sequelize.ENUM('filed', 'issued', 'completed', 'expired'), allowNull: true },
     permitCreated: { type: sequelize.DATEONLY, allowNull: true },
     permitIssued: { type: sequelize.DATEONLY, allowNull: true },
     permitCompleted: { type: sequelize.DATEONLY, allowNull: true },
