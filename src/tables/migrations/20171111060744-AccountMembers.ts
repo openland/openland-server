@@ -31,5 +31,5 @@ export async function up(queryInterface: QueryInterface, dataTypes: DataTypes) {
 }
 
 export async function down(queryInterface: QueryInterface, dataTypes: DataTypes) {
-    await queryInterface.dropTable('account_members')
+    
 }

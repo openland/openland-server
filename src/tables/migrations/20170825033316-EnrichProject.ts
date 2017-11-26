@@ -6,6 +6,5 @@ export async function up(queryInterface: QueryInterface, dataTypes: DataTypes) {
 }
 
 export async function down(queryInterface: QueryInterface, dataTypes: DataTypes) {
-    await queryInterface.removeColumn('projects', 'description')
-    await queryInterface.removeColumn('projects', 'findings')
+    
 }

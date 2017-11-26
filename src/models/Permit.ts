@@ -97,6 +97,9 @@ export const Resolver = {
                 order: [['permitId', 'ASC']],
                 limit: args.first
             })
+            for(let r of res.rows) {
+                console.warn(await r.getStreetNumbers());
+            }
             return {
                 edges: res.rows.map((p) => {
                     return {
@@ -156,9 +159,6 @@ export const Resolver = {
                         if (p.completedAt) {
                             ex.permitCompleted = convertDate(p.completedAt)
                         }
-                        if (p.address) {
-                            ex.address = p.address
-                        }
                         if (p.status) {
                             ex.permitStatus = p.status
                         }
@@ -167,7 +167,6 @@ export const Resolver = {
                         pending.push({
                             account: context.accountId,
                             permitId: p.id,
-                            address: p.address,
                             permitStatus: p.status,
                             permitCreated: convertDate(p.createdAt),
                             permitIssued: convertDate(p.issuedAt),
