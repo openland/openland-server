@@ -35,6 +35,6 @@ export const DB = {
     Street: StreetTable,
 
     tx: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>): Promise<A> {
-        return await connection.transaction((tx: sequelize.Transaction) => handler(tx));
+        return await connection.transaction({ isolationLevel: "SERIALIZABLE" }, (tx: sequelize.Transaction) => handler(tx));
     }
 }

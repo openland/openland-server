@@ -11,7 +11,7 @@ export interface StreetNumberAttributes {
 
 export interface StreetNumber extends sequelize.Instance<StreetNumberAttributes>, StreetNumberAttributes { }
 
-export const StreetNumberTable = connection.define<StreetNumber, StreetNumberAttributes>('streetnumber', {
+export const StreetNumberTable = connection.define<StreetNumber, StreetNumberAttributes>('street_number', {
     id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
     account: {
         type: sequelize.INTEGER, references: {

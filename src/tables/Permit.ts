@@ -10,8 +10,9 @@ export interface PermitAttributes {
     permitIssued?: Date;
     permitCompleted?: Date;
     permitExpired?: Date;
-    getStreetNumbers(): Promise<Array<StreetNumber>>;
-    setStreetNumbers(streets: Array<StreetNumber>): Promise<void>;
+    streetNumbers?: Array<StreetNumber>;
+    getStreetNumbers?(): Promise<Array<StreetNumber>>;
+    setStreetNumbers?(streets: Array<StreetNumber>): Promise<void>;
 }
 
 export interface Permit extends sequelize.Instance<PermitAttributes>, PermitAttributes { }
@@ -32,5 +33,5 @@ export const PermitTable = connection.define<Permit, PermitAttributes>('permits'
     permitExpired: { type: sequelize.DATEONLY, allowNull: true },
 }, { indexes: [{ unique: true, fields: ['permitId', 'account'] }] })
 
-PermitTable.belongsToMany(StreetNumberTable, { through: 'permit_street_numbers', as: 'StreetNumbers' })
-StreetNumberTable.belongsToMany(PermitTable, { through: 'permit_street_numbers' })
+PermitTable.belongsToMany(StreetNumberTable, { through: 'permit_street_numbers', as: 'streetNumbers' })
+StreetNumberTable.belongsToMany(PermitTable, { through: 'permit_street_numbers', as: 'permits' })

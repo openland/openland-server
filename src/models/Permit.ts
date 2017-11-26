@@ -1,6 +1,7 @@
 import { Context } from "./Context";
 import { DB } from "../tables/index";
 import { PermitAttributes, Permit } from "../tables/Permit";
+import { StreetNumberTable } from "../tables/StreetNumber";
 
 
 export const Schema = `
@@ -95,11 +96,12 @@ export const Resolver = {
                             account: context.accountId
                         },
                 order: [['permitId', 'ASC']],
-                limit: args.first
+                limit: args.first,
+                include: [{
+                    model: StreetNumberTable,
+                    as: 'streetNumbers'
+                }]
             })
-            for(let r of res.rows) {
-                console.warn(await r.getStreetNumbers());
-            }
             return {
                 edges: res.rows.map((p) => {
                     return {
@@ -131,8 +133,7 @@ export const Resolver = {
                     where: {
                         account: context.accountId,
                         permitId: args.permits.map(p => p.id)
-                    },
-                    lock: tx.LOCK.UPDATE
+                    }
                 })
                 console.timeEnd("load_all")
 
