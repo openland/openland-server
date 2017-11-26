@@ -85,7 +85,7 @@ async function _applyStreets(accountId: number, streets: StreetDescription[]) {
         }
         if (pending.length > 0) {
             index = 0
-            for (let p of await DB.Street.bulkCreate(pending)) {
+            for (let p of await DB.Street.bulkCreate(pending, { returning: true })) {
                 res[pendingIndex[index]] = p
                 index++
             }
