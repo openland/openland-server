@@ -1,7 +1,7 @@
 import { Context } from "./Context";
 import { DB } from "../tables/index";
 import { PermitAttributes, Permit } from "../tables/Permit";
-import { StreetNumberTable, StreetNumber } from "../tables/StreetNumber";
+import { StreetNumberTable } from "../tables/StreetNumber";
 import { applyStreetNumbers } from "../repositories/Streets";
 
 
