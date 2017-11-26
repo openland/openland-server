@@ -118,7 +118,7 @@ export async function applyStreetNumbers(accountId: number, streetNumbers: Stree
                 let existing = await DB.StreetNumber.findOne({
                     where: {
                         account: accountId,
-                        street: street.id,
+                        streetId: street.id,
                         number: n.streetNumber,
                         suffix: n.streetNumberSuffix
                     }
@@ -126,7 +126,7 @@ export async function applyStreetNumbers(accountId: number, streetNumbers: Stree
                 if (existing == null) {
                     res.push(await DB.StreetNumber.create({
                         account: accountId,
-                        street: street.id,
+                        streetId: street.id,
                         number: n.streetNumber,
                         suffix: n.streetNumberSuffix
                     }))

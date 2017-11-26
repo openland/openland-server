@@ -10,6 +10,14 @@ export const Schema = `
         fullName: String
     }
 
+    type StreetNumber {
+        streetId: ID!
+        streetName: String!
+        streetNameSuffix: String
+        streetNumber: Int!
+        streetNumberSuffix: String
+    }
+
     input StreetInfo {
         name: String!
         suffix: String

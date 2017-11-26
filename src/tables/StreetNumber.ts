@@ -1,10 +1,12 @@
 import { connection } from '../connector';
 import * as sequelize from 'sequelize'
+import { StreetTable, Street } from './Street';
 
 export interface StreetNumberAttributes {
     id?: number;
     account?: number;
-    street?: number;
+    street?: Street;
+    streetId?: number;
     number?: number;
     suffix?: string;
 }
@@ -19,12 +21,8 @@ export const StreetNumberTable = connection.define<StreetNumber, StreetNumberAtt
             key: 'id',
         }
     },
-    street: {
-        type: sequelize.INTEGER, references: {
-            model: 'streets',
-            key: 'id',
-        }
-    },
     number: { type: sequelize.INTEGER, allowNull: false },
     suffix: { type: sequelize.STRING, allowNull: true },
 }, { indexes: [{ unique: true, fields: ['account', 'street', 'number', 'suffix'] }] })
+
+StreetNumberTable.belongsTo(StreetTable, { as: 'street' })
