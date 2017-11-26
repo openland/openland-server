@@ -3,6 +3,7 @@ import { DB } from "../tables/index";
 import { PermitAttributes, Permit } from "../tables/Permit";
 import { StreetNumberTable } from "../tables/StreetNumber";
 import { applyStreetNumbers } from "../repositories/Streets";
+import { normalize } from "path";
 
 
 export const Schema = `
@@ -141,18 +142,24 @@ export const Resolver = {
     Mutation: {
         updatePermits: async function (_: any, args: { permits: [PermitInfo] }, context: Context) {
 
-            for (let i = 0; i < args.permits.length; i++) {
-                for (let j = 0; j < i; j++) {
-                    if (args.permits[i].id === args.permits[j].id) {
-                        throw "Duplicate permits " + args.permits[i].id
-                    }
+            //
+            // Normalizing
+            //
+            
+            var normalized = new Map<String, PermitInfo>()
+            for (let p of args.permits) {
+                if (normalized.has(p.id)) {
+                    normalized.set(p.id, Object.assign(normalized.get(p.id), p))
+                } else {
+                    normalized.set(p.id, p)
                 }
             }
+            var permits = Array.from(normalized.values())
 
             console.info("Starting bulk insert/update of permits")
 
             console.time("street_numbers")
-            let streetNumbers = args.permits
+            let streetNumbers = permits
                 .filter((p) => p.street)
                 .map((p) => p.street!!)
                 .reduce((list, x) => list.concat(x), Array<StreetNumberInfo>())
@@ -183,7 +190,7 @@ export const Resolver = {
                 for (let p of existing) {
                     map[p.permitId!!] = p
                 }
-                for (let p of args.permits) {
+                for (let p of permits) {
                     let ex = map[p.id]
                     if (ex) {
                         if (p.createdAt) {
