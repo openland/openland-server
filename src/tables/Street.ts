@@ -19,4 +19,18 @@ export const StreetTable = connection.define<Street, StreetAttributes>('street',
     },
     name: { type: sequelize.STRING, allowNull: false },
     suffix: { type: sequelize.STRING, allowNull: true },
-}, { indexes: [{ unique: true, fields: ['account', 'name', 'suffix'] }] })
+}, {
+        indexes: [{
+            unique: true, fields: ['account', 'name', 'suffix'], where: {
+                'suffix': {
+                    $ne: null
+                }
+            }
+        }, {
+            unique: true, fields: ['account', 'name'], where: {
+                'suffix': {
+                    $eq: null
+                }
+            }
+        }]
+    })
