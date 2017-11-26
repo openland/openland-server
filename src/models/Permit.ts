@@ -3,8 +3,6 @@ import { DB } from "../tables/index";
 import { PermitAttributes, Permit } from "../tables/Permit";
 import { StreetNumberTable } from "../tables/StreetNumber";
 import { applyStreetNumbers } from "../repositories/Streets";
-import { normalize } from "path";
-
 
 export const Schema = `
 
@@ -145,7 +143,7 @@ export const Resolver = {
             //
             // Normalizing
             //
-            
+
             var normalized = new Map<String, PermitInfo>()
             for (let p of args.permits) {
                 if (normalized.has(p.id)) {
