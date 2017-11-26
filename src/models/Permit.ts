@@ -140,6 +140,15 @@ export const Resolver = {
     },
     Mutation: {
         updatePermits: async function (_: any, args: { permits: [PermitInfo] }, context: Context) {
+
+            for (let i = 0; i < args.permits.length; i++) {
+                for (let j = 0; j < i; j++) {
+                    if (args.permits[i].id === args.permits[j].id) {
+                        throw "Duplicate permits " + args.permits[i].id
+                    }
+                }
+            }
+
             console.info("Starting bulk insert/update of permits")
 
             console.time("street_numbers")
