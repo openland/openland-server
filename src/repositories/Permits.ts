@@ -1,10 +1,10 @@
 import { StreetNumberDescription, applyStreetNumbers } from "./Streets";
 import { DB } from "../tables/index";
-import { PermitAttributes, Permit } from "../tables/Permit";
+import { PermitAttributes, Permit, PermitStatus } from "../tables/Permit";
 
 export interface PermitDescriptor {
     id: string
-    status?: "filed" | "issued" | "expired" | "completed"
+    status?: PermitStatus
     createdAt?: string
     issuedAt?: string
     completedAt?: string

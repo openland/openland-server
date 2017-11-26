@@ -1,11 +1,18 @@
 import { connection } from '../connector';
 import * as sequelize from 'sequelize'
 import { StreetNumberTable, StreetNumber } from './StreetNumber';
+
+export type PermitStatus = "filed" | "issued" | "completed" | "expired" |
+    "cancelled" | "disapproved" | "approved" | "issuing" |
+    "revoked" | "withdrawn" | "plancheck" | "suspended" |
+    "reinstated" | "filing" | "inspecting" | "upheld" |
+    "incomplete" | "granted"
+
 export interface PermitAttributes {
     id?: number;
     permitId?: string;
     account?: number;
-    permitStatus?: "filed" | "issued" | "completed" | "expired";
+    permitStatus?: PermitStatus
     permitCreated?: Date;
     permitIssued?: Date;
     permitCompleted?: Date;
@@ -27,7 +34,15 @@ export const PermitTable = connection.define<Permit, PermitAttributes>('permits'
             key: 'id',
         }
     },
-    permitStatus: { type: sequelize.ENUM('filed', 'issued', 'completed', 'expired'), allowNull: true },
+    permitStatus: {
+        type: sequelize.ENUM(
+            'filed', 'issued', 'completed', 'expired',
+            'cancelled', 'disapproved', 'approved', 'issuing',
+            'revoked', 'withdrawn', 'plancheck', 'suspended',
+            'reinstated', 'filing', 'inspecting', 'upheld',
+            'incomplete', 'granted'
+        ), allowNull: true
+    },
     permitCreated: { type: sequelize.DATEONLY, allowNull: true },
     permitIssued: { type: sequelize.DATEONLY, allowNull: true },
     permitCompleted: { type: sequelize.DATEONLY, allowNull: true },

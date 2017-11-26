@@ -1,6 +1,7 @@
 import { Context } from "./Context";
 import { DB } from "../tables/index";
 import { applyPermits } from "../repositories/Permits";
+import { PermitStatus } from "../tables/Permit";
 
 export const Schema = `
 
@@ -53,7 +54,7 @@ export const Schema = `
 
 interface PermitInfo {
     id: string
-    status?: "filed" | "issued" | "expired" | "completed"
+    status?: PermitStatus
     createdAt?: string
     issuedAt?: string
     completedAt?: string
