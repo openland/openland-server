@@ -1,6 +1,6 @@
 import { DB } from "../tables/index";
 import { StreetAttributes, Street } from "../tables/Street";
-import { StreetNumber } from "../tables/StreetNumber";
+import { StreetNumber, StreetNumberAttributes } from "../tables/StreetNumber";
 
 export interface StreetDescription {
     streetName: string
@@ -63,14 +63,12 @@ async function _applyStreets(accountId: number, streets: StreetDescription[]) {
         var pending = Array<StreetAttributes>()
         var pendingIndex = Array<number>()
         var index = 0
+        var tuples = normalized.map((n) => {
+            return [n.streetName, n.streetNameSuffix] as any[]
+        })
+        var allStreets = await DB.findAllTuples(accountId, ['name', 'suffix'], tuples, DB.Street)
         for (let str of normalized) {
-            let existing = await DB.Street.find({
-                where: {
-                    account: accountId,
-                    name: str.streetName,
-                    suffix: str.streetNameSuffix
-                },
-            })
+            let existing = allStreets.find((p) => p.name === str.streetName && p.suffix == str.streetNameSuffix)
             if (existing == null) {
                 pending.push({
                     account: accountId,
@@ -101,8 +99,8 @@ export async function applyStreets(accountId: number, streets: StreetDescription
 export async function applyStreetNumbers(accountId: number, streetNumbers: StreetNumberDescription[]) {
     return await DB.tx(async (tx) => {
         let normalized = streetNumbers.map((p) => ({
-            streetName: p.streetName,
-            streetNameSuffix: p.streetNameSuffix,
+            streetName: normalizeStreet(p.streetName),
+            streetNameSuffix: normalizeSuffix(p.streetNameSuffix),
             streetNumber: p.streetNumber,
             streetNumberSuffix: normalizeSuffix(p.streetNumberSuffix)
         }))
@@ -110,30 +108,39 @@ export async function applyStreetNumbers(accountId: number, streetNumbers: Stree
             a.streetName === b.streetName && a.streetNameSuffix === b.streetNameSuffix &&
             a.streetNumber === b.streetNumber && a.streetNumberSuffix === b.streetNumberSuffix
         return normalizedProcessor(normalized, comparator, async (data) => {
-            var res = Array<StreetNumber>()
-            let streets = await _applyStreets(accountId, streetNumbers)
+            var res = Array<StreetNumber>(data.length)
+            let streets = await _applyStreets(accountId, data)
             var index = 0
+
+            var tuples = data.map((n, ind) => {
+                return [streets[ind].id, n.streetNumber, n.streetNumberSuffix] as any[]
+            })
+            var allNumbers = await DB.findAllTuples(accountId, ['streetId', 'number', 'suffix'], tuples, DB.StreetNumber)
+
+            var pending = Array<StreetNumberAttributes>();
+            var pendingIndex = Array<number>()
             for (let n of data) {
                 let street = streets[index]
-                let existing = await DB.StreetNumber.findOne({
-                    where: {
-                        account: accountId,
-                        streetId: street.id,
-                        number: n.streetNumber,
-                        suffix: n.streetNumberSuffix
-                    }
-                })
+                let existing = allNumbers.find((p) => p.streetId == street.id && p.number == n.streetNumber && p.suffix == n.streetNumberSuffix)
                 if (existing == null) {
-                    res.push(await DB.StreetNumber.create({
+                    pending.push({
                         account: accountId,
                         streetId: street.id,
                         number: n.streetNumber,
                         suffix: n.streetNumberSuffix
-                    }))
+                    })
+                    pendingIndex.push(index)
                 } else {
-                    res.push(existing)
+                    res[index] = existing
                 }
                 index++
+            }
+            if (pending.length > 0) {
+                index = 0
+                for (let p of await DB.StreetNumber.bulkCreate(pending, { returning: true })) {
+                    res[pendingIndex[index]] = p
+                    index++
+                }
             }
             return res
         })

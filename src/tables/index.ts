@@ -39,5 +39,41 @@ export const DB = {
 
     tx: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>): Promise<A> {
         return await connection.transaction({ isolationLevel: "SERIALIZABLE" }, (tx: sequelize.Transaction) => handler(tx));
+    },
+    findAllRaw: async function query<TInstance>(sql: string, model: sequelize.Model<TInstance, any>): Promise<TInstance[]> {
+        return (await connection.query(sql, {
+            model: model
+        })) as TInstance[]
+    },
+    findAllTuples: async function query<TInstance>(accountId: number, fields: string[], tuples: any[][], model: sequelize.Model<TInstance, any>): Promise<TInstance[]> {
+        // normalized.map((n) => ('("' +  connection.escape(n.streetName) + '", '))
+
+        var attributes = (model as any).attributes
+
+        var sqlFields = '(' + fields.map((p) => {
+            let attr = attributes[p]
+            if (!attr) {
+                throw "Attribute " + p + " not found"
+            }
+            if (attr.type.constructor.name == 'STRING' && attr.allowNull) {
+                return "COALESCE(\"" + p + "\", '!#NULLL')"
+            }
+            return '"' + p + '"'
+        }).join() + ')'
+        var sqlTuples = '(' + tuples.map((p) =>
+            '(' + p.map((v) => {
+                if (v == null || v == undefined) {
+                    return "'!#NULLL'"
+                } else if (typeof v === "string") {
+                    return connection.escape(v)
+                } else {
+                    return v
+                }
+            }).join() + ')'
+        ).join() + ')'
+        var query = 'SELECT * from "' + model.getTableName() + '" ' +
+            'WHERE "account" = ' + accountId + ' AND ' +
+            sqlFields + ' in ' + sqlTuples;
+        return this.findAllRaw(query, model)
     }
 }
