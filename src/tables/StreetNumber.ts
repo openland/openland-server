@@ -23,6 +23,20 @@ export const StreetNumberTable = connection.define<StreetNumber, StreetNumberAtt
     },
     number: { type: sequelize.INTEGER, allowNull: false },
     suffix: { type: sequelize.STRING, allowNull: true },
-}, { indexes: [{ unique: true, fields: ['account', 'street', 'number', 'suffix'] }] })
+}, {
+        indexes: [{
+            unique: true, fields: ['account', 'streetId', 'number'], where: {
+                'suffix': {
+                    $eq: null
+                }
+            }
+        }, {
+            unique: true, fields: ['account', 'streetId', 'number', 'suffix'], where: {
+                'suffix': {
+                    $neq: null
+                }
+            }
+        }]
+    })
 
 StreetNumberTable.belongsTo(StreetTable, { as: 'street' })

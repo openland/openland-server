@@ -26,6 +26,7 @@ export const Schema = `
 
     extend type Query {
         permits(filter: String, first: Int!, after: String): PermitsConnection
+        permit(id: ID!): Permit
     }
 
     input PermitInfo {
@@ -69,6 +70,41 @@ interface StreetNumberInfo {
 
 export const Resolver = {
     Query: {
+        permit: async function (_: any, args: { id: string }, context: Context) {
+            var res = await DB.Permit.findOne({
+                where: {
+                    account: context.accountId,
+                    permitId: args.id
+                },
+                include: [{
+                    model: DB.StreetNumber,
+                    as: 'streetNumbers',
+                    include: [{
+                        model: DB.Street,
+                        as: 'street'
+                    }]
+                }]
+            })
+            if (res != null) {
+                return {
+                    id: res.permitId,
+                    status: res.permitStatus,
+                    createdAt: res.permitCreated,
+                    issuedAt: res.permitIssued,
+                    expiredAt: res.permitExpired,
+                    completedAt: res.permitCompleted,
+                    streetNumbers: res.streetNumbers!!.map((n) => ({
+                        streetId: n.street!!.id,
+                        streetName: n.street!!.name,
+                        streetNameSuffix: n.street!!.suffix,
+                        streetNumber: n.number,
+                        streetNumberSuffix: n.suffix
+                    }))
+                }
+            } else {
+                return null
+            }
+        },
         permits: async function (_: any, args: { filter?: string, first: number, after?: string }, context: Context) {
             if (args.first > 100) {
                 throw "first can't be bigger than 100"
