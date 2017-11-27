@@ -262,7 +262,7 @@ export const Resolver = {
                         } : {
                             account: context.accountId
                         },
-                order: [['permitId', 'ASC']],
+                order: [['permitCreated', 'DESC']],
                 limit: args.first,
                 include: [{
                     model: DB.StreetNumber,
