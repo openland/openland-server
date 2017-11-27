@@ -7,12 +7,33 @@ export const Schema = `
 
     type Permit {
         id: ID!
-        status: String
+        status: PermitStatus
         createdAt: String
         issuedAt: String
         completedAt: String
         expiredAt: String
         streetNumbers: [StreetNumber!]!
+    }
+
+    enum PermitStatus {
+        FILING
+        FILED
+        ISSUED 
+        COMPLETED
+        EXPIRED
+        CANCELLED 
+        DISAPPROVED 
+        APPROVED 
+        ISSUING
+        REVOKED
+        WITHDRAWN
+        PLANCKECK
+        SUSPENDED
+        REINSTATED
+        INSPECTING
+        UPHELD
+        INCOMPLETE
+        GRANTED
     }
 
     type PermitEdge {
@@ -52,6 +73,25 @@ export const Schema = `
     }
 `
 
+type PermitStatusQL = "FILING"
+    | "FILED"
+    | "ISSUED"
+    | "COMPLETED"
+    | "EXPIRED"
+    | "CANCELLED"
+    | "DISAPPROVED"
+    | "APPROVED"
+    | "ISSUING"
+    | "REVOKED"
+    | "WITHDRAWN"
+    | "PLANCKECK"
+    | "SUSPENDED"
+    | "REINSTATED"
+    | "INSPECTING"
+    | "UPHELD"
+    | "INCOMPLETE"
+    | "GRANTED"
+
 interface PermitInfo {
     id: string
     status?: PermitStatus
@@ -67,6 +107,13 @@ interface StreetNumberInfo {
     streetNameSuffix?: string
     streetNumber: number
     streetNumberSuffix?: string
+}
+
+function convertStateToQL(state?: PermitStatus): PermitStatusQL | null {
+    if (!state) {
+        return null
+    }
+    return state.toUpperCase() as PermitStatusQL
 }
 
 export const Resolver = {
@@ -89,7 +136,7 @@ export const Resolver = {
             if (res != null) {
                 return {
                     id: res.permitId,
-                    status: res.permitStatus,
+                    status: convertStateToQL(res.permitStatus),
                     createdAt: res.permitCreated,
                     issuedAt: res.permitIssued,
                     expiredAt: res.permitExpired,
@@ -152,7 +199,7 @@ export const Resolver = {
                     return {
                         node: {
                             id: p.permitId,
-                            status: p.permitStatus,
+                            status: convertStateToQL(p.permitStatus),
                             createdAt: p.permitCreated,
                             issuedAt: p.permitIssued,
                             expiredAt: p.permitExpired,
