@@ -1,18 +1,28 @@
 import { Context } from "./Context";
 import { DB } from "../tables/index";
 import { applyPermits } from "../repositories/Permits";
-import { PermitStatus } from "../tables/Permit";
+import { PermitStatus, Permit } from "../tables/Permit";
 
 export const Schema = `
 
     type Permit {
         id: ID!
         status: PermitStatus
+        statusUpdatedAt: String
         createdAt: String
         issuedAt: String
         completedAt: String
         expiredAt: String
         streetNumbers: [StreetNumber!]!
+
+        existingStories: Int
+        proposedStories: Int
+        existingUnits: Int
+        proposedUnits: Int
+        existingAffordableUnits: Int
+        proposedAffordableUnits: Int
+        proposedUse: String
+        description: String
     }
 
     enum PermitStatus {
@@ -55,11 +65,21 @@ export const Schema = `
     input PermitInfo {
         id: ID!
         status: PermitStatus
+        statusUpdatedAt: String
         createdAt: String
         issuedAt: String
         completedAt: String
         expiredAt: String
         street: [StreetNumberInfo!]
+
+        existingStories: Int
+        proposedStories: Int
+        existingUnits: Int
+        proposedUnits: Int
+        existingAffordableUnits: Int
+        proposedAffordableUnits: Int
+        proposedUse: String
+        description: String
     }
 
     input StreetNumberInfo {
@@ -96,11 +116,21 @@ type PermitStatusQL = "FILING"
 interface PermitInfo {
     id: string
     status?: PermitStatus
+    statusUpdatedAt?: string
     createdAt?: string
     issuedAt?: string
     completedAt?: string
     expiredAt?: string
     street?: [StreetNumberInfo]
+
+    existingStories?: number;
+    proposedStories?: number;
+    existingUnits?: number;
+    proposedUnits?: number;
+    existingAffordableUnits?: number;
+    proposedAffordableUnits?: number;
+    proposedUse?: string;
+    description?: string;
 }
 
 interface StreetNumberInfo {
@@ -115,6 +145,34 @@ function convertStateToQL(state?: PermitStatus): PermitStatusQL | null {
         return null
     }
     return state.toUpperCase() as PermitStatusQL
+}
+
+function convertPermitToQL(res: Permit): any {
+    return {
+        id: res.permitId,
+        status: convertStateToQL(res.permitStatus),
+        statusUpdatedAt: res.permitStatusUpdated,
+        createdAt: res.permitCreated,
+        issuedAt: res.permitIssued,
+        expiredAt: res.permitExpired,
+        completedAt: res.permitCompleted,
+        existingStories: res.existingStories,
+        proposedStories: res.proposedStories,
+        existingUnits: res.existingUnits,
+        proposedUnits: res.proposedUnits,
+        existingAffordableUnits: res.existingAffordableUnits,
+        proposedAffordableUnits: res.proposedAffordableUnits,
+        proposedUse: res.proposedUse,
+        description: res.description,
+
+        streetNumbers: res.streetNumbers!!.map((n) => ({
+            streetId: n.street!!.id,
+            streetName: n.street!!.name,
+            streetNameSuffix: n.street!!.suffix,
+            streetNumber: n.number,
+            streetNumberSuffix: n.suffix
+        }))
+    }
 }
 
 export const Resolver = {
@@ -135,21 +193,7 @@ export const Resolver = {
                 }]
             })
             if (res != null) {
-                return {
-                    id: res.permitId,
-                    status: convertStateToQL(res.permitStatus),
-                    createdAt: res.permitCreated,
-                    issuedAt: res.permitIssued,
-                    expiredAt: res.permitExpired,
-                    completedAt: res.permitCompleted,
-                    streetNumbers: res.streetNumbers!!.map((n) => ({
-                        streetId: n.street!!.id,
-                        streetName: n.street!!.name,
-                        streetNameSuffix: n.street!!.suffix,
-                        streetNumber: n.number,
-                        streetNumberSuffix: n.suffix
-                    }))
-                }
+                return convertPermitToQL(res)
             } else {
                 return null
             }
@@ -198,21 +242,7 @@ export const Resolver = {
             return {
                 edges: res.rows.map((p) => {
                     return {
-                        node: {
-                            id: p.permitId,
-                            status: convertStateToQL(p.permitStatus),
-                            createdAt: p.permitCreated,
-                            issuedAt: p.permitIssued,
-                            expiredAt: p.permitExpired,
-                            completedAt: p.permitCompleted,
-                            streetNumbers: p.streetNumbers!!.map((n) => ({
-                                streetId: n.street!!.id,
-                                streetName: n.street!!.name,
-                                streetNameSuffix: n.street!!.suffix,
-                                streetNumber: n.number,
-                                streetNumberSuffix: n.suffix
-                            }))
-                        },
+                        node: convertPermitToQL(p),
                         cursor: p.permitId
                     }
                 }),

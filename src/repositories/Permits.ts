@@ -5,10 +5,21 @@ import { PermitAttributes, Permit, PermitStatus } from "../tables/Permit";
 export interface PermitDescriptor {
     id: string
     status?: PermitStatus
+    statusUpdatedAt?: string
     createdAt?: string
     issuedAt?: string
     completedAt?: string
     expiredAt?: string
+
+    existingStories?: number;
+    proposedStories?: number;
+    existingUnits?: number;
+    proposedUnits?: number;
+    existingAffordableUnits?: number;
+    proposedAffordableUnits?: number;
+    proposedUse?: string;
+    description?: string;
+
     street?: [StreetNumberDescription]
 }
 
@@ -103,6 +114,35 @@ export async function applyPermits(accountId: number, permits: PermitDescriptor[
                 if (p.status) {
                     ex.permitStatus = convertStatus(p.status)
                 }
+                if (p.statusUpdatedAt) {
+                    ex.permitStatusUpdated = convertDate(p.statusUpdatedAt)
+                }
+
+                if (p.existingStories) {
+                    ex.existingStories = p.existingStories
+                }
+                if (p.proposedStories) {
+                    ex.proposedStories = p.proposedStories
+                }
+                if (p.existingUnits) {
+                    ex.existingUnits = p.existingUnits
+                }
+                if (p.proposedUnits) {
+                    ex.proposedUnits = p.proposedUnits
+                }
+                if (p.existingAffordableUnits) {
+                    ex.existingAffordableUnits = p.existingAffordableUnits
+                }
+                if (p.proposedAffordableUnits) {
+                    ex.proposedAffordableUnits = p.proposedAffordableUnits
+                }
+                if (p.proposedUse) {
+                    ex.proposedUse = p.proposedUse
+                }
+                if (p.description) {
+                    ex.description = p.description
+                }
+
                 waits.push(ex.save())
 
                 //
@@ -124,7 +164,16 @@ export async function applyPermits(accountId: number, permits: PermitDescriptor[
                     permitCreated: convertDate(p.createdAt),
                     permitIssued: convertDate(p.issuedAt),
                     permitExpired: convertDate(p.expiredAt),
-                    permitCompleted: convertDate(p.completedAt)
+                    permitCompleted: convertDate(p.completedAt),
+                    permitStatusUpdated: convertDate(p.statusUpdatedAt),
+                    existingStories: p.existingStories,
+                    proposedStories: p.proposedStories,
+                    existingUnits: p.existingUnits,
+                    proposedUnits: p.proposedUnits,
+                    existingAffordableUnits: p.existingAffordableUnits,
+                    proposedAffordableUnits: p.proposedAffordableUnits,
+                    proposedUse: p.proposedUse,
+                    description: p.description
                 })
             }
         }
