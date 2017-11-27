@@ -6,7 +6,7 @@ export type PermitStatus = "filed" | "issued" | "completed" | "expired" |
     "cancelled" | "disapproved" | "approved" | "issuing" |
     "revoked" | "withdrawn" | "plancheck" | "suspended" |
     "reinstated" | "filing" | "inspecting" | "upheld" |
-    "incomplete" | "granted"
+    "incomplete" | "granted" | "appeal"
 
 export interface PermitAttributes {
     id?: number;

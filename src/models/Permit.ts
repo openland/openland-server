@@ -27,13 +27,14 @@ export const Schema = `
         ISSUING
         REVOKED
         WITHDRAWN
-        PLANCKECK
+        PLANCHECK
         SUSPENDED
         REINSTATED
         INSPECTING
         UPHELD
         INCOMPLETE
         GRANTED
+        APPEAL
     }
 
     type PermitEdge {
@@ -53,7 +54,7 @@ export const Schema = `
 
     input PermitInfo {
         id: ID!
-        status: String
+        status: PermitStatus
         createdAt: String
         issuedAt: String
         completedAt: String

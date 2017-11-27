@@ -20,6 +20,14 @@ function convertDate(src?: string): Date | undefined {
     }
 }
 
+function convertStatus(src?: string): PermitStatus | undefined {
+    if (src) {
+        return src.toLowerCase() as PermitStatus
+    } else {
+        return undefined
+    }
+}
+
 export async function applyPermits(accountId: number, permits: PermitDescriptor[]) {
 
     //
@@ -93,7 +101,7 @@ export async function applyPermits(accountId: number, permits: PermitDescriptor[
                     ex.permitCompleted = convertDate(p.completedAt)
                 }
                 if (p.status) {
-                    ex.permitStatus = p.status
+                    ex.permitStatus = convertStatus(p.status)
                 }
                 waits.push(ex.save())
 
@@ -112,7 +120,7 @@ export async function applyPermits(accountId: number, permits: PermitDescriptor[
                 pending.push({
                     account: accountId,
                     permitId: p.id,
-                    permitStatus: p.status,
+                    permitStatus: convertStatus(p.status),
                     permitCreated: convertDate(p.createdAt),
                     permitIssued: convertDate(p.issuedAt),
                     permitExpired: convertDate(p.expiredAt),
