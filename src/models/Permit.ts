@@ -71,6 +71,7 @@ export const Schema = `
 
     extend type Query {
         permits(filter: String, first: Int!, after: String): PermitsConnection
+        permitsPipeline(first: Int!, after: String): PermitsConnection
         permit(id: ID!): Permit
     }
 
@@ -230,6 +231,54 @@ export const Resolver = {
                 return convertPermitToQL(res)
             } else {
                 return null
+            }
+        },
+        permitsPipeline: async function (_: any, args: { first: number, after?: string }, context: Context) {
+            if (args.first > 100) {
+                throw "first can't be bigger than 100"
+            }
+            let res = await DB.Permit.findAndCountAll({
+                where: args.after
+                    ? {
+                        account: context.accountId,
+                        permitCreated: {
+                            $gt: args.after
+                        }
+                    } : {
+                        account: context.accountId,
+                        permitType: {
+                            $in: ["new_construction", "additions_alterations_repare"]
+                        },
+                        permitStatus: "issued",
+                        proposedUnits: {
+                            $gt: 0
+                        },
+                        existingUnits: {
+                            $gt: 0
+                        }
+                    },
+                order: [['permitCreated', 'DESC']],
+                limit: args.first,
+                include: [{
+                    model: DB.StreetNumber,
+                    as: 'streetNumbers',
+                    include: [{
+                        model: DB.Street,
+                        as: 'street'
+                    }]
+                }]
+            })
+            return {
+                edges: res.rows.map((p) => {
+                    return {
+                        node: convertPermitToQL(p),
+                        cursor: p.permitCreated
+                    }
+                }),
+                pageInfo: {
+                    hasNextPage: res.count > res.rows.length,
+                    hasPreviousPage: false
+                }
             }
         },
         permits: async function (_: any, args: { filter?: string, first: number, after?: string }, context: Context) {
