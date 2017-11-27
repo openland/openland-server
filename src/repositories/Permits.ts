@@ -101,11 +101,14 @@ export async function applyPermits(accountId: number, permits: PermitDescriptor[
         console.time("prepare")
         var pending = Array<PermitAttributes>()
         var waits = Array<PromiseLike<Permit>>()
+        var pendingStreets = Array<{ permitId: number, streetId: number }>()
+        var pendingStreetsIndex = Array<{ permitIndex: number, streetId: number }>()
 
         var map: { [key: string]: Permit } = {}
         for (let p of existing) {
             map[p.permitId!!] = p
         }
+        var index = 0
         for (let p of permits) {
             let ex = map[p.id]
             if (ex) {
@@ -168,7 +171,7 @@ export async function applyPermits(accountId: number, permits: PermitDescriptor[
                 if (p.street) {
                     for (let _ of p.street) {
                         if (!ex.streetNumbers!!.find((p, v) => p.id == loadedNumbers[streetIndex])) {
-                            await ex.addStreetNumber!!(loadedNumbers[streetIndex])
+                            pendingStreets.push({ permitId: ex.id!!, streetId: loadedNumbers[streetIndex]!! })
                         }
                         streetIndex++
                     }
@@ -194,13 +197,23 @@ export async function applyPermits(accountId: number, permits: PermitDescriptor[
                     proposedUse: p.proposedUse,
                     description: p.description
                 })
+                if (p.street) {
+                    for (let _ of p.street) {
+                        pendingStreetsIndex.push({ permitIndex: index, streetId: loadedNumbers[streetIndex]!! })
+                        streetIndex++
+                    }
+                }
+                index++
             }
         }
         console.timeEnd("prepare")
 
         if (pending.length > 0) {
             console.time("insert")
-            await DB.Permit.bulkCreate(pending)
+            let bulked = await DB.Permit.bulkCreate(pending, { returning: true })
+            for (let s of pendingStreetsIndex) {
+                pendingStreets.push({ permitId: bulked[s.permitIndex].id!!, streetId: s.streetId })
+            }
             console.timeEnd("insert")
         }
 
@@ -211,6 +224,13 @@ export async function applyPermits(accountId: number, permits: PermitDescriptor[
                 await p
             }
             console.timeEnd("waiting")
+        }
+
+        if (pendingStreets.length > 0) {
+            console.time("street_associations")
+            let mapped = pendingStreets.map((v) => ({ value1: v.permitId, value2: v.streetId }));
+            await DB.bulkAssociations("permit_street_numbers", "permitId", "streetNumberId", mapped)
+            console.timeEnd("street_associations")
         }
     });
     console.timeEnd("bulk_all")

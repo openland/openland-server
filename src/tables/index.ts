@@ -75,5 +75,11 @@ export const DB = {
             'WHERE "account" = ' + accountId + ' AND ' +
             sqlFields + ' in ' + sqlTuples;
         return this.findAllRaw(query, model)
+    },
+    bulkAssociations: async function bulkAssociations(table: string, key1: string, key2: string, values: { value1: number, value2: number }[]) {
+        let date = new Date().toUTCString()
+        let sqlValues = values.map((v) => "('" + date + "','" + date + "'," + v.value1 + "," + v.value2 + ")").join()
+        let query = "INSERT INTO \"" + table + "\" (\"createdAt\",\"updatedAt\",\"" + key1 + "\",\"" + key2 + "\") VALUES " + sqlValues +" ON CONFLICT DO NOTHING"
+        await connection.query(query)
     }
 }
