@@ -8,10 +8,16 @@ export type PermitStatus = "filed" | "issued" | "completed" | "expired" |
     "reinstated" | "filing" | "inspecting" | "upheld" |
     "incomplete" | "granted" | "appeal"
 
+export type PermitType = "new_construction" | "additions_alterations_repare" |
+    "otc_additions" | "wall_or_painted_sign" | "sign_errect" | "demolitions" |
+    "grade_quarry_fill_excavate"
+
 export interface PermitAttributes {
     id?: number;
     permitId?: string;
     account?: number;
+    permitType?: PermitType;
+    permitTypeWood?: boolean;
     permitStatus?: PermitStatus
     permitStatusUpdated?: Date;
     permitCreated?: Date;
@@ -53,6 +59,14 @@ export const PermitTable = connection.define<Permit, PermitAttributes>('permits'
         ), allowNull: true
     },
     permitStatusUpdated: { type: sequelize.DATEONLY, allowNull: true },
+    permitType: {
+        type: sequelize.ENUM(
+            "new_construction", "additions_alterations_repare",
+            "otc_additions", "wall_or_painted_sign", "sign_errect", "demolitions",
+            "grade_quarry_fill_excavate"
+        ), allowNull: true
+    },
+    permitTypeWood: { type: sequelize.BOOLEAN, allowNull: true },
     permitCreated: { type: sequelize.DATEONLY, allowNull: true },
     permitIssued: { type: sequelize.DATEONLY, allowNull: true },
     permitCompleted: { type: sequelize.DATEONLY, allowNull: true },

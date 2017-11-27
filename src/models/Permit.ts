@@ -1,12 +1,14 @@
 import { Context } from "./Context";
 import { DB } from "../tables/index";
 import { applyPermits } from "../repositories/Permits";
-import { PermitStatus, Permit } from "../tables/Permit";
+import { PermitStatus, Permit, PermitType } from "../tables/Permit";
 
 export const Schema = `
 
     type Permit {
         id: ID!
+        type: PermitType
+        typeWood: Boolean
         status: PermitStatus
         statusUpdatedAt: String
         createdAt: String
@@ -47,6 +49,16 @@ export const Schema = `
         APPEAL
     }
 
+    enum PermitType {
+        NEW_CONSTRUCTION
+        ADDITIONS_ALTERATIONS_REPARE
+        OTC_ADDITIONS
+        WALL_OR_PAINTED_SIGN
+        SIGN_ERRECT
+        DEMOLITIONS
+        GRADE_QUARRY_FILL_EXCAVATE
+    }
+
     type PermitEdge {
         node: Permit!
         cursor: String!
@@ -65,6 +77,8 @@ export const Schema = `
     input PermitInfo {
         id: ID!
         status: PermitStatus
+        type: PermitType
+        typeWood: Boolean
         statusUpdatedAt: String
         createdAt: String
         issuedAt: String
@@ -113,9 +127,20 @@ type PermitStatusQL = "FILING"
     | "INCOMPLETE"
     | "GRANTED"
 
+type PermitTypeQL = "NEW_CONSTRUCTION" |
+    "ADDITIONS_ALTERATIONS_REPARE" |
+    "OTC_ADDITIONS" |
+    "WALL_OR_PAINTED_SIGN" |
+    "SIGN_ERRECT" |
+    "DEMOLITIONS" |
+    "GRADE_QUARRY_FILL_EXCAVATE"
+
 interface PermitInfo {
     id: string
     status?: PermitStatus
+    type?: PermitType
+    typeWood?: boolean
+
     statusUpdatedAt?: string
     createdAt?: string
     issuedAt?: string
@@ -147,10 +172,19 @@ function convertStateToQL(state?: PermitStatus): PermitStatusQL | null {
     return state.toUpperCase() as PermitStatusQL
 }
 
+function convertTypeToQL(state?: PermitType): PermitTypeQL | null {
+    if (!state) {
+        return null
+    }
+    return state.toUpperCase() as PermitTypeQL
+}
+
 function convertPermitToQL(res: Permit): any {
     return {
         id: res.permitId,
         status: convertStateToQL(res.permitStatus),
+        type: convertTypeToQL(res.permitType),
+        typeWood: res.permitTypeWood,
         statusUpdatedAt: res.permitStatusUpdated,
         createdAt: res.permitCreated,
         issuedAt: res.permitIssued,

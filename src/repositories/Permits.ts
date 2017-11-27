@@ -1,10 +1,12 @@
 import { StreetNumberDescription, applyStreetNumbers } from "./Streets";
 import { DB } from "../tables/index";
-import { PermitAttributes, Permit, PermitStatus } from "../tables/Permit";
+import { PermitAttributes, Permit, PermitStatus, PermitType } from "../tables/Permit";
 
 export interface PermitDescriptor {
     id: string
     status?: PermitStatus
+    type?: PermitType
+    typeWood?: boolean
     statusUpdatedAt?: string
     createdAt?: string
     issuedAt?: string
@@ -34,6 +36,14 @@ function convertDate(src?: string): Date | undefined {
 function convertStatus(src?: string): PermitStatus | undefined {
     if (src) {
         return src.toLowerCase() as PermitStatus
+    } else {
+        return undefined
+    }
+}
+
+function convertType(src?: string): PermitType | undefined {
+    if (src) {
+        return src.toLowerCase() as PermitType
     } else {
         return undefined
     }
@@ -118,6 +128,13 @@ export async function applyPermits(accountId: number, permits: PermitDescriptor[
                     ex.permitStatusUpdated = convertDate(p.statusUpdatedAt)
                 }
 
+                if (p.type) {
+                    ex.permitType = convertType(p.type)
+                }
+                if (p.typeWood) {
+                    ex.permitTypeWood = p.typeWood
+                }
+
                 if (p.existingStories) {
                     ex.existingStories = p.existingStories
                 }
@@ -160,6 +177,8 @@ export async function applyPermits(accountId: number, permits: PermitDescriptor[
                 pending.push({
                     account: accountId,
                     permitId: p.id,
+                    permitType: convertType(p.type),
+                    permitTypeWood: p.typeWood,
                     permitStatus: convertStatus(p.status),
                     permitCreated: convertDate(p.createdAt),
                     permitIssued: convertDate(p.issuedAt),
