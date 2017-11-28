@@ -116,7 +116,7 @@ export async function applyPermits(accountId: number, permits: PermitDescriptor[
                     ex.permitCreated = convertDate(p.createdAt)
                 }
                 if (p.expiredAt) {
-                    ex.permitExpired = convertDate(p.createdAt)
+                    ex.permitExpired = convertDate(p.expiredAt)
                 }
                 if (p.issuedAt) {
                     ex.permitIssued = convertDate(p.issuedAt)
