@@ -109,33 +109,6 @@ export const Schema = `
     }
 `
 
-type PermitStatusQL = "FILING"
-    | "FILED"
-    | "ISSUED"
-    | "COMPLETED"
-    | "EXPIRED"
-    | "CANCELLED"
-    | "DISAPPROVED"
-    | "APPROVED"
-    | "ISSUING"
-    | "REVOKED"
-    | "WITHDRAWN"
-    | "PLANCKECK"
-    | "SUSPENDED"
-    | "REINSTATED"
-    | "INSPECTING"
-    | "UPHELD"
-    | "INCOMPLETE"
-    | "GRANTED"
-
-type PermitTypeQL = "NEW_CONSTRUCTION" |
-    "ADDITIONS_ALTERATIONS_REPARE" |
-    "OTC_ADDITIONS" |
-    "WALL_OR_PAINTED_SIGN" |
-    "SIGN_ERRECT" |
-    "DEMOLITIONS" |
-    "GRADE_QUARRY_FILL_EXCAVATE"
-
 interface PermitInfo {
     id: string
     status?: PermitStatus
@@ -166,51 +139,45 @@ interface StreetNumberInfo {
     streetNumberSuffix?: string
 }
 
-function convertStateToQL(state?: PermitStatus): PermitStatusQL | null {
-    if (!state) {
-        return null
-    }
-    return state.toUpperCase() as PermitStatusQL
-}
-
-function convertTypeToQL(state?: PermitType): PermitTypeQL | null {
-    if (!state) {
-        return null
-    }
-    return state.toUpperCase() as PermitTypeQL
-}
-
-function convertPermitToQL(res: Permit): any {
-    return {
-        id: res.permitId,
-        status: convertStateToQL(res.permitStatus),
-        type: convertTypeToQL(res.permitType),
-        typeWood: res.permitTypeWood,
-        statusUpdatedAt: res.permitStatusUpdated,
-        createdAt: res.permitCreated,
-        issuedAt: res.permitIssued,
-        expiredAt: res.permitExpired,
-        completedAt: res.permitCompleted,
-        existingStories: res.existingStories,
-        proposedStories: res.proposedStories,
-        existingUnits: res.existingUnits,
-        proposedUnits: res.proposedUnits,
-        existingAffordableUnits: res.existingAffordableUnits,
-        proposedAffordableUnits: res.proposedAffordableUnits,
-        proposedUse: res.proposedUse,
-        description: res.description,
-
-        streetNumbers: res.streetNumbers!!.map((n) => ({
+export const Resolver = {
+    Permit: {
+        id: (src: Permit) => src.permitId,
+        status: (src: Permit) => {
+            if (src.permitStatus) {
+                return src.permitStatus.toUpperCase()
+            } else {
+                return null
+            }
+        },
+        type: (src: Permit) => {
+            if (src.permitType) {
+                return src.permitType.toUpperCase()
+            } else {
+                return null
+            }
+        },
+        typeWood: (src: Permit) => src.permitTypeWood,
+        statusUpdatedAt: (src: Permit) => src.permitStatusUpdated,
+        createdAt: (src: Permit) => src.permitCreated,
+        issuedAt: (src: Permit) => src.permitIssued,
+        expiredAt: (src: Permit) => src.permitExpired,
+        completedAt: (src: Permit) => src.permitCompleted,
+        existingStories: (src: Permit) => src.existingStories,
+        proposedStories: (src: Permit) => src.proposedStories,
+        existingUnits: (src: Permit) => src.existingUnits,
+        proposedUnits: (src: Permit) => src.proposedUnits,
+        existingAffordableUnits: (src: Permit) => src.existingAffordableUnits,
+        proposedAffordableUnits: (src: Permit) => src.proposedAffordableUnits,
+        proposedUse: (src: Permit) => src.proposedUse,
+        description: (src: Permit) => src.description,
+        streetNumbers: (src: Permit) => src.streetNumbers!!.map((n) => ({
             streetId: n.street!!.id,
             streetName: n.street!!.name,
             streetNameSuffix: n.street!!.suffix,
             streetNumber: n.number,
             streetNumberSuffix: n.suffix
         }))
-    }
-}
-
-export const Resolver = {
+    },
     Query: {
         permit: async function (_: any, args: { id: string }, context: Context) {
             var res = await DB.Permit.findOne({
@@ -228,7 +195,7 @@ export const Resolver = {
                 }]
             })
             if (res != null) {
-                return convertPermitToQL(res)
+                return res
             } else {
                 return null
             }
@@ -271,7 +238,7 @@ export const Resolver = {
             return {
                 edges: res.rows.map((p) => {
                     return {
-                        node: convertPermitToQL(p),
+                        node: p,
                         cursor: p.permitCreated
                     }
                 }),
@@ -325,7 +292,7 @@ export const Resolver = {
             return {
                 edges: res.rows.map((p) => {
                     return {
-                        node: convertPermitToQL(p),
+                        node: p,
                         cursor: p.permitId
                     }
                 }),
