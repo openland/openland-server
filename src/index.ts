@@ -18,6 +18,8 @@ async function init() {
     console.error("Unable to init server")
     console.error(e)
   }
+
+  require('./imports')
 }
 
 init()

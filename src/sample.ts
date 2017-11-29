@@ -100,4 +100,10 @@ export async function createEmptyData() {
         description: "Some description",
         recomendations: "Some findings"
     })
+
+    await DB.AirTable.create({
+        account: sf.id!!,
+        airtableDatabase: "appWNnZ1QG63uWbxP",
+        airtableKey: "keyGfbgKhShB0D7hK"
+    })
 }

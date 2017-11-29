@@ -23,7 +23,7 @@ export async function up(queryInterface: QueryInterface, sequelize: DataTypes) {
         existingUnits: { type: sequelize.INTEGER, allowNull: true },
         proposedUnits: { type: sequelize.INTEGER, allowNull: true },
         existingAffordableUnits: { type: sequelize.INTEGER, allowNull: true },
-        proposedAffordableUnits: { type: sequelize.INTEGER, allowNull: true }
+        proposedAffordableUnits: { type: sequelize.INTEGER, allowNull: true },
     })
     await queryInterface.addIndex("building_projects", ['projectId', 'account'], {
         indicesType: "UNIQUE"

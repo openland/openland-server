@@ -20,6 +20,9 @@ export interface BuildingProjectAttributes {
     existingAffordableUnits?: number;
     proposedAffordableUnits?: number;
 
+    airtableKey?: string;
+    airtableTable?: string;
+
     permits?: Array<Permit>;
     getPermits?(): Promise<Array<Permit>>;
     setPermits?(streets: Array<Permit>): Promise<void>;
