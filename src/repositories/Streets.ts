@@ -2,6 +2,7 @@ import { DB } from "../tables/index";
 import { StreetAttributes } from "../tables/Street";
 import { StreetNumberAttributes } from "../tables/StreetNumber";
 import { findAllTuples, bulkInsert } from "../utils/db_utils";
+import { Transaction } from "sequelize";
 
 export interface StreetDescription {
     streetName: string
@@ -52,7 +53,7 @@ async function normalizedProcessor<T1, T2>(array: T1[], compare: (a: T1, b: T1) 
     return res
 }
 
-async function _applyStreets(accountId: number, streets: StreetDescription[]) {
+async function _applyStreets(tx: Transaction, accountId: number, streets: StreetDescription[]) {
     let normalized = streets.map(s => ({
         streetName: normalizeStreet(s.streetName),
         streetNameSuffix: normalizeSuffix(s.streetNameSuffix)
@@ -68,7 +69,7 @@ async function _applyStreets(accountId: number, streets: StreetDescription[]) {
         var tuples = normalized.map((n) => {
             return [n.streetName, n.streetNameSuffix] as any[]
         })
-        var allStreets = await findAllTuples(accountId, ['name', 'suffix'], tuples, DB.Street)
+        var allStreets = await findAllTuples(tx, accountId, ['name', 'suffix'], tuples, DB.Street)
         for (let str of normalized) {
             let existing = allStreets.find((p) => p.name === str.streetName && p.suffix == str.streetNameSuffix)
             if (existing == null) {
@@ -85,7 +86,7 @@ async function _applyStreets(accountId: number, streets: StreetDescription[]) {
         }
         if (pending.length > 0) {
             index = 0
-            for (let p of await bulkInsert(DB.Street, pending)) {
+            for (let p of await bulkInsert(tx, DB.Street, pending)) {
                 res[pendingIndex[index]] = p
                 index++
             }
@@ -96,7 +97,7 @@ async function _applyStreets(accountId: number, streets: StreetDescription[]) {
 }
 
 export async function applyStreets(accountId: number, streets: StreetDescription[]) {
-    return await DB.tx(async (tx) => _applyStreets(accountId, streets))
+    return await DB.tx(async (tx) => _applyStreets(tx, accountId, streets))
 }
 
 export async function applyStreetNumbers(accountId: number, streetNumbers: StreetNumberDescription[]) {
@@ -113,14 +114,14 @@ export async function applyStreetNumbers(accountId: number, streetNumbers: Stree
         return normalizedProcessor(normalized, comparator, async (data) => {
             let start = new Date()
             var res = Array<number>(data.length)
-            let streets = await _applyStreets(accountId, data)
+            let streets = await _applyStreets(tx, accountId, data)
             var index = 0
 
             var tuples = data.map((n, ind) => {
                 return [streets[ind], n.streetNumber, n.streetNumberSuffix] as any[]
             })
             console.time("load_tuples")
-            var allNumbers = await findAllTuples(accountId, ['streetId', 'number', 'suffix'], tuples, DB.StreetNumber)
+            var allNumbers = await findAllTuples(tx, accountId, ['streetId', 'number', 'suffix'], tuples, DB.StreetNumber)
             console.timeEnd("load_tuples")
 
             var pending = Array<StreetNumberAttributes>();
@@ -147,7 +148,7 @@ export async function applyStreetNumbers(accountId: number, streetNumbers: Stree
             console.time("bulk_insert")
             if (pending.length > 0) {
                 index = 0
-                for (let p of await bulkInsert(DB.StreetNumber, pending)) {
+                for (let p of await bulkInsert(tx, DB.StreetNumber, pending)) {
                     res[pendingIndex[index]] = p
                     index++
                 }

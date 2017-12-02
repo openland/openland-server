@@ -1,11 +1,12 @@
 import * as sequelize from 'sequelize'
 import { connection } from '../connector'
+import { Transaction } from 'sequelize';
 
-export async function findAllRaw<TInstance>(sql: string, model: sequelize.Model<TInstance, any>): Promise<TInstance[]> {
-    return (await connection.query(sql, { model: model, raw: true, logging: false })) as TInstance[]
+export async function findAllRaw<TInstance>(tx: Transaction, sql: string, model: sequelize.Model<TInstance, any>): Promise<TInstance[]> {
+    return (await connection.query(sql, { model: model, raw: true, logging: false, transaction: tx })) as TInstance[]
 }
 
-async function findAllTuplesWithNull<TInstance>(accountId: number, fields: string[], nullField: string, tuples: any[][], model: sequelize.Model<TInstance, any>): Promise<TInstance[]> {
+async function findAllTuplesWithNull<TInstance>(tx: Transaction, accountId: number, fields: string[], nullField: string, tuples: any[][], model: sequelize.Model<TInstance, any>): Promise<TInstance[]> {
     var attributes = (model as any).attributes
     var sqlFields = '(' + fields.map((p) => {
         let attr = attributes[p]
@@ -29,10 +30,10 @@ async function findAllTuplesWithNull<TInstance>(accountId: number, fields: strin
     var query = 'SELECT * from "' + model.getTableName() + '" ' +
         'WHERE "account" = ' + accountId + 'AND ' + nullField + ' IS NULL AND ' +
         sqlFields + ' in ' + sqlTuples;
-    return findAllRaw(query, model)
+    return findAllRaw(tx, query, model)
 }
 
-async function findAllTuplesWithNotNull<TInstance>(accountId: number, fields: string[], tuples: any[][], model: sequelize.Model<TInstance, any>): Promise<TInstance[]> {
+async function findAllTuplesWithNotNull<TInstance>(tx: Transaction, accountId: number, fields: string[], tuples: any[][], model: sequelize.Model<TInstance, any>): Promise<TInstance[]> {
     var attributes = (model as any).attributes
 
     var sqlFields = '(' + fields.map((p) => {
@@ -57,9 +58,9 @@ async function findAllTuplesWithNotNull<TInstance>(accountId: number, fields: st
     var query = 'SELECT * from "' + model.getTableName() + '" ' +
         'WHERE "account" = ' + accountId + ' AND ' +
         sqlFields + ' in ' + sqlTuples;
-    return findAllRaw(query, model)
+    return findAllRaw(tx, query, model)
 }
-export async function findAllTuples<TInstance>(accountId: number, fields: string[], tuples: any[][], model: sequelize.Model<TInstance, any>): Promise<TInstance[]> {
+export async function findAllTuples<TInstance>(tx: Transaction, accountId: number, fields: string[], tuples: any[][], model: sequelize.Model<TInstance, any>): Promise<TInstance[]> {
     var attributes = (model as any).attributes
     let nullable = fields.filter((p) => (attributes[p].allowNull && attributes[p].type.constructor.name === "STRING"))
     if (nullable.length >= 2) {
@@ -77,26 +78,26 @@ export async function findAllTuples<TInstance>(accountId: number, fields: string
         }
 
         if (withNulls.length == 0) {
-            return findAllTuplesWithNotNull(accountId, fields, tuples, model)
+            return findAllTuplesWithNotNull(tx, accountId, fields, tuples, model)
         } else if (withoutNulls.length == 0) {
-            return findAllTuplesWithNull(accountId, notNullFields, nullable[0], withNulls, model)
+            return findAllTuplesWithNull(tx, accountId, notNullFields, nullable[0], withNulls, model)
         } else {
-            let notNulledValues = await findAllTuplesWithNotNull(accountId, fields, withoutNulls, model)
-            let nulledValues = await findAllTuplesWithNull(accountId, notNullFields, nullable[0], withNulls, model)
+            let notNulledValues = await findAllTuplesWithNotNull(tx, accountId, fields, withoutNulls, model)
+            let nulledValues = await findAllTuplesWithNull(tx, accountId, notNullFields, nullable[0], withNulls, model)
             return [...notNulledValues, ...nulledValues]
         }
     } else {
-        return findAllTuplesWithNotNull(accountId, fields, tuples, model)
+        return findAllTuplesWithNotNull(tx, accountId, fields, tuples, model)
     }
 }
-export async function bulkAssociations(table: string, key1: string, key2: string, values: { value1: number, value2: number }[]) {
+export async function bulkAssociations(tx: Transaction, table: string, key1: string, key2: string, values: { value1: number, value2: number }[]) {
     let date = new Date().toUTCString()
     let sqlValues = values.map((v) => "('" + date + "','" + date + "'," + v.value1 + "," + v.value2 + ")").join()
     let query = "INSERT INTO \"" + table + "\" (\"createdAt\",\"updatedAt\",\"" + key1 + "\",\"" + key2 + "\") VALUES " + sqlValues + " ON CONFLICT DO NOTHING"
-    await connection.query(query, { logging: false })
+    await connection.query(query, { logging: false, transaction: tx })
 }
 
-export async function bulkInsert<TRow>(model: sequelize.Model<any, TRow> | string, rows: TRow[], options?: { inlcudeDates?: boolean }): Promise<number[]> {
+export async function bulkInsert<TRow>(tx: Transaction, model: sequelize.Model<any, TRow> | string, rows: TRow[], options?: { inlcudeDates?: boolean }): Promise<number[]> {
     var includeDates = options ? options.inlcudeDates ? options.inlcudeDates : true : true
     if (includeDates) {
         let date = new Date().toUTCString()
@@ -149,9 +150,9 @@ function valueEquals(a: any, b: any) {
     }
 }
 
-export async function bulkApply<TRow extends { id?: number, account?: number }>(model: sequelize.Model<any, TRow>, accountId: number, key: string, rows: TRow[]) {
+export async function bulkApply<TRow extends { id?: number, account?: number }>(tx: Transaction, model: sequelize.Model<any, TRow>, accountId: number, key: string, rows: TRow[]) {
     let query = `SELECT * from ${model.getTableName()} WHERE "account" = ${accountId} AND "${key}" IN (${rows.map(r => `${loadField(r, key)}`).join()})`
-    let existing = (await connection.query(query))[1].rows as TRow[]
+    let existing = (await connection.query(query, { transaction: tx }))[1].rows as TRow[]
     var forInsert = Array<TRow>()
     var forUpdate = Array<PromiseLike<any>>()
     var indexes = Array<number>(rows.length)
@@ -166,7 +167,7 @@ export async function bulkApply<TRow extends { id?: number, account?: number }>(
         let names = Object.getOwnPropertyNames(row)
         if (ex) {
             indexes[index] = ex.id!!
-            var updated: TRow = { } as TRow
+            var updated: TRow = {} as TRow
             var wasChanged = false
             for (let n of names) {
                 if (n == key || n == "account") {
@@ -176,6 +177,7 @@ export async function bulkApply<TRow extends { id?: number, account?: number }>(
                 let v2 = loadFieldValue(ex, n)
 
                 if (!valueEquals(v, v2)) {
+                    console.warn("Changed " + n)
                     saveFieldValue(updated, n, v)
                     wasChanged = true
                 }
@@ -184,7 +186,8 @@ export async function bulkApply<TRow extends { id?: number, account?: number }>(
                 forUpdate.push(model.update(updated, {
                     where: {
                         id: ex.id!!
-                    }
+                    },
+                    transaction: tx
                 }))
             }
         } else {
@@ -196,7 +199,7 @@ export async function bulkApply<TRow extends { id?: number, account?: number }>(
 
     if (forInsert.length > 0) {
         index = 0
-        for (let ind of await bulkInsert(model, forInsert)) {
+        for (let ind of await bulkInsert(tx, model, forInsert)) {
             indexes[pendingIndexes[index]] = ind
             index++
         }

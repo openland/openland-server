@@ -1,5 +1,6 @@
 import { DB } from "../tables/index";
 import { bulkApply } from "../utils/db_utils";
+import { Transaction } from "sequelize";
 
 export interface BuildingProjectDescription {
     projectId: string
@@ -7,7 +8,7 @@ export interface BuildingProjectDescription {
     name?: string
 }
 
-export async function applyBuildingProjects(accountId: number, projects: BuildingProjectDescription[]) {
+export async function applyBuildingProjects(tx: Transaction, accountId: number, projects: BuildingProjectDescription[]) {
     // await DB.BuidlingProject.destroy({
     //     where: {
     //         account: accountId
@@ -15,7 +16,7 @@ export async function applyBuildingProjects(accountId: number, projects: Buildin
     // });
 
     var values = projects.map(p => ({ projectId: p.projectId, name: p.name }))
-    await bulkApply(DB.BuidlingProject, accountId, 'projectId', values)
+    await bulkApply(tx, DB.BuidlingProject, accountId, 'projectId', values)
     //await bulkInsert(DB.BuidlingProject, values)
     // for (let p of projects) {
 

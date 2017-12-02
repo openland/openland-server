@@ -76,8 +76,8 @@ export async function applyPermits(accountId: number, permits: PermitDescriptor[
         .filter((p) => p.street)
         .map((p) => p.street!!)
         .reduce((list, x) => list.concat(x), Array<StreetNumberDescription>())
-    let loadedNumbers = (await applyStreetNumbers(accountId, streetNumbers))
-    var streetIndex = 0
+    let loadedNumbers = applyStreetNumbers(accountId, streetNumbers)
+
     console.timeEnd("street_numbers")
 
     //
@@ -106,13 +106,16 @@ export async function applyPermits(accountId: number, permits: PermitDescriptor[
 
     console.time("bulk_all")
     await DB.tx(async (tx) => {
-        let applied = await bulkApply(DB.Permit, accountId, 'permitId', rows)
+        let applied = await bulkApply(tx, DB.Permit, accountId, 'permitId', rows)
         var pendingStreets = Array<{ permitId: number, streetId: number }>()
+
         var index = 0
+        var streetIndex = 0
+        var pending = await loadedNumbers
         for (let p of permits) {
             if (p.street) {
                 for (let _ of p.street) {
-                    pendingStreets.push({ permitId: applied[index], streetId: loadedNumbers[streetIndex]!! })
+                    pendingStreets.push({ permitId: applied[index], streetId: pending[streetIndex]!! })
                     streetIndex++
                 }
             }
@@ -120,7 +123,7 @@ export async function applyPermits(accountId: number, permits: PermitDescriptor[
         }
         if (pendingStreets.length > 0) {
             let mapped = pendingStreets.map((v) => ({ value1: v.permitId, value2: v.streetId }));
-            await bulkAssociations("permit_street_numbers", "permitId", "streetNumberId", mapped)
+            await bulkAssociations(tx, "permit_street_numbers", "permitId", "streetNumberId", mapped)
         }
     });
     console.timeEnd("bulk_all")
