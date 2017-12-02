@@ -9,6 +9,7 @@ export var connection: sequelize.Sequelize
 if (process.env.DATABASE_URL != undefined) {
     connection = new sequelize(process.env.DATABASE_URL!, {
         dialect: 'postgres',
+        benchmark: true,
         dialectOptions: {
             ssl: true
         }
