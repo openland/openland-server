@@ -18,6 +18,10 @@ if (process.env.DATABASE_URL != undefined) {
         host: 'localhost',
         dialect: 'postgres',
         benchmark: true,
+        pool: {
+            max: 50,
+            acquire: 10000
+        }
     });
 }
 

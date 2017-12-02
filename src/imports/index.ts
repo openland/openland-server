@@ -62,7 +62,7 @@ async function start() {
             }
         }
 
-        delay(30000)
+        await delay(15000)
     }
 }
 

@@ -115,7 +115,8 @@ interface Profile {
     email: string;
 }
 
-export default async function () {
+export default function () {
+    console.info("Starting API endpoint")
     const app = express();
 
     // Allow All Domains

@@ -1,6 +1,7 @@
 import { DB } from "../tables/index";
-import { StreetAttributes, Street } from "../tables/Street";
-import { StreetNumber, StreetNumberAttributes } from "../tables/StreetNumber";
+import { StreetAttributes } from "../tables/Street";
+import { StreetNumberAttributes } from "../tables/StreetNumber";
+import { findAllTuples, bulkInsert } from "../utils/db_utils";
 
 export interface StreetDescription {
     streetName: string
@@ -59,14 +60,15 @@ async function _applyStreets(accountId: number, streets: StreetDescription[]) {
     let comparator = (a: StreetDescription, b: StreetDescription) =>
         a.streetName === b.streetName && a.streetNameSuffix === b.streetNameSuffix
     return normalizedProcessor(normalized, comparator, async (normalized) => {
-        var res = Array<Street>(normalized.length)
+        let start = new Date()
+        var res = Array<number>(normalized.length)
         var pending = Array<StreetAttributes>()
         var pendingIndex = Array<number>()
         var index = 0
         var tuples = normalized.map((n) => {
             return [n.streetName, n.streetNameSuffix] as any[]
         })
-        var allStreets = await DB.findAllTuples(accountId, ['name', 'suffix'], tuples, DB.Street)
+        var allStreets = await findAllTuples(accountId, ['name', 'suffix'], tuples, DB.Street)
         for (let str of normalized) {
             let existing = allStreets.find((p) => p.name === str.streetName && p.suffix == str.streetNameSuffix)
             if (existing == null) {
@@ -77,17 +79,18 @@ async function _applyStreets(accountId: number, streets: StreetDescription[]) {
                 })
                 pendingIndex.push(index)
             } else {
-                res[index] = existing
+                res[index] = existing.id!!
             }
             index++
         }
         if (pending.length > 0) {
             index = 0
-            for (let p of await DB.Street.bulkCreate(pending, { returning: true })) {
+            for (let p of await bulkInsert(DB.Street, pending)) {
                 res[pendingIndex[index]] = p
                 index++
             }
         }
+        console.info(`Streets Imported in ${new Date().getTime() - start.getTime()}ms`)
         return res
     })
 }
@@ -108,40 +111,50 @@ export async function applyStreetNumbers(accountId: number, streetNumbers: Stree
             a.streetName === b.streetName && a.streetNameSuffix === b.streetNameSuffix &&
             a.streetNumber === b.streetNumber && a.streetNumberSuffix === b.streetNumberSuffix
         return normalizedProcessor(normalized, comparator, async (data) => {
-            var res = Array<StreetNumber>(data.length)
+            let start = new Date()
+            var res = Array<number>(data.length)
             let streets = await _applyStreets(accountId, data)
             var index = 0
 
             var tuples = data.map((n, ind) => {
-                return [streets[ind].id, n.streetNumber, n.streetNumberSuffix] as any[]
+                return [streets[ind], n.streetNumber, n.streetNumberSuffix] as any[]
             })
-            var allNumbers = await DB.findAllTuples(accountId, ['streetId', 'number', 'suffix'], tuples, DB.StreetNumber)
+            console.time("load_tuples")
+            var allNumbers = await findAllTuples(accountId, ['streetId', 'number', 'suffix'], tuples, DB.StreetNumber)
+            console.timeEnd("load_tuples")
 
             var pending = Array<StreetNumberAttributes>();
             var pendingIndex = Array<number>()
+            console.time("prepare_updates")
             for (let n of data) {
                 let street = streets[index]
-                let existing = allNumbers.find((p) => p.streetId == street.id && p.number == n.streetNumber && p.suffix == n.streetNumberSuffix)
+                let existing = allNumbers.find((p) => p.streetId == street && p.number == n.streetNumber && p.suffix == n.streetNumberSuffix)
                 if (existing == null) {
                     pending.push({
                         account: accountId,
-                        streetId: street.id,
+                        streetId: street,
                         number: n.streetNumber,
                         suffix: n.streetNumberSuffix
                     })
                     pendingIndex.push(index)
                 } else {
-                    res[index] = existing
+                    res[index] = existing.id!!
                 }
                 index++
             }
+            console.timeEnd("prepare_updates")
+
+            console.time("bulk_insert")
             if (pending.length > 0) {
                 index = 0
-                for (let p of await DB.StreetNumber.bulkCreate(pending, { returning: true })) {
+                for (let p of await bulkInsert(DB.StreetNumber, pending)) {
                     res[pendingIndex[index]] = p
                     index++
                 }
             }
+            console.timeEnd("bulk_insert")
+
+            console.info(`Street Numbers imported in ${new Date().getTime() - start.getTime()}ms`)
             return res
         })
     })

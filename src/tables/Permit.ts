@@ -19,11 +19,11 @@ export interface PermitAttributes {
     permitType?: PermitType;
     permitTypeWood?: boolean;
     permitStatus?: PermitStatus
-    permitStatusUpdated?: Date;
-    permitCreated?: Date;
-    permitIssued?: Date;
-    permitCompleted?: Date;
-    permitExpired?: Date;
+    permitStatusUpdated?: string;
+    permitCreated?: string;
+    permitIssued?: string;
+    permitCompleted?: string;
+    permitExpired?: string;
     streetNumbers?: Array<StreetNumber>;
     existingStories?: number;
     proposedStories?: number;
