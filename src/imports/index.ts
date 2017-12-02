@@ -2,9 +2,6 @@
 import { DB } from "../tables/index";
 import fetch from "node-fetch";
 import { applyBuildingProjects, BuildingProjectDescription } from "../repositories/BuildingProjects";
-import { Transaction } from "sequelize";
-// import Airtable from 'airtable';
-
 
 interface TableResult {
     records: {
