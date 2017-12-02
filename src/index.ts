@@ -22,6 +22,7 @@ async function initMater() {
     }
     require('./imports')
 
+    console.warn("Concurrency: " + process.env.WEB_CONCURRENCY)
     if (process.env.WEB_CONCURRENCY) {
       for (var i = 0; i < parseInt(process.env.WEB_CONCURRENCY!!); i++) {
         cluster.fork()
