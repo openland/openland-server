@@ -178,6 +178,7 @@ export async function bulkApply<TRow extends { id?: number, account?: number }>(
 
                 if (!valueEquals(v, v2)) {
                     console.warn("Changed " + n)
+                    console.warn(v2 + " -> " + v)
                     saveFieldValue(updated, n, v)
                     wasChanged = true
                 }
