@@ -1,7 +1,7 @@
 import { Context } from "./Context";
 import { DB } from "../tables/index";
 import { BuildingProject } from "../tables/BuildingProject";
-import { resolvePicture } from "../utils/pictures";
+import { resolveStreetView, resolvePicture } from "../utils/pictures";
 
 export const Schema = `
     type BuildingProject {
@@ -97,7 +97,17 @@ export const Resolver = {
         proposedAffordableUnits: (src: BuildingProject) => src.proposedAffordableUnits,
         permits: [],
 
-        picture: (src: BuildingProject, args: { height?: number, width?: number }, context: Context) => resolvePicture(context, src.picture, args.height, args.width),
+        picture: (src: BuildingProject, args: { height?: number, width?: number }, context: Context) => {
+            if (src.picture) {
+                return resolvePicture(context, src.picture, args.height, args.width)
+            } else {
+                if (args.height && args.width) {
+                    return resolveStreetView(context, src.extrasAddress!!, args.height, args.width)
+                } else {
+                    return null
+                }
+            }
+        },
 
         extrasDeveloper: (src: BuildingProject) => src.extrasDeveloper,
         extrasGeneralConstructor: (src: BuildingProject) => src.extrasGeneralConstructor,

@@ -1,4 +1,5 @@
 import { Context } from "../models/Context";
+import { STREET_VIEW_KEY } from "../keys";
 
 export function resolvePicture(context: Context, src?: string, height?: number, width?: number) {
     if (src) {
@@ -26,4 +27,13 @@ export function resolvePicture(context: Context, src?: string, height?: number, 
     } else {
         return null
     }
+}
+
+export function resolveStreetView(context: Context, address: string, height: number, width: number) {
+    var location = encodeURIComponent(address + " San Francisco, CA, USA") //40.720032,-73.988354
+    if (context.isRetina) {
+        height = height * 2
+        width = width * 2
+    }
+    return `https://maps.googleapis.com/maps/api/streetview?size=${width}x${height}&location=${location}&fov=90&key=${STREET_VIEW_KEY}`
 }
