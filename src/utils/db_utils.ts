@@ -152,7 +152,7 @@ function valueEquals(a: any, b: any) {
 
 export async function bulkApply<TRow extends { id?: number, account?: number }>(tx: Transaction, model: sequelize.Model<any, TRow>, accountId: number, key: string, rows: TRow[]) {
     let query = `SELECT * from ${model.getTableName()} WHERE "account" = ${accountId} AND "${key}" IN (${rows.map(r => `${loadField(r, key)}`).join()})`
-    let existing = (await connection.query(query, { transaction: tx }))[1].rows as TRow[]
+    let existing = (await connection.query(query, { transaction: tx, logging: false }))[1].rows as TRow[]
     var forInsert = Array<TRow>()
     var forUpdate = Array<PromiseLike<any>>()
     var indexes = Array<number>(rows.length)
