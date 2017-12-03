@@ -14,13 +14,24 @@ interface TableResult {
 }
 
 async function fetchTable(apiKey: string, database: string, table: string, offset?: string): Promise<TableResult> {
-    var res = await fetch("https://api.airtable.com/v0/" + database + "/" + table + "?maxRecords=100", {
+    var url = "https://api.airtable.com/v0/" + database + "/" + table + "?pageSize=100"
+    if (offset) {
+        url = url + "&offset=" + offset
+    }
+    var res = await fetch(url, {
         headers: {
             Authorization: "Bearer " + apiKey
         }
     })
     return (await res.json()) as TableResult
 }
+
+const quarters = [
+    "02-15",
+    "05-15",
+    "08-15",
+    "10-15",
+]
 
 async function doImport(accountId: number, apiKey: string, database: string) {
     var offset: string | undefined = undefined
@@ -31,12 +42,17 @@ async function doImport(accountId: number, apiKey: string, database: string) {
             for (let r of table.records) {
                 projects.push({
                     projectId: r.fields["Permit Id"] as string,
-                    name: r.fields["Name"] as string
+                    name: r.fields["Name"] as string,
+                    existingUnits: r.fields["Existing Units"] as number,
+                    proposedUnits: (r.fields["Existing Units"] as number) + (r.fields["Net Units"] as number),
+                    projectStart: r.fields["Start Year"] + "-" + quarters[(r.fields["Start Quarter"] as number) - 1],
+                    projectExpectedCompleted: r.fields["End Year"] + "-" + quarters[(r.fields["End Quarter"] as number) - 1]
                 })
                 // console.warn(r.fields["Permit Id"] + " " + r.fields["Name"])
             }
             await applyBuildingProjects(tx, accountId, projects)
             offset = table.offset
+            console.warn(offset)
             if (table.offset == null) {
                 return
             }

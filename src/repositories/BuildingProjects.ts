@@ -1,11 +1,16 @@
 import { DB } from "../tables/index";
 import { bulkApply } from "../utils/db_utils";
 import { Transaction } from "sequelize";
+import { BuildingProjectAttributes } from "../tables/BuildingProject";
 
 export interface BuildingProjectDescription {
     projectId: string
     permitId?: string
     name?: string
+    existingUnits?: number
+    proposedUnits?: number
+    projectStart?: string
+    projectExpectedCompleted?: string
 }
 
 export async function applyBuildingProjects(tx: Transaction, accountId: number, projects: BuildingProjectDescription[]) {
@@ -15,7 +20,17 @@ export async function applyBuildingProjects(tx: Transaction, accountId: number, 
     //     }
     // });
 
-    var values = projects.map(p => ({ projectId: p.projectId, name: p.name }))
+    var values = projects.map(p => {
+        var res: BuildingProjectAttributes = {
+            projectId: p.projectId,
+            name: p.name,
+            projectStartedAt: p.projectStart,
+            projectExpectedCompletedAt: p.projectExpectedCompleted,
+            existingUnits: p.existingUnits,
+            proposedUnits: p.proposedUnits
+        }
+        return res
+    })
     await bulkApply(tx, DB.BuidlingProject, accountId, 'projectId', values)
     //await bulkInsert(DB.BuidlingProject, values)
     // for (let p of projects) {

@@ -86,18 +86,25 @@ export const Resolver = {
         permits: []
     },
     Query: {
-        buildingProjects: async function (_: any, args: { first: number }, context: Context) {
+        buildingProjects: async function (_: any, args: { first: number, after?: string }, context: Context) {
+            var offset: number = 0
+            if (args.after) {
+                offset = parseInt(args.after)
+            }
             let res = await DB.BuidlingProject.findAndCountAll({
                 where: {
                     account: context.accountId
                 },
-                limit: args.first
+                order: [DB.connection.literal('"proposedUnits"-"existingUnits" DESC'), 'id'],
+                //order: [DB.connection.fn('SUM', DB.connection.col('proposedUnits'), DB.connection.col('existingUnits')), 'ASC'],
+                limit: args.first + offset,
+                offset: offset
             })
             return {
-                edges: res.rows.map((p) => {
+                edges: res.rows.map((p, i) => {
                     return {
                         node: p,
-                        cursor: p.id
+                        cursor: (i + 1 + offset).toString() //(p.proposedUnits!! - p.existingUnits!!) + "-" + p.id
                     }
                 }),
                 pageInfo: {

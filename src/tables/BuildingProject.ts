@@ -11,9 +11,9 @@ export interface BuildingProjectAttributes {
     verified?: boolean;
     status?: "starting" | "in_progress" | "completed"
 
-    projectStartedAt?: Date;
-    projectCompletedAt?: Date;
-    projectExpectedCompletedAt?: Date;
+    projectStartedAt?: string;
+    projectCompletedAt?: string;
+    projectExpectedCompletedAt?: string;
 
     existingUnits?: number;
     proposedUnits?: number;
