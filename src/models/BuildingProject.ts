@@ -52,6 +52,7 @@ export const Schema = `
 
     extend type Mutation {
         updateBuildingProjects(projects: [BuildingProjectInput!]!, overwrite: Boolean): String!
+        updateBuildingProjectsSync(key: String, database: String): String!
     }
 `
 
@@ -160,6 +161,23 @@ export const Resolver = {
                     }
                 }
             });
+            return "ok"
+        },
+        updateBuildingProjectsSync: async function (_: any, args: { key?: string, database?: string }, context: Context) {
+            context.requireWriteAccess()
+            if (args.key && args.database) {
+                await DB.AirTable.upsert({
+                    account: context.accountId,
+                    airtableDatabase: args.database,
+                    airtableKey: args.key
+                })
+            } else {
+                await DB.AirTable.destroy({
+                    where: {
+                        account: context.accountId
+                    }
+                })
+            }
             return "ok"
         }
     }
