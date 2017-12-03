@@ -7,7 +7,7 @@ interface TableResult {
     records: {
         id: string
         fields: {
-            [P in string]: number | string
+            [P in string]: number | string | boolean
         }
     }[]
     offset?: string
@@ -63,7 +63,8 @@ async function doImport(accountId: number, apiKey: string, database: string) {
                     extrasPermit: r.fields["Permit Id"] as string,
                     extrasDeveloper: r.fields["Developer"] as string,
                     extrasGeneralConstructor: r.fields["General Constuctor"] as string,
-                    extrasComment: r.fields["Comments"] as string
+                    extrasComment: r.fields["Comments"] as string,
+                    verified: r.fields["Verified"] as boolean
                 })
                 // console.warn(r.fields["Permit Id"] + " " + r.fields["Name"])
             }

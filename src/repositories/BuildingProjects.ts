@@ -15,13 +15,15 @@ export interface BuildingProjectDescription {
     picture?: string;
 
     extrasDeveloper?: string,
-    extrasGeneralConstructor?: string,
-    extrasYearEnd?: string,
-    extrasAddress?: string,
-    extrasAddressSecondary?: string,
-    extrasPermit?: string,
-    extrasComment?: string,
-    extrasUrl?: string,
+    extrasGeneralConstructor?: string
+    extrasYearEnd?: string
+    extrasAddress?: string
+    extrasAddressSecondary?: string
+    extrasPermit?: string
+    extrasComment?: string
+    extrasUrl?: string
+
+    verified?: boolean
 }
 
 export async function deleteIncorrectProjects(tx: Transaction, accountId: number, id: string[]) {
@@ -61,6 +63,8 @@ export async function applyBuildingProjects(tx: Transaction, accountId: number, 
             extrasPermit: p.extrasPermit,
             extrasComment: p.extrasComment,
             extrasUrl: p.extrasUrl,
+
+            verified: p.verified
         }
         return res
     })
