@@ -24,6 +24,18 @@ export interface BuildingProjectDescription {
     extrasUrl?: string,
 }
 
+export async function deleteIncorrectProjects(tx: Transaction, accountId: number, id: string[]) {
+    await DB.BuidlingProject.destroy({
+        where: {
+            account: accountId,
+            projectId: {
+                $notIn: id
+            }
+        },
+        transaction: tx
+    })
+}
+
 export async function applyBuildingProjects(tx: Transaction, accountId: number, projects: BuildingProjectDescription[]) {
     // await DB.BuidlingProject.destroy({
     //     where: {

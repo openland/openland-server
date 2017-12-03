@@ -1,7 +1,7 @@
 /// <reference path="../typings.d.ts" />
 import { DB } from "../tables/index";
 import fetch from "node-fetch";
-import { applyBuildingProjects, BuildingProjectDescription } from "../repositories/BuildingProjects";
+import { applyBuildingProjects, BuildingProjectDescription, deleteIncorrectProjects } from "../repositories/BuildingProjects";
 
 interface TableResult {
     records: {
@@ -35,11 +35,13 @@ async function fetchTable(apiKey: string, database: string, table: string, offse
 
 async function doImport(accountId: number, apiKey: string, database: string) {
     var offset: string | undefined = undefined
+    var ids = Array<string>()
     while (true) {
         await DB.tx(async (tx) => {
             var table: TableResult = await fetchTable(apiKey, database, "Pipeline", offset)
             var projects = Array<BuildingProjectDescription>()
             if (!table) {
+                offset = undefined
                 return
             }
             for (let r of table.records) {
@@ -47,6 +49,7 @@ async function doImport(accountId: number, apiKey: string, database: string) {
                 // console.warn((r.fields["Existing Units"] as number) + (r.fields["Net Units"] as number))
                 // console.warn((r.fields["Existing Units"] as number))
                 // console.warn((r.fields["Net Units"] as number))
+                ids.push(r.fields["Project Id"] as string)
                 projects.push({
                     projectId: r.fields["Project Id"] as string,
                     name: r.fields["Name"] as string,
@@ -66,13 +69,15 @@ async function doImport(accountId: number, apiKey: string, database: string) {
             }
             await applyBuildingProjects(tx, accountId, projects)
             offset = table.offset
-            if (table.offset == null) {
-                return
-            }
         })
+        if (!offset) {
+            break
+        }
         await delay(1000)
     }
-    // let api = new Airtable({ apiKey: apiKey })
+    await DB.tx(async (tx) => {
+        await deleteIncorrectProjects(tx, accountId, ids)
+    });
 }
 
 function delay(ms: number) {
