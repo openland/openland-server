@@ -1,6 +1,7 @@
 import { Context } from "./Context";
 import { DB } from "../tables/index";
 import { BuildingProject } from "../tables/BuildingProject";
+import { resolvePicture } from "../utils/pictures";
 
 export const Schema = `
     type BuildingProject {
@@ -17,6 +18,17 @@ export const Schema = `
         proposedUnits: Int
         existingAffordableUnits: Int
         proposedAffordableUnits: Int
+
+        picture(height: Int, width: Int): String
+        
+        extrasDeveloper: String
+        extrasGeneralConstructor: String
+        extrasYearEnd: String
+        extrasAddress: String
+        extrasAddressSecondary: String
+        extrasPermit: String
+        extrasComment: String
+        extrasUrl: String
 
         permits: [Permit!]!
     }
@@ -83,7 +95,18 @@ export const Resolver = {
         proposedUnits: (src: BuildingProject) => src.proposedUnits,
         existingAffordableUnits: (src: BuildingProject) => src.existingAffordableUnits,
         proposedAffordableUnits: (src: BuildingProject) => src.proposedAffordableUnits,
-        permits: []
+        permits: [],
+
+        picture: (src: BuildingProject, args: { height?: number, width?: number }) => resolvePicture(src.picture, args.height, args.width),
+        
+        extrasDeveloper: (src: BuildingProject) => src.extrasDeveloper,
+        extrasGeneralConstructor: (src: BuildingProject) => src.extrasGeneralConstructor,
+        extrasYearEnd: (src: BuildingProject) => src.extrasYearEnd,
+        extrasAddress: (src: BuildingProject) => src.extrasAddress,
+        extrasAddressSecondary: (src: BuildingProject) => src.extrasAddressSecondary,
+        extrasPermit: (src: BuildingProject) => src.extrasPermit,
+        extrasComment: (src: BuildingProject) => src.extrasComment,
+        extrasUrl: (src: BuildingProject) => src.extrasUrl
     },
     Query: {
         buildingProjects: async function (_: any, args: { first: number, after?: string }, context: Context) {
