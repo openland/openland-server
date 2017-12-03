@@ -11,6 +11,17 @@ export interface BuildingProjectDescription {
     proposedUnits?: number
     projectStart?: string
     projectExpectedCompleted?: string
+
+    picture?: string;
+
+    extrasDeveloper?: string,
+    extrasGeneralConstructor?: string,
+    extrasYearEnd?: string,
+    extrasAddress?: string,
+    extrasAddressSecondary?: string,
+    extrasPermit?: string,
+    extrasComment?: string,
+    extrasUrl?: string,
 }
 
 export async function applyBuildingProjects(tx: Transaction, accountId: number, projects: BuildingProjectDescription[]) {
@@ -27,7 +38,17 @@ export async function applyBuildingProjects(tx: Transaction, accountId: number, 
             projectStartedAt: p.projectStart,
             projectExpectedCompletedAt: p.projectExpectedCompleted,
             existingUnits: p.existingUnits,
-            proposedUnits: p.proposedUnits
+            proposedUnits: p.proposedUnits,
+            picture: p.picture,
+
+            extrasDeveloper: p.extrasDeveloper,
+            extrasGeneralConstructor: p.extrasGeneralConstructor,
+            extrasYearEnd: p.extrasYearEnd,
+            extrasAddress: p.extrasAddress,
+            extrasAddressSecondary: p.extrasAddressSecondary,
+            extrasPermit: p.extrasPermit,
+            extrasComment: p.extrasComment,
+            extrasUrl: p.extrasUrl,
         }
         return res
     })

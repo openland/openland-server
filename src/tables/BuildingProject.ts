@@ -20,8 +20,16 @@ export interface BuildingProjectAttributes {
     existingAffordableUnits?: number;
     proposedAffordableUnits?: number;
 
-    airtableKey?: string;
-    airtableTable?: string;
+    picture?: string;
+
+    extrasDeveloper?: string,
+    extrasGeneralConstructor?: string,
+    extrasYearEnd?: string,
+    extrasAddress?: string,
+    extrasAddressSecondary?: string,
+    extrasPermit?: string,
+    extrasComment?: string,
+    extrasUrl?: string,
 
     permits?: Array<Permit>;
     getPermits?(): Promise<Array<Permit>>;
@@ -45,6 +53,7 @@ export const BuildingProjectTable = connection.define<BuildingProject, BuildingP
     description: { type: sequelize.STRING, allowNull: true },
     status: { type: sequelize.ENUM("starting", "in_progress", "completed"), allowNull: false, defaultValue: "starting" },
     verified: { type: sequelize.BOOLEAN, allowNull: false, defaultValue: false },
+    picture: { type: sequelize.STRING, allowNull: false },
 
     projectStartedAt: { type: sequelize.DATEONLY, allowNull: true },
     projectCompletedAt: { type: sequelize.DATEONLY, allowNull: true },
@@ -54,6 +63,15 @@ export const BuildingProjectTable = connection.define<BuildingProject, BuildingP
     proposedUnits: { type: sequelize.INTEGER, allowNull: true },
     existingAffordableUnits: { type: sequelize.INTEGER, allowNull: true },
     proposedAffordableUnits: { type: sequelize.INTEGER, allowNull: true },
+
+    extrasDeveloper: { type: sequelize.STRING, allowNull: true },
+    extrasGeneralConstructor: { type: sequelize.STRING, allowNull: true },
+    extrasYearEnd: { type: sequelize.STRING, allowNull: true },
+    extrasAddress: { type: sequelize.STRING, allowNull: true },
+    extrasAddressSecondary: { type: sequelize.STRING, allowNull: true },
+    extrasPermit: { type: sequelize.STRING, allowNull: true },
+    extrasComment: { type: sequelize.STRING, allowNull: true },
+    extrasUrl: { type: sequelize.STRING, allowNull: true },
 
 }, { indexes: [{ unique: true, fields: ['projectId', 'account'] }] })
 
