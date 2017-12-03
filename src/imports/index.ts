@@ -64,7 +64,7 @@ async function doImport(accountId: number, apiKey: string, database: string) {
                     extrasDeveloper: r.fields["Developer"] as string,
                     extrasGeneralConstructor: r.fields["General Constuctor"] as string,
                     extrasComment: r.fields["Comments"] as string,
-                    verified: r.fields["Verified"] as boolean
+                    verified: r.fields["Verified"] as boolean === true
                 })
                 // console.warn(r.fields["Permit Id"] + " " + r.fields["Name"])
             }
