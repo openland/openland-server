@@ -1,4 +1,5 @@
 export class Context {
+    isRetina: boolean
     uid?: number
     owner: boolean
 

@@ -97,8 +97,8 @@ export const Resolver = {
         proposedAffordableUnits: (src: BuildingProject) => src.proposedAffordableUnits,
         permits: [],
 
-        picture: (src: BuildingProject, args: { height?: number, width?: number }) => resolvePicture(src.picture, args.height, args.width),
-        
+        picture: (src: BuildingProject, args: { height?: number, width?: number }, context: Context) => resolvePicture(context, src.picture, args.height, args.width),
+
         extrasDeveloper: (src: BuildingProject) => src.extrasDeveloper,
         extrasGeneralConstructor: (src: BuildingProject) => src.extrasGeneralConstructor,
         extrasYearEnd: (src: BuildingProject) => src.extrasYearEnd,

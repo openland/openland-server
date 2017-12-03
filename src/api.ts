@@ -38,6 +38,8 @@ async function context(src: express.Request): Promise<Context> {
         throw Error("x-statecraft-domain header is not present")
     }
 
+    let isRetina = src.headers["x-statecraft-retina"] === 'true';
+
     var accId = (await DB.Account.findOne({
         where: {
             slug: domain,
@@ -52,6 +54,7 @@ async function context(src: express.Request): Promise<Context> {
     n.domain = domain
     n.accountId = accId.id!!
     n.owner = false
+    n.isRetina = isRetina
 
     if (src.user != null && src.user != undefined) {
         var userKey = src.user.sub
