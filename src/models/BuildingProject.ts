@@ -44,7 +44,7 @@ export const Schema = `
     }
 
     extend type Query {
-        buildingProjects(filter: String, first: Int!, after: String): BuildingProjectConnection!
+        buildingProjects(filter: String, minUnits: Int, year: String, first: Int!, after: String): BuildingProjectConnection!
     }
 
     input BuildingProjectInput {
@@ -119,15 +119,26 @@ export const Resolver = {
         extrasUrl: (src: BuildingProject) => src.extrasUrl
     },
     Query: {
-        buildingProjects: async function (_: any, args: { first: number, after?: string }, context: Context) {
+        buildingProjects: async function (_: any, args: { first: number, minUnits?: number, year?: string, after?: string }, context: Context) {
             var offset: number = 0
             if (args.after) {
                 offset = parseInt(args.after)
             }
+            var where: any = {
+                account: context.accountId
+            }
+            if (args.minUnits) {
+                where['proposedUnits'] = DB.connection.literal('"proposedUnits"-"existingUnits" >= ' + args.minUnits)
+                // where = {
+                //     account: context.accountId,
+                //     proposedUnits: DB.connection.literal('"proposedUnits"-"existingUnits" >= '+args.minUnits)
+                // }
+            }
+            if (args.year) {
+                where['extrasYearEnd'] = args.year
+            }
             let res = await DB.BuidlingProject.findAndCountAll({
-                where: {
-                    account: context.accountId
-                },
+                where: where,
                 order: [DB.connection.literal('"proposedUnits"-"existingUnits" DESC'), 'id'],
                 //order: [DB.connection.fn('SUM', DB.connection.col('proposedUnits'), DB.connection.col('existingUnits')), 'ASC'],
                 limit: args.first + offset,
