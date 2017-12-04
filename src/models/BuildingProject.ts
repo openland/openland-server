@@ -119,7 +119,7 @@ export const Resolver = {
         extrasUrl: (src: BuildingProject) => src.extrasUrl
     },
     Query: {
-        buildingProjects: async function (_: any, args: { first: number, minUnits?: number, year?: string, after?: string }, context: Context) {
+        buildingProjects: async function (_: any, args: { first: number, minUnits?: number, year?: string, filter?: string, after?: string }, context: Context) {
             var offset: number = 0
             if (args.after) {
                 offset = parseInt(args.after)
@@ -136,6 +136,12 @@ export const Resolver = {
             }
             if (args.year) {
                 where['extrasYearEnd'] = args.year
+            }
+            if (args.filter && args.filter !== '') {
+                where['name'] = DB.connection.literal('lower("name") LIKE \'' + args.filter.toLowerCase() + '%\'')
+                //  {
+                //     $like: args.filter + '%'
+                // }
             }
             let res = await DB.BuidlingProject.findAndCountAll({
                 where: where,
