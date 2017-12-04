@@ -176,7 +176,7 @@ export async function bulkApply<TRow extends { id?: number, account?: number }>(
                 let v = loadFieldValue(row, n)
                 let v2 = loadFieldValue(ex, n)
 
-                if (v && !valueEquals(v, v2)) {
+                if ((v !== undefined) && !valueEquals(v, v2)) {
                     console.warn("Changed " + n)
                     console.warn(v2 + " -> " + v)
                     saveFieldValue(updated, n, v)
