@@ -2,6 +2,7 @@ import { Context } from "./Context";
 import { DB } from "../tables/index";
 import { BuildingProject } from "../tables/BuildingProject";
 import { resolveStreetView, resolvePicture } from "../utils/pictures";
+import { textLikeFields } from "../utils/db_utils";
 
 export const Schema = `
     type BuildingProject {
@@ -138,7 +139,7 @@ export const Resolver = {
                 where['extrasYearEnd'] = args.year
             }
             if (args.filter && args.filter !== '') {
-                where['name'] = DB.connection.literal('lower("name") LIKE \'' + args.filter.toLowerCase() + '%\'')
+                where['@@'] = textLikeFields(DB.BuidlingProject, args.filter, ["name", "extrasAddress", "extrasAddressSecondary"])
                 //  {
                 //     $like: args.filter + '%'
                 // }
@@ -158,7 +159,7 @@ export const Resolver = {
                     }
                 }),
                 pageInfo: {
-                    hasNextPage: res.count > res.rows.length,
+                    hasNextPage: res.rows.length == args.first,
                     hasPreviousPage: false
                 }
             }

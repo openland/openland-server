@@ -1,6 +1,7 @@
 import * as sequelize from 'sequelize'
 import { connection } from '../connector'
 import { Transaction } from 'sequelize';
+import { DB } from '../tables/index';
 
 export async function findAllRaw<TInstance>(tx: Transaction, sql: string, model: sequelize.Model<TInstance, any>): Promise<TInstance[]> {
     return (await connection.query(sql, { model: model, raw: true, logging: false, transaction: tx })) as TInstance[]
@@ -212,4 +213,32 @@ export async function bulkApply<TRow extends { id?: number, account?: number }>(
         }
     }
     return indexes
+}
+
+export function textLikeFields(model: sequelize.Model<any, any>, query: string, fields: string[]) {
+    if (fields.length == 0) {
+        return textLikeField(model, query, fields[0]);
+    } else {
+        return DB.connection.or(...fields.map(p => textLikeField(model, query, p)));
+    }
+}
+
+export function textLikeField(model: sequelize.Model<any, any>, query: string, field: string) {
+    query = query.toLowerCase().trim()
+        .replace('%', '[%]')
+        .replace('[', '[[]')
+    let sq = DB.connection
+    var column = sq.fn('lower', sq.col(field))
+    // var attributes = (model as any).attributes;
+    // if (attributes[field].type.constructor.name === "INTEGER") {
+    //     column = sq.fn('lower', sq.col(field))
+    // }
+    return sq.or(
+        sq.where(column, {
+            $like: query + '%'
+        }),
+        sq.where(column, {
+            $like: '% ' + query + '%'
+        })
+    );
 }
