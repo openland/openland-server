@@ -30,6 +30,7 @@ export const Schema = `
         extrasPermit: String
         extrasComment: String
         extrasUrl: String
+        extrasLocation: Geo
 
         permits: [Permit!]!
     }
@@ -127,7 +128,17 @@ export const Resolver = {
         extrasAddressSecondary: (src: BuildingProject) => src.extrasAddressSecondary,
         extrasPermit: (src: BuildingProject) => src.extrasPermit,
         extrasComment: (src: BuildingProject) => src.extrasComment,
-        extrasUrl: (src: BuildingProject) => src.extrasUrl
+        extrasUrl: (src: BuildingProject) => src.extrasUrl,
+        extrasLocation: (src: BuildingProject) => {
+            if (src.extrasLongitude != null && src.extrasLatitude != null) {
+                return {
+                    latitude: src.extrasLatitude,
+                    longitude: src.extrasLongitude
+                }
+            } else {
+                return undefined
+            }
+        }
     },
     Query: {
         buildingProjectsStats: async function (_: any, args: {}, context: Context) {

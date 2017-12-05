@@ -18,6 +18,11 @@ const RootQuery = `
     hasPreviousPage: Boolean!
   }
 
+  type Geo {
+    latitude: Float!
+    longitude: Float!
+  }
+
   type Query {
     healthCheck: String!
   }

@@ -7,7 +7,7 @@ interface TableResult {
     records: {
         id: string
         fields: {
-            [P in string]: number | string | boolean
+            [P in string]: number | string | boolean | undefined
         }
     }[]
     offset?: string
@@ -24,6 +24,25 @@ async function fetchTable(apiKey: string, database: string, table: string, offse
         }
     })
     return (await res.json()) as TableResult
+}
+
+function parseGeo(src?: string): { latitude: number, longitude: number } | undefined {
+    if (src) {
+        src = src.trim()
+        src = src.substring(1)
+        src = src.substring(0, src.length - 1)
+        var parts = src.split(',', 2)
+        parts[0] = parts[0].trim()
+        parts[1] = parts[1].trim()
+        var latitude = parseFloat(parts[0])
+        var longitude = parseFloat(parts[1])
+        return {
+            latitude: latitude,
+            longitude: longitude
+        }
+    } else {
+        return undefined;
+    }
 }
 
 // const quarters = [
@@ -49,7 +68,11 @@ async function doImport(accountId: number, apiKey: string, database: string) {
                 // console.warn((r.fields["Existing Units"] as number) + (r.fields["Net Units"] as number))
                 // console.warn((r.fields["Existing Units"] as number))
                 // console.warn((r.fields["Net Units"] as number))
+                // r.fields["Location"] as string
+
+                //console.warn(r.fields["Location"]);
                 ids.push(r.fields["Project Id"] as string)
+                let geo = parseGeo(r.fields["Location"] as string | undefined);
                 projects.push({
                     projectId: r.fields["Project Id"] as string,
                     name: r.fields["Name"] as string,
@@ -64,7 +87,9 @@ async function doImport(accountId: number, apiKey: string, database: string) {
                     extrasDeveloper: r.fields["Developer"] as string,
                     extrasGeneralConstructor: r.fields["General Constuctor"] as string,
                     extrasComment: r.fields["Comments"] as string,
-                    verified: r.fields["Verified"] as boolean === true
+                    verified: r.fields["Verified"] as boolean === true,
+                    extrasLatitude: geo !== undefined ? geo.latitude : undefined,
+                    extrasLongitude: geo !== undefined ? geo.longitude : undefined
                 })
                 // console.warn(r.fields["Permit Id"] + " " + r.fields["Name"])
             }

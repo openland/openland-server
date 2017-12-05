@@ -22,6 +22,8 @@ export interface BuildingProjectDescription {
     extrasPermit?: string
     extrasComment?: string
     extrasUrl?: string
+    extrasLatitude?: number;
+    extrasLongitude?: number;
 
     verified?: boolean
 }
@@ -63,6 +65,9 @@ export async function applyBuildingProjects(tx: Transaction, accountId: number, 
             extrasPermit: p.extrasPermit,
             extrasComment: p.extrasComment,
             extrasUrl: p.extrasUrl,
+
+            extrasLatitude: p.extrasLatitude,
+            extrasLongitude: p.extrasLongitude,
 
             verified: p.verified
         }

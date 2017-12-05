@@ -22,14 +22,16 @@ export interface BuildingProjectAttributes {
 
     picture?: string;
 
-    extrasDeveloper?: string,
-    extrasGeneralConstructor?: string,
-    extrasYearEnd?: string,
-    extrasAddress?: string,
-    extrasAddressSecondary?: string,
-    extrasPermit?: string,
-    extrasComment?: string,
-    extrasUrl?: string,
+    extrasDeveloper?: string;
+    extrasGeneralConstructor?: string;
+    extrasYearEnd?: string;
+    extrasAddress?: string;
+    extrasAddressSecondary?: string;
+    extrasPermit?: string;
+    extrasComment?: string;
+    extrasUrl?: string;
+    extrasLatitude?: number;
+    extrasLongitude?: number;
 
     permits?: Array<Permit>;
     getPermits?(): Promise<Array<Permit>>;
@@ -72,6 +74,9 @@ export const BuildingProjectTable = connection.define<BuildingProject, BuildingP
     extrasPermit: { type: sequelize.STRING, allowNull: true },
     extrasComment: { type: sequelize.STRING, allowNull: true },
     extrasUrl: { type: sequelize.STRING, allowNull: true },
+
+    extrasLatitude: { type: sequelize.DOUBLE, allowNull: true },
+    extrasLongitude: { type: sequelize.DOUBLE, allowNull: true },
 
 }, { indexes: [{ unique: true, fields: ['projectId', 'account'] }] })
 
