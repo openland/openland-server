@@ -11,6 +11,7 @@ export const Schema = `
         needAuthentication: Boolean!
         readAccess: Boolean!
         writeAccess: Boolean!
+        generation: Int!
     }
 
     extend type Query {
@@ -60,7 +61,8 @@ function convertAccount(account: Account | undefined | null, context: Context) {
         city: account.city,
         needAuthentication: false,
         readAccess: true,
-        writeAccess: context.owner
+        writeAccess: context.owner,
+        generation: account.generation
     }
 }
 
