@@ -2,7 +2,7 @@ import { Context } from "./Context";
 import { DB } from "../tables/index";
 import { BuildingProject } from "../tables/BuildingProject";
 import { resolveStreetView, resolvePicture } from "../utils/pictures";
-import { textLikeFields } from "../utils/db_utils";
+import { textLikeFields, textLikeFieldsText, sumRaw } from "../utils/db_utils";
 
 export const Schema = `
     type BuildingProject {
@@ -40,9 +40,15 @@ export const Schema = `
         cursor: String!
     }
 
+    type BuildingProjectConnectionStats {
+        newUnits: Int!
+        newUnitsVerified: Int!
+    }
+
     type BuildingProjectConnection {
         edges: [BuildingProjectEdge!]!
         pageInfo: PageInfo!
+        stats: BuildingProjectConnectionStats!
     }
 
     type BuildingProjectStats {
@@ -147,10 +153,10 @@ export const Resolver = {
                 where: { verified: true }
             })
             let baseQuery = "SELECT SUM(\"proposedUnits\" - \"existingUnits\") FROM \"" + DB.BuidlingProject.getTableName() + "\" "
-            let year2017NewUnits = (await DB.connection.query(baseQuery + "WHERE \"extrasYearEnd\"='2017'", { type: DB.connection.QueryTypes.SELECT }))[0].sum;
-            let year2017NewUnitsVerified = (await DB.connection.query(baseQuery + "WHERE \"extrasYearEnd\"='2017' AND \"verified\" = true", { type: DB.connection.QueryTypes.SELECT }))[0].sum;
-            let year2018NewUnits = (await DB.connection.query(baseQuery + "WHERE \"extrasYearEnd\"='2018'", { type: DB.connection.QueryTypes.SELECT }))[0].sum;
-            let year2018NewUnitsVerified = (await DB.connection.query(baseQuery + "WHERE \"extrasYearEnd\"='2018' AND \"verified\" = true", { type: DB.connection.QueryTypes.SELECT }))[0].sum;
+            let year2017NewUnits = (await DB.connection.query(baseQuery + "WHERE \"extrasYearEnd\"='2017' AND \"account\" = " + context.accountId, { type: DB.connection.QueryTypes.SELECT }))[0].sum;
+            let year2017NewUnitsVerified = (await DB.connection.query(baseQuery + "WHERE \"extrasYearEnd\"='2017' AND \"verified\" = true AND \"account\" = " + context.accountId, { type: DB.connection.QueryTypes.SELECT }))[0].sum;
+            let year2018NewUnits = (await DB.connection.query(baseQuery + "WHERE \"extrasYearEnd\"='2018' AND \"account\" = " + context.accountId, { type: DB.connection.QueryTypes.SELECT }))[0].sum;
+            let year2018NewUnitsVerified = (await DB.connection.query(baseQuery + "WHERE \"extrasYearEnd\"='2018' AND \"verified\" = true AND \"account\" = " + context.accountId, { type: DB.connection.QueryTypes.SELECT }))[0].sum;
             return {
                 projectsTracked: (await projectsTracked) || 0,
                 projectsVerified: (await projectsVerified) || 0,
@@ -168,23 +174,24 @@ export const Resolver = {
             var where: any = {
                 account: context.accountId
             }
+            var statsWhere = "\"account\" = " + context.accountId;
             if (args.minUnits) {
                 where['proposedUnits'] = DB.connection.literal('"proposedUnits"-"existingUnits" >= ' + args.minUnits)
-                // where = {
-                //     account: context.accountId,
-                //     proposedUnits: DB.connection.literal('"proposedUnits"-"existingUnits" >= '+args.minUnits)
-                // }
+                statsWhere += " AND \"proposedUnits\"-\"existingUnits\" >= " + args.minUnits
             }
             if (args.year) {
                 where['extrasYearEnd'] = args.year
+                statsWhere += " AND \"extrasYearEnd\" = '" + args.year + "'"
             }
             if (args.filter && args.filter !== '') {
                 where['@@'] = textLikeFields(DB.BuidlingProject, args.filter, ["name", "extrasAddress", "extrasAddressSecondary"])
-                //  {
-                //     $like: args.filter + '%'
-                // }
+                statsWhere += " AND " + textLikeFieldsText(DB.BuidlingProject, args.filter, ["name", "extrasAddress", "extrasAddressSecondary"])
             }
-            let res = await DB.BuidlingProject.findAndCountAll({
+
+            let newUnits = sumRaw(DB.BuidlingProject.getTableName() as string, "\"proposedUnits\"-\"existingUnits\"", statsWhere);
+            let newVerifiedUnits = sumRaw(DB.BuidlingProject.getTableName() as string, "\"proposedUnits\"-\"existingUnits\"", statsWhere + " AND \"verified\" = true");
+
+            let res = await DB.BuidlingProject.findAll({
                 where: where,
                 order: [DB.connection.literal('"proposedUnits"-"existingUnits" DESC'), 'id'],
                 //order: [DB.connection.fn('SUM', DB.connection.col('proposedUnits'), DB.connection.col('existingUnits')), 'ASC'],
@@ -192,15 +199,19 @@ export const Resolver = {
                 offset: offset
             })
             return {
-                edges: res.rows.map((p, i) => {
+                edges: res.map((p, i) => {
                     return {
                         node: p,
                         cursor: (i + 1 + offset).toString() //(p.proposedUnits!! - p.existingUnits!!) + "-" + p.id
                     }
                 }),
                 pageInfo: {
-                    hasNextPage: res.rows.length == args.first,
+                    hasNextPage: res.length == args.first,
                     hasPreviousPage: false
+                },
+                stats: {
+                    newUnits: await newUnits,
+                    newUnitsVerified: await newVerifiedUnits
                 }
             }
         }

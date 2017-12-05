@@ -216,10 +216,18 @@ export async function bulkApply<TRow extends { id?: number, account?: number }>(
 }
 
 export function textLikeFields(model: sequelize.Model<any, any>, query: string, fields: string[]) {
-    if (fields.length == 0) {
+    if (fields.length == 1) {
         return textLikeField(model, query, fields[0]);
     } else {
         return DB.connection.or(...fields.map(p => textLikeField(model, query, p)));
+    }
+}
+
+export function textLikeFieldsText(model: sequelize.Model<any, any>, query: string, fields: string[]) {
+    if (fields.length == 1) {
+        return textLikeFieldText(model, query, fields[0]);
+    } else {
+        return "(" + fields.map(p => textLikeFieldText(model, query, p)).join(" OR ") + ")";
     }
 }
 
@@ -227,12 +235,9 @@ export function textLikeField(model: sequelize.Model<any, any>, query: string, f
     query = query.toLowerCase().trim()
         .replace('%', '[%]')
         .replace('[', '[[]')
+        .replace('\'', '[\']')
     let sq = DB.connection
     var column = sq.fn('lower', sq.col(field))
-    // var attributes = (model as any).attributes;
-    // if (attributes[field].type.constructor.name === "INTEGER") {
-    //     column = sq.fn('lower', sq.col(field))
-    // }
     return sq.or(
         sq.where(column, {
             $like: query + '%'
@@ -241,4 +246,17 @@ export function textLikeField(model: sequelize.Model<any, any>, query: string, f
             $like: '% ' + query + '%'
         })
     );
+}
+
+export function textLikeFieldText(model: sequelize.Model<any, any>, query: string, field: string) {
+    query = query.toLowerCase().trim()
+        .replace('%', '[%]')
+        .replace('[', '[[]')
+        .replace('\'', '[\']')
+
+    return "(lower(\"" + field + "\") LIKE '" + query + "%' OR lower(\"" + field + "\") LIKE '% " + query + "%'";
+}
+
+export async function sumRaw(table: string, field: string, where: string): Promise<number> {
+    return (await DB.connection.query("SELECT SUM(" + field + ") FROM \"" + table + "\" WHERE " + where, { type: DB.connection.QueryTypes.SELECT }))[0].sum | 0;
 }
