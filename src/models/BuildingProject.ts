@@ -141,12 +141,12 @@ export const Resolver = {
             let year2018NewUnits = (await DB.connection.query(baseQuery + "WHERE \"extrasYearEnd\"='2018'", { type: DB.connection.QueryTypes.SELECT }))[0].sum;
             let year2018NewUnitsVerified = (await DB.connection.query(baseQuery + "WHERE \"extrasYearEnd\"='2018' AND \"verified\" = true", { type: DB.connection.QueryTypes.SELECT }))[0].sum;
             return {
-                projectsTracked: projectsTracked,
-                projectsVerified: projectsVerified,
-                year2017NewUnits: year2017NewUnits,
-                year2017NewUnitsVerified: year2017NewUnitsVerified,
-                year2018NewUnits: year2018NewUnits,
-                year2018NewUnitsVerified: year2018NewUnitsVerified,
+                projectsTracked: projectsTracked || 0,
+                projectsVerified: projectsVerified || 0,
+                year2017NewUnits: year2017NewUnits || 0,
+                year2017NewUnitsVerified: year2017NewUnitsVerified || 0,
+                year2018NewUnits: year2018NewUnits || 0,
+                year2018NewUnitsVerified: year2018NewUnitsVerified || 0,
             }
         },
         buildingProjects: async function (_: any, args: { first: number, minUnits?: number, year?: string, filter?: string, after?: string }, context: Context) {
