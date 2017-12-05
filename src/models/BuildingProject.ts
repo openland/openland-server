@@ -141,8 +141,8 @@ export const Resolver = {
             let year2018NewUnits = (await DB.connection.query(baseQuery + "WHERE \"extrasYearEnd\"='2018'", { type: DB.connection.QueryTypes.SELECT }))[0].sum;
             let year2018NewUnitsVerified = (await DB.connection.query(baseQuery + "WHERE \"extrasYearEnd\"='2018' AND \"verified\" = true", { type: DB.connection.QueryTypes.SELECT }))[0].sum;
             return {
-                projectsTracked: projectsTracked || 0,
-                projectsVerified: projectsVerified || 0,
+                projectsTracked: (await projectsTracked) || 0,
+                projectsVerified: (await projectsVerified) || 0,
                 year2017NewUnits: year2017NewUnits || 0,
                 year2017NewUnitsVerified: year2017NewUnitsVerified || 0,
                 year2018NewUnits: year2018NewUnits || 0,
