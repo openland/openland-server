@@ -135,25 +135,18 @@ export const Resolver = {
             let projectsVerified = DB.BuidlingProject.count({
                 where: { verified: true }
             })
-            let year2017NewUnits = DB.BuidlingProject.sum('proposedUnits', {
-                where: { extrasYearEnd: "2017" }
-            })
-            let year2017NewUnitsVerified = DB.BuidlingProject.sum('proposedUnits', {
-                where: { extrasYearEnd: "2017", verified: true }
-            })
-            let year2018NewUnits = DB.BuidlingProject.sum('proposedUnits', {
-                where: { extrasYearEnd: "2018" }
-            })
-            let year2018NewUnitsVerified = DB.BuidlingProject.sum('proposedUnits', {
-                where: { extrasYearEnd: "2018", verified: true }
-            })
+            let baseQuery = "SELECT SUM(\"proposedUnits\" - \"existingUnits\") FROM \"" + DB.BuidlingProject.getTableName() + "\" "
+            let year2017NewUnits = (await DB.connection.query(baseQuery + "WHERE \"extrasYearEnd\"='2017'", { type: DB.connection.QueryTypes.SELECT }))[0].sum;
+            let year2017NewUnitsVerified = (await DB.connection.query(baseQuery + "WHERE \"extrasYearEnd\"='2017' AND \"verified\" = true", { type: DB.connection.QueryTypes.SELECT }))[0].sum;
+            let year2018NewUnits = (await DB.connection.query(baseQuery + "WHERE \"extrasYearEnd\"='2018'", { type: DB.connection.QueryTypes.SELECT }))[0].sum;
+            let year2018NewUnitsVerified = (await DB.connection.query(baseQuery + "WHERE \"extrasYearEnd\"='2018' AND \"verified\" = true", { type: DB.connection.QueryTypes.SELECT }))[0].sum;
             return {
-                projectsTracked: await projectsTracked,
-                projectsVerified: await projectsVerified,
-                year2017NewUnits: await year2017NewUnits,
-                year2017NewUnitsVerified: await year2017NewUnitsVerified,
-                year2018NewUnits: await year2018NewUnits,
-                year2018NewUnitsVerified: await year2018NewUnitsVerified,
+                projectsTracked: projectsTracked,
+                projectsVerified: projectsVerified,
+                year2017NewUnits: year2017NewUnits,
+                year2017NewUnitsVerified: year2017NewUnitsVerified,
+                year2018NewUnits: year2018NewUnits,
+                year2018NewUnitsVerified: year2018NewUnitsVerified,
             }
         },
         buildingProjects: async function (_: any, args: { first: number, minUnits?: number, year?: string, filter?: string, after?: string }, context: Context) {
