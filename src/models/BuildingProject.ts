@@ -44,8 +44,18 @@ export const Schema = `
         pageInfo: PageInfo!
     }
 
+    type BuildingProjectStats {
+        projectsTracked: Int!
+        projectsVerified: Int!
+        year2017NewUnits: Int!
+        year2017NewUnitsVerified: Int!
+        year2018NewUnits: Int!
+        year2018NewUnitsVerified: Int!
+    }
+
     extend type Query {
         buildingProjects(filter: String, minUnits: Int, year: String, first: Int!, after: String): BuildingProjectConnection!
+        buildingProjectsStats: BuildingProjectStats!
     }
 
     input BuildingProjectInput {
@@ -120,6 +130,32 @@ export const Resolver = {
         extrasUrl: (src: BuildingProject) => src.extrasUrl
     },
     Query: {
+        buildingProjectsStats: async function (_: any, args: {}, context: Context) {
+            let projectsTracked = DB.BuidlingProject.count()
+            let projectsVerified = DB.BuidlingProject.count({
+                where: { verified: true }
+            })
+            let year2017NewUnits = DB.BuidlingProject.sum('proposedUnits', {
+                where: { extrasYearEnd: "2017" }
+            })
+            let year2017NewUnitsVerified = DB.BuidlingProject.sum('proposedUnits', {
+                where: { extrasYearEnd: "2017", verified: true }
+            })
+            let year2018NewUnits = DB.BuidlingProject.sum('proposedUnits', {
+                where: { extrasYearEnd: "2018" }
+            })
+            let year2018NewUnitsVerified = DB.BuidlingProject.sum('proposedUnits', {
+                where: { extrasYearEnd: "2018", verified: true }
+            })
+            return {
+                projectsTracked: await projectsTracked,
+                projectsVerified: await projectsVerified,
+                year2017NewUnits: await year2017NewUnits,
+                year2017NewUnitsVerified: await year2017NewUnitsVerified,
+                year2018NewUnits: await year2018NewUnits,
+                year2018NewUnitsVerified: await year2018NewUnitsVerified,
+            }
+        },
         buildingProjects: async function (_: any, args: { first: number, minUnits?: number, year?: string, filter?: string, after?: string }, context: Context) {
             var offset: number = 0
             if (args.after) {
