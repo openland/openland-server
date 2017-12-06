@@ -2,7 +2,7 @@ import { Context } from "./Context";
 import { DB } from "../tables/index";
 import { BuildingProject } from "../tables/BuildingProject";
 import { resolveStreetView, resolvePicture } from "../utils/pictures";
-import { textLikeFields, textLikeFieldsText, sumRaw } from "../utils/db_utils";
+import { textLikeFields, textLikeFieldsText, sumRaw, countRaw } from "../utils/db_utils";
 
 export const Schema = `
     type BuildingProject {
@@ -43,6 +43,8 @@ export const Schema = `
     type BuildingProjectConnectionStats {
         newUnits: Int!
         newUnitsVerified: Int!
+        totalProjects: Int!
+        totalProjectsVerified: Int!
     }
 
     type BuildingProjectConnection {
@@ -190,6 +192,8 @@ export const Resolver = {
 
             let newUnits = sumRaw(DB.BuidlingProject.getTableName() as string, "\"proposedUnits\"-\"existingUnits\"", statsWhere);
             let newVerifiedUnits = sumRaw(DB.BuidlingProject.getTableName() as string, "\"proposedUnits\"-\"existingUnits\"", statsWhere + " AND \"verified\" = true");
+            let totalProjects = countRaw(DB.BuidlingProject.getTableName() as string, statsWhere);
+            let totalProjectsVerified = countRaw(DB.BuidlingProject.getTableName() as string, statsWhere + " AND \"verified\" = true");
 
             let res = await DB.BuidlingProject.findAll({
                 where: where,
@@ -211,7 +215,9 @@ export const Resolver = {
                 },
                 stats: {
                     newUnits: await newUnits,
-                    newUnitsVerified: await newVerifiedUnits
+                    newUnitsVerified: await newVerifiedUnits,
+                    totalProjects: await totalProjects,
+                    totalProjectsVerified: await totalProjectsVerified
                 }
             }
         }

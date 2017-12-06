@@ -262,3 +262,9 @@ export async function sumRaw(table: string, field: string, where: string): Promi
     console.warn(q);
     return (await DB.connection.query(q, { type: DB.connection.QueryTypes.SELECT }))[0].sum | 0;
 }
+
+export async function countRaw(table: string, where: string): Promise<number> {
+    let q = "SELECT COUNT(*) FROM \"" + table + "\" WHERE " + where;
+    console.warn(q);
+    return (await DB.connection.query(q, { type: DB.connection.QueryTypes.SELECT }))[0].count | 0;
+}
