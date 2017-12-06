@@ -254,9 +254,11 @@ export function textLikeFieldText(model: sequelize.Model<any, any>, query: strin
         .replace('[', '[[]')
         .replace('\'', '[\']')
 
-    return "(lower(\"" + field + "\") LIKE '" + query + "%' OR lower(\"" + field + "\") LIKE '% " + query + "%'";
+    return "(lower(\"" + field + "\") LIKE '" + query + "%' OR lower(\"" + field + "\") LIKE '% " + query + "%')";
 }
 
 export async function sumRaw(table: string, field: string, where: string): Promise<number> {
-    return (await DB.connection.query("SELECT SUM(" + field + ") FROM \"" + table + "\" WHERE " + where, { type: DB.connection.QueryTypes.SELECT }))[0].sum | 0;
+    let q = "SELECT SUM(" + field + ") FROM \"" + table + "\" WHERE " + where;
+    console.warn(q);
+    return (await DB.connection.query(q, { type: DB.connection.QueryTypes.SELECT }))[0].sum | 0;
 }
