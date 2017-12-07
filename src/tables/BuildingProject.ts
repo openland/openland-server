@@ -22,14 +22,14 @@ export interface BuildingProjectAttributes {
 
     picture?: string;
 
-    extrasDeveloper?: string;
-    extrasGeneralConstructor?: string;
-    extrasYearEnd?: string;
-    extrasAddress?: string;
-    extrasAddressSecondary?: string;
-    extrasPermit?: string;
-    extrasComment?: string;
-    extrasUrl?: string;
+    extrasDeveloper?: string | null;
+    extrasGeneralConstructor?: string | null;
+    extrasYearEnd?: string | null;
+    extrasAddress?: string | null;
+    extrasAddressSecondary?: string | null;
+    extrasPermit?: string | null;
+    extrasComment?: string | null;
+    extrasUrl?: string | null;
     extrasLatitude?: number;
     extrasLongitude?: number;
 

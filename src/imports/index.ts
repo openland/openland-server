@@ -45,6 +45,14 @@ function parseGeo(src?: string): { latitude: number, longitude: number } | undef
     }
 }
 
+function parseString(src?: number | string | boolean | undefined): string | null {
+    if (src && typeof (src) == "string") {
+        return src
+    } else {
+        return null
+    }
+}
+
 // const quarters = [
 //     "02-15",
 //     "05-15",
@@ -82,7 +90,7 @@ async function doImport(accountId: number, apiKey: string, database: string) {
                     extrasYearEnd: r.fields["Completion Year"] as string,
                     extrasAddress: r.fields["Address"] as string,
                     extrasAddressSecondary: r.fields["Secondary Address"] as string,
-                    extrasUrl: r.fields["URL"] as string,
+                    extrasUrl: parseString(r.fields["URL"]),
                     extrasPermit: r.fields["Permit Id"] as string,
                     extrasDeveloper: r.fields["Developer"] as string,
                     extrasGeneralConstructor: r.fields["General Constuctor"] as string,
