@@ -47,7 +47,11 @@ function parseGeo(src?: string): { latitude: number, longitude: number } | undef
 
 function parseString(src?: number | string | boolean | undefined): string | null {
     if (src && typeof (src) == "string") {
-        return src
+        if (src == "") {
+            return null
+        } else {
+            return src
+        }
     } else {
         return null
     }
