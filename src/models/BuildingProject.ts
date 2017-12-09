@@ -20,7 +20,7 @@ export const Schema = `
         existingAffordableUnits: Int
         proposedAffordableUnits: Int
 
-        picture(height: Int, width: Int): String
+        picture(height: Int, width: Int): Picture
         
         extrasDeveloper: String
         extrasGeneralConstructor: String
@@ -119,7 +119,7 @@ export const Resolver = {
 
         picture: (src: BuildingProject, args: { height?: number, width?: number }, context: Context) => {
             if (src.picture) {
-                return resolvePicture(context, src.picture, args.height, args.width)
+                return resolvePicture(src.picture, args.width, args.height);
             } else {
                 if (args.height && args.width) {
                     return resolveStreetView(context, src.extrasAddress!!, args.height, args.width)

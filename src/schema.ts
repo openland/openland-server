@@ -8,6 +8,7 @@ import * as Findings from './models/Findings'
 import * as Permits from './models/Permit'
 import * as Street from './models/Street'
 import * as BuildingProject from './models/BuildingProject'
+import * as Picture from './models/Picture';
 import { merge } from 'lodash';
 import { Context } from './models/Context';
 
@@ -62,7 +63,8 @@ export const Schema = makeExecutableSchema({
     Findings.Schema,
     Permits.Schema,
     Street.Schema,
-    BuildingProject.Schema
+    BuildingProject.Schema,
+    Picture.Schema
   ],
   resolvers: merge(rootResolver,
     Voting.Resolver,
@@ -73,7 +75,8 @@ export const Schema = makeExecutableSchema({
     Findings.Resolver,
     Permits.Resolver,
     Street.Resolver,
-    BuildingProject.Resolver
+    BuildingProject.Resolver,
+    Picture.Resolver
   )
 })
 
