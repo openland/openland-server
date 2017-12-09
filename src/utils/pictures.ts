@@ -1,7 +1,7 @@
 import { Context } from "../models/Context";
 import { STREET_VIEW_KEY } from "../keys";
 
-export function resolvePicture(src?: string, height?: number, width?: number) {
+export function resolvePicture(src?: string, width?: number, height?: number) {
     if (src) {
         return {
             id: src,
