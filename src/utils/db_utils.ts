@@ -3,6 +3,15 @@ import { connection } from '../connector'
 import { Transaction } from 'sequelize';
 import { DB } from '../tables/index';
 
+export interface Applied<T> {
+    id: number;
+    created: boolean;
+    changed: boolean;
+    oldValue?: T;
+    newValue?: T;
+    changedFields?: string[];
+}
+
 export async function findAllRaw<TInstance>(tx: Transaction, sql: string, model: sequelize.Model<TInstance, any>): Promise<TInstance[]> {
     return (await connection.query(sql, { model: model, raw: true, logging: false, transaction: tx })) as TInstance[]
 }
@@ -156,7 +165,7 @@ export async function bulkApply<TRow extends { id?: number, account?: number }>(
     let existing = (await connection.query(query, { transaction: tx, logging: false }))[1].rows as TRow[]
     var forInsert = Array<TRow>()
     var forUpdate = Array<PromiseLike<any>>()
-    var indexes = Array<number>(rows.length)
+    var indexes = Array<Applied<TRow>>(rows.length)
     var pendingIndexes = Array<number>()
     var map: { [key: string]: TRow } = {}
     for (let p of existing) {
@@ -167,9 +176,9 @@ export async function bulkApply<TRow extends { id?: number, account?: number }>(
         let ex = map[loadFieldValue(row, key)]
         let names = Object.getOwnPropertyNames(row)
         if (ex) {
-            indexes[index] = ex.id!!
             var updated: TRow = {} as TRow
             var wasChanged = false
+            var changed = new Array<string>();
             for (let n of names) {
                 if (n == key || n == "account") {
                     continue
@@ -182,6 +191,7 @@ export async function bulkApply<TRow extends { id?: number, account?: number }>(
                     console.warn(v2 + " -> " + v)
                     saveFieldValue(updated, n, v)
                     wasChanged = true
+                    changed.push(n)
                 }
             }
             if (wasChanged) {
@@ -191,6 +201,20 @@ export async function bulkApply<TRow extends { id?: number, account?: number }>(
                     },
                     transaction: tx
                 }))
+                indexes[index] = {
+                    id: ex.id!!,
+                    changed: true,
+                    created: false,
+                    oldValue: row,
+                    newValue: ex,
+                    changedFields: changed
+                }
+            } else {
+                indexes[index] = {
+                    id: ex.id!!,
+                    changed: false,
+                    created: false
+                }
             }
         } else {
             forInsert.push({ ...(row as any), account: accountId })
@@ -202,7 +226,11 @@ export async function bulkApply<TRow extends { id?: number, account?: number }>(
     if (forInsert.length > 0) {
         index = 0
         for (let ind of await bulkInsert(tx, model, forInsert)) {
-            indexes[pendingIndexes[index]] = ind
+            indexes[pendingIndexes[index]] = {
+                id: ind,
+                created: true,
+                changed: false
+            }
             index++
         }
     }

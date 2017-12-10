@@ -2,6 +2,7 @@ import { StreetNumberDescription, applyStreetNumbers } from "./Streets";
 import { DB } from "../tables/index";
 import { PermitStatus, PermitType } from "../tables/Permit";
 import { bulkAssociations, bulkApply } from "../utils/db_utils";
+import { PermitEventAttributes } from "../tables/PermitEvents";
 
 export interface PermitDescriptor {
     id: string
@@ -24,14 +25,6 @@ export interface PermitDescriptor {
     description?: string;
 
     street?: [StreetNumberDescription]
-}
-
-function convertDate(src?: string): string | undefined {
-    if (src) {
-        return src//new Date(src).toUTCString()
-    } else {
-        return undefined
-    }
 }
 
 function convertStatus(src?: string): PermitStatus | undefined {
@@ -89,11 +82,11 @@ export async function applyPermits(accountId: number, permits: PermitDescriptor[
         permitType: convertType(p.type),
         permitTypeWood: p.typeWood,
         permitStatus: convertStatus(p.status),
-        permitCreated: convertDate(p.createdAt),
-        permitIssued: convertDate(p.issuedAt),
-        permitExpired: convertDate(p.expiredAt),
-        permitCompleted: convertDate(p.completedAt),
-        permitStatusUpdated: convertDate(p.statusUpdatedAt),
+        permitCreated: p.createdAt,
+        permitIssued: p.issuedAt,
+        permitExpired: p.expiredAt,
+        permitCompleted: p.completedAt,
+        permitStatusUpdated: p.statusUpdatedAt,
         existingStories: p.existingStories,
         proposedStories: p.proposedStories,
         existingUnits: p.existingUnits,
@@ -115,15 +108,56 @@ export async function applyPermits(accountId: number, permits: PermitDescriptor[
         for (let p of permits) {
             if (p.street) {
                 for (let _ of p.street) {
-                    pendingStreets.push({ permitId: applied[index], streetId: pending[streetIndex]!! })
+                    pendingStreets.push({ permitId: applied[index].id, streetId: pending[streetIndex]!! })
                     streetIndex++
                 }
             }
             index++
         }
         if (pendingStreets.length > 0) {
+            console.warn(pendingStreets);
             let mapped = pendingStreets.map((v) => ({ value1: v.permitId, value2: v.streetId }));
             await bulkAssociations(tx, "permit_street_numbers", "permitId", "streetNumberId", mapped)
+        }
+
+        var pendingEvents = new Array<PermitEventAttributes>()
+        for (let p of applied) {
+            if (p.changed) {
+                let existing = p.oldValue!!;
+                let updated = p.newValue!!;
+                let changedFields = p.changedFields!!;
+                if (changedFields.indexOf('permitStatus') >= 0) {
+                    pendingEvents.push({
+                        account: accountId,
+                        permitId: p.id,
+                        eventType: "status_changed",
+                        eventContent: {
+                            oldStatus: existing.permitStatus,
+                            newStatus: updated.permitStatus,
+                            time: updated.permitStatusUpdated
+                        }
+                    });
+                    console.warn(updated)
+                }
+                for (let f of changedFields) {
+                    if (f === 'permitStatus') {
+                        continue;
+                    }
+                    pendingEvents.push({
+                        account: accountId,
+                        permitId: p.id,
+                        eventType: "field_changed",
+                        eventContent: {
+                            field: f,
+                            oldValue: (existing as any)[f],
+                            newValue: (updated as any)[f],
+                        }
+                    });
+                }
+            }
+        }
+        if (pendingEvents.length > 0) {
+            await DB.PermitEvents.bulkCreate(pendingEvents)
         }
     });
     console.timeEnd("bulk_all")

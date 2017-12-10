@@ -1,6 +1,7 @@
 import { connection } from '../connector';
 import * as sequelize from 'sequelize'
 import { StreetNumberTable, StreetNumber } from './StreetNumber';
+import { PermitEvent } from './PermitEvents';
 
 export type PermitStatus = "filed" | "issued" | "completed" | "expired" |
     "cancelled" | "disapproved" | "approved" | "issuing" |
@@ -24,7 +25,6 @@ export interface PermitAttributes {
     permitIssued?: string;
     permitCompleted?: string;
     permitExpired?: string;
-    streetNumbers?: Array<StreetNumber>;
     existingStories?: number;
     proposedStories?: number;
     existingUnits?: number;
@@ -33,9 +33,13 @@ export interface PermitAttributes {
     proposedAffordableUnits?: number;
     proposedUse?: string;
     description?: string;
+
+    streetNumbers?: Array<StreetNumber>;
     getStreetNumbers?(): Promise<Array<StreetNumber>>;
     setStreetNumbers?(streets: Array<StreetNumber>): Promise<void>;
     addStreetNumber?(id: number): Promise<StreetNumber>;
+
+    events?: Array<PermitEvent>;
 }
 
 export interface Permit extends sequelize.Instance<PermitAttributes>, PermitAttributes { }

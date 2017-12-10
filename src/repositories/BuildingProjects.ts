@@ -74,6 +74,7 @@ export async function applyBuildingProjects(tx: Transaction, accountId: number, 
         return res
     })
     await bulkApply(tx, DB.BuidlingProject, accountId, 'projectId', values)
+    
     //await bulkInsert(DB.BuidlingProject, values)
     // for (let p of projects) {
 

@@ -25,6 +25,8 @@ export const Schema = `
         proposedAffordableUnits: Int
         proposedUse: String
         description: String
+
+        events: [PermitEvent!]!
     }
 
     enum PermitStatus {
@@ -59,6 +61,20 @@ export const Schema = `
         GRADE_QUARRY_FILL_EXCAVATE
     }
 
+    type PermitEventStatus {
+        oldStatus: PermitStatus
+        newStatus: PermitStatus
+        date: String
+    }
+
+    type PermitEventFieldChanged {
+        fieldName: String!
+        oldValue: String
+        newValue: String
+    }
+
+    union PermitEvent = PermitEventStatus | PermitEventFieldChanged
+
     type PermitEdge {
         node: Permit!
         cursor: String!
@@ -71,7 +87,6 @@ export const Schema = `
 
     extend type Query {
         permits(filter: String, first: Int!, after: String): PermitsConnection
-        permitsPipeline(first: Int!, after: String): PermitsConnection
         permit(id: ID!): Permit
     }
 
@@ -140,6 +155,11 @@ interface StreetNumberInfo {
 }
 
 export const Resolver = {
+    PermitEvent: {
+        __resolveType: (src: any) => {
+            return src.__typename
+        }
+    },
     Permit: {
         id: (src: Permit) => src.permitId,
         status: (src: Permit) => {
@@ -176,7 +196,21 @@ export const Resolver = {
             streetNameSuffix: n.street!!.suffix,
             streetNumber: n.number,
             streetNumberSuffix: n.suffix
-        }))
+        })),
+        events: (src: Permit) => {
+            return src.events!!.map((e) => {
+                if (e.eventType === "status_changed") {
+                    return {
+                        __typename: "PermitEventStatus",
+                        oldStatus: e.eventContent.oldStatus ? e.eventContent.oldStatus.toUpperCase() : null,
+                        newStatus: e.eventContent.newStatus ? e.eventContent.newStatus.toUpperCase() : null,
+                        date: e.eventContent.time
+                    }
+                } else {
+                    return null;
+                }
+            }).filter((v) => v !== null);
+        }
     },
     Query: {
         permit: async function (_: any, args: { id: string }, context: Context) {
@@ -192,60 +226,15 @@ export const Resolver = {
                         model: DB.Street,
                         as: 'street'
                     }]
+                }, {
+                    model: DB.PermitEvents,
+                    as: 'events'
                 }]
             })
             if (res != null) {
                 return res
             } else {
                 return null
-            }
-        },
-        permitsPipeline: async function (_: any, args: { first: number, after?: string }, context: Context) {
-            if (args.first > 100) {
-                throw "first can't be bigger than 100"
-            }
-            let res = await DB.Permit.findAndCountAll({
-                where: args.after
-                    ? {
-                        account: context.accountId,
-                        permitCreated: {
-                            $gt: args.after
-                        }
-                    } : {
-                        account: context.accountId,
-                        permitType: {
-                            $in: ["new_construction", "additions_alterations_repare"]
-                        },
-                        permitStatus: "issued",
-                        proposedUnits: {
-                            $gt: 0
-                        },
-                        existingUnits: {
-                            $gt: 0
-                        }
-                    },
-                order: [['permitCreated', 'DESC']],
-                limit: args.first,
-                include: [{
-                    model: DB.StreetNumber,
-                    as: 'streetNumbers',
-                    include: [{
-                        model: DB.Street,
-                        as: 'street'
-                    }]
-                }]
-            })
-            return {
-                edges: res.rows.map((p) => {
-                    return {
-                        node: p,
-                        cursor: p.permitCreated
-                    }
-                }),
-                pageInfo: {
-                    hasNextPage: res.count > res.rows.length,
-                    hasPreviousPage: false
-                }
             }
         },
         permits: async function (_: any, args: { filter?: string, first: number, after?: string }, context: Context) {
@@ -287,6 +276,9 @@ export const Resolver = {
                         model: DB.Street,
                         as: 'street'
                     }]
+                }, {
+                    model: DB.PermitEvents,
+                    as: 'events'
                 }]
             })
             return {
