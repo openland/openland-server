@@ -114,7 +114,7 @@ export async function bulkInsert<TRow>(tx: Transaction, model: sequelize.Model<a
         rows = rows.map(p => ({ ...(p as any), createdAt: date, updatedAt: date }))
     }
     let table = (typeof (model) === "string") ? model : model.getTableName() as string
-    let res = await connection.getQueryInterface().bulkInsert(table, rows, { raw: true, returning: true, logging: true }) as { id: number }[]
+    let res = await connection.getQueryInterface().bulkInsert(table, rows, { raw: true, returning: true, logging: true, transaction: tx }) as { id: number }[]
     return res.map(p => p.id)
 }
 
