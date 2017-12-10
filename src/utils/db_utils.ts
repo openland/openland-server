@@ -205,8 +205,8 @@ export async function bulkApply<TRow extends { id?: number, account?: number }>(
                     id: ex.id!!,
                     changed: true,
                     created: false,
-                    oldValue: row,
-                    newValue: ex,
+                    oldValue: ex,
+                    newValue: row,
                     changedFields: changed
                 }
             } else {
