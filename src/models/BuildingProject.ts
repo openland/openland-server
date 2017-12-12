@@ -80,25 +80,7 @@ export const Schema = `
         
         permits: [ID!]
     }
-    
-
-    extend type Mutation {
-        updateBuildingProjects(projects: [BuildingProjectInput!]!, overwrite: Boolean): String!
-        updateBuildingProjectsSync(key: String, database: String): String!
-    }
 `
-
-interface BuildingProjectInput {
-    id: string
-    name?: string
-    description?: string
-    verified?: boolean
-
-    existingUnits?: number
-    proposedUnits?: number
-    existingAffordableUnits?: number
-    proposedAffordableUnits?: number
-}
 
 export const Resolver = {
     BuildingProject: {
@@ -150,22 +132,36 @@ export const Resolver = {
     },
     Query: {
         buildingProjectsStats: async function (_: any, args: {}, context: Context) {
-            let projectsTracked = DB.BuidlingProject.count()
-            let projectsVerified = DB.BuidlingProject.count({
-                where: { verified: true }
-            })
-            let baseQuery = "SELECT SUM(\"proposedUnits\" - \"existingUnits\") FROM \"" + DB.BuidlingProject.getTableName() + "\" "
-            let year2017NewUnits = (await DB.connection.query(baseQuery + "WHERE \"extrasYearEnd\"='2017' AND \"account\" = " + context.accountId, { type: DB.connection.QueryTypes.SELECT }))[0].sum;
-            let year2017NewUnitsVerified = (await DB.connection.query(baseQuery + "WHERE \"extrasYearEnd\"='2017' AND \"verified\" = true AND \"account\" = " + context.accountId, { type: DB.connection.QueryTypes.SELECT }))[0].sum;
-            let year2018NewUnits = (await DB.connection.query(baseQuery + "WHERE \"extrasYearEnd\"='2018' AND \"account\" = " + context.accountId, { type: DB.connection.QueryTypes.SELECT }))[0].sum;
-            let year2018NewUnitsVerified = (await DB.connection.query(baseQuery + "WHERE \"extrasYearEnd\"='2018' AND \"verified\" = true AND \"account\" = " + context.accountId, { type: DB.connection.QueryTypes.SELECT }))[0].sum;
+
+            let projectsQuery = new SelectBuilder(DB.BuidlingProject)
+                .whereEq("account", context.accountId)
+            var projectsTracked = projectsQuery
+                .count()
+            let projectsVerified = projectsQuery
+                .whereEq("verified", true)
+                .count()
+
+            let year2017NewUnits = projectsQuery
+                .whereEq("extrasYearEnd", "2017")
+                .sum("\"proposedUnits\" - \"existingUnits\"")
+            let year2017NewUnitsVerified = projectsQuery
+                .whereEq("extrasYearEnd", "2017")
+                .whereEq("verified", true)
+                .sum("\"proposedUnits\" - \"existingUnits\"");
+            let year2018NewUnits = projectsQuery
+                .whereEq("extrasYearEnd", "2018")
+                .sum("\"proposedUnits\" - \"existingUnits\"")
+            let year2018NewUnitsVerified = projectsQuery
+                .whereEq("extrasYearEnd", "2018")
+                .whereEq("verified", true)
+                .sum("\"proposedUnits\" - \"existingUnits\"")
             return {
-                projectsTracked: (await projectsTracked) || 0,
-                projectsVerified: (await projectsVerified) || 0,
-                year2017NewUnits: year2017NewUnits || 0,
-                year2017NewUnitsVerified: year2017NewUnitsVerified || 0,
-                year2018NewUnits: year2018NewUnits || 0,
-                year2018NewUnitsVerified: year2018NewUnitsVerified || 0,
+                projectsTracked: projectsTracked,
+                projectsVerified: projectsVerified,
+                year2017NewUnits: year2017NewUnits,
+                year2017NewUnitsVerified: year2017NewUnitsVerified,
+                year2018NewUnits: year2018NewUnits,
+                year2018NewUnitsVerified: year2018NewUnitsVerified,
             }
         },
         buildingProjects: async function (_: any, args: { first: number, minUnits?: number, year?: string, filter?: string, after?: string }, context: Context) {
@@ -184,16 +180,7 @@ export const Resolver = {
             if (args.year) {
                 builder = builder.whereEq("extrasYearEnd", args.year)
             }
-
             let verified = builder.whereEq("verified", true)
-
-            // let res = await DB.BuidlingProject.findAll({
-            //     where: where,
-            //     order: [DB.connection.literal('"proposedUnits"-"existingUnits" DESC'), 'id'],
-            //     //order: [DB.connection.fn('SUM', DB.connection.col('proposedUnits'), DB.connection.col('existingUnits')), 'ASC'],
-            //     limit: args.first + offset,
-            //     offset: offset
-            // })
 
             return {
                 ...(await builder.findAll()),
@@ -206,78 +193,4 @@ export const Resolver = {
             }
         }
     },
-    Mutation: {
-        updateBuildingProjects: async function (_: any, args: { projects: BuildingProjectInput[], overwrite?: boolean }, context: Context) {
-            await DB.tx(async (tx) => {
-                if (args.overwrite) {
-                    await DB.BuidlingProject.destroy({
-                        where: {
-                            account: context.accountId
-                        }
-                    })
-                }
-                for (let p of args.projects) {
-                    let existing = await DB.BuidlingProject.findOne({
-                        where: {
-                            account: context.accountId,
-                            projectId: p.id
-                        }
-                    })
-                    if (!existing) {
-                        await DB.BuidlingProject.create({
-                            projectId: p.id,
-                            name: p.name,
-                            verified: p.verified,
-                            description: p.description,
-                            existingUnits: p.existingUnits,
-                            proposedUnits: p.proposedUnits,
-                            existingAffordableUnits: p.existingAffordableUnits,
-                            proposedAffordableUnits: p.proposedAffordableUnits
-                        })
-                    } else {
-                        if (p.name) {
-                            existing.name = p.name
-                        }
-                        if (p.description) {
-                            existing.description = p.description
-                        }
-                        if (p.verified) {
-                            existing.verified = p.verified
-                        }
-                        if (p.existingUnits) {
-                            existing.existingUnits = p.existingUnits
-                        }
-                        if (p.proposedUnits) {
-                            existing.proposedUnits = p.proposedUnits
-                        }
-                        if (p.existingAffordableUnits) {
-                            existing.existingAffordableUnits = p.existingAffordableUnits
-                        }
-                        if (p.proposedAffordableUnits) {
-                            existing.proposedAffordableUnits = p.proposedAffordableUnits
-                        }
-                        await existing.save()
-                    }
-                }
-            });
-            return "ok"
-        },
-        updateBuildingProjectsSync: async function (_: any, args: { key?: string, database?: string }, context: Context) {
-            context.requireWriteAccess()
-            if (args.key && args.database) {
-                await DB.AirTable.upsert({
-                    account: context.accountId,
-                    airtableDatabase: args.database,
-                    airtableKey: args.key
-                })
-            } else {
-                await DB.AirTable.destroy({
-                    where: {
-                        account: context.accountId
-                    }
-                })
-            }
-            return "ok"
-        }
-    }
 }
