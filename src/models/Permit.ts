@@ -2,6 +2,7 @@ import { Context } from "./Context";
 import { DB } from "../tables/index";
 import { applyPermits } from "../repositories/Permits";
 import { PermitStatus, Permit, PermitType } from "../tables/Permit";
+import { SelectBuilder } from "../utils/SelectBuilder";
 
 export const Schema = `
 
@@ -245,61 +246,23 @@ export const Resolver = {
             }
         },
         permits: async function (_: any, args: { filter?: string, first: number, after?: string }, context: Context) {
-            if (args.first > 100) {
-                throw "first can't be bigger than 100"
-            }
-            let res = await DB.Permit.findAndCountAll({
-                where: (args.filter && args.filter != "")
-                    ? (
-                        args.after
-                            ? {
-                                account: context.accountId,
-                                permitId: {
-                                    $like: args.filter,
-                                    $gt: args.after
-                                }
-                            } : {
-                                account: context.accountId,
-                                permitId: {
-                                    $like: args.filter
-                                }
-                            }
-                    )
-                    : args.after
-                        ? {
-                            account: context.accountId,
-                            permitId: {
-                                $gt: args.after
-                            }
-                        } : {
-                            account: context.accountId
-                        },
-                order: [['permitCreated', 'DESC']],
-                limit: args.first,
+            let builder = new SelectBuilder(DB.Permit)
+                .filterField("permitId")
+                .filter(args.filter)
+                .after(args.after)
+                .limit(args.first)
+                .orderBy("permitCreated", "DESC")
+            return builder.findAll([{
+                model: DB.StreetNumber,
+                as: 'streetNumbers',
                 include: [{
-                    model: DB.StreetNumber,
-                    as: 'streetNumbers',
-                    include: [{
-                        model: DB.Street,
-                        as: 'street'
-                    }]
-                }, {
-                    model: DB.PermitEvents,
-                    as: 'events'
+                    model: DB.Street,
+                    as: 'street'
                 }]
-            })
-            return {
-                edges: res.rows.map((p) => {
-                    return {
-                        node: p,
-                        cursor: p.permitId
-                    }
-                }),
-                pageInfo: {
-                    hasNextPage: res.count > res.rows.length,
-                    hasPreviousPage: false
-                }
-            }
+            }, {
+                model: DB.PermitEvents,
+                as: 'events'
+            }])
         }
     },
     Mutation: {

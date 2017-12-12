@@ -1,10 +1,10 @@
-import * as sequelize from 'sequelize'
 import { DB } from '../tables/index';
-import { sumRaw, countRaw, textLikeFieldsText, findAllRaw } from './db_utils';
+import { sumRaw, countRaw, textLikeFieldsText } from './db_utils';
+import * as sequelize from 'sequelize';
 
-export class SelectBuilder {
+export class SelectBuilder<TInstance, TAttributes> {
 
-    table: sequelize.Model<any, any>;
+    table: sequelize.Model<TInstance, TAttributes>;
 
     private orderbyFields: Array<{ field: string, order: string }> = new Array();
     private textFilterFields: Array<string> = new Array();
@@ -14,7 +14,7 @@ export class SelectBuilder {
     private limitValue: number | null = null
     private afterValue: string | null = null
 
-    constructor(table: sequelize.Model<any, any>) {
+    constructor(table: sequelize.Model<TInstance, TAttributes>) {
         this.table = table
     }
 
@@ -89,7 +89,7 @@ export class SelectBuilder {
     buildOrderBy() {
         let converted = this.orderbyFields.map((p) => `${p.field} ${p.order}`)
         let all = [...converted, `"id" ASC`];
-        return "ORDER BY " + all.join(", ");
+        return all.join(", ");
     }
 
     buildWhere() {
@@ -115,19 +115,21 @@ export class SelectBuilder {
         }
     }
 
-    async findAll() {
-        var query = "SELECT * FROM " + this.table.getTableName() as string;
-        query += " WHERE " + this.buildWhere()
-        query += " " + this.buildOrderBy()
+    async findAll(include?: Array<sequelize.Model<any, any> | sequelize.IncludeOptions>) {
         let offset = 0
         if (this.afterValue) {
             offset = parseInt(this.afterValue);
-            query += " OFFSET " + offset;
         }
-        if (this.limitValue) {
-            query += " LIMIT " + (offset + this.limitValue)
+        if (this.limitValue == null) {
+            throw "Limit should be set!"
         }
-        let res = await findAllRaw(query, this.table)
+        let res = await this.table.findAll({
+            where: DB.connection.literal(this.buildWhere()) as any,
+            order: DB.connection.literal(this.buildOrderBy()),
+            limit: this.limitValue,
+            offset: offset,
+            include: include
+        })
         return {
             edges: res.map((p, i) => {
                 return {
