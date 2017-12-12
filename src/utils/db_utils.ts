@@ -12,7 +12,7 @@ export interface Applied<T> {
     changedFields?: string[];
 }
 
-export async function findAllRaw<TInstance>(tx: Transaction, sql: string, model: sequelize.Model<TInstance, any>): Promise<TInstance[]> {
+export async function findAllRaw<TInstance>(sql: string, model: sequelize.Model<TInstance, any>, tx?: Transaction): Promise<TInstance[]> {
     return (await connection.query(sql, { model: model, raw: true, logging: false, transaction: tx })) as TInstance[]
 }
 
@@ -40,7 +40,7 @@ async function findAllTuplesWithNull<TInstance>(tx: Transaction, accountId: numb
     var query = 'SELECT * from "' + model.getTableName() + '" ' +
         'WHERE "account" = ' + accountId + 'AND ' + nullField + ' IS NULL AND ' +
         sqlFields + ' in ' + sqlTuples;
-    return findAllRaw(tx, query, model)
+    return findAllRaw(query, model, tx)
 }
 
 async function findAllTuplesWithNotNull<TInstance>(tx: Transaction, accountId: number, fields: string[], tuples: any[][], model: sequelize.Model<TInstance, any>): Promise<TInstance[]> {
@@ -68,7 +68,7 @@ async function findAllTuplesWithNotNull<TInstance>(tx: Transaction, accountId: n
     var query = 'SELECT * from "' + model.getTableName() + '" ' +
         'WHERE "account" = ' + accountId + ' AND ' +
         sqlFields + ' in ' + sqlTuples;
-    return findAllRaw(tx, query, model)
+    return findAllRaw(query, model, tx)
 }
 export async function findAllTuples<TInstance>(tx: Transaction, accountId: number, fields: string[], tuples: any[][], model: sequelize.Model<TInstance, any>): Promise<TInstance[]> {
     var attributes = (model as any).attributes

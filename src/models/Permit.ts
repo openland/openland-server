@@ -206,6 +206,13 @@ export const Resolver = {
                         newStatus: e.eventContent.newStatus ? e.eventContent.newStatus.toUpperCase() : null,
                         date: e.eventContent.time
                     }
+                } else if (e.eventType === "field_changed") {
+                    return {
+                        __typename: "PermitEventFieldChanged",
+                        fieldName: e.eventContent.fieldName,
+                        oldValue: e.eventContent.oldValue,
+                        newValue: e.eventContent.newValue,
+                    }
                 } else {
                     return null;
                 }

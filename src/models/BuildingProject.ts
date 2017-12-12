@@ -2,7 +2,7 @@ import { Context } from "./Context";
 import { DB } from "../tables/index";
 import { BuildingProject } from "../tables/BuildingProject";
 import { resolveStreetView, resolvePicture } from "../utils/pictures";
-import { textLikeFields, textLikeFieldsText, sumRaw, countRaw } from "../utils/db_utils";
+import { SelectBuilder } from "../utils/SelectBuilder";
 
 export const Schema = `
     type BuildingProject {
@@ -169,55 +169,39 @@ export const Resolver = {
             }
         },
         buildingProjects: async function (_: any, args: { first: number, minUnits?: number, year?: string, filter?: string, after?: string }, context: Context) {
-            var offset: number = 0
-            if (args.after) {
-                offset = parseInt(args.after)
-            }
-            var where: any = {
-                account: context.accountId
-            }
-            var statsWhere = "\"account\" = " + context.accountId;
+            var builder = new SelectBuilder(DB.BuidlingProject)
+                .whereEq("account", context.accountId)
+                .filterField("name")
+                .filterField("extrasAddress")
+                .filterField("extrasAddressSecondary")
+                .limit(args.first)
+                .after(args.after)
+                .filter(args.filter)
+                .orderByRaw('"proposedUnits"-"existingUnits"', "DESC");
             if (args.minUnits) {
-                where['proposedUnits'] = DB.connection.literal('"proposedUnits"-"existingUnits" >= ' + args.minUnits)
-                statsWhere += " AND \"proposedUnits\"-\"existingUnits\" >= " + args.minUnits
+                builder = builder.where('"proposedUnits"-"existingUnits" >= ' + args.minUnits)
             }
             if (args.year) {
-                where['extrasYearEnd'] = args.year
-                statsWhere += " AND \"extrasYearEnd\" = '" + args.year + "'"
-            }
-            if (args.filter && args.filter !== '') {
-                where['@@'] = textLikeFields(DB.BuidlingProject, args.filter, ["name", "extrasAddress", "extrasAddressSecondary"])
-                statsWhere += " AND " + textLikeFieldsText(DB.BuidlingProject, args.filter, ["name", "extrasAddress", "extrasAddressSecondary"])
+                builder = builder.whereEq("extrasYearEnd", args.year)
             }
 
-            let newUnits = sumRaw(DB.BuidlingProject.getTableName() as string, "\"proposedUnits\"-\"existingUnits\"", statsWhere);
-            let newVerifiedUnits = sumRaw(DB.BuidlingProject.getTableName() as string, "\"proposedUnits\"-\"existingUnits\"", statsWhere + " AND \"verified\" = true");
-            let totalProjects = countRaw(DB.BuidlingProject.getTableName() as string, statsWhere);
-            let totalProjectsVerified = countRaw(DB.BuidlingProject.getTableName() as string, statsWhere + " AND \"verified\" = true");
+            let verified = builder.whereEq("verified", true)
 
-            let res = await DB.BuidlingProject.findAll({
-                where: where,
-                order: [DB.connection.literal('"proposedUnits"-"existingUnits" DESC'), 'id'],
-                //order: [DB.connection.fn('SUM', DB.connection.col('proposedUnits'), DB.connection.col('existingUnits')), 'ASC'],
-                limit: args.first + offset,
-                offset: offset
-            })
+            // let res = await DB.BuidlingProject.findAll({
+            //     where: where,
+            //     order: [DB.connection.literal('"proposedUnits"-"existingUnits" DESC'), 'id'],
+            //     //order: [DB.connection.fn('SUM', DB.connection.col('proposedUnits'), DB.connection.col('existingUnits')), 'ASC'],
+            //     limit: args.first + offset,
+            //     offset: offset
+            // })
+
             return {
-                edges: res.map((p, i) => {
-                    return {
-                        node: p,
-                        cursor: (i + 1 + offset).toString() //(p.proposedUnits!! - p.existingUnits!!) + "-" + p.id
-                    }
-                }),
-                pageInfo: {
-                    hasNextPage: res.length == args.first,
-                    hasPreviousPage: false
-                },
+                ...(await builder.findAll()),
                 stats: {
-                    newUnits: await newUnits,
-                    newUnitsVerified: await newVerifiedUnits,
-                    totalProjects: await totalProjects,
-                    totalProjectsVerified: await totalProjectsVerified
+                    newUnits: builder.sum("\"proposedUnits\"-\"existingUnits\""),
+                    newUnitsVerified: verified.sum("\"proposedUnits\"-\"existingUnits\""),
+                    totalProjects: builder.count(),
+                    totalProjectsVerified: verified.count()
                 }
             }
         }
