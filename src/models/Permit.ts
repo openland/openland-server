@@ -210,7 +210,7 @@ export const Resolver = {
                 } else if (e.eventType === "field_changed") {
                     return {
                         __typename: "PermitEventFieldChanged",
-                        fieldName: e.eventContent.fieldName,
+                        fieldName: e.eventContent.field,
                         oldValue: e.eventContent.oldValue,
                         newValue: e.eventContent.newValue,
                     }
