@@ -15,6 +15,7 @@ export const Schema = `
 
     extend type Mutation {
         addDeveloper(slug: String!, title: String!): Developer!
+        removeDeveloper(slug: String!): String
     }
 `;
 
@@ -37,6 +38,21 @@ export const Resolver = {
                 slug: args.slug.toLowerCase(),
                 title: args.title
             })
+        },
+        removeDeveloper: async function (_: any, args: { slug: string }, context: CallContext) {
+            let existing = await DB.Developer.findOne({
+                where: {
+                    account: context.accountId,
+                    slug: args.slug.toLowerCase()
+                }
+            })
+            if (existing) {
+                await existing.destroy()
+                return "ok"
+            }
+            else {
+                throw "Not found"
+            }
         }
     }
 }

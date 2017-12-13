@@ -21,8 +21,18 @@ export const DeveloperTable = connection.define<Developer, DeveloperAttributes>(
             key: 'id',
         }
     },
-    title: { type: sequelize.STRING(256), allowNull: false },
-    slug: { type: sequelize.STRING(256), allowNull: false },
+    title: {
+        type: sequelize.STRING(256), allowNull: false,
+        validate: {
+            notEmpty: true
+        }
+    },
+    slug: {
+        type: sequelize.STRING(256), allowNull: false,
+        validate: {
+            is: ["^[a-z]+$", 'i'],
+        }
+    },
     url: { type: sequelize.STRING(256), allowNull: true },
     logo: { type: sequelize.STRING(256), allowNull: true },
 }, { indexes: [{ unique: true, fields: ['slug', 'account'] }] })
