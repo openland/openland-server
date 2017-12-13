@@ -33,7 +33,8 @@ export const Resolver = {
         addDeveloper: async function (_: any, args: { slug: string, title: string }, context: CallContext) {
             context.requireWriteAccess()
             return DB.Developer.create({
-                slug: args.slug,
+                account: context.accountId,
+                slug: args.slug.toLowerCase(),
                 title: args.title
             })
         }

@@ -19,8 +19,7 @@ export const ConstructorTable = connection.define<Constructor, ConstructorAttrib
         references: {
             model: 'accounts',
             key: 'id',
-        },
-        unique: true
+        }
     },
     title: { type: sequelize.STRING(256), allowNull: false },
     slug: { type: sequelize.STRING(256), allowNull: false },

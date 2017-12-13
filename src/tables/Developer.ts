@@ -19,8 +19,7 @@ export const DeveloperTable = connection.define<Developer, DeveloperAttributes>(
         references: {
             model: 'accounts',
             key: 'id',
-        },
-        unique: true
+        }
     },
     title: { type: sequelize.STRING(256), allowNull: false },
     slug: { type: sequelize.STRING(256), allowNull: false },

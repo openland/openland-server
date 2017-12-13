@@ -9,8 +9,8 @@ import * as Permits from './models/Permit'
 import * as Street from './models/Street'
 import * as BuildingProject from './models/BuildingProject'
 import * as Picture from './models/Picture';
+import * as Developers from './models/Developers';
 import { merge } from 'lodash';
-import { Context } from './models/Context';
 
 const RootQuery = `
   
@@ -41,12 +41,12 @@ const SchemaDefinition = `
 
 const rootResolver = {
   Query: {
-    healthCheck: async function (_obj: any, _params: {}, _context: Promise<Context>) {
+    healthCheck: async function () {
       return "Hello World!"
     }
   },
   Mutation: {
-    healthCheck: async function (_obj: any, _params: {}, _context: Promise<Context>) {
+    healthCheck: async function () {
       return "Hello World!"
     }
   }
@@ -64,7 +64,8 @@ export const Schema = makeExecutableSchema({
     Permits.Schema,
     Street.Schema,
     BuildingProject.Schema,
-    Picture.Schema
+    Picture.Schema,
+    Developers.Schema
   ],
   resolvers: merge(rootResolver,
     Voting.Resolver,
@@ -76,7 +77,8 @@ export const Schema = makeExecutableSchema({
     Permits.Resolver,
     Street.Resolver,
     BuildingProject.Resolver,
-    Picture.Resolver
+    Picture.Resolver,
+    Developers.Resolver
   )
 })
 
