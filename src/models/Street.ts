@@ -1,4 +1,4 @@
-import { Context } from "./Context";
+import { CallContext } from "./CallContext";
 import { applyStreets } from "../repositories/Streets";
 
 export const Schema = `
@@ -35,7 +35,7 @@ interface StreetInfo {
 
 export const Resolver = {
     Mutation: {
-        updateStreets: async function (_: any, args: { streets: [StreetInfo] }, context: Context) {
+        updateStreets: async function (_: any, args: { streets: [StreetInfo] }, context: CallContext) {
             await applyStreets(context.accountId, args.streets.map((s) => ({ streetName: s.name, streetNameSuffix: s.suffix })))
             return "ok"
         }

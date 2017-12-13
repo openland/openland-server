@@ -1,5 +1,5 @@
 import { DB } from '../tables'
-import { Context } from './Context';
+import { CallContext } from './CallContext';
 
 export const Schema = `
     type User {
@@ -16,7 +16,7 @@ export const Schema = `
 
 export const Resolver = {
     Query: {
-        me: async function (_obj: any, _params: {}, context: Context) {
+        me: async function (_obj: any, _params: {}, context: CallContext) {
             if (context.uid == null) {
                 return null
             } else {

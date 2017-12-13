@@ -1,4 +1,4 @@
-import { Context } from "./Context";
+import { CallContext } from "./CallContext";
 import { DB } from "../tables/index";
 import { BuildingProject } from "../tables/BuildingProject";
 import { resolveStreetView, resolvePicture } from "../utils/pictures";
@@ -99,7 +99,7 @@ export const Resolver = {
         proposedAffordableUnits: (src: BuildingProject) => src.proposedAffordableUnits,
         permits: [],
 
-        picture: (src: BuildingProject, args: { height?: number, width?: number }, context: Context) => {
+        picture: (src: BuildingProject, args: { height?: number, width?: number }, context: CallContext) => {
             if (src.picture) {
                 return resolvePicture(src.picture, args.width, args.height);
             } else {
@@ -131,7 +131,7 @@ export const Resolver = {
         }
     },
     Query: {
-        buildingProjectsStats: async function (_: any, args: {}, context: Context) {
+        buildingProjectsStats: async function (_: any, args: {}, context: CallContext) {
 
             let projectsQuery = new SelectBuilder(DB.BuidlingProject)
                 .whereEq("account", context.accountId)
@@ -164,7 +164,7 @@ export const Resolver = {
                 year2018NewUnitsVerified: year2018NewUnitsVerified,
             }
         },
-        buildingProjects: async function (_: any, args: { first: number, minUnits?: number, year?: string, filter?: string, after?: string }, context: Context) {
+        buildingProjects: async function (_: any, args: { first: number, minUnits?: number, year?: string, filter?: string, after?: string }, context: CallContext) {
             var builder = new SelectBuilder(DB.BuidlingProject)
                 .whereEq("account", context.accountId)
                 .filterField("name")

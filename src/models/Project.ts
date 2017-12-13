@@ -1,5 +1,5 @@
 import { DB, Project } from '../tables'
-import { Context } from './Context';
+import { CallContext } from './CallContext';
 
 export const Schema = `
     
@@ -87,7 +87,7 @@ function convertProject(project: Project) {
 export const Resolver = {
 
     Query: {
-        projects: async function (_: any, args: { showDeactivated?: boolean }, context: Context) {
+        projects: async function (_: any, args: { showDeactivated?: boolean }, context: CallContext) {
             if (args.showDeactivated != null && args.showDeactivated) {
                 return (await DB.Project.findAll({
                     where: {
@@ -111,7 +111,7 @@ export const Resolver = {
                 })).map(convertProject)
             }
         },
-        project: async function (_: any, args: { slug: string }, context: Context) {
+        project: async function (_: any, args: { slug: string }, context: CallContext) {
             var res = await DB.Project.find({
                 where: {
                     account: context.accountId,
@@ -127,7 +127,7 @@ export const Resolver = {
         }
     },
     Mutation: {
-        createProject: async function (_: any, args: { name: string, slug: string, description?: string, intro?: string, findings?: string }, context: Context) {
+        createProject: async function (_: any, args: { name: string, slug: string, description?: string, intro?: string, findings?: string }, context: CallContext) {
             context.requireWriteAccess()
             var res = (await DB.Project.create({
                 account: context.accountId,
@@ -144,7 +144,7 @@ export const Resolver = {
             return convertProject(res)
         },
 
-        alterProject: async function (_: any, args: { id: string, name?: string, slug?: string, description?: string, intro?: string, findings?: string, outputs?: [LinkRef], sources?: [LinkRef], isPrivate?: boolean, sortKey?: string }, context: Context) {
+        alterProject: async function (_: any, args: { id: string, name?: string, slug?: string, description?: string, intro?: string, findings?: string, outputs?: [LinkRef], sources?: [LinkRef], isPrivate?: boolean, sortKey?: string }, context: CallContext) {
             context.requireWriteAccess()
             var res = await DB.Project.findOne({
                 where: {

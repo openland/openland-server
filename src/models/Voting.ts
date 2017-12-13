@@ -1,5 +1,5 @@
 import { DB } from '../tables'
-import { Context } from './Context'
+import { CallContext } from './CallContext'
 
 // Types
 
@@ -59,12 +59,12 @@ async function resolveVote(id: string, user?: number) {
 
 export const Resolver = {
     Query: {
-        vote: async function (_: any, params: { id: string }, context: Context) {
+        vote: async function (_: any, params: { id: string }, context: CallContext) {
             return resolveVote(params.id, context.uid)
         }
     },
     Mutation: {
-        vote: async function (_: any, params: { id: string }, context: Context) {
+        vote: async function (_: any, params: { id: string }, context: CallContext) {
             // var convid = parseInt(b64.decode(params.id))
             if (context.uid == null) {
                 throw Error("Voting could be done only for logged in users")
@@ -87,7 +87,7 @@ export const Resolver = {
             return resolveVote(params.id, context.uid)
         },
 
-        unvote: async function (_: any, params: { id: string }, context: Context) {
+        unvote: async function (_: any, params: { id: string }, context: CallContext) {
             if (context.uid == null) {
                 throw Error("Voting could be done only for logged in users")
             }

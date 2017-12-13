@@ -4,7 +4,7 @@ import * as bodyParser from "body-parser";
 import * as express from "express";
 import * as Schema from './schema';
 import * as cors from 'cors';
-import { Context } from './models/Context';
+import { CallContext } from './models/CallContext';
 import * as jwt from 'express-jwt';
 import * as jwksRsa from 'jwks-rsa';
 import { DB } from './tables';
@@ -30,7 +30,7 @@ const checkJwt = jwt({
     algorithms: ['RS256'],
 });
 
-async function context(src: express.Request): Promise<Context> {
+async function context(src: express.Request): Promise<CallContext> {
     var domain: string = "";
     if (src.headers["x-statecraft-domain"]) {
         domain = src.headers["x-statecraft-domain"] as string
@@ -50,7 +50,7 @@ async function context(src: express.Request): Promise<Context> {
         throw new Error("404: Unable to find account " + domain)
     }
 
-    var n = new Context();
+    var n = new CallContext();
     n.domain = domain
     n.accountId = accId.id!!
     n.owner = false
@@ -93,7 +93,7 @@ async function handleRequest(req?: express.Request, res?: express.Response): Pro
 }
 
 async function buildContext(req: express.Request, res: express.Response, next: express.NextFunction) {
-    var ctx: Context
+    var ctx: CallContext
     try {
         ctx = await context(req);
     } catch (e) {

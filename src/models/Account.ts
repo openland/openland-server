@@ -1,5 +1,5 @@
 import { DB, Account } from '../tables'
-import { Context } from './Context'
+import { CallContext } from './CallContext'
 import { User } from '../tables/User';
 
 export const Schema = `
@@ -49,7 +49,7 @@ export const AdminSchema = `
     }
 `
 
-function convertAccount(account: Account | undefined | null, context: Context) {
+function convertAccount(account: Account | undefined | null, context: CallContext) {
     if (account == null || account == undefined) {
         return null
     }
@@ -104,7 +104,7 @@ export async function resolveAccountId(domain: string) {
 
 export const Resolver = {
     Query: {
-        account: async function (_: any, args: {}, context: Context) {
+        account: async function (_: any, args: {}, context: CallContext) {
             var account = await DB.Account.findOne({
                 where: {
                     id: context.accountId,

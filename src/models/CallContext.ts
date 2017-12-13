@@ -1,4 +1,4 @@
-export class Context {
+export class CallContext {
     isRetina: boolean
     uid?: number
     owner: boolean

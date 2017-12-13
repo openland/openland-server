@@ -1,5 +1,5 @@
 import { DB, Findings } from '../tables'
-import { Context } from './Context'
+import { CallContext } from './CallContext'
 
 export const Schema = `
     type Findings {
@@ -33,7 +33,7 @@ function convertFindings(findings: Findings) {
 
 export const Resolver = {
     Query: {
-        findings: async function (_: any, args: { }, context: Context) {
+        findings: async function (_: any, args: { }, context: CallContext) {
             var res = await DB.Findings.findOne({
                 where: {
                     account: context.accountId
@@ -46,7 +46,7 @@ export const Resolver = {
         }
     },
     Mutation: {
-        createFindings: async function (_: any, args: { title: string, intro: string }, context: Context) {
+        createFindings: async function (_: any, args: { title: string, intro: string }, context: CallContext) {
             context.requireWriteAccess()
             var res = await DB.Findings.create({
                 account: context.accountId,
@@ -55,7 +55,7 @@ export const Resolver = {
             })
             return convertFindings(res)
         },
-        alterFindings: async function (_: any, args: { title?: string, intro?: string, description?: string, recomendations?: string }, context: Context) {
+        alterFindings: async function (_: any, args: { title?: string, intro?: string, description?: string, recomendations?: string }, context: CallContext) {
             context.requireWriteAccess()
             var res = await DB.Findings.findOne({
                 where: {

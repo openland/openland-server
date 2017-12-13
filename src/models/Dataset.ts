@@ -1,5 +1,5 @@
 import { DB, DataSet } from '../tables'
-import { Context } from './Context';
+import { CallContext } from './CallContext';
 
 export const Schema = `
     type DataSet {
@@ -40,7 +40,7 @@ function checkKind(kind: string) {
 
 export const Resolver = {
     Query: {
-        async datasets(_: any, args: { kind?: string }, context: Context) {
+        async datasets(_: any, args: { kind?: string }, context: CallContext) {
             var datasets = (await DB.DataSet.findAll({
                 where: {
                     account: context.accountId
@@ -51,7 +51,7 @@ export const Resolver = {
         }
     },
     Mutation: {
-        createDataset: async (_: any, args: { name: string, url: string, kind: string, description: string, group?: string }, context: Context) => {
+        createDataset: async (_: any, args: { name: string, url: string, kind: string, description: string, group?: string }, context: CallContext) => {
             context.requireWriteAccess()
             checkKind(args.kind)
             var created = await DB.DataSet.create({
@@ -63,7 +63,7 @@ export const Resolver = {
             })
             return convertDataset(created)
         },
-        alterDataset: async (_: any, args: { id: string, newName?: string, newUrl?: string, newKind?: string, newDescription?: string, newGroup?: string }, context: Context) => {
+        alterDataset: async (_: any, args: { id: string, newName?: string, newUrl?: string, newKind?: string, newDescription?: string, newGroup?: string }, context: CallContext) => {
             context.requireWriteAccess()
             var updated = (await DB.DataSet.findOne({
                 where: {
@@ -92,7 +92,7 @@ export const Resolver = {
             await updated.save()
             return convertDataset(updated)
         },
-        deleteDataset: async (_: any, args: { id: string }, context: Context) => {
+        deleteDataset: async (_: any, args: { id: string }, context: CallContext) => {
             context.requireWriteAccess()
             var toDelete = (await DB.DataSet.findOne({
                 where: {

@@ -1,4 +1,4 @@
-import { Context } from "./Context";
+import { CallContext } from "./CallContext";
 import { DB } from "../tables/index";
 import { applyPermits } from "../repositories/Permits";
 import { PermitStatus, Permit, PermitType } from "../tables/Permit";
@@ -221,7 +221,7 @@ export const Resolver = {
         }
     },
     Query: {
-        permit: async function (_: any, args: { id: string }, context: Context) {
+        permit: async function (_: any, args: { id: string }, context: CallContext) {
             var res = await DB.Permit.findOne({
                 where: {
                     account: context.accountId,
@@ -245,7 +245,7 @@ export const Resolver = {
                 return null
             }
         },
-        permits: async function (_: any, args: { filter?: string, first: number, after?: string }, context: Context) {
+        permits: async function (_: any, args: { filter?: string, first: number, after?: string }, context: CallContext) {
             let builder = new SelectBuilder(DB.Permit)
                 .filterField("permitId")
                 .filter(args.filter)
@@ -266,7 +266,7 @@ export const Resolver = {
         }
     },
     Mutation: {
-        updatePermits: async function (_: any, args: { permits: [PermitInfo] }, context: Context) {
+        updatePermits: async function (_: any, args: { permits: [PermitInfo] }, context: CallContext) {
             await applyPermits(context.accountId, args.permits)
             return "ok"
         }

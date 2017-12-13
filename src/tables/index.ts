@@ -14,6 +14,8 @@ export { StreetNumber } from './StreetNumber';
 export { BuildingProject } from './BuildingProject';
 export { AirTable } from './AirTable';
 export { PermitEvent } from './PermitEvents';
+export { Developer } from './Developer';
+export { Constructor } from './Constructor';
 
 import { UserTable } from './User';
 import { VoteTable } from './Vote';
@@ -29,6 +31,8 @@ import { StreetNumberTable } from './StreetNumber';
 import { BuildingProjectTable } from './BuildingProject';
 import { AirTableTable } from './AirTable';
 import { PermitEventsTable } from './PermitEvents';
+import { DeveloperTable } from './Developer';
+import { ConstructorTable } from './Constructor';
 
 export const DB = {
     User: UserTable,
@@ -45,6 +49,8 @@ export const DB = {
     BuidlingProject: BuildingProjectTable,
     AirTable: AirTableTable,
     PermitEvents: PermitEventsTable,
+    Developer: DeveloperTable,
+    Constructor: ConstructorTable,
 
     tx: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>): Promise<A> {
         return await connection.transaction({ isolationLevel: "SERIALIZABLE" }, (tx: sequelize.Transaction) => handler(tx));
