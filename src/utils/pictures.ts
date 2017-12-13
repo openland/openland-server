@@ -1,4 +1,4 @@
-import { Context } from "../models/Context";
+import { CallContext } from "../models/CallContext";
 import { STREET_VIEW_KEY } from "../keys";
 
 export function resolvePicture(src?: string, width?: number, height?: number) {
@@ -20,7 +20,7 @@ export function resolveRawPicture(url: string, retina: string) {
     }
 }
 
-export function resolveStreetView(context: Context, address: string, height: number, width: number) {
+export function resolveStreetView(context: CallContext, address: string, height: number, width: number) {
     var location = encodeURIComponent(address + " San Francisco, CA, USA") //40.720032,-73.988354
     return resolveRawPicture(
         `https://maps.googleapis.com/maps/api/streetview?size=${width}x${height}&location=${location}&fov=90&key=${STREET_VIEW_KEY}`,
