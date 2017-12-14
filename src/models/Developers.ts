@@ -7,6 +7,7 @@ export const Schema = `
         id: ID!
         slug: String!
         title: String!
+        comments: String
     }
 
     extend type Query {
@@ -16,7 +17,7 @@ export const Schema = `
 
     extend type Mutation {
         addDeveloper(slug: String!, title: String!): Developer!
-        alterDeveloper(slug: String!, title: String): Developer!
+        alterDeveloper(slug: String!, title: String, comments: String): Developer!
         removeDeveloper(slug: String!): String
     }
 `;
@@ -25,7 +26,8 @@ export const Resolver = {
     Developer: {
         id: (src: Developer) => src.id,
         slug: (src: Developer) => src.slug,
-        title: (src: Developer) => src.title
+        title: (src: Developer) => src.title,
+        comments: (src: Developer) => src.comments
     },
     Query: {
         developers: function (_: any, args: {}, context: CallContext) {
@@ -59,7 +61,7 @@ export const Resolver = {
                 throw "Not found"
             }
         },
-        alterDeveloper: async function (_: any, args: { slug: string, title?: string }, context: CallContext) {
+        alterDeveloper: async function (_: any, args: { slug: string, title?: string, comments?: string }, context: CallContext) {
             let existing = await DB.Developer.findOne({
                 where: {
                     account: context.accountId,
@@ -71,6 +73,15 @@ export const Resolver = {
             }
             if (args.title != null) {
                 existing.title = args.title
+                await existing.save()
+            }
+            if (args.comments != null) {
+                let trimmed = args.comments.trim()
+                if (trimmed.length > 0) {
+                    existing.comments = trimmed
+                } else {
+                    existing.comments = null
+                }
                 await existing.save()
             }
             return existing;

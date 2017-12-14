@@ -8,6 +8,7 @@ export interface ConstructorAttributes {
     slug?: string;
     url?: string;
     logo?: string;
+    comments?: string;
 }
 
 export interface Constructor extends sequelize.Instance<ConstructorAttributes>, ConstructorAttributes { }
@@ -35,4 +36,5 @@ export const ConstructorTable = connection.define<Constructor, ConstructorAttrib
     },
     url: { type: sequelize.STRING(256), allowNull: true },
     logo: { type: sequelize.STRING(256), allowNull: true },
+    comments: { type: sequelize.STRING(4096), allowNull: true },
 }, { indexes: [{ unique: true, fields: ['slug', 'account'] }] })

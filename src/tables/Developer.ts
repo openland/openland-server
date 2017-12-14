@@ -8,6 +8,7 @@ export interface DeveloperAttributes {
     slug?: string;
     url?: string;
     logo?: string;
+    comments?: string | null;
 }
 
 export interface Developer extends sequelize.Instance<DeveloperAttributes>, DeveloperAttributes { }
@@ -35,4 +36,5 @@ export const DeveloperTable = connection.define<Developer, DeveloperAttributes>(
     },
     url: { type: sequelize.STRING(256), allowNull: true },
     logo: { type: sequelize.STRING(256), allowNull: true },
+    comments: { type: sequelize.STRING(4096), allowNull: true },
 }, { indexes: [{ unique: true, fields: ['slug', 'account'] }] })
