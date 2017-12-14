@@ -11,6 +11,7 @@ export const Schema = `
 
     extend type Query {
         developers: [Developer!]!
+        developer(slug: String!): Developer!
     }
 
     extend type Mutation {
@@ -26,8 +27,11 @@ export const Resolver = {
         title: (src: Developer) => src.title
     },
     Query: {
-        developers: async function (_: any, args: {}, context: CallContext) {
+        developers: function (_: any, args: {}, context: CallContext) {
             return DB.Developer.findAll({ where: { account: context.accountId } })
+        },
+        developer: function (_: any, args: { slug: string }, context: CallContext) {
+            return DB.Developer.findOne({ where: { account: context.accountId, slug: args.slug } })
         }
     },
     Mutation: {
