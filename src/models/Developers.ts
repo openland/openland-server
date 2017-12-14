@@ -16,6 +16,7 @@ export const Schema = `
 
     extend type Mutation {
         addDeveloper(slug: String!, title: String!): Developer!
+        alterDeveloper(slug: String!, title: String): Developer!
         removeDeveloper(slug: String!): String
     }
 `;
@@ -57,6 +58,22 @@ export const Resolver = {
             else {
                 throw "Not found"
             }
+        },
+        alterDeveloper: async function (_: any, args: { slug: string, title?: string }, context: CallContext) {
+            let existing = await DB.Developer.findOne({
+                where: {
+                    account: context.accountId,
+                    slug: args.slug.toLowerCase()
+                }
+            })
+            if (!existing) {
+                throw "Not found"
+            }
+            if (args.title != null) {
+                existing.title = args.title
+                await existing.save()
+            }
+            return existing;
         }
     }
 }
