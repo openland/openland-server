@@ -13,6 +13,7 @@ export class SelectBuilder<TInstance, TAttributes> {
     private conditionsEq: Array<{ field: string, value: any }> = new Array();
     private limitValue: number | null = null
     private afterValue: string | null = null
+    private pageValue: number | null = null
 
     constructor(table: sequelize.Model<TInstance, TAttributes>) {
         this.table = table
@@ -21,7 +22,7 @@ export class SelectBuilder<TInstance, TAttributes> {
     limit(limit?: number) {
         let cloned = this.clone();
         if (limit) {
-            if (limit < 0) {
+            if (limit <= 0) {
                 cloned.limitValue = null
             } else if (limit > 100) {
                 throw "Maximum number of fetched results is " + 100
@@ -40,6 +41,16 @@ export class SelectBuilder<TInstance, TAttributes> {
             cloned.afterValue = after;
         } else {
             cloned.afterValue = null;
+        }
+        return cloned;
+    }
+
+    page(page?: number) {
+        let cloned = this.clone();
+        if (page) {
+            cloned.pageValue = page;
+        } else {
+            cloned.pageValue = null;
         }
         return cloned;
     }
@@ -116,12 +127,14 @@ export class SelectBuilder<TInstance, TAttributes> {
     }
 
     async findAll(include?: Array<sequelize.Model<any, any> | sequelize.IncludeOptions>) {
+        if (this.limitValue == null) {
+            throw "Limit should be set!"
+        }
         let offset = 0
         if (this.afterValue) {
             offset = parseInt(this.afterValue);
-        }
-        if (this.limitValue == null) {
-            throw "Limit should be set!"
+        } else if (this.pageValue) {
+            offset = this.pageValue * this.limitValue;
         }
         let res = await this.table.findAll({
             where: DB.connection.literal(this.buildWhere()) as any,
@@ -142,7 +155,9 @@ export class SelectBuilder<TInstance, TAttributes> {
                 hasNextPage: res.length == this.limitValue,
                 hasPreviousPage: false,
 
-                itemsCount: count
+                itemsCount: count,
+                pagesCount: Math.ceil(count / this.limitValue),
+                currentPage: Math.ceil(offset / count)
             },
         }
     }
@@ -164,6 +179,7 @@ export class SelectBuilder<TInstance, TAttributes> {
         res.conditionsEq = JSON.parse(JSON.stringify(this.conditionsEq));
         res.limitValue = this.limitValue;
         res.afterValue = this.afterValue;
+        res.pageValue = this.pageValue;
         return res;
     }
 }

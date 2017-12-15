@@ -18,6 +18,8 @@ const RootQuery = `
     hasNextPage: Boolean!
     hasPreviousPage: Boolean!
     itemsCount: Int!
+    pagesCount: Int!
+    currentPage: Int!
   }
 
   type Geo {

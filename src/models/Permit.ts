@@ -87,7 +87,7 @@ export const Schema = `
     }
 
     extend type Query {
-        permits(filter: String, first: Int!, after: String): PermitsConnection
+        permits(filter: String, first: Int!, after: String, page: Int): PermitsConnection
         permit(id: ID!): Permit
     }
 
@@ -245,11 +245,12 @@ export const Resolver = {
                 return null
             }
         },
-        permits: async function (_: any, args: { filter?: string, first: number, after?: string }, context: CallContext) {
+        permits: async function (_: any, args: { filter?: string, first: number, after?: string, page?: number }, context: CallContext) {
             let builder = new SelectBuilder(DB.Permit)
                 .filterField("permitId")
                 .filter(args.filter)
                 .after(args.after)
+                .page(args.page)
                 .limit(args.first)
                 .orderBy("permitCreated", "DESC")
             return builder.findAll([{
