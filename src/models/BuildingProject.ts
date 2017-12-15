@@ -34,6 +34,8 @@ export const Schema = `
         extrasLocation: Geo
 
         permits: [Permit!]!
+
+        developers: [Developer!]!
     }
 
     type BuildingProjectEdge {
@@ -131,6 +133,9 @@ export const Resolver = {
             } else {
                 return undefined
             }
+        },
+        developers: async (src:BuildingProject) => {
+            return await src.getDevelopers!!()
         }
     },
     Query: {

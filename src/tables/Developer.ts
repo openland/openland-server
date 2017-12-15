@@ -1,5 +1,6 @@
 import { connection } from '../connector';
 import * as sequelize from 'sequelize'
+import { BuildingProject } from './BuildingProject';
 
 export interface DeveloperAttributes {
     id?: number;
@@ -11,7 +12,11 @@ export interface DeveloperAttributes {
     comments?: string | null;
 }
 
-export interface Developer extends sequelize.Instance<DeveloperAttributes>, DeveloperAttributes { }
+export interface Developer extends sequelize.Instance<DeveloperAttributes>, DeveloperAttributes {
+    buildingProjects: Array<BuildingProject>;
+    getBuildingProjects(): Promise<Array<BuildingProject>>;
+    getBuildingProjects(developers: Array<BuildingProject>, args?: any): Promise<void>;
+ }
 
 export const DeveloperTable = connection.define<Developer, DeveloperAttributes>('developer', {
     id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },

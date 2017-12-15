@@ -8,6 +8,8 @@ export const Schema = `
         slug: String!
         title: String!
         comments: String
+
+        buildingProjects: [BuildingProject!]!
     }
 
     extend type Query {
@@ -27,7 +29,8 @@ export const Resolver = {
         id: (src: Developer) => src.id,
         slug: (src: Developer) => src.slug,
         title: (src: Developer) => src.title,
-        comments: (src: Developer) => src.comments
+        comments: (src: Developer) => src.comments,
+        buildingProjects: (src: Developer) => src.getBuildingProjects()
     },
     Query: {
         developers: function (_: any, args: {}, context: CallContext) {
