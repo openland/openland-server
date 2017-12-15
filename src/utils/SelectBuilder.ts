@@ -2,6 +2,8 @@ import { DB } from '../tables/index';
 import { sumRaw, countRaw, textLikeFieldsText } from './db_utils';
 import * as sequelize from 'sequelize';
 
+export type Order = 'ASC' | 'DESC' | 'ASC NULLS FIRST' | 'ASC NULLS LAST' | 'DESC NULLS FIRST' | 'DESC NULLS LAST'
+
 export class SelectBuilder<TInstance, TAttributes> {
 
     table: sequelize.Model<TInstance, TAttributes>;
@@ -71,7 +73,7 @@ export class SelectBuilder<TInstance, TAttributes> {
         return cloned;
     }
 
-    orderByRaw(field: string, order?: 'ASC' | 'DESC') {
+    orderByRaw(field: string, order?: Order) {
         let cloned = this.clone();
         if (order) {
             cloned.orderbyFields.push({ field: field, order: order });
@@ -81,7 +83,7 @@ export class SelectBuilder<TInstance, TAttributes> {
         return cloned;
     }
 
-    orderBy(field: string, order?: 'ASC' | 'DESC') {
+    orderBy(field: string, order?: Order) {
         return this.orderByRaw(`"${field}"`, order)
     }
 
