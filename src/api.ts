@@ -152,8 +152,8 @@ export default function () {
     app.use(morgan("tiny"))
     app.use(compression())
 
-    if (engine) {
-        app.use(engine.connectMiddleware());
+    if (engine != null) {
+        app.use(engine.expressMiddleware());
     }
 
     // APIs
