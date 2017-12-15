@@ -1,5 +1,5 @@
 import { DB, Developer } from "../tables/index";
-import { bulkApply, setAssociations } from "../utils/db_utils";
+import { bulkApply } from "../utils/db_utils";
 import { Transaction } from "sequelize";
 import { BuildingProjectAttributes } from "../tables/BuildingProject";
 
