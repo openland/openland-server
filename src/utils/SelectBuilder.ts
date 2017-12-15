@@ -157,7 +157,7 @@ export class SelectBuilder<TInstance, TAttributes> {
 
                 itemsCount: count,
                 pagesCount: Math.ceil(count / this.limitValue),
-                currentPage: Math.ceil(offset / count)
+                currentPage: Math.ceil(offset / this.limitValue)
             },
         }
     }
