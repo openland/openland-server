@@ -261,10 +261,7 @@ export const Resolver = {
                     model: DB.Street,
                     as: 'street'
                 }]
-            }, {
-                model: DB.PermitEvents,
-                as: 'events'
-            }])
+            }]);
         }
     },
     Mutation: {
