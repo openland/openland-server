@@ -10,6 +10,8 @@ import * as jwksRsa from 'jwks-rsa';
 import { DB } from './tables';
 import * as fetch from 'node-fetch';
 import * as morgan from 'morgan';
+import { Engine } from 'apollo-engine';
+import * as compression from 'compression';
 const checkJwt = jwt({
     // Dynamically provide a signing key
     // based on the kid in the header and 
@@ -84,11 +86,13 @@ async function context(src: express.Request): Promise<CallContext> {
     return n
 }
 
-async function handleRequest(req?: express.Request, res?: express.Response): Promise<GraphQLOptions> {
-    if (req == undefined || res == undefined) {
-        throw Error("Unexpected error!")
-    } else {
-        return { schema: Schema.Schema, context: res.locals.ctx }
+function handleRequest(useEngine: boolean) {
+    return async function (req?: express.Request, res?: express.Response): Promise<GraphQLOptions> {
+        if (req == undefined || res == undefined) {
+            throw Error("Unexpected error!")
+        } else {
+            return { schema: Schema.Schema, context: res.locals.ctx, cacheControl: useEngine, tracing: useEngine }
+        }
     }
 }
 
@@ -123,12 +127,25 @@ export default function () {
     const app = express();
 
     // Allow All Domains
+
+    var engine: Engine | null = null
+    if (process.env.APOLLO_ENGINE) {
+        engine = new Engine({ engineConfig: { apiKey: process.env.APOLLO_ENGINE!! } });
+        engine.start()
+    }
+
     app.use(cors())
     app.use(morgan("tiny"))
+    app.use(compression())
+
+    if (engine) {
+        app.use(engine.connectMiddleware());
+    }
 
     // APIs
-    app.use("/graphql", checkJwt, bodyParser.json(), buildContext, graphqlExpress(handleRequest));
-    app.use("/api", checkJwt, bodyParser.json(), buildContext, graphqlExpress(handleRequest));
+    let requestHandler = handleRequest(engine != null);
+    app.use("/graphql", checkJwt, bodyParser.json(), buildContext, graphqlExpress(requestHandler));
+    app.use("/api", checkJwt, bodyParser.json(), buildContext, graphqlExpress(requestHandler));
     app.use("/admin-api", checkJwt, bodyParser.json(), graphqlExpress(handleAdminRequest));
 
     // Sandbox
