@@ -1,5 +1,5 @@
-import { DB } from "../tables/index";
-import { bulkApply } from "../utils/db_utils";
+import { DB, Developer } from "../tables/index";
+import { bulkApply, setAssociations } from "../utils/db_utils";
 import { Transaction } from "sequelize";
 import { BuildingProjectAttributes } from "../tables/BuildingProject";
 
@@ -25,7 +25,9 @@ export interface BuildingProjectDescription {
     extrasLatitude?: number;
     extrasLongitude?: number;
 
-    verified?: boolean
+    developers?: string[];
+
+    verified?: boolean;
 }
 
 export async function deleteIncorrectProjects(tx: Transaction, accountId: number, id: string[]) {
@@ -41,11 +43,10 @@ export async function deleteIncorrectProjects(tx: Transaction, accountId: number
 }
 
 export async function applyBuildingProjects(tx: Transaction, accountId: number, projects: BuildingProjectDescription[]) {
-    // await DB.BuidlingProject.destroy({
-    //     where: {
-    //         account: accountId
-    //     }
-    // });
+
+    //
+    // Main Records
+    //
 
     var values = projects.map(p => {
         var res: BuildingProjectAttributes = {
@@ -73,48 +74,52 @@ export async function applyBuildingProjects(tx: Transaction, accountId: number, 
         }
         return res
     })
-    await bulkApply(tx, DB.BuidlingProject, accountId, 'projectId', values)
-    
-    //await bulkInsert(DB.BuidlingProject, values)
-    // for (let p of projects) {
+    let applied = await bulkApply(tx, DB.BuidlingProject, accountId, 'projectId', values)
 
+    //
+    // Developers
+    //
 
-    // let existing = await DB.BuidlingProject.findOne({
-    //     where: {
-    //         account: accountId,
-    //         projectId: p.projectId
-    //     },
-    //     logging: false
-    // })
-    // if (!existing) {
-    //     await DB.BuidlingProject.create({
-    //         account: accountId,
-    //         projectId: p.projectId,
-    //         name: p.name,
-    //     }, { logging: false })
-    // } else {
-    //     if (p.name) {
-    //         existing.name = p.name
-    //     }
-    //     // if (p.description) {
-    //     //     existing.description = p.description
-    //     // }
-    //     // if (p.verified) {
-    //     //     existing.verified = p.verified
-    //     // }
-    //     // if (p.existingUnits) {
-    //     //     existing.existingUnits = p.existingUnits
-    //     // }
-    //     // if (p.proposedUnits) {
-    //     //     existing.proposedUnits = p.proposedUnits
-    //     // }
-    //     // if (p.existingAffordableUnits) {
-    //     //     existing.existingAffordableUnits = p.existingAffordableUnits
-    //     // }
-    //     // if (p.proposedAffordableUnits) {
-    //     //     existing.proposedAffordableUnits = p.proposedAffordableUnits
-    //     // }
-    //     await existing.save()
-    // }
-    // }
+    var developerSet = new Set<string>();
+    projects.forEach((p) => {
+        if (p.developers) {
+            p.developers.forEach((d) => {
+                developerSet.add(d.toLowerCase());
+            })
+        }
+    });
+    let allDevelopers = Array.from(developerSet);
+    var developers: { [key: string]: Developer } = {};
+    if (allDevelopers.length > 0) {
+        (await DB.Developer.findAll({
+            where: {
+                account: accountId,
+                slug: {
+                    $in: allDevelopers
+                }
+            },
+            transaction: tx
+        })).forEach((d) => {
+            developers[d.slug!!] = d;
+        })
+    }
+
+    var index = 0
+    for (let p of applied) {
+        let bp = (await DB.BuidlingProject.findOne({
+            where: { id: p.id },
+            transaction: tx
+        }))!!
+        let src = projects[index];
+        await bp.getDevelopers!!()
+        if (src.developers) {
+            await bp.setDevelopers!!(src.developers.map((d) => {
+                return developers[d.toLowerCase()]!!
+            }), { transaction: tx });
+        } else {
+            await bp.setDevelopers!!([], { transaction: tx });
+        }
+
+        index++;
+    }
 }

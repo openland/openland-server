@@ -7,6 +7,7 @@ import { SelectBuilder } from "../utils/SelectBuilder";
 export const Schema = `
     type BuildingProject {
         id: ID!
+        slug: String!
         name: String!
         description: String
         status: String
@@ -65,6 +66,7 @@ export const Schema = `
     extend type Query {
         buildingProjects(filter: String, minUnits: Int, year: String, first: Int!, after: String): BuildingProjectConnection!
         buildingProjectsStats: BuildingProjectStats!
+        buildingProject(slug: String!): BuildingProject!
     }
 
     input BuildingProjectInput {
@@ -84,7 +86,8 @@ export const Schema = `
 
 export const Resolver = {
     BuildingProject: {
-        id: (src: BuildingProject) => src.projectId,
+        id: (src: BuildingProject) => src.id,
+        slug: (src: BuildingProject) => src.projectId,
         name: (src: BuildingProject) => src.name,
         description: (src: BuildingProject) => src.description,
         status: (src: BuildingProject) => src.status,
@@ -191,6 +194,14 @@ export const Resolver = {
                     totalProjectsVerified: verified.count()
                 }
             }
+        },
+        buildingProject: function (_: any, args: { slug: number }, call: CallContext) {
+            return DB.BuidlingProject.findOne({
+                where: {
+                    account: call.accountId,
+                    projectId: args.slug
+                }
+            })
         }
     },
 }

@@ -1,6 +1,7 @@
 import { connection } from '../connector';
 import * as sequelize from 'sequelize'
 import { PermitTable, Permit } from './Permit';
+import { DeveloperTable, Developer } from './Developer';
 
 export interface BuildingProjectAttributes {
     id?: number;
@@ -37,6 +38,11 @@ export interface BuildingProjectAttributes {
     getPermits?(): Promise<Array<Permit>>;
     setPermits?(streets: Array<Permit>): Promise<void>;
     addPermits?(id: number): Promise<Permit>;
+
+    developers?: Array<Developer>;
+    getDevelopers?(): Promise<Array<Developer>>;
+    setDevelopers?(developers: Array<Developer>, args?: any): Promise<void>;
+    addDevelopers?(id: number): Promise<Developer>;
 }
 
 export interface BuildingProject extends sequelize.Instance<BuildingProjectAttributes>, BuildingProjectAttributes { }
@@ -82,3 +88,6 @@ export const BuildingProjectTable = connection.define<BuildingProject, BuildingP
 
 BuildingProjectTable.belongsToMany(PermitTable, { through: 'permit_building_projects', as: 'permits' })
 PermitTable.belongsToMany(BuildingProjectTable, { through: 'permit_building_projects', as: 'buildingProjects' })
+
+BuildingProjectTable.belongsToMany(DeveloperTable, { through: 'building_project_developers', as: 'developers' })
+DeveloperTable.belongsToMany(BuildingProjectTable, { through: 'building_project_developers', as: 'buildingProjects' })

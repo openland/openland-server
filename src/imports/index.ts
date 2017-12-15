@@ -57,6 +57,14 @@ function parseString(src?: number | string | boolean | undefined): string | null
     }
 }
 
+function parseRefences(src?: string) {
+    if (src) {
+        return src.split(',').map((v) => v.trim())
+    } else {
+        return [];
+    }
+}
+
 // const quarters = [
 //     "02-15",
 //     "05-15",
@@ -101,7 +109,8 @@ async function doImport(accountId: number, apiKey: string, database: string) {
                     extrasComment: r.fields["Comments"] as string,
                     verified: r.fields["Verified"] as boolean === true,
                     extrasLatitude: geo !== undefined ? geo.latitude : undefined,
-                    extrasLongitude: geo !== undefined ? geo.longitude : undefined
+                    extrasLongitude: geo !== undefined ? geo.longitude : undefined,
+                    developers: parseRefences(r.fields["Developer Code"] as string)
                 })
                 // console.warn(r.fields["Permit Id"] + " " + r.fields["Name"])
             }

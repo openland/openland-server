@@ -1,7 +1,225 @@
 import { DB } from './tables/'
 
-export async function createEmptyData() {
+async function createDevelopers(accountId: number) {
+    let developers = [{
+        "slug": "unity",
+        "title": "Unity Group"
+    },
+    {
+        "slug": "asdasd",
+        "title": "asdasd"
+    },
+    {
+        "slug": "equity",
+        "title": "Equity Residential"
+    },
+    {
+        "slug": "associated",
+        "title": "Associated Estates Realty Corporation"
+    },
+    {
+        "slug": "hines",
+        "title": "Hines"
+    },
+    {
+        "slug": "invesco",
+        "title": "Invesco"
+    },
+    {
+        "slug": "avalon",
+        "title": "Avalon Bay Communities"
+    },
+    {
+        "slug": "avant",
+        "title": "AGI Avant Group, Inc."
+    },
+    {
+        "slug": "sf",
+        "title": "The City of San Francisco"
+    },
+    {
+        "slug": "related",
+        "title": "Related California"
+    },
+    {
+        "slug": "fulton",
+        "title": "Fulton Street Ventures"
+    },
+    {
+        "slug": "alliance",
+        "title": "Alliance Residential Company"
+    },
+    {
+        "slug": "trumark",
+        "title": "Trumark Urban"
+    },
+    {
+        "slug": "belrich",
+        "title": "Belrich Partners"
+    },
+    {
+        "slug": "paragon",
+        "title": "Paragon Real Estate Group"
+    },
+    {
+        "slug": "pacific",
+        "title": "Pacific Eagle Holdings Corporation"
+    },
+    {
+        "slug": "sfhdc",
+        "title": "SFHDC"
+    },
+    {
+        "slug": "mccormack",
+        "title": "McCormack Baron Salazar"
+    },
+    {
+        "slug": "raintree",
+        "title": "Raintree Partners"
+    },
+    {
+        "slug": "village",
+        "title": "Village Properties"
+    },
+    {
+        "slug": "ivanhoe",
+        "title": "Ivanhoé Cambridge"
+    },
+    {
+        "slug": "greystar",
+        "title": "Greystar"
+    },
+    {
+        "slug": "sks",
+        "title": "SKS"
+    },
+    {
+        "slug": "jaypaul",
+        "title": "Jay Paul Company"
+    },
+    {
+        "slug": "mercy",
+        "title": "Mercy Housing California"
+    },
+    {
+        "slug": "seven",
+        "title": "7x7 Development"
+    },
+    {
+        "slug": "build",
+        "title": "BUILD:"
+    },
+    {
+        "slug": "equitycommunity",
+        "title": "Equity Community Builders"
+    },
+    {
+        "slug": "openhouse",
+        "title": "Openhouse"
+    },
+    {
+        "slug": "js",
+        "title": "JS Sullivan Development"
+    },
+    {
+        "slug": "wvn",
+        "title": "WVN Assoc."
+    },
+    {
+        "slug": "emerald",
+        "title": "Emerald Fund"
+    },
+    {
+        "slug": "strada",
+        "title": "Strada Investment Group"
+    },
+    {
+        "slug": "cim",
+        "title": "CIM Management"
+    },
+    {
+        "slug": "tenderloin",
+        "title": "Tenderloin Neighborhood Development Corporation"
+    },
+    {
+        "slug": "encore",
+        "title": "Encore Capital Management"
+    },
+    {
+        "slug": "workshop",
+        "title": "Workshop1"
+    },
+    {
+        "slug": "hope",
+        "title": "HOPE SF"
+    },
+    {
+        "slug": "bridge",
+        "title": "BRIDGE Housing Corporation"
+    },
+    {
+        "slug": "dm",
+        "title": "DM Development"
+    },
+    {
+        "slug": "sloatparkside",
+        "title": "Sloat-Parkside Properties"
+    },
+    {
+        "slug": "fullview",
+        "title": "Fullview Properties"
+    },
+    {
+        "slug": "sst",
+        "title": "Sst Investments"
+    },
+    {
+        "slug": "grosvenor",
+        "title": "Grosvenor"
+    },
+    {
+        "slug": "collegeofarts",
+        "title": "California College of the Arts"
+    },
+    {
+        "slug": "essex",
+        "title": "Essex Property Trust"
+    },
+    {
+        "slug": "tmg",
+        "title": "TMG Partners"
+    },
+    {
+        "slug": "trinity",
+        "title": "Trinity Properties"
+    },
+    {
+        "slug": "oryx",
+        "title": "Oryx"
+    },
+    {
+        "slug": "millennium",
+        "title": "Millennium Partners"
+    },
+    {
+        "slug": "oceanwide",
+        "title": "Oceanwide Holding Group"
+    },
+    {
+        "slug": "celtic",
+        "title": "Celtic Development"
+    }];
 
+    for (let d of developers) {
+        await DB.Developer.create({
+            account: accountId,
+            slug: d.slug,
+            title: d.title
+        });
+    }
+}
+
+export async function createEmptyData() {
 
     var usr = await DB.User.create({
         authId: "facebook|10213268338843701",
@@ -107,4 +325,6 @@ export async function createEmptyData() {
         airtableDatabase: "appWNnZ1QG63uWbxP",
         airtableKey: "keyGfbgKhShB0D7hK"
     })
+
+    await createDevelopers(sf.id!!);
 }

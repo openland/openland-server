@@ -3473,9 +3473,9 @@ sequelize-typescript@^0.4.0:
     "@types/sequelize" "4.0.60"
     es6-shim "0.35.3"
 
-sequelize@^4.4.2:
-  version "4.23.4"
-  resolved "https://registry.yarnpkg.com/sequelize/-/sequelize-4.23.4.tgz#51d36c1ae084f1c8ca8b9ff19209a82df43a625a"
+sequelize@4.28.2:
+  version "4.28.2"
+  resolved "https://registry.yarnpkg.com/sequelize/-/sequelize-4.28.2.tgz#3287d01e7711bce4a7beda1a161f2caf04bd9ecb"
   dependencies:
     bluebird "^3.4.6"
     cls-bluebird "^2.0.1"
