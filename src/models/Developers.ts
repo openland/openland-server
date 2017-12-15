@@ -10,6 +10,7 @@ export const Schema = `
         comments: String
 
         buildingProjects: [BuildingProject!]!
+        partners: [Developer!]!
     }
 
     extend type Query {
@@ -30,7 +31,27 @@ export const Resolver = {
         slug: (src: Developer) => src.slug,
         title: (src: Developer) => src.title,
         comments: (src: Developer) => src.comments,
-        buildingProjects: (src: Developer) => src.getBuildingProjects()
+        buildingProjects: (src: Developer) => src.getBuildingProjects(),
+        partners: async (src: Developer) => {
+            let projects = await src.getBuildingProjects()
+            let developers = new Set<number>();
+            for (let p of projects) {
+                (await p.getDevelopers()).forEach((d) => {
+                    if (d.id !== src.id) {
+                        developers.add(d.id!!)
+                    }
+                });
+            }
+
+            return DB.Developer.findAll({
+                where: {
+                    account: src.account,
+                    id: {
+                        $in: Array.from(developers)
+                    }
+                }
+            })
+        }
     },
     Query: {
         developers: function (_: any, args: {}, context: CallContext) {

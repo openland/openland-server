@@ -35,17 +35,18 @@ export interface BuildingProjectAttributes {
     extrasLongitude?: number;
 
     permits?: Array<Permit>;
-    getPermits?(): Promise<Array<Permit>>;
-    setPermits?(streets: Array<Permit>): Promise<void>;
-    addPermits?(id: number): Promise<Permit>;
-
     developers?: Array<Developer>;
-    getDevelopers?(): Promise<Array<Developer>>;
-    setDevelopers?(developers: Array<Developer>, args?: any): Promise<void>;
-    addDevelopers?(id: number): Promise<Developer>;
 }
 
-export interface BuildingProject extends sequelize.Instance<BuildingProjectAttributes>, BuildingProjectAttributes { }
+export interface BuildingProject extends sequelize.Instance<BuildingProjectAttributes>, BuildingProjectAttributes {
+    getPermits(): Promise<Array<Permit>>;
+    setPermits(streets: Array<Permit>): Promise<void>;
+    addPermits(id: number): Promise<Permit>;
+
+    getDevelopers(): Promise<Array<Developer>>;
+    setDevelopers(developers: Array<Developer>, args?: any): Promise<void>;
+    addDevelopers(id: number): Promise<Developer>;
+ } 
 
 export const BuildingProjectTable = connection.define<BuildingProject, BuildingProjectAttributes>('building_project', {
     id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
