@@ -285,14 +285,14 @@ export function textLikeFieldText(model: sequelize.Model<any, any>, query: strin
     return "(lower(\"" + field + "\") LIKE '" + query + "%' OR lower(\"" + field + "\") LIKE '% " + query + "%')";
 }
 
-export async function sumRaw(table: string, field: string, where: string): Promise<number> {
-    let q = "SELECT SUM(" + field + ") FROM \"" + table + "\" WHERE " + where;
+export async function sumRaw(table: string, field: string, where: string | null): Promise<number> {
+    let q = "SELECT SUM(" + field + ") FROM \"" + table + "\"" + + (where ? ' WHERE ' + where : '');
     console.warn(q);
     return (await DB.connection.query(q, { type: DB.connection.QueryTypes.SELECT }))[0].sum | 0;
 }
 
-export async function countRaw(table: string, where: string): Promise<number> {
-    let q = "SELECT COUNT(*) FROM \"" + table + "\" WHERE " + where;
+export async function countRaw(table: string, where: string | null): Promise<number> {
+    let q = "SELECT COUNT(*) FROM \"" + table + "\"" + (where ? ' WHERE ' + where : '');
     console.warn(q);
     return (await DB.connection.query(q, { type: DB.connection.QueryTypes.SELECT }))[0].count | 0;
 }

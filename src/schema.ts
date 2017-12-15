@@ -17,6 +17,7 @@ const RootQuery = `
   type PageInfo {
     hasNextPage: Boolean!
     hasPreviousPage: Boolean!
+    itemsCount: Int!
   }
 
   type Geo {

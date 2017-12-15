@@ -107,7 +107,7 @@ export class SelectBuilder<TInstance, TAttributes> {
             conditions.push(textLikeFieldsText(this.table, this.filterText.trim(), this.textFilterFields));
         }
         if (conditions.length == 0) {
-            return ""
+            return null
         } else if (conditions.length == 1) {
             return conditions[0]
         } else {
@@ -130,6 +130,7 @@ export class SelectBuilder<TInstance, TAttributes> {
             offset: offset,
             include: include
         })
+        let count = await this.count()
         return {
             edges: res.map((p, i) => {
                 return {
@@ -139,7 +140,9 @@ export class SelectBuilder<TInstance, TAttributes> {
             }),
             pageInfo: {
                 hasNextPage: res.length == this.limitValue,
-                hasPreviousPage: false
+                hasPreviousPage: false,
+
+                itemsCount: count
             },
         }
     }
