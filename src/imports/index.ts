@@ -76,7 +76,7 @@ async function doImport(accountId: number, apiKey: string, database: string) {
     var offset: string | undefined = undefined
     var ids = Array<string>()
     while (true) {
-        await DB.tx(async (tx) => {
+        await DB.txSilent(async (tx) => {
             var table: TableResult = await fetchTable(apiKey, database, "Pipeline", offset)
             var projects = Array<BuildingProjectDescription>()
             if (!table) {

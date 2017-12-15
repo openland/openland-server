@@ -108,16 +108,16 @@ export async function applyBuildingProjects(tx: Transaction, accountId: number, 
     for (let p of applied) {
         let bp = (await DB.BuidlingProject.findOne({
             where: { id: p.id },
-            transaction: tx
+            transaction: tx,
+            logging: false
         }))!!
         let src = projects[index];
-        await bp.getDevelopers!!()
         if (src.developers) {
             await bp.setDevelopers!!(src.developers.map((d) => {
                 return developers[d.toLowerCase()]!!
-            }), { transaction: tx });
+            }), { transaction: tx, logging: false });
         } else {
-            await bp.setDevelopers!!([], { transaction: tx });
+            await bp.setDevelopers!!([], { transaction: tx, logging: false });
         }
 
         index++;
