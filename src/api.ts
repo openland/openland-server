@@ -126,11 +126,25 @@ export default function () {
     console.info("Starting API endpoint")
     const app = express();
 
+    // Fetching Port
+
+    var port = process.env.PORT
+    var dport = 9000
+    if (port != undefined && port != "") {
+        dport = parseInt(process.env.PORT as string)
+    }
+
     // Allow All Domains
 
     var engine: Engine | null = null
     if (process.env.APOLLO_ENGINE) {
-        engine = new Engine({ engineConfig: { apiKey: process.env.APOLLO_ENGINE!! } });
+        engine = new Engine({
+            engineConfig: {
+                apiKey: process.env.APOLLO_ENGINE!!,
+            },
+            endpoint: '/api',
+            graphqlPort: dport
+        });
         engine.start()
     }
 
@@ -192,11 +206,6 @@ export default function () {
     })
 
     // Starting Api
-    var port = process.env.PORT
-    var dport = 9000
-    if (port != undefined && port != "") {
-        dport = parseInt(process.env.PORT as string)
-    }
     console.info("Binding to port " + dport);
     app.listen(dport);
 }
