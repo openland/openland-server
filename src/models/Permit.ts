@@ -252,7 +252,7 @@ export const Resolver = {
                 .after(args.after)
                 .page(args.page)
                 .limit(args.first)
-                .orderBy("permitCreated", "ASC")
+                .orderBy("permitCreated", "DESC")
             return builder.findAll([{
                 model: DB.StreetNumber,
                 as: 'streetNumbers',
