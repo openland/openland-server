@@ -181,6 +181,7 @@ export const Resolver = {
                 .limit(args.first)
                 .after(args.after)
                 .filter(args.filter)
+                .whereEq("account", context.accountId)
                 .orderByRaw('"proposedUnits"-"existingUnits"', "DESC");
             if (args.minUnits) {
                 builder = builder.where('"proposedUnits"-"existingUnits" >= ' + args.minUnits)
