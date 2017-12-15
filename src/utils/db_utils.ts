@@ -286,7 +286,7 @@ export function textLikeFieldText(model: sequelize.Model<any, any>, query: strin
 }
 
 export async function sumRaw(table: string, field: string, where: string | null): Promise<number> {
-    let q = "SELECT SUM(" + field + ") FROM \"" + table + "\"" + + (where ? ' WHERE ' + where : '');
+    let q = "SELECT SUM(" + field + ") FROM \"" + table + "\"" + (where ? ' WHERE ' + where : '');
     console.warn(q);
     return (await DB.connection.query(q, { type: DB.connection.QueryTypes.SELECT }))[0].sum | 0;
 }
