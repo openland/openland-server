@@ -83,7 +83,13 @@ export const PermitTable = connection.define<Permit, PermitAttributes>('permits'
     proposedAffordableUnits: { type: sequelize.INTEGER, allowNull: true },
     proposedUse: { type: sequelize.STRING, allowNull: true },
     description: { type: sequelize.STRING(4096), allowNull: true }
-}, { indexes: [{ unique: true, fields: ['permitId', 'account'] }] })
+}, {
+        indexes: [
+            { unique: true, fields: ['permitId', 'account'] },
+            { fields: ['permitId', 'permitCreated'] },
+            { fields: ['permitCreated'] }
+        ]
+    })
 
 PermitTable.belongsToMany(StreetNumberTable, { through: 'permit_street_numbers', as: 'streetNumbers' })
 StreetNumberTable.belongsToMany(PermitTable, { through: 'permit_street_numbers', as: 'permits' })
