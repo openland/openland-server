@@ -48,7 +48,11 @@ export class SelectBuilder<TInstance, TAttributes> {
     page(page?: number) {
         let cloned = this.clone();
         if (page) {
-            cloned.pageValue = page;
+            if (page <= 1) {
+                cloned.pageValue = null;
+            } else {
+                cloned.pageValue = page;
+            }
         } else {
             cloned.pageValue = null;
         }
@@ -134,7 +138,7 @@ export class SelectBuilder<TInstance, TAttributes> {
         if (this.afterValue) {
             offset = parseInt(this.afterValue);
         } else if (this.pageValue) {
-            offset = this.pageValue * this.limitValue;
+            offset = (this.pageValue - 1) * this.limitValue;
         }
         let res = await this.table.findAll({
             where: DB.connection.literal(this.buildWhere()) as any,
@@ -156,8 +160,8 @@ export class SelectBuilder<TInstance, TAttributes> {
                 hasPreviousPage: false,
 
                 itemsCount: count,
-                pagesCount: Math.ceil(count / this.limitValue),
-                currentPage: Math.ceil(offset / this.limitValue)
+                pagesCount: Math.floor(count / this.limitValue),
+                currentPage: Math.floor(offset / this.limitValue) + 1
             },
         }
     }
