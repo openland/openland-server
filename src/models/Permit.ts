@@ -241,11 +241,6 @@ export const Resolver = {
         relatedPermits: async (src: Permit) => {
             let numbers = (await src.getStreetNumbers()).map((p) => p.id!!)
             return DB.Permit.findAll({
-                where: {
-                    id: {
-                        $ne: src.id!!
-                    }
-                },
                 include: [{
                     model: DB.StreetNumber,
                     as: 'streetNumbers',
