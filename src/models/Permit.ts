@@ -35,6 +35,8 @@ export const Schema = `
         events: [PermitEvent!]!
 
         relatedPermits: [Permit!]!
+
+        govenmentalUrl: String!
     }
 
     enum PermitStatus {
@@ -210,6 +212,7 @@ export const Resolver = {
         proposedAffordableUnits: (src: Permit) => src.proposedAffordableUnits,
         proposedUse: (src: Permit) => src.proposedUse,
         description: (src: Permit) => src.description,
+        govenmentalUrl: (src: Permit) => "https://dbiweb.sfgov.org/dbipts/default.aspx?page=Permit&PermitNumber=" + src.id,
         streetNumbers: (src: Permit) => src.streetNumbers!!.map((n) => ({
             streetId: n.street!!.id,
             streetName: n.street!!.name,
