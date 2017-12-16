@@ -12,10 +12,15 @@ export const Schema = `
         typeWood: Boolean
         status: PermitStatus
         statusUpdatedAt: String
+        
         createdAt: String
         issuedAt: String
         completedAt: String
         expiredAt: String
+        expiresAt: String
+        startedAt: String
+        filedAt: String
+
         streetNumbers: [StreetNumber!]!
 
         existingStories: Int
@@ -97,10 +102,15 @@ export const Schema = `
         type: PermitType
         typeWood: Boolean
         statusUpdatedAt: String
+        
         createdAt: String
         issuedAt: String
         completedAt: String
+        startedAt: String
         expiredAt: String
+        expiresAt: String
+        filedAt: String
+
         street: [StreetNumberInfo!]
 
         existingStories: Int
@@ -134,8 +144,11 @@ interface PermitInfo {
     statusUpdatedAt?: string
     createdAt?: string
     issuedAt?: string
+    filedAt?: string
+    startedAt?: string
     completedAt?: string
     expiredAt?: string
+    expiresAt?: string
     street?: [StreetNumberInfo]
 
     existingStories?: number;
@@ -182,7 +195,11 @@ export const Resolver = {
         createdAt: (src: Permit) => src.permitCreated,
         issuedAt: (src: Permit) => src.permitIssued,
         expiredAt: (src: Permit) => src.permitExpired,
+        expiresAt: (src: Permit) => src.permitExpires,
+        startedAt: (src: Permit) => src.permitStarted,
+        filedAt: (src: Permit) => src.permitFiled,
         completedAt: (src: Permit) => src.permitCompleted,
+
         existingStories: (src: Permit) => src.existingStories,
         proposedStories: (src: Permit) => src.proposedStories,
         existingUnits: (src: Permit) => src.existingUnits,

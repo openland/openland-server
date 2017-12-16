@@ -21,10 +21,15 @@ export interface PermitAttributes {
     permitTypeWood?: boolean;
     permitStatus?: PermitStatus
     permitStatusUpdated?: string;
+    
     permitCreated?: string;
     permitIssued?: string;
     permitCompleted?: string;
     permitExpired?: string;
+    permitExpires?: string;
+    permitStarted?: string;
+    permitFiled?: string;
+
     existingStories?: number;
     proposedStories?: number;
     existingUnits?: number;
@@ -71,10 +76,15 @@ export const PermitTable = connection.define<Permit, PermitAttributes>('permits'
         ), allowNull: true
     },
     permitTypeWood: { type: sequelize.BOOLEAN, allowNull: true },
+    
     permitCreated: { type: sequelize.DATEONLY, allowNull: true },
     permitIssued: { type: sequelize.DATEONLY, allowNull: true },
+    permitStarted: { type: sequelize.DATEONLY, allowNull: true },
     permitCompleted: { type: sequelize.DATEONLY, allowNull: true },
     permitExpired: { type: sequelize.DATEONLY, allowNull: true },
+    permitExpires: { type: sequelize.DATEONLY, allowNull: true },
+    permitFiled: { type: sequelize.DATEONLY, allowNull: true },
+    
     existingStories: { type: sequelize.INTEGER, allowNull: true },
     proposedStories: { type: sequelize.INTEGER, allowNull: true },
     existingUnits: { type: sequelize.INTEGER, allowNull: true },

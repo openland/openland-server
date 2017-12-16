@@ -14,6 +14,9 @@ export interface PermitDescriptor {
     issuedAt?: string
     completedAt?: string
     expiredAt?: string
+    expiresAt?: string
+    filedAt?: string
+    startedAt?: string
 
     existingStories?: number;
     proposedStories?: number;
@@ -86,6 +89,9 @@ export async function applyPermits(accountId: number, permits: PermitDescriptor[
         permitIssued: p.issuedAt,
         permitExpired: p.expiredAt,
         permitCompleted: p.completedAt,
+        permitStarted: p.startedAt,
+        permitExpires: p.expiresAt,
+        permitFiled: p.filedAt,
         permitStatusUpdated: p.statusUpdatedAt,
         existingStories: p.existingStories,
         proposedStories: p.proposedStories,
@@ -94,11 +100,11 @@ export async function applyPermits(accountId: number, permits: PermitDescriptor[
         existingAffordableUnits: p.existingAffordableUnits,
         proposedAffordableUnits: p.proposedAffordableUnits,
         proposedUse: p.proposedUse,
-        description: p.description
+        description: p.description,
     }));
 
     console.time("bulk_all")
-    
+
     await DB.tx(async (tx) => {
         let applied = await bulkApply(tx, DB.Permit, accountId, 'permitId', rows)
         var pendingStreets = Array<{ permitId: number, streetId: number }>()
