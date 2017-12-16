@@ -33,6 +33,8 @@ export const Schema = `
         description: String
 
         events: [PermitEvent!]!
+
+        relatedPermits: [Permit!]!
     }
 
     enum PermitStatus {
@@ -235,6 +237,29 @@ export const Resolver = {
                     return null;
                 }
             }).filter((v) => v !== null);
+        },
+        relatedPermits: async (src: Permit) => {
+            let numbers = (await src.getStreetNumbers()).map((p) => p.id!!)
+            return DB.Permit.findAll({
+                where: {
+                    id: {
+                        $ne: src.id!!
+                    }
+                },
+                include: [{
+                    model: DB.StreetNumber,
+                    as: 'streetNumbers',
+                    include: [{
+                        model: DB.Street,
+                        as: 'street'
+                    }],
+                    where: {
+                        id: {
+                            $in: numbers
+                        }
+                    }
+                }]
+            })
         }
     },
     Query: {

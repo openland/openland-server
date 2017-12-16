@@ -40,14 +40,15 @@ export interface PermitAttributes {
     description?: string;
 
     streetNumbers?: Array<StreetNumber>;
-    getStreetNumbers?(): Promise<Array<StreetNumber>>;
-    setStreetNumbers?(streets: Array<StreetNumber>): Promise<void>;
-    addStreetNumber?(id: number): Promise<StreetNumber>;
-
+    
     events?: Array<PermitEvent>;
 }
 
-export interface Permit extends sequelize.Instance<PermitAttributes>, PermitAttributes { }
+export interface Permit extends sequelize.Instance<PermitAttributes>, PermitAttributes {
+    getStreetNumbers(): Promise<Array<StreetNumber>>;
+    setStreetNumbers(streets: Array<StreetNumber>): Promise<void>;
+    addStreetNumber(id: number): Promise<StreetNumber>;
+ }
 
 export const PermitTable = connection.define<Permit, PermitAttributes>('permits', {
     id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },

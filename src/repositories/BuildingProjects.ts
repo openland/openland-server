@@ -26,6 +26,7 @@ export interface BuildingProjectDescription {
     extrasLongitude?: number;
 
     developers?: string[];
+    permits?: string[];
 
     verified?: boolean;
 }
