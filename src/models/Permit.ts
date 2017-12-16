@@ -258,7 +258,8 @@ export const Resolver = {
                             $in: numbers
                         }
                     }
-                }]
+                }],
+                order: [['permitCreated', 'DESC']]
             })
         }
     },
