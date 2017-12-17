@@ -6,6 +6,7 @@ import { BuildingProjectAttributes } from "../tables/BuildingProject";
 export interface BuildingProjectDescription {
     projectId: string
     permitId?: string
+    govId?: string
     name?: string
     existingUnits?: number
     proposedUnits?: number
@@ -52,6 +53,7 @@ export async function applyBuildingProjects(tx: Transaction, accountId: number, 
     var values = projects.map(p => {
         var res: BuildingProjectAttributes = {
             projectId: p.projectId,
+            govId: p.govId,
             name: p.name,
             projectStartedAt: p.projectStart,
             projectExpectedCompletedAt: p.projectExpectedCompleted,

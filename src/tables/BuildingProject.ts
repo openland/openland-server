@@ -7,6 +7,7 @@ export interface BuildingProjectAttributes {
     id?: number;
     account?: number;
     projectId: string;
+    govId?: string;
     name?: string;
     description?: string;
     verified?: boolean;
@@ -46,7 +47,7 @@ export interface BuildingProject extends sequelize.Instance<BuildingProjectAttri
     getDevelopers(): Promise<Array<Developer>>;
     setDevelopers(developers: Array<Developer>, args?: any): Promise<void>;
     addDevelopers(id: number): Promise<Developer>;
- } 
+}
 
 export const BuildingProjectTable = connection.define<BuildingProject, BuildingProjectAttributes>('building_project', {
     id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
@@ -58,6 +59,7 @@ export const BuildingProjectTable = connection.define<BuildingProject, BuildingP
         allowNull: false
     },
     projectId: { type: sequelize.STRING, allowNull: false },
+    govId: { type: sequelize.STRING, allowNull: true },
     name: { type: sequelize.STRING, allowNull: false },
     description: { type: sequelize.STRING, allowNull: true },
     status: { type: sequelize.ENUM("starting", "in_progress", "completed"), allowNull: false, defaultValue: "starting" },
@@ -85,7 +87,7 @@ export const BuildingProjectTable = connection.define<BuildingProject, BuildingP
     extrasLatitude: { type: sequelize.DOUBLE, allowNull: true },
     extrasLongitude: { type: sequelize.DOUBLE, allowNull: true },
 
-}, { indexes: [{ unique: true, fields: ['projectId', 'account'] }] })
+}, { indexes: [{ unique: true, fields: ['projectId', 'account'] }, { unique: true, fields: ['govId', 'account'] }] })
 
 BuildingProjectTable.belongsToMany(PermitTable, { through: 'permit_building_projects', as: 'permits' })
 PermitTable.belongsToMany(BuildingProjectTable, { through: 'permit_building_projects', as: 'buildingProjects' })

@@ -29,6 +29,8 @@ async function initMater() {
           await db.migrate()
           await sample.createEmptyData()
         }
+      } else {
+        await db.migrate()
       }
     } else {
       console.info("Connecting to database in RELEASE mode")
