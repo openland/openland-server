@@ -72,6 +72,7 @@
     "start": "BLUEBIRD_LONG_STACK_TRACES=0 node ./build/index.js",
     "dev": "./node_modules/.bin/concurrently --kill-others \"yarn build:watch\" \"yarn start:watch\"",
     "dev:inspect": "BLUEBIRD_LONG_STACK_TRACES=0 ./node_modules/.bin/concurrently --kill-others \"yarn build:watch\" \"yarn start:watch:inspect\"",
+    "dev:db": "RECREATE_DB=true ./node_modules/.bin/concurrently --kill-others \"yarn build:watch\" \"yarn start:watch\"",
     "heroku-postbuild": "yarn build"
   }
 }
