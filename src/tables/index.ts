@@ -2,8 +2,6 @@ import { connection } from '../connector';
 import * as sequelize from 'sequelize';
 
 export { User } from './User';
-export { Vote } from './Vote';
-export { UserVote } from './UserVote';
 export { Account } from './Account';
 export { AccountMember } from './Account';
 export { Project } from './Project';
@@ -16,10 +14,11 @@ export { AirTable } from './AirTable';
 export { PermitEvent } from './PermitEvents';
 export { Developer } from './Developer';
 export { Constructor } from './Constructor';
+export { State } from './State';
+export { County } from './County';
+export { City } from './City';
 
 import { UserTable } from './User';
-import { VoteTable } from './Vote';
-import { UserVoteTable } from './UserVote';
 import { AccountTable } from './Account';
 import { AccountMemberTable } from './Account';
 import { ProjectTable } from './Project';
@@ -33,11 +32,12 @@ import { AirTableTable } from './AirTable';
 import { PermitEventsTable } from './PermitEvents';
 import { DeveloperTable } from './Developer';
 import { ConstructorTable } from './Constructor';
+import { StateTable } from './State';
+import { CountyTable } from './County';
+import { CityTable } from './City';
 
 export const DB = {
     User: UserTable,
-    Vote: VoteTable,
-    UserVote: UserVoteTable,
     Account: AccountTable,
     AccountMember: AccountMemberTable,
     Project: ProjectTable,
@@ -51,6 +51,9 @@ export const DB = {
     PermitEvents: PermitEventsTable,
     Developer: DeveloperTable,
     Constructor: ConstructorTable,
+    State: StateTable,
+    County: CountyTable,
+    City: CityTable,
 
     tx: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>): Promise<A> {
         return await connection.transaction({ isolationLevel: "SERIALIZABLE" }, (tx: sequelize.Transaction) => handler(tx));
