@@ -1,7 +1,7 @@
 import { connection } from '../connector';
 import * as sequelize from 'sequelize'
-import { StreetNumberTable, StreetNumber } from './StreetNumber';
 import { PermitEvent } from './PermitEvents';
+import { StreetNumberTable } from './StreetNumber';
 
 export type PermitStatus = "filed" | "issued" | "completed" | "expired" |
     "cancelled" | "disapproved" | "approved" | "issuing" |
@@ -21,7 +21,7 @@ export interface PermitAttributes {
     permitTypeWood?: boolean;
     permitStatus?: PermitStatus
     permitStatusUpdated?: string;
-    
+
     permitCreated?: string;
     permitIssued?: string;
     permitCompleted?: string;
@@ -38,17 +38,18 @@ export interface PermitAttributes {
     proposedAffordableUnits?: number;
     proposedUse?: string;
     description?: string;
-
-    streetNumbers?: Array<StreetNumber>;
-    
-    events?: Array<PermitEvent>;
 }
 
 export interface Permit extends sequelize.Instance<PermitAttributes>, PermitAttributes {
-    getStreetNumbers(): Promise<Array<StreetNumber>>;
-    setStreetNumbers(streets: Array<StreetNumber>): Promise<void>;
-    addStreetNumber(id: number): Promise<StreetNumber>;
- }
+
+    events?: Array<PermitEvent>;
+    getEvents(): Promise<Array<PermitEvent>>;
+
+    adresses?: Array<Address>;
+    getAddresses(): Promise<Array<Address>>;
+    setAddresses(adresses: Array<Address>): Promise<void>;
+    addAddress(id: number): Promise<Address>;
+}
 
 export const PermitTable = connection.define<Permit, PermitAttributes>('permits', {
     id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
@@ -77,7 +78,7 @@ export const PermitTable = connection.define<Permit, PermitAttributes>('permits'
         ), allowNull: true
     },
     permitTypeWood: { type: sequelize.BOOLEAN, allowNull: true },
-    
+
     permitCreated: { type: sequelize.DATEONLY, allowNull: true },
     permitIssued: { type: sequelize.DATEONLY, allowNull: true },
     permitStarted: { type: sequelize.DATEONLY, allowNull: true },
@@ -85,7 +86,7 @@ export const PermitTable = connection.define<Permit, PermitAttributes>('permits'
     permitExpired: { type: sequelize.DATEONLY, allowNull: true },
     permitExpires: { type: sequelize.DATEONLY, allowNull: true },
     permitFiled: { type: sequelize.DATEONLY, allowNull: true },
-    
+
     existingStories: { type: sequelize.INTEGER, allowNull: true },
     proposedStories: { type: sequelize.INTEGER, allowNull: true },
     existingUnits: { type: sequelize.INTEGER, allowNull: true },
@@ -102,5 +103,4 @@ export const PermitTable = connection.define<Permit, PermitAttributes>('permits'
         ]
     })
 
-PermitTable.belongsToMany(StreetNumberTable, { through: 'permit_street_numbers', as: 'streetNumbers' })
-StreetNumberTable.belongsToMany(PermitTable, { through: 'permit_street_numbers', as: 'permits' })
+PermitTable.belongsToMany(StreetNumberTable, { through: 'permit_addresses', as: 'adresses' })

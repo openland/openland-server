@@ -1,5 +1,4 @@
 import { makeExecutableSchema } from 'graphql-tools';
-import * as Voting from './models/Voting'
 import * as Account from './models/Account'
 import * as Me from './models/Me';
 import * as Project from './models/Project'
@@ -58,7 +57,6 @@ const rootResolver = {
 export const Schema = makeExecutableSchema({
   typeDefs: [
     RootQuery, SchemaDefinition,
-    Voting.Schema,
     Account.Schema,
     Me.Schema,
     Project.Schema,
@@ -71,7 +69,6 @@ export const Schema = makeExecutableSchema({
     Developers.Schema
   ],
   resolvers: merge(rootResolver,
-    Voting.Resolver,
     Account.Resolver,
     Me.Resolver,
     Project.Resolver,
