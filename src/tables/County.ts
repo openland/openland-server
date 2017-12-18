@@ -12,8 +12,7 @@ export interface County extends sequelize.Instance<CountyAttributes>, CountyAttr
 
 export const CountyTable = connection.define<CountyAttributes, CountyAttributes>('county', {
     id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
-    code: { type: sequelize.STRING, allowNull: false },
     name: { type: sequelize.STRING, allowNull: false },
-}, { indexes: [{ unique: true, fields: ['stateId', 'code'] }] })
+}, { indexes: [{ unique: true, fields: ['stateId', 'name'] }] })
 
 CountyTable.belongsTo(StateTable, { as: 'state' })
