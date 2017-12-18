@@ -101,4 +101,4 @@ export const PermitTable = connection.define<Permit, PermitAttributes>('permits'
         ]
     })
 
-PermitTable.belongsToMany(StreetNumberTable, { through: 'permit_street_numbers', as: 'streetNumber' })
+PermitTable.belongsToMany(StreetNumberTable, { through: 'permit_street_numbers', as: 'streetNumbers' })
