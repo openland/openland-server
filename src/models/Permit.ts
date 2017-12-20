@@ -128,6 +128,9 @@ export const Schema = `
     }
 
     input StreetNumberInfo {
+        state: String!
+        county: String!
+        city: String!
         streetName: String!
         streetNameSuffix: String
         streetNumber: Int!
@@ -153,6 +156,7 @@ interface PermitInfo {
     completedAt?: string
     expiredAt?: string
     expiresAt?: string
+
     street?: [StreetNumberInfo]
 
     existingStories?: number;
@@ -166,6 +170,9 @@ interface PermitInfo {
 }
 
 interface StreetNumberInfo {
+    state: string
+    county: string
+    city: string
     streetName: string
     streetNameSuffix?: string
     streetNumber: number

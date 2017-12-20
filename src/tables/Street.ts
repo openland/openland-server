@@ -1,36 +1,41 @@
 import { connection } from '../connector';
 import * as sequelize from 'sequelize'
+import { CityTable, City } from './City';
+
+export type StreetSuffixes = 'St' | 'Av' | 'Dr' | 'Bl' | 'Wy' | 'Ln' | 'Hy' | 'Tr' | 'Pl' | 'Ct' |
+    'Pk' | 'Al' | 'Cr' | 'Rd' | 'Sq' | 'Pz' | 'Sw' | 'No' | 'Rw' | 'So' | 'Hl' | 'Wk'
 
 export interface StreetAttributes {
     id?: number;
-    account?: number;
     name?: string;
-    suffix?: string;
+    cityId?: number;
+    suffix?: StreetSuffixes | null;
 }
-export interface Street extends sequelize.Instance<StreetAttributes>, StreetAttributes { }
+export interface Street extends sequelize.Instance<StreetAttributes>, StreetAttributes {
+    city?: City
+}
 
 export const StreetTable = connection.define<Street, StreetAttributes>('street', {
     id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
-    account: {
-        type: sequelize.INTEGER, references: {
-            model: 'accounts',
-            key: 'id',
-        }
-    },
     name: { type: sequelize.STRING, allowNull: false },
-    suffix: { type: sequelize.STRING, allowNull: true },
+    suffix: {
+        type: sequelize.ENUM(['St', 'Av', 'Dr', 'Bl', 'Wy', 'Ln', 'Hy', 'Tr', 'Pl', 'Ct',
+            'Pk', 'Al', 'Cr', 'Rd', 'Sq', 'Pz', 'Sw', 'No', 'Rw', 'So', 'Hl', 'Wk']), allowNull: true
+    },
 }, {
         indexes: [{
-            unique: true, fields: ['account', 'name', 'suffix'], where: {
+            unique: true, fields: ['cityId', 'name', 'suffix'], where: {
                 'suffix': {
                     $ne: null
                 }
             }
         }, {
-            unique: true, fields: ['account', 'name'], where: {
+            unique: true, fields: ['cityId', 'name'], where: {
                 'suffix': {
                     $eq: null
                 }
             }
         }]
     })
+
+StreetTable.belongsTo(CityTable, { as: 'city' })
