@@ -88,7 +88,7 @@ export async function up(queryInterface: QueryInterface, sequelize: DataTypes) {
                 },
                 allowNull: false
             },
-            streetnumberId: {
+            streetNumberId: {
                 type: sequelize.INTEGER,
                 references: {
                     model: 'street_numbers',
