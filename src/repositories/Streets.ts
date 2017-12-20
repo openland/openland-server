@@ -77,7 +77,7 @@ async function _applyStreets(tx: Transaction, cityId: number, streets: StreetDes
             .whereIn(['name', 'suffix'], tuples.filter((p) => p[1]))
             .findAllDirect()
         let woutNull = builder
-            .whereIn(['name', 'suffix'], tuples.filter((p) => !p[1]))
+            .whereIn(['name'], tuples.filter((p) => !p[1]).map(p => [p[0]]))
             .where("\"suffix\" IS NULL")
             .findAllDirect()
         let allStreets = [...(await withNull), ...(await woutNull)];
@@ -139,7 +139,7 @@ export async function applyStreetNumbers(cityId: number, streetNumbers: StreetNu
                 .whereIn(['streetId', 'number', 'suffix'], tuples.filter((p) => p[2]))
                 .findAllDirect()
             let woutNull = builder
-                .whereIn(['streetId', 'number'], tuples.filter((p) => !p[2]))
+                .whereIn(['streetId', 'number'], tuples.filter((p) => !p[2]).map(p => [p[0], p[1]]))
                 .where("\"suffix\" IS NULL")
                 .findAllDirect()
             let allNumbers = [...(await withNull), ...(await woutNull)];

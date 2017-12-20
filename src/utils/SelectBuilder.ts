@@ -86,28 +86,31 @@ export class SelectBuilder<TInstance, TAttributes> {
 
     whereIn(fields: string[], tuples: any[][]) {
         let cloned = this.clone();
-        var attributes = (this.table as any).attributes
-        var sqlFields = '(' + fields.map((p) => {
-            let attr = attributes[p]
-            if (!attr) {
-                throw "Attribute " + p + " not found"
-            }
-            return '"' + p + '"'
-        }).join() + ')'
-        var sqlTuples = '(' + tuples.map((p) =>
-            '(' + p.map((v) => {
-                if (v == null || v == undefined) {
-                    console.warn(p)
-                    throw "Null value found!"
-                } else if (typeof v === "string") {
-                    return DB.connection.escape(v)
-                } else {
-                    return v
+        if (tuples.length == 0) {
+            cloned.conditions.push("FALSE");
+        } else {
+            var attributes = (this.table as any).attributes
+            var sqlFields = '(' + fields.map((p) => {
+                let attr = attributes[p]
+                if (!attr) {
+                    throw "Attribute " + p + " not found"
                 }
+                return '"' + p + '"'
             }).join() + ')'
-        ).join() + ')'
-
-        cloned.conditions.push(sqlFields + " IN " + sqlTuples);
+            var sqlTuples = '(' + tuples.map((p) =>
+                '(' + p.map((v) => {
+                    if (v == null || v == undefined) {
+                        console.warn(p)
+                        throw "Null value found!"
+                    } else if (typeof v === "string") {
+                        return DB.connection.escape(v)
+                    } else {
+                        return v
+                    }
+                }).join() + ')'
+            ).join() + ')'
+            cloned.conditions.push(sqlFields + " IN " + sqlTuples);
+        }
         return cloned;
     }
 
@@ -171,9 +174,9 @@ export class SelectBuilder<TInstance, TAttributes> {
     }
 
     async findAllDirect(include?: Array<sequelize.Model<any, any> | sequelize.IncludeOptions>) {
+        console.warn(this.buildWhere());
         return this.table.findAll({
             where: DB.connection.literal(this.buildWhere()) as any,
-            order: DB.connection.literal(this.buildOrderBy()),
             include: include,
             transaction: this.tx ? this.tx : undefined
         })

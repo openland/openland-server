@@ -46,7 +46,7 @@ function convertType(src?: string): PermitType | undefined {
     }
 }
 
-export async function applyPermits(accountId: number, permits: PermitDescriptor[]) {
+export async function applyPermits(accountId: number, cityId: number, permits: PermitDescriptor[]) {
 
     //
     // Merging duplicates
@@ -72,7 +72,7 @@ export async function applyPermits(accountId: number, permits: PermitDescriptor[
         .filter((p) => p.street)
         .map((p) => p.street!!)
         .reduce((list, x) => list.concat(x), Array<StreetNumberDescription>())
-    let loadedNumbers = await applyStreetNumbers(accountId, streetNumbers)
+    let loadedNumbers = await applyStreetNumbers(cityId, streetNumbers)
 
     console.timeEnd("street_numbers")
 

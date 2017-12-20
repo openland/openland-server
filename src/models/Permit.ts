@@ -307,7 +307,7 @@ export const Resolver = {
         }
     },
     Mutation: {
-        updatePermits: async function (_: any, args: { state: string, county: string, city: string, permits: [PermitInfo] }, context: CallContext) {
+        updatePermits: async function (_: any, args: { state: string, county: string, city: string, permits: [PermitInfo] }, call: CallContext) {
             let city = await DB.City.findOne({
                 where: {
                     name: args.city
@@ -330,7 +330,7 @@ export const Resolver = {
             if (!city) {
                 throw "City is not found for " + args.state + ", " + args.county + ", " + args.city
             }
-            await applyPermits(city.id!!, args.permits)
+            await applyPermits(call.accountId, city.id!!, args.permits)
             return "ok"
         }
     }
