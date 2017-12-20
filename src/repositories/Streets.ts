@@ -1,8 +1,9 @@
 import { DB } from "../tables/index";
-import { StreetAttributes } from "../tables/Street";
+import { StreetAttributes, StreetSuffixes } from "../tables/Street";
 import { StreetNumberAttributes } from "../tables/StreetNumber";
-import { findAllTuples, bulkInsert } from "../utils/db_utils";
+import { bulkInsert } from "../utils/db_utils";
 import { Transaction } from "sequelize";
+import { SelectBuilder } from "../utils/SelectBuilder";
 
 export interface StreetDescription {
     streetName: string
@@ -53,7 +54,7 @@ async function normalizedProcessor<T1, T2>(array: T1[], compare: (a: T1, b: T1) 
     return res
 }
 
-async function _applyStreets(tx: Transaction, accountId: number, streets: StreetDescription[]) {
+async function _applyStreets(tx: Transaction, cityId: number, streets: StreetDescription[]) {
     let normalized = streets.map(s => ({
         streetName: normalizeStreet(s.streetName),
         streetNameSuffix: normalizeSuffix(s.streetNameSuffix)
@@ -69,14 +70,25 @@ async function _applyStreets(tx: Transaction, accountId: number, streets: Street
         var tuples = normalized.map((n) => {
             return [n.streetName, n.streetNameSuffix] as any[]
         })
-        var allStreets = await findAllTuples(tx, accountId, ['name', 'suffix'], tuples, DB.Street)
+        let builder = new SelectBuilder(DB.Street)
+            .withTx(tx)
+            .whereEq("cityId", cityId)
+        let withNull = builder
+            .whereIn(['name', 'suffix'], tuples.filter((p) => p[1]))
+            .findAllDirect()
+        let woutNull = builder
+            .whereIn(['name', 'suffix'], tuples.filter((p) => !p[1]))
+            .where("\"suffix\" IS NULL")
+            .findAllDirect()
+        let allStreets = [...(await withNull), ...(await woutNull)];
+        // var allStreets = await findAllTuples(tx, cityId, ['name', 'suffix'], tuples, DB.Street)
         for (let str of normalized) {
             let existing = allStreets.find((p) => p.name === str.streetName && p.suffix == str.streetNameSuffix)
             if (existing == null) {
                 pending.push({
-                    account: accountId,
+                    cityId: cityId,
                     name: str.streetName,
-                    suffix: str.streetNameSuffix
+                    suffix: str.streetNameSuffix as StreetSuffixes
                 })
                 pendingIndex.push(index)
             } else {
@@ -96,11 +108,11 @@ async function _applyStreets(tx: Transaction, accountId: number, streets: Street
     })
 }
 
-export async function applyStreets(accountId: number, streets: StreetDescription[]) {
-    return await DB.tx(async (tx) => _applyStreets(tx, accountId, streets))
+export async function applyStreets(cityId: number, streets: StreetDescription[]) {
+    return await DB.tx(async (tx) => _applyStreets(tx, cityId, streets))
 }
 
-export async function applyStreetNumbers(accountId: number, streetNumbers: StreetNumberDescription[]) {
+export async function applyStreetNumbers(cityId: number, streetNumbers: StreetNumberDescription[]) {
     return await DB.tx(async (tx) => {
         let normalized = streetNumbers.map((p) => ({
             streetName: normalizeStreet(p.streetName),
@@ -114,15 +126,23 @@ export async function applyStreetNumbers(accountId: number, streetNumbers: Stree
         return normalizedProcessor(normalized, comparator, async (data) => {
             let start = new Date()
             var res = Array<number>(data.length)
-            let streets = await _applyStreets(tx, accountId, data)
+            let streets = await _applyStreets(tx, cityId, data)
             var index = 0
 
             var tuples = data.map((n, ind) => {
                 return [streets[ind], n.streetNumber, n.streetNumberSuffix] as any[]
             })
             console.time("load_tuples")
-            var allNumbers = await findAllTuples(tx, accountId, ['streetId', 'number', 'suffix'], tuples, DB.StreetNumber)
-            console.timeEnd("load_tuples")
+            let builder = new SelectBuilder(DB.StreetNumber)
+                .withTx(tx)
+            let withNull = builder
+                .whereIn(['streetId', 'number', 'suffix'], tuples.filter((p) => p[2]))
+                .findAllDirect()
+            let woutNull = builder
+                .whereIn(['streetId', 'number'], tuples.filter((p) => !p[2]))
+                .where("\"suffix\" IS NULL")
+                .findAllDirect()
+            let allNumbers = [...(await withNull), ...(await woutNull)];
 
             var pending = Array<StreetNumberAttributes>();
             var pendingIndex = Array<number>()
@@ -132,7 +152,6 @@ export async function applyStreetNumbers(accountId: number, streetNumbers: Stree
                 let existing = allNumbers.find((p) => p.streetId == street && p.number == n.streetNumber && p.suffix == n.streetNumberSuffix)
                 if (existing == null) {
                     pending.push({
-                        account: accountId,
                         streetId: street,
                         number: n.streetNumber,
                         suffix: n.streetNumberSuffix

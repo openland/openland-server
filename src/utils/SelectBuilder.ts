@@ -16,9 +16,20 @@ export class SelectBuilder<TInstance, TAttributes> {
     private limitValue: number | null = null
     private afterValue: string | null = null
     private pageValue: number | null = null
+    private tx: sequelize.Transaction | null = null
 
     constructor(table: sequelize.Model<TInstance, TAttributes>) {
         this.table = table
+    }
+
+    withTx(tx?: sequelize.Transaction) {
+        let cloned = this.clone();
+        if (tx) {
+            cloned.tx = tx
+        } else {
+            cloned.tx = null
+        }
+        return cloned
     }
 
     limit(limit?: number) {
@@ -70,6 +81,33 @@ export class SelectBuilder<TInstance, TAttributes> {
     whereEq(field: string, value: any) {
         let cloned = this.clone();
         cloned.conditionsEq.push({ field: field, value: value });
+        return cloned;
+    }
+
+    whereIn(fields: string[], tuples: any[][]) {
+        let cloned = this.clone();
+        var attributes = (this.table as any).attributes
+        var sqlFields = '(' + fields.map((p) => {
+            let attr = attributes[p]
+            if (!attr) {
+                throw "Attribute " + p + " not found"
+            }
+            return '"' + p + '"'
+        }).join() + ')'
+        var sqlTuples = '(' + tuples.map((p) =>
+            '(' + p.map((v) => {
+                if (v == null || v == undefined) {
+                    console.warn(p)
+                    throw "Null value found!"
+                } else if (typeof v === "string") {
+                    return DB.connection.escape(v)
+                } else {
+                    return v
+                }
+            }).join() + ')'
+        ).join() + ')'
+
+        cloned.conditions.push(sqlFields + " IN " + sqlTuples);
         return cloned;
     }
 
@@ -132,6 +170,15 @@ export class SelectBuilder<TInstance, TAttributes> {
         }
     }
 
+    async findAllDirect(include?: Array<sequelize.Model<any, any> | sequelize.IncludeOptions>) {
+        return this.table.findAll({
+            where: DB.connection.literal(this.buildWhere()) as any,
+            order: DB.connection.literal(this.buildOrderBy()),
+            include: include,
+            transaction: this.tx ? this.tx : undefined
+        })
+    }
+
     async findAll(include?: Array<sequelize.Model<any, any> | sequelize.IncludeOptions>) {
         if (this.limitValue == null) {
             throw "Limit should be set!"
@@ -147,7 +194,8 @@ export class SelectBuilder<TInstance, TAttributes> {
             order: DB.connection.literal(this.buildOrderBy()),
             limit: this.limitValue,
             offset: offset,
-            include: include
+            include: include,
+            transaction: this.tx ? this.tx : undefined
         })
         let count = await this.count()
         return {
@@ -186,6 +234,7 @@ export class SelectBuilder<TInstance, TAttributes> {
         res.limitValue = this.limitValue;
         res.afterValue = this.afterValue;
         res.pageValue = this.pageValue;
+        res.tx = this.tx;
         return res;
     }
 }

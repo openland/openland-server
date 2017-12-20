@@ -128,9 +128,6 @@ export const Schema = `
     }
 
     input StreetNumberInfo {
-        state: String!
-        county: String!
-        city: String!
         streetName: String!
         streetNameSuffix: String
         streetNumber: Int!
@@ -138,7 +135,7 @@ export const Schema = `
     }
 
     extend type Mutation {
-        updatePermits(permits: [PermitInfo]!): String
+        updatePermits(state: String!, county: String!, city: String!, permits: [PermitInfo]!): String
     }
 `
 
@@ -170,9 +167,6 @@ interface PermitInfo {
 }
 
 interface StreetNumberInfo {
-    state: string
-    county: string
-    city: string
     streetName: string
     streetNameSuffix?: string
     streetNumber: number
@@ -313,8 +307,30 @@ export const Resolver = {
         }
     },
     Mutation: {
-        updatePermits: async function (_: any, args: { permits: [PermitInfo] }, context: CallContext) {
-            await applyPermits(context.accountId, args.permits)
+        updatePermits: async function (_: any, args: { state: string, county: string, city: string, permits: [PermitInfo] }, context: CallContext) {
+            let city = await DB.City.findOne({
+                where: {
+                    name: args.city
+                },
+                include: [{
+                    model: DB.County,
+                    as: 'county',
+                    where: {
+                        name: args.county
+                    },
+                    include: [{
+                        model: DB.State,
+                        as: 'state',
+                        where: {
+                            code: args.state
+                        }
+                    }]
+                }]
+            })
+            if (!city) {
+                throw "City is not found for " + args.state + ", " + args.county + ", " + args.city
+            }
+            await applyPermits(city.id!!, args.permits)
             return "ok"
         }
     }
