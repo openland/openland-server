@@ -72,7 +72,7 @@ export async function up(queryInterface: QueryInterface, sequelize: DataTypes) {
     //
     // Permits Mapping
     //
-    
+
     await queryInterface.createTable('permit_street_numbers',
         {
             id: {
@@ -91,7 +91,7 @@ export async function up(queryInterface: QueryInterface, sequelize: DataTypes) {
             streetnumberId: {
                 type: sequelize.INTEGER,
                 references: {
-                    model: 'streetnumbers',
+                    model: 'street_numbers',
                     key: 'id'
                 },
                 allowNull: false
