@@ -81,6 +81,7 @@ export const Schema = `
         fieldName: String!
         oldValue: String
         newValue: String
+        date: String
     }
 
     union PermitEvent = PermitEventStatus | PermitEventFieldChanged
@@ -135,7 +136,7 @@ export const Schema = `
     }
 
     extend type Mutation {
-        updatePermits(state: String!, county: String!, city: String!, permits: [PermitInfo]!): String
+        updatePermits(state: String!, county: String!, city: String!, sourceDate: String!, permits: [PermitInfo]!): String
     }
 `
 
@@ -228,7 +229,7 @@ export const Resolver = {
                         __typename: "PermitEventStatus",
                         oldStatus: e.eventContent.oldStatus ? e.eventContent.oldStatus.toUpperCase() : null,
                         newStatus: e.eventContent.newStatus ? e.eventContent.newStatus.toUpperCase() : null,
-                        date: e.eventContent.time
+                        date: e.eventDate
                     }
                 } else if (e.eventType === "field_changed") {
                     return {
@@ -236,6 +237,7 @@ export const Resolver = {
                         fieldName: e.eventContent.field,
                         oldValue: e.eventContent.oldValue,
                         newValue: e.eventContent.newValue,
+                        date: e.eventDate
                     }
                 } else {
                     return null;
@@ -307,7 +309,7 @@ export const Resolver = {
         }
     },
     Mutation: {
-        updatePermits: async function (_: any, args: { state: string, county: string, city: string, permits: [PermitInfo] }, call: CallContext) {
+        updatePermits: async function (_: any, args: { state: string, county: string, city: string, sourceDate: string, permits: [PermitInfo] }, call: CallContext) {
             let city = await DB.City.findOne({
                 where: {
                     name: args.city
@@ -330,7 +332,7 @@ export const Resolver = {
             if (!city) {
                 throw "City is not found for " + args.state + ", " + args.county + ", " + args.city
             }
-            await applyPermits(call.accountId, city.id!!, args.permits)
+            await applyPermits(call.accountId, city.id!!, args.sourceDate, args.permits)
             return "ok"
         }
     }

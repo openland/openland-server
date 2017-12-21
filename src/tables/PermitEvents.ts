@@ -8,12 +8,12 @@ export interface PermitEventAttributes {
     id?: number;
     account?: number;
 
+    eventDate?: string;
     eventType?: PermitEventType;
     eventContent?: any;
 
     permitId?: number;
     permit?: Permit;
-
 }
 
 export interface PermitEvent extends sequelize.Instance<PermitEventAttributes>, PermitEventAttributes { }
@@ -27,6 +27,7 @@ export const PermitEventsTable = connection.define<PermitEvent, PermitEventAttri
         }
         , allowNull: false
     },
+    eventDate: { type: sequelize.DATEONLY, allowNull: false },
     eventType: {
         type: sequelize.ENUM('status_changed', 'field_changed'), allowNull: false
     },

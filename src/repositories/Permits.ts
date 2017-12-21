@@ -46,7 +46,7 @@ function convertType(src?: string): PermitType | undefined {
     }
 }
 
-export async function applyPermits(accountId: number, cityId: number, permits: PermitDescriptor[]) {
+export async function applyPermits(accountId: number, cityId: number, sourceDate: string, permits: PermitDescriptor[]) {
 
     //
     // Merging duplicates
@@ -135,11 +135,11 @@ export async function applyPermits(accountId: number, cityId: number, permits: P
                     pendingEvents.push({
                         account: accountId,
                         permitId: p.id,
+                        eventDate: updated.permitStatusUpdated,
                         eventType: "status_changed",
                         eventContent: {
                             oldStatus: existing.permitStatus,
                             newStatus: updated.permitStatus,
-                            time: updated.permitStatusUpdated
                         }
                     });
                     console.warn(updated)
@@ -152,6 +152,7 @@ export async function applyPermits(accountId: number, cityId: number, permits: P
                         account: accountId,
                         permitId: p.id,
                         eventType: "field_changed",
+                        eventDate: sourceDate,
                         eventContent: {
                             field: f,
                             oldValue: (existing as any)[f],
