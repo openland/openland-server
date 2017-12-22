@@ -243,23 +243,23 @@ export async function bulkApply<TRow extends { id?: number, account?: number }>(
     return indexes
 }
 
-export function textLikeFields(model: sequelize.Model<any, any>, query: string, fields: string[]) {
+export function textLikeFields(query: string, fields: string[]) {
     if (fields.length == 1) {
-        return textLikeField(model, query, fields[0]);
+        return textLikeField(query, fields[0]);
     } else {
-        return DB.connection.or(...fields.map(p => textLikeField(model, query, p)));
+        return DB.connection.or(...fields.map(p => textLikeField(query, p)));
     }
 }
 
-export function textLikeFieldsText(model: sequelize.Model<any, any>, query: string, fields: string[]) {
+export function textLikeFieldsText(query: string, fields: string[]) {
     if (fields.length == 1) {
-        return textLikeFieldText(model, query, fields[0]);
+        return textLikeFieldText(query, fields[0]);
     } else {
-        return "(" + fields.map(p => textLikeFieldText(model, query, p)).join(" OR ") + ")";
+        return "(" + fields.map(p => textLikeFieldText(query, p)).join(" OR ") + ")";
     }
 }
 
-export function textLikeField(model: sequelize.Model<any, any>, query: string, field: string) {
+export function textLikeField(query: string, field: string) {
     query = query.toLowerCase().trim()
         .replace('%', '[%]')
         .replace('[', '[[]')
@@ -276,7 +276,7 @@ export function textLikeField(model: sequelize.Model<any, any>, query: string, f
     );
 }
 
-export function textLikeFieldText(model: sequelize.Model<any, any>, query: string, field: string) {
+export function textLikeFieldText(query: string, field: string) {
     query = query.toLowerCase().trim()
         .replace('%', '[%]')
         .replace('[', '[[]')

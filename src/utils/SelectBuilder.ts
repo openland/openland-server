@@ -162,7 +162,7 @@ export class SelectBuilder<TInstance, TAttributes> {
         })
         var conditions = [...this.conditions, ...eqConditions];
         if (this.filterText != null) {
-            conditions.push(textLikeFieldsText(this.table, this.filterText.trim(), this.textFilterFields));
+            conditions.push(textLikeFieldsText(this.filterText.trim(), this.textFilterFields));
         }
         if (conditions.length == 0) {
             return null
