@@ -234,7 +234,7 @@ export const Resolver = {
                     .where("\"permitFiled\" IS NOT NULL")
                     .where("\"permitIssued\" IS NOT NULL")
                 let fasterValue = builder
-                    .where("\"permitIssued\"-\"permitFiled\" > " + len)
+                    .where("\"permitIssued\"-\"permitFiled\" >= " + len)
                     .count()
                 let total = builder.count()
 
