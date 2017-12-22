@@ -37,6 +37,8 @@ export const Schema = `
         relatedPermits: [Permit!]!
 
         governmentalUrl: String!
+
+        fasterThan: Int
     }
 
     enum PermitStatus {
@@ -222,6 +224,24 @@ export const Resolver = {
             streetNumber: n.number,
             streetNumberSuffix: n.suffix
         })),
+        fasterThan: async (src: Permit) => {
+            if (src.permitFiled && src.permitIssued) {
+                let start = new Date(src.permitFiled)
+                let end = new Date(src.permitIssued)
+                let len = Math.abs(end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
+                let builder = new SelectBuilder(DB.Permit)
+                    .where("\"permitType\" = '" + src.permitType + "'")
+                    .where("\"permitFiled\" IS NOT NULL")
+                    .where("\"permitIssued\" IS NOT NULL")
+                let fasterValue = builder
+                    .where("\"permitIssued\"-\"permitFiled\" < " + len)
+                    .count()
+                let total = builder.count()
+
+                return Math.round((await fasterValue) * 100/(await total))
+            }
+            return null
+        },
         events: (src: Permit) => {
             return src.events!!.map((e) => {
                 if (e.eventType === "status_changed") {
