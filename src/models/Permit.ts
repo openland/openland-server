@@ -225,7 +225,7 @@ export const Resolver = {
             streetNumberSuffix: n.suffix
         })),
         fasterThan: async (src: Permit) => {
-            if (src.permitFiled && src.permitIssued) {
+            if (src.permitFiled != null && src.permitIssued != null) {
                 let start = new Date(src.permitFiled)
                 let end = new Date(src.permitIssued)
                 let len = Math.abs(end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
@@ -234,11 +234,11 @@ export const Resolver = {
                     .where("\"permitFiled\" IS NOT NULL")
                     .where("\"permitIssued\" IS NOT NULL")
                 let fasterValue = builder
-                    .where("\"permitIssued\"-\"permitFiled\" < " + len)
+                    .where("\"permitIssued\"-\"permitFiled\" > " + len)
                     .count()
                 let total = builder.count()
 
-                return Math.round((await fasterValue) * 100/(await total))
+                return Math.round((await fasterValue) * 100 / (await total))
             }
             return null
         },
