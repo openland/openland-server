@@ -7,8 +7,13 @@ export interface DeveloperAttributes {
     account?: number;
     title?: string;
     slug?: string;
-    url?: string;
+    url?: string | null;
     logo?: string | null;
+    city?: string | null;
+    address?: string | null;
+    twitter?: string | null;
+    linkedin?: string | null;
+    facebook?: string | null;
     comments?: string | null;
 }
 
@@ -41,7 +46,12 @@ export const DeveloperTable = connection.define<Developer, DeveloperAttributes>(
             is: ['^[a-z]+$', 'i'],
         }
     },
-    url: {type: sequelize.STRING(256), allowNull: true},
-    logo: {type: sequelize.STRING(256), allowNull: true},
-    comments: {type: sequelize.STRING(4096), allowNull: true},
+    url: {type: sequelize.STRING(256), allowNull: true, validate: {notEmpty: true}},
+    logo: {type: sequelize.STRING(256), allowNull: true, validate: {notEmpty: true}},
+    city: {type: sequelize.STRING(256), allowNull: true, validate: {notEmpty: true}},
+    address: {type: sequelize.STRING(256), allowNull: true, validate: {notEmpty: true}},
+    twitter: {type: sequelize.STRING(256), allowNull: true, validate: {notEmpty: true}},
+    linkedin: {type: sequelize.STRING(256), allowNull: true, validate: {notEmpty: true}},
+    facebook: {type: sequelize.STRING(256), allowNull: true, validate: {notEmpty: true}},
+    comments: {type: sequelize.STRING(4096), allowNull: true, validate: {notEmpty: true}},
 }, {indexes: [{unique: true, fields: ['slug', 'account']}]});

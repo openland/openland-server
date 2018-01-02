@@ -1,6 +1,7 @@
 import { CallContext } from './CallContext';
-import { DB } from '../tables/index';
-import { Developer } from '../tables/Developer';
+import { DB } from '../tables';
+import { Developer } from '../tables';
+import { applyAlterString } from '../utils/updater';
 
 export const Schema = `
     type Organization {
@@ -51,11 +52,11 @@ export const Resolver = {
         title: (src: Developer) => src.title,
         logo: (src: Developer) => src.logo,
         url: (src: Developer) => src.url,
-        city: (src: Developer) => null,
-        address: (src: Developer) => null,
-        linkedin: (src: Developer) => null,
-        facebook: (src: Developer) => null,
-        twitter: (src: Developer) => null,
+        city: (src: Developer) => src.city,
+        address: (src: Developer) => src.address,
+        linkedin: (src: Developer) => src.linkedin,
+        facebook: (src: Developer) => src.facebook,
+        twitter: (src: Developer) => src.twitter,
         comments: (src: Developer) => src.comments,
         buildingProjects: (src: Developer) => src.getBuildingProjects(),
         partners: async (src: Developer) => {
@@ -81,7 +82,7 @@ export const Resolver = {
     },
     Query: {
         organizations: function (_: any, args: {}, context: CallContext) {
-            return DB.Developer.findAll({where: {account: context.accountId}});
+            return DB.Developer.findAll({where: {account: context.accountId}, order: ['slug']});
         },
         organization: function (_: any, args: { slug: string }, context: CallContext) {
             return DB.Developer.findOne({where: {account: context.accountId, slug: args.slug}});
@@ -114,8 +115,14 @@ export const Resolver = {
         organizationAlter: async function (_: any, args: {
             slug: string,
             title?: string,
+            logo?: string | null,
+            city?: string | null,
+            address?: string | null,
+            url?: string | null,
+            twitter?: string | null
+            linkedin?: string | null
+            facebook?: string | null
             comments?: string | null,
-            logo?: string | null
         }, context: CallContext) {
             context.requireWriteAccess();
             let existing = await DB.Developer.findOne({
@@ -127,23 +134,36 @@ export const Resolver = {
             if (!existing) {
                 throw 'Not found';
             }
+
             if (args.title !== undefined) {
                 existing.title = args.title;
-                await existing.save();
             }
             if (args.logo !== undefined) {
-                existing.logo = args.logo;
-                await existing.save();
+                existing.logo = applyAlterString(args.logo);
             }
-            if (args.comments != null) {
-                let trimmed = args.comments.trim();
-                if (trimmed.length > 0) {
-                    existing.comments = trimmed;
-                } else {
-                    existing.comments = null;
-                }
-                await existing.save();
+            if (args.city !== undefined) {
+                existing.city = applyAlterString(args.city);
             }
+            if (args.address !== undefined) {
+                existing.address = applyAlterString(args.address);
+            }
+            if (args.url !== undefined) {
+                existing.url = applyAlterString(args.url);
+            }
+            if (args.twitter !== undefined) {
+                existing.twitter = applyAlterString(args.twitter);
+            }
+            if (args.linkedin !== undefined) {
+                existing.linkedin = applyAlterString(args.linkedin);
+            }
+            if (args.facebook !== undefined) {
+                existing.facebook = applyAlterString(args.facebook);
+            }
+            if (args.comments !== undefined) {
+                existing.comments = applyAlterString(args.comments);
+            }
+
+            await existing.save();
             return existing;
         }
     }
