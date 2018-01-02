@@ -1,7 +1,7 @@
 import { QueryInterface, DataTypes } from 'sequelize';
 
 export async function up(queryInterface: QueryInterface, dataTypes: DataTypes) {
-    await queryInterface.removeColumn('permits', 'streetNumber')
+    await queryInterface.removeColumn('permits', 'streetNumber');
     await queryInterface.createTable('permit_street_numbers',
         {
             id: {
@@ -28,9 +28,5 @@ export async function up(queryInterface: QueryInterface, dataTypes: DataTypes) {
             createdAt: dataTypes.DATE,
             updatedAt: dataTypes.DATE,
         }
-    )
-}
-
-export async function down(queryInterface: QueryInterface, dataTypes: DataTypes) {
-
+    );
 }

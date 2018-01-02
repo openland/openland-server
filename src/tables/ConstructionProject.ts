@@ -12,7 +12,7 @@ export interface ConstructionProject extends sequelize.Instance<ConstructionProj
 }
 
 export const BuildingProjectTable = connection.define<ConstructionProject, ConstructionProjectAttributes>('constrution_project', {
-    id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
+    id: {type: sequelize.INTEGER, primaryKey: true, autoIncrement: true},
     account: {
         type: sequelize.INTEGER, references: {
             model: 'accounts',
@@ -20,5 +20,5 @@ export const BuildingProjectTable = connection.define<ConstructionProject, Const
         },
         allowNull: false
     },
-    projectId: { type: sequelize.STRING, allowNull: false },
-}, { indexes: [{ unique: true, fields: ['projectId', 'account'] }] });
+    projectId: {type: sequelize.STRING, allowNull: false},
+}, {indexes: [{unique: true, fields: ['projectId', 'account']}]});

@@ -1,8 +1,8 @@
 import { QueryInterface, DataTypes } from 'sequelize';
 
 export async function up(queryInterface: QueryInterface, sequelize: DataTypes) {
-    await queryInterface.createTable('permit_events',{
-        id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
+    await queryInterface.createTable('permit_events', {
+        id: {type: sequelize.INTEGER, primaryKey: true, autoIncrement: true},
         account: {
             type: sequelize.INTEGER, references: {
                 model: 'accounts',
@@ -23,11 +23,7 @@ export async function up(queryInterface: QueryInterface, sequelize: DataTypes) {
         eventContent: {
             type: sequelize.JSONB, allowNull: false,
         },
-        createdAt: { type: sequelize.DATE },
-        updatedAt: { type: sequelize.DATE },
-    })
-}
-
-export async function down(queryInterface: QueryInterface, sequelize: DataTypes) {
-    
+        createdAt: {type: sequelize.DATE},
+        updatedAt: {type: sequelize.DATE},
+    });
 }

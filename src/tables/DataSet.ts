@@ -1,5 +1,5 @@
 import { connection } from '../connector';
-import * as sequelize from 'sequelize'
+import * as sequelize from 'sequelize';
 
 export interface DataSetAttributes {
     id?: number;
@@ -12,7 +12,8 @@ export interface DataSetAttributes {
     group?: string;
 }
 
-export interface DataSet extends sequelize.Instance<DataSetAttributes>, DataSetAttributes { }
+export interface DataSet extends sequelize.Instance<DataSetAttributes>, DataSetAttributes {
+}
 
 export const DataSetTable = connection.define<DataSet, DataSetAttributes>('datasets', {
     id: {
@@ -54,4 +55,4 @@ export const DataSetTable = connection.define<DataSet, DataSetAttributes>('datas
         type: sequelize.STRING,
         allowNull: true
     }
-})
+});

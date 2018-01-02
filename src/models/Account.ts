@@ -1,6 +1,6 @@
-import { DB, Account } from '../tables'
-import { CallContext } from './CallContext'
-import { User } from '../tables/User';
+import { DB, Account } from '../tables';
+import { CallContext } from './CallContext';
+import { User } from '../tables';
 
 export const Schema = `
     type Account {
@@ -17,7 +17,7 @@ export const Schema = `
     extend type Query {
         account: Account!
     }
-`
+`;
 
 export const AdminSchema = `
 
@@ -47,11 +47,11 @@ export const AdminSchema = `
         addOwner(domain: String!, uid: ID!): Boolean
         removeOwner(domain: String!, uid: ID!): Boolean
     }
-`
+`;
 
 function convertAccount(account: Account | undefined | null, context: CallContext) {
-    if (account == null || account == undefined) {
-        return null
+    if (account == null || account === undefined) {
+        return null;
     }
     return {
         _dbid: account.id,
@@ -63,7 +63,7 @@ function convertAccount(account: Account | undefined | null, context: CallContex
         readAccess: true,
         writeAccess: context.owner,
         generation: account.generation
-    }
+    };
 }
 
 function convertUser(user: User) {
@@ -73,12 +73,12 @@ function convertUser(user: User) {
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
-    }
+    };
 }
 
 function convertAdminAccount(account: Account | undefined | null) {
-    if (account == null || account == undefined) {
-        return null
+    if (account == null || account === undefined) {
+        return null;
     }
     return {
         _dbid: account.id,
@@ -87,34 +87,34 @@ function convertAdminAccount(account: Account | undefined | null) {
         name: account.name,
         activated: account.activated,
         city: account.city
-    }
+    };
 }
 
 export async function resolveAccountId(domain: string) {
-    var res = (await DB.Account.findOne({
+    let res = (await DB.Account.findOne({
         where: {
             slug: domain
         }
-    }))
+    }));
     if (res == null) {
-        throw new Error("404: Unable to find account " + domain)
+        throw new Error('404: Unable to find account ' + domain);
     }
-    return res.id!!
+    return res.id!!;
 }
 
 export const Resolver = {
     Query: {
         account: async function (_: any, args: {}, context: CallContext) {
-            var account = await DB.Account.findOne({
+            let account = await DB.Account.findOne({
                 where: {
                     id: context.accountId,
                     activated: true
                 }
             })!!;
-            return convertAccount(account, context)
+            return convertAccount(account, context);
         }
     }
-}
+};
 
 export const AdminResolver = {
     Query: {
@@ -140,105 +140,105 @@ export const AdminResolver = {
         },
         alterAccount: async function (_: any, args: { domain: string, newName?: string, newActivated?: boolean, newDomain?: string, newCity?: string }) {
             return DB.tx(async (tx) => {
-                var res = (await DB.Account.findOne({
+                let res = (await DB.Account.findOne({
                     where: {
                         slug: args.domain.toLowerCase()
                     },
                     lock: tx.LOCK.UPDATE
-                }))
+                }));
                 if (res == null) {
-                    throw "Unable to find account"
+                    throw 'Unable to find account';
                 }
                 if (args.newName != null) {
-                    res.name = args.newName
+                    res.name = args.newName;
                 }
                 if (args.newActivated != null) {
-                    res.activated = args.newActivated
+                    res.activated = args.newActivated;
                 }
                 if (args.newDomain != null) {
-                    res.slug = args.newDomain.toLowerCase()
+                    res.slug = args.newDomain.toLowerCase();
                 }
                 if (args.newCity != null) {
                     if (args.newCity === '') {
-                        res.city = undefined
+                        res.city = undefined;
                     } else {
-                        res.city = args.newCity
+                        res.city = args.newCity;
                     }
                 }
-                res.save()
-                return convertAdminAccount(res)
-            })
+                res.save();
+                return convertAdminAccount(res);
+            });
         },
         addOwner: async function (_: any, args: { domain: string, uid: number }) {
             return DB.tx(async (tx) => {
-                var res = (await DB.Account.findOne({
+                let res = (await DB.Account.findOne({
                     where: {
                         slug: args.domain.toLowerCase()
                     }
-                }))
+                }));
                 if (res == null) {
-                    throw "Unable to find account"
+                    throw 'Unable to find account';
                 }
 
-                var user = await DB.User.findById(args.uid)
+                let user = await DB.User.findById(args.uid);
                 if (user == null) {
-                    throw "Unable to find user"
+                    throw 'Unable to find user';
                 }
 
-                var m = await DB.AccountMember.findOne({
+                let m = await DB.AccountMember.findOne({
                     where: {
                         userId: user.id,
                         accountId: res.id
                     },
                     lock: tx.LOCK.UPDATE
-                })
+                });
                 if (m != null) {
                     if (!m.owner) {
-                        m.owner = true
-                        await m.save()
+                        m.owner = true;
+                        await m.save();
                     }
                 } else {
                     DB.AccountMember.create({
                         userId: user.id,
                         accountId: res.id,
                         owner: true
-                    })
+                    });
                 }
-                return true
-            })
+                return true;
+            });
         },
 
         removeOwner: async function (_: any, args: { domain: string, uid: number }) {
             return DB.tx(async (tx) => {
-                var res = (await DB.Account.findOne({
+                let res = (await DB.Account.findOne({
                     where: {
                         slug: args.domain.toLowerCase()
                     }
-                }))
+                }));
                 if (res == null) {
-                    throw "Unable to find account"
+                    throw 'Unable to find account';
                 }
 
-                var user = await DB.User.findById(args.uid)
+                let user = await DB.User.findById(args.uid);
                 if (user == null) {
-                    throw "Unable to find user"
+                    throw 'Unable to find user';
                 }
 
-                var m = await DB.AccountMember.findOne({
+                let m = await DB.AccountMember.findOne({
                     where: {
                         userId: user.id,
                         accountId: res.id
                     },
                     lock: tx.LOCK.UPDATE
-                })
+                });
                 if (m != null) {
                     if (m.owner) {
-                        m.owner = false
-                        await m.save()
+                        m.owner = false;
+                        await m.save();
                     }
                 }
-                return true
-            })
+                return true;
+            });
         }
     }
-}
+};

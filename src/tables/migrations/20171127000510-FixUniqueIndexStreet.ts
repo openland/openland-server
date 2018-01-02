@@ -1,7 +1,7 @@
 import { QueryInterface, DataTypes } from 'sequelize';
 
 export async function up(queryInterface: QueryInterface, dataTypes: DataTypes) {
-    await queryInterface.removeIndex('streets', 'streets_account_name_suffix')
+    await queryInterface.removeIndex('streets', 'streets_account_name_suffix');
     await queryInterface.addIndex('streets', ['account', 'name'], {
         indicesType: 'UNIQUE',
         where: {
@@ -9,7 +9,7 @@ export async function up(queryInterface: QueryInterface, dataTypes: DataTypes) {
                 $eq: null
             }
         }
-    })
+    });
     await queryInterface.addIndex('streets', ['account', 'name', 'suffix'], {
         indicesType: 'UNIQUE',
         where: {
@@ -17,9 +17,5 @@ export async function up(queryInterface: QueryInterface, dataTypes: DataTypes) {
                 $ne: null
             }
         }
-    })
-}
-
-export async function down(queryInterface: QueryInterface, dataTypes: DataTypes) {
-    
+    });
 }

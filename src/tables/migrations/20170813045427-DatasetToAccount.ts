@@ -2,7 +2,7 @@ import { QueryInterface, DataTypes } from 'sequelize';
 
 export async function up(queryInterface: QueryInterface, dataTypes: DataTypes) {
 
-    await queryInterface.dropTable('datasets')
+    await queryInterface.dropTable('datasets');
     await queryInterface.createTable('datasets', {
         id: {
             type: dataTypes.INTEGER,
@@ -39,11 +39,7 @@ export async function up(queryInterface: QueryInterface, dataTypes: DataTypes) {
             defaultValue: false,
             allowNull: false
         },
-        createdAt: { type: dataTypes.DATE, allowNull: false },
-        updatedAt: { type: dataTypes.DATE, allowNull: false }
-    })
-}
-
-export async function down(queryInterface: QueryInterface, dataTypes: DataTypes) {
-    
+        createdAt: {type: dataTypes.DATE, allowNull: false},
+        updatedAt: {type: dataTypes.DATE, allowNull: false}
+    });
 }

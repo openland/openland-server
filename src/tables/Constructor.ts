@@ -1,5 +1,5 @@
 import { connection } from '../connector';
-import * as sequelize from 'sequelize'
+import * as sequelize from 'sequelize';
 
 export interface ConstructorAttributes {
     id?: number;
@@ -11,10 +11,11 @@ export interface ConstructorAttributes {
     comments?: string;
 }
 
-export interface Constructor extends sequelize.Instance<ConstructorAttributes>, ConstructorAttributes { }
+export interface Constructor extends sequelize.Instance<ConstructorAttributes>, ConstructorAttributes {
+}
 
 export const ConstructorTable = connection.define<Constructor, ConstructorAttributes>('constructor', {
-    id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
+    id: {type: sequelize.INTEGER, primaryKey: true, autoIncrement: true},
     account: {
         type: sequelize.INTEGER,
         references: {
@@ -31,10 +32,10 @@ export const ConstructorTable = connection.define<Constructor, ConstructorAttrib
     slug: {
         type: sequelize.STRING(256), allowNull: false,
         validate: {
-            is: ["^[a-z]+$", 'i'],
+            is: ['^[a-z]+$', 'i'],
         }
     },
-    url: { type: sequelize.STRING(256), allowNull: true },
-    logo: { type: sequelize.STRING(256), allowNull: true },
-    comments: { type: sequelize.STRING(4096), allowNull: true },
-}, { indexes: [{ unique: true, fields: ['slug', 'account'] }] })
+    url: {type: sequelize.STRING(256), allowNull: true},
+    logo: {type: sequelize.STRING(256), allowNull: true},
+    comments: {type: sequelize.STRING(4096), allowNull: true},
+}, {indexes: [{unique: true, fields: ['slug', 'account']}]});

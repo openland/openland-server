@@ -25,12 +25,8 @@ export async function up(queryInterface: QueryInterface, sequelize: DataTypes) {
         },
         createdAt: sequelize.DATE,
         updatedAt: sequelize.DATE,
-    })
-    await queryInterface.addIndex("building_project_developers", ['developerId', 'buildingProjectId'], {
-        indicesType: "UNIQUE"
-    })
-}
-
-export async function down(queryInterface: QueryInterface, sequelize: DataTypes) {
-    
+    });
+    await queryInterface.addIndex('building_project_developers', ['developerId', 'buildingProjectId'], {
+        indicesType: 'UNIQUE'
+    });
 }

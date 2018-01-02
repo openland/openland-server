@@ -1,214 +1,214 @@
-import { DB } from './tables/'
+import { DB } from './tables/';
 
 async function createDevelopers(accountId: number) {
     let developers = [{
-        "slug": "unity",
-        "title": "Unity Group"
+        'slug': 'unity',
+        'title': 'Unity Group'
     },
-    {
-        "slug": "asdasd",
-        "title": "asdasd"
-    },
-    {
-        "slug": "equity",
-        "title": "Equity Residential"
-    },
-    {
-        "slug": "associated",
-        "title": "Associated Estates Realty Corporation"
-    },
-    {
-        "slug": "hines",
-        "title": "Hines"
-    },
-    {
-        "slug": "invesco",
-        "title": "Invesco"
-    },
-    {
-        "slug": "avalon",
-        "title": "Avalon Bay Communities"
-    },
-    {
-        "slug": "avant",
-        "title": "AGI Avant Group, Inc."
-    },
-    {
-        "slug": "sf",
-        "title": "The City of San Francisco"
-    },
-    {
-        "slug": "related",
-        "title": "Related California"
-    },
-    {
-        "slug": "fulton",
-        "title": "Fulton Street Ventures"
-    },
-    {
-        "slug": "alliance",
-        "title": "Alliance Residential Company"
-    },
-    {
-        "slug": "trumark",
-        "title": "Trumark Urban"
-    },
-    {
-        "slug": "belrich",
-        "title": "Belrich Partners"
-    },
-    {
-        "slug": "paragon",
-        "title": "Paragon Real Estate Group"
-    },
-    {
-        "slug": "pacific",
-        "title": "Pacific Eagle Holdings Corporation"
-    },
-    {
-        "slug": "sfhdc",
-        "title": "SFHDC"
-    },
-    {
-        "slug": "mccormack",
-        "title": "McCormack Baron Salazar"
-    },
-    {
-        "slug": "raintree",
-        "title": "Raintree Partners"
-    },
-    {
-        "slug": "village",
-        "title": "Village Properties"
-    },
-    {
-        "slug": "ivanhoe",
-        "title": "Ivanhoé Cambridge"
-    },
-    {
-        "slug": "greystar",
-        "title": "Greystar"
-    },
-    {
-        "slug": "sks",
-        "title": "SKS"
-    },
-    {
-        "slug": "jaypaul",
-        "title": "Jay Paul Company"
-    },
-    {
-        "slug": "mercy",
-        "title": "Mercy Housing California"
-    },
-    {
-        "slug": "seven",
-        "title": "7x7 Development"
-    },
-    {
-        "slug": "build",
-        "title": "BUILD:"
-    },
-    {
-        "slug": "equitycommunity",
-        "title": "Equity Community Builders"
-    },
-    {
-        "slug": "openhouse",
-        "title": "Openhouse"
-    },
-    {
-        "slug": "js",
-        "title": "JS Sullivan Development"
-    },
-    {
-        "slug": "wvn",
-        "title": "WVN Assoc."
-    },
-    {
-        "slug": "emerald",
-        "title": "Emerald Fund"
-    },
-    {
-        "slug": "strada",
-        "title": "Strada Investment Group"
-    },
-    {
-        "slug": "cim",
-        "title": "CIM Management"
-    },
-    {
-        "slug": "tenderloin",
-        "title": "Tenderloin Neighborhood Development Corporation"
-    },
-    {
-        "slug": "encore",
-        "title": "Encore Capital Management"
-    },
-    {
-        "slug": "workshop",
-        "title": "Workshop1"
-    },
-    {
-        "slug": "hope",
-        "title": "HOPE SF"
-    },
-    {
-        "slug": "bridge",
-        "title": "BRIDGE Housing Corporation"
-    },
-    {
-        "slug": "dm",
-        "title": "DM Development"
-    },
-    {
-        "slug": "sloatparkside",
-        "title": "Sloat-Parkside Properties"
-    },
-    {
-        "slug": "fullview",
-        "title": "Fullview Properties"
-    },
-    {
-        "slug": "sst",
-        "title": "Sst Investments"
-    },
-    {
-        "slug": "grosvenor",
-        "title": "Grosvenor"
-    },
-    {
-        "slug": "collegeofarts",
-        "title": "California College of the Arts"
-    },
-    {
-        "slug": "essex",
-        "title": "Essex Property Trust"
-    },
-    {
-        "slug": "tmg",
-        "title": "TMG Partners"
-    },
-    {
-        "slug": "trinity",
-        "title": "Trinity Properties"
-    },
-    {
-        "slug": "oryx",
-        "title": "Oryx"
-    },
-    {
-        "slug": "millennium",
-        "title": "Millennium Partners"
-    },
-    {
-        "slug": "oceanwide",
-        "title": "Oceanwide Holding Group"
-    },
-    {
-        "slug": "celtic",
-        "title": "Celtic Development"
-    }];
+        {
+            'slug': 'asdasd',
+            'title': 'asdasd'
+        },
+        {
+            'slug': 'equity',
+            'title': 'Equity Residential'
+        },
+        {
+            'slug': 'associated',
+            'title': 'Associated Estates Realty Corporation'
+        },
+        {
+            'slug': 'hines',
+            'title': 'Hines'
+        },
+        {
+            'slug': 'invesco',
+            'title': 'Invesco'
+        },
+        {
+            'slug': 'avalon',
+            'title': 'Avalon Bay Communities'
+        },
+        {
+            'slug': 'avant',
+            'title': 'AGI Avant Group, Inc.'
+        },
+        {
+            'slug': 'sf',
+            'title': 'The City of San Francisco'
+        },
+        {
+            'slug': 'related',
+            'title': 'Related California'
+        },
+        {
+            'slug': 'fulton',
+            'title': 'Fulton Street Ventures'
+        },
+        {
+            'slug': 'alliance',
+            'title': 'Alliance Residential Company'
+        },
+        {
+            'slug': 'trumark',
+            'title': 'Trumark Urban'
+        },
+        {
+            'slug': 'belrich',
+            'title': 'Belrich Partners'
+        },
+        {
+            'slug': 'paragon',
+            'title': 'Paragon Real Estate Group'
+        },
+        {
+            'slug': 'pacific',
+            'title': 'Pacific Eagle Holdings Corporation'
+        },
+        {
+            'slug': 'sfhdc',
+            'title': 'SFHDC'
+        },
+        {
+            'slug': 'mccormack',
+            'title': 'McCormack Baron Salazar'
+        },
+        {
+            'slug': 'raintree',
+            'title': 'Raintree Partners'
+        },
+        {
+            'slug': 'village',
+            'title': 'Village Properties'
+        },
+        {
+            'slug': 'ivanhoe',
+            'title': 'Ivanhoé Cambridge'
+        },
+        {
+            'slug': 'greystar',
+            'title': 'Greystar'
+        },
+        {
+            'slug': 'sks',
+            'title': 'SKS'
+        },
+        {
+            'slug': 'jaypaul',
+            'title': 'Jay Paul Company'
+        },
+        {
+            'slug': 'mercy',
+            'title': 'Mercy Housing California'
+        },
+        {
+            'slug': 'seven',
+            'title': '7x7 Development'
+        },
+        {
+            'slug': 'build',
+            'title': 'BUILD:'
+        },
+        {
+            'slug': 'equitycommunity',
+            'title': 'Equity Community Builders'
+        },
+        {
+            'slug': 'openhouse',
+            'title': 'Openhouse'
+        },
+        {
+            'slug': 'js',
+            'title': 'JS Sullivan Development'
+        },
+        {
+            'slug': 'wvn',
+            'title': 'WVN Assoc.'
+        },
+        {
+            'slug': 'emerald',
+            'title': 'Emerald Fund'
+        },
+        {
+            'slug': 'strada',
+            'title': 'Strada Investment Group'
+        },
+        {
+            'slug': 'cim',
+            'title': 'CIM Management'
+        },
+        {
+            'slug': 'tenderloin',
+            'title': 'Tenderloin Neighborhood Development Corporation'
+        },
+        {
+            'slug': 'encore',
+            'title': 'Encore Capital Management'
+        },
+        {
+            'slug': 'workshop',
+            'title': 'Workshop1'
+        },
+        {
+            'slug': 'hope',
+            'title': 'HOPE SF'
+        },
+        {
+            'slug': 'bridge',
+            'title': 'BRIDGE Housing Corporation'
+        },
+        {
+            'slug': 'dm',
+            'title': 'DM Development'
+        },
+        {
+            'slug': 'sloatparkside',
+            'title': 'Sloat-Parkside Properties'
+        },
+        {
+            'slug': 'fullview',
+            'title': 'Fullview Properties'
+        },
+        {
+            'slug': 'sst',
+            'title': 'Sst Investments'
+        },
+        {
+            'slug': 'grosvenor',
+            'title': 'Grosvenor'
+        },
+        {
+            'slug': 'collegeofarts',
+            'title': 'California College of the Arts'
+        },
+        {
+            'slug': 'essex',
+            'title': 'Essex Property Trust'
+        },
+        {
+            'slug': 'tmg',
+            'title': 'TMG Partners'
+        },
+        {
+            'slug': 'trinity',
+            'title': 'Trinity Properties'
+        },
+        {
+            'slug': 'oryx',
+            'title': 'Oryx'
+        },
+        {
+            'slug': 'millennium',
+            'title': 'Millennium Partners'
+        },
+        {
+            'slug': 'oceanwide',
+            'title': 'Oceanwide Holding Group'
+        },
+        {
+            'slug': 'celtic',
+            'title': 'Celtic Development'
+        }];
 
     for (let d of developers) {
         await DB.Developer.create({
@@ -222,44 +222,44 @@ async function createDevelopers(accountId: number) {
 export async function createEmptyData() {
 
     var usr = await DB.User.create({
-        authId: "facebook|10213268338843701",
-        firstName: "Stepan",
-        lastName: "Korshakov",
-        email: "korshakov.stepan@gmail.com",
-        picture: "https://scontent.xx.fbcdn.net/v/t1.0-1/p50x50/12799449_10208337398773281_8543476314381451147_n.jpg?oh=f5e1fb63405ecf5dc1f88950fdcb4257&oe=5A2F17E5"
-    })
+        authId: 'facebook|10213268338843701',
+        firstName: 'Stepan',
+        lastName: 'Korshakov',
+        email: 'korshakov.stepan@gmail.com',
+        picture: 'https://scontent.xx.fbcdn.net/v/t1.0-1/p50x50/12799449_10208337398773281_8543476314381451147_n.jpg?oh=f5e1fb63405ecf5dc1f88950fdcb4257&oe=5A2F17E5'
+    });
 
     var usr2 = await DB.User.create({
-        authId: "facebook|485751831805536",
-        firstName: "Fred",
-        lastName: "Morozov",
-        email: "hi@freddy.work",
-        picture: "https://scontent.xx.fbcdn.net/v/t1.0-1/p50x50/12509241_131788243868565_7512146090752482485_n.jpg?oh=38c21ff49fe278657738b9e67112620f&oe=5AA690C6"
-    })
+        authId: 'facebook|485751831805536',
+        firstName: 'Fred',
+        lastName: 'Morozov',
+        email: 'hi@freddy.work',
+        picture: 'https://scontent.xx.fbcdn.net/v/t1.0-1/p50x50/12509241_131788243868565_7512146090752482485_n.jpg?oh=38c21ff49fe278657738b9e67112620f&oe=5AA690C6'
+    });
 
     var sf = await DB.Account.create({
-        slug: "sf",
-        name: "Housing",
-        city: "San Francisco",
+        slug: 'sf',
+        name: 'Housing',
+        city: 'San Francisco',
         activated: true,
         generation: 2
-    })
+    });
     await DB.Account.create({
-        slug: "nyc",
-        name: "New York",
+        slug: 'nyc',
+        name: 'New York',
         activated: true
-    })
+    });
 
     await DB.AccountMember.create({
         accountId: sf.id,
         userId: usr.id!!,
         owner: true
-    })
+    });
     await DB.AccountMember.create({
         accountId: sf.id,
         userId: usr2.id!!,
         owner: true
-    })
+    });
 
     for (let i = 0; i < 10; i++) {
         await DB.DataSet.create({
@@ -269,7 +269,7 @@ export async function createEmptyData() {
             account: sf.id,
             kind: 'dataset',
             activated: true
-        })
+        });
     }
 
     for (let i = 0; i < 10; i++) {
@@ -281,7 +281,7 @@ export async function createEmptyData() {
             kind: 'document',
             activated: true,
             group: 'Housing Element'
-        })
+        });
     }
     await DB.DataSet.create({
         name: '2014 Q1',
@@ -290,41 +290,41 @@ export async function createEmptyData() {
         account: sf.id,
         kind: 'document',
         activated: true,
-    })
+    });
 
     await DB.Project.create({
         account: sf.id!!,
-        name: "Building Permits",
-        slug: "housing",
+        name: 'Building Permits',
+        slug: 'housing',
         activated: true,
         outputs: '[{"url":"https://github.com", "title": "Some Outputs"}]',
         sources: '[]',
         isPrivate: false
-    })
+    });
 
     await DB.Project.create({
         account: sf.id!!,
-        name: "Building Production",
-        slug: "prod",
+        name: 'Building Production',
+        slug: 'prod',
         activated: true,
         outputs: '[]',
         sources: '[]',
         isPrivate: true
-    })
+    });
 
     await DB.Findings.create({
         account: sf.id!!,
-        title: "San Francisco Housing",
-        intro: "Blah blah blah",
-        description: "Some description",
-        recomendations: "Some findings"
-    })
+        title: 'San Francisco Housing',
+        intro: 'Blah blah blah',
+        description: 'Some description',
+        recomendations: 'Some findings'
+    });
 
     await DB.AirTable.create({
         account: sf.id!!,
-        airtableDatabase: "appWNnZ1QG63uWbxP",
-        airtableKey: "keyGfbgKhShB0D7hK"
-    })
+        airtableDatabase: 'appWNnZ1QG63uWbxP',
+        airtableKey: 'keyGfbgKhShB0D7hK'
+    });
 
     await createDevelopers(sf.id!!);
 }

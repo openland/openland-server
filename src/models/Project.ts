@@ -1,4 +1,4 @@
-import { DB, Project } from '../tables'
+import { DB, Project } from '../tables';
 import { CallContext } from './CallContext';
 
 export const Schema = `
@@ -38,7 +38,7 @@ export const Schema = `
         createProject(name: String!, slug: String!, description: String, findings: String, intro: String): Project!
         alterProject(id: ID!, name: String, slug: String, description: String, findings: String, intro: String, outputs: [LinkInput!], sources: [LinkInput!], isPrivate: Boolean, sortKey: String): Project!
     }
-`
+`;
 
 interface LinkRef {
     title: string;
@@ -54,7 +54,7 @@ function saveLinks(links: LinkRef[]): string {
 }
 
 function convertProject(project: Project) {
-    console.warn(project.isPrivate)
+    console.warn(project.isPrivate);
     if (project.isPrivate) {
         return {
             _dbid: project.id,
@@ -66,7 +66,7 @@ function convertProject(project: Project) {
             outputs: [],
             sortKey: project.sorting,
             isPrivate: true,
-        }
+        };
     } else {
         return {
             _dbid: project.id,
@@ -80,7 +80,7 @@ function convertProject(project: Project) {
             outputs: parseLinks(project.outputs),
             sortKey: project.sorting,
             isPrivate: false
-        }
+        };
     }
 }
 
@@ -97,7 +97,7 @@ export const Resolver = {
                         ['sorting', 'ASC'],
                         ['name', 'ASC']
                     ]
-                })).map(convertProject)
+                })).map(convertProject);
             } else {
                 return (await DB.Project.findAll({
                     where: {
@@ -108,28 +108,28 @@ export const Resolver = {
                         ['sorting', 'ASC'],
                         ['name', 'ASC']
                     ]
-                })).map(convertProject)
+                })).map(convertProject);
             }
         },
         project: async function (_: any, args: { slug: string }, context: CallContext) {
-            var res = await DB.Project.find({
+            let res = await DB.Project.find({
                 where: {
                     account: context.accountId,
                     slug: args.slug,
                     activated: true
                 }
-            })
+            });
             if (res != null) {
-                return convertProject(res)
+                return convertProject(res);
             } else {
-                throw "Unable to find project"
+                throw 'Unable to find project';
             }
         }
     },
     Mutation: {
         createProject: async function (_: any, args: { name: string, slug: string, description?: string, intro?: string, findings?: string }, context: CallContext) {
-            context.requireWriteAccess()
-            var res = (await DB.Project.create({
+            context.requireWriteAccess();
+            let res = (await DB.Project.create({
                 account: context.accountId,
                 name: args.name,
                 slug: args.slug,
@@ -140,36 +140,36 @@ export const Resolver = {
                 outputs: saveLinks([]),
                 sources: saveLinks([]),
                 isPrivate: false,
-            }))
-            return convertProject(res)
+            }));
+            return convertProject(res);
         },
 
         alterProject: async function (_: any, args: { id: string, name?: string, slug?: string, description?: string, intro?: string, findings?: string, outputs?: [LinkRef], sources?: [LinkRef], isPrivate?: boolean, sortKey?: string }, context: CallContext) {
-            context.requireWriteAccess()
-            var res = await DB.Project.findOne({
+            context.requireWriteAccess();
+            let res = await DB.Project.findOne({
                 where: {
                     id: args.id
                 }
             });
             if (res == null) {
-                throw "Unable to find project"
+                throw 'Unable to find project';
             }
             if (args.name != null) {
-                res.name = args.name
+                res.name = args.name;
             }
             if (args.slug != null) {
-                res.slug = args.slug
+                res.slug = args.slug;
             }
             if (args.description != null) {
                 if (args.description === '') {
-                    res.description = undefined
+                    res.description = undefined;
                 } else {
                     res.description = args.description;
                 }
             }
             if (args.intro != null) {
                 if (args.intro === '') {
-                    res.intro = undefined
+                    res.intro = undefined;
                 } else {
                     res.intro = args.intro;
                 }
@@ -182,19 +182,19 @@ export const Resolver = {
                 }
             }
             if (args.outputs != null) {
-                res.outputs = saveLinks(args.outputs)
+                res.outputs = saveLinks(args.outputs);
             }
             if (args.sources != null) {
-                res.sources = saveLinks(args.sources)
+                res.sources = saveLinks(args.sources);
             }
             if (args.isPrivate != null) {
-                res.isPrivate = args.isPrivate
+                res.isPrivate = args.isPrivate;
             }
             if (args.sortKey != null) {
-                res.sorting = args.sortKey
+                res.sorting = args.sortKey;
             }
-            await res.save()
-            return convertProject(res)
+            await res.save();
+            return convertProject(res);
         }
     }
-}
+};

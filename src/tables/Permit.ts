@@ -1,17 +1,17 @@
 import { connection } from '../connector';
-import * as sequelize from 'sequelize'
+import * as sequelize from 'sequelize';
 import { PermitEvent } from './PermitEvents';
 import { StreetNumberTable, StreetNumber } from './StreetNumber';
 
-export type PermitStatus = "filed" | "issued" | "completed" | "expired" |
-    "cancelled" | "disapproved" | "approved" | "issuing" |
-    "revoked" | "withdrawn" | "plancheck" | "suspended" |
-    "reinstated" | "filing" | "inspecting" | "upheld" |
-    "incomplete" | "granted" | "appeal"
+export type PermitStatus = 'filed' | 'issued' | 'completed' | 'expired' |
+    'cancelled' | 'disapproved' | 'approved' | 'issuing' |
+    'revoked' | 'withdrawn' | 'plancheck' | 'suspended' |
+    'reinstated' | 'filing' | 'inspecting' | 'upheld' |
+    'incomplete' | 'granted' | 'appeal'
 
-export type PermitType = "new_construction" | "additions_alterations_repare" |
-    "otc_additions" | "wall_or_painted_sign" | "sign_errect" | "demolitions" |
-    "grade_quarry_fill_excavate"
+export type PermitType = 'new_construction' | 'additions_alterations_repare' |
+    'otc_additions' | 'wall_or_painted_sign' | 'sign_errect' | 'demolitions' |
+    'grade_quarry_fill_excavate'
 
 export interface PermitAttributes {
     id?: number;
@@ -43,15 +43,17 @@ export interface PermitAttributes {
 export interface Permit extends sequelize.Instance<PermitAttributes>, PermitAttributes {
 
     events?: Array<PermitEvent>;
+
     getEvents(): Promise<Array<PermitEvent>>;
 
     streetNumbers?: Array<StreetNumber>;
+
     getStreetNumbers(): Promise<Array<StreetNumber>>;
 }
 
 export const PermitTable = connection.define<Permit, PermitAttributes>('permits', {
-    id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
-    permitId: { type: sequelize.STRING },
+    id: {type: sequelize.INTEGER, primaryKey: true, autoIncrement: true},
+    permitId: {type: sequelize.STRING},
     account: {
         type: sequelize.INTEGER, references: {
             model: 'accounts',
@@ -67,38 +69,38 @@ export const PermitTable = connection.define<Permit, PermitAttributes>('permits'
             'incomplete', 'granted'
         ), allowNull: true
     },
-    permitStatusUpdated: { type: sequelize.DATEONLY, allowNull: true },
+    permitStatusUpdated: {type: sequelize.DATEONLY, allowNull: true},
     permitType: {
         type: sequelize.ENUM(
-            "new_construction", "additions_alterations_repare",
-            "otc_additions", "wall_or_painted_sign", "sign_errect", "demolitions",
-            "grade_quarry_fill_excavate"
+            'new_construction', 'additions_alterations_repare',
+            'otc_additions', 'wall_or_painted_sign', 'sign_errect', 'demolitions',
+            'grade_quarry_fill_excavate'
         ), allowNull: true
     },
-    permitTypeWood: { type: sequelize.BOOLEAN, allowNull: true },
+    permitTypeWood: {type: sequelize.BOOLEAN, allowNull: true},
 
-    permitCreated: { type: sequelize.DATEONLY, allowNull: true },
-    permitIssued: { type: sequelize.DATEONLY, allowNull: true },
-    permitStarted: { type: sequelize.DATEONLY, allowNull: true },
-    permitCompleted: { type: sequelize.DATEONLY, allowNull: true },
-    permitExpired: { type: sequelize.DATEONLY, allowNull: true },
-    permitExpires: { type: sequelize.DATEONLY, allowNull: true },
-    permitFiled: { type: sequelize.DATEONLY, allowNull: true },
+    permitCreated: {type: sequelize.DATEONLY, allowNull: true},
+    permitIssued: {type: sequelize.DATEONLY, allowNull: true},
+    permitStarted: {type: sequelize.DATEONLY, allowNull: true},
+    permitCompleted: {type: sequelize.DATEONLY, allowNull: true},
+    permitExpired: {type: sequelize.DATEONLY, allowNull: true},
+    permitExpires: {type: sequelize.DATEONLY, allowNull: true},
+    permitFiled: {type: sequelize.DATEONLY, allowNull: true},
 
-    existingStories: { type: sequelize.INTEGER, allowNull: true },
-    proposedStories: { type: sequelize.INTEGER, allowNull: true },
-    existingUnits: { type: sequelize.INTEGER, allowNull: true },
-    proposedUnits: { type: sequelize.INTEGER, allowNull: true },
-    existingAffordableUnits: { type: sequelize.INTEGER, allowNull: true },
-    proposedAffordableUnits: { type: sequelize.INTEGER, allowNull: true },
-    proposedUse: { type: sequelize.STRING, allowNull: true },
-    description: { type: sequelize.STRING(4096), allowNull: true }
+    existingStories: {type: sequelize.INTEGER, allowNull: true},
+    proposedStories: {type: sequelize.INTEGER, allowNull: true},
+    existingUnits: {type: sequelize.INTEGER, allowNull: true},
+    proposedUnits: {type: sequelize.INTEGER, allowNull: true},
+    existingAffordableUnits: {type: sequelize.INTEGER, allowNull: true},
+    proposedAffordableUnits: {type: sequelize.INTEGER, allowNull: true},
+    proposedUse: {type: sequelize.STRING, allowNull: true},
+    description: {type: sequelize.STRING(4096), allowNull: true}
 }, {
-        indexes: [
-            { unique: true, fields: ['permitId', 'account'] },
-            { fields: ['permitId', 'permitCreated'] },
-            { fields: ['permitCreated'] }
-        ]
-    })
+    indexes: [
+        {unique: true, fields: ['permitId', 'account']},
+        {fields: ['permitId', 'permitCreated']},
+        {fields: ['permitCreated']}
+    ]
+});
 
-PermitTable.belongsToMany(StreetNumberTable, { through: 'permit_street_numbers', as: 'streetNumbers' })
+PermitTable.belongsToMany(StreetNumberTable, {through: 'permit_street_numbers', as: 'streetNumbers'});

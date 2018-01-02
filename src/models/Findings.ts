@@ -1,5 +1,5 @@
-import { DB, Findings } from '../tables'
-import { CallContext } from './CallContext'
+import { DB, Findings } from '../tables';
+import { CallContext } from './CallContext';
 
 export const Schema = `
     type Findings {
@@ -18,7 +18,7 @@ export const Schema = `
         createFindings(title: String!, intro: String!): Findings
         alterFindings(title: String, intro: String, description: String, recomendations: String): Findings
     }
-`
+`;
 
 function convertFindings(findings: Findings) {
     return {
@@ -28,57 +28,57 @@ function convertFindings(findings: Findings) {
         title: findings.title,
         description: findings.description,
         recomendations: findings.recomendations
-    }
+    };
 }
 
 export const Resolver = {
     Query: {
-        findings: async function (_: any, args: { }, context: CallContext) {
-            var res = await DB.Findings.findOne({
+        findings: async function (_: any, args: {}, context: CallContext) {
+            let res = await DB.Findings.findOne({
                 where: {
                     account: context.accountId
                 }
-            })
+            });
             if (res == null) {
-                return null
+                return null;
             }
-            return convertFindings(res)
+            return convertFindings(res);
         }
     },
     Mutation: {
         createFindings: async function (_: any, args: { title: string, intro: string }, context: CallContext) {
-            context.requireWriteAccess()
-            var res = await DB.Findings.create({
+            context.requireWriteAccess();
+            let res = await DB.Findings.create({
                 account: context.accountId,
                 title: args.title,
                 intro: args.intro
-            })
-            return convertFindings(res)
+            });
+            return convertFindings(res);
         },
         alterFindings: async function (_: any, args: { title?: string, intro?: string, description?: string, recomendations?: string }, context: CallContext) {
-            context.requireWriteAccess()
-            var res = await DB.Findings.findOne({
+            context.requireWriteAccess();
+            let res = await DB.Findings.findOne({
                 where: {
                     account: context.accountId
                 }
-            })
+            });
             if (res == null) {
-                throw "Unable to find Findings"
+                throw 'Unable to find Findings';
             }
             if (args.intro != null) {
-                res.intro = args.intro
+                res.intro = args.intro;
             }
             if (args.title != null) {
-                res.title = args.title
+                res.title = args.title;
             }
             if (args.description != null) {
-                res.description = args.description
+                res.description = args.description;
             }
             if (args.recomendations != null) {
-                res.recomendations = args.recomendations
+                res.recomendations = args.recomendations;
             }
-            await res.save()
-            return convertFindings(res)
+            await res.save();
+            return convertFindings(res);
         }
     }
-}
+};

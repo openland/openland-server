@@ -1,6 +1,6 @@
-import { CallContext } from "./CallContext";
-import { DB } from "../tables/index";
-import { Developer } from "../tables/Developer";
+import { CallContext } from './CallContext';
+import { DB } from '../tables/index';
+import { Developer } from '../tables/Developer';
 
 export const Schema = `
     type Developer {
@@ -33,12 +33,12 @@ export const Resolver = {
         comments: (src: Developer) => src.comments,
         buildingProjects: (src: Developer) => src.getBuildingProjects(),
         partners: async (src: Developer) => {
-            let projects = await src.getBuildingProjects()
+            let projects = await src.getBuildingProjects();
             let developers = new Set<number>();
             for (let p of projects) {
                 (await p.getDevelopers()).forEach((d) => {
                     if (d.id !== src.id) {
-                        developers.add(d.id!!)
+                        developers.add(d.id!!);
                     }
                 });
             }
@@ -50,25 +50,25 @@ export const Resolver = {
                         $in: Array.from(developers)
                     }
                 }
-            })
+            });
         }
     },
     Query: {
         developers: function (_: any, args: {}, context: CallContext) {
-            return DB.Developer.findAll({ where: { account: context.accountId } })
+            return DB.Developer.findAll({where: {account: context.accountId}});
         },
         developer: function (_: any, args: { slug: string }, context: CallContext) {
-            return DB.Developer.findOne({ where: { account: context.accountId, slug: args.slug } })
+            return DB.Developer.findOne({where: {account: context.accountId, slug: args.slug}});
         }
     },
     Mutation: {
         addDeveloper: async function (_: any, args: { slug: string, title: string }, context: CallContext) {
-            context.requireWriteAccess()
+            context.requireWriteAccess();
             return DB.Developer.create({
                 account: context.accountId,
                 slug: args.slug.toLowerCase(),
                 title: args.title
-            })
+            });
         },
         removeDeveloper: async function (_: any, args: { slug: string }, context: CallContext) {
             let existing = await DB.Developer.findOne({
@@ -76,13 +76,12 @@ export const Resolver = {
                     account: context.accountId,
                     slug: args.slug.toLowerCase()
                 }
-            })
+            });
             if (existing) {
-                await existing.destroy()
-                return "ok"
-            }
-            else {
-                throw "Not found"
+                await existing.destroy();
+                return 'ok';
+            } else {
+                throw 'Not found';
             }
         },
         alterDeveloper: async function (_: any, args: { slug: string, title?: string, comments?: string }, context: CallContext) {
@@ -91,24 +90,24 @@ export const Resolver = {
                     account: context.accountId,
                     slug: args.slug.toLowerCase()
                 }
-            })
+            });
             if (!existing) {
-                throw "Not found"
+                throw 'Not found';
             }
             if (args.title != null) {
-                existing.title = args.title
-                await existing.save()
+                existing.title = args.title;
+                await existing.save();
             }
             if (args.comments != null) {
-                let trimmed = args.comments.trim()
+                let trimmed = args.comments.trim();
                 if (trimmed.length > 0) {
-                    existing.comments = trimmed
+                    existing.comments = trimmed;
                 } else {
-                    existing.comments = null
+                    existing.comments = null;
                 }
-                await existing.save()
+                await existing.save();
             }
             return existing;
         }
     }
-}
+};

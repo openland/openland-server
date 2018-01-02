@@ -1,5 +1,5 @@
 import { connection } from '../connector';
-import * as sequelize from 'sequelize'
+import * as sequelize from 'sequelize';
 
 export interface FindigsAttributes {
     id?: number;
@@ -10,10 +10,11 @@ export interface FindigsAttributes {
     recomendations?: string;
 }
 
-export interface Findings extends sequelize.Instance<FindigsAttributes>, FindigsAttributes { }
+export interface Findings extends sequelize.Instance<FindigsAttributes>, FindigsAttributes {
+}
 
 export const FindingsTable = connection.define<Findings, FindigsAttributes>('finding', {
-    id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
+    id: {type: sequelize.INTEGER, primaryKey: true, autoIncrement: true},
     account: {
         type: sequelize.INTEGER,
         references: {
@@ -22,8 +23,8 @@ export const FindingsTable = connection.define<Findings, FindigsAttributes>('fin
         },
         unique: true
     },
-    intro: { type: sequelize.STRING(65536), allowNull: false },
-    title: { type: sequelize.STRING, allowNull: false },
-    description: { type: sequelize.STRING(65536), allowNull: true },
-    recomendations: { type: sequelize.STRING(65536), allowNull: true }
-})
+    intro: {type: sequelize.STRING(65536), allowNull: false},
+    title: {type: sequelize.STRING, allowNull: false},
+    description: {type: sequelize.STRING(65536), allowNull: true},
+    recomendations: {type: sequelize.STRING(65536), allowNull: true}
+});

@@ -1,5 +1,5 @@
-import { CallContext } from "./CallContext";
-import { applyStreets } from "../repositories/Streets";
+import { CallContext } from './CallContext';
+import { applyStreets } from '../repositories/Streets';
 
 export const Schema = `
 
@@ -26,18 +26,21 @@ export const Schema = `
     extend type Mutation {
         updateStreets(streets: [StreetInfo!]!): String
     }
-`
+`;
 
 interface StreetInfo {
-    name: string
-    suffix?: string
+    name: string;
+    suffix?: string;
 }
 
 export const Resolver = {
     Mutation: {
         updateStreets: async function (_: any, args: { streets: [StreetInfo] }, context: CallContext) {
-            await applyStreets(context.accountId, args.streets.map((s) => ({ streetName: s.name, streetNameSuffix: s.suffix })))
-            return "ok"
+            await applyStreets(context.accountId, args.streets.map((s) => ({
+                streetName: s.name,
+                streetNameSuffix: s.suffix
+            })));
+            return 'ok';
         }
     }
-}
+};

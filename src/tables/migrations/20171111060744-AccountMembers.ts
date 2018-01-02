@@ -8,7 +8,7 @@ export async function up(queryInterface: QueryInterface, dataTypes: DataTypes) {
                 fields: ['accountId', 'userId']
             }
         }
-    } as QueryOptions
+    } as QueryOptions;
 
     await queryInterface.createTable('account_members', {
         accountId: {
@@ -23,13 +23,9 @@ export async function up(queryInterface: QueryInterface, dataTypes: DataTypes) {
                 key: 'id',
             }
         },
-        owner: { type: dataTypes.BOOLEAN, defaultValue: false },
-        activated: { type: dataTypes.BOOLEAN, defaultValue: false },
-        createdAt: { type: dataTypes.DATE },
-        updatedAt: { type: dataTypes.DATE }
-    },indexes)
-}
-
-export async function down(queryInterface: QueryInterface, dataTypes: DataTypes) {
-    
+        owner: {type: dataTypes.BOOLEAN, defaultValue: false},
+        activated: {type: dataTypes.BOOLEAN, defaultValue: false},
+        createdAt: {type: dataTypes.DATE},
+        updatedAt: {type: dataTypes.DATE}
+    }, indexes);
 }

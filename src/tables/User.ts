@@ -1,5 +1,5 @@
 import { connection } from '../connector';
-import * as sequelize from 'sequelize'
+import * as sequelize from 'sequelize';
 
 export interface UserAttributes {
     id?: number;
@@ -10,13 +10,14 @@ export interface UserAttributes {
     picture?: string;
 }
 
-export interface User extends sequelize.Instance<UserAttributes>, UserAttributes { }
+export interface User extends sequelize.Instance<UserAttributes>, UserAttributes {
+}
 
 export const UserTable = connection.define<User, UserAttributes>('user', {
-    id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
-    authId: { type: sequelize.STRING, unique: true },
-    firstName: { type: sequelize.STRING, allowNull: false },
-    lastName: { type: sequelize.STRING, allowNull: false },
-    email: { type: sequelize.STRING, allowNull: false },
-    picture: { type: sequelize.STRING, allowNull: false }
-})
+    id: {type: sequelize.INTEGER, primaryKey: true, autoIncrement: true},
+    authId: {type: sequelize.STRING, unique: true},
+    firstName: {type: sequelize.STRING, allowNull: false},
+    lastName: {type: sequelize.STRING, allowNull: false},
+    email: {type: sequelize.STRING, allowNull: false},
+    picture: {type: sequelize.STRING, allowNull: false}
+});

@@ -1,8 +1,8 @@
-import { CallContext } from "./CallContext";
-import { DB } from "../tables/index";
-import { applyPermits } from "../repositories/Permits";
-import { PermitStatus, Permit, PermitType } from "../tables/Permit";
-import { SelectBuilder } from "../utils/SelectBuilder";
+import { CallContext } from './CallContext';
+import { DB } from '../tables';
+import { applyPermits } from '../repositories/Permits';
+import { PermitStatus, Permit, PermitType } from '../tables/Permit';
+import { SelectBuilder } from '../utils/SelectBuilder';
 
 export const Schema = `
 
@@ -140,24 +140,24 @@ export const Schema = `
     extend type Mutation {
         updatePermits(state: String!, county: String!, city: String!, sourceDate: String!, permits: [PermitInfo]!): String
     }
-`
+`;
 
 interface PermitInfo {
-    id: string
-    status?: PermitStatus
-    type?: PermitType
-    typeWood?: boolean
+    id: string;
+    status?: PermitStatus;
+    type?: PermitType;
+    typeWood?: boolean;
 
-    statusUpdatedAt?: string
-    createdAt?: string
-    issuedAt?: string
-    filedAt?: string
-    startedAt?: string
-    completedAt?: string
-    expiredAt?: string
-    expiresAt?: string
+    statusUpdatedAt?: string;
+    createdAt?: string;
+    issuedAt?: string;
+    filedAt?: string;
+    startedAt?: string;
+    completedAt?: string;
+    expiredAt?: string;
+    expiresAt?: string;
 
-    street?: [StreetNumberInfo]
+    street?: [StreetNumberInfo];
 
     existingStories?: number;
     proposedStories?: number;
@@ -170,32 +170,32 @@ interface PermitInfo {
 }
 
 interface StreetNumberInfo {
-    streetName: string
-    streetNameSuffix?: string
-    streetNumber: number
-    streetNumberSuffix?: string
+    streetName: string;
+    streetNameSuffix?: string;
+    streetNumber: number;
+    streetNumberSuffix?: string;
 }
 
 export const Resolver = {
     PermitEvent: {
         __resolveType: (src: any) => {
-            return src.__typename
+            return src.__typename;
         }
     },
     Permit: {
         id: (src: Permit) => src.permitId,
         status: (src: Permit) => {
             if (src.permitStatus) {
-                return src.permitStatus.toUpperCase()
+                return src.permitStatus.toUpperCase();
             } else {
-                return null
+                return null;
             }
         },
         type: (src: Permit) => {
             if (src.permitType) {
-                return src.permitType.toUpperCase()
+                return src.permitType.toUpperCase();
             } else {
-                return null
+                return null;
             }
         },
         typeWood: (src: Permit) => src.permitTypeWood,
@@ -216,7 +216,7 @@ export const Resolver = {
         proposedAffordableUnits: (src: Permit) => src.proposedAffordableUnits,
         proposedUse: (src: Permit) => src.proposedUse,
         description: (src: Permit) => src.description,
-        governmentalUrl: (src: Permit) => "https://dbiweb.sfgov.org/dbipts/default.aspx?page=Permit&PermitNumber=" + src.permitId,
+        governmentalUrl: (src: Permit) => 'https://dbiweb.sfgov.org/dbipts/default.aspx?page=Permit&PermitNumber=' + src.permitId,
         streetNumbers: (src: Permit) => src.streetNumbers!!.map((n) => ({
             streetId: n.street!!.id,
             streetName: n.street!!.name,
@@ -226,46 +226,46 @@ export const Resolver = {
         })),
         fasterThan: async (src: Permit) => {
             if (src.permitFiled != null && src.permitIssued != null) {
-                let start = new Date(src.permitFiled)
-                let end = new Date(src.permitIssued)
+                let start = new Date(src.permitFiled);
+                let end = new Date(src.permitIssued);
                 let len = Math.abs(end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
                 let builder = new SelectBuilder(DB.Permit)
-                    .where("\"permitType\" = '" + src.permitType + "'")
-                    .where("\"permitFiled\" IS NOT NULL")
-                    .where("\"permitIssued\" IS NOT NULL")
+                    .where('\"permitType" = \'' + src.permitType + '\'')
+                    .where('\"permitFiled" IS NOT NULL')
+                    .where('\"permitIssued" IS NOT NULL');
                 let fasterValue = builder
-                    .where("\"permitIssued\"-\"permitFiled\" >= " + len)
-                    .count()
-                let total = builder.count()
+                    .where('\"permitIssued"-"permitFiled" >= ' + len)
+                    .count();
+                let total = builder.count();
 
-                return Math.round((await fasterValue) * 100 / (await total))
+                return Math.round((await fasterValue) * 100 / (await total));
             }
-            return null
+            return null;
         },
         events: (src: Permit) => {
             return src.events!!.map((e) => {
-                if (e.eventType === "status_changed") {
+                if (e.eventType === 'status_changed') {
                     return {
-                        __typename: "PermitEventStatus",
+                        __typename: 'PermitEventStatus',
                         oldStatus: e.eventContent.oldStatus ? e.eventContent.oldStatus.toUpperCase() : null,
                         newStatus: e.eventContent.newStatus ? e.eventContent.newStatus.toUpperCase() : null,
                         date: e.eventDate
-                    }
-                } else if (e.eventType === "field_changed") {
+                    };
+                } else if (e.eventType === 'field_changed') {
                     return {
-                        __typename: "PermitEventFieldChanged",
+                        __typename: 'PermitEventFieldChanged',
                         fieldName: e.eventContent.field,
                         oldValue: e.eventContent.oldValue,
                         newValue: e.eventContent.newValue,
                         date: e.eventDate
-                    }
+                    };
                 } else {
                     return null;
                 }
             }).filter((v) => v !== null);
         },
         relatedPermits: async (src: Permit) => {
-            let numbers = (await src.getStreetNumbers()).map((p) => p.id!!)
+            let numbers = (await src.getStreetNumbers()).map((p) => p.id!!);
             return DB.Permit.findAll({
                 include: [{
                     model: DB.StreetNumber,
@@ -281,12 +281,12 @@ export const Resolver = {
                     }
                 }],
                 order: [['permitCreated', 'DESC']]
-            })
+            });
         }
     },
     Query: {
         permit: async function (_: any, args: { id: string }, context: CallContext) {
-            var res = await DB.Permit.findOne({
+            let res = await DB.Permit.findOne({
                 where: {
                     account: context.accountId,
                     permitId: args.id
@@ -302,22 +302,22 @@ export const Resolver = {
                     model: DB.PermitEvents,
                     as: 'events'
                 }]
-            })
+            });
             if (res != null) {
-                return res
+                return res;
             } else {
-                return null
+                return null;
             }
         },
         permits: async function (_: any, args: { filter?: string, first: number, after?: string, page?: number }, context: CallContext) {
             let builder = new SelectBuilder(DB.Permit)
-                .filterField("permitId")
+                .filterField('permitId')
                 .filter(args.filter)
                 .after(args.after)
                 .page(args.page)
                 .limit(args.first)
-                .whereEq("account", context.accountId)
-                .orderBy("permitCreated", "DESC NULLS LAST")
+                .whereEq('account', context.accountId)
+                .orderBy('permitCreated', 'DESC NULLS LAST');
             return builder.findAll([{
                 model: DB.StreetNumber,
                 as: 'streetNumbers',
@@ -348,12 +348,12 @@ export const Resolver = {
                         }
                     }]
                 }]
-            })
+            });
             if (!city) {
-                throw "City is not found for " + args.state + ", " + args.county + ", " + args.city
+                throw 'City is not found for ' + args.state + ', ' + args.county + ', ' + args.city;
             }
-            await applyPermits(call.accountId, city.id!!, args.sourceDate, args.permits)
-            return "ok"
+            await applyPermits(call.accountId, city.id!!, args.sourceDate, args.permits);
+            return 'ok';
         }
     }
-}
+};

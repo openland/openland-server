@@ -1,28 +1,27 @@
-import { DB, Developer } from "../tables/index";
-import { bulkApply } from "../utils/db_utils";
-import { Transaction } from "sequelize";
-import { BuildingProjectAttributes } from "../tables/BuildingProject";
+import { DB, Developer } from '../tables';
+import { bulkApply } from '../utils/db_utils';
+import { Transaction } from 'sequelize';
 
 export interface BuildingProjectDescription {
-    projectId: string
-    permitId?: string
-    govId?: string
-    name?: string
-    existingUnits?: number
-    proposedUnits?: number
-    projectStart?: string
-    projectExpectedCompleted?: string
+    projectId: string;
+    permitId?: string;
+    govId?: string;
+    name?: string;
+    existingUnits?: number;
+    proposedUnits?: number;
+    projectStart?: string;
+    projectExpectedCompleted?: string;
 
     picture?: string;
 
-    extrasDeveloper?: string | null
-    extrasGeneralConstructor?: string | null
-    extrasYearEnd?: string | null
-    extrasAddress?: string | null
-    extrasAddressSecondary?: string | null
-    extrasPermit?: string | null
-    extrasComment?: string | null
-    extrasUrl?: string | null
+    extrasDeveloper?: string | null;
+    extrasGeneralConstructor?: string | null;
+    extrasYearEnd?: string | null;
+    extrasAddress?: string | null;
+    extrasAddressSecondary?: string | null;
+    extrasPermit?: string | null;
+    extrasComment?: string | null;
+    extrasUrl?: string | null;
     extrasLatitude?: number;
     extrasLongitude?: number;
 
@@ -41,7 +40,7 @@ export async function deleteIncorrectProjects(tx: Transaction, accountId: number
             }
         },
         transaction: tx
-    })
+    });
 }
 
 export async function applyBuildingProjects(tx: Transaction, accountId: number, projects: BuildingProjectDescription[]) {
@@ -50,8 +49,8 @@ export async function applyBuildingProjects(tx: Transaction, accountId: number, 
     // Main Records
     //
 
-    var values = projects.map(p => {
-        var res: BuildingProjectAttributes = {
+    let values = projects.map(p => {
+        return {
             projectId: p.projectId,
             govId: p.govId,
             name: p.name,
@@ -74,25 +73,24 @@ export async function applyBuildingProjects(tx: Transaction, accountId: number, 
             extrasLongitude: p.extrasLongitude,
 
             verified: p.verified
-        }
-        return res
-    })
-    let applied = await bulkApply(tx, DB.BuidlingProject, accountId, 'projectId', values)
+        };
+    });
+    let applied = await bulkApply(tx, DB.BuidlingProject, accountId, 'projectId', values);
 
     //
     // Developers
     //
 
-    var developerSet = new Set<string>();
+    let developerSet = new Set<string>();
     projects.forEach((p) => {
         if (p.developers) {
             p.developers.forEach((d) => {
                 developerSet.add(d.toLowerCase());
-            })
+            });
         }
     });
     let allDevelopers = Array.from(developerSet);
-    var developers: { [key: string]: Developer } = {};
+    let developers: { [key: string]: Developer } = {};
     if (allDevelopers.length > 0) {
         (await DB.Developer.findAll({
             where: {
@@ -104,23 +102,23 @@ export async function applyBuildingProjects(tx: Transaction, accountId: number, 
             transaction: tx
         })).forEach((d) => {
             developers[d.slug!!] = d;
-        })
+        });
     }
 
-    var index = 0
+    let index = 0;
     for (let p of applied) {
         let bp = (await DB.BuidlingProject.findOne({
-            where: { id: p.id },
+            where: {id: p.id},
             transaction: tx,
             logging: false
-        }))!!
+        }))!!;
         let src = projects[index];
         if (src.developers) {
             await bp.setDevelopers!!(src.developers.map((d) => {
-                return developers[d.toLowerCase()]!!
-            }), { transaction: tx, logging: false });
+                return developers[d.toLowerCase()]!!;
+            }), {transaction: tx, logging: false});
         } else {
-            await bp.setDevelopers!!([], { transaction: tx, logging: false });
+            await bp.setDevelopers!!([], {transaction: tx, logging: false});
         }
 
         index++;

@@ -1,22 +1,22 @@
-import { StreetNumberDescription, applyStreetNumbers } from "./Streets";
-import { DB } from "../tables/index";
-import { PermitStatus, PermitType } from "../tables/Permit";
-import { bulkAssociations, bulkApply } from "../utils/db_utils";
-import { PermitEventAttributes } from "../tables/PermitEvents";
+import { StreetNumberDescription, applyStreetNumbers } from './Streets';
+import { DB } from '../tables';
+import { PermitStatus, PermitType } from '../tables/Permit';
+import { bulkAssociations, bulkApply } from '../utils/db_utils';
+import { PermitEventAttributes } from '../tables/PermitEvents';
 
 export interface PermitDescriptor {
-    id: string
-    status?: PermitStatus
-    type?: PermitType
-    typeWood?: boolean
-    statusUpdatedAt?: string
-    createdAt?: string
-    issuedAt?: string
-    completedAt?: string
-    expiredAt?: string
-    expiresAt?: string
-    filedAt?: string
-    startedAt?: string
+    id: string;
+    status?: PermitStatus;
+    type?: PermitType;
+    typeWood?: boolean;
+    statusUpdatedAt?: string;
+    createdAt?: string;
+    issuedAt?: string;
+    completedAt?: string;
+    expiredAt?: string;
+    expiresAt?: string;
+    filedAt?: string;
+    startedAt?: string;
 
     existingStories?: number;
     proposedStories?: number;
@@ -27,54 +27,54 @@ export interface PermitDescriptor {
     proposedUse?: string;
     description?: string;
 
-    street?: [StreetNumberDescription]
+    street?: [StreetNumberDescription];
 }
 
 function convertStatus(src?: string): PermitStatus | undefined {
     if (src) {
-        return src.toLowerCase() as PermitStatus
+        return src.toLowerCase() as PermitStatus;
     } else {
-        return undefined
+        return undefined;
     }
 }
 
 function convertType(src?: string): PermitType | undefined {
     if (src) {
-        return src.toLowerCase() as PermitType
+        return src.toLowerCase() as PermitType;
     } else {
-        return undefined
+        return undefined;
     }
 }
 
-export async function applyPermits(accountId: number, cityId: number, sourceDate: string, permits: PermitDescriptor[]) {
+export async function applyPermits(accountId: number, cityId: number, sourceDate: string, sourcePermits: PermitDescriptor[]) {
 
     //
     // Merging duplicates
     //
 
-    var normalized = new Map<String, PermitDescriptor>()
-    for (let p of permits) {
+    let normalized = new Map<String, PermitDescriptor>();
+    for (let p of sourcePermits) {
         if (normalized.has(p.id)) {
-            normalized.set(p.id, Object.assign(normalized.get(p.id), p))
+            normalized.set(p.id, Object.assign(normalized.get(p.id), p));
         } else {
-            normalized.set(p.id, p)
+            normalized.set(p.id, p);
         }
     }
-    var permits = Array.from(normalized.values())
+    let permits = Array.from(normalized.values());
 
     //
     // Importing Street Numbers
     //
 
-    console.info("Starting bulk insert/update of permits")
-    console.time("street_numbers")
+    console.info('Starting bulk insert/update of permits');
+    console.time('street_numbers');
     let streetNumbers = permits
         .filter((p) => p.street)
         .map((p) => p.street!!)
-        .reduce((list, x) => list.concat(x), Array<StreetNumberDescription>())
-    let loadedNumbers = await applyStreetNumbers(cityId, streetNumbers)
+        .reduce((list, x) => list.concat(x), Array<StreetNumberDescription>());
+    let loadedNumbers = await applyStreetNumbers(cityId, streetNumbers);
 
-    console.timeEnd("street_numbers")
+    console.timeEnd('street_numbers');
 
     //
     // Apply Permits
@@ -103,29 +103,29 @@ export async function applyPermits(accountId: number, cityId: number, sourceDate
         description: p.description,
     }));
 
-    console.time("bulk_all")
+    console.time('bulk_all');
 
     await DB.tx(async (tx) => {
-        let applied = await bulkApply(tx, DB.Permit, accountId, 'permitId', rows)
-        var pendingStreets = Array<{ permitId: number, streetId: number }>()
-        var pending = loadedNumbers
-        var index = 0
-        var streetIndex = 0
+        let applied = await bulkApply(tx, DB.Permit, accountId, 'permitId', rows);
+        let pendingStreets = Array<{ permitId: number, streetId: number }>();
+        let pending = loadedNumbers;
+        let index = 0;
+        let streetIndex = 0;
         for (let p of permits) {
             if (p.street) {
                 for (let _ of p.street) {
-                    pendingStreets.push({ permitId: applied[index].id, streetId: pending[streetIndex]!! })
-                    streetIndex++
+                    pendingStreets.push({permitId: applied[index].id, streetId: pending[streetIndex]!!});
+                    streetIndex++;
                 }
             }
-            index++
+            index++;
         }
         if (pendingStreets.length > 0) {
-            let mapped = pendingStreets.map((v) => ({ value1: v.permitId, value2: v.streetId }));
-            await bulkAssociations(tx, "permit_street_numbers", "permitId", "streetNumberId", mapped)
+            let mapped = pendingStreets.map((v) => ({value1: v.permitId, value2: v.streetId}));
+            await bulkAssociations(tx, 'permit_street_numbers', 'permitId', 'streetNumberId', mapped);
         }
 
-        var pendingEvents = new Array<PermitEventAttributes>()
+        let pendingEvents = new Array<PermitEventAttributes>();
         for (let p of applied) {
             if (p.changed) {
                 let existing = p.oldValue!!;
@@ -136,13 +136,13 @@ export async function applyPermits(accountId: number, cityId: number, sourceDate
                         account: accountId,
                         permitId: p.id,
                         eventDate: updated.permitStatusUpdated,
-                        eventType: "status_changed",
+                        eventType: 'status_changed',
                         eventContent: {
                             oldStatus: existing.permitStatus,
                             newStatus: updated.permitStatus,
                         }
                     });
-                    console.warn(updated)
+                    console.warn(updated);
                 }
                 for (let f of changedFields) {
                     if (f === 'permitStatus') {
@@ -151,7 +151,7 @@ export async function applyPermits(accountId: number, cityId: number, sourceDate
                     pendingEvents.push({
                         account: accountId,
                         permitId: p.id,
-                        eventType: "field_changed",
+                        eventType: 'field_changed',
                         eventDate: sourceDate,
                         eventContent: {
                             field: f,
@@ -163,8 +163,8 @@ export async function applyPermits(accountId: number, cityId: number, sourceDate
             }
         }
         if (pendingEvents.length > 0) {
-            await DB.PermitEvents.bulkCreate(pendingEvents)
+            await DB.PermitEvents.bulkCreate(pendingEvents);
         }
     });
-    console.timeEnd("bulk_all")
+    console.timeEnd('bulk_all');
 }

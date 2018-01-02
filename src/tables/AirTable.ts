@@ -1,5 +1,5 @@
 import { connection } from '../connector';
-import * as sequelize from 'sequelize'
+import * as sequelize from 'sequelize';
 
 export interface AirTableAttributes {
     id?: number;
@@ -8,10 +8,11 @@ export interface AirTableAttributes {
     airtableDatabase: string;
 }
 
-export interface AirTable extends sequelize.Instance<AirTableAttributes>, AirTableAttributes { }
+export interface AirTable extends sequelize.Instance<AirTableAttributes>, AirTableAttributes {
+}
 
 export const AirTableTable = connection.define<AirTable, AirTableAttributes>('airtable', {
-    id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
+    id: {type: sequelize.INTEGER, primaryKey: true, autoIncrement: true},
     account: {
         type: sequelize.INTEGER, references: {
             model: 'accounts',
@@ -20,6 +21,6 @@ export const AirTableTable = connection.define<AirTable, AirTableAttributes>('ai
         allowNull: false,
         unique: true
     },
-    airtableKey: { type: sequelize.STRING, allowNull: false },
-    airtableDatabase: { type: sequelize.STRING, allowNull: false }
-})
+    airtableKey: {type: sequelize.STRING, allowNull: false},
+    airtableDatabase: {type: sequelize.STRING, allowNull: false}
+});

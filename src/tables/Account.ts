@@ -1,5 +1,5 @@
 import { connection } from '../connector';
-import * as sequelize from 'sequelize'
+import * as sequelize from 'sequelize';
 
 export interface AccountAttributes {
     id?: number;
@@ -10,16 +10,17 @@ export interface AccountAttributes {
     generation?: number;
 }
 
-export interface Account extends sequelize.Instance<AccountAttributes>, AccountAttributes { }
+export interface Account extends sequelize.Instance<AccountAttributes>, AccountAttributes {
+}
 
 export const AccountTable = connection.define<Account, AccountAttributes>('account', {
-    id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
-    name: { type: sequelize.STRING },
-    slug: { type: sequelize.STRING, unique: true },
-    activated: { type: sequelize.BOOLEAN, defaultValue: false },
-    city: { type: sequelize.STRING, allowNull: true },
-    generation: { type: sequelize.INTEGER, allowNull: false, defaultValue: 2 }
-})
+    id: {type: sequelize.INTEGER, primaryKey: true, autoIncrement: true},
+    name: {type: sequelize.STRING},
+    slug: {type: sequelize.STRING, unique: true},
+    activated: {type: sequelize.BOOLEAN, defaultValue: false},
+    city: {type: sequelize.STRING, allowNull: true},
+    generation: {type: sequelize.INTEGER, allowNull: false, defaultValue: 2}
+});
 
 export interface AccountMemberAttributes {
     accountId?: number;
@@ -27,10 +28,11 @@ export interface AccountMemberAttributes {
     owner?: boolean;
 }
 
-export interface AccountMember extends sequelize.Instance<AccountMemberAttributes>, AccountMemberAttributes { }
+export interface AccountMember extends sequelize.Instance<AccountMemberAttributes>, AccountMemberAttributes {
+}
 
 export const AccountMemberTable = connection.define<AccountMember, AccountMemberAttributes>('account_members', {
-    id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
+    id: {type: sequelize.INTEGER, primaryKey: true, autoIncrement: true},
     accountId: {
         type: sequelize.INTEGER, references: {
             model: 'account',
@@ -43,5 +45,5 @@ export const AccountMemberTable = connection.define<AccountMember, AccountMember
             key: 'id',
         }
     },
-    owner: { type: sequelize.BOOLEAN, defaultValue: false }
-}, { indexes: [{ unique: true, fields: ['userId', 'accountId'] }] })
+    owner: {type: sequelize.BOOLEAN, defaultValue: false}
+}, {indexes: [{unique: true, fields: ['userId', 'accountId']}]});

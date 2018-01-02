@@ -1,1 +1,1 @@
-export const STREET_VIEW_KEY = "AIzaSyAUlVnQo-DoLnyE3XSGMYVFeClzx9QephA"
+export const STREET_VIEW_KEY = 'AIzaSyAUlVnQo-DoLnyE3XSGMYVFeClzx9QephA';

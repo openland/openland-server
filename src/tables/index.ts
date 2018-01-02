@@ -56,10 +56,13 @@ export const DB = {
     City: CityTable,
 
     tx: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>): Promise<A> {
-        return await connection.transaction({ isolationLevel: "SERIALIZABLE" }, (tx: sequelize.Transaction) => handler(tx));
+        return await connection.transaction({isolationLevel: 'SERIALIZABLE'}, (tx: sequelize.Transaction) => handler(tx));
     },
     txSilent: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>): Promise<A> {
-        return await connection.transaction({ isolationLevel: "SERIALIZABLE", logging: () => { } }, (tx: sequelize.Transaction) => handler(tx));
+        return await connection.transaction({
+            isolationLevel: 'SERIALIZABLE', logging: () => {
+            }
+        }, (tx: sequelize.Transaction) => handler(tx));
     },
     connection: connection
-}
+};

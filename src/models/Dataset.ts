@@ -1,4 +1,4 @@
-import { DB, DataSet } from '../tables'
+import { DB, DataSet } from '../tables';
 import { CallContext } from './CallContext';
 
 export const Schema = `
@@ -18,7 +18,7 @@ export const Schema = `
         alterDataset(id: ID!, newName: String, newUrl: String, newKind: String, newDescription: String, newGroup: String): DataSet!
         deleteDataset(id: ID!): ID
     }
-`
+`;
 
 function convertDataset(dataset: DataSet) {
     return {
@@ -29,82 +29,82 @@ function convertDataset(dataset: DataSet) {
         url: dataset.link,
         kind: dataset.kind,
         group: dataset.group
-    }
+    };
 }
 
 function checkKind(kind: string) {
-    if (["document", "dataset", "link", "data-need"].indexOf(kind) < 0) {
-        throw "Kind " + kind + "is invalid"
+    if (['document', 'dataset', 'link', 'data-need'].indexOf(kind) < 0) {
+        throw 'Kind ' + kind + 'is invalid';
     }
 }
 
 export const Resolver = {
     Query: {
         async datasets(_: any, args: { kind?: string }, context: CallContext) {
-            var datasets = (await DB.DataSet.findAll({
+            let datasets = (await DB.DataSet.findAll({
                 where: {
                     account: context.accountId
                 }
-            }))
+            }));
 
             return datasets.map(convertDataset);
         }
     },
     Mutation: {
         createDataset: async (_: any, args: { name: string, url: string, kind: string, description: string, group?: string }, context: CallContext) => {
-            context.requireWriteAccess()
-            checkKind(args.kind)
-            var created = await DB.DataSet.create({
+            context.requireWriteAccess();
+            checkKind(args.kind);
+            let created = await DB.DataSet.create({
                 name: args.name,
                 description: args.description,
                 account: context.accountId,
                 kind: args.kind,
                 link: args.url
-            })
-            return convertDataset(created)
+            });
+            return convertDataset(created);
         },
         alterDataset: async (_: any, args: { id: string, newName?: string, newUrl?: string, newKind?: string, newDescription?: string, newGroup?: string }, context: CallContext) => {
-            context.requireWriteAccess()
-            var updated = (await DB.DataSet.findOne({
+            context.requireWriteAccess();
+            let updated = (await DB.DataSet.findOne({
                 where: {
-                    id: parseInt(args.id)
+                    id: parseInt(args.id, 10)
                 }
-            }))
+            }));
             if (updated == null) {
-                throw "Dataset not found"
+                throw 'Dataset not found';
             }
             if (args.newName != null) {
-                updated.name = args.newName
+                updated.name = args.newName;
             }
             if (args.newUrl != null) {
-                updated.link = args.newUrl
+                updated.link = args.newUrl;
             }
             if (args.newDescription != null) {
-                updated.description = args.newDescription
+                updated.description = args.newDescription;
             }
             if (args.newKind != null) {
-                checkKind(args.newKind)
-                updated.kind = args.newKind
+                checkKind(args.newKind);
+                updated.kind = args.newKind;
             }
             if (args.newGroup != null) {
-                updated.group = args.newGroup
+                updated.group = args.newGroup;
             }
-            await updated.save()
-            return convertDataset(updated)
+            await updated.save();
+            return convertDataset(updated);
         },
         deleteDataset: async (_: any, args: { id: string }, context: CallContext) => {
-            context.requireWriteAccess()
-            var toDelete = (await DB.DataSet.findOne({
+            context.requireWriteAccess();
+            let toDelete = (await DB.DataSet.findOne({
                 where: {
-                    id: parseInt(args.id)
+                    id: parseInt(args.id, 10)
                 }
-            }))
+            }));
             if (toDelete == null) {
-                return null
+                return null;
             } else {
-                toDelete.destroy()
-                return args.id
+                await toDelete.destroy();
+                return args.id;
             }
         }
     }
-}
+};

@@ -1,8 +1,8 @@
-import { CallContext } from "./CallContext";
-import { DB } from "../tables/index";
-import { BuildingProject } from "../tables/BuildingProject";
-import { resolveStreetView, resolvePicture } from "../utils/pictures";
-import { SelectBuilder } from "../utils/SelectBuilder";
+import { CallContext } from './CallContext';
+import { DB } from '../tables';
+import { BuildingProject } from '../tables';
+import { resolveStreetView, resolvePicture } from '../utils/pictures';
+import { SelectBuilder } from '../utils/SelectBuilder';
 
 export const Schema = `
     type BuildingProject {
@@ -84,7 +84,7 @@ export const Schema = `
         
         permits: [ID!]
     }
-`
+`;
 
 export const Resolver = {
     BuildingProject: {
@@ -109,9 +109,9 @@ export const Resolver = {
                 return resolvePicture(src.picture, args.width, args.height);
             } else {
                 if (args.height && args.width) {
-                    return resolveStreetView(context, src.extrasAddress!!, args.height, args.width)
+                    return resolveStreetView(context, src.extrasAddress!!, args.height, args.width);
                 } else {
-                    return null
+                    return null;
                 }
             }
         },
@@ -129,40 +129,40 @@ export const Resolver = {
                 return {
                     latitude: src.extrasLatitude,
                     longitude: src.extrasLongitude
-                }
+                };
             } else {
-                return undefined
+                return undefined;
             }
         },
-        developers: async (src:BuildingProject) => {
-            return await src.getDevelopers!!()
+        developers: async (src: BuildingProject) => {
+            return await src.getDevelopers!!();
         }
     },
     Query: {
         buildingProjectsStats: async function (_: any, args: {}, context: CallContext) {
 
             let projectsQuery = new SelectBuilder(DB.BuidlingProject)
-                .whereEq("account", context.accountId)
-            var projectsTracked = projectsQuery
-                .count()
+                .whereEq('account', context.accountId);
+            let projectsTracked = projectsQuery
+                .count();
             let projectsVerified = projectsQuery
-                .whereEq("verified", true)
-                .count()
+                .whereEq('verified', true)
+                .count();
 
             let year2017NewUnits = projectsQuery
-                .whereEq("extrasYearEnd", "2017")
-                .sum("\"proposedUnits\" - \"existingUnits\"")
+                .whereEq('extrasYearEnd', '2017')
+                .sum('\"proposedUnits" - "existingUnits\"');
             let year2017NewUnitsVerified = projectsQuery
-                .whereEq("extrasYearEnd", "2017")
-                .whereEq("verified", true)
-                .sum("\"proposedUnits\" - \"existingUnits\"");
+                .whereEq('extrasYearEnd', '2017')
+                .whereEq('verified', true)
+                .sum('\"proposedUnits" - "existingUnits\"');
             let year2018NewUnits = projectsQuery
-                .whereEq("extrasYearEnd", "2018")
-                .sum("\"proposedUnits\" - \"existingUnits\"")
+                .whereEq('extrasYearEnd', '2018')
+                .sum('\"proposedUnits" - "existingUnits\"');
             let year2018NewUnitsVerified = projectsQuery
-                .whereEq("extrasYearEnd", "2018")
-                .whereEq("verified", true)
-                .sum("\"proposedUnits\" - \"existingUnits\"")
+                .whereEq('extrasYearEnd', '2018')
+                .whereEq('verified', true)
+                .sum('\"proposedUnits" - "existingUnits\"');
             return {
                 projectsTracked: projectsTracked,
                 projectsVerified: projectsVerified,
@@ -170,36 +170,36 @@ export const Resolver = {
                 year2017NewUnitsVerified: year2017NewUnitsVerified,
                 year2018NewUnits: year2018NewUnits,
                 year2018NewUnitsVerified: year2018NewUnitsVerified,
-            }
+            };
         },
         buildingProjects: async function (_: any, args: { first: number, minUnits?: number, year?: string, filter?: string, after?: string }, context: CallContext) {
-            var builder = new SelectBuilder(DB.BuidlingProject)
-                .whereEq("account", context.accountId)
-                .filterField("name")
-                .filterField("extrasAddress")
-                .filterField("extrasAddressSecondary")
+            let builder = new SelectBuilder(DB.BuidlingProject)
+                .whereEq('account', context.accountId)
+                .filterField('name')
+                .filterField('extrasAddress')
+                .filterField('extrasAddressSecondary')
                 .limit(args.first)
                 .after(args.after)
                 .filter(args.filter)
-                .whereEq("account", context.accountId)
-                .orderByRaw('"proposedUnits"-"existingUnits"', "DESC");
+                .whereEq('account', context.accountId)
+                .orderByRaw('"proposedUnits"-"existingUnits"', 'DESC');
             if (args.minUnits) {
-                builder = builder.where('"proposedUnits"-"existingUnits" >= ' + args.minUnits)
+                builder = builder.where('"proposedUnits"-"existingUnits" >= ' + args.minUnits);
             }
             if (args.year) {
-                builder = builder.whereEq("extrasYearEnd", args.year)
+                builder = builder.whereEq('extrasYearEnd', args.year);
             }
-            let verified = builder.whereEq("verified", true)
+            let verified = builder.whereEq('verified', true);
 
             return {
                 ...(await builder.findAll()),
                 stats: {
-                    newUnits: builder.sum("\"proposedUnits\"-\"existingUnits\""),
-                    newUnitsVerified: verified.sum("\"proposedUnits\"-\"existingUnits\""),
+                    newUnits: builder.sum('\"proposedUnits"-"existingUnits\"'),
+                    newUnitsVerified: verified.sum('\"proposedUnits"-"existingUnits\"'),
                     totalProjects: builder.count(),
                     totalProjectsVerified: verified.count()
                 }
-            }
+            };
         },
         buildingProject: function (_: any, args: { slug: number }, call: CallContext) {
             return DB.BuidlingProject.findOne({
@@ -207,7 +207,7 @@ export const Resolver = {
                     account: call.accountId,
                     projectId: args.slug
                 }
-            })
+            });
         }
     },
-}
+};

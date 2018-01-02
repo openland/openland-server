@@ -1,65 +1,69 @@
 /// <reference path="../typings.d.ts" />
-import { DB } from "../tables/index";
-import fetch from "node-fetch";
-import { applyBuildingProjects, BuildingProjectDescription, deleteIncorrectProjects } from "../repositories/BuildingProjects";
+import { DB } from '../tables/index';
+import fetch from 'node-fetch';
+import {
+    applyBuildingProjects,
+    BuildingProjectDescription,
+    deleteIncorrectProjects
+} from '../repositories/BuildingProjects';
 
 interface TableResult {
     records: {
         id: string
         fields: {
             [P in string]: number | string | boolean | undefined
-        }
-    }[]
-    offset?: string
+            }
+    }[];
+    offset?: string;
 }
 
 async function fetchTable(apiKey: string, database: string, table: string, offset?: string): Promise<TableResult> {
-    var url = "https://api.airtable.com/v0/" + database + "/" + table + "?pageSize=100"
+    let url = 'https://api.airtable.com/v0/' + database + '/' + table + '?pageSize=100';
     if (offset) {
-        url = url + "&offset=" + offset
+        url = url + '&offset=' + offset;
     }
-    var res = await fetch(url, {
+    let res = await fetch(url, {
         headers: {
-            Authorization: "Bearer " + apiKey
+            Authorization: 'Bearer ' + apiKey
         }
-    })
-    return (await res.json()) as TableResult
+    });
+    return (await res.json()) as TableResult;
 }
 
 function parseGeo(src?: string): { latitude: number, longitude: number } | undefined {
     if (src) {
-        src = src.trim()
-        src = src.substring(1)
-        src = src.substring(0, src.length - 1)
-        var parts = src.split(',', 2)
-        parts[0] = parts[0].trim()
-        parts[1] = parts[1].trim()
-        var latitude = parseFloat(parts[0])
-        var longitude = parseFloat(parts[1])
+        src = src.trim();
+        src = src.substring(1);
+        src = src.substring(0, src.length - 1);
+        let parts = src.split(',', 2);
+        parts[0] = parts[0].trim();
+        parts[1] = parts[1].trim();
+        let latitude = parseFloat(parts[0]);
+        let longitude = parseFloat(parts[1]);
         return {
             latitude: latitude,
             longitude: longitude
-        }
+        };
     } else {
         return undefined;
     }
 }
 
 function parseString(src?: number | string | boolean | undefined): string | null {
-    if (src && typeof (src) == "string") {
-        if (src == "") {
-            return null
+    if (src && typeof (src) === 'string') {
+        if (src === '') {
+            return null;
         } else {
-            return src
+            return src;
         }
     } else {
-        return null
+        return null;
     }
 }
 
 function parseRefences(src?: string) {
     if (src) {
-        return src.split(',').map((v) => v.trim())
+        return src.split(',').map((v) => v.trim());
     } else {
         return [];
     }
@@ -73,15 +77,15 @@ function parseRefences(src?: string) {
 // ]
 
 async function doImport(accountId: number, apiKey: string, database: string) {
-    var offset: string | undefined = undefined
-    var ids = Array<string>()
+    let offset: string | undefined = undefined;
+    let ids = Array<string>();
     while (true) {
         await DB.txSilent(async (tx) => {
-            var table: TableResult = await fetchTable(apiKey, database, "Pipeline", offset)
-            var projects = Array<BuildingProjectDescription>()
+            let table: TableResult = await fetchTable(apiKey, database, 'Pipeline', offset);
+            let projects = Array<BuildingProjectDescription>();
             if (!table) {
-                offset = undefined
-                return
+                offset = undefined;
+                return;
             }
             for (let r of table.records) {
                 // console.warn((r.fields))
@@ -90,42 +94,42 @@ async function doImport(accountId: number, apiKey: string, database: string) {
                 // console.warn((r.fields["Net Units"] as number))
                 // r.fields["Location"] as string
 
-                //console.warn(r.fields["Location"]);
-                ids.push(r.fields["Project Id"] as string)
-                let geo = parseGeo(r.fields["Location"] as string | undefined);
+                // console.warn(r.fields["Location"]);
+                ids.push(r.fields['Project Id'] as string);
+                let geo = parseGeo(r.fields.Location as string | undefined);
                 projects.push({
-                    projectId: r.fields["Project Id"] as string,
-                    name: r.fields["Name"] as string,
-                    existingUnits: r.fields["Existing Units"] as number,
-                    proposedUnits: (r.fields["Existing Units"] as number) + (r.fields["Net Units"] as number),
-                    picture: r.fields["Picture Id"] as string,
-                    extrasYearEnd: r.fields["Completion Year"] as string,
-                    extrasAddress: r.fields["Address"] as string,
-                    extrasAddressSecondary: r.fields["Secondary Address"] as string,
-                    extrasUrl: parseString(r.fields["URL"]),
-                    extrasPermit: r.fields["Permit Id"] as string,
-                    extrasDeveloper: r.fields["Developer"] as string,
-                    extrasGeneralConstructor: r.fields["General Constuctor"] as string,
-                    extrasComment: r.fields["Comments"] as string,
-                    verified: r.fields["Verified"] as boolean === true,
+                    projectId: r.fields['Project Id'] as string,
+                    name: r.fields.Name as string,
+                    existingUnits: r.fields['Existing Units'] as number,
+                    proposedUnits: (r.fields['Existing Units'] as number) + (r.fields['Net Units'] as number),
+                    picture: r.fields['Picture Id'] as string,
+                    extrasYearEnd: r.fields['Completion Year'] as string,
+                    extrasAddress: r.fields.Address as string,
+                    extrasAddressSecondary: r.fields['Secondary Address'] as string,
+                    extrasUrl: parseString(r.fields.URL),
+                    extrasPermit: r.fields['Permit Id'] as string,
+                    extrasDeveloper: r.fields.Developer as string,
+                    extrasGeneralConstructor: r.fields['General Constuctor'] as string,
+                    extrasComment: r.fields.Comments as string,
+                    verified: r.fields.Verified as boolean === true,
                     extrasLatitude: geo !== undefined ? geo.latitude : undefined,
                     extrasLongitude: geo !== undefined ? geo.longitude : undefined,
-                    developers: parseRefences(r.fields["Developer Code"] as string),
-                    permits: parseRefences(r.fields["Developer Code"] as string),
-                    govId: r.fields["Planning Id"] as string
-                })
+                    developers: parseRefences(r.fields['Developer Code'] as string),
+                    permits: parseRefences(r.fields['Developer Code'] as string),
+                    govId: r.fields['Planning Id'] as string
+                });
                 // console.warn(r.fields["Permit Id"] + " " + r.fields["Name"])
             }
-            await applyBuildingProjects(tx, accountId, projects)
-            offset = table.offset
-        })
+            await applyBuildingProjects(tx, accountId, projects);
+            offset = table.offset;
+        });
         if (!offset) {
-            break
+            break;
         }
-        await delay(1000)
+        await delay(1000);
     }
     await DB.tx(async (tx) => {
-        await deleteIncorrectProjects(tx, accountId, ids)
+        await deleteIncorrectProjects(tx, accountId, ids);
     });
 }
 
@@ -135,18 +139,18 @@ function delay(ms: number) {
 
 async function start() {
     while (true) {
-        let allTasks = await DB.AirTable.findAll({ logging: false })
+        let allTasks = await DB.AirTable.findAll({logging: false});
 
         for (let t of allTasks) {
             try {
-                await doImport(t.account, t.airtableKey, t.airtableDatabase)
+                await doImport(t.account, t.airtableKey, t.airtableDatabase);
             } catch (e) {
-                console.warn(e)
+                console.warn(e);
             }
         }
 
-        await delay(15000)
+        await delay(15000);
     }
 }
 
-start()
+start();
