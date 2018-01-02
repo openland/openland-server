@@ -3,35 +3,59 @@ import { DB } from '../tables/index';
 import { Developer } from '../tables/Developer';
 
 export const Schema = `
-    type Developer {
+    type Organization {
         id: ID!
         slug: String!
+        
         title: String!
-        comments: String
         logo: String
+        city: String
+        address: String
+        url: String
+        twitter: String
+        linkedin: String
+        facebook: String
+        comments: String
 
         buildingProjects: [BuildingProject!]!
-        partners: [Developer!]!
+        partners: [Organization!]!
     }
 
     extend type Query {
-        developers: [Developer!]!
-        developer(slug: String!): Developer!
+        organizations: [Organization!]!
+        organization(slug: String!): Organization!
     }
-
+    
     extend type Mutation {
-        addDeveloper(slug: String!, title: String!): Developer!
-        alterDeveloper(slug: String!, title: String, comments: String, logo: String): Developer!
-        removeDeveloper(slug: String!): String
+        organizationAdd(slug: String!, title: String!): Organization!
+        organizationRemove(slug: String!): String!
+        
+        organizationAlter(slug: String!, 
+            title: String
+            logo: String
+            city: String
+            address: String
+            url: String
+            twitter: String
+            linkedin: String
+            facebook: String
+            comments: String
+        ): Organization!
     }
 `;
 
 export const Resolver = {
-    Developer: {
+    Organization: {
         id: (src: Developer) => src.id,
         slug: (src: Developer) => src.slug,
         title: (src: Developer) => src.title,
         logo: (src: Developer) => src.logo,
+        url: (src: Developer) => src.url,
+        city: (src: Developer) => null,
+        address: (src: Developer) => null,
+        linkedin: (src: Developer) => null,
+        facebook: (src: Developer) => null,
+        twitter: (src: Developer) => null,
         comments: (src: Developer) => src.comments,
         buildingProjects: (src: Developer) => src.getBuildingProjects(),
         partners: async (src: Developer) => {
@@ -56,15 +80,15 @@ export const Resolver = {
         }
     },
     Query: {
-        developers: function (_: any, args: {}, context: CallContext) {
+        organizations: function (_: any, args: {}, context: CallContext) {
             return DB.Developer.findAll({where: {account: context.accountId}});
         },
-        developer: function (_: any, args: { slug: string }, context: CallContext) {
+        organization: function (_: any, args: { slug: string }, context: CallContext) {
             return DB.Developer.findOne({where: {account: context.accountId, slug: args.slug}});
         }
     },
     Mutation: {
-        addDeveloper: async function (_: any, args: { slug: string, title: string }, context: CallContext) {
+        organizationAdd: async function (_: any, args: { slug: string, title: string }, context: CallContext) {
             context.requireWriteAccess();
             return DB.Developer.create({
                 account: context.accountId,
@@ -72,7 +96,8 @@ export const Resolver = {
                 title: args.title
             });
         },
-        removeDeveloper: async function (_: any, args: { slug: string }, context: CallContext) {
+        organizationRemove: async function (_: any, args: { slug: string }, context: CallContext) {
+            context.requireWriteAccess();
             let existing = await DB.Developer.findOne({
                 where: {
                     account: context.accountId,
@@ -86,7 +111,13 @@ export const Resolver = {
                 throw 'Not found';
             }
         },
-        alterDeveloper: async function (_: any, args: { slug: string, title?: string, comments?: string | null, logo?: string | null }, context: CallContext) {
+        organizationAlter: async function (_: any, args: {
+            slug: string,
+            title?: string,
+            comments?: string | null,
+            logo?: string | null
+        }, context: CallContext) {
+            context.requireWriteAccess();
             let existing = await DB.Developer.findOne({
                 where: {
                     account: context.accountId,

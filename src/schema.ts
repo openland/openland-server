@@ -8,7 +8,7 @@ import * as Permits from './models/Permit';
 import * as Street from './models/Street';
 import * as BuildingProject from './models/BuildingProject';
 import * as Picture from './models/Picture';
-import * as Developers from './models/Developers';
+import * as Organizations from './models/Organizations';
 import { merge } from 'lodash';
 
 const RootQuery = `
@@ -66,7 +66,7 @@ export const Schema = makeExecutableSchema({
         Street.Schema,
         BuildingProject.Schema,
         Picture.Schema,
-        Developers.Schema
+        Organizations.Schema
     ],
     resolvers: merge(rootResolver,
         Account.Resolver,
@@ -78,7 +78,7 @@ export const Schema = makeExecutableSchema({
         Street.Resolver,
         BuildingProject.Resolver,
         Picture.Resolver,
-        Developers.Resolver
+        Organizations.Resolver
     )
 });
 

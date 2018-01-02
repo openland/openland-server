@@ -7,11 +7,11 @@ export type PermitStatus = 'filed' | 'issued' | 'completed' | 'expired' |
     'cancelled' | 'disapproved' | 'approved' | 'issuing' |
     'revoked' | 'withdrawn' | 'plancheck' | 'suspended' |
     'reinstated' | 'filing' | 'inspecting' | 'upheld' |
-    'incomplete' | 'granted' | 'appeal'
+    'incomplete' | 'granted' | 'appeal';
 
 export type PermitType = 'new_construction' | 'additions_alterations_repare' |
     'otc_additions' | 'wall_or_painted_sign' | 'sign_errect' | 'demolitions' |
-    'grade_quarry_fill_excavate'
+    'grade_quarry_fill_excavate';
 
 export interface PermitAttributes {
     id?: number;
@@ -43,10 +43,9 @@ export interface PermitAttributes {
 export interface Permit extends sequelize.Instance<PermitAttributes>, PermitAttributes {
 
     events?: Array<PermitEvent>;
+    streetNumbers?: Array<StreetNumber>;
 
     getEvents(): Promise<Array<PermitEvent>>;
-
-    streetNumbers?: Array<StreetNumber>;
 
     getStreetNumbers(): Promise<Array<StreetNumber>>;
 }

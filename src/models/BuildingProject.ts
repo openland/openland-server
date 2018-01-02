@@ -35,7 +35,7 @@ export const Schema = `
 
         permits: [Permit!]!
 
-        developers: [Developer!]!
+        developers: [Organization!]!
     }
 
     type BuildingProjectEdge {

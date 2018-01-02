@@ -13,7 +13,6 @@ export { BuildingProject } from './BuildingProject';
 export { AirTable } from './AirTable';
 export { PermitEvent } from './PermitEvents';
 export { Developer } from './Developer';
-export { Constructor } from './Constructor';
 export { State } from './State';
 export { County } from './County';
 export { City } from './City';
@@ -31,7 +30,6 @@ import { BuildingProjectTable } from './BuildingProject';
 import { AirTableTable } from './AirTable';
 import { PermitEventsTable } from './PermitEvents';
 import { DeveloperTable } from './Developer';
-import { ConstructorTable } from './Constructor';
 import { StateTable } from './State';
 import { CountyTable } from './County';
 import { CityTable } from './City';
@@ -50,7 +48,6 @@ export const DB = {
     AirTable: AirTableTable,
     PermitEvents: PermitEventsTable,
     Developer: DeveloperTable,
-    Constructor: ConstructorTable,
     State: StateTable,
     County: CountyTable,
     City: CityTable,
