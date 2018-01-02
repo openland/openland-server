@@ -8,6 +8,7 @@ export const Schema = `
         slug: String!
         title: String!
         comments: String
+        logo: String
 
         buildingProjects: [BuildingProject!]!
         partners: [Developer!]!
@@ -20,7 +21,7 @@ export const Schema = `
 
     extend type Mutation {
         addDeveloper(slug: String!, title: String!): Developer!
-        alterDeveloper(slug: String!, title: String, comments: String): Developer!
+        alterDeveloper(slug: String!, title: String, comments: String, logo: String): Developer!
         removeDeveloper(slug: String!): String
     }
 `;
@@ -30,6 +31,7 @@ export const Resolver = {
         id: (src: Developer) => src.id,
         slug: (src: Developer) => src.slug,
         title: (src: Developer) => src.title,
+        logo: (src: Developer) => src.logo,
         comments: (src: Developer) => src.comments,
         buildingProjects: (src: Developer) => src.getBuildingProjects(),
         partners: async (src: Developer) => {
@@ -84,7 +86,7 @@ export const Resolver = {
                 throw 'Not found';
             }
         },
-        alterDeveloper: async function (_: any, args: { slug: string, title?: string, comments?: string }, context: CallContext) {
+        alterDeveloper: async function (_: any, args: { slug: string, title?: string, comments?: string | null, logo?: string | null }, context: CallContext) {
             let existing = await DB.Developer.findOne({
                 where: {
                     account: context.accountId,
@@ -94,8 +96,12 @@ export const Resolver = {
             if (!existing) {
                 throw 'Not found';
             }
-            if (args.title != null) {
+            if (args.title !== undefined) {
                 existing.title = args.title;
+                await existing.save();
+            }
+            if (args.logo !== undefined) {
+                existing.logo = args.logo;
                 await existing.save();
             }
             if (args.comments != null) {

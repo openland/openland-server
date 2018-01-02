@@ -8,7 +8,7 @@ export interface DeveloperAttributes {
     title?: string;
     slug?: string;
     url?: string;
-    logo?: string;
+    logo?: string | null;
     comments?: string | null;
 }
 
