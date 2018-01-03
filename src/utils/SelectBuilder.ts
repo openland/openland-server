@@ -192,9 +192,13 @@ export class SelectBuilder<TInstance, TAttributes> {
         } else if (this.pageValue) {
             offset = (this.pageValue - 1) * this.limitValue;
         }
+        let where = this.buildWhere();
+        let orderBy = this.buildOrderBy();
+        console.warn(where);
+        console.warn(orderBy);
         let res = await this.table.findAll({
-            where: DB.connection.literal(this.buildWhere()) as any,
-            order: DB.connection.literal(this.buildOrderBy()),
+            where: DB.connection.literal(where) as any,
+            order: DB.connection.literal(orderBy),
             limit: this.limitValue,
             offset: offset,
             include: include,

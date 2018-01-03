@@ -289,7 +289,7 @@ export function textLikeFieldText(query: string, field: string) {
         .replace('[', '[[]')
         .replace('\'', '[\']');
 
-    return '(lower(\"' + field + '\") LIKE ' + query + ' %\' OR lower(\"' + field + '\") LIKE \'% ' + query + '%\')';
+    return '(lower(\"' + field + '\") LIKE \'' + query + '%\' OR lower(\"' + field + '\") LIKE \'% ' + query + '%\')';
 }
 
 export async function sumRaw(table: string, field: string, where: string | null): Promise<number> {
