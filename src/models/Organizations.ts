@@ -17,6 +17,9 @@ export const Schema = `
         linkedin: String
         facebook: String
         comments: String
+        
+        isDeveloper: Boolean!
+        isConstructor: Boolean!
 
         buildingProjects: [BuildingProject!]!
         partners: [Organization!]!
@@ -32,15 +35,17 @@ export const Schema = `
         organizationRemove(slug: String!): String!
         
         organizationAlter(slug: String!, 
-            title: String
-            logo: String
-            city: String
-            address: String
-            url: String
-            twitter: String
-            linkedin: String
-            facebook: String
-            comments: String
+            title: String,
+            logo: String,
+            city: String,
+            address: String,
+            url: String,
+            twitter: String,
+            linkedin: String,
+            facebook: String,
+            comments: String,
+            isDeveloper: Boolean,
+            isConstructor: Boolean
         ): Organization!
     }
 `;
@@ -58,6 +63,8 @@ export const Resolver = {
         facebook: (src: Developer) => src.facebook,
         twitter: (src: Developer) => src.twitter,
         comments: (src: Developer) => src.comments,
+        isDeveloper: (src: Developer) => src.isDeveloper,
+        isConstructor: (src: Developer) => src.isConstructor,
         buildingProjects: (src: Developer) => src.getBuildingProjects(),
         partners: async (src: Developer) => {
             let projects = await src.getBuildingProjects();
@@ -123,6 +130,8 @@ export const Resolver = {
             linkedin?: string | null
             facebook?: string | null
             comments?: string | null,
+            isDeveloper?: boolean,
+            isConstructor?: boolean
         }, context: CallContext) {
             context.requireWriteAccess();
             let existing = await DB.Developer.findOne({
@@ -161,6 +170,12 @@ export const Resolver = {
             }
             if (args.comments !== undefined) {
                 existing.comments = applyAlterString(args.comments);
+            }
+            if (args.isDeveloper !== undefined) {
+                existing.isDeveloper = args.isDeveloper;
+            }
+            if (args.isConstructor !== undefined) {
+                existing.isConstructor = args.isConstructor;
             }
 
             await existing.save();

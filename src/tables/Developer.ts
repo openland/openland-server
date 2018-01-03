@@ -14,6 +14,8 @@ export interface DeveloperAttributes {
     twitter?: string | null;
     linkedin?: string | null;
     facebook?: string | null;
+    isDeveloper?: boolean;
+    isConstructor?: boolean;
     comments?: string | null;
 }
 
@@ -53,5 +55,7 @@ export const DeveloperTable = connection.define<Developer, DeveloperAttributes>(
     twitter: {type: sequelize.STRING(256), allowNull: true, validate: {notEmpty: true}},
     linkedin: {type: sequelize.STRING(256), allowNull: true, validate: {notEmpty: true}},
     facebook: {type: sequelize.STRING(256), allowNull: true, validate: {notEmpty: true}},
+    isDeveloper: {type: sequelize.BOOLEAN, allowNull: false, defaultValue: false},
+    isConstructor: {type: sequelize.BOOLEAN, allowNull: false, defaultValue: false},
     comments: {type: sequelize.STRING(4096), allowNull: true, validate: {notEmpty: true}},
 }, {indexes: [{unique: true, fields: ['slug', 'account']}]});
