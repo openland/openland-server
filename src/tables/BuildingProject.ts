@@ -42,7 +42,7 @@ export interface BuildingProjectAttributes {
 export interface BuildingProject extends sequelize.Instance<BuildingProjectAttributes>, BuildingProjectAttributes {
     getPermits(): Promise<Array<Permit>>;
 
-    setPermits(streets: Array<Permit>): Promise<void>;
+    setPermits(streets: Array<Permit> | Array<number>, args?: any): Promise<void>;
 
     addPermits(id: number): Promise<Permit>;
 

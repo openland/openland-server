@@ -4,7 +4,6 @@ import { Transaction } from 'sequelize';
 
 export interface BuildingProjectDescription {
     projectId: string;
-    permitId?: string;
     govId?: string;
     name?: string;
     existingUnits?: number;
@@ -78,7 +77,7 @@ export async function applyBuildingProjects(tx: Transaction, accountId: number, 
     let applied = await bulkApply(tx, DB.BuidlingProject, accountId, 'projectId', values);
 
     //
-    // Developers
+    // Load Developers
     //
 
     let developerSet = new Set<string>();
@@ -99,11 +98,14 @@ export async function applyBuildingProjects(tx: Transaction, accountId: number, 
                     $in: allDevelopers
                 }
             },
-            transaction: tx
+            transaction: tx,
+            logging: false
         })).forEach((d) => {
             developers[d.slug!!] = d;
         });
     }
+
+    // Apply Associations
 
     let index = 0;
     for (let p of applied) {
@@ -113,12 +115,29 @@ export async function applyBuildingProjects(tx: Transaction, accountId: number, 
             logging: false
         }))!!;
         let src = projects[index];
+
         if (src.developers) {
             await bp.setDevelopers!!(src.developers.map((d) => {
                 return developers[d.toLowerCase()]!!;
             }), {transaction: tx, logging: false});
         } else {
             await bp.setDevelopers!!([], {transaction: tx, logging: false});
+        }
+
+        if (src.permits) {
+            let ex = await DB.Permit.findAll({
+                where: {
+                    account: accountId,
+                    permitId: {
+                        $in: src.permits
+                    }
+                },
+                transaction: tx,
+                logging: false
+            });
+            await bp.setPermits!!(ex, {transaction: tx, logging: false});
+        } else {
+            await bp.setPermits!!([], {transaction: tx, logging: false});
         }
 
         index++;
