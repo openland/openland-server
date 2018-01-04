@@ -102,7 +102,6 @@ export const Resolver = {
         proposedUnits: (src: BuildingProject) => src.proposedUnits,
         existingAffordableUnits: (src: BuildingProject) => src.existingAffordableUnits,
         proposedAffordableUnits: (src: BuildingProject) => src.proposedAffordableUnits,
-        permits: [],
 
         picture: (src: BuildingProject, args: { height?: number, width?: number }, context: CallContext) => {
             if (src.picture) {
@@ -134,8 +133,11 @@ export const Resolver = {
                 return undefined;
             }
         },
-        developers: async (src: BuildingProject) => {
-            return await src.getDevelopers!!();
+        developers: (src: BuildingProject) => {
+            return src.getDevelopers!!();
+        },
+        permits: (src: BuildingProject) => {
+            return src.getPermits();
         }
     },
     Query: {
