@@ -184,7 +184,17 @@ export const Resolver = {
                 .after(args.after)
                 .filter(args.filter)
                 .whereEq('account', context.accountId)
-                .orderByRaw('"proposedUnits"-"existingUnits"', 'DESC');
+                .postProcessor((src) => src.sort((a, b) => {
+                    if (a.proposedUnits != null && b.proposedUnits != null && a.existingUnits != null && b.existingUnits != null) {
+                        return (b.proposedUnits!! - b.existingUnits!!) - (a.proposedUnits!! - a.existingUnits!!);
+                    } else if (a.proposedUnits != null && a.existingUnits != null) {
+                        return -1;
+                    } else if (b.proposedUnits != null && b.existingUnits != null) {
+                        return 1;
+                    } else {
+                        return b.id!! - a.id!!;
+                    }
+                }));
             if (args.minUnits) {
                 builder = builder.where('"proposedUnits"-"existingUnits" >= ' + args.minUnits);
             }

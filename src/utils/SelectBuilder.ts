@@ -17,6 +17,7 @@ export class SelectBuilder<TInstance, TAttributes> {
     private afterValue: string | null = null;
     private pageValue: number | null = null;
     private tx: sequelize.Transaction | null = null;
+    private processor: ((src: TInstance[]) => TInstance[]) | null = null;
 
     constructor(table: sequelize.Model<TInstance, TAttributes>) {
         this.table = table;
@@ -128,6 +129,16 @@ export class SelectBuilder<TInstance, TAttributes> {
         return this.orderByRaw(`"${field}"`, order);
     }
 
+    postProcessor(processor?: (src: TInstance[]) => TInstance[]) {
+        let cloned = this.clone();
+        if (processor) {
+            cloned.processor = processor;
+        } else {
+            cloned.processor = null;
+        }
+        return cloned;
+    }
+
     filter(text?: string) {
         let cloned = this.clone();
         if (text !== undefined && text != null && text.trim().length > 0) {
@@ -194,16 +205,18 @@ export class SelectBuilder<TInstance, TAttributes> {
         }
         let where = this.buildWhere();
         let orderBy = this.buildOrderBy();
-        console.warn(where);
-        console.warn(orderBy);
         let res = await this.table.findAll({
             where: DB.connection.literal(where) as any,
             order: DB.connection.literal(orderBy),
-            limit: this.limitValue,
-            offset: offset,
+            limit: this.processor == null ? this.limitValue : undefined,
+            offset: this.processor == null ? offset : undefined,
             include: include,
             transaction: this.tx ? this.tx : undefined
         });
+        if (this.processor != null) {
+            res = this.processor(res);
+            res = res.splice(offset, this.limitValue);
+        }
         let count = await this.count();
         return {
             edges: res.map((p, i) => {
