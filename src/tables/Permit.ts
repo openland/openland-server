@@ -19,7 +19,7 @@ export interface PermitAttributes {
     account?: number;
     permitType?: PermitType;
     permitTypeWood?: boolean;
-    permitStatus?: PermitStatus
+    permitStatus?: PermitStatus;
     permitStatusUpdated?: string;
 
     permitCreated?: string;

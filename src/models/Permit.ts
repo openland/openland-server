@@ -3,6 +3,7 @@ import { DB } from '../tables';
 import { applyPermits } from '../repositories/Permits';
 import { PermitStatus, Permit, PermitType } from '../tables/Permit';
 import { SelectBuilder } from '../utils/SelectBuilder';
+import { dateDiff } from '../utils/date_utils';
 
 export const Schema = `
 
@@ -20,6 +21,8 @@ export const Schema = `
         expiresAt: String
         startedAt: String
         filedAt: String
+        
+        approvalTime: Int
 
         streetNumbers: [StreetNumber!]!
 
@@ -72,6 +75,12 @@ export const Schema = `
         DEMOLITIONS
         GRADE_QUARRY_FILL_EXCAVATE
     }
+    
+    enum PermitSorting {
+        CREATE_TIME
+        APPROVAL_TIME_ASC
+        APPROVAL_TIME_DESC
+    }
 
     type PermitEventStatus {
         oldStatus: PermitStatus
@@ -99,7 +108,9 @@ export const Schema = `
     }
 
     extend type Query {
-        permits(filter: String, first: Int!, after: String, page: Int): PermitsConnection
+        permits(filter: String, type: PermitType, sort: PermitSorting, minUnits: Int,
+                issuedYear: String, 
+                first: Int!, after: String, page: Int): PermitsConnection
         permit(id: ID!): Permit
     }
 
@@ -208,6 +219,14 @@ export const Resolver = {
         filedAt: (src: Permit) => src.permitFiled,
         completedAt: (src: Permit) => src.permitCompleted,
 
+        approvalTime: (src: Permit) => {
+            if (src.permitCreated && src.permitIssued) {
+                return dateDiff(new Date(src.permitCreated), new Date(src.permitIssued));
+            } else {
+                return null;
+            }
+        },
+
         existingStories: (src: Permit) => src.existingStories,
         proposedStories: (src: Permit) => src.proposedStories,
         existingUnits: (src: Permit) => src.existingUnits,
@@ -309,15 +328,45 @@ export const Resolver = {
                 return null;
             }
         },
-        permits: async function (_: any, args: { filter?: string, first: number, after?: string, page?: number }, context: CallContext) {
+        permits: async function (_: any, args: {
+            filter?: string, type?: string, sort?: string,
+            minUnits?: number, issuedYear?: string,
+            first: number, after?: string, page?: number
+        }, context: CallContext) {
             let builder = new SelectBuilder(DB.Permit)
                 .filterField('permitId')
                 .filter(args.filter)
                 .after(args.after)
                 .page(args.page)
                 .limit(args.first)
-                .whereEq('account', context.accountId)
-                .orderBy('permitCreated', 'DESC NULLS LAST');
+                .whereEq('account', context.accountId);
+
+            if (args.type) {
+                builder = builder.whereEq('permitType', args.type.toLocaleLowerCase());
+            }
+
+            if (args.sort === 'APPROVAL_TIME_ASC') {
+                builder = builder.where('"permitIssued" IS NOT NULL');
+                builder = builder.where('"permitCreated" IS NOT NULL');
+                builder = builder.orderByRaw('"permitIssued" - "permitCreated"', 'ASC NULLS LAST');
+            } else if (args.sort === 'APPROVAL_TIME_DESC') {
+                builder = builder.where('"permitIssued" IS NOT NULL');
+                builder = builder.where('"permitCreated" IS NOT NULL');
+                builder = builder.orderByRaw('"permitIssued" - "permitCreated"', 'DESC NULLS LAST');
+            } else {
+                builder = builder.orderBy('permitCreated', 'DESC NULLS LAST');
+            }
+
+            if (args.minUnits) {
+                builder = builder.where('"proposedUnits" > ' + args.minUnits);
+                builder = builder.where('"proposedUnits" IS NOT NULL');
+            }
+
+            if (args.issuedYear) {
+                builder = builder.where('"permitIssued" IS NOT NULL');
+                builder = builder.where('"permitIssued" >= \'' + args.issuedYear + '-01-01\'');
+            }
+
             return builder.findAll([{
                 model: DB.StreetNumber,
                 as: 'streetNumbers',
