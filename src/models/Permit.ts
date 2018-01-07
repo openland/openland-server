@@ -4,6 +4,7 @@ import { applyPermits } from '../repositories/Permits';
 import { PermitStatus, Permit, PermitType } from '../tables/Permit';
 import { SelectBuilder } from '../utils/SelectBuilder';
 import { dateDiff } from '../utils/date_utils';
+import { Chart } from '../utils/charts';
 
 export const Schema = `
 
@@ -105,6 +106,11 @@ export const Schema = `
     type PermitsConnection {
         edges: [PermitEdge!]!
         pageInfo: PageInfo!
+        stats: PermitsStats!
+    }
+    
+    type PermitsStats {
+        approvalTimes: Chart!
     }
 
     extend type Query {
@@ -367,14 +373,29 @@ export const Resolver = {
                 builder = builder.where('"permitIssued" >= \'' + args.issuedYear + '-01-01\'');
             }
 
-            return builder.findAll([{
-                model: DB.StreetNumber,
-                as: 'streetNumbers',
-                include: [{
-                    model: DB.Street,
-                    as: 'street'
+            let approvalTimes: Chart = {
+                labels: ['1%', '10%', '20%', '30%', '40%', '50%', '60%', '70%', '80%', '90%', '95%', '96%', '97%', '98%', '99%'],
+                datasets: [{
+                    label: 'Approval Times',
+                    values: (await builder
+                        .where('"permitIssued" IS NOT NULL')
+                        .percentile([0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.96, 0.97, 0.98, 0.99], '"permitIssued" - "permitCreated"'))
                 }]
-            }]);
+            };
+
+            return {
+                ...(await builder.findAll([{
+                    model: DB.StreetNumber,
+                    as: 'streetNumbers',
+                    include: [{
+                        model: DB.Street,
+                        as: 'street'
+                    }]
+                }])),
+                stats: {
+                    approvalTimes: approvalTimes
+                }
+            };
         }
     },
     Mutation: {

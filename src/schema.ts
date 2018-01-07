@@ -9,23 +9,10 @@ import * as Street from './models/Street';
 import * as BuildingProject from './models/BuildingProject';
 import * as Picture from './models/Picture';
 import * as Organizations from './models/Organizations';
+import * as Core from './models/Core';
 import { merge } from 'lodash';
 
 const RootQuery = `
-  
-  type PageInfo {
-    hasNextPage: Boolean!
-    hasPreviousPage: Boolean!
-    itemsCount: Int!
-    pagesCount: Int!
-    currentPage: Int!
-  }
-
-  type Geo {
-    latitude: Float!
-    longitude: Float!
-  }
-
   type Query {
     healthCheck: String!
   }
@@ -56,6 +43,7 @@ const rootResolver = {
 
 export const Schema = makeExecutableSchema({
     typeDefs: [
+        Core.Schema,
         RootQuery, SchemaDefinition,
         Account.Schema,
         Me.Schema,

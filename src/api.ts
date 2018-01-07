@@ -34,7 +34,7 @@ const checkJwt = jwt({
 });
 
 async function context(src: express.Request): Promise<CallContext> {
-    var domain: string = '';
+    let domain: string = '';
     if (src.headers['x-statecraft-domain']) {
         domain = src.headers['x-statecraft-domain'] as string;
     } else {
@@ -43,7 +43,7 @@ async function context(src: express.Request): Promise<CallContext> {
 
     let isRetina = src.headers['x-statecraft-retina'] === 'true';
 
-    var accId = (await DB.Account.findOne({
+    let accId = (await DB.Account.findOne({
         where: {
             slug: domain,
             activated: true
@@ -53,15 +53,15 @@ async function context(src: express.Request): Promise<CallContext> {
         throw new Error('404: Unable to find account ' + domain);
     }
 
-    var n = new CallContext();
+    let n = new CallContext();
     n.domain = domain;
     n.accountId = accId.id!!;
     n.owner = false;
     n.isRetina = isRetina;
 
-    if (src.user != null && src.user != undefined) {
-        var userKey = src.user.sub;
-        var exists = await DB.User.find({
+    if (src.user != null && src.user !== undefined) {
+        let userKey = src.user.sub;
+        let exists = await DB.User.find({
             where: {
                 authId: userKey
             }
@@ -72,7 +72,7 @@ async function context(src: express.Request): Promise<CallContext> {
     }
 
     if (n.uid != null) {
-        var member = await DB.AccountMember.findOne({
+        let member = await DB.AccountMember.findOne({
             where: {
                 accountId: n.accountId,
                 userId: n.uid
@@ -89,7 +89,7 @@ async function context(src: express.Request): Promise<CallContext> {
 
 function handleRequest(useEngine: boolean) {
     return async function (req?: express.Request, res?: express.Response): Promise<GraphQLOptions> {
-        if (req == undefined || res == undefined) {
+        if (req === undefined || res === undefined) {
             throw Error('Unexpected error!');
         } else {
             return {schema: Schema.Schema, context: res.locals.ctx, cacheControl: useEngine, tracing: useEngine};
@@ -98,7 +98,7 @@ function handleRequest(useEngine: boolean) {
 }
 
 async function buildContext(req: express.Request, res: express.Response, next: express.NextFunction) {
-    var ctx: CallContext;
+    let ctx: CallContext;
     try {
         ctx = await context(req);
     } catch (e) {
@@ -129,15 +129,15 @@ export default function () {
 
     // Fetching Port
 
-    var port = process.env.PORT;
-    var dport = 9000;
-    if (port != undefined && port != '') {
-        dport = parseInt(process.env.PORT as string);
+    let port = process.env.PORT;
+    let dport = 9000;
+    if (port !== undefined && port !== '') {
+        dport = parseInt(process.env.PORT as string, 10);
     }
 
     // Allow All Domains
 
-    var engine: Engine | null = null;
+    let engine: Engine | null = null;
     if (process.env.APOLLO_ENGINE) {
         engine = new Engine({
             engineConfig: {
@@ -168,16 +168,16 @@ export default function () {
 
     // Authentication
     app.post('/auth', checkJwt, bodyParser.json(), async function (req: express.Request, response: express.Response) {
-        var accessToken = req.headers['access-token'];
-        var res = await fetch.default('https://statecraft.auth0.com/userinfo', {
+        let accessToken = req.headers['access-token'];
+        let res = await fetch.default('https://statecraft.auth0.com/userinfo', {
             headers: {
                 authorization: 'Bearer ' + accessToken
             }
         });
-        var b = await res.json<Profile>();
+        let b = await res.json<Profile>();
         await DB.tx(async () => {
-            var userKey = req.user.sub;
-            var user = await DB.User.find({
+            let userKey = req.user.sub;
+            let user = await DB.User.find({
                 where: {
                     authId: userKey
                 }

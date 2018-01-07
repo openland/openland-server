@@ -303,3 +303,14 @@ export async function countRaw(table: string, where: string | null): Promise<num
     console.warn(q);
     return (await DB.connection.query(q, {type: DB.connection.QueryTypes.SELECT}))[0].count || 0;
 }
+
+export async function percentileRaw(table: string, percentiles: [number], order: string, where: string | null): Promise<number[]> {
+    let q = 'SELECT percentile_disc(array[' + percentiles.join() + '])  WITHIN GROUP (ORDER BY ' + order + ') FROM \"' + table + '\"' + (where ? ' WHERE ' + where : '');
+    console.warn(q);
+    let r = (await DB.connection.query(q, {type: DB.connection.QueryTypes.SELECT}))[0].percentile_disc;
+    if (!r) {
+        r = [];
+    }
+    console.warn(r);
+    return r;
+}
