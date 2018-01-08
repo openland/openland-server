@@ -98,23 +98,25 @@ export class SelectBuilder<TInstance, TAttributes> {
                 }
                 return '"' + p + '"';
             }).join();
-            let sqlTuples = tuples.map((p) =>
-                '(' + p.map((v) => {
-                    if (v == null || v === undefined) {
-                        console.warn(p);
-                        throw 'Null value found!';
-                    } else if (typeof v === 'string') {
-                        return DB.connection.escape(v);
-                    } else {
-                        return v;
+            let sqlTuples = '(' + tuples.map((p) => {
+                    let res = p.map((v) => {
+                        if (v == null || v === undefined) {
+                            console.warn(p);
+                            throw 'Null value found!';
+                        } else if (typeof v === 'string') {
+                            return DB.connection.escape(v);
+                        } else {
+                            return v;
+                        }
+                    }).join();
+                    if (fields.length > 1) {
+                        res = '(' + res + ')';
                     }
-                }).join() + ')'
-            ).join();
+                    return res;
+                }
+            ).join() + ')';
             if (fields.length > 1) {
                 sqlFields = '(' + sqlFields + ')';
-            }
-            if (fields.length > 1) {
-                sqlTuples = '(' + sqlTuples + ')';
             }
             cloned.conditions.push(sqlFields + ' IN ' + sqlTuples);
         }

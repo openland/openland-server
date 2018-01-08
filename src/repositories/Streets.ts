@@ -7,26 +7,26 @@ import { SelectBuilder } from '../utils/SelectBuilder';
 
 export interface StreetDescription {
     streetName: string;
-    streetNameSuffix?: string;
+    streetNameSuffix: string | null;
 }
 
 export interface StreetNumberDescription extends StreetDescription {
     streetNumber: number;
-    streetNumberSuffix?: string;
+    streetNumberSuffix: string | null;
 }
 
 export function normalizeStreet(str: string) {
     return str.trim().split(' ').map((s) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()).join(' ');
 }
 
-export function normalizeSuffix(str?: string): string | undefined {
+export function normalizeSuffix(str: string | null): string | null {
     if (str) {
         if (str.trim() === '') {
-            return undefined;
+            return null;
         }
         return normalizeStreet(str);
     }
-    return undefined;
+    return null;
 }
 
 async function normalizedProcessor<T1, T2>(array: T1[], compare: (a: T1, b: T1) => boolean, processor: (data: T1[]) => Promise<T2[]>): Promise<T2[]> {
@@ -165,7 +165,7 @@ export async function applyStreetNumbers(cityId: number, streetNumbers: StreetNu
                 index++;
             }
             console.timeEnd('prepare_updates');
-
+            console.warn(pending);
             console.time('bulk_insert');
             if (pending.length > 0) {
                 index = 0;

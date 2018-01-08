@@ -105,7 +105,7 @@ export async function findAllTuples<TInstance>(tx: Transaction, accountId: numbe
 export async function bulkAssociations(tx: Transaction, table: string, key1: string, key2: string, values: { value1: number, value2: number }[]) {
     let date = new Date().toUTCString();
     let sqlValues = values.map((v) => `('${date}','${date}',${v.value1},${v.value2})`).join();
-    let query = 'INSERT INTO \"' + table + '\" ("createdAt","updatedAt",\"' + key1 + '\",\"' + key2 + '\") VALUES ' + sqlValues + ' ON CONFLICT DO NOTHING';
+    let query = 'INSERT INTO "' + table + '" ("createdAt","updatedAt","' + key1 + '","' + key2 + '") VALUES ' + sqlValues + ' ON CONFLICT DO NOTHING';
     await connection.query(query, {logging: false, transaction: tx});
 }
 
