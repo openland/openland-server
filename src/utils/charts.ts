@@ -13,6 +13,25 @@ export interface HistogramRecord {
     value: number;
 }
 
+export function prepareHistogram(src: HistogramRecord[], buckets: number[]): HistogramRecord[] {
+    if (src.length === 0) {
+        return [];
+    }
+    let res: HistogramRecord[] = [];
+    for (let i = 0; i < buckets.length; i++) {
+        let start = buckets[i];
+        let end = (i !== buckets.length - 1) ? buckets[i + 1] : Number.MAX_SAFE_INTEGER;
+        let v = 0;
+        for (let s of src) {
+            if (s.value >= start && s.value < end) {
+                v += s.count;
+            }
+        }
+        res.push({count: v, value: Math.floor(start)});
+    }
+    return res;
+}
+
 export function reformatHistogram(src: HistogramRecord[], maxBuckets: number = 15): HistogramRecord[] {
     if (src.length === 0) {
         return [];

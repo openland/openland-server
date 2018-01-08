@@ -4,7 +4,7 @@ import { applyPermits } from '../repositories/Permits';
 import { PermitStatus, Permit, PermitType } from '../tables/Permit';
 import { SelectBuilder } from '../utils/SelectBuilder';
 import { dateDiff } from '../utils/date_utils';
-import { Chart, reformatHistogram } from '../utils/charts';
+import { Chart, prepareHistogram } from '../utils/charts';
 
 export const Schema = `
 
@@ -110,7 +110,8 @@ export const Schema = `
     }
     
     type PermitsStats {
-        approvalTimes: Chart! 
+        approvalTimes: Chart!
+        approvalDistribution: Chart!        
     }
 
     extend type Query {
@@ -396,13 +397,31 @@ export const Resolver = {
                 builder = builder.whereIn(['id'], [allPermits]);
             }
 
-            let approvalTimes: Chart = {
+            let approvalPercentile: Chart = {
                 labels: ['1%', '10%', '20%', '30%', '40%', '50%', '60%', '70%', '80%', '90%', '95%', '96%', '97%', '98%', '99%'],
                 datasets: [{
                     label: 'Approval Times',
                     values: (await builder
                         .where('"permitIssued" IS NOT NULL')
                         .percentile([0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.96, 0.97, 0.98, 0.99], '"permitIssued" - "permitCreated"'))
+                }]
+            };
+
+            let distribution = [0, 10, 50, 80, 90, 95, 100, 120, 150, 200, 300, 400, 500, 900, 1800, 3000, 6000, 8000];
+            let largeBuildings = prepareHistogram(await builder
+                .where('"proposedUnits" >= 10')
+                .histogramSum('proposedUnits', '"permitIssued" - "permitCreated"'), distribution);
+            let smallBuildings = prepareHistogram(await builder
+                .where('"proposedUnits" < 10')
+                .histogramSum('proposedUnits', '"permitIssued" - "permitCreated"'), distribution);
+            let approvalDistribution: Chart = {
+                labels: largeBuildings.map((v) => v.value.toString()),
+                datasets: [{
+                    label: 'Units in Small Buildings',
+                    values: smallBuildings.map((v) => v.count)
+                }, {
+                    label: 'Units in Large Buildings',
+                    values: largeBuildings.map((v) => v.count)
                 }]
             };
 
@@ -416,7 +435,8 @@ export const Resolver = {
                     }]
                 }])),
                 stats: {
-                    approvalTimes: approvalTimes
+                    approvalTimes: approvalPercentile,
+                    approvalDistribution: approvalDistribution
                 }
             };
         },
@@ -429,20 +449,24 @@ export const Resolver = {
                 .whereEq('permitType', 'new_construction')
                 .where('"proposedUnits" IS NOT NULL');
 
-            let units = await builder
-                .histogramSum('proposedUnits', 'extract(year from "permitIssued")');
+            let distribution = [0, 10, 50, 80, 90, 95, 100, 120, 150, 200, 300, 400, 500, 900, 1800, 3000, 6000, 8000];
 
-            console.warn(units);
+            let largeBuildings = prepareHistogram(await builder
+                .where('"proposedUnits" >= 10')
+                .histogramSum('proposedUnits', '"permitIssued" - "permitCreated"'), distribution);
 
-            let counts = reformatHistogram(await builder
-                .histogramSum('proposedUnits', '"permitIssued" - "permitCreated"'));
-            console.warn(counts);
+            let smallBuildings = prepareHistogram(await builder
+                .where('"proposedUnits" < 10')
+                .histogramSum('proposedUnits', '"permitIssued" - "permitCreated"'), distribution);
 
             let approvalTimes: Chart = {
-                labels: counts.map((v) => v.value.toString()),
+                labels: largeBuildings.map((v) => v.value.toString()),
                 datasets: [{
-                    label: 'Approval Times',
-                    values: counts.map((v) => v.count)
+                    label: 'Units in Small Buildings',
+                    values: smallBuildings.map((v) => v.count)
+                }, {
+                    label: 'Units in Large Buildings',
+                    values: largeBuildings.map((v) => v.count)
                 }]
             };
 
