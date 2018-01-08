@@ -4,7 +4,7 @@ import { applyPermits } from '../repositories/Permits';
 import { PermitStatus, Permit, PermitType } from '../tables/Permit';
 import { SelectBuilder } from '../utils/SelectBuilder';
 import { dateDiff } from '../utils/date_utils';
-import { Chart } from '../utils/charts';
+import { Chart, reformatHistogram } from '../utils/charts';
 
 export const Schema = `
 
@@ -110,7 +110,7 @@ export const Schema = `
     }
     
     type PermitsStats {
-        approvalTimes: Chart!
+        approvalTimes: Chart! 
     }
 
     extend type Query {
@@ -118,6 +118,8 @@ export const Schema = `
                 issuedYear: String, 
                 first: Int!, after: String, page: Int): PermitsConnection
         permit(id: ID!): Permit
+        permitsApprovalStats: Chart!
+        permitsApprovalUnits: Chart!
     }
 
     input PermitInfo {
@@ -396,6 +398,64 @@ export const Resolver = {
                     approvalTimes: approvalTimes
                 }
             };
+        },
+        permitsApprovalStats: async function (_: any, args: {}, call: CallContext) {
+            let builder = new SelectBuilder(DB.Permit)
+                .filterField('permitId')
+                .whereEq('account', call.accountId)
+                .where('"permitIssued" IS NOT NULL')
+                .where('"permitIssued" >= \'2007-01-01\'')
+                .whereEq('permitType', 'new_construction')
+                .where('"proposedUnits" IS NOT NULL');
+
+            let units = await builder
+                .histogramSum('proposedUnits', 'extract(year from "permitIssued")');
+
+            console.warn(units);
+
+            let counts = reformatHistogram(await builder
+                .histogramSum('proposedUnits', '"permitIssued" - "permitCreated"'));
+            console.warn(counts);
+
+            let approvalTimes: Chart = {
+                labels: counts.map((v) => v.value.toString()),
+                datasets: [{
+                    label: 'Approval Times',
+                    values: counts.map((v) => v.count)
+                }]
+            };
+
+            return approvalTimes;
+        },
+        permitsApprovalUnits: async function (_: any, args: {}, call: CallContext) {
+            let builder = new SelectBuilder(DB.Permit)
+                .filterField('permitId')
+                .whereEq('account', call.accountId)
+                .where('"permitIssued" IS NOT NULL')
+                .where('"permitIssued" >= \'2007-01-01\'')
+                .whereEq('permitType', 'new_construction')
+                .where('"proposedUnits" IS NOT NULL');
+
+            let unitsLarge = await builder
+                .where('"proposedUnits" > 10')
+                .histogramSum('proposedUnits', 'extract(year from "permitIssued")');
+
+            let unitsSmall = await builder
+                .where('"proposedUnits" <= 10')
+                .histogramSum('proposedUnits', 'extract(year from "permitIssued")');
+
+            let approvalTimes: Chart = {
+                labels: unitsLarge.map((v) => v.value.toString()),
+                datasets: [{
+                    label: 'Small Buildings',
+                    values: unitsSmall.map((v) => v.count)
+                }, {
+                    label: 'Large Buildings',
+                    values: unitsLarge.map((v) => v.count)
+                }]
+            };
+
+            return approvalTimes;
         }
     },
     Mutation: {

@@ -314,3 +314,25 @@ export async function percentileRaw(table: string, percentiles: [number], order:
     console.warn(r);
     return r;
 }
+
+export async function histogramCountRaw(table: string, order: string, where: string | null): Promise<{ count: number, value: number }[]> {
+    let q = 'SELECT count(*) as "count", ' + order + ' as "value" FROM \"' + table + '\"' + (where ? ' WHERE ' + where : '') + ' GROUP BY ' + order + ' ORDER BY ' + order;
+    console.warn(q);
+    let r = (await DB.connection.query(q, {type: DB.connection.QueryTypes.SELECT})) as { count: string, value: number }[];
+    if (!r) {
+        r = [];
+    }
+    console.warn(r);
+    return r.map((v) => ({count: parseInt(v.count, 10), value: v.value}));
+}
+
+export async function histogramSumRaw(table: string, order: string, field: string, where: string | null): Promise<{ count: number, value: number }[]> {
+    let q = 'SELECT sum("' + field + '") as "count", ' + order + ' as "value" FROM \"' + table + '\"' + (where ? ' WHERE ' + where : '') + ' GROUP BY ' + order + ' ORDER BY ' + order;
+    console.warn(q);
+    let r = (await DB.connection.query(q, {type: DB.connection.QueryTypes.SELECT})) as { count: string, value: number }[];
+    if (!r) {
+        r = [];
+    }
+    console.warn(r);
+    return r.map((v) => ({count: parseInt(v.count, 10), value: v.value}));
+}

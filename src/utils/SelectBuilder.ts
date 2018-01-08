@@ -1,5 +1,5 @@
 import { DB } from '../tables';
-import { sumRaw, countRaw, textLikeFieldsText, percentileRaw } from './db_utils';
+import { sumRaw, countRaw, textLikeFieldsText, percentileRaw, histogramCountRaw, histogramSumRaw } from './db_utils';
 import * as sequelize from 'sequelize';
 
 export type Order = 'ASC' | 'DESC' | 'ASC NULLS FIRST' | 'ASC NULLS LAST' | 'DESC NULLS FIRST' | 'DESC NULLS LAST';
@@ -246,6 +246,14 @@ export class SelectBuilder<TInstance, TAttributes> {
 
     async percentile(percentiles: [number], by: string) {
         return percentileRaw(this.table.getTableName() as string, percentiles, by, this.buildWhere());
+    }
+
+    async histogramCount(by: string) {
+        return histogramCountRaw(this.table.getTableName() as string, by, this.buildWhere());
+    }
+
+    async histogramSum(field: string, by: string) {
+        return histogramSumRaw(this.table.getTableName() as string, by, field, this.buildWhere());
     }
 
     private clone() {
