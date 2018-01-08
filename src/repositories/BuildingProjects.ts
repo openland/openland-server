@@ -25,6 +25,7 @@ export interface BuildingProjectDescription {
     extrasLongitude?: number;
 
     developers?: string[];
+    constructors?: string[];
     permits?: string[];
 
     verified?: boolean;
@@ -87,6 +88,11 @@ export async function applyBuildingProjects(tx: Transaction, accountId: number, 
                 developerSet.add(d.toLowerCase());
             });
         }
+        if (p.constructors) {
+            p.constructors.forEach((d) => {
+                developerSet.add(d.toLowerCase());
+            });
+        }
     });
     let allDevelopers = Array.from(developerSet);
     let developers: { [key: string]: Developer } = {};
@@ -117,11 +123,22 @@ export async function applyBuildingProjects(tx: Transaction, accountId: number, 
         let src = projects[index];
 
         if (src.developers) {
-            await bp.setDevelopers!!(src.developers.map((d) => {
+            await bp.setDevelopers(src.developers.map((d) => {
                 return developers[d.toLowerCase()]!!;
             }), {transaction: tx, logging: false});
         } else {
-            await bp.setDevelopers!!([], {transaction: tx, logging: false});
+            await bp.setDevelopers([], {transaction: tx, logging: false});
+        }
+
+        if (src.constructors) {
+            await bp.setConstructors(src.constructors.map((d) => {
+                if (developers[d.toLowerCase()] === undefined) {
+                    throw 'Unable to find Organization ' + d.toLowerCase();
+                }
+                return developers[d.toLowerCase()]!!;
+            }), {transaction: tx, logging: false});
+        } else {
+            await bp.setConstructors([], {transaction: tx, logging: false});
         }
 
         if (src.permits) {
@@ -135,9 +152,9 @@ export async function applyBuildingProjects(tx: Transaction, accountId: number, 
                 transaction: tx,
                 logging: false
             });
-            await bp.setPermits!!(ex, {transaction: tx, logging: false});
+            await bp.setPermits(ex, {transaction: tx, logging: false});
         } else {
-            await bp.setPermits!!([], {transaction: tx, logging: false});
+            await bp.setPermits([], {transaction: tx, logging: false});
         }
 
         index++;

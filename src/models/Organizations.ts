@@ -22,6 +22,10 @@ export const Schema = `
         isConstructor: Boolean!
 
         buildingProjects: [BuildingProject!]!
+        
+        developerIn: [BuildingProject!]!
+        constructorIn: [BuildingProject!]!
+        
         partners: [Organization!]!
     }
 
@@ -65,12 +69,32 @@ export const Resolver = {
         comments: (src: Developer) => src.comments,
         isDeveloper: (src: Developer) => src.isDeveloper,
         isConstructor: (src: Developer) => src.isConstructor,
-        buildingProjects: (src: Developer) => src.getBuildingProjects(),
+        developerIn: (src: Developer) => src.getDeveloperProjects(),
+        constructorIn: (src: Developer) => src.getConstructorProjects(),
+        buildingProjects: (src: Developer) => src.getDeveloperProjects(),
         partners: async (src: Developer) => {
-            let projects = await src.getBuildingProjects();
+            let developerProjects = await src.getDeveloperProjects();
+            let constructorProjects = await src.getConstructorProjects();
             let developers = new Set<number>();
-            for (let p of projects) {
+            for (let p of developerProjects) {
                 (await p.getDevelopers()).forEach((d) => {
+                    if (d.id !== src.id) {
+                        developers.add(d.id!!);
+                    }
+                });
+                (await p.getConstructors()).forEach((d) => {
+                    if (d.id !== src.id) {
+                        developers.add(d.id!!);
+                    }
+                });
+            }
+            for (let p of constructorProjects) {
+                (await p.getDevelopers()).forEach((d) => {
+                    if (d.id !== src.id) {
+                        developers.add(d.id!!);
+                    }
+                });
+                (await p.getConstructors()).forEach((d) => {
                     if (d.id !== src.id) {
                         developers.add(d.id!!);
                     }

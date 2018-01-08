@@ -36,6 +36,7 @@ export const Schema = `
         permits: [Permit!]!
 
         developers: [Organization!]!
+        constructors: [Organization!]!
     }
 
     type BuildingProjectEdge {
@@ -134,7 +135,10 @@ export const Resolver = {
             }
         },
         developers: (src: BuildingProject) => {
-            return src.getDevelopers!!();
+            return src.getDevelopers();
+        },
+        constructors: (src: BuildingProject) => {
+            return src.getConstructors();
         },
         permits: (src: BuildingProject) => {
             return src.getPermits();

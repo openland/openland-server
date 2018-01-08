@@ -37,6 +37,7 @@ export interface BuildingProjectAttributes {
 
     permits?: Array<Permit>;
     developers?: Array<Developer>;
+    constructors?: Array<Developer>;
 }
 
 export interface BuildingProject extends sequelize.Instance<BuildingProjectAttributes>, BuildingProjectAttributes {
@@ -44,13 +45,13 @@ export interface BuildingProject extends sequelize.Instance<BuildingProjectAttri
 
     setPermits(streets: Array<Permit> | Array<number>, args?: any): Promise<void>;
 
-    addPermits(id: number): Promise<Permit>;
-
     getDevelopers(): Promise<Array<Developer>>;
 
-    setDevelopers(developers: Array<Developer>, args?: any): Promise<void>;
+    setDevelopers(developers: Array<Developer> | Array<number>, args?: any): Promise<void>;
 
-    addDevelopers(id: number): Promise<Developer>;
+    getConstructors(): Promise<Array<Developer>>;
+
+    setConstructors(contractors: Array<Developer> | Array<number>, args?: any): Promise<void>;
 }
 
 export const BuildingProjectTable = connection.define<BuildingProject, BuildingProjectAttributes>('building_project', {
@@ -97,4 +98,6 @@ BuildingProjectTable.belongsToMany(PermitTable, {through: 'permit_building_proje
 PermitTable.belongsToMany(BuildingProjectTable, {through: 'permit_building_projects', as: 'buildingProjects'});
 
 BuildingProjectTable.belongsToMany(DeveloperTable, {through: 'building_project_developers', as: 'developers'});
-DeveloperTable.belongsToMany(BuildingProjectTable, {through: 'building_project_developers', as: 'buildingProjects'});
+DeveloperTable.belongsToMany(BuildingProjectTable, {through: 'building_project_developers', as: 'developerProjects'});
+BuildingProjectTable.belongsToMany(DeveloperTable, {through: 'building_project_constructors', as: 'constructors'});
+DeveloperTable.belongsToMany(BuildingProjectTable, {through: 'building_project_constructors', as: 'constructorProjects'});

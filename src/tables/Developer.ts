@@ -20,11 +20,12 @@ export interface DeveloperAttributes {
 }
 
 export interface Developer extends sequelize.Instance<DeveloperAttributes>, DeveloperAttributes {
-    buildingProjects: Array<BuildingProject>;
+    developerProjects: Array<BuildingProject>;
+    constructorProjects: Array<BuildingProject>;
 
-    getBuildingProjects(): Promise<Array<BuildingProject>>;
+    getDeveloperProjects(): Promise<Array<BuildingProject>>;
 
-    getBuildingProjects(developers: Array<BuildingProject>, args?: any): Promise<void>;
+    getConstructorProjects(): Promise<Array<BuildingProject>>;
 }
 
 export const DeveloperTable = connection.define<Developer, DeveloperAttributes>('developer', {
