@@ -7,19 +7,19 @@ import { SelectBuilder } from '../utils/SelectBuilder';
 
 export interface StreetDescription {
     streetName: string;
-    streetNameSuffix: string | null;
+    streetNameSuffix?: string | null;
 }
 
 export interface StreetNumberDescription extends StreetDescription {
     streetNumber: number;
-    streetNumberSuffix: string | null;
+    streetNumberSuffix?: string | null;
 }
 
 export function normalizeStreet(str: string) {
     return str.trim().split(' ').map((s) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()).join(' ');
 }
 
-export function normalizeSuffix(str: string | null): string | null {
+export function normalizeSuffix(str?: string | null): string | null {
     if (str) {
         if (str.trim() === '') {
             return null;

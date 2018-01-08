@@ -191,9 +191,9 @@ interface PermitInfo {
 
 interface StreetNumberInfo {
     streetName: string;
-    streetNameSuffix?: string;
+    streetNameSuffix?: string | null;
     streetNumber: number;
-    streetNumberSuffix?: string;
+    streetNumberSuffix?: string | null;
 }
 
 export const Resolver = {
