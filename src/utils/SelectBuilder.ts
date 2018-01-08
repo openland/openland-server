@@ -91,14 +91,14 @@ export class SelectBuilder<TInstance, TAttributes> {
             cloned.conditions.push('FALSE');
         } else {
             let attributes = (this.table as any).attributes;
-            let sqlFields = '(' + fields.map((p) => {
+            let sqlFields = fields.map((p) => {
                 let attr = attributes[p];
                 if (!attr) {
                     throw 'Attribute ' + p + ' not found';
                 }
                 return '"' + p + '"';
-            }).join() + ')';
-            let sqlTuples = '(' + tuples.map((p) =>
+            }).join();
+            let sqlTuples = tuples.map((p) =>
                 '(' + p.map((v) => {
                     if (v == null || v === undefined) {
                         console.warn(p);
@@ -109,7 +109,13 @@ export class SelectBuilder<TInstance, TAttributes> {
                         return v;
                     }
                 }).join() + ')'
-            ).join() + ')';
+            ).join();
+            if (fields.length > 1) {
+                sqlFields = '(' + sqlFields + ')';
+            }
+            if (fields.length > 1) {
+                sqlTuples = '(' + sqlTuples + ')';
+            }
             cloned.conditions.push(sqlFields + ' IN ' + sqlTuples);
         }
         return cloned;

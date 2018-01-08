@@ -115,7 +115,7 @@ export const Schema = `
 
     extend type Query {
         permits(filter: String, type: PermitType, sort: PermitSorting, minUnits: Int,
-                issuedYear: String, 
+                issuedYear: String, fromPipeline: Boolean,
                 first: Int!, after: String, page: Int): PermitsConnection
         permit(id: ID!): Permit
         permitsApprovalStats: Chart!
@@ -338,7 +338,7 @@ export const Resolver = {
         },
         permits: async function (_: any, args: {
             filter?: string, type?: string, sort?: string,
-            minUnits?: number, issuedYear?: string,
+            minUnits?: number, issuedYear?: string, fromPipeline?: boolean,
             first: number, after?: string, page?: number
         }, context: CallContext) {
             let builder = new SelectBuilder(DB.Permit)
@@ -373,6 +373,27 @@ export const Resolver = {
             if (args.issuedYear) {
                 builder = builder.where('"permitIssued" IS NOT NULL');
                 builder = builder.where('"permitIssued" >= \'' + args.issuedYear + '-01-01\'');
+            }
+
+            if (args.fromPipeline) {
+                let allPermits = [];
+                let allProjects = (await DB.BuidlingProject.findAll({
+                    where: {
+                        account: context.accountId
+                    },
+                    include: [{
+                        model: DB.Permit,
+                        as: 'permits',
+                    }]
+                }));
+                for (let p of allProjects) {
+                    for (let pr of p.permits!!) {
+                        if (allPermits.indexOf(pr.id) < 0) {
+                            allPermits.push(pr.id);
+                        }
+                    }
+                }
+                builder = builder.whereIn(['id'], [allPermits]);
             }
 
             let approvalTimes: Chart = {
