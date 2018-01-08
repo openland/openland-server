@@ -79,6 +79,8 @@ export const Schema = `
     
     enum PermitSorting {
         CREATE_TIME
+        COMPLETE_TIME
+        ISSUED_TIME
         APPROVAL_TIME_ASC
         APPROVAL_TIME_DESC
     }
@@ -362,6 +364,10 @@ export const Resolver = {
                 builder = builder.where('"permitIssued" IS NOT NULL');
                 builder = builder.where('"permitCreated" IS NOT NULL');
                 builder = builder.orderByRaw('"permitIssued" - "permitCreated"', 'DESC NULLS LAST');
+            } else if (args.sort === 'COMPLETE_TIME') {
+                builder = builder.orderBy('permitCompleted', 'DESC NULLS LAST');
+            } else if (args.sort === 'ISSUED_TIME') {
+                builder = builder.orderBy('permitIssued', 'DESC NULLS LAST');
             } else {
                 builder = builder.orderBy('permitCreated', 'DESC NULLS LAST');
             }
