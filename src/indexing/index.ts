@@ -93,8 +93,7 @@ export async function enableIndexer() {
             let indexing = client.bulk({
                 body: forIndexing
             });
-            let commit = writeReaderOffset(tx, 'permits_indexing',
-                new Date(permits[permits.length - 1].updatedAt!!));
+            let commit = writeReaderOffset(tx, 'permits_indexing', permits[permits.length - 1].updatedAt!!);
 
             await indexing;
             await commit;

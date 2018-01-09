@@ -1,7 +1,7 @@
 import { DB } from '../tables';
 import * as sequelize from 'sequelize';
 
-export async function readReaderOffset(tx: sequelize.Transaction, key: string): Promise<Date | null> {
+export async function readReaderOffset(tx: sequelize.Transaction, key: string): Promise<string | null> {
     let res = await DB.ReaderState.findOne({
         where: {
             key: key
@@ -10,7 +10,7 @@ export async function readReaderOffset(tx: sequelize.Transaction, key: string): 
     });
     if (res != null) {
         if (res.currentOffset) {
-            return new Date(res.currentOffset);
+            return res.currentOffset;
         } else {
             return null;
         }
@@ -19,7 +19,7 @@ export async function readReaderOffset(tx: sequelize.Transaction, key: string): 
     }
 }
 
-export async function writeReaderOffset(tx: sequelize.Transaction, key: string, offset: Date) {
+export async function writeReaderOffset(tx: sequelize.Transaction, key: string, offset: string) {
     let res = await DB.ReaderState.findOne({
         where: {
             key: key
@@ -27,12 +27,12 @@ export async function writeReaderOffset(tx: sequelize.Transaction, key: string, 
         transaction: tx
     });
     if (res != null) {
-        res.currentOffset = offset.toUTCString();
+        res.currentOffset = offset;
         await res.save({transaction: tx});
     } else {
         await DB.ReaderState.create({
             key: key,
-            currentOffset: offset.toUTCString()
+            currentOffset: offset
         }, {transaction: tx});
     }
 }
