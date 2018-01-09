@@ -16,6 +16,7 @@ export { Developer } from './Developer';
 export { State } from './State';
 export { County } from './County';
 export { City } from './City';
+export { ReaderState } from './ReaderState';
 
 import { UserTable } from './User';
 import { AccountTable } from './Account';
@@ -24,6 +25,7 @@ import { ProjectTable } from './Project';
 import { DataSetTable } from './DataSet';
 import { FindingsTable } from './Findings';
 import { PermitTable } from './Permit';
+import { ReaderStateTable } from './ReaderState';
 import { StreetTable } from './Street';
 import { StreetNumberTable } from './StreetNumber';
 import { BuildingProjectTable } from './BuildingProject';
@@ -51,6 +53,7 @@ export const DB = {
     State: StateTable,
     County: CountyTable,
     City: CityTable,
+    ReaderState: ReaderStateTable,
 
     tx: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>): Promise<A> {
         return await connection.transaction({isolationLevel: 'SERIALIZABLE'}, (tx: sequelize.Transaction) => handler(tx));
