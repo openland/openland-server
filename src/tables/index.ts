@@ -17,6 +17,7 @@ export { State } from './State';
 export { County } from './County';
 export { City } from './City';
 export { ReaderState } from './ReaderState';
+export { Lock } from './Lock';
 
 import { UserTable } from './User';
 import { AccountTable } from './Account';
@@ -35,6 +36,7 @@ import { DeveloperTable } from './Developer';
 import { StateTable } from './State';
 import { CountyTable } from './County';
 import { CityTable } from './City';
+import { LockTable } from './Lock';
 
 export const DB = {
     User: UserTable,
@@ -54,6 +56,7 @@ export const DB = {
     County: CountyTable,
     City: CityTable,
     ReaderState: ReaderStateTable,
+    Lock: LockTable,
 
     tx: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>): Promise<A> {
         return await connection.transaction({isolationLevel: 'SERIALIZABLE'}, (tx: sequelize.Transaction) => handler(tx));

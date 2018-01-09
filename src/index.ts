@@ -4,6 +4,7 @@ import * as sample from './sample';
 import * as cluster from 'cluster';
 import * as fs from 'fs';
 import * as cp from 'child_process';
+import { enableIndexer } from './indexing';
 
 if (cluster.isMaster) {
     initMater();
@@ -54,6 +55,9 @@ async function initMater() {
 
 async function initWorker() {
     api.default();
+    if (process.env.ELASTIC_ENDPOINT) {
+        enableIndexer();
+    }
 }
 
 // async function init(worker?: number) {

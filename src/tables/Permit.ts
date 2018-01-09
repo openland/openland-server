@@ -38,6 +38,9 @@ export interface PermitAttributes {
     proposedAffordableUnits?: number;
     proposedUse?: string;
     description?: string;
+
+    updatedAt?: string;
+    createdAt?: string;
 }
 
 export interface Permit extends sequelize.Instance<PermitAttributes>, PermitAttributes {
@@ -98,7 +101,8 @@ export const PermitTable = connection.define<Permit, PermitAttributes>('permits'
     indexes: [
         {unique: true, fields: ['permitId', 'account']},
         {fields: ['permitId', 'permitCreated']},
-        {fields: ['permitCreated']}
+        {fields: ['permitCreated']},
+        {fields: ['updatedAt', 'id']}
     ]
 });
 
