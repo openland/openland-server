@@ -1,6 +1,6 @@
 import * as ES from 'elasticsearch';
 import { DB } from '../tables';
-import { delay } from '../utils/timer';
+import { delay, forever } from '../utils/timer';
 import { Permit } from '../tables/Permit';
 import { tryLock } from '../modules/locking';
 import { readReaderOffset, writeReaderOffset } from '../modules/readerState';
@@ -11,7 +11,7 @@ export async function enableIndexer() {
         host: process.env.ELASTIC_ENDPOINT
     });
 
-    while (true) {
+    await forever(async () => {
         let res = await DB.connection.transaction(async (tx) => {
 
             //
@@ -106,5 +106,5 @@ export async function enableIndexer() {
         } else {
             await delay(1000);
         }
-    }
+    });
 }
