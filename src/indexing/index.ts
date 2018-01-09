@@ -1,5 +1,4 @@
 import * as ES from 'elasticsearch';
-import { URL } from 'url';
 import { DB } from '../tables';
 import { delay } from '../utils/timer';
 import { Permit } from '../tables/Permit';
@@ -7,10 +6,9 @@ import { tryLock } from '../modules/locking';
 import { readReaderOffset, writeReaderOffset } from '../modules/readerState';
 
 export async function enableIndexer() {
-    let endpoint = new URL(process.env.ELASTIC_ENDPOINT as string);
-    console.warn('Starting Elastic Search Indexing (' + endpoint.host + ')');
+    console.warn('Starting Elastic Search Indexing (' + process.env.ELASTIC_ENDPOINT + ')');
     let client = new ES.Client({
-        host: endpoint.host
+        host: process.env.ELASTIC_ENDPOINT
     });
 
     while (true) {

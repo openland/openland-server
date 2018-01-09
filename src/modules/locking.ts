@@ -5,7 +5,6 @@ import { DB } from '../tables';
 let lockSeed = Crypto.randomBytes(32).toString('hex');
 
 export async function tryLock(tx: sequelize.Transaction, key: string): Promise<boolean> {
-    console.log('Try Lock');
     let existing = await DB.Lock.findOne({
         where: {
             key: key
@@ -14,7 +13,7 @@ export async function tryLock(tx: sequelize.Transaction, key: string): Promise<b
         lock: tx.LOCK.UPDATE
     });
     let now = new Date();
-    let currentTimeout = new Date(now.getTime() + 30 * 1000);
+    let currentTimeout = new Date(now.getTime() + 10 * 1000);
     if (existing != null) {
         let timeout = new Date(existing.timeout!!);
         if (existing.seed === lockSeed || timeout.getTime() < now.getTime()) {
@@ -23,9 +22,6 @@ export async function tryLock(tx: sequelize.Transaction, key: string): Promise<b
             await existing.save({transaction: tx});
             return true;
         } else {
-            if (timeout.getTime() >= now.getTime()) {
-                console.log(`Unable to lock ${timeout.toUTCString()}/${now.toUTCString()}`);
-            }
             return false;
         }
     } else {
