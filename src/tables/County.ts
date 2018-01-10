@@ -1,15 +1,15 @@
 import { connection } from '../connector';
 import * as sequelize from 'sequelize';
-import { StateTable } from './State';
+import { State, StateTable } from './State';
 
 export interface CountyAttributes {
     id?: number;
     stateId?: number;
-    code?: string;
     name?: string;
 }
 
 export interface County extends sequelize.Instance<CountyAttributes>, CountyAttributes {
+    state?: State;
 }
 
 export const CountyTable = connection.define<CountyAttributes, CountyAttributes>('county', {

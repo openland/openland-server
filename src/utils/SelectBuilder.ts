@@ -1,6 +1,7 @@
 import { DB } from '../tables';
 import { sumRaw, countRaw, textLikeFieldsText, percentileRaw, histogramCountRaw, histogramSumRaw } from './db_utils';
 import * as sequelize from 'sequelize';
+import { SearchResponse } from 'elasticsearch';
 
 export type Order = 'ASC' | 'DESC' | 'ASC NULLS FIRST' | 'ASC NULLS LAST' | 'DESC NULLS FIRST' | 'DESC NULLS LAST';
 
@@ -199,6 +200,37 @@ export class SelectBuilder<TInstance, TAttributes> {
             include: include,
             transaction: this.tx ? this.tx : undefined
         });
+    }
+
+    async findElastic(response: SearchResponse<any>, include?: Array<sequelize.Model<any, any> | sequelize.IncludeOptions>) {
+        if (this.limitValue == null) {
+            throw 'Limit should be set!';
+        }
+        let ids = response.hits.hits.map((v) => parseInt(v._id, 10));
+        console.warn(response);
+        let elements = await this.table.findAll({
+            where: {
+                id: {
+                    $in: ids
+                }
+            } as any
+        });
+        return {
+            edges: elements.map((p, i) => {
+                return {
+                    node: p,
+                    cursor: (i + 1 + 0).toString()
+                };
+            }),
+            pageInfo: {
+                hasNextPage: false, // res.length === this.limitValue,
+                hasPreviousPage: false,
+
+                itemsCount: response.hits.total,
+                pagesCount: Math.floor(response.hits.total / this.limitValue),
+                currentPage: Math.floor(response.hits.total / this.limitValue) + 1
+            },
+        };
     }
 
     async findAll(include?: Array<sequelize.Model<any, any> | sequelize.IncludeOptions>) {

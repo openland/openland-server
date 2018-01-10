@@ -5,6 +5,7 @@ import { PermitStatus, Permit, PermitType } from '../tables/Permit';
 import { SelectBuilder } from '../utils/SelectBuilder';
 import { dateDiff } from '../utils/date_utils';
 import { Chart, prepareHistogram } from '../utils/charts';
+import { ElasticClient } from '../indexing';
 
 export const Schema = `
 
@@ -344,9 +345,12 @@ export const Resolver = {
             minUnits?: number, issuedYear?: string, fromPipeline?: boolean,
             first: number, after?: string, page?: number
         }, context: CallContext) {
+
+            if (args.filter) {
+
+            }
+
             let builder = new SelectBuilder(DB.Permit)
-                .filterField('permitId')
-                .filter(args.filter)
                 .after(args.after)
                 .page(args.page)
                 .limit(args.first)
@@ -403,47 +407,81 @@ export const Resolver = {
                 builder = builder.whereIn(['id'], [allPermits]);
             }
 
-            let approvalPercentile: Chart = {
-                labels: ['1%', '10%', '20%', '30%', '40%', '50%', '60%', '70%', '80%', '90%', '95%', '96%', '97%', '98%', '99%'],
-                datasets: [{
-                    label: 'Approval Times',
-                    values: (await builder
-                        .where('"permitIssued" IS NOT NULL')
-                        .percentile([0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.96, 0.97, 0.98, 0.99], '"permitIssued" - "permitCreated"'))
-                }]
-            };
+            // let approvalPercentile: Chart = {
+            //     labels: ['1%', '10%', '20%', '30%', '40%', '50%', '60%', '70%', '80%', '90%', '95%', '96%', '97%', '98%', '99%'],
+            //     datasets: [{
+            //         label: 'Approval Times',
+            //         values: (await builder
+            //             .where('"permitIssued" IS NOT NULL')
+            //             .percentile([0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.96, 0.97, 0.98, 0.99], '"permitIssued" - "permitCreated"'))
+            //     }]
+            // };
 
-            let distribution = [0, 10, 50, 80, 90, 95, 100, 120, 150, 200, 300, 400, 500, 900, 1800, 3000, 6000, 8000];
-            let largeBuildings = prepareHistogram(await builder
-                .where('"proposedUnits" >= 10')
-                .histogramSum('proposedUnits', '"permitIssued" - "permitCreated"'), distribution);
-            let smallBuildings = prepareHistogram(await builder
-                .where('"proposedUnits" < 10')
-                .histogramSum('proposedUnits', '"permitIssued" - "permitCreated"'), distribution);
-            let approvalDistribution: Chart = {
-                labels: largeBuildings.map((v) => v.value.toString()),
-                datasets: [{
-                    label: 'Units in Small Buildings',
-                    values: smallBuildings.map((v) => v.count)
-                }, {
-                    label: 'Units in Large Buildings',
-                    values: largeBuildings.map((v) => v.count)
-                }]
-            };
+            // let distribution = [0, 10, 50, 80, 90, 95, 100, 120, 150, 200, 300, 400, 500, 900, 1800, 3000, 6000, 8000];
+            // // let largeBuildings = prepareHistogram(await builder
+            // //     .where('"proposedUnits" >= 10')
+            // //     .histogramSum('proposedUnits', '"permitIssued" - "permitCreated"'), distribution);
+            // // let smallBuildings = prepareHistogram(await builder
+            // //     .where('"proposedUnits" < 10')
+            // //     .histogramSum('proposedUnits', '"permitIssued" - "permitCreated"'), distribution);
+            // let approvalDistribution: Chart = {
+            //     labels: largeBuildings.map((v) => v.value.toString()),
+            //     datasets: [{
+            //         label: 'Units in Small Buildings',
+            //         values: smallBuildings.map((v) => v.count)
+            //     }, {
+            //         label: 'Units in Large Buildings',
+            //         values: largeBuildings.map((v) => v.count)
+            //     }]
+            // };
 
-            return {
-                ...(await builder.findAll([{
+            let res;
+            if (args.filter) {
+                let hits = await ElasticClient.search({
+                    index: 'permits',
+                    type: 'permit',
+                    size: args.first,
+                    body: {
+                        query: {
+                            multi_match: {
+                                query: args.filter,
+                                fields: ['permitId', 'permitType', 'permitStatus', 'address']
+                            }
+                            // match: {
+                            //     _all: args.filter
+                            // }
+                        }
+                    }
+                    // q: args.filter
+                });
+                res = await builder.findElastic(hits, [{
                     model: DB.StreetNumber,
                     as: 'streetNumbers',
                     include: [{
                         model: DB.Street,
                         as: 'street'
                     }]
-                }])),
-                stats: {
-                    approvalTimes: approvalPercentile,
-                    approvalDistribution: approvalDistribution
-                }
+                }]);
+            } else {
+                res = await builder.findAll([{
+                    model: DB.StreetNumber,
+                    as: 'streetNumbers',
+                    include: [{
+                        model: DB.Street,
+                        as: 'street'
+                    }]
+                }]);
+            }
+            // args.filter ? (
+            //     builder.findElastic()
+            // )
+
+            return {
+                ...res,
+                // stats: {
+                //     approvalTimes: approvalPercentile,
+                //     approvalDistribution: approvalDistribution
+                // }
             };
         },
         permitsApprovalStats: async function (_: any, args: {}, call: CallContext) {
