@@ -446,7 +446,7 @@ export const Resolver = {
                             bool: {
                                 should: [
                                     {match: {'address': {query: args.filter, operator: 'and'}}},
-                                    {term: {'permitId': args.filter}}
+                                    {match_phrase_prefix: {'permitId': args.filter}}
                                 ]
                             }
                         }
