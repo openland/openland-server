@@ -443,16 +443,14 @@ export const Resolver = {
                     size: args.first,
                     body: {
                         query: {
-                            multi_match: {
-                                query: args.filter,
-                                fields: ['permitId', 'permitType', 'permitStatus', 'address']
+                            bool: {
+                                should: [
+                                    {match: {'address': {query: args.filter, operator: 'and'}}},
+                                    {term: {'permitId': args.filter}}
+                                ]
                             }
-                            // match: {
-                            //     _all: args.filter
-                            // }
                         }
                     }
-                    // q: args.filter
                 });
                 res = await builder.findElastic(hits, [{
                     model: DB.StreetNumber,
