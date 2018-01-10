@@ -34,7 +34,7 @@ export async function enableIndexer() {
                 order: [['updatedAt', 'ASC'], ['id', 'ASC']],
                 where: (offset ? {
                     updatedAt: {
-                        $gte: offset
+                        $gt: offset
                     }
                 } : {}),
                 limit: 100,

@@ -3,6 +3,7 @@ import { DB } from '../tables';
 import { BuildingProject } from '../tables';
 import { resolveStreetView, resolvePicture } from '../utils/pictures';
 import { SelectBuilder } from '../utils/SelectBuilder';
+import { dateDiff } from '../utils/date_utils';
 
 export const Schema = `
     type BuildingProject {
@@ -64,6 +65,9 @@ export const Schema = `
         year2017NewUnitsVerified: Int!
         year2018NewUnits: Int!
         year2018NewUnitsVerified: Int!
+        
+        fastestApprovalProject: BuildingProject!
+        slowestApprovalProject: BuildingProject!
     }
 
     extend type Query {
@@ -141,7 +145,11 @@ export const Resolver = {
             return src.getConstructors();
         },
         permits: (src: BuildingProject) => {
-            return src.getPermits();
+            if (src.permits !== undefined) {
+                return src.permits;
+            } else {
+                return src.getPermits();
+            }
         }
     },
     Query: {
@@ -169,6 +177,39 @@ export const Resolver = {
                 .whereEq('extrasYearEnd', '2018')
                 .whereEq('verified', true)
                 .sum('\"proposedUnits" - "existingUnits\"');
+
+
+            let allProjects = (await DB.BuidlingProject.findAll({
+                where: {
+                    account: context.accountId
+                },
+                include: [{
+                    model: DB.Permit,
+                    as: 'permits',
+                }]
+            })).filter((v) => v.permits!!.length > 0);
+
+            let fastestProject = allProjects[0];
+            let slowestProject = allProjects[0];
+            let fastestDuration = dateDiff(new Date(fastestProject.permits!![0].permitCreated!!), new Date(fastestProject.permits!![0].permitIssued!!));
+            let slowestDuration = dateDiff(new Date(fastestProject.permits!![0].permitCreated!!), new Date(fastestProject.permits!![0].permitIssued!!));
+
+            for (let proj of allProjects) {
+                for (let p of proj.permits!!) {
+                    if (p.permitCreated && p.permitIssued) {
+                        let duration = dateDiff(new Date(p.permitCreated!!), new Date(p.permitIssued!!));
+                        if (duration < fastestDuration) {
+                            fastestDuration = duration;
+                            fastestProject = proj;
+                        }
+                        if (duration > slowestDuration) {
+                            slowestDuration = duration;
+                            slowestProject = proj;
+                        }
+                    }
+                }
+            }
+
             return {
                 projectsTracked: projectsTracked,
                 projectsVerified: projectsVerified,
@@ -176,6 +217,8 @@ export const Resolver = {
                 year2017NewUnitsVerified: year2017NewUnitsVerified,
                 year2018NewUnits: year2018NewUnits,
                 year2018NewUnitsVerified: year2018NewUnitsVerified,
+                fastestApprovalProject: fastestProject,
+                slowestApprovalProject: slowestProject
             };
         },
         buildingProjects: async function (_: any, args: { first: number, minUnits?: number, year?: string, filter?: string, after?: string }, context: CallContext) {

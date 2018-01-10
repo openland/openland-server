@@ -10,6 +10,7 @@ import * as BuildingProject from './models/BuildingProject';
 import * as Picture from './models/Picture';
 import * as Organizations from './models/Organizations';
 import * as Core from './models/Core';
+import * as Stats from './models/Stats';
 import { merge } from 'lodash';
 
 const RootQuery = `
@@ -54,7 +55,8 @@ export const Schema = makeExecutableSchema({
         Street.Schema,
         BuildingProject.Schema,
         Picture.Schema,
-        Organizations.Schema
+        Organizations.Schema,
+        Stats.Schema,
     ],
     resolvers: merge(rootResolver,
         Account.Resolver,
@@ -66,7 +68,8 @@ export const Schema = makeExecutableSchema({
         Street.Resolver,
         BuildingProject.Resolver,
         Picture.Resolver,
-        Organizations.Resolver
+        Organizations.Resolver,
+        Stats.Resolver
     )
 });
 
