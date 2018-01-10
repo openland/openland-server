@@ -4,26 +4,28 @@ import { updateReader } from '../modules/updateReader';
 import { dateDiff } from '../utils/date_utils';
 
 export function startPermitsIndexer(client: ES.Client) {
-    updateReader('permits_indexing_4', DB.Permit, [{
-        model: DB.StreetNumber,
-        as: 'streetNumbers',
-        include: [{
-            model: DB.Street,
-            as: 'street',
+    updateReader('permits_indexing_4', DB.Permit, [
+        {
+            model: DB.StreetNumber,
+            as: 'streetNumbers',
             include: [{
-                model: DB.City,
-                as: 'city',
+                model: DB.Street,
+                as: 'street',
                 include: [{
-                    model: DB.County,
-                    as: 'county',
+                    model: DB.City,
+                    as: 'city',
                     include: [{
-                        model: DB.State,
-                        as: 'state'
+                        model: DB.County,
+                        as: 'county',
+                        include: [{
+                            model: DB.State,
+                            as: 'state'
+                        }]
                     }]
                 }]
             }]
-        }]
-    }], async (data) => {
+        }
+    ], async (data) => {
         let forIndexing = [];
         for (let p of data) {
             forIndexing.push({

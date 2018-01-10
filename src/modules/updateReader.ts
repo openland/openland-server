@@ -70,15 +70,20 @@ export async function updateReader<TInstance, TAttributes>(name: string,
             console.warn(offset);
 
             let data: TInstance[] = (await model.findAll({
-                order: [['updatedAt', 'ASC'], ['id', 'ASC']],
                 where: (offset ? {
-                    updatedAt: {
-                        $or: [
-                            {$gt: offset.offset},
-                            {$eq: offset.offset, $gt: offset.secondary}
-                        ]
-                    }
+                    $and: [
+                        {
+                            updatedAt: {$gte: offset.offset}
+                        },
+                        {
+                            $or: {
+                                updatedAt: {$gt: offset.offset},
+                                id: {$gt: offset.secondary}
+                            }
+                        }
+                    ]
                 } : {}),
+                order: [['updatedAt', 'ASC'], ['id', 'ASC']],
                 limit: 100,
                 transaction: tx,
                 include: include
