@@ -33,6 +33,9 @@ const checkJwt = jwt({
     algorithms: ['RS256'],
 });
 
+let domainCache = new Map<string, number | null>();
+let userCache = new Map<string, number | null>();
+
 async function context(src: express.Request): Promise<CallContext> {
     let domain: string = '';
     if (src.headers['x-statecraft-domain']) {
@@ -43,31 +46,55 @@ async function context(src: express.Request): Promise<CallContext> {
 
     let isRetina = src.headers['x-statecraft-retina'] === 'true';
 
-    let accId = (await DB.Account.findOne({
-        where: {
-            slug: domain,
-            activated: true
+    let accId = null;
+    if (domainCache.has(domain)) {
+        accId = domainCache.get(domain);
+    } else {
+        let acc = (await DB.Account.findOne({
+            where: {
+                slug: domain,
+                activated: true
+            }
+        }));
+        if (acc != null) {
+            accId = acc.id!!;
+        } else {
+            accId = null;
         }
-    }));
+        if (!domainCache.has(domain)) {
+            domainCache.set(domain, accId);
+        }
+    }
     if (accId == null) {
         throw new Error('404: Unable to find account ' + domain);
     }
 
     let n = new CallContext();
     n.domain = domain;
-    n.accountId = accId.id!!;
+    n.accountId = accId!!;
     n.owner = false;
     n.isRetina = isRetina;
 
     if (src.user != null && src.user !== undefined) {
         let userKey = src.user.sub;
-        let exists = await DB.User.find({
-            where: {
-                authId: userKey
+        if (userCache.has(userKey)) {
+            n.uid = userCache.get(userKey)!!;
+        } else {
+            let exists = await DB.User.find({
+                where: {
+                    authId: userKey
+                }
+            });
+            if (exists != null) {
+                n.uid = exists.id!!;
+                if (!userCache.has(userKey)) {
+                    userCache.set(userKey, exists.id!!);
+                }
+            } else {
+                if (!userCache.has(userKey)) {
+                    userCache.set(userKey, null);
+                }
             }
-        });
-        if (exists != null) {
-            n.uid = exists.id!!;
         }
     }
 
