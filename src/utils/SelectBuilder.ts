@@ -207,7 +207,6 @@ export class SelectBuilder<TInstance, TAttributes> {
             throw 'Limit should be set!';
         }
         let ids = response.hits.hits.map((v) => parseInt(v._id, 10));
-        console.warn(response);
         let elements = await this.table.findAll({
             where: {
                 id: {
@@ -215,20 +214,38 @@ export class SelectBuilder<TInstance, TAttributes> {
                 }
             } as any
         });
+        let mappedElements = new Map<number, TInstance>();
+        for (let e of elements) {
+            mappedElements.set((e as any).id!!, e);
+        }
+        let restored = [];
+        for (let i of ids) {
+            if (mappedElements.get(i)) {
+                restored.push(mappedElements.get(i)!!);
+            }
+        }
+        let offset = 0;
+        if (this.afterValue) {
+            offset = parseInt(this.afterValue, 10);
+        } else if (this.pageValue) {
+            offset = (this.pageValue - 1) * this.limitValue;
+        }
+        let total = response.hits.total;
+
         return {
-            edges: elements.map((p, i) => {
+            edges: restored.map((p, i) => {
                 return {
                     node: p,
-                    cursor: (i + 1 + 0).toString()
+                    cursor: (i + 1 + offset).toString()
                 };
             }),
             pageInfo: {
-                hasNextPage: false, // res.length === this.limitValue,
+                hasNextPage: ids.length === this.limitValue,
                 hasPreviousPage: false,
 
-                itemsCount: response.hits.total,
-                pagesCount: Math.floor(response.hits.total / this.limitValue),
-                currentPage: Math.floor(response.hits.total / this.limitValue) + 1
+                itemsCount: total,
+                pagesCount: Math.floor(total / this.limitValue),
+                currentPage: Math.floor(offset / this.limitValue) + 1
             },
         };
     }

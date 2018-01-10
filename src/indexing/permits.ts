@@ -4,7 +4,7 @@ import { updateReader } from '../modules/updateReader';
 import { dateDiff } from '../utils/date_utils';
 
 export function startPermitsIndexer(client: ES.Client) {
-    updateReader('permits_indexing_3', DB.Permit, [{
+    updateReader('permits_indexing_4', DB.Permit, [{
         model: DB.StreetNumber,
         as: 'streetNumbers',
         include: [{
@@ -68,6 +68,7 @@ export function startPermitsIndexer(client: ES.Client) {
                 permitExpires: p.permitExpires,
                 permitStarted: p.permitStarted,
                 permitFiled: p.permitFiled,
+                permitCompleted: p.permitCompleted,
 
                 approvalTime: approvalTime,
 
@@ -91,6 +92,21 @@ export function startPermitsIndexer(client: ES.Client) {
                 })),
                 address: address
             });
+        }
+
+        try {
+            await client.indices.putMapping({
+                index: 'permits', type: 'permit', body: {
+                    properties: {
+                        permitCreated: {type: 'date'},
+                        permitCompleted: {type: 'date'},
+                        permitIssued: {type: 'date'},
+                        approvalTime: {type: 'long'}
+                    }
+                }
+            });
+        } catch (e) {
+            console.warn(e);
         }
 
         await client.bulk({

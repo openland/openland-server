@@ -6,6 +6,7 @@ import { SelectBuilder } from '../utils/SelectBuilder';
 import { dateDiff } from '../utils/date_utils';
 import { Chart, prepareHistogram } from '../utils/charts';
 import { ElasticClient } from '../indexing';
+import { currentTime, printElapsed } from '../utils/timer';
 
 export const Schema = `
 
@@ -346,66 +347,59 @@ export const Resolver = {
             first: number, after?: string, page?: number
         }, context: CallContext) {
 
-            if (args.filter) {
-
-            }
-
             let builder = new SelectBuilder(DB.Permit)
                 .after(args.after)
                 .page(args.page)
                 .limit(args.first)
                 .whereEq('account', context.accountId);
-
-            if (args.type) {
-                builder = builder.whereEq('permitType', args.type.toLocaleLowerCase());
-            }
-
-            if (args.sort === 'APPROVAL_TIME_ASC') {
-                builder = builder.where('"permitIssued" IS NOT NULL');
-                builder = builder.where('"permitCreated" IS NOT NULL');
-                builder = builder.orderByRaw('"permitIssued" - "permitCreated"', 'ASC NULLS LAST');
-            } else if (args.sort === 'APPROVAL_TIME_DESC') {
-                builder = builder.where('"permitIssued" IS NOT NULL');
-                builder = builder.where('"permitCreated" IS NOT NULL');
-                builder = builder.orderByRaw('"permitIssued" - "permitCreated"', 'DESC NULLS LAST');
-            } else if (args.sort === 'COMPLETE_TIME') {
-                builder = builder.orderBy('permitCompleted', 'DESC NULLS LAST');
-            } else if (args.sort === 'ISSUED_TIME') {
-                builder = builder.orderBy('permitIssued', 'DESC NULLS LAST');
-            } else {
-                builder = builder.orderBy('permitCreated', 'DESC NULLS LAST');
-            }
-
-            if (args.minUnits) {
-                builder = builder.where('"proposedUnits" > ' + args.minUnits);
-                builder = builder.where('"proposedUnits" IS NOT NULL');
-            }
-
-            if (args.issuedYear) {
-                builder = builder.where('"permitIssued" IS NOT NULL');
-                builder = builder.where('"permitIssued" >= \'' + args.issuedYear + '-01-01\'');
-            }
-
-            if (args.fromPipeline) {
-                let allPermits = [];
-                let allProjects = (await DB.BuidlingProject.findAll({
-                    where: {
-                        account: context.accountId
-                    },
-                    include: [{
-                        model: DB.Permit,
-                        as: 'permits',
-                    }]
-                }));
-                for (let p of allProjects) {
-                    for (let pr of p.permits!!) {
-                        if (allPermits.indexOf(pr.id) < 0) {
-                            allPermits.push(pr.id);
-                        }
-                    }
-                }
-                builder = builder.whereIn(['id'], [allPermits]);
-            }
+            //
+            // if (args.sort === 'APPROVAL_TIME_ASC') {
+            //     builder = builder.where('"permitIssued" IS NOT NULL');
+            //     builder = builder.where('"permitCreated" IS NOT NULL');
+            //     builder = builder.orderByRaw('"permitIssued" - "permitCreated"', 'ASC NULLS LAST');
+            // } else if (args.sort === 'APPROVAL_TIME_DESC') {
+            //     builder = builder.where('"permitIssued" IS NOT NULL');
+            //     builder = builder.where('"permitCreated" IS NOT NULL');
+            //     builder = builder.orderByRaw('"permitIssued" - "permitCreated"', 'DESC NULLS LAST');
+            // } else if (args.sort === 'COMPLETE_TIME') {
+            //     builder = builder.orderBy('permitCompleted', 'DESC NULLS LAST');
+            // } else if (args.sort === 'ISSUED_TIME') {
+            //     builder = builder.orderBy('permitIssued', 'DESC NULLS LAST');
+            // } else {
+            //     builder = builder.orderBy('permitCreated', 'DESC NULLS LAST');
+            // }
+            //
+            // if (args.type) {
+            //     builder = builder.whereEq('permitType', args.type.toLocaleLowerCase());
+            // }
+            // if (args.minUnits) {
+            //     builder = builder.where('"proposedUnits" > ' + args.minUnits);
+            //     builder = builder.where('"proposedUnits" IS NOT NULL');
+            // }
+            // if (args.issuedYear) {
+            //     builder = builder.where('"permitIssued" IS NOT NULL');
+            //     builder = builder.where('"permitIssued" >= \'' + args.issuedYear + '-01-01\'');
+            // }
+            // if (args.fromPipeline) {
+            //     let allPermits = [];
+            //     let allProjects = (await DB.BuidlingProject.findAll({
+            //         where: {
+            //             account: context.accountId
+            //         },
+            //         include: [{
+            //             model: DB.Permit,
+            //             as: 'permits',
+            //         }]
+            //     }));
+            //     for (let p of allProjects) {
+            //         for (let pr of p.permits!!) {
+            //             if (allPermits.indexOf(pr.id) < 0) {
+            //                 allPermits.push(pr.id);
+            //             }
+            //         }
+            //     }
+            //     builder = builder.whereIn(['id'], [allPermits]);
+            // }
 
             // let approvalPercentile: Chart = {
             //     labels: ['1%', '10%', '20%', '30%', '40%', '50%', '60%', '70%', '80%', '90%', '95%', '96%', '97%', '98%', '99%'],
@@ -435,45 +429,62 @@ export const Resolver = {
             //     }]
             // };
 
-            let res;
+            let start = currentTime();
+            let clauses: any[] = [];
+            clauses.push({term: {'account': context.accountId}});
             if (args.filter) {
-                let hits = await ElasticClient.search({
-                    index: 'permits',
-                    type: 'permit',
-                    size: args.first,
-                    body: {
-                        query: {
-                            bool: {
-                                should: [
-                                    {match: {'address': {query: args.filter, operator: 'and'}}},
-                                    {match_phrase_prefix: {'permitId': args.filter}}
-                                ]
-                            }
-                        }
+                clauses.push({
+                    bool: {
+                        should: [
+                            {match: {'address': {query: args.filter, operator: 'and'}}},
+                            {match_phrase_prefix: {'permitId': args.filter}}
+                        ]
                     }
                 });
-                res = await builder.findElastic(hits, [{
-                    model: DB.StreetNumber,
-                    as: 'streetNumbers',
-                    include: [{
-                        model: DB.Street,
-                        as: 'street'
-                    }]
-                }]);
-            } else {
-                res = await builder.findAll([{
-                    model: DB.StreetNumber,
-                    as: 'streetNumbers',
-                    include: [{
-                        model: DB.Street,
-                        as: 'street'
-                    }]
-                }]);
             }
-            // args.filter ? (
-            //     builder.findElastic()
-            // )
+            if (args.type) {
+                clauses.push({term: {'permitType': args.type.toLocaleLowerCase()}});
+            }
+            if (args.minUnits) {
+                clauses.push({range: {'proposedUnits': {'gt': args.minUnits}}});
+            }
+            if (args.issuedYear) {
+                clauses.push({range: {'permitIssued': {'gte': args.issuedYear}}});
+            }
 
+            let sort: any = [];
+            if (args.sort === 'APPROVAL_TIME_ASC') {
+                sort = [{'approvalTime': {'order': 'asc'}}];
+                clauses.push({exists: {field: 'approvalTime'}});
+            } else if (args.sort === 'APPROVAL_TIME_DESC') {
+                sort = [{'approvalTime': {'order': 'desc'}}];
+                clauses.push({exists: {field: 'approvalTime'}});
+            } else if (args.sort === 'COMPLETE_TIME') {
+                sort = [{'permitCompleted': {'order': 'desc'}}];
+                clauses.push({exists: {field: 'permitCompleted'}});
+            } else if (args.sort === 'ISSUED_TIME') {
+                sort = [{'permitIssued': {'order': 'desc'}}];
+                clauses.push({exists: {field: 'permitIssued'}});
+            } else {
+                sort = [{'permitCreated': {'order': 'desc'}}];
+                clauses.push({exists: {field: 'permitCreated'}});
+            }
+
+            let hits = await ElasticClient.search({
+                index: 'permits',
+                type: 'permit',
+                size: args.first,
+                from: args.page ? (args.page!! * args.first) : 0,
+                body: {
+                    query: {bool: {must: clauses}},
+                    sort: sort
+                }
+            });
+            start = printElapsed('searched', start);
+            console.warn(`searched(reported) in ${hits.took} ms`);
+            let res = await builder.findElastic(hits);
+            printElapsed('loaded', start);
+            
             return {
                 ...res,
                 // stats: {

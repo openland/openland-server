@@ -17,3 +17,13 @@ export async function forever(callback: () => Promise<void>) {
         await backoff(callback);
     }
 }
+
+export function currentTime(): number {
+    return new Date().getTime();
+}
+
+export function printElapsed(tag: string, src: number) {
+    let time = currentTime();
+    console.warn(`${tag} in ${time - src} ms`);
+    return time;
+}
