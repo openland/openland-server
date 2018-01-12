@@ -18,7 +18,7 @@ export const Resolver = {
     Query: {
         globalStats: async function (_: any, args: {}, context: CallContext) {
             return {
-                totalProjects: DB.Project.count({where: {account: context.accountId}}),
+                totalProjects: DB.BuidlingProject.count({where: {account: context.accountId}}),
                 totalDevelopers: DB.Developer.count({where: {account: context.accountId, isDeveloper: true}}),
                 totalConstructors: DB.Developer.count({where: {account: context.accountId, isConstructor: true}}),
                 totalPermits: DB.Permit.count({where: {account: context.accountId}}),
