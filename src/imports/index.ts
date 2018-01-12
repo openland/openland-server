@@ -116,6 +116,7 @@ async function doImport(accountId: number, apiKey: string, database: string) {
                     extrasLongitude: geo !== undefined ? geo.longitude : undefined,
                     developers: parseRefences(r.fields['Developer Code'] as string),
                     constructors: parseRefences(r.fields['Contractor Code'] as string),
+                    description: r.fields.Description as string,
                     permits: parseRefences(r.fields['Permit Ids'] as string),
                     govId: r.fields['Planning Id'] as string
                 });

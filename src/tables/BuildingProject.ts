@@ -32,6 +32,8 @@ export interface BuildingProjectAttributes {
     extrasPermit?: string | null;
     extrasComment?: string | null;
     extrasUrl?: string | null;
+    extrasFacebookUrl?: string | null;
+    extrasInstagramUrl?: string | null;
     extrasLatitude?: number;
     extrasLongitude?: number;
 
@@ -88,6 +90,8 @@ export const BuildingProjectTable = connection.define<BuildingProject, BuildingP
     extrasPermit: {type: sequelize.STRING, allowNull: true},
     extrasComment: {type: sequelize.STRING, allowNull: true},
     extrasUrl: {type: sequelize.STRING, allowNull: true},
+    extrasFacebookUrl: {type: sequelize.STRING, allowNull: true},
+    extrasInstagramUrl: {type: sequelize.STRING, allowNull: true},
 
     extrasLatitude: {type: sequelize.DOUBLE, allowNull: true},
     extrasLongitude: {type: sequelize.DOUBLE, allowNull: true},
@@ -100,4 +104,7 @@ PermitTable.belongsToMany(BuildingProjectTable, {through: 'permit_building_proje
 BuildingProjectTable.belongsToMany(DeveloperTable, {through: 'building_project_developers', as: 'developers'});
 DeveloperTable.belongsToMany(BuildingProjectTable, {through: 'building_project_developers', as: 'developerProjects'});
 BuildingProjectTable.belongsToMany(DeveloperTable, {through: 'building_project_constructors', as: 'constructors'});
-DeveloperTable.belongsToMany(BuildingProjectTable, {through: 'building_project_constructors', as: 'constructorProjects'});
+DeveloperTable.belongsToMany(BuildingProjectTable, {
+    through: 'building_project_constructors',
+    as: 'constructorProjects'
+});

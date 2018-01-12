@@ -10,6 +10,7 @@ export interface BuildingProjectDescription {
     proposedUnits?: number;
     projectStart?: string;
     projectExpectedCompleted?: string;
+    description?: string;
 
     picture?: string;
 
@@ -59,6 +60,7 @@ export async function applyBuildingProjects(tx: Transaction, accountId: number, 
             existingUnits: p.existingUnits,
             proposedUnits: p.proposedUnits,
             picture: p.picture,
+            description: p.description,
 
             extrasDeveloper: p.extrasDeveloper,
             extrasGeneralConstructor: p.extrasGeneralConstructor,
