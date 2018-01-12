@@ -18,6 +18,7 @@ export interface DeveloperAttributes {
     isDeveloper?: boolean;
     isConstructor?: boolean;
     comments?: string | null;
+    description?: string | null;
 }
 
 export interface Developer extends sequelize.Instance<DeveloperAttributes>, DeveloperAttributes {
@@ -61,4 +62,5 @@ export const DeveloperTable = connection.define<Developer, DeveloperAttributes>(
     isDeveloper: {type: sequelize.BOOLEAN, allowNull: false, defaultValue: false},
     isConstructor: {type: sequelize.BOOLEAN, allowNull: false, defaultValue: false},
     comments: {type: sequelize.STRING(4096), allowNull: true, validate: {notEmpty: true}},
+    description: {type: sequelize.STRING(4096), allowNull: true, validate: {notEmpty: true}},
 }, {indexes: [{unique: true, fields: ['slug', 'account']}]});

@@ -18,6 +18,7 @@ export const Schema = `
         linkedin: String
         facebook: String
         comments: String
+        description: String
         
         isDeveloper: Boolean!
         isConstructor: Boolean!
@@ -51,7 +52,8 @@ export const Schema = `
             facebook: String,
             comments: String,
             isDeveloper: Boolean,
-            isConstructor: Boolean
+            isConstructor: Boolean,
+            description: String
         ): Organization!
     }
 `;
@@ -72,6 +74,7 @@ export const Resolver = {
         comments: (src: Developer) => src.comments,
         isDeveloper: (src: Developer) => src.isDeveloper,
         isConstructor: (src: Developer) => src.isConstructor,
+        description: (src: Developer) => src.description,
         developerIn: (src: Developer) => src.getDeveloperProjects(),
         constructorIn: (src: Developer) => src.getConstructorProjects(),
         buildingProjects: (src: Developer) => src.getDeveloperProjects(),
@@ -159,7 +162,8 @@ export const Resolver = {
             facebook?: string | null
             comments?: string | null,
             isDeveloper?: boolean,
-            isConstructor?: boolean
+            isConstructor?: boolean,
+            description?: string | null,
         }, context: CallContext) {
             context.requireWriteAccess();
             let existing = await DB.Developer.findOne({
@@ -207,6 +211,9 @@ export const Resolver = {
             }
             if (args.isConstructor !== undefined) {
                 existing.isConstructor = args.isConstructor;
+            }
+            if (args.description !== undefined) {
+                existing.comments = applyAlterString(args.description);
             }
 
             await existing.save();
