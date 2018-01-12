@@ -80,6 +80,7 @@ export const Schema = `
     }
     
     enum PermitSorting {
+        STATUS_CHANGE_TIME
         CREATE_TIME
         COMPLETE_TIME
         ISSUED_TIME
@@ -347,88 +348,6 @@ export const Resolver = {
             first: number, after?: string, page?: number
         }, context: CallContext) {
 
-            let builder = new SelectBuilder(DB.Permit)
-                .after(args.after)
-                .page(args.page)
-                .limit(args.first)
-                .whereEq('account', context.accountId);
-            //
-            // if (args.sort === 'APPROVAL_TIME_ASC') {
-            //     builder = builder.where('"permitIssued" IS NOT NULL');
-            //     builder = builder.where('"permitCreated" IS NOT NULL');
-            //     builder = builder.orderByRaw('"permitIssued" - "permitCreated"', 'ASC NULLS LAST');
-            // } else if (args.sort === 'APPROVAL_TIME_DESC') {
-            //     builder = builder.where('"permitIssued" IS NOT NULL');
-            //     builder = builder.where('"permitCreated" IS NOT NULL');
-            //     builder = builder.orderByRaw('"permitIssued" - "permitCreated"', 'DESC NULLS LAST');
-            // } else if (args.sort === 'COMPLETE_TIME') {
-            //     builder = builder.orderBy('permitCompleted', 'DESC NULLS LAST');
-            // } else if (args.sort === 'ISSUED_TIME') {
-            //     builder = builder.orderBy('permitIssued', 'DESC NULLS LAST');
-            // } else {
-            //     builder = builder.orderBy('permitCreated', 'DESC NULLS LAST');
-            // }
-            //
-            // if (args.type) {
-            //     builder = builder.whereEq('permitType', args.type.toLocaleLowerCase());
-            // }
-            // if (args.minUnits) {
-            //     builder = builder.where('"proposedUnits" > ' + args.minUnits);
-            //     builder = builder.where('"proposedUnits" IS NOT NULL');
-            // }
-            // if (args.issuedYear) {
-            //     builder = builder.where('"permitIssued" IS NOT NULL');
-            //     builder = builder.where('"permitIssued" >= \'' + args.issuedYear + '-01-01\'');
-            // }
-            // if (args.fromPipeline) {
-            //     let allPermits = [];
-            //     let allProjects = (await DB.BuidlingProject.findAll({
-            //         where: {
-            //             account: context.accountId
-            //         },
-            //         include: [{
-            //             model: DB.Permit,
-            //             as: 'permits',
-            //         }]
-            //     }));
-            //     for (let p of allProjects) {
-            //         for (let pr of p.permits!!) {
-            //             if (allPermits.indexOf(pr.id) < 0) {
-            //                 allPermits.push(pr.id);
-            //             }
-            //         }
-            //     }
-            //     builder = builder.whereIn(['id'], [allPermits]);
-            // }
-
-            // let approvalPercentile: Chart = {
-            //     labels: ['1%', '10%', '20%', '30%', '40%', '50%', '60%', '70%', '80%', '90%', '95%', '96%', '97%', '98%', '99%'],
-            //     datasets: [{
-            //         label: 'Approval Times',
-            //         values: (await builder
-            //             .where('"permitIssued" IS NOT NULL')
-            //             .percentile([0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.96, 0.97, 0.98, 0.99], '"permitIssued" - "permitCreated"'))
-            //     }]
-            // };
-
-            // let distribution = [0, 10, 50, 80, 90, 95, 100, 120, 150, 200, 300, 400, 500, 900, 1800, 3000, 6000, 8000];
-            // // let largeBuildings = prepareHistogram(await builder
-            // //     .where('"proposedUnits" >= 10')
-            // //     .histogramSum('proposedUnits', '"permitIssued" - "permitCreated"'), distribution);
-            // // let smallBuildings = prepareHistogram(await builder
-            // //     .where('"proposedUnits" < 10')
-            // //     .histogramSum('proposedUnits', '"permitIssued" - "permitCreated"'), distribution);
-            // let approvalDistribution: Chart = {
-            //     labels: largeBuildings.map((v) => v.value.toString()),
-            //     datasets: [{
-            //         label: 'Units in Small Buildings',
-            //         values: smallBuildings.map((v) => v.count)
-            //     }, {
-            //         label: 'Units in Large Buildings',
-            //         values: largeBuildings.map((v) => v.count)
-            //     }]
-            // };
-
             let start = currentTime();
             let clauses: any[] = [];
             clauses.push({term: {'account': context.accountId}});
@@ -451,6 +370,30 @@ export const Resolver = {
             if (args.issuedYear) {
                 clauses.push({range: {'permitIssued': {'gte': args.issuedYear}}});
             }
+            if (args.fromPipeline) {
+                let allPermits = [];
+                let allProjects = (await DB.BuidlingProject.findAll({
+                    where: {
+                        account: context.accountId
+                    },
+                    include: [{
+                        model: DB.Permit,
+                        as: 'permits',
+                    }]
+                }));
+                for (let p of allProjects) {
+                    for (let pr of p.permits!!) {
+                        if (allPermits.indexOf(pr.id) < 0) {
+                            allPermits.push(pr.id);
+                        }
+                    }
+                }
+                clauses.push({
+                    'terms': {
+                        _id: allPermits
+                    }
+                });
+            }
 
             let sort: any = [];
             if (args.sort === 'APPROVAL_TIME_ASC') {
@@ -465,6 +408,9 @@ export const Resolver = {
             } else if (args.sort === 'ISSUED_TIME') {
                 sort = [{'permitIssued': {'order': 'desc'}}];
                 clauses.push({exists: {field: 'permitIssued'}});
+            } else if (args.sort === 'STATUS_CHANGE_TIME') {
+                sort = [{'permitStatusUpdated': {'order': 'desc'}}];
+                clauses.push({exists: {field: 'permitStatusUpdated'}});
             } else {
                 sort = [{'permitCreated': {'order': 'desc'}}];
                 clauses.push({exists: {field: 'permitCreated'}});
@@ -482,9 +428,21 @@ export const Resolver = {
             });
             start = printElapsed('searched', start);
             console.warn(`searched(reported) in ${hits.took} ms`);
-            let res = await builder.findElastic(hits);
+            let builder = new SelectBuilder(DB.Permit)
+                .after(args.after)
+                .page(args.page)
+                .limit(args.first)
+                .whereEq('account', context.accountId);
+            let res = await builder.findElastic(hits, [{
+                model: DB.StreetNumber,
+                as: 'streetNumbers',
+                include: [{
+                    model: DB.Street,
+                    as: 'street',
+                }]
+            }]);
             printElapsed('loaded', start);
-            
+
             return {
                 ...res,
                 // stats: {

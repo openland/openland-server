@@ -212,7 +212,8 @@ export class SelectBuilder<TInstance, TAttributes> {
                 id: {
                     $in: ids
                 }
-            } as any
+            } as any,
+            include: include
         });
         let mappedElements = new Map<number, TInstance>();
         for (let e of elements) {
