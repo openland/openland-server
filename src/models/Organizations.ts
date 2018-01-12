@@ -10,6 +10,7 @@ export const Schema = `
         
         title: String!
         logo: String
+        cover: String
         city: String
         address: String
         url: String
@@ -41,6 +42,7 @@ export const Schema = `
         organizationAlter(slug: String!, 
             title: String,
             logo: String,
+            cover: String,
             city: String,
             address: String,
             url: String,
@@ -60,6 +62,7 @@ export const Resolver = {
         slug: (src: Developer) => src.slug,
         title: (src: Developer) => src.title,
         logo: (src: Developer) => src.logo,
+        cover: (src: Developer) => src.cover,
         url: (src: Developer) => src.url,
         city: (src: Developer) => src.city,
         address: (src: Developer) => src.address,
@@ -147,6 +150,7 @@ export const Resolver = {
             slug: string,
             title?: string,
             logo?: string | null,
+            cover?: string | null,
             city?: string | null,
             address?: string | null,
             url?: string | null,
@@ -173,6 +177,9 @@ export const Resolver = {
             }
             if (args.logo !== undefined) {
                 existing.logo = applyAlterString(args.logo);
+            }
+            if (args.cover !== undefined) {
+                existing.cover = applyAlterString(args.cover);
             }
             if (args.city !== undefined) {
                 existing.city = applyAlterString(args.city);

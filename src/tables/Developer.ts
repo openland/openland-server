@@ -9,6 +9,7 @@ export interface DeveloperAttributes {
     slug?: string;
     url?: string | null;
     logo?: string | null;
+    cover?: string | null;
     city?: string | null;
     address?: string | null;
     twitter?: string | null;
@@ -51,6 +52,7 @@ export const DeveloperTable = connection.define<Developer, DeveloperAttributes>(
     },
     url: {type: sequelize.STRING(256), allowNull: true, validate: {notEmpty: true}},
     logo: {type: sequelize.STRING(256), allowNull: true, validate: {notEmpty: true}},
+    cover: {type: sequelize.STRING(256), allowNull: true, validate: {notEmpty: true}},
     city: {type: sequelize.STRING(256), allowNull: true, validate: {notEmpty: true}},
     address: {type: sequelize.STRING(256), allowNull: true, validate: {notEmpty: true}},
     twitter: {type: sequelize.STRING(256), allowNull: true, validate: {notEmpty: true}},
