@@ -213,7 +213,7 @@ export const Resolver = {
                 existing.isConstructor = args.isConstructor;
             }
             if (args.description !== undefined) {
-                existing.comments = applyAlterString(args.description);
+                existing.description = applyAlterString(args.description);
             }
 
             await existing.save();
