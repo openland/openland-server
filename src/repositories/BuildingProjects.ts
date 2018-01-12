@@ -124,6 +124,9 @@ export async function applyBuildingProjects(tx: Transaction, accountId: number, 
 
         if (src.developers) {
             await bp.setDevelopers(src.developers.map((d) => {
+                if (developers[d.toLowerCase()] === undefined) {
+                    throw 'Unable to find Organization ' + d.toLowerCase();
+                }
                 return developers[d.toLowerCase()]!!;
             }), {transaction: tx, logging: false});
         } else {

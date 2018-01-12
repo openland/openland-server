@@ -50,7 +50,7 @@ export interface Permit extends sequelize.Instance<PermitAttributes>, PermitAttr
 
     getEvents(): Promise<Array<PermitEvent>>;
 
-    getStreetNumbers(): Promise<Array<StreetNumber>>;
+    getStreetNumbers(options?: any): Promise<Array<StreetNumber>>;
 }
 
 export const PermitTable = connection.define<Permit, PermitAttributes>('permits', {

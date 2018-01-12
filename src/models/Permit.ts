@@ -250,13 +250,27 @@ export const Resolver = {
         proposedUse: (src: Permit) => src.proposedUse,
         description: (src: Permit) => src.description,
         governmentalUrl: (src: Permit) => 'https://dbiweb.sfgov.org/dbipts/default.aspx?page=Permit&PermitNumber=' + src.permitId,
-        streetNumbers: (src: Permit) => src.streetNumbers!!.map((n) => ({
-            streetId: n.street!!.id,
-            streetName: n.street!!.name,
-            streetNameSuffix: n.street!!.suffix,
-            streetNumber: n.number,
-            streetNumberSuffix: n.suffix
-        })),
+        streetNumbers: async (src: Permit) => {
+            let numbers = src.streetNumbers;
+            if (!numbers) {
+                numbers = await src.getStreetNumbers({
+                    include: [{
+                        model: DB.Street,
+                        as: 'street'
+                    }]
+                });
+            }
+            if (!numbers) {
+                numbers = [];
+            }
+            return numbers.map((n) => ({
+                streetId: n.street!!.id,
+                streetName: n.street!!.name,
+                streetNameSuffix: n.street!!.suffix,
+                streetNumber: n.number,
+                streetNumberSuffix: n.suffix
+            }));
+        },
         fasterThan: async (src: Permit) => {
             if (src.permitFiled != null && src.permitIssued != null) {
                 let start = new Date(src.permitFiled);

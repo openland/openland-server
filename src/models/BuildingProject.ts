@@ -186,6 +186,14 @@ export const Resolver = {
                 include: [{
                     model: DB.Permit,
                     as: 'permits',
+                    include: [{
+                        model: DB.StreetNumber,
+                        as: 'streetNumbers',
+                        include: [{
+                            model: DB.Street,
+                            as: 'street',
+                        }]
+                    }]
                 }]
             })).filter((v) => v.permits!!.length > 0);
 
