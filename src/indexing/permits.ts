@@ -4,7 +4,7 @@ import { updateReader } from '../modules/updateReader';
 import { dateDiff } from '../utils/date_utils';
 
 export function startPermitsIndexer(client: ES.Client) {
-    updateReader('permits_indexing_4', DB.Permit, [
+    updateReader('permits_indexing_5', DB.Permit, [
         {
             model: DB.StreetNumber,
             as: 'streetNumbers',
@@ -55,6 +55,24 @@ export function startPermitsIndexer(client: ES.Client) {
                 }
             }
 
+            let netUnits: number = 0;
+            if (p.existingUnits !== null && p.proposedUnits !== null) {
+                netUnits = p.proposedUnits!! - p.existingUnits!!;
+            } else if (p.existingUnits !== null) {
+                netUnits = -p.existingUnits!!;
+            } else if (p.proposedUnits !== null) {
+                netUnits = p.proposedUnits!!;
+            }
+
+            let netStories: number = 0;
+            if (p.existingStories !== null && p.proposedStories !== null) {
+                netStories = p.proposedStories!! - p.existingStories!!;
+            } else if (p.existingStories !== null) {
+                netStories = -p.existingStories!!;
+            } else if (p.proposedStories !== null) {
+                netStories = p.proposedStories!!;
+            }
+
             forIndexing.push({
                 permitId: p.permitId,
                 account: p.account,
@@ -73,6 +91,8 @@ export function startPermitsIndexer(client: ES.Client) {
                 permitCompleted: p.permitCompleted,
 
                 approvalTime: approvalTime,
+                netUnits: netUnits,
+                netStories: netStories,
 
                 existingStories: p.existingStories,
                 proposedStories: p.proposedStories,
@@ -100,10 +120,10 @@ export function startPermitsIndexer(client: ES.Client) {
             await client.indices.putMapping({
                 index: 'permits', type: 'permit', body: {
                     properties: {
-                        permitCreated: {type: 'date'},
-                        permitCompleted: {type: 'date'},
-                        permitIssued: {type: 'date'},
-                        approvalTime: {type: 'long'}
+                        permitCreated: { type: 'date' },
+                        permitCompleted: { type: 'date' },
+                        permitIssued: { type: 'date' },
+                        approvalTime: { type: 'long' }
                     }
                 }
             });
