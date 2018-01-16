@@ -67,7 +67,7 @@ export async function updateReader<TInstance, TAttributes>(name: string,
             // Data Loading
             //
 
-            console.warn(offset);
+            // console.warn(offset);
 
             let data: TInstance[] = (await model.findAll({
                 where: (offset ? {
@@ -92,6 +92,8 @@ export async function updateReader<TInstance, TAttributes>(name: string,
                 return false;
             }
 
+            console.warn(`[${name}] Importing ${data.length} elements`);
+
             //
             // Processing
             //
@@ -103,6 +105,9 @@ export async function updateReader<TInstance, TAttributes>(name: string,
             });
             await commit;
             await processed;
+
+            console.warn(`[${name}] Completed ${data.length} elements`);
+
             return true;
         });
         if (res) {
