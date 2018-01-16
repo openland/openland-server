@@ -4,7 +4,7 @@ import { updateReader } from '../modules/updateReader';
 import { dateDiff } from '../utils/date_utils';
 
 export function startPermitsIndexer(client: ES.Client) {
-    updateReader('permits_indexing_6', DB.Permit, [
+    updateReader('permits_indexing_10', DB.Permit, [
         {
             model: DB.StreetNumber,
             as: 'streetNumbers',
@@ -32,7 +32,7 @@ export function startPermitsIndexer(client: ES.Client) {
                 index: {
                     _index: 'permits',
                     _type: 'permit',
-                    _id: p.id,
+                    _id: p.id
                 }
             });
 
@@ -58,6 +58,7 @@ export function startPermitsIndexer(client: ES.Client) {
             let netUnits: number = 0;
             if (p.existingUnits !== null && p.proposedUnits !== null) {
                 netUnits = p.proposedUnits!! - p.existingUnits!!;
+                console.warn(`Net Units: ${netUnits} ${p.proposedUnits} ${p.existingUnits}`);
             } else if (p.existingUnits !== null) {
                 if (p.permitType === 'demolitions') {
                     netUnits = -p.existingUnits!!;
@@ -82,6 +83,7 @@ export function startPermitsIndexer(client: ES.Client) {
             }
 
             forIndexing.push({
+
                 permitId: p.permitId,
                 account: p.account,
 
@@ -104,7 +106,7 @@ export function startPermitsIndexer(client: ES.Client) {
 
                 existingStories: p.existingStories,
                 proposedStories: p.proposedStories,
-                existingUnits: p.existingStories,
+                existingUnits: p.existingUnits,
                 proposedUnits: p.proposedUnits,
                 existingAffordableUnits: p.existingAffordableUnits,
                 proposedAffordableUnits: p.proposedAffordableUnits,
@@ -139,8 +141,13 @@ export function startPermitsIndexer(client: ES.Client) {
             console.warn(e);
         }
 
-        await client.bulk({
-            body: forIndexing
-        });
+        try {
+            await client.bulk({
+                body: forIndexing
+            });
+        } catch (e) {
+            console.warn(e);
+            throw e;
+        }
     });
 }
