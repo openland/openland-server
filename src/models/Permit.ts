@@ -4,7 +4,7 @@ import { applyPermits } from '../repositories/Permits';
 import { PermitStatus, Permit, PermitType } from '../tables/Permit';
 import { SelectBuilder } from '../utils/SelectBuilder';
 import { dateDiff } from '../utils/date_utils';
-import { Chart, prepareHistogram } from '../utils/charts';
+import { Chart, prepareHistogram, elasticChart } from '../utils/charts';
 import { ElasticClient } from '../indexing';
 import { currentTime, printElapsed } from '../utils/timer';
 
@@ -126,6 +126,9 @@ export const Schema = `
         permit(id: ID!): Permit
         permitsApprovalStats: Chart!
         permitsApprovalUnits: Chart!
+        permitsUnitsIssuedStats: Chart!
+        permitsUnitsFiledStats: Chart!
+        permitsUnitsCompletedStats: Chart!
     }
 
     input PermitInfo {
@@ -356,6 +359,126 @@ export const Resolver = {
                 return null;
             }
         },
+        permitsUnitsIssuedStats: async function (_: any, args: {}, context: CallContext) {
+            let res = await ElasticClient.search({
+                index: 'permits',
+                type: 'permit',
+                body: {
+                    aggs: {
+                        main: {
+                            date_histogram: {
+                                field: 'permitIssued',
+                                interval: '1y',
+                                'time_zone': 'GMT',
+                                'min_doc_count': 1
+                            },
+                            'aggs': {
+                                'value': {
+                                    'sum': {
+                                        'field': 'netUnits'
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    query: {
+                        bool: {
+                            must: [{
+                                range: {
+                                    permitIssued: {
+                                        gte: '2007'
+                                    }
+                                }
+                            },
+                            {
+                                term: { 'account': context.accountId }
+                            }]
+                        }
+                    }
+                }
+            });
+            return elasticChart('Net Units Issued', res);
+        },
+        permitsUnitsFiledStats: async function (_: any, args: {}, context: CallContext) {
+            let res = await ElasticClient.search({
+                index: 'permits',
+                type: 'permit',
+                body: {
+                    aggs: {
+                        main: {
+                            date_histogram: {
+                                field: 'permitFiled',
+                                interval: '1y',
+                                'time_zone': 'GMT',
+                                'min_doc_count': 1
+                            },
+                            'aggs': {
+                                'value': {
+                                    'sum': {
+                                        'field': 'netUnits'
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    query: {
+                        bool: {
+                            must: [{
+                                range: {
+                                    permitFiled: {
+                                        gte: '2007'
+                                    }
+                                }
+                            },
+                            {
+                                term: { 'account': context.accountId }
+                            }]
+                        }
+                    }
+                }
+            });
+            return elasticChart('Net Units Filed', res);
+        },
+        permitsUnitsCompletedStats: async function (_: any, args: {}, context: CallContext) {
+            let res = await ElasticClient.search({
+                index: 'permits',
+                type: 'permit',
+                body: {
+                    aggs: {
+                        main: {
+                            date_histogram: {
+                                field: 'permitCompleted',
+                                interval: '1y',
+                                'time_zone': 'GMT',
+                                'min_doc_count': 1
+                            },
+                            'aggs': {
+                                'value': {
+                                    'sum': {
+                                        'field': 'netUnits'
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    query: {
+                        bool: {
+                            must: [{
+                                range: {
+                                    permitCompleted: {
+                                        gte: '2007'
+                                    }
+                                }
+                            },
+                            {
+                                term: { 'account': context.accountId }
+                            }]
+                        }
+                    }
+                }
+            });
+            return elasticChart('Net Units Filed', res);
+        },
         permits: async function (_: any, args: {
             filter?: string, type?: string, sort?: string,
             minUnits?: number, issuedYear?: string, fromPipeline?: boolean,
@@ -364,25 +487,25 @@ export const Resolver = {
 
             let start = currentTime();
             let clauses: any[] = [];
-            clauses.push({term: {'account': context.accountId}});
+            clauses.push({ term: { 'account': context.accountId } });
             if (args.filter) {
                 clauses.push({
                     bool: {
                         should: [
-                            {match: {'address': {query: args.filter, operator: 'and'}}},
-                            {match_phrase_prefix: {'permitId': args.filter}}
+                            { match: { 'address': { query: args.filter, operator: 'and' } } },
+                            { match_phrase_prefix: { 'permitId': args.filter } }
                         ]
                     }
                 });
             }
             if (args.type) {
-                clauses.push({term: {'permitType': args.type.toLocaleLowerCase()}});
+                clauses.push({ term: { 'permitType': args.type.toLocaleLowerCase() } });
             }
             if (args.minUnits) {
-                clauses.push({range: {'proposedUnits': {'gt': args.minUnits}}});
+                clauses.push({ range: { 'proposedUnits': { 'gt': args.minUnits } } });
             }
             if (args.issuedYear) {
-                clauses.push({range: {'permitIssued': {'gte': args.issuedYear}}});
+                clauses.push({ range: { 'permitIssued': { 'gte': args.issuedYear } } });
             }
             if (args.fromPipeline) {
                 let allPermits = [];
@@ -411,23 +534,23 @@ export const Resolver = {
 
             let sort: any = [];
             if (args.sort === 'APPROVAL_TIME_ASC') {
-                sort = [{'approvalTime': {'order': 'asc'}}];
-                clauses.push({exists: {field: 'approvalTime'}});
+                sort = [{ 'approvalTime': { 'order': 'asc' } }];
+                clauses.push({ exists: { field: 'approvalTime' } });
             } else if (args.sort === 'APPROVAL_TIME_DESC') {
-                sort = [{'approvalTime': {'order': 'desc'}}];
-                clauses.push({exists: {field: 'approvalTime'}});
+                sort = [{ 'approvalTime': { 'order': 'desc' } }];
+                clauses.push({ exists: { field: 'approvalTime' } });
             } else if (args.sort === 'COMPLETE_TIME') {
-                sort = [{'permitCompleted': {'order': 'desc'}}];
-                clauses.push({exists: {field: 'permitCompleted'}});
+                sort = [{ 'permitCompleted': { 'order': 'desc' } }];
+                clauses.push({ exists: { field: 'permitCompleted' } });
             } else if (args.sort === 'ISSUED_TIME') {
-                sort = [{'permitIssued': {'order': 'desc'}}];
-                clauses.push({exists: {field: 'permitIssued'}});
+                sort = [{ 'permitIssued': { 'order': 'desc' } }];
+                clauses.push({ exists: { field: 'permitIssued' } });
             } else if (args.sort === 'STATUS_CHANGE_TIME') {
-                sort = [{'permitStatusUpdated': {'order': 'desc'}}];
-                clauses.push({exists: {field: 'permitStatusUpdated'}});
+                sort = [{ 'permitStatusUpdated': { 'order': 'desc' } }];
+                clauses.push({ exists: { field: 'permitStatusUpdated' } });
             } else {
-                sort = [{'permitCreated': {'order': 'desc'}}];
-                clauses.push({exists: {field: 'permitCreated'}});
+                sort = [{ 'permitCreated': { 'order': 'desc' } }];
+                clauses.push({ exists: { field: 'permitCreated' } });
             }
 
             let hits = await ElasticClient.search({
@@ -436,7 +559,7 @@ export const Resolver = {
                 size: args.first,
                 from: args.page ? (args.page!! * args.first) : 0,
                 body: {
-                    query: {bool: {must: clauses}},
+                    query: { bool: { must: clauses } },
                     sort: sort
                 }
             });

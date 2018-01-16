@@ -1,3 +1,5 @@
+import { SearchResponse } from 'elasticsearch';
+
 export interface Chart {
     labels: string[];
     datasets: ChartData[];
@@ -27,7 +29,7 @@ export function prepareHistogram(src: HistogramRecord[], buckets: number[]): His
                 v += s.count;
             }
         }
-        res.push({count: v, value: Math.floor(start)});
+        res.push({ count: v, value: Math.floor(start) });
     }
     return res;
 }
@@ -59,7 +61,18 @@ export function reformatHistogram(src: HistogramRecord[], maxBuckets: number = 1
                 v += s.count;
             }
         }
-        buckets.push({count: v, value: Math.floor(start)});
+        buckets.push({ count: v, value: Math.floor(start) });
     }
     return buckets;
+}
+
+export function elasticChart(title: string, src: SearchResponse<any>): Chart {
+    let chart = src.aggregations.main as { buckets: { key: number, key_as_string: string, value: { value: number } }[] };
+    return {
+        labels: chart.buckets.map((v) => new Date(v.key).getUTCFullYear().toString()),
+        datasets: [{
+            label: title,
+            values: chart.buckets.map((v) => v.value.value)
+        }]
+    };
 }
