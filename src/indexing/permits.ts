@@ -4,7 +4,7 @@ import { updateReader } from '../modules/updateReader';
 import { dateDiff } from '../utils/date_utils';
 
 export function startPermitsIndexer(client: ES.Client) {
-    updateReader('permits_indexing_5', DB.Permit, [
+    updateReader('permits_indexing_6', DB.Permit, [
         {
             model: DB.StreetNumber,
             as: 'streetNumbers',
@@ -59,18 +59,26 @@ export function startPermitsIndexer(client: ES.Client) {
             if (p.existingUnits !== null && p.proposedUnits !== null) {
                 netUnits = p.proposedUnits!! - p.existingUnits!!;
             } else if (p.existingUnits !== null) {
-                netUnits = -p.existingUnits!!;
+                if (p.permitType === 'demolitions') {
+                    netUnits = -p.existingUnits!!;
+                }
             } else if (p.proposedUnits !== null) {
-                netUnits = p.proposedUnits!!;
+                if (p.permitType === 'new_construction') {
+                    netUnits = p.proposedUnits!!;
+                }
             }
 
             let netStories: number = 0;
             if (p.existingStories !== null && p.proposedStories !== null) {
                 netStories = p.proposedStories!! - p.existingStories!!;
             } else if (p.existingStories !== null) {
-                netStories = -p.existingStories!!;
+                if (p.permitType === 'demolitions') {
+                    netStories = -p.existingStories!!;
+                }
             } else if (p.proposedStories !== null) {
-                netStories = p.proposedStories!!;
+                if (p.permitType === 'new_construction') {
+                    netStories = p.proposedStories!!;
+                }
             }
 
             forIndexing.push({
