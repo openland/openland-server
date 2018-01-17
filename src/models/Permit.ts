@@ -386,7 +386,8 @@ export const Resolver = {
                             must: [{
                                 range: {
                                     permitIssued: {
-                                        gte: '2007'
+                                        gte: '2007',
+                                        lt: '2018'
                                     }
                                 }
                             },
@@ -397,7 +398,7 @@ export const Resolver = {
                     }
                 }
             });
-            return elasticChart('Net Units Issued', res);
+            return elasticChart('Permits Issued — Net New Units', res);
         },
         permitsUnitsFiledStats: async function (_: any, args: {}, context: CallContext) {
             let res = await ElasticClient.search({
@@ -426,7 +427,8 @@ export const Resolver = {
                             must: [{
                                 range: {
                                     permitFiled: {
-                                        gte: '2007'
+                                        gte: '2007',
+                                        lt: '2018'
                                     }
                                 }
                             },
@@ -437,7 +439,7 @@ export const Resolver = {
                     }
                 }
             });
-            return elasticChart('Net Units Filed', res);
+            return elasticChart('Permits Filed — Net New Units', res);
         },
         permitsUnitsCompletedStats: async function (_: any, args: {}, context: CallContext) {
             let res = await ElasticClient.search({
@@ -466,7 +468,8 @@ export const Resolver = {
                             must: [{
                                 range: {
                                     permitCompleted: {
-                                        gte: '2007'
+                                        gte: '2007',
+                                        lt: '2018'
                                     }
                                 }
                             },
@@ -477,7 +480,7 @@ export const Resolver = {
                     }
                 }
             });
-            return elasticChart('Net Units Filed', res);
+            return elasticChart('Permits Completed — Net New Units', res);
         },
         permits: async function (_: any, args: {
             filter?: string, type?: string, sort?: string,
