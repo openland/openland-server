@@ -178,7 +178,6 @@ export const Resolver = {
                 .whereEq('verified', true)
                 .sum('\"proposedUnits" - "existingUnits\"');
 
-
             let allProjects = (await DB.BuidlingProject.findAll({
                 where: {
                     account: context.accountId
@@ -195,7 +194,11 @@ export const Resolver = {
                         }]
                     }]
                 }]
-            })).filter((v) => v.permits!!.length > 0);
+            })).filter((v) =>
+                (v.permits!!.find((p) => p.permitCreated !== null && p.permitIssued !== null))
+                && (v.existingUnits != null)
+                && (v.proposedUnits != null)
+                && ((v.proposedUnits - v.existingUnits) >= 10));
 
             let fastestProject = allProjects[0];
             let slowestProject = allProjects[0];
