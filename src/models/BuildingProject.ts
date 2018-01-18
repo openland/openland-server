@@ -257,7 +257,7 @@ export const Resolver = {
             if (args.minUnits) {
                 builder = builder.where('"proposedUnits"-"existingUnits" >= ' + args.minUnits);
             }
-            if (args.year) {
+            if (args.year && args.year !== 'all') {
                 builder = builder.whereEq('extrasYearEnd', args.year);
             }
             let verified = builder.whereEq('verified', true);
