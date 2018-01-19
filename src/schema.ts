@@ -11,6 +11,7 @@ import * as Picture from './models/Picture';
 import * as Organizations from './models/Organizations';
 import * as Core from './models/Core';
 import * as Stats from './models/Stats';
+import * as Parcels from './models/Parcels';
 import { merge } from 'lodash';
 
 const RootQuery = `
@@ -57,6 +58,7 @@ export const Schema = makeExecutableSchema({
         Picture.Schema,
         Organizations.Schema,
         Stats.Schema,
+        Parcels.Schema,
     ],
     resolvers: merge(rootResolver,
         Account.Resolver,
@@ -69,7 +71,8 @@ export const Schema = makeExecutableSchema({
         BuildingProject.Resolver,
         Picture.Resolver,
         Organizations.Resolver,
-        Stats.Resolver
+        Stats.Resolver,
+        Parcels.Resolver,
     )
 });
 
