@@ -82,7 +82,7 @@ export class SelectBuilder<TInstance, TAttributes> {
 
     whereEq(field: string, value: any) {
         let cloned = this.clone();
-        cloned.conditionsEq.push({field: field, value: value});
+        cloned.conditionsEq.push({ field: field, value: value });
         return cloned;
     }
 
@@ -100,21 +100,21 @@ export class SelectBuilder<TInstance, TAttributes> {
                 return '"' + p + '"';
             }).join();
             let sqlTuples = '(' + tuples.map((p) => {
-                    let res = p.map((v) => {
-                        if (v == null || v === undefined) {
-                            console.warn(p);
-                            throw 'Null value found!';
-                        } else if (typeof v === 'string') {
-                            return DB.connection.escape(v);
-                        } else {
-                            return v;
-                        }
-                    }).join();
-                    if (fields.length > 1) {
-                        res = '(' + res + ')';
+                let res = p.map((v) => {
+                    if (v == null || v === undefined) {
+                        console.warn(p);
+                        throw 'Null value found!';
+                    } else if (typeof v === 'string') {
+                        return DB.connection.escape(v);
+                    } else {
+                        return v;
                     }
-                    return res;
+                }).join();
+                if (fields.length > 1) {
+                    res = '(' + res + ')';
                 }
+                return res;
+            }
             ).join() + ')';
             if (fields.length > 1) {
                 sqlFields = '(' + sqlFields + ')';
@@ -127,9 +127,9 @@ export class SelectBuilder<TInstance, TAttributes> {
     orderByRaw(field: string, order?: Order) {
         let cloned = this.clone();
         if (order) {
-            cloned.orderbyFields.push({field: field, order: order});
+            cloned.orderbyFields.push({ field: field, order: order });
         } else {
-            cloned.orderbyFields.push({field: field, order: 'ASC'});
+            cloned.orderbyFields.push({ field: field, order: 'ASC' });
         }
         return cloned;
     }
@@ -245,8 +245,9 @@ export class SelectBuilder<TInstance, TAttributes> {
                 hasPreviousPage: false,
 
                 itemsCount: total,
-                pagesCount: Math.floor(total / this.limitValue),
-                currentPage: Math.floor(offset / this.limitValue) + 1
+                pagesCount: Math.min(Math.floor(8000 / this.limitValue), Math.floor(total / this.limitValue)),
+                currentPage: Math.floor(offset / this.limitValue) + 1,
+                openEnded: true
             },
         };
     }
@@ -289,7 +290,8 @@ export class SelectBuilder<TInstance, TAttributes> {
 
                 itemsCount: count,
                 pagesCount: Math.floor(count / this.limitValue),
-                currentPage: Math.floor(offset / this.limitValue) + 1
+                currentPage: Math.floor(offset / this.limitValue) + 1,
+                openEnded: false
             },
         };
     }

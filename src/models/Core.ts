@@ -6,6 +6,7 @@ export const Schema = `
     itemsCount: Int!
     pagesCount: Int!
     currentPage: Int!
+    openEnded: Boolean!
   }
   
   type Geo {
