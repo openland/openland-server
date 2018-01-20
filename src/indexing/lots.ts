@@ -36,7 +36,9 @@ export function startLotsIndexer(client: ES.Client) {
         if (item.geometry !== null) {
             geometry = {
                 type: 'multipolygon',
-                coordinates: item.geometry!!.polygons.map((v) => [v.coordinates.map((c) => [c.longitude, c.latitude])])
+                coordinates: item.geometry!!.polygons
+                    .filter((v) => v.coordinates.length >= 4)
+                    .map((v) => [v.coordinates.map((c) => [c.longitude, c.latitude])])
             };
         }
         return {
