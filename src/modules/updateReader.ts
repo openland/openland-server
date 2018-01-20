@@ -97,9 +97,13 @@ export class UpdateReader<TInstance, TAttributes> {
                 forIndexing.push(converted.doc);
             }
             try {
-                await this.elasticClient!!.bulk({
+                let res = await this.elasticClient!!.bulk({
                     body: forIndexing
                 });
+                if (res.errors) {
+                    console.warn(JSON.stringify(res));
+                    throw Error('Error during indexing');
+                }
             } catch (e) {
                 console.warn(e);
                 throw e;
@@ -199,8 +203,6 @@ async function updateReader<TInstance, TAttributes>(
             //
             // Data Loading
             //
-
-            // console.warn(offset);
 
             let data: TInstance[] = (await model.findAll({
                 where: (offset ? {

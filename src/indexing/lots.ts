@@ -4,7 +4,7 @@ import { UpdateReader } from '../modules/updateReader';
 
 export function startLotsIndexer(client: ES.Client) {
 
-    let reader = new UpdateReader('lots_indexing_8', DB.Lot);
+    let reader = new UpdateReader('lots_indexing_9', DB.Lot);
 
     reader.elastic(client, 'parcels', 'parcel', {
         geometry: {
@@ -36,7 +36,7 @@ export function startLotsIndexer(client: ES.Client) {
         if (item.geometry !== null) {
             geometry = {
                 type: 'multipolygon',
-                coordinates: item.geometry!!.polygons.map((v) => v.coordinates.map((c) => [c.longitude, c.latitude]))
+                coordinates: item.geometry!!.polygons.map((v) => [v.coordinates.map((c) => [c.longitude, c.latitude])])
             };
         }
         return {
