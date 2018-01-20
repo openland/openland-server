@@ -27,15 +27,11 @@ export const Resolver = {
                 }
             });
 
-            console.warn(res.hits.hits.map((v) => v._source.location.coordinates));
-
             let response = res.hits.hits.filter((v) => v._source.location.type === 'Polygon').map((v) => ({
                 id: v._id,
                 title: v._id,
                 geometry: v._source.location.coordinates.map((c1) => c1.map((c2) => ({ latitude: c2[1], longitude: c2[0] })))
             }));
-
-            console.warn(response);
 
             return response;
         }
