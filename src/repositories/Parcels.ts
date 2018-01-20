@@ -6,9 +6,9 @@ function normalizeId(id: string) {
 }
 
 export async function applyParcels(cityId: number, parcel: { blockId: string, lotId: string }[]) {
-    await DB.tx(async (tx) => {
+    let blocksId = await DB.tx(async (tx) => {
         let blocks = parcel.map((v) => normalizeId(v.blockId));
-        let blocksId = await normalizedProcessor(blocks, (a, b) => a === b, async (data) => {
+        return await normalizedProcessor(blocks, (a, b) => a === b, async (data) => {
             let res = [];
             for (let d of data) {
                 let existing = await DB.Block.findOne({
@@ -30,8 +30,10 @@ export async function applyParcels(cityId: number, parcel: { blockId: string, lo
             }
             return res;
         });
+    });
+    return await DB.tx(async (tx) => {
         let lots = parcel.map((v, index) => ({ blockId: blocksId[index], lotId: normalizeId(v.lotId) }));
-        let lotsId = await normalizedProcessor(lots, (a, b) => (a.lotId === b.lotId) && (a.blockId === b.blockId), async (data) => {
+        return await normalizedProcessor(lots, (a, b) => (a.lotId === b.lotId) && (a.blockId === b.blockId), async (data) => {
             let res = [];
             for (let d of data) {
                 let existing = await DB.Lot.findOne({
@@ -53,7 +55,5 @@ export async function applyParcels(cityId: number, parcel: { blockId: string, lo
             }
             return res;
         });
-
-        return lotsId;
     });
 }
