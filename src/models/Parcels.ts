@@ -44,28 +44,30 @@ export const Resolver = {
                     query: {
                         bool: {
                             must: {
-                                match_all: {}
-                            },
-                            filter: {
-                                geo_shape: {
-                                    geometry: {
-                                        shape: {
-                                            type: 'envelope',
-                                            coordinates: [
-                                                [
-                                                    -122.436054,
-                                                    37.808282
-                                                ],
-                                                [
-                                                    -122.396290,
-                                                    37.790069
-                                                ]
-                                            ]
-                                        },
-                                        'relation': 'within'
-                                    }
+                                term: {
+                                    blockId: 2877
                                 }
-                            }
+                            },
+                            // filter: {
+                            //     geo_shape: {
+                            //         geometry: {
+                            //             shape: {
+                            //                 type: 'envelope',
+                            //                 coordinates: [
+                            //                     [
+                            //                         -122.436054,
+                            //                         37.808282
+                            //                     ],
+                            //                     [
+                            //                         -122.396290,
+                            //                         37.790069
+                            //                     ]
+                            //                 ]
+                            //             },
+                            //             'relation': 'within'
+                            //         }
+                            //     }
+                            // }
                         }
                     }
                 }
