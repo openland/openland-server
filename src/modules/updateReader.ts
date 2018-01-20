@@ -9,14 +9,15 @@ export async function readReaderOffset(tx: sequelize.Transaction, key: string): 
         where: {
             key: key
         },
-        transaction: tx
+        transaction: tx,
+        logging: false
     });
     if (res != null) {
         if (res.currentOffset) {
             if (res.currentOffsetSecondary) {
-                return {offset: res.currentOffset, secondary: res.currentOffsetSecondary};
+                return { offset: res.currentOffset, secondary: res.currentOffsetSecondary };
             } else {
-                return {offset: res.currentOffset, secondary: 0};
+                return { offset: res.currentOffset, secondary: 0 };
             }
         } else {
             return null;
@@ -31,27 +32,28 @@ export async function writeReaderOffset(tx: sequelize.Transaction, key: string, 
         where: {
             key: key
         },
-        transaction: tx
+        transaction: tx,
+        logging: false
     });
     if (res != null) {
         res.currentOffset = offset.offset;
         res.currentOffsetSecondary = offset.secondary;
-        await res.save({transaction: tx});
+        await res.save({ transaction: tx, logging: false });
     } else {
         await DB.ReaderState.create({
             key: key,
             currentOffset: offset.offset,
             currentOffsetSecondary: offset.secondary
-        }, {transaction: tx});
+        }, { transaction: tx, logging: false });
     }
 }
 
 export async function updateReader<TInstance, TAttributes>(name: string,
-                                                           model: sequelize.Model<TInstance, TAttributes>,
-                                                           include: Array<IncludeOptions> = [],
-                                                           processor: (data: TInstance[], tx: Transaction) => Promise<void>) {
+    model: sequelize.Model<TInstance, TAttributes>,
+    include: Array<IncludeOptions> = [],
+    processor: (data: TInstance[], tx: Transaction) => Promise<void>) {
     await forever(async () => {
-        let res = await DB.connection.transaction(async (tx) => {
+        let res = await DB.connection.transaction({ logging: false as any }, async (tx) => {
 
             //
             // Prerequisites
@@ -73,12 +75,12 @@ export async function updateReader<TInstance, TAttributes>(name: string,
                 where: (offset ? {
                     $and: [
                         {
-                            updatedAt: {$gte: offset.offset}
+                            updatedAt: { $gte: offset.offset }
                         },
                         {
                             $or: {
-                                updatedAt: {$gt: offset.offset},
-                                id: {$gt: offset.secondary}
+                                updatedAt: { $gt: offset.offset },
+                                id: { $gt: offset.secondary }
                             }
                         }
                     ]
@@ -86,7 +88,8 @@ export async function updateReader<TInstance, TAttributes>(name: string,
                 order: [['updatedAt', 'ASC'], ['id', 'ASC']],
                 limit: 100,
                 transaction: tx,
-                include: include
+                include: include,
+                logging: false
             }));
             if (data.length <= 0) {
                 return false;

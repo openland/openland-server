@@ -10,7 +10,8 @@ export async function tryLock(tx: sequelize.Transaction, key: string): Promise<b
             key: key
         },
         transaction: tx,
-        lock: tx.LOCK.UPDATE
+        lock: tx.LOCK.UPDATE,
+        logging: false
     });
     let now = new Date();
     let currentTimeout = new Date(now.getTime() + 10 * 1000);
@@ -19,7 +20,7 @@ export async function tryLock(tx: sequelize.Transaction, key: string): Promise<b
         if (existing.seed === lockSeed || timeout.getTime() < now.getTime()) {
             existing.seed = lockSeed;
             existing.timeout = currentTimeout.toUTCString();
-            await existing.save({transaction: tx});
+            await existing.save({ transaction: tx, logging: false });
             return true;
         } else {
             return false;
@@ -29,7 +30,7 @@ export async function tryLock(tx: sequelize.Transaction, key: string): Promise<b
             key: key,
             seed: lockSeed,
             timeout: currentTimeout.toUTCString()
-        }, {transaction: tx});
+        }, { transaction: tx, logging: false });
         return true;
     }
 }
