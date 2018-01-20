@@ -336,3 +336,28 @@ export async function histogramSumRaw(table: string, order: string, field: strin
     console.warn(r);
     return r.map((v) => ({count: parseInt(v.count, 10), value: v.value}));
 }
+
+export async function normalizedProcessor<T1, T2>(array: T1[], compare: (a: T1, b: T1) => boolean, processor: (data: T1[]) => Promise<T2[]>): Promise<T2[]> {
+    let normalized = Array<T1>();
+    let indexes = Array<number>();
+    for (let i = 0; i < array.length; i++) {
+        let founded = false;
+        for (let j = 0; j < normalized.length; j++) {
+            if (compare(array[i], normalized[j])) {
+                founded = true;
+                indexes.push(j);
+                break;
+            }
+        }
+        if (!founded) {
+            indexes.push(normalized.length);
+            normalized.push(array[i]);
+        }
+    }
+    let processed = await processor(normalized);
+    let res = Array<T2>(array.length);
+    for (let i2 = 0; i2 < array.length; i2++) {
+        res[i2] = processed[indexes[i2]];
+    }
+    return res;
+}

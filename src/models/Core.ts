@@ -14,6 +14,11 @@ export const Schema = `
     longitude: Float!
   }
 
+  input GeoInput {
+    latitude: Float!
+    longitude: Float!
+  }
+
   type Chart {
     labels: [String!]!
     datasets: [ChartDataSet!]!

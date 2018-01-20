@@ -166,7 +166,7 @@ export const Schema = `
     }
 
     extend type Mutation {
-        updatePermits(state: String!, county: String!, city: String!, sourceDate: String!, permits: [PermitInfo]!): String
+        updatePermits(state: String!, county: String!, city: String!, sourceDate: String!, permits: [PermitInfo]!): String!
     }
 `;
 
