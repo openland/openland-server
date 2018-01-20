@@ -2,6 +2,7 @@ import { CallContext } from './CallContext';
 import { ElasticClient } from '../indexing/index';
 import { DB } from '../tables/index';
 import { applyParcels } from '../repositories/Parcels';
+import { GeoEnvelope } from './Core';
 
 export const Schema = `
 
@@ -34,22 +35,49 @@ interface ParcelInput {
 
 export const Resolver = {
     Query: {
-        parcels: async function (_: any, args: {}, context: CallContext) {
-            let res = await ElasticClient.search<{ location: { coordinates: number[][][], type: string } }>({
+        parcels: async function (_: any, args: { envelope: GeoEnvelope }, context: CallContext) {
+            let res = await ElasticClient.search<{ geometry: { coordinates: number[][][][], type: string } }>({
                 index: 'parcels',
                 type: 'parcel',
+                size: 100,
                 body: {
                     query: {
-                        match_all: {}
+                        bool: {
+                            must: {
+                                match_all: {}
+                            },
+                            filter: {
+                                geo_shape: {
+                                    geometry: {
+                                        shape: {
+                                            type: 'envelope',
+                                            coordinates: [
+                                                [
+                                                    -122.436054,
+                                                    37.808282
+                                                ],
+                                                [
+                                                    -122.396290,
+                                                    37.790069
+                                                ]
+                                            ]
+                                        },
+                                        'relation': 'within'
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             });
 
-            let response = res.hits.hits.filter((v) => v._source.location.type === 'Polygon').map((v) => ({
+            let response = res.hits.hits.filter((v) => v._source.geometry.type === 'multipolygon').map((v) => ({
                 id: v._id,
                 title: v._id,
-                geometry: v._source.location.coordinates.map((c1) => c1.map((c2) => ({ latitude: c2[1], longitude: c2[0] })))
+                geometry: v._source.geometry.coordinates[0].map((c1) => c1.map((c2) => ({ latitude: c2[1], longitude: c2[0] })))
             }));
+
+            console.warn(response);
 
             return response;
         }

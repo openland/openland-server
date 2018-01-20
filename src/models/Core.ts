@@ -19,6 +19,11 @@ export const Schema = `
     longitude: Float!
   }
 
+  input GeoEnvelope {
+    leftTop: GeoInput!
+    rightBottom: GeoInput!
+  }
+
   type Chart {
     labels: [String!]!
     datasets: [ChartDataSet!]!
@@ -29,3 +34,13 @@ export const Schema = `
     values: [Float!]!
   }
 `;
+
+export interface GeoInput {
+  latitude: number;
+  longitude: number;
+}
+
+export interface GeoEnvelope {
+  leftTop: GeoInput;
+  rightBottom: GeoInput;
+}
