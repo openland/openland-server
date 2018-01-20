@@ -1,10 +1,11 @@
 import * as ES from 'elasticsearch';
 import { DB } from '../tables';
-import { updateReader } from '../modules/updateReader';
+import { UpdateReader } from '../modules/updateReader';
 import { dateDiff } from '../utils/date_utils';
 
 export function startPermitsIndexer(client: ES.Client) {
-    updateReader('permits_indexing_10', DB.Permit, [
+    let reader = new UpdateReader('permits_indexing_10', DB.Permit);
+    reader.include([
         {
             model: DB.StreetNumber,
             as: 'streetNumbers',
@@ -25,7 +26,8 @@ export function startPermitsIndexer(client: ES.Client) {
                 }]
             }]
         }
-    ], async (data) => {
+    ]);
+    reader.processor(async (data) => {
         let forIndexing = [];
         for (let p of data) {
             forIndexing.push({
@@ -150,4 +152,6 @@ export function startPermitsIndexer(client: ES.Client) {
             throw e;
         }
     });
+
+    reader.start();
 }

@@ -1,9 +1,20 @@
 import * as ES from 'elasticsearch';
 import { DB } from '../tables';
-import { updateReader } from '../modules/updateReader';
+import { UpdateReader } from '../modules/updateReader';
 
 export function startLotsIndexer(client: ES.Client) {
-    updateReader('lots_indexing_2', DB.Lot, [{
+
+    let reader = new UpdateReader('lots_indexing_8', DB.Lot);
+
+    reader.elastic(client, 'parcels', 'parcel', {
+        geometry: {
+            type: 'geo_shape',
+            tree: 'quadtree',
+            precision: '1m'
+        }
+    });
+
+    reader.include([{
         model: DB.Block,
         as: 'block',
         include: [{
@@ -18,53 +29,25 @@ export function startLotsIndexer(client: ES.Client) {
                 }]
             }]
         }]
-    }], async (data) => {
-        let forIndexing = [];
-        for (let p of data) {
-            forIndexing.push({
-                index: {
-                    _index: 'parcels',
-                    _type: 'parcel',
-                    _id: p.id
-                }
-            });
-            let geometry = undefined;
-            if (p.geometry !== null) {
-                geometry = {
-                    type: 'multipolygon',
-                    coordinates: p.geometry!!.polygons.map((v) => v.coordinates.map((c) => [c.longitude, c.latitude]))
-                };
-            }
-            forIndexing.push({
-                blockId: p.block!!.blockId!!,
-                lotId: p.lotId!!,
+    }]);
+
+    reader.indexer((item) => {
+        let geometry = undefined;
+        if (item.geometry !== null) {
+            geometry = {
+                type: 'multipolygon',
+                coordinates: item.geometry!!.polygons.map((v) => v.coordinates.map((c) => [c.longitude, c.latitude]))
+            };
+        }
+        return {
+            id: item.id!!,
+            doc: {
+                blockId: item.block!!.blockId!!,
+                lotId: item.lotId!!,
                 geometry: geometry
-            });
-        }
-
-        try {
-            await client.indices.putMapping({
-                index: 'parcels', type: 'parcel', body: {
-                    properties: {
-                        geometry: {
-                            type: 'geo_shape',
-                            tree: 'quadtree',
-                            precision: '1m'
-                        }
-                    }
-                }
-            });
-        } catch (e) {
-            console.warn(e);
-        }
-
-        try {
-            await client.bulk({
-                body: forIndexing
-            });
-        } catch (e) {
-            console.warn(e);
-            throw e;
-        }
+            }
+        };
     });
+
+    reader.start();
 }
