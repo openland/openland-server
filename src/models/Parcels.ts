@@ -1,6 +1,5 @@
 import { CallContext } from './CallContext';
 import { ElasticClient } from '../indexing/index';
-import { Geometry } from '../modules/geometry';
 import { DB } from '../tables/index';
 import { applyParcels } from '../repositories/Parcels';
 
