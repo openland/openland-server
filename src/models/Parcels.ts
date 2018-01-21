@@ -3,6 +3,7 @@ import { ElasticClient } from '../indexing/index';
 import { DB } from '../tables/index';
 import { applyParcels } from '../repositories/Parcels';
 import { GeoEnvelope } from './Core';
+import { Lot } from '../tables/Lot';
 
 export const Schema = `
 
@@ -19,7 +20,7 @@ export const Schema = `
     }
 
     extend type Query {
-        parcels: [Parcel!]!
+        parcels(envelope: GeoEnvelope!): [Parcel!]!
     }
 
     extend type Mutation {
@@ -34,54 +35,70 @@ interface ParcelInput {
 }
 
 export const Resolver = {
+    Parcel: {
+        id: (src: Lot) => src.id,
+        title: (src: Lot) => src.block!!.blockId + '|' + src.lotId,
+        geometry: (src: Lot) => src.geometry!!.polygons.map((v) => v.coordinates)
+    },
     Query: {
         parcels: async function (_: any, args: { envelope: GeoEnvelope }, context: CallContext) {
             let res = await ElasticClient.search<{ geometry: { coordinates: number[][][][], type: string } }>({
                 index: 'parcels',
                 type: 'parcel',
-                size: 100,
+                size: 500,
                 body: {
                     query: {
                         bool: {
                             must: {
-                                term: {
-                                    blockId: 2877
-                                }
+                                match_all: {}
                             },
-                            // filter: {
-                            //     geo_shape: {
-                            //         geometry: {
-                            //             shape: {
-                            //                 type: 'envelope',
-                            //                 coordinates: [
-                            //                     [
-                            //                         -122.436054,
-                            //                         37.808282
-                            //                     ],
-                            //                     [
-                            //                         -122.396290,
-                            //                         37.790069
-                            //                     ]
-                            //                 ]
-                            //             },
-                            //             'relation': 'within'
-                            //         }
-                            //     }
-                            // }
+                            filter: {
+                                geo_shape: {
+                                    geometry: {
+                                        shape: {
+                                            type: 'envelope',
+                                            coordinates: [
+                                                [
+                                                    args.envelope.leftTop.latitude,
+                                                    args.envelope.leftTop.longitude
+                                                ],
+                                                [
+                                                    args.envelope.rightBottom.latitude,
+                                                    args.envelope.rightBottom.longitude
+                                                ]
+                                            ]
+                                        },
+                                        'relation': 'within'
+                                    }
+                                }
+                            }
                         }
                     }
                 }
             });
 
-            let response = res.hits.hits.filter((v) => v._source.geometry.type === 'multipolygon').map((v) => ({
-                id: v._id,
-                title: v._id,
-                geometry: v._source.geometry.coordinates[0].map((c1) => c1.map((c2) => ({ latitude: c2[1], longitude: c2[0] })))
-            }));
+            return DB.Lot.findAll({
+                where: {
+                    id: {
+                        $in: res.hits.hits.map((v) => v._id)
+                    }
+                },
+                include: [{
+                    model: DB.Block,
+                    as: 'block'
+                }]
+            });
+            // res.hits.hits.map((v) => v._id);
 
-            console.warn(response);
+            // let response = res.hits.hits.filter((v) => v._source.geometry.type === 'multipolygon').map((v) => ({
+            //     id: v._id,
+            //     title: v._id,
+            //     geometry: v._source.geometry.coordinates[0].map((c1) => c1.map((c2) => ({ latitude: c2[1], longitude: c2[0] })))
+            // }));
 
-            return response;
+            // console.warn(response);
+
+            // return response;
         }
     },
     Mutation: {
