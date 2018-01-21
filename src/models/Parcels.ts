@@ -45,7 +45,7 @@ export const Resolver = {
             let res = await ElasticClient.search<{ geometry: { coordinates: number[][][][], type: string } }>({
                 index: 'parcels',
                 type: 'parcel',
-                size: 500,
+                size: 1000,
                 body: {
                     query: {
                         bool: {
@@ -59,16 +59,16 @@ export const Resolver = {
                                             type: 'envelope',
                                             coordinates: [
                                                 [
+                                                    args.envelope.leftTop.longitude,
                                                     args.envelope.leftTop.latitude,
-                                                    args.envelope.leftTop.longitude
                                                 ],
                                                 [
-                                                    args.envelope.rightBottom.latitude,
-                                                    args.envelope.rightBottom.longitude
+                                                    args.envelope.rightBottom.longitude,
+                                                    args.envelope.rightBottom.latitude
                                                 ]
                                             ]
                                         },
-                                        'relation': 'within'
+                                        'relation': 'intersects'
                                     }
                                 }
                             }
@@ -88,17 +88,6 @@ export const Resolver = {
                     as: 'block'
                 }]
             });
-            // res.hits.hits.map((v) => v._id);
-
-            // let response = res.hits.hits.filter((v) => v._source.geometry.type === 'multipolygon').map((v) => ({
-            //     id: v._id,
-            //     title: v._id,
-            //     geometry: v._source.geometry.coordinates[0].map((c1) => c1.map((c2) => ({ latitude: c2[1], longitude: c2[0] })))
-            // }));
-
-            // console.warn(response);
-
-            // return response;
         }
     },
     Mutation: {
