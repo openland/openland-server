@@ -4,13 +4,14 @@ import { DB } from '../tables/index';
 import { applyParcels } from '../repositories/Parcels';
 import { GeoEnvelope } from './Core';
 import { Lot } from '../tables/Lot';
+import { currentTime, printElapsed } from '../utils/timer';
 
 export const Schema = `
 
     type Parcel {
         id: ID!
         title: String!
-        geometry: [[Geo!]!]!
+        geometry: String!
     }
 
     input ParcelInput {
@@ -37,45 +38,41 @@ interface ParcelInput {
 export const Resolver = {
     Parcel: {
         id: (src: Lot) => src.id,
-        title: (src: Lot) => src.block!!.blockId + '|' + src.lotId,
-        geometry: (src: Lot) => src.geometry!!.polygons.map((v) => v.coordinates)
+        title: (src: Lot) => (src as any)['block.blockId'] + '|' + src.lotId,
+        geometry: (src: Lot) => JSON.stringify(src.geometry!!.polygons.map((v) => v.coordinates))
     },
     Query: {
         parcels: async function (_: any, args: { envelope: GeoEnvelope }, context: CallContext) {
+            let start = currentTime();
             let res = await ElasticClient.search<{ geometry: { coordinates: number[][][][], type: string } }>({
                 index: 'parcels',
                 type: 'parcel',
-                size: 1000,
+                size: 3000,
                 body: {
                     query: {
-                        bool: {
-                            must: {
-                                match_all: {}
-                            },
-                            filter: {
-                                geo_shape: {
-                                    geometry: {
-                                        shape: {
-                                            type: 'envelope',
-                                            coordinates: [
-                                                [
-                                                    args.envelope.leftTop.longitude,
-                                                    args.envelope.leftTop.latitude,
-                                                ],
-                                                [
-                                                    args.envelope.rightBottom.longitude,
-                                                    args.envelope.rightBottom.latitude
-                                                ]
-                                            ]
-                                        },
-                                        'relation': 'intersects'
-                                    }
-                                }
+                        geo_shape: {
+                            geometry: {
+                                shape: {
+                                    type: 'envelope',
+                                    coordinates: [
+                                        [
+                                            args.envelope.leftTop.longitude,
+                                            args.envelope.leftTop.latitude,
+                                        ],
+                                        [
+                                            args.envelope.rightBottom.longitude,
+                                            args.envelope.rightBottom.latitude
+                                        ]
+                                    ]
+                                },
+                                'relation': 'intersects'
                             }
                         }
                     }
                 }
             });
+
+            printElapsed('searched', start);
 
             return DB.Lot.findAll({
                 where: {
@@ -86,7 +83,8 @@ export const Resolver = {
                 include: [{
                     model: DB.Block,
                     as: 'block'
-                }]
+                }],
+                raw: true
             });
         }
     },
