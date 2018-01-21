@@ -320,11 +320,5 @@ export async function createEmptyData() {
         recomendations: 'Some findings'
     });
 
-    await DB.AirTable.create({
-        account: sf.id!!,
-        airtableDatabase: 'appWNnZ1QG63uWbxP',
-        airtableKey: 'keyGfbgKhShB0D7hK'
-    });
-
     await createDevelopers(sf.id!!);
 }
