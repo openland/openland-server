@@ -39,7 +39,7 @@ export const Resolver = {
     Parcel: {
         id: (src: Lot) => src.id,
         title: (src: Lot) => (src as any)['block.blockId'] + '|' + src.lotId,
-        geometry: (src: Lot) => JSON.stringify(src.geometry!!.polygons.map((v) => v.coordinates))
+        geometry: (src: Lot) => JSON.stringify(src.geometry!!.polygons.map((v) => v.coordinates.map((c) => [c.longitude, c.latitude])))
     },
     Query: {
         parcels: async function (_: any, args: { envelope: GeoEnvelope }, context: CallContext) {
