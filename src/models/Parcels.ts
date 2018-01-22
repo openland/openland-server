@@ -17,7 +17,7 @@ export const Schema = `
     input ParcelInput {
         blockId: String!
         lotId: String!
-        geometry: [[GeoInput!]!]!
+        geometry: [[GeoInputShort!]!]!
     }
 
     extend type Query {
@@ -32,7 +32,7 @@ export const Schema = `
 interface ParcelInput {
     blockId: string;
     lotId: string;
-    geometry: { latitude: number, longitude: number }[][];
+    geometry: { la: number, lo: number }[][];
 }
 
 export const Resolver = {

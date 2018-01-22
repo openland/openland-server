@@ -19,6 +19,11 @@ export const Schema = `
     longitude: Float!
   }
 
+  input GeoInputShort {
+    la: Float!
+    lo: Float!
+  }
+
   input GeoEnvelope {
     leftTop: GeoInput!
     rightBottom: GeoInput!

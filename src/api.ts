@@ -186,9 +186,9 @@ export default function () {
 
     // APIs
     let requestHandler = handleRequest(engine != null);
-    app.use('/graphql', checkJwt, bodyParser.json(), buildContext, graphqlExpress(requestHandler));
-    app.use('/api', checkJwt, bodyParser.json(), buildContext, graphqlExpress(requestHandler));
-    app.use('/admin-api', checkJwt, bodyParser.json(), graphqlExpress(handleAdminRequest));
+    app.use('/graphql', checkJwt, bodyParser.json({limit: '5mb'}), buildContext, graphqlExpress(requestHandler));
+    app.use('/api', checkJwt, bodyParser.json({limit: '5mb'}), buildContext, graphqlExpress(requestHandler));
+    app.use('/admin-api', checkJwt, bodyParser.json({limit: '5mb'}), graphqlExpress(handleAdminRequest));
 
     // Sandbox
     app.use('/sandbox', checkJwt, graphiqlExpress({endpointURL: '/admin-api'}));

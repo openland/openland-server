@@ -6,7 +6,7 @@ function normalizeId(id: string) {
     return id.replace(/^0+/, '');
 }
 
-export async function applyParcels(cityId: number, parcel: { blockId: string, lotId: string, geometry: { latitude: number, longitude: number }[][]; }[]) {
+export async function applyParcels(cityId: number, parcel: { blockId: string, lotId: string, geometry: { la: number, lo: number }[][]; }[]) {
     let blocksId = await DB.tx(async (tx) => {
         let blocks = parcel.map((v) => normalizeId(v.blockId));
         return await normalizedProcessor(blocks, (a, b) => a === b, async (data) => {
@@ -38,7 +38,7 @@ export async function applyParcels(cityId: number, parcel: { blockId: string, lo
             let res = [];
             for (let d of data) {
                 let geometry: Geometry = {
-                    polygons: d.geometry.map((v) => ({ coordinates: v }))
+                    polygons: d.geometry.map((v) => ({ coordinates: v.map((c) => ({ latitude: c.la, longitude: c.lo })) }))
                 };
                 let existing = await DB.Lot.findOne({
                     where: {
