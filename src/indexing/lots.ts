@@ -55,12 +55,30 @@ export function startLotsIndexer(client: ES.Client) {
     reader.start();
 
     if (mapBoxConfigured()) {
-        reader = new UpdateReader('lots_indexing_mapbox', DB.Lot);
+        reader = new UpdateReader('lots_indexing_mapbox_2', DB.Lot);
+        reader.include([{
+            model: DB.Block,
+            as: 'block',
+            include: [{
+                model: DB.City,
+                as: 'city',
+                include: [{
+                    model: DB.County,
+                    as: 'county',
+                    include: [{
+                        model: DB.State,
+                        as: 'state'
+                    }]
+                }]
+            }]
+        }]);
         reader.processor(async (data) => {
             for (let item of data) {
                 if (item.geometry === null) {
                     continue;
                 }
+
+                let id = item.block!!.blockId + '_' + item.lotId;
 
                 let geometry = item.geometry!!.polygons
                     .filter((v) => v.coordinates.length >= 4)
@@ -69,7 +87,7 @@ export function startLotsIndexer(client: ES.Client) {
                         coordinates: [v.coordinates.map((c) => [c.longitude, c.latitude])]
                     }))[0];
 
-                await uploadFeature('cjctj2irl0k5z2wvtz46ld417', item.lotId!!, geometry);
+                await uploadFeature('cjctj2irl0k5z2wvtz46ld417', id, geometry);
             }
         });
         reader.start();
