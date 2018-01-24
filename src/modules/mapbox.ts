@@ -1,4 +1,4 @@
-import fetch, { Headers, Request } from 'node-fetch';
+import fetch from 'node-fetch';
 
 interface GeoJsonPolygon {
     type: string;
