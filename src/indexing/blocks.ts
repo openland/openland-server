@@ -1,8 +1,7 @@
 import * as ES from 'elasticsearch';
 import { DB } from '../tables';
 import { UpdateReader } from '../modules/updateReader';
-// import fetch, { Headers, Request } from 'node-fetch';
-// let token = 'sk.eyJ1Ijoic3RldmUta2l0ZSIsImEiOiJjamNzODJxMWUzOWp2MzNvMHJwbTJ0MThyIn0.iauuBqfi1XIGZ30UH-xGGA';
+import { uploadFeature, mapBoxConfigured } from '../modules/mapbox';
 
 export function startBlocksIndexer(client: ES.Client) {
 
@@ -37,45 +36,22 @@ export function startBlocksIndexer(client: ES.Client) {
 
     reader.start();
 
-    // reader = new UpdateReader('blocks_indexing_mapbox', DB.Block);
-    // reader.processor(async (data) => {
-    //     for (let item of data) {
-    //         if (item.geometry === null) {
-    //             continue;
-    //         }
-
-    //         let geometry = item.geometry!!.polygons
-    //             .filter((v) => v.coordinates.length >= 4)
-    //             .map((v) => ({
-    //                 type: 'Polygon',
-    //                 coordinates: [v.coordinates.map((c) => [c.longitude, c.latitude])]
-    //             }))[0];
-
-    //         let url = `https://api.mapbox.com/datasets/v1/steve-kite/cjcs7tqe036sd2zo7l5remeef/features/${item.blockId}?access_token=${token}`;
-    //         try {
-    //             let body = JSON.stringify({
-    //                 type: 'Feature',
-    //                 geometry: geometry,
-    //                 properties: {
-    //                     title: item.blockId
-    //                 }
-    //             });
-    //             let res = await fetch(url, {
-    //                 method: 'put',
-    //                 headers: {
-    //                     'Content-Type': 'application/json'
-    //                 },
-    //                 body: body
-    //             });
-    //             console.warn(body);
-    //             if (res.status !== 200) {
-    //                 throw Error('Wrong status');
-    //             }
-    //         } catch (e) {
-    //             console.warn(e);
-    //             throw e;
-    //         }
-    //     }
-    // });
-    // reader.start();
+    if (mapBoxConfigured()) {
+        reader = new UpdateReader('blocks_indexing_mapbox', DB.Block);
+        reader.processor(async (data) => {
+            for (let item of data) {
+                if (item.geometry === null) {
+                    continue;
+                }
+                let geometry = item.geometry!!.polygons
+                    .filter((v) => v.coordinates.length >= 4)
+                    .map((v) => ({
+                        type: 'Polygon',
+                        coordinates: [v.coordinates.map((c) => [c.longitude, c.latitude])]
+                    }))[0];
+                await uploadFeature('cjcs7tqe036sd2zo7l5remeef', item.blockId!!, geometry);
+            }
+        });
+        reader.start();
+    }
 }

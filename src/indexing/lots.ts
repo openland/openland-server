@@ -1,6 +1,7 @@
 import * as ES from 'elasticsearch';
 import { DB } from '../tables';
 import { UpdateReader } from '../modules/updateReader';
+import { mapBoxConfigured, uploadFeature } from '../modules/mapbox';
 
 export function startLotsIndexer(client: ES.Client) {
 
@@ -52,4 +53,25 @@ export function startLotsIndexer(client: ES.Client) {
     });
 
     reader.start();
+
+    if (mapBoxConfigured()) {
+        reader = new UpdateReader('lots_indexing_mapbox', DB.Lot);
+        reader.processor(async (data) => {
+            for (let item of data) {
+                if (item.geometry === null) {
+                    continue;
+                }
+
+                let geometry = item.geometry!!.polygons
+                    .filter((v) => v.coordinates.length >= 4)
+                    .map((v) => ({
+                        type: 'Polygon',
+                        coordinates: [v.coordinates.map((c) => [c.longitude, c.latitude])]
+                    }))[0];
+
+                await uploadFeature('cjctj2irl0k5z2wvtz46ld417', item.lotId!!, geometry);
+            }
+        });
+        reader.start();
+    }
 }
