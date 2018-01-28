@@ -1,7 +1,27 @@
-sudo: required
+#
+# Environment
+#
 
+sudo: required
 services:
   - docker
 
+#
+# Building
+#
+
 script:
   - docker build -t statecraft/statecraft-server .
+
+#
+# Publishing
+#
+
+before_deploy:
+  - docker login -u "$DOCKER_USER" -p "$DOCKER_PASSWORD"
+deploy:
+  provider: script
+  script: docker push "statecraft/statecraft-server:latest"
+  on:
+    branch: master
+   
