@@ -9,7 +9,7 @@ import * as Organizations from './models/Organizations';
 import * as Core from './models/Core';
 import * as Stats from './models/Stats';
 import * as Parcels from './models/Parcels';
-import * as Place from './models/Place';
+import * as Area from './models/Area';
 import { merge } from 'lodash';
 
 const RootQuery = `
@@ -54,7 +54,7 @@ export const Schema = makeExecutableSchema({
         Organizations.Schema,
         Stats.Schema,
         Parcels.Schema,
-        Place.Schema
+        Area.Schema
     ],
     resolvers: merge(rootResolver,
         Account.Resolver,
@@ -66,7 +66,7 @@ export const Schema = makeExecutableSchema({
         Organizations.Resolver,
         Stats.Resolver,
         Parcels.Resolver,
-        Place.Resolver
+        Area.Resolver
     )
 });
 

@@ -3,12 +3,12 @@ import { DB } from '../tables/index';
 let cache = new Map<string, number | null>();
 
 export class AccountRepository {
-    async resolveAccount(domain: string): Promise<number> {
+    async resolveArea(domain: string): Promise<{ id: number, slug: string }> {
         domain = domain.toLocaleLowerCase();
         if (cache.has(domain)) {
             let r = cache.get(domain);
             if (r !== null && r !== undefined) {
-                return r;
+                return { id: r, slug: domain };
             } else {
                 throw Error('Unknown city ' + domain);
             }
@@ -16,7 +16,7 @@ export class AccountRepository {
             let account = await DB.Account.findOne({ where: { slug: domain } });
             if (account !== null) {
                 cache.set(domain, account.id!!);
-                return account.id!!;
+                return { id: account.id!!, slug: domain };
             } else {
                 cache.set(domain, null);
                 throw Error('Unknown city ' + domain);
