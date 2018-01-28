@@ -78,9 +78,9 @@
     "start:watch": "nodemon build/index.js",
     "start:watch:inspect": "nodemon --inspect build/index.js",
     "start": "BLUEBIRD_LONG_STACK_TRACES=0 node ./build/index.js",
-    "dev": "ELASTIC_ENDPOINT=\"http://localhost:9200/\" ./node_modules/.bin/concurrently --kill-others \"yarn build:watch\" \"yarn start:watch\"",
-    "dev:inspect": "BLUEBIRD_LONG_STACK_TRACES=0 ./node_modules/.bin/concurrently --kill-others \"yarn build:watch\" \"yarn start:watch:inspect\"",
-    "dev:db": "RECREATE_DB=true ./node_modules/.bin/concurrently --kill-others \"yarn build:watch\" \"yarn start:watch\"",
+    "dev": "ELASTIC_ENDPOINT=\"http://localhost:9200/\" yarn build && ./node_modules/.bin/concurrently --kill-others \"yarn build:watch\" \"yarn start:watch\"",
+    "dev:inspect": "BLUEBIRD_LONG_STACK_TRACES=0 yarn build && ./node_modules/.bin/concurrently --kill-others \"yarn build:watch\" \"yarn start:watch:inspect\"",
+    "dev:db": "RECREATE_DB=true yarn build && ./node_modules/.bin/concurrently --kill-others \"yarn build:watch\" \"yarn start:watch\"",
     "heroku-postbuild": "yarn build"
   }
 }

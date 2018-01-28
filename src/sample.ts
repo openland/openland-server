@@ -292,33 +292,5 @@ export async function createEmptyData() {
         activated: true,
     });
 
-    await DB.Project.create({
-        account: sf.id!!,
-        name: 'Building Permits',
-        slug: 'housing',
-        activated: true,
-        outputs: '[{"url":"https://github.com", "title": "Some Outputs"}]',
-        sources: '[]',
-        isPrivate: false
-    });
-
-    await DB.Project.create({
-        account: sf.id!!,
-        name: 'Building Production',
-        slug: 'prod',
-        activated: true,
-        outputs: '[]',
-        sources: '[]',
-        isPrivate: true
-    });
-
-    await DB.Findings.create({
-        account: sf.id!!,
-        title: 'San Francisco Housing',
-        intro: 'Blah blah blah',
-        description: 'Some description',
-        recomendations: 'Some findings'
-    });
-
     await createDevelopers(sf.id!!);
 }

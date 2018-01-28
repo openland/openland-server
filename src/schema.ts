@@ -1,9 +1,6 @@
 import { makeExecutableSchema } from 'graphql-tools';
 import * as Account from './models/Account';
 import * as Me from './models/Me';
-import * as Project from './models/Project';
-import * as DataSet from './models/Dataset';
-import * as Findings from './models/Findings';
 import * as Permits from './models/Permit';
 import * as Street from './models/Street';
 import * as BuildingProject from './models/BuildingProject';
@@ -50,9 +47,6 @@ export const Schema = makeExecutableSchema({
         RootQuery, SchemaDefinition,
         Account.Schema,
         Me.Schema,
-        Project.Schema,
-        DataSet.Schema,
-        Findings.Schema,
         Permits.Schema,
         Street.Schema,
         BuildingProject.Schema,
@@ -65,9 +59,6 @@ export const Schema = makeExecutableSchema({
     resolvers: merge(rootResolver,
         Account.Resolver,
         Me.Resolver,
-        Project.Resolver,
-        DataSet.Resolver,
-        Findings.Resolver,
         Permits.Resolver,
         Street.Resolver,
         BuildingProject.Resolver,

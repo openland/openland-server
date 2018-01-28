@@ -4,9 +4,7 @@ import * as sequelize from 'sequelize';
 export { User } from './User';
 export { Account } from './Account';
 export { AccountMember } from './Account';
-export { Project } from './Project';
 export { DataSet } from './DataSet';
-export { Findings } from './Findings';
 export { Street } from './Street';
 export { StreetNumber } from './StreetNumber';
 export { BuildingProject } from './BuildingProject';
@@ -24,9 +22,7 @@ export { Lot } from './Lot';
 import { UserTable } from './User';
 import { AccountTable } from './Account';
 import { AccountMemberTable } from './Account';
-import { ProjectTable } from './Project';
 import { DataSetTable } from './DataSet';
-import { FindingsTable } from './Findings';
 import { PermitTable } from './Permit';
 import { ReaderStateTable } from './ReaderState';
 import { StreetTable } from './Street';
@@ -46,9 +42,7 @@ export const DB = {
     User: UserTable,
     Account: AccountTable,
     AccountMember: AccountMemberTable,
-    Project: ProjectTable,
     DataSet: DataSetTable,
-    Findings: FindingsTable,
     Permit: PermitTable,
     Street: StreetTable,
     StreetNumber: StreetNumberTable,
