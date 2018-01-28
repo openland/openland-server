@@ -5,3 +5,8 @@ pipelines:
           - docker build .
         services:
           - docker
+    - step:
+        name: Deploy
+        trigger: manual
+        script:
+          - echo "hi!"
