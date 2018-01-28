@@ -37,13 +37,7 @@ let domainCache = new Map<string, number | null>();
 let userCache = new Map<string, number | null>();
 
 async function context(src: express.Request): Promise<CallContext> {
-    let domain: string = '';
-    if (src.headers['x-statecraft-domain']) {
-        domain = src.headers['x-statecraft-domain'] as string;
-    } else {
-        throw Error('x-statecraft-domain header is not present');
-    }
-
+    let domain: string = 'sf';
     let isRetina = src.headers['x-statecraft-retina'] === 'true';
 
     let accId = null;
