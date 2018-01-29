@@ -4,18 +4,17 @@ jobs:
   build:
     docker:
       - image: node:8.9.4
-      steps:
-        - checkout
-        
-        - restore_cache:
-          key: dependency-cache-{{ checksum "yarn.lock" }}
-        - run: yarn install
-        - save_cache:
-          key: dependency-cache-{{ checksum "yarn.lock" }}
-          paths:
-            - ./node_modules
-
-        - run: yarn build
+    steps:
+      - checkout
+      - restore_cache:
+        key: dependency-cache-{{ checksum "yarn.lock" }}
+      - run: yarn install
+      - save_cache:
+        key: dependency-cache-{{ checksum "yarn.lock" }}
+        paths:
+          - ./node_modules
+          
+      - run: yarn build
 #     steps:
 #       - checkout
 #       - run: docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
