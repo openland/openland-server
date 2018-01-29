@@ -2,6 +2,7 @@
 version: 2
 jobs:
   build:
+    working_directory: /tmp
     docker:
       - image: node:8.9.4
     steps:
@@ -15,6 +16,29 @@ jobs:
             - ./node_modules
       - run: yarn build
       - run: yarn install --production --ignore-scripts --prefer-offline
+      - persist_to_workspace:
+          root: /tmp
+          paths:
+            - './node_modules'
+            - './build'
+            - './package.json'
+            - './Dockerfile'
+  docker:
+    working_directory: /docker
+    machine: true
+    steps:
+      - attach_workspace:
+          at: /docker
       - run: docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
       - run: docker build -t statecraft/statecraft-server:latest .
       - run: docker push statecraft/statecraft-server:latest
+   
+workflows:
+  version: 2
+
+  build:
+    jobs:
+      - build
+      - docker:
+          requires:
+            - build
