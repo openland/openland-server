@@ -15,6 +15,11 @@ if (process.env.DATABASE_URL !== undefined) {
             ssl: true
         }
     });
+} else if (process.env.DATABASE_PASSWORD !== undefined && process.env.DATABASE_USER !== undefined) {
+    connection = new sequelize('postgres', process.env.DATABASE_USER!, process.env.DATABASE_PASSWORD!, {
+        dialect: 'postgres',
+        benchmark: true
+    });
 } else {
     connection = new sequelize('postgres', 'steve', '', {
         host: 'localhost',
