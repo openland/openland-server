@@ -16,4 +16,4 @@ workflows:
       - build
       - publish:
           requires:
-            build
+            - build
