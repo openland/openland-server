@@ -10,7 +10,7 @@ import * as jwksRsa from 'jwks-rsa';
 import { DB } from './tables';
 import * as fetch from 'node-fetch';
 import * as morgan from 'morgan';
-import { Engine } from 'apollo-engine';
+// import { Engine } from 'apollo-engine';
 import * as compression from 'compression';
 
 const checkJwt = jwt({
@@ -158,28 +158,28 @@ export default function () {
 
     // Allow All Domains
 
-    let engine: Engine | null = null;
-    if (process.env.APOLLO_ENGINE) {
-        engine = new Engine({
-            engineConfig: {
-                apiKey: process.env.APOLLO_ENGINE!!,
-            },
-            endpoint: '/api',
-            graphqlPort: dport
-        });
-        engine.start();
-    }
+    // let engine: Engine | null = null;
+    // if (process.env.APOLLO_ENGINE) {
+    //     engine = new Engine({
+    //         engineConfig: {
+    //             apiKey: process.env.APOLLO_ENGINE!!,
+    //         },
+    //         endpoint: '/api',
+    //         graphqlPort: dport
+    //     });
+    //     engine.start();
+    // }
 
     app.use(cors());
     app.use(morgan('tiny'));
     app.use(compression());
 
-    if (engine != null) {
-        app.use(engine.expressMiddleware());
-    }
+    // if (engine != null) {
+    //     app.use(engine.expressMiddleware());
+    // }
 
     // APIs
-    let requestHandler = handleRequest(engine != null);
+    let requestHandler = handleRequest(false);
     app.use('/graphql', checkJwt, bodyParser.json({limit: '5mb'}), buildContext, graphqlExpress(requestHandler));
     app.use('/api', checkJwt, bodyParser.json({limit: '5mb'}), buildContext, graphqlExpress(requestHandler));
     app.use('/admin-api', checkJwt, bodyParser.json({limit: '5mb'}), graphqlExpress(handleAdminRequest));

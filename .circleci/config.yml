@@ -13,21 +13,8 @@ jobs:
           key: dependency-cache-{{ checksum "yarn.lock" }}
           paths:
             - ./node_modules
-
       - run: yarn build
-#     steps:
-#       - checkout
-#       - run: docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
-#       - run: docker build -t statecraft/statecraft-server:latest .
-#   publish:
-#      machine: true
-#      steps:
-#       - run: docker push statecraft/statecraft-server:latest
-# workflows:
-#   version: 2
-#   build_and_test:
-#     jobs:
-#       - build
-#       - publish:
-#           requires:
-#             - build
+      - run: yarn install --production --ignore-scripts --prefer-offline
+      - run: docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+      - run: docker build -t statecraft/statecraft-server:latest .
+      - run: docker push statecraft/statecraft-server:latest
