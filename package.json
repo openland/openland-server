@@ -41,6 +41,7 @@
     "connect-ensure-login": "^0.1.1",
     "continuation-local-storage": "^3.2.0",
     "cors": "^2.8.4",
+    "cpx": "^1.5.0",
     "csv": "^2.0.0",
     "elasticsearch": "^14.0.0",
     "express": "^4.15.3",
@@ -73,8 +74,9 @@
     "typescript": "^2.4.2"
   },
   "scripts": {
-    "build": "./node_modules/.bin/tsc -p tsconfig.json",
-    "build:watch": "./node_modules/.bin/tsc -w -p tsconfig.json",
+    "assets": "yarn cpx \"./src/assets/**/*\" ./build/assets/",
+    "build": "yarn assets && ./node_modules/.bin/tsc -p tsconfig.json",
+    "build:watch": "yarn assets && ./node_modules/.bin/tsc -w -p tsconfig.json",
     "start:watch": "nodemon build/index.js",
     "start:watch:inspect": "nodemon --inspect build/index.js",
     "start": "BLUEBIRD_LONG_STACK_TRACES=0 node ./build/index.js",

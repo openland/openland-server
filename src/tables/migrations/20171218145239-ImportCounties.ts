@@ -5,12 +5,12 @@ import * as fs from 'fs';
 export async function up(queryInterface: QueryInterface, sequelize: DataTypes) {
 
     // Load All
-    let allCities = JSON.parse(fs.readFileSync('./src/tables/data/cities.json', {encoding: 'utf8'})) as { City: string, State: string, County: string }[];
+    let allCities = JSON.parse(fs.readFileSync(__dirname + '/../../assets/cities.json', { encoding: 'utf8' })) as { City: string, State: string, County: string }[];
 
     // Drop Code from Counties
     await queryInterface.removeIndex('counties', ['stateId', 'code']);
     await queryInterface.removeColumn('counties', 'code');
-    await queryInterface.addIndex('counties', ['stateId', 'name'], {indicesType: 'UNIQUE'});
+    await queryInterface.addIndex('counties', ['stateId', 'name'], { indicesType: 'UNIQUE' });
 
     // Import All Counties
     let allStates = await DB.State.findAll();
