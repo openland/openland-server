@@ -1,5 +1,6 @@
 import { CallContext } from './CallContext';
 import { DB } from '../tables';
+import { ElasticClient } from '../indexing/index';
 
 export const Schema = `
     type GlobalStats {
@@ -27,7 +28,14 @@ export const Resolver = {
                 totalDevelopers: DB.Developer.count({ where: { account: context.id, isDeveloper: true } }),
                 totalConstructors: DB.Developer.count({ where: { account: context.id, isConstructor: true } }),
                 totalOrganizations: DB.Developer.count({ where: { account: context.id } }),
-                totalPermits: DB.Permit.count({ where: { account: context.id } }),
+                totalPermits: ElasticClient.count({
+                    index: 'permits', type: 'permit',
+                    body: {
+                        query: {
+                            term: { 'account': context.id }
+                        }
+                    }
+                }).then((v) => v.count),
             };
         }
     },
@@ -38,7 +46,14 @@ export const Resolver = {
                 totalDevelopers: DB.Developer.count({ where: { account: context.accountId, isDeveloper: true } }),
                 totalConstructors: DB.Developer.count({ where: { account: context.accountId, isConstructor: true } }),
                 totalOrganizations: DB.Developer.count({ where: { account: context.accountId } }),
-                totalPermits: DB.Permit.count({ where: { account: context.accountId } }),
+                totalPermits: ElasticClient.count({
+                    index: 'permits', type: 'permit',
+                    body: {
+                        query: {
+                            term: { 'account': context.accountId }
+                        }
+                    }
+                }).then((v) => v.count),
             };
         }
     }

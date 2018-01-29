@@ -75,12 +75,12 @@ export const Resolver = {
         isDeveloper: (src: Developer) => src.isDeveloper,
         isConstructor: (src: Developer) => src.isConstructor,
         description: (src: Developer) => src.description,
-        developerIn: (src: Developer) => src.getDeveloperProjects(),
-        constructorIn: (src: Developer) => src.getConstructorProjects(),
-        buildingProjects: (src: Developer) => src.getDeveloperProjects(),
+        developerIn: (src: Developer) => src.developerProjects || src.getDeveloperProjects(),
+        constructorIn: (src: Developer) => src.constructorProjects || src.getConstructorProjects(),
+        buildingProjects: (src: Developer) => src.developerProjects || src.getDeveloperProjects(),
         partners: async (src: Developer) => {
-            let developerProjects = await src.getDeveloperProjects();
-            let constructorProjects = await src.getConstructorProjects();
+            let developerProjects = src.developerProjects!! || await src.getDeveloperProjects();
+            let constructorProjects = src.constructorProjects! || await src.getConstructorProjects();
             let developers = new Set<number>();
             for (let p of developerProjects) {
                 (await p.getDevelopers()).forEach((d) => {
@@ -119,10 +119,19 @@ export const Resolver = {
     },
     Query: {
         organizations: function (_: any, args: {}, context: CallContext) {
-            return DB.Developer.findAll({where: {account: context.accountId}, order: ['slug']});
+            return DB.Developer.findAll({
+                where: { account: context.accountId }, order: ['slug'], include:
+                    [{
+                        model: DB.BuidlingProject,
+                        as: 'developerProjects'
+                    }, {
+                        model: DB.BuidlingProject,
+                        as: 'constructorProjects'
+                    }]
+            });
         },
         organization: function (_: any, args: { slug: string }, context: CallContext) {
-            return DB.Developer.findOne({where: {account: context.accountId, slug: args.slug}});
+            return DB.Developer.findOne({ where: { account: context.accountId, slug: args.slug } });
         }
     },
     Mutation: {

@@ -207,7 +207,10 @@ let buildingProjects = async function (areaId: number, args: { first: number, mi
     let verified = builder.whereEq('verified', true);
 
     return {
-        ...(await builder.findAll()),
+        ...(await builder.findAll([
+            { model: DB.Developer, as: 'developers' },
+            { model: DB.Developer, as: 'constructors' }
+        ])),
         stats: {
             newUnits: builder.sum('\"proposedUnits"-"existingUnits\"'),
             newUnitsVerified: verified.sum('\"proposedUnits"-"existingUnits\"'),
@@ -274,10 +277,10 @@ export const Resolver = {
             }
         },
         developers: (src: BuildingProject) => {
-            return src.getDevelopers();
+            return src.developers || src.getDevelopers();
         },
         constructors: (src: BuildingProject) => {
-            return src.getConstructors();
+            return src.constructors || src.getConstructors();
         },
         permits: (src: BuildingProject) => {
             if (src.permits !== undefined) {
