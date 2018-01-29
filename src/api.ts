@@ -178,6 +178,9 @@ export default function () {
     //     app.use(engine.expressMiddleware());
     // }
 
+    // Root
+    app.get('/', (req, res) => res.send('Welcome to Statecraft!'));
+
     // APIs
     let requestHandler = handleRequest(false);
     app.use('/graphql', checkJwt, bodyParser.json({limit: '5mb'}), buildContext, graphqlExpress(requestHandler));
