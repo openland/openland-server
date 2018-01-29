@@ -315,7 +315,7 @@ export const Resolver = {
             }).filter((v) => v !== null);
         },
         relatedPermits: async (src: Permit) => {
-            let numbers = (await src.getStreetNumbers()).map((p) => p.id!!);
+            let numbers = [...new Set((await src.getStreetNumbers()).map((p) => p.id!!))];
             return DB.Permit.findAll({
                 include: [{
                     model: DB.StreetNumber,

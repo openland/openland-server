@@ -267,12 +267,12 @@ export class SelectBuilder<TInstance, TAttributes> {
         let res = await this.table.findAll({
             where: DB.connection.literal(where) as any,
             order: DB.connection.literal(orderBy),
-            limit: this.processor == null ? this.limitValue : undefined,
-            offset: this.processor == null ? offset : undefined,
+            limit: this.processor === null ? this.limitValue : undefined,
+            offset: this.processor === null ? offset : undefined,
             include: include,
             transaction: this.tx ? this.tx : undefined
         });
-        if (this.processor != null) {
+        if (this.processor !== null) {
             res = this.processor(res);
             res = res.splice(offset, this.limitValue);
         }
