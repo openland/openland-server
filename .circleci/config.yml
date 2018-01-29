@@ -24,13 +24,12 @@ jobs:
             - './package.json'
             - './Dockerfile'
   docker:
-    working_directory: /build
     machine: true
     steps:
       - attach_workspace:
-          at: /build
+          at: ./dist
       - run: docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
-      - run: docker build -t statecraft/statecraft-server:latest .
+      - run: docker build -t statecraft/statecraft-server:latest ./dist/.
       - run: docker push statecraft/statecraft-server:latest
    
 workflows:
