@@ -29,8 +29,8 @@ jobs:
       - attach_workspace:
           at: ./dist
       - run: docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
-      - run: docker build -t statecraft/statecraft-server:latest ./dist/.
-      - run: docker push statecraft/statecraft-server:latest
+      - run: docker build -t statecraft/statecraft-server:v${CIRCLE_BUILD_NUM} ./dist/.
+      - run: docker push statecraft/statecraft-server:v${CIRCLE_BUILD_NUM}
    
 workflows:
   version: 2
