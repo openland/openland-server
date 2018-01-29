@@ -50,6 +50,7 @@ async function initMater() {
     } catch (e) {
         console.error('Unable to init server');
         console.error(e);
+        process.abort();
     }
 }
 
