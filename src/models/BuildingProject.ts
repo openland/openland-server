@@ -4,7 +4,7 @@ import { BuildingProject } from '../tables';
 import { resolveStreetView, resolvePicture } from '../utils/pictures';
 import { SelectBuilder } from '../utils/SelectBuilder';
 import { dateDiff } from '../utils/date_utils';
-import { cachedInt } from '../modules/cache';
+import { cachedInt, isCached } from '../modules/cache';
 
 export const Schema = `
     type BuildingProject {
@@ -122,47 +122,85 @@ let buildingProjectsStats = async (areaId: number) => {
         .whereEq('verified', true)
         .sum('\"proposedUnits" - "existingUnits\"'));
 
-    let allProjects = (await DB.BuidlingProject.findAll({
-        where: {
-            account: areaId
-        },
-        include: [{
-            model: DB.Permit,
-            as: 'permits',
+    let cached = await isCached(`fastest_${areaId}`, `slowest_${areaId}`);
+
+    let fastestProject: BuildingProject | null = null;
+    let slowestProject: BuildingProject | null = null;
+    if (cached !== false) {
+        fastestProject = await DB.BuidlingProject.findById(cached[0], {
             include: [{
-                model: DB.StreetNumber,
-                as: 'streetNumbers',
+                model: DB.Permit,
+                as: 'permits',
                 include: [{
-                    model: DB.Street,
-                    as: 'street',
+                    model: DB.StreetNumber,
+                    as: 'streetNumbers',
+                    include: [{
+                        model: DB.Street,
+                        as: 'street',
+                    }]
                 }]
             }]
-        }]
-    })).filter((v) =>
-        (v.permits!!.find((p) => p.permitCreated !== null && p.permitIssued !== null))
-        && (v.existingUnits != null)
-        && (v.proposedUnits != null)
-        && ((v.proposedUnits - v.existingUnits) >= 10));
+        });
+        slowestProject = await DB.BuidlingProject.findById(cached[1], {
+            include: [{
+                model: DB.Permit,
+                as: 'permits',
+                include: [{
+                    model: DB.StreetNumber,
+                    as: 'streetNumbers',
+                    include: [{
+                        model: DB.Street,
+                        as: 'street',
+                    }]
+                }]
+            }]
+        });
+    }
 
-    let fastestProject = allProjects[0];
-    let slowestProject = allProjects[0];
-    let fastestDuration = dateDiff(new Date(fastestProject.permits!![0].permitCreated!!), new Date(fastestProject.permits!![0].permitIssued!!));
-    let slowestDuration = dateDiff(new Date(fastestProject.permits!![0].permitCreated!!), new Date(fastestProject.permits!![0].permitIssued!!));
+    if (fastestProject === null || slowestProject === null) {
+        let allProjects = (await DB.BuidlingProject.findAll({
+            where: {
+                account: areaId
+            },
+            include: [{
+                model: DB.Permit,
+                as: 'permits',
+                include: [{
+                    model: DB.StreetNumber,
+                    as: 'streetNumbers',
+                    include: [{
+                        model: DB.Street,
+                        as: 'street',
+                    }]
+                }]
+            }]
+        })).filter((v) =>
+            (v.permits!!.find((p) => p.permitCreated !== null && p.permitIssued !== null))
+            && (v.existingUnits != null)
+            && (v.proposedUnits != null)
+            && ((v.proposedUnits - v.existingUnits) >= 10));
 
-    for (let proj of allProjects) {
-        for (let p of proj.permits!!) {
-            if (p.permitCreated && p.permitIssued) {
-                let duration = dateDiff(new Date(p.permitCreated!!), new Date(p.permitIssued!!));
-                if (duration < fastestDuration) {
-                    fastestDuration = duration;
-                    fastestProject = proj;
-                }
-                if (duration > slowestDuration) {
-                    slowestDuration = duration;
-                    slowestProject = proj;
+        fastestProject = allProjects[0];
+        slowestProject = allProjects[0];
+        let fastestDuration = dateDiff(new Date(fastestProject.permits!![0].permitCreated!!), new Date(fastestProject.permits!![0].permitIssued!!));
+        let slowestDuration = dateDiff(new Date(fastestProject.permits!![0].permitCreated!!), new Date(fastestProject.permits!![0].permitIssued!!));
+        for (let proj of allProjects) {
+            for (let p of proj.permits!!) {
+                if (p.permitCreated && p.permitIssued) {
+                    let duration = dateDiff(new Date(p.permitCreated!!), new Date(p.permitIssued!!));
+                    if (duration < fastestDuration) {
+                        fastestDuration = duration;
+                        fastestProject = proj;
+                    }
+                    if (duration > slowestDuration) {
+                        slowestDuration = duration;
+                        slowestProject = proj;
+                    }
                 }
             }
         }
+        await cachedInt(`fastest_${areaId}`, async () => fastestProject!!.id!!);
+        await cachedInt(`slowest_${areaId}`, async () => slowestProject!!.id!!);
     }
 
     return {
