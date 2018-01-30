@@ -182,7 +182,7 @@ export default function () {
     app.get('/', (req, res) => res.send('Welcome to Statecraft!'));
 
     // APIs
-    let requestHandler = handleRequest(false);
+    let requestHandler = handleRequest(engine != null);
     app.use('/graphql', checkJwt, bodyParser.json({limit: '5mb'}), buildContext, graphqlExpress(requestHandler));
     app.use('/api', checkJwt, bodyParser.json({limit: '5mb'}), buildContext, graphqlExpress(requestHandler));
     app.use('/admin-api', checkJwt, bodyParser.json({limit: '5mb'}), graphqlExpress(handleAdminRequest));
