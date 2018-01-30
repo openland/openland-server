@@ -4,6 +4,7 @@ import { BuildingProject } from '../tables';
 import { resolveStreetView, resolvePicture } from '../utils/pictures';
 import { SelectBuilder } from '../utils/SelectBuilder';
 import { dateDiff } from '../utils/date_utils';
+import { cachedInt } from '../modules/cache';
 
 export const Schema = `
     type BuildingProject {
@@ -100,26 +101,26 @@ export const Schema = `
 let buildingProjectsStats = async (areaId: number) => {
     let projectsQuery = new SelectBuilder(DB.BuidlingProject)
         .whereEq('account', areaId);
-    let projectsTracked = projectsQuery
-        .count();
-    let projectsVerified = projectsQuery
+    let projectsTracked = cachedInt(`projects_${areaId}`, () => projectsQuery
+        .count());
+    let projectsVerified = cachedInt(`projects_verified_${areaId}`, () => projectsQuery
         .whereEq('verified', true)
-        .count();
+        .count());
 
-    let year2017NewUnits = projectsQuery
+    let year2017NewUnits = cachedInt(`units_2017_${areaId}`, () => projectsQuery
         .whereEq('extrasYearEnd', '2017')
-        .sum('\"proposedUnits" - "existingUnits\"');
-    let year2017NewUnitsVerified = projectsQuery
+        .sum('\"proposedUnits" - "existingUnits\"'));
+    let year2017NewUnitsVerified = cachedInt(`units_2017_verified_${areaId}`, () => projectsQuery
         .whereEq('extrasYearEnd', '2017')
         .whereEq('verified', true)
-        .sum('\"proposedUnits" - "existingUnits\"');
-    let year2018NewUnits = projectsQuery
+        .sum('\"proposedUnits" - "existingUnits\"'));
+    let year2018NewUnits = cachedInt(`units_2018_${areaId}`, () => projectsQuery
         .whereEq('extrasYearEnd', '2018')
-        .sum('\"proposedUnits" - "existingUnits\"');
-    let year2018NewUnitsVerified = projectsQuery
+        .sum('\"proposedUnits" - "existingUnits\"'));
+    let year2018NewUnitsVerified = cachedInt(`units_2018_verified_${areaId}`, () => projectsQuery
         .whereEq('extrasYearEnd', '2018')
         .whereEq('verified', true)
-        .sum('\"proposedUnits" - "existingUnits\"');
+        .sum('\"proposedUnits" - "existingUnits\"'));
 
     let allProjects = (await DB.BuidlingProject.findAll({
         where: {

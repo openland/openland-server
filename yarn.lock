@@ -45,6 +45,10 @@
   version "5.0.19"
   resolved "https://registry.yarnpkg.com/@types/elasticsearch/-/elasticsearch-5.0.19.tgz#2783b02360090265a1b8a4cc87425cebed30c303"
 
+"@types/events@*":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@types/events/-/events-1.1.0.tgz#93b1be91f63c184450385272c47b6496fd028e02"
+
 "@types/express-jwt@0.0.34":
   version "0.0.34"
   resolved "https://registry.yarnpkg.com/@types/express-jwt/-/express-jwt-0.0.34.tgz#fdbee4c6af5c0a246ef2a933f5519973c7717f02"
@@ -146,6 +150,19 @@
   resolved "https://registry.yarnpkg.com/@types/pg-promise/-/pg-promise-5.4.3.tgz#e9628ff43fe7738ee57ac00e11982139b2fb5c5f"
   dependencies:
     pg-promise "*"
+
+"@types/redis@^0.12.36":
+  version "0.12.36"
+  resolved "https://registry.yarnpkg.com/@types/redis/-/redis-0.12.36.tgz#61df652a269af425fe2e9ee95cdfa175577b4c3b"
+  dependencies:
+    "@types/node" "*"
+
+"@types/redis@^2.8.5":
+  version "2.8.5"
+  resolved "https://registry.yarnpkg.com/@types/redis/-/redis-2.8.5.tgz#c4a31a63e95434202eb84908290528ad8510b149"
+  dependencies:
+    "@types/events" "*"
+    "@types/node" "*"
 
 "@types/reflect-metadata@0.0.4":
   version "0.0.4"
@@ -1021,6 +1038,10 @@ dottie@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/dottie/-/dottie-2.0.0.tgz#da191981c8b8d713ca0115d5898cf397c2f0ddd0"
 
+double-ended-queue@^2.1.0-0:
+  version "2.1.0-0"
+  resolved "https://registry.yarnpkg.com/double-ended-queue/-/double-ended-queue-2.1.0-0.tgz#103d3527fd31528f40188130c841efdd78264e5c"
+
 duplexer2@0.0.2:
   version "0.0.2"
   resolved "https://registry.yarnpkg.com/duplexer2/-/duplexer2-0.0.2.tgz#c614dcf67e2fb14995a91711e5a617e8a60a31db"
@@ -1741,6 +1762,13 @@ gulplog@^1.0.0:
   resolved "https://registry.yarnpkg.com/gulplog/-/gulplog-1.0.0.tgz#e28c4d45d05ecbbed818363ce8f9c5926229ffe5"
   dependencies:
     glogg "^1.0.0"
+
+handy-redis@^1.3.0:
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/handy-redis/-/handy-redis-1.3.0.tgz#c2dbc38da09f9fe3a20c36d4bc5f459ec865123c"
+  dependencies:
+    "@types/redis" "^0.12.36"
+    redis "^2.8.0"
 
 har-schema@^1.0.5:
   version "1.0.5"
@@ -3421,6 +3449,22 @@ redefine@^0.2.0:
   version "0.2.1"
   resolved "https://registry.yarnpkg.com/redefine/-/redefine-0.2.1.tgz#e89ee7a6f24d19fff62590569332dc60380a89a3"
 
+redis-commands@^1.2.0:
+  version "1.3.1"
+  resolved "https://registry.yarnpkg.com/redis-commands/-/redis-commands-1.3.1.tgz#81d826f45fa9c8b2011f4cd7a0fe597d241d442b"
+
+redis-parser@^2.6.0:
+  version "2.6.0"
+  resolved "https://registry.yarnpkg.com/redis-parser/-/redis-parser-2.6.0.tgz#52ed09dacac108f1a631c07e9b69941e7a19504b"
+
+redis@^2.8.0:
+  version "2.8.0"
+  resolved "https://registry.yarnpkg.com/redis/-/redis-2.8.0.tgz#202288e3f58c49f6079d97af7a10e1303ae14b02"
+  dependencies:
+    double-ended-queue "^2.1.0-0"
+    redis-commands "^1.2.0"
+    redis-parser "^2.6.0"
+
 reflect-metadata@^0.1.10:
   version "0.1.10"
   resolved "https://registry.yarnpkg.com/reflect-metadata/-/reflect-metadata-0.1.10.tgz#b4f83704416acad89988c9b15635d47e03b9344a"
@@ -4143,6 +4187,10 @@ type-is@~1.6.15:
   dependencies:
     media-typer "0.3.0"
     mime-types "~2.1.15"
+
+typed-promisify@^0.4.0:
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/typed-promisify/-/typed-promisify-0.4.0.tgz#ade1d3d32130767ba4ef5385162c720698105d0f"
 
 typeorm@^0.1.7:
   version "0.1.7"
