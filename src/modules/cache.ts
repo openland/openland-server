@@ -1,28 +1,43 @@
 import * as Redis from 'handy-redis';
+import * as DataLoader from 'dataloader';
 
 let client: Redis.IHandyRedis | null = null;
-
+let hasCache = process.env.REDIS_HOST !== undefined;
 function getClient(): Redis.IHandyRedis | null {
-    if (process.env.REDIS_HOST) {
+    if (hasCache) {
         let port = process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT as string, 10) : 6379;
         client = Redis.createHandyClient(port, process.env.REDIS_HOST);
     }
     return client;
 }
 
-export async function cachedInt(key: string, calc: () => Promise<number>): Promise<number> {
-    let c = getClient();
-    if (c) {
-        try {
-            let res = await c.get(key);
-            if (res) {
-                return parseInt(res, 10);
+let clientLoader = new DataLoader<string, number | null>(async (v) => {
+    console.log(v);
+    let client2 = getClient()!!;
+    let res = (await client2.mget(...v)) as (string | null)[];
+    let mappedRes = res.map((r) => {
+        if (r) {
+            try {
+                return parseInt(r as string, 10);
+            } catch (e) {
+                return null;
             }
-        } catch (e) {
-            // just ignore
+        } else {
+            return null;
+        }
+    });
+    console.log(mappedRes);
+    return mappedRes;
+});
+
+export async function cachedInt(key: string, calc: () => Promise<number>): Promise<number> {
+    if (hasCache) {
+        let res = await clientLoader.load(key);
+        if (res) {
+            return res;
         }
         let r = await calc();
-        await c.setex(key, 600, r.toString());
+        await getClient()!!.setex(key, 600, r.toString());
         return r;
     } else {
         return calc();
@@ -32,21 +47,14 @@ export async function cachedInt(key: string, calc: () => Promise<number>): Promi
 export async function isCached(...keys: string[]): Promise<number[] | false> {
     let c = getClient();
     if (c) {
-        let items = keys.map((v) => c!!.get(v));
-        let res = [];
+        let items = await clientLoader.loadMany(keys);
         for (let i of items) {
             let v = await i;
             if (v === null) {
                 return false;
-            } else {
-                try {
-                    res.push(parseInt(v, 10));
-                } catch (e) {
-                    // just ignore
-                }
             }
         }
-        return res;
+        return items as number[];
     } else {
         return false;
     }

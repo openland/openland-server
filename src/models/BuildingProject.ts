@@ -5,6 +5,8 @@ import { resolveStreetView, resolvePicture } from '../utils/pictures';
 import { SelectBuilder } from '../utils/SelectBuilder';
 import { dateDiff } from '../utils/date_utils';
 import { cachedInt, isCached } from '../modules/cache';
+import * as DataLoader from 'dataloader';
+import { setTimeout } from 'timers';
 
 export const Schema = `
     type BuildingProject {
@@ -35,6 +37,8 @@ export const Schema = `
         extrasUrl: String
         extrasLocation: Geo
 
+        approvalTime: Int
+
         permits: [Permit!]!
 
         developers: [Organization!]!
@@ -62,11 +66,21 @@ export const Schema = `
     type BuildingProjectStats {
         projectsTracked: Int!
         projectsVerified: Int!
+
         year2017NewUnits: Int!
         year2017NewUnitsVerified: Int!
         year2018NewUnits: Int!
         year2018NewUnitsVerified: Int!
         
+        fastestApprovalProject: BuildingProject!
+        slowestApprovalProject: BuildingProject!
+    }
+
+    extend type AreaStats {
+        year2017NewUnits: Int!
+        year2017NewUnitsVerified: Int!
+        year2018NewUnits: Int!
+        year2018NewUnitsVerified: Int!
         fastestApprovalProject: BuildingProject!
         slowestApprovalProject: BuildingProject!
     }
@@ -98,63 +112,44 @@ export const Schema = `
     }
 `;
 
-let buildingProjectsStats = async (areaId: number) => {
-    let projectsQuery = new SelectBuilder(DB.BuidlingProject)
-        .whereEq('account', areaId);
-    let projectsTracked = cachedInt(`projects_${areaId}`, () => projectsQuery
-        .count());
-    let projectsVerified = cachedInt(`projects_verified_${areaId}`, () => projectsQuery
-        .whereEq('verified', true)
-        .count());
+let buildingProjectLoader = new DataLoader<number, BuildingProject>(async (v) => {
+    let mapped = v.map((id) => DB.BuidlingProject.findById(id, {
+        include: [{
+            model: DB.Permit,
+            as: 'permits',
+            include: [{
+                model: DB.StreetNumber,
+                as: 'streetNumbers',
+                include: [{
+                    model: DB.Street,
+                    as: 'street',
+                }]
+            }]
+        }]
+    })
+    );
+    let res: BuildingProject[] = [];
+    for (let m of mapped) {
+        res.push((await m)!!);
+    }
 
-    let year2017NewUnits = cachedInt(`units_2017_${areaId}`, () => projectsQuery
-        .whereEq('extrasYearEnd', '2017')
-        .sum('\"proposedUnits" - "existingUnits\"'));
-    let year2017NewUnitsVerified = cachedInt(`units_2017_verified_${areaId}`, () => projectsQuery
-        .whereEq('extrasYearEnd', '2017')
-        .whereEq('verified', true)
-        .sum('\"proposedUnits" - "existingUnits\"'));
-    let year2018NewUnits = cachedInt(`units_2018_${areaId}`, () => projectsQuery
-        .whereEq('extrasYearEnd', '2018')
-        .sum('\"proposedUnits" - "existingUnits\"'));
-    let year2018NewUnitsVerified = cachedInt(`units_2018_verified_${areaId}`, () => projectsQuery
-        .whereEq('extrasYearEnd', '2018')
-        .whereEq('verified', true)
-        .sum('\"proposedUnits" - "existingUnits\"'));
+    // Cache Timeout
+    setTimeout(() => {
+        for (let f of v) {
+            buildingProjectLoader.clear(f);
+        }
+    }, 60 * 1000);
+    
+    return res;
+});
 
-    let cached = await isCached(`fastest_${areaId}`, `slowest_${areaId}`);
-
+let fetchProjects = async (areaId: number) => {
     let fastestProject: BuildingProject | null = null;
     let slowestProject: BuildingProject | null = null;
+    let cached = await isCached(`fastest_${areaId}`, `slowest_${areaId}`);
     if (cached !== false) {
-        fastestProject = await DB.BuidlingProject.findById(cached[0], {
-            include: [{
-                model: DB.Permit,
-                as: 'permits',
-                include: [{
-                    model: DB.StreetNumber,
-                    as: 'streetNumbers',
-                    include: [{
-                        model: DB.Street,
-                        as: 'street',
-                    }]
-                }]
-            }]
-        });
-        slowestProject = await DB.BuidlingProject.findById(cached[1], {
-            include: [{
-                model: DB.Permit,
-                as: 'permits',
-                include: [{
-                    model: DB.StreetNumber,
-                    as: 'streetNumbers',
-                    include: [{
-                        model: DB.Street,
-                        as: 'street',
-                    }]
-                }]
-            }]
-        });
+        fastestProject = await buildingProjectLoader.load(cached[0]);
+        slowestProject = await buildingProjectLoader.load(cached[1]);
     }
 
     if (fastestProject === null || slowestProject === null) {
@@ -202,7 +197,32 @@ let buildingProjectsStats = async (areaId: number) => {
         await cachedInt(`fastest_${areaId}`, async () => fastestProject!!.id!!);
         await cachedInt(`slowest_${areaId}`, async () => slowestProject!!.id!!);
     }
+    return [fastestProject!!, slowestProject!!];
+};
 
+let buildingProjectsStats = async (areaId: number) => {
+    let projectsQuery = new SelectBuilder(DB.BuidlingProject)
+        .whereEq('account', areaId);
+    let projectsTracked = cachedInt(`projects_${areaId}`, () => projectsQuery
+        .count());
+    let projectsVerified = cachedInt(`projects_verified_${areaId}`, () => projectsQuery
+        .whereEq('verified', true)
+        .count());
+    let year2017NewUnits = cachedInt(`units_2017_${areaId}`, () => projectsQuery
+        .whereEq('extrasYearEnd', '2017')
+        .sum('\"proposedUnits" - "existingUnits\"'));
+    let year2017NewUnitsVerified = cachedInt(`units_2017_verified_${areaId}`, () => projectsQuery
+        .whereEq('extrasYearEnd', '2017')
+        .whereEq('verified', true)
+        .sum('\"proposedUnits" - "existingUnits\"'));
+    let year2018NewUnits = cachedInt(`units_2018_${areaId}`, () => projectsQuery
+        .whereEq('extrasYearEnd', '2018')
+        .sum('\"proposedUnits" - "existingUnits\"'));
+    let year2018NewUnitsVerified = cachedInt(`units_2018_verified_${areaId}`, () => projectsQuery
+        .whereEq('extrasYearEnd', '2018')
+        .whereEq('verified', true)
+        .sum('\"proposedUnits" - "existingUnits\"'));
+    let projects = await fetchProjects(areaId);
     return {
         projectsTracked: projectsTracked,
         projectsVerified: projectsVerified,
@@ -210,8 +230,8 @@ let buildingProjectsStats = async (areaId: number) => {
         year2017NewUnitsVerified: year2017NewUnitsVerified,
         year2018NewUnits: year2018NewUnits,
         year2018NewUnitsVerified: year2018NewUnitsVerified,
-        fastestApprovalProject: fastestProject,
-        slowestApprovalProject: slowestProject
+        fastestApprovalProject: projects[0],
+        slowestApprovalProject: projects[1]
     };
 };
 
@@ -226,17 +246,7 @@ let buildingProjects = async function (areaId: number, args: { first: number, mi
         .filter(args.filter)
         .whereEq('account', areaId)
         .orderByRaw('"proposedUnits"-"existingUnits"', 'DESC NULLS LAST');
-    // .postProcessor((src) => src.sort((a, b) => {
-    //     if (a.proposedUnits != null && b.proposedUnits != null && a.existingUnits != null && b.existingUnits != null) {
-    //         return (b.proposedUnits!! - b.existingUnits!!) - (a.proposedUnits!! - a.existingUnits!!);
-    //     } else if (a.proposedUnits != null && a.existingUnits != null) {
-    //         return -1;
-    //     } else if (b.proposedUnits != null && b.existingUnits != null) {
-    //         return 1;
-    //     } else {
-    //         return b.id!! - a.id!!;
-    //     }
-    // }));
+
     if (args.minUnits) {
         builder = builder.where('"proposedUnits"-"existingUnits" >= ' + args.minUnits);
     }
@@ -269,6 +279,32 @@ let buildingProject = function (areaId: number, args: { slug: number }) {
 };
 
 export const Resolver = {
+    AreaStats: {
+        year2017NewUnits: (src: { _areaId: number }) => cachedInt(`units_2017_${src._areaId}`,
+            () => new SelectBuilder(DB.BuidlingProject)
+                .whereEq('account', src._areaId)
+                .whereEq('extrasYearEnd', '2017')
+                .sum('\"proposedUnits" - "existingUnits\"')),
+        year2017NewUnitsVerified: (src: { _areaId: number }) => cachedInt(`units_2017_${src._areaId}`,
+            () => new SelectBuilder(DB.BuidlingProject)
+                .whereEq('account', src._areaId)
+                .whereEq('extrasYearEnd', '2017')
+                .whereEq('verified', true)
+                .sum('\"proposedUnits" - "existingUnits\"')),
+        year2018NewUnits: (src: { _areaId: number }) => cachedInt(`units_2018_${src._areaId}`,
+            () => new SelectBuilder(DB.BuidlingProject)
+                .whereEq('account', src._areaId)
+                .whereEq('extrasYearEnd', '2018')
+                .sum('\"proposedUnits" - "existingUnits\"')),
+        year2018NewUnitsVerified: (src: { _areaId: number }) => cachedInt(`units_2018_${src._areaId}`,
+            () => new SelectBuilder(DB.BuidlingProject)
+                .whereEq('account', src._areaId)
+                .whereEq('extrasYearEnd', '2018')
+                .whereEq('verified', true)
+                .sum('\"proposedUnits" - "existingUnits\"')),
+        fastestApprovalProject: async (src: { _areaId: number }) => (await fetchProjects(src._areaId))[0],
+        slowestApprovalProject: async (src: { _areaId: number }) => (await fetchProjects(src._areaId))[1]
+    },
     BuildingProject: {
         id: (src: BuildingProject) => src.id,
         slug: (src: BuildingProject) => src.projectId,
@@ -327,7 +363,21 @@ export const Resolver = {
             } else {
                 return src.getPermits();
             }
-        }
+        },
+        approvalTime: async (src: BuildingProject) => {
+            let perm;
+            if (src.permits !== undefined) {
+                perm = src.permits;
+            } else {
+                perm = await src.getPermits();
+            }
+            perm = perm.filter((v) => v.permitCreated && v.permitIssued);
+            if (perm.length === 0) {
+                return 0;
+            } else {
+                return Math.max(...perm.map((v) => dateDiff(new Date(v.permitCreated!!), new Date(v.permitIssued!!))));
+            }
+        },
     },
     Query: {
         buildingProjectsStats: async function (_: any, args: {}, context: CallContext) {
