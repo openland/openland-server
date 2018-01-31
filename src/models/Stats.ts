@@ -35,7 +35,7 @@ function resolve(id: number) {
     return {
         _areaId: id,
         totalProjects: cachedInt(`projects_${id}`, async () => DB.BuidlingProject.count({ where: { account: id } })),
-        totalProjectsVerified: cachedInt(`projects_${id}`, async () => DB.BuidlingProject.count({ where: { account: id, verified: true } })),
+        totalProjectsVerified: cachedInt(`projects_verified_${id}`, async () => DB.BuidlingProject.count({ where: { account: id, verified: true } })),
         totalDevelopers: cachedInt(`developers_${id}`, async () => DB.Developer.count({ where: { account: id, isDeveloper: true } })),
         totalConstructors: cachedInt(`constructors_${id}`, async () => DB.Developer.count({ where: { account: id, isConstructor: true } })),
         totalOrganizations: cachedInt(`organizations_${id}`, async () => DB.Developer.count({ where: { account: id } })),

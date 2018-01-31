@@ -285,7 +285,7 @@ export const Resolver = {
                 .whereEq('account', src._areaId)
                 .whereEq('extrasYearEnd', '2017')
                 .sum('\"proposedUnits" - "existingUnits\"')),
-        year2017NewUnitsVerified: (src: { _areaId: number }) => cachedInt(`units_2017_${src._areaId}`,
+        year2017NewUnitsVerified: (src: { _areaId: number }) => cachedInt(`units_2017_verified_${src._areaId}`,
             () => new SelectBuilder(DB.BuidlingProject)
                 .whereEq('account', src._areaId)
                 .whereEq('extrasYearEnd', '2017')
@@ -296,7 +296,7 @@ export const Resolver = {
                 .whereEq('account', src._areaId)
                 .whereEq('extrasYearEnd', '2018')
                 .sum('\"proposedUnits" - "existingUnits\"')),
-        year2018NewUnitsVerified: (src: { _areaId: number }) => cachedInt(`units_2018_${src._areaId}`,
+        year2018NewUnitsVerified: (src: { _areaId: number }) => cachedInt(`units_2018_verified_${src._areaId}`,
             () => new SelectBuilder(DB.BuidlingProject)
                 .whereEq('account', src._areaId)
                 .whereEq('extrasYearEnd', '2018')
