@@ -48,7 +48,7 @@ async function initMater() {
 
 async function initWorker() {
     api.default();
-    if (process.env.ELASTIC_ENDPOINT) {
+    if (process.env.ELASTIC_ENDPOINT && process.env.ELASTIC_ENDPOINT !== 'false') {
         enableIndexer();
     }
 }
