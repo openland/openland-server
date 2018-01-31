@@ -7,6 +7,7 @@ import { dateDiff } from '../utils/date_utils';
 import { Chart, prepareHistogram, elasticChart } from '../utils/charts';
 import { ElasticClient } from '../indexing';
 import { currentTime, printElapsed } from '../utils/timer';
+import { cachedObject } from '../modules/cache';
 
 export const Schema = `
 
@@ -360,7 +361,7 @@ export const Resolver = {
             }
         },
         permitsUnitsIssuedStats: async function (_: any, args: {}, context: CallContext) {
-            let res = await ElasticClient.search({
+            let res = await cachedObject('permitsUnitsIssuedStats_' + context.accountId, () => ElasticClient.search({
                 index: 'permits',
                 type: 'permit',
                 body: {
@@ -397,11 +398,11 @@ export const Resolver = {
                         }
                     }
                 }
-            });
+            }));
             return elasticChart('Permits Issued — Net New Units', res);
         },
         permitsUnitsFiledStats: async function (_: any, args: {}, context: CallContext) {
-            let res = await ElasticClient.search({
+            let res = await cachedObject('permitsUnitsFiledStats_' + context.accountId, () => ElasticClient.search({
                 index: 'permits',
                 type: 'permit',
                 body: {
@@ -438,11 +439,11 @@ export const Resolver = {
                         }
                     }
                 }
-            });
+            }));
             return elasticChart('Permits Filed — Net New Units', res);
         },
         permitsUnitsCompletedStats: async function (_: any, args: {}, context: CallContext) {
-            let res = await ElasticClient.search({
+            let res = await cachedObject('permitsUnitsCompletedStats_' + context.accountId, () =>  ElasticClient.search({
                 index: 'permits',
                 type: 'permit',
                 body: {
@@ -479,7 +480,7 @@ export const Resolver = {
                         }
                     }
                 }
-            });
+            }));
             return elasticChart('Permits Completed — Net New Units', res);
         },
         permits: async function (_: any, args: {

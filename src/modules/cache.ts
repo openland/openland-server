@@ -37,7 +37,25 @@ export async function cachedInt(key: string, calc: () => Promise<number>): Promi
             return res;
         }
         let r = await calc();
-        await getClient()!!.setex(key, 600, r.toString());
+        getClient()!!.setex(key, 600, r.toString());
+        return r;
+    } else {
+        return calc();
+    }
+}
+
+export async function cachedObject<T>(key: string, calc: () => Promise<T>): Promise<T> {
+    if (hasCache) {
+        let res = await getClient()!!.get(key);
+        if (res) {
+            try {
+                return JSON.parse(res) as T;
+            } catch (e) {
+                // Ignore
+            }
+        }
+        let r = await calc();
+        getClient()!!.setex(key, 600, JSON.stringify(r));
         return r;
     } else {
         return calc();
