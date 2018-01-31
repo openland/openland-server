@@ -87,7 +87,8 @@
     "dev": "yarn build && ELASTIC_ENDPOINT=\"http://localhost:9200/\" ./node_modules/.bin/concurrently --kill-others \"yarn build:watch\" \"yarn start:watch\"",
     "dev:inspect": "BLUEBIRD_LONG_STACK_TRACES=0 yarn build && ./node_modules/.bin/concurrently --kill-others \"yarn build:watch\" \"yarn start:watch:inspect\"",
     "dev:db": "RECREATE_DB=true yarn build && ./node_modules/.bin/concurrently --kill-others \"yarn build:watch\" \"yarn start:watch\"",
-    "heroku-postbuild": "yarn build"
+    "heroku-postbuild": "yarn build",
+    "promote": "kubectl set image deployment/statecraft-server statecraft-server=`kubectl get deployment statecraft-server-staging -o=jsonpath='{$.spec.template.spec.containers[1:2].image}'` && kubectl rollout status deployments statecraft-server"
   },
   "devDependencies": {}
 }
