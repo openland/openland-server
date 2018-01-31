@@ -38,15 +38,7 @@ async function initMater() {
             await db.migrate();
         }
         require('./imports');
-
-        console.warn('Concurrency: ' + process.env.WEB_CONCURRENCY);
-        if (process.env.WEB_CONCURRENCY) {
-            for (var i = 0; i < parseInt(process.env.WEB_CONCURRENCY!!, 10); i++) {
-                cluster.fork();
-            }
-        } else {
-            initWorker();
-        }
+        initWorker();
     } catch (e) {
         console.error('Unable to init server');
         console.error(e);
