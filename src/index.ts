@@ -37,7 +37,6 @@ async function initMater() {
             console.info('Connecting to database in RELEASE mode');
             await db.migrate();
         }
-        require('./imports');
         initWorker();
     } catch (e) {
         console.error('Unable to init server');
