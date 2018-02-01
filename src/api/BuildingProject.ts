@@ -77,7 +77,7 @@ export const Schema = `
         buildingProjects(filter: String, minUnits: Int, year: String, first: Int!, after: String): BuildingProjectConnection!
         buildingProject(slug: String!): BuildingProject!
         
-        projects(area: String!, filter: String, minUnits: Int, year: String, first: Int!, after: String): BuildingProjectConnection!
+        projects(area: String!, filter: String, minUnits: Int, year: String, first: Int!, after: String, page: Int): BuildingProjectConnection!
         project(area: String!, slug: String!): BuildingProject!
     }
 
@@ -184,7 +184,7 @@ let fetchProjects = async (areaId: number) => {
     return [fastestProject!!, slowestProject!!];
 };
 
-let buildingProjects = async function (areaId: number, args: { first: number, minUnits?: number, year?: string, filter?: string, after?: string }) {
+let buildingProjects = async function (areaId: number, args: { first: number, minUnits?: number, year?: string, filter?: string, after?: string, page?: number }) {
     let builder = new SelectBuilder(DB.BuidlingProject)
         .whereEq('account', areaId)
         .filterField('name')
@@ -193,6 +193,7 @@ let buildingProjects = async function (areaId: number, args: { first: number, mi
         .limit(args.first)
         .after(args.after)
         .filter(args.filter)
+        .page(args.page)
         .whereEq('account', areaId)
         .orderByRaw('"proposedUnits"-"existingUnits"', 'DESC NULLS LAST');
 

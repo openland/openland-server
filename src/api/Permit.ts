@@ -123,7 +123,7 @@ export const Schema = `
     extend type Query {
         permits(filter: String, type: PermitType, sort: PermitSorting, minUnits: Int,
                 issuedYear: String, fromPipeline: Boolean,
-                first: Int!, after: String, page: Int): PermitsConnection
+                first: Int!, after: String, page: Int): PermitsConnection!
         permit(id: ID!): Permit
         permitsApprovalStats: Chart!
         permitsApprovalUnits: Chart!
