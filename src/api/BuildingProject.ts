@@ -7,6 +7,7 @@ import { dateDiff } from '../utils/date_utils';
 import { cachedInt, isCached } from '../modules/cache';
 import * as DataLoader from 'dataloader';
 import { setTimeout } from 'timers';
+import { Repos } from '../repositories/index';
 
 export const Schema = `
     type BuildingProject {
@@ -75,11 +76,9 @@ export const Schema = `
     extend type Query {
         buildingProjects(filter: String, minUnits: Int, year: String, first: Int!, after: String): BuildingProjectConnection!
         buildingProject(slug: String!): BuildingProject!
-    }
-
-    extend type Area {
-        projects(filter: String, minUnits: Int, year: String, first: Int!, after: String): BuildingProjectConnection!
-        project(slug: String!): BuildingProject!
+        
+        projects(area: String!, filter: String, minUnits: Int, year: String, first: Int!, after: String): BuildingProjectConnection!
+        project(area: String!, slug: String!): BuildingProject!
     }
 
     input BuildingProjectInput {
@@ -124,7 +123,7 @@ let buildingProjectLoader = new DataLoader<number, BuildingProject>(async (v) =>
             buildingProjectLoader.clear(f);
         }
     }, 60 * 1000);
-    
+
     return res;
 });
 
@@ -335,14 +334,12 @@ export const Resolver = {
         },
         buildingProject: function (_: any, args: { slug: number }, call: CallContext) {
             return buildingProject(call.accountId, args);
+        },
+        projects: async function (_: any, args: { area: string, first: number, minUnits?: number, year?: string, filter?: string, after?: string }) {
+            return buildingProjects((await Repos.Area.resolveArea(args.area)).id, args);
+        },
+        project: async function (_: any, args: { area: string, slug: number }) {
+            return buildingProject((await Repos.Area.resolveArea(args.area)).id, args);
         }
     },
-    Area: {
-        projects: async function (area: { id: number }, args: { first: number, minUnits?: number, year?: string, filter?: string, after?: string }) {
-            return buildingProjects(area.id, args);
-        },
-        project: function (area: { id: number }, args: { slug: number }) {
-            return buildingProject(area.id, args);
-        }
-    }
 };

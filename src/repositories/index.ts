@@ -1,5 +1,5 @@
-import { AccountRepository } from './AccountRepository';
+import { AreaRepository } from './AreaRepository';
 
 export const Repos = {
-    Area: new AccountRepository()
+    Area: new AreaRepository()
 };
