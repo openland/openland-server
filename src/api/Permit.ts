@@ -4,7 +4,7 @@ import { applyPermits } from '../repositories/Permits';
 import { PermitStatus, Permit, PermitType } from '../tables/Permit';
 import { SelectBuilder } from '../utils/SelectBuilder';
 import { dateDiff } from '../utils/date_utils';
-import { Chart, prepareHistogram, elasticChart, elasticMontlyChart, elasticQuarterChart } from '../utils/charts';
+import { Chart, prepareHistogram, elasticChart, elasticQuarterChart } from '../utils/charts';
 import { ElasticClient } from '../indexing';
 import { currentTime, printElapsed } from '../utils/timer';
 import { cachedObject } from '../modules/cache';
