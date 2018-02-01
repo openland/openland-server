@@ -1,18 +1,9 @@
-import { CallContext } from './CallContext';
 import { DB } from '../tables';
 import { ElasticClient } from '../indexing/index';
 import { cachedInt } from '../modules/cache';
+import { AreaContext } from './Area';
 
 export const Schema = `
-    type GlobalStats {
-        totalProjects: Int!
-        totalProjectsVerified: Int!
-        totalDevelopers: Int!
-        totalConstructors: Int!
-        totalOrganizations: Int!
-        totalPermits: Int!        
-    }
-
     type AreaStats {
         totalProjects: Int!
         totalProjectsVerified: Int!
@@ -22,10 +13,6 @@ export const Schema = `
         totalPermits: Int!
     }
     
-    extend type Query {
-        globalStats: GlobalStats!
-    }
-
     extend type Area {
         stats: AreaStats!
     }
@@ -52,13 +39,8 @@ function resolve(id: number) {
 
 export const Resolver = {
     Area: {
-        stats: async function (context: { id: number }) {
-            return resolve(context.id);
-        }
-    },
-    Query: {
-        globalStats: async function (_: any, args: {}, context: CallContext) {
-            return resolve(context.accountId);
+        stats: async function (context: AreaContext) {
+            return resolve(context._areadId);
         }
     }
 };

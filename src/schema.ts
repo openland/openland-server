@@ -1,15 +1,14 @@
 import { makeExecutableSchema } from 'graphql-tools';
-import * as Account from './models/Account';
-import * as Me from './models/Me';
-import * as Permits from './models/Permit';
-import * as Street from './models/Street';
-import * as BuildingProject from './models/BuildingProject';
-import * as Picture from './models/Picture';
-import * as Organizations from './models/Organizations';
-import * as Core from './models/Core';
-import * as Stats from './models/Stats';
-import * as Parcels from './models/Parcels';
-import * as Area from './models/Area';
+import * as Account from './api/Account';
+import * as Me from './api/Me';
+import * as Permits from './api/Permit';
+import * as BuildingProject from './api/BuildingProject';
+import * as Picture from './api/Picture';
+import * as Organizations from './api/Organizations';
+import * as Core from './api/Core';
+import * as Stats from './api/AreaStats';
+import * as Parcels from './api/Parcels';
+import * as Area from './api/Area';
 import { merge } from 'lodash';
 
 const RootQuery = `
@@ -48,7 +47,6 @@ export const Schema = makeExecutableSchema({
         Account.Schema,
         Me.Schema,
         Permits.Schema,
-        Street.Schema,
         BuildingProject.Schema,
         Picture.Schema,
         Organizations.Schema,
@@ -60,7 +58,6 @@ export const Schema = makeExecutableSchema({
         Account.Resolver,
         Me.Resolver,
         Permits.Resolver,
-        Street.Resolver,
         BuildingProject.Resolver,
         Picture.Resolver,
         Organizations.Resolver,

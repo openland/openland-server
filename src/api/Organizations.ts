@@ -2,6 +2,7 @@ import { CallContext } from './CallContext';
 import { DB } from '../tables';
 import { Developer } from '../tables';
 import { applyAlterString } from '../utils/updater';
+import { AreaContext } from './Area';
 
 export const Schema = `
     type Organization {
@@ -32,6 +33,11 @@ export const Schema = `
     }
 
     extend type Query {
+        organizations: [Organization!]!
+        organization(slug: String!): Organization!
+    }
+
+    extend type Area {
         organizations: [Organization!]!
         organization(slug: String!): Organization!
     }
@@ -115,6 +121,23 @@ export const Resolver = {
                     }
                 }
             });
+        }
+    },
+    Area: {
+        organizations: function (context: AreaContext, args: {}) {
+            return DB.Developer.findAll({
+                where: { account: context._areadId }, order: ['slug'], include:
+                    [{
+                        model: DB.BuidlingProject,
+                        as: 'developerProjects'
+                    }, {
+                        model: DB.BuidlingProject,
+                        as: 'constructorProjects'
+                    }]
+            });
+        },
+        organization: function (context: AreaContext, args: { slug: string }) {
+            return DB.Developer.findOne({ where: { account: context._areadId, slug: args.slug } });
         }
     },
     Query: {

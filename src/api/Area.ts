@@ -11,10 +11,15 @@ export const Schema = `
     }
 `;
 
+export interface AreaContext {
+    _areadId: number;
+}
+
 export const Resolver = {
     Query: {
         area: async function (_: any, args: { slug: string }) {
-            return Repos.Area.resolveArea(args.slug);
+            let area = await Repos.Area.resolveArea(args.slug);
+            return { ...area, _areadId: area.id };
         }
     }
 };

@@ -63,19 +63,6 @@ export const Schema = `
         stats: BuildingProjectConnectionStats!
     }
 
-    type BuildingProjectStats {
-        projectsTracked: Int!
-        projectsVerified: Int!
-
-        year2017NewUnits: Int!
-        year2017NewUnitsVerified: Int!
-        year2018NewUnits: Int!
-        year2018NewUnitsVerified: Int!
-        
-        fastestApprovalProject: BuildingProject!
-        slowestApprovalProject: BuildingProject!
-    }
-
     extend type AreaStats {
         year2017NewUnits: Int!
         year2017NewUnitsVerified: Int!
@@ -87,14 +74,12 @@ export const Schema = `
 
     extend type Query {
         buildingProjects(filter: String, minUnits: Int, year: String, first: Int!, after: String): BuildingProjectConnection!
-        buildingProjectsStats: BuildingProjectStats!
         buildingProject(slug: String!): BuildingProject!
     }
 
     extend type Area {
-        buildingProjects(filter: String, minUnits: Int, year: String, first: Int!, after: String): BuildingProjectConnection!
-        buildingProjectsStats: BuildingProjectStats!
-        buildingProject(slug: String!): BuildingProject!
+        projects(filter: String, minUnits: Int, year: String, first: Int!, after: String): BuildingProjectConnection!
+        project(slug: String!): BuildingProject!
     }
 
     input BuildingProjectInput {
@@ -198,41 +183,6 @@ let fetchProjects = async (areaId: number) => {
         await cachedInt(`slowest_${areaId}`, async () => slowestProject!!.id!!);
     }
     return [fastestProject!!, slowestProject!!];
-};
-
-let buildingProjectsStats = async (areaId: number) => {
-    let projectsQuery = new SelectBuilder(DB.BuidlingProject)
-        .whereEq('account', areaId);
-    let projectsTracked = cachedInt(`projects_${areaId}`, () => projectsQuery
-        .count());
-    let projectsVerified = cachedInt(`projects_verified_${areaId}`, () => projectsQuery
-        .whereEq('verified', true)
-        .count());
-    let year2017NewUnits = cachedInt(`units_2017_${areaId}`, () => projectsQuery
-        .whereEq('extrasYearEnd', '2017')
-        .sum('\"proposedUnits" - "existingUnits\"'));
-    let year2017NewUnitsVerified = cachedInt(`units_2017_verified_${areaId}`, () => projectsQuery
-        .whereEq('extrasYearEnd', '2017')
-        .whereEq('verified', true)
-        .sum('\"proposedUnits" - "existingUnits\"'));
-    let year2018NewUnits = cachedInt(`units_2018_${areaId}`, () => projectsQuery
-        .whereEq('extrasYearEnd', '2018')
-        .sum('\"proposedUnits" - "existingUnits\"'));
-    let year2018NewUnitsVerified = cachedInt(`units_2018_verified_${areaId}`, () => projectsQuery
-        .whereEq('extrasYearEnd', '2018')
-        .whereEq('verified', true)
-        .sum('\"proposedUnits" - "existingUnits\"'));
-    let projects = await fetchProjects(areaId);
-    return {
-        projectsTracked: projectsTracked,
-        projectsVerified: projectsVerified,
-        year2017NewUnits: year2017NewUnits,
-        year2017NewUnitsVerified: year2017NewUnitsVerified,
-        year2018NewUnits: year2018NewUnits,
-        year2018NewUnitsVerified: year2018NewUnitsVerified,
-        fastestApprovalProject: projects[0],
-        slowestApprovalProject: projects[1]
-    };
 };
 
 let buildingProjects = async function (areaId: number, args: { first: number, minUnits?: number, year?: string, filter?: string, after?: string }) {
@@ -380,9 +330,6 @@ export const Resolver = {
         },
     },
     Query: {
-        buildingProjectsStats: async function (_: any, args: {}, context: CallContext) {
-            return buildingProjectsStats(context.accountId);
-        },
         buildingProjects: async function (_: any, args: { first: number, minUnits?: number, year?: string, filter?: string, after?: string }, context: CallContext) {
             return buildingProjects(context.accountId, args);
         },
@@ -391,13 +338,10 @@ export const Resolver = {
         }
     },
     Area: {
-        buildingProjectsStats: async function (area: { id: number }) {
-            return buildingProjectsStats(area.id);
-        },
-        buildingProjects: async function (area: { id: number }, args: { first: number, minUnits?: number, year?: string, filter?: string, after?: string }) {
+        projects: async function (area: { id: number }, args: { first: number, minUnits?: number, year?: string, filter?: string, after?: string }) {
             return buildingProjects(area.id, args);
         },
-        buildingProject: function (area: { id: number }, args: { slug: number }) {
+        project: function (area: { id: number }, args: { slug: number }) {
             return buildingProject(area.id, args);
         }
     }

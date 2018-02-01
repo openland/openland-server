@@ -1,4 +1,4 @@
-import { CallContext } from '../models/CallContext';
+import { CallContext } from '../api/CallContext';
 import { STREET_VIEW_KEY } from '../keys';
 
 export function resolvePicture(src?: string, width?: number, height?: number) {

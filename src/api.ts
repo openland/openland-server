@@ -4,7 +4,7 @@ import * as bodyParser from 'body-parser';
 import * as express from 'express';
 import * as Schema from './schema';
 import * as cors from 'cors';
-import { CallContext } from './models/CallContext';
+import { CallContext } from './api/CallContext';
 import * as jwt from 'express-jwt';
 import * as jwksRsa from 'jwks-rsa';
 import { DB } from './tables';

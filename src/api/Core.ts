@@ -38,6 +38,21 @@ export const Schema = `
     label: String!
     values: [Float!]!
   }
+
+  type Street {
+    id: ID!
+    name: String
+    suffix: String
+    fullName: String
+  }
+
+  type StreetNumber {
+    streetId: ID!
+    streetName: String!
+    streetNameSuffix: String
+    streetNumber: Int!
+    streetNumberSuffix: String
+  }
 `;
 
 export interface GeoInput {
