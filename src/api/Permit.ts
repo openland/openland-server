@@ -4,7 +4,7 @@ import { applyPermits } from '../repositories/Permits';
 import { PermitStatus, Permit, PermitType } from '../tables/Permit';
 import { SelectBuilder } from '../utils/SelectBuilder';
 import { dateDiff } from '../utils/date_utils';
-import { Chart, prepareHistogram, elasticChart } from '../utils/charts';
+import { Chart, prepareHistogram, elasticChart, elasticMontlyChart, elasticQuarterChart } from '../utils/charts';
 import { ElasticClient } from '../indexing';
 import { currentTime, printElapsed } from '../utils/timer';
 import { cachedObject } from '../modules/cache';
@@ -130,6 +130,8 @@ export const Schema = `
         permitsUnitsIssuedStats: Chart!
         permitsUnitsFiledStats: Chart!
         permitsUnitsCompletedStats: Chart!
+
+        permitsUnitsFiledStatsMonthly: Chart!
     }
 
     input PermitInfo {
@@ -401,6 +403,47 @@ export const Resolver = {
             }));
             return elasticChart('Permits Issued — Net New Units', res);
         },
+        permitsUnitsFiledStatsMonthly: async function(_: any, args: {}, context: CallContext) {
+            let res = await cachedObject('permitsUnitsFiledStatsMonthly2_' + context.accountId, () => ElasticClient.search({
+                index: 'permits',
+                type: 'permit',
+                body: {
+                    aggs: {
+                        main: {
+                            date_histogram: {
+                                field: 'permitFiled',
+                                interval: 'quarter',
+                                'time_zone': 'GMT',
+                                'min_doc_count': 1
+                            },
+                            'aggs': {
+                                'value': {
+                                    'sum': {
+                                        'field': 'netUnits'
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    query: {
+                        bool: {
+                            must: [{
+                                range: {
+                                    permitFiled: {
+                                        gte: '2014',
+                                        lt: '2018'
+                                    }
+                                }
+                            },
+                            {
+                                term: { 'account': context.accountId }
+                            }]
+                        }
+                    }
+                }
+            }));
+            return elasticQuarterChart('Permits Filed — Net New Units', res);
+        },
         permitsUnitsFiledStats: async function (_: any, args: {}, context: CallContext) {
             let res = await cachedObject('permitsUnitsFiledStats_' + context.accountId, () => ElasticClient.search({
                 index: 'permits',
@@ -443,7 +486,7 @@ export const Resolver = {
             return elasticChart('Permits Filed — Net New Units', res);
         },
         permitsUnitsCompletedStats: async function (_: any, args: {}, context: CallContext) {
-            let res = await cachedObject('permitsUnitsCompletedStats_' + context.accountId, () =>  ElasticClient.search({
+            let res = await cachedObject('permitsUnitsCompletedStats_' + context.accountId, () => ElasticClient.search({
                 index: 'permits',
                 type: 'permit',
                 body: {

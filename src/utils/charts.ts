@@ -76,3 +76,35 @@ export function elasticChart(title: string, src: SearchResponse<any>): Chart {
         }]
     };
 }
+
+export function elasticMontlyChart(title: string, src: SearchResponse<any>): Chart {
+    let chart = src.aggregations.main as { buckets: { key: number, key_as_string: string, value: { value: number } }[] };
+    return {
+        labels: chart.buckets.map((v) => new Date(v.key).getUTCFullYear().toString().substring(2) + '\'' + new Date(v.key).getMonth()),
+        datasets: [{
+            label: title,
+            values: chart.buckets.map((v) => v.value.value)
+        }]
+    };
+}
+
+export function elasticQuarterChart(title: string, src: SearchResponse<any>): Chart {
+    let chart = src.aggregations.main as { buckets: { key: number, key_as_string: string, value: { value: number } }[] };
+
+    // console.warn(chart.buckets.map((v) => v.key));
+    // console.warn(chart.buckets.map((v) => new Date(v.key).toUTCString()));
+    // console.warn(chart.buckets.map((v) => new Date(v.key).getUTCMonth()));
+    // console.warn(chart.buckets.map((v) => new Date(v.key).getMonth()));
+    return {
+        labels: chart.buckets.map((v) => {
+            let date = new Date(v.key);
+            let year = date.getUTCFullYear().toString().substring(2);
+            let quarter = date.getUTCMonth() < 3 ? 'Q1' : date.getMonth() < 5 ? 'Q2' : date.getMonth() < 7 ? 'Q3' : 'Q4';
+            return year + '\'' + quarter;
+        }),
+        datasets: [{
+            label: title,
+            values: chart.buckets.map((v) => v.value.value)
+        }]
+    };
+}

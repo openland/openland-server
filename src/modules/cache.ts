@@ -2,7 +2,7 @@ import * as Redis from 'handy-redis';
 import * as DataLoader from 'dataloader';
 
 let client: Redis.IHandyRedis | null = null;
-let hasCache = process.env.REDIS_HOST !== undefined;
+let hasCache = process.env.REDIS_HOST !== undefined && process.env.DISABLE_CACHE !== 'true';
 function getClient(): Redis.IHandyRedis | null {
     if (hasCache) {
         let port = process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT as string, 10) : 6379;
