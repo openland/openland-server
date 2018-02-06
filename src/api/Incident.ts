@@ -8,7 +8,7 @@ export const Schema = `
         SECONDARY_CODES
         NON_CRIMINAL
         VANDALISM
-        BUrGLARY
+        BURGLARY
         LARCENY
         DRUG
         WARRANTS
