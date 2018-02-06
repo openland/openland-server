@@ -4,13 +4,11 @@ import { UpdateReader } from '../modules/updateReader';
 
 export function startIncidentsIndexer(client: ES.Client) {
 
-    let reader = new UpdateReader('incidents_indexing_1', DB.Incident);
+    let reader = new UpdateReader('incidents_indexing_2', DB.Incident);
 
     reader.elastic(client, 'incidents', 'incident', {
         location: {
-            type: 'geo_shape',
-            tree: 'quadtree',
-            precision: '1m'
+            type: 'geo_point'
         }
     });
 
@@ -18,8 +16,8 @@ export function startIncidentsIndexer(client: ES.Client) {
         let location = undefined;
         if (item.geo !== null) {
             location = {
-                type: 'point',
-                coordinates: [item.geo!!.longitude, item.geo!!.latitude]
+                lat: item.geo!!.latitude,
+                lon: item.geo!!.longitude
             };
         }
         return {
