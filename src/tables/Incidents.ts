@@ -41,7 +41,7 @@ export type IncidentCategory =
     'runaway' |
     'bribery' |
     'prostitution' |
-    'pornofraphy' |
+    'pornography' |
     'sex_offenses_forcible' |
     'sex_offenses_non_forcible' |
     'non_forcible' |
@@ -127,7 +127,7 @@ export const IncidentTable = connection.define<Incident, IncidentAttributes>('in
             'runaway',
             'bribery',
             'prostitution',
-            'pornofraphy',
+            'pornography',
             'suicide',
             'extortion'
         ),
