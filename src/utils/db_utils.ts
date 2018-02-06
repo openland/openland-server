@@ -195,7 +195,7 @@ export async function bulkApply<TRow extends { id?: number | null, account?: num
 
                 if ((v !== undefined) && !valueEquals(v, v2)) {
                     console.warn('Changed ' + n);
-                    console.warn(v2 + ' -> ' + v);
+                    console.warn(JSON.stringify(v2) + ' -> ' + JSON.stringify(v));
                     saveFieldValue(updated, n, v);
                     wasChanged = true;
                     changed.push(n);
