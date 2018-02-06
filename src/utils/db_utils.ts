@@ -13,7 +13,7 @@ export interface Applied<T> {
 }
 
 export async function findAllRaw<TInstance>(sql: string, model: sequelize.Model<TInstance, any>, tx?: Transaction): Promise<TInstance[]> {
-    return (await connection.query(sql, {model: model, raw: true, logging: false, transaction: tx})) as TInstance[];
+    return (await connection.query(sql, { model: model, raw: true, logging: false, transaction: tx })) as TInstance[];
 }
 
 async function findAllTuplesWithNull<TInstance>(tx: Transaction, accountId: number, fields: string[], nullField: string, tuples: any[][], model: sequelize.Model<TInstance, any>): Promise<TInstance[]> {
@@ -106,14 +106,14 @@ export async function bulkAssociations(tx: Transaction, table: string, key1: str
     let date = new Date().toUTCString();
     let sqlValues = values.map((v) => `('${date}','${date}',${v.value1},${v.value2})`).join();
     let query = 'INSERT INTO "' + table + '" ("createdAt","updatedAt","' + key1 + '","' + key2 + '") VALUES ' + sqlValues + ' ON CONFLICT DO NOTHING';
-    await connection.query(query, {logging: false, transaction: tx});
+    await connection.query(query, { logging: false, transaction: tx });
 }
 
 export async function bulkInsert<TRow>(tx: Transaction, model: sequelize.Model<any, TRow> | string, rows: TRow[], options?: { inlcudeDates?: boolean }): Promise<number[]> {
     let includeDates = options ? options.inlcudeDates ? options.inlcudeDates : true : true;
     if (includeDates) {
         let date = new Date().toUTCString();
-        rows = rows.map(p => ({...(p as any), createdAt: date, updatedAt: date}));
+        rows = rows.map(p => ({ ...(p as any), createdAt: date, updatedAt: date }));
     }
     let table = (typeof (model) === 'string') ? model : model.getTableName() as string;
     let res = await connection.getQueryInterface().bulkInsert(table, rows, {
@@ -167,9 +167,9 @@ function valueEquals(a: any, b: any) {
     }
 }
 
-export async function bulkApply<TRow extends { id?: number, account?: number }>(tx: Transaction, model: sequelize.Model<any, TRow>, accountId: number, key: string, rows: TRow[]) {
+export async function bulkApply<TRow extends { id?: number | null, account?: number | null }>(tx: Transaction, model: sequelize.Model<any, TRow>, accountId: number, key: string, rows: TRow[]) {
     let query = `SELECT * from ${model.getTableName()} WHERE "account" = ${accountId} AND "${key}" IN (${rows.map(r => `${loadField(r, key)}`).join()})`;
-    let existing = (await connection.query(query, {transaction: tx, logging: false}))[1].rows as TRow[];
+    let existing = (await connection.query(query, { transaction: tx, logging: false }))[1].rows as TRow[];
     let forInsert: TRow[] = [];
     let forUpdate: PromiseLike<any>[] = [];
     let indexes = new Array<Applied<TRow>>(rows.length);
@@ -224,7 +224,7 @@ export async function bulkApply<TRow extends { id?: number, account?: number }>(
                 };
             }
         } else {
-            forInsert.push({...(row as any), account: accountId});
+            forInsert.push({ ...(row as any), account: accountId });
             pendingIndexes.push(index);
         }
         index++;
@@ -295,19 +295,19 @@ export function textLikeFieldText(query: string, field: string) {
 export async function sumRaw(table: string, field: string, where: string | null): Promise<number> {
     let q = 'SELECT SUM(' + field + ') FROM \"' + table + '\"' + (where ? ' WHERE ' + where : '');
     console.warn(q);
-    return (await DB.connection.query(q, {type: DB.connection.QueryTypes.SELECT}))[0].sum || 0;
+    return (await DB.connection.query(q, { type: DB.connection.QueryTypes.SELECT }))[0].sum || 0;
 }
 
 export async function countRaw(table: string, where: string | null): Promise<number> {
     let q = 'SELECT COUNT(*) FROM \"' + table + '\"' + (where ? ' WHERE ' + where : '');
     console.warn(q);
-    return (await DB.connection.query(q, {type: DB.connection.QueryTypes.SELECT}))[0].count || 0;
+    return (await DB.connection.query(q, { type: DB.connection.QueryTypes.SELECT }))[0].count || 0;
 }
 
 export async function percentileRaw(table: string, percentiles: [number], order: string, where: string | null): Promise<number[]> {
     let q = 'SELECT percentile_disc(array[' + percentiles.join() + '])  WITHIN GROUP (ORDER BY ' + order + ') FROM \"' + table + '\"' + (where ? ' WHERE ' + where : '');
     console.warn(q);
-    let r = (await DB.connection.query(q, {type: DB.connection.QueryTypes.SELECT}))[0].percentile_disc;
+    let r = (await DB.connection.query(q, { type: DB.connection.QueryTypes.SELECT }))[0].percentile_disc;
     if (!r) {
         r = [];
     }
@@ -318,23 +318,23 @@ export async function percentileRaw(table: string, percentiles: [number], order:
 export async function histogramCountRaw(table: string, order: string, where: string | null): Promise<{ count: number, value: number }[]> {
     let q = 'SELECT count(*) as "count", ' + order + ' as "value" FROM \"' + table + '\"' + (where ? ' WHERE ' + where : '') + ' GROUP BY ' + order + ' ORDER BY ' + order;
     console.warn(q);
-    let r = (await DB.connection.query(q, {type: DB.connection.QueryTypes.SELECT})) as { count: string, value: number }[];
+    let r = (await DB.connection.query(q, { type: DB.connection.QueryTypes.SELECT })) as { count: string, value: number }[];
     if (!r) {
         r = [];
     }
     console.warn(r);
-    return r.map((v) => ({count: parseInt(v.count, 10), value: v.value}));
+    return r.map((v) => ({ count: parseInt(v.count, 10), value: v.value }));
 }
 
 export async function histogramSumRaw(table: string, order: string, field: string, where: string | null): Promise<{ count: number, value: number }[]> {
     let q = 'SELECT sum("' + field + '") as "count", ' + order + ' as "value" FROM \"' + table + '\"' + (where ? ' WHERE ' + where : '') + ' GROUP BY ' + order + ' ORDER BY ' + order;
     console.warn(q);
-    let r = (await DB.connection.query(q, {type: DB.connection.QueryTypes.SELECT})) as { count: string, value: number }[];
+    let r = (await DB.connection.query(q, { type: DB.connection.QueryTypes.SELECT })) as { count: string, value: number }[];
     if (!r) {
         r = [];
     }
     console.warn(r);
-    return r.map((v) => ({count: parseInt(v.count, 10), value: v.value}));
+    return r.map((v) => ({ count: parseInt(v.count, 10), value: v.value }));
 }
 
 export async function normalizedProcessor<T1, T2>(array: T1[], compare: (a: T1, b: T1) => boolean, processor: (data: T1[]) => Promise<T2[]>): Promise<T2[]> {

@@ -9,6 +9,7 @@ import * as Core from './api/Core';
 import * as Stats from './api/AreaStats';
 import * as Parcels from './api/Parcels';
 import * as Area from './api/Area';
+import * as Incidents from './api/Incident';
 import { merge } from 'lodash';
 
 const RootQuery = `
@@ -52,7 +53,8 @@ export const Schema = makeExecutableSchema({
         Organizations.Schema,
         Stats.Schema,
         Parcels.Schema,
-        Area.Schema
+        Area.Schema,
+        Incidents.Schema
     ],
     resolvers: merge(rootResolver,
         Account.Resolver,
@@ -63,7 +65,8 @@ export const Schema = makeExecutableSchema({
         Organizations.Resolver,
         Stats.Resolver,
         Parcels.Resolver,
-        Area.Resolver
+        Area.Resolver,
+        Incidents.Resolvers
     )
 });
 
