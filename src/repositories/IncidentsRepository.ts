@@ -35,11 +35,15 @@ export class IncidentsRepository {
             date: v.date,
             resolution: v.resolution,
             address: v.address,
+        }));
+        let updated2: IncidentAttributes[] = src.map((v) => ({
+            importId: v.id,
             geo: v.location
         }));
 
         await DB.tx(async (tx) => {
             await bulkApply(tx, DB.Incident, areaId, 'importId', updated);
+            await bulkApply(tx, DB.Incident, areaId, 'importId', updated2);
         });
     }
 
