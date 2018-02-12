@@ -20,7 +20,9 @@ export const Schema = `
     type Block {
         id: ID!
         title: String!
-        geometry: String!
+        geometry: String
+        extrasArea: Int
+        extrasSupervisorDistrict: String
     }
 
     input ParcelInput {
@@ -78,7 +80,9 @@ export const Resolver = {
     Block: {
         id: (src: Block) => src.id,
         title: (src: Lot) => src.id,
-        geometry: (src: Block) => JSON.stringify(src.geometry!!.polygons.map((v) => v.coordinates.map((c) => [c.longitude, c.latitude])))
+        geometry: (src: Block) => src.geometry ? JSON.stringify(src.geometry!!.polygons.map((v) => v.coordinates.map((c) => [c.longitude, c.latitude]))) : null,
+        extrasArea: (src: Block) => (src.extras && src.extras.area) ? Math.round(src.extras.area as number) : null,
+        extrasSupervisorDistrict: (src: Block) => src.extras ? src.extras.supervisor_id : null
     },
     Query: {
         parcels: async function (_: any, args: { envelope: GeoEnvelope }, context: CallContext) {
