@@ -3,6 +3,7 @@ import { Block } from '../tables/Block';
 import { Repos } from '../repositories/index';
 import { ExtrasInput } from './Core';
 import { DB } from '../tables';
+import { buildId, parseId } from '../utils/ids';
 
 export const Schema = `
 
@@ -10,6 +11,9 @@ export const Schema = `
         id: ID!
         title: String!
         geometry: String
+        extrasArea: Int
+        extrasSupervisorDistrict: String
+        block: Block!
     }
 
     input ParcelInput {
@@ -47,6 +51,7 @@ export const Schema = `
     extend type Query {
         blocksConnection(state: String!, county: String!, city: String!, filter: String, first: Int!, after: String, page: Int): BlockConnection!
         block(id: ID!): Block!
+        parcel(id: ID!): Parcel!
     }
 
     extend type Mutation {
@@ -70,13 +75,16 @@ interface BlockInput {
 
 export const Resolver = {
     Parcel: {
-        id: (src: Lot) => src.id,
-        title: (src: Lot) => src.lotId!!,
-        geometry: (src: Lot) => src.geometry ? JSON.stringify(src.geometry!!.polygons.map((v) => v.coordinates.map((c) => [c.longitude, c.latitude]))) : null
+        id: (src: Lot) => buildId(src.id!!, 'Parcel'),
+        title: (src: Lot) => (src.extras && src.extras.displayId) ? src.extras.displayId : src.lotId,
+        geometry: (src: Lot) => src.geometry ? JSON.stringify(src.geometry!!.polygons.map((v) => v.coordinates.map((c) => [c.longitude, c.latitude]))) : null,
+        block: (src: Lot) => Repos.Blocks.fetchBlock(src.blockId!!),
+        extrasArea: (src: Lot) => (src.extras && src.extras.area) ? Math.round(src.extras.area as number) : null,
+        extrasSupervisorDistrict: (src: Lot) => src.extras ? src.extras.supervisor_id : null
     },
     Block: {
-        id: (src: Block) => src.id,
-        title: (src: Block) => (src.extras && src.extras.displayId) ? src.extras.displayId : src.id,
+        id: (src: Block) => buildId(src.id!!, 'Block'),
+        title: (src: Block) => (src.extras && src.extras.displayId) ? src.extras.displayId : src.blockId,
         geometry: (src: Block) => src.geometry ? JSON.stringify(src.geometry!!.polygons.map((v) => v.coordinates.map((c) => [c.longitude, c.latitude]))) : null,
         parcels: (src: Block) => DB.Lot.findAll({ where: { blockId: src.id!! } }),
         extrasArea: (src: Block) => (src.extras && src.extras.area) ? Math.round(src.extras.area as number) : null,
@@ -88,7 +96,10 @@ export const Resolver = {
             return await Repos.Blocks.fetchBlocks(cityId, args.first, args.filter, args.after, args.page);
         },
         block: async function (_: any, args: { id: string }) {
-            return Repos.Blocks.fetchBlock(args.id);
+            return Repos.Blocks.fetchBlock(parseId(args.id, 'Block'));
+        },
+        parcel: async function (_: any, args: { id: string }) {
+            return Repos.Parcels.fetchParcel(parseId(args.id, 'Parcel'));
         },
     },
     Mutation: {

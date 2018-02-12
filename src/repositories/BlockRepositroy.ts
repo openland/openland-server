@@ -9,7 +9,7 @@ export class BlockRepository {
 
     private normalizer = new Normalizer();
 
-    async fetchBlock(id: string) {
+    async fetchBlock(id: number) {
         return await DB.Block.findById(id);
     }
 

@@ -8,6 +8,10 @@ export class ParcelRepository {
 
     private normalizer = new Normalizer();
 
+    async fetchParcel(parcelId: number) {
+        return await DB.Lot.findById(parcelId);
+    }
+
     async applyParcels(cityId: number, parcel: { id: string, blockId: string, geometry?: number[][][] | null, extras?: ExtrasInput | null; }[]) {
 
         //
