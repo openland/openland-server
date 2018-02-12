@@ -7,7 +7,7 @@ function unescape(str: string) {
 function escape(str: string) {
     return str.replace(/\+/g, '-')
         .replace(/\//g, '_')
-        .replace(/=/g, '')
+        .replace(/=/g, '');
 }
 
 function encode(str: string, encoding?: string) {
