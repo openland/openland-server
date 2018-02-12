@@ -50,7 +50,9 @@ export const Schema = `
     extend type Query {
         parcels(envelope: GeoEnvelope!): [Parcel!]!
         blocksMap(envelope: GeoEnvelope!): [Block!]!
+
         blocksConnection(state: String!, county: String!, city: String!, filter: String, first: Int!, after: String, page: Int): BlockConnection!
+        block(id: ID!): Block!
     }
 
     extend type Mutation {
@@ -79,7 +81,7 @@ export const Resolver = {
     },
     Block: {
         id: (src: Block) => src.id,
-        title: (src: Lot) => src.id,
+        title: (src: Block) => (src.extras && src.extras.displayId) ? src.extras.displayId : src.id,
         geometry: (src: Block) => src.geometry ? JSON.stringify(src.geometry!!.polygons.map((v) => v.coordinates.map((c) => [c.longitude, c.latitude]))) : null,
         extrasArea: (src: Block) => (src.extras && src.extras.area) ? Math.round(src.extras.area as number) : null,
         extrasSupervisorDistrict: (src: Block) => src.extras ? src.extras.supervisor_id : null
@@ -138,6 +140,9 @@ export const Resolver = {
                 .page(args.page)
                 .limit(args.first);
             return builder.findAll();
+        },
+        block: async function (_: any, args: { id: string }) {
+            return DB.Block.findById(args.id);
         },
         blocksMap: async function (_: any, args: { envelope: GeoEnvelope }, context: CallContext) {
             let start = currentTime();
