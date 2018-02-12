@@ -54,6 +54,11 @@ export const Schema = `
     streetNumberSuffix: String
   }
 
+  input ExtraEnumInput {
+    key: String!
+    value: [String!]!
+  }
+
   input ExtraStringInput {
     key: String!
     value: String!
@@ -70,6 +75,7 @@ export const Schema = `
   }
 
   input ExtrasInput {
+    enums: [ExtraEnumInput!]
     strings: [ExtraStringInput!]
     floats: [ExtraFloatInput!]
     ints: [ExtraIntInput!]
@@ -92,6 +98,7 @@ export interface GeoEnvelope {
 }
 
 export interface ExtrasInput {
+  enums?: [{ key: string, value: string[] }] | null;
   strings?: [{ key: string, value: string }] | null;
   floats?: [{ key: string, value: number }] | null;
   ints?: [{ key: string, value: number }] | null;

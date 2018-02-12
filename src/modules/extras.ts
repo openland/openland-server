@@ -19,6 +19,11 @@ export function buildExtrasFromInput(input?: ExtrasInput | null) {
                 res[f.key] = f.value;
             }
         }
+        if (input.enums) {
+            for (let f of input.enums) {
+                res[f.key] = f.value;
+            }
+        }
     }
     return res;
 }
