@@ -22,4 +22,30 @@ export class AreaRepository {
             }
         }
     }
+
+    async resolveCity(state: string, county: string, city: string) {
+        let res = await DB.City.findOne({
+            where: {
+                name: city
+            },
+            include: [{
+                model: DB.County,
+                as: 'county',
+                where: {
+                    name: county
+                },
+                include: [{
+                    model: DB.State,
+                    as: 'state',
+                    where: {
+                        code: state
+                    }
+                }]
+            }]
+        });
+        if (!res) {
+            throw 'City is not found for ' + state + ', ' + county + ', ' + city;
+        }
+        return res.id!!;
+    }
 }

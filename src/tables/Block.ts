@@ -2,12 +2,15 @@ import { connection } from '../connector';
 import * as sequelize from 'sequelize';
 import { Geometry } from '../modules/geometry';
 import { CityTable, City } from './City';
+import { JsonMap } from '../utils/json';
 
 export interface BlockAttributes {
     id?: number;
     cityId?: number;
     blockId?: string;
+    blockDisplayId?: string;
     geometry?: Geometry;
+    extras?: JsonMap;
 }
 
 export interface Block extends sequelize.Instance<BlockAttributes>, BlockAttributes {
@@ -21,6 +24,10 @@ export const BlockTable = connection.define<Block, BlockAttributes>('block', {
         allowNull: false
     },
     geometry: {
+        type: sequelize.JSON,
+        allowNull: true
+    },
+    extras: {
         type: sequelize.JSON,
         allowNull: true
     }

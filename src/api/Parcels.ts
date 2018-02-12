@@ -1,11 +1,13 @@
 import { CallContext } from './CallContext';
 import { ElasticClient } from '../indexing/index';
 import { DB } from '../tables/index';
-import { applyParcels, applyBlocks } from '../repositories/Parcels';
-import { GeoEnvelope } from './Core';
+import { applyParcels } from '../repositories/Parcels';
+import { GeoEnvelope, ExtrasInput, GeoInputShort } from './Core';
 import { Lot } from '../tables/Lot';
 import { currentTime, printElapsed } from '../utils/timer';
 import { Block } from '../tables/Block';
+import { Repos } from '../repositories/index';
+import { SelectBuilder } from '../utils/SelectBuilder';
 
 export const Schema = `
 
@@ -28,13 +30,25 @@ export const Schema = `
     }
 
     input BlockInput {
-        blockId: String!
-        geometry: [[GeoInputShort!]!]!
+        id: String!
+        geometry: [[[Float!]!]!]!
+        extras: ExtrasInput
+    }
+
+    type BlockEdge {
+        node: Block!
+        cursor: String!
+    }
+
+    type BlockConnection {
+        edges: [BlockEdge!]!
+        pageInfo: PageInfo!
     }
 
     extend type Query {
         parcels(envelope: GeoEnvelope!): [Parcel!]!
-        blocks(envelope: GeoEnvelope!): [Block!]!
+        blocksMap(envelope: GeoEnvelope!): [Block!]!
+        blocksConnection(state: String!, county: String!, city: String!, filter: String, first: Int!, after: String, page: Int): BlockConnection!
     }
 
     extend type Mutation {
@@ -46,12 +60,13 @@ export const Schema = `
 interface ParcelInput {
     blockId: string;
     lotId: string;
-    geometry: { la: number, lo: number }[][];
+    geometry: GeoInputShort[][];
 }
 
 interface BlockInput {
-    blockId: string;
-    geometry: { la: number, lo: number }[][];
+    id: string;
+    geometry: number[][][];
+    extras?: ExtrasInput | null;
 }
 
 export const Resolver = {
@@ -111,7 +126,16 @@ export const Resolver = {
                 raw: true
             });
         },
-        blocks: async function (_: any, args: { envelope: GeoEnvelope }, context: CallContext) {
+        blocksConnection: async function (_: any, args: { state: string, county: string, city: string, filter?: string, first: number, after?: string, page?: number }) {
+            let cityId = await Repos.Area.resolveCity(args.state, args.county, args.city);
+            let builder = new SelectBuilder(DB.Block)
+                .whereEq('cityId', cityId)
+                .after(args.after)
+                .page(args.page)
+                .limit(args.first);
+            return builder.findAll();
+        },
+        blocksMap: async function (_: any, args: { envelope: GeoEnvelope }, context: CallContext) {
             let start = currentTime();
             let res = await ElasticClient.search<{ geometry: { coordinates: number[][][][], type: string } }>({
                 index: 'blocks',
@@ -181,29 +205,8 @@ export const Resolver = {
             return 'ok';
         },
         importBlocks: async function (_: any, args: { state: string, county: string, city: string, blocks: BlockInput[] }) {
-            let city = await DB.City.findOne({
-                where: {
-                    name: args.city
-                },
-                include: [{
-                    model: DB.County,
-                    as: 'county',
-                    where: {
-                        name: args.county
-                    },
-                    include: [{
-                        model: DB.State,
-                        as: 'state',
-                        where: {
-                            code: args.state
-                        }
-                    }]
-                }]
-            });
-            if (!city) {
-                throw 'City is not found for ' + args.state + ', ' + args.county + ', ' + args.city;
-            }
-            await applyBlocks(city.id!!, args.blocks);
+            let cityId = await Repos.Area.resolveCity(args.state, args.county, args.city);
+            await Repos.Blocks.applyBlocks(cityId, args.blocks);
             return 'ok';
         }
     }

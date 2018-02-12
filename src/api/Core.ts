@@ -53,6 +53,27 @@ export const Schema = `
     streetNumber: Int!
     streetNumberSuffix: String
   }
+
+  input ExtraStringInput {
+    key: String!
+    value: String!
+  }
+
+  input ExtraFloatInput {
+    key: String!
+    value: Float!
+  }
+
+  input ExtraIntInput {
+    key: String!
+    value: Int!
+  }
+
+  input ExtrasInput {
+    strings: [ExtraStringInput!]
+    floats: [ExtraFloatInput!]
+    ints: [ExtraIntInput!]
+  }
 `;
 
 export interface GeoInput {
@@ -60,7 +81,18 @@ export interface GeoInput {
   longitude: number;
 }
 
+export interface GeoInputShort {
+  la: number;
+  lo: number;
+}
+
 export interface GeoEnvelope {
   leftTop: GeoInput;
   rightBottom: GeoInput;
+}
+
+export interface ExtrasInput {
+  strings?: [{ key: string, value: string }] | null;
+  floats?: [{ key: string, value: number }] | null;
+  ints?: [{ key: string, value: number }] | null;
 }
