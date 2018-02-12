@@ -4,12 +4,22 @@ import { normalizedProcessor } from '../utils/db_utils';
 import { buildGeometryFromInput } from '../modules/geometry';
 import { ExtrasInput } from '../api/Core';
 import { buildExtrasFromInput } from '../modules/extras';
+import { SelectBuilder } from '../utils/SelectBuilder';
 export class ParcelRepository {
 
     private normalizer = new Normalizer();
 
     async fetchParcel(parcelId: number) {
         return await DB.Lot.findById(parcelId);
+    }
+
+    async fetchParcels(cityId: number, first: number, filter?: string, after?: string, page?: number) {
+        return await new SelectBuilder(DB.Lot)
+            // .whereEq('cityId', cityId) // TODO: Fix this!111
+            .after(after)
+            .page(page)
+            .limit(first)
+            .findAll();
     }
 
     async applyParcels(cityId: number, parcel: { id: string, blockId: string, geometry?: number[][][] | null, extras?: ExtrasInput | null; }[]) {

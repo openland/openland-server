@@ -23,6 +23,16 @@ export const Schema = `
         extras: ExtrasInput
     }
 
+    type ParcelEdge {
+        node: Parcel!
+        cursor: String!
+    }
+
+    type ParcelConnection {
+        edges: [ParcelEdge!]!
+        pageInfo: PageInfo!
+    }
+
     type Block {
         id: ID!
         title: String!
@@ -51,6 +61,7 @@ export const Schema = `
     extend type Query {
         blocksConnection(state: String!, county: String!, city: String!, filter: String, first: Int!, after: String, page: Int): BlockConnection!
         block(id: ID!): Block!
+        parcelsConnection(state: String!, county: String!, city: String!, filter: String, first: Int!, after: String, page: Int): ParcelConnection!
         parcel(id: ID!): Parcel!
     }
 
@@ -97,6 +108,10 @@ export const Resolver = {
         },
         block: async function (_: any, args: { id: string }) {
             return Repos.Blocks.fetchBlock(parseId(args.id, 'Block'));
+        },
+        parcelsConnection: async function (_: any, args: { state: string, county: string, city: string, filter?: string, first: number, after?: string, page?: number }) {
+            let cityId = await Repos.Area.resolveCity(args.state, args.county, args.city);
+            return await Repos.Parcels.fetchParcels(cityId, args.first, args.filter, args.after, args.page);
         },
         parcel: async function (_: any, args: { id: string }) {
             return Repos.Parcels.fetchParcel(parseId(args.id, 'Parcel'));
