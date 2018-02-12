@@ -8,11 +8,11 @@ export class BlockRepository {
 
     private normalizer = new Normalizer();
 
-    async applyBlocks(cityId: number, blocks: { id: string, geometry: number[][][], extras?: ExtrasInput | null }[]) {
+    async applyBlocks(cityId: number, blocks: { id: string, geometry?: number[][][] | null, extras?: ExtrasInput | null }[]) {
         await DB.tx(async (tx) => {
             for (let b of blocks) {
                 let blockIdNormalized = this.normalizer.normalizeId(b.id);
-                let geometry = buildGeometryFromInput(b.geometry);
+                let geometry = b.geometry ? buildGeometryFromInput(b.geometry) : null;
                 let extras = buildExtrasFromInput(b.extras);
                 extras.displayId = b.id;
 

@@ -9,7 +9,7 @@ export interface BlockAttributes {
     cityId?: number;
     blockId?: string;
     blockDisplayId?: string;
-    geometry?: Geometry;
+    geometry?: Geometry | null;
     extras?: JsonMap;
 }
 
