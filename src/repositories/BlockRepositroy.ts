@@ -3,10 +3,24 @@ import { ExtrasInput } from '../api/Core';
 import { buildGeometryFromInput } from '../modules/geometry';
 import { Normalizer } from '../utils/Normalizer';
 import { buildExtrasFromInput } from '../modules/extras';
+import { SelectBuilder } from '../utils/SelectBuilder';
 
 export class BlockRepository {
 
     private normalizer = new Normalizer();
+
+    async fetchBlock(id: string) {
+        return await DB.Block.findById(id);
+    }
+
+    async fetchBlocks(cityId: number, first: number, filter?: string, after?: string, page?: number) {
+        return await new SelectBuilder(DB.Block)
+            .whereEq('cityId', cityId)
+            .after(after)
+            .page(page)
+            .limit(first)
+            .findAll();
+    }
 
     async applyBlocks(cityId: number, blocks: { id: string, geometry?: number[][][] | null, extras?: ExtrasInput | null }[]) {
         await DB.tx(async (tx) => {

@@ -3,7 +3,7 @@ import * as sequelize from 'sequelize';
 import { CityTable, City } from './City';
 
 export type StreetSuffixes = 'St' | 'Av' | 'Dr' | 'Bl' | 'Wy' | 'Ln' | 'Hy' | 'Tr' | 'Pl' | 'Ct' |
-    'Pk' | 'Al' | 'Cr' | 'Rd' | 'Sq' | 'Pz' | 'Sw' | 'No' | 'Rw' | 'So' | 'Hl' | 'Wk'
+    'Pk' | 'Al' | 'Cr' | 'Rd' | 'Sq' | 'Pz' | 'Sw' | 'No' | 'Rw' | 'So' | 'Hl' | 'Wk';
 
 export interface StreetAttributes {
     id?: number;
