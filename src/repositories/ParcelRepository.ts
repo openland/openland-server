@@ -15,39 +15,43 @@ export class ParcelRepository {
 
     async fetchParcels(cityId: number, first: number, filter?: string, after?: string, page?: number) {
         return await new SelectBuilder(DB.Lot)
-            // .whereEq('cityId', cityId) // TODO: Fix this!111
+            .whereEq('cityId', cityId)
             .after(after)
             .page(page)
             .limit(first)
             .findAll();
     }
 
-    async applyParcels(cityId: number, parcel: { id: string, blockId: string, geometry?: number[][][] | null, extras?: ExtrasInput | null; }[]) {
+    async applyParcels(cityId: number, parcel: { id: string, blockId?: string | null, geometry?: number[][][] | null, extras?: ExtrasInput | null; }[]) {
 
         //
         // Fetching Blocks
         //
 
         let blocksId = await DB.tx(async (tx) => {
-            let blocks = parcel.map((v) => this.normalizer.normalizeId(v.blockId));
+            let blocks = parcel.map((v) => v.blockId ? this.normalizer.normalizeId(v.blockId) : null);
             return await normalizedProcessor(blocks, (a, b) => a === b, async (data) => {
                 let res = [];
                 for (let d of data) {
-                    let existing = await DB.Block.findOne({
-                        where: {
-                            cityId: cityId,
-                            blockId: d
-                        },
-                        transaction: tx
-                    });
-                    if (existing) {
-                        res.push(existing.id!!);
+                    if (!d) {
+                        res.push(null);
                     } else {
-                        let id = (await DB.Block.create({
-                            cityId: cityId,
-                            blockId: d
-                        }, { transaction: tx })).id!!;
-                        res.push(id);
+                        let existing = await DB.Block.findOne({
+                            where: {
+                                cityId: cityId,
+                                blockId: d
+                            },
+                            transaction: tx
+                        });
+                        if (existing) {
+                            res.push(existing.id!!);
+                        } else {
+                            let id = (await DB.Block.create({
+                                cityId: cityId,
+                                blockId: d
+                            }, { transaction: tx })).id!!;
+                            res.push(id);
+                        }
                     }
                 }
                 return res;
@@ -68,25 +72,42 @@ export class ParcelRepository {
                     extras.displayId = d.realId;
                     let existing = await DB.Lot.findOne({
                         where: {
-                            blockId: d.blockId,
+                            cityId: cityId,
                             lotId: d.lotId
                         },
                         transaction: tx,
                         lock: tx.LOCK.UPDATE
                     });
+
+                    // Merged extras
+                    let completedExtras = extras;
+                    if (existing && existing.extras) {
+                        completedExtras = Object.assign(existing.extras, extras);
+                    }
+
                     if (existing) {
-                        existing.geometry = geometry;
-                        existing.extras = extras;
+                        if (geometry !== null) {
+                            existing.geometry = geometry;
+                        }
+                        existing.extras = completedExtras;
+                        if (d.blockId) {
+                            existing.blockId = d.blockId;
+                        }
                         await existing.save({ transaction: tx });
                         res.push(existing.id!!);
                     } else {
-                        let id = (await DB.Lot.create({
-                            blockId: d.blockId,
-                            lotId: d.lotId,
-                            geometry: geometry,
-                            extras: extras
-                        }), { transaction: tx });
-                        res.push(id);
+                        if (d.blockId) {
+                            let id = (await DB.Lot.create({
+                                blockId: d.blockId,
+                                cityId: cityId,
+                                lotId: d.lotId,
+                                geometry: geometry,
+                                extras: completedExtras
+                            }), { transaction: tx });
+                            res.push(id);
+                        } else {
+                            res.push(null);
+                        }
                     }
                 }
                 return res;

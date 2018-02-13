@@ -36,15 +36,23 @@ export class BlockRepository {
                     lock: tx.LOCK.UPDATE
                 });
 
+                // Merged extras
+                let completedExtras = extras;
+                if (existing && existing.extras) {
+                    completedExtras = Object.assign(existing.extras, extras);
+                }
+
                 if (existing) {
-                    existing.geometry = geometry;
-                    existing.extras = extras;
+                    if (geometry !== undefined) {
+                        existing.geometry = geometry;
+                    }
+                    existing.extras = completedExtras;
                     await existing.save({ transaction: tx });
                 } else {
                     await DB.Block.create({
                         cityId: cityId,
                         blockId: blockIdNormalized,
-                        extras: extras,
+                        extras: completedExtras,
                         geometry: geometry
                     }, { transaction: tx });
                 }

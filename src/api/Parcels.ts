@@ -19,7 +19,7 @@ export const Schema = `
 
     input ParcelInput {
         id: String!
-        blockId: String!
+        blockId: String
         geometry: [[[Float!]!]!]
         extras: ExtrasInput
     }
@@ -75,7 +75,7 @@ export const Schema = `
 
 interface ParcelInput {
     id: string;
-    blockId: string;
+    blockId?: string | null;
     geometry?: number[][][] | null;
     extras?: ExtrasInput | null;
 }
