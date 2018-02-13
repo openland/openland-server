@@ -16,3 +16,12 @@ export function buildGeometryFromInput(input: number[][][]): Geometry {
         polygons: input.map((v) => ({ coordinates: v.map((c) => ({ latitude: c[1], longitude: c[0] })) }))
     };
 }
+
+export function buildGeoJson(src: Geometry) {
+    return {
+        type: 'multipolygon',
+        coordinates: src.polygons
+            .filter((v) => v.coordinates.length >= 4)
+            .map((v) => [v.coordinates.map((c) => [c.longitude, c.latitude])])
+    };
+}
