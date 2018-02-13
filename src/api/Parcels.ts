@@ -14,6 +14,10 @@ export const Schema = `
         extrasArea: Int
         extrasZoning: [String!]
         extrasSupervisorDistrict: String
+        extrasLandValue: Int
+        extrasImprovementValue: Int
+        extrasPropertyValue: Int
+        extrasFixturesValue: Int
         block: Block!
     }
 
@@ -94,7 +98,11 @@ export const Resolver = {
         block: (src: Lot) => Repos.Blocks.fetchBlock(src.blockId!!),
         extrasArea: (src: Lot) => (src.extras && src.extras.area) ? Math.round(src.extras.area as number) : null,
         extrasZoning: (src: Lot) => src.extras ? src.extras.zoning : null,
-        extrasSupervisorDistrict: (src: Lot) => src.extras ? src.extras.supervisor_id : null
+        extrasSupervisorDistrict: (src: Lot) => src.extras ? src.extras.supervisor_id : null,
+        extrasLandValue: (src: Lot) => src.extras ? src.extras.land_value : null,
+        extrasImprovementValue: (src: Lot) => src.extras ? src.extras.improvement_value : null,
+        extrasPropertyValue: (src: Lot) => src.extras ? src.extras.personal_prop_value : null,
+        extrasFixturesValue: (src: Lot) => src.extras ? src.extras.fixtures_value : null,
     },
     Block: {
         id: (src: Block) => buildId(src.id!!, 'Block'),
