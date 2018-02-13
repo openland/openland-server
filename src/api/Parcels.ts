@@ -92,8 +92,8 @@ export const Resolver = {
         geometry: (src: Lot) => src.geometry ? JSON.stringify(src.geometry!!.polygons.map((v) => v.coordinates.map((c) => [c.longitude, c.latitude]))) : null,
         block: (src: Lot) => Repos.Blocks.fetchBlock(src.blockId!!),
         extrasArea: (src: Lot) => (src.extras && src.extras.area) ? Math.round(src.extras.area as number) : null,
-        extrasZoning: (src: Lot) => Repos.Blocks.fetchBlock(src.blockId!!),
-        extrasSupervisorDistrict: (src: Lot) => src.extras ? src.extras.zoning : null
+        extrasZoning: (src: Lot) => src.extras ? src.extras.zoning : null,
+        extrasSupervisorDistrict: (src: Lot) => src.extras ? src.extras.supervisor_id : null
     },
     Block: {
         id: (src: Block) => buildId(src.id!!, 'Block'),
