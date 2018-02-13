@@ -39,6 +39,7 @@ export const Schema = `
         title: String!
         geometry: String
         extrasArea: Int
+        extrasZoning: [String!]
         extrasSupervisorDistrict: String
         parcels: [Parcel!]!
     }
@@ -101,6 +102,17 @@ export const Resolver = {
         geometry: (src: Block) => src.geometry ? JSON.stringify(src.geometry!!.polygons.map((v) => v.coordinates.map((c) => [c.longitude, c.latitude]))) : null,
         parcels: (src: Block) => DB.Lot.findAll({ where: { blockId: src.id!! } }),
         extrasArea: (src: Block) => (src.extras && src.extras.area) ? Math.round(src.extras.area as number) : null,
+        extrasZoning: async (src: Lot) => {
+            let lots = await DB.Lot.findAll({ where: { blockId: src.id!! } });
+            let zones = lots.map((src2) => src2.extras ? (src2.extras.zoning ? src2.extras.zoning : []) : []);
+            let zonesSet = new Set<string>();
+            for (let z of zones) {
+                for (let z2 of (z as string[])) {
+                    zonesSet.add(z2);
+                }
+            }
+            return Array.from(zonesSet).sort();
+        },
         extrasSupervisorDistrict: (src: Block) => src.extras ? src.extras.supervisor_id : null
     },
     Query: {
