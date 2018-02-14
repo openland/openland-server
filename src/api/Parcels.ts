@@ -4,6 +4,7 @@ import { Repos } from '../repositories/index';
 import { ExtrasInput } from './Core';
 import { DB } from '../tables';
 import { buildId, parseId } from '../utils/ids';
+import { ElasticClient } from '../indexing';
 
 export const Schema = `
 
@@ -74,6 +75,19 @@ export const Schema = `
     extend type Mutation {
         importParcels(state: String!, county: String!, city: String!, parcels: [ParcelInput!]!): String!
         importBlocks(state: String!, county: String!, city: String!, blocks: [BlockInput!]!): String!
+    }
+
+    type ParcelSearchResult {
+        edges: [ParcelResult!]!
+        total: Int!
+    }
+    type ParcelResult {
+        node: Parcel!
+        score: Float!
+    }
+
+    extend type SearchResult {
+        parcels: ParcelSearchResult!
     }
 `;
 
@@ -149,6 +163,45 @@ export const Resolver = {
             let cityId = await Repos.Area.resolveCity(args.state, args.county, args.city);
             await Repos.Blocks.applyBlocks(cityId, args.blocks);
             return 'ok';
+        }
+    },
+    SearchResult: {
+        parcels: async function (query: { query: string }) {
+            let hits = await ElasticClient.search({
+                index: 'parcels',
+                type: 'parcel',
+                size: 10,
+                from: 0,
+                body: {
+                    query: {
+                        bool: {
+                            should: [
+                                { prefix: { lotId: query.query } },
+                                { term: { lotId: { value: query.query, boost: 3.0 } } },
+                                { prefix: { 'extras.displayId': { value: query.query, boost: 2.0 } } },
+                                { term: { blockId: { value: query.query, boost: 0.5 } } }
+                            ]
+                        }
+                    }
+                }
+            });
+
+            let edges = [];
+
+            for (let hit of hits.hits.hits) {
+                let lt = await DB.Lot.findById(parseInt(hit._id, 10));
+                if (lt) {
+                    edges.push({
+                        score: hit._score,
+                        node: lt
+                    });
+                }
+            }
+
+            return {
+                edges,
+                total: hits.hits.total
+            };
         }
     }
 };
