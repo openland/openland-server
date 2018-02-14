@@ -3,15 +3,40 @@ import { DB } from '../tables';
 import { UpdateReader } from '../modules/updateReader';
 import { buildGeoJson } from '../modules/geometry';
 
+function parseIntSafe(src: any) {
+    if (typeof src === 'string') {
+        try {
+            return parseInt(src, 10);
+        } catch {
+            // Just ignore
+        }
+    } else if (typeof src === 'number') {
+        return src;
+    }
+    return null;
+}
+
 export function startLotsIndexer(client: ES.Client) {
 
-    let reader = new UpdateReader('lots_indexing_10', DB.Lot);
+    let reader = new UpdateReader('lots_indexing_12', DB.Lot);
 
     reader.elastic(client, 'parcels', 'parcel', {
         geometry: {
             type: 'geo_shape',
             tree: 'quadtree',
             precision: '1m'
+        },
+        landValue: {
+            type: 'integer'
+        },
+        improvementValue: {
+            type: 'integer'
+        },
+        propValue: {
+            type: 'integer'
+        },
+        fixturesValue: {
+            type: 'integer'
         }
     });
 
@@ -44,7 +69,11 @@ export function startLotsIndexer(client: ES.Client) {
                 lotId: item.lotId!!,
                 blockId: item.block ? item.block.blockId : null,
                 geometry: geometry,
-                extras: item.extras
+                extras: item.extras,
+                landValue: item.extras ? parseIntSafe(item.extras.land_value) : null,
+                improvementValue: item.extras ? parseIntSafe(item.extras.improvement_value) : null,
+                fixturesValue: item.extras ? parseIntSafe(item.extras.fixtures_value) : null,
+                propValue: item.extras ? parseIntSafe(item.extras.personal_prop_value) : null,
             }
         };
     });

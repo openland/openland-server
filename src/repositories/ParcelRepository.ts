@@ -5,6 +5,7 @@ import { buildGeometryFromInput } from '../modules/geometry';
 import { ExtrasInput } from '../api/Core';
 import { buildExtrasFromInput } from '../modules/extras';
 import { SelectBuilder } from '../utils/SelectBuilder';
+import { ElasticClient } from '../indexing';
 export class ParcelRepository {
 
     private normalizer = new Normalizer();
@@ -13,13 +14,29 @@ export class ParcelRepository {
         return await DB.Lot.findById(parcelId);
     }
 
-    async fetchParcels(cityId: number, first: number, filter?: string, after?: string, page?: number) {
-        return await new SelectBuilder(DB.Lot)
+    async fetchParcels(cityId: number, first: number, query?: string, after?: string, page?: number) {
+        let clauses: any[] = [];
+        clauses.push({ term: { 'cityId': cityId } });
+
+        let sort = [{ 'landValue': { 'order': 'desc' } }];
+
+        let hits = await ElasticClient.search({
+            index: 'parcels',
+            type: 'parcel',
+            size: first,
+            from: page ? (page * first) : 0,
+            body: {
+                query: { bool: { must: clauses } },
+                sort: sort
+            }
+        });
+
+        let builder = new SelectBuilder(DB.Lot)
             .whereEq('cityId', cityId)
             .after(after)
             .page(page)
-            .limit(first)
-            .findAll();
+            .limit(first);
+        return await builder.findElastic(hits);
     }
 
     async applyParcels(cityId: number, parcel: { id: string, blockId?: string | null, geometry?: number[][][] | null, extras?: ExtrasInput | null; }[]) {
