@@ -4,6 +4,7 @@ import { Geometry } from '../modules/geometry';
 import { Block, BlockTable } from './Block';
 import { JsonMap } from '../utils/json';
 import { CityTable } from './City';
+import { StreetNumberTable } from './StreetNumber';
 
 export interface LotAttributes {
     id?: number;
@@ -36,3 +37,5 @@ export const LotTable = connection.define<Lot, LotAttributes>('lot', {
 
 LotTable.belongsTo(BlockTable, { as: 'block', foreignKey: { allowNull: false } });
 LotTable.belongsTo(CityTable, { as: 'city' });
+
+LotTable.belongsToMany(StreetNumberTable, {through: 'lot_street_numbers', as: 'streetNumbers'});
