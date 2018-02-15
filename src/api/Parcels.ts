@@ -12,6 +12,10 @@ export const Schema = `
         id: ID!
         title: String!
         geometry: String
+        block: Block!
+
+        addresses: [StreetNumber!]!
+
         extrasArea: Int
         extrasZoning: [String!]
         extrasSupervisorDistrict: String
@@ -19,7 +23,6 @@ export const Schema = `
         extrasImprovementValue: Int
         extrasPropertyValue: Int
         extrasFixturesValue: Int
-        block: Block!
     }
 
     input ParcelInput {
@@ -126,6 +129,29 @@ export const Resolver = {
         title: (src: Lot) => (src.extras && src.extras.displayId) ? src.extras.displayId : src.lotId,
         geometry: (src: Lot) => src.geometry ? JSON.stringify(src.geometry!!.polygons.map((v) => v.coordinates.map((c) => [c.longitude, c.latitude]))) : null,
         block: (src: Lot) => Repos.Blocks.fetchBlock(src.blockId!!),
+      
+        addresses: async (src: Lot) => {
+            let numbers = src.streetNumbers;
+            if (!numbers) {
+                numbers = await src.getStreetNumbers({
+                    include: [{
+                        model: DB.Street,
+                        as: 'street'
+                    }]
+                });
+            }
+            if (!numbers) {
+                numbers = [];
+            }
+            return numbers.map((n) => ({
+                streetId: n.street!!.id,
+                streetName: n.street!!.name,
+                streetNameSuffix: n.street!!.suffix,
+                streetNumber: n.number,
+                streetNumberSuffix: n.suffix
+            }));
+        },
+
         extrasArea: (src: Lot) => (src.extras && src.extras.area) ? Math.round(src.extras.area as number) : null,
         extrasZoning: (src: Lot) => src.extras ? src.extras.zoning : null,
         extrasSupervisorDistrict: (src: Lot) => src.extras ? src.extras.supervisor_id : null,
