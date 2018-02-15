@@ -89,6 +89,8 @@ export const Schema = `
             query: String, 
             first: Int!, after: String, page: Int
         ): ParcelConnection!
+
+        parcelsOverlay(box: GeoBox!, limit: Int!): [Parcel!]
     }
 
     extend type Mutation {
@@ -205,6 +207,46 @@ export const Resolver = {
         parcel: async function (_: any, args: { id: string }) {
             return Repos.Parcels.fetchParcel(parseId(args.id, 'Parcel'));
         },
+        parcelsOverlay: async function (_: any, args: { box: { south: number, north: number, east: number, west: number }, limit: number }) {
+            let hits = await ElasticClient.search({
+                index: 'parcels',
+                type: 'parcel',
+                size: args.limit,
+                from: 0,
+                body: {
+                    query: {
+                        bool: {
+                            must : {
+                                match_all : {}
+                            },
+                            filter : {
+                                geo_bounding_box : {
+                                    'geometry' : {
+                                        'top_left' : {
+                                            'lat' : args.box.north,
+                                            'lon' : args.box.west
+                                        },
+                                        'bottom_right' : {
+                                            'lat' : args.box.south,
+                                            'lon' : args.box.east
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            let edges = [];
+            for (let hit of hits.hits.hits) {
+                let lt = await DB.Lot.findById(parseInt(hit._id, 10));
+                if (lt) {
+                    edges.push(lt);
+                }
+            }
+            return edges;
+        }
     },
     Mutation: {
         importParcels: async function (_: any, args: { state: string, county: string, city: string, parcels: ParcelInput[] }) {

@@ -74,6 +74,13 @@ export const Schema = `
     value: Int!
   }
 
+  input GeoBox {
+    east: Float!
+    north: Float!
+    west: Float!
+    south: Float!
+  }
+
   input ExtrasInput {
     enums: [ExtraEnumInput!]
     strings: [ExtraStringInput!]
