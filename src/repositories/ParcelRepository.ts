@@ -140,7 +140,7 @@ export class ParcelRepository {
 
                     if (existing && d.addresses) {
                         let ids = await applyStreetNumbersInTx(tx, cityId, d.addresses);
-                        console.warn(ids);
+                        ids = [...new Set(ids)]; // Filter duplicates
                         await existing.setStreetNumbers(ids, { transaction: tx });
                     }
                 }
