@@ -216,28 +216,44 @@ export const Resolver = {
                 body: {
                     query: {
                         bool: {
-                            must : {
-                                match_all : {}
+                            must: {
+                                match_all: {}
                             },
-                            filter : {
-                                geo_bounding_box : {
-                                    'geometry' : {
-                                        'top_left' : {
-                                            'lat' : args.box.north,
-                                            'lon' : args.box.west
-                                        },
-                                        'bottom_right' : {
-                                            'lat' : args.box.south,
-                                            'lon' : args.box.east
+                            filter: {
+                                geo_shape: {
+                                    geometry: {
+                                        shape: {
+                                            type: 'Polygon',
+                                            coordinates: [
+                                                [
+                                                    [args.box.east, args.box.north],
+                                                    [args.box.west, args.box.north],
+                                                    [args.box.west, args.box.south],
+                                                    [args.box.east, args.box.south],
+                                                    [args.box.east, args.box.north]
+                                                ]
+                                            ]
                                         }
                                     }
                                 }
+                                // geo_bounding_box : {
+                                //     'geometry' : {
+                                //         'top_left' : {
+                                //             'lat' : args.box.north,
+                                //             'lon' : args.box.west
+                                //         },
+                                //         'bottom_right' : {
+                                //             'lat' : args.box.south,
+                                //             'lon' : args.box.east
+                                //         }
+                                //     }
+                                // }
                             }
                         }
                     }
                 }
             });
-            
+
             let edges = [];
             for (let hit of hits.hits.hits) {
                 let lt = await DB.Lot.findById(parseInt(hit._id, 10));
