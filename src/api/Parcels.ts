@@ -218,6 +218,7 @@ export const Resolver = {
                     query: {
                         bool: {
                             should: [
+                                { match: { 'address': { query: query.query, operator: 'and' } } },
                                 { prefix: { lotId: query.query } },
                                 { term: { lotId: { value: query.query, boost: 3.0 } } },
                                 { prefix: { 'extras.displayId': { value: query.query, boost: 2.0 } } },

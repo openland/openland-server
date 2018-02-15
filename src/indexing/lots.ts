@@ -18,7 +18,7 @@ function parseIntSafe(src: any) {
 
 export function startLotsIndexer(client: ES.Client) {
 
-    let reader = new UpdateReader('lots_indexing_12', DB.Lot);
+    let reader = new UpdateReader('lots_indexing_13', DB.Lot);
 
     reader.elastic(client, 'parcels', 'parcel', {
         geometry: {
@@ -55,6 +55,25 @@ export function startLotsIndexer(client: ES.Client) {
                 }]
             }]
         }]
+    }, {
+        model: DB.StreetNumber,
+        as: 'streetNumbers',
+        include: [{
+            model: DB.Street,
+            as: 'street',
+            include: [{
+                model: DB.City,
+                as: 'city',
+                include: [{
+                    model: DB.County,
+                    as: 'county',
+                    include: [{
+                        model: DB.State,
+                        as: 'state'
+                    }]
+                }]
+            }]
+        }]
     }]);
 
     reader.indexer((item) => {
@@ -62,6 +81,14 @@ export function startLotsIndexer(client: ES.Client) {
         if (item.geometry) {
             geometry = buildGeoJson(item.geometry);
         }
+        let address = item.streetNumbers!!.map((v) => {
+            let res = `${v.number}`;
+            if (v.suffix) {
+                res += v.suffix;
+            }
+            res += ' ' + v.street!!.name + ' ' + v.street!!.suffix;
+            return res;
+        }).join();
         return {
             id: item.id!!,
             doc: {
@@ -74,6 +101,17 @@ export function startLotsIndexer(client: ES.Client) {
                 improvementValue: item.extras ? parseIntSafe(item.extras.improvement_value) : null,
                 fixturesValue: item.extras ? parseIntSafe(item.extras.fixtures_value) : null,
                 propValue: item.extras ? parseIntSafe(item.extras.personal_prop_value) : null,
+                addresses: item.streetNumbers!!.map((v) => ({
+                    streetNumber: v.number,
+                    streetNumberSuffix: v.suffix,
+                    street: v.street!!.name,
+                    streetSuffix: v.street!!.suffix,
+                    city: v.street!!.city!!.name,
+                    county: v.street!!.city!!.county!!.name,
+                    stateCode: v.street!!.city!!.county!!.state!!.code,
+                    state: v.street!!.city!!.county!!.state!!.name,
+                })),
+                address: address
             }
         };
     });
