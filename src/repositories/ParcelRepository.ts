@@ -6,7 +6,7 @@ import { ExtrasInput } from '../api/Core';
 import { buildExtrasFromInput } from '../modules/extras';
 import { SelectBuilder } from '../utils/SelectBuilder';
 import { ElasticClient } from '../indexing';
-import { applyStreetNumbers } from './Streets';
+import { applyStreetNumbersInTx } from './Streets';
 export class ParcelRepository {
 
     private normalizer = new Normalizer();
@@ -139,7 +139,7 @@ export class ParcelRepository {
                     }
 
                     if (existing && d.addresses) {
-                        let ids = await applyStreetNumbers(cityId, d.addresses);
+                        let ids = await applyStreetNumbersInTx(tx, cityId, d.addresses);
                         console.warn(ids);
                         await existing.setStreetNumbers(ids, { transaction: tx });
                     }

@@ -113,71 +113,75 @@ export async function applyStreets(cityId: number, streets: StreetDescription[])
     return await DB.tx(async (tx) => _applyStreets(tx, cityId, streets));
 }
 
-export async function applyStreetNumbers(cityId: number, streetNumbers: StreetNumberDescription[]) {
-    return await DB.tx(async (tx) => {
-        let normalized = streetNumbers.map((p) => ({
-            streetName: normalizeStreet(p.streetName),
-            streetNameSuffix: normalizeSuffix(p.streetNameSuffix),
-            streetNumber: p.streetNumber,
-            streetNumberSuffix: normalizeSuffix(p.streetNumberSuffix)
-        }));
-        let comparator = (a: StreetNumberDescription, b: StreetNumberDescription) =>
-            a.streetName === b.streetName && a.streetNameSuffix === b.streetNameSuffix &&
-            a.streetNumber === b.streetNumber && a.streetNumberSuffix === b.streetNumberSuffix;
-        return normalizedProcessor(normalized, comparator, async (data) => {
-            let start = new Date();
-            let res = Array<number>(data.length);
-            let streets = await _applyStreets(tx, cityId, data);
-            let index = 0;
+export async function applyStreetNumbersInTx(tx: Transaction, cityId: number, streetNumbers: StreetNumberDescription[]) {
+    let normalized = streetNumbers.map((p) => ({
+        streetName: normalizeStreet(p.streetName),
+        streetNameSuffix: normalizeSuffix(p.streetNameSuffix),
+        streetNumber: p.streetNumber,
+        streetNumberSuffix: normalizeSuffix(p.streetNumberSuffix)
+    }));
+    let comparator = (a: StreetNumberDescription, b: StreetNumberDescription) =>
+        a.streetName === b.streetName && a.streetNameSuffix === b.streetNameSuffix &&
+        a.streetNumber === b.streetNumber && a.streetNumberSuffix === b.streetNumberSuffix;
+    return normalizedProcessor(normalized, comparator, async (data) => {
+        let start = new Date();
+        let res = Array<number>(data.length);
+        let streets = await _applyStreets(tx, cityId, data);
+        let index = 0;
 
-            let tuples = data.map((n, ind) => {
-                return [streets[ind], n.streetNumber, n.streetNumberSuffix] as any[];
-            });
-            console.time('load_tuples');
-            let builder = new SelectBuilder(DB.StreetNumber)
-                .withTx(tx);
-            let withNull = builder
-                .whereIn(['streetId', 'number', 'suffix'], tuples.filter((p) => p[2]))
-                .findAllDirect();
-            let woutNull = builder
-                .whereIn(['streetId', 'number'], tuples.filter((p) => !p[2]).map(p => [p[0], p[1]]))
-                .where('"suffix" IS NULL')
-                .findAllDirect();
-            let allNumbers = [...(await withNull), ...(await woutNull)];
+        let tuples = data.map((n, ind) => {
+            return [streets[ind], n.streetNumber, n.streetNumberSuffix] as any[];
+        });
+        console.time('load_tuples');
+        let builder = new SelectBuilder(DB.StreetNumber)
+            .withTx(tx);
+        let withNull = builder
+            .whereIn(['streetId', 'number', 'suffix'], tuples.filter((p) => p[2]))
+            .findAllDirect();
+        let woutNull = builder
+            .whereIn(['streetId', 'number'], tuples.filter((p) => !p[2]).map(p => [p[0], p[1]]))
+            .where('"suffix" IS NULL')
+            .findAllDirect();
+        let allNumbers = [...(await withNull), ...(await woutNull)];
 
-            let pending = Array<StreetNumberAttributes>();
-            let pendingIndex = Array<number>();
-            console.time('prepare_updates');
-            for (let n of data) {
-                let street = streets[index];
-                let existing = allNumbers.find((p) =>
-                    p.streetId === street && p.number === n.streetNumber && p.suffix === n.streetNumberSuffix);
-                if (existing == null) {
-                    pending.push({
-                        streetId: street,
-                        number: n.streetNumber,
-                        suffix: n.streetNumberSuffix
-                    });
-                    pendingIndex.push(index);
-                } else {
-                    res[index] = existing.id!!;
-                }
+        let pending = Array<StreetNumberAttributes>();
+        let pendingIndex = Array<number>();
+        console.time('prepare_updates');
+        for (let n of data) {
+            let street = streets[index];
+            let existing = allNumbers.find((p) =>
+                p.streetId === street && p.number === n.streetNumber && p.suffix === n.streetNumberSuffix);
+            if (existing == null) {
+                pending.push({
+                    streetId: street,
+                    number: n.streetNumber,
+                    suffix: n.streetNumberSuffix
+                });
+                pendingIndex.push(index);
+            } else {
+                res[index] = existing.id!!;
+            }
+            index++;
+        }
+        console.timeEnd('prepare_updates');
+        console.warn(pending);
+        console.time('bulk_insert');
+        if (pending.length > 0) {
+            index = 0;
+            for (let p of await bulkInsert(tx, DB.StreetNumber, pending)) {
+                res[pendingIndex[index]] = p;
                 index++;
             }
-            console.timeEnd('prepare_updates');
-            console.warn(pending);
-            console.time('bulk_insert');
-            if (pending.length > 0) {
-                index = 0;
-                for (let p of await bulkInsert(tx, DB.StreetNumber, pending)) {
-                    res[pendingIndex[index]] = p;
-                    index++;
-                }
-            }
-            console.timeEnd('bulk_insert');
+        }
+        console.timeEnd('bulk_insert');
 
-            console.info(`Street Numbers imported in ${new Date().getTime() - start.getTime()}ms`);
-            return res;
-        });
+        console.info(`Street Numbers imported in ${new Date().getTime() - start.getTime()}ms`);
+        return res;
+    });
+}
+
+export async function applyStreetNumbers(cityId: number, streetNumbers: StreetNumberDescription[]) {
+    return await DB.tx(async (tx) => {
+        return applyStreetNumbersInTx(tx, cityId, streetNumbers);
     });
 }
