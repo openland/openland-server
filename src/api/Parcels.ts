@@ -23,6 +23,12 @@ export const Schema = `
         extrasImprovementValue: Int
         extrasPropertyValue: Int
         extrasFixturesValue: Int
+
+        extrasStories: Int
+        extrasUnits: Int
+        extrasRooms: Int
+        extrasBathrooms: Int
+        extrasBedrooms: Int
     }
 
     input ParcelInput {
@@ -129,7 +135,7 @@ export const Resolver = {
         title: (src: Lot) => (src.extras && src.extras.displayId) ? src.extras.displayId : src.lotId,
         geometry: (src: Lot) => src.geometry ? JSON.stringify(src.geometry!!.polygons.map((v) => v.coordinates.map((c) => [c.longitude, c.latitude]))) : null,
         block: (src: Lot) => Repos.Blocks.fetchBlock(src.blockId!!),
-      
+
         addresses: async (src: Lot) => {
             let numbers = src.streetNumbers;
             if (!numbers) {
@@ -159,6 +165,11 @@ export const Resolver = {
         extrasImprovementValue: (src: Lot) => src.extras ? src.extras.improvement_value : null,
         extrasPropertyValue: (src: Lot) => src.extras ? src.extras.personal_prop_value : null,
         extrasFixturesValue: (src: Lot) => src.extras ? src.extras.fixtures_value : null,
+        extrasStories: (src: Lot) => src.extras ? src.extras.count_stories : null,
+        extrasUnits: (src: Lot) => src.extras ? src.extras.count_units : null,
+        extrasRooms: (src: Lot) => src.extras ? src.extras.count_rooms : null,
+        extrasBathrooms: (src: Lot) => src.extras ? src.extras.count_bathrooms : null,
+        extrasBedrooms: (src: Lot) => src.extras ? src.extras.count_bedrooms : null,
     },
     Block: {
         id: (src: Block) => buildId(src.id!!, 'Block'),
