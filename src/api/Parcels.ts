@@ -27,6 +27,7 @@ export const Schema = `
         blockId: String
         geometry: [[[Float!]!]!]
         extras: ExtrasInput
+        addresses: [StreetNumberInfo!]
     }
 
     type ParcelEdge {
@@ -105,6 +106,12 @@ interface ParcelInput {
     blockId?: string | null;
     geometry?: number[][][] | null;
     extras?: ExtrasInput | null;
+    addresses?: {
+        streetName: string,
+        streetNameSuffix?: string | null
+        streetNumber: number,
+        streetNumberSuffix?: string | null
+    }[];
 }
 
 interface BlockInput {

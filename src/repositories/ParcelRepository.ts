@@ -6,6 +6,7 @@ import { ExtrasInput } from '../api/Core';
 import { buildExtrasFromInput } from '../modules/extras';
 import { SelectBuilder } from '../utils/SelectBuilder';
 import { ElasticClient } from '../indexing';
+import { applyStreetNumbers } from './Streets';
 export class ParcelRepository {
 
     private normalizer = new Normalizer();
@@ -39,14 +40,24 @@ export class ParcelRepository {
         return await builder.findElastic(hits);
     }
 
-    async applyParcels(cityId: number, parcel: { id: string, blockId?: string | null, geometry?: number[][][] | null, extras?: ExtrasInput | null; }[]) {
+    async applyParcels(cityId: number, parcel: {
+        id: string, blockId?: string | null,
+        geometry?: number[][][] | null,
+        addresses?: {
+            streetName: string,
+            streetNameSuffix?: string | null
+            streetNumber: number,
+            streetNumberSuffix?: string | null
+        }[],
+        extras?: ExtrasInput | null
+    }[]) {
 
         //
         // Fetching Blocks
         //
 
+        let blocks = parcel.map((v) => v.blockId ? this.normalizer.normalizeId(v.blockId) : null);
         let blocksId = await DB.tx(async (tx) => {
-            let blocks = parcel.map((v) => v.blockId ? this.normalizer.normalizeId(v.blockId) : null);
             return await normalizedProcessor(blocks, (a, b) => a === b, async (data) => {
                 let res = [];
                 for (let d of data) {
@@ -80,7 +91,7 @@ export class ParcelRepository {
         //
 
         return await DB.tx(async (tx) => {
-            let lots = parcel.map((v, index) => ({ blockId: blocksId[index], lotId: this.normalizer.normalizeId(v.id), realId: v.id, geometry: v.geometry, extras: v.extras }));
+            let lots = parcel.map((v, index) => ({ blockId: blocksId[index], lotId: this.normalizer.normalizeId(v.id), realId: v.id, geometry: v.geometry, extras: v.extras, addresses: v.addresses }));
             return await normalizedProcessor(lots, (a, b) => (a.lotId === b.lotId) && (a.blockId === b.blockId), async (data) => {
                 let res = [];
                 for (let d of data) {
@@ -114,17 +125,23 @@ export class ParcelRepository {
                         res.push(existing.id!!);
                     } else {
                         if (d.blockId) {
-                            let id = (await DB.Lot.create({
+                            existing = await DB.Lot.create({
                                 blockId: d.blockId,
                                 cityId: cityId,
                                 lotId: d.lotId,
                                 geometry: geometry,
                                 extras: completedExtras
-                            }), { transaction: tx });
-                            res.push(id);
+                            }, { transaction: tx });
+                            res.push(existing.id);
                         } else {
                             res.push(null);
                         }
+                    }
+
+                    if (existing && d.addresses) {
+                        let ids = await applyStreetNumbers(cityId, d.addresses);
+                        console.warn(ids);
+                        await existing.setStreetNumbers(ids, { transaction: tx });
                     }
                 }
                 return res;
