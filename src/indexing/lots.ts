@@ -18,7 +18,7 @@ function parseIntSafe(src: any) {
 
 export function startLotsIndexer(client: ES.Client) {
 
-    let reader = new UpdateReader('lots_indexing_16', DB.Lot);
+    let reader = new UpdateReader('lots_indexing_17', DB.Lot);
 
     reader.elastic(client, 'parcels', 'parcel', {
         geometry: {
@@ -48,12 +48,10 @@ export function startLotsIndexer(client: ES.Client) {
             type: 'integer'
         },
         zoning: {
-            type: 'string',
-            index: 'not_analyzed'
+            type: 'keyword'
         },
         displayId: {
-            type: 'string',
-            index: 'not_analyzed'
+            type: 'text'
         }
     });
 

@@ -142,6 +142,7 @@ export class UpdateReader<TInstance, TAttributes> {
                         });
                         return wasReset;
                     } catch (e) {
+                        console.warn(e);
                         if (e.body && e.body.error && e.body.error.type && e.body.error.type === 'illegal_argument_exception') {
                             await elastic.indices.delete({ index: index });
                         } else {
