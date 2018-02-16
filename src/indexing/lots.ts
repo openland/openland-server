@@ -18,7 +18,7 @@ function parseIntSafe(src: any) {
 
 export function startLotsIndexer(client: ES.Client) {
 
-    let reader = new UpdateReader('lots_indexing_14', DB.Lot);
+    let reader = new UpdateReader('lots_indexing_15', DB.Lot);
 
     reader.elastic(client, 'parcels', 'parcel', {
         geometry: {
@@ -36,6 +36,15 @@ export function startLotsIndexer(client: ES.Client) {
             type: 'integer'
         },
         fixturesValue: {
+            type: 'integer'
+        },
+        yearBuilt: {
+            type: 'integer'
+        },
+        stories: {
+            type: 'integer'
+        },
+        units: {
             type: 'integer'
         }
     });
@@ -101,6 +110,9 @@ export function startLotsIndexer(client: ES.Client) {
                 improvementValue: item.extras ? parseIntSafe(item.extras.improvement_value) : null,
                 fixturesValue: item.extras ? parseIntSafe(item.extras.fixtures_value) : null,
                 propValue: item.extras ? parseIntSafe(item.extras.personal_prop_value) : null,
+                yearBuilt: item.extras ? parseIntSafe(item.extras.yearBuilt) : null,
+                stories: item.extras ? parseIntSafe(item.extras.count_stories) : null,
+                units: item.extras ? parseIntSafe(item.extras.count_units) : null,
                 addresses: item.streetNumbers!!.map((v) => ({
                     streetNumber: v.number,
                     streetNumberSuffix: v.suffix,
