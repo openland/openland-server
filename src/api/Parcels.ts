@@ -215,7 +215,7 @@ export const Resolver = {
                 clauses.push({ term: { 'stories': args.filterStories } });
             }
             if (args.filterZoning) {
-                clauses.push({ term: { 'zoning': args.filterZoning } });
+                clauses.push({ terms: { 'zoning': args.filterZoning } });
             }
             let hits = await ElasticClient.search({
                 index: 'parcels',
