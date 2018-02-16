@@ -91,7 +91,7 @@ export const Schema = `
             first: Int!, after: String, page: Int
         ): ParcelConnection!
 
-        parcelsOverlay(box: GeoBox!, limit: Int!): [Parcel!]
+        parcelsOverlay(box: GeoBox!, limit: Int!, filterZoning: [String!], filterStories: String): [Parcel!]
     }
 
     extend type Mutation {
@@ -208,8 +208,15 @@ export const Resolver = {
         parcel: async function (_: any, args: { id: string }) {
             return Repos.Parcels.fetchParcel(parseId(args.id, 'Parcel'));
         },
-        parcelsOverlay: async function (_: any, args: { box: { south: number, north: number, east: number, west: number }, limit: number }) {
+        parcelsOverlay: async function (_: any, args: { box: { south: number, north: number, east: number, west: number }, limit: number, filterZoning?: string[] | null, filterStories?: string | null }) {
             let start = currentTime();
+            let clauses = [];
+            if (args.filterStories) {
+                clauses.push({ term: { 'stories': args.filterStories } });
+            }
+            if (args.filterZoning) {
+                clauses.push({ term: { 'zoning': args.filterZoning } });
+            }
             let hits = await ElasticClient.search({
                 index: 'parcels',
                 type: 'parcel',
@@ -218,9 +225,7 @@ export const Resolver = {
                 body: {
                     query: {
                         bool: {
-                            must: {
-                                match_all: {}
-                            },
+                            must: clauses.length === 0 ? { match_all: {} } : clauses,
                             filter: {
                                 geo_shape: {
                                     geometry: {
@@ -275,7 +280,7 @@ export const Resolver = {
                                 { match: { 'address': { query: query.query, operator: 'and' } } },
                                 { prefix: { lotId: query.query } },
                                 { term: { lotId: { value: query.query, boost: 3.0 } } },
-                                { prefix: { 'extras.displayId': { value: query.query, boost: 2.0 } } },
+                                { prefix: { 'displayId': { value: query.query, boost: 2.0 } } },
                                 { term: { blockId: { value: query.query, boost: 0.5 } } }
                             ]
                         }
