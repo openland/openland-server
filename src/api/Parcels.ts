@@ -254,14 +254,13 @@ export const Resolver = {
                 }
             });
 
-            let edges = [];
-            for (let hit of hits.hits.hits) {
-                let lt = await DB.Lot.findById(parseInt(hit._id, 10));
-                if (lt) {
-                    edges.push(lt);
+            return await DB.Lot.findAll({
+                where: {
+                    id: {
+                        $in: hits.hits.hits.map((v) => v._id)
+                    }
                 }
-            }
-            return edges;
+            });
         }
     },
     Mutation: {
