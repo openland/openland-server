@@ -6,6 +6,7 @@ import { DB } from '../tables';
 import { buildId, parseId } from '../utils/ids';
 import { ElasticClient } from '../indexing';
 import { currentTime } from '../utils/timer';
+import { QueryParser, buildElasticQuery } from '../utils/QueryParser';
 
 export const Schema = `
 
@@ -91,7 +92,7 @@ export const Schema = `
             first: Int!, after: String, page: Int
         ): ParcelConnection!
 
-        parcelsOverlay(box: GeoBox!, limit: Int!, filterZoning: [String!], filterStories: String): [Parcel!]
+        parcelsOverlay(box: GeoBox!, limit: Int!, filterZoning: [String!], query: String): [Parcel!]
     }
 
     extend type Mutation {
@@ -203,55 +204,13 @@ export const Resolver = {
         },
         parcelsConnection: async function (_: any, args: { state: string, county: string, city: string, query?: string, first: number, after?: string, page?: number }) {
             let cityId = await Repos.Area.resolveCity(args.state, args.county, args.city);
-            return await Repos.Parcels.fetchParcels(cityId, args.first, args.query, args.after, args.page);
+            return await Repos.Parcels.fetchParcelsConnection(cityId, args.first, args.query, args.after, args.page);
         },
         parcel: async function (_: any, args: { id: string }) {
             return Repos.Parcels.fetchParcel(parseId(args.id, 'Parcel'));
         },
-        parcelsOverlay: async function (_: any, args: { box: { south: number, north: number, east: number, west: number }, limit: number, filterZoning?: string[] | null, filterStories?: string | null }) {
-            let start = currentTime();
-            let clauses = [];
-            if (args.filterStories) {
-                clauses.push({ term: { 'stories': args.filterStories } });
-            }
-            if (args.filterZoning) {
-                clauses.push({ terms: { 'zoning': args.filterZoning } });
-            }
-            let hits = await ElasticClient.search({
-                index: 'parcels',
-                type: 'parcel',
-                size: args.limit,
-                from: 0,
-                body: {
-                    query: {
-                        bool: {
-                            must: clauses.length === 0 ? { match_all: {} } : clauses,
-                            filter: {
-                                geo_shape: {
-                                    geometry: {
-                                        shape: {
-                                            type: 'envelope',
-                                            coordinates:
-                                                [[args.box.west, args.box.south],
-                                                [args.box.east, args.box.north]],
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-
-            console.warn('Searched in ' + (currentTime() - start) + ' ms');
-
-            return await DB.Lot.findAll({
-                where: {
-                    id: {
-                        $in: hits.hits.hits.map((v) => v._id)
-                    }
-                }
-            });
+        parcelsOverlay: async function (_: any, args: { box: { south: number, north: number, east: number, west: number }, limit: number, filterZoning?: string[] | null, query?: string | null }) {
+            return Repos.Parcels.fetchGeoParcels(args.box, args.limit, args.query);
         }
     },
     Mutation: {

@@ -7,17 +7,31 @@ import { buildExtrasFromInput } from '../modules/extras';
 import { SelectBuilder } from '../utils/SelectBuilder';
 import { ElasticClient } from '../indexing';
 import { applyStreetNumbersInTx } from './Streets';
+import { QueryParser, buildElasticQuery } from '../utils/QueryParser';
+import { currentTime } from '../utils/timer';
 export class ParcelRepository {
 
     private normalizer = new Normalizer();
+    private parser = new QueryParser();
+
+    constructor() {
+        this.parser.registerInt('stories', 'stories');
+        this.parser.registerInt('area', 'extras.area');
+        this.parser.registerText('zone', 'zoning');
+    }
 
     async fetchParcel(parcelId: number) {
         return await DB.Lot.findById(parcelId);
     }
 
-    async fetchParcels(cityId: number, first: number, query?: string, after?: string, page?: number) {
+    async fetchParcelsConnection(cityId: number, first: number, query?: string, after?: string, page?: number) {
         let clauses: any[] = [];
         clauses.push({ term: { 'cityId': cityId } });
+        if (query) {
+            let parsed = this.parser.parseQuery(query);
+            let elasticQuery = buildElasticQuery(parsed);
+            clauses.push(elasticQuery);
+        }
 
         let sort = [{ 'landValue': { 'order': 'desc' } }];
 
@@ -38,6 +52,53 @@ export class ParcelRepository {
             .page(page)
             .limit(first);
         return await builder.findElastic(hits);
+    }
+
+    async fetchGeoParcels(box: { south: number, north: number, east: number, west: number }, limit: number, query?: string | null) {
+        let start = currentTime();
+        let must = { match_all: {} };
+        if (query) {
+            let parsed = this.parser.parseQuery(query);
+            let elasticQuery = buildElasticQuery(parsed);
+            console.warn(elasticQuery);
+            must = elasticQuery;
+        }
+
+        let hits = await ElasticClient.search({
+            index: 'parcels',
+            type: 'parcel',
+            size: limit,
+            from: 0,
+            body: {
+                query: {
+                    bool: {
+                        must: must,
+                        filter: {
+                            geo_shape: {
+                                geometry: {
+                                    shape: {
+                                        type: 'envelope',
+                                        coordinates:
+                                            [[box.west, box.south],
+                                            [box.east, box.north]],
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        console.warn('Searched in ' + (currentTime() - start) + ' ms');
+
+        return await DB.Lot.findAll({
+            where: {
+                id: {
+                    $in: hits.hits.hits.map((v) => v._id)
+                }
+            }
+        });
     }
 
     async applyParcels(cityId: number, parcel: {

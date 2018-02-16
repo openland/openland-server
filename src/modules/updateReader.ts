@@ -218,7 +218,7 @@ async function updateReader<TInstance, TAttributes>(
                             }
                         }
                     ]
-                } : {}),
+                } as any : {}),
                 order: [['updatedAt', 'ASC'], ['id', 'ASC']],
                 limit: 100,
                 transaction: tx,
