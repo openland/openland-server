@@ -18,13 +18,13 @@ function parseIntSafe(src: any) {
 
 export function startLotsIndexer(client: ES.Client) {
 
-    let reader = new UpdateReader('lots_indexing_13', DB.Lot);
+    let reader = new UpdateReader('lots_indexing_14', DB.Lot);
 
     reader.elastic(client, 'parcels', 'parcel', {
         geometry: {
             type: 'geo_shape',
             tree: 'quadtree',
-            precision: '1m'
+            precision: '10m'
         },
         landValue: {
             type: 'integer'

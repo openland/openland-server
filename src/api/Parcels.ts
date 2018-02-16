@@ -5,6 +5,7 @@ import { ExtrasInput } from './Core';
 import { DB } from '../tables';
 import { buildId, parseId } from '../utils/ids';
 import { ElasticClient } from '../indexing';
+import { currentTime } from '../utils/timer';
 
 export const Schema = `
 
@@ -208,6 +209,7 @@ export const Resolver = {
             return Repos.Parcels.fetchParcel(parseId(args.id, 'Parcel'));
         },
         parcelsOverlay: async function (_: any, args: { box: { south: number, north: number, east: number, west: number }, limit: number }) {
+            let start = currentTime();
             let hits = await ElasticClient.search({
                 index: 'parcels',
                 type: 'parcel',
@@ -223,36 +225,20 @@ export const Resolver = {
                                 geo_shape: {
                                     geometry: {
                                         shape: {
-                                            type: 'Polygon',
-                                            coordinates: [
-                                                [
-                                                    [args.box.east, args.box.north],
-                                                    [args.box.west, args.box.north],
-                                                    [args.box.west, args.box.south],
-                                                    [args.box.east, args.box.south],
-                                                    [args.box.east, args.box.north]
-                                                ]
-                                            ]
+                                            type: 'envelope',
+                                            coordinates:
+                                                [[args.box.west, args.box.south],
+                                                [args.box.east, args.box.north]],
                                         }
                                     }
                                 }
-                                // geo_bounding_box : {
-                                //     'geometry' : {
-                                //         'top_left' : {
-                                //             'lat' : args.box.north,
-                                //             'lon' : args.box.west
-                                //         },
-                                //         'bottom_right' : {
-                                //             'lat' : args.box.south,
-                                //             'lon' : args.box.east
-                                //         }
-                                //     }
-                                // }
                             }
                         }
                     }
                 }
             });
+
+            console.warn('Searched in ' + (currentTime() - start) + ' ms');
 
             return await DB.Lot.findAll({
                 where: {
