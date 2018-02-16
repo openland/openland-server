@@ -5,8 +5,6 @@ import { ExtrasInput } from './Core';
 import { DB } from '../tables';
 import { buildId, parseId } from '../utils/ids';
 import { ElasticClient } from '../indexing';
-import { currentTime } from '../utils/timer';
-import { QueryParser, buildElasticQuery } from '../utils/QueryParser';
 
 export const Schema = `
 
