@@ -24,6 +24,8 @@ export const Schema = `
         extrasPropertyValue: Int
         extrasFixturesValue: Int
 
+        extrasYear: Int
+
         extrasStories: Int
         extrasUnits: Int
         extrasRooms: Int
@@ -172,6 +174,7 @@ export const Resolver = {
         extrasRooms: (src: Lot) => src.extras ? src.extras.count_rooms : null,
         extrasBathrooms: (src: Lot) => src.extras ? src.extras.count_bathrooms : null,
         extrasBedrooms: (src: Lot) => src.extras ? src.extras.count_bedrooms : null,
+        extrasYear: (src: Lot) => src.extras ? src.extras.year_built : null,
     },
     Block: {
         id: (src: Block) => buildId(src.id!!, 'Block'),
