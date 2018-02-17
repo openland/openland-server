@@ -31,6 +31,7 @@ export const Schema = `
         extrasRooms: Int
         extrasBathrooms: Int
         extrasBedrooms: Int
+        extrasNeighborhood: String
     }
 
     input ParcelInput {
@@ -175,6 +176,7 @@ export const Resolver = {
         extrasBathrooms: (src: Lot) => src.extras ? src.extras.count_bathrooms : null,
         extrasBedrooms: (src: Lot) => src.extras ? src.extras.count_bedrooms : null,
         extrasYear: (src: Lot) => src.extras ? src.extras.year_built : null,
+        extrasNeighborhood: (src: Lot) => src.extras ? src.extras.neighbourhoods : null,
     },
     Block: {
         id: (src: Block) => buildId(src.id!!, 'Block'),
