@@ -4,6 +4,8 @@ import { buildGeometryFromInput } from '../modules/geometry';
 import { Normalizer } from '../utils/Normalizer';
 import { buildExtrasFromInput } from '../modules/extras';
 import { SelectBuilder } from '../utils/SelectBuilder';
+import { currentTime } from '../utils/timer';
+import { ElasticClient } from '../indexing';
 
 export class BlockRepository {
 
@@ -20,6 +22,58 @@ export class BlockRepository {
             .page(page)
             .limit(first)
             .findAll();
+    }
+
+    async fetchGeoBlocks(box: { south: number, north: number, east: number, west: number }, limit: number, query?: string | null) {
+        let start = currentTime();
+        let must = { match_all: {} };
+        // if (query) {
+        //     let parsed = this.parser.parseQuery(query);
+        //     let elasticQuery = buildElasticQuery(parsed);
+        //     console.warn(elasticQuery);
+        //     must = elasticQuery;
+        // }
+
+        let hits = await ElasticClient.search({
+            index: 'blocks',
+            type: 'block',
+            size: limit,
+            from: 0,
+            body: {
+                query: {
+                    bool: {
+                        must: must,
+                        filter: {
+                            geo_shape: {
+                                geometry: {
+                                    shape: {
+                                        type: 'envelope',
+                                        coordinates:
+                                            [[box.west, box.south],
+                                            [box.east, box.north]],
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // ElasticClient.scroll({ scrollId: hits._scroll_id!!, scroll: '60000' });
+
+        console.warn('Searched in ' + (currentTime() - start) + ' ms');
+        start = currentTime();
+        let res = await DB.Block.findAll({
+            where: {
+                id: {
+                    $in: hits.hits.hits.map((v) => v._id)
+                }
+            },
+            raw: true
+        });
+        console.warn('Fetched in ' + (currentTime() - start) + ' ms (' + res.length + ')');
+        return res;
     }
 
     async applyBlocks(cityId: number, blocks: { id: string, geometry?: number[][][] | null, extras?: ExtrasInput | null }[]) {

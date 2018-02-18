@@ -1,11 +1,11 @@
 import * as ES from 'elasticsearch';
 // import { DB } from '../tables';
 // import { UpdateReader } from '../modules/updateReader';
-// import { uploadFeature, mapBoxConfigured } from '../modules/mapbox';
+// import { buildGeoJson } from '../modules/geometry';
 
 export function startBlocksIndexer(client: ES.Client) {
 
-    // let reader = new UpdateReader('blocks_indexing_1', DB.Block);
+    // let reader = new UpdateReader('blocks_indexing_2', DB.Block);
 
     // reader.elastic(client, 'blocks', 'block', {
     //     geometry: {
@@ -17,13 +17,8 @@ export function startBlocksIndexer(client: ES.Client) {
 
     // reader.indexer((item) => {
     //     let geometry = undefined;
-    //     if (item.geometry !== null) {
-    //         geometry = {
-    //             type: 'multipolygon',
-    //             coordinates: item.geometry!!.polygons
-    //                 .filter((v) => v.coordinates.length >= 4)
-    //                 .map((v) => [v.coordinates.map((c) => [c.longitude, c.latitude])])
-    //         };
+    //     if (item.geometry) {
+    //         geometry = buildGeoJson(item.geometry);
     //     }
     //     return {
     //         id: item.id!!,
@@ -35,23 +30,4 @@ export function startBlocksIndexer(client: ES.Client) {
     // });
 
     // reader.start();
-
-    // if (mapBoxConfigured()) {
-    //     reader = new UpdateReader('blocks_indexing_mapbox', DB.Block);
-    //     reader.processor(async (data) => {
-    //         for (let item of data) {
-    //             if (item.geometry === null) {
-    //                 continue;
-    //             }
-    //             let geometry = item.geometry!!.polygons
-    //                 .filter((v) => v.coordinates.length >= 4)
-    //                 .map((v) => ({
-    //                     type: 'Polygon',
-    //                     coordinates: [v.coordinates.map((c) => [c.longitude, c.latitude])]
-    //                 }))[0];
-    //             await uploadFeature('cjcs7tqe036sd2zo7l5remeef', item.blockId!!, geometry);
-    //         }
-    //     });
-    //     reader.start();
-    // }
 }

@@ -18,7 +18,7 @@ function parseIntSafe(src: any) {
 
 export function startLotsIndexer(client: ES.Client) {
 
-    let reader = new UpdateReader('lots_indexing_17', DB.Lot);
+    let reader = new UpdateReader('lots_indexing_18', DB.Lot);
 
     reader.elastic(client, 'parcels', 'parcel', {
         geometry: {
@@ -52,6 +52,9 @@ export function startLotsIndexer(client: ES.Client) {
         },
         displayId: {
             type: 'text'
+        },
+        blockSourceId: {
+            type: 'integer'
         }
     });
 
@@ -110,6 +113,7 @@ export function startLotsIndexer(client: ES.Client) {
                 cityId: item.cityId!!,
                 lotId: item.lotId!!,
                 blockId: item.block ? item.block.blockId : null,
+                blockSourceId: item.block ? item.block.id : null,
                 geometry: geometry,
                 extras: item.extras,
                 landValue: item.extras ? parseIntSafe(item.extras.land_value) : null,

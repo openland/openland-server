@@ -94,6 +94,7 @@ export const Schema = `
         ): ParcelConnection!
 
         parcelsOverlay(box: GeoBox!, limit: Int!, filterZoning: [String!], query: String): [Parcel!]
+        blocksOverlay(box: GeoBox!, limit: Int!, filterZoning: [String!], query: String): [Block!]
     }
 
     extend type Mutation {
@@ -204,6 +205,9 @@ export const Resolver = {
         },
         block: async function (_: any, args: { id: string }) {
             return Repos.Blocks.fetchBlock(parseId(args.id, 'Block'));
+        },
+        blocksOverlay: async function (_: any, args: { box: { south: number, north: number, east: number, west: number }, limit: number, filterZoning?: string[] | null, query?: string | null }) {
+            return Repos.Blocks.fetchGeoBlocks(args.box, args.limit, args.query);
         },
         parcelsConnection: async function (_: any, args: { state: string, county: string, city: string, query?: string, first: number, after?: string, page?: number }) {
             let cityId = await Repos.Area.resolveCity(args.state, args.county, args.city);

@@ -90,15 +90,20 @@ export class ParcelRepository {
             }
         });
 
-        console.warn('Searched in ' + (currentTime() - start) + ' ms');
+        // ElasticClient.scroll({ scrollId: hits._scroll_id!!, scroll: '60000' });
 
-        return await DB.Lot.findAll({
+        console.warn('Searched in ' + (currentTime() - start) + ' ms');
+        start = currentTime();
+        let res = await DB.Lot.findAll({
             where: {
                 id: {
                     $in: hits.hits.hits.map((v) => v._id)
                 }
-            }
+            },
+            raw: true
         });
+        console.warn('Fetched in ' + (currentTime() - start) + ' ms (' + res.length + ')');
+        return res;
     }
 
     async applyParcels(cityId: number, parcel: {

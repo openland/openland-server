@@ -18,8 +18,9 @@ export function buildGeometryFromInput(input: number[][][]): Geometry {
 }
 
 export function buildGeoJson(src: Geometry) {
+    // console.warn(.coordinates.length);
     return {
-        type: 'multipolygon',
+        type: 'MultiPolygon',
         coordinates: src.polygons
             .filter((v) => v.coordinates.length >= 4)
             .map((v) => [v.coordinates.map((c) => [c.longitude, c.latitude])])
