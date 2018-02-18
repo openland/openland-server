@@ -1,33 +1,37 @@
 import * as ES from 'elasticsearch';
-// import { DB } from '../tables';
-// import { UpdateReader } from '../modules/updateReader';
-// import { buildGeoJson } from '../modules/geometry';
+import { DB } from '../tables';
+import { UpdateReader } from '../modules/updateReader';
+import { buildGeoJson } from '../modules/geometry';
 
 export function startBlocksIndexer(client: ES.Client) {
 
-    // let reader = new UpdateReader('blocks_indexing_2', DB.Block);
+    let reader = new UpdateReader('blocks_indexing_3', DB.Block);
 
-    // reader.elastic(client, 'blocks', 'block', {
-    //     geometry: {
-    //         type: 'geo_shape',
-    //         tree: 'quadtree',
-    //         precision: '1m'
-    //     }
-    // });
+    reader.elastic(client, 'blocks', 'block', {
+        geometry: {
+            type: 'geo_shape',
+            tree: 'quadtree',
+            precision: '1m'
+        }
+    });
 
-    // reader.indexer((item) => {
-    //     let geometry = undefined;
-    //     if (item.geometry) {
-    //         geometry = buildGeoJson(item.geometry);
-    //     }
-    //     return {
-    //         id: item.id!!,
-    //         doc: {
-    //             blockId: item.blockId,
-    //             geometry: geometry
-    //         }
-    //     };
-    // });
+    reader.indexer((item) => {
+        let geometry = undefined;
+        if (item.geometry && item.blockId !== '4349' && item.blockId !== '4991') {
+            geometry = buildGeoJson(item.geometry);
+            // if (item.id === 24917 || item.id === 24916) {
+            //     console.warn(JSON.stringify(geometry));
+            // }
+            // console.warn(JSON.stringify(geometry));
+        }
+        return {
+            id: item.id!!,
+            doc: {
+                blockId: item.blockId,
+                geometry: geometry
+            }
+        };
+    });
 
-    // reader.start();
+    reader.start();
 }
