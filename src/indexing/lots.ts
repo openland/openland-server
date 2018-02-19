@@ -2,6 +2,7 @@ import * as ES from 'elasticsearch';
 import { DB } from '../tables';
 import { UpdateReader } from '../modules/updateReader';
 import { buildGeoJson } from '../modules/geometry';
+import * as Turf from '@turf/turf';
 
 function parseIntSafe(src: any) {
     if (typeof src === 'string') {
@@ -18,13 +19,16 @@ function parseIntSafe(src: any) {
 
 export function startLotsIndexer(client: ES.Client) {
 
-    let reader = new UpdateReader('lots_indexing_18', DB.Lot);
+    let reader = new UpdateReader('lots_indexing_19', DB.Lot);
 
     reader.elastic(client, 'parcels', 'parcel', {
         geometry: {
             type: 'geo_shape',
             tree: 'quadtree',
             precision: '10m'
+        },
+        center: {
+            type: 'geo_point'
         },
         landValue: {
             type: 'integer'
@@ -96,8 +100,11 @@ export function startLotsIndexer(client: ES.Client) {
 
     reader.indexer((item) => {
         let geometry = null;
+        let center = null;
         if (item.geometry) {
             geometry = buildGeoJson(item.geometry);
+            let ctr = Turf.centerOfMass(geometry);
+            center = { lon: ctr.geometry!!.coordinates[0], lat: ctr.geometry!!.coordinates[1] };
         }
         let address = item.streetNumbers!!.map((v) => {
             let res = `${v.number}`;
@@ -115,6 +122,7 @@ export function startLotsIndexer(client: ES.Client) {
                 blockId: item.block ? item.block.blockId : null,
                 blockSourceId: item.block ? item.block.id : null,
                 geometry: geometry,
+                center: center,
                 extras: item.extras,
                 landValue: item.extras ? parseIntSafe(item.extras.land_value) : null,
                 improvementValue: item.extras ? parseIntSafe(item.extras.improvement_value) : null,

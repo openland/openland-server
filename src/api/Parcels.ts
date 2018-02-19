@@ -5,6 +5,7 @@ import { ExtrasInput } from './Core';
 import { DB } from '../tables';
 import { buildId, parseId } from '../utils/ids';
 import { ElasticClient } from '../indexing';
+import * as Turf from '@turf/turf';
 
 export const Schema = `
 
@@ -12,6 +13,7 @@ export const Schema = `
         id: ID!
         title: String!
         geometry: String
+        center: Geo
         block: Block!
 
         addresses: [StreetNumber!]!
@@ -140,6 +142,13 @@ export const Resolver = {
         id: (src: Lot) => buildId(src.id!!, 'Parcel'),
         title: (src: Lot) => (src.extras && src.extras.displayId) ? src.extras.displayId : src.lotId,
         geometry: (src: Lot) => src.geometry ? JSON.stringify(src.geometry!!.polygons.map((v) => v.coordinates.map((c) => [c.longitude, c.latitude]))) : null,
+        center: (src: Lot) => {
+            if (src.geometry) {
+                let ctr = Turf.centerOfMass({ type: 'MultiPolygon', coordinates: src.geometry.polygons.map((v) => [v.coordinates.map((v2) => [v2.longitude, v2.latitude])]) });
+                return { longitude: ctr.geometry!!.coordinates[0], latitude: ctr.geometry!!.coordinates[1] };
+            }
+            return null;
+        },
         block: (src: Lot) => Repos.Blocks.fetchBlock(src.blockId!!),
 
         addresses: async (src: Lot) => {

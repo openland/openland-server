@@ -9,6 +9,7 @@
     "node": ">=v8.0.0 <v9.0.0"
   },
   "dependencies": {
+    "@turf/turf": "^5.1.6",
     "@types/base-64": "^0.1.2",
     "@types/body-parser": "^1.16.4",
     "@types/compression": "^0.0.35",
