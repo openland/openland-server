@@ -134,6 +134,16 @@ export class QueryParser {
                         exact: value
                     };
                 } else if (typeof value === 'string') {
+                    try {
+                        let intval = parseInt(value, 10);
+                        return {
+                            type: 'field',
+                            field: tp.mappedName,
+                            exact: intval
+                        };
+                    } catch {
+                        // Ignore
+                    }
                     throw Error('Unsupported int field value ' + value);
                 } else if (typeof value.gte === 'number' || typeof value.gt === 'number' || typeof value.lte === 'number' || typeof value.lt === 'number') {
                     let res = {
