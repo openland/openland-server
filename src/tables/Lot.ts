@@ -13,6 +13,7 @@ export interface LotAttributes {
     blockId?: number | null;
     geometry?: Geometry | null;
     extras?: JsonMap | null;
+    metadata?: JsonMap;
 }
 
 export interface Lot extends sequelize.Instance<LotAttributes>, LotAttributes {
@@ -35,6 +36,11 @@ export const LotTable = connection.define<Lot, LotAttributes>('lot', {
     extras: {
         type: sequelize.JSON,
         allowNull: true
+    },
+    metadata: {
+        type: sequelize.JSON,
+        allowNull: false,
+        defaultValue: {}
     }
 }, { indexes: [{ unique: true, fields: ['blockId', 'lotId'] }, { unique: true, fields: ['cityId', 'lotId'] }] });
 

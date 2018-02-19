@@ -9,6 +9,17 @@ import { ElasticClient } from '../indexing';
 import { applyStreetNumbersInTx } from './Streets';
 import { QueryParser, buildElasticQuery } from '../utils/QueryParser';
 import { currentTime } from '../utils/timer';
+
+function prepareMetaString(src: string | null): string | null {
+    if (src !== null) {
+        src = src.trim();
+        if (src.length > 0) {
+            return src;
+        }
+    }
+    return null;
+}
+
 export class ParcelRepository {
 
     private normalizer = new Normalizer();
@@ -18,6 +29,20 @@ export class ParcelRepository {
         this.parser.registerInt('stories', 'stories');
         this.parser.registerInt('area', 'extras.area');
         this.parser.registerText('zone', 'zoning');
+    }
+
+    async applyMetadata(id: number, metadata: { description?: string | null }) {
+        let lot = await DB.Lot.findById(id);
+        if (!lot) {
+            throw Error('Unable to find lot');
+        }
+        let updated = Object.assign({}, lot.metadata);
+        if (metadata.description !== undefined) {
+            updated.description = prepareMetaString(metadata.description);
+        }
+        lot.metadata = updated;
+        await lot.save();
+        return lot;
     }
 
     async fetchParcel(parcelId: number) {

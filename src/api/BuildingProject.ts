@@ -80,20 +80,6 @@ export const Schema = `
         projects(area: String!, filter: String, minUnits: Int, year: String, first: Int!, after: String, page: Int): BuildingProjectConnection!
         project(area: String!, slug: String!): BuildingProject!
     }
-
-    input BuildingProjectInput {
-        id: ID!
-        name: String
-        description: String
-        verified: Boolean
-
-        existingUnits: Int
-        proposedUnits: Int
-        existingAffordableUnits: Int
-        proposedAffordableUnits: Int
-        
-        permits: [ID!]
-    }
 `;
 
 let buildingProjectLoader = new DataLoader<number, BuildingProject>(async (v) => {

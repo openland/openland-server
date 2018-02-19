@@ -34,6 +34,16 @@ export const Schema = `
         extrasBathrooms: Int
         extrasBedrooms: Int
         extrasNeighborhood: String
+
+        metadata: ParcelMetadata!
+    }
+
+    type ParcelMetadata {
+        description: String
+    }
+
+    input ParcelMetadataInput {
+        description: String
     }
 
     input ParcelInput {
@@ -102,6 +112,8 @@ export const Schema = `
     extend type Mutation {
         importParcels(state: String!, county: String!, city: String!, parcels: [ParcelInput!]!): String!
         importBlocks(state: String!, county: String!, city: String!, blocks: [BlockInput!]!): String!
+        
+        parcelAlterMetadata(id: ID!, data: ParcelMetadataInput!): Parcel!
     }
 
     type ParcelSearchResult {
@@ -173,6 +185,12 @@ export const Resolver = {
             }));
         },
 
+        metadata: (src: Lot) => {
+            return {
+                description: src.metadata!!.description
+            };
+        },
+
         extrasArea: (src: Lot) => (src.extras && src.extras.area) ? Math.round(src.extras.area as number) : null,
         extrasZoning: (src: Lot) => src.extras ? src.extras.zoning : null,
         extrasSupervisorDistrict: (src: Lot) => src.extras ? src.extras.supervisor_id : null,
@@ -239,6 +257,9 @@ export const Resolver = {
             let cityId = await Repos.Area.resolveCity(args.state, args.county, args.city);
             await Repos.Blocks.applyBlocks(cityId, args.blocks);
             return 'ok';
+        },
+        parcelAlterMetadata: async function (_: any, args: { id: string, data: { description?: string | null } }) {
+            return Repos.Parcels.applyMetadata(parseId(args.id, 'Parcel'), args.data);
         }
     },
     SearchResult: {
