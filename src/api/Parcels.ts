@@ -38,12 +38,21 @@ export const Schema = `
         metadata: ParcelMetadata!
     }
 
+    enum ParcelUse {
+        PARKING
+        STORAGE
+    }
+
     type ParcelMetadata {
         description: String
+        currentUse: ParcelUse
+        available: Boolean
     }
 
     input ParcelMetadataInput {
         description: String
+        currentUse: ParcelUse
+        available: Boolean
     }
 
     input ParcelInput {
@@ -187,7 +196,9 @@ export const Resolver = {
 
         metadata: (src: Lot) => {
             return {
-                description: src.metadata!!.description
+                description: src.metadata!!.description,
+                currentUse: src.metadata!!.currentUse,
+                available: src.metadata!!.available
             };
         },
 
@@ -258,7 +269,7 @@ export const Resolver = {
             await Repos.Blocks.applyBlocks(cityId, args.blocks);
             return 'ok';
         },
-        parcelAlterMetadata: async function (_: any, args: { id: string, data: { description?: string | null } }) {
+        parcelAlterMetadata: async function (_: any, args: { id: string, data: { description?: string | null, currentUse?: string | null, available?: boolean | null } }) {
             return Repos.Parcels.applyMetadata(parseId(args.id, 'Parcel'), args.data);
         }
     },

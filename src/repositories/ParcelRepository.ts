@@ -31,7 +31,7 @@ export class ParcelRepository {
         this.parser.registerText('zone', 'zoning');
     }
 
-    async applyMetadata(id: number, metadata: { description?: string | null }) {
+    async applyMetadata(id: number, metadata: { description?: string | null, currentUse?: string | null, available?: boolean | null }) {
         let lot = await DB.Lot.findById(id);
         if (!lot) {
             throw Error('Unable to find lot');
@@ -39,6 +39,12 @@ export class ParcelRepository {
         let updated = Object.assign({}, lot.metadata);
         if (metadata.description !== undefined) {
             updated.description = prepareMetaString(metadata.description);
+        }
+        if (metadata.currentUse !== undefined) {
+            updated.currentUse = prepareMetaString(metadata.currentUse);
+        }
+        if (metadata.available !== undefined) {
+            updated.available = metadata.available;
         }
         lot.metadata = updated;
         await lot.save();
