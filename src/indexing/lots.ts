@@ -143,7 +143,9 @@ export function startLotsIndexer(client: ES.Client) {
                     stateCode: v.street!!.city!!.county!!.state!!.code,
                     state: v.street!!.city!!.county!!.state!!.name,
                 })),
-                address: address
+                address: address,
+                currentUse: item.metadata!!.currentUse,
+                available: item.metadata!!.available
             }
         };
     });
