@@ -6,6 +6,7 @@ import { DB } from '../tables';
 import { buildId, parseId } from '../utils/ids';
 import { ElasticClient } from '../indexing';
 import * as Turf from '@turf/turf';
+import { CallContext } from './CallContext';
 
 export const Schema = `
 
@@ -36,6 +37,8 @@ export const Schema = `
         extrasNeighborhood: String
 
         metadata: ParcelMetadata!
+
+        likes: Likes!
     }
 
     enum ParcelUse {
@@ -122,6 +125,9 @@ export const Schema = `
         importParcels(state: String!, county: String!, city: String!, parcels: [ParcelInput!]!): String!
         importBlocks(state: String!, county: String!, city: String!, blocks: [BlockInput!]!): String!
         
+        likeParcel(id: ID!): Parcel!
+        unlikeParcel(id: ID!): Parcel!
+
         parcelAlterMetadata(id: ID!, data: ParcelMetadataInput!): Parcel!
     }
 
@@ -207,6 +213,15 @@ export const Resolver = {
             };
         },
 
+        likes: async (src: Lot, args: {}, context: CallContext) => {
+            let likes = await src.getLikes();
+            let liked = context.uid !== undefined && likes.find((v) => v.id === context.uid) !== undefined;
+            return {
+                count: likes.length,
+                liked: liked
+            };
+        },
+
         extrasArea: (src: Lot) => (src.extras && src.extras.area) ? Math.round(src.extras.area as number) : null,
         extrasZoning: (src: Lot) => src.extras ? src.extras.zoning : null,
         extrasSupervisorDistrict: (src: Lot) => src.extras ? src.extras.supervisor_id : null,
@@ -276,6 +291,32 @@ export const Resolver = {
         },
         parcelAlterMetadata: async function (_: any, args: { id: string, data: { description?: string | null, currentUse?: string | null, available?: boolean | null } }) {
             return Repos.Parcels.applyMetadata(parseId(args.id, 'Parcel'), args.data);
+        },
+        likeParcel: async function (_: any, args: { id: string }, context: CallContext) {
+            if (!context.uid) {
+                throw Error('Authentication is required');
+            }
+            let lot = await Repos.Parcels.fetchParcel(parseId(args.id, 'Parcel'));
+            if (!lot) {
+                throw Error('Unable to find Lot');
+            }
+            await lot.addLike(context.uid);
+            (lot as any).changed('updatedAt', true);
+            await lot.save();
+            return lot;
+        },
+        unlikeParcel: async function (_: any, args: { id: string }, context: CallContext) {
+            if (!context.uid) {
+                throw Error('Authentication is required');
+            }
+            let lot = await Repos.Parcels.fetchParcel(parseId(args.id, 'Parcel'));
+            if (!lot) {
+                throw Error('Unable to find Lot');
+            }
+            await lot.removeLike(context.uid);
+            (lot as any).changed('updatedAt', true);
+            await lot.save();
+            return lot;
         }
     },
     SearchResult: {

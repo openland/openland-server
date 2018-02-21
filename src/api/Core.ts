@@ -9,6 +9,11 @@ export const Schema = `
     openEnded: Boolean!
   }
   
+  type Likes {
+    liked: Boolean!
+    count: Int
+  }
+
   type Geo {
     latitude: Float!
     longitude: Float!

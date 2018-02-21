@@ -5,6 +5,7 @@ import { Block, BlockTable } from './Block';
 import { JsonMap } from '../utils/json';
 import { CityTable } from './City';
 import { StreetNumberTable, StreetNumber } from './StreetNumber';
+import { UserTable, User } from './User';
 
 export interface LotAttributes {
     id?: number;
@@ -19,8 +20,14 @@ export interface LotAttributes {
 export interface Lot extends sequelize.Instance<LotAttributes>, LotAttributes {
     block?: Block;
     streetNumbers?: Array<StreetNumber>;
+    likes?: Array<User>;
     getStreetNumbers(options?: any): Promise<Array<StreetNumber>>;
     setStreetNumbers(numbers: Array<number>, options?: any): Promise<void>;
+
+    getLikes(options?: any): Promise<Array<User>>;
+    setLikes(likes: Array<number>, options?: any): Promise<void>;
+    addLike(like: number): Promise<void>;
+    removeLike(like: number): Promise<void>;
 }
 
 export const LotTable = connection.define<Lot, LotAttributes>('lot', {
@@ -48,3 +55,7 @@ LotTable.belongsTo(BlockTable, { as: 'block', foreignKey: { allowNull: false } }
 LotTable.belongsTo(CityTable, { as: 'city' });
 
 LotTable.belongsToMany(StreetNumberTable, { through: 'lot_street_numbers', as: 'streetNumbers' });
+
+// Likes
+
+LotTable.belongsToMany(UserTable, { through: 'parcel_likes', as: 'likes' });
