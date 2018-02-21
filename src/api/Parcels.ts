@@ -132,6 +132,11 @@ export const Schema = `
     type ParcelResult {
         node: Parcel!
         score: Float!
+        highlight: [SearchHighlight!]!
+    }
+    type SearchHighlight {
+        key: String!
+        match: String!
     }
 
     extend type SearchResult {
@@ -284,12 +289,23 @@ export const Resolver = {
                     query: {
                         bool: {
                             should: [
-                                { match: { 'address': { query: query.query, operator: 'and' } } },
-                                { prefix: { lotId: query.query } },
-                                { term: { lotId: { value: query.query, boost: 3.0 } } },
+                                // Address Matcher
+                                { match: { 'addressRaw': { query: query.query, operator: 'and' } } },
+
+                                // Lot ID matcher
                                 { prefix: { 'displayId': { value: query.query, boost: 2.0 } } },
-                                { term: { blockId: { value: query.query, boost: 0.5 } } }
+                                // { prefix: { lotId: query.query } },
+                                // { term: { lotId: { value: query.query, boost: 3.0 } } },
+
+                                // Block ID matcher
+                                // { term: { blockId: { value: query.query, boost: 0.5 } } }
                             ]
+                        }
+                    },
+                    highlight: {
+                        fields: {
+                            displayId: {},
+                            addressRaw: {}
                         }
                     }
                 }
@@ -298,10 +314,25 @@ export const Resolver = {
             let edges = [];
 
             for (let hit of hits.hits.hits) {
+                console.warn(hit.highlight);
                 let lt = await DB.Lot.findById(parseInt(hit._id, 10));
                 if (lt) {
+                    let highlights = [];
+                    if (hit.highlight) {
+                        if (hit.highlight.displayId) {
+                            highlights.push({ key: 'title', match: hit.highlight.displayId });
+                        }
+                        if (hit.highlight.addressRaw) {
+                            if (typeof hit.highlight.addressRaw === 'string') {
+                                highlights.push({ key: 'address', match: hit.highlight.addressRaw });
+                            } else {
+                                highlights.push({ key: 'address', match: hit.highlight.addressRaw[0] });
+                            }
+                        }
+                    }
                     edges.push({
                         score: hit._score,
+                        highlight: highlights,
                         node: lt
                     });
                 }
