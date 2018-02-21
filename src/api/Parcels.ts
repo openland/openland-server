@@ -119,6 +119,8 @@ export const Schema = `
 
         parcelsOverlay(box: GeoBox!, limit: Int!, filterZoning: [String!], query: String): [Parcel!]
         blocksOverlay(box: GeoBox!, limit: Int!, filterZoning: [String!], query: String): [Block!]
+
+        parcelFavorites: [Parcel!]!
     }
 
     extend type Mutation {
@@ -276,6 +278,12 @@ export const Resolver = {
         },
         parcelsOverlay: async function (_: any, args: { box: { south: number, north: number, east: number, west: number }, limit: number, filterZoning?: string[] | null, query?: string | null }) {
             return Repos.Parcels.fetchGeoParcels(args.box, args.limit, args.query);
+        },
+        parcelFavorites: async function (_: any, args: {}, context: CallContext) {
+            if (!context.uid) {
+                return [];
+            }
+            return Repos.Parcels.fetchFavorites(context.uid);
         }
     },
     Mutation: {

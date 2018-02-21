@@ -56,6 +56,18 @@ export class ParcelRepository {
         return await DB.Lot.findById(parcelId);
     }
 
+    async fetchFavorites(userId: number) {
+        return await DB.Lot.findAll({
+            include: [{
+                model: DB.User,
+                as: 'likes',
+                where: {
+                    id: userId
+                }
+            }]
+        });
+    }
+
     async fetchParcelsConnection(cityId: number, first: number, query?: string, after?: string, page?: number) {
         let clauses: any[] = [];
         clauses.push({ term: { 'cityId': cityId } });
@@ -92,7 +104,6 @@ export class ParcelRepository {
         if (query) {
             let parsed = this.parser.parseQuery(query);
             let elasticQuery = buildElasticQuery(parsed);
-            console.warn(elasticQuery);
             must = elasticQuery;
         }
 
