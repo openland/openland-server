@@ -35,6 +35,7 @@ export const Schema = `
         extrasBathrooms: Int
         extrasBedrooms: Int
         extrasNeighborhood: String
+        extrasMetroDistance: Int
 
         metadata: ParcelMetadata!
 
@@ -225,6 +226,7 @@ export const Resolver = {
         },
 
         extrasArea: (src: Lot) => (src.extras && src.extras.area) ? Math.round(src.extras.area as number) : null,
+        extrasMetroDistance: (src: Lot) => (src.extras && src.extras.distance_muni) ? Math.round(src.extras.distance_muni as number) : null,
         extrasZoning: (src: Lot) => src.extras ? src.extras.zoning : null,
         extrasSupervisorDistrict: (src: Lot) => src.extras ? src.extras.supervisor_id : null,
         extrasLandValue: (src: Lot) => src.extras ? src.extras.land_value : null,
