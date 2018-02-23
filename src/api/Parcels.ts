@@ -236,13 +236,13 @@ export const Resolver = {
         extrasArea: (src: Lot) => (src.extras && src.extras.area) ? Math.round(src.extras.area as number) : null,
         
         extrasMetroDistance: (src: Lot) => (src.extras && src.extras.nearest_muni_distance) ? Math.round(src.extras.nearest_muni_distance as number) : null,
-        extrasMetroStation: (src: Lot) => (src.extras && src.extras.nearest_muni) ? Math.round(src.extras.nearest_muni as number) : null,
+        extrasMetroStation: (src: Lot) => (src.extras && src.extras.nearest_muni) ? src.extras.nearest_muni : null,
 
         extrasTrainDistance: (src: Lot) => (src.extras && src.extras.nearest_caltrain_distance) ? Math.round(src.extras.nearest_caltrain_distance as number) : null,
-        extrasTrainStation: (src: Lot) => (src.extras && src.extras.nearest_caltrain) ? Math.round(src.extras.nearest_caltrain as number) : null,
+        extrasTrainStation: (src: Lot) => (src.extras && src.extras.nearest_caltrain) ? src.extras.nearest_caltrain : null,
 
         extrasTrainLocalDistance: (src: Lot) => (src.extras && src.extras.nearest_bart_distance) ? Math.round(src.extras.nearest_bart_distance as number) : null,
-        extrasTrainLocalStation: (src: Lot) => (src.extras && src.extras.nearest_bart) ? Math.round(src.extras.nearest_bart as number) : null,
+        extrasTrainLocalStation: (src: Lot) => (src.extras && src.extras.nearest_bart) ? src.extras.nearest_bart : null,
 
         extrasZoning: (src: Lot) => src.extras ? src.extras.zoning : null,
         extrasSupervisorDistrict: (src: Lot) => src.extras ? src.extras.supervisor_id : null,
