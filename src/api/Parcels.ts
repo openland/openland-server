@@ -35,7 +35,15 @@ export const Schema = `
         extrasBathrooms: Int
         extrasBedrooms: Int
         extrasNeighborhood: String
+
         extrasMetroDistance: Int
+        extrasMetroStation: String
+
+        extrasTrainDistance: Int
+        extrasTrainStation: String
+
+        extrasTrainLocalDistance: Int
+        extrasTrainLocalStation: String
 
         metadata: ParcelMetadata!
 
@@ -226,7 +234,16 @@ export const Resolver = {
         },
 
         extrasArea: (src: Lot) => (src.extras && src.extras.area) ? Math.round(src.extras.area as number) : null,
-        extrasMetroDistance: (src: Lot) => (src.extras && src.extras.distance_muni) ? Math.round(src.extras.distance_muni as number) : null,
+        
+        extrasMetroDistance: (src: Lot) => (src.extras && src.extras.nearest_muni_distance) ? Math.round(src.extras.nearest_muni_distance as number) : null,
+        extrasMetroStation: (src: Lot) => (src.extras && src.extras.nearest_muni) ? Math.round(src.extras.nearest_muni as number) : null,
+
+        extrasTrainDistance: (src: Lot) => (src.extras && src.extras.nearest_caltrain_distance) ? Math.round(src.extras.nearest_caltrain_distance as number) : null,
+        extrasTrainStation: (src: Lot) => (src.extras && src.extras.nearest_caltrain) ? Math.round(src.extras.nearest_caltrain as number) : null,
+
+        extrasTrainLocalDistance: (src: Lot) => (src.extras && src.extras.nearest_bart_distance) ? Math.round(src.extras.nearest_bart_distance as number) : null,
+        extrasTrainLocalStation: (src: Lot) => (src.extras && src.extras.nearest_bart) ? Math.round(src.extras.nearest_bart as number) : null,
+
         extrasZoning: (src: Lot) => src.extras ? src.extras.zoning : null,
         extrasSupervisorDistrict: (src: Lot) => src.extras ? src.extras.supervisor_id : null,
         extrasLandValue: (src: Lot) => src.extras ? src.extras.land_value : null,
