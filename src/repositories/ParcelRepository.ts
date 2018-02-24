@@ -149,6 +149,28 @@ export class ParcelRepository {
         return res;
     }
 
+    async fetchParcelsCount(query?: string | null) {
+        let must = { match_all: {} };
+        if (query) {
+            let parsed = this.parser.parseQuery(query);
+            let elasticQuery = buildElasticQuery(parsed);
+            must = elasticQuery;
+        }
+        console.warn(must);
+        let hits = await ElasticClient.count({
+            index: 'parcels',
+            type: 'parcel',
+            body: {
+                query: {
+                    bool: {
+                        must: must,
+                    }
+                }
+            }
+        });
+        return hits.count;
+    }
+
     async applyParcels(cityId: number, parcel: {
         id: string, blockId?: string | null,
         geometry?: number[][][] | null,

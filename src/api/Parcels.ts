@@ -130,6 +130,7 @@ export const Schema = `
         blocksOverlay(box: GeoBox!, limit: Int!, filterZoning: [String!], query: String): [Block!]
 
         parcelFavorites: [Parcel!]!
+        parcelsStats(query: String): Int!
     }
 
     extend type Mutation {
@@ -234,7 +235,7 @@ export const Resolver = {
         },
 
         extrasArea: (src: Lot) => (src.extras && src.extras.area) ? Math.round(src.extras.area as number) : null,
-        
+
         extrasMetroDistance: (src: Lot) => (src.extras && src.extras.nearest_muni_distance) ? Math.round(src.extras.nearest_muni_distance as number) : null,
         extrasMetroStation: (src: Lot) => (src.extras && src.extras.nearest_muni) ? src.extras.nearest_muni : null,
 
@@ -295,8 +296,11 @@ export const Resolver = {
         parcel: async function (_: any, args: { id: string }) {
             return Repos.Parcels.fetchParcel(parseId(args.id, 'Parcel'));
         },
-        parcelsOverlay: async function (_: any, args: { box: { south: number, north: number, east: number, west: number }, limit: number, filterZoning?: string[] | null, query?: string | null }) {
+        parcelsOverlay: async function (_: any, args: { box: { south: number, north: number, east: number, west: number }, limit: number, query?: string | null }) {
             return Repos.Parcels.fetchGeoParcels(args.box, args.limit, args.query);
+        },
+        parcelsStats: async function (_: any, args: { query?: string | null }) {
+            return Repos.Parcels.fetchParcelsCount(args.query);
         },
         parcelFavorites: async function (_: any, args: {}, context: CallContext) {
             if (!context.uid) {
