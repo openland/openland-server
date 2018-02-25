@@ -76,6 +76,14 @@ export class QueryParser {
         }
     }
 
+    registerBoolean = (name: string, mappedName: string) => {
+        if (!this.registeredFields.has(name.toLocaleLowerCase())) {
+            this.registeredFields.set(name.toLocaleLowerCase(), { type: 'bool', mappedName: mappedName });
+        } else {
+            throw Error('Double field registration: ' + name);
+        }
+    }
+
     registerText = (name: string, mappedName: string) => {
         if (!this.registeredFields.has(name.toLocaleLowerCase())) {
             this.registeredFields.set(name.toLocaleLowerCase(), { type: 'text', mappedName: mappedName });
@@ -101,7 +109,6 @@ export class QueryParser {
             throw Error('Expected to have only single field in json object');
         }
         let type = names[0];
-        console.warn(type);
         if (type.toLocaleLowerCase() === '$or') {
             let clauses = src[type];
             if (!Array.isArray(clauses)) {
@@ -176,7 +183,24 @@ export class QueryParser {
                         exact: value
                     };
                 } else {
-                    throw Error('Unsupported int field value ' + value);
+                    throw Error('Unsupported text field value ' + value);
+                }
+            } else if (tp.type === 'bool') {
+                let value = src[type];
+                if (typeof value === 'string') {
+                    return {
+                        type: 'field',
+                        field: tp.mappedName,
+                        exact: value === 'true'
+                    };
+                } else if (typeof value === 'boolean') {
+                    return {
+                        type: 'field',
+                        field: tp.mappedName,
+                        exact: value
+                    };
+                } else {
+                    throw Error('Unsupported boolean field value ' + value);
                 }
             } else {
                 throw Error('Unsupported field type ' + tp.type);

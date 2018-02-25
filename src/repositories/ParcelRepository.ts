@@ -30,6 +30,7 @@ export class ParcelRepository {
         this.parser.registerInt('area', 'extras.area');
         this.parser.registerText('zone', 'zoning');
         this.parser.registerText('currentUse', 'currentUse');
+        this.parser.registerBoolean('onSale', 'available');
     }
 
     async applyMetadata(id: number, metadata: { description?: string | null, currentUse?: string | null, available?: boolean | null }) {
@@ -156,7 +157,6 @@ export class ParcelRepository {
             let elasticQuery = buildElasticQuery(parsed);
             must = elasticQuery;
         }
-        console.warn(must);
         let hits = await ElasticClient.count({
             index: 'parcels',
             type: 'parcel',
