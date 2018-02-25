@@ -259,13 +259,13 @@ export const Resolver = {
                 return null;
             }
             let res = null;
-            if (src.extras.nearest_muni_distance && (!res || res < src.extras.nearest_muni_distance)) {
+            if (src.extras.nearest_muni_distance && (!res || res < src.extras.nearest_muni_distance!!)) {
                 res = Math.round(src.extras.nearest_muni_distance as number);
             }
-            if (src.extras.nearest_caltrain_distance && (!res || res < src.extras.nearest_caltrain_distance)) {
+            if (src.extras.nearest_caltrain_distance && (!res || res < src.extras.nearest_caltrain_distance!!)) {
                 res = Math.round(src.extras.nearest_caltrain_distance as number);
             }
-            if (src.extras.nearest_bart_distance && (!res || res < src.extras.nearest_bart_distance)) {
+            if (src.extras.nearest_bart_distance && (!res || res < src.extras.nearest_bart_distance!!)) {
                 res = Math.round(src.extras.nearest_bart_distance as number);
             }
             return res;
@@ -276,15 +276,15 @@ export const Resolver = {
             }
             let res = null;
             let resTitle = null;
-            if (src.extras.nearest_muni_distance && (!res || res < src.extras.nearest_muni_distance)) {
+            if (src.extras.nearest_muni_distance && (!res || res < src.extras.nearest_muni_distance!!)) {
                 res = Math.round(src.extras.nearest_muni_distance as number);
                 resTitle = 'MUNI Metro';
             }
-            if (src.extras.nearest_caltrain_distance && (!res || res < src.extras.nearest_caltrain_distance)) {
+            if (src.extras.nearest_caltrain_distance && (!res || res < src.extras.nearest_caltrain_distance!!)) {
                 res = Math.round(src.extras.nearest_caltrain_distance as number);
                 resTitle = 'Caltrain';
             }
-            if (src.extras.nearest_bart_distance && (!res || res < src.extras.nearest_bart_distance)) {
+            if (src.extras.nearest_bart_distance && (!res || res < src.extras.nearest_bart_distance!!)) {
                 res = Math.round(src.extras.nearest_bart_distance as number);
                 resTitle = 'BART';
             }
@@ -296,15 +296,15 @@ export const Resolver = {
             }
             let res = null;
             let resTitle = null;
-            if (src.extras.nearest_muni_distance && (!res || res < src.extras.nearest_muni_distance)) {
+            if (src.extras.nearest_muni_distance && (!res || res < src.extras.nearest_muni_distance!!)) {
                 res = Math.round(src.extras.nearest_muni_distance as number);
                 resTitle = src.extras.nearest_muni;
             }
-            if (src.extras.nearest_caltrain_distance && (!res || res < src.extras.nearest_caltrain_distance)) {
+            if (src.extras.nearest_caltrain_distance && (!res || res < src.extras.nearest_caltrain_distance!!)) {
                 res = Math.round(src.extras.nearest_caltrain_distance as number);
                 resTitle = src.extras.nearest_caltrain;
             }
-            if (src.extras.nearest_bart_distance && (!res || res < src.extras.nearest_bart_distance)) {
+            if (src.extras.nearest_bart_distance && (!res || res < src.extras.nearest_bart_distance!!)) {
                 res = Math.round(src.extras.nearest_bart_distance as number);
                 resTitle = src.extras.nearest_bart;
             }
