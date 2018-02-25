@@ -28,7 +28,7 @@ const checkJwt = jwt({
     credentialsRequired: false,
 
     // Validate the audience and the issuer.
-    // audience: 'https://statecraft.auth0.com/userinfo',
+    audience: 'https://statecraft.production',
     issuer: `https://statecraft.auth0.com/`,
     algorithms: ['RS256'],
 });
