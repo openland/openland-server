@@ -45,6 +45,15 @@ export const Schema = `
         extrasTrainLocalDistance: Int
         extrasTrainLocalStation: String
 
+        extrasNearestTransitDistance: Int
+        extrasNearestTransitType: String
+        extrasNearestTransitStation: String
+
+        extrasLandUse: String
+        extrasSalesDate: String
+        extrasSalesPriorDate: String
+        extrasRecordationDate: String
+
         metadata: ParcelMetadata!
 
         likes: Likes!
@@ -245,7 +254,70 @@ export const Resolver = {
         extrasTrainLocalDistance: (src: Lot) => (src.extras && src.extras.nearest_bart_distance) ? Math.round(src.extras.nearest_bart_distance as number) : null,
         extrasTrainLocalStation: (src: Lot) => (src.extras && src.extras.nearest_bart) ? src.extras.nearest_bart : null,
 
+        extrasNearestTransitDistance: (src: Lot) => {
+            if (!src.extras) {
+                return null;
+            }
+            let res = null;
+            if (src.extras.nearest_muni_distance && (!res || res < src.extras.nearest_muni_distance)) {
+                res = Math.round(src.extras.nearest_muni_distance as number);
+            }
+            if (src.extras.nearest_caltrain_distance && (!res || res < src.extras.nearest_caltrain_distance)) {
+                res = Math.round(src.extras.nearest_caltrain_distance as number);
+            }
+            if (src.extras.nearest_bart_distance && (!res || res < src.extras.nearest_bart_distance)) {
+                res = Math.round(src.extras.nearest_bart_distance as number);
+            }
+            return res;
+        },
+        extrasNearestTransitType: (src: Lot) => {
+            if (!src.extras) {
+                return null;
+            }
+            let res = null;
+            let resTitle = null;
+            if (src.extras.nearest_muni_distance && (!res || res < src.extras.nearest_muni_distance)) {
+                res = Math.round(src.extras.nearest_muni_distance as number);
+                resTitle = 'MUNI Metro';
+            }
+            if (src.extras.nearest_caltrain_distance && (!res || res < src.extras.nearest_caltrain_distance)) {
+                res = Math.round(src.extras.nearest_caltrain_distance as number);
+                resTitle = 'Caltrain';
+            }
+            if (src.extras.nearest_bart_distance && (!res || res < src.extras.nearest_bart_distance)) {
+                res = Math.round(src.extras.nearest_bart_distance as number);
+                resTitle = 'BART';
+            }
+            return resTitle;
+        },
+        extrasNearestTransitStation: (src: Lot) => {
+            if (!src.extras) {
+                return null;
+            }
+            let res = null;
+            let resTitle = null;
+            if (src.extras.nearest_muni_distance && (!res || res < src.extras.nearest_muni_distance)) {
+                res = Math.round(src.extras.nearest_muni_distance as number);
+                resTitle = src.extras.nearest_muni;
+            }
+            if (src.extras.nearest_caltrain_distance && (!res || res < src.extras.nearest_caltrain_distance)) {
+                res = Math.round(src.extras.nearest_caltrain_distance as number);
+                resTitle = src.extras.nearest_caltrain;
+            }
+            if (src.extras.nearest_bart_distance && (!res || res < src.extras.nearest_bart_distance)) {
+                res = Math.round(src.extras.nearest_bart_distance as number);
+                resTitle = src.extras.nearest_bart;
+            }
+            return resTitle;
+        },
+
         extrasZoning: (src: Lot) => src.extras ? src.extras.zoning : null,
+        
+        extrasLandUse: (src: Lot) => src.extras ? src.extras.land_use : null,
+        extrasSalesDate: (src: Lot) => src.extras ? src.extras.sales_date : null,
+        extrasSalesPriorDate: (src: Lot) => src.extras ? src.extras.sales_date_prior : null,
+        extrasRecordationDate: (src: Lot) => src.extras ? src.extras.recordation_date : null,
+
         extrasSupervisorDistrict: (src: Lot) => src.extras ? src.extras.supervisor_id : null,
         extrasLandValue: (src: Lot) => src.extras ? src.extras.land_value : null,
         extrasImprovementValue: (src: Lot) => src.extras ? src.extras.improvement_value : null,
