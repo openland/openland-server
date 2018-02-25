@@ -83,7 +83,7 @@ export class ParcelRepository {
             index: 'parcels',
             type: 'parcel',
             size: first,
-            from: page ? (page * first) : 0,
+            from: page ? ((page - 1) * first) : 0,
             body: {
                 query: { bool: { must: clauses } },
                 sort: sort
