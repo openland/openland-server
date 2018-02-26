@@ -57,6 +57,8 @@ export const Schema = `
         metadata: ParcelMetadata!
 
         likes: Likes!
+
+        permits: [Permit!]!
     }
 
     enum ParcelUse {
@@ -243,6 +245,23 @@ export const Resolver = {
             };
         },
 
+        permits: async (src: Lot) => {
+            return DB.Permit.findAll({
+                where: {
+                    parcelId: src.id
+                },
+                include: [{
+                    model: DB.StreetNumber,
+                    as: 'streetNumbers',
+                    include: [{
+                        model: DB.Street,
+                        as: 'street'
+                    }],
+                }],
+                order: [['permitCreated', 'DESC']]
+            });
+        },
+
         extrasArea: (src: Lot) => (src.extras && src.extras.area) ? Math.round(src.extras.area as number) : null,
 
         extrasMetroDistance: (src: Lot) => (src.extras && src.extras.nearest_muni_distance) ? Math.round(src.extras.nearest_muni_distance as number) : null,
@@ -312,7 +331,7 @@ export const Resolver = {
         },
 
         extrasZoning: (src: Lot) => src.extras ? src.extras.zoning : null,
-        
+
         extrasLandUse: (src: Lot) => src.extras ? src.extras.land_use : null,
         extrasSalesDate: (src: Lot) => src.extras ? src.extras.sales_date : null,
         extrasSalesPriorDate: (src: Lot) => src.extras ? src.extras.sales_date_prior : null,
