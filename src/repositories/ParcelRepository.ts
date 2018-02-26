@@ -1,4 +1,4 @@
-import { DB } from '../tables/index';
+import { DB, Lot } from '../tables/index';
 import { Normalizer } from '../utils/Normalizer';
 import { normalizedProcessor } from '../utils/db_utils';
 import { buildGeometryFromInput } from '../modules/geometry';
@@ -278,5 +278,25 @@ export class ParcelRepository {
                 return res;
             });
         });
+    }
+
+    async findParcels(cityId: number, rawIds: string[]): Promise<Map<string, Lot>> {
+        let normalized = rawIds.map((v) => this.normalizer.normalizeId(v));
+        let found = await DB.Lot.findAll({
+            where: {
+                cityId: cityId,
+                lotId: {
+                    $in: [...new Set(normalized)]
+                }
+            }
+        });
+        let res = new Map<string, Lot>();
+        for (let i = 0; i < rawIds.length; i++) {
+            let existing = found.find((f) => f.lotId === normalized[i]);
+            if (existing) {
+                res.set(rawIds[i], existing);
+            }
+        }
+        return res;
     }
 }

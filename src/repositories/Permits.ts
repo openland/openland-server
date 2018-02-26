@@ -3,6 +3,7 @@ import { DB } from '../tables';
 import { PermitStatus, PermitType } from '../tables/Permit';
 import { bulkAssociations, bulkApply } from '../utils/db_utils';
 import { PermitEventAttributes } from '../tables/PermitEvents';
+import { Repos } from '.';
 
 export interface PermitDescriptor {
     id: string;
@@ -28,6 +29,8 @@ export interface PermitDescriptor {
     description?: string;
 
     street?: [StreetNumberDescription];
+
+    parcelId?: string;
 }
 
 function convertStatus(src?: string): PermitStatus | undefined {
@@ -77,6 +80,12 @@ export async function applyPermits(accountId: number, cityId: number, sourceDate
     console.timeEnd('street_numbers');
 
     //
+    // Searching For Parcels
+    //
+
+    let parcels = await Repos.Parcels.findParcels(cityId, permits.filter((v) => v.parcelId).map((v) => v.parcelId!!));
+
+    //
     // Apply Permits
     //
 
@@ -101,6 +110,7 @@ export async function applyPermits(accountId: number, cityId: number, sourceDate
         proposedAffordableUnits: p.proposedAffordableUnits,
         proposedUse: p.proposedUse,
         description: p.description,
+        parcelId: p.parcelId ? (parcels.get(p.parcelId) ? parcels.get(p.parcelId)!!.id : undefined) : undefined,
     }));
 
     console.time('bulk_all');
@@ -108,20 +118,19 @@ export async function applyPermits(accountId: number, cityId: number, sourceDate
     await DB.tx(async (tx) => {
         let applied = await bulkApply(tx, DB.Permit, accountId, 'permitId', rows);
         let pendingStreets = Array<{ permitId: number, streetId: number }>();
-        let pending = loadedNumbers;
         let index = 0;
         let streetIndex = 0;
         for (let p of permits) {
             if (p.street) {
                 for (let _ of p.street) {
-                    pendingStreets.push({permitId: applied[index].id, streetId: pending[streetIndex]!!});
+                    pendingStreets.push({ permitId: applied[index].id, streetId: loadedNumbers[streetIndex]!! });
                     streetIndex++;
                 }
             }
             index++;
         }
         if (pendingStreets.length > 0) {
-            let mapped = pendingStreets.map((v) => ({value1: v.permitId, value2: v.streetId}));
+            let mapped = pendingStreets.map((v) => ({ value1: v.permitId, value2: v.streetId }));
             await bulkAssociations(tx, 'permit_street_numbers', 'permitId', 'streetNumberId', mapped);
         }
 

@@ -60,7 +60,7 @@ export function startPermitsIndexer(client: ES.Client) {
             let netUnits: number = 0;
             if (p.existingUnits !== null && p.proposedUnits !== null) {
                 netUnits = p.proposedUnits!! - p.existingUnits!!;
-                console.warn(`Net Units: ${netUnits} ${p.proposedUnits} ${p.existingUnits}`);
+                // console.warn(`Net Units: ${netUnits} ${p.proposedUnits} ${p.existingUnits}`);
             } else if (p.existingUnits !== null) {
                 if (p.permitType === 'demolitions') {
                     netUnits = -p.existingUnits!!;

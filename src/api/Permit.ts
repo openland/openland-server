@@ -159,6 +159,8 @@ export const Schema = `
         proposedAffordableUnits: Int
         proposedUse: String
         description: String
+
+        parcelId: String
     }
 
     input StreetNumberInfo {
@@ -198,6 +200,8 @@ interface PermitInfo {
     proposedAffordableUnits?: number;
     proposedUse?: string;
     description?: string;
+
+    parcelId?: string;
 }
 
 interface StreetNumberInfo {
@@ -403,7 +407,7 @@ export const Resolver = {
             }));
             return elasticChart('Permits Issued — Net New Units', res);
         },
-        permitsUnitsFiledStatsMonthly: async function(_: any, args: {}, context: CallContext) {
+        permitsUnitsFiledStatsMonthly: async function (_: any, args: {}, context: CallContext) {
             let res = await cachedObject('permitsUnitsFiledStatsMonthly2_' + context.accountId, () => ElasticClient.search({
                 index: 'permits',
                 type: 'permit',

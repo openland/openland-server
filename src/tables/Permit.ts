@@ -39,6 +39,8 @@ export interface PermitAttributes {
     proposedUse?: string;
     description?: string;
 
+    parcelId?: number;
+
     updatedAt?: string;
     createdAt?: string;
 }
@@ -54,8 +56,8 @@ export interface Permit extends sequelize.Instance<PermitAttributes>, PermitAttr
 }
 
 export const PermitTable = connection.define<Permit, PermitAttributes>('permits', {
-    id: {type: sequelize.INTEGER, primaryKey: true, autoIncrement: true},
-    permitId: {type: sequelize.STRING},
+    id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
+    permitId: { type: sequelize.STRING },
     account: {
         type: sequelize.INTEGER, references: {
             model: 'accounts',
@@ -71,7 +73,7 @@ export const PermitTable = connection.define<Permit, PermitAttributes>('permits'
             'incomplete', 'granted'
         ), allowNull: true
     },
-    permitStatusUpdated: {type: sequelize.DATEONLY, allowNull: true},
+    permitStatusUpdated: { type: sequelize.DATEONLY, allowNull: true },
     permitType: {
         type: sequelize.ENUM(
             'new_construction', 'additions_alterations_repare',
@@ -79,31 +81,37 @@ export const PermitTable = connection.define<Permit, PermitAttributes>('permits'
             'grade_quarry_fill_excavate'
         ), allowNull: true
     },
-    permitTypeWood: {type: sequelize.BOOLEAN, allowNull: true},
+    permitTypeWood: { type: sequelize.BOOLEAN, allowNull: true },
 
-    permitCreated: {type: sequelize.DATEONLY, allowNull: true},
-    permitIssued: {type: sequelize.DATEONLY, allowNull: true},
-    permitStarted: {type: sequelize.DATEONLY, allowNull: true},
-    permitCompleted: {type: sequelize.DATEONLY, allowNull: true},
-    permitExpired: {type: sequelize.DATEONLY, allowNull: true},
-    permitExpires: {type: sequelize.DATEONLY, allowNull: true},
-    permitFiled: {type: sequelize.DATEONLY, allowNull: true},
+    permitCreated: { type: sequelize.DATEONLY, allowNull: true },
+    permitIssued: { type: sequelize.DATEONLY, allowNull: true },
+    permitStarted: { type: sequelize.DATEONLY, allowNull: true },
+    permitCompleted: { type: sequelize.DATEONLY, allowNull: true },
+    permitExpired: { type: sequelize.DATEONLY, allowNull: true },
+    permitExpires: { type: sequelize.DATEONLY, allowNull: true },
+    permitFiled: { type: sequelize.DATEONLY, allowNull: true },
 
-    existingStories: {type: sequelize.INTEGER, allowNull: true},
-    proposedStories: {type: sequelize.INTEGER, allowNull: true},
-    existingUnits: {type: sequelize.INTEGER, allowNull: true},
-    proposedUnits: {type: sequelize.INTEGER, allowNull: true},
-    existingAffordableUnits: {type: sequelize.INTEGER, allowNull: true},
-    proposedAffordableUnits: {type: sequelize.INTEGER, allowNull: true},
-    proposedUse: {type: sequelize.STRING, allowNull: true},
-    description: {type: sequelize.STRING(4096), allowNull: true}
+    existingStories: { type: sequelize.INTEGER, allowNull: true },
+    proposedStories: { type: sequelize.INTEGER, allowNull: true },
+    existingUnits: { type: sequelize.INTEGER, allowNull: true },
+    proposedUnits: { type: sequelize.INTEGER, allowNull: true },
+    existingAffordableUnits: { type: sequelize.INTEGER, allowNull: true },
+    proposedAffordableUnits: { type: sequelize.INTEGER, allowNull: true },
+    proposedUse: { type: sequelize.STRING, allowNull: true },
+    description: { type: sequelize.STRING(4096), allowNull: true },
+    parcelId: {
+        type: sequelize.INTEGER, references: {
+            model: 'lots',
+            key: 'id',
+        }
+    }
 }, {
-    indexes: [
-        {unique: true, fields: ['permitId', 'account']},
-        {fields: ['permitId', 'permitCreated']},
-        {fields: ['permitCreated']},
-        {fields: ['updatedAt', 'id']}
-    ]
-});
+        indexes: [
+            { unique: true, fields: ['permitId', 'account'] },
+            { fields: ['permitId', 'permitCreated'] },
+            { fields: ['permitCreated'] },
+            { fields: ['updatedAt', 'id'] }
+        ]
+    });
 
-PermitTable.belongsToMany(StreetNumberTable, {through: 'permit_street_numbers', as: 'streetNumbers'});
+PermitTable.belongsToMany(StreetNumberTable, { through: 'permit_street_numbers', as: 'streetNumbers' });
