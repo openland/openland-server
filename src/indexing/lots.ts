@@ -19,7 +19,7 @@ function parseIntSafe(src: any) {
 
 export function startLotsIndexer(client: ES.Client) {
 
-    let reader = new UpdateReader('lots_indexing_22', DB.Lot);
+    let reader = new UpdateReader('lots_indexing_23', DB.Lot);
 
     reader.elastic(client, 'parcels', 'parcel', {
         geometry: {
@@ -64,6 +64,9 @@ export function startLotsIndexer(client: ES.Client) {
             type: 'integer'
         },
         landUse: {
+            type: 'keyword'
+        },
+        distance: {
             type: 'keyword'
         }
     });
@@ -120,6 +123,19 @@ export function startLotsIndexer(client: ES.Client) {
             res += ' ' + v.street!!.name + ' ' + v.street!!.suffix;
             return res;
         });
+        let distance = null;
+        if (item.extras) {
+            if (item.extras.nearest_muni_distance && (!distance || distance < item.extras.nearest_muni_distance!!)) {
+                distance = Math.round(item.extras.nearest_muni_distance as number);
+            }
+            if (item.extras.nearest_caltrain_distance && (!distance || distance < item.extras.nearest_caltrain_distance!!)) {
+                distance = Math.round(item.extras.nearest_caltrain_distance as number);
+            }
+            if (item.extras.nearest_bart_distance && (!distance || distance < item.extras.nearest_bart_distance!!)) {
+                distance = Math.round(item.extras.nearest_bart_distance as number);
+            }
+        }
+
         return {
             id: item.id!!,
             doc: {
@@ -154,7 +170,8 @@ export function startLotsIndexer(client: ES.Client) {
                 currentUse: item.metadata!!.currentUse,
                 available: item.metadata!!.available,
                 landUse: item.extras!!.land_use,
-                area: item.extras!!.area
+                area: item.extras!!.area,
+                distance: distance
             }
         };
     });

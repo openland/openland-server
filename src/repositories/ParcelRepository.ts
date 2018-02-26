@@ -32,6 +32,7 @@ export class ParcelRepository {
         this.parser.registerText('currentUse', 'currentUse');
         this.parser.registerBoolean('onSale', 'available');
         this.parser.registerText('landUse', 'landUse');
+        this.parser.registerInt('transitDistance', 'distance');
     }
 
     async applyMetadata(id: number, metadata: { description?: string | null, currentUse?: string | null, available?: boolean | null }) {
