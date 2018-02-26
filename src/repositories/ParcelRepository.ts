@@ -27,10 +27,11 @@ export class ParcelRepository {
 
     constructor() {
         this.parser.registerInt('stories', 'stories');
-        this.parser.registerInt('area', 'extras.area');
+        this.parser.registerInt('area', 'area');
         this.parser.registerText('zone', 'zoning');
         this.parser.registerText('currentUse', 'currentUse');
         this.parser.registerBoolean('onSale', 'available');
+        this.parser.registerText('landUse', 'landUse');
     }
 
     async applyMetadata(id: number, metadata: { description?: string | null, currentUse?: string | null, available?: boolean | null }) {

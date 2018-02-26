@@ -19,7 +19,7 @@ function parseIntSafe(src: any) {
 
 export function startLotsIndexer(client: ES.Client) {
 
-    let reader = new UpdateReader('lots_indexing_21', DB.Lot);
+    let reader = new UpdateReader('lots_indexing_22', DB.Lot);
 
     reader.elastic(client, 'parcels', 'parcel', {
         geometry: {
@@ -59,6 +59,12 @@ export function startLotsIndexer(client: ES.Client) {
         },
         blockSourceId: {
             type: 'integer'
+        },
+        area: {
+            type: 'integer'
+        },
+        landUse: {
+            type: 'keyword'
         }
     });
 
@@ -146,7 +152,9 @@ export function startLotsIndexer(client: ES.Client) {
                 address: address.join(),
                 addressRaw: address,
                 currentUse: item.metadata!!.currentUse,
-                available: item.metadata!!.available
+                available: item.metadata!!.available,
+                landUse: item.extras!!.land_use,
+                area: item.extras!!.area
             }
         };
     });
