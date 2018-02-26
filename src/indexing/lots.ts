@@ -19,7 +19,7 @@ function parseIntSafe(src: any) {
 
 export function startLotsIndexer(client: ES.Client) {
 
-    let reader = new UpdateReader('lots_indexing_23', DB.Lot);
+    let reader = new UpdateReader('lots_indexing_25', DB.Lot);
 
     reader.elastic(client, 'parcels', 'parcel', {
         geometry: {
@@ -67,7 +67,7 @@ export function startLotsIndexer(client: ES.Client) {
             type: 'keyword'
         },
         distance: {
-            type: 'keyword'
+            type: 'integer'
         }
     });
 
@@ -125,13 +125,13 @@ export function startLotsIndexer(client: ES.Client) {
         });
         let distance = null;
         if (item.extras) {
-            if (item.extras.nearest_muni_distance && (!distance || distance < item.extras.nearest_muni_distance!!)) {
+            if (item.extras.nearest_muni_distance && (!distance || distance > item.extras.nearest_muni_distance!!)) {
                 distance = Math.round(item.extras.nearest_muni_distance as number);
             }
-            if (item.extras.nearest_caltrain_distance && (!distance || distance < item.extras.nearest_caltrain_distance!!)) {
+            if (item.extras.nearest_caltrain_distance && (!distance || distance > item.extras.nearest_caltrain_distance!!)) {
                 distance = Math.round(item.extras.nearest_caltrain_distance as number);
             }
-            if (item.extras.nearest_bart_distance && (!distance || distance < item.extras.nearest_bart_distance!!)) {
+            if (item.extras.nearest_bart_distance && (!distance || distance > item.extras.nearest_bart_distance!!)) {
                 distance = Math.round(item.extras.nearest_bart_distance as number);
             }
         }
