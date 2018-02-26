@@ -1,5 +1,5 @@
 
-export type QueryPart = OrQuery | AndQuery | IntValueQuery | IntValueSpanQuery;
+export type QueryPart = OrQuery | AndQuery | IntValueQuery | IntValueSpanQuery | ValueEnumQuery;
 
 export interface OrQuery {
     type: 'or';
@@ -15,6 +15,12 @@ export interface IntValueQuery {
     type: 'field';
     field: string;
     exact: any;
+}
+
+export interface ValueEnumQuery {
+    type: 'field_enum';
+    field: string;
+    values: any[];
 }
 
 export interface IntValueSpanQuery {
@@ -41,6 +47,12 @@ export function buildElasticQuery(query: QueryPart): any {
         };
     } else if (query.type === 'field') {
         return { match: { [query.field]: query.exact } };
+    } else if (query.type === 'field_enum') {
+        return {
+            bool: {
+                should: query.values.map((v) => ({ match: { [query.field]: v } }))
+            }
+        };
     } else if (query.type === 'range') {
         let fields: any = {};
         if (query.gte !== undefined) {
@@ -181,6 +193,17 @@ export class QueryParser {
                         type: 'field',
                         field: tp.mappedName,
                         exact: value
+                    };
+                } else if (Array.isArray(value)) {
+                    for (let v of value) {
+                        if (typeof v !== 'string') {
+                            throw Error('Unsupported text field value ' + v);
+                        }
+                    }
+                    return {
+                        type: 'field_enum',
+                        field: tp.mappedName,
+                        values: value
                     };
                 } else {
                     throw Error('Unsupported text field value ' + value);
