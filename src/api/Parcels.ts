@@ -3,10 +3,13 @@ import { Block } from '../tables/Block';
 import { Repos } from '../repositories/index';
 import { ExtrasInput } from './Core';
 import { DB } from '../tables';
-import { buildId, parseId } from '../utils/ids';
+import { ID } from '../modules/ID';
 import { ElasticClient } from '../indexing';
 import * as Turf from '@turf/turf';
 import { CallContext } from './CallContext';
+
+let ParcelID = new ID('Parcel');
+let BlockID = new ID('Block');
 
 export const Schema = `
 
@@ -194,7 +197,7 @@ interface BlockInput {
 
 export const Resolver = {
     Parcel: {
-        id: (src: Lot) => buildId(src.id!!, 'Parcel'),
+        id: (src: Lot) => ParcelID.serialize(src.id!!),
         title: (src: Lot) => (src.extras && src.extras.displayId) ? src.extras.displayId : src.lotId,
         geometry: (src: Lot) => src.geometry ? JSON.stringify(src.geometry!!.polygons.map((v) => v.coordinates.map((c) => [c.longitude, c.latitude]))) : null,
         center: (src: Lot) => {
@@ -351,7 +354,7 @@ export const Resolver = {
         extrasNeighborhood: (src: Lot) => src.extras ? src.extras.neighbourhoods : null,
     },
     Block: {
-        id: (src: Block) => buildId(src.id!!, 'Block'),
+        id: (src: Block) => BlockID.serialize(src.id!!),
         title: (src: Block) => (src.extras && src.extras.displayId) ? src.extras.displayId : src.blockId,
         geometry: (src: Block) => src.geometry ? JSON.stringify(src.geometry!!.polygons.map((v) => v.coordinates.map((c) => [c.longitude, c.latitude]))) : null,
         parcels: (src: Block) => DB.Lot.findAll({ where: { blockId: src.id!! } }),
@@ -375,7 +378,7 @@ export const Resolver = {
             return await Repos.Blocks.fetchBlocks(cityId, args.first, args.filter, args.after, args.page);
         },
         block: async function (_: any, args: { id: string }) {
-            return Repos.Blocks.fetchBlock(parseId(args.id, 'Block'));
+            return Repos.Blocks.fetchBlock(BlockID.parse(args.id));
         },
         blocksOverlay: async function (_: any, args: { box: { south: number, north: number, east: number, west: number }, limit: number, filterZoning?: string[] | null, query?: string | null }) {
             return Repos.Blocks.fetchGeoBlocks(args.box, args.limit, args.query);
@@ -385,7 +388,7 @@ export const Resolver = {
             return await Repos.Parcels.fetchParcelsConnection(cityId, args.first, args.query, args.after, args.page);
         },
         parcel: async function (_: any, args: { id: string }) {
-            return Repos.Parcels.fetchParcel(parseId(args.id, 'Parcel'));
+            return Repos.Parcels.fetchParcel(ParcelID.parse(args.id));
         },
         parcelsOverlay: async function (_: any, args: { box: { south: number, north: number, east: number, west: number }, limit: number, query?: string | null }) {
             return Repos.Parcels.fetchGeoParcels(args.box, args.limit, args.query);
@@ -412,13 +415,13 @@ export const Resolver = {
             return 'ok';
         },
         parcelAlterMetadata: async function (_: any, args: { id: string, data: { description?: string | null, currentUse?: string | null, available?: boolean | null } }) {
-            return Repos.Parcels.applyMetadata(parseId(args.id, 'Parcel'), args.data);
+            return Repos.Parcels.applyMetadata(ParcelID.parse(args.id), args.data);
         },
         likeParcel: async function (_: any, args: { id: string }, context: CallContext) {
             if (!context.uid) {
                 throw Error('Authentication is required');
             }
-            let lot = await Repos.Parcels.fetchParcel(parseId(args.id, 'Parcel'));
+            let lot = await Repos.Parcels.fetchParcel(ParcelID.parse(args.id));
             if (!lot) {
                 throw Error('Unable to find Lot');
             }
@@ -431,7 +434,7 @@ export const Resolver = {
             if (!context.uid) {
                 throw Error('Authentication is required');
             }
-            let lot = await Repos.Parcels.fetchParcel(parseId(args.id, 'Parcel'));
+            let lot = await Repos.Parcels.fetchParcel(ParcelID.parse(args.id));
             if (!lot) {
                 throw Error('Unable to find Lot');
             }
