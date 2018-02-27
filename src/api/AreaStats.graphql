@@ -1,0 +1,12 @@
+    type AreaStats {
+        totalProjects: Int!
+        totalProjectsVerified: Int!
+        totalDevelopers: Int!
+        totalConstructors: Int!
+        totalOrganizations: Int!
+        totalPermits: Int!
+    }
+    
+    extend type Area {
+        stats: AreaStats!
+    }

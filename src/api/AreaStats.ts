@@ -3,21 +3,6 @@ import { ElasticClient } from '../indexing/index';
 import { cachedInt } from '../modules/cache';
 import { AreaContext } from './Area';
 
-export const Schema = `
-    type AreaStats {
-        totalProjects: Int!
-        totalProjectsVerified: Int!
-        totalDevelopers: Int!
-        totalConstructors: Int!
-        totalOrganizations: Int!
-        totalPermits: Int!
-    }
-    
-    extend type Area {
-        stats: AreaStats!
-    }
-`;
-
 function resolve(id: number) {
     return {
         _areaId: id,

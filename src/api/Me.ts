@@ -1,19 +1,6 @@
 import { DB } from '../tables';
 import { CallContext } from './CallContext';
 
-export const Schema = `
-    type User {
-        id: ID!
-        name: String!
-        firstName: String!
-        lastName: String!
-        picture: String!
-    }
-    extend type Query {
-        me: User
-    }
-`;
-
 export const Resolver = {
     Query: {
         me: async function (_obj: any, _params: {}, context: CallContext) {

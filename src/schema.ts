@@ -5,12 +5,12 @@ import * as Permits from './api/Permit';
 import * as BuildingProject from './api/BuildingProject';
 import * as Picture from './api/Picture';
 import * as Organizations from './api/Organizations';
-import * as Core from './api/Core';
 import * as Stats from './api/AreaStats';
 import * as Parcels from './api/Parcels';
 import * as Area from './api/Area';
 import * as Incidents from './api/Incident';
 import * as Search from './api/Search';
+import * as fs from 'fs';
 import { merge } from 'lodash';
 
 const RootQuery = `
@@ -42,21 +42,17 @@ const rootResolver = {
     }
 };
 
+let schemas = fs
+    .readdirSync(__dirname + '/api/')
+    .filter((v) => v.endsWith('.graphql'))
+    .map((f) => fs.readFileSync(__dirname + '/api/' + f, 'utf-8'))
+    .sort();
+
 export const Schema = makeExecutableSchema({
     typeDefs: [
-        Core.Schema,
-        RootQuery, SchemaDefinition,
-        Account.Schema,
-        Me.Schema,
-        Permits.Schema,
-        BuildingProject.Schema,
-        Picture.Schema,
-        Organizations.Schema,
-        Stats.Schema,
-        Parcels.Schema,
-        Area.Schema,
-        Incidents.Schema,
-        Search.Schema
+        RootQuery,
+        SchemaDefinition,
+        ...schemas
     ],
     resolvers: merge(rootResolver,
         Account.Resolver,

@@ -1,0 +1,68 @@
+
+    enum IncidentCategory {
+        ROBBERY
+        ASSAULT
+        SECONDARY_CODES
+        NON_CRIMINAL
+        VANDALISM
+        BURGLARY
+        LARCENY
+        DRUG
+        WARRANTS
+        VEHICLE_THEFT
+        OTHER_OFFENSES
+        WEAPON_LAWS
+        ARSON
+        MISSING_PERSON
+        DRIVING_UNDER_THE_INFLUENCE
+        SUSPICIOUS_OCC
+        RECOVERED_VEHICLE
+        DRUNKENNESS
+        TRESPASS
+        FRAUD
+        DISORDERLY_CONDUCT
+        SEX_OFFENSES_FORCIBLE
+        SEX_OFFENSES_NON_FORCIBLE
+        COUNTERFEITING
+        KIDNAPPING
+        EMBEZZLEMENT
+        STOLEN_PROPERTY
+        LIQUOR_LAWS
+        FAMILY_OFFENSES
+        LOITERING
+        BAD_CHECKS
+        TREA
+        GAMBLING
+        RUNAWAY
+        BRIBERY
+        PROSTITUTION
+        PORNOGRAPHY
+        SUICIDE
+        EXTORTION
+    }
+
+    type Incident {
+        id: ID!
+        incidentNumber: String
+        location: Geo
+        category: IncidentCategory
+        description: String
+        date: String
+        resolution: String
+        address: String
+    }
+
+    input IncidentInput {
+        id: ID!
+        incidentNumber: String
+        location: GeoInput
+        category: IncidentCategory
+        description: String
+        date: String
+        resolution: String
+        address: String
+    }
+
+    extend type Mutation {
+        updateIncidents(area: String!, incidents: [IncidentInput!]!): String!
+    }

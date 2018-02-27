@@ -2,22 +2,6 @@ import { DB, Account } from '../tables';
 import { CallContext } from './CallContext';
 import { User } from '../tables';
 import * as DataLoader from 'dataloader';
-export const Schema = `
-    type Account {
-        id: ID!
-        domain: String!
-        name: String!
-        city: String
-        needAuthentication: Boolean!
-        readAccess: Boolean!
-        writeAccess: Boolean!
-        generation: Int!
-    }
-
-    extend type Query {
-        account: Account!
-    }
-`;
 
 export const AdminSchema = `
 

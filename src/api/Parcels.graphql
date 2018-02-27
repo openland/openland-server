@@ -1,0 +1,159 @@
+ type Parcel {
+    id: ID!
+    title: String!
+    geometry: String
+    center: Geo
+    block: Block!
+    addresses: [StreetNumber!]!
+    permits: [Permit!]!
+
+    likes: Likes!
+
+    extrasArea: Int
+    extrasZoning: [String!]
+    extrasSupervisorDistrict: String
+    extrasLandValue: Int
+    extrasImprovementValue: Int
+    extrasPropertyValue: Int
+    extrasFixturesValue: Int
+
+    extrasYear: Int
+
+    extrasStories: Int
+    extrasUnits: Int
+    extrasRooms: Int
+    extrasBathrooms: Int
+    extrasBedrooms: Int
+    extrasNeighborhood: String
+
+    extrasMetroDistance: Int
+    extrasMetroStation: String
+
+    extrasTrainDistance: Int
+    extrasTrainStation: String
+
+    extrasTrainLocalDistance: Int
+    extrasTrainLocalStation: String
+
+    extrasNearestTransitDistance: Int
+    extrasNearestTransitType: String
+    extrasNearestTransitStation: String
+
+    extrasLandUse: String
+    extrasSalesDate: String
+    extrasSalesPriorDate: String
+    extrasRecordationDate: String
+
+    metadata: ParcelMetadata!
+}
+
+enum ParcelUse {
+    PARKING
+    STORAGE
+}
+
+type ParcelMetadata {
+    description: String
+    currentUse: ParcelUse
+    available: Boolean
+}
+
+input ParcelMetadataInput {
+    description: String
+    currentUse: ParcelUse
+    available: Boolean
+}
+
+input ParcelInput {
+    id: String!
+    blockId: String
+    geometry: [[[Float!]!]!]
+    extras: ExtrasInput
+    addresses: [StreetNumberInfo!]
+}
+
+type ParcelEdge {
+    node: Parcel!
+    cursor: String!
+}
+
+type ParcelConnection {
+    edges: [ParcelEdge!]!
+    pageInfo: PageInfo!
+}
+
+type Block {
+    id: ID!
+    title: String!
+    geometry: String
+    extrasArea: Int
+    extrasZoning: [String!]
+    extrasSupervisorDistrict: String
+    parcels: [Parcel!]!
+}
+
+input BlockInput {
+    id: String!
+    geometry: [[[Float!]!]!]
+    extras: ExtrasInput
+}
+
+type BlockEdge {
+    node: Block!
+    cursor: String!
+}
+
+type BlockConnection {
+    edges: [BlockEdge!]!
+    pageInfo: PageInfo!
+}
+
+extend type Query {
+    block(id: ID!): Block!
+    parcel(id: ID!): Parcel!
+
+    blocksConnection(
+        state: String!, county: String!, city: String!, 
+        query: String, 
+        first: Int!, after: String, page: Int
+    ): BlockConnection!
+    parcelsConnection(
+        state: String!, county: String!, city: String!, 
+        query: String, 
+        first: Int!, after: String, page: Int
+    ): ParcelConnection!
+
+    parcelsOverlay(box: GeoBox!, limit: Int!, filterZoning: [String!], query: String): [Parcel!]
+    blocksOverlay(box: GeoBox!, limit: Int!, filterZoning: [String!], query: String): [Block!]
+
+    parcelFavorites: [Parcel!]!
+    parcelsStats(query: String): Int!
+}
+
+extend type Mutation {
+    importParcels(state: String!, county: String!, city: String!, parcels: [ParcelInput!]!): String!
+    importBlocks(state: String!, county: String!, city: String!, blocks: [BlockInput!]!): String!
+        
+    likeParcel(id: ID!): Parcel!
+    unlikeParcel(id: ID!): Parcel!
+
+    parcelAlterMetadata(id: ID!, data: ParcelMetadataInput!): Parcel!
+}
+
+type ParcelSearchResult {
+    edges: [ParcelResult!]!
+    total: Int!
+}
+type ParcelResult {
+    node: Parcel!
+    score: Float!
+    highlight: [SearchHighlight!]!
+}
+type SearchHighlight {
+    key: String!
+    match: String!
+}
+
+extend type SearchResult {
+    parcels: ParcelSearchResult!
+}

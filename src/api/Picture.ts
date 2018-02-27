@@ -1,11 +1,3 @@
-export const Schema = `
-  type Picture {
-    src: String
-    url: String!
-    retina: String!
-  }
-`;
-
 function resolvePicture(src: string, isRetina: boolean, width?: number, height?: number) {
     let url = `https://ucarecdn.com/${src}/`;
     if (height && width) {

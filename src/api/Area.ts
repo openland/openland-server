@@ -2,18 +2,6 @@ import { Repos } from '../repositories/index';
 import { CallContext } from './CallContext';
 import { AreaPermissions } from '../repositories/PermissionRepository';
 
-export const Schema = `
-    type Area {
-        id: ID!
-        slug: String!
-        writeAccess: Boolean!
-    }
-
-    extend type Query {
-        area(slug: String!): Area!
-    }
-`;
-
 export interface AreaContext {
     _areadId: number;
     _permissions: AreaPermissions;

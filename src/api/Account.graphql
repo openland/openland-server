@@ -1,0 +1,14 @@
+    type Account {
+        id: ID!
+        domain: String!
+        name: String!
+        city: String
+        needAuthentication: Boolean!
+        readAccess: Boolean!
+        writeAccess: Boolean!
+        generation: Int!
+    }
+
+    extend type Query {
+        account: Account!
+    }
