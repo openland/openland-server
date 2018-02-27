@@ -14,6 +14,7 @@ jobs:
           paths:
             - ./node_modules
       - run: yarn build
+      - run: yarn test
       - run: yarn install --production --ignore-scripts --prefer-offline
       - persist_to_workspace:
           root: /build
