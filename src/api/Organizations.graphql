@@ -1,57 +1,57 @@
 type Organization {
-        id: ID!
-        slug: String!
+    id: ID!
+    slug: String!
         
-        title: String!
-        logo: String
-        cover: String
-        city: String
-        address: String
-        url: String
-        twitter: String
-        linkedin: String
-        facebook: String
-        comments: String
-        description: String
+    title: String!
+    logo: String
+    cover: String
+    city: String
+    address: String
+    url: String
+    twitter: String
+    linkedin: String
+    facebook: String
+    comments: String
+    description: String
         
-        isDeveloper: Boolean!
-        isConstructor: Boolean!
+    isDeveloper: Boolean!
+    isConstructor: Boolean!
 
-        buildingProjects: [BuildingProject!]!
+    buildingProjects: [BuildingProject!]!
         
-        developerIn: [BuildingProject!]!
-        constructorIn: [BuildingProject!]!
+    developerIn: [BuildingProject!]!
+    constructorIn: [BuildingProject!]!
         
-        partners: [Organization!]!
-    }
+    partners: [Organization!]!
+}
 
-    extend type Query {
-        organizations: [Organization!]!
-        organization(slug: String!): Organization!
-    }
+extend type Query {
+    organizations: [Organization!]!
+    organization(slug: String!): Organization!
+}
 
-    extend type Area {
-        organizations: [Organization!]!
-        organization(slug: String!): Organization!
-    }
+extend type Area {
+    organizations: [Organization!]!
+    organization(slug: String!): Organization!
+}
     
-    extend type Mutation {
-        organizationAdd(slug: String!, title: String!): Organization!
-        organizationRemove(slug: String!): String!
+extend type Mutation {
+    organizationAdd(slug: String!, title: String!): Organization!
+    organizationRemove(slug: String!): String!
         
-        organizationAlter(slug: String!, 
-            title: String,
-            logo: String,
-            cover: String,
-            city: String,
-            address: String,
-            url: String,
-            twitter: String,
-            linkedin: String,
-            facebook: String,
-            comments: String,
-            isDeveloper: Boolean,
-            isConstructor: Boolean,
-            description: String
-        ): Organization!
-    }
+    organizationAlter(slug: String!, 
+        title: String,
+        logo: String,
+        cover: String,
+        city: String,
+        address: String,
+        url: String,
+        twitter: String,
+        linkedin: String,
+        facebook: String,
+        comments: String,
+        isDeveloper: Boolean,
+        isConstructor: Boolean,
+        description: String
+    ): Organization!
+}

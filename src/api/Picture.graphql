@@ -1,5 +1,5 @@
-  type Picture {
+type Picture {
     src: String
     url: String!
     retina: String!
-  }
+}

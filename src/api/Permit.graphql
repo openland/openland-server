@@ -1,163 +1,162 @@
-
-    type Permit {
-        id: ID!
-        type: PermitType
-        typeWood: Boolean
-        status: PermitStatus
-        statusUpdatedAt: String
+type Permit {
+    id: ID!
+    type: PermitType
+    typeWood: Boolean
+    status: PermitStatus
+    statusUpdatedAt: String
         
-        createdAt: String
-        issuedAt: String
-        completedAt: String
-        expiredAt: String
-        expiresAt: String
-        startedAt: String
-        filedAt: String
+    createdAt: String
+    issuedAt: String
+    completedAt: String
+    expiredAt: String
+    expiresAt: String
+    startedAt: String
+    filedAt: String
         
-        approvalTime: Int
+    approvalTime: Int
 
-        streetNumbers: [StreetNumber!]!
+    streetNumbers: [StreetNumber!]!
 
-        existingStories: Int
-        proposedStories: Int
-        existingUnits: Int
-        proposedUnits: Int
-        existingAffordableUnits: Int
-        proposedAffordableUnits: Int
-        proposedUse: String
-        description: String
+    existingStories: Int
+    proposedStories: Int
+    existingUnits: Int
+    proposedUnits: Int
+    existingAffordableUnits: Int
+    proposedAffordableUnits: Int
+    proposedUse: String
+    description: String
 
-        events: [PermitEvent!]!
+    events: [PermitEvent!]!
 
-        relatedPermits: [Permit!]!
+    relatedPermits: [Permit!]!
 
-        governmentalUrl: String!
+    governmentalUrl: String!
 
-        fasterThan: Int
-    }
+    fasterThan: Int
+}
 
-    enum PermitStatus {
-        FILING
-        FILED
-        ISSUED 
-        COMPLETED
-        EXPIRED
-        CANCELLED 
-        DISAPPROVED 
-        APPROVED 
-        ISSUING
-        REVOKED
-        WITHDRAWN
-        PLANCHECK
-        SUSPENDED
-        REINSTATED
-        INSPECTING
-        UPHELD
-        INCOMPLETE
-        GRANTED
-        APPEAL
-    }
+enum PermitStatus {
+    FILING
+    FILED
+    ISSUED 
+    COMPLETED
+    EXPIRED
+    CANCELLED 
+    DISAPPROVED 
+    APPROVED 
+    ISSUING
+    REVOKED
+    WITHDRAWN
+    PLANCHECK
+    SUSPENDED
+    REINSTATED
+    INSPECTING
+    UPHELD
+    INCOMPLETE
+    GRANTED
+    APPEAL
+}
 
-    enum PermitType {
-        NEW_CONSTRUCTION
-        ADDITIONS_ALTERATIONS_REPARE
-        OTC_ADDITIONS
-        WALL_OR_PAINTED_SIGN
-        SIGN_ERRECT
-        DEMOLITIONS
-        GRADE_QUARRY_FILL_EXCAVATE
-    }
+enum PermitType {
+    NEW_CONSTRUCTION
+    ADDITIONS_ALTERATIONS_REPARE
+    OTC_ADDITIONS
+    WALL_OR_PAINTED_SIGN
+    SIGN_ERRECT
+    DEMOLITIONS
+    GRADE_QUARRY_FILL_EXCAVATE
+}
     
-    enum PermitSorting {
-        STATUS_CHANGE_TIME
-        CREATE_TIME
-        COMPLETE_TIME
-        ISSUED_TIME
-        APPROVAL_TIME_ASC
-        APPROVAL_TIME_DESC
-    }
+enum PermitSorting {
+    STATUS_CHANGE_TIME
+    CREATE_TIME
+    COMPLETE_TIME
+    ISSUED_TIME
+    APPROVAL_TIME_ASC
+    APPROVAL_TIME_DESC
+}
 
-    type PermitEventStatus {
-        oldStatus: PermitStatus
-        newStatus: PermitStatus
-        date: String
-    }
+type PermitEventStatus {
+    oldStatus: PermitStatus
+    newStatus: PermitStatus
+    date: String
+}
 
-    type PermitEventFieldChanged {
-        fieldName: String!
-        oldValue: String
-        newValue: String
-        date: String
-    }
+type PermitEventFieldChanged {
+    fieldName: String!
+    oldValue: String
+    newValue: String
+    date: String
+}
 
-    union PermitEvent = PermitEventStatus | PermitEventFieldChanged
+union PermitEvent = PermitEventStatus | PermitEventFieldChanged
 
-    type PermitEdge {
-        node: Permit!
-        cursor: String!
-    }
+type PermitEdge {
+    node: Permit!
+    cursor: String!
+}
 
-    type PermitsConnection {
-        edges: [PermitEdge!]!
-        pageInfo: PageInfo!
-        stats: PermitsStats!
-    }
+type PermitsConnection {
+    edges: [PermitEdge!]!
+    pageInfo: PageInfo!
+    stats: PermitsStats!
+}
     
-    type PermitsStats {
-        approvalTimes: Chart!
-        approvalDistribution: Chart!        
-    }
+type PermitsStats {
+    approvalTimes: Chart!
+    approvalDistribution: Chart!        
+}
 
-    extend type Query {
-        permits(filter: String, type: PermitType, sort: PermitSorting, minUnits: Int,
-                issuedYear: String, fromPipeline: Boolean,
-                first: Int!, after: String, page: Int): PermitsConnection!
-        permit(id: ID!): Permit
-        permitsApprovalStats: Chart!
-        permitsApprovalUnits: Chart!
-        permitsUnitsIssuedStats: Chart!
-        permitsUnitsFiledStats: Chart!
-        permitsUnitsCompletedStats: Chart!
+extend type Query {
+    permits(filter: String, type: PermitType, sort: PermitSorting, minUnits: Int,
+            issuedYear: String, fromPipeline: Boolean,
+            first: Int!, after: String, page: Int): PermitsConnection!
+    permit(id: ID!): Permit
+    permitsApprovalStats: Chart!
+    permitsApprovalUnits: Chart!
+    permitsUnitsIssuedStats: Chart!
+    permitsUnitsFiledStats: Chart!
+    permitsUnitsCompletedStats: Chart!
 
-        permitsUnitsFiledStatsMonthly: Chart!
-    }
+    permitsUnitsFiledStatsMonthly: Chart!
+}
 
-    input PermitInfo {
-        id: ID!
-        status: PermitStatus
-        type: PermitType
-        typeWood: Boolean
-        statusUpdatedAt: String
+input PermitInfo {
+    id: ID!
+    status: PermitStatus
+    type: PermitType
+    typeWood: Boolean
+    statusUpdatedAt: String
         
-        createdAt: String
-        issuedAt: String
-        completedAt: String
-        startedAt: String
-        expiredAt: String
-        expiresAt: String
-        filedAt: String
+    createdAt: String
+    issuedAt: String
+    completedAt: String
+    startedAt: String
+    expiredAt: String
+    expiresAt: String
+    filedAt: String
 
-        street: [StreetNumberInfo!]
+    street: [StreetNumberInfo!]
 
-        existingStories: Int
-        proposedStories: Int
-        existingUnits: Int
-        proposedUnits: Int
-        existingAffordableUnits: Int
-        proposedAffordableUnits: Int
-        proposedUse: String
-        description: String
+    existingStories: Int
+    proposedStories: Int
+    existingUnits: Int
+    proposedUnits: Int
+    existingAffordableUnits: Int
+    proposedAffordableUnits: Int
+    proposedUse: String
+    description: String
 
-        parcelId: String
-    }
+    parcelId: String
+}
 
-    input StreetNumberInfo {
-        streetName: String!
-        streetNameSuffix: String
-        streetNumber: Int!
-        streetNumberSuffix: String
-    }
+input StreetNumberInfo {
+    streetName: String!
+    streetNameSuffix: String
+    streetNumber: Int!
+    streetNumberSuffix: String
+}
 
-    extend type Mutation {
-        updatePermits(state: String!, county: String!, city: String!, sourceDate: String!, permits: [PermitInfo]!): String!
-    }
+extend type Mutation {
+    updatePermits(state: String!, county: String!, city: String!, sourceDate: String!, permits: [PermitInfo]!): String!
+}

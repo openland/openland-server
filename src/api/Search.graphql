@@ -1,7 +1,7 @@
-    type SearchResult {
-        query: String!
-    }
+type SearchResult {
+    query: String!
+}
 
-    extend type Query {
-        search(query: String!): SearchResult!
-    }
+extend type Query {
+    search(query: String!): SearchResult!
+}

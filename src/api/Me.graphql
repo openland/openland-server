@@ -1,10 +1,10 @@
-    type User {
-        id: ID!
-        name: String!
-        firstName: String!
-        lastName: String!
-        picture: String!
-    }
-    extend type Query {
-        me: User
-    }
+type User {
+    id: ID!
+    name: String!
+    firstName: String!
+    lastName: String!
+    picture: String!
+}
+extend type Query {
+    me: User
+}

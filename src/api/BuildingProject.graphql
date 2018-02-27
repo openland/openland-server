@@ -1,70 +1,70 @@
-   type BuildingProject {
-        id: ID!
-        slug: String!
-        name: String!
-        description: String
-        status: String
-        startedAt: String
-        completedAt: String
-        expectedCompletedAt: String
-        verified: Boolean!
+type BuildingProject {
+    id: ID!
+    slug: String!
+    name: String!
+    description: String
+    status: String
+    startedAt: String
+    completedAt: String
+    expectedCompletedAt: String
+    verified: Boolean!
 
-        existingUnits: Int
-        proposedUnits: Int
-        existingAffordableUnits: Int
-        proposedAffordableUnits: Int
+    existingUnits: Int
+    proposedUnits: Int
+    existingAffordableUnits: Int
+    proposedAffordableUnits: Int
 
-        picture(height: Int, width: Int): Picture
+    picture(height: Int, width: Int): Picture
         
-        extrasDeveloper: String
-        extrasGeneralConstructor: String
-        extrasYearEnd: String
-        extrasAddress: String
-        extrasAddressSecondary: String
-        extrasPermit: String
-        extrasComment: String
-        extrasUrl: String
-        extrasLocation: Geo
+    extrasDeveloper: String
+    extrasGeneralConstructor: String
+    extrasYearEnd: String
+    extrasAddress: String
+    extrasAddressSecondary: String
+    extrasPermit: String
+    extrasComment: String
+    extrasUrl: String
+    extrasLocation: Geo
 
-        approvalTime: Int
+    approvalTime: Int
 
-        permits: [Permit!]!
+    permits: [Permit!]!
 
-        developers: [Organization!]!
-        constructors: [Organization!]!
-    }
+    developers: [Organization!]!
+    constructors: [Organization!]!
+}
 
-    type BuildingProjectEdge {
-        node: BuildingProject!
-        cursor: String!
-    }
+type BuildingProjectEdge {
+    node: BuildingProject!
+    cursor: String!
+}
 
-    type BuildingProjectConnectionStats {
-        newUnits: Int!
-        newUnitsVerified: Int!
-        totalProjects: Int!
-        totalProjectsVerified: Int!
-    }
+type BuildingProjectConnectionStats {
+    newUnits: Int!
+    newUnitsVerified: Int!
+    totalProjects: Int!
+    totalProjectsVerified: Int!
+}
 
-    type BuildingProjectConnection {
-        edges: [BuildingProjectEdge!]!
-        pageInfo: PageInfo!
-        stats: BuildingProjectConnectionStats!
-    }
+type BuildingProjectConnection {
+    edges: [BuildingProjectEdge!]!
+    pageInfo: PageInfo!
+    stats: BuildingProjectConnectionStats!
+}
 
-    extend type AreaStats {
-        year2017NewUnits: Int!
-        year2017NewUnitsVerified: Int!
-        year2018NewUnits: Int!
-        year2018NewUnitsVerified: Int!
-        fastestApprovalProject: BuildingProject!
-        slowestApprovalProject: BuildingProject!
-    }
+extend type AreaStats {
+    year2017NewUnits: Int!
+    year2017NewUnitsVerified: Int!
+    year2018NewUnits: Int!
+    year2018NewUnitsVerified: Int!
+    fastestApprovalProject: BuildingProject!
+    slowestApprovalProject: BuildingProject!
+}
 
-    extend type Query {
-        buildingProjects(filter: String, minUnits: Int, year: String, first: Int!, after: String): BuildingProjectConnection!
-        buildingProject(slug: String!): BuildingProject!
+extend type Query {
+    buildingProjects(filter: String, minUnits: Int, year: String, first: Int!, after: String): BuildingProjectConnection!
+    buildingProject(slug: String!): BuildingProject!
         
-        projects(area: String!, filter: String, minUnits: Int, year: String, first: Int!, after: String, page: Int): BuildingProjectConnection!
-        project(area: String!, slug: String!): BuildingProject!
-    }
+    projects(area: String!, filter: String, minUnits: Int, year: String, first: Int!, after: String, page: Int): BuildingProjectConnection!
+    project(area: String!, slug: String!): BuildingProject!
+}

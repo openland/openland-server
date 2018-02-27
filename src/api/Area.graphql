@@ -1,9 +1,9 @@
-    type Area {
-        id: ID!
-        slug: String!
-        writeAccess: Boolean!
-    }
+type Area {
+    id: ID!
+    slug: String!
+    writeAccess: Boolean!
+}
 
-    extend type Query {
-        area(slug: String!): Area!
-    }
+extend type Query {
+    area(slug: String!): Area!
+}
