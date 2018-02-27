@@ -86,7 +86,7 @@
   },
   "scripts": {
     "assets": "yarn cpx \"./src/assets/**/*\" ./build/assets/",
-    "build": "yarn assets && ./node_modules/.bin/tsc -p tsconfig.json",
+    "build": "yarn test && yarn assets && ./node_modules/.bin/tsc -p tsconfig.json",
     "build:watch": "yarn assets && ./node_modules/.bin/tsc -w -p tsconfig.json",
     "start:watch": "nodemon build/index.js",
     "start:watch:inspect": "nodemon --inspect build/index.js",
