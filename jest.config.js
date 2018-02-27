@@ -12,7 +12,7 @@ module.exports = {
         'node'
     ],
     testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.(ts|js)x?$',
-    testPathIgnorePatterns: ['/node_modules/', '/build/'],
+    testPathIgnorePatterns: ['/node_modules/', 'build/'],
     coverageDirectory: 'coverage',
     collectCoverageFrom: [
         'src/**/*.{ts,tsx,js,jsx}',
