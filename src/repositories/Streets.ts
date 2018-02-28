@@ -3,7 +3,7 @@ import { StreetAttributes, StreetSuffixes } from '../tables/Street';
 import { StreetNumberAttributes } from '../tables/StreetNumber';
 import { bulkInsert } from '../utils/db_utils';
 import { Transaction } from 'sequelize';
-import { SelectBuilder } from '../utils/SelectBuilder';
+import { SelectBuilder } from '../modules/SelectBuilder';
 
 export interface StreetDescription {
     streetName: string;
