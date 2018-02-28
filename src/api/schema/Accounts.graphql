@@ -1,0 +1,18 @@
+type Account {
+    id: ID!
+    domain: String!
+    name: String!
+    city: String
+    needAuthentication: Boolean!
+    readAccess: Boolean!
+    writeAccess: Boolean!
+    generation: Int!
+}
+
+type User {
+    id: ID!
+    name: String!
+    firstName: String!
+    lastName: String!
+    picture: String!
+}
