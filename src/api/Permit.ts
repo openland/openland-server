@@ -2,7 +2,7 @@ import { CallContext } from './CallContext';
 import { DB } from '../tables';
 import { applyPermits } from '../repositories/Permits';
 import { PermitStatus, Permit, PermitType } from '../tables/Permit';
-import { SelectBuilder } from '../utils/SelectBuilder';
+import { SelectBuilder } from '../modules/SelectBuilder';
 import { dateDiff } from '../utils/date_utils';
 import { Chart, prepareHistogram, elasticChart, elasticQuarterChart } from '../utils/charts';
 import { ElasticClient } from '../indexing';

@@ -2,7 +2,7 @@ import { CallContext } from './CallContext';
 import { DB } from '../tables';
 import { BuildingProject } from '../tables';
 import { resolveStreetView, resolvePicture } from '../utils/pictures';
-import { SelectBuilder } from '../utils/SelectBuilder';
+import { SelectBuilder } from '../modules/SelectBuilder';
 import { dateDiff } from '../utils/date_utils';
 import { cachedInt, isCached } from '../modules/cache';
 import * as DataLoader from 'dataloader';
