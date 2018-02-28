@@ -1,7 +1,7 @@
 import { CallContext } from './CallContext';
 import { DB } from '../tables';
 import { Developer } from '../tables';
-import { applyAlterString } from '../utils/updater';
+import * as Normalizer from '../modules/Normalizer';
 import { AreaContext } from './Area';
 
 export const Resolver = {
@@ -152,31 +152,31 @@ export const Resolver = {
                 existing.title = args.title;
             }
             if (args.logo !== undefined) {
-                existing.logo = applyAlterString(args.logo);
+                existing.logo = Normalizer.normalizeNullableUserInput(args.logo);
             }
             if (args.cover !== undefined) {
-                existing.cover = applyAlterString(args.cover);
+                existing.cover = Normalizer.normalizeNullableUserInput(args.cover);
             }
             if (args.city !== undefined) {
-                existing.city = applyAlterString(args.city);
+                existing.city = Normalizer.normalizeNullableUserInput(args.city);
             }
             if (args.address !== undefined) {
-                existing.address = applyAlterString(args.address);
+                existing.address = Normalizer.normalizeNullableUserInput(args.address);
             }
             if (args.url !== undefined) {
-                existing.url = applyAlterString(args.url);
+                existing.url = Normalizer.normalizeNullableUserInput(args.url);
             }
             if (args.twitter !== undefined) {
-                existing.twitter = applyAlterString(args.twitter);
+                existing.twitter = Normalizer.normalizeNullableUserInput(args.twitter);
             }
             if (args.linkedin !== undefined) {
-                existing.linkedin = applyAlterString(args.linkedin);
+                existing.linkedin = Normalizer.normalizeNullableUserInput(args.linkedin);
             }
             if (args.facebook !== undefined) {
-                existing.facebook = applyAlterString(args.facebook);
+                existing.facebook = Normalizer.normalizeNullableUserInput(args.facebook);
             }
             if (args.comments !== undefined) {
-                existing.comments = applyAlterString(args.comments);
+                existing.comments = Normalizer.normalizeNullableUserInput(args.comments);
             }
             if (args.isDeveloper !== undefined) {
                 existing.isDeveloper = args.isDeveloper;
@@ -185,7 +185,7 @@ export const Resolver = {
                 existing.isConstructor = args.isConstructor;
             }
             if (args.description !== undefined) {
-                existing.description = applyAlterString(args.description);
+                existing.description = Normalizer.normalizeNullableUserInput(args.description);
             }
 
             await existing.save();

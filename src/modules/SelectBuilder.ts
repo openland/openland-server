@@ -1,5 +1,5 @@
 import { DB } from '../tables';
-import { sumRaw, countRaw, textLikeFieldsText, percentileRaw, histogramCountRaw, histogramSumRaw } from './db_utils';
+import { sumRaw, countRaw, textLikeFieldsText, percentileRaw, histogramCountRaw, histogramSumRaw } from '../utils/db_utils';
 import * as sequelize from 'sequelize';
 import { SearchResponse } from 'elasticsearch';
 

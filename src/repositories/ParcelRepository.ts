@@ -1,28 +1,17 @@
 import { DB, Lot } from '../tables/index';
-import { Normalizer } from '../utils/Normalizer';
+import  * as Normalizer from '../modules/Normalizer';
 import { normalizedProcessor } from '../utils/db_utils';
 import { buildGeometryFromInput } from '../modules/geometry';
 import { ExtrasInput } from '../api/Core';
 import { buildExtrasFromInput } from '../modules/extras';
-import { SelectBuilder } from '../utils/SelectBuilder';
+import { SelectBuilder } from '../modules/SelectBuilder';
 import { ElasticClient } from '../indexing';
 import { applyStreetNumbersInTx } from './Streets';
-import { QueryParser, buildElasticQuery } from '../utils/QueryParser';
+import { QueryParser, buildElasticQuery } from '../modules/QueryParser';
 import { currentTime } from '../utils/timer';
-
-function prepareMetaString(src: string | null): string | null {
-    if (src !== null) {
-        src = src.trim();
-        if (src.length > 0) {
-            return src;
-        }
-    }
-    return null;
-}
 
 export class ParcelRepository {
 
-    private normalizer = new Normalizer();
     private parser = new QueryParser();
 
     constructor() {
@@ -42,10 +31,10 @@ export class ParcelRepository {
         }
         let updated = Object.assign({}, lot.metadata);
         if (metadata.description !== undefined) {
-            updated.description = prepareMetaString(metadata.description);
+            updated.description = Normalizer.normalizeNullableUserInput(metadata.description);
         }
         if (metadata.currentUse !== undefined) {
-            updated.currentUse = prepareMetaString(metadata.currentUse);
+            updated.currentUse = Normalizer.normalizeNullableUserInput(metadata.currentUse);
         }
         if (metadata.available !== undefined) {
             updated.available = metadata.available;
@@ -189,7 +178,7 @@ export class ParcelRepository {
         // Fetching Blocks
         //
 
-        let blocks = parcel.map((v) => v.blockId ? this.normalizer.normalizeId(v.blockId) : null);
+        let blocks = parcel.map((v) => v.blockId ? Normalizer.normalizeId(v.blockId) : null);
         let blocksId = await DB.tx(async (tx) => {
             return await normalizedProcessor(blocks, (a, b) => a === b, async (data) => {
                 let res = [];
@@ -224,7 +213,7 @@ export class ParcelRepository {
         //
 
         return await DB.tx(async (tx) => {
-            let lots = parcel.map((v, index) => ({ blockId: blocksId[index], lotId: this.normalizer.normalizeId(v.id), realId: v.id, geometry: v.geometry, extras: v.extras, addresses: v.addresses }));
+            let lots = parcel.map((v, index) => ({ blockId: blocksId[index], lotId: Normalizer.normalizeId(v.id), realId: v.id, geometry: v.geometry, extras: v.extras, addresses: v.addresses }));
             return await normalizedProcessor(lots, (a, b) => (a.lotId === b.lotId) && (a.blockId === b.blockId), async (data) => {
                 let res = [];
                 for (let d of data) {
@@ -283,7 +272,7 @@ export class ParcelRepository {
     }
 
     async findParcels(cityId: number, rawIds: string[]): Promise<Map<string, Lot>> {
-        let normalized = rawIds.map((v) => this.normalizer.normalizeId(v));
+        let normalized = rawIds.map((v) => Normalizer.normalizeId(v));
         let found = await DB.Lot.findAll({
             where: {
                 cityId: cityId,

@@ -1,15 +1,13 @@
 import { DB } from '../tables/index';
 import { ExtrasInput } from '../api/Core';
 import { buildGeometryFromInput } from '../modules/geometry';
-import { Normalizer } from '../utils/Normalizer';
+import  * as Normalizer from '../modules/Normalizer';
 import { buildExtrasFromInput } from '../modules/extras';
-import { SelectBuilder } from '../utils/SelectBuilder';
+import { SelectBuilder } from '../modules/SelectBuilder';
 import { currentTime } from '../utils/timer';
 import { ElasticClient } from '../indexing';
 
 export class BlockRepository {
-
-    private normalizer = new Normalizer();
 
     async fetchBlock(id: number) {
         return await DB.Block.findById(id);
@@ -79,7 +77,7 @@ export class BlockRepository {
     async applyBlocks(cityId: number, blocks: { id: string, geometry?: number[][][] | null, extras?: ExtrasInput | null }[]) {
         await DB.tx(async (tx) => {
             for (let b of blocks) {
-                let blockIdNormalized = this.normalizer.normalizeId(b.id);
+                let blockIdNormalized = Normalizer.normalizeId(b.id);
                 let geometry = b.geometry ? buildGeometryFromInput(b.geometry) : null;
                 let extras = buildExtrasFromInput(b.extras);
                 extras.displayId = b.id;
