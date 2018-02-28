@@ -1,0 +1,27 @@
+extend type AreaStats {
+    year2017NewUnits: Int!
+    year2017NewUnitsVerified: Int!
+    year2018NewUnits: Int!
+    year2018NewUnitsVerified: Int!
+    fastestApprovalProject: BuildingProject!
+    slowestApprovalProject: BuildingProject!
+}
+
+type AreaStats {
+    totalProjects: Int!
+    totalProjectsVerified: Int!
+    totalDevelopers: Int!
+    totalConstructors: Int!
+    totalOrganizations: Int!
+    totalPermits: Int!
+}
+    
+extend type Area {
+    stats: AreaStats!
+}
+
+type Area {
+    id: ID!
+    slug: String!
+    writeAccess: Boolean!
+}

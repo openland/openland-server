@@ -1,4 +1,4 @@
- type Parcel {
+type Parcel {
     id: ID!
     title: String!
     geometry: String
@@ -58,12 +58,6 @@ type ParcelMetadata {
     available: Boolean
 }
 
-input ParcelMetadataInput {
-    description: String
-    currentUse: ParcelUse
-    available: Boolean
-}
-
 input ParcelInput {
     id: String!
     blockId: String
@@ -80,6 +74,12 @@ type ParcelEdge {
 type ParcelConnection {
     edges: [ParcelEdge!]!
     pageInfo: PageInfo!
+}
+
+input ParcelMetadataInput {
+    description: String
+    currentUse: ParcelUse
+    available: Boolean
 }
 
 type Block {
@@ -108,38 +108,6 @@ type BlockConnection {
     pageInfo: PageInfo!
 }
 
-extend type Query {
-    block(id: ID!): Block!
-    parcel(id: ID!): Parcel!
-
-    blocksConnection(
-        state: String!, county: String!, city: String!, 
-        query: String, 
-        first: Int!, after: String, page: Int
-    ): BlockConnection!
-    parcelsConnection(
-        state: String!, county: String!, city: String!, 
-        query: String, 
-        first: Int!, after: String, page: Int
-    ): ParcelConnection!
-
-    parcelsOverlay(box: GeoBox!, limit: Int!, filterZoning: [String!], query: String): [Parcel!]
-    blocksOverlay(box: GeoBox!, limit: Int!, filterZoning: [String!], query: String): [Block!]
-
-    parcelFavorites: [Parcel!]!
-    parcelsStats(query: String): Int!
-}
-
-extend type Mutation {
-    importParcels(state: String!, county: String!, city: String!, parcels: [ParcelInput!]!): String!
-    importBlocks(state: String!, county: String!, city: String!, blocks: [BlockInput!]!): String!
-        
-    likeParcel(id: ID!): Parcel!
-    unlikeParcel(id: ID!): Parcel!
-
-    parcelAlterMetadata(id: ID!, data: ParcelMetadataInput!): Parcel!
-}
-
 type ParcelSearchResult {
     edges: [ParcelResult!]!
     total: Int!
@@ -149,11 +117,6 @@ type ParcelResult {
     score: Float!
     highlight: [SearchHighlight!]!
 }
-type SearchHighlight {
-    key: String!
-    match: String!
-}
-
 extend type SearchResult {
     parcels: ParcelSearchResult!
 }

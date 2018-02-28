@@ -1,3 +1,4 @@
+import { merge } from 'lodash';
 import { makeExecutableSchema } from 'graphql-tools';
 import * as Account from './api/Account';
 import * as Me from './api/Me';
@@ -11,50 +12,17 @@ import * as Area from './api/Area';
 import * as Incidents from './api/Incident';
 import * as Search from './api/Search';
 import * as fs from 'fs';
-import { merge } from 'lodash';
 
-const RootQuery = `
-  type Query {
-    healthCheck: String!
-  }
-  type Mutation {
-    healthCheck: String!    
-  }
-`;
-
-const SchemaDefinition = `
-  schema {
-    query: Query
-    mutation: Mutation
-  }
-`;
-
-const rootResolver = {
-    Query: {
-        healthCheck: async function () {
-            return 'Hello World!';
-        }
-    },
-    Mutation: {
-        healthCheck: async function () {
-            return 'Hello World!';
-        }
-    }
-};
-
-let schemas = fs
-    .readdirSync(__dirname + '/api/')
+let schema = fs
+    .readdirSync(__dirname + '/api/schema/')
     .filter((v) => v.endsWith('.graphql'))
-    .map((f) => fs.readFileSync(__dirname + '/api/' + f, 'utf-8'))
-    .sort();
+    .map((f) => fs.readFileSync(__dirname + '/api/schema/' + f, 'utf-8'))
+    .sort()
+    .join('\n');
 
 export const Schema = makeExecutableSchema({
-    typeDefs: [
-        RootQuery,
-        SchemaDefinition,
-        ...schemas
-    ],
-    resolvers: merge(rootResolver,
+    typeDefs: schema,
+    resolvers: merge(
         Account.Resolver,
         Me.Resolver,
         Permits.Resolver,
@@ -66,16 +34,5 @@ export const Schema = makeExecutableSchema({
         Area.Resolver,
         Incidents.Resolvers,
         Search.Resolvers
-    )
-});
-
-export const AdminSchema = makeExecutableSchema({
-    typeDefs: [
-        RootQuery, SchemaDefinition,
-        Account.AdminSchema,
-    ],
-    resolvers: merge(
-        // rootResolver,
-        Account.AdminResolver
     )
 });

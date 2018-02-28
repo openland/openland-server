@@ -51,20 +51,3 @@ type BuildingProjectConnection {
     pageInfo: PageInfo!
     stats: BuildingProjectConnectionStats!
 }
-
-extend type AreaStats {
-    year2017NewUnits: Int!
-    year2017NewUnitsVerified: Int!
-    year2018NewUnits: Int!
-    year2018NewUnitsVerified: Int!
-    fastestApprovalProject: BuildingProject!
-    slowestApprovalProject: BuildingProject!
-}
-
-extend type Query {
-    buildingProjects(filter: String, minUnits: Int, year: String, first: Int!, after: String): BuildingProjectConnection!
-    buildingProject(slug: String!): BuildingProject!
-        
-    projects(area: String!, filter: String, minUnits: Int, year: String, first: Int!, after: String, page: Int): BuildingProjectConnection!
-    project(area: String!, slug: String!): BuildingProject!
-}

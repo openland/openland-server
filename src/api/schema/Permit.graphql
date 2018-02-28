@@ -1,3 +1,13 @@
+enum PermitType {
+    NEW_CONSTRUCTION, ADDITIONS_ALTERATIONS_REPARE, OTC_ADDITIONS, WALL_OR_PAINTED_SIGN, SIGN_ERRECT
+    DEMOLITIONS, GRADE_QUARRY_FILL_EXCAVATE
+}
+
+enum PermitStatus {
+    FILING, FILED, ISSUED, COMPLETED, EXPIRED, CANCELLED, DISAPPROVED, APPROVED, ISSUING, REVOKED, 
+    WITHDRAWN, PLANCHECK, SUSPENDED, REINSTATED, INSPECTING, UPHELD, INCOMPLETE, GRANTED, APPEAL
+}
+
 type Permit {
     id: ID!
     type: PermitType
@@ -35,38 +45,6 @@ type Permit {
     fasterThan: Int
 }
 
-enum PermitStatus {
-    FILING
-    FILED
-    ISSUED 
-    COMPLETED
-    EXPIRED
-    CANCELLED 
-    DISAPPROVED 
-    APPROVED 
-    ISSUING
-    REVOKED
-    WITHDRAWN
-    PLANCHECK
-    SUSPENDED
-    REINSTATED
-    INSPECTING
-    UPHELD
-    INCOMPLETE
-    GRANTED
-    APPEAL
-}
-
-enum PermitType {
-    NEW_CONSTRUCTION
-    ADDITIONS_ALTERATIONS_REPARE
-    OTC_ADDITIONS
-    WALL_OR_PAINTED_SIGN
-    SIGN_ERRECT
-    DEMOLITIONS
-    GRADE_QUARRY_FILL_EXCAVATE
-}
-    
 enum PermitSorting {
     STATUS_CHANGE_TIME
     CREATE_TIME
@@ -104,21 +82,7 @@ type PermitsConnection {
     
 type PermitsStats {
     approvalTimes: Chart!
-    approvalDistribution: Chart!        
-}
-
-extend type Query {
-    permits(filter: String, type: PermitType, sort: PermitSorting, minUnits: Int,
-            issuedYear: String, fromPipeline: Boolean,
-            first: Int!, after: String, page: Int): PermitsConnection!
-    permit(id: ID!): Permit
-    permitsApprovalStats: Chart!
-    permitsApprovalUnits: Chart!
-    permitsUnitsIssuedStats: Chart!
-    permitsUnitsFiledStats: Chart!
-    permitsUnitsCompletedStats: Chart!
-
-    permitsUnitsFiledStatsMonthly: Chart!
+    approvalDistribution: Chart!
 }
 
 input PermitInfo {
@@ -148,15 +112,4 @@ input PermitInfo {
     description: String
 
     parcelId: String
-}
-
-input StreetNumberInfo {
-    streetName: String!
-    streetNameSuffix: String
-    streetNumber: Int!
-    streetNumberSuffix: String
-}
-
-extend type Mutation {
-    updatePermits(state: String!, county: String!, city: String!, sourceDate: String!, permits: [PermitInfo]!): String!
 }

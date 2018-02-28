@@ -61,7 +61,3 @@ input IncidentInput {
     resolution: String
     address: String
 }
-
-extend type Mutation {
-    updateIncidents(area: String!, incidents: [IncidentInput!]!): String!
-}

@@ -1,4 +1,4 @@
-import { graphqlExpress, graphiqlExpress } from 'apollo-server-express';
+import { graphqlExpress } from 'apollo-server-express';
 import { GraphQLOptions } from 'apollo-server-core';
 import * as bodyParser from 'body-parser';
 import * as express from 'express';
@@ -130,9 +130,9 @@ async function buildContext(req: express.Request, res: express.Response, next: e
     next();
 }
 
-async function handleAdminRequest(req?: express.Request): Promise<GraphQLOptions> {
-    return {schema: Schema.AdminSchema};
-}
+// async function handleAdminRequest(req?: express.Request): Promise<GraphQLOptions> {
+//     return {schema: Schema.AdminSchema};
+// }
 
 interface Profile {
     name: string;
@@ -185,10 +185,10 @@ export default function () {
     let requestHandler = handleRequest(engine != null);
     app.use('/graphql', checkJwt, bodyParser.json({limit: '5mb'}), buildContext, graphqlExpress(requestHandler));
     app.use('/api', checkJwt, bodyParser.json({limit: '5mb'}), buildContext, graphqlExpress(requestHandler));
-    app.use('/admin-api', checkJwt, bodyParser.json({limit: '5mb'}), graphqlExpress(handleAdminRequest));
+    // app.use('/admin-api', checkJwt, bodyParser.json({limit: '5mb'}), graphqlExpress(handleAdminRequest));
 
     // Sandbox
-    app.use('/sandbox', checkJwt, graphiqlExpress({endpointURL: '/admin-api'}));
+    // app.use('/sandbox', checkJwt, graphiqlExpress({endpointURL: '/admin-api'}));
 
     // Authentication
     app.post('/auth', checkJwt, bodyParser.json(), async function (req: express.Request, response: express.Response) {
