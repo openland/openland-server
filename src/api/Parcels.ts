@@ -236,7 +236,13 @@ export const Resolver = {
                 return [];
             }
             return Repos.Parcels.fetchFavorites(context.uid);
-        }
+        },
+        parcelFavoritesCount: async function (_: any, args: {}, context: CallContext) {
+            if (!context.uid) {
+                return 0;
+            }
+            return Repos.Parcels.fetchFavoritesCount(context.uid);
+        },
     },
     Mutation: {
         importParcels: async function (_: any, args: { state: string, county: string, city: string, parcels: ParcelInput[] }) {

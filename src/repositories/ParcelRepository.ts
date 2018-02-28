@@ -60,6 +60,18 @@ export class ParcelRepository {
         });
     }
 
+    async fetchFavoritesCount(userId: number) {
+        return await DB.Lot.count({
+            include: [{
+                model: DB.User,
+                as: 'likes',
+                where: {
+                    id: userId
+                }
+            }]
+        });
+    }
+
     async fetchParcelsConnection(cityId: number, first: number, query?: string, after?: string, page?: number) {
         let clauses: any[] = [];
         clauses.push({ term: { 'cityId': cityId } });

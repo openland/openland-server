@@ -32,6 +32,7 @@ type Query {
     blocksOverlay(box: GeoBox!, limit: Int!, filterZoning: [String!], query: String): [Block!]
 
     parcelFavorites: [Parcel!]!
+    parcelFavoritesCount: Int!
     parcelsStats(query: String): Int!
 
     organizations: [Organization!]!
