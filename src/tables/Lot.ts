@@ -54,7 +54,7 @@ export const LotTable = connection.define<Lot, LotAttributes>('lot', {
     }
 }, { indexes: [{ unique: true, fields: ['blockId', 'lotId'] }, { unique: true, fields: ['cityId', 'lotId'] }] });
 
-LotTable.belongsTo(BlockTable, { as: 'block', foreignKey: { allowNull: false } });
+LotTable.belongsTo(BlockTable, { as: 'block', foreignKey: { allowNull: true } });
 LotTable.belongsTo(CityTable, { as: 'city' });
 LotTable.belongsTo(LotTable, { as: 'primaryParcel' });
 
