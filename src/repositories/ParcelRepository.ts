@@ -189,7 +189,7 @@ export class ParcelRepository {
             let pending = [];
             for (let i of nids.unique) {
                 if (!existing.find((v) => v.parcelId === i)) {
-                    pending.push({ parcelId: nids.map.get(i), cityId: cityId });
+                    pending.push({ parcelId: i, cityId: cityId });
                 }
             }
             let created = await DB.ParcelID.bulkCreate(pending, { transaction: tx });
