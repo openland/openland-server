@@ -1,5 +1,5 @@
 import { DB, Lot } from '../tables/index';
-import  * as Normalizer from '../modules/Normalizer';
+import * as Normalizer from '../modules/Normalizer';
 import { normalizedProcessor } from '../utils/db_utils';
 import { buildGeometryFromInput } from '../modules/geometry';
 import { ExtrasInput } from '../api/Core';
@@ -174,8 +174,41 @@ export class ParcelRepository {
         return hits.count;
     }
 
+    async applyParcelIds(cityId: number, ids: string[]) {
+        let nids = Normalizer.normalizeIds(ids);
+        return DB.tx(async (tx) => {
+            let existing = await DB.ParcelID.findAll({
+                where: {
+                    parcelId: {
+                        $in: [...nids.unique]
+                    },
+                    cityId: cityId
+                },
+                transaction: tx
+            });
+            let pending = [];
+            for (let i of nids.unique) {
+                if (!existing.find((v) => v.parcelId === i)) {
+                    pending.push({ parcelId: nids.map.get(i), cityId: cityId });
+                }
+            }
+            let created = await DB.ParcelID.bulkCreate(pending, { transaction: tx });
+            let all = [...created, ...existing];
+            let res = new Map<string, number>();
+            for (let i of ids) {
+                let rid = nids.map.get(i);
+                let m = all.find((v) => v.parcelId === rid);
+                if (!m) {
+                    throw Error('Inconsistentcy detected!');
+                }
+                res.set(i, m.id!!);
+            }
+            return res;
+        });
+    }
+
     async applyParcels(cityId: number, parcel: {
-        id: string, blockId?: string | null,
+        id: string,
         geometry?: number[][][] | null,
         addresses?: {
             streetName: string,
@@ -187,46 +220,25 @@ export class ParcelRepository {
     }[]) {
 
         //
-        // Fetching Blocks
+        // Apply IDS
         //
 
-        let blocks = parcel.map((v) => v.blockId ? Normalizer.normalizeId(v.blockId) : null);
-        let blocksId = await DB.tx(async (tx) => {
-            return await normalizedProcessor(blocks, (a, b) => a === b, async (data) => {
-                let res = [];
-                for (let d of data) {
-                    if (!d) {
-                        res.push(null);
-                    } else {
-                        let existing = await DB.Block.findOne({
-                            where: {
-                                cityId: cityId,
-                                blockId: d
-                            },
-                            transaction: tx
-                        });
-                        if (existing) {
-                            res.push(existing.id!!);
-                        } else {
-                            let id = (await DB.Block.create({
-                                cityId: cityId,
-                                blockId: d
-                            }, { transaction: tx })).id!!;
-                            res.push(id);
-                        }
-                    }
-                }
-                return res;
-            });
-        });
+        let parcelIds = await this.applyParcelIds(cityId, parcel.map((v) => v.id));
 
         //
         // Applying Lots
         //
 
         return await DB.tx(async (tx) => {
-            let lots = parcel.map((v, index) => ({ blockId: blocksId[index], lotId: Normalizer.normalizeId(v.id), realId: v.id, geometry: v.geometry, extras: v.extras, addresses: v.addresses }));
-            return await normalizedProcessor(lots, (a, b) => (a.lotId === b.lotId) && (a.blockId === b.blockId), async (data) => {
+            let lots = parcel.map((v, index) => ({
+                lotId: Normalizer.normalizeId(v.id), 
+                realId: v.id, 
+                geometry: v.geometry, 
+                extras: v.extras, 
+                addresses: v.addresses,
+                primaryParcelId: parcelIds.get(v.id)
+            }));
+            return await normalizedProcessor(lots, (a, b) => (a.lotId === b.lotId), async (data) => {
                 let res = [];
                 for (let d of data) {
                     let geometry = d.geometry ? buildGeometryFromInput(d.geometry) : null;
@@ -252,24 +264,18 @@ export class ParcelRepository {
                             existing.geometry = geometry;
                         }
                         existing.extras = completedExtras;
-                        if (d.blockId) {
-                            existing.blockId = d.blockId;
-                        }
+                        existing.primaryParcelId = d.primaryParcelId;
                         await existing.save({ transaction: tx });
                         res.push(existing.id!!);
                     } else {
-                        if (d.blockId) {
-                            existing = await DB.Lot.create({
-                                blockId: d.blockId,
-                                cityId: cityId,
-                                lotId: d.lotId,
-                                geometry: geometry,
-                                extras: completedExtras
-                            }, { transaction: tx });
-                            res.push(existing.id);
-                        } else {
-                            res.push(null);
-                        }
+                        existing = await DB.Lot.create({
+                            cityId: cityId,
+                            lotId: d.lotId,
+                            primaryParcelId: d.primaryParcelId,
+                            geometry: geometry,
+                            extras: completedExtras
+                        }, { transaction: tx });
+                        res.push(existing.id);
                     }
 
                     if (existing && d.addresses) {

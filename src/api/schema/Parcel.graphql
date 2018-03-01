@@ -64,6 +64,7 @@ input ParcelInput {
     geometry: [[[Float!]!]!]
     extras: ExtrasInput
     addresses: [StreetNumberInfo!]
+    related: [String!]
 }
 
 type ParcelEdge {

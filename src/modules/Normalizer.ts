@@ -14,3 +14,21 @@ export function normalizeNullableUserInput(str: string | null) {
     }
     return null;
 }
+
+export function normalizeIds(ids: string[]) {
+    let res = new Map<string, string>();
+    let unique = new Set<string>();
+    for (let id of ids) {
+        if (res.has(id)) {
+            continue;
+        }
+        let normalized = normalizeId(id);
+        res.set(id, normalized);
+        unique.add(normalized);
+    }
+    return {
+        src: ids,
+        map: res,
+        unique: unique
+    };
+}

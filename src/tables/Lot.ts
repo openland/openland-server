@@ -10,7 +10,10 @@ import { UserTable, User } from './User';
 export interface LotAttributes {
     id?: number;
     cityId?: number;
+    
     lotId?: string;
+    primaryParcelId?: number;
+
     blockId?: number | null;
     geometry?: Geometry | null;
     extras?: JsonMap | null;
@@ -53,6 +56,7 @@ export const LotTable = connection.define<Lot, LotAttributes>('lot', {
 
 LotTable.belongsTo(BlockTable, { as: 'block', foreignKey: { allowNull: false } });
 LotTable.belongsTo(CityTable, { as: 'city' });
+LotTable.belongsTo(LotTable, { as: 'primaryParcel' });
 
 LotTable.belongsToMany(StreetNumberTable, { through: 'lot_street_numbers', as: 'streetNumbers' });
 

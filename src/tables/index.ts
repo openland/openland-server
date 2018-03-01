@@ -39,6 +39,7 @@ import { LockTable } from './Lock';
 import { BlockTable } from './Block';
 import { LotTable } from './Lot';
 import { IncidentTable } from './Incidents';
+import { ParcelIDTable } from './ParcelID';
 
 export const DB = {
     User: UserTable,
@@ -60,6 +61,7 @@ export const DB = {
     Block: BlockTable,
     Lot: LotTable,
     Incident: IncidentTable,
+    ParcelID: ParcelIDTable,
 
     tx: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>): Promise<A> {
         return await connection.transaction({ isolationLevel: 'SERIALIZABLE' }, (tx2: sequelize.Transaction) => handler(tx2));

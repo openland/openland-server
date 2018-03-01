@@ -11,11 +11,11 @@ export interface ParcelIDAttributes {
 export interface ParcelID extends sequelize.Instance<ParcelIDAttributes>, ParcelIDAttributes {
 }
 
-export const ParcelTable = connection.define<ParcelID, ParcelIDAttributes>('parcel_id', {
+export const ParcelIDTable = connection.define<ParcelID, ParcelIDAttributes>('parcel_id', {
     id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
     parcelId: {
         type: sequelize.STRING,
         allowNull: false
     },
 }, { indexes: [{ unique: true, fields: ['cityId', 'parcelId'] }] });
-ParcelTable.belongsTo(CityTable, { as: 'city' });
+ParcelIDTable.belongsTo(CityTable, { as: 'city' });
