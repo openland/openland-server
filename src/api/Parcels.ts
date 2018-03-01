@@ -33,7 +33,15 @@ interface BlockInput {
 export const Resolver = {
     Parcel: {
         id: (src: Lot) => ParcelID.serialize(src.id!!),
-        title: (src: Lot) => (src.extras && src.extras.displayId) ? src.extras.displayId : src.lotId,
+        title: (src: Lot) => {
+            if (src.extras && src.extras.displayId) {
+                return src.extras.displayId;
+            } else if (src.primaryParcelId) {
+                return DB.ParcelID.findById(src.primaryParcelId);
+            } else {
+                return src.lotId;
+            }
+        },
         geometry: (src: Lot) => src.geometry ? JSON.stringify(src.geometry!!.polygons.map((v) => v.coordinates.map((c) => [c.longitude, c.latitude]))) : null,
         center: (src: Lot) => {
             if (src.geometry) {

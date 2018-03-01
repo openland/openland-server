@@ -39,7 +39,7 @@ type Parcel {
     extrasNearestTransitType: String
     extrasNearestTransitStation: String
 
-    extrasLandUse: String
+    extrasLandUse: [String!]
     extrasSalesDate: String
     extrasSalesPriorDate: String
     extrasRecordationDate: String
