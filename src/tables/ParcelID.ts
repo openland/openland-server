@@ -1,0 +1,21 @@
+import { connection } from '../connector';
+import * as sequelize from 'sequelize';
+import { CityTable } from './City';
+
+export interface ParcelIDAttributes {
+    id?: number;
+    cityId?: number;
+    parcelId?: string;
+}
+
+export interface ParcelID extends sequelize.Instance<ParcelIDAttributes>, ParcelIDAttributes {
+}
+
+export const ParcelTable = connection.define<ParcelID, ParcelIDAttributes>('parcel_id', {
+    id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
+    parcelId: {
+        type: sequelize.STRING,
+        allowNull: false
+    },
+}, { indexes: [{ unique: true, fields: ['cityId', 'parcelId'] }] });
+ParcelTable.belongsTo(CityTable, { as: 'city' });
