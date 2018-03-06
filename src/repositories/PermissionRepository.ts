@@ -15,11 +15,10 @@ export class PermissionRepository {
     }
 
     async resolvePermissions(userId: number | null | undefined) {
-        await this.fetchSuperAdmins();
         let permissions: string[] = [];
         if (userId !== null && userId !== undefined) {
             permissions.push('viewer');
-            if (this.isSuperAdmin(userId)) {
+            if (await this.isSuperAdmin(userId)) {
                 permissions.push('super-admin');
             }
             let members = await DB.AccountMember.findAll({
@@ -35,7 +34,6 @@ export class PermissionRepository {
                 }
             }
         }
-
         return permissions;
     }
 
