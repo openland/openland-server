@@ -216,12 +216,22 @@ export class ParcelRepository {
             streetNumber: number,
             streetNumberSuffix?: string | null
         }[],
+        related?: string[] | null,
         extras?: ExtrasInput | null
     }[]) {
 
         //
         // Apply IDS
         //
+        let sourceIds: string[] = [];
+        for (let i of parcel) {
+            sourceIds.push(i.id);
+            if (i.related) {
+                for (let j of i.related) {
+                    sourceIds.push(j);
+                }
+            }
+        }
 
         let parcelIds = await this.applyParcelIds(cityId, parcel.map((v) => v.id));
 
@@ -231,10 +241,10 @@ export class ParcelRepository {
 
         return await DB.tx(async (tx) => {
             let lots = parcel.map((v, index) => ({
-                lotId: Normalizer.normalizeId(v.id), 
-                realId: v.id, 
-                geometry: v.geometry, 
-                extras: v.extras, 
+                lotId: Normalizer.normalizeId(v.id),
+                realId: v.id,
+                geometry: v.geometry,
+                extras: v.extras,
                 addresses: v.addresses,
                 primaryParcelId: parcelIds.get(v.id)
             }));

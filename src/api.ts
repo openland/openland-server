@@ -113,7 +113,7 @@ function handleRequest(useEngine: boolean) {
         if (req === undefined || res === undefined) {
             throw Error('Unexpected error!');
         } else {
-            return {schema: Schema.Schema, context: res.locals.ctx, cacheControl: useEngine, tracing: useEngine};
+            return { schema: Schema.Schema, context: res.locals.ctx, cacheControl: useEngine, tracing: useEngine };
         }
     };
 }
@@ -129,10 +129,6 @@ async function buildContext(req: express.Request, res: express.Response, next: e
     res.locals.ctx = ctx;
     next();
 }
-
-// async function handleAdminRequest(req?: express.Request): Promise<GraphQLOptions> {
-//     return {schema: Schema.AdminSchema};
-// }
 
 interface Profile {
     name: string;
@@ -183,12 +179,8 @@ export default function () {
 
     // APIs
     let requestHandler = handleRequest(engine != null);
-    app.use('/graphql', checkJwt, bodyParser.json({limit: '5mb'}), buildContext, graphqlExpress(requestHandler));
-    app.use('/api', checkJwt, bodyParser.json({limit: '5mb'}), buildContext, graphqlExpress(requestHandler));
-    // app.use('/admin-api', checkJwt, bodyParser.json({limit: '5mb'}), graphqlExpress(handleAdminRequest));
-
-    // Sandbox
-    // app.use('/sandbox', checkJwt, graphiqlExpress({endpointURL: '/admin-api'}));
+    app.use('/graphql', checkJwt, bodyParser.json({ limit: '5mb' }), buildContext, graphqlExpress(requestHandler));
+    app.use('/api', checkJwt, bodyParser.json({ limit: '5mb' }), buildContext, graphqlExpress(requestHandler));
 
     // Authentication
     app.post('/auth', checkJwt, bodyParser.json(), async function (req: express.Request, response: express.Response) {
@@ -213,10 +205,10 @@ export default function () {
                     email: b.email,
                     picture: b.picture
                 }, {
-                    where: {
-                        authId: userKey
-                    },
-                });
+                        where: {
+                            authId: userKey
+                        },
+                    });
             } else {
                 await DB.User.create({
                     authId: userKey,
@@ -227,7 +219,7 @@ export default function () {
                 });
             }
         });
-        response.json({ok: true});
+        response.json({ ok: true });
     });
 
     // Starting Api
