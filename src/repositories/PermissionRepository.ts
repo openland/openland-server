@@ -41,7 +41,7 @@ export class PermissionRepository {
 
     async isSuperAdmin(userId: number | null | undefined) {
         if (userId !== undefined && userId !== null) {
-            return (await DB.SuperAdmin.find({ where: { userId: userId } })) != null;
+            return (await DB.SuperAdmin.count({ where: { userId: userId } })) > 0;
         } else {
             return false;
         }
