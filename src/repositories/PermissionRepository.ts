@@ -6,7 +6,16 @@ export interface AreaPermissions {
 
 export class PermissionRepository {
 
+    async fetchSuperAdmins() {
+        return (await DB.SuperAdmin.findAll({
+            include: [
+                { model: DB.User }
+            ]
+        })).map((v) => v.user!!);
+    }
+
     async resolvePermissions(userId: number | null | undefined) {
+        await this.fetchSuperAdmins();
         let permissions: string[] = [];
         if (userId !== null && userId !== undefined) {
             permissions.push('viewer');
