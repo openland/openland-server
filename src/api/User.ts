@@ -12,6 +12,7 @@ export const Resolver = {
         firstName: (src: User) => src.firstName,
         lastName: (src: User) => src.lastName,
         picture: (src: User) => src.picture,
+        email: (src: User) => src.email,
         isYou: (src: User, args: {}, context: CallContext) => src.id === context.uid
     },
     Query: {
