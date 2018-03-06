@@ -28,4 +28,6 @@ type Mutation {
     ): Organization!
     
     updateIncidents(area: String!, incidents: [IncidentInput!]!): String!
+    superAdminAdd(userId: ID!): String!
+    superAdminRemove(userId: ID!): String!
 }

@@ -48,6 +48,8 @@ type Query {
     area(slug: String!): Area!
 
     search(query: String!): SearchResult!
+    
+    users(query:String!): [User!]!
 
     superAdmins: [User!]!
 }

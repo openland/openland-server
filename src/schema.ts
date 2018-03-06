@@ -1,7 +1,7 @@
 import { merge } from 'lodash';
 import { makeExecutableSchema } from 'graphql-tools';
 import * as Account from './api/Account';
-import * as Me from './api/Me';
+import * as User from './api/User';
 import * as Permits from './api/Permit';
 import * as BuildingProject from './api/BuildingProject';
 import * as Picture from './api/Picture';
@@ -25,7 +25,7 @@ export const Schema = makeExecutableSchema({
     typeDefs: schema,
     resolvers: merge(
         Account.Resolver,
-        Me.Resolver,
+        User.Resolver,
         Permits.Resolver,
         BuildingProject.Resolver,
         Picture.Resolver,
