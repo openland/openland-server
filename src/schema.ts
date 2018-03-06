@@ -11,6 +11,7 @@ import * as Parcels from './api/Parcels';
 import * as Area from './api/Area';
 import * as Incidents from './api/Incident';
 import * as Search from './api/Search';
+import * as Permissions from './api/Permissions';
 import * as fs from 'fs';
 
 let schema = fs
@@ -33,6 +34,7 @@ export const Schema = makeExecutableSchema({
         Parcels.Resolver,
         Area.Resolver,
         Incidents.Resolvers,
-        Search.Resolvers
+        Search.Resolvers,
+        Permissions.Resolvers
     )
 });

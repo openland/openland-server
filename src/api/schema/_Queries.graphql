@@ -1,5 +1,6 @@
 type Query {
     me: User
+    permissions: Permissions!
     account: Account!
 
     permits(filter: String, type: PermitType, sort: PermitSorting, minUnits: Int,

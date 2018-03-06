@@ -16,3 +16,7 @@ type User {
     lastName: String!
     picture: String!
 }
+
+type Permissions {
+    roles: [String!]!
+}
