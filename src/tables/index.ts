@@ -41,6 +41,7 @@ import { LotTable } from './Lot';
 import { IncidentTable } from './Incidents';
 import { ParcelIDTable } from './ParcelID';
 import { SuperAdminTable } from './SuperAdmin';
+import { UserTokenTable } from './UserTokens';
 
 export const DB = {
     User: UserTable,
@@ -64,6 +65,7 @@ export const DB = {
     Incident: IncidentTable,
     ParcelID: ParcelIDTable,
     SuperAdmin: SuperAdminTable,
+    UserToken: UserTokenTable,
 
     tx: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>): Promise<A> {
         return await connection.transaction({ isolationLevel: 'SERIALIZABLE' }, (tx2: sequelize.Transaction) => handler(tx2));

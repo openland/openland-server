@@ -45,7 +45,7 @@ function convertAccount(account: Account | undefined | null, context: CallContex
         city: account.city,
         needAuthentication: false,
         readAccess: true,
-        writeAccess: context.owner,
+        writeAccess: false,
         generation: account.generation
     };
 }

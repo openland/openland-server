@@ -1,6 +1,5 @@
 import * as db from './connector';
-import * as api from './api';
-import * as sample from './sample';
+import * as server from './server';
 import * as cluster from 'cluster';
 import * as fs from 'fs';
 import * as cp from 'child_process';
@@ -25,18 +24,12 @@ async function initMater() {
                     } catch (e) {
                         console.warn(e);
                     }
-                    await db.migrate();
-                } else {
-                    await db.migrate();
-                    await sample.createEmptyData();
                 }
-            } else {
-                await db.migrate();
             }
         } else {
             console.info('Connecting to database in RELEASE mode');
-            await db.migrate();
         }
+        await db.migrate();
         initWorker();
     } catch (e) {
         console.error('Unable to init server');
@@ -46,36 +39,8 @@ async function initMater() {
 }
 
 async function initWorker() {
-    api.default();
+    server.default();
     if (process.env.ELASTIC_ENDPOINT && process.env.ELASTIC_ENABLE_INDEXING !== 'false') {
         enableIndexer();
     }
 }
-
-// async function init(worker?: number) {
-//   try {
-//     console.log(worker)
-//     if (!worker) {
-
-//     }
-//     require('./imports')
-
-//     throng(4, launchWorker)
-//   } catch (e) {
-//     console.error("Unable to init server")
-//     console.error(e)
-//   }
-// }
-
-// function launchWorker(worker: number) {
-//   api.default()
-// }
-
-// init()
-// function start() {
-//   init()
-// }
-
-// const WORKERS = process.env.WEB_CONCURRENCY || 1;
-
-// init()

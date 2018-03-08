@@ -3,6 +3,7 @@ import { DB } from '../tables';
 import { Developer } from '../tables';
 import * as Normalizer from '../modules/Normalizer';
 import { AreaContext } from './Area';
+import { withPermission } from './utils/Resolvers';
 
 export const Resolver = {
     Organization: {
@@ -98,16 +99,14 @@ export const Resolver = {
         }
     },
     Mutation: {
-        organizationAdd: async function (_: any, args: { slug: string, title: string }, context: CallContext) {
-            context.requireWriteAccess();
+        organizationAdd: withPermission<{ slug: string, title: string }>('super-admin', (args, context) => {
             return DB.Developer.create({
                 account: context.accountId,
                 slug: args.slug.toLowerCase(),
                 title: args.title
             });
-        },
-        organizationRemove: async function (_: any, args: { slug: string }, context: CallContext) {
-            context.requireWriteAccess();
+        }),
+        organizationRemove: withPermission<{ slug: string }>('super-admin', async (args, context) => {
             let existing = await DB.Developer.findOne({
                 where: {
                     account: context.accountId,
@@ -120,8 +119,8 @@ export const Resolver = {
             } else {
                 throw 'Not found';
             }
-        },
-        organizationAlter: async function (_: any, args: {
+        }),
+        organizationAlter: withPermission<{
             slug: string,
             title?: string,
             logo?: string | null,
@@ -136,8 +135,7 @@ export const Resolver = {
             isDeveloper?: boolean,
             isConstructor?: boolean,
             description?: string | null,
-        }, context: CallContext) {
-            context.requireWriteAccess();
+        }>('super-admin', async (args, context: CallContext) => {
             let existing = await DB.Developer.findOne({
                 where: {
                     account: context.accountId,
@@ -190,6 +188,6 @@ export const Resolver = {
 
             await existing.save();
             return existing;
-        }
+        })
     }
 };

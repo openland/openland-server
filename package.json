@@ -41,6 +41,7 @@
     "base64url": "^2.0.0",
     "body-parser": "^1.17.2",
     "buffer": "^5.0.6",
+    "compose-middleware": "^4.0.0",
     "compression": "^1.7.1",
     "concurrently": "^3.5.0",
     "connect-ensure-login": "^0.1.1",
