@@ -3,11 +3,11 @@ import { CallContext } from './CallContext';
 import { ID } from '../modules/ID';
 import { withPermission } from './utils/Resolvers';
 
-let userId = new ID('User');
+export let UserId = new ID('User');
 
 export const Resolver = {
     User: {
-        id: (src: User) => userId.serialize(src.id!!),
+        id: (src: User) => UserId.serialize(src.id!!),
         name: (src: User) => src.firstName + ' ' + src.lastName,
         firstName: (src: User) => src.firstName,
         lastName: (src: User) => src.lastName,
@@ -36,7 +36,7 @@ export const Resolver = {
     },
     Mutation: {
         superAdminAdd: withPermission<{ userId: string }>('super-admin', async (args) => {
-            let uid = userId.parse(args.userId);
+            let uid = UserId.parse(args.userId);
             if (await DB.SuperAdmin.findOne({
                 where: {
                     userId: uid
@@ -50,7 +50,7 @@ export const Resolver = {
             return 'ok';
         }),
         superAdminRemove: withPermission<{ userId: string }>('super-admin', async (args) => {
-            let uid = userId.parse(args.userId);
+            let uid = UserId.parse(args.userId);
             if (await DB.SuperAdmin.count() <= 1) {
                 throw Error('You can\'t remove last Super Admin from the system');
             }

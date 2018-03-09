@@ -16,6 +16,7 @@ export class SuperRepository {
             title: title
         });
     }
+    
     async activateOrganization(id: number) {
         let org = await this.fetchById(id);
         org.status = 'ACTIVATED';
@@ -28,5 +29,19 @@ export class SuperRepository {
         org.status = 'SUSPENDED';
         await org.save();
         return org;
+    }
+
+    async assingOrganization(organizationId: number, uid: number) {
+        let existingOrg = this.fetchById(organizationId);
+        let existing = await DB.User.findById(uid);
+        if (existing === null) {
+            throw Error('Unable to find user');
+        }
+        if (existing.organizationId !== null) {
+            throw Error('User already belongs to an organization');
+        }
+        existing.organizationId = organizationId;
+        await existing.save();
+        return existingOrg;
     }
 }

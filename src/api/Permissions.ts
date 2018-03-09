@@ -3,8 +3,9 @@ import { Repos } from '../repositories';
 import { withPermission } from './utils/Resolvers';
 import { ID } from '../modules/ID';
 import { Organization } from '../tables/Organization';
+import { UserId } from './User';
 
-const SuperAccountId = new ID('SuperAccount');
+export const SuperAccountId = new ID('SuperAccount');
 
 export const Resolvers = {
     SuperAccount: {
@@ -38,6 +39,12 @@ export const Resolvers = {
         }),
         superAccountSuspend: withPermission<{ id: string }>('super-admin', (args) => {
             return Repos.Super.suspendOrganization(SuperAccountId.parse(args.id));
+        }),
+        superAccountMemberAdd: withPermission<{ id: string, userId: string }>('super-admin', (args) => {
+            return Repos.Super.assingOrganization(SuperAccountId.parse(args.id), UserId.parse(args.userId));
+        }),
+        superAccountMemberRemove: withPermission<{ id: string, userId: string }>('super-admin', (args) => {
+            //
         })
     }
 };
