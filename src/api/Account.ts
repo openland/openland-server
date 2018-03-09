@@ -11,6 +11,34 @@ export const Resolver = {
         title: (src: Organization) => src.title
     },
     Query: {
+        myProfile: async function (_: any, args: {}, context: CallContext) {
+            if (!context.uid) {
+                return {
+                    isLoggedIn: false,
+                    isProfileCreated: false,
+                    isAccountActivated: false,
+                    isCompleted: false,
+                    isBlocked: false
+                };
+            }
+            let res = await DB.User.findById(context.uid, { include: [{ model: DB.Organization, as: 'organization' }] });
+            if (res === null) {
+                return {
+                    isLoggedIn: false,
+                    isProfileCreated: false,
+                    isAccountActivated: false,
+                    isCompleted: false,
+                    isBlocked: false
+                };
+            }
+            return {
+                isLoggedIn: true,
+                isProfileCreated: true,
+                isAccountActivated: res.organization !== null,
+                isCompleted: res.organization !== null,
+                isBlocked: false
+            };
+        },
         myAccount: async function (_: any, args: {}, context: CallContext) {
             if (!context.uid) {
                 return null;

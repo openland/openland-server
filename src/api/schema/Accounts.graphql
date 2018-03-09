@@ -27,3 +27,11 @@ type MyAccount {
     id: ID!
     title: String!
 }
+
+type MyProfile {
+    isLoggedIn: Boolean!
+    isProfileCreated: Boolean!
+    isAccountActivated: Boolean!
+    isCompleted: Boolean!
+    isBlocked: Boolean!
+}

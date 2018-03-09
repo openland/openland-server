@@ -54,4 +54,5 @@ type Query {
     superAdmins: [User!]!
 
     myAccount: MyAccount
+    myProfile: MyProfile!
 }
