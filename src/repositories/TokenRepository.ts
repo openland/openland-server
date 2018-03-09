@@ -14,10 +14,10 @@ export class TokenRepository {
             }
         });
         let res: (number | null)[] = [];
-        for (let f of foundTokens) {
+        for (let i of tokens) {
             let found = false;
-            for (let i in tokens) {
-                if (tokens[i] === f.tokenSalt) {
+            for (let f of foundTokens) {
+                if (i === f.tokenSalt) {
                     res.push(f.userId!!);
                     found = true;
                     break;
