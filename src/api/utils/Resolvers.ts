@@ -1,7 +1,7 @@
 import { CallContext } from '../CallContext';
 import { Repos } from '../../repositories';
 
-export function withPermission<T>(permission: string, resolver: (args: T, context: CallContext) => any) {
+export function withPermission<T = {}>(permission: string, resolver: (args: T, context: CallContext) => any) {
     return async function (_: any, args: T, context: CallContext) {
         let permissions = await Repos.Permissions.resolvePermissions(context.uid);
         if (permissions.indexOf(permission) >= 0) {
@@ -9,5 +9,14 @@ export function withPermission<T>(permission: string, resolver: (args: T, contex
         } else {
             throw Error('Access Denied');
         }
+    };
+}
+
+export function withAuth<T = {}>(resolver: (args: T, uid: number) => any) {
+    return async function (_: any, args: T, context: CallContext) {
+        if (!context.uid) {
+            throw Error('Access Denied');
+        }
+        return resolver(args, context.uid!!);
     };
 }

@@ -14,23 +14,23 @@ export interface StreetNumber extends sequelize.Instance<StreetNumberAttributes>
 }
 
 export const StreetNumberTable = connection.define<StreetNumber, StreetNumberAttributes>('street_number', {
-    id: {type: sequelize.INTEGER, primaryKey: true, autoIncrement: true},
-    number: {type: sequelize.INTEGER, allowNull: false},
-    suffix: {type: sequelize.STRING, allowNull: true},
+    id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
+    number: { type: sequelize.INTEGER, allowNull: false },
+    suffix: { type: sequelize.STRING, allowNull: true },
 }, {
-    indexes: [{
-        unique: true, fields: ['streetId', 'number'], where: {
-            'suffix': {
-                $eq: null
+        indexes: [{
+            unique: true, fields: ['streetId', 'number'], where: {
+                'suffix': {
+                    $eq: null
+                }
             }
-        }
-    }, {
-        unique: true, fields: ['streetId', 'number', 'suffix'], where: {
-            'suffix': {
-                $neq: null
+        }, {
+            unique: true, fields: ['streetId', 'number', 'suffix'], where: {
+                'suffix': {
+                    $neq: null
+                }
             }
-        }
-    }]
-});
+        }]
+    });
 
-StreetNumberTable.belongsTo(StreetTable, {as: 'street'});
+StreetNumberTable.belongsTo(StreetTable, { as: 'street' });

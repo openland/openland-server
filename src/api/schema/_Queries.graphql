@@ -52,4 +52,6 @@ type Query {
     users(query:String!): [User!]!
 
     superAdmins: [User!]!
+
+    myAccount: MyAccount
 }

@@ -22,3 +22,8 @@ type User {
 type Permissions {
     roles: [String!]!
 }
+
+type MyAccount {
+    id: ID!
+    title: String!
+}

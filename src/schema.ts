@@ -1,17 +1,18 @@
 import { merge } from 'lodash';
 import { makeExecutableSchema } from 'graphql-tools';
-import * as Account from './api/Account';
+import * as CityAccount from './api/CityAccount';
 import * as User from './api/User';
 import * as Permits from './api/Permit';
 import * as BuildingProject from './api/BuildingProject';
 import * as Picture from './api/Picture';
-import * as Organizations from './api/Organizations';
+import * as CityOrganizations from './api/CityOrganizations';
 import * as Stats from './api/AreaStats';
 import * as Parcels from './api/Parcels';
 import * as Area from './api/Area';
-import * as Incidents from './api/Incident';
+import * as CityIncidents from './api/CityIncident';
 import * as Search from './api/Search';
 import * as Permissions from './api/Permissions';
+import * as Account from './api/Account';
 import * as fs from 'fs';
 
 let schema = fs
@@ -29,11 +30,12 @@ export const Schema = makeExecutableSchema({
         Permits.Resolver,
         BuildingProject.Resolver,
         Picture.Resolver,
-        Organizations.Resolver,
         Stats.Resolver,
         Parcels.Resolver,
         Area.Resolver,
-        Incidents.Resolvers,
+        CityAccount.Resolver,
+        CityOrganizations.Resolver,
+        CityIncidents.Resolvers,
         Search.Resolvers,
         Permissions.Resolvers
     )

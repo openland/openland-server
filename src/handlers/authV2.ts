@@ -36,7 +36,6 @@ export const JWTChecker = jwt({
 
 export const TokenChecker = async function (req: express.Request, response: express.Response, next: express.NextFunction) {
     let accessToken = req.headers['x-openland-token'];
-    console.warn(req.headers);
     if (accessToken) {
         let uid = await Repos.Tokens.fetchUserByToken(accessToken as string);
         if (uid !== null) {

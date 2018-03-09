@@ -18,6 +18,7 @@ export const Resolver = {
         linkedin: (src: Developer) => src.linkedin,
         facebook: (src: Developer) => src.facebook,
         twitter: (src: Developer) => src.twitter,
+        
         comments: (src: Developer) => src.comments,
         isDeveloper: (src: Developer) => src.isDeveloper,
         isConstructor: (src: Developer) => src.isConstructor,
