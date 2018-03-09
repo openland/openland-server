@@ -3,6 +3,15 @@ import { DB } from '../tables';
 export class UserRepository {
     private userCache = new Map<string, number | undefined>();
 
+    async fetchOrganizationMembers(organizationId: number) {
+        return await DB.User.findAll({
+            where: {
+                organizationId: organizationId
+            },
+            order: ['firstName', 'lastName']
+        });
+    }
+
     async fetchUserByAuthId(authId: string): Promise<number | undefined> {
         if (this.userCache.has(authId)) {
             return this.userCache.get(authId);

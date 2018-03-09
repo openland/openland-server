@@ -35,3 +35,16 @@ type MyProfile {
     isCompleted: Boolean!
     isBlocked: Boolean!
 }
+
+enum SuperAccountState {
+    PENDING,
+    ACTIVATED,
+    DEACTIVATED
+}
+
+type SuperAccount {
+    id: ID!
+    title: String!
+    state: SuperAccountState!
+    members: [User!]!
+}

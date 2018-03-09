@@ -55,4 +55,7 @@ type Query {
 
     myAccount: MyAccount
     myProfile: MyProfile!
+
+    superAccounts: [SuperAccount!]!
+    superAccount(id: ID!): SuperAccount!
 }

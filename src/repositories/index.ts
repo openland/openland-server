@@ -5,6 +5,7 @@ import { BlockRepository } from './BlockRepositroy';
 import { ParcelRepository } from './ParcelRepository';
 import { TokenRepository } from './TokenRepository';
 import { UserRepository } from './UserRepository';
+import { SuperRepository } from './SuperRepository';
 
 export const Repos = {
     Area: new AreaRepository(),
@@ -13,5 +14,6 @@ export const Repos = {
     Blocks: new BlockRepository(),
     Parcels: new ParcelRepository(),
     Tokens: new TokenRepository(),
-    Users: new UserRepository()
+    Users: new UserRepository(),
+    Super: new SuperRepository()
 };
