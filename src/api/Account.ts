@@ -34,9 +34,9 @@ export const Resolver = {
             return {
                 isLoggedIn: true,
                 isProfileCreated: true,
-                isAccountActivated: res.organization !== null,
-                isCompleted: res.organization !== null,
-                isBlocked: false
+                isAccountActivated: res.organization !== null && res.organization!!.status !== 'PENDING',
+                isCompleted: res.organization !== null && res.organization!!.status !== 'PENDING',
+                isBlocked: res.organization !== null ? res.organization!!.status === 'SUSPENDED' : false
             };
         },
         myAccount: async function (_: any, args: {}, context: CallContext) {

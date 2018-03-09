@@ -32,5 +32,9 @@ type Mutation {
     superAdminRemove(userId: ID!): String!
 
     superAccountAdd(title: String!): SuperAccount!
-    superAccountUpdateState(id: ID!, state: SuperAccountState!): SuperAccount!
+    superAccountActivate(id: ID!): SuperAccount!
+    superAccountSuspend(id: ID!): SuperAccount!
+
+    superAccountMemberAdd(id: ID!, userId: ID!): SuperAccount!
+    superAccountMemberRemove(id: ID!, userId: ID!): SuperAccount!
 }

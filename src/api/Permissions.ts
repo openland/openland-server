@@ -10,7 +10,7 @@ export const Resolvers = {
     SuperAccount: {
         id: (src: Organization) => SuperAccountId.serialize(src.id!!),
         title: (src: Organization) => src.title!!,
-        state: (src: Organization) => 'PENDING',
+        state: (src: Organization) => src.status,
         members: (src: Organization) => Repos.Users.fetchOrganizationMembers(src.id!!)
     },
     Query: {
@@ -27,6 +27,17 @@ export const Resolvers = {
         }),
         superAccount: withPermission<{ id: string }>('super-admin', (args) => {
             return Repos.Super.fetchById(SuperAccountId.parse(args.id));
+        }),
+    },
+    Mutation: {
+        superAccountAdd: withPermission<{ title: string }>('super-admin', (args) => {
+            return Repos.Super.createOrganization(args.title);
+        }),
+        superAccountActivate: withPermission<{ id: string }>('super-admin', (args) => {
+            return Repos.Super.activateOrganization(SuperAccountId.parse(args.id));
+        }),
+        superAccountSuspend: withPermission<{ id: string }>('super-admin', (args) => {
+            return Repos.Super.suspendOrganization(SuperAccountId.parse(args.id));
         })
     }
 };
