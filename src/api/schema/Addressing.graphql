@@ -47,3 +47,14 @@ input StreetNumberInfo {
     streetNumber: Int!
     streetNumberSuffix: String
 }
+
+type State {
+    id: ID!
+    name: String!
+    code: String!
+}
+
+type County {
+    id: ID!
+    name: String!
+}

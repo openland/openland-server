@@ -58,4 +58,7 @@ type Query {
 
     superAccounts: [SuperAccount!]!
     superAccount(id: ID!): SuperAccount!
+
+    states(active: Boolean): [State!]!
+    counties(stateId: ID!): [County!]!
 }

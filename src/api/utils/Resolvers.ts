@@ -20,3 +20,9 @@ export function withAuth<T = {}>(resolver: (args: T, uid: number) => any) {
         return resolver(args, context.uid!!);
     };
 }
+
+export function withAny<T = {}>(resolver: (args: T) => any) {
+    return async function (_: any, args: T, context: CallContext) {
+        return resolver(args);
+    };
+}
