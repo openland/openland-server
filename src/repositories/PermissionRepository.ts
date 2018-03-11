@@ -11,15 +11,16 @@ export class PermissionRepository {
             include: [
                 { model: DB.User }
             ]
-        })).map((v) => v.user!!);
+        }));
     }
 
     async resolvePermissions(userId: number | null | undefined) {
         let permissions: string[] = [];
         if (userId !== null && userId !== undefined) {
             permissions.push('viewer');
-            if (await this.isSuperAdmin(userId)) {
-                permissions.push('super-admin');
+            let superRole = await this.superRole(userId);
+            if (superRole !== false) {
+                permissions.push(superRole);
             }
             let members = await DB.AccountMember.findAll({
                 where: {
@@ -37,9 +38,17 @@ export class PermissionRepository {
         return permissions;
     }
 
-    async isSuperAdmin(userId: number | null | undefined) {
+    async superRole(userId: number | null | undefined): Promise<string | false> {
         if (userId !== undefined && userId !== null) {
-            return (await DB.SuperAdmin.count({ where: { userId: userId } })) > 0;
+            let roles = await DB.SuperAdmin.findOne({ where: { userId: userId } });
+            if (roles !== null) {
+                if (roles.role === null) {
+                    return 'super-admin';
+                } else {
+                    return roles.role!!;
+                }
+            }
+            return false;
         } else {
             return false;
         }

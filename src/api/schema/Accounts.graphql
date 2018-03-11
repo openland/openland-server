@@ -48,3 +48,14 @@ type SuperAccount {
     state: SuperAccountState!
     members: [User!]!
 }
+
+enum SuperAdminRole {
+    SUPER_ADMIN,
+    SOFTWARE_DEVELOPER,
+    EDITOR
+}
+
+type SuperAdmin {
+    user: User!
+    role: SuperAdminRole!
+}

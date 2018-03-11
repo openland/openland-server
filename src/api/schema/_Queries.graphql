@@ -51,7 +51,7 @@ type Query {
     
     users(query:String!): [User!]!
 
-    superAdmins: [User!]!
+    superAdmins: [SuperAdmin!]!
 
     myAccount: MyAccount
     myProfile: MyProfile!
