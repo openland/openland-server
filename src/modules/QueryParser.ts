@@ -183,6 +183,23 @@ export class QueryParser {
                     }
 
                     return res as IntValueSpanQuery;
+                } else if (Array.isArray(value)) {
+                    let vals: number[] = [];
+                    for (let v of value) {
+                        if (typeof v !== 'string' && typeof v !== 'number') {
+                            throw Error('Unsupported int field value ' + v);
+                        }
+                        if (typeof v === 'string') {
+                            vals.push(parseInt(v, 10));
+                        } else {
+                            vals.push(v);
+                        }
+                    }
+                    return {
+                        type: 'field_enum',
+                        field: tp.mappedName,
+                        values: vals
+                    };
                 } else {
                     throw Error('Unsupported int field value ' + value);
                 }
