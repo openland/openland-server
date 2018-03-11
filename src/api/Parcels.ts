@@ -78,7 +78,8 @@ export const Resolver = {
             return {
                 description: src.metadata!!.description,
                 currentUse: src.metadata!!.currentUse,
-                available: src.metadata!!.available
+                available: src.metadata!!.available,
+                isOkForTower: src.metadata!!.isOkForTower,
             };
         },
 
@@ -263,7 +264,7 @@ export const Resolver = {
             await Repos.Blocks.applyBlocks(cityId, args.blocks);
             return 'ok';
         },
-        parcelAlterMetadata: async function (_: any, args: { id: string, data: { description?: string | null, currentUse?: string | null, available?: boolean | null } }) {
+        parcelAlterMetadata: async function (_: any, args: { id: string, data: { description?: string | null, currentUse?: string | null, available?: boolean | null, isOkForTower?: boolean | null } }) {
             return Repos.Parcels.applyMetadata(ParcelID.parse(args.id), args.data);
         },
         likeParcel: async function (_: any, args: { id: string }, context: CallContext) {

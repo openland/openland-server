@@ -22,9 +22,10 @@ export class ParcelRepository {
         this.parser.registerBoolean('onSale', 'available');
         this.parser.registerText('landUse', 'landUse');
         this.parser.registerInt('transitDistance', 'distance');
+        this.parser.registerBoolean('isOkForTower', 'isOkForTower');
     }
 
-    async applyMetadata(id: number, metadata: { description?: string | null, currentUse?: string | null, available?: boolean | null }) {
+    async applyMetadata(id: number, metadata: { description?: string | null, currentUse?: string | null, available?: boolean | null, isOkForTower?: boolean | null }) {
         let lot = await DB.Lot.findById(id);
         if (!lot) {
             throw Error('Unable to find lot');
@@ -38,6 +39,9 @@ export class ParcelRepository {
         }
         if (metadata.available !== undefined) {
             updated.available = metadata.available;
+        }
+        if (metadata.isOkForTower !== undefined) {
+            updated.isOkForTower = metadata.isOkForTower;
         }
         lot.metadata = updated;
         await lot.save();

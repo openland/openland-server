@@ -169,6 +169,7 @@ export function startLotsIndexer(client: ES.Client) {
                 addressRaw: address,
                 currentUse: item.metadata!!.currentUse,
                 available: item.metadata!!.available,
+                isOkForTower: item.metadata!!.isOkForTower,
                 landUse: item.extras!!.land_use,
                 area: item.extras!!.area,
                 distance: distance

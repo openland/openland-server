@@ -56,6 +56,7 @@ type ParcelMetadata {
     description: String
     currentUse: ParcelUse
     available: Boolean
+    isOkForTower: Boolean
 }
 
 input ParcelInput {
@@ -81,6 +82,7 @@ input ParcelMetadataInput {
     description: String
     currentUse: ParcelUse
     available: Boolean
+    isOkForTower: Boolean
 }
 
 type Block {
