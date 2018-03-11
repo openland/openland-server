@@ -7,6 +7,7 @@ import { ID } from '../modules/ID';
 import { ElasticClient } from '../indexing';
 import * as Turf from '@turf/turf';
 import { CallContext } from './CallContext';
+import { withPermission } from './utils/Resolvers';
 
 let ParcelID = new ID('Parcel');
 let BlockID = new ID('Block');
@@ -264,9 +265,9 @@ export const Resolver = {
             await Repos.Blocks.applyBlocks(cityId, args.blocks);
             return 'ok';
         },
-        parcelAlterMetadata: async function (_: any, args: { id: string, data: { description?: string | null, currentUse?: string | null, available?: boolean | null, isOkForTower?: boolean | null } }) {
+        parcelAlterMetadata: withPermission<{ id: string, data: { description?: string | null, currentUse?: string | null, available?: boolean | null, isOkForTower?: boolean | null } }>(['super-admin', 'editor'], (args) => {
             return Repos.Parcels.applyMetadata(ParcelID.parse(args.id), args.data);
-        },
+        }),
         likeParcel: async function (_: any, args: { id: string }, context: CallContext) {
             if (!context.uid) {
                 throw Error('Authentication is required');
