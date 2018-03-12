@@ -62,7 +62,7 @@ type ParcelMetadata {
 input ParcelInput {
     id: String!
     blockId: String
-    geometry: [[[Float!]!]!]
+    geometry: [[[[Float!]!]!]!]
     extras: ExtrasInput
     addresses: [StreetNumberInfo!]
     related: [String!]
@@ -97,7 +97,7 @@ type Block {
 
 input BlockInput {
     id: String!
-    geometry: [[[Float!]!]!]
+    geometry: [[[[Float!]!]!]!]
     extras: ExtrasInput
 }
 

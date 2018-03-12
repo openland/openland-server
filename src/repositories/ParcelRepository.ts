@@ -213,7 +213,7 @@ export class ParcelRepository {
 
     async applyParcels(cityId: number, parcel: {
         id: string,
-        geometry?: number[][][] | null,
+        geometry?: number[][][][] | null,
         addresses?: {
             streetName: string,
             streetNameSuffix?: string | null

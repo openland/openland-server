@@ -15,7 +15,7 @@ let BlockID = new ID('Block');
 interface ParcelInput {
     id: string;
     blockId?: string | null;
-    geometry?: number[][][] | null;
+    geometry?: number[][][][] | null;
     extras?: ExtrasInput | null;
     addresses?: {
         streetName: string,
@@ -27,7 +27,7 @@ interface ParcelInput {
 
 interface BlockInput {
     id: string;
-    geometry?: number[][][] | null;
+    geometry?: number[][][][] | null;
     extras?: ExtrasInput | null;
 }
 

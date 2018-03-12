@@ -74,7 +74,7 @@ export class BlockRepository {
         return res;
     }
 
-    async applyBlocks(cityId: number, blocks: { id: string, geometry?: number[][][] | null, extras?: ExtrasInput | null }[]) {
+    async applyBlocks(cityId: number, blocks: { id: string, geometry?: number[][][][] | null, extras?: ExtrasInput | null }[]) {
         await DB.tx(async (tx) => {
             for (let b of blocks) {
                 let blockIdNormalized = Normalizer.normalizeId(b.id);

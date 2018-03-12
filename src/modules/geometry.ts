@@ -4,6 +4,7 @@ export interface Geometry {
 
 export interface Polygon {
     coordinates: Point[];
+    inner?: Point[][] | null;
 }
 
 export interface Point {
@@ -11,18 +12,29 @@ export interface Point {
     longitude: number;
 }
 
-export function buildGeometryFromInput(input: number[][][]): Geometry {
+export function buildGeometryFromInput(input: number[][][][]): Geometry {
     return {
-        polygons: input.map((v) => ({ coordinates: v.map((c) => ({ latitude: c[1], longitude: c[0] })) }))
+        polygons: input.map((v) => ({
+            coordinates: v[0].map((c) => ({ latitude: c[1], longitude: c[0] })),
+            inner: v.length > 1 ? v.slice(1).map((i) => i.map((c) => ({ latitude: c[1], longitude: c[0] }))) : null
+        }))
     };
 }
 
+function convertPolygonCoordnates(polygon: Polygon) {
+    let res = [];
+    res.push(polygon.coordinates.map((c) => [c.longitude, c.latitude]));
+    if (polygon.inner && polygon.inner.length > 0) {
+        for (let circle of polygon.inner) {
+            res.push(circle.map((c) => [c.longitude, c.latitude]));
+        }
+    }
+    return res;
+}
+
 export function buildGeoJson(src: Geometry) {
-    // console.warn(.coordinates.length);
     return {
         type: 'MultiPolygon',
-        coordinates: src.polygons
-            .filter((v) => v.coordinates.length >= 4)
-            .map((v) => [v.coordinates.map((c) => [c.longitude, c.latitude])])
+        coordinates: src.polygons.map((v) => convertPolygonCoordnates(v))
     };
 }
