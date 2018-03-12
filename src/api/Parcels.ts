@@ -51,7 +51,7 @@ export const Resolver = {
             }
             return null;
         },
-        block: (src: Lot) => Repos.Blocks.fetchBlock(src.blockId!!),
+        block: (src: Lot) => src.blockId ? Repos.Blocks.fetchBlock(src.blockId!!) : null,
 
         addresses: async (src: Lot) => {
             let numbers = src.streetNumbers;
