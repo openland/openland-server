@@ -43,9 +43,9 @@ jobs:
       - run: gcloud --quiet container clusters get-credentials statekube
       - run: kubectl set image deployment/statecraft-server-staging statecraft-server-staging=index.docker.io/statecraft/statecraft-server:git-${CIRCLE_SHA1}
       - run: kubectl rollout status deployments statecraft-server-staging || true
+
 workflows:
   version: 2
-
   build:
     jobs:
       - build
@@ -54,4 +54,4 @@ workflows:
             - build
       - staging:
           requires:
-            - docker            
+            - docker
