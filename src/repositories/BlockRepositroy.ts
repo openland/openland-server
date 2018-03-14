@@ -1,7 +1,7 @@
 import { DB } from '../tables/index';
 import { ExtrasInput } from '../api/Core';
 import { buildGeometryFromInput } from '../modules/geometry';
-import  * as Normalizer from '../modules/Normalizer';
+import * as Normalizer from '../modules/Normalizer';
 import { buildExtrasFromInput } from '../modules/extras';
 import { SelectBuilder } from '../modules/SelectBuilder';
 import { currentTime } from '../utils/timer';
@@ -74,12 +74,21 @@ export class BlockRepository {
         return res;
     }
 
-    async applyBlocks(cityId: number, blocks: { id: string, geometry?: number[][][][] | null, extras?: ExtrasInput | null }[]) {
+    async applyBlocks(cityId: number, blocks: { id: string, displayId?: string[] | null, geometry?: number[][][][] | null, extras?: ExtrasInput | null }[]) {
         await DB.tx(async (tx) => {
             for (let b of blocks) {
                 let blockIdNormalized = Normalizer.normalizeId(b.id);
                 let geometry = b.geometry ? buildGeometryFromInput(b.geometry) : null;
                 let extras = buildExtrasFromInput(b.extras);
+
+                // Searchable ID
+                if (b.displayId && b.displayId.length > 0) {
+                    extras.searchId = [b.id, ...b.displayId];
+                } else {
+                    extras.searchId = [b.id];
+                }
+
+                // Display ID
                 extras.displayId = b.id;
 
                 let existing = await DB.Block.findOne({

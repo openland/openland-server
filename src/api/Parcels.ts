@@ -310,7 +310,8 @@ export const Resolver = {
                                 { match: { 'addressRaw': { query: query.query, operator: 'and' } } },
 
                                 // Lot ID matcher
-                                { prefix: { 'displayId': { value: query.query, boost: 2.0 } } },
+                                { prefix: { 'displayId': { value: query.query, boost: 4.0 } } },
+                                { prefix: { 'searchId': { value: query.query, boost: 2.0 } } },
                                 // { prefix: { lotId: query.query } },
                                 // { term: { lotId: { value: query.query, boost: 3.0 } } },
 

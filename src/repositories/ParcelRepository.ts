@@ -213,6 +213,7 @@ export class ParcelRepository {
 
     async applyParcels(cityId: number, parcel: {
         id: string,
+        displayId?: string[] | null,
         geometry?: number[][][][] | null,
         addresses?: {
             streetName: string,
@@ -247,6 +248,7 @@ export class ParcelRepository {
             let lots = parcel.map((v, index) => ({
                 lotId: Normalizer.normalizeId(v.id),
                 realId: v.id,
+                displayId: v.displayId,
                 geometry: v.geometry,
                 extras: v.extras,
                 addresses: v.addresses,
@@ -257,7 +259,17 @@ export class ParcelRepository {
                 for (let d of data) {
                     let geometry = d.geometry ? buildGeometryFromInput(d.geometry) : null;
                     let extras = buildExtrasFromInput(d.extras);
+
+                    // Searchable ID
+                    if (d.displayId && d.displayId.length > 0) {
+                        extras.searchId = [d.realId, ...d.displayId];
+                    } else {
+                        extras.searchId = [d.realId];
+                    }
+
+                    // Display ID
                     extras.displayId = d.realId;
+
                     let existing = await DB.Lot.findOne({
                         where: {
                             cityId: cityId,

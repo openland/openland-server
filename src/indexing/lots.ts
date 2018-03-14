@@ -57,6 +57,9 @@ export function startLotsIndexer(client: ES.Client) {
         displayId: {
             type: 'text'
         },
+        searchId: {
+            type: 'keyword'
+        },
         blockSourceId: {
             type: 'integer'
         },
@@ -136,6 +139,16 @@ export function startLotsIndexer(client: ES.Client) {
             }
         }
 
+        // Building Search IDs
+        let searchId: string[] = [];
+        searchId.push(item.id!!.toString());
+        if (item.extras && item.extras.displayId) {
+            searchId.push(item.extras.displayId as string);
+        }
+        if (item.extras && item.extras.searchId) {
+            searchId.push(...(item.extras.searchId as string[]));
+        }
+
         return {
             id: item.id!!,
             doc: {
@@ -155,6 +168,7 @@ export function startLotsIndexer(client: ES.Client) {
                 units: item.extras ? parseIntSafe(item.extras.count_units) : null,
                 zoning: item.extras ? item.extras.zoning : null,
                 displayId: item.extras ? item.extras.displayId : null,
+                searchId: searchId,
                 addresses: item.streetNumbers!!.map((v) => ({
                     streetNumber: v.number,
                     streetNumberSuffix: v.suffix,
