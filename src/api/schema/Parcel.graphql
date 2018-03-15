@@ -44,6 +44,9 @@ type Parcel {
     extrasSalesPriorDate: String
     extrasRecordationDate: String
 
+    extrasAddress: String
+    extrasOwnerName: String
+
     metadata: ParcelMetadata!
 }
 

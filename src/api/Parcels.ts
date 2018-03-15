@@ -197,6 +197,8 @@ export const Resolver = {
         extrasBedrooms: (src: Lot) => src.extras ? src.extras.count_bedrooms : null,
         extrasYear: (src: Lot) => src.extras ? src.extras.year_built : null,
         extrasNeighborhood: (src: Lot) => src.extras ? src.extras.neighbourhoods : null,
+        extrasAddress: (src: Lot) => src.extras ? src.extras.address : null,
+        extrasOwnerName: (src: Lot) => src.extras ? src.extras.owner_name : null,
     },
     Block: {
         id: (src: Block) => BlockID.serialize(src.id!!),
