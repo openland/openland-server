@@ -9,6 +9,7 @@ import { ElasticClient } from '../indexing';
 import { applyStreetNumbersInTx } from './Streets';
 import { QueryParser, buildElasticQuery } from '../modules/QueryParser';
 import { currentTime } from '../utils/timer';
+import { fastDeepEquals } from '../utils/fastDeepEquals';
 
 export class ParcelRepository {
 
@@ -286,12 +287,17 @@ export class ParcelRepository {
                     }
 
                     if (existing) {
-                        if (geometry !== null) {
-                            existing.geometry = geometry;
+                        let changed = (geometry !== null && !fastDeepEquals(geometry, existing.geometry))
+                            || !fastDeepEquals(completedExtras, existing.extras)
+                            || !fastDeepEquals(d.primaryParcelId, existing.primaryParcelId);
+                        if (changed) {
+                            if (geometry !== null) {
+                                existing.geometry = geometry;
+                            }
+                            existing.extras = completedExtras;
+                            existing.primaryParcelId = d.primaryParcelId;
+                            await existing.save({ transaction: tx });
                         }
-                        existing.extras = completedExtras;
-                        existing.primaryParcelId = d.primaryParcelId;
-                        await existing.save({ transaction: tx });
                         res.push(existing.id!!);
                     } else {
                         existing = await DB.Lot.create({

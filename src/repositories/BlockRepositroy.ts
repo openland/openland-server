@@ -107,7 +107,7 @@ export class BlockRepository {
 
                 if (existing) {
                     
-                    let changed = !fastDeepEquals(geometry, existing.geometry)
+                    let changed = (geometry !== undefined && !fastDeepEquals(geometry, existing.geometry))
                         || !fastDeepEquals(completedExtras, existing.extras);
                     if (changed) {
                         if (geometry !== undefined) {
