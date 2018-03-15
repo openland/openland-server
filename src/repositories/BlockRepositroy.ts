@@ -6,6 +6,7 @@ import { buildExtrasFromInput } from '../modules/extras';
 import { SelectBuilder } from '../modules/SelectBuilder';
 import { currentTime } from '../utils/timer';
 import { ElasticClient } from '../indexing';
+import { fastDeepEquals } from '../utils/fastDeepEquals';
 
 export class BlockRepository {
 
@@ -76,6 +77,7 @@ export class BlockRepository {
 
     async applyBlocks(cityId: number, blocks: { id: string, displayId?: string[] | null, geometry?: number[][][][] | null, extras?: ExtrasInput | null }[]) {
         await DB.tx(async (tx) => {
+            let pending: any[] = [];
             for (let b of blocks) {
                 let blockIdNormalized = Normalizer.normalizeId(b.id);
                 let geometry = b.geometry ? buildGeometryFromInput(b.geometry) : null;
@@ -104,19 +106,27 @@ export class BlockRepository {
                 }
 
                 if (existing) {
-                    if (geometry !== undefined) {
-                        existing.geometry = geometry;
+                    
+                    let changed = !fastDeepEquals(geometry, existing.geometry)
+                        || !fastDeepEquals(completedExtras, existing.extras);
+                    if (changed) {
+                        if (geometry !== undefined) {
+                            existing.geometry = geometry;
+                        }
+                        existing.extras = completedExtras;
+                        pending.push(existing.save({ transaction: tx }));
                     }
-                    existing.extras = completedExtras;
-                    await existing.save({ transaction: tx });
                 } else {
-                    await DB.Block.create({
+                    pending.push(DB.Block.create({
                         cityId: cityId,
                         blockId: blockIdNormalized,
                         extras: completedExtras,
                         geometry: geometry
-                    }, { transaction: tx });
+                    }, { transaction: tx }));
                 }
+            }
+            for (let p of pending) {
+                await p;
             }
         });
     }
