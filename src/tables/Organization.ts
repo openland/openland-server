@@ -19,7 +19,7 @@ export const OrganizationTable = connection.define<Organization, OrganizationAtt
             'ACTIVATED',
             'SUSPENDED'
         ),
-        defaultValue: false,
+        defaultValue: 'PENDING',
         allowNull: false
     }
 });
