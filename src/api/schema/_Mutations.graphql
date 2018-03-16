@@ -39,4 +39,5 @@ type Mutation {
     superAccountMemberRemove(id: ID!, userId: ID!): SuperAccount!
 
     dealAdd(input: DealInput!): Deal!
+    dealAlter(id: ID!, input: DealInput!): Deal!
 }

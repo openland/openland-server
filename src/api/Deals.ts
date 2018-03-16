@@ -54,6 +54,38 @@ export const Resolver = {
                 address: args.input.address,
                 organizationId: org
             });
+        }),
+        dealAlter: withAccount<{ id: string, input: DealInput }>(async (args, uid, org) => {
+            let id = IDs.Deal.parse(args.id);
+            let existing = await DB.Deal.find({ where: { organizationId: org, id: id } });
+            if (!existing) {
+                throw Error('Unable to find deal');
+            }
+
+            if (args.input.title !== undefined && args.input.title !== null) {
+                existing.title = args.input.title;
+            }
+
+            if (args.input.location !== undefined) {
+                existing.location = args.input.location;
+            }
+            if (args.input.address !== undefined) {
+                existing.address = args.input.address;
+            }
+
+            if (args.input.status !== undefined) {
+                existing.status = args.input.status;
+            }
+            if (args.input.statusDescription !== undefined) {
+                existing.statusDescription = args.input.statusDescription;
+            }
+            if (args.input.statusDate !== undefined) {
+                existing.statusDate = args.input.statusDate;
+            }
+
+            await existing.save();
+
+            return existing;
         })
     }
 };
