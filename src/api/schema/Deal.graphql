@@ -8,6 +8,17 @@ type Deal {
 
     location: String
     address: String
+
+    price: Int
+
+    extrasArea: Int
+    extrasCompany: String
+    extrasAttorney: String
+    extrasReferee: String
+
+    extrasLotShape: String
+    extrasLotSize: String
+    extrasTaxBill: Int
 }
 
 enum DealStatus {
@@ -26,4 +37,15 @@ input DealInput {
 
     location: String
     address: String
+
+    price: Int
+    
+    extrasArea: Int
+    extrasCompany: String
+    extrasAttorney: String
+    extrasReferee: String
+
+    extrasLotShape: String
+    extrasLotSize: String
+    extrasTaxBill: Int
 }

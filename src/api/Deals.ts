@@ -12,7 +12,29 @@ interface DealInput {
 
     location?: string | null;
     address?: string | null;
+
+    price?: number | null;
+
+    extrasArea?: number | null;
+    extrasCompany?: string | null;
+    extrasAttorney?: string | null;
+    extrasReferee?: string | null;
+
+    extrasLotShape: string | null;
+    extrasLotSize: string | null;
+    extrasTaxBill: number | null;
 }
+
+// price?: number | null;
+// area?: number | null;
+// company?: string | null;
+// attrorney?: string | null;
+// referee?: string | null;
+
+// lotShape?: string | null;
+// lotSize?: string | null;
+
+// taxBill?: number | null;
 
 export const Resolver = {
     Deal: {
@@ -21,9 +43,16 @@ export const Resolver = {
         status: (src: Deal) => src.status,
         statusDescription: (src: Deal) => src.statusDescription,
         statusDate: (src: Deal) => normalizeDate(src.statusDate),
-
         location: (src: Deal) => src.location,
         address: (src: Deal) => src.address,
+        price: (src: Deal) => src.price,
+        extrasArea: (src: Deal) => src.area,
+        extrasCompany: (src: Deal) => src.company,
+        extrasAttorney: (src: Deal) => src.attorney,
+        extrasReferee: (src: Deal) => src.referee,
+        extrasLotShape: (src: Deal) => src.lotShape,
+        extrasLotSize: (src: Deal) => src.lotSize,
+        extrasTaxBill: (src: Deal) => src.taxBill,
     },
     Query: {
         deals: withAccount((args, uid, org) => {
@@ -55,6 +84,11 @@ export const Resolver = {
                 organizationId: org
             });
         }),
+        dealRemove: withAccount<{ id: string }>(async (args, uid, org) => {
+            let id = IDs.Deal.parse(args.id);
+            await DB.Deal.destroy({ where: { organizationId: org, id: id } });
+            return 'ok';
+        }),
         dealAlter: withAccount<{ id: string, input: DealInput }>(async (args, uid, org) => {
             let id = IDs.Deal.parse(args.id);
             let existing = await DB.Deal.find({ where: { organizationId: org, id: id } });
@@ -81,6 +115,38 @@ export const Resolver = {
             }
             if (args.input.statusDate !== undefined) {
                 existing.statusDate = args.input.statusDate;
+            }
+
+            if (args.input.price !== undefined) {
+                existing.price = args.input.price;
+            }
+
+            if (args.input.extrasArea !== undefined) {
+                existing.area = args.input.extrasArea;
+            }
+
+            if (args.input.extrasCompany !== undefined) {
+                existing.company = args.input.extrasCompany;
+            }
+
+            if (args.input.extrasAttorney !== undefined) {
+                existing.attorney = args.input.extrasAttorney;
+            }
+
+            if (args.input.extrasReferee !== undefined) {
+                existing.referee = args.input.extrasReferee;
+            }
+
+            if (args.input.extrasLotShape !== undefined) {
+                existing.lotShape = args.input.extrasLotShape;
+            }
+
+            if (args.input.extrasLotSize !== undefined) {
+                existing.lotSize = args.input.extrasLotSize;
+            }
+
+            if (args.input.extrasTaxBill !== undefined) {
+                existing.taxBill = args.input.extrasTaxBill;
             }
 
             await existing.save();

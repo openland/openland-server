@@ -13,6 +13,17 @@ export interface DealAttributes {
     address?: string | null;
     location?: string | null;
 
+    price?: number | null;
+    area?: number | null;
+    company?: string | null;
+    attorney?: string | null;
+    referee?: string | null;
+
+    lotShape?: string | null;
+    lotSize?: string | null;
+    
+    taxBill?: number | null;
+
     organizationId?: number | null;
     organization?: Organization | null;
 }
@@ -27,6 +38,17 @@ export const DealTable = connection.define<Deal, DealAttributes>('deal', {
     status: { type: sequelize.STRING, allowNull: true },
     statusDescription: { type: sequelize.STRING, allowNull: true },
     statusDate: { type: sequelize.DATE, allowNull: true },
+
+    price: { type: sequelize.INTEGER, allowNull: true },
+    area: { type: sequelize.INTEGER, allowNull: true },
+    company: { type: sequelize.STRING, allowNull: true },
+    attorney: { type: sequelize.STRING, allowNull: true },
+    referee: { type: sequelize.STRING, allowNull: true },
+
+    lotShape: { type: sequelize.STRING, allowNull: true },
+    lotSize: { type: sequelize.STRING, allowNull: true },
+
+    taxBill: { type: sequelize.INTEGER, allowNull: true },
 
     address: { type: sequelize.STRING, allowNull: true },
     location: { type: sequelize.STRING, allowNull: true },
