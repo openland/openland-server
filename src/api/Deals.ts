@@ -23,6 +23,8 @@ interface DealInput {
     extrasLotShape: string | null;
     extrasLotSize: string | null;
     extrasTaxBill: number | null;
+
+    parcelId: string | null;
 }
 
 // price?: number | null;
@@ -53,6 +55,7 @@ export const Resolver = {
         extrasLotShape: (src: Deal) => src.lotShape,
         extrasLotSize: (src: Deal) => src.lotSize,
         extrasTaxBill: (src: Deal) => src.taxBill,
+        parcel: (src: Deal) => src.getParcel()
     },
     Query: {
         deals: withAccount((args, uid, org) => {
@@ -147,6 +150,13 @@ export const Resolver = {
 
             if (args.input.extrasTaxBill !== undefined) {
                 existing.taxBill = args.input.extrasTaxBill;
+            }
+            if (args.input.parcelId !== undefined) {
+                if (args.input.parcelId === null) {
+                    existing.parcelId = null;
+                } else {
+                    existing.parcelId = IDs.Parcel.parse(args.input.parcelId);
+                }
             }
 
             await existing.save();

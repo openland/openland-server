@@ -19,6 +19,8 @@ type Deal {
     extrasLotShape: String
     extrasLotSize: String
     extrasTaxBill: Int
+
+    parcel: Parcel
 }
 
 enum DealStatus {
@@ -48,4 +50,6 @@ input DealInput {
     extrasLotShape: String
     extrasLotSize: String
     extrasTaxBill: Int
+
+    parcelId: ID
 }

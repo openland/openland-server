@@ -3,14 +3,11 @@ import { Block } from '../tables/Block';
 import { Repos } from '../repositories/index';
 import { ExtrasInput } from './Core';
 import { DB } from '../tables';
-import { ID } from '../modules/ID';
 import { ElasticClient } from '../indexing';
 import * as Turf from '@turf/turf';
 import { CallContext } from './CallContext';
-import { withPermission } from './utils/Resolvers';
-
-let ParcelID = new ID('Parcel');
-let BlockID = new ID('Block');
+import { withPermission, withAuth } from './utils/Resolvers';
+import { IDs } from './utils/IDs';
 
 interface ParcelInput {
     id: string;
@@ -33,7 +30,7 @@ interface BlockInput {
 
 export const Resolver = {
     Parcel: {
-        id: (src: Lot) => ParcelID.serialize(src.id!!),
+        id: (src: Lot) => IDs.Parcel.serialize(src.id!!),
         title: (src: Lot) => {
             if (src.extras && src.extras.displayId) {
                 return src.extras.displayId;
@@ -201,7 +198,7 @@ export const Resolver = {
         extrasOwnerName: (src: Lot) => src.extras ? src.extras.owner_name : null,
     },
     Block: {
-        id: (src: Block) => BlockID.serialize(src.id!!),
+        id: (src: Block) => IDs.Block.serialize(src.id!!),
         title: (src: Block) => (src.extras && src.extras.displayId) ? src.extras.displayId : src.blockId,
         geometry: (src: Block) => src.geometry ? JSON.stringify(src.geometry!!.polygons.map((v) => v.coordinates.map((c) => [c.longitude, c.latitude]))) : null,
         parcels: (src: Block) => DB.Lot.findAll({ where: { blockId: src.id!! } }),
@@ -225,7 +222,7 @@ export const Resolver = {
             return await Repos.Blocks.fetchBlocks(cityId, args.first, args.filter, args.after, args.page);
         },
         block: async function (_: any, args: { id: string }) {
-            return Repos.Blocks.fetchBlock(BlockID.parse(args.id));
+            return Repos.Blocks.fetchBlock(IDs.Block.parse(args.id));
         },
         blocksOverlay: async function (_: any, args: { box: { south: number, north: number, east: number, west: number }, limit: number, filterZoning?: string[] | null, query?: string | null }) {
             return Repos.Blocks.fetchGeoBlocks(args.box, args.limit, args.query);
@@ -235,7 +232,7 @@ export const Resolver = {
             return await Repos.Parcels.fetchParcelsConnection(cityId, args.first, args.query, args.after, args.page);
         },
         parcel: async function (_: any, args: { id: string }) {
-            return Repos.Parcels.fetchParcel(ParcelID.parse(args.id));
+            return Repos.Parcels.fetchParcel(IDs.Parcel.parse(args.id));
         },
         parcelsOverlay: async function (_: any, args: { box: { south: number, north: number, east: number, west: number }, limit: number, query?: string | null }) {
             return Repos.Parcels.fetchGeoParcels(args.box, args.limit, args.query);
@@ -255,6 +252,37 @@ export const Resolver = {
             }
             return Repos.Parcels.fetchFavoritesCount(context.uid);
         },
+        searchParcels: withAuth<{ query: string }>(async (args) => {
+            let hits = await ElasticClient.search({
+                index: 'parcels',
+                type: 'parcel',
+                size: 10,
+                from: 0,
+                body: {
+                    query: {
+                        bool: {
+                            should: [
+                                // Lot ID matcher
+                                { term: { 'displayId': { value: args.query, boost: 4.0 } } },
+                                { term: { 'searchId': { value: args.query, boost: 3.0 } } },
+                                { prefix: { 'displayId': { value: args.query, boost: 2.0 } } },
+                                { prefix: { 'searchId': { value: args.query, boost: 1.0 } } },
+
+                                // Address Matcher
+                                { match: { 'addressRaw': { query: args.query, operator: 'and' } } },
+                            ]
+                        }
+                    },
+                    highlight: {
+                        fields: {
+                            displayId: {},
+                            addressRaw: {}
+                        }
+                    }
+                }
+            });
+            return DB.Lot.findAll({ where: { id: { $in: hits.hits.hits.map((v) => v._id) } } });
+        })
     },
     Mutation: {
         importParcels: async function (_: any, args: { state: string, county: string, city: string, parcels: ParcelInput[] }) {
@@ -268,13 +296,13 @@ export const Resolver = {
             return 'ok';
         },
         parcelAlterMetadata: withPermission<{ id: string, data: { description?: string | null, currentUse?: string | null, available?: boolean | null, isOkForTower?: boolean | null } }>(['super-admin', 'editor'], (args) => {
-            return Repos.Parcels.applyMetadata(ParcelID.parse(args.id), args.data);
+            return Repos.Parcels.applyMetadata(IDs.Parcel.parse(args.id), args.data);
         }),
         likeParcel: async function (_: any, args: { id: string }, context: CallContext) {
             if (!context.uid) {
                 throw Error('Authentication is required');
             }
-            let lot = await Repos.Parcels.fetchParcel(ParcelID.parse(args.id));
+            let lot = await Repos.Parcels.fetchParcel(IDs.Parcel.parse(args.id));
             if (!lot) {
                 throw Error('Unable to find Lot');
             }
@@ -287,7 +315,7 @@ export const Resolver = {
             if (!context.uid) {
                 throw Error('Authentication is required');
             }
-            let lot = await Repos.Parcels.fetchParcel(ParcelID.parse(args.id));
+            let lot = await Repos.Parcels.fetchParcel(IDs.Parcel.parse(args.id));
             if (!lot) {
                 throw Error('Unable to find Lot');
             }
@@ -312,13 +340,10 @@ export const Resolver = {
                                 { match: { 'addressRaw': { query: query.query, operator: 'and' } } },
 
                                 // Lot ID matcher
-                                { prefix: { 'displayId': { value: query.query, boost: 4.0 } } },
-                                { prefix: { 'searchId': { value: query.query, boost: 2.0 } } },
-                                // { prefix: { lotId: query.query } },
-                                // { term: { lotId: { value: query.query, boost: 3.0 } } },
-
-                                // Block ID matcher
-                                // { term: { blockId: { value: query.query, boost: 0.5 } } }
+                                { term: { 'displayId': { value: query.query, boost: 4.0 } } },
+                                { term: { 'searchId': { value: query.query, boost: 3.0 } } },
+                                { prefix: { 'displayId': { value: query.query, boost: 2.0 } } },
+                                { prefix: { 'searchId': { value: query.query, boost: 1.0 } } },
                             ]
                         }
                     },

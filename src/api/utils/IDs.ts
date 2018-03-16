@@ -5,4 +5,6 @@ export const IDs = {
     County: new ID('County'),
     User: new ID('User'),
     Deal: new ID('Deal'),
+    Parcel: new ID('Parcel'),
+    Block: new ID('Block')
 };

@@ -1,6 +1,7 @@
 import { connection } from '../connector';
 import * as sequelize from 'sequelize';
 import { Organization, OrganizationTable } from './Organization';
+import { LotTable, Lot } from './Lot';
 
 export interface DealAttributes {
     id?: number;
@@ -21,14 +22,19 @@ export interface DealAttributes {
 
     lotShape?: string | null;
     lotSize?: string | null;
-    
+
     taxBill?: number | null;
 
     organizationId?: number | null;
     organization?: Organization | null;
+
+    parcelId?: number | null;
+    parcel?: Lot | null;
 }
 
 export interface Deal extends sequelize.Instance<DealAttributes>, DealAttributes {
+    getOrganization(options?: any): Promise<Organization | null>;
+    getParcel(options?: any): Promise<Lot | null>;
 }
 
 export const DealTable = connection.define<Deal, DealAttributes>('deal', {
@@ -55,3 +61,4 @@ export const DealTable = connection.define<Deal, DealAttributes>('deal', {
 });
 
 DealTable.belongsTo(OrganizationTable, { as: 'organization', foreignKey: { allowNull: false } });
+DealTable.belongsTo(LotTable, { as: 'parcel', foreignKey: { allowNull: true } });

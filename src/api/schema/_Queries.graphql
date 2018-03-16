@@ -64,4 +64,6 @@ type Query {
 
     deals: [Deal!]!
     deal(id: ID!): Deal!
+
+    searchParcels(query:String!): [Parcel!]!
 }
