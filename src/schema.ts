@@ -14,6 +14,7 @@ import * as Search from './api/Search';
 import * as Permissions from './api/Permissions';
 import * as Account from './api/Account';
 import * as Addressing from './api/Addressing';
+import * as Deals from './api/Deals';
 import * as fs from 'fs';
 
 let schema = fs
@@ -39,6 +40,7 @@ export const Schema = makeExecutableSchema({
         CityIncidents.Resolvers,
         Search.Resolvers,
         Permissions.Resolvers,
-        Addressing.Resolvers
+        Addressing.Resolvers,
+        Deals.Resolver
     )
 });

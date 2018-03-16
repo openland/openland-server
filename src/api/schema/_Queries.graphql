@@ -61,4 +61,6 @@ type Query {
 
     states(active: Boolean): [State!]!
     counties(stateId: ID!): [County!]!
+
+    deals: [Deal!]!
 }

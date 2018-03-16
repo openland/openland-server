@@ -5,13 +5,13 @@ import { buildGeoJson } from '../modules/geometry';
 
 export function startBlocksIndexer(client: ES.Client) {
 
-    let reader = new UpdateReader('blocks_indexing_3', DB.Block);
+    let reader = new UpdateReader('blocks_indexing_4', DB.Block);
 
     reader.elastic(client, 'blocks', 'block', {
         geometry: {
             type: 'geo_shape',
             tree: 'quadtree',
-            precision: '1m'
+            precision: '50m'
         }
     });
 

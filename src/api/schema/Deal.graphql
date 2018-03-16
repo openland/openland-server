@@ -1,0 +1,8 @@
+type Deal {
+    id: ID!
+    title: String!
+}
+
+input DealInput {
+    title: String!
+}
