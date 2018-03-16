@@ -1,8 +1,29 @@
 type Deal {
     id: ID!
     title: String!
+
+    status: DealStatus
+    statusDescription: String
+    statusDate: String
+
+    location: String
+    address: String
+}
+
+enum DealStatus {
+    ACTIVE,
+    CLOSED,
+    ON_HOLD
 }
 
 input DealInput {
-    title: String!
+    title: String
+    status: DealStatus
+
+    status: DealStatus
+    statusDescription: String
+    statusDate: String
+
+    location: String
+    address: String
 }
