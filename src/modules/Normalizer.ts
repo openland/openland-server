@@ -32,3 +32,14 @@ export function normalizeIds(ids: string[]) {
         unique: unique
     };
 }
+
+export function normalizeDate(src?: string | null) {
+    if (src) {
+        let r = new Date(src);
+        let d = r.getDate();
+        let m = r.getMonth() + 1;
+        return `${r.getFullYear()}-${m <= 9 ? '0' + m : m}-${d <= 9 ? '0' + d : d}`;
+    } else {
+        return null;
+    }
+}

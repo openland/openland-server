@@ -2,17 +2,16 @@ import { withAccount } from './utils/Resolvers';
 import { DB } from '../tables';
 import { Deal } from '../tables/Deal';
 import { IDs } from './utils/IDs';
+import { normalizeDate } from '../modules/Normalizer';
 
 interface DealInput {
-    title: string;
-    status?: 'ACTIVE' | 'CLOSED' | 'ON_HOLD';
-    statusDescription?: string;
-    statusDate?: string;
+    title?: string | null;
+    status?: 'ACTIVE' | 'CLOSED' | 'ON_HOLD' | null;
+    statusDescription?: string | null;
+    statusDate?: string | null;
 
-    location?: string;
-    address?: string;
-
-    parcels?: [string];
+    location?: string | null;
+    address?: string | null;
 }
 
 export const Resolver = {
@@ -21,14 +20,14 @@ export const Resolver = {
         title: (src: Deal) => src.title,
         status: (src: Deal) => src.status,
         statusDescription: (src: Deal) => src.statusDescription,
-        statusDate: (src: Deal) => src.statusDate,
+        statusDate: (src: Deal) => normalizeDate(src.statusDate),
 
         location: (src: Deal) => src.location,
         address: (src: Deal) => src.address,
     },
     Query: {
         deals: withAccount((args, uid, org) => {
-            return DB.Deal.findAll({ where: { organizationId: org } });
+            return DB.Deal.findAll({ where: { organizationId: org }, order: [['createdAt', 'ASC']] });
         }),
         deal: withAccount<{ id: string }>(async (args, uid, org) => {
             let deal = await DB.Deal.findById(IDs.Deal.parse(args.id));
@@ -43,11 +42,14 @@ export const Resolver = {
     },
     Mutation: {
         dealAdd: withAccount<{ input: DealInput }>((args, uid, org) => {
+            if (!args.input.title) {
+                throw Error('Title is required');
+            }
             return DB.Deal.create({
-                title: args.input.title,
+                title: args.input.title!!,
                 status: args.input.status,
                 statusDescription: args.input.statusDescription,
-                statusDate: args.input.statusDate,
+                statusDate: normalizeDate(args.input.statusDate),
                 location: args.input.location,
                 address: args.input.address,
                 organizationId: org
