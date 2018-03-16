@@ -63,4 +63,5 @@ type Query {
     counties(stateId: ID!): [County!]!
 
     deals: [Deal!]!
+    deal(id: ID!): Deal!
 }

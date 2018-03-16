@@ -11,6 +11,8 @@ interface DealInput {
 
     location?: string;
     address?: string;
+
+    parcels?: [string];
 }
 
 export const Resolver = {
@@ -27,6 +29,16 @@ export const Resolver = {
     Query: {
         deals: withAccount((args, uid, org) => {
             return DB.Deal.findAll({ where: { organizationId: org } });
+        }),
+        deal: withAccount<{ id: string }>(async (args, uid, org) => {
+            let deal = await DB.Deal.findById(IDs.Deal.parse(args.id));
+            if (deal === null) {
+                throw Error('Unable to find deal');
+            }
+            if (deal.organizationId !== org) {
+                throw Error('Unable to find deal');
+            }
+            return deal;
         })
     },
     Mutation: {
