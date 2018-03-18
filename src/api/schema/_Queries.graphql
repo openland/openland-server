@@ -34,7 +34,7 @@ type Query {
 
     parcelFavorites: [Parcel!]!
     parcelFavoritesCount: Int!
-    parcelsStats(query: String): Int!
+    parcelsStats(query: String, state: String, county: String, city: String): Int!
 
     organizations: [Organization!]!
     organization(slug: String!): Organization!

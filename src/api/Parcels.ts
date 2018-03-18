@@ -237,8 +237,12 @@ export const Resolver = {
         parcelsOverlay: async function (_: any, args: { box: { south: number, north: number, east: number, west: number }, limit: number, query?: string | null }) {
             return Repos.Parcels.fetchGeoParcels(args.box, args.limit, args.query);
         },
-        parcelsStats: async function (_: any, args: { query?: string | null }) {
-            return Repos.Parcels.fetchParcelsCount(args.query);
+        parcelsStats: async function (_: any, args: { query?: string | null, state?: string | null, county?: string | null, city?: string | null }) {
+            let cityId = null;
+            if (args.state && args.county && args.city) {
+                cityId = await Repos.Area.resolveCity(args.state, args.county, args.city);
+            }
+            return Repos.Parcels.fetchParcelsCount(args.query, cityId);
         },
         parcelFavorites: async function (_: any, args: {}, context: CallContext) {
             if (!context.uid) {

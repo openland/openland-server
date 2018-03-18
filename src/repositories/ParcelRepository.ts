@@ -158,12 +158,27 @@ export class ParcelRepository {
         return res;
     }
 
-    async fetchParcelsCount(query?: string | null) {
-        let must = { match_all: {} };
+    async fetchParcelsCount(query?: string | null, cityId?: number | null) {
+        let must: any = { match_all: {} };
+        if (cityId !== undefined && cityId !== null) {
+            must = {
+                'bool': {
+                    must: [{ match: { cityId: cityId } }]
+                }
+            };
+        }
         if (query) {
             let parsed = this.parser.parseQuery(query);
             let elasticQuery = buildElasticQuery(parsed);
-            must = elasticQuery;
+            if (cityId !== undefined && cityId !== null) {
+                must = {
+                    'bool': {
+                        must: [{ match: { cityId: cityId } }, elasticQuery]
+                    }
+                };
+            } else {
+                must = elasticQuery;
+            }
         }
         let hits = await ElasticClient.count({
             index: 'parcels',

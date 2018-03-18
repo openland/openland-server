@@ -3,11 +3,21 @@ export async function delay(ms: number) {
 }
 
 export async function backoff<T>(callback: () => Promise<T>): Promise<T> {
+    let currentFailureCount = 0;
+    const minDelay = 500;
+    const maxDelay = 15000;
+    const maxFailureCount = 50;
     while (true) {
         try {
             return await callback();
         } catch (_) {
-            await delay(1000);
+            if (currentFailureCount < maxFailureCount) {
+                currentFailureCount++;
+            }
+
+            let maxDelayRet = minDelay + ((maxDelay - minDelay) / maxFailureCount) * currentFailureCount;
+            let waitForRequest = Math.random() * maxDelayRet;
+            await delay(waitForRequest);
         }
     }
 }
