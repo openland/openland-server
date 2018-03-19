@@ -298,7 +298,7 @@ export class ParcelRepository {
                     // Merged extras
                     let completedExtras = extras;
                     if (existing && existing.extras) {
-                        completedExtras = Object.assign(existing.extras, extras);
+                        completedExtras = Object.assign({}, existing.extras, extras);
                     }
 
                     if (existing) {
