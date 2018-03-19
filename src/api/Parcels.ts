@@ -20,6 +20,7 @@ interface ParcelInput {
         streetNumber: number,
         streetNumberSuffix?: string | null
     }[];
+    retired?: boolean;
 }
 
 interface BlockInput {

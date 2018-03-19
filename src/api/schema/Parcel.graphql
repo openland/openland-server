@@ -70,6 +70,7 @@ input ParcelInput {
     extras: ExtrasInput
     addresses: [StreetNumberInfo!]
     related: [String!]
+    retired: Boolean
 }
 
 type ParcelEdge {

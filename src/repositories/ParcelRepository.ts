@@ -231,6 +231,7 @@ export class ParcelRepository {
         id: string,
         displayId?: string[] | null,
         geometry?: number[][][][] | null,
+        retired?: boolean,
         addresses?: {
             streetName: string,
             streetNameSuffix?: string | null
