@@ -10,7 +10,7 @@ import { UserTable, User } from './User';
 export interface LotAttributes {
     id?: number;
     cityId?: number;
-    
+
     lotId?: string;
     primaryParcelId?: number;
 
@@ -18,6 +18,8 @@ export interface LotAttributes {
     geometry?: Geometry | null;
     extras?: JsonMap | null;
     metadata?: JsonMap;
+
+    retired?: boolean;
 }
 
 export interface Lot extends sequelize.Instance<LotAttributes>, LotAttributes {
@@ -51,6 +53,11 @@ export const LotTable = connection.define<Lot, LotAttributes>('lot', {
         type: sequelize.JSON,
         allowNull: false,
         defaultValue: {}
+    },
+    retired: {
+        type: sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: false
     }
 }, { indexes: [{ unique: true, fields: ['blockId', 'lotId'] }, { unique: true, fields: ['cityId', 'lotId'] }] });
 

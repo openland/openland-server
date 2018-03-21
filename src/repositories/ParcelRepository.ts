@@ -269,7 +269,8 @@ export class ParcelRepository {
                 geometry: v.geometry,
                 extras: v.extras,
                 addresses: v.addresses,
-                primaryParcelId: parcelIds.get(v.id)
+                primaryParcelId: parcelIds.get(v.id),
+                retired: v.retired === undefined || v.retired === null ? false : v.retired
             }));
             return await normalizedProcessor(lots, (a, b) => (a.lotId === b.lotId), async (data) => {
                 let res = [];
@@ -305,13 +306,15 @@ export class ParcelRepository {
                     if (existing) {
                         let changed = (geometry !== null && !fastDeepEquals(geometry, existing.geometry))
                             || !fastDeepEquals(completedExtras, existing.extras)
-                            || !fastDeepEquals(d.primaryParcelId, existing.primaryParcelId);
+                            || !fastDeepEquals(d.primaryParcelId, existing.primaryParcelId)
+                            || d.retired !== existing.retired;
                         if (changed) {
                             if (geometry !== null) {
                                 existing.geometry = geometry;
                             }
                             existing.extras = completedExtras;
                             existing.primaryParcelId = d.primaryParcelId;
+                            existing.retired = d.retired;
                             await existing.save({ transaction: tx });
                         }
                         res.push(existing.id!!);
@@ -321,7 +324,8 @@ export class ParcelRepository {
                             lotId: d.lotId,
                             primaryParcelId: d.primaryParcelId,
                             geometry: geometry,
-                            extras: completedExtras
+                            extras: completedExtras,
+                            retired: d.retired
                         }, { transaction: tx });
                         res.push(existing.id);
                     }
