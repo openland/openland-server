@@ -126,15 +126,24 @@ export class ParcelRepository {
                     bool: {
                         must: must,
                         filter: {
-                            geo_shape: {
-                                geometry: {
-                                    shape: {
-                                        type: 'envelope',
-                                        coordinates:
-                                            [[box.west, box.south],
-                                            [box.east, box.north]],
+                            bool: {
+                                must: [
+                                    {
+                                        geo_shape: {
+                                            geometry: {
+                                                shape: {
+                                                    type: 'envelope',
+                                                    coordinates:
+                                                        [[box.west, box.south],
+                                                        [box.east, box.north]],
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        term: { retired: false }
                                     }
-                                }
+                                ]
                             }
                         }
                     }
