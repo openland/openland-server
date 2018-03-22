@@ -12,7 +12,8 @@ export const Resolvers = {
         id: (src: Organization) => IDs.SuperAccount.serialize(src.id!!),
         title: (src: Organization) => src.title!!,
         state: (src: Organization) => src.status,
-        members: (src: Organization) => Repos.Users.fetchOrganizationMembers(src.id!!)
+        members: (src: Organization) => Repos.Users.fetchOrganizationMembers(src.id!!),
+        features: (src: Organization) => (src as any).getFeatureFlags()
     },
     SuperAdmin: {
         user: (src: SuperAdmin) => src.user,
@@ -78,6 +79,16 @@ export const Resolvers = {
         }),
         featureFlagAdd: withPermission<{ key: string, title: string }>(['super-admin', 'software-developer'], async (args) => {
             return Repos.Permissions.createFeatureFlag(args.key, args.title);
+        }),
+        superAccountFeatureAdd: withPermission<{ id: string, featureId: string }>(['super-admin', 'software-developer'], async (args) => {
+            let org = await Repos.Super.fetchById(IDs.SuperAccount.parse(args.id));
+            await (org as any).addFeatureFlag(IDs.FeatureFlag.parse(args.featureId));
+            return org;
+        }),
+        superAccountFeatureRemove: withPermission<{ id: string, featureId: string }>(['super-admin', 'software-developer'], async (args) => {
+            let org = await Repos.Super.fetchById(IDs.SuperAccount.parse(args.id));
+            await (org as any).removeFeatureFlag(IDs.FeatureFlag.parse(args.featureId));
+            return org;
         }),
         superAdminAdd: withPermission<{ userId: string, role: 'SUPER_ADMIN' | 'SOFTWARE_DEVELOPER' | 'EDITOR' }>('super-admin', async (args) => {
             let uid = IDs.User.parse(args.userId);

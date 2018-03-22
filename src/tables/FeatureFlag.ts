@@ -23,4 +23,5 @@ export const FeatureFlagTable = connection.define<FeatureFlag, FeatureFlagAttrib
     }
 });
 
-OrganizationTable.belongsToMany(FeatureFlagTable, { through: 'organization_features' });
+OrganizationTable.belongsToMany(FeatureFlagTable, { through: 'organization_features', as: 'featureFlags' });
+FeatureFlagTable.belongsToMany(OrganizationTable, { through: 'organization_features', as: 'organizations' });

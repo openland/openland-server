@@ -37,6 +37,8 @@ type Mutation {
 
     superAccountMemberAdd(id: ID!, userId: ID!): SuperAccount!
     superAccountMemberRemove(id: ID!, userId: ID!): SuperAccount!
+    superAccountFeatureAdd(id: ID!, featureId: ID!): SuperAccount!
+    superAccountFeatureRemove(id: ID!, featureId: ID!): SuperAccount!
 
     featureFlagAdd(key: String!, title: String!): FeatureFlag!
 

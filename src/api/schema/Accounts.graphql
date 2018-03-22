@@ -47,6 +47,7 @@ type SuperAccount {
     title: String!
     state: SuperAccountState!
     members: [User!]!
+    features: [FeatureFlag!]!
 }
 
 enum SuperAdminRole {
