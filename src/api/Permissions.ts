@@ -1,7 +1,6 @@
 import { CallContext } from './CallContext';
 import { Repos } from '../repositories';
 import { withPermission } from './utils/Resolvers';
-import { ID } from '../modules/ID';
 import { Organization } from '../tables/Organization';
 import { IDs } from './utils/IDs';
 import { DB } from '../tables';
