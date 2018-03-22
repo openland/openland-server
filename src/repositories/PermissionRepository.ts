@@ -1,4 +1,5 @@
 import { DB } from '../tables/index';
+import { FeatureFlag } from '../tables/FeatureFlag';
 
 export interface AreaPermissions {
     isOwner: boolean;
@@ -25,11 +26,27 @@ export class PermissionRepository {
     async resolvePermissions(userId: number | null | undefined) {
         let permissions: string[] = [];
         if (userId !== null && userId !== undefined) {
+            let user = await DB.User.find({ where: { id: userId }, include: [{ model: DB.Organization, as: 'organization' }] });
+            if (user == null) {
+                throw Error('Unable to find user');
+            }
             permissions.push('viewer');
+
+            // Super Role
             let superRole = await this.superRole(userId);
             if (superRole !== false) {
                 permissions.push(superRole);
             }
+
+            // Organization features
+            if (user.organization !== null) {
+                let features = ((await (user.organization as any).getFeatureFlags()) as [FeatureFlag]);
+                for (let f of features) {
+                    permissions.push('feature-' + f.key);
+                }
+            }
+
+            // Members
             let members = await DB.AccountMember.findAll({
                 where: {
                     userId: userId
