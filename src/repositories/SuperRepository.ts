@@ -57,6 +57,7 @@ export class SuperRepository {
             throw Error('Organization id mismatch');
         }
         existing.organizationId = null;
+        await existing.save();
         await this.fetchById(organizationId);
     }
 }
