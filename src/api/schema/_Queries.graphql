@@ -63,6 +63,7 @@ type Query {
     counties(stateId: ID!): [County!]!
 
     deals: [Deal!]!
+    dealsCount: Int!
     deal(id: ID!): Deal!
 
     searchParcels(query:String!): [Parcel!]!

@@ -61,6 +61,9 @@ export const Resolver = {
         deals: withAccount((args, uid, org) => {
             return DB.Deal.findAll({ where: { organizationId: org }, order: [['createdAt', 'ASC']] });
         }),
+        dealsCount: withAccount((args, uid, org) => {
+            return DB.Deal.count({ where: { organizationId: org } });
+        }),
         deal: withAccount<{ id: string }>(async (args, uid, org) => {
             let deal = await DB.Deal.findById(IDs.Deal.parse(args.id));
             if (deal === null) {
