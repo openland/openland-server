@@ -16,14 +16,14 @@ export class SuperRepository {
             title: title
         });
     }
-    
+
     async activateOrganization(id: number) {
         let org = await this.fetchById(id);
         org.status = 'ACTIVATED';
         await org.save();
         return org;
     }
-    
+
     async suspendOrganization(id: number) {
         let org = await this.fetchById(id);
         org.status = 'SUSPENDED';
@@ -32,7 +32,7 @@ export class SuperRepository {
     }
 
     async assingOrganization(organizationId: number, uid: number) {
-        let existingOrg = this.fetchById(organizationId);
+        let existingOrg = await this.fetchById(organizationId);
         let existing = await DB.User.findById(uid);
         if (existing === null) {
             throw Error('Unable to find user');
@@ -43,5 +43,21 @@ export class SuperRepository {
         existing.organizationId = organizationId;
         await existing.save();
         return existingOrg;
+    }
+
+    async detachOrganization(organizationId: number, uid: number) {
+        let existingOrg = await this.fetchById(organizationId);
+        let existing = await DB.User.findById(uid);
+        if (existing === null) {
+            throw Error('Unable to find user');
+        }
+        if (existing.organizationId === null) {
+            throw Error('User doesnt belong to an organization');
+        }
+        if (existing.organizationId !== existingOrg.id) {
+            throw Error('Organization id mismatch');
+        }
+        existing.organizationId = null;
+        await existing.save();
     }
 }

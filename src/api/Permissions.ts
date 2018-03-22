@@ -75,7 +75,7 @@ export const Resolvers = {
             return Repos.Super.assingOrganization(IDs.SuperAccount.parse(args.id), IDs.User.parse(args.userId));
         }),
         superAccountMemberRemove: withPermission<{ id: string, userId: string }>('super-admin', (args) => {
-            //
+            return Repos.Super.detachOrganization(IDs.SuperAccount.parse(args.id), IDs.User.parse(args.userId));
         }),
         featureFlagAdd: withPermission<{ key: string, title: string }>(['super-admin', 'software-developer'], async (args) => {
             return Repos.Permissions.createFeatureFlag(args.key, args.title);
