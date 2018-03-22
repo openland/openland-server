@@ -59,6 +59,8 @@ type Query {
     superAccounts: [SuperAccount!]!
     superAccount(id: ID!): SuperAccount!
 
+    featureFlags: [FeatureFlag!]!
+
     states(active: Boolean): [State!]!
     counties(stateId: ID!): [County!]!
 

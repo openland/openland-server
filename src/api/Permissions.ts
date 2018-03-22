@@ -6,12 +6,11 @@ import { Organization } from '../tables/Organization';
 import { IDs } from './utils/IDs';
 import { DB } from '../tables';
 import { SuperAdmin } from '../tables/SuperAdmin';
-
-export const SuperAccountId = new ID('SuperAccount');
+import { FeatureFlag } from '../tables/FeatureFlag';
 
 export const Resolvers = {
     SuperAccount: {
-        id: (src: Organization) => SuperAccountId.serialize(src.id!!),
+        id: (src: Organization) => IDs.SuperAccount.serialize(src.id!!),
         title: (src: Organization) => src.title!!,
         state: (src: Organization) => src.status,
         members: (src: Organization) => Repos.Users.fetchOrganizationMembers(src.id!!)
@@ -28,6 +27,11 @@ export const Resolvers = {
             }
         }
     },
+    FeatureFlag: {
+        id: (src: FeatureFlag) => IDs.FeatureFlag.serialize(src.id!!),
+        title: (src: FeatureFlag) => src.title,
+        key: (src: FeatureFlag) => src.key
+    },
     Query: {
         permissions: async function (_: any, _params: {}, context: CallContext) {
             return {
@@ -41,7 +45,7 @@ export const Resolvers = {
             return Repos.Super.fetchAllOrganizations();
         }),
         superAccount: withPermission<{ id: string }>('super-admin', (args) => {
-            return Repos.Super.fetchById(SuperAccountId.parse(args.id));
+            return Repos.Super.fetchById(IDs.SuperAccount.parse(args.id));
         }),
         users: withPermission<{ query: string }>('super-admin', async (args) => {
             return await DB.User.findAll({
@@ -52,6 +56,9 @@ export const Resolvers = {
                 },
                 limit: 10
             });
+        }),
+        featureFlags: withPermission(['super-admin', 'software-developer'], () => {
+            return Repos.Permissions.resolveFeatureFlags();
         })
     },
     Mutation: {
@@ -59,16 +66,19 @@ export const Resolvers = {
             return Repos.Super.createOrganization(args.title);
         }),
         superAccountActivate: withPermission<{ id: string }>('super-admin', (args) => {
-            return Repos.Super.activateOrganization(SuperAccountId.parse(args.id));
+            return Repos.Super.activateOrganization(IDs.SuperAccount.parse(args.id));
         }),
         superAccountSuspend: withPermission<{ id: string }>('super-admin', (args) => {
-            return Repos.Super.suspendOrganization(SuperAccountId.parse(args.id));
+            return Repos.Super.suspendOrganization(IDs.SuperAccount.parse(args.id));
         }),
         superAccountMemberAdd: withPermission<{ id: string, userId: string }>('super-admin', (args) => {
-            return Repos.Super.assingOrganization(SuperAccountId.parse(args.id), IDs.User.parse(args.userId));
+            return Repos.Super.assingOrganization(IDs.SuperAccount.parse(args.id), IDs.User.parse(args.userId));
         }),
         superAccountMemberRemove: withPermission<{ id: string, userId: string }>('super-admin', (args) => {
             //
+        }),
+        featureFlagAdd: withPermission<{ key: string, title: string }>(['super-admin', 'software-developer'], async (args) => {
+            return Repos.Permissions.createFeatureFlag(args.key, args.title);
         }),
         superAdminAdd: withPermission<{ userId: string, role: 'SUPER_ADMIN' | 'SOFTWARE_DEVELOPER' | 'EDITOR' }>('super-admin', async (args) => {
             let uid = IDs.User.parse(args.userId);

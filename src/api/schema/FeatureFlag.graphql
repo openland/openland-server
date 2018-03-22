@@ -1,0 +1,5 @@
+type FeatureFlag {
+    id: ID!
+    key: String!
+    title: String!
+}

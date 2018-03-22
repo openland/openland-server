@@ -6,5 +6,7 @@ export const IDs = {
     User: new ID('User'),
     Deal: new ID('Deal'),
     Parcel: new ID('Parcel'),
-    Block: new ID('Block')
+    Block: new ID('Block'),
+    SuperAccount: new ID('SuperAccount'),
+    FeatureFlag: new ID('FeatureFlag')
 };

@@ -44,6 +44,8 @@ import { SuperAdminTable } from './SuperAdmin';
 import { UserTokenTable } from './UserTokens';
 import { OrganizationTable } from './Organization';
 import { DealTable } from './Deal';
+import { FeatureFlagTable } from './FeatureFlag';
+
 export const DB = {
     User: UserTable,
     Account: AccountTable,
@@ -69,6 +71,7 @@ export const DB = {
     UserToken: UserTokenTable,
     Organization: OrganizationTable,
     Deal: DealTable,
+    FeatureFlag: FeatureFlagTable,
 
     tx: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>): Promise<A> {
         return await connection.transaction({ isolationLevel: 'SERIALIZABLE' }, (tx2: sequelize.Transaction) => handler(tx2));

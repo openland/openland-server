@@ -14,6 +14,14 @@ export class PermissionRepository {
         }));
     }
 
+    async resolveFeatureFlags() {
+        return DB.FeatureFlag.findAll();
+    }
+
+    async createFeatureFlag(key: string, title: string) {
+        return DB.FeatureFlag.create({ key: key, title: title });
+    }
+
     async resolvePermissions(userId: number | null | undefined) {
         let permissions: string[] = [];
         if (userId !== null && userId !== undefined) {

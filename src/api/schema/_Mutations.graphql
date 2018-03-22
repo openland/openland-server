@@ -38,6 +38,8 @@ type Mutation {
     superAccountMemberAdd(id: ID!, userId: ID!): SuperAccount!
     superAccountMemberRemove(id: ID!, userId: ID!): SuperAccount!
 
+    featureFlagAdd(key: String!, title: String!): FeatureFlag!
+
     dealAdd(input: DealInput!): Deal!
     dealRemove(id: ID!): String!
     dealAlter(id: ID!, input: DealInput!): Deal!
