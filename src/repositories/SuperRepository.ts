@@ -32,7 +32,6 @@ export class SuperRepository {
     }
 
     async assingOrganization(organizationId: number, uid: number) {
-        let existingOrg = await this.fetchById(organizationId);
         let existing = await DB.User.findById(uid);
         if (existing === null) {
             throw Error('Unable to find user');
@@ -42,7 +41,7 @@ export class SuperRepository {
         }
         existing.organizationId = organizationId;
         await existing.save();
-        return existingOrg;
+        return this.fetchById(organizationId);
     }
 
     async detachOrganization(organizationId: number, uid: number) {
@@ -58,6 +57,6 @@ export class SuperRepository {
             throw Error('Organization id mismatch');
         }
         existing.organizationId = null;
-        await existing.save();
+        await this.fetchById(organizationId);
     }
 }
