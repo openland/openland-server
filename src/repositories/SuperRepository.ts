@@ -58,6 +58,6 @@ export class SuperRepository {
         }
         existing.organizationId = null;
         await existing.save();
-        await this.fetchById(organizationId);
+        return this.fetchById(organizationId);
     }
 }
