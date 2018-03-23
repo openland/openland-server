@@ -8,6 +8,7 @@ import * as Turf from '@turf/turf';
 import { CallContext } from './CallContext';
 import { withPermission, withAuth } from './utils/Resolvers';
 import { IDs } from './utils/IDs';
+import { serializeGeometry } from './utils/Serializers';
 
 interface ParcelInput {
     id: string;
@@ -41,7 +42,7 @@ export const Resolver = {
                 return src.lotId;
             }
         },
-        geometry: (src: Lot) => src.geometry ? JSON.stringify(src.geometry!!.polygons.map((v) => v.coordinates.map((c) => [c.longitude, c.latitude]))) : null,
+        geometry: (src: Lot) => serializeGeometry(src.geometry),
         center: (src: Lot) => {
             if (src.geometry) {
                 let ctr = Turf.centerOfMass({ type: 'MultiPolygon', coordinates: src.geometry.polygons.map((v) => [v.coordinates.map((v2) => [v2.longitude, v2.latitude])]) });
@@ -201,7 +202,7 @@ export const Resolver = {
     Block: {
         id: (src: Block) => IDs.Block.serialize(src.id!!),
         title: (src: Block) => (src.extras && src.extras.displayId) ? src.extras.displayId : src.blockId,
-        geometry: (src: Block) => src.geometry ? JSON.stringify(src.geometry!!.polygons.map((v) => v.coordinates.map((c) => [c.longitude, c.latitude]))) : null,
+        geometry: (src: Block) => serializeGeometry(src.geometry),
         parcels: (src: Block) => DB.Lot.findAll({ where: { blockId: src.id!! } }),
         extrasArea: (src: Block) => (src.extras && src.extras.area) ? Math.round(src.extras.area as number) : null,
         extrasZoning: async (src: Lot) => {
