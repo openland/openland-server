@@ -46,8 +46,17 @@ type Parcel {
 
     extrasAddress: String
     extrasOwnerName: String
+    extrasOwnerType: OwnerTyoe
 
     metadata: ParcelMetadata!
+}
+
+enum OwnerTyoe {
+    CITY
+    MIXED
+    PRIVATE
+    OTHER
+    EXCLUDED
 }
 
 enum ParcelUse {
