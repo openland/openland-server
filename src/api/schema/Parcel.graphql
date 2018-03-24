@@ -46,7 +46,7 @@ type Parcel {
 
     extrasAddress: String
     extrasOwnerName: String
-    extrasOwnerType: OwnerTyoe
+    extrasOwnerType: OwnerType
 
     metadata: ParcelMetadata!
 }
