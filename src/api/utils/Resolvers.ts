@@ -19,6 +19,23 @@ export function withPermission<T = {}>(permission: string | string[], resolver: 
     };
 }
 
+export function withPermissionOptional<T = {}, C = {}>(permission: string | string[], resolver: (args: T, context: CallContext, src: C) => any) {
+    return async function (c: C, args: T, context: CallContext) {
+        let permissions = await Repos.Permissions.resolvePermissions(context.uid);
+        if (Array.isArray(permission)) {
+            for (let p of permission) {
+                if (permissions.indexOf(p) >= 0) {
+                    return resolver(args, context, c);
+                }
+            }
+        } else if (permissions.indexOf(permission) >= 0) {
+            return resolver(args, context, c);
+        } else {
+            return null;
+        }
+    };
+}
+
 export function withAuth<T = {}>(resolver: (args: T, uid: number) => any) {
     return async function (_: any, args: T, context: CallContext) {
         if (!context.uid) {

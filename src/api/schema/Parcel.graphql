@@ -48,6 +48,11 @@ type Parcel {
     extrasOwnerName: String
     extrasOwnerType: OwnerType
 
+    extrasShapeType: String
+    extrasShapeSides: [Float!]
+    extrasFitProjects: [String!]
+    extrasAnalyzed: Boolean
+
     metadata: ParcelMetadata!
 }
 

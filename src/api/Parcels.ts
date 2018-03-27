@@ -6,7 +6,7 @@ import { DB } from '../tables';
 import { ElasticClient } from '../indexing';
 import * as Turf from '@turf/turf';
 import { CallContext } from './CallContext';
-import { withPermission, withAuth } from './utils/Resolvers';
+import { withPermission, withAuth, withPermissionOptional } from './utils/Resolvers';
 import { IDs } from './utils/IDs';
 import { serializeGeometry } from './utils/Serializers';
 
@@ -199,6 +199,40 @@ export const Resolver = {
         extrasAddress: (src: Lot) => src.extras ? src.extras.address : null,
         extrasOwnerName: (src: Lot) => src.extras ? src.extras.owner_name : null,
         extrasOwnerType: (src: Lot) => src.extras ? src.extras.owner_type : null,
+        extrasShapeType: (src: Lot) => src.extras ? src.extras.shape_type : null,
+        extrasShapeSides: (src: Lot) => {
+            let res = [];
+            if (src.extras) {
+                if (src.extras.side1) {
+                    res.push(src.extras.side1 as number);
+                }
+                if (src.extras.side1 && src.extras.side2) {
+                    res.push(src.extras.side2 as number);
+                }
+                if (src.extras.side1 && src.extras.side2 && src.extras.side3) {
+                    res.push(src.extras.side3 as number);
+                }
+                if (src.extras.side1 && src.extras.side2 && src.extras.side3 && src.extras.side4) {
+                    res.push(src.extras.side4 as number);
+                }
+            }
+            return res;
+        },
+        extrasFitProjects: withPermissionOptional<{}, Lot>(['feature-customer-kassita', 'editor', 'software-developer', 'super-admin'], (args, context, src) => {
+            if (src.extras && src.extras.analyzed === 'true') {
+                let res = [];
+                if (src.extras.project_kassita1 === 'true') {
+                    res.push('kassita-1');
+                }
+                if (src.extras.project_kassita2 === 'true') {
+                    res.push('kassita-2');
+                }
+                return res;
+            } else {
+                return null;
+            }
+        }),
+        extrasAnalyzed: (src: Lot) => src.extras && src.extras.analyzed === 'true'
     },
     Block: {
         id: (src: Block) => IDs.Block.serialize(src.id!!),
