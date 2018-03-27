@@ -1,4 +1,4 @@
-import { withAccount } from './utils/Resolvers';
+import { withAccount, withPermissionOptional } from './utils/Resolvers';
 import { DB } from '../tables';
 import { Deal } from '../tables/Deal';
 import { IDs } from './utils/IDs';
@@ -47,7 +47,7 @@ export const Resolver = {
         statusDate: (src: Deal) => normalizeDate(src.statusDate),
         location: (src: Deal) => src.location,
         address: (src: Deal) => src.address,
-        price: (src: Deal) => src.price,
+        price: withPermissionOptional<{}, Deal>(['accounting', 'editor', 'software-developer', 'super-admin'], (args, context, src) => src.price),
         extrasArea: (src: Deal) => src.area,
         extrasCompany: (src: Deal) => src.company,
         extrasAttorney: (src: Deal) => src.attorney,
