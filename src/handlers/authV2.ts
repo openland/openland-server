@@ -98,7 +98,7 @@ export const Authenticator = async function (req: express.Request, response: exp
                 await DB.User.update({
                     firstName: firstName,
                     lastName: lastName,
-                    email: profile.email,
+                    email: profile.email.toLowerCase(),
                     picture: profile.picture
                 }, {
                         where: {
@@ -111,7 +111,7 @@ export const Authenticator = async function (req: express.Request, response: exp
                     authId: userKey,
                     firstName: firstName,
                     lastName: lastName,
-                    email: profile.email,
+                    email: profile.email.toLowerCase(),
                     picture: profile.picture
                 })).id!!;
             }

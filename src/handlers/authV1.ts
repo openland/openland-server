@@ -52,7 +52,7 @@ export const Authenticator = async function (req: express.Request, response: exp
             await DB.User.update({
                 firstName: b.given_name,
                 lastName: b.family_name,
-                email: b.email,
+                email: b.email.toLowerCase(),
                 picture: b.picture
             }, {
                     where: {
@@ -64,7 +64,7 @@ export const Authenticator = async function (req: express.Request, response: exp
                 authId: userKey,
                 firstName: b.given_name,
                 lastName: b.family_name,
-                email: b.email,
+                email: b.email.toLowerCase(),
                 picture: b.picture
             });
         }
