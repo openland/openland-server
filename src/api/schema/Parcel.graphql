@@ -54,7 +54,19 @@ type Parcel {
     extrasAnalyzed: Boolean
 
     metadata: ParcelMetadata!
+
+    compatibleBuildings: [BuildingLocation!]
 }
+
+type BuildingLocation {
+    key: String!
+    title: String!
+    width: Float!
+    height: Float!
+    center: Geo
+    angle: Float
+    shape: String
+} 
 
 enum OwnerType {
     CITY
@@ -141,6 +153,7 @@ type ParcelResult {
     score: Float!
     highlight: [SearchHighlight!]!
 }
+
 extend type SearchResult {
     parcels: ParcelSearchResult!
 }

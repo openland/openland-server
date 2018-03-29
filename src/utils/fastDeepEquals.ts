@@ -31,8 +31,10 @@ export function fastDeepEquals(src?: any, dst?: any): boolean {
         // Values compare
         for (let i = 0; i < sKeys.length; i++) {
             let key = sKeys[i];
-            return fastDeepEquals(src[key], dst[key]);
+            if (!fastDeepEquals(src[key], dst[key])) {
+                return false;
+            }
         }
-        return false;
+        return true;
     }
 }
