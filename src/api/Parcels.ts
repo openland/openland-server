@@ -9,6 +9,7 @@ import { CallContext } from './CallContext';
 import { withPermission, withAuth, withPermissionOptional } from './utils/Resolvers';
 import { IDs } from './utils/IDs';
 import { serializeGeometry } from './utils/Serializers';
+import { createRectangle } from '../utils/map';
 
 interface ParcelInput {
     id: string;
@@ -237,35 +238,57 @@ export const Resolver = {
             if (src.extras && src.extras.analyzed === 'true') {
                 if (src.extras.project_kassita1 === 'true') {
                     let center = null;
+                    let shape = null;
                     if (src.extras.project_kassita1_lon && src.extras.project_kassita1_lat) {
                         center = {
                             latitude: src.extras.project_kassita1_lat,
                             longitude: src.extras.project_kassita1_lon
                         };
+                        if (src.extras.project_kassita1_angle) {
+                            shape = JSON.stringify(createRectangle(src.extras.project_kassita1_lat as number,
+                                src.extras.project_kassita1_lon as number,
+                                src.extras.project_kassita1_angle as number,
+                                3.6576,
+                                10.668
+                            ));
+                        }
                     }
                     res.push({
                         key: 'kassita-1',
-                        title: 'Elemynt-2',
+                        title: 'Elemynt #1',
                         width: 3.6576,
                         height: 10.668,
                         center: center,
-                        angle: src.extras.project_kassita1_angle
+                        angle: src.extras.project_kassita1_angle,
+                        shape: shape
                     });
-                } else if (src.extras.project_kassita2 === 'true') {
+                }
+                if (src.extras.project_kassita2 === 'true') {
                     let center = null;
+                    let shape = null;
                     if (src.extras.project_kassita2_lon && src.extras.project_kassita2_lat) {
                         center = {
                             latitude: src.extras.project_kassita2_lat,
                             longitude: src.extras.project_kassita2_lon
                         };
+
+                        if (src.extras.project_kassita2_angle) {
+                            shape = JSON.stringify(createRectangle(src.extras.project_kassita2_lat as number,
+                                src.extras.project_kassita2_lon as number,
+                                src.extras.project_kassita2_angle as number,
+                                3.048,
+                                12.192
+                            ));
+                        }
                     }
                     res.push({
                         key: 'kassita-2',
-                        title: 'Elemynt-2',
+                        title: 'Elemynt #2',
                         width: 3.048,
                         height: 12.192,
                         center: center,
-                        angle: src.extras.project_kassita2_angle
+                        angle: src.extras.project_kassita2_angle,
+                        shape: shape
                     });
                 }
             }

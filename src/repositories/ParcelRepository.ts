@@ -312,12 +312,6 @@ export class ParcelRepository {
                         completedExtras = Object.assign({}, existing.extras, extras);
                     }
 
-                    if (completedExtras.project_kassita1 === 'true') {
-                        console.warn(completedExtras);
-                        console.warn(existing!!.extras);
-                        console.warn(fastDeepEquals(completedExtras, existing!!.extras));
-                    }
-
                     if (existing) {
                         let changed = (geometry !== null && !fastDeepEquals(geometry, existing.geometry))
                             || !fastDeepEquals(completedExtras, existing.extras)
