@@ -47,12 +47,14 @@ function rotate2D(src: { x: number, y: number }, angle: number) {
 }
 
 export function createRectangle(latitude: number, longitude: number, angle: number, width: number, height: number) {
+    let smallSide = Math.min(width, height);
+    let largeSide = Math.max(width, height);
 
     let points = [];
-    points.push({ x: -width / 2, y: height / 2 });
-    points.push({ x: width / 2, y: height / 2 });
-    points.push({ x: width / 2, y: -height / 2 });
-    points.push({ x: -width / 2, y: -height / 2 });
+    points.push({ x: -smallSide / 2, y: largeSide / 2 });
+    points.push({ x: smallSide / 2, y: largeSide / 2 });
+    points.push({ x: smallSide / 2, y: -largeSide / 2 });
+    points.push({ x: -smallSide / 2, y: -largeSide / 2 });
 
     let center = projectToCartesian(latitude, longitude);
     let cosNLon = Math.cos(rad(longitude));
@@ -64,13 +66,14 @@ export function createRectangle(latitude: number, longitude: number, angle: numb
     for (let p of points) {
 
         // Rotate points
-        let rotatePoint = rotate2D(p, angle);
+        
+        p = rotate2D(p, angle);
 
         // Rotate plane
-        let transformed = { x: 0, y: rotatePoint.x, z: rotatePoint.y };
+        let transformed = { x: 0, y: p.x, z: p.y };
         transformed = rotateY(transformed, sinNLat, cosNLat);
         transformed = rotateZ(transformed, sinNLon, cosNLon);
-        
+
         // Tranform
         transformed.x = transformed.x + center.x;
         transformed.y = transformed.y + center.y;
