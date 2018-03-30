@@ -283,7 +283,21 @@ export class ParcelRepository {
             }));
             return await normalizedProcessor(lots, (a, b) => (a.lotId === b.lotId), async (data) => {
                 let res = [];
+
+                let existingLots = await DB.Lot.findAll({
+                    where: {
+                        cityId: cityId,
+                        lotId: {
+                            $in: data.map((v) => v.lotId)
+                        }
+                    },
+                    transaction: tx,
+                    lock: tx.LOCK.UPDATE
+                });
+
                 for (let d of data) {
+                    let existing = existingLots.find((v) => v.lotId === d.lotId);
+                    
                     let geometry = d.geometry ? buildGeometryFromInput(d.geometry) : null;
                     let extras = buildExtrasFromInput(d.extras);
 
@@ -296,15 +310,6 @@ export class ParcelRepository {
 
                     // Display ID
                     extras.displayId = d.realId;
-
-                    let existing = await DB.Lot.findOne({
-                        where: {
-                            cityId: cityId,
-                            lotId: d.lotId
-                        },
-                        transaction: tx,
-                        lock: tx.LOCK.UPDATE
-                    });
 
                     // Merged extras
                     let completedExtras = extras;
