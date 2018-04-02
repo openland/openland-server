@@ -193,7 +193,7 @@ export const Resolver = {
         extrasStories: (src: Lot) => src.extras ? src.extras.count_stories : null,
         extrasUnits: (src: Lot) => src.extras ? src.extras.count_units : null,
         extrasRooms: (src: Lot) => src.extras ? src.extras.count_rooms : null,
-        extrasVacant: (src: Lot) => src.extras ? src.extras.is_vacant : null,
+        extrasVacant: (src: Lot) => src.extras ? src.extras.is_vacant === 'true' : null,
         extrasBathrooms: (src: Lot) => src.extras ? src.extras.count_bathrooms : null,
         extrasBedrooms: (src: Lot) => src.extras ? src.extras.count_bedrooms : null,
         extrasYear: (src: Lot) => src.extras ? src.extras.year_built : null,
