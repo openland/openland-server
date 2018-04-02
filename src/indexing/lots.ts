@@ -17,9 +17,22 @@ function parseIntSafe(src: any) {
     return null;
 }
 
+function parseBoolSafe(src: any): boolean | null {
+    if (typeof src === 'string') {
+        if (src === 'true') {
+            return true;
+        } else {
+            return false;
+        }
+    } else if (typeof src === 'boolean') {
+        return src;
+    }
+    return null;
+}
+
 export function startLotsIndexer(client: ES.Client) {
 
-    let reader = new UpdateReader('lots_indexing_26', DB.Lot);
+    let reader = new UpdateReader('lots_indexing_27', DB.Lot);
 
     reader.elastic(client, 'parcels', 'parcel', {
         geometry: {
@@ -73,6 +86,12 @@ export function startLotsIndexer(client: ES.Client) {
             type: 'integer'
         },
         retired: {
+            type: 'boolean'
+        },
+        buildings: {
+            type: 'integer'
+        },
+        vacant: {
             type: 'boolean'
         }
     });
@@ -168,7 +187,9 @@ export function startLotsIndexer(client: ES.Client) {
                 propValue: item.extras ? parseIntSafe(item.extras.personal_prop_value) : null,
                 yearBuilt: item.extras ? parseIntSafe(item.extras.yearBuilt) : null,
                 stories: item.extras ? parseIntSafe(item.extras.count_stories) : null,
-                units: item.extras ? parseIntSafe(item.extras.count_units) : null,
+                units: item.extras ? parseIntSafe(item.extras.count_rooms) : null,
+                buildings: item.extras ? parseIntSafe(item.extras.count_units) : null,
+                vacant: item.extras ? parseBoolSafe(item.extras.is_vacant) : null,
                 zoning: item.extras ? item.extras.zoning : null,
                 displayId: item.extras ? item.extras.displayId : null,
                 searchId: searchId,

@@ -25,6 +25,7 @@ type Parcel {
     extrasBathrooms: Int
     extrasBedrooms: Int
     extrasNeighborhood: String
+    extrasVacant: Boolean
 
     extrasMetroDistance: Int
     extrasMetroStation: String
