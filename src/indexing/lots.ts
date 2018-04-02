@@ -93,7 +93,10 @@ export function startLotsIndexer(client: ES.Client) {
         },
         vacant: {
             type: 'boolean'
-        }
+        },
+        compatibleBuildings: {
+            type: 'keyword'
+        },
     });
 
     reader.include([{
@@ -171,6 +174,14 @@ export function startLotsIndexer(client: ES.Client) {
             searchId.push(...(item.extras.searchId as string[]));
         }
 
+        let compatibleBuildings: string[] = [];
+        if (item.extras && item.extras.project_kassita1) {
+            compatibleBuildings.push('kasita-1');
+        }
+        if (item.extras && item.extras.project_kassita2) {
+            compatibleBuildings.push('kasita-2');
+        }
+
         return {
             id: item.id!!,
             doc: {
@@ -211,7 +222,8 @@ export function startLotsIndexer(client: ES.Client) {
                 landUse: item.extras!!.land_use,
                 area: item.extras!!.area,
                 distance: distance,
-                retired: item.retired
+                retired: item.retired,
+                compatibleBuildings: compatibleBuildings
             }
         };
     });

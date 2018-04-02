@@ -24,6 +24,8 @@ export class ParcelRepository {
         this.parser.registerText('landUse', 'landUse');
         this.parser.registerInt('transitDistance', 'distance');
         this.parser.registerBoolean('isOkForTower', 'isOkForTower');
+        this.parser.registerBoolean('isVacant', 'vacant');
+        this.parser.registerText('compatibleBuildings', 'compatibleBuildings');
     }
 
     async applyMetadata(id: number, metadata: { description?: string | null, currentUse?: string | null, available?: boolean | null, isOkForTower?: boolean | null }) {
