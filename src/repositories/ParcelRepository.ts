@@ -306,15 +306,14 @@ export class ParcelRepository {
                     let geometry = d.geometry ? buildGeometryFromInput(d.geometry) : null;
                     let extras = buildExtrasFromInput(d.extras);
 
-                    // Searchable ID
+                    // Searchable and Display ID
                     if (d.displayId && d.displayId.length > 0) {
-                        extras.searchId = [d.realId, ...d.displayId];
+                        extras.searchId = [...new Set([d.realId, ...d.displayId])];
+                        extras.displayId = d.displayId[0];
                     } else {
                         extras.searchId = [d.realId];
+                        extras.displayId = d.realId;
                     }
-
-                    // Display ID
-                    extras.displayId = d.realId;
 
                     // Merged extras
                     let completedExtras = extras;
