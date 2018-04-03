@@ -287,8 +287,6 @@ export class ParcelRepository {
                 retired: v.retired === undefined || v.retired === null ? false : v.retired
             }));
             return await normalizedProcessor(lots, (a, b) => (a.lotId === b.lotId), async (data) => {
-                let res = [];
-
                 let existingLots = await DB.Lot.findAll({
                     where: {
                         cityId: cityId,
@@ -300,9 +298,11 @@ export class ParcelRepository {
                     lock: tx.LOCK.UPDATE
                 });
 
+                let pending: Promise<number>[] = [];
+
                 for (let d of data) {
                     let existing = existingLots.find((v) => v.lotId === d.lotId);
-                    
+
                     let geometry = d.geometry ? buildGeometryFromInput(d.geometry) : null;
                     let extras = buildExtrasFromInput(d.extras);
 
@@ -334,26 +334,51 @@ export class ParcelRepository {
                             existing.extras = completedExtras;
                             existing.primaryParcelId = d.primaryParcelId;
                             existing.retired = d.retired;
-                            await existing.save({ transaction: tx });
+                            let func = async (lot: Lot) => {
+                                await lot.save({ transaction: tx });
+                                if (d.addresses) {
+                                    let ids = await applyStreetNumbersInTx(tx, cityId, d.addresses);
+                                    ids = [...new Set(ids)]; // Filter duplicates
+                                    await lot.setStreetNumbers(ids, { transaction: tx });
+                                }
+                                return lot.id!!;
+                            };
+                            pending.push(func(existing));
+                        } else {
+                            let func = async (lot: Lot) => {
+                                if (d.addresses) {
+                                    let ids = await applyStreetNumbersInTx(tx, cityId, d.addresses);
+                                    ids = [...new Set(ids)]; // Filter duplicates
+                                    await lot.setStreetNumbers(ids, { transaction: tx });
+                                }
+                                return lot.id!!;
+                            };
+                            pending.push(func(existing));
                         }
-                        res.push(existing.id!!);
                     } else {
-                        existing = await DB.Lot.create({
-                            cityId: cityId,
-                            lotId: d.lotId,
-                            primaryParcelId: d.primaryParcelId,
-                            geometry: geometry,
-                            extras: completedExtras,
-                            retired: d.retired
-                        }, { transaction: tx });
-                        res.push(existing.id);
+                        let func = async () => {
+                            let r = await DB.Lot.create({
+                                cityId: cityId,
+                                lotId: d.lotId,
+                                primaryParcelId: d.primaryParcelId,
+                                geometry: geometry,
+                                extras: completedExtras,
+                                retired: d.retired
+                            }, { transaction: tx });
+                            if (d.addresses) {
+                                let ids = await applyStreetNumbersInTx(tx, cityId, d.addresses);
+                                ids = [...new Set(ids)]; // Filter duplicates
+                                await r.setStreetNumbers(ids, { transaction: tx });
+                            }
+                            return r.id!!;
+                        };
+                        pending.push(func());
                     }
+                }
 
-                    if (existing && d.addresses) {
-                        let ids = await applyStreetNumbersInTx(tx, cityId, d.addresses);
-                        ids = [...new Set(ids)]; // Filter duplicates
-                        await existing.setStreetNumbers(ids, { transaction: tx });
-                    }
+                let res: number[] = [];
+                for (let p of pending) {
+                    res.push((await p));
                 }
                 return res;
             });
