@@ -198,6 +198,9 @@ export class ParcelRepository {
                 query: {
                     bool: {
                         must: must,
+                        filter: {
+                            term: { retired: false }
+                        }
                     }
                 }
             }

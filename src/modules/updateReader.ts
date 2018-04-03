@@ -1,7 +1,7 @@
 import { DB } from '../tables';
 import * as sequelize from 'sequelize';
 import { IncludeOptions, Transaction } from 'sequelize';
-import { delay, forever } from '../utils/timer';
+import { delay, forever, currentTime, printElapsed } from '../utils/timer';
 import { tryLock } from './locking';
 import * as ES from 'elasticsearch';
 
@@ -176,6 +176,8 @@ async function updateReader<TInstance, TAttributes>(
     await forever(async () => {
         let res = await DB.connection.transaction({ logging: false as any }, async (tx) => {
 
+            let start = currentTime();
+
             //
             // Prerequisites
             //
@@ -220,7 +222,7 @@ async function updateReader<TInstance, TAttributes>(
                     ]
                 } as any : {}),
                 order: [['updatedAt', 'ASC'], ['id', 'ASC']],
-                limit: 100,
+                limit: 1000,
                 transaction: tx,
                 include: include,
                 logging: false
@@ -228,6 +230,8 @@ async function updateReader<TInstance, TAttributes>(
             if (data.length <= 0) {
                 return false;
             }
+
+            start = printElapsed(`[${name}] Prepared`, start);
 
             console.warn(`[${name}] Importing ${data.length} elements`);
 
@@ -243,7 +247,7 @@ async function updateReader<TInstance, TAttributes>(
             await commit;
             await processed;
 
-            console.warn(`[${name}] Completed ${data.length} elements`);
+            start = printElapsed(`[${name}] Completed ${data.length} elements`, start);
 
             return true;
         });
