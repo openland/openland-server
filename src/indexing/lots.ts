@@ -32,7 +32,7 @@ function parseBoolSafe(src: any): boolean | null {
 
 export function startLotsIndexer(client: ES.Client) {
 
-    let reader = new UpdateReader('lots_indexing_27', DB.Lot);
+    let reader = new UpdateReader('lots_indexing_28', DB.Lot);
 
     reader.elastic(client, 'parcels', 'parcel', {
         geometry: {
@@ -175,10 +175,10 @@ export function startLotsIndexer(client: ES.Client) {
         }
 
         let compatibleBuildings: string[] = [];
-        if (item.extras && item.extras.project_kassita1) {
+        if (item.extras && item.extras.project_kassita1 === 'true') {
             compatibleBuildings.push('kasita-1');
         }
-        if (item.extras && item.extras.project_kassita2) {
+        if (item.extras && item.extras.project_kassita2 === 'true') {
             compatibleBuildings.push('kasita-2');
         }
 
