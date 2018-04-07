@@ -260,7 +260,7 @@ export const Resolver = {
                     }
                     res.push({
                         key: 'kassita-1',
-                        title: 'Elemynt #1',
+                        title: 'Elemynt¹',
                         width: 3.6576,
                         height: 10.668,
                         center: center,
@@ -288,7 +288,7 @@ export const Resolver = {
                     }
                     res.push({
                         key: 'kassita-2',
-                        title: 'Elemynt #2',
+                        title: 'Elemynt²',
                         width: 3.048,
                         height: 12.192,
                         center: center,
