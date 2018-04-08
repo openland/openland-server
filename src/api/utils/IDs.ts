@@ -8,5 +8,6 @@ export const IDs = {
     Parcel: new ID('Parcel'),
     Block: new ID('Block'),
     SuperAccount: new ID('SuperAccount'),
-    FeatureFlag: new ID('FeatureFlag')
+    FeatureFlag: new ID('FeatureFlag'),
+    Opportunities: new ID('Op'),
 };

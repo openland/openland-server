@@ -69,4 +69,6 @@ type Query {
     deal(id: ID!): Deal!
 
     searchParcels(query:String!): [Parcel!]!
+
+    alphaOpportunities(state: OpportunityState, first: Int!, after: String, page: Int): OpportunityConnection!
 }

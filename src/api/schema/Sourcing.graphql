@@ -1,0 +1,22 @@
+enum OpportunityState {
+    INCOMING, APPROVED_INITIAL, APPROVED_ZONING, APPROVED, REJECTED, SNOOZED
+}
+enum OpportunityPriority {
+    LOW, NORMAL, HIGH
+}
+type Opportunity {
+    id: ID!
+    priority: OpportunityPriority!
+    state: OpportunityState!
+    parcel: Parcel!
+}
+
+type OpportunityEdge {
+    node: Opportunity!
+    cursor: String!
+}
+
+type OpportunityConnection {
+    edges: [OpportunityEdge!]!
+    pageInfo: PageInfo!
+}

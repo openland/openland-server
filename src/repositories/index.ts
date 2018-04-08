@@ -6,6 +6,7 @@ import { ParcelRepository } from './ParcelRepository';
 import { TokenRepository } from './TokenRepository';
 import { UserRepository } from './UserRepository';
 import { SuperRepository } from './SuperRepository';
+import { OpportunitiesRepository } from './OpportunitiesRepository';
 
 export const Repos = {
     Area: new AreaRepository(),
@@ -15,5 +16,6 @@ export const Repos = {
     Parcels: new ParcelRepository(),
     Tokens: new TokenRepository(),
     Users: new UserRepository(),
-    Super: new SuperRepository()
+    Super: new SuperRepository(),
+    Opportunities: new OpportunitiesRepository()
 };
