@@ -7,12 +7,12 @@ export const Resolver = {
     Opportunity: {
         id: (src: Opportunity) => IDs.Opportunities.serialize(src.id!!),
         priority: (src: Opportunity) => 'NORMAL',
-        state: (src: Opportunity) => 'INCOMING',
+        state: (src: Opportunity) => src.state,
         parcel: (src: Opportunity) => src.lot ? src.lot : src.getLot()
     },
     Query: {
-        alphaOpportunities: withAccount<{ first: number, after?: string, page?: number }>((args, uid, orgId) => {
-            return Repos.Opportunities.fetchConnection(orgId, args.first, args.after, args.page);
+        alphaOpportunities: withAccount<{ state: string, first: number, after?: string, page?: number }>((args, uid, orgId) => {
+            return Repos.Opportunities.fetchConnection(orgId, args.first, args.state, args.after, args.page);
         })
     },
     Mutation: {
