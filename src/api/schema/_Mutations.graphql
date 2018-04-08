@@ -45,4 +45,6 @@ type Mutation {
     dealAdd(input: DealInput!): Deal!
     dealRemove(id: ID!): String!
     dealAlter(id: ID!, input: DealInput!): Deal!
+
+    aphaAddOpportunity(parcelId: ID!): Opportunity
 }

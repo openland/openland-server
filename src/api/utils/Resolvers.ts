@@ -59,8 +59,23 @@ export function withAccount<T = {}>(resolver: (args: T, uid: number, org: number
     };
 }
 
-export function withAny<T = {}>(resolver: (args: T) => any) {
+export function withAccountTypeOptional<T = {}>(resolver: (args: T, uid?: number, org?: number) => any) {
+    return async function ( args: T, _: any, context: CallContext) {
+        let uid = context.uid;
+        let org: number | undefined = undefined;
+        if (context.uid) {
+            let res = await DB.User.findById(context.uid, { include: [{ model: DB.Organization, as: 'organization' }] });
+            if (res && res.organizationId) {
+                org = res.organizationId!!;
+            }
+        }
+
+        return resolver(args, uid, org);
+    };
+}
+
+export function withAny<T = {}>(resolver: (args: T, context: CallContext) => any) {
     return async function (_: any, args: T, context: CallContext) {
-        return resolver(args);
+        return resolver(args, context);
     };
 }

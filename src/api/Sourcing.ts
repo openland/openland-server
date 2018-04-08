@@ -14,5 +14,10 @@ export const Resolver = {
         alphaOpportunities: withAccount<{ first: number, after?: string, page?: number }>((args, uid, orgId) => {
             return Repos.Opportunities.fetchConnection(orgId, args.first, args.after, args.page);
         })
+    },
+    Mutation: {
+        aphaAddOpportunity: withAccount<{ parcelId: string }>((args, uid, orgId) => {
+            return Repos.Opportunities.addOpportunity(orgId, IDs.Parcel.parse(args.parcelId));
+        })
     }
 };

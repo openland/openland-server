@@ -6,7 +6,7 @@ import { DB } from '../tables';
 import { ElasticClient } from '../indexing';
 import * as Turf from '@turf/turf';
 import { CallContext } from './CallContext';
-import { withPermission, withAuth, withPermissionOptional } from './utils/Resolvers';
+import { withPermission, withAuth, withPermissionOptional, withAccountTypeOptional } from './utils/Resolvers';
 import { IDs } from './utils/IDs';
 import { serializeGeometry } from './utils/Serializers';
 import { createRectangle } from '../utils/map';
@@ -299,7 +299,14 @@ export const Resolver = {
             }
             return res;
         }),
-        extrasAnalyzed: (src: Lot) => src.extras && src.extras.analyzed === 'true'
+        extrasAnalyzed: (src: Lot) => src.extras && src.extras.analyzed === 'true',
+        opportunity: withAccountTypeOptional<Lot>((src, uid, orgId) => {
+            if (orgId) {
+                return Repos.Opportunities.findOpportunity(orgId, src.id!!);
+            } else {
+                return null;
+            }
+        })
     },
     Block: {
         id: (src: Block) => IDs.Block.serialize(src.id!!),

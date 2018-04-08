@@ -61,6 +61,8 @@ type Parcel {
     metadata: ParcelMetadata!
 
     compatibleBuildings: [BuildingLocation!]
+
+    opportunity: Opportunity
 }
 
 type BuildingLocation {

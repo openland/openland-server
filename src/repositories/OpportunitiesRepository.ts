@@ -7,7 +7,36 @@ export class OpportunitiesRepository {
             .limit(first)
             .after(after)
             .page(page)
-            .whereEq('organizationId', organization);
+            .whereEq('organizationId', organization)
+            .orderBy('id', 'DESC');
         return builder.findAll();
+    }
+
+    findOpportunity(organizationId: number, parcelId: number) {
+        return DB.Opportunities.findOne({
+            where: {
+                organizationId: organizationId,
+                lotId: parcelId
+            }
+        });
+    }
+
+    async addOpportunity(organizationId: number, parcelId: number) {
+        return DB.tx(async (tx) => {
+            let ex = await DB.Opportunities.findOne({
+                where: {
+                    organizationId: organizationId,
+                    lotId: parcelId
+                },
+                lock: tx.LOCK.UPDATE
+            });
+            if (ex != null) {
+                return ex;
+            }
+            return await DB.Opportunities.create({
+                organizationId: organizationId,
+                lotId: parcelId
+            });
+        });
     }
 }
