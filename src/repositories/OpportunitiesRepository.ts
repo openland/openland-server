@@ -15,11 +15,93 @@ export class OpportunitiesRepository {
         return builder.findAll();
     }
 
+    async fetchNext(organization: number, state: string) {
+        let builder = new SelectBuilder(DB.Opportunities)
+            .limit(1)
+            .whereEq('organizationId', organization)
+            .whereEq('state', state)
+            .orderBy('id', 'DESC');
+
+        let res = await builder.findAllDirect();
+        if (res.length > 0) {
+            return res[0];
+        } else {
+            return null;
+        }
+    }
+
     findOpportunity(organizationId: number, parcelId: number) {
         return DB.Opportunities.findOne({
             where: {
                 organizationId: organizationId,
                 lotId: parcelId
+            }
+        });
+    }
+
+    async approveOpportunity(organizationId: number, opportunityId: number, state: string) {
+        return DB.tx(async (tx) => {
+            let op = await DB.Opportunities.findOne({
+                where: {
+                    id: opportunityId,
+                    organizationId: organizationId,
+                    state: state
+                },
+                lock: tx.LOCK.UPDATE,
+                transaction: tx
+            });
+            if (!op) {
+                throw Error('Unable to find opportunity');
+            }
+            if (state === 'INCOMING' && op.state === 'INCOMING') {
+                op.state = 'APPROVED_INITIAL';
+                await op.save({ transaction: tx });
+            } else if (state === 'APPROVED_INITIAL' && op.state === 'APPROVED_INITIAL') {
+                op.state = 'APPROVED_ZONING';
+                await op.save({ transaction: tx });
+            } else if (state === 'APPROVED_ZONING' && op.state === 'APPROVED_ZONING') {
+                op.state = 'APPROVED';
+                await op.save({ transaction: tx });
+            }
+        });
+    }
+
+    async rejectOpportunity(organizationId: number, opportunityId: number, state: string) {
+        return DB.tx(async (tx) => {
+            let op = await DB.Opportunities.findOne({
+                where: {
+                    id: opportunityId,
+                    organizationId: organizationId,
+                },
+                lock: tx.LOCK.UPDATE,
+                transaction: tx
+            });
+            if (!op) {
+                throw Error('Unable to find opportunity');
+            }
+            if (state === op.state) {
+                op.state = 'REJECTED';
+                await op.save({ transaction: tx });
+            }
+        });
+    }
+
+    async snoozeOpportunity(organizationId: number, opportunityId: number, state: string) {
+        return DB.tx(async (tx) => {
+            let op = await DB.Opportunities.findOne({
+                where: {
+                    id: opportunityId,
+                    organizationId: organizationId,
+                },
+                lock: tx.LOCK.UPDATE,
+                transaction: tx
+            });
+            if (!op) {
+                throw Error('Unable to find opportunity');
+            }
+            if (state === op.state) {
+                op.state = 'SNOOZED';
+                await op.save({ transaction: tx });
             }
         });
     }
@@ -31,7 +113,8 @@ export class OpportunitiesRepository {
                     organizationId: organizationId,
                     lotId: parcelId
                 },
-                lock: tx.LOCK.UPDATE
+                lock: tx.LOCK.UPDATE,
+                transaction: tx
             });
             if (ex != null) {
                 return ex;
@@ -39,7 +122,7 @@ export class OpportunitiesRepository {
             return await DB.Opportunities.create({
                 organizationId: organizationId,
                 lotId: parcelId
-            });
+            }, { transaction: tx });
         });
     }
 }

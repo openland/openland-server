@@ -13,9 +13,21 @@ export const Resolver = {
     Query: {
         alphaOpportunities: withAccount<{ state: string, first: number, after?: string, page?: number }>((args, uid, orgId) => {
             return Repos.Opportunities.fetchConnection(orgId, args.first, args.state, args.after, args.page);
+        }),
+        alphaNextReviewOpportunity: withAccount<{ state: string }>((args, uid, orgId) => {
+            return Repos.Opportunities.fetchNext(orgId, args.state);
         })
     },
     Mutation: {
+        alphaApprove: withAccount<{ opportunityId: string, state: string }>((args, uid, orgId) => {
+            return Repos.Opportunities.approveOpportunity(orgId, IDs.Opportunities.parse(args.opportunityId), args.state);
+        }),
+        alphaReject: withAccount<{ opportunityId: string, state: string }>((args, uid, orgId) => {
+            return Repos.Opportunities.rejectOpportunity(orgId, IDs.Opportunities.parse(args.opportunityId), args.state);
+        }),
+        alphaSnooze: withAccount<{ opportunityId: string, state: string }>((args, uid, orgId) => {
+            return Repos.Opportunities.snoozeOpportunity(orgId, IDs.Opportunities.parse(args.opportunityId), args.state);
+        }),
         aphaAddOpportunity: withAccount<{ parcelId: string }>((args, uid, orgId) => {
             return Repos.Opportunities.addOpportunity(orgId, IDs.Parcel.parse(args.parcelId));
         })

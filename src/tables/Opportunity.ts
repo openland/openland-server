@@ -6,7 +6,7 @@ import { LotTable } from './Lot';
 
 export interface OpportunityAttributes {
     id?: number;
-    state?: 'INCOMING' | 'APPROVED' | 'REJECTED' | 'SNOOZED';
+    state?: 'INCOMING' | 'APPROVED_INITIAL' | 'APPROVED_ZONING' | 'APPROVED' | 'REJECTED' | 'SNOOZED';
 
     organizationId?: number | null;
     organization?: Organization | null;
