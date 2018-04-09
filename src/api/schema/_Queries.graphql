@@ -70,6 +70,7 @@ type Query {
 
     searchParcels(query:String!): [Parcel!]!
 
+    alphaOpportunity(id: ID!): Opportunity
     alphaOpportunities(state: OpportunityState, first: Int!, after: String, page: Int): OpportunityConnection!
     alphaNextReviewOpportunity(state: OpportunityState!): Opportunity
 }

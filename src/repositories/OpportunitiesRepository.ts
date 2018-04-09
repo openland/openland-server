@@ -39,6 +39,15 @@ export class OpportunitiesRepository {
         });
     }
 
+    findOpportunityById(organizationId: number, opportunityId: number) {
+        return DB.Opportunities.findOne({
+            where: {
+                id: opportunityId,
+                organizationId: organizationId
+            }
+        });
+    }
+
     async approveOpportunity(organizationId: number, opportunityId: number, state: string) {
         return DB.tx(async (tx) => {
             let op = await DB.Opportunities.findOne({

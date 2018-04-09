@@ -11,6 +11,9 @@ export const Resolver = {
         parcel: (src: Opportunity) => src.lot ? src.lot : src.getLot()
     },
     Query: {
+        alphaOpportunity: withAccount<{ id: string }>((args, uid, orgId) => {
+            return Repos.Opportunities.findOpportunityById(orgId, IDs.Opportunities.parse(args.id));
+        }),
         alphaOpportunities: withAccount<{ state: string, first: number, after?: string, page?: number }>((args, uid, orgId) => {
             return Repos.Opportunities.fetchConnection(orgId, args.first, args.state, args.after, args.page);
         }),
