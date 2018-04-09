@@ -20,8 +20,12 @@ export const Resolver = {
         alphaOpportunitiesCount: withAccount<{ state: string }>((args, uid, orgId) => {
             return Repos.Opportunities.fetchConnectionCount(orgId, args.state);
         }),
-        alphaNextReviewOpportunity: withAccount<{ state: string }>((args, uid, orgId) => {
-            return Repos.Opportunities.fetchNext(orgId, args.state);
+        alphaNextReviewOpportunity: withAccount<{ state: string, initialId?: string }>((args, uid, orgId) => {
+            let initId: number | undefined;
+            if (args.initialId) {
+                initId = IDs.Opportunities.parse(args.initialId);
+            }
+            return Repos.Opportunities.fetchNext(orgId, args.state, initId);
         })
     },
     Mutation: {

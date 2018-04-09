@@ -26,7 +26,21 @@ export class OpportunitiesRepository {
         return builder.count();
     }
 
-    async fetchNext(organization: number, state: string) {
+    async fetchNext(organization: number, state: string, initialId?: number) {
+
+        if (initialId !== undefined) {
+            let initialOpportunity = await DB.Opportunities.find({
+                where: {
+                    id: initialId,
+                    organizationId: organization,
+                    state: state
+                }
+            });
+            if (initialOpportunity) {
+                return initialOpportunity;
+            }
+        }
+
         let builder = new SelectBuilder(DB.Opportunities)
             .limit(1)
             .whereEq('organizationId', organization)
