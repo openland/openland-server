@@ -1,6 +1,7 @@
 import { withAny } from './utils/Resolvers';
-import { DB, State, County } from '../tables';
+import { DB, State, County, City } from '../tables';
 import { IDs } from './utils/IDs';
+import { Repos } from '../repositories';
 
 export const Resolvers = {
     State: {
@@ -11,6 +12,12 @@ export const Resolvers = {
     County: {
         id: (src: County) => IDs.County.serialize(src.id!!),
         name: (src: County) => src.name
+    },
+    City: {
+        id: (src: City) => IDs.City.serialize(src.id!!),
+        name: (src: City) => src.name,
+        county: (src: City) => Repos.Area.resolveCountyInfo(src.countyId!!),
+        state: async (src: City) => Repos.Area.resolveStateInfo((await Repos.Area.resolveCountyInfo(src.countyId!!))!!.stateId!!)
     },
     Query: {
         states: withAny<{ active: boolean }>((args) => {

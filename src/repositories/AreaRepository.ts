@@ -1,6 +1,79 @@
-import { DB } from '../tables/index';
+import { DB, City, County, State } from '../tables/index';
+import * as DataLoader from 'dataloader';
 
 export class AreaRepository {
+    private cityLoader = new DataLoader<number, City | null>(async (cities) => {
+        let foundTokens = await DB.City.findAll({
+            where: {
+                id: {
+                    $in: cities
+                }
+            }
+        });
+        let res: (City | null)[] = [];
+        for (let i of cities) {
+            let found = false;
+            for (let f of foundTokens) {
+                if (i === f.id) {
+                    res.push(f);
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                res.push(null);
+            }
+        }
+        return res;
+    });
+    private countyLoader = new DataLoader<number, County | null>(async (cities) => {
+        let foundTokens = await DB.County.findAll({
+            where: {
+                id: {
+                    $in: cities
+                }
+            }
+        });
+        let res: (County | null)[] = [];
+        for (let i of cities) {
+            let found = false;
+            for (let f of foundTokens) {
+                if (i === f.id) {
+                    res.push(f);
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                res.push(null);
+            }
+        }
+        return res;
+    });
+    private stateLoader = new DataLoader<number, State | null>(async (cities) => {
+        let foundTokens = await DB.State.findAll({
+            where: {
+                id: {
+                    $in: cities
+                }
+            }
+        });
+        let res: (State | null)[] = [];
+        for (let i of cities) {
+            let found = false;
+            for (let f of foundTokens) {
+                if (i === f.id) {
+                    res.push(f);
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                res.push(null);
+            }
+        }
+        return res;
+    });
     private cache = new Map<string, number | null>();
     async resolveArea(domain: string): Promise<{ id: number, slug: string }> {
         domain = domain.toLocaleLowerCase();
@@ -47,5 +120,15 @@ export class AreaRepository {
             throw 'City is not found for ' + state + ', ' + county + ', ' + city;
         }
         return res.id!!;
+    }
+
+    async resolveCityInfo(id: number) {
+        return await this.cityLoader.load(id);
+    }
+    async resolveCountyInfo(id: number) {
+        return await this.countyLoader.load(id);
+    }
+    async resolveStateInfo(id: number) {
+        return await this.stateLoader.load(id);
     }
 }

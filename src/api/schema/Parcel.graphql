@@ -5,6 +5,7 @@ type Parcel {
     center: Geo
     block: Block
     addresses: [StreetNumber!]!
+    city: City!
     permits: [Permit!]!
 
     likes: Likes!

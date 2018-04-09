@@ -110,6 +110,8 @@ export const Resolver = {
             });
         },
 
+        city: async (src: Lot) => Repos.Area.resolveCityInfo(src.cityId!!),
+
         extrasArea: (src: Lot) => (src.extras && src.extras.area) ? Math.round(src.extras.area as number) : null,
 
         extrasAssessorArea: (src: Lot) => (src.extras && src.extras.assessor_front) ? Math.round(src.extras.assessor_area as number) : null,

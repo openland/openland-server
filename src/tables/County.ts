@@ -12,7 +12,7 @@ export interface County extends sequelize.Instance<CountyAttributes>, CountyAttr
     state?: State;
 }
 
-export const CountyTable = connection.define<CountyAttributes, CountyAttributes>('county', {
+export const CountyTable = connection.define<County, CountyAttributes>('county', {
     id: {type: sequelize.INTEGER, primaryKey: true, autoIncrement: true},
     name: {type: sequelize.STRING, allowNull: false},
 }, {indexes: [{unique: true, fields: ['stateId', 'name']}]});

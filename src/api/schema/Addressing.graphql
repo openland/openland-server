@@ -58,3 +58,10 @@ type County {
     id: ID!
     name: String!
 }
+
+type City {
+    id: ID!
+    name: String!
+    county: County!
+    state: State!
+}
