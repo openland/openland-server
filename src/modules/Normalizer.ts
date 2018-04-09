@@ -1,8 +1,15 @@
 export function normalizeId(id: string) {
     return id.replace(/^0+/, '');
 }
+
 export function normalizeCapitalized(str: string) {
-    return str.trim().split(' ').map((s) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()).join(' ');
+    return str.trim().split(' ').map((s) => {
+        let sl = s.toLowerCase();
+        if (sl === 'llc') {
+            return 'LLC';
+        }
+        return sl.charAt(0).toUpperCase() + sl.slice(1);
+    }).join(' ');
 }
 
 export function normalizeNullableUserInput(str: string | null) {
