@@ -1,5 +1,6 @@
 import { DB } from '../tables/index';
 import { SelectBuilder } from '../modules/SelectBuilder';
+import { OpportunityAttributes } from '../tables/Opportunity';
 
 export class OpportunitiesRepository {
     fetchConnection(organization: number, first: number, state?: string, after?: string, page?: number) {
@@ -146,5 +147,45 @@ export class OpportunitiesRepository {
                 lotId: parcelId
             }, { transaction: tx });
         });
+    }
+
+    async addOpportunityBatch(organizationId: number, parcels: number[]) {
+        let workingSet = parcels;
+        while (workingSet.length > 0) {
+            let ids: number[] = [];
+            if (workingSet.length < 1000) {
+                ids = workingSet;
+                workingSet = [];
+            } else {
+                ids = workingSet.slice(0, 1000);
+                workingSet = workingSet.slice(1000);
+            }
+
+            await DB.tx(async (tx) => {
+                let ex = await DB.Opportunities.findAll({
+                    where: {
+                        organizationId: organizationId,
+                        lotId: {
+                            $in: ids
+                        }
+                    },
+                    lock: tx.LOCK.UPDATE,
+                    transaction: tx
+                });
+                let pending: OpportunityAttributes[] = [];
+                for (let i of ids) {
+                    if (ex.find((v) => v.lotId === i)) {
+                        continue;
+                    }
+                    pending.push({
+                        organizationId: organizationId,
+                        lotId: i
+                    });
+                }
+                if (pending.length > 0) {
+                    await DB.Opportunities.bulkCreate(pending);
+                }
+            });
+        }
     }
 }

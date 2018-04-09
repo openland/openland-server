@@ -47,6 +47,7 @@ type Mutation {
     dealAlter(id: ID!, input: DealInput!): Deal!
 
     aphaAddOpportunity(parcelId: ID!): Opportunity
+    alphaAddOpportunitiesFromSearch(state: String!, county: String!, city: String!, query: String): Int!
     alphaApprove(opportunityId: ID!, state: OpportunityState!): String!
     alphaSnooze(opportunityId: ID!, state: OpportunityState!): String!
     alphaReject(opportunityId: ID!, state: OpportunityState!): String!

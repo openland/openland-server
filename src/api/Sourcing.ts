@@ -36,6 +36,12 @@ export const Resolver = {
         }),
         aphaAddOpportunity: withAccount<{ parcelId: string }>((args, uid, orgId) => {
             return Repos.Opportunities.addOpportunity(orgId, IDs.Parcel.parse(args.parcelId));
+        }),
+        alphaAddOpportunitiesFromSearch: withAccount<{ state: string, county: string, city: string, query: string }>(async (args, uid, orgId) => {
+            let cityid = await Repos.Area.resolveCity(args.state, args.county, args.city);
+            let parcels = await Repos.Parcels.fetchAllParcels(cityid, args.query);
+            await Repos.Opportunities.addOpportunityBatch(orgId, parcels);
+            return parcels.length;
         })
     }
 };

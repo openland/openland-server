@@ -109,6 +109,38 @@ export class ParcelRepository {
         return await builder.findElastic(hits);
     }
 
+    async fetchAllParcels(cityId: number, query?: string | null) {
+        let clauses: any[] = [];
+        clauses.push({ term: { 'cityId': cityId } });
+        if (query) {
+            let parsed = this.parser.parseQuery(query);
+            let elasticQuery = buildElasticQuery(parsed);
+            clauses.push(elasticQuery);
+        }
+
+        let hits = await ElasticClient.search({
+            index: 'parcels',
+            type: 'parcel',
+            size: 1000,
+            scroll: '10m',
+            body: {
+                query: { bool: { must: clauses } },
+            }
+        });
+
+        let allIds = new Set<number>();
+        hits.hits.hits.forEach((v) => allIds.add(parseInt(v._id, 10)));
+        while (hits.hits.hits.length > 0) {
+            hits = await ElasticClient.scroll({
+                scrollId: hits._scroll_id!!,
+                scroll: '10m',
+            });
+            hits.hits.hits.forEach((v) => allIds.add(parseInt(v._id, 10)));
+        }
+
+        return [...allIds];
+    }
+
     async fetchGeoParcels(box: { south: number, north: number, east: number, west: number }, limit: number, query?: string | null) {
         let start = currentTime();
         let must = { match_all: {} };
