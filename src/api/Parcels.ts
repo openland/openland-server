@@ -10,6 +10,7 @@ import { withPermission, withAuth, withPermissionOptional, withAccountTypeOption
 import { IDs } from './utils/IDs';
 import { serializeGeometry } from './utils/Serializers';
 import { createRectangle } from '../utils/map';
+import { normalizeCapitalized } from '../modules/Normalizer';
 
 interface ParcelInput {
     id: string;
@@ -204,7 +205,7 @@ export const Resolver = {
         extrasBedrooms: (src: Lot) => src.extras ? src.extras.count_bedrooms : null,
         extrasYear: (src: Lot) => src.extras ? src.extras.year_built : null,
         extrasNeighborhood: (src: Lot) => src.extras ? src.extras.neighbourhoods : null,
-        extrasAddress: (src: Lot) => src.extras ? src.extras.address : null,
+        extrasAddress: (src: Lot) => src.extras ? src.extras.address ? normalizeCapitalized(src.extras.address.toString()) : null : null,
         extrasOwnerName: (src: Lot) => src.extras ? src.extras.owner_name : null,
         extrasOwnerType: (src: Lot) => src.extras ? src.extras.owner_type : null,
         extrasShapeType: (src: Lot) => src.extras ? src.extras.shape_type : null,
