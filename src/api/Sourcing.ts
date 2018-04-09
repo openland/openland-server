@@ -17,6 +17,9 @@ export const Resolver = {
         alphaOpportunities: withAccount<{ state: string, first: number, after?: string, page?: number }>((args, uid, orgId) => {
             return Repos.Opportunities.fetchConnection(orgId, args.first, args.state, args.after, args.page);
         }),
+        alphaOpportunitiesCount: withAccount<{ state: string }>((args, uid, orgId) => {
+            return Repos.Opportunities.fetchConnectionCount(orgId, args.state);
+        }),
         alphaNextReviewOpportunity: withAccount<{ state: string }>((args, uid, orgId) => {
             return Repos.Opportunities.fetchNext(orgId, args.state);
         })

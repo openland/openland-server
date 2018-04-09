@@ -15,6 +15,16 @@ export class OpportunitiesRepository {
         return builder.findAll();
     }
 
+    fetchConnectionCount(organization: number, state?: string) {
+        let builder = new SelectBuilder(DB.Opportunities)
+            .whereEq('organizationId', organization)
+            .orderBy('id', 'DESC');
+        if (state) {
+            builder = builder.whereEq('state', state);
+        }
+        return builder.count();
+    }
+
     async fetchNext(organization: number, state: string) {
         let builder = new SelectBuilder(DB.Opportunities)
             .limit(1)
@@ -72,6 +82,7 @@ export class OpportunitiesRepository {
                 op.state = 'APPROVED';
                 await op.save({ transaction: tx });
             }
+            return op;
         });
     }
 
@@ -92,6 +103,7 @@ export class OpportunitiesRepository {
                 op.state = 'REJECTED';
                 await op.save({ transaction: tx });
             }
+            return op;
         });
     }
 
@@ -112,6 +124,7 @@ export class OpportunitiesRepository {
                 op.state = 'SNOOZED';
                 await op.save({ transaction: tx });
             }
+            return op;
         });
     }
 

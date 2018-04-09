@@ -72,5 +72,6 @@ type Query {
 
     alphaOpportunity(id: ID!): Opportunity
     alphaOpportunities(state: OpportunityState, first: Int!, after: String, page: Int): OpportunityConnection!
+    alphaOpportunitiesCount(state: OpportunityState): Int!
     alphaNextReviewOpportunity(state: OpportunityState!): Opportunity
 }
