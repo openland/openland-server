@@ -64,6 +64,12 @@ type Parcel {
     compatibleBuildings: [BuildingLocation!]
 
     opportunity: Opportunity
+
+    userData: ParcelUserData
+}
+
+type ParcelUserData {
+    notes: String
 }
 
 type BuildingLocation {

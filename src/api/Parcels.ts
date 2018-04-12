@@ -6,11 +6,12 @@ import { DB } from '../tables';
 import { ElasticClient } from '../indexing';
 import * as Turf from '@turf/turf';
 import { CallContext } from './CallContext';
-import { withPermission, withAuth, withPermissionOptional, withAccountTypeOptional } from './utils/Resolvers';
+import { withPermission, withAuth, withPermissionOptional, withAccountTypeOptional, withAccount } from './utils/Resolvers';
 import { IDs } from './utils/IDs';
 import { serializeGeometry } from './utils/Serializers';
 import { createRectangle } from '../utils/map';
 import { normalizeCapitalized } from '../modules/Normalizer';
+import { LotUserDataAttributes } from '../tables/LotUserData';
 
 interface ParcelInput {
     id: string;
@@ -33,6 +34,9 @@ interface BlockInput {
 }
 
 export const Resolver = {
+    ParcelUserData: {
+        notes: (src: LotUserDataAttributes) => src.notes
+    },
     Parcel: {
         id: (src: Lot) => IDs.Parcel.serialize(src.id!!),
         title: (src: Lot) => {
@@ -309,6 +313,13 @@ export const Resolver = {
             } else {
                 return null;
             }
+        }),
+        userData: withAccountTypeOptional<Lot>(async (src, uid, orgId) => {
+            if (orgId) {
+                return Repos.Parcels.fetchUserData(orgId, src.id!!);
+            } else {
+                return null;
+            }
         })
     },
     Block: {
@@ -441,7 +452,12 @@ export const Resolver = {
             (lot as any).changed('updatedAt', true);
             await lot.save();
             return lot;
-        }
+        },
+        alphaSetNote: withAccount<{ parcelId: string, notes: string }>(async (args, uid, orgId) => {
+            let lotId = IDs.Parcel.parse(args.parcelId);
+            await Repos.Parcels.setNotes(orgId, lotId, args.notes);
+            return Repos.Parcels.fetchParcel(lotId);
+        })
     },
     SearchResult: {
         parcels: async function (query: { query: string }) {

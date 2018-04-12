@@ -51,4 +51,6 @@ type Mutation {
     alphaApprove(opportunityId: ID!, state: OpportunityState!): String!
     alphaSnooze(opportunityId: ID!, state: OpportunityState!): String!
     alphaReject(opportunityId: ID!, state: OpportunityState!): String!
+
+    alphaSetNote(parcelId: ID!, notes: String!): Parcel!
 }

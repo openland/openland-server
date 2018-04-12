@@ -141,6 +141,32 @@ export class ParcelRepository {
         return [...allIds];
     }
 
+    async fetchUserData(organizationId: number, lotId: number) {
+        return (await DB.LotUserData.find({ where: { organizationId: organizationId, lotId: lotId } })) || {};
+    }
+
+    async setNotes(organizationId: number, lotId: number, notes: string) {
+        return DB.txLight(async (tx) => {
+            let lotUserData = await DB.LotUserData.find({
+                where: { organizationId: organizationId, lotId: lotId },
+                transaction: tx,
+                lock: tx.LOCK.UPDATE
+            });
+            let normalized = Normalizer.normalizeNullableUserInput(notes);
+            if (lotUserData) {
+                lotUserData.notes = normalized;
+                await lotUserData.save({ transaction: tx });
+                return lotUserData;
+            } else {
+                return await DB.LotUserData.create({
+                    organizationId: organizationId,
+                    lotId: lotId,
+                    notes: normalized
+                }, { transaction: tx });
+            }
+        });
+    }
+
     async fetchGeoParcels(box: { south: number, north: number, east: number, west: number }, limit: number, query?: string | null) {
         let start = currentTime();
         let must = { match_all: {} };
