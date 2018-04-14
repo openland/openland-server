@@ -209,6 +209,7 @@ export const Resolver = {
         extrasBedrooms: (src: Lot) => src.extras ? src.extras.count_bedrooms : null,
         extrasYear: (src: Lot) => src.extras ? src.extras.year_built : null,
         extrasNeighborhood: (src: Lot) => src.extras ? src.extras.neighbourhoods : null,
+        extrasBorough: (src: Lot) => src.extras ? src.extras.borough_name : null,
         extrasAddress: (src: Lot) => src.extras ? src.extras.address ? normalizeCapitalized(src.extras.address!!.toString()) : null : null,
         extrasOwnerName: (src: Lot) => src.extras ? src.extras.owner_name ? normalizeCapitalized(src.extras.owner_name!!.toString()) : null : null,
         extrasOwnerType: (src: Lot) => src.extras ? src.extras.owner_type : null,

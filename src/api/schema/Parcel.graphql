@@ -30,6 +30,7 @@ type Parcel {
     extrasBathrooms: Int
     extrasBedrooms: Int
     extrasNeighborhood: String
+    extrasBorough: String
     extrasVacant: Boolean
 
     extrasMetroDistance: Int
