@@ -12,6 +12,7 @@ import { serializeGeometry } from './utils/Serializers';
 import { createRectangle } from '../utils/map';
 import { normalizeCapitalized } from '../modules/Normalizer';
 import { LotUserDataAttributes } from '../tables/LotUserData';
+import { Services } from '../services';
 
 interface ParcelInput {
     id: string;
@@ -211,7 +212,24 @@ export const Resolver = {
         extrasNeighborhood: (src: Lot) => src.extras ? src.extras.neighbourhoods : null,
         extrasBorough: (src: Lot) => src.extras ? src.extras.borough_name : null,
         extrasAddress: (src: Lot) => src.extras ? src.extras.address ? normalizeCapitalized(src.extras.address!!.toString()) : null : null,
-        extrasOwnerName: (src: Lot) => src.extras ? src.extras.owner_name ? normalizeCapitalized(src.extras.owner_name!!.toString()) : null : null,
+        extrasOwnerName: async (src: Lot) => {
+            if (src.extras) {
+                if (src.extras.nyc_bbl) {
+                    let bbl = (src.extras.nyc_bbl as string);
+                    let borough = parseInt(bbl.slice(0, 1), 10);
+                    let block = parseInt(bbl.slice(1, 1 + 5), 10);
+                    let lot = parseInt(bbl.slice(6, 6 + 4), 10);
+                    let res = await Services.NYCProperties.fetchPropertyInformation(borough, block, lot);
+                    if (res.owners.length > 0) {
+                        return res.owners.map((v) => normalizeCapitalized(v)).join();
+                    }
+                }
+                if (src.extras.owner_name) {
+                    return normalizeCapitalized(src.extras.owner_name!!.toString());
+                }
+            }
+            return null;
+        },
         extrasOwnerType: (src: Lot) => src.extras ? src.extras.owner_type : null,
         extrasShapeType: (src: Lot) => src.extras ? src.extras.shape_type : null,
         extrasShapeSides: (src: Lot) => {
