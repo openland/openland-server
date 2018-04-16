@@ -1,0 +1,9 @@
+type NYCPropertyInformation {
+    borough: Int!
+    block: Int!
+    lot: Int!
+    owners: [String!]!
+}
+extend type Query {
+    servicesNYCProperties(borough: Int!, block: Int!, lot: Int!): NYCPropertyInformation!
+}

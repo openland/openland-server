@@ -47,6 +47,7 @@ import { DealTable } from './Deal';
 import { FeatureFlagTable } from './FeatureFlag';
 import { OpportunityTable } from './Opportunity';
 import { LotUserDataTable } from './LotUserData';
+import { ServicesCacheTable } from './ServicesCache';
 
 export const DB = {
     User: UserTable,
@@ -76,6 +77,7 @@ export const DB = {
     FeatureFlag: FeatureFlagTable,
     Opportunities: OpportunityTable,
     LotUserData: LotUserDataTable,
+    ServicesCache: ServicesCacheTable,
 
     tx: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>): Promise<A> {
         return await connection.transaction({ isolationLevel: 'SERIALIZABLE' }, (tx2: sequelize.Transaction) => handler(tx2));
