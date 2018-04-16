@@ -67,6 +67,14 @@ type Parcel {
     opportunity: Opportunity
 
     userData: ParcelUserData
+
+    links: [Link!]!
+}
+
+type Link {
+    type: String!
+    title: String!
+    url: String!
 }
 
 type ParcelUserData {
