@@ -323,13 +323,13 @@ export const Resolver = {
             }
         }),
         links: (src: Lot) => {
-            let links: { key: string, title: string, url: string }[] = [];
+            let links: { type: string, title: string, url: string }[] = [];
             if (src.extras && src.extras.nyc_bbl) {
                 let bbl = (src.extras.nyc_bbl as string);
                 let borough = parseInt(bbl.slice(0, 1), 10);
                 let block = parseInt(bbl.slice(1, 1 + 5), 10);
                 let lot = parseInt(bbl.slice(6, 6 + 3), 10);
-                links.push({ key: 'zola', title: 'ZoLa', url: 'https://zola.planning.nyc.gov/lot/' + borough + '/' + block + '/' + lot });
+                links.push({ type: 'zola', title: 'ZoLa', url: 'https://zola.planning.nyc.gov/lot/' + borough + '/' + block + '/' + lot });
             }
             return links;
         }
