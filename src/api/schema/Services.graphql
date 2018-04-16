@@ -4,6 +4,19 @@ type NYCPropertyInformation {
     lot: Int!
     owners: [String!]!
 }
+
+type NYCBisWebLot {
+    lot: Int!
+    bins: [Int!]!
+}
+
+type NYCBisWebInformation {
+    borough: Int!
+    block: Int!
+    lots: [NYCBisWebLot!]!
+}
+
 extend type Query {
     servicesNYCProperties(borough: Int!, block: Int!, lot: Int!): NYCPropertyInformation!
+    servicesNYCBisWeb(borough: Int!, block: Int!): NYCBisWebInformation!
 }
