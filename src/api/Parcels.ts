@@ -330,8 +330,10 @@ export const Resolver = {
                 let block = parseInt(bbl.slice(1, 1 + 5), 10);
                 let lot = parseInt(bbl.slice(6, 6 + 4), 10);
                 links.push({ type: 'zola', title: 'ZoLa', url: 'https://zola.planning.nyc.gov/lot/' + borough + '/' + block + '/' + lot });
+                links.push({ type: 'bisweb', title: 'BISWEB', url: 'http://a810-bisweb.nyc.gov/bisweb/PropertyBrowseByBBLServlet?allborough=' + borough + '&allblock=' + block + '8&alllot=' + lot + '&go5=+GO+&requestid=0' });
+                links.push({ type: 'acris', title: 'ACRIS', url: 'http://a836-acris.nyc.gov/bblsearch/bblsearch.asp?borough=' + borough + '&block=' + block + '&lot=' + lot });
             }
-            
+
             return links;
         }
     },
