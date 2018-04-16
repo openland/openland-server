@@ -10,10 +10,10 @@ type Parcel {
 
     likes: Likes!
 
-    extrasArea: Int
-    extrasAssessorArea: Int
-    extrasAssessorFront: Int
-    extrasAssessorDepth: Int
+    extrasArea: Float
+    extrasAssessorArea: Float
+    extrasAssessorFront: Float
+    extrasAssessorDepth: Float
 
     extrasZoning: [String!]
     extrasSupervisorDistrict: String

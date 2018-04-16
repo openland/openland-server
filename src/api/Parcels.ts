@@ -118,11 +118,11 @@ export const Resolver = {
 
         city: async (src: Lot) => Repos.Area.resolveCityInfo(src.cityId!!),
 
-        extrasArea: (src: Lot) => (src.extras && src.extras.area) ? Math.round(src.extras.area as number) : null,
+        extrasArea: (src: Lot) => (src.extras && src.extras.area) ? src.extras.area : null,
 
-        extrasAssessorArea: (src: Lot) => (src.extras && src.extras.assessor_front) ? Math.round(src.extras.assessor_area as number) : null,
-        extrasAssessorFront: (src: Lot) => (src.extras && src.extras.assessor_front) ? Math.round(src.extras.assessor_front as number) : null,
-        extrasAssessorDepth: (src: Lot) => (src.extras && src.extras.assessor_front) ? Math.round(src.extras.assessor_depth as number) : null,
+        extrasAssessorArea: (src: Lot) => (src.extras && src.extras.assessor_front) ? src.extras.assessor_area : null,
+        extrasAssessorFront: (src: Lot) => (src.extras && src.extras.assessor_front) ? src.extras.assessor_front : null,
+        extrasAssessorDepth: (src: Lot) => (src.extras && src.extras.assessor_front) ? src.extras.assessor_depth : null,
 
         extrasMetroDistance: (src: Lot) => (src.extras && src.extras.nearest_muni_distance) ? Math.round(src.extras.nearest_muni_distance as number) : null,
         extrasMetroStation: (src: Lot) => (src.extras && src.extras.nearest_muni) ? src.extras.nearest_muni : null,
@@ -340,8 +340,14 @@ export const Resolver = {
                 return null;
             }
         }),
-        links: (src: Lot) => {
-            let links: { type: string, title: string, url: string }[] = [];
+        links: async (src: Lot) => {
+            let links: {
+                type: string,
+                title: string,
+                url: string,
+                group?: string,
+                groupTitle?: string
+            }[] = [];
             if (src.extras && src.extras.nyc_bbl) {
                 let bbl = (src.extras.nyc_bbl as string);
                 let borough = parseInt(bbl.slice(0, 1), 10);
@@ -350,6 +356,73 @@ export const Resolver = {
                 links.push({ type: 'zola', title: 'ZoLa', url: 'https://zola.planning.nyc.gov/lot/' + borough + '/' + block + '/' + lot });
                 links.push({ type: 'bisweb', title: 'BISWEB', url: 'http://a810-bisweb.nyc.gov/bisweb/PropertyBrowseByBBLServlet?allborough=' + borough + '&allblock=' + block + '&alllot=' + lot + '&go5=+GO+&requestid=0' });
                 links.push({ type: 'acris', title: 'ACRIS', url: 'http://a836-acris.nyc.gov/bblsearch/bblsearch.asp?borough=' + borough + '&block=' + block + '&lot=' + lot });
+
+                // Fetching Bins
+                let bins = (await Services.NYCBisWeb.fetchBlock(borough, block)).lots.find((v) => v.lot === lot);
+                if (bins) {
+                    for (let bin of bins.bins) {
+                        let postfix = '';
+                        if (bins.bins.length > 1) {
+                            postfix = ' #' + bin;
+                        }
+                        links.push({
+                            type: 'bisweb',
+                            group: 'BIN #' + bin,
+                            title: 'Certificates of occupancy' + postfix,
+                            groupTitle: 'Certificates of occupancy',
+                            url: 'http://a810-bisweb.nyc.gov/bisweb/COsByLocationServlet?allbin=' + bin,
+                        });
+                        links.push({
+                            type: 'bisweb',
+                            group: 'BIN #' + bin,
+                            title: 'Electrical applications' + postfix,
+                            groupTitle: 'Electrical applications',
+                            url: 'http://a810-bisweb.nyc.gov/bisweb/BECApplicationsByAddressServlet?allbin=' + bin,
+                        });
+                        links.push({
+                            type: 'bisweb',
+                            group: 'BIN #' + bin,
+                            title: 'Elevator records' + postfix,
+                            groupTitle: 'Elevator records',
+                            url: 'http://a810-bisweb.nyc.gov/bisweb/ElevatorRecordsByLocationServlet?allbin=' + bin,
+                        });
+                        links.push({
+                            type: 'bisweb',
+                            group: 'BIN #' + bin,
+                            title: 'Boiler records' + postfix,
+                            groupTitle: 'Boiler records',
+                            url: 'http://a810-bisweb.nyc.gov/bisweb/BoilerComplianceQueryServlet?allbin=' + bin,
+                        });
+                        links.push({
+                            type: 'bisweb',
+                            group: 'BIN #' + bin,
+                            title: 'Jobs/fillings' + postfix,
+                            groupTitle: 'Jobs/fillings',
+                            url: 'http://a810-bisweb.nyc.gov/bisweb/JobsQueryByLocationServlet?requestid=1&allbin=' + bin,
+                        });
+                        links.push({
+                            type: 'bisweb',
+                            group: 'BIN #' + bin,
+                            title: 'Permits in process' + postfix,
+                            groupTitle: 'Permits in process',
+                            url: 'http://a810-bisweb.nyc.gov/bisweb/PermitsInProcessIssuedByBinServlet?allbin=' + bin,
+                        });
+                        links.push({
+                            type: 'bisweb',
+                            group: 'BIN #' + bin,
+                            title: 'Violations - DOB' + postfix,
+                            groupTitle: 'Violations - DOB',
+                            url: 'http://a810-bisweb.nyc.gov/bisweb/ActionsByLocationServlet?allinquirytype=BXS4OCV3&stypeocv3=V&allbin=' + bin,
+                        });
+                        links.push({
+                            type: 'bisweb',
+                            group: 'BIN #' + bin,
+                            title: 'Violations - ECB' + postfix,
+                            groupTitle: 'Violations - ECB',
+                            url: 'http://a810-bisweb.nyc.gov/bisweb/ECBQueryByLocationServlet?allbin=' + bin,
+                        });
+                    }
+                }
             }
 
             return links;
