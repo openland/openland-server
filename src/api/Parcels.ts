@@ -331,6 +331,7 @@ export const Resolver = {
                 let lot = parseInt(bbl.slice(6, 6 + 4), 10);
                 links.push({ type: 'zola', title: 'ZoLa', url: 'https://zola.planning.nyc.gov/lot/' + borough + '/' + block + '/' + lot });
             }
+            
             return links;
         }
     },
