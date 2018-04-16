@@ -17,7 +17,7 @@ import * as Addressing from './api/Addressing';
 import * as Deals from './api/Deals';
 import * as Sourcing from './api/Sourcing';
 import * as fs from 'fs';
-import * as Services from './api/services';
+import * as Services from './api/Services';
 
 let schema = fs
     .readdirSync(__dirname + '/api/schema/')
