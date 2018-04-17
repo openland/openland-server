@@ -13,7 +13,18 @@ export class OpportunitiesRepository {
         if (state) {
             builder = builder.whereEq('state', state);
         }
-        return builder.findAll();
+        return builder.findAll([{
+            model: DB.Lot,
+            as: 'lot',
+            include: [{
+                model: DB.StreetNumber,
+                as: 'streetNumbers',
+                include: [{
+                    model: DB.Street,
+                    as: 'street'
+                }],
+            }]
+        }]);
     }
 
     fetchConnectionCount(organization: number, state?: string) {
