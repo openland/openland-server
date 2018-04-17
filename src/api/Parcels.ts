@@ -120,9 +120,9 @@ export const Resolver = {
 
         extrasArea: (src: Lot) => (src.extras && src.extras.area) ? src.extras.area : null,
 
-        extrasAssessorArea: (src: Lot) => (src.extras && src.extras.assessor_front) ? src.extras.assessor_area : null,
+        extrasAssessorArea: (src: Lot) => (src.extras && src.extras.assessor_area) ? src.extras.assessor_area : null,
         extrasAssessorFront: (src: Lot) => (src.extras && src.extras.assessor_front) ? src.extras.assessor_front : null,
-        extrasAssessorDepth: (src: Lot) => (src.extras && src.extras.assessor_front) ? src.extras.assessor_depth : null,
+        extrasAssessorDepth: (src: Lot) => (src.extras && src.extras.assessor_depth) ? src.extras.assessor_depth : null,
 
         extrasMetroDistance: (src: Lot) => (src.extras && src.extras.nearest_muni_distance) ? Math.round(src.extras.nearest_muni_distance as number) : null,
         extrasMetroStation: (src: Lot) => (src.extras && src.extras.nearest_muni) ? src.extras.nearest_muni : null,
