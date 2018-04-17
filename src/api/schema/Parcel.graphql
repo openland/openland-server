@@ -8,9 +8,8 @@ type ParcelNumber {
     title: String!
 }
 enum SourceKind {
-    NONE,
     INTERNAL,
-    ASSESSOR
+    EXTERNAL
 }
 
 type DataFloat {

@@ -218,11 +218,70 @@ export const Resolver = {
 
         city: async (src: Lot) => Repos.Area.resolveCityInfo(src.cityId!!),
 
-        extrasArea: (src: Lot) => (src.extras && src.extras.area) ? src.extras.area : null,
+        //
+        // Dimensions
+        //
+        area: (src: Lot) => {
+            if (src.extras && src.extras.assessor_area) {
+                return {
+                    value: src.extras.assessor_area,
+                    source: 'EXTERNAL'
+                };
+            }
+            if (src.extras && src.extras.area) {
+                return {
+                    value: src.extras.area,
+                    source: 'INTERNAL'
+                };
+            }
+            return null;
+        },
+        front: (src: Lot) => {
+            if (src.extras && src.extras.assessor_front) {
+                return {
+                    value: src.extras.assessor_front,
+                    source: 'EXTERNAL'
+                };
+            }
+            return null;
+        },
+        depth: (src: Lot) => {
+            if (src.extras && src.extras.assessor_depth) {
+                return {
+                    value: src.extras.assessor_depth,
+                    source: 'EXTERNAL'
+                };
+            }
+            return null;
+        },
 
+        extrasArea: (src: Lot) => (src.extras && src.extras.area) ? src.extras.area : null,
         extrasAssessorArea: (src: Lot) => (src.extras && src.extras.assessor_area) ? src.extras.assessor_area : null,
         extrasAssessorFront: (src: Lot) => (src.extras && src.extras.assessor_front) ? src.extras.assessor_front : null,
         extrasAssessorDepth: (src: Lot) => (src.extras && src.extras.assessor_depth) ? src.extras.assessor_depth : null,
+
+        extrasShapeSides: (src: Lot) => {
+            let res = [];
+            if (src.extras) {
+                if (src.extras.side1) {
+                    res.push(src.extras.side1 as number);
+                }
+                if (src.extras.side1 && src.extras.side2) {
+                    res.push(src.extras.side2 as number);
+                }
+                if (src.extras.side1 && src.extras.side2 && src.extras.side3) {
+                    res.push(src.extras.side3 as number);
+                }
+                if (src.extras.side1 && src.extras.side2 && src.extras.side3 && src.extras.side4) {
+                    res.push(src.extras.side4 as number);
+                }
+            }
+            return res;
+        },
+
+        //
+        // Extras
+        //
 
         extrasMetroDistance: (src: Lot) => (src.extras && src.extras.nearest_muni_distance) ? Math.round(src.extras.nearest_muni_distance as number) : null,
         extrasMetroStation: (src: Lot) => (src.extras && src.extras.nearest_muni) ? src.extras.nearest_muni : null,
@@ -331,24 +390,6 @@ export const Resolver = {
         },
         extrasOwnerType: (src: Lot) => src.extras ? src.extras.owner_type : null,
         extrasShapeType: (src: Lot) => src.extras ? src.extras.shape_type : null,
-        extrasShapeSides: (src: Lot) => {
-            let res = [];
-            if (src.extras) {
-                if (src.extras.side1) {
-                    res.push(src.extras.side1 as number);
-                }
-                if (src.extras.side1 && src.extras.side2) {
-                    res.push(src.extras.side2 as number);
-                }
-                if (src.extras.side1 && src.extras.side2 && src.extras.side3) {
-                    res.push(src.extras.side3 as number);
-                }
-                if (src.extras.side1 && src.extras.side2 && src.extras.side3 && src.extras.side4) {
-                    res.push(src.extras.side4 as number);
-                }
-            }
-            return res;
-        },
         extrasFitProjects: withPermissionOptional<{}, Lot>(['feature-customer-kassita', 'editor', 'software-developer', 'super-admin'], (args, context, src) => {
             if (src.extras && src.extras.analyzed === 'true') {
                 let res = [];
