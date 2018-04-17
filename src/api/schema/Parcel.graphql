@@ -1,29 +1,78 @@
+type ParcelNumber {
+    borough: String
+    boroughId: String
+    block: String
+    blockPadded: String
+    lot: String
+    lotPadded: String
+    title: String!
+}
+enum SourceKind {
+    NONE,
+    INTERNAL,
+    ASSESSOR
+}
+
+type DataFloat {
+    value: Float!
+    source: SourceKind!
+}
+
 type Parcel {
     id: ID!
+    number: ParcelNumber!
+
+    # Deprecated
     title: String!
+    block: Block
+
+    # Geometry
     geometry: String
     center: Geo
-    block: Block
-    addresses: [StreetNumber!]!
-    city: City!
-    permits: [Permit!]!
-
-    likes: Likes!
-
+    area: DataFloat
+    front: DataFloat
+    depth: DataFloat
+    
+    # Deprecated geometry
     extrasArea: Float
     extrasAssessorArea: Float
     extrasAssessorFront: Float
     extrasAssessorDepth: Float
+    extrasShapeType: String
+    extrasShapeSides: [Float!]
 
+    # Metadata
+    links: [Link!]!
+    metadata: ParcelMetadata!
+
+    # Addresses
+    city: City!
+    address: String
+    addresses: [StreetNumber!]!
+    extrasAddress: String
+
+    # Analyzis
+    analyzed: Boolean
+    compatibleBuildings: [BuildingLocation!]
+    extrasAnalyzed: Boolean
+    extrasFitProjects: [String!]
+
+    # User Data
+    userData: ParcelUserData
+    likes: Likes!
+
+    # Linked Data
+    opportunity: Opportunity
+    permits: [Permit!]!
+
+    # Bunch of unsorted experimental data
     extrasZoning: [String!]
     extrasSupervisorDistrict: String
     extrasLandValue: Int
     extrasImprovementValue: Int
     extrasPropertyValue: Int
     extrasFixturesValue: Int
-
     extrasYear: Int
-
     extrasStories: Int
     extrasUnits: Int
     extrasRooms: Int
@@ -32,43 +81,21 @@ type Parcel {
     extrasNeighborhood: String
     extrasBorough: String
     extrasVacant: Boolean
-
     extrasMetroDistance: Int
     extrasMetroStation: String
-
     extrasTrainDistance: Int
     extrasTrainStation: String
-
     extrasTrainLocalDistance: Int
     extrasTrainLocalStation: String
-
     extrasNearestTransitDistance: Int
     extrasNearestTransitType: String
     extrasNearestTransitStation: String
-
     extrasLandUse: [String!]
     extrasSalesDate: String
     extrasSalesPriorDate: String
     extrasRecordationDate: String
-
-    extrasAddress: String
     extrasOwnerName: String
     extrasOwnerType: OwnerType
-
-    extrasShapeType: String
-    extrasShapeSides: [Float!]
-    extrasFitProjects: [String!]
-    extrasAnalyzed: Boolean
-
-    metadata: ParcelMetadata!
-
-    compatibleBuildings: [BuildingLocation!]
-
-    opportunity: Opportunity
-
-    userData: ParcelUserData
-
-    links: [Link!]!
 }
 
 type Link {

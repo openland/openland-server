@@ -40,15 +40,65 @@ export const Resolver = {
     },
     Parcel: {
         id: (src: Lot) => IDs.Parcel.serialize(src.id!!),
-        title: (src: Lot) => {
+        number: async (src: Lot) => {
+            // NYC Format
+            if (src.extras && src.extras.nyc_bbl) {
+                let bbl = (src.extras.nyc_bbl as string);
+                let borough = parseInt(bbl.slice(0, 1), 10);
+                let blockPadded = bbl.slice(1, 1 + 5);
+                let block = parseInt(blockPadded, 10);
+                let lotPadded = bbl.slice(6, 6 + 4);
+                let lot = parseInt(bbl.slice(6, 6 + 4), 10);
+                let boroughName = 'Manhattan';
+                if (borough === 2) {
+                    boroughName = 'Bronx';
+                } else if (borough === 3) {
+                    boroughName = 'Brooklyn';
+                } else if (borough === 4) {
+                    boroughName = 'Queens';
+                } else if (borough === 5) {
+                    boroughName = 'Staten Island';
+                }
+                return {
+                    block: block,
+                    blockPadded: blockPadded,
+                    lot: lot,
+                    lotPadded: lotPadded,
+                    boroughId: borough,
+                    borough: boroughName,
+                    title: `${borough}-${blockPadded}-${lotPadded}`
+                };
+            }
+
+            // Fallback
+            if (src.extras && src.extras.displayId) {
+                return {
+                    title: src.extras.displayId
+                };
+            } else if (src.primaryParcelId) {
+                return {
+                    title: (await DB.ParcelID.findById(src.primaryParcelId))!!.parcelId!!
+                };
+            } else {
+                return {
+                    title: src.lotId
+                };
+            }
+        },
+
+        // Deprecated IDs
+        title: async (src: Lot) => {
             if (src.extras && src.extras.displayId) {
                 return src.extras.displayId;
             } else if (src.primaryParcelId) {
-                return DB.ParcelID.findById(src.primaryParcelId);
+                return (await DB.ParcelID.findById(src.primaryParcelId))!!.parcelId!!;
             } else {
                 return src.lotId;
             }
         },
+        block: (src: Lot) => src.blockId ? Repos.Blocks.fetchBlock(src.blockId!!) : null,
+
+        // Geometry
         geometry: (src: Lot) => serializeGeometry(src.geometry),
         center: (src: Lot) => {
             if (src.geometry) {
@@ -57,8 +107,57 @@ export const Resolver = {
             }
             return null;
         },
-        block: (src: Lot) => src.blockId ? Repos.Blocks.fetchBlock(src.blockId!!) : null,
 
+        // Addresses
+        address: async (src: Lot) => {
+            let numbers = src.streetNumbers;
+            if (!numbers) {
+                numbers = await src.getStreetNumbers({
+                    include: [{
+                        model: DB.Street,
+                        as: 'street'
+                    }]
+                });
+            }
+            if (!numbers) {
+                numbers = [];
+            }
+            if (numbers.length === 0) {
+                return src.extras ? src.extras.address ? normalizeCapitalized(src.extras.address!!.toString()) : null : null;
+            }
+
+            let converted = numbers.map((n) => ({
+                streetId: n.street!!.id,
+                streetName: n.street!!.name!!,
+                streetNameSuffix: n.street!!.suffix,
+                streetNumber: n.number!!,
+                streetNumberSuffix: n.suffix!!
+            }));
+
+            let streets = new Map<string, { numbers: { number: number, suffix: string | null }[] }>();
+
+            // Grouping By street name
+            for (let addr of converted) {
+                let name = addr.streetName;
+                if (addr.streetNameSuffix) {
+                    name += ' ' + addr.streetNameSuffix;
+                }
+                if (streets.has(name)) {
+                    let street = streets.get(name)!!;
+                    street.numbers.push({ number: addr.streetNumber, suffix: addr.streetNumberSuffix });
+                } else {
+                    streets.set(name, { numbers: [{ number: addr.streetNumber, suffix: addr.streetNumberSuffix }] });
+                }
+            }
+
+            // Only first number and first street
+            let parts: string[] = [];
+            let addr2 = Array.from(streets.keys()).sort()[0];
+            let numbers2 = streets.get(addr2)!!;
+            let formattedNumbers = numbers2.numbers.map((v) => v.number + (v.suffix ? v.suffix : '')).sort()[0];
+            parts.push(formattedNumbers + ' ' + addr2);
+            return parts.join('; ');
+        },
         addresses: async (src: Lot) => {
             let numbers = src.streetNumbers;
             if (!numbers) {
@@ -80,6 +179,7 @@ export const Resolver = {
                 streetNumberSuffix: n.suffix
             }));
         },
+        extrasAddress: (src: Lot) => src.extras ? src.extras.address ? normalizeCapitalized(src.extras.address!!.toString()) : null : null,
 
         metadata: (src: Lot) => {
             return {
@@ -211,7 +311,6 @@ export const Resolver = {
         extrasYear: (src: Lot) => src.extras ? src.extras.year_built : null,
         extrasNeighborhood: (src: Lot) => src.extras ? src.extras.neighbourhoods : null,
         extrasBorough: (src: Lot) => src.extras ? src.extras.borough_name : null,
-        extrasAddress: (src: Lot) => src.extras ? src.extras.address ? normalizeCapitalized(src.extras.address!!.toString()) : null : null,
         extrasOwnerName: async (src: Lot) => {
             if (src.extras) {
                 if (src.extras.nyc_bbl) {
