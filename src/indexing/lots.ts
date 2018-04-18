@@ -97,6 +97,12 @@ export function startLotsIndexer(client: ES.Client) {
         compatibleBuildings: {
             type: 'keyword'
         },
+        customerUrbynQuery1: {
+            type: 'boolean'
+        },
+        customerUrbynQuery2: {
+            type: 'boolean'
+        },
     });
 
     reader.include([{
@@ -223,7 +229,9 @@ export function startLotsIndexer(client: ES.Client) {
                 area: item.extras!!.area,
                 distance: distance,
                 retired: item.retired,
-                compatibleBuildings: compatibleBuildings
+                compatibleBuildings: compatibleBuildings,
+                customerUrbynQuery1: item.extras ? parseBoolSafe(item.extras.urbyn_query_1) : null,
+                customerUrbynQuery2: item.extras ? parseBoolSafe(item.extras.urbyn_query_2) : null,
             }
         };
     });
