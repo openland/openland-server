@@ -32,7 +32,7 @@ function parseBoolSafe(src: any): boolean | null {
 
 export function startLotsIndexer(client: ES.Client) {
 
-    let reader = new UpdateReader('lots_indexing_28', DB.Lot);
+    let reader = new UpdateReader('lots_indexing_29', DB.Lot);
 
     reader.elastic(client, 'parcels', 'parcel', {
         geometry: {
@@ -226,7 +226,7 @@ export function startLotsIndexer(client: ES.Client) {
                 available: item.metadata!!.available,
                 isOkForTower: item.metadata!!.isOkForTower,
                 landUse: item.extras!!.land_use,
-                area: item.extras!!.area,
+                area: item.extras!!.assessor_area ? item.extras!!.assessor_area : item.extras!!.area,
                 distance: distance,
                 retired: item.retired,
                 compatibleBuildings: compatibleBuildings,
