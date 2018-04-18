@@ -26,6 +26,8 @@ export class ParcelRepository {
         this.parser.registerBoolean('isOkForTower', 'isOkForTower');
         this.parser.registerBoolean('isVacant', 'vacant');
         this.parser.registerText('compatibleBuildings', 'compatibleBuildings');
+        this.parser.registerBoolean('customerUrbynQuery1', 'customerUrbynQuery1');
+        this.parser.registerBoolean('customerUrbynQuery2', 'customerUrbynQuery2');
     }
 
     async applyMetadata(id: number, metadata: { description?: string | null, currentUse?: string | null, available?: boolean | null, isOkForTower?: boolean | null }) {
