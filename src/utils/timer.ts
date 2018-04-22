@@ -1,5 +1,20 @@
+export function delayBreakable(ms: number) {
+    // We can cancel delay from outer code
+    let promiseResolver: ((value?: any | PromiseLike<any>) => void) | null = null;
+    let resolver = () => {
+        if (promiseResolver) {
+            promiseResolver();
+        }
+    };
+    let promise = new Promise(resolve => {
+        promiseResolver = resolve;
+        setTimeout(resolve, ms);
+    });
+    return {promise, resolver};
+}
+
 export async function delay(ms: number) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise(resolve => { setTimeout(resolve, ms); });
 }
 
 export async function backoff<T>(callback: () => Promise<T>): Promise<T> {

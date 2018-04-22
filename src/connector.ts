@@ -1,9 +1,10 @@
 import * as sequelize from 'sequelize';
+import './utils/sequelize_afterCommit';
 import * as cls from 'continuation-local-storage';
 import * as umzug from 'umzug';
 
 var namespace = cls.createNamespace('tx-namespace');
-(<any> sequelize).useCLS(namespace);
+(<any>sequelize).useCLS(namespace);
 
 export var connection: sequelize.Sequelize;
 
@@ -58,6 +59,6 @@ export async function migrate() {
 }
 
 export async function reset() {
-    let args = {to: 0};
-    await migrator.down(<any> args);
+    let args = { to: 0 };
+    await migrator.down(<any>args);
 }

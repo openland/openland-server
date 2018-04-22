@@ -1,7 +1,7 @@
 import { DB } from '../tables';
 import * as sequelize from 'sequelize';
 import { IncludeOptions, Transaction } from 'sequelize';
-import { delay, forever, currentTime, printElapsed } from '../utils/timer';
+import { delay, forever, currentTime, printElapsed, delayBreakable } from '../utils/timer';
 import { tryLock } from './locking';
 import * as ES from 'elasticsearch';
 import { Pubsub } from './pubsub';
@@ -53,14 +53,18 @@ export async function writeReaderOffset(tx: sequelize.Transaction, key: string, 
         res.currentOffset = offset.offset;
         res.currentOffsetSecondary = offset.secondary;
         await res.save({ transaction: tx, logging: false });
-        pubsub.publish('reader_' + key, { key, offset: offset.offset, secondary: offset.secondary });
+        (tx as any).afterCommit(() => {
+            pubsub.publish('reader_' + key, { key, offset: offset.offset, secondary: offset.secondary });
+        });
     } else {
         await DB.ReaderState.create({
             key: key,
             currentOffset: offset.offset,
             currentOffsetSecondary: offset.secondary
         }, { transaction: tx, logging: false });
-        pubsub.publish('reader_' + key, { key, offset: offset.offset, secondary: offset.secondary });
+        (tx as any).afterCommit(() => {
+            pubsub.publish('reader_' + key, { key, offset: offset.offset, secondary: offset.secondary });
+        });
     }
 }
 
@@ -81,15 +85,33 @@ export class UpdateReader<TInstance, TAttributes> {
         //
         // Adding hook for notifications to redis
         //
-        model.addHook('afterCreate', (record: TInstance) => {
-            pubsub.publish('reader_' + this.name, {
-                key: 'reader_' + this.name, offset: (record as any).updatedAt as string, secondary: (record as any).id as number
-            });
+        model.addHook('afterCreate', (record: TInstance, options: { transaction?: sequelize.Transaction }) => {
+            if (options.transaction && (options.transaction as any).afterCommit) {
+                (options.transaction as any).afterCommit(() => {
+                    console.warn('afterCommit');
+                    pubsub.publish('invalidate_' + this.name, {
+                        key: 'reader_' + this.name, offset: (record as any).updatedAt as string, secondary: (record as any).id as number
+                    });
+                });
+            } else {
+                pubsub.publish('invalidate_' + this.name, {
+                    key: 'reader_' + this.name, offset: (record as any).updatedAt as string, secondary: (record as any).id as number
+                });
+            }
         });
-        model.addHook('afterUpdate', (record: TInstance) => {
-            pubsub.publish('reader_' + this.name, {
-                key: 'reader_' + this.name, offset: (record as any).updatedAt as string, secondary: (record as any).id as number
-            });
+        model.addHook('afterUpdate', (record: TInstance, options: { transaction?: sequelize.Transaction }) => {
+            if (options.transaction && (options.transaction as any).afterCommit) {
+                (options.transaction as any).afterCommit(() => {
+                    console.warn('afterCommit');
+                    pubsub.publish('invalidate_' + this.name, {
+                        key: 'reader_' + this.name, offset: (record as any).updatedAt as string, secondary: (record as any).id as number
+                    });
+                });
+            } else {
+                pubsub.publish('invalidate_' + this.name, {
+                    key: 'reader_' + this.name, offset: (record as any).updatedAt as string, secondary: (record as any).id as number
+                });
+            }
         });
     }
 
@@ -117,7 +139,8 @@ export class UpdateReader<TInstance, TAttributes> {
             }
             try {
                 let res = await this.elasticClient!!.bulk({
-                    body: forIndexing
+                    body: forIndexing,
+                    refresh: true
                 });
                 if (res.errors) {
                     console.warn(JSON.stringify(res));
@@ -181,9 +204,12 @@ export class UpdateReader<TInstance, TAttributes> {
             throw Error('Processor should be set!');
         }
 
-        pubsub.subscribe('reader_' + this.name, (data) => {
-            console.warn(data);
-        });
+        // pubsub.subscribe('reader_' + this.name, (data) => {
+        //     console.warn(data);
+        // });
+        // pubsub.subscribe('invalidate_' + this.name, (data) => {
+        //     console.warn('Invalidated: ' + data.key);
+        // });
 
         updateReader(this.name, this.model, this.includeVal, this.processorFunc!!, this.initFunc);
     }
@@ -195,7 +221,21 @@ async function updateReader<TInstance, TAttributes>(
     include: Array<IncludeOptions> = [],
     processor: (data: TInstance[], tx: Transaction) => Promise<void>,
     initFunc?: (tx: Transaction) => Promise<boolean>) {
-
+    let lastOffset: string | null = null;
+    let lastSecondary: number | null = null;
+    let waiter: (() => void) | null = null;
+    pubsub.subscribe('invalidate_' + name, (data) => {
+        if (waiter) {
+            if (lastOffset !== null && lastSecondary !== null) {
+                let lastTime = new Date(lastOffset).getTime();
+                let dataTime = new Date(data.offset).getTime();
+                let changed = dataTime > lastTime || (dataTime === lastTime && lastSecondary > data.secondary);
+                if (changed) {
+                    waiter();
+                }
+            }
+        }
+    });
     let shouldInit = true;
     await forever(async () => {
         let res = await DB.connection.transaction({ logging: false as any }, async (tx) => {
@@ -269,6 +309,13 @@ async function updateReader<TInstance, TAttributes>(
                 logging: false
             })) - 1000, 0);
             if (data.length <= 0) {
+                if (offset) {
+                    lastOffset = offset.offset;
+                    lastSecondary = offset.secondary;
+                } else {
+                    lastOffset = null;
+                    lastSecondary = null;
+                }
                 return false;
             }
 
@@ -295,7 +342,10 @@ async function updateReader<TInstance, TAttributes>(
         if (res) {
             await delay(100);
         } else {
-            await delay(1000);
+            let b = delayBreakable(1000);
+            waiter = b.resolver;
+            await b.promise;
+            waiter = null;
         }
     });
 }
