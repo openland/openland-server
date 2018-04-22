@@ -3,13 +3,21 @@ import { SelectBuilder } from '../modules/SelectBuilder';
 import { OpportunityAttributes } from '../tables/Opportunity';
 import { ElasticClient } from '../indexing';
 import { currentTime } from '../utils/timer';
+import { QueryParser, buildElasticQuery } from '../modules/QueryParser';
 
 type OpportunitySort = 'DATE_ADDED_DESC' | 'AREA_ASC' | 'AREA_DESC';
 export class OpportunitiesRepository {
-    async fetchConnection(organization: number, sort: OpportunitySort | null, first: number, state?: string, after?: string, page?: number) {
+    private parser = new QueryParser();
+    constructor() {
+        this.parser.registerBoolean('isPublic', 'customerUrbynQuery1');
+    }
+    async fetchConnection(organization: number, sort: OpportunitySort | null, query: string | null, first: number, state?: string, after?: string, page?: number) {
         let clauses: any[] = [{ term: { orgId: organization } }];
         if (state) {
             clauses.push({ term: { state: state } });
+        }
+        if (query) {
+            clauses.push(buildElasticQuery(this.parser.parseQuery(query)));
         }
         let essort: any[] = [{ 'updatedAt': { 'order': 'desc' } }, { '_id': { 'order': 'asc' } }];
         if (sort === 'AREA_ASC') {
@@ -127,8 +135,7 @@ export class OpportunitiesRepository {
         return res;
     }
 
-    async fetchNext(organization: number, state: string, sort: OpportunitySort | null, initialId?: number) {
-
+    async fetchNext(organization: number, state: string, sort: OpportunitySort | null, query: string | null, initialId?: number) {
         if (initialId !== undefined) {
             let initialOpportunity = await DB.Opportunities.find({
                 where: {
@@ -145,6 +152,9 @@ export class OpportunitiesRepository {
         let clauses: any[] = [{ term: { orgId: organization } }];
         if (state) {
             clauses.push({ term: { state: state } });
+        }
+        if (query) {
+            clauses.push(buildElasticQuery(this.parser.parseQuery(query)));
         }
         let essort: any[] = [{ 'updatedAt': { 'order': 'desc' } }, { '_id': { 'order': 'asc' } }];
         if (sort === 'AREA_ASC') {

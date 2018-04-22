@@ -28,18 +28,18 @@ export const Resolver = {
         alphaOpportunity: withAccount<{ id: string }>((args, uid, orgId) => {
             return Repos.Opportunities.findOpportunityById(orgId, IDs.Opportunities.parse(args.id));
         }),
-        alphaOpportunities: withAccount<{ state: string, sort: OpportunitySort | null, first: number, after?: string, page?: number }>((args, uid, orgId) => {
-            return Repos.Opportunities.fetchConnection(orgId, args.sort, args.first, args.state, args.after, args.page);
+        alphaOpportunities: withAccount<{ state: string, sort: OpportunitySort | null, query: string | null, first: number, after?: string, page?: number }>((args, uid, orgId) => {
+            return Repos.Opportunities.fetchConnection(orgId, args.sort, args.query, args.first, args.state, args.after, args.page);
         }),
         alphaOpportunitiesCount: withAccount<{ state: string }>((args, uid, orgId) => {
             return Repos.Opportunities.fetchConnectionCount(orgId, args.state);
         }),
-        alphaNextReviewOpportunity: withAccount<{ state: string, sort: OpportunitySort | null, initialId?: string }>((args, uid, orgId) => {
+        alphaNextReviewOpportunity: withAccount<{ state: string, sort: OpportunitySort | null, query: string | null, initialId?: string }>((args, uid, orgId) => {
             let initId: number | undefined;
             if (args.initialId) {
                 initId = IDs.Opportunities.parse(args.initialId);
             }
-            return Repos.Opportunities.fetchNext(orgId, args.state, args.sort, initId);
+            return Repos.Opportunities.fetchNext(orgId, args.state, args.sort, args.query, initId);
         }),
         alphaOpportunityOverlay: withAccount<{ box: { south: number, north: number, east: number, west: number }, limit: number }>((args, uid, orgId) => {
             return Repos.Opportunities.fetchGeoOpportunities(orgId, args.box, args.limit);
