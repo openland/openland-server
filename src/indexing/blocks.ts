@@ -3,7 +3,7 @@ import { DB } from '../tables';
 import { UpdateReader } from '../modules/updateReader';
 import { buildGeoJson } from '../modules/geometry';
 
-export function startBlocksIndexer(client: ES.Client) {
+export function createBlocksIndexer(client: ES.Client) {
 
     let reader = new UpdateReader('blocks_indexing_4', DB.Block);
 
@@ -33,5 +33,6 @@ export function startBlocksIndexer(client: ES.Client) {
         };
     });
 
-    reader.start();
+    return reader;
+    // reader.start();
 }

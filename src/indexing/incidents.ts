@@ -2,7 +2,7 @@ import * as ES from 'elasticsearch';
 import { DB } from '../tables';
 import { UpdateReader } from '../modules/updateReader';
 
-export function startIncidentsIndexer(client: ES.Client) {
+export function createIncidentsIndexer(client: ES.Client) {
 
     let reader = new UpdateReader('incidents_indexing_2', DB.Incident);
 
@@ -32,5 +32,5 @@ export function startIncidentsIndexer(client: ES.Client) {
         };
     });
 
-    reader.start();
+    return reader;
 }

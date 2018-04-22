@@ -1,17 +1,21 @@
 import * as ES from 'elasticsearch';
-import { startPermitsIndexer } from './permits';
-import { startLotsIndexer } from './lots';
-import { startBlocksIndexer } from './blocks';
-import { startIncidentsIndexer } from './incidents';
+import { createPermitsIndexer } from './permits';
+import { createLotsIndexer } from './lots';
+import { createBlocksIndexer } from './blocks';
+import { createIncidentsIndexer } from './incidents';
 
 export let ElasticClient = new ES.Client({
     host: process.env.ELASTIC_ENDPOINT
 });
 
+export const LotIndexer = createLotsIndexer(ElasticClient);
+export const BlocksIndexer = createBlocksIndexer(ElasticClient);
+export const PermitsIndexer = createPermitsIndexer(ElasticClient);
+export const IncidentsIndexer = createIncidentsIndexer(ElasticClient);
+
 export async function enableIndexer() {
-    console.warn('Starting Elastic Search Indexing (' + process.env.ELASTIC_ENDPOINT + ')');
-    startPermitsIndexer(ElasticClient);
-    startLotsIndexer(ElasticClient);
-    startBlocksIndexer(ElasticClient);
-    startIncidentsIndexer(ElasticClient);
+    PermitsIndexer.start();
+    LotIndexer.start();
+    BlocksIndexer.start();
+    IncidentsIndexer.start();
 }

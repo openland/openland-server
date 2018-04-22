@@ -3,7 +3,7 @@ import { DB } from '../tables';
 import { UpdateReader } from '../modules/updateReader';
 import { dateDiff } from '../utils/date_utils';
 
-export function startPermitsIndexer(client: ES.Client) {
+export function createPermitsIndexer(client: ES.Client) {
     let reader = new UpdateReader('permits_indexing_10', DB.Permit);
     reader.include([
         {
@@ -153,5 +153,6 @@ export function startPermitsIndexer(client: ES.Client) {
         }
     });
 
-    reader.start();
+    return reader;
+    // reader.start();
 }

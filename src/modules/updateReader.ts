@@ -77,6 +77,20 @@ export class UpdateReader<TInstance, TAttributes> {
     constructor(name: string, model: sequelize.Model<TInstance, TAttributes>) {
         this.name = name;
         this.model = model;
+
+        //
+        // Adding hook for notifications to redis
+        //
+        model.addHook('afterCreate', (record: TInstance) => {
+            pubsub.publish('reader_' + this.name, {
+                key: 'reader_' + this.name, offset: (record as any).updatedAt as string, secondary: (record as any).id as number
+            });
+        });
+        model.addHook('afterUpdate', (record: TInstance) => {
+            pubsub.publish('reader_' + this.name, {
+                key: 'reader_' + this.name, offset: (record as any).updatedAt as string, secondary: (record as any).id as number
+            });
+        });
     }
 
     processor(processor: (data: TInstance[], tx: Transaction) => Promise<void>) {
@@ -237,6 +251,23 @@ async function updateReader<TInstance, TAttributes>(
                 include: include,
                 logging: false
             }));
+            let remaining = Math.max((await model.count({
+                where: (offset ? {
+                    $and: [
+                        {
+                            updatedAt: { $gte: offset.offset }
+                        },
+                        {
+                            $or: {
+                                updatedAt: { $gt: offset.offset },
+                                id: { $gt: offset.secondary }
+                            }
+                        }
+                    ]
+                } as any : {}),
+                transaction: tx,
+                logging: false
+            })) - 1000, 0);
             if (data.length <= 0) {
                 return false;
             }
@@ -257,7 +288,7 @@ async function updateReader<TInstance, TAttributes>(
             await commit;
             await processed;
 
-            start = printElapsed(`[${name}] Completed ${data.length} elements`, start);
+            start = printElapsed(`[${name}] Completed ${data.length} elements, remaining ${remaining}`, start);
 
             return true;
         });
