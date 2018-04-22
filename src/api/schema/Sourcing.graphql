@@ -6,6 +6,8 @@ enum OpportunityPriority {
 }
 type Opportunity {
     id: ID!
+    geometry: String
+    center: Geo
     priority: OpportunityPriority!
     state: OpportunityState!
     parcel: Parcel!

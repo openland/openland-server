@@ -2,6 +2,7 @@ import { DB } from '../tables/index';
 import { SelectBuilder } from '../modules/SelectBuilder';
 import { OpportunityAttributes } from '../tables/Opportunity';
 import { ElasticClient } from '../indexing';
+import { currentTime } from '../utils/timer';
 
 type OpportunitySort = 'DATE_ADDED_DESC' | 'AREA_ASC' | 'AREA_DESC';
 export class OpportunitiesRepository {
@@ -56,6 +57,70 @@ export class OpportunitiesRepository {
             builder = builder.whereEq('state', state);
         }
         return builder.count();
+    }
+
+    async fetchGeoOpportunities(organization: number, box: { south: number, north: number, east: number, west: number }, limit: number) {
+        let start = currentTime();
+        let must = { term: { 'orgId': organization } };
+        let hits = await ElasticClient.search({
+            index: 'prospecting',
+            type: 'opportunity',
+            size: limit,
+            from: 0,
+            body: {
+                query: {
+                    bool: {
+                        must: must,
+                        filter: {
+                            bool: {
+                                must: [
+                                    {
+                                        geo_shape: {
+                                            geometry: {
+                                                shape: {
+                                                    type: 'envelope',
+                                                    coordinates:
+                                                        [[box.west, box.south],
+                                                        [box.east, box.north]],
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // ElasticClient.scroll({ scrollId: hits._scroll_id!!, scroll: '60000' });
+
+        console.warn('Searched in ' + (currentTime() - start) + ' ms');
+        start = currentTime();
+        let res = await DB.Opportunities.findAll({
+            where: {
+                id: {
+                    $in: hits.hits.hits.map((v) => v._id)
+                }
+            },
+            include: [{
+                model: DB.Lot,
+                as: 'lot',
+                include: [{
+                    model: DB.StreetNumber,
+                    as: 'streetNumbers',
+                    include: [{
+                        model: DB.Street,
+                        as: 'street'
+                    }]
+                }]
+            }]
+            // raw: true
+        });
+        console.warn('Fetched in ' + (currentTime() - start) + ' ms (' + res.length + ')');
+        // console.warn(res);
+        return res;
     }
 
     async fetchNext(organization: number, state: string, sort: OpportunitySort | null, initialId?: number) {
