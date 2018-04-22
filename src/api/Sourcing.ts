@@ -2,30 +2,31 @@ import { withAccount } from './utils/Resolvers';
 import { Repos } from '../repositories';
 import { Opportunity } from '../tables/Opportunity';
 import { IDs } from './utils/IDs';
-
+type OpportunitySort = 'DATE_ADDED_DESC' | 'AREA_ASC' | 'AREA_DESC';
 export const Resolver = {
     Opportunity: {
         id: (src: Opportunity) => IDs.Opportunities.serialize(src.id!!),
         priority: (src: Opportunity) => 'NORMAL',
         state: (src: Opportunity) => src.state,
-        parcel: (src: Opportunity) => src.lot ? src.lot : src.getLot()
+        parcel: (src: Opportunity) => src.lot ? src.lot : src.getLot(),
+        updatedAt: (src: Opportunity) => (src as any).updatedAt
     },
     Query: {
         alphaOpportunity: withAccount<{ id: string }>((args, uid, orgId) => {
             return Repos.Opportunities.findOpportunityById(orgId, IDs.Opportunities.parse(args.id));
         }),
-        alphaOpportunities: withAccount<{ state: string, first: number, after?: string, page?: number }>((args, uid, orgId) => {
-            return Repos.Opportunities.fetchConnection(orgId, args.first, args.state, args.after, args.page);
+        alphaOpportunities: withAccount<{ state: string, sort: OpportunitySort | null, first: number, after?: string, page?: number }>((args, uid, orgId) => {
+            return Repos.Opportunities.fetchConnection(orgId, args.sort, args.first, args.state, args.after, args.page);
         }),
         alphaOpportunitiesCount: withAccount<{ state: string }>((args, uid, orgId) => {
             return Repos.Opportunities.fetchConnectionCount(orgId, args.state);
         }),
-        alphaNextReviewOpportunity: withAccount<{ state: string, initialId?: string }>((args, uid, orgId) => {
+        alphaNextReviewOpportunity: withAccount<{ state: string, sort: OpportunitySort | null, initialId?: string }>((args, uid, orgId) => {
             let initId: number | undefined;
             if (args.initialId) {
                 initId = IDs.Opportunities.parse(args.initialId);
             }
-            return Repos.Opportunities.fetchNext(orgId, args.state, initId);
+            return Repos.Opportunities.fetchNext(orgId, args.state, args.sort, initId);
         })
     },
     Mutation: {

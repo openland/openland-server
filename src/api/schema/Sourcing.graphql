@@ -9,6 +9,10 @@ type Opportunity {
     priority: OpportunityPriority!
     state: OpportunityState!
     parcel: Parcel!
+    updatedAt: String!
+}
+enum OpportunitySort {
+    DATE_ADDED_DESC, AREA_ASC, AREA_DESC
 }
 
 type OpportunityEdge {

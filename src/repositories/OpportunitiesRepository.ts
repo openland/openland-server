@@ -3,11 +3,18 @@ import { SelectBuilder } from '../modules/SelectBuilder';
 import { OpportunityAttributes } from '../tables/Opportunity';
 import { ElasticClient } from '../indexing';
 
+type OpportunitySort = 'DATE_ADDED_DESC' | 'AREA_ASC' | 'AREA_DESC';
 export class OpportunitiesRepository {
-    async fetchConnection(organization: number, first: number, state?: string, after?: string, page?: number) {
+    async fetchConnection(organization: number, sort: OpportunitySort | null, first: number, state?: string, after?: string, page?: number) {
         let clauses: any[] = [{ term: { orgId: organization } }];
         if (state) {
             clauses.push({ term: { state: state } });
+        }
+        let essort: any[] = [{ 'updatedAt': { 'order': 'desc' } }, { '_id': { 'order': 'asc' } }];
+        if (sort === 'AREA_ASC') {
+            essort = [{ 'area': { 'order': 'asc' } }, { '_id': { 'order': 'asc' } }];
+        } else if (sort === 'AREA_DESC') {
+            essort = [{ 'area': { 'order': 'desc' } }, { '_id': { 'order': 'asc' } }];
         }
         let hits = await ElasticClient.search({
             index: 'prospecting',
@@ -20,7 +27,7 @@ export class OpportunitiesRepository {
                         must: clauses
                     }
                 },
-                sort: [{ 'area': { 'order': 'desc' } }, { '_id': { 'order': 'desc' } }]
+                sort: essort
             }
         });
         let builder = new SelectBuilder(DB.Opportunities)
@@ -51,7 +58,7 @@ export class OpportunitiesRepository {
         return builder.count();
     }
 
-    async fetchNext(organization: number, state: string, initialId?: number) {
+    async fetchNext(organization: number, state: string, sort: OpportunitySort | null, initialId?: number) {
 
         if (initialId !== undefined) {
             let initialOpportunity = await DB.Opportunities.find({
@@ -70,6 +77,12 @@ export class OpportunitiesRepository {
         if (state) {
             clauses.push({ term: { state: state } });
         }
+        let essort: any[] = [{ 'updatedAt': { 'order': 'desc' } }, { '_id': { 'order': 'asc' } }];
+        if (sort === 'AREA_ASC') {
+            essort = [{ 'area': { 'order': 'asc' } }, { '_id': { 'order': 'asc' } }];
+        } else if (sort === 'AREA_DESC') {
+            essort = [{ 'area': { 'order': 'desc' } }, { '_id': { 'order': 'asc' } }];
+        }
         let hits = await ElasticClient.search({
             index: 'prospecting',
             type: 'opportunity',
@@ -80,7 +93,7 @@ export class OpportunitiesRepository {
                         must: clauses
                     }
                 },
-                sort: [{ 'area': { 'order': 'desc' } }, { '_id': { 'order': 'desc' } }]
+                sort: essort
             }
         });
 

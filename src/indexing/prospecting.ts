@@ -3,10 +3,16 @@ import { DB } from '../tables';
 import { UpdateReader } from '../modules/updateReader';
 
 export function createProspectingIndexer(client: ES.Client) {
-    let reader = new UpdateReader('prospecting_indexing_1', DB.Opportunities);
+    let reader = new UpdateReader('prospecting_indexing_3', DB.Opportunities);
     reader.elastic(client, 'prospecting', 'opportunity', {
         orgId: {
             type: 'integer'
+        },
+        createdAt: {
+            type: 'date'
+        },
+        updatedAt: {
+            type: 'date'
         },
         area: {
             type: 'integer'
@@ -25,7 +31,9 @@ export function createProspectingIndexer(client: ES.Client) {
             doc: {
                 area: item.lot!!.extras!!.assessor_area ? item.lot!!.extras!!.assessor_area : item.lot!!.extras!!.area,
                 state: item.state,
-                orgId: item.organizationId
+                orgId: item.organizationId,
+                createdAt: (item as any).createdAt,
+                updatedAt: (item as any).updatedAt,
             }
         };
     });

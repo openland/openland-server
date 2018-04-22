@@ -71,7 +71,7 @@ type Query {
     searchParcels(query:String!): [Parcel!]!
 
     alphaOpportunity(id: ID!): Opportunity
-    alphaOpportunities(state: OpportunityState, first: Int!, after: String, page: Int): OpportunityConnection!
+    alphaOpportunities(state: OpportunityState, sort: OpportunitySort, first: Int!, after: String, page: Int): OpportunityConnection!
     alphaOpportunitiesCount(state: OpportunityState): Int!
-    alphaNextReviewOpportunity(state: OpportunityState!, initialId: ID): Opportunity
+    alphaNextReviewOpportunity(state: OpportunityState!, sort: OpportunitySort, initialId: ID): Opportunity
 }
