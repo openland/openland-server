@@ -59,6 +59,10 @@ export class OpportunitiesRepository {
         return builder.count();
     }
 
+    async geoSearch(organization: number, box: { south: number, north: number, east: number, west: number }) {
+        //
+    }
+
     async fetchGeoOpportunities(organization: number, box: { south: number, north: number, east: number, west: number }, limit: number) {
         let start = currentTime();
         let must = { term: { 'orgId': organization } };

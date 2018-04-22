@@ -3,6 +3,7 @@ import { Repos } from '../repositories';
 import { Opportunity } from '../tables/Opportunity';
 import { IDs } from './utils/IDs';
 import * as Turf from '@turf/turf';
+import { serializeGeometry } from './utils/Serializers';
 
 type OpportunitySort = 'DATE_ADDED_DESC' | 'AREA_ASC' | 'AREA_DESC';
 
@@ -12,7 +13,7 @@ export const Resolver = {
         priority: (src: Opportunity) => 'NORMAL',
         state: (src: Opportunity) => src.state,
         parcel: (src: Opportunity) => src.lot ? src.lot : src.getLot(),
-        geometry: (src: Opportunity) => src.lot ? src.lot!!.geometry : src.getLot().then((v) => v!!.geometry),
+        geometry: async (src: Opportunity) => serializeGeometry(src.lot ? src.lot!!.geometry : (await src.getLot())!!.geometry),
         center: async (src: Opportunity) => {
             let lot = src.lot ? src.lot : (await src.getLot())!!;
             if (lot && lot.geometry) {
@@ -42,6 +43,9 @@ export const Resolver = {
         }),
         alphaOpportunityOverlay: withAccount<{ box: { south: number, north: number, east: number, west: number }, limit: number }>((args, uid, orgId) => {
             return Repos.Opportunities.fetchGeoOpportunities(orgId, args.box, args.limit);
+        }),
+        alphaOpportunityGeoSearch: withAccount<{ box: { south: number, north: number, east: number, west: number } }>((args, uid, orgId) => {
+            return Repos.Opportunities.geoSearch(orgId, args.box);
         })
     },
     Mutation: {

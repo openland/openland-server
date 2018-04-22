@@ -75,4 +75,5 @@ type Query {
     alphaOpportunitiesCount(state: OpportunityState): Int!
     alphaNextReviewOpportunity(state: OpportunityState!, sort: OpportunitySort, initialId: ID): Opportunity
     alphaOpportunityOverlay(box: GeoBox!, limit: Int!): [Opportunity!]
+    alphaOpportunityGeoSearch(box: GeoBox!): OpportunityGeoSearch!
 }

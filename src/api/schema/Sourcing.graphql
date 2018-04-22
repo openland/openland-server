@@ -26,3 +26,13 @@ type OpportunityConnection {
     edges: [OpportunityEdge!]!
     pageInfo: PageInfo!
 }
+
+type GeoSearchCluster {
+    center: Geo!
+    count: Int!
+}
+
+type OpportunityGeoSearch {
+    clusters: GeoSearchCluster!
+    items: [Opportunity!]
+}

@@ -106,6 +106,9 @@ export function createLotsIndexer(client: ES.Client) {
         customerUrbynQuery3: {
             type: 'boolean'
         },
+        ownerPublic: {
+            type: 'boolean'
+        },
     });
 
     reader.include([{
@@ -236,6 +239,7 @@ export function createLotsIndexer(client: ES.Client) {
                 customerUrbynQuery1: item.extras ? parseBoolSafe(item.extras.urbyn_query_1) : null,
                 customerUrbynQuery2: item.extras ? parseBoolSafe(item.extras.urbyn_query_2) : null,
                 customerUrbynQuery3: item.extras ? parseBoolSafe(item.extras.urbyn_query_3) : null,
+                ownerPublic: item.extras ? parseBoolSafe(item.extras.owner_public) : null
             }
         };
     });
