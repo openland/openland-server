@@ -9,7 +9,7 @@ type OpportunitySort = 'DATE_ADDED_DESC' | 'AREA_ASC' | 'AREA_DESC';
 export class OpportunitiesRepository {
     private parser = new QueryParser();
     constructor() {
-        this.parser.registerBoolean('isPublic', 'customerUrbynQuery1');
+        this.parser.registerBoolean('isPublic', 'ownerPublic');
     }
     async fetchConnection(organization: number, sort: OpportunitySort | null, query: string | null, first: number, state?: string, after?: string, page?: number) {
         let clauses: any[] = [{ term: { orgId: organization } }];
