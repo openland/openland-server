@@ -4,6 +4,9 @@ import { IncludeOptions, Transaction } from 'sequelize';
 import { delay, forever, currentTime, printElapsed } from '../utils/timer';
 import { tryLock } from './locking';
 import * as ES from 'elasticsearch';
+import { Pubsub } from './pubsub';
+
+let pubsub = new Pubsub<{ key: string, offset: string, secondary: number }>();
 
 export async function resetReaderOffset(tx: sequelize.Transaction, key: string) {
     await DB.ReaderState.destroy({
@@ -50,12 +53,14 @@ export async function writeReaderOffset(tx: sequelize.Transaction, key: string, 
         res.currentOffset = offset.offset;
         res.currentOffsetSecondary = offset.secondary;
         await res.save({ transaction: tx, logging: false });
+        pubsub.publish('reader_' + key, { key, offset: offset.offset, secondary: offset.secondary });
     } else {
         await DB.ReaderState.create({
             key: key,
             currentOffset: offset.offset,
             currentOffsetSecondary: offset.secondary
         }, { transaction: tx, logging: false });
+        pubsub.publish('reader_' + key, { key, offset: offset.offset, secondary: offset.secondary });
     }
 }
 
@@ -161,6 +166,11 @@ export class UpdateReader<TInstance, TAttributes> {
         if (!this.processorFunc) {
             throw Error('Processor should be set!');
         }
+
+        pubsub.subscribe('reader_' + this.name, (data) => {
+            console.warn(data);
+        });
+
         updateReader(this.name, this.model, this.includeVal, this.processorFunc!!, this.initFunc);
     }
 }

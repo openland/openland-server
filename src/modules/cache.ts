@@ -1,19 +1,8 @@
-import * as Redis from 'handy-redis';
+import * as Redis from './redis/redis';
 import * as DataLoader from 'dataloader';
 
-let client: Redis.IHandyRedis | null = null;
-let hasCache = process.env.REDIS_HOST !== undefined && process.env.DISABLE_CACHE !== 'true';
-function getClient(): Redis.IHandyRedis | null {
-    if (hasCache) {
-        let port = process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT as string, 10) : 6379;
-        client = Redis.createHandyClient(port, process.env.REDIS_HOST);
-    }
-    return client;
-}
-
 let clientLoader = new DataLoader<string, number | null>(async (v) => {
-    console.log(v);
-    let client2 = getClient()!!;
+    let client2 = Redis.redisClient()!!;
     let res = (await client2.mget(...v)) as (string | null)[];
     let mappedRes = res.map((r) => {
         if (r) {
@@ -26,18 +15,17 @@ let clientLoader = new DataLoader<string, number | null>(async (v) => {
             return null;
         }
     });
-    console.log(mappedRes);
     return mappedRes;
 });
 
 export async function cachedInt(key: string, calc: () => Promise<number>): Promise<number> {
-    if (hasCache) {
+    if (Redis.redisEnabled) {
         let res = await clientLoader.load(key);
         if (res) {
             return res;
         }
         let r = await calc();
-        getClient()!!.setex(key, 600, r.toString()).then((v) => clientLoader.clear(v));
+        Redis.redisClient()!!.setex(key, 600, r.toString()).then((v) => clientLoader.clear(v));
         return r;
     } else {
         return calc();
@@ -45,8 +33,8 @@ export async function cachedInt(key: string, calc: () => Promise<number>): Promi
 }
 
 export async function cachedObject<T>(key: string, calc: () => Promise<T>): Promise<T> {
-    if (hasCache) {
-        let res = await getClient()!!.get(key);
+    if (Redis.redisEnabled) {
+        let res = await Redis.redisClient()!!.get(key);
         if (res) {
             try {
                 return JSON.parse(res) as T;
@@ -55,7 +43,7 @@ export async function cachedObject<T>(key: string, calc: () => Promise<T>): Prom
             }
         }
         let r = await calc();
-        getClient()!!.setex(key, 600, JSON.stringify(r)).then((v) => clientLoader.clear(v));
+        Redis.redisClient()!!.setex(key, 600, JSON.stringify(r)).then((v) => clientLoader.clear(v));
         return r;
     } else {
         return calc();
@@ -63,8 +51,7 @@ export async function cachedObject<T>(key: string, calc: () => Promise<T>): Prom
 }
 
 export async function isCached(...keys: string[]): Promise<number[] | false> {
-    let c = getClient();
-    if (c) {
+    if (Redis.redisClient) {
         let items = await clientLoader.loadMany(keys);
         for (let i of items) {
             let v = await i;
