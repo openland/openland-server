@@ -20,7 +20,7 @@ shimmer.wrap((Sequelize as any).Transaction.prototype, 'commit', (original) => {
         let res = await original.apply(this, arguments);
         if (this.afterCommitHooks) {
             for (let a of this.afterCommitHooks as any[]) {
-                a();
+                await a();
             }
         }
         return res;

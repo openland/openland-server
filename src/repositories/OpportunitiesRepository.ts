@@ -1,19 +1,33 @@
 import { DB } from '../tables/index';
 import { SelectBuilder } from '../modules/SelectBuilder';
 import { OpportunityAttributes } from '../tables/Opportunity';
+import { ElasticClient } from '../indexing';
 
 export class OpportunitiesRepository {
-    fetchConnection(organization: number, first: number, state?: string, after?: string, page?: number) {
+    async fetchConnection(organization: number, first: number, state?: string, after?: string, page?: number) {
+        let clauses: any[] = [{ term: { orgId: organization } }];
+        if (state) {
+            clauses.push({ term: { state: state } });
+        }
+        let hits = await ElasticClient.search({
+            index: 'prospecting',
+            type: 'opportunity',
+            size: first,
+            from: page ? ((page - 1) * first) : 0,
+            body: {
+                query: {
+                    bool: {
+                        must: clauses
+                    }
+                },
+                sort: [{ 'area': { 'order': 'desc' } }, { '_id': { 'order': 'desc' } }]
+            }
+        });
         let builder = new SelectBuilder(DB.Opportunities)
             .limit(first)
             .after(after)
-            .page(page)
-            .whereEq('organizationId', organization)
-            .orderBy('id', 'DESC');
-        if (state) {
-            builder = builder.whereEq('state', state);
-        }
-        return builder.findAll([{
+            .page(page);
+        return await builder.findElastic(hits, [{
             model: DB.Lot,
             as: 'lot',
             include: [{
@@ -52,15 +66,26 @@ export class OpportunitiesRepository {
             }
         }
 
-        let builder = new SelectBuilder(DB.Opportunities)
-            .limit(1)
-            .whereEq('organizationId', organization)
-            .whereEq('state', state)
-            .orderBy('id', 'DESC');
+        let clauses: any[] = [{ term: { orgId: organization } }];
+        if (state) {
+            clauses.push({ term: { state: state } });
+        }
+        let hits = await ElasticClient.search({
+            index: 'prospecting',
+            type: 'opportunity',
+            size: 1,
+            body: {
+                query: {
+                    bool: {
+                        must: clauses
+                    }
+                },
+                sort: [{ 'area': { 'order': 'desc' } }, { '_id': { 'order': 'desc' } }]
+            }
+        });
 
-        let res = await builder.findAllDirect();
-        if (res.length > 0) {
-            return res[0];
+        if (hits.hits.hits.length > 0) {
+            return DB.Opportunities.findById(hits.hits.hits[0]._id);
         } else {
             return null;
         }

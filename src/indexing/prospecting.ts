@@ -29,6 +29,7 @@ export function createProspectingIndexer(client: ES.Client) {
             }
         };
     });
+    reader.enalbeAutoOutOfOrder();
 
     return reader;
 }

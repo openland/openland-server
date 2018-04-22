@@ -5,6 +5,7 @@ import { delay, forever, currentTime, printElapsed, delayBreakable } from '../ut
 import { tryLock } from './locking';
 import * as ES from 'elasticsearch';
 import { Pubsub } from './pubsub';
+import { addAfterChangedCommitHook } from '../utils/sequelizeHooks';
 
 let pubsub = new Pubsub<{ key: string, offset: string, secondary: number }>();
 
@@ -71,13 +72,13 @@ export async function writeReaderOffset(tx: sequelize.Transaction, key: string, 
 export class UpdateReader<TInstance, TAttributes> {
     private name: string;
     private model: sequelize.Model<TInstance, TAttributes>;
-    private processorFunc?: (data: TInstance[], tx: Transaction) => Promise<void>;
+    private processorFunc?: (data: TInstance[], tx?: Transaction, outOfOrder?: boolean) => Promise<void>;
     private includeVal: Array<IncludeOptions> = [];
     private initFunc?: (tx: Transaction) => Promise<boolean>;
     private elasticClient?: ES.Client;
     private elasticIndex?: string;
     private elasticType?: string;
-
+    private isAutoOutOfOrderEnabled = false;
     constructor(name: string, model: sequelize.Model<TInstance, TAttributes>) {
         this.name = name;
         this.model = model;
@@ -85,37 +86,28 @@ export class UpdateReader<TInstance, TAttributes> {
         //
         // Adding hook for notifications to redis
         //
-        model.addHook('afterCreate', (record: TInstance, options: { transaction?: sequelize.Transaction }) => {
-            if (options.transaction && (options.transaction as any).afterCommit) {
-                (options.transaction as any).afterCommit(() => {
-                    console.warn('afterCommit');
-                    pubsub.publish('invalidate_' + this.name, {
-                        key: 'reader_' + this.name, offset: (record as any).updatedAt as string, secondary: (record as any).id as number
-                    });
-                });
-            } else {
-                pubsub.publish('invalidate_' + this.name, {
-                    key: 'reader_' + this.name, offset: (record as any).updatedAt as string, secondary: (record as any).id as number
-                });
-            }
-        });
-        model.addHook('afterUpdate', (record: TInstance, options: { transaction?: sequelize.Transaction }) => {
-            if (options.transaction && (options.transaction as any).afterCommit) {
-                (options.transaction as any).afterCommit(() => {
-                    console.warn('afterCommit');
-                    pubsub.publish('invalidate_' + this.name, {
-                        key: 'reader_' + this.name, offset: (record as any).updatedAt as string, secondary: (record as any).id as number
-                    });
-                });
-            } else {
-                pubsub.publish('invalidate_' + this.name, {
-                    key: 'reader_' + this.name, offset: (record as any).updatedAt as string, secondary: (record as any).id as number
-                });
-            }
+
+        addAfterChangedCommitHook(model, (record: TInstance) => {
+            pubsub.publish('invalidate_' + this.name, {
+                key: 'reader_' + this.name,
+                offset: (record as any).updatedAt as string,
+                secondary: (record as any).id as number
+            });
         });
     }
 
-    processor(processor: (data: TInstance[], tx: Transaction) => Promise<void>) {
+    enalbeAutoOutOfOrder() {
+        if (this.isAutoOutOfOrderEnabled) {
+            return;
+        }
+        this.isAutoOutOfOrderEnabled = true;
+        addAfterChangedCommitHook(this.model, (record: TInstance) => {
+            console.warn('Doing out of order');
+            return this.outOfOrder((record as any).id);
+        });
+    }
+
+    processor(processor: (data: TInstance[], tx?: Transaction) => Promise<void>) {
         this.processorFunc = processor;
         return this;
     }
@@ -124,7 +116,7 @@ export class UpdateReader<TInstance, TAttributes> {
         if (!this.elasticClient) {
             throw new Error('Elastic is not configured');
         }
-        this.processorFunc = async (data) => {
+        this.processorFunc = async (data, tx, outOfOrder) => {
             let forIndexing = [];
             for (let p of data) {
                 let converted = processor(p);
@@ -140,7 +132,7 @@ export class UpdateReader<TInstance, TAttributes> {
             try {
                 let res = await this.elasticClient!!.bulk({
                     body: forIndexing,
-                    refresh: true
+                    refresh: outOfOrder ? true : false
                 });
                 if (res.errors) {
                     console.warn(JSON.stringify(res));
@@ -199,19 +191,22 @@ export class UpdateReader<TInstance, TAttributes> {
         return this;
     }
 
+    async outOfOrder(id: number, tx?: Transaction) {
+        if (!this.processorFunc) {
+            throw Error('Processor should be set!');
+        }
+        let inst = await this.model.findById(id, { transaction: tx, include: this.includeVal });
+        if (inst) {
+            await this.processorFunc!!([inst], tx, true);
+        }
+    }
+
     start() {
         if (!this.processorFunc) {
             throw Error('Processor should be set!');
         }
 
-        // pubsub.subscribe('reader_' + this.name, (data) => {
-        //     console.warn(data);
-        // });
-        // pubsub.subscribe('invalidate_' + this.name, (data) => {
-        //     console.warn('Invalidated: ' + data.key);
-        // });
-
-        updateReader(this.name, this.model, this.includeVal, this.processorFunc!!, this.initFunc);
+        updateReader(this.name, this.model, this.includeVal, (data, tx) => this.processorFunc!!(data, tx, false), this.initFunc);
     }
 }
 
