@@ -95,6 +95,7 @@ type Parcel {
     extrasRecordationDate: String
     extrasOwnerName: String
     extrasOwnerType: OwnerType
+    extrasOwnerPublic: Boolean
 }
 
 type Link {

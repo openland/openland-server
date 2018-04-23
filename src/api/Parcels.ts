@@ -389,6 +389,7 @@ export const Resolver = {
             return null;
         },
         extrasOwnerType: (src: Lot) => src.extras ? src.extras.owner_type : null,
+        extrasOwnerPublic: (src: Lot) => src.extras ? src.extras.owner_public : null,
         extrasShapeType: (src: Lot) => src.extras ? src.extras.shape_type : null,
         extrasFitProjects: withPermissionOptional<{}, Lot>(['feature-customer-kassita', 'editor', 'software-developer', 'super-admin'], (args, context, src) => {
             if (src.extras && src.extras.analyzed === 'true') {
