@@ -71,9 +71,12 @@ export class OpportunitiesRepository {
         //
     }
 
-    async fetchGeoOpportunities(organization: number, box: { south: number, north: number, east: number, west: number }, limit: number) {
+    async fetchGeoOpportunities(organization: number, box: { south: number, north: number, east: number, west: number }, limit: number, query: string | null) {
         let start = currentTime();
-        let must = { term: { 'orgId': organization } };
+        let clauses: any[] = [{ term: { orgId: organization } }];
+        if (query) {
+            clauses.push(buildElasticQuery(this.parser.parseQuery(query)));
+        }
         let hits = await ElasticClient.search({
             index: 'prospecting',
             type: 'opportunity',
@@ -82,7 +85,7 @@ export class OpportunitiesRepository {
             body: {
                 query: {
                     bool: {
-                        must: must,
+                        must: clauses,
                         filter: {
                             bool: {
                                 must: [

@@ -41,8 +41,8 @@ export const Resolver = {
             }
             return Repos.Opportunities.fetchNext(orgId, args.state, args.sort, args.query, initId);
         }),
-        alphaOpportunityOverlay: withAccount<{ box: { south: number, north: number, east: number, west: number }, limit: number }>((args, uid, orgId) => {
-            return Repos.Opportunities.fetchGeoOpportunities(orgId, args.box, args.limit);
+        alphaOpportunityOverlay: withAccount<{ box: { south: number, north: number, east: number, west: number }, limit: number, query: string | null }>((args, uid, orgId) => {
+            return Repos.Opportunities.fetchGeoOpportunities(orgId, args.box, args.limit, args.query);
         }),
         alphaOpportunityGeoSearch: withAccount<{ box: { south: number, north: number, east: number, west: number } }>((args, uid, orgId) => {
             return Repos.Opportunities.geoSearch(orgId, args.box);
