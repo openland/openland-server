@@ -10,7 +10,7 @@ export class OpportunitiesRepository {
     private parser = new QueryParser();
     constructor() {
         this.parser.registerBoolean('isPublic', 'ownerPublic');
-        this.parser.registerBoolean('stage', 'state');
+        this.parser.registerText('stage', 'state');
     }
     async fetchConnection(organization: number, sort: OpportunitySort | null, query: string | null, first: number, state?: string, after?: string, page?: number) {
         let clauses: any[] = [{ term: { orgId: organization } }];
