@@ -497,6 +497,7 @@ export const Resolver = {
                 links.push({ type: 'zola', title: 'ZoLa', url: 'https://zola.planning.nyc.gov/lot/' + borough + '/' + block + '/' + lot });
                 links.push({ type: 'bisweb', title: 'BISWEB', url: 'http://a810-bisweb.nyc.gov/bisweb/PropertyBrowseByBBLServlet?allborough=' + borough + '&allblock=' + block + '&alllot=' + lot + '&go5=+GO+&requestid=0' });
                 links.push({ type: 'acris', title: 'ACRIS', url: 'http://a836-acris.nyc.gov/bblsearch/bblsearch.asp?borough=' + borough + '&block=' + block + '&lot=' + lot });
+                links.push({ type: 'taxmap', title: 'Digital Tax Map', url: 'http://maps.nyc.gov/taxmap/map.htm?searchType=BblSearch&featureTypeName=EVERY_BBL&featureName=' + bbl });
 
                 // Fetching Bins
                 let bins = (await Services.NYCBisWeb.fetchBlock(borough, block)).lots.find((v) => v.lot === lot);
