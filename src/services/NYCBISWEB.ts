@@ -21,19 +21,23 @@ async function fetchBis(borough: number, block: number, next?: string): Promise<
     if (next) {
         url = url + '&allcount=' + next;
     }
-    let res = await fetch(url, { timeout: 10000 });
-    if (res.ok) {
-        let text = await res.text();
-        let data = cheerio.load(text);
-        let rows = cheerio(data('table').get(3)).find('tr').toArray();
-        fnext = data('form[name="frmnext"]').children('input[name="allcount"]').val();
-        for (let i = 1; i < rows.length; i++) {
-            let cols = cheerio(rows[i]).find('td').toArray();
-            let lotId = parseInt(cheerio(cols[0]).text(), 10);
-            let binId = parseInt(cheerio(cols[cols.length - 1]).text(), 10);
-            lots.push({ lot: lotId, bin: binId });
+    try {
+        let res = await fetch(url, { timeout: 5000 });
+        if (res.ok) {
+            let text = await res.text();
+            let data = cheerio.load(text);
+            let rows = cheerio(data('table').get(3)).find('tr').toArray();
+            fnext = data('form[name="frmnext"]').children('input[name="allcount"]').val();
+            for (let i = 1; i < rows.length; i++) {
+                let cols = cheerio(rows[i]).find('td').toArray();
+                let lotId = parseInt(cheerio(cols[0]).text(), 10);
+                let binId = parseInt(cheerio(cols[cols.length - 1]).text(), 10);
+                lots.push({ lot: lotId, bin: binId });
+            }
+        } else {
+            errored = true;
         }
-    } else {
+    } catch (e) {
         errored = true;
     }
 
