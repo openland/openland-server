@@ -30,7 +30,7 @@ export class ParcelRepository {
         this.parser.registerBoolean('customerUrbynQuery2', 'customerUrbynQuery2');
         this.parser.registerBoolean('customerUrbynQuery3', 'customerUrbynQuery3');
         this.parser.registerBoolean('ownerPublic', 'ownerPublic');
-        this.parser.registerBoolean('ownerName', 'ownerName');
+        this.parser.registerText('ownerName', 'ownerName');
     }
 
     async applyMetadata(id: number, metadata: { description?: string | null, currentUse?: string | null, available?: boolean | null, isOkForTower?: boolean | null }) {
