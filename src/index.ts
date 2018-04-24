@@ -12,6 +12,7 @@ if (cluster.isMaster) {
 }
 
 async function initMater() {
+    
     try {
         if (process.env.NODE_ENV === 'development') {
             console.info('Connecting to database in DEVELOPMENT mode');
