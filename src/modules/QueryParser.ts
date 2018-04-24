@@ -12,7 +12,7 @@ export interface AndQuery {
 }
 
 export interface IntValueQuery {
-    type: 'field';
+    type: 'field' | 'field_text';
     field: string;
     exact: any;
 }
@@ -45,6 +45,8 @@ export function buildElasticQuery(query: QueryPart): any {
                 'must': query.clauses.map((v) => buildElasticQuery(v))
             }
         };
+    } else if (query.type === 'field_text') {
+        return { match: { [query.field]: { query: query.exact, operator: 'and' } } };
     } else if (query.type === 'field') {
         return { match: { [query.field]: query.exact } };
     } else if (query.type === 'field_enum') {
@@ -207,7 +209,7 @@ export class QueryParser {
                 let value = src[type];
                 if (typeof value === 'string') {
                     return {
-                        type: 'field',
+                        type: 'field_text',
                         field: tp.mappedName,
                         exact: value
                     };
