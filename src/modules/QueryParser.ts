@@ -1,5 +1,5 @@
 
-export type QueryPart = OrQuery | AndQuery | IntValueQuery | IntValueSpanQuery | ValueEnumQuery;
+export type QueryPart = OrQuery | AndQuery | IntValueQuery | IntValueSpanQuery | ValueEnumQuery | NotQuery;
 
 export interface OrQuery {
     type: 'or';
@@ -8,6 +8,11 @@ export interface OrQuery {
 
 export interface AndQuery {
     type: 'and';
+    clauses: QueryPart[];
+}
+
+export interface NotQuery {
+    type: 'not';
     clauses: QueryPart[];
 }
 
@@ -43,6 +48,12 @@ export function buildElasticQuery(query: QueryPart): any {
         return {
             'bool': {
                 'must': query.clauses.map((v) => buildElasticQuery(v))
+            }
+        };
+    } else if (query.type === 'not') {
+        return {
+            'bool': {
+                'must_not': query.clauses.map((v) => buildElasticQuery(v))
             }
         };
     } else if (query.type === 'field_text') {
@@ -139,6 +150,15 @@ export class QueryParser {
             }
             return {
                 type: 'and',
+                clauses: clauses.map((v) => this.parseQueryParsed(v))
+            };
+        } else if (type.toLocaleLowerCase() === '$not') {
+            let clauses = src[type];
+            if (!Array.isArray(clauses)) {
+                throw Error('Expected array for OR clause');
+            }
+            return {
+                type: 'not',
                 clauses: clauses.map((v) => this.parseQueryParsed(v))
             };
         } else {
