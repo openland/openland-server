@@ -31,8 +31,8 @@ export const Resolver = {
         alphaOpportunities: withAccount<{ state: string, sort: OpportunitySort | null, query: string | null, first: number, after?: string, page?: number }>((args, uid, orgId) => {
             return Repos.Opportunities.fetchConnection(orgId, args.sort, args.query, args.first, args.state, args.after, args.page);
         }),
-        alphaOpportunitiesCount: withAccount<{ state: string }>((args, uid, orgId) => {
-            return Repos.Opportunities.fetchConnectionCount(orgId, args.state);
+        alphaOpportunitiesCount: withAccount<{ state: string, query?: string }>((args, uid, orgId) => {
+            return Repos.Opportunities.fetchConnectionCount(orgId, args.state, args.query);
         }),
         alphaNextReviewOpportunity: withAccount<{ state: string, sort: OpportunitySort | null, query: string | null, initialId?: string }>((args, uid, orgId) => {
             let initId: number | undefined;

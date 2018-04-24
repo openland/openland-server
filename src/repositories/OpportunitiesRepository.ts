@@ -58,14 +58,33 @@ export class OpportunitiesRepository {
         }]);
     }
 
-    fetchConnectionCount(organization: number, state?: string) {
-        let builder = new SelectBuilder(DB.Opportunities)
-            .whereEq('organizationId', organization)
-            .orderBy('id', 'DESC');
+    async fetchConnectionCount(organization: number, state?: string, query?: string) {
+        let clauses: any[] = [{ term: { orgId: organization } }];
         if (state) {
-            builder = builder.whereEq('state', state);
+            clauses.push({ term: { state: state } });
         }
-        return builder.count();
+        if (query) {
+            clauses.push(buildElasticQuery(this.parser.parseQuery(query)));
+        }
+        // let builder = new SelectBuilder(DB.Opportunities)
+        //     .whereEq('organizationId', organization)
+        //     .orderBy('id', 'DESC');
+        // if (state) {
+        //     builder = builder.whereEq('state', state);
+        // }
+        // return builder.count();
+
+        return (await ElasticClient.count({
+            index: 'prospecting',
+            type: 'opportunity',
+            body: {
+                query: {
+                    bool: {
+                        must: clauses
+                    }
+                }
+            }
+        })).count;
     }
 
     async geoSearch(organization: number, box: { south: number, north: number, east: number, west: number }) {
