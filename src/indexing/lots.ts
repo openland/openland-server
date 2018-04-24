@@ -32,7 +32,7 @@ function parseBoolSafe(src: any): boolean | null {
 
 export function createLotsIndexer(client: ES.Client) {
 
-    let reader = new UpdateReader('lots_indexing_30', DB.Lot);
+    let reader = new UpdateReader('lots_indexing_31', DB.Lot);
 
     reader.elastic(client, 'parcels', 'parcel', {
         geometry: {
@@ -111,6 +111,9 @@ export function createLotsIndexer(client: ES.Client) {
         },
         ownerName: {
             type: 'text'
+        },
+        ownerNameKw: {
+            type: 'keyword'
         }
     });
 
@@ -243,7 +246,8 @@ export function createLotsIndexer(client: ES.Client) {
                 customerUrbynQuery2: item.extras ? parseBoolSafe(item.extras.urbyn_query_2) : null,
                 customerUrbynQuery3: item.extras ? parseBoolSafe(item.extras.urbyn_query_3) : null,
                 ownerPublic: item.extras ? parseBoolSafe(item.extras.owner_public) : null,
-                ownerName: item.extras ? item.extras.extrasOwnerName : null
+                ownerName: item.extras ? item.extras.owner_name : null,
+                ownerNameKw: item.extras ? item.extras.owner_name : null
             }
         };
     });
