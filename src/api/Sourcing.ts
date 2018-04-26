@@ -48,6 +48,7 @@ export const Resolver = {
             return Repos.Opportunities.geoSearch(orgId, args.box);
         })
     },
+    
     Mutation: {
         alphaApprove: withAccount<{ opportunityId: string, state: string }>((args, uid, orgId) => {
             return Repos.Opportunities.approveOpportunity(orgId, IDs.Opportunities.parse(args.opportunityId), args.state);
