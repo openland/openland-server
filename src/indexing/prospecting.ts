@@ -16,7 +16,7 @@ function parseBoolSafe(src: any): boolean | null {
     return null;
 }
 export function createProspectingIndexer(client: ES.Client) {
-    let reader = new UpdateReader('prospecting_indexing_5', DB.Opportunities);
+    let reader = new UpdateReader('prospecting_indexing_6', DB.Opportunities);
     reader.elastic(client, 'prospecting', 'opportunity', {
         geometry: {
             type: 'geo_shape',
@@ -52,6 +52,12 @@ export function createProspectingIndexer(client: ES.Client) {
         },
         ownerPublic: {
             type: 'boolean'
+        },
+        ownerNameKeyword: {
+            type: 'keyword'
+        },
+        ownerName: {
+            type: 'text'
         }
     });
     reader.include([{
@@ -78,6 +84,8 @@ export function createProspectingIndexer(client: ES.Client) {
                 customerUrbynQuery2: item.lot!!.extras ? parseBoolSafe(item.lot!!.extras!!.urbyn_query_2) : null,
                 customerUrbynQuery3: item.lot!!.extras ? parseBoolSafe(item.lot!!.extras!!.urbyn_query_3) : null,
                 ownerPublic: item.lot!!.extras ? parseBoolSafe(item.lot!!.extras!!.owner_public) : null,
+                ownerNameKeyword: item.lot!!.extras ? item.lot!!.extras!!.owner_name : null,
+                ownerName: item.lot!!.extras ? item.lot!!.extras!!.owner_name : null,
                 createdAt: (item as any).createdAt,
                 updatedAt: (item as any).updatedAt,
             }

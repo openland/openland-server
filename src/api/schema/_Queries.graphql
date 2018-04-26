@@ -76,4 +76,5 @@ type Query {
     alphaNextReviewOpportunity(state: OpportunityState!, sort: OpportunitySort, query: String, initialId: ID): Opportunity
     alphaOpportunityOverlay(box: GeoBox!, limit: Int!, query: String): [Opportunity!]
     alphaOpportunityGeoSearch(box: GeoBox!): OpportunityGeoSearch!
+    alphaOpportunityUsers(state: OpportunityState, query: String): [String]
 }

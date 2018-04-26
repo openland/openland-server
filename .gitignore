@@ -4,3 +4,4 @@ build
 dumps
 .idea/workspace.xml
 coverage
+*.ols

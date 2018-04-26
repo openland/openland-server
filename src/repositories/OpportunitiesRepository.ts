@@ -4,6 +4,7 @@ import { OpportunityAttributes } from '../tables/Opportunity';
 import { ElasticClient } from '../indexing';
 import { currentTime } from '../utils/timer';
 import { QueryParser, buildElasticQuery } from '../modules/QueryParser';
+import { normalizeCapitalized } from '../modules/Normalizer';
 
 type OpportunitySort = 'DATE_ADDED_DESC' | 'AREA_ASC' | 'AREA_DESC';
 export class OpportunitiesRepository {
@@ -85,6 +86,28 @@ export class OpportunitiesRepository {
                 }
             }
         })).count;
+    }
+
+    async ownersAutoComplete(organization: number, query: string, state?: string) {
+        let clauses: any[] = [{ term: { orgId: organization } }];
+        if (state) {
+            clauses.push({ term: { state: state } });
+        }
+        let res = await ElasticClient.search({
+            index: 'prospecting',
+            type: 'opportunity',
+            body: {
+                aggs: {
+                    ownerNames: {
+                        terms: {
+                            field: 'ownerNameKeyword'
+                        }
+                    }
+                }
+            }
+        });
+        let res2 = res.aggregations!!.ownerNames.buckets as { key: string }[];
+        return res2.map((v) => normalizeCapitalized(v.key));
     }
 
     async geoSearch(organization: number, box: { south: number, north: number, east: number, west: number }) {

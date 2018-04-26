@@ -46,9 +46,12 @@ export const Resolver = {
         }),
         alphaOpportunityGeoSearch: withAccount<{ box: { south: number, north: number, east: number, west: number } }>((args, uid, orgId) => {
             return Repos.Opportunities.geoSearch(orgId, args.box);
+        }),
+        alphaOpportunityUsers: withAccount<{ state?: string, query: string }>((args, uid, orgId) => {
+            return Repos.Opportunities.ownersAutoComplete(orgId, args.query, args.state);
         })
     },
-    
+
     Mutation: {
         alphaApprove: withAccount<{ opportunityId: string, state: string }>((args, uid, orgId) => {
             return Repos.Opportunities.approveOpportunity(orgId, IDs.Opportunities.parse(args.opportunityId), args.state);
