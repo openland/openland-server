@@ -294,6 +294,27 @@ export class OpportunitiesRepository {
         });
     }
 
+    async resetOpportunity(organizationId: number, opportunityId: number, state: string) {
+        return DB.tx(async (tx) => {
+            let op = await DB.Opportunities.findOne({
+                where: {
+                    id: opportunityId,
+                    organizationId: organizationId,
+                },
+                lock: tx.LOCK.UPDATE,
+                transaction: tx
+            });
+            if (!op) {
+                throw Error('Unable to find opportunity');
+            }
+            if (state === op.state) {
+                op.state = 'INCOMING';
+                await op.save({ transaction: tx });
+            }
+            return op;
+        });
+    }
+
     async addOpportunity(organizationId: number, parcelId: number) {
         return DB.tx(async (tx) => {
             let ex = await DB.Opportunities.findOne({

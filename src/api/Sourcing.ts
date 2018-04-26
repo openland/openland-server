@@ -58,6 +58,9 @@ export const Resolver = {
         alphaSnooze: withAccount<{ opportunityId: string, state: string }>((args, uid, orgId) => {
             return Repos.Opportunities.snoozeOpportunity(orgId, IDs.Opportunities.parse(args.opportunityId), args.state);
         }),
+        alphaReset: withAccount<{ opportunityId: string, state: string }>((args, uid, orgId) => {
+            return Repos.Opportunities.resetOpportunity(orgId, IDs.Opportunities.parse(args.opportunityId), args.state);
+        }),
         aphaAddOpportunity: withAccount<{ parcelId: string }>((args, uid, orgId) => {
             return Repos.Opportunities.addOpportunity(orgId, IDs.Parcel.parse(args.parcelId));
         }),
