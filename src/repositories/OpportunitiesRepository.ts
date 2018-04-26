@@ -12,6 +12,7 @@ export class OpportunitiesRepository {
     constructor() {
         this.parser.registerBoolean('isPublic', 'ownerPublic');
         this.parser.registerText('stage', 'state');
+        this.parser.registerText('ownerName', 'ownerName');
     }
     async fetchConnection(organization: number, sort: OpportunitySort | null, query: string | null, first: number, state?: string, after?: string, page?: number) {
         let clauses: any[] = [{ term: { orgId: organization } }];
@@ -93,16 +94,25 @@ export class OpportunitiesRepository {
         if (state) {
             clauses.push({ term: { state: state } });
         }
+        if (query) {
+            clauses.push(buildElasticQuery(this.parser.parseQuery(query)));
+        }
+        console.warn(clauses);
         let res = await ElasticClient.search({
             index: 'prospecting',
             type: 'opportunity',
             body: {
+                query: {
+                    bool: {
+                        must: clauses
+                    }
+                },
                 aggs: {
                     ownerNames: {
                         terms: {
                             field: 'ownerNameKeyword'
-                        }
-                    }
+                        },
+                    },
                 }
             }
         });
