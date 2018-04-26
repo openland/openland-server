@@ -32,7 +32,7 @@ function parseBoolSafe(src: any): boolean | null {
 
 export function createLotsIndexer(client: ES.Client) {
 
-    let reader = new UpdateReader('lots_indexing_31', DB.Lot);
+    let reader = new UpdateReader('lots_indexing_32', DB.Lot);
 
     reader.elastic(client, 'parcels', 'parcel', {
         geometry: {
@@ -169,6 +169,9 @@ export function createLotsIndexer(client: ES.Client) {
             res += ' ' + v.street!!.name + ' ' + v.street!!.suffix;
             return res;
         });
+        if (item.extras && item.extras.address) {
+            address.push(item.extras!!.address!!.toString());
+        }
         let distance = null;
         if (item.extras) {
             if (item.extras.nearest_muni_distance && (!distance || distance > item.extras.nearest_muni_distance!!)) {
