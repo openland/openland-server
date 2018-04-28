@@ -32,7 +32,7 @@ function parseBoolSafe(src: any): boolean | null {
 
 export function createLotsIndexer(client: ES.Client) {
 
-    let reader = new UpdateReader('lots_indexing_32', DB.Lot);
+    let reader = new UpdateReader('lots_indexing_33', DB.Lot);
 
     reader.elastic(client, 'parcels', 'parcel', {
         geometry: {
@@ -114,6 +114,9 @@ export function createLotsIndexer(client: ES.Client) {
         },
         ownerNameKw: {
             type: 'keyword'
+        },
+        unitCapacity: {
+            type: 'integer'
         }
     });
 
@@ -249,6 +252,7 @@ export function createLotsIndexer(client: ES.Client) {
                 customerUrbynQuery2: item.extras ? parseBoolSafe(item.extras.urbyn_query_2) : null,
                 customerUrbynQuery3: item.extras ? parseBoolSafe(item.extras.urbyn_query_3) : null,
                 ownerPublic: item.extras ? parseBoolSafe(item.extras.owner_public) : null,
+                unitCapacity: item.extras ? parseIntSafe(item.extras!!.unit_capacity) : null,
                 ownerName: item.extras ? item.extras.owner_name : null,
                 ownerNameKw: item.extras ? item.extras.owner_name : null
             }

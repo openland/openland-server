@@ -3,6 +3,20 @@ import { DB } from '../tables';
 import { UpdateReader } from '../modules/updateReader';
 import { buildGeoJson } from '../modules/geometry';
 import * as Turf from '@turf/turf';
+
+function parseIntSafe(src: any) {
+    if (typeof src === 'string') {
+        try {
+            return parseInt(src, 10);
+        } catch {
+            // Just ignore
+        }
+    } else if (typeof src === 'number') {
+        return src;
+    }
+    return null;
+}
+
 function parseBoolSafe(src: any): boolean | null {
     if (typeof src === 'string') {
         if (src === 'true') {
@@ -16,7 +30,7 @@ function parseBoolSafe(src: any): boolean | null {
     return null;
 }
 export function createProspectingIndexer(client: ES.Client) {
-    let reader = new UpdateReader('prospecting_indexing_6', DB.Opportunities);
+    let reader = new UpdateReader('prospecting_indexing_7', DB.Opportunities);
     reader.elastic(client, 'prospecting', 'opportunity', {
         geometry: {
             type: 'geo_shape',
@@ -58,6 +72,9 @@ export function createProspectingIndexer(client: ES.Client) {
         },
         ownerName: {
             type: 'text'
+        },
+        unitCapacity: {
+            type: 'integer'
         }
     });
     reader.include([{
@@ -86,6 +103,7 @@ export function createProspectingIndexer(client: ES.Client) {
                 ownerPublic: item.lot!!.extras ? parseBoolSafe(item.lot!!.extras!!.owner_public) : null,
                 ownerNameKeyword: item.lot!!.extras ? item.lot!!.extras!!.owner_name : null,
                 ownerName: item.lot!!.extras ? item.lot!!.extras!!.owner_name : null,
+                unitCapacity: item.lot!!.extras ? parseIntSafe(item.lot!!.extras!!.unit_capacity) : null,
                 createdAt: (item as any).createdAt,
                 updatedAt: (item as any).updatedAt,
             }
