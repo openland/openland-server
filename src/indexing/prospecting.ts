@@ -30,7 +30,7 @@ function parseBoolSafe(src: any): boolean | null {
     return null;
 }
 export function createProspectingIndexer(client: ES.Client) {
-    let reader = new UpdateReader('prospecting_indexing_7', DB.Opportunities);
+    let reader = new UpdateReader('prospecting_indexing_8', DB.Opportunities);
     reader.elastic(client, 'prospecting', 'opportunity', {
         geometry: {
             type: 'geo_shape',

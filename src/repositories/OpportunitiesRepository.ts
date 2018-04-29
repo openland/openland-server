@@ -6,7 +6,7 @@ import { currentTime } from '../utils/timer';
 import { QueryParser, buildElasticQuery } from '../modules/QueryParser';
 import { normalizeCapitalized } from '../modules/Normalizer';
 
-type OpportunitySort = 'DATE_ADDED_DESC' | 'AREA_ASC' | 'AREA_DESC';
+type OpportunitySort = 'DATE_ADDED_ASC' | 'DATE_ADDED_DESC' | 'AREA_ASC' | 'AREA_DESC' | 'CAPACITY_ASC' | 'CAPACITY_DESC';
 export class OpportunitiesRepository {
     private parser = new QueryParser();
     constructor() {
@@ -23,10 +23,16 @@ export class OpportunitiesRepository {
             clauses.push(buildElasticQuery(this.parser.parseQuery(query)));
         }
         let essort: any[] = [{ 'updatedAt': { 'order': 'desc' } }, { '_id': { 'order': 'asc' } }];
-        if (sort === 'AREA_ASC') {
+        if (sort === 'DATE_ADDED_ASC') {
+            essort = [{ 'updatedAt': { 'order': 'asc' } }, { '_id': { 'order': 'asc' } }];
+        } else if (sort === 'AREA_ASC') {
             essort = [{ 'area': { 'order': 'asc' } }, { '_id': { 'order': 'asc' } }];
         } else if (sort === 'AREA_DESC') {
             essort = [{ 'area': { 'order': 'desc' } }, { '_id': { 'order': 'asc' } }];
+        } else if (sort === 'CAPACITY_ASC') {
+            essort = [{ 'unitCapacity': { 'order': 'asc' } }, { '_id': { 'order': 'asc' } }];
+        } else if (sort === 'CAPACITY_DESC') {
+            essort = [{ 'unitCapacity': { 'order': 'desc' } }, { '_id': { 'order': 'asc' } }];
         }
         let hits = await ElasticClient.search({
             index: 'prospecting',

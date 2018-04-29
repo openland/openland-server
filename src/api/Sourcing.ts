@@ -5,7 +5,7 @@ import { IDs } from './utils/IDs';
 import * as Turf from '@turf/turf';
 import { serializeGeometry } from './utils/Serializers';
 
-type OpportunitySort = 'DATE_ADDED_DESC' | 'AREA_ASC' | 'AREA_DESC';
+type OpportunitySort = 'DATE_ADDED_ASC' | 'DATE_ADDED_DESC' | 'AREA_ASC' | 'AREA_DESC' | 'CAPACITY_ASC' | 'CAPACITY_DESC';
 
 export const Resolver = {
     Opportunity: {

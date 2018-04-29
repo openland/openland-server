@@ -13,8 +13,9 @@ type Opportunity {
     parcel: Parcel!
     updatedAt: String!
 }
+
 enum OpportunitySort {
-    DATE_ADDED_DESC, AREA_ASC, AREA_DESC
+    DATE_ADDED_ASC, DATE_ADDED_DESC, AREA_ASC, AREA_DESC, CAPACITY_ASC, CAPACITY_DESC
 }
 
 type OpportunityEdge {
