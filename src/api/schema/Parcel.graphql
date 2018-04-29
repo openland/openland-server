@@ -97,6 +97,8 @@ type Parcel {
     extrasOwnerType: OwnerType
     extrasOwnerPublic: Boolean
     extrasUnitCapacity: Int
+    extrasUnitCapacityFar: Float
+    extrasUnitCapacityDencity: Float
 }
 
 type Link {

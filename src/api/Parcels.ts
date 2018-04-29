@@ -357,6 +357,8 @@ export const Resolver = {
         extrasRecordationDate: (src: Lot) => src.extras ? src.extras.recordation_date : null,
 
         extrasUnitCapacity: (src: Lot) => src.extras ? src.extras.unit_capacity : null,
+        extrasUnitCapacityFar: (src: Lot) => src.extras ? src.extras.far : null,
+        extrasUnitCapacityDencity: (src: Lot) => src.extras ? src.extras.dencity_factor : null,
 
         extrasSupervisorDistrict: (src: Lot) => src.extras ? src.extras.supervisor_id : null,
         extrasLandValue: (src: Lot) => src.extras ? src.extras.land_value : null,
