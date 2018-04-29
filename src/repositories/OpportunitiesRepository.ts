@@ -95,6 +95,39 @@ export class OpportunitiesRepository {
         })).count;
     }
 
+    async fetchConnectionCapacity(organization: number, state?: string, query?: string) {
+        let clauses: any[] = [{ term: { orgId: organization } }];
+        if (state) {
+            clauses.push({ term: { state: state } });
+        }
+        if (query) {
+            clauses.push(buildElasticQuery(this.parser.parseQuery(query)));
+        }
+        // let builder = new SelectBuilder(DB.Opportunities)
+        //     .whereEq('organizationId', organization)
+        //     .orderBy('id', 'DESC');
+        // if (state) {
+        //     builder = builder.whereEq('state', state);
+        // }
+        // return builder.count();
+
+        return (await ElasticClient.search({
+            index: 'prospecting',
+            type: 'opportunity',
+            size: 0,
+            body: {
+                query: {
+                    bool: {
+                        must: clauses
+                    }
+                },
+                aggs: {
+                    totalCapacity: { sum: { field: 'unitCapacity' } }
+                }
+            }
+        })).aggregations!!.totalCapacity.value as number;
+    }
+
     async ownersAutoComplete(organization: number, query: string, state?: string) {
         let clauses: any[] = [{ term: { orgId: organization } }];
         if (state) {

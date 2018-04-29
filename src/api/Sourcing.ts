@@ -34,6 +34,9 @@ export const Resolver = {
         alphaOpportunitiesCount: withAccount<{ state: string, query?: string }>((args, uid, orgId) => {
             return Repos.Opportunities.fetchConnectionCount(orgId, args.state, args.query);
         }),
+        alphaOpportunitiesCapacity: withAccount<{ state: string, query?: string }>((args, uid, orgId) => {
+            return Repos.Opportunities.fetchConnectionCapacity(orgId, args.state, args.query);
+        }),
         alphaNextReviewOpportunity: withAccount<{ state: string, sort: OpportunitySort | null, query: string | null, initialId?: string }>((args, uid, orgId) => {
             let initId: number | undefined;
             if (args.initialId) {
