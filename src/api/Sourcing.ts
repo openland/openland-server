@@ -31,6 +31,9 @@ export const Resolver = {
         alphaOpportunities: withAccount<{ state: string, sort: OpportunitySort | null, query: string | null, first: number, after?: string, page?: number }>((args, uid, orgId) => {
             return Repos.Opportunities.fetchConnection(orgId, args.sort, args.query, args.first, args.state, args.after, args.page);
         }),
+        alphaAllOpportunities: withAccount<{ state: string, sort: OpportunitySort | null, query: string | null }>((args, uid, orgId) => {
+            return Repos.Opportunities.fetchAll(orgId, args.sort, args.query, args.state);
+        }),
         alphaOpportunitiesCount: withAccount<{ state: string, query?: string }>((args, uid, orgId) => {
             return Repos.Opportunities.fetchConnectionCount(orgId, args.state, args.query);
         }),

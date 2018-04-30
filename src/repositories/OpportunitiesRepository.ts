@@ -66,6 +66,59 @@ export class OpportunitiesRepository {
         }]);
     }
 
+    async fetchAll(organization: number, sort: OpportunitySort | null, query: string | null, state?: string) {
+        let clauses: any[] = [{ term: { orgId: organization } }];
+        if (state) {
+            clauses.push({ term: { state: state } });
+        }
+        if (query) {
+            clauses.push(buildElasticQuery(this.parser.parseQuery(query)));
+        }
+        let essort: any[] = [{ 'updatedAt': { 'order': 'desc' } }, { '_id': { 'order': 'asc' } }];
+        if (sort === 'DATE_ADDED_ASC') {
+            essort = [{ 'updatedAt': { 'order': 'asc' } }, { '_id': { 'order': 'asc' } }];
+        } else if (sort === 'AREA_ASC') {
+            essort = [{ 'area': { 'order': 'asc' } }, { '_id': { 'order': 'asc' } }];
+        } else if (sort === 'AREA_DESC') {
+            essort = [{ 'area': { 'order': 'desc' } }, { '_id': { 'order': 'asc' } }];
+        } else if (sort === 'CAPACITY_ASC') {
+            essort = [{ 'unitCapacity': { 'order': 'asc' } }, { '_id': { 'order': 'asc' } }];
+        } else if (sort === 'CAPACITY_DESC') {
+            essort = [{ 'unitCapacity': { 'order': 'desc' } }, { '_id': { 'order': 'asc' } }];
+        }
+        let hits = await ElasticClient.search({
+            index: 'prospecting',
+            type: 'opportunity',
+            size: 10000,
+            // size: first,
+            // from: page ? ((page - 1) * first) : 0,
+            body: {
+                query: {
+                    bool: {
+                        must: clauses
+                    }
+                },
+                sort: essort
+            }
+        });
+        let builder = new SelectBuilder(DB.Opportunities);
+            // .limit(first)
+            // .after(after)
+            // .page(page);
+        return (await builder.findElastic(hits, [{
+            model: DB.Lot,
+            as: 'lot',
+            include: [{
+                model: DB.StreetNumber,
+                as: 'streetNumbers',
+                include: [{
+                    model: DB.Street,
+                    as: 'street'
+                }],
+            }]
+        }])).edges.map((v) => v.node);
+    }
+
     async fetchConnectionCount(organization: number, state?: string, query?: string) {
         let clauses: any[] = [{ term: { orgId: organization } }];
         if (state) {
