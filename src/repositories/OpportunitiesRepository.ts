@@ -101,11 +101,12 @@ export class OpportunitiesRepository {
                 sort: essort
             }
         });
+
         let builder = new SelectBuilder(DB.Opportunities);
             // .limit(first)
             // .after(after)
             // .page(page);
-        return (await builder.findElastic(hits, [{
+        return await builder.findElasticAll(hits, [{
             model: DB.Lot,
             as: 'lot',
             include: [{
@@ -116,7 +117,7 @@ export class OpportunitiesRepository {
                     as: 'street'
                 }],
             }]
-        }])).edges.map((v) => v.node);
+        }]);
     }
 
     async fetchConnectionCount(organization: number, state?: string, query?: string) {

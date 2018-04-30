@@ -252,6 +252,30 @@ export class SelectBuilder<TInstance, TAttributes> {
         };
     }
 
+    async findElasticAll(response: SearchResponse<any>, include?: Array<sequelize.Model<any, any> | sequelize.IncludeOptions>) {
+        let ids = response.hits.hits.map((v) => parseInt(v._id, 10));
+        let elements = await this.table.findAll({
+            where: {
+                id: {
+                    $in: ids
+                }
+            } as any,
+            include: include
+        });
+        let mappedElements = new Map<number, TInstance>();
+        for (let e of elements) {
+            mappedElements.set((e as any).id!!, e);
+        }
+        let restored = [];
+        for (let i of ids) {
+            if (mappedElements.get(i)) {
+                restored.push(mappedElements.get(i)!!);
+            }
+        }
+        
+        return restored;
+    }
+
     async findAll(include?: Array<sequelize.Model<any, any> | sequelize.IncludeOptions>) {
         if (this.limitValue == null) {
             throw 'Limit should be set!';
