@@ -12,8 +12,8 @@ export interface ReaderState extends sequelize.Instance<ReaderStateAttributes>, 
 }
 
 export const ReaderStateTable = connection.define<ReaderState, ReaderStateAttributes>('reader_state', {
-    id: {type: sequelize.INTEGER, primaryKey: true, autoIncrement: true},
-    key: {type: sequelize.STRING, allowNull: false, unique: true},
-    currentOffset: {type: sequelize.DATE, allowNull: true},
-    currentOffsetSecondary: {type: sequelize.INTEGER, allowNull: true},
+    id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
+    key: { type: sequelize.STRING, allowNull: false, unique: true },
+    currentOffset: { type: sequelize.DATE, allowNull: true },
+    currentOffsetSecondary: { type: sequelize.INTEGER, allowNull: true }
 });

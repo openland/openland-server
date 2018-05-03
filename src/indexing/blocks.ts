@@ -5,7 +5,7 @@ import { buildGeoJson } from '../modules/geometry';
 
 export function createBlocksIndexer(client: ES.Client) {
 
-    let reader = new UpdateReader('blocks_indexing_4', DB.Block);
+    let reader = new UpdateReader('reader_blocks', 1, DB.Block);
 
     reader.elastic(client, 'blocks', 'block', {
         geometry: {

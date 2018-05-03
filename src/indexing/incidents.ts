@@ -4,7 +4,7 @@ import { UpdateReader } from '../modules/updateReader';
 
 export function createIncidentsIndexer(client: ES.Client) {
 
-    let reader = new UpdateReader('incidents_indexing_2', DB.Incident);
+    let reader = new UpdateReader('reader_incidents', 1, DB.Incident);
 
     reader.elastic(client, 'incidents', 'incident', {
         location: {

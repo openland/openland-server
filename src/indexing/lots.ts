@@ -32,7 +32,7 @@ function parseBoolSafe(src: any): boolean | null {
 
 export function createLotsIndexer(client: ES.Client) {
 
-    let reader = new UpdateReader('lots_indexing_33', DB.Lot);
+    let reader = new UpdateReader('reader_lots', 1, DB.Lot);
 
     reader.elastic(client, 'parcels', 'parcel', {
         geometry: {

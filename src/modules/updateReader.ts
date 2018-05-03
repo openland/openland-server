@@ -71,6 +71,7 @@ export async function writeReaderOffset(tx: sequelize.Transaction, key: string, 
 
 export class UpdateReader<TInstance, TAttributes> {
     private name: string;
+    private version: number;
     private model: sequelize.Model<TInstance, TAttributes>;
     private processorFunc?: (data: TInstance[], tx?: Transaction, outOfOrder?: boolean) => Promise<void>;
     private includeVal: Array<IncludeOptions> = [];
@@ -79,8 +80,10 @@ export class UpdateReader<TInstance, TAttributes> {
     private elasticIndex?: string;
     private elasticType?: string;
     private isAutoOutOfOrderEnabled = false;
-    constructor(name: string, model: sequelize.Model<TInstance, TAttributes>) {
+
+    constructor(name: string, version: number, model: sequelize.Model<TInstance, TAttributes>) {
         this.name = name;
+        this.version = version;
         this.model = model;
 
         //
@@ -206,12 +209,13 @@ export class UpdateReader<TInstance, TAttributes> {
             throw Error('Processor should be set!');
         }
 
-        updateReader(this.name, this.model, this.includeVal, (data, tx) => this.processorFunc!!(data, tx, false), this.initFunc);
+        updateReader(this.name, this.version, this.model, this.includeVal, (data, tx) => this.processorFunc!!(data, tx, false), this.initFunc);
     }
 }
 
 async function updateReader<TInstance, TAttributes>(
     name: string,
+    version: number,
     model: sequelize.Model<TInstance, TAttributes>,
     include: Array<IncludeOptions> = [],
     processor: (data: TInstance[], tx: Transaction) => Promise<void>,
@@ -241,7 +245,7 @@ async function updateReader<TInstance, TAttributes>(
             // Prerequisites
             //
 
-            if (!(await tryLock(tx, 'reader_' + name))) {
+            if (!(await tryLock(tx, 'reader_' + name, version))) {
                 shouldInit = true;
                 return false;
             }
