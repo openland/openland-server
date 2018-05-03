@@ -1,0 +1,5 @@
+type DebugReaderState {
+    id: ID!
+    title: String!
+    remaining: Int!
+}

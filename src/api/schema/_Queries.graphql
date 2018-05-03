@@ -79,4 +79,6 @@ type Query {
     alphaOpportunityGeoSearch(box: GeoBox!): OpportunityGeoSearch!
     alphaOpportunityUsers(state: OpportunityState, query: String): [String]
     alphaAllOpportunities(state: OpportunityState, sort: OpportunitySort, query: String): [Opportunity!]
+
+    debugReaderStates: [DebugReaderState!]!
 }

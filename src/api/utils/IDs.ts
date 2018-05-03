@@ -11,4 +11,5 @@ export const IDs = {
     SuperAccount: new ID('SuperAccount'),
     FeatureFlag: new ID('FeatureFlag'),
     Opportunities: new ID('Op'),
+    DebugReader: new ID('dr'),
 };

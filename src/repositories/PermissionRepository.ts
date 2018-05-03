@@ -36,6 +36,9 @@ export class PermissionRepository {
             let superRole = await this.superRole(userId);
             if (superRole !== false) {
                 permissions.push(superRole);
+                if (superRole === 'super-admin') {
+                    permissions.push('software-developer');
+                }
             }
 
             // Organization features
