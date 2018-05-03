@@ -9,7 +9,7 @@ export const Resolver = {
             let readers = (await DB.ReaderState.findAll());
             return readers.map((v) => ({
                 id: IDs.DebugReader.serialize(v.id!!),
-                title: normalizeCapitalized(v.key!!.replace('_', '')),
+                title: normalizeCapitalized(v.key!!.replace('_', ' ')),
                 remaining: v.remaining
             }));
         })
