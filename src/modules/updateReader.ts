@@ -53,6 +53,7 @@ export async function writeReaderOffset(tx: sequelize.Transaction, key: string, 
     if (res != null) {
         res.currentOffset = offset.offset;
         res.currentOffsetSecondary = offset.secondary;
+        res.remaining = remaining;
         await res.save({ transaction: tx, logging: false });
         (tx as any).afterCommit(() => {
             pubsub.publish('reader_' + key, { key, offset: offset.offset, secondary: offset.secondary });
@@ -61,7 +62,8 @@ export async function writeReaderOffset(tx: sequelize.Transaction, key: string, 
         await DB.ReaderState.create({
             key: key,
             currentOffset: offset.offset,
-            currentOffsetSecondary: offset.secondary
+            currentOffsetSecondary: offset.secondary,
+            remaining: remaining
         }, { transaction: tx, logging: false });
         (tx as any).afterCommit(() => {
             pubsub.publish('reader_' + key, { key, offset: offset.offset, secondary: offset.secondary });
