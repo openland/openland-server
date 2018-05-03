@@ -42,7 +42,7 @@ export async function readReaderOffset(tx: sequelize.Transaction, key: string): 
     }
 }
 
-export async function writeReaderOffset(tx: sequelize.Transaction, key: string, offset: { offset: string, secondary: number }) {
+export async function writeReaderOffset(tx: sequelize.Transaction, key: string, offset: { offset: string, secondary: number }, remaining: number) {
     let res = await DB.ReaderState.findOne({
         where: {
             key: key
@@ -330,7 +330,7 @@ async function updateReader<TInstance, TAttributes>(
             let commit = writeReaderOffset(tx, name, {
                 offset: (data[data.length - 1] as any).updatedAt as string,
                 secondary: (data[data.length - 1] as any).id
-            });
+            }, remaining);
             await commit;
             await processed;
 
