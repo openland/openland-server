@@ -26,6 +26,7 @@ export interface Lot extends sequelize.Instance<LotAttributes>, LotAttributes {
     block?: Block;
     streetNumbers?: Array<StreetNumber>;
     likes?: Array<User>;
+    retired: boolean;
     getStreetNumbers(options?: any): Promise<Array<StreetNumber>>;
     setStreetNumbers(numbers: Array<number>, options?: any): Promise<void>;
 

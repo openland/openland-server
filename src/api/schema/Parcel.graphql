@@ -20,6 +20,7 @@ type DataFloat {
 type Parcel {
     id: ID!
     number: ParcelNumber!
+    retired: Boolean!
 
     # Deprecated
     title: String!
