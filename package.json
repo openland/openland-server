@@ -102,7 +102,7 @@
     "start:watch": "nodemon build/index.js",
     "start:watch:inspect": "nodemon --inspect build/index.js",
     "start": "BLUEBIRD_LONG_STACK_TRACES=0 node ./build/index.js",
-    "dev": "yarn build && ELASTIC_ENDPOINT=\"http://localhost:9200/\" REDIS_HOST=\"localhost\" ./node_modules/.bin/concurrently --kill-others \"yarn schema:watch\" \"yarn assets:watch\" \"yarn build:watch\" \"yarn start:watch\"",
+    "dev": "export DATABASE_USER=$(id -un) && yarn build && ELASTIC_ENDPOINT=\"http://localhost:9200/\" REDIS_HOST=\"localhost\" ./node_modules/.bin/concurrently --kill-others \"yarn schema:watch\" \"yarn assets:watch\" \"yarn build:watch\" \"yarn start:watch\"",
     "dev:inspect": "BLUEBIRD_LONG_STACK_TRACES=0 yarn build && ./node_modules/.bin/concurrently --kill-others \"yarn build:watch\" \"yarn start:watch:inspect\"",
     "dev:db": "yarn build && RECREATE_DB=true ELASTIC_ENDPOINT=\"http://localhost:9200/\" REDIS_HOST=\"localhost\" NODE_ENV=\"development\" yarn start",
     "promote": "kubectl set image deployment/statecraft-server statecraft-server=`kubectl get deployment statecraft-server-staging -o=jsonpath='{$.spec.template.spec.containers[1:2].image}'` && kubectl rollout status deployments statecraft-server",

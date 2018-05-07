@@ -30,7 +30,7 @@ if (process.env.DATABASE_URL !== undefined) {
         }
     });
 } else {
-    connection = new sequelize('postgres', 'steve', '', {
+    connection = new sequelize('postgres', process.env.DATABASE_USER!, '', {
         host: 'localhost',
         dialect: 'postgres',
         benchmark: true,

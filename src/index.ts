@@ -32,7 +32,8 @@ async function initMater() {
 
                 if (fs.existsSync('./dumps/dump.sql')) {
                     console.warn('Recreating database');
-                    cp.execSync('psql -q -h localhost -U steve -d postgres -f ./dumps/dump.sql', { stdio: 'inherit' });
+                    // cp.execSync('psql -q -h localhost -U kor_ka -d postgres -f ./dumps/dump.sql', { stdio: 'inherit' });
+                    cp.execSync('psql -q -h localhost -U ' + process.env.DATABASE_USER + ' -d postgres -f ./dumps/dump.sql', { stdio: 'inherit' });
                     console.warn('Database imported');
                 } else {
                     throw Error('Unable to find ./dumps/dump.sql');
