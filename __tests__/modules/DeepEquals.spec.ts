@@ -56,4 +56,9 @@ describe('Deep equals', () => {
         };
         expect(fastDeepEquals(a, b)).toBe(false);
     });
+
+    it('Arrays should work ok', () => {
+        expect(fastDeepEquals([1, 2], [1, 2])).toBe(true);
+        expect(fastDeepEquals([1, 2], [1])).toBe(false);
+    });
 });

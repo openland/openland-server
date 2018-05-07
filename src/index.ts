@@ -12,19 +12,19 @@ if (cluster.isMaster) {
 }
 
 async function initMater() {
-    
+
     try {
         if (process.env.NODE_ENV === 'development') {
             console.info('Connecting to database in DEVELOPMENT mode');
             if (process.env.RECREATE_DB === 'true') {
                 await db.connection.getQueryInterface().dropAllTables();
                 await db.connection.getQueryInterface().dropAllSchemas();
-                if (fs.existsSync('./dumps/pgdump.bin')) {
-                    try {
-                        cp.execSync('pg_restore --verbose --clean --no-acl --no-owner -h localhost -U steve -d postgres ./dumps/pgdump.bin', {stdio: 'inherit'});
-                    } catch (e) {
-                        console.warn(e);
-                    }
+                if (fs.existsSync('./dumps/dump.sql')) {
+                    console.warn('Recreating database');
+                    cp.execSync('psql -q -h localhost -U steve -d postgres -f ./dumps/dump.sql', { stdio: 'inherit' });
+                    console.warn('Database imported');
+                } else {
+                    throw Error('Unable to find ./dumps/dump.sql');
                 }
             }
         } else {
