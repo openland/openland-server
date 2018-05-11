@@ -619,7 +619,7 @@ export const Resolver = {
         alphaAllParcels: withAny<{ state: string, county: string, city: string, query: string }>(async (args) => {
             let cityId = await Repos.Area.resolveCity(args.state, args.county, args.city);
             let parcels = await Repos.Parcels.fetchAllParcels(cityId, args.query);
-            return parcels;
+            return await DB.Lot.findAll({ where: { id: { $in: parcels } } });
         }),
         parcelsStats: async function (_: any, args: { query?: string | null, state?: string | null, county?: string | null, city?: string | null }) {
             let cityId = null;
