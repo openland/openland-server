@@ -102,4 +102,8 @@ export class PermissionRepository {
             isOwner: false
         };
     }
+
+    async resolveCiites() {
+        return await DB.SuperCity.findAll();
+    }
 }

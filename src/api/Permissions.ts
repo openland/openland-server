@@ -6,6 +6,7 @@ import { IDs } from './utils/IDs';
 import { DB } from '../tables';
 import { SuperAdmin } from '../tables/SuperAdmin';
 import { FeatureFlag } from '../tables/FeatureFlag';
+import { SuperCity } from '../tables/SuperCity';
 
 export const Resolvers = {
     SuperAccount: {
@@ -26,6 +27,15 @@ export const Resolvers = {
                 return 'SUPER_ADMIN';
             }
         }
+    },
+    SuperCity: {
+        id: (src: SuperCity) => IDs.SuperCity.serialize(src.id),
+        key: (src: SuperCity) => src.key,
+        enabled: (src: SuperCity) => src.enabled,
+        blockSource: (src: SuperCity) => src.blockSource,
+        blockSourceLayer: (src: SuperCity) => src.blockSourceLayer,
+        parcelSource: (src: SuperCity) => src.parcelSource,
+        parcelSourceLayer: (src: SuperCity) => src.parcelSourceLayer,
     },
     FeatureFlag: {
         id: (src: FeatureFlag) => IDs.FeatureFlag.serialize(src.id!!),
@@ -59,7 +69,10 @@ export const Resolvers = {
         }),
         featureFlags: withPermission(['super-admin', 'software-developer'], () => {
             return Repos.Permissions.resolveFeatureFlags();
-        })
+        }),
+        superCities: withPermission('super-admin', () => {
+            return Repos.Permissions.resolveCiites();
+        }),
     },
     Mutation: {
         superAccountAdd: withPermission<{ title: string }>('super-admin', (args) => {

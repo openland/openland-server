@@ -9,6 +9,7 @@ export const IDs = {
     Parcel: new ID('Parcel'),
     Block: new ID('Block'),
     SuperAccount: new ID('SuperAccount'),
+    SuperCity: new ID('SuperCity'),
     FeatureFlag: new ID('FeatureFlag'),
     Opportunities: new ID('Op'),
     DebugReader: new ID('dr'),
