@@ -1,0 +1,35 @@
+enum SuperAccountState {
+    PENDING,
+    ACTIVATED,
+    SUSPENDED
+}
+
+type SuperAccount {
+    id: ID!
+    title: String!
+    state: SuperAccountState!
+    members: [User!]!
+    features: [FeatureFlag!]!
+}
+
+enum SuperAdminRole {
+    SUPER_ADMIN,
+    SOFTWARE_DEVELOPER,
+    EDITOR
+}
+
+type SuperAdmin {
+    user: User!
+    role: SuperAdminRole!
+}
+
+type SuperCity {
+    id: ID!
+    key: String!
+    name: String!
+    enabled: Boolean!
+    blockSource: String
+    blockSourceLayer: String
+    parcelSource: String
+    parcelSourceLayer: String
+}

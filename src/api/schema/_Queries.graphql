@@ -50,18 +50,16 @@ type Query {
     area(slug: String!): Area!
 
     search(query: String!): SearchResult!
-    
     users(query:String!): [User!]!
+    superAccounts: [SuperAccount!]!
+    superAccount(id: ID!): SuperAccount!
+    featureFlags: [FeatureFlag!]!
+    superCities: [SuperCity!]!
 
     superAdmins: [SuperAdmin!]!
 
     myAccount: MyAccount
     myProfile: MyProfile!
-
-    superAccounts: [SuperAccount!]!
-    superAccount(id: ID!): SuperAccount!
-
-    featureFlags: [FeatureFlag!]!
 
     states(active: Boolean): [State!]!
     counties(stateId: ID!): [County!]!
