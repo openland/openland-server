@@ -6,7 +6,7 @@ import { DB } from '../tables';
 import { ElasticClient } from '../indexing';
 import * as Turf from '@turf/turf';
 import { CallContext } from './CallContext';
-import { withPermission, withAuth, withPermissionOptional, withAccountTypeOptional, withAccount } from './utils/Resolvers';
+import { withPermission, withAuth, withPermissionOptional, withAccountTypeOptional, withAccount, withAny } from './utils/Resolvers';
 import { IDs } from './utils/IDs';
 import { serializeGeometry } from './utils/Serializers';
 import { createRectangle } from '../utils/map';
@@ -616,6 +616,11 @@ export const Resolver = {
         parcelsOverlay: async function (_: any, args: { box: { south: number, north: number, east: number, west: number }, limit: number, query?: string | null }) {
             return Repos.Parcels.fetchGeoParcels(args.box, args.limit, args.query);
         },
+        alphaAllParcels: withAny<{ state: string, county: string, city: string, query: string }>(async (args) => {
+            let cityId = await Repos.Area.resolveCity(args.state, args.county, args.city);
+            let parcels = await Repos.Parcels.fetchAllParcels(cityId, args.query);
+            return parcels;
+        }),
         parcelsStats: async function (_: any, args: { query?: string | null, state?: string | null, county?: string | null, city?: string | null }) {
             let cityId = null;
             if (args.state && args.county && args.city) {

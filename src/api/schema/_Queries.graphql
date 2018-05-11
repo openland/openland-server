@@ -32,6 +32,8 @@ type Query {
     parcelsOverlay(box: GeoBox!, limit: Int!, filterZoning: [String!], query: String): [Parcel!]
     blocksOverlay(box: GeoBox!, limit: Int!, filterZoning: [String!], query: String): [Block!]
 
+    alphaAllParcels(state: String!, county: String!, city: String!, query: String): [Parcel!]
+
     parcelFavorites: [Parcel!]!
     parcelFavoritesCount: Int!
     parcelsStats(query: String, state: String, county: String, city: String): Int!
