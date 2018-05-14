@@ -3,6 +3,7 @@ import { DB } from '../tables';
 import { Deal } from '../tables/Deal';
 import { IDs } from './utils/IDs';
 import { normalizeDate } from '../modules/Normalizer';
+import { Repos } from '../repositories';
 
 interface DealInput {
     title?: string | null;
@@ -158,7 +159,7 @@ export const Resolver = {
                 if (args.input.parcelId === null) {
                     existing.parcelId = null;
                 } else {
-                    existing.parcelId = IDs.Parcel.parse(args.input.parcelId);
+                    existing.parcelId = (await Repos.Parcels.fetchParcelByRawMapId(args.input.parcelId))!!.id!!;
                 }
             }
 

@@ -687,14 +687,14 @@ export const Resolver = {
             await Repos.Blocks.applyBlocks(cityId, args.blocks);
             return 'ok';
         },
-        parcelAlterMetadata: withPermission<{ id: string, data: { description?: string | null, currentUse?: string | null, available?: boolean | null, isOkForTower?: boolean | null } }>(['super-admin', 'editor'], (args) => {
-            return Repos.Parcels.applyMetadata(IDs.Parcel.parse(args.id), args.data);
+        parcelAlterMetadata: withPermission<{ id: string, data: { description?: string | null, currentUse?: string | null, available?: boolean | null, isOkForTower?: boolean | null } }>(['super-admin', 'editor'], async (args) => {
+            return Repos.Parcels.applyMetadata((await Repos.Parcels.fetchParcelByRawMapId(args.id))!!.id!!, args.data);
         }),
         likeParcel: async function (_: any, args: { id: string }, context: CallContext) {
             if (!context.uid) {
                 throw Error('Authentication is required');
             }
-            let lot = await Repos.Parcels.fetchParcel(IDs.Parcel.parse(args.id));
+            let lot = (await Repos.Parcels.fetchParcelByRawMapId(args.id));
             if (!lot) {
                 throw Error('Unable to find Lot');
             }
@@ -707,7 +707,7 @@ export const Resolver = {
             if (!context.uid) {
                 throw Error('Authentication is required');
             }
-            let lot = await Repos.Parcels.fetchParcel(IDs.Parcel.parse(args.id));
+            let lot = await Repos.Parcels.fetchParcelByRawMapId(args.id);
             if (!lot) {
                 throw Error('Unable to find Lot');
             }
@@ -717,7 +717,7 @@ export const Resolver = {
             return lot;
         },
         alphaSetNote: withAccount<{ parcelId: string, notes: string }>(async (args, uid, orgId) => {
-            let lotId = IDs.Parcel.parse(args.parcelId);
+            let lotId = (await Repos.Parcels.fetchParcelByRawMapId(args.parcelId))!!.id!!;
             await Repos.Parcels.setNotes(orgId, lotId, args.notes);
             return Repos.Parcels.fetchParcel(lotId);
         })

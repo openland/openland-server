@@ -10,6 +10,7 @@ import { applyStreetNumbersInTx } from './Streets';
 import { QueryParser, buildElasticQuery } from '../modules/QueryParser';
 import { currentTime } from '../utils/timer';
 import { fastDeepEquals } from '../utils/fastDeepEquals';
+import { Repos } from '.';
 
 export class ParcelRepository {
 
@@ -65,6 +66,17 @@ export class ParcelRepository {
             where: {
                 cityId: cityId,
                 lotId: parcelId
+            }
+        });
+    }
+
+    async fetchParcelByRawMapId(parcelId: string) {
+        let [city, parcel] = parcelId.split('_', 2);
+        let cityId = await Repos.Area.resolveCityByTag(city);
+        return await DB.Lot.find({
+            where: {
+                cityId: cityId,
+                lotId: parcel
             }
         });
     }
