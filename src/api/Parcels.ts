@@ -39,7 +39,10 @@ export const Resolver = {
         notes: (src: LotUserDataAttributes) => src.notes
     },
     Parcel: {
-        id: (src: Lot) => IDs.Parcel.serialize(src.id!!),
+        id: async (src: Lot) => {
+            let tag = (await DB.City.findById(src.cityId!!))!!.tag!!;
+            return tag + '_' + src.lotId;
+        },
         number: async (src: Lot) => {
             // NYC Format
             if (src.extras && src.extras.nyc_bbl) {
@@ -611,7 +614,8 @@ export const Resolver = {
             return await Repos.Parcels.fetchParcelsConnection(cityId, args.first, args.query, args.after, args.page);
         },
         parcel: async function (_: any, args: { id: string }) {
-            return Repos.Parcels.fetchParcel(IDs.Parcel.parse(args.id));
+            let [city, parcel] = args.id.split('_', 2);
+            return Repos.Parcels.fetchParcelByMapId(parcel, await Repos.Area.resolveCityByTag(city));
         },
         parcelsOverlay: async function (_: any, args: { box: { south: number, north: number, east: number, west: number }, limit: number, query?: string | null }) {
             return Repos.Parcels.fetchGeoParcels(args.box, args.limit, args.query);

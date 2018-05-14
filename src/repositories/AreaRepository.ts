@@ -122,6 +122,18 @@ export class AreaRepository {
         return res.id!!;
     }
 
+    async resolveCityByTag(tag: string) {
+        let res = await DB.City.findOne({
+            where: {
+                tag: tag
+            }
+        });
+        if (!res) {
+            throw 'City is not found for tag ' + tag;
+        }
+        return res.id!!;
+    }
+
     async resolveCityInfo(id: number) {
         return await this.cityLoader.load(id);
     }

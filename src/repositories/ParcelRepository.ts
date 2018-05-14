@@ -60,6 +60,15 @@ export class ParcelRepository {
         return await DB.Lot.findById(parcelId);
     }
 
+    async fetchParcelByMapId(parcelId: string, cityId: number) {
+        return await DB.Lot.find({
+            where: {
+                cityId: cityId,
+                lotId: parcelId
+            }
+        });
+    }
+
     async fetchFavorites(userId: number) {
         return await DB.Lot.findAll({
             include: [{
