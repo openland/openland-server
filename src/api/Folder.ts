@@ -64,12 +64,23 @@ export const Resolver = {
                         }
                     };
                 default:
+                    let lots = (await DB.FolderItem.findAll({
+                        where: {
+                            folderId: src.id!!,
+                            organizationId: orgId
+                        },
+                        include: [{
+                            model: DB.Lot,
+                            as: 'lot'
+                        }]
+                    })).map((v) => v.lot!!);
+                    //  src.id!!
                     return {
-                        edges: [],
+                        edges: lots.map((v) => ({ cursor: v.id, node: v })),
                         pageInfo: {
                             hasNextPage: false,
                             hasPreviousPage: false,
-                            itemsCount: 0,
+                            itemsCount: lots.length,
                             pagesCount: 0,
                             currentPage: 0,
                             openEnded: false,
@@ -139,6 +150,28 @@ export const Resolver = {
                 name: name,
                 organizationId: orgId,
             });
+        }),
+        alphaParcelAddToFolder: withAccount<{ folderId: string, parcelId: string }>(async (args, uid, orgId) => {
+            let folder = await DB.Folder.find({ where: { organizationId: orgId, id: IDs.Folder.parse(args.folderId) } });
+            if (!folder) {
+                if (!folder) {
+                    throw Error('Unable to find folder');
+                }
+            }
+            let parcel = await Repos.Parcels.fetchParcelByRawMapId(args.parcelId);
+            if (!parcel) {
+                if (!parcel) {
+                    throw Error('Unable to find folder');
+                }
+            }
+
+            await DB.FolderItem.create({
+                organizationId: orgId,
+                folderId: folder.id!!,
+                lotId: parcel.id!!
+            });
+
+            return parcel;
         })
     }
 };
