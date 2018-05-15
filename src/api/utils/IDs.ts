@@ -13,4 +13,5 @@ export const IDs = {
     FeatureFlag: new ID('FeatureFlag'),
     Opportunities: new ID('Op'),
     DebugReader: new ID('dr'),
+    Folder: new ID('f'),
 };
