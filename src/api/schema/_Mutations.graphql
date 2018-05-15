@@ -56,4 +56,5 @@ type Mutation {
     alphaSetNote(parcelId: ID!, notes: String!): Parcel!
 
     alphaCreateFolder(name: String!): Folder!
+    alphaParcelAddToFolder(folderId: ID!, parcelId: ID!): Parcel!
 }

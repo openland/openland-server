@@ -1,7 +1,8 @@
-import { withAccount } from './utils/Resolvers';
+import { withAccount, withAccountTypeOptional } from './utils/Resolvers';
 import { Folder } from '../tables/Folder';
 import { IDs } from './utils/IDs';
-import { DB } from '../tables';
+import { DB, Lot } from '../tables';
+import { Repos } from '../repositories';
 
 export const Resolver = {
     Folder: {
@@ -35,6 +36,63 @@ export const Resolver = {
                     return null;
             }
         },
+        parcels: withAccountTypeOptional<Folder | 'favorites' | 'all'>(async (src, uid, orgId) => {
+            switch (src) {
+                case 'favorites':
+                    let favorites = uid ? await Repos.Parcels.fetchFavorites(uid) : [];
+                    return {
+                        edges: favorites.map((v) => ({ node: v, cursor: v.id })),
+                        pageInfo: {
+                            hasNextPage: false,
+                            hasPreviousPage: false,
+                            itemsCount: favorites.length,
+                            pagesCount: 0,
+                            currentPage: 0,
+                            openEnded: false,
+                        }
+                    };
+                case 'all':
+                    return {
+                        edges: [],
+                        pageInfo: {
+                            hasNextPage: false,
+                            hasPreviousPage: false,
+                            itemsCount: 0,
+                            pagesCount: 0,
+                            currentPage: 0,
+                            openEnded: false,
+                        }
+                    };
+                default:
+                    return {
+                        edges: [],
+                        pageInfo: {
+                            hasNextPage: false,
+                            hasPreviousPage: false,
+                            itemsCount: 0,
+                            pagesCount: 0,
+                            currentPage: 0,
+                            openEnded: false,
+                        }
+                    };
+            }
+        })
+    },
+    Parcel: {
+        folder: withAccountTypeOptional<Lot>(async (args, uid, orgId) => {
+            if (orgId) {
+                let folder = await DB.FolderItem.findOne({
+                    where: {
+                        lotId: args.id!!,
+                        organizationId: orgId
+                    }
+                });
+                if (folder) {
+                    return await DB.Folder.findById(folder.folderId!!);
+                }
+            }
+            return null;
+        })
     },
     Query: {
         alphaFolders: withAccount(async (args, uid, orgId) => {

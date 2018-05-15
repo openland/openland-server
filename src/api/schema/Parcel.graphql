@@ -64,6 +64,7 @@ type Parcel {
     # Linked Data
     opportunity: Opportunity
     permits: [Permit!]!
+    folder: Folder
 
     # Bunch of unsorted experimental data
     extrasZoning: [String!]

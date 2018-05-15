@@ -8,4 +8,5 @@ type Folder {
     id: ID!
     name: String!
     special: SpecialFolder
+    parcels: ParcelConnection!
 }

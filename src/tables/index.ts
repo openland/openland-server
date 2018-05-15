@@ -50,6 +50,7 @@ import { LotUserDataTable } from './LotUserData';
 import { ServicesCacheTable } from './ServicesCache';
 import { SuperCityTable } from './SuperCity';
 import { FolderTable } from './Folder';
+import { FolderItemTable } from './FolderItem';
 
 export const DB = {
     User: UserTable,
@@ -82,6 +83,7 @@ export const DB = {
     ServicesCache: ServicesCacheTable,
     SuperCity: SuperCityTable,
     Folder: FolderTable,
+    FolderItem: FolderItemTable,
 
     tx: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>): Promise<A> {
         return await connection.transaction({ isolationLevel: 'SERIALIZABLE' }, (tx2: sequelize.Transaction) => handler(tx2));
