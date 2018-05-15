@@ -36,6 +36,25 @@ export const Resolver = {
                     return null;
             }
         },
+        parcelsCount: withAccountTypeOptional<Folder | 'favorites' | 'all'>(async (src, uid, orgId) => {
+            switch (src) {
+                case 'favorites':
+                    return uid ? await Repos.Parcels.fetchFavoritesCount(uid) : 0;
+                case 'all':
+                    return 0;
+                default:
+                    return (await DB.FolderItem.findAll({
+                        where: {
+                            folderId: src.id!!,
+                            organizationId: orgId
+                        },
+                        include: [{
+                            model: DB.Lot,
+                            as: 'lot'
+                        }]
+                    })).length;
+            }
+        }),
         parcels: withAccountTypeOptional<Folder | 'favorites' | 'all'>(async (src, uid, orgId) => {
             switch (src) {
                 case 'favorites':
@@ -108,8 +127,8 @@ export const Resolver = {
     Query: {
         alphaFolders: withAccount(async (args, uid, orgId) => {
             let res: (Folder | 'favorites' | 'all')[] = [];
-            res.push('all');
-            res.push('favorites');
+            // res.push('all');
+
             let folders = await DB.Folder.findAll({
                 where: {
                     organizationId: orgId
@@ -117,6 +136,7 @@ export const Resolver = {
             });
             folders = folders.sort((a, b) => a.name!!.localeCompare(b.name!!));
             res = [...res, ...folders];
+            res.push('favorites');
             return res;
         }),
         alphaFolder: withAccount<{ id: string }>(async (args, uid, orgId) => {
