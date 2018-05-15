@@ -50,5 +50,17 @@ export const Resolver = {
             res = [...res, ...folders];
             return res;
         })
+    },
+    Mutation: {
+        alphaCreateFolder: withAccount<{ name: string }>(async (args, uid, orgId) => {
+            let name = args.name.trim();
+            if (name === '') {
+                throw Error('Name can\'t be empty');
+            }
+            return await DB.Folder.create({
+                name: name,
+                organizationId: orgId,
+            });
+        })
     }
 };

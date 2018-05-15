@@ -54,4 +54,6 @@ type Mutation {
     alphaReset(opportunityId: ID!, state: OpportunityState!): String!
 
     alphaSetNote(parcelId: ID!, notes: String!): Parcel!
+
+    alphaCreateFolder(name: String!): Folder!
 }
