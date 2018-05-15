@@ -1,0 +1,11 @@
+
+enum SpecialFolder {
+    ALL
+    FAVORITES
+}
+
+type Folder {
+    id: ID!
+    name: String!
+    special: SpecialFolder
+}

@@ -19,6 +19,7 @@ import * as Sourcing from './api/Sourcing';
 import * as fs from 'fs';
 import * as Services from './api/Services';
 import * as Debug from './api/Debug';
+import * as Folder from './api/Folder';
 
 let schema = fs
     .readdirSync(__dirname + '/api/schema/')
@@ -47,6 +48,7 @@ export const Schema = makeExecutableSchema({
         Deals.Resolver,
         Sourcing.Resolver,
         Services.Resolvers,
-        Debug.Resolver
+        Debug.Resolver,
+        Folder.Resolver
     )
 });

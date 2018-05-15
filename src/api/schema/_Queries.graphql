@@ -81,4 +81,6 @@ type Query {
     alphaAllOpportunities(state: OpportunityState, sort: OpportunitySort, query: String): [Opportunity!]
 
     debugReaderStates: [DebugReaderState!]!
+
+    alphaFolders: [Folder!]!
 }
