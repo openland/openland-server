@@ -49,6 +49,26 @@ export const Resolver = {
             folders = folders.sort((a, b) => a.name!!.localeCompare(b.name!!));
             res = [...res, ...folders];
             return res;
+        }),
+        alphaFolder: withAccount<{ id: string }>(async (args, uid, orgId) => {
+            if (args.id === 'favorites') {
+                return 'favorites';
+            } else if (args.id === 'all') {
+                return 'all';
+            } else {
+                let res = await DB.Folder.find({
+                    where: {
+                        organizationId: orgId,
+                        id: IDs.Folder.parse(args.id)
+                    }
+                });
+
+                if (!res) {
+                    throw Error('Unable to find folder');
+                }
+
+                return res;
+            }
         })
     },
     Mutation: {

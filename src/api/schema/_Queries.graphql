@@ -83,4 +83,5 @@ type Query {
     debugReaderStates: [DebugReaderState!]!
 
     alphaFolders: [Folder!]!
+    alphaFolder(id: ID!): Folder!
 }
