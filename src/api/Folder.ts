@@ -160,14 +160,27 @@ export const Resolver = {
         })
     },
     Mutation: {
-        alphaCreateFolder: withAccount<{ name: string }>(async (args, uid, orgId) => {
+        alphaCreateFolder: withAccount<{ name: string, initialParcels?: [string] }>(async (args, uid, orgId) => {
             let name = args.name.trim();
             if (name === '') {
                 throw Error('Name can\'t be empty');
             }
-            return await DB.Folder.create({
-                name: name,
-                organizationId: orgId,
+
+            return await DB.tx(async (tx) => {
+                let folder = await DB.Folder.create({
+                    name: name,
+                    organizationId: orgId,
+                });
+                if (args.initialParcels) {
+                    for (let parcelId of args.initialParcels) {
+                        let parcel = await Repos.Parcels.fetchParcelByRawMapId(parcelId);
+                        if (!parcel) {
+                            throw Error('Unable to find parcel');
+                        }
+                        await Repos.Folders.setFolder(orgId, parcel.id!!, folder.id!!, tx);
+                    }
+                }
+                return folder;
             });
         }),
         alphaParcelAddToFolder: withAccount<{ folderId: string, parcelId: string }>(async (args, uid, orgId) => {
@@ -177,7 +190,7 @@ export const Resolver = {
             }
             let parcel = await Repos.Parcels.fetchParcelByRawMapId(args.parcelId);
             if (!parcel) {
-                throw Error('Unable to find folder');
+                throw Error('Unable to find parcel');
             }
 
             await DB.FolderItem.create({
@@ -195,41 +208,14 @@ export const Resolver = {
             }
 
             if (!args.folderId) {
-                // Delete from all folders
-                await DB.FolderItem.destroy({
-                    where: {
-                        organizationId: orgId,
-                        lotId: parcel.id!!
-                    }
-                });
+                await Repos.Folders.setFolder(orgId, parcel.id!!);
             } else {
                 await DB.tx(async (tx) => {
                     let folder = await DB.Folder.find({ where: { organizationId: orgId, id: IDs.Folder.parse(args.folderId!!) } });
                     if (!folder) {
                         throw Error('Unable to find folder');
                     }
-                    let existing = await DB.FolderItem.find({
-                        where: {
-                            organizationId: orgId,
-                            lotId: parcel!!.id,
-                        },
-                        transaction: tx
-                    });
-
-                    if (existing === null) {
-                        await DB.FolderItem.create({
-                            organizationId: orgId,
-                            folderId: folder.id!!,
-                            lotId: parcel!!.id!!
-                        }, { transaction: tx });
-                    } else if (existing.folderId !== folder.id) {
-                        existing.destroy({ transaction: tx });
-                        await DB.FolderItem.create({
-                            organizationId: orgId,
-                            folderId: folder.id!!,
-                            lotId: parcel!!.id!!
-                        }, { transaction: tx });
-                    }
+                    await Repos.Folders.setFolder(orgId, parcel!!.id!!, folder.id!!, tx);
                 });
             }
             return parcel;
