@@ -128,7 +128,6 @@ export const Resolver = {
         alphaFolders: withAccount(async (args, uid, orgId) => {
             let res: (Folder | 'favorites' | 'all')[] = [];
             // res.push('all');
-
             let folders = await DB.Folder.findAll({
                 where: {
                     organizationId: orgId
@@ -136,7 +135,7 @@ export const Resolver = {
             });
             folders = folders.sort((a, b) => a.name!!.localeCompare(b.name!!));
             res = [...res, ...folders];
-            res.push('favorites');
+            // res.push('favorites');
             return res;
         }),
         alphaFolder: withAccount<{ id: string }>(async (args, uid, orgId) => {
