@@ -174,15 +174,11 @@ export const Resolver = {
         alphaParcelAddToFolder: withAccount<{ folderId: string, parcelId: string }>(async (args, uid, orgId) => {
             let folder = await DB.Folder.find({ where: { organizationId: orgId, id: IDs.Folder.parse(args.folderId) } });
             if (!folder) {
-                if (!folder) {
-                    throw Error('Unable to find folder');
-                }
+                throw Error('Unable to find folder');
             }
             let parcel = await Repos.Parcels.fetchParcelByRawMapId(args.parcelId);
             if (!parcel) {
-                if (!parcel) {
-                    throw Error('Unable to find folder');
-                }
+                throw Error('Unable to find folder');
             }
 
             await DB.FolderItem.create({
@@ -192,6 +188,52 @@ export const Resolver = {
             });
 
             return parcel;
-        })
+        }),
+        alphaParcelSetFolder: withAccount<{ folderId?: string | null, parcelId: string }>(async (args, uid, orgId) => {
+            let parcel = await Repos.Parcels.fetchParcelByRawMapId(args.parcelId);
+            if (!parcel) {
+                throw Error('Unable to find folder');
+            }
+
+            if (!args.folderId) {
+                // Delete from all folders
+                await DB.FolderItem.destroy({
+                    where: {
+                        organizationId: orgId,
+                        lotId: parcel.id!!
+                    }
+                });
+            } else {
+                await DB.tx(async (tx) => {
+                    let folder = await DB.Folder.find({ where: { organizationId: orgId, id: IDs.Folder.parse(args.folderId!!) } });
+                    if (!folder) {
+                        throw Error('Unable to find folder');
+                    }
+                    let existing = await DB.FolderItem.find({
+                        where: {
+                            organizationId: orgId,
+                            lotId: parcel!!.id,
+                        },
+                        transaction: tx
+                    });
+
+                    if (existing === null) {
+                        await DB.FolderItem.create({
+                            organizationId: orgId,
+                            folderId: folder.id!!,
+                            lotId: parcel!!.id!!
+                        }, { transaction: tx });
+                    } else if (existing.folderId !== folder.id) {
+                        existing.destroy({ transaction: tx });
+                        await DB.FolderItem.create({
+                            organizationId: orgId,
+                            folderId: folder.id!!,
+                            lotId: parcel!!.id!!
+                        }, { transaction: tx });
+                    }
+                });
+            }
+            return parcel;
+        }),
     }
 };
