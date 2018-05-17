@@ -3,6 +3,7 @@ import { Folder } from '../tables/Folder';
 import { IDs } from './utils/IDs';
 import { DB, Lot } from '../tables';
 import { Repos } from '../repositories';
+import { ElasticClient } from '../indexing';
 
 export const Resolver = {
     Folder: {
@@ -124,6 +125,53 @@ export const Resolver = {
             return null;
         })
     },
+    SearchResult: {
+        folders: withAccountTypeOptional<{ query: string }>(async (args, uid, orgId) => {
+            let hits = await ElasticClient.search({
+                index: 'folders',
+                type: 'folder',
+                size: 10,
+                from: 0,
+                body: {
+                    query: {
+                        bool: {
+                            must: { match: 'orgId', value: orgId },
+                            should: [
+                                { term: { 'name': { value: args.query, boost: 40.0 } } },
+                            ]
+                        }
+                    },
+                    highlight: {
+                        fields: {
+                            displayId: {},
+                            addressRaw: {}
+                        }
+                    }
+                }
+            });
+            let edges = [];
+            for (let hit of hits.hits.hits) {
+                let lt = await DB.Folder.findById(parseInt(hit._id, 10));
+                if (lt) {
+                    let highlights = [];
+                    if (hit.highlight) {
+                        if (hit.highlight.name) {
+                            highlights.push({ key: 'name', match: hit.highlight.name });
+                        }
+                    }
+                    edges.push({
+                        score: hit._score,
+                        highlight: highlights,
+                        node: lt
+                    });
+                }
+            }
+            return {
+                edges,
+                total: hits.hits.total
+            };
+        }),
+    },
     Query: {
         alphaFolders: withAccount(async (args, uid, orgId) => {
             let res: (Folder | 'favorites' | 'all')[] = [];
@@ -193,10 +241,10 @@ export const Resolver = {
                 let folder = await DB.Folder.update({
                     name: name,
                 }, {
-                    where: {
-                        id: IDs.Folder.parse(args.folderId)
-                    },
-                });
+                        where: {
+                            id: IDs.Folder.parse(args.folderId)
+                        },
+                    });
                 return folder;
             });
         }),

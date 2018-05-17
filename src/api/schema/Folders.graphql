@@ -11,3 +11,17 @@ type Folder {
     parcelsCount: Int!
     parcels: ParcelConnection!
 }
+
+type FolderSearchResult {
+    edges: [ParcelResult!]!
+    total: Int!
+}
+type FolderResult {
+    node: Folder!
+    score: Float!
+    highlight: [SearchHighlight!]!
+}
+
+extend type SearchResult {
+    folders: FolderSearchResult!
+}

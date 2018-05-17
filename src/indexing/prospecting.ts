@@ -3,32 +3,8 @@ import { DB } from '../tables';
 import { UpdateReader } from '../modules/updateReader';
 import { buildGeoJson } from '../modules/geometry';
 import * as Turf from '@turf/turf';
+import { parseBoolSafe, parseIntSafe } from '../utils/parsing';
 
-function parseIntSafe(src: any) {
-    if (typeof src === 'string') {
-        try {
-            return parseInt(src, 10);
-        } catch {
-            // Just ignore
-        }
-    } else if (typeof src === 'number') {
-        return src;
-    }
-    return null;
-}
-
-function parseBoolSafe(src: any): boolean | null {
-    if (typeof src === 'string') {
-        if (src === 'true') {
-            return true;
-        } else {
-            return false;
-        }
-    } else if (typeof src === 'boolean') {
-        return src;
-    }
-    return null;
-}
 export function createProspectingIndexer(client: ES.Client) {
     let reader = new UpdateReader('reader_prospecting', 1, DB.Opportunities);
     reader.elastic(client, 'prospecting', 'opportunity', {
