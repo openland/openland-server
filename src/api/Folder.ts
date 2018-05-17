@@ -232,23 +232,26 @@ export const Resolver = {
             });
         }),
         alphaAlterFolder: withAccount<{ folderId: string, name: string }>(async (args, uid, orgId) => {
-           
-            let folder = await DB.Folder.find({ where: { organizationId: orgId, id: IDs.Folder.parse(args.folderId) } });
-            if (!folder) {
-                throw Error('Unable to find folder');
-            }
 
-            if (args.name !== undefined) {
-                if (args.name === null || args.name.trim() === '') {
-                    throw Error('Name can\'t be empty');
+            return await DB.tx(async (tx) => {
+                let folder = await DB.Folder.find({ where: { organizationId: orgId, id: IDs.Folder.parse(args.folderId) } });
+                if (!folder) {
+                    throw Error('Unable to find folder');
                 }
-                
-                folder.name = args.name.trim();
-            }
 
-            await folder.save();
+                if (args.name !== undefined) {
+                    if (args.name === null || args.name.trim() === '') {
+                        throw Error('Name can\'t be empty');
+                    }
 
-            return folder;
+                    folder.name = args.name.trim();
+                }
+
+                await folder.save();
+                return folder;
+
+            });
+
         }),
         alphaParcelAddToFolder: withAccount<{ folderId: string, parcelId: string }>(async (args, uid, orgId) => {
             let folder = await DB.Folder.find({ where: { organizationId: orgId, id: IDs.Folder.parse(args.folderId) } });
