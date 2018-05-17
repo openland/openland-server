@@ -57,6 +57,7 @@ type Mutation {
 
     alphaCreateFolder(name: String!, initialParcels: [ID!]): Folder!
     alphaAlterFolder(folderId: ID!, name: String!): Folder!
+    alphaDeleteFolder(folderId: ID!): String!
     alphaParcelAddToFolder(folderId: ID!, parcelId: ID!): Parcel!
     alphaParcelSetFolder(parcelId: ID!, folderId: ID): Parcel!
 }

@@ -259,6 +259,20 @@ export const Resolver = {
             });
 
         }),
+        alphaDeleteFolder: withAccount<{ folderId: string }>(async (args, uid, orgId) => {
+            await DB.tx(async (tx) => {
+                let folder = await DB.Folder.find({
+                    where: { organizationId: orgId, id: IDs.Folder.parse(args.folderId) },
+                    lock: tx.LOCK.UPDATE,
+                    transaction: tx
+                });
+                if (!folder) {
+                    throw Error('Unable to find folder');
+                }
+                await folder.destroy({ transaction: tx });
+            });
+            return 'ok';
+        }),
         alphaParcelAddToFolder: withAccount<{ folderId: string, parcelId: string }>(async (args, uid, orgId) => {
             let folder = await DB.Folder.find({ where: { organizationId: orgId, id: IDs.Folder.parse(args.folderId) } });
             if (!folder) {

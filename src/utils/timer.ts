@@ -10,7 +10,7 @@ export function delayBreakable(ms: number) {
         promiseResolver = resolve;
         setTimeout(resolve, ms);
     });
-    return {promise, resolver};
+    return { promise, resolver };
 }
 
 export async function delay(ms: number) {
@@ -25,9 +25,12 @@ export async function backoff<T>(callback: () => Promise<T>): Promise<T> {
     while (true) {
         try {
             return await callback();
-        } catch (_) {
+        } catch (e) {
             if (currentFailureCount < maxFailureCount) {
                 currentFailureCount++;
+            }
+            if (currentFailureCount % 10 === 9) {
+                console.warn(e);
             }
 
             let maxDelayRet = minDelay + ((maxDelay - minDelay) / maxFailureCount) * currentFailureCount;

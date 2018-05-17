@@ -55,7 +55,7 @@ export interface Permit extends sequelize.Instance<PermitAttributes>, PermitAttr
     getStreetNumbers(options?: any): Promise<Array<StreetNumber>>;
 }
 
-export const PermitTable = connection.define<Permit, PermitAttributes>('permits', {
+export const PermitTable = connection.define<Permit, PermitAttributes>('permit', {
     id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
     permitId: { type: sequelize.STRING },
     account: {

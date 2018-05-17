@@ -19,7 +19,7 @@ export async function resetReaderOffset(tx: sequelize.Transaction, key: string) 
     });
 }
 
-export async function readReaderOffset(tx: sequelize.Transaction, key: string): Promise<{ offset: string, secondary: number } | null> {
+export async function readReaderOffset(tx: sequelize.Transaction, key: string, version: number): Promise<{ offset: Date, secondary: number } | null> {
     let res = await DB.ReaderState.findOne({
         where: {
             key: key
@@ -28,6 +28,13 @@ export async function readReaderOffset(tx: sequelize.Transaction, key: string): 
         logging: false
     });
     if (res != null) {
+        if (res.version!! > version) {
+            throw Error('New version found! Abort.');
+        }
+        // Reader was upgraded
+        if (res.version!! < version) {
+            return null;
+        }
         if (res.currentOffset) {
             if (res.currentOffsetSecondary) {
                 return { offset: res.currentOffset, secondary: res.currentOffsetSecondary };
@@ -42,7 +49,7 @@ export async function readReaderOffset(tx: sequelize.Transaction, key: string): 
     }
 }
 
-export async function writeReaderOffset(tx: sequelize.Transaction, key: string, offset: { offset: string, secondary: number }, remaining: number) {
+export async function writeReaderOffset(tx: sequelize.Transaction, key: string, offset: { offset: Date, secondary: number }, remaining: number, version: number) {
     let res = await DB.ReaderState.findOne({
         where: {
             key: key
@@ -54,19 +61,24 @@ export async function writeReaderOffset(tx: sequelize.Transaction, key: string, 
         res.currentOffset = offset.offset;
         res.currentOffsetSecondary = offset.secondary;
         res.remaining = remaining;
+        res.version = version;
+        if (res.version!! > version) {
+            throw Error('New version found! Abort.');
+        }
         await res.save({ transaction: tx, logging: false });
         (tx as any).afterCommit(() => {
-            pubsub.publish('reader_' + key, { key, offset: offset.offset, secondary: offset.secondary });
+            pubsub.publish('reader_' + key, { key, offset: offset.offset.toUTCString(), secondary: offset.secondary });
         });
     } else {
         await DB.ReaderState.create({
             key: key,
             currentOffset: offset.offset,
             currentOffsetSecondary: offset.secondary,
-            remaining: remaining
+            remaining: remaining,
+            version: version,
         }, { transaction: tx, logging: false });
         (tx as any).afterCommit(() => {
-            pubsub.publish('reader_' + key, { key, offset: offset.offset, secondary: offset.secondary });
+            pubsub.publish('reader_' + key, { key, offset: offset.offset.toUTCString(), secondary: offset.secondary });
         });
     }
 }
@@ -87,6 +99,7 @@ export class UpdateReader<TInstance, TAttributes> {
         this.name = name;
         this.version = version;
         this.model = model;
+        // this.isParanoid = (model as any).options.paranoid;
 
         //
         // Adding hook for notifications to redis
@@ -222,7 +235,10 @@ async function updateReader<TInstance, TAttributes>(
     include: Array<IncludeOptions> = [],
     processor: (data: TInstance[], tx: Transaction) => Promise<void>,
     initFunc?: (tx: Transaction) => Promise<boolean>) {
-    let lastOffset: string | null = null;
+
+    let isParanoid = (model as any).options.paranoid as boolean;
+    let modelName = (model as any).options.name.singular;
+    let lastOffset: Date | null = null;
     let lastSecondary: number | null = null;
     let waiter: (() => void) | null = null;
     pubsub.subscribe('invalidate_' + name, (data) => {
@@ -266,46 +282,32 @@ async function updateReader<TInstance, TAttributes>(
                 shouldInit = false;
             }
 
-            let offset = await readReaderOffset(tx, name);
+            let offset = await readReaderOffset(tx, name, version);
 
             //
             // Data Loading
             //
 
-            let data: TInstance[] = (await model.findAll({
-                where: (offset ? {
-                    $and: [
-                        {
-                            updatedAt: { $gte: offset.offset }
-                        },
-                        {
-                            $or: {
-                                updatedAt: { $gt: offset.offset },
-                                id: { $gt: offset.secondary }
-                            }
-                        }
-                    ]
-                } as any : {}),
-                order: [['updatedAt', 'ASC'], ['id', 'ASC']],
+            let data: TInstance[];
+            let columns = ['updatedAt', 'createdAt'];
+            if (isParanoid) {
+                columns = ['updatedAt', 'createdAt', 'deletedAt'];
+            }
+            let dateCol = `GREATEST(${columns.map((v) => '"' + modelName + '"."' + v + '"').join()})`;
+            let where = (offset
+                ? sequelize.literal(`(${dateCol} >= '${offset.offset.toISOString()}') AND ((${dateCol} > '${offset.offset.toISOString()}') OR("${modelName}"."id" > ${offset.secondary}))`) as any
+                : {});
+            data = (await model.findAll({
+                where: where,
+                order: [[sequelize.literal(dateCol) as any, 'ASC'], ['id', 'ASC']],
                 limit: 1000,
                 transaction: tx,
                 include: include,
-                logging: false
+                logging: false,
+                paranoid: false
             }));
             let remaining = Math.max((await model.count({
-                where: (offset ? {
-                    $and: [
-                        {
-                            updatedAt: { $gte: offset.offset }
-                        },
-                        {
-                            $or: {
-                                updatedAt: { $gt: offset.offset },
-                                id: { $gt: offset.secondary }
-                            }
-                        }
-                    ]
-                } as any : {}),
+                where: where,
                 transaction: tx,
                 logging: false
             })) - 1000, 0);
@@ -320,9 +322,9 @@ async function updateReader<TInstance, TAttributes>(
                 return false;
             }
 
-            start = printElapsed(`[${name}] Prepared`, start);
+            start = printElapsed(`[${name}]Prepared`, start);
 
-            console.warn(`[${name}] Importing ${data.length} elements`);
+            console.warn(`[${name}]Importing ${data.length} elements`);
 
             //
             // Processing
@@ -330,13 +332,13 @@ async function updateReader<TInstance, TAttributes>(
 
             let processed = processor(data, tx);
             let commit = writeReaderOffset(tx, name, {
-                offset: (data[data.length - 1] as any).updatedAt as string,
+                offset: ((data[data.length - 1] as any).deletedAt || (data[data.length - 1] as any).updatedAt) as Date,
                 secondary: (data[data.length - 1] as any).id
-            }, remaining);
+            }, remaining, version);
             await commit;
             await processed;
 
-            start = printElapsed(`[${name}] Completed ${data.length} elements, remaining ${remaining}`, start);
+            start = printElapsed(`[${name}]Completed ${data.length} elements, remaining ${remaining} `, start);
 
             return true;
         });

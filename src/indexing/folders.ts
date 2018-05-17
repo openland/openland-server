@@ -3,7 +3,7 @@ import { DB } from '../tables';
 import { UpdateReader } from '../modules/updateReader';
 
 export function createFoldersIndexer(client: ES.Client) {
-    let reader = new UpdateReader('reader_folders', 1, DB.Folder);
+    let reader = new UpdateReader('reader_folders', 4, DB.Folder);
     reader.elastic(client, 'folders', 'folder', {
         orgId: {
             type: 'integer'
@@ -11,15 +11,21 @@ export function createFoldersIndexer(client: ES.Client) {
         name: {
             type: 'text'
         },
+        retired: {
+            type: 'boolean'
+        }
     });
     reader.indexer((item) => {
+        console.warn(item);
         return {
             id: item.id!!,
             doc: {
                 orgId: item.organizationId,
-                name: item.name
+                name: item.name,
+                retired: item.deletedAt !== null
             }
         };
     });
+    reader.enalbeAutoOutOfOrder();
     return reader;
 }
