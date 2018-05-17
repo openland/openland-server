@@ -183,6 +183,23 @@ export const Resolver = {
                 return folder;
             });
         }),
+        alphaAlterFolder: withAccount<{ folderId: string, name: string }>(async (args, uid, orgId) => {
+            let name = args.name.trim();
+            if (name === '') {
+                throw Error('Name can\'t be empty');
+            }
+
+            return await DB.tx(async (tx) => {
+                let folder = await DB.Folder.update({
+                    name: name,
+                }, {
+                    where: {
+                        id: IDs.Folder.parse(args.folderId)
+                    },
+                });
+                return folder;
+            });
+        }),
         alphaParcelAddToFolder: withAccount<{ folderId: string, parcelId: string }>(async (args, uid, orgId) => {
             let folder = await DB.Folder.find({ where: { organizationId: orgId, id: IDs.Folder.parse(args.folderId) } });
             if (!folder) {
