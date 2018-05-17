@@ -233,7 +233,14 @@ export const Resolver = {
         alphaAlterFolder: withAccount<{ folderId: string, name: string }>(async (args, uid, orgId) => {
 
             return await DB.tx(async (tx) => {
-                let folder = await DB.Folder.find({ where: { organizationId: orgId, id: IDs.Folder.parse(args.folderId) } });
+                let folder = await DB.Folder.find({
+                    where: {
+                        organizationId: orgId,
+                        id: IDs.Folder.parse(args.folderId)
+                    },
+                    lock: tx.LOCK.UPDATE,
+                    transaction: tx
+                });
                 if (!folder) {
                     throw Error('Unable to find folder');
                 }
@@ -246,7 +253,7 @@ export const Resolver = {
                     folder.name = args.name.trim();
                 }
 
-                await folder.save();
+                await folder.save({ transaction: tx });
                 return folder;
 
             });
@@ -280,7 +287,15 @@ export const Resolver = {
                 await Repos.Folders.setFolder(orgId, parcel.id!!);
             } else {
                 await DB.tx(async (tx) => {
-                    let folder = await DB.Folder.find({ where: { organizationId: orgId, id: IDs.Folder.parse(args.folderId!!) } });
+                    let folder = await DB.Folder.find({
+                        where:
+                            {
+                                organizationId: orgId,
+                                id: IDs.Folder.parse(args.folderId!!)
+                            },
+                        lock: tx.LOCK.UPDATE,
+                        transaction: tx
+                    });
                     if (!folder) {
                         throw Error('Unable to find folder');
                     }
