@@ -94,6 +94,7 @@ export class UpdateReader<TInstance, TAttributes> {
     private elasticIndex?: string;
     private elasticType?: string;
     private isAutoOutOfOrderEnabled = false;
+    private delay: number = 1000;
 
     constructor(name: string, version: number, model: sequelize.Model<TInstance, TAttributes>) {
         this.name = name;
@@ -164,6 +165,11 @@ export class UpdateReader<TInstance, TAttributes> {
         return this;
     }
 
+    setDelay(value: number) {
+        this.delay = value;
+        return this;
+    }
+
     configure(initFunc: (tx: Transaction) => Promise<boolean>) {
         this.initFunc = initFunc;
         return this;
@@ -224,7 +230,7 @@ export class UpdateReader<TInstance, TAttributes> {
             throw Error('Processor should be set!');
         }
 
-        updateReader(this.name, this.version, this.model, this.includeVal, (data, tx) => this.processorFunc!!(data, tx, false), this.initFunc);
+        updateReader(this.name, this.version, this.model, this.includeVal, this.delay, (data, tx) => this.processorFunc!!(data, tx, false), this.initFunc);
     }
 }
 
@@ -233,8 +239,9 @@ async function updateReader<TInstance, TAttributes>(
     version: number,
     model: sequelize.Model<TInstance, TAttributes>,
     include: Array<IncludeOptions> = [],
+    delayValue: number,
     processor: (data: TInstance[], tx: Transaction) => Promise<void>,
-    initFunc?: (tx: Transaction) => Promise<boolean>) {
+    initFunc?: (tx: Transaction) => Promise<boolean>, ) {
 
     let isParanoid = (model as any).options.paranoid as boolean;
     let modelName = (model as any).options.name.singular;
@@ -268,6 +275,8 @@ async function updateReader<TInstance, TAttributes>(
                 return false;
             }
 
+            // start = printElapsed(`[${name}]Locked`, start);
+
             //
             // Invoke Init
             //
@@ -284,16 +293,27 @@ async function updateReader<TInstance, TAttributes>(
 
             let offset = await readReaderOffset(tx, name, version);
 
+            // start = printElapsed(`[${name}]Started`, start);
             //
             // Data Loading
             //
 
             let data: TInstance[];
-            let columns = ['updatedAt', 'createdAt'];
+            let dateCol: string = '"' + modelName + '"."updatedAt"';
+            // let columns = ['updatedAt', 'createdAt'];
+
+            //
+            // WARNING
+            // Do not change order of arguments in GREATEST since it is not gonna work otherwise
+            //
+
             if (isParanoid) {
-                columns = ['updatedAt', 'createdAt', 'deletedAt'];
+                dateCol = `GREATEST("${modelName}"."updatedAt", "${modelName}"."createdAt", "${modelName}"."deletedAt")`;
+                // columns = ['updatedAt', 'createdAt', 'deletedAt'];
+            } else {
+                dateCol = `GREATEST("${modelName}"."updatedAt", "${modelName}"."createdAt")`;
             }
-            let dateCol = `GREATEST(${columns.map((v) => '"' + modelName + '"."' + v + '"').join()})`;
+            // let dateCol = `GREATEST(${columns.map((v) => '"' + modelName + '"."' + v + '"').join()})`;
             let where = (offset
                 ? sequelize.literal(`(${dateCol} >= '${offset.offset.toISOString()}') AND ((${dateCol} > '${offset.offset.toISOString()}') OR("${modelName}"."id" > ${offset.secondary}))`) as any
                 : {});
@@ -306,12 +326,9 @@ async function updateReader<TInstance, TAttributes>(
                 logging: false,
                 paranoid: false
             }));
-            let remaining = Math.max((await model.count({
-                where: where,
-                transaction: tx,
-                logging: false
-            })) - 1000, 0);
+            start = printElapsed(`[${name}]Checked`, start);
             if (data.length <= 0) {
+                start = printElapsed(`[${name}] Checked`, start);
                 if (offset) {
                     lastOffset = offset.offset;
                     lastSecondary = offset.secondary;
@@ -321,6 +338,11 @@ async function updateReader<TInstance, TAttributes>(
                 }
                 return false;
             }
+            let remaining = Math.max((await model.count({
+                where: where,
+                transaction: tx,
+                logging: false
+            })) - 1000, 0);
 
             start = printElapsed(`[${name}]Prepared`, start);
 
@@ -345,7 +367,7 @@ async function updateReader<TInstance, TAttributes>(
         if (res) {
             await delay(100);
         } else {
-            let b = delayBreakable(1000);
+            let b = delayBreakable(delayValue);
             waiter = b.resolver;
             await b.promise;
             waiter = null;

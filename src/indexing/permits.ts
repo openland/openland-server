@@ -5,6 +5,7 @@ import { dateDiff } from '../utils/date_utils';
 
 export function createPermitsIndexer(client: ES.Client) {
     let reader = new UpdateReader('reader_permits', 1, DB.Permit);
+    reader.setDelay(30000);
     reader.include([
         {
             model: DB.StreetNumber,

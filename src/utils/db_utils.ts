@@ -2,6 +2,7 @@ import * as sequelize from 'sequelize';
 import { connection } from '../connector';
 import { Transaction } from 'sequelize';
 import { DB } from '../tables';
+import { QueryInterface } from 'sequelize';
 
 export interface Applied<T> {
     id: number;
@@ -360,4 +361,18 @@ export async function normalizedProcessor<T1, T2>(array: T1[], compare: (a: T1, 
         res[i2] = processed[indexes[i2]];
     }
     return res;
+}
+
+export async function createReaderIndex(queryInterface: QueryInterface, table: string, paranoid?: boolean) {
+    
+    //
+    // WARNING
+    // Do not change order of arguments in GREATEST since it is not gonna work otherwise
+    //
+
+    if (paranoid) {
+        await queryInterface.sequelize.query(`CREATE UNIQUE INDEX IF NOT EXISTS reader_index_${table} ON "${table}" (greatest("updatedAt", "createdAt", "deletedAt") ASC, "id" ASC)`);
+    } else {
+        await queryInterface.sequelize.query(`CREATE UNIQUE INDEX IF NOT EXISTS reader_index_${table} ON "${table}" (greatest("updatedAt", "createdAt") ASC, "id" ASC)`);
+    }
 }

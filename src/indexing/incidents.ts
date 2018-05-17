@@ -5,7 +5,7 @@ import { UpdateReader } from '../modules/updateReader';
 export function createIncidentsIndexer(client: ES.Client) {
 
     let reader = new UpdateReader('reader_incidents', 1, DB.Incident);
-
+    reader.setDelay(30000);
     reader.elastic(client, 'incidents', 'incident', {
         location: {
             type: 'geo_point'
