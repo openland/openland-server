@@ -13,7 +13,7 @@ type Folder {
 }
 
 type FolderSearchResult {
-    edges: [ParcelResult!]!
+    edges: [FolderResult!]!
     total: Int!
 }
 type FolderResult {

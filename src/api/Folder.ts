@@ -135,16 +135,15 @@ export const Resolver = {
                 body: {
                     query: {
                         bool: {
-                            must: { match: 'orgId', value: orgId },
-                            should: [
-                                { term: { 'name': { value: args.query, boost: 40.0 } } },
+                            must: [
+                                { term: { 'orgId': orgId } },
+                                { match: { 'name': args.query } }
                             ]
                         }
                     },
                     highlight: {
                         fields: {
-                            displayId: {},
-                            addressRaw: {}
+                            name: {},
                         }
                     }
                 }
