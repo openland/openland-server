@@ -136,6 +136,7 @@ export const Resolver = {
                     query: {
                         bool: {
                             must: [
+                                { term: { 'retired': false } },
                                 { term: { 'orgId': orgId } },
                                 { match: { 'name': args.query } }
                             ]
