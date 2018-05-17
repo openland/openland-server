@@ -254,7 +254,7 @@ export const Resolver = {
                     folder.name = args.name.trim();
                 }
 
-                await folder.save();
+                await folder.save({ transaction: tx });
                 return folder;
 
             });
