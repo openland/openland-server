@@ -5,6 +5,7 @@ import { createBlocksIndexer } from './blocks';
 import { createIncidentsIndexer } from './incidents';
 import { createProspectingIndexer } from './prospecting';
 import { createFoldersIndexer } from './folders';
+import { createFolderItemsIndexer } from './folderItem';
 
 export let ElasticClient = new ES.Client({
     host: process.env.ELASTIC_ENDPOINT
@@ -16,6 +17,7 @@ export const PermitsIndexer = createPermitsIndexer(ElasticClient);
 export const IncidentsIndexer = createIncidentsIndexer(ElasticClient);
 export const ProspectingIndexer = createProspectingIndexer(ElasticClient);
 export const FolderIndexer = createFoldersIndexer(ElasticClient);
+export const FolderItemIndexer = createFolderItemsIndexer(ElasticClient);
 
 export async function enableIndexer() {
     PermitsIndexer.start();
@@ -24,4 +26,5 @@ export async function enableIndexer() {
     IncidentsIndexer.start();
     ProspectingIndexer.start();
     FolderIndexer.start();
+    FolderItemIndexer.start();
 }

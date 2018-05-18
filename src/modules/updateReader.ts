@@ -326,9 +326,9 @@ async function updateReader<TInstance, TAttributes>(
                 logging: false,
                 paranoid: false
             }));
-            start = printElapsed(`[${name}]Checked`, start);
+            // start = printElapsed(`[${name}]Checked`, start);
             if (data.length <= 0) {
-                start = printElapsed(`[${name}] Checked`, start);
+                // start = printElapsed(`[${name}] Checked`, start);
                 if (offset) {
                     lastOffset = offset.offset;
                     lastSecondary = offset.secondary;

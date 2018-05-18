@@ -95,22 +95,7 @@ export function createLotsIndexer(client: ES.Client) {
         }
     });
 
-    reader.include([{
-        model: DB.Block,
-        as: 'block',
-        include: [{
-            model: DB.City,
-            as: 'city',
-            include: [{
-                model: DB.County,
-                as: 'county',
-                include: [{
-                    model: DB.State,
-                    as: 'state'
-                }]
-            }]
-        }]
-    }, {
+    reader.include([{ model: DB.Block, as: 'block' }, {
         model: DB.StreetNumber,
         as: 'streetNumbers',
         include: [{
