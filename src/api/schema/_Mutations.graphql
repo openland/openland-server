@@ -59,5 +59,6 @@ type Mutation {
     alphaAlterFolder(folderId: ID!, name: String!): Folder!
     alphaDeleteFolder(folderId: ID!): String!
     alphaParcelAddToFolder(folderId: ID!, parcelId: ID!): Parcel!
+    alphaAddToFolderFromSearch(state: String!, county: String!, city: String!, query: String): Int!
     alphaParcelSetFolder(parcelId: ID!, folderId: ID): Parcel!
 }

@@ -1,6 +1,6 @@
 import { DB } from '../tables';
 import { Transaction } from 'sequelize';
-import { FolderItem, FolderItemAttributes } from '../tables/FolderItem';
+import { FolderItemAttributes } from '../tables/FolderItem';
 
 export class FoldersRepository {
     async setFolder(orgId: number, parcelId: number, folderId?: number, transaction?: Transaction) {
