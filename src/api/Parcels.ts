@@ -720,6 +720,12 @@ export const Resolver = {
             let lotId = (await Repos.Parcels.fetchParcelByRawMapId(args.parcelId))!!.id!!;
             await Repos.Parcels.setNotes(orgId, lotId, args.notes);
             return Repos.Parcels.fetchParcel(lotId);
+        }),
+        alphaAddToFolderFromSearch: withAccount<{ state: string, county: string, city: string, query: string }>(async (args, uid, orgId) => {
+            let cityid = await Repos.Area.resolveCity(args.state, args.county, args.city);
+            let parcels = await Repos.Parcels.fetchAllParcels(cityid, args.query);
+            await Repos.Folders.setFolderBatch(orgId, parcels);
+            return parcels.length;
         })
     },
     SearchResult: {
