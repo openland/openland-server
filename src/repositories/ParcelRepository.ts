@@ -242,14 +242,27 @@ export class ParcelRepository {
         console.log('Searched in ' + (currentTime() - start) + ' ms');
         console.log('Query: ' + JSON.stringify(query));
         start = currentTime();
-        let res = await DB.Lot.findAll({
-            where: {
-                id: {
-                    $in: hits.hits.hits.map((v) => v._id)
-                }
-            },
-            raw: true
-        });
+
+        let pending = hits.hits.hits.map((v) => parseInt(v._id, 10));
+        let res: Lot[] = [];
+        while (pending.length > 0) {
+            let toLoad: number[];
+            if (pending.length < 100) {
+                toLoad = pending;
+                pending = [];
+            } else {
+                toLoad = pending.slice(0, 100);
+                pending = pending.slice(100);
+            }
+            res.push(...(await DB.Lot.findAll({
+                where: {
+                    id: {
+                        $in: toLoad
+                    }
+                },
+                raw: true
+            })));
+        }
         console.log('Fetched in ' + (currentTime() - start) + ' ms (' + res.length + ')');
         return res;
     }
