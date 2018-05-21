@@ -205,7 +205,7 @@ export class ParcelRepository {
         let hits = await ElasticClient.search({
             index: 'parcels',
             type: 'parcel',
-            size: limit,
+            size: Math.min(limit, 1000),
             from: 0,
             body: {
                 query: {
