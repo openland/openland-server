@@ -239,7 +239,8 @@ export class ParcelRepository {
 
         // ElasticClient.scroll({ scrollId: hits._scroll_id!!, scroll: '60000' });
 
-        console.warn('Searched in ' + (currentTime() - start) + ' ms');
+        console.log('Searched in ' + (currentTime() - start) + ' ms');
+        console.log('Query: ' + JSON.stringify(query));
         start = currentTime();
         let res = await DB.Lot.findAll({
             where: {
@@ -249,7 +250,7 @@ export class ParcelRepository {
             },
             raw: true
         });
-        console.warn('Fetched in ' + (currentTime() - start) + ' ms (' + res.length + ')');
+        console.log('Fetched in ' + (currentTime() - start) + ' ms (' + res.length + ')');
         return res;
     }
 
