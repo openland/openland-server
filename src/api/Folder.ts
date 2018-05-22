@@ -320,12 +320,12 @@ export const Resolver = {
             }
             return parcel;
         }),
-        alphaAddToFolderFromSearch: withAccount<{ state: string, county: string, city: string, query: string }>(async (args, uid, orgId) => {
+        alphaAddToFolderFromSearch: withAccount<{  folderId: string, state: string, county: string, city: string, query: string }>(async (args, uid, orgId) => {
 
             return await DB.tx(async (tx) => {
                 let cityid = await Repos.Area.resolveCity(args.state, args.county, args.city);
                 let parcels = await Repos.Parcels.fetchAllParcels(cityid, args.query);
-                await Repos.Folders.setFolderBatch(orgId, parcels, tx);
+                await Repos.Folders.setFolderBatch(orgId, parcels, tx, IDs.Folder.parse(args.folderId!!));
                 return parcels.length;
             });
         }),
@@ -341,7 +341,7 @@ export const Resolver = {
                 });
                 let cityid = await Repos.Area.resolveCity(args.state, args.county, args.city);
                 let parcels = await Repos.Parcels.fetchAllParcels(cityid, args.query);
-                await Repos.Folders.setFolderBatch(orgId, parcels, tx);
+                await Repos.Folders.setFolderBatch(orgId, parcels, tx, folder.id);
                 return folder;
             });
         }),
