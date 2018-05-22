@@ -208,6 +208,7 @@ export const Resolver = {
         })
     },
     Mutation: {
+       
         alphaCreateFolder: withAccount<{ name: string, initialParcels?: [string] }>(async (args, uid, orgId) => {
             let name = args.name.trim();
             if (name === '') {
@@ -318,6 +319,31 @@ export const Resolver = {
                 });
             }
             return parcel;
+        }),
+        alphaAddToFolderFromSearch: withAccount<{ state: string, county: string, city: string, query: string }>(async (args, uid, orgId) => {
+
+            return await DB.tx(async (tx) => {
+                let cityid = await Repos.Area.resolveCity(args.state, args.county, args.city);
+                let parcels = await Repos.Parcels.fetchAllParcels(cityid, args.query);
+                await Repos.Folders.setFolderBatch(orgId, parcels, tx);
+                return parcels.length;
+            });
+        }),
+        alphaCreateFolderFromSearch: withAccount<{ name: string, state: string, county: string, city: string, query: string }>(async (args, uid, orgId) => {
+            let name = args.name.trim();
+            if (name === '') {
+                throw Error('Name can\'t be empty');
+            }
+            return await DB.tx(async (tx) => {
+                let folder = await DB.Folder.create({
+                    name: name,
+                    organizationId: orgId,
+                });
+                let cityid = await Repos.Area.resolveCity(args.state, args.county, args.city);
+                let parcels = await Repos.Parcels.fetchAllParcels(cityid, args.query);
+                await Repos.Folders.setFolderBatch(orgId, parcels, tx);
+                return folder;
+            });
         }),
     }
 };

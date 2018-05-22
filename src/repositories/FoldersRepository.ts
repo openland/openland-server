@@ -37,7 +37,7 @@ export class FoldersRepository {
         }
     }
 
-    async setFolderBatch(orgId: number, parcels: number[], folderId?: number) {
+    async setFolderBatch(orgId: number, parcels: number[], tx: Transaction, folderId?: number) {
 
         let workingSet = parcels;
         while (workingSet.length > 0) {
@@ -51,60 +51,57 @@ export class FoldersRepository {
                 workingSet = workingSet.slice(batchSize);
             }
 
-            await DB.tx(async (tx) => {
-
-                if (!folderId) {
-                    await DB.FolderItem.destroy({
-                        where: {
-                            organizationId: orgId,
-                            lotId: {
-                                $in: ids
-                            }
-                        },
-                        transaction: tx
-                    });
-                } else {
-                    let existing = await DB.FolderItem.findAll({
-                        where: {
-                            organizationId: orgId,
-                            lotId: {
-                                $in: ids
-                            }
-                        },
-                        lock: tx.LOCK.UPDATE,
-                        transaction: tx
-                    });
-
-                    let toCreate: FolderItemAttributes[] = [];
-                    let toDestroy: number[] = [];
-                    for (let i of ids) {
-                        if (existing.find((v) => v.lotId === i)) {
-                            toDestroy.push(i);
+            if (!folderId) {
+                await DB.FolderItem.destroy({
+                    where: {
+                        organizationId: orgId,
+                        lotId: {
+                            $in: ids
                         }
-                        toCreate.push({
-                            organizationId: orgId,
-                            folderId: folderId,
-                            lotId: i!
-                        });
-                    }
+                    },
+                    transaction: tx
+                });
+            } else {
+                let existing = await DB.FolderItem.findAll({
+                    where: {
+                        organizationId: orgId,
+                        lotId: {
+                            $in: ids
+                        }
+                    },
+                    lock: tx.LOCK.UPDATE,
+                    transaction: tx
+                });
 
-                    if (toCreate.length > 0) {
-                        await DB.FolderItem.destroy({
-                            where: {
-                                lotId: {
-                                    $in: toDestroy
-                                }
-                            },
-                            transaction: tx
-                        });
+                let toCreate: FolderItemAttributes[] = [];
+                let toDestroy: number[] = [];
+                for (let i of ids) {
+                    if (existing.find((v) => v.lotId === i)) {
+                        toDestroy.push(i);
                     }
-
-                    if (toCreate.length > 0) {
-                        await DB.FolderItem.bulkCreate(toCreate, { transaction: tx });
-                    }
+                    toCreate.push({
+                        organizationId: orgId,
+                        folderId: folderId,
+                        lotId: i!
+                    });
                 }
 
-            });
+                if (toCreate.length > 0) {
+                    await DB.FolderItem.destroy({
+                        where: {
+                            lotId: {
+                                $in: toDestroy
+                            }
+                        },
+                        transaction: tx
+                    });
+                }
+
+                if (toCreate.length > 0) {
+                    await DB.FolderItem.bulkCreate(toCreate, { transaction: tx });
+                }
+            }
+
         }
     }
 
