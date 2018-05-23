@@ -84,5 +84,5 @@ type Query {
 
     alphaFolders: [Folder!]!
     alphaFolder(id: ID!): Folder!
-    alphaFolderItems(first: Int!, after: String, page: Int): FolderConnection!
+    alphaFolderItems(folderId: ID!, first: Int!, after: String, page: Int): FolderConnection!
 }
