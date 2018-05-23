@@ -25,3 +25,18 @@ type FolderResult {
 extend type SearchResult {
     folders: FolderSearchResult!
 }
+
+type FolderItem {
+    id: ID!
+    parcel: Parcel!
+}
+
+type FolderEdge {
+    node: FolderItem!
+    cursor: String!
+}
+
+type FolderConnection {
+    edges: [FolderEdge!]!
+    pageInfo: PageInfo!
+}

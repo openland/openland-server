@@ -4,6 +4,8 @@ import { IDs } from './utils/IDs';
 import { DB, Lot } from '../tables';
 import { Repos } from '../repositories';
 import { ElasticClient } from '../indexing';
+import { SelectBuilder } from '../modules/SelectBuilder';
+import { FolderItem } from '../tables/FolderItem';
 
 export const Resolver = {
     Folder: {
@@ -109,6 +111,16 @@ export const Resolver = {
             }
         })
     },
+    FolderItem: {
+        id: (src: FolderItem) => IDs.FolderItem.serialize(src.id!!),
+        parcel: (src: FolderItem) => {
+            if (src.lot) {
+                return src.lot;
+            } else {
+                return src.getLot();
+            }
+        }
+    },
     Parcel: {
         folder: withAccountTypeOptional<Lot>(async (args, uid, orgId) => {
             if (orgId) {
@@ -205,6 +217,17 @@ export const Resolver = {
 
                 return res;
             }
+        }),
+        alphaFolderItems: withAccount<{ folderId: string, first: number, after?: string, page?: number }>(async (args, uid, orgId) => {
+            let folderId = IDs.Folder.parse(args.folderId);
+            let builder = new SelectBuilder(DB.FolderItem)
+                .whereEq('folderId', folderId)
+                .whereEq('organizationId', orgId)
+                .orderBy('createdAt')
+                .after(args.after)
+                .page(args.page)
+                .limit(args.first);
+            return builder.findAll([{ model: DB.Lot, as: 'lot' }]);
         })
     },
     Mutation: {

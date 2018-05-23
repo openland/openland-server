@@ -13,4 +13,5 @@ export const IDs = {
     Opportunities: new ID('Op'),
     DebugReader: new ID('dr'),
     Folder: new ID('f'),
+    FolderItem: new ID('fi'),
 };
