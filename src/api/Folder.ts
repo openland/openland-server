@@ -46,16 +46,12 @@ export const Resolver = {
                 case 'all':
                     return 0;
                 default:
-                    return (await DB.FolderItem.findAll({
+                    return (await DB.FolderItem.count({
                         where: {
                             folderId: src.id!!,
-                            organizationId: orgId
-                        },
-                        include: [{
-                            model: DB.Lot,
-                            as: 'lot'
-                        }]
-                    })).length;
+                            organizationId: orgId!!
+                        }
+                    }));
             }
         }),
         parcels: withAccountTypeOptional<Folder | 'favorites' | 'all'>(async (src, uid, orgId) => {
