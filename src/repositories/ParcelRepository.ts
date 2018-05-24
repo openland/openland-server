@@ -210,7 +210,7 @@ export class ParcelRepository {
         clauses.push(elasticQuery);
 
         // Querying
-        let allResults = await cachedObject<{ lat: number, lon: number, id: number }[]>('geo_query_' + queryKey, async () => {
+        let allResults = await cachedObject<{ lat: number, lon: number, id: string }[]>('geo_query_' + queryKey, async () => {
             let hits = await ElasticClient.search({
                 index: 'parcels',
                 type: 'parcel',
@@ -219,7 +219,7 @@ export class ParcelRepository {
                 body: { query: { bool: { must: clauses } } }
             });
 
-            let allResults2 = new Array<{ lat: number, lon: number, id: number }>();
+            let allResults2 = new Array<{ lat: number, lon: number, id: string }>();
             hits.hits.hits.forEach((v) => allResults2.push({
                 id: (v._source as any).parcelId,
                 lat: (v._source as any).center.lat,
