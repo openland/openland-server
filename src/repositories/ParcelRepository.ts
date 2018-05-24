@@ -12,6 +12,9 @@ import { currentTime } from '../utils/timer';
 import { fastDeepEquals } from '../utils/fastDeepEquals';
 import { Repos } from '.';
 import * as GeoHash from 'ngeohash';
+import supercluster from 'supercluster';
+import { cachedObject } from '../modules/cache';
+import * as stringify from 'json-stable-stringify';
 
 export class ParcelRepository {
 
@@ -195,7 +198,88 @@ export class ParcelRepository {
         });
     }
 
-    async fetchGeoParcelsClustered(box: { south: number, north: number, east: number, west: number }, limit: number, query: string) {
+    async fetchGeoParcelsClusteredLocal(box: { south: number, north: number, east: number, west: number }, limit: number, query: string, zoom: number) {
+        let start = currentTime();
+
+        // Query Prepare
+        let clauses: any[] = [];
+        clauses.push({ term: { 'retired': false } });
+        let parsed = this.parser.parseQuery(query);
+        let queryKey = stringify(query);
+        let elasticQuery = buildElasticQuery(parsed);
+        clauses.push(elasticQuery);
+
+        // Querying
+        let allResults = await cachedObject<{ lat: number, lon: number, id: number }[]>('geo_query_' + queryKey, async () => {
+            let hits = await ElasticClient.search({
+                index: 'parcels',
+                type: 'parcel',
+                size: 1000,
+                scroll: '10m',
+                body: { query: { bool: { must: clauses } } }
+            });
+    
+            let allResults2 = new Array<{ lat: number, lon: number, id: number }>();
+            hits.hits.hits.forEach((v) => allResults2.push({
+                id: parseInt(v._id, 10),
+                lat: (v._source as any).center.lat,
+                lon: (v._source as any).center.lon
+            }));
+            while (hits.hits.hits.length > 0) {
+                hits = await ElasticClient.scroll({
+                    scrollId: hits._scroll_id!!,
+                    scroll: '10m',
+                });
+                hits.hits.hits.forEach((v) => allResults2.push({
+                    id: parseInt(v._id, 10),
+                    lat: (v._source as any).center.lat,
+                    lon: (v._source as any).center.lon
+                }));
+            }
+            return allResults2;
+        });
+        console.log('Searched in ' + (currentTime() - start) + ' ms, total: ' + allResults.length);
+        start = currentTime();
+
+        // Clustering
+        let cluster = supercluster({
+            radius: 40,
+            maxZoom: zoom
+        });
+        cluster.load(allResults.map((v) => ({
+            type: 'Feature',
+            geometry: {
+                type: 'Point', coordinates: [v.lon, v.lat]
+            },
+            properties: {
+                id: v.id
+            }
+        } as any)));
+        let clusters = cluster.getClusters([box.west, box.south, box.east, box.north], zoom);
+        console.log('Clustered in ' + (currentTime() - start) + ' ms');
+
+        let res = [];
+        for (let c of clusters) {
+            if (c.properties.cluster) {
+                res.push({
+                    id: c.properties.cluster_id,
+                    lat: c.geometry!!.coordinates[1],
+                    lon: c.geometry!!.coordinates[0],
+                    count: c.properties.point_count
+                });
+            } else {
+                res.push({
+                    id: c.properties.id,
+                    lat: c.geometry!!.coordinates[1],
+                    lon: c.geometry!!.coordinates[0],
+                });
+            }
+        }
+
+        return res;
+    }
+
+    async fetchGeoParcelsClustered(box: { south: number, north: number, east: number, west: number }, limit: number, query: string, zoom: number) {
         let start = currentTime();
 
         // Query Prepare
@@ -205,11 +289,25 @@ export class ParcelRepository {
         let elasticQuery = buildElasticQuery(parsed);
         clauses.push(elasticQuery);
 
+        console.warn(zoom);
+
+        let precision: number;
+        if (zoom <= 12) {
+            precision = 3;
+        } else if (zoom <= 13) {
+            precision = 7;
+        } else if (zoom <= 16) {
+            precision = 8;
+        } else if (zoom <= 18) {
+            precision = 9;
+        } else {
+            precision = 10;
+        }
+
         let hits = await ElasticClient.search({
             index: 'parcels',
             type: 'parcel',
-            size: Math.min(limit, 1000),
-            from: 0,
+            size: 0,
             body: {
                 query: {
                     bool: {
@@ -219,11 +317,11 @@ export class ParcelRepository {
                                 center: {
                                     top_left: {
                                         lat: box.north,
-                                        lon: box.east
+                                        lon: box.west
                                     },
                                     bottom_right: {
                                         lat: box.south,
-                                        lon: box.west
+                                        lon: box.east
                                     }
                                 }
                             }
@@ -234,20 +332,21 @@ export class ParcelRepository {
                     points: {
                         geohash_grid: {
                             field: 'center',
-                            precision: 6
+                            precision: precision
                         }
                     }
                 }
             }
         });
-        console.log('Searched in ' + (currentTime() - start) + ' ms, total: ' + hits.hits.total);
+
         let points = hits.aggregations.points as {
             buckets: [{
                 key: string,
                 doc_count: number
             }]
         };
-        return points.buckets.map((v) => {
+
+        let mapped = points.buckets.map((v) => {
             let point = GeoHash.decode(v.key);
             return {
                 lat: point.latitude,
@@ -255,6 +354,10 @@ export class ParcelRepository {
                 count: v.doc_count
             };
         });
+
+        console.log('Searched in ' + (currentTime() - start) + ' ms, total: ' + hits.hits.total);
+
+        return mapped;
     }
 
     async fetchGeoParcels(box: { south: number, north: number, east: number, west: number }, limit: number, query?: string | null) {

@@ -43,3 +43,9 @@ type MapPoint {
     lat: Float!
     lon: Float!
 }
+
+enum MapSearchZoom {
+    LOW
+    MEDIUM
+    HIGH
+}

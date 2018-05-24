@@ -620,8 +620,8 @@ export const Resolver = {
         parcelsOverlay: async function (_: any, args: { box: { south: number, north: number, east: number, west: number }, limit: number, query?: string | null }) {
             return Repos.Parcels.fetchGeoParcels(args.box, args.limit, args.query);
         },
-        alphaParcelMap: withAny<{ box: { south: number, north: number, east: number, west: number }, limit: number, query: string }>(async (args) => {
-            return await Repos.Parcels.fetchGeoParcelsClustered(args.box, args.limit, args.query);
+        alphaParcelMap: withAny<{ box: { south: number, north: number, east: number, west: number }, limit: number, query: string, zoom: number }>(async (args) => {
+            return await Repos.Parcels.fetchGeoParcelsClusteredLocal(args.box, args.limit, args.query, args.zoom);
         }),
         alphaAllParcels: withAny<{ state: string, county: string, city: string, query: string }>(async (args) => {
             let cityId = await Repos.Area.resolveCity(args.state, args.county, args.city);

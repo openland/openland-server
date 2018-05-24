@@ -86,5 +86,5 @@ type Query {
     alphaFolder(id: ID!): Folder!
     alphaFolderItems(folderId: ID!, first: Int!, after: String, page: Int): FolderConnection!
 
-    alphaParcelMap(box: GeoBox!, limit: Int!, query: String!): [MapPoint!]!
+    alphaParcelMap(box: GeoBox!, limit: Int!, query: String!, zoom: Int): [MapPoint!]!
 }
