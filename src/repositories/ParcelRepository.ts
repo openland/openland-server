@@ -218,7 +218,7 @@ export class ParcelRepository {
                 scroll: '10m',
                 body: { query: { bool: { must: clauses } } }
             });
-    
+
             let allResults2 = new Array<{ lat: number, lon: number, id: number }>();
             hits.hits.hits.forEach((v) => allResults2.push({
                 id: parseInt(v._id, 10),
@@ -244,7 +244,7 @@ export class ParcelRepository {
         // Clustering
         let cluster = supercluster({
             radius: 40,
-            maxZoom: zoom
+            maxZoom: Math.min(zoom, 17)
         });
         cluster.load(allResults.map((v) => ({
             type: 'Feature',
