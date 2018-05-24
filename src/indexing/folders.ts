@@ -16,7 +16,6 @@ export function createFoldersIndexer(client: ES.Client) {
         }
     });
     reader.indexer((item) => {
-        console.warn(item);
         return {
             id: item.id!!,
             doc: {
