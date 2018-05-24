@@ -1157,6 +1157,10 @@
   dependencies:
     "@types/express" "*"
 
+"@types/ngeohash@^0.6.1":
+  version "0.6.1"
+  resolved "https://registry.yarnpkg.com/@types/ngeohash/-/ngeohash-0.6.1.tgz#e65634341b9fa854af60f242399d3dfe356a9920"
+
 "@types/node-fetch@^1.6.7":
   version "1.6.7"
   resolved "https://registry.yarnpkg.com/@types/node-fetch/-/node-fetch-1.6.7.tgz#521078e8f0c69a158e5022005aca92d2620f6d57"
@@ -4900,6 +4904,10 @@ negotiator@0.6.1:
 next-tick@1:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/next-tick/-/next-tick-1.0.0.tgz#ca86d1fe8828169b0120208e3dc8424b9db8342c"
+
+ngeohash@^0.6.0:
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/ngeohash/-/ngeohash-0.6.0.tgz#329713e9e73d1f1a46d92aab0b94adb94533f687"
 
 node-fetch@^1.0.1, node-fetch@^1.7.1:
   version "1.7.3"

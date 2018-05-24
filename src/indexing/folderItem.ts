@@ -9,7 +9,7 @@ export function createFolderItemsIndexer(client: ES.Client) {
         ...ParcelsProperties
     });
     reader.include([{ model: DB.Lot, as: 'lot', include: ParcelsInclude }]);
-    reader.indexer((item) => {
+    reader.indexer(async (item) => {
         return {
             id: item.id!!,
             doc: {

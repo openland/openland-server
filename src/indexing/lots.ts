@@ -116,7 +116,7 @@ export function createLotsIndexer(client: ES.Client) {
         }]
     }]);
 
-    reader.indexer((item) => {
+    reader.indexer(async (item) => {
         let geometry = null;
         let center = null;
         if (item.geometry) {

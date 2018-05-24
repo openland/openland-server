@@ -57,7 +57,7 @@ export function createProspectingIndexer(client: ES.Client) {
         model: DB.Lot,
         as: 'lot'
     }]);
-    reader.indexer((item) => {
+    reader.indexer(async (item) => {
         let geometry = null;
         let center = null;
         if (item.lot!!.geometry) {

@@ -131,14 +131,14 @@ export class UpdateReader<TInstance, TAttributes> {
         return this;
     }
 
-    indexer(processor: (item: TInstance) => { id: string | number, doc: any }) {
+    indexer(processor: (item: TInstance) => Promise<{ id: string | number, doc: any }>) {
         if (!this.elasticClient) {
             throw new Error('Elastic is not configured');
         }
         this.processorFunc = async (data, tx, outOfOrder) => {
             let forIndexing = [];
             for (let p of data) {
-                let converted = processor(p);
+                let converted = await processor(p);
                 forIndexing.push({
                     index: {
                         _index: this.elasticIndex,

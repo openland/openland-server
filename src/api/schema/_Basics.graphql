@@ -36,3 +36,10 @@ type SearchHighlight {
     key: String!
     match: String!
 }
+
+type MapPoint {
+    ref: String
+    count: Int
+    lat: Float!
+    lon: Float!
+}

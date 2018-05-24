@@ -12,7 +12,7 @@ export function createIncidentsIndexer(client: ES.Client) {
         }
     });
 
-    reader.indexer((item) => {
+    reader.indexer(async (item) => {
         let location = undefined;
         if (item.geo !== null) {
             location = {

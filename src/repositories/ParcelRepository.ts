@@ -11,6 +11,7 @@ import { QueryParser, buildElasticQuery } from '../modules/QueryParser';
 import { currentTime } from '../utils/timer';
 import { fastDeepEquals } from '../utils/fastDeepEquals';
 import { Repos } from '.';
+import * as GeoHash from 'ngeohash';
 
 export class ParcelRepository {
 
@@ -191,6 +192,68 @@ export class ParcelRepository {
                     notes: normalized
                 }, { transaction: tx });
             }
+        });
+    }
+
+    async fetchGeoParcelsClustered(box: { south: number, north: number, east: number, west: number }, limit: number, query: string) {
+        let start = currentTime();
+
+        // Query Prepare
+        let clauses: any[] = [];
+        clauses.push({ term: { 'retired': false } });
+        let parsed = this.parser.parseQuery(query);
+        let elasticQuery = buildElasticQuery(parsed);
+        clauses.push(elasticQuery);
+
+        let hits = await ElasticClient.search({
+            index: 'parcels',
+            type: 'parcel',
+            size: Math.min(limit, 1000),
+            from: 0,
+            body: {
+                query: {
+                    bool: {
+                        must: clauses,
+                        filter: {
+                            geo_bounding_box: {
+                                center: {
+                                    top_left: {
+                                        lat: box.north,
+                                        lon: box.east
+                                    },
+                                    bottom_right: {
+                                        lat: box.south,
+                                        lon: box.west
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                aggs: {
+                    points: {
+                        geohash_grid: {
+                            field: 'center',
+                            precision: 6
+                        }
+                    }
+                }
+            }
+        });
+        console.log('Searched in ' + (currentTime() - start) + ' ms, total: ' + hits.hits.total);
+        let points = hits.aggregations.points as {
+            buckets: [{
+                key: string,
+                doc_count: number
+            }]
+        };
+        return points.buckets.map((v) => {
+            let point = GeoHash.decode(v.key);
+            return {
+                lat: point.latitude,
+                lon: point.longitude,
+                count: v.doc_count
+            };
         });
     }
 

@@ -15,7 +15,7 @@ export function createBlocksIndexer(client: ES.Client) {
         }
     });
 
-    reader.indexer((item) => {
+    reader.indexer(async (item) => {
         let geometry = undefined;
         if (item.geometry && item.blockId !== '4349' && item.blockId !== '4991') {
             geometry = buildGeoJson(item.geometry);

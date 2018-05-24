@@ -15,7 +15,7 @@ export function createFoldersIndexer(client: ES.Client) {
             type: 'boolean'
         }
     });
-    reader.indexer((item) => {
+    reader.indexer(async (item) => {
         return {
             id: item.id!!,
             doc: {
