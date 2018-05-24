@@ -221,7 +221,7 @@ export class ParcelRepository {
 
             let allResults2 = new Array<{ lat: number, lon: number, id: number }>();
             hits.hits.hits.forEach((v) => allResults2.push({
-                id: parseInt(v._id, 10),
+                id: (v._source as any).parcelId,
                 lat: (v._source as any).center.lat,
                 lon: (v._source as any).center.lon
             }));
@@ -231,7 +231,7 @@ export class ParcelRepository {
                     scroll: '10m',
                 });
                 hits.hits.hits.forEach((v) => allResults2.push({
-                    id: parseInt(v._id, 10),
+                    id: (v._source as any).parcelId,
                     lat: (v._source as any).center.lat,
                     lon: (v._source as any).center.lon
                 }));
