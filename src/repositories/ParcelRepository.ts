@@ -138,6 +138,7 @@ export class ParcelRepository {
     async fetchAllParcels(cityId: number, query?: string | null) {
         let clauses: any[] = [];
         clauses.push({ term: { 'cityId': cityId } });
+        clauses.push({ term: { 'retired': false } });
         if (query) {
             let parsed = this.parser.parseQuery(query);
             let elasticQuery = buildElasticQuery(parsed);
