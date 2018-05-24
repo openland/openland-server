@@ -40,7 +40,7 @@ export const Resolver = {
     },
     Parcel: {
         id: async (src: Lot) => {
-            let tag = (await DB.City.findById(src.cityId!!))!!.tag!!;
+            let tag = (await Repos.Area.resolveCityInfo(src.cityId!!))!!.tag!!;
             return tag + '_' + src.lotId;
         },
         number: async (src: Lot) => {

@@ -26,6 +26,32 @@ export class AreaRepository {
         }
         return res;
     });
+
+    private cityTagLoader = new DataLoader<string, City | null>(async (cities) => {
+        let foundTokens = await DB.City.findAll({
+            where: {
+                tag: {
+                    $in: cities
+                }
+            }
+        });
+        let res: (City | null)[] = [];
+        for (let i of cities) {
+            let found = false;
+            for (let f of foundTokens) {
+                if (i === f.tag) {
+                    res.push(f);
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                res.push(null);
+            }
+        }
+        return res;
+    });
+
     private countyLoader = new DataLoader<number, County | null>(async (cities) => {
         let foundTokens = await DB.County.findAll({
             where: {
@@ -123,11 +149,7 @@ export class AreaRepository {
     }
 
     async resolveCityByTag(tag: string) {
-        let res = await DB.City.findOne({
-            where: {
-                tag: tag
-            }
-        });
+        let res = await this.cityTagLoader.load(tag);
         if (!res) {
             throw 'City is not found for tag ' + tag;
         }
