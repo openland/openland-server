@@ -4,16 +4,20 @@ import { UpdateReader } from '../modules/updateReader';
 import { buildGeoJson } from '../modules/geometry';
 import * as Turf from '@turf/turf';
 import { parseIntSafe, parseBoolSafe } from '../utils/parsing';
+import { Repos } from '../repositories';
 
 export function createLotsIndexer(client: ES.Client) {
 
-    let reader = new UpdateReader('reader_lots', 1, DB.Lot);
+    let reader = new UpdateReader('reader_lots', 2, DB.Lot);
     reader.setDelay(30000);
     reader.elastic(client, 'parcels', 'parcel', {
         geometry: {
             type: 'geo_shape',
             tree: 'quadtree',
             precision: '10m'
+        },
+        parcelId: {
+            type: 'keyword'
         },
         center: {
             type: 'geo_point'
@@ -166,9 +170,13 @@ export function createLotsIndexer(client: ES.Client) {
             compatibleBuildings.push('kasita-2');
         }
 
+        let tag = (await Repos.Area.resolveCityInfo(item.cityId!!))!!.tag!!;
+        let parcelId = tag + '_' + item.lotId!!;
+
         return {
             id: item.id!!,
             doc: {
+                parcelId: parcelId,
                 cityId: item.cityId!!,
                 lotId: item.lotId!!,
                 blockId: item.block ? item.block.blockId : null,

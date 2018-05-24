@@ -246,7 +246,7 @@ export class ParcelRepository {
             radius: 40,
             maxZoom: Math.min(zoom, 17)
         });
-        cluster.load(allResults.map((v) => ({
+        let mapped = allResults.map((v) => ({
             type: 'Feature',
             geometry: {
                 type: 'Point', coordinates: [v.lon, v.lat]
@@ -254,7 +254,8 @@ export class ParcelRepository {
             properties: {
                 id: v.id
             }
-        } as any)));
+        } as any));
+        cluster.load(mapped);
         let clusters = cluster.getClusters([box.west, box.south, box.east, box.north], zoom);
         console.log('Clustered in ' + (currentTime() - start) + ' ms');
 
@@ -269,7 +270,7 @@ export class ParcelRepository {
                 });
             } else {
                 res.push({
-                    id: c.properties.id,
+                    ref: c.properties.id,
                     lat: c.geometry!!.coordinates[1],
                     lon: c.geometry!!.coordinates[0],
                 });
