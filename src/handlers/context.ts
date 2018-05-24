@@ -72,6 +72,11 @@ async function buildContext(req: express.Request, res: express.Response, next: e
         res!!.status(404).send('Unable to find domain');
         return;
     }
+    if (ctx.uid) {
+        console.log('GraphQL [#' + ctx.uid + ']: ' + JSON.stringify(req.body));
+    } else {
+        console.log('GraphQL [#ANON]: ' + JSON.stringify(req.body));
+    }
     res.locals.ctx = ctx;
     next();
 }
