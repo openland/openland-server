@@ -226,5 +226,6 @@ export function createLotsIndexer(client: ES.Client) {
             }
         };
     });
+    
     return reader;
 }
