@@ -227,7 +227,6 @@ export const Resolver = {
         })
     },
     Mutation: {
-
         alphaCreateFolder: withAccount<{ name: string, initialParcels?: [string] }>(async (args, uid, orgId) => {
             let name = args.name.trim();
             if (name === '') {
@@ -252,7 +251,6 @@ export const Resolver = {
             });
         }),
         alphaAlterFolder: withAccount<{ folderId: string, name: string }>(async (args, uid, orgId) => {
-
             return await DB.tx(async (tx) => {
                 let folder = await DB.Folder.find({
                     where: {
@@ -278,20 +276,9 @@ export const Resolver = {
                 return folder;
 
             });
-
         }),
         alphaDeleteFolder: withAccount<{ folderId: string }>(async (args, uid, orgId) => {
-            await DB.tx(async (tx) => {
-                let folder = await DB.Folder.find({
-                    where: { organizationId: orgId, id: IDs.Folder.parse(args.folderId) },
-                    lock: tx.LOCK.UPDATE,
-                    transaction: tx
-                });
-                if (!folder) {
-                    throw Error('Unable to find folder');
-                }
-                await folder.destroy({ transaction: tx });
-            });
+            await Repos.Folders.destroyFolder(IDs.Folder.parse(args.folderId), orgId);
             return 'ok';
         }),
         alphaParcelAddToFolder: withAccount<{ folderId: string, parcelId: string }>(async (args, uid, orgId) => {
@@ -309,7 +296,6 @@ export const Resolver = {
                 folderId: folder.id!!,
                 lotId: parcel.id!!
             });
-
             return parcel;
         }),
         alphaParcelSetFolder: withAccount<{ folderId?: string | null, parcelId: string }>(async (args, uid, orgId) => {
@@ -340,7 +326,6 @@ export const Resolver = {
             return parcel;
         }),
         alphaAddToFolderFromSearch: withAccount<{ folderId: string, state: string, county: string, city: string, query: string }>(async (args, uid, orgId) => {
-
             return await DB.tx(async (tx) => {
                 let cityid = await Repos.Area.resolveCity(args.state, args.county, args.city);
                 let parcels = await Repos.Parcels.fetchAllParcels(cityid, args.query);

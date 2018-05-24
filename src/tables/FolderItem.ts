@@ -15,6 +15,7 @@ export interface FolderItemAttributes {
 }
 
 export interface FolderItem extends sequelize.Instance<FolderItemAttributes>, FolderItemAttributes {
+    deletedAt: Date | null;
     getOrganization(options?: any): Promise<Organization | null>;
     getFolder(options?: any): Promise<Folder | null>;
     getLot(options?: any): Promise<Lot | null>;
@@ -22,7 +23,7 @@ export interface FolderItem extends sequelize.Instance<FolderItemAttributes>, Fo
 
 export const FolderItemTable = connection.define<FolderItem, FolderItemAttributes>('folder_item', {
     id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
-});
+}, { paranoid: true });
 
 FolderItemTable.belongsTo(FolderTable, { as: 'folder', foreignKey: { allowNull: false } });
 FolderItemTable.belongsTo(OrganizationTable, { as: 'organization', foreignKey: { allowNull: false } });

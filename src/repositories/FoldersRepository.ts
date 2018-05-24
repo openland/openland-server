@@ -105,4 +105,24 @@ export class FoldersRepository {
         }
     }
 
+    async destroyFolder(folderId: number, organizationId: number) {
+        await DB.tx(async (tx) => {
+            let folder = await DB.Folder.find({
+                where: { organizationId: organizationId, id: folderId },
+                lock: tx.LOCK.UPDATE,
+                transaction: tx
+            });
+            await DB.FolderItem.destroy({
+                where: {
+                    organizationId: organizationId,
+                    id: folderId
+                },
+                transaction: tx
+            });
+            if (!folder) {
+                throw Error('Unable to find folder');
+            }
+            await folder.destroy({ transaction: tx });
+        });
+    }
 }

@@ -4,7 +4,7 @@ import { UpdateReader } from '../modules/updateReader';
 import { ParcelsProperties, ParcelsInclude, indexParcel } from './shared/parcels';
 
 export function createFolderItemsIndexer(client: ES.Client) {
-    let reader = new UpdateReader('reader_folder_items', 1, DB.FolderItem);
+    let reader = new UpdateReader('reader_folder_items', 2, DB.FolderItem);
     reader.elastic(client, 'folder_items', 'item', {
         ...ParcelsProperties
     });
@@ -13,7 +13,8 @@ export function createFolderItemsIndexer(client: ES.Client) {
         return {
             id: item.id!!,
             doc: {
-                ...indexParcel(item.lot!!)
+                ...indexParcel(item.lot!!),
+                item_retired: item.deletedAt !== null
             }
         };
     });
