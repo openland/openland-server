@@ -41,18 +41,18 @@ export default function () {
     //
 
     const app = express();
+
+    // To avoid logging on this route
+    app.get('/', (req, res) => res.send('Welcome to Openland API!'));
+    app.get('/favicon.ico', (req, res) => res.send(404));
+
+    // Basic Configuration
     app.use(cors());
     app.use(morgan('tiny'));
     app.use(compression());
     if (engine != null) {
         app.use(engine.expressMiddleware());
     }
-
-    //
-    // Routes
-    //
-
-    app.get('/', (req, res) => res.send('Welcome to Openland API!'));
 
     //
     // API
