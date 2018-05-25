@@ -224,7 +224,10 @@ export const Resolver = {
                 .page(args.page)
                 .limit(args.first);
             return builder.findAll([{ model: DB.Lot, as: 'lot' }]);
-        })
+        }),
+        alphaFolderItemsOverlay: withAccount<{ box: { south: number, north: number, east: number, west: number }, limit: number, query: string | null }>((args, uid, orgId) => {
+            return Repos.Folders.fetchGeoFolderItems(orgId, args.box, args.limit, args.query);
+        }),
     },
     Mutation: {
         alphaCreateFolder: withAccount<{ name: string, initialParcels?: [string] }>(async (args, uid, orgId) => {

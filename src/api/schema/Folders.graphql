@@ -29,6 +29,7 @@ extend type SearchResult {
 type FolderItem {
     id: ID!
     parcel: Parcel!
+    center: Geo
 }
 
 type FolderEdge {

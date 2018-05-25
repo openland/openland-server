@@ -1,8 +1,11 @@
 import { DB } from '../tables';
 import { Transaction } from 'sequelize';
 import { FolderItemAttributes } from '../tables/FolderItem';
+import { ElasticClient } from '../indexing';
+import { QueryParser, buildElasticQuery } from '../modules/QueryParser';
 
 export class FoldersRepository {
+    private parser = new QueryParser();
     async setFolder(orgId: number, parcelId: number, folderId?: number, transaction?: Transaction) {
         if (!folderId) {
             await DB.FolderItem.destroy({
@@ -124,5 +127,56 @@ export class FoldersRepository {
             }
             await folder.destroy({ transaction: tx });
         });
+    }
+
+    async fetchGeoFolderItems(organization: number, box: { south: number, north: number, east: number, west: number }, limit: number, query: string | null) {
+        let clauses: any[] = [{ term: { orgId: organization } }];
+        if (query) {
+            clauses.push(buildElasticQuery(this.parser.parseQuery(query)));
+        }
+        let hits = await ElasticClient.search({
+            index: 'folders',
+            type: 'folder',
+            size: limit,
+            from: 0,
+            body: {
+                query: {
+                    bool: {
+                        must: clauses,
+                        filter: {
+                            bool: {
+                                must: [
+                                    {
+                                        geo_shape: {
+                                            geometry: {
+                                                shape: {
+                                                    type: 'envelope',
+                                                    coordinates:
+                                                        [[box.west, box.south],
+                                                        [box.east, box.north]],
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        let res = await DB.FolderItem.findAll({
+            where: {
+                id: {
+                    $in: hits.hits.hits.map((v) => v._id)
+                }
+            },
+            include: [{
+                model: DB.Lot,
+                as: 'lot'
+            }]
+        });
+        return res;
     }
 }
