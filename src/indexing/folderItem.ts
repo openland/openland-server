@@ -4,7 +4,7 @@ import { UpdateReader } from '../modules/updateReader';
 import { ParcelsProperties, ParcelsInclude, indexParcel } from './shared/parcels';
 
 export function createFolderItemsIndexer(client: ES.Client) {
-    let reader = new UpdateReader('reader_folder_items', 2, DB.FolderItem);
+    let reader = new UpdateReader('reader_folder_items', 3, DB.FolderItem);
     reader.elastic(client, 'folder_items', 'item', {
         ...ParcelsProperties,
         folderId: {
