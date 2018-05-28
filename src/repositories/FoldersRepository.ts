@@ -4,7 +4,7 @@ import { FolderItemAttributes } from '../tables/FolderItem';
 import { ElasticClient } from '../indexing';
 
 export class FoldersRepository {
-   
+
     async setFolder(orgId: number, parcelId: number, folderId?: number, transaction?: Transaction) {
         if (!folderId) {
             await DB.FolderItem.destroy({
@@ -129,8 +129,8 @@ export class FoldersRepository {
     }
 
     async fetchGeoFolderItems(organization: number, box: { south: number, north: number, east: number, west: number }, limit: number, folderId: number) {
-        let clauses: any[] = [{ term: { orgId: organization } }, { match: { 'folderId': { query: folderId, operator: 'and' } } }];
-        
+        let clauses: any[] = [{ term: { orgId: organization } }, { term: { folderId: folderId } }];
+
         let hits = await ElasticClient.search({
             index: 'folder_items',
             type: 'item',
