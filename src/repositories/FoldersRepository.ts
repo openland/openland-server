@@ -2,13 +2,9 @@ import { DB } from '../tables';
 import { Transaction } from 'sequelize';
 import { FolderItemAttributes } from '../tables/FolderItem';
 import { ElasticClient } from '../indexing';
-import { QueryParser, buildElasticQuery } from '../modules/QueryParser';
 
 export class FoldersRepository {
-    private parser = new QueryParser();
-    constructor() {
-        this.parser.registerText('folderId', 'folderId');
-    }
+   
     async setFolder(orgId: number, parcelId: number, folderId?: number, transaction?: Transaction) {
         if (!folderId) {
             await DB.FolderItem.destroy({
@@ -132,11 +128,9 @@ export class FoldersRepository {
         });
     }
 
-    async fetchGeoFolderItems(organization: number, box: { south: number, north: number, east: number, west: number }, limit: number, query: string | null) {
-        let clauses: any[] = [{ term: { orgId: organization } }];
-        if (query) {
-            clauses.push(buildElasticQuery(this.parser.parseQuery(query)));
-        }
+    async fetchGeoFolderItems(organization: number, box: { south: number, north: number, east: number, west: number }, limit: number, folderId: number) {
+        let clauses: any[] = [{ term: { orgId: organization } }, { match: { 'folderId': { query: folderId, operator: 'and' } } }];
+        
         let hits = await ElasticClient.search({
             index: 'folder_items',
             type: 'item',
