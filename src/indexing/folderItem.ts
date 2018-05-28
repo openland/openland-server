@@ -4,10 +4,13 @@ import { UpdateReader } from '../modules/updateReader';
 import { ParcelsProperties, ParcelsInclude, indexParcel } from './shared/parcels';
 
 export function createFolderItemsIndexer(client: ES.Client) {
-    let reader = new UpdateReader('reader_folder_items', 4, DB.FolderItem);
+    let reader = new UpdateReader('reader_folder_items', 5, DB.FolderItem);
     reader.elastic(client, 'folder_items', 'item', {
         ...ParcelsProperties,
         folderId: {
+            type: 'integer'
+        },
+        orgId: {
             type: 'integer'
         }
     });
@@ -18,7 +21,8 @@ export function createFolderItemsIndexer(client: ES.Client) {
             doc: {
                 ...indexParcel(item.lot!!),
                 item_retired: item.deletedAt !== null,
-                folderId: item.folderId
+                folderId: item.folderId,
+                orgId: item.organizationId
             }
         };
     });
