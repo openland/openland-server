@@ -6,7 +6,10 @@ import { ParcelsProperties, ParcelsInclude, indexParcel } from './shared/parcels
 export function createFolderItemsIndexer(client: ES.Client) {
     let reader = new UpdateReader('reader_folder_items', 2, DB.FolderItem);
     reader.elastic(client, 'folder_items', 'item', {
-        ...ParcelsProperties
+        ...ParcelsProperties,
+        folderId: {
+            type: 'keyword'
+        }
     });
     reader.include([{ model: DB.Lot, as: 'lot', include: ParcelsInclude }]);
     reader.indexer(async (item) => {
@@ -14,7 +17,8 @@ export function createFolderItemsIndexer(client: ES.Client) {
             id: item.id!!,
             doc: {
                 ...indexParcel(item.lot!!),
-                item_retired: item.deletedAt !== null
+                item_retired: item.deletedAt !== null,
+                folderId: item.folderId
             }
         };
     });
