@@ -135,8 +135,8 @@ export class FoldersRepository {
             clauses.push(buildElasticQuery(this.parser.parseQuery(query)));
         }
         let hits = await ElasticClient.search({
-            index: 'folders',
-            type: 'folderItem',
+            index: 'parcels',
+            type: 'parcel',
             size: limit,
             from: 0,
             body: {
