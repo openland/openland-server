@@ -6,6 +6,7 @@ import { Repos } from '../repositories';
 import { ElasticClient } from '../indexing';
 import { SelectBuilder } from '../modules/SelectBuilder';
 import { FolderItem } from '../tables/FolderItem';
+import * as Turf from '@turf/turf';
 
 export const Resolver = {
     Folder: {
@@ -115,7 +116,15 @@ export const Resolver = {
             } else {
                 return src.getLot();
             }
-        }
+        },
+        center: async (src: FolderItem) => {
+            let lot = src.lot ? src.lot : (await src.getLot())!!;
+            if (lot && lot.geometry) {
+                let ctr = Turf.centerOfMass({ type: 'MultiPolygon', coordinates: lot.geometry.polygons.map((v) => [v.coordinates.map((v2) => [v2.longitude, v2.latitude])]) });
+                return { longitude: ctr.geometry!!.coordinates[0], latitude: ctr.geometry!!.coordinates[1] };
+            }
+            return null;
+        },
     },
     Parcel: {
         folder: withAccountTypeOptional<Lot>(async (args, uid, orgId) => {
