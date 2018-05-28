@@ -6,6 +6,9 @@ import { QueryParser, buildElasticQuery } from '../modules/QueryParser';
 
 export class FoldersRepository {
     private parser = new QueryParser();
+    constructor() {
+        this.parser.registerText('folderId', 'folderId');
+    }
     async setFolder(orgId: number, parcelId: number, folderId?: number, transaction?: Transaction) {
         if (!folderId) {
             await DB.FolderItem.destroy({
