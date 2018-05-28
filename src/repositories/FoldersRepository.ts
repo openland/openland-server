@@ -129,14 +129,14 @@ export class FoldersRepository {
         });
     }
 
-    async fetchGeoFolderItems(organization: number, box: { south: number, north: number, east: number, west: number }, limit: number, query: string | null) {
+    async fetchGeo(organization: number, box: { south: number, north: number, east: number, west: number }, limit: number, query: string | null) {
         let clauses: any[] = [{ term: { orgId: organization } }];
         if (query) {
             clauses.push(buildElasticQuery(this.parser.parseQuery(query)));
         }
         let hits = await ElasticClient.search({
             index: 'folders',
-            type: 'folder',
+            type: 'folderItem',
             size: limit,
             from: 0,
             body: {
