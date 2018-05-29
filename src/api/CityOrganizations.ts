@@ -4,6 +4,7 @@ import { Developer } from '../tables';
 import * as Normalizer from '../modules/Normalizer';
 import { AreaContext } from './Area';
 import { withPermission } from './utils/Resolvers';
+import { Repos } from '../repositories';
 
 export const Resolver = {
     Organization: {
@@ -18,7 +19,7 @@ export const Resolver = {
         linkedin: (src: Developer) => src.linkedin,
         facebook: (src: Developer) => src.facebook,
         twitter: (src: Developer) => src.twitter,
-        
+
         comments: (src: Developer) => src.comments,
         isDeveloper: (src: Developer) => src.isDeveloper,
         isConstructor: (src: Developer) => src.isConstructor,
@@ -100,12 +101,21 @@ export const Resolver = {
         }
     },
     Mutation: {
-        organizationAdd: withPermission<{ slug: string, title: string }>('super-admin', (args, context) => {
-            return DB.Developer.create({
-                account: context.accountId,
-                slug: args.slug.toLowerCase(),
-                title: args.title
+        organizationAdd: withPermission<{ slug: string, title: string }>('super-admin', async (args, context) => {
+            return await DB.tx(async (tx) => {
+                let res = await DB.Developer.create({
+                    account: context.accountId,
+                    slug: args.slug.toLowerCase(),
+                    title: args.title
+                }, { transaction: tx });
+
+                let defaultFolder = ['1. Incoming', '2. Review', '3. Approved', '4. Snoozed', '5. Rejected'];
+                for (let folderName of defaultFolder) {
+                    await Repos.Folders.createFolder(res.id!!, folderName, tx);
+                }
+                return res;
             });
+
         }),
         organizationRemove: withPermission<{ slug: string }>('super-admin', async (args, context) => {
             let existing = await DB.Developer.findOne({

@@ -2,8 +2,31 @@ import { DB } from '../tables';
 import { Transaction } from 'sequelize';
 import { FolderItemAttributes } from '../tables/FolderItem';
 import { ElasticClient } from '../indexing';
+import { Repos } from '../repositories';
 
 export class FoldersRepository {
+
+    async createFolder(orgId: number, name: string, transaction: Transaction, initialParcels?: [string]) {
+        name = name.trim();
+        if (name === '') {
+            throw Error('Name can\'t be empty');
+        }
+
+            let folder = await DB.Folder.create({
+                name: name,
+                organizationId: orgId,
+            });
+            if (initialParcels) {
+                for (let parcelId of initialParcels) {
+                    let parcel = await Repos.Parcels.fetchParcelByRawMapId(parcelId);
+                    if (!parcel) {
+                        throw Error('Unable to find parcel');
+                    }
+                    await Repos.Folders.setFolder(orgId, parcel.id!!, folder.id!!, transaction);
+                }
+            }
+            return folder;
+    }
 
     async setFolder(orgId: number, parcelId: number, folderId?: number, transaction?: Transaction) {
         if (!folderId) {
@@ -129,7 +152,7 @@ export class FoldersRepository {
     }
 
     async fetchGeoFolderItems(organization: number, box: { south: number, north: number, east: number, west: number }, limit: number, folderId: number) {
-        let clauses: any[] = [{ term: { orgId: organization } }, { term: { folderId: folderId } },  { term: { retired: false } }];
+        let clauses: any[] = [{ term: { orgId: organization } }, { term: { folderId: folderId } }, { term: { retired: false } }];
 
         let hits = await ElasticClient.search({
             index: 'folder_items',

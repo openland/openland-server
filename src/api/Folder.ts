@@ -241,26 +241,8 @@ export const Resolver = {
     },
     Mutation: {
         alphaCreateFolder: withAccount<{ name: string, initialParcels?: [string] }>(async (args, uid, orgId) => {
-            let name = args.name.trim();
-            if (name === '') {
-                throw Error('Name can\'t be empty');
-            }
-
             return await DB.tx(async (tx) => {
-                let folder = await DB.Folder.create({
-                    name: name,
-                    organizationId: orgId,
-                });
-                if (args.initialParcels) {
-                    for (let parcelId of args.initialParcels) {
-                        let parcel = await Repos.Parcels.fetchParcelByRawMapId(parcelId);
-                        if (!parcel) {
-                            throw Error('Unable to find parcel');
-                        }
-                        await Repos.Folders.setFolder(orgId, parcel.id!!, folder.id!!, tx);
-                    }
-                }
-                return folder;
+                return await Repos.Folders.createFolder(orgId, args.name, tx, args.initialParcels);
             });
         }),
         alphaAlterFolder: withAccount<{ folderId: string, name: string }>(async (args, uid, orgId) => {
