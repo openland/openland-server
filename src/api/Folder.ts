@@ -233,7 +233,7 @@ export const Resolver = {
                 .page(args.page)
                 .limit(args.first);
             return builder.findAll([{ model: DB.Lot, as: 'lot' }], {
-                '$lot.retired$': false
+                '$lot.retired$': true
             });
         }),
         alphaFolderItemsOverlay: withAccount<{ folderId: string, box: { south: number, north: number, east: number, west: number }, limit: number}>((args, uid, orgId) => {
