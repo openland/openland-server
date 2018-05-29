@@ -307,15 +307,15 @@ export class SelectBuilder<TInstance, TAttributes> {
             res = this.processor(res);
             res = res.splice(offset, this.limitValue);
         }
-        let count;
+        let count: number;
         if (!whereRaw) {
             count = await this.count();
         } else {
-            count = await this.table.findAndCount({
+            count = (await this.table.findAndCount({
                 where: [sequelize.and(...whereArray)],
                 include: include,
                 transaction: this.tx ? this.tx : undefined
-            });
+            })).count;
 
         }
 
