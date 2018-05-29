@@ -228,6 +228,7 @@ export const Resolver = {
             let builder = new SelectBuilder(DB.FolderItem)
                 .whereEq('folderId', folderId)
                 .whereEq('organizationId', orgId)
+                .whereEq('lot.retired', false)
                 .orderBy('createdAt')
                 .after(args.after)
                 .page(args.page)
