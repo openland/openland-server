@@ -228,12 +228,13 @@ export const Resolver = {
             let builder = new SelectBuilder(DB.FolderItem)
                 .whereEq('folderId', folderId)
                 .whereEq('organizationId', orgId)
-                .whereEq('$lot.retired$', false)
                 .orderBy('createdAt')
                 .after(args.after)
                 .page(args.page)
                 .limit(args.first);
-            return builder.findAll([{ model: DB.Lot, as: 'lot' }]);
+            return builder.findAll([{ model: DB.Lot, as: 'lot' }], {
+                '$lot.retired$': false
+            });
         }),
         alphaFolderItemsOverlay: withAccount<{ folderId: string, box: { south: number, north: number, east: number, west: number }, limit: number}>((args, uid, orgId) => {
             return Repos.Folders.fetchGeoFolderItems(orgId, args.box, args.limit, IDs.Folder.parse(args.folderId));

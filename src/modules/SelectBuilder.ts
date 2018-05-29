@@ -272,11 +272,11 @@ export class SelectBuilder<TInstance, TAttributes> {
                 restored.push(mappedElements.get(i)!!);
             }
         }
-        
+
         return restored;
     }
 
-    async findAll(include?: Array<sequelize.Model<any, any> | sequelize.IncludeOptions>) {
+    async findAll(include?: Array<sequelize.Model<any, any> | sequelize.IncludeOptions>, whereRaw?: sequelize.WhereOptions<any>) {
         if (this.limitValue == null) {
             throw 'Limit should be set!';
         }
@@ -288,8 +288,15 @@ export class SelectBuilder<TInstance, TAttributes> {
         }
         let where = this.buildWhere();
         let orderBy = this.buildOrderBy();
+
+        let whereArray = [];
+        whereArray.push(DB.connection.literal(where) as any);
+        if (whereRaw) {
+            whereArray.push(whereRaw);
+        }
+        
         let res = await this.table.findAll({
-            where: DB.connection.literal(where) as any,
+            where: [sequelize.and(...whereArray)],
             order: DB.connection.literal(orderBy),
             limit: this.processor === null ? this.limitValue : undefined,
             offset: this.processor === null ? offset : undefined,
