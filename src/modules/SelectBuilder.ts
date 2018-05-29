@@ -294,7 +294,7 @@ export class SelectBuilder<TInstance, TAttributes> {
         if (whereRaw) {
             whereArray.push(whereRaw);
         }
-        
+
         let res = await this.table.findAll({
             where: [sequelize.and(...whereArray)],
             order: DB.connection.literal(orderBy),
@@ -307,7 +307,18 @@ export class SelectBuilder<TInstance, TAttributes> {
             res = this.processor(res);
             res = res.splice(offset, this.limitValue);
         }
-        let count = await this.count();
+        let count;
+        if (!whereRaw) {
+            count = await this.count();
+        } else {
+            count = await this.table.findAndCount({
+                where: [sequelize.and(...whereArray)],
+                include: include,
+                transaction: this.tx ? this.tx : undefined
+            });
+
+        }
+
         return {
             edges: res.map((p, i) => {
                 return {
