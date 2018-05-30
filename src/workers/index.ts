@@ -1,5 +1,4 @@
 import { WorkQueue } from '../modules/workerQueue';
-import { delay } from '../utils/timer';
 
 // import { LockProvider, DynamicLock } from '../modules/dynamicLocking';
 // import { delay } from '../utils/timer';
