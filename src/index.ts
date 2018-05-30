@@ -4,6 +4,7 @@ import * as cluster from 'cluster';
 import * as fs from 'fs';
 import * as cp from 'child_process';
 import { enableIndexer } from './indexing';
+import { initWorkers } from './workers';
 import { redisClient } from './modules/redis/redis';
 
 if (cluster.isMaster) {
@@ -47,7 +48,7 @@ async function initMater() {
             console.info('Connecting to database in RELEASE mode');
         }
         await db.migrate();
-        initWorker();
+        await initWorker();
     } catch (e) {
         console.error('Unable to init server');
         console.error(e);
@@ -58,6 +59,7 @@ async function initMater() {
 async function initWorker() {
     server.default();
     if (process.env.ELASTIC_ENDPOINT && process.env.ELASTIC_ENABLE_INDEXING !== 'false') {
-        enableIndexer();
+        await enableIndexer();
     }
+    await initWorkers();
 }
