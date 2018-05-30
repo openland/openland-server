@@ -88,4 +88,6 @@ type Query {
     alphaFolderItemsOverlay(box: GeoBox!, limit: Int!, folderId: ID!): [FolderItem!]
 
     alphaParcelMap(box: GeoBox!, limit: Int!, query: String!, zoom: Int): [MapPoint!]!
+
+    alphaRefreshTask(id: ID!): Task!
 }

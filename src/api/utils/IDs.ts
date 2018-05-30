@@ -14,4 +14,5 @@ export const IDs = {
     DebugReader: new ID('dr'),
     Folder: new ID('f'),
     FolderItem: new ID('fi'),
+    Task: new ID('task'),
 };

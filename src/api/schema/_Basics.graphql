@@ -49,3 +49,15 @@ enum MapSearchZoom {
     MEDIUM
     HIGH
 }
+
+enum TaskStatus {
+    IN_PROGRESS
+    FAILED
+    COMPLETED
+}
+
+type Task {
+    id: ID!
+    status: TaskStatus!
+    result: String
+}

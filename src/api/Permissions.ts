@@ -1,12 +1,14 @@
 import { CallContext } from './CallContext';
 import { Repos } from '../repositories';
-import { withPermission } from './utils/Resolvers';
+import { withPermission, withAny } from './utils/Resolvers';
 import { Organization } from '../tables/Organization';
 import { IDs } from './utils/IDs';
 import { DB } from '../tables';
 import { SuperAdmin } from '../tables/SuperAdmin';
 import { FeatureFlag } from '../tables/FeatureFlag';
 import { SuperCity } from '../tables/SuperCity';
+import { SampleWorker } from '../workers';
+import { Task } from '../tables/Task';
 
 export const Resolvers = {
     SuperAccount: {
@@ -26,6 +28,21 @@ export const Resolvers = {
             } else {
                 return 'SUPER_ADMIN';
             }
+        }
+    },
+    Task: {
+        id: (src: Task) => IDs.Task.serialize(src.id),
+        status: (src: Task) => {
+            if (src.taskStatus === 'completed') {
+                return 'COMPLETED';
+            } else if (src.taskStatus === 'failed') {
+                return 'FAILED';
+            } else {
+                return 'IN_PROGRESS';
+            }
+        },
+        result: (src: Task) => {
+            return src.result && JSON.stringify(src.result);
         }
     },
     SuperCity: {
@@ -73,6 +90,9 @@ export const Resolvers = {
         superCities: withPermission('super-admin', () => {
             return Repos.Permissions.resolveCiites();
         }),
+        alphaRefreshTask: withAny<{ id: string }>((args) => {
+            return DB.Task.findById(IDs.Task.parse(args.id));
+        })
     },
     Mutation: {
         superAccountAdd: withPermission<{ title: string }>('super-admin', (args) => {
@@ -140,6 +160,9 @@ export const Resolvers = {
             }
             await DB.SuperAdmin.destroy({ where: { userId: uid } });
             return 'ok';
+        }),
+        superMultiplyValue: withPermission<{ value: number }>(['super-admin', 'software-developer'], async (args) => {
+            return SampleWorker.pushWork({ someArgument: args.value });
         })
     }
 };

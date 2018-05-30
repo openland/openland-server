@@ -63,4 +63,6 @@ type Mutation {
     alphaAddToFolderFromSearch(folderId: ID!, state: String!, county: String!, city: String!, query: String): Int!
     alphaCreateFolderFromSearch(name: String!, state: String!, county: String!, city: String!, query: String): Folder!
     alphaParcelSetFolder(parcelId: ID!, folderId: ID): Parcel!
+
+    superMultiplyValue(value: Int!): Task!
 }

@@ -1,10 +1,11 @@
 import { LockState, LockProvider, DynamicLock } from './dynamicLocking';
-import { delay, forever } from '../utils/timer';
+import { delay, forever, delayBreakable } from '../utils/timer';
 import { DB } from '../tables';
 import { JsonMap } from '../utils/json';
 import { tryLock } from './locking';
 import sequelize from 'sequelize';
 import { exponentialBackoffDelay } from '../utils/exponentialBackoffDelay';
+import { Pubsub } from './pubsub';
 
 class TaskLocker implements LockProvider {
 
@@ -14,7 +15,6 @@ class TaskLocker implements LockProvider {
     }
 
     async lock(seed: string, timeout: number) {
-        // console.log('Lock ' + seed);
         let now = Date.now();
         return await DB.connection.transaction({ logging: false as any }, async (tx) => {
             let task = await DB.Task.findById(this.taskId, { lock: tx.LOCK.UPDATE, transaction: tx, logging: false });
@@ -30,7 +30,6 @@ class TaskLocker implements LockProvider {
         });
     }
     async unlock(seed: string) {
-        // console.log('Unlock ' + seed);
         return await DB.connection.transaction({ logging: false as any }, async (tx) => {
             let task = await DB.Task.findById(this.taskId, { lock: tx.LOCK.UPDATE, transaction: tx, logging: false });
             if (!task) {
@@ -46,11 +45,11 @@ class TaskLocker implements LockProvider {
         });
     }
     async refresh(seed: string, timeout: number) {
-        // console.log('Refresh ' + seed);
         return this.lock(seed, timeout);
     }
 }
 
+const pubsub = new Pubsub<{ taskId: number }>();
 const Locker = new DynamicLock({ lockTimeout: 10000, refreshInterval: 1000 });
 const MaximumFailingNumber = 5;
 
@@ -138,26 +137,48 @@ export function startScheduller() {
         if (res) {
             await delay(100);
         } else {
-            await delay(1000);
+            await delay(10000);
         }
     });
 }
 
-export class WorkQueue<T extends JsonMap> {
+export class WorkQueue<ARGS extends JsonMap, RES extends JsonMap> {
     private taskType: string;
 
     constructor(taskType: string) {
         this.taskType = taskType;
     }
 
-    pushWork = async (work: T) => {
-        return (await DB.Task.create({
+    pushWork = async (work: ARGS) => {
+        let res = (await DB.Task.create({
             taskType: this.taskType,
             arguments: work
-        })).id;
+        }));
+        pubsub.publish('work_added', {
+            taskId: res.id
+        });
+        return res;
     }
 
-    addWorker = (handler: (item: T, state: LockState) => void) => {
+    addWorker = (handler: (item: ARGS, state: LockState) => RES | Promise<RES>) => {
+        let maxKnownWorkId = 0;
+        let waiter: (() => void) | null = null;
+        pubsub.subscribe('work_added', (data) => {
+            if (waiter) {
+                if (maxKnownWorkId < data.taskId) {
+                    maxKnownWorkId = data.taskId;
+                    waiter();
+                }
+                // if (lastOffset !== null && lastSecondary !== null) {
+                //     let lastTime = new Date(lastOffset).getTime();
+                //     let dataTime = new Date(data.offset).getTime();
+                //     let changed = dataTime > lastTime || (dataTime === lastTime && lastSecondary > data.secondary);
+                //     if (changed) {
+                //         waiter();
+                //     }
+                // }
+            }
+        });
         forever(async () => {
             let task = await DB.Task.find({
                 where: {
@@ -177,8 +198,9 @@ export class WorkQueue<T extends JsonMap> {
                     await task!!.save({ logging: false });
 
                     // Executing handler
+                    let res: RES;
                     try {
-                        await handler(task!!.arguments as T, state);
+                        res = await handler(task!!.arguments as ARGS, state);
                     } catch (e) {
                         console.warn(e);
 
@@ -194,12 +216,16 @@ export class WorkQueue<T extends JsonMap> {
 
                     // Mark as completed
                     state.check();
+                    task!!.result = res;
                     task!!.taskStatus = 'completed';
                     await task!!.save({ logging: false });
                 });
                 await delay(100);
             } else {
-                await delay(1000);
+                let b = delayBreakable(10000);
+                waiter = b.resolver;
+                await b.promise;
+                waiter = null;
             }
         });
     }
