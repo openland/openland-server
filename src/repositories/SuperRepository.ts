@@ -26,6 +26,13 @@ export class SuperRepository {
         });
     }
 
+    async renameOrganization(id: number, title: string) {
+        let org = await this.fetchById(id);
+        org.title = title;
+        await org.save();
+        return org;
+    }
+
     async activateOrganization(id: number) {
         let org = await this.fetchById(id);
         org.status = 'ACTIVATED';

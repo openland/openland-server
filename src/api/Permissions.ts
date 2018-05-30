@@ -78,6 +78,9 @@ export const Resolvers = {
         superAccountAdd: withPermission<{ title: string }>('super-admin', (args) => {
             return Repos.Super.createOrganization(args.title);
         }),
+        superAccountRename: withPermission<{ id: string, title: string }>('super-admin', (args) => {
+            return Repos.Super.renameOrganization(IDs.SuperAccount.parse(args.id), args.title);
+        }),
         superAccountActivate: withPermission<{ id: string }>('super-admin', (args) => {
             return Repos.Super.activateOrganization(IDs.SuperAccount.parse(args.id));
         }),
