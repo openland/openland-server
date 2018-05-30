@@ -10,8 +10,8 @@ export interface TaskAttributes {
     arguments: JsonMap;
 
     taskStatus: TaskStatus;
-    taskFailureCount: number;
-    taskFailureTime: Date;
+    taskFailureCount: number | null;
+    taskFailureTime: Date | null;
     taskLockSeed: string | null;
     taskLockTimeout: Date | null;
 }
@@ -27,7 +27,7 @@ export const TaskTable = connection.define<Task, Partial<TaskAttributes>>('task'
 
     taskStatus: { type: sequelize.STRING, allowNull: false, defaultValue: 'pending' },
 
-    taskFailureCount: { type: sequelize.INTEGER, allowNull: true },
+    taskFailureCount: { type: sequelize.INTEGER, allowNull: false, defaultValue: 0 },
     taskFailureTime: { type: sequelize.DATE, allowNull: true },
     taskLockSeed: { type: sequelize.STRING, allowNull: true },
     taskLockTimeout: { type: sequelize.DATE, allowNull: true },

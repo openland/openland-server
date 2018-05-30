@@ -1,3 +1,5 @@
+import { exponentialBackoffDelay } from './exponentialBackoffDelay';
+
 export function delayBreakable(ms: number) {
     // We can cancel delay from outer code
     let promiseResolver: ((value?: any | PromiseLike<any>) => void) | null = null;
@@ -33,8 +35,7 @@ export async function backoff<T>(callback: () => Promise<T>): Promise<T> {
                 console.warn(e);
             }
 
-            let maxDelayRet = minDelay + ((maxDelay - minDelay) / maxFailureCount) * currentFailureCount;
-            let waitForRequest = Math.random() * maxDelayRet;
+            let waitForRequest = exponentialBackoffDelay(currentFailureCount, minDelay, maxDelay, maxFailureCount);
             await delay(waitForRequest);
         }
     }
