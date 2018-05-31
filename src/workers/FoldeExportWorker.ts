@@ -43,7 +43,7 @@ export function createExportWorker() {
         });
 
         let wrap = (data: any) => {
-            return '"' + (data !== null && data !== undefined ? data.replace(/"/g, '""') : '') + '"';
+            return '"' + (data !== null && data !== undefined ? String(data).replace(/"/g, '""') : '') + '"';
         };
 
         let csvContent = 'City,';
@@ -57,7 +57,8 @@ export function createExportWorker() {
             if (!row || !row.lot) {
                 continue;
             }
-            csvContent += wrap(await Parcel.Parcel.city(row.lot) || '') + ',';
+            let city = await Parcel.Parcel.city(row.lot);
+            csvContent += wrap(city ? city.name || '' : '') + ',';
             csvContent += wrap(parcelNumberFormat({ id: await Parcel.Parcel.number(row.lot) })) + ',';
             csvContent += wrap(await Parcel.Parcel.address(row.lot) || '') + ',';
 
