@@ -44,6 +44,8 @@ export async function startApi() {
 
     // To avoid logging on this route
     app.get('/', (req, res) => res.send('Welcome to Openland API!'));
+    app.get('/status', (req, res) => res.send('Welcome to Openland API!'));
+    app.get('/healthz', (req, res) => res.send('Welcome to Openland API!'));
     app.get('/favicon.ico', (req, res) => res.send(404));
 
     // Basic Configuration
