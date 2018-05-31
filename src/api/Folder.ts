@@ -7,6 +7,7 @@ import { ElasticClient } from '../indexing';
 import { SelectBuilder } from '../modules/SelectBuilder';
 import { FolderItem } from '../tables/FolderItem';
 import * as Turf from '@turf/turf';
+import { FoldeExportWorker } from '../workers';
 
 export const Resolver = {
     Folder: {
@@ -344,6 +345,21 @@ export const Resolver = {
                 await Repos.Folders.setFolderBatch(orgId, parcels, tx, folder.id);
                 return folder;
             });
+        }),
+        alphaExportFolder:  withAccount<{ folderId: string}>(async (args, uid, orgId) => {
+            let id = IDs.Folder.parse(args.folderId);
+
+            let folder = await DB.Folder.find({
+                where: {
+                    organizationId: orgId,
+                    id: id
+                },
+            });
+            if (!folder) {
+                throw Error('Unable to find folder');
+            }
+
+            return FoldeExportWorker.pushWork({ folderId: id });
         }),
     }
 };
