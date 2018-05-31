@@ -43,11 +43,10 @@ export function createExportWorker() {
         });
 
         let wrap = (data: any) => {
-            return '"' + (data !== null && data !== undefined ? data : '') + '"';
+            return '"' + (data !== null && data !== undefined ? data.replace(/"/g, '""') : '') + '"';
         };
 
-        let csvContent = 'data:text/csv;charset=utf-8,';
-        csvContent += 'City,';
+        let csvContent = 'City,';
         csvContent += 'Parcel,';
         csvContent += 'Address,';
         csvContent += 'Area,';
