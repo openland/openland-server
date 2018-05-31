@@ -8,7 +8,7 @@ import * as Auth1 from './handlers/authV1';
 import * as Auth2 from './handlers/authV2';
 import * as Context from './handlers/context';
 
-export default function () {
+export async function startApi() {
 
     console.info('Starting...');
 

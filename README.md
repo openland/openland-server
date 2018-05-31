@@ -14,10 +14,11 @@
    - `sudo brew services start elasticsearch`
    - `sudo brew services start kibana`
    - `sudo brew services start minio`
-10) Change minio credentials: 
+10) Configure credentials: 
  - `/usr/local/etc/minio/config.json`
      - accessKey: DVCZH2DPBB0PNY5SQSFB
      - secretKey: 6yElhMkUjDYB8Y+gTE9hBJXUY+otqDp5zRnl0zYm
  - restart: `sudo brew services restart minio`
+ - create bucket `files` at http://127.0.0.1:9900/
 9) Run server `yarn dev`
 10) go get some coffee

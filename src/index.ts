@@ -1,11 +1,12 @@
 import * as db from './connector';
-import * as server from './server';
+import { startApi } from './server';
 import * as cluster from 'cluster';
 import * as fs from 'fs';
 import * as cp from 'child_process';
 import { enableIndexer } from './indexing';
 import { initWorkers } from './workers';
 import { redisClient } from './modules/redis/redis';
+import { checkFilesConfig } from './modules/files';
 
 if (cluster.isMaster) {
     initMater();
@@ -57,9 +58,8 @@ async function initMater() {
 }
 
 async function initWorker() {
-    server.default();
-    if (process.env.ELASTIC_ENDPOINT && process.env.ELASTIC_ENABLE_INDEXING !== 'false') {
-        await enableIndexer();
-    }
+    await checkFilesConfig();
+    await enableIndexer();
     await initWorkers();
+    await startApi();
 }

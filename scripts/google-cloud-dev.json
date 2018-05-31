@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "statecraft-188615",
+  "private_key_id": "2ddac6b0c1e7a4936df89a36b33eefd6fcc4f3dc",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDiA84VRJpqmw1F\n8tCGejinOTjfO43HZwWD3ImOah2CyyftuT8EWlBltyyyIgWs5vhqKFmZ0wJsMmS6\n7luKh9vpGhA5krxZuVFe7dqJEUYNxLxdvRyWwgK4D46C0htHa6BqCJ1dDmc7Bq+k\nRphx201zMr+P0bw2iR5M8To490BBhmJv38WB1oZH/Mn3k9JPkcS9s0rJHgqHnpyc\nAYkYFnhRsIWci8s637G9RY6DLoVk2dP/wV3JarEQzkM/oQe4IW4bBn30CCi59avc\nJNBxn0rMcgGthpuOMog9AHd/HmCIwQeMYuQp2mJ4phTfp5IX0jWjOBioNXsW9JOL\nSwwNTW4pAgMBAAECggEAAJcUNA3DbfUU8CpxxTIfQP+HIJ0YEg3Yr7cVFF4+ULu9\nUVN3IMioFlXnu9jXJTQOsL9FeZ95jYUFqo/KBSb06etHoNDbZUwUtG/gTtSQ12Mc\nv01pvFKKHYcr3vdTuyhiqTg3yfkKR7cNIRuOlRiGn58BrUtVx5oszjRgi6rInAsv\np2VD9yWW7xuJ5OYg5KqxTpiqIEFM43Px1npRXKKTxX8/bL2y2hz3GR9Ncqh/6onr\n6A9n1eUiypkRr+c9piL8oFBJs3+YzYivfLdQDcD8Y9az9qRqWwc2EzuN+aTkYwwJ\nEWpEW+uZmwF+1D8eyYKQRCdCvSy2ZStgcI7KLIUc8QKBgQD8on62HyvWDG+gl6rX\n4bcyrLDwp0tm0+OnZahXciYmVWuSjEwAh6GdgkfXxtpIPXdMcx8EFHDkR8n5uo7i\nA4PEMdQ6jPg0Wt3WRZKj7vTlE8x/xj39t2xIH9LHNCBaDyFKjp7DPfGBY1uboQU8\nkLVBhYSv4/amk6OivALY1i5rWQKBgQDlBoi5f2HTR79GRAN4BiDrxGHzB5D5t1iJ\nPlfwFRtIVl+evoiU8HopypEmbp3OBQh6fKV/l3kNsplFolmwdEXBZa2o41gPGnt4\n/AlDCZ5mu0/4sQxoEWRLyrSTwk7y7m1DhEb9rDRjQyQy8gpxAjGrzCEmqoMqtWYY\nXT6A6sVPUQKBgE4OguoQfYHYO9E5q06ibfEZTF4+wlxWEZvSHA5QtZrYf7E66eyr\n+3JoI3x281CotSiI1Ud0bWELEUu4qZcJkPfYkYM5tSKwBKTEwEcoeMAiuuerv9GZ\nj7pFIuHrqCdLT3Ty1fjrNahNo6tVOAH7kBVbhKC35aiYK1IHlzWaD6OZAoGAbee2\n0R3Z+iQiHDwjVgPK5Jl3T8M/xTZBHIt4c9QNJaedd3aD4MWOOmPlSAYpYGZ17SHH\n4fT0uKgOeaYxWEZT+z0qGzQOXCEfQ63fW/ZPt4kIFZYRGBfQg7ag9Y93h4j3kkD2\nOGHdOg1MX85bSGP/JixtdDq7e1FVzzdf+UmwqiECgYEArrhlc6dfeLZKWgwvxqlm\n0Y1jhIIei+Xx+8i+B9gtu1ASsaEZr0GsNsQ3tnjcI0Fa4QhLFvAtPwIJlBo8XZlR\nkoGbFkH1Niwhsr3TWi4pqXMqv5dl9Nltl9f/ZFRmYUaVFkjYtsfS5HqUwJGAlcYJ\nktj5AjlP4lsZi9lx5OJkWhs=\n-----END PRIVATE KEY-----\n",
+  "client_email": "server-development@statecraft-188615.iam.gserviceaccount.com",
+  "client_id": "107714027092571655372",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://accounts.google.com/o/oauth2/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/server-development%40statecraft-188615.iam.gserviceaccount.com"
+}
