@@ -2,6 +2,8 @@ import { WorkQueue } from '../modules/workerQueue';
 import { DB } from '../tables';
 import { Resolver as Parcel } from '../api/Parcels';
 import { JsonMap, JsonArray } from '../utils/json';
+import { Services } from '../services';
+import { ContentType } from '../modules/files';
 
 let parcelNumberFormat = (parcel: {
     id: {
@@ -70,8 +72,8 @@ export function createExportWorker() {
             csvContent += wrap(await Parcel.Parcel.extrasZoning(row.lot) || '') + ',';
             csvContent += '\r\n';
         }
-
-        return { downloadLink: 'length: ' + csvContent.length };
+        let upload = await Services.Files.exports.createFile('export.csv', csvContent, ContentType.CSV);
+        return { downloadLink: upload };
     });
     return queue;
 }
