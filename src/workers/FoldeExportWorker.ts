@@ -15,11 +15,11 @@ let parcelNumberFormat = (parcel: {
     }
 }) => {
     if (parcel.id.borough && parcel.id.block && parcel.id.lot) {
-        return  parcel.id.boroughId + '-' + (parcel.id.blockPadded || parcel.id.block + '-' + parcel.id.lotPadded || parcel.id.lot);
+        return parcel.id.boroughId + '-' + (parcel.id.blockPadded || parcel.id.block + '-' + parcel.id.lotPadded || parcel.id.lot);
     } else if (parcel.id.block && parcel.id.lot) {
         return (parcel.id.blockPadded || parcel.id.block) + ' - ' + (parcel.id.lotPadded || parcel.id.lot);
     } else {
-        return  parcel.id.title;
+        return parcel.id.title;
     }
 };
 
@@ -28,11 +28,14 @@ export function createExportWorker() {
     queue.addWorker(async (item) => {
 
         let items = await DB.FolderItem.findAll({
+            where: {
+                folderId: item.folderId
+            },
             include: [{
                 model: DB.Lot,
                 as: 'lot',
                 where: {
-                    retired: false
+                    retired: false,
                 }
             }]
         });
