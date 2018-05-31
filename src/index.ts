@@ -59,7 +59,9 @@ async function initMater() {
 
 async function initWorker() {
     await checkFilesConfig();
-    await enableIndexer();
+    if (process.env.ELASTIC_ENABLE_INDEXING !== 'false') {
+        await enableIndexer();
+    }
     await initWorkers();
     await startApi();
 }
