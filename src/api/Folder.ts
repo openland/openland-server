@@ -48,12 +48,12 @@ export const Resolver = {
                 case 'all':
                     return 0;
                 default:
-                    return (await DB.FolderItem.findAndCountAll({
+                    return (await DB.FolderItem.count({
                         where: {
                             folderId: src.id!!,
                             organizationId: orgId!!
                         }
-                    })).count;
+                    }));
             }
         }),
         parcels: withAccountTypeOptional<Folder | 'favorites' | 'all'>(async (src, uid, orgId) => {
@@ -233,7 +233,7 @@ export const Resolver = {
                 .after(args.after)
                 .page(args.page)
                 .limit(args.first);
-            return builder.findAll([{ model: DB.Lot, as: 'lot' }]);
+            return builder.findAll([{ model: DB.Lot, as: 'lot' }], {});
         }),
         alphaFolderItemsOverlay: withAccount<{ folderId: string, box: { south: number, north: number, east: number, west: number }, limit: number }>((args, uid, orgId) => {
             return Repos.Folders.fetchGeoFolderItems(orgId, args.box, args.limit, IDs.Folder.parse(args.folderId));
