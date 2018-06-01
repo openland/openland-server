@@ -53,7 +53,7 @@ export const Resolver = {
                             folderId: src.id!!,
                             organizationId: orgId!!
                         }
-                    }));
+                    })).count;
             }
         }),
         parcels: withAccountTypeOptional<Folder | 'favorites' | 'all'>(async (src, uid, orgId) => {
