@@ -233,11 +233,9 @@ export const Resolver = {
                 .after(args.after)
                 .page(args.page)
                 .limit(args.first);
-            return builder.findAll([{ model: DB.Lot, as: 'lot' }], {
-                '$lot.retired$': false
-            });
+            return builder.findAll([{ model: DB.Lot, as: 'lot' }]);
         }),
-        alphaFolderItemsOverlay: withAccount<{ folderId: string, box: { south: number, north: number, east: number, west: number }, limit: number}>((args, uid, orgId) => {
+        alphaFolderItemsOverlay: withAccount<{ folderId: string, box: { south: number, north: number, east: number, west: number }, limit: number }>((args, uid, orgId) => {
             return Repos.Folders.fetchGeoFolderItems(orgId, args.box, args.limit, IDs.Folder.parse(args.folderId));
         }),
     },
@@ -346,7 +344,7 @@ export const Resolver = {
                 return folder;
             });
         }),
-        alphaExportFolder:  withAccount<{ folderId: string}>(async (args, uid, orgId) => {
+        alphaExportFolder: withAccount<{ folderId: string }>(async (args, uid, orgId) => {
             let id = IDs.Folder.parse(args.folderId);
 
             let folder = await DB.Folder.find({

@@ -35,10 +35,7 @@ export function createExportWorker() {
             },
             include: [{
                 model: DB.Lot,
-                as: 'lot',
-                where: {
-                    retired: false,
-                }
+                as: 'lot'
             }]
         });
 
