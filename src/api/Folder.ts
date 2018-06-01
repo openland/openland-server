@@ -48,7 +48,7 @@ export const Resolver = {
                 case 'all':
                     return 0;
                 default:
-                    return (await DB.FolderItem.count({
+                    return (await DB.FolderItem.findAndCountAll({
                         where: {
                             folderId: src.id!!,
                             organizationId: orgId!!
