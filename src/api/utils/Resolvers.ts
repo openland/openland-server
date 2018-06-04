@@ -77,6 +77,15 @@ export function withAccount<T = {}>(resolver: (args: T, uid: number, org: number
     };
 }
 
+export function withUser<T = {}>(resolver: (args: T, uid: number) => any) {
+    return async function (_: any, args: T, context: CallContext) {
+        if (!context.uid) {
+            throw Error('Access Denied');
+        }
+        return resolver(args, context.uid!!);
+    };
+}
+
 export function withAccountTypeOptional<T = {}>(resolver: (args: T, uid?: number, org?: number) => any) {
     return async function (args: T, _: any, context: CallContext) {
         let uid = context.uid;

@@ -12,8 +12,8 @@ export function normalizeCapitalized(str: string) {
     }).join(' ');
 }
 
-export function normalizeNullableUserInput(str: string | null) {
-    if (str !== null) {
+export function normalizeNullableUserInput(str?: string | null) {
+    if (str !== null && str !== undefined) {
         str = str.trim();
         if (str.length > 0) {
             return str.trim();

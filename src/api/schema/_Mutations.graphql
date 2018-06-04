@@ -66,4 +66,6 @@ type Mutation {
     alphaExportFolder(folderId: ID!): Task!
     
     superMultiplyValue(value: Int!): Task!
+
+    alphaSaveProfile(firstName: String!, lastName: String, photo: AvatarUpload): String!
 }

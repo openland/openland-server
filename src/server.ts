@@ -66,7 +66,7 @@ export async function startApi() {
     //
     // Authenticaton
     //
-    app.post('/auth', Auth1.JWTChecker, bodyParser.json(), Auth1.Authenticator);
+    // app.post('/auth', Auth1.JWTChecker, bodyParser.json(), Auth1.Authenticator);
     app.post('/v2/auth', Auth2.JWTChecker, bodyParser.json(), Auth2.Authenticator);
 
     // Starting Api

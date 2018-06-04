@@ -12,20 +12,20 @@ export class FoldersRepository {
             throw Error('Name can\'t be empty');
         }
 
-            let folder = await DB.Folder.create({
-                name: name,
-                organizationId: orgId,
-            });
-            if (initialParcels) {
-                for (let parcelId of initialParcels) {
-                    let parcel = await Repos.Parcels.fetchParcelByRawMapId(parcelId);
-                    if (!parcel) {
-                        throw Error('Unable to find parcel');
-                    }
-                    await Repos.Folders.setFolder(orgId, parcel.id!!, folder.id!!, transaction);
+        let folder = await DB.Folder.create({
+            name: name,
+            organizationId: orgId,
+        });
+        if (initialParcels) {
+            for (let parcelId of initialParcels) {
+                let parcel = await Repos.Parcels.fetchParcelByRawMapId(parcelId);
+                if (!parcel) {
+                    throw Error('Unable to find parcel');
                 }
+                await Repos.Folders.setFolder(orgId, parcel.id!!, folder.id!!, transaction);
             }
-            return folder;
+        }
+        return folder;
     }
 
     async setFolder(orgId: number, parcelId: number, folderId?: number, transaction?: Transaction) {

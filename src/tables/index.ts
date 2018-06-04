@@ -41,7 +41,7 @@ import { LotTable } from './Lot';
 import { IncidentTable } from './Incidents';
 import { ParcelIDTable } from './ParcelID';
 import { SuperAdminTable } from './SuperAdmin';
-import { UserTokenTable } from './UserTokens';
+import { UserTokenTable } from './UserToken';
 import { OrganizationTable } from './Organization';
 import { DealTable } from './Deal';
 import { FeatureFlagTable } from './FeatureFlag';
@@ -52,6 +52,7 @@ import { SuperCityTable } from './SuperCity';
 import { FolderTable } from './Folder';
 import { FolderItemTable } from './FolderItem';
 import { TaskTable } from './Task';
+import { UserProfileTable } from './UserProfile';
 
 export const DB = {
     User: UserTable,
@@ -86,6 +87,7 @@ export const DB = {
     Folder: FolderTable,
     FolderItem: FolderItemTable,
     Task: TaskTable,
+    UserProfile: UserProfileTable,
 
     tx: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>): Promise<A> {
         return await connection.transaction({ isolationLevel: 'SERIALIZABLE' }, (tx2: sequelize.Transaction) => handler(tx2));

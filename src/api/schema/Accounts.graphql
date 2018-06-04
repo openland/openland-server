@@ -13,8 +13,8 @@ type User {
     id: ID!
     name: String!
     firstName: String!
-    lastName: String!
-    picture: String!
+    lastName: String
+    picture: String
     email: String!
     isYou: Boolean!
 }
@@ -34,4 +34,12 @@ type MyProfile {
     isAccountActivated: Boolean!
     isCompleted: Boolean!
     isBlocked: Boolean!
+}
+
+input AvatarUpload {
+    uploadId: String!
+    cropX: Int!
+    cropY: Int!
+    cropW: Int!
+    cropH: Int!
 }
