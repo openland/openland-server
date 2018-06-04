@@ -15,6 +15,21 @@ export const Resolver = {
         title: (src: Organization) => src.title
     },
     Query: {
+        alphaProfilePrefill: async function (_: any, args: {}, context: CallContext) {
+            if (!context.uid) {
+                return {};
+            }
+            let prefill = await DB.UserProfilePrefill.find({ where: { userId: context.uid } });
+            if (prefill) {
+                return {
+                    firstName: prefill.firstName,
+                    lastName: prefill.lastName,
+                    picture: prefill.picture
+                };
+            } else {
+                return {};
+            }
+        },
         myProfile: async function (_: any, args: {}, context: CallContext) {
             if (!context.uid) {
                 return {

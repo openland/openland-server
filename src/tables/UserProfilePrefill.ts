@@ -20,6 +20,6 @@ export const UserProfilePrefillTable = connection.define<UserProfilePrefill, Par
     firstName: { type: sequelize.STRING, allowNull: true },
     lastName: { type: sequelize.STRING, allowNull: true },
     picture: { type: sequelize.STRING, allowNull: true }
-}, { paranoid: true });
+});
 
 UserProfilePrefillTable.belongsTo(UserTable, { as: 'user' });

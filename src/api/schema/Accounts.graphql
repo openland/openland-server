@@ -19,6 +19,12 @@ type User {
     isYou: Boolean!
 }
 
+type ProfilePrefill {
+    firstName: String
+    lastName: String
+    picture: String
+}
+
 type Permissions {
     roles: [String!]!
 }

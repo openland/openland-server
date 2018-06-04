@@ -90,4 +90,6 @@ type Query {
     alphaParcelMap(box: GeoBox!, limit: Int!, query: String!, zoom: Int): [MapPoint!]!
 
     alphaRefreshTask(id: ID!): Task!
+
+    alphaProfilePrefill: ProfilePrefill!
 }
