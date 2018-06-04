@@ -4,7 +4,6 @@ import * as cors from 'cors';
 import * as morgan from 'morgan';
 import { Engine } from 'apollo-engine';
 import * as compression from 'compression';
-import * as Auth1 from './handlers/authV1';
 import * as Auth2 from './handlers/authV2';
 import * as Context from './handlers/context';
 
@@ -60,13 +59,12 @@ export async function startApi() {
     // API
     //
     let graphqlMiddleware = Context.graphqlMiddleware(engine != null);
-    app.use('/api', Auth1.JWTChecker, Auth2.TokenChecker, bodyParser.json({ limit: '5mb' }), graphqlMiddleware);
-    app.use('/graphql', Auth1.JWTChecker, Auth2.TokenChecker, bodyParser.json({ limit: '5mb' }), graphqlMiddleware);
+    app.use('/api', Auth2.TokenChecker, bodyParser.json({ limit: '5mb' }), graphqlMiddleware);
+    app.use('/graphql', Auth2.TokenChecker, bodyParser.json({ limit: '5mb' }), graphqlMiddleware);
 
     //
     // Authenticaton
     //
-    // app.post('/auth', Auth1.JWTChecker, bodyParser.json(), Auth1.Authenticator);
     app.post('/v2/auth', Auth2.JWTChecker, bodyParser.json(), Auth2.Authenticator);
 
     // Starting Api

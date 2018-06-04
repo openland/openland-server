@@ -69,8 +69,8 @@ export const Authenticator = async function (req: express.Request, response: exp
         });
         let profile = await res.json<Profile>();
 
-        let firstName = 'No Name';
-        let lastName = '';
+        let firstName: string | null = null;
+        let lastName: string | null = null;
         if (profile.nickname) {
             firstName = profile.nickname;
         }
@@ -81,40 +81,35 @@ export const Authenticator = async function (req: express.Request, response: exp
             lastName = profile.family_name;
         }
 
-        console.warn('auth2');
-        console.warn(profile);
-
         //
         // Get Or Create User
         //
-        let uid = await DB.tx(async () => {
+        let uid = await DB.tx(async (tx) => {
             let userKey = req.user.sub;
+
+            // Account
             let user = await DB.User.find({
                 where: {
                     authId: userKey
-                }
+                },
+                transaction: tx
             });
-            if (user != null) {
-                await DB.User.update({
-                    firstName: firstName,
-                    lastName: lastName,
-                    email: profile.email.toLowerCase(),
-                    picture: profile.picture
-                }, {
-                        where: {
-                            authId: userKey
-                        },
-                    });
-                return user.id!!;
-            } else {
-                return (await DB.User.create({
-                    authId: userKey,
-                    firstName: firstName,
-                    lastName: lastName,
-                    email: profile.email.toLowerCase(),
-                    picture: profile.picture
-                })).id!!;
+            if (user === null) {
+                user = (await DB.User.create({ authId: userKey, email: profile.email.toLowerCase(), }, { transaction: tx }));
             }
+
+            // Prefill
+            let prefill = await DB.UserProfilePrefill.find({ where: { userId: user.id!! }, transaction: tx });
+            if (!prefill) {
+                await DB.UserProfilePrefill.create({
+                    userId: user.id!!,
+                    firstName: firstName,
+                    lastName: lastName,
+                    picture: profile.picture
+                }, { transaction: tx });
+            }
+
+            return user.id!!;
         });
 
         //
