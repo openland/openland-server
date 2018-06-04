@@ -35,19 +35,15 @@ export function createExportWorker() {
             },
             include: [{
                 model: DB.Lot,
-                as: 'lot',
-                where: {
-                    retired: false,
-                }
+                as: 'lot'
             }]
         });
 
         let wrap = (data: any) => {
-            return '"' + (data !== null && data !== undefined ? data : '') + '"';
+            return '"' + (data !== null && data !== undefined ? String(data).replace(/"/g, '""') : '') + '"';
         };
 
-        let csvContent = 'data:text/csv;charset=utf-8,';
-        csvContent += 'City,';
+        let csvContent = 'City,';
         csvContent += 'Parcel,';
         csvContent += 'Address,';
         csvContent += 'Area,';
@@ -58,7 +54,8 @@ export function createExportWorker() {
             if (!row || !row.lot) {
                 continue;
             }
-            csvContent += wrap(await Parcel.Parcel.city(row.lot) || '') + ',';
+            let city = await Parcel.Parcel.city(row.lot);
+            csvContent += wrap(city ? city.name || '' : '') + ',';
             csvContent += wrap(parcelNumberFormat({ id: await Parcel.Parcel.number(row.lot) })) + ',';
             csvContent += wrap(await Parcel.Parcel.address(row.lot) || '') + ',';
 

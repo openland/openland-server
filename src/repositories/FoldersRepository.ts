@@ -152,7 +152,7 @@ export class FoldersRepository {
     }
 
     async fetchGeoFolderItems(organization: number, box: { south: number, north: number, east: number, west: number }, limit: number, folderId: number) {
-        let clauses: any[] = [{ term: { orgId: organization } }, { term: { folderId: folderId } }, { term: { retired: false } }];
+        let clauses: any[] = [{ term: { orgId: organization } }, { term: { folderId: folderId } }, { term: { item_retired: false } }];
 
         let hits = await ElasticClient.search({
             index: 'folder_items',
