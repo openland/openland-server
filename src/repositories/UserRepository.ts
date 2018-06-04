@@ -1,12 +1,5 @@
 import { DB } from '../tables';
-
-export interface AvatarUpload {
-    uploadId: string;
-    cropX: number;
-    cropY: number;
-    cropW: number;
-    cropH: number;
-}
+import { ImageRef } from './Media';
 
 export class UserRepository {
     private userCache = new Map<string, number | undefined>();
@@ -43,7 +36,7 @@ export class UserRepository {
         }
     }
 
-    async saveProfile(uid: number, firstName: string, lastName: string | null, photo: AvatarUpload | null) {
+    async saveProfile(uid: number, firstName: string, lastName: string | null, photo?: ImageRef | null) {
         return await DB.tx(async (tx) => {
             let existing = await DB.UserProfile.find({ where: { userId: uid }, transaction: tx });
             if (!existing) {
@@ -51,10 +44,14 @@ export class UserRepository {
                     userId: uid,
                     firstName: firstName,
                     lastName: lastName,
+                    picture: photo,
                 }, { transaction: tx });
             } else {
                 existing.firstName = firstName;
                 existing.lastName = lastName;
+                if (photo !== undefined) {
+                    existing.picture = photo;
+                }
                 await existing.save({ transaction: tx });
                 return existing;
             }

@@ -3,6 +3,7 @@ import { CallContext } from './CallContext';
 import { IDs } from './utils/IDs';
 import { UserProfile } from '../tables/UserProfile';
 import * as DataLoader from 'dataloader';
+import { buildBaseImageUrl } from '../repositories/Media';
 
 function userLoader(context: CallContext) {
     if (!context.cache.has('__profile_loader')) {
@@ -53,7 +54,7 @@ export const Resolver = {
         name: withProfile((src, profile) => [profile.firstName, profile.lastName].filter((v) => !!v).join(' ')),
         firstName: withProfile((src, profile) => profile.firstName),
         lastName: withProfile((src, profile) => profile.lastName),
-        picture: withProfile((src, profile) => profile.picture),
+        picture: withProfile((src, profile) => profile.picture ? buildBaseImageUrl(profile.picture) : null),
         email: (src: User) => src.email,
         isYou: (src: User, args: {}, context: CallContext) => src.id === context.uid
     },

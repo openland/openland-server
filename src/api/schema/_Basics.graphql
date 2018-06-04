@@ -61,3 +61,15 @@ type Task {
     status: TaskStatus!
     result: String
 }
+
+input ImageCrop {
+    x: Int!
+    y: Int!
+    w: Int!
+    h: Int!
+}
+
+input ImageRefInput {
+    uuid: String!
+    crop: ImageCrop
+}
