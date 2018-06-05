@@ -8,8 +8,7 @@ export class UserRepository {
         return await DB.User.findAll({
             where: {
                 organizationId: organizationId
-            },
-            order: ['firstName', 'lastName']
+            }
         });
     }
 
