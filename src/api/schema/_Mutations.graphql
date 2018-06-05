@@ -67,5 +67,5 @@ type Mutation {
     
     superMultiplyValue(value: Int!): Task!
 
-    alphaSaveProfile(firstName: String!, lastName: String, photo: ImageRefInput): String!
+    alphaSaveProfile(firstName: String!, lastName: String, photo: ImageRefInput, phone: Int): String!
 }

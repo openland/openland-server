@@ -114,13 +114,13 @@ export const Resolver = {
         }
     },
     Mutation: {
-        alphaSaveProfile: withUser<{ firstName: string, lastName?: string | null, photo?: ImageRef | null }>(async (args, uid) => {
+        alphaSaveProfile: withUser<{ firstName: string, lastName?: string | null, photo?: ImageRef | null, phone?: number }>(async (args, uid) => {
             let lastNameNormalized = normalizeNullableUserInput(args.lastName);
             let firstNameNormalized = args.firstName.trim();
             if (firstNameNormalized.length === 0) {
                 throw Error('First name can\'t be empty');
             }
-            await Repos.Users.saveProfile(uid, firstNameNormalized, lastNameNormalized, args.photo);
+            await Repos.Users.saveProfile(uid, firstNameNormalized, lastNameNormalized, args.photo, args.phone);
             return 'ok';
         })
     }

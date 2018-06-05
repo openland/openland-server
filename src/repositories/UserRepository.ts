@@ -48,7 +48,7 @@ export class UserRepository {
         })).map((v) => v.orgId);
     }
 
-    async saveProfile(uid: number, firstName: string, lastName: string | null, photo?: ImageRef | null) {
+    async saveProfile(uid: number, firstName: string, lastName: string | null, photo?: ImageRef | null, phone?: number | null) {
         return await DB.tx(async (tx) => {
             let existing = await DB.UserProfile.find({ where: { userId: uid }, transaction: tx });
             if (!existing) {
@@ -57,12 +57,16 @@ export class UserRepository {
                     firstName: firstName,
                     lastName: lastName,
                     picture: photo,
+                    phone: phone
                 }, { transaction: tx });
             } else {
                 existing.firstName = firstName;
                 existing.lastName = lastName;
                 if (photo !== undefined) {
                     existing.picture = photo;
+                }
+                if (phone !== undefined) {
+                    existing.phone = phone;
                 }
                 await existing.save({ transaction: tx });
                 return existing;

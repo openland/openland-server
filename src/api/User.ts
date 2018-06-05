@@ -53,6 +53,7 @@ export const Resolver = {
         lastName: withProfile((src, profile) => profile ? profile.lastName : null),
         picture: withProfile((src, profile) => profile && profile.picture ? buildBaseImageUrl(profile.picture) : null),
         isCreated: withProfile((src, profile) => !!profile),
+        phone: withProfile((src, profile) => profile ? profile.phone : null),
         email: (src: User) => src.email,
         isYou: (src: User, args: {}, context: CallContext) => src.id === context.uid
     },
