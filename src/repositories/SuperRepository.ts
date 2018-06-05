@@ -6,8 +6,8 @@ export class SuperRepository {
     async fetchAllOrganizations() {
         return await DB.Organization.findAll();
     }
-    async fetchById(id: number) {
-        let res = await DB.Organization.findById(id);
+    async fetchById(id: number, tx?: Transaction) {
+        let res = await DB.Organization.findById(id, {transaction: tx});
         if (!res) {
             throw Error('Unabvle to find organization');
         }
@@ -58,7 +58,7 @@ export class SuperRepository {
             orgId: organizationId,
             isOwner: true
         }, { transaction: tx });
-        return this.fetchById(organizationId);
+        return this.fetchById(organizationId, tx);
     }
 
     async removeFromOrganization(organizationId: number, uid: number) {
