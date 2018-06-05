@@ -54,6 +54,7 @@ import { FolderItemTable } from './FolderItem';
 import { TaskTable } from './Task';
 import { UserProfileTable } from './UserProfile';
 import { UserProfilePrefillTable } from './UserProfilePrefill';
+import { OrganizationMemberTable } from './OrganizationMember';
 
 export const DB = {
     User: UserTable,
@@ -90,6 +91,7 @@ export const DB = {
     Task: TaskTable,
     UserProfile: UserProfileTable,
     UserProfilePrefill: UserProfilePrefillTable,
+    OrganizationMember: OrganizationMemberTable,
 
     tx: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>): Promise<A> {
         return await connection.transaction({ isolationLevel: 'SERIALIZABLE' }, (tx2: sequelize.Transaction) => handler(tx2));
