@@ -35,6 +35,14 @@ export class UserRepository {
         }
     }
 
+    async fetchUserAccounts(uid: number): Promise<number[]> {
+        let user = await DB.User.findById(uid);
+        if (user && user.organizationId) {
+            return [user.organizationId!!];
+        }
+        return [];
+    }
+
     async saveProfile(uid: number, firstName: string, lastName: string | null, photo?: ImageRef | null) {
         return await DB.tx(async (tx) => {
             let existing = await DB.UserProfile.find({ where: { userId: uid }, transaction: tx });

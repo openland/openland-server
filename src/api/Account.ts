@@ -1,18 +1,21 @@
 import { DB } from '../tables';
 import { Organization } from '../tables/Organization';
-import { ID } from '../modules/ID';
 import { CallContext } from './CallContext';
 import { withUser } from './utils/Resolvers';
 import { normalizeNullableUserInput } from '../modules/Normalizer';
 import { Repos } from '../repositories';
 import { ImageRef } from '../repositories/Media';
-
-const OrgId = new ID('Organization');
+import { IDs } from './utils/IDs';
 
 export const Resolver = {
     MyAccount: {
-        id: (src: Organization) => OrgId.serialize(src.id!!),
+        id: (src: Organization) => IDs.Organization.serialize(src.id!!),
         title: (src: Organization) => src.title
+    },
+    OrganizationAccount: {
+        id: (src: Organization) => IDs.OrganizationAccount.serialize(src.id!!),
+        title: (src: Organization) => src.title,
+        photo: (src: Organization) => null
     },
     Query: {
         alphaProfilePrefill: async function (_: any, args: {}, context: CallContext) {
@@ -30,6 +33,13 @@ export const Resolver = {
                 return {};
             }
         },
+        alphaAvailableOrganizationAccounts: withUser(async (args, uid) => {
+            let user = await DB.User.findById(uid, { include: [{ model: DB.Organization, as: 'organization' }] });
+            if (user && user.organization) {
+                return [user.organization];
+            }
+            return [];
+        }),
         myProfile: async function (_: any, args: {}, context: CallContext) {
             if (!context.uid) {
                 return {

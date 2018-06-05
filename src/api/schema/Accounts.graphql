@@ -49,3 +49,9 @@ input AvatarUpload {
     cropW: Int!
     cropH: Int!
 }
+
+type OrganizationAccount {
+    id: ID!
+    title: String!
+    photo: String
+}

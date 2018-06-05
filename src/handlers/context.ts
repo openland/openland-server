@@ -6,6 +6,7 @@ import * as Schema from '../schema';
 import { graphqlExpress } from 'apollo-server-express';
 import * as Compose from 'compose-middleware';
 import { Repos } from '../repositories';
+import { IDs } from '../api/utils/IDs';
 let domainCache = new Map<string, number | null>();
 
 async function context(src: express.Request): Promise<CallContext> {
@@ -48,6 +49,34 @@ async function context(src: express.Request): Promise<CallContext> {
             res.uid = await Repos.Users.fetchUserByAuthId(src.user.sub);
         } else if (typeof src.user.id === 'number') {
             res.uid = src.user.id;
+        }
+    }
+
+    //
+    // Loading Organization
+    //
+    if (res.uid) {
+        let accounts = await Repos.Users.fetchUserAccounts(res.uid);
+        
+        // Default behaviour: pick the default one
+        if (accounts.length === 1) {
+            res.oid = accounts[0];
+        }
+
+        // If there are organization cookie, try to use it instead
+        let orgId = src.headers['x-openland-org'];
+        if (orgId) {
+            if (Array.isArray(orgId)) {
+                orgId = orgId[0];
+            }
+            try {
+                let porgId = IDs.OrganizationAccount.parse(orgId as string);
+                if (accounts.indexOf(porgId) >= 0) {
+                    res.oid = porgId;
+                }
+            } catch (e) {
+                console.warn(e);
+            }
         }
     }
 

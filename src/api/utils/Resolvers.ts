@@ -1,6 +1,5 @@
 import { CallContext } from '../CallContext';
 import { Repos } from '../../repositories';
-import { DB } from '../../tables';
 
 async function fetchPermissions(context: CallContext) {
     if (context.cache.has('permissions')) {
@@ -12,12 +11,12 @@ async function fetchPermissions(context: CallContext) {
 }
 
 async function fetchOrganizationId(context: CallContext) {
-    if (context.cache.has('org_id')) {
-        return (await context.cache.get('org_id')) as number | null;
-    }
-    let res = DB.User.findById(context.uid).then((v) => v ? v.organizationId as number | null : null);
-    context.cache.set('org_id', res);
-    return await res;
+    // if (context.cache.has('org_id')) {
+    //     return (await context.cache.get('org_id')) as number | null;
+    // }
+    // let res = DB.User.findById(context.uid).then((v) => v ? v.organizationId as number | null : null);
+    // context.cache.set('org_id', res);
+    return context.oid !== undefined ? context.oid : null;
 }
 
 export function withPermission<T = {}>(permission: string | string[], resolver: (args: T, context: CallContext) => any) {
@@ -94,14 +93,14 @@ export function withAccountTypeOptional<T = {}>(resolver: (args: T, uid?: number
             let res = await fetchOrganizationId(context);
             if (res) {
                 org = res;
-            }  
+            }
         }
         return resolver(args, uid, org);
     };
 }
 
-    export function withAny<T = {}>(resolver: (args: T, context: CallContext) => any) {
-        return async function (_: any, args: T, context: CallContext) {
-            return resolver(args, context);
-        };
-    }
+export function withAny<T = {}>(resolver: (args: T, context: CallContext) => any) {
+    return async function (_: any, args: T, context: CallContext) {
+        return resolver(args, context);
+    };
+}

@@ -92,4 +92,6 @@ type Query {
     alphaRefreshTask(id: ID!): Task!
 
     alphaProfilePrefill: ProfilePrefill!
+
+    alphaAvailableOrganizationAccounts: [OrganizationAccount!]!
 }
