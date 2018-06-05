@@ -23,43 +23,59 @@ export class PermissionRepository {
         return DB.FeatureFlag.create({ key: key, title: title });
     }
 
-    async resolvePermissions(userId: number | null | undefined) {
-        let permissions: string[] = [];
-        if (userId !== null && userId !== undefined) {
-            let user = await DB.User.find({ where: { id: userId }, include: [{ model: DB.Organization, as: 'organization' }] });
+    async resolvePermissions(args: { uid: number | null | undefined, oid: number | null | undefined }) {
+        let permissions = new Set<string>();
+
+        //
+        // User Based Permissions
+        //
+        if (args.uid) {
+            let user = await DB.User.find({ where: { id: args.uid } });
             if (user == null) {
                 throw Error('Unable to find user');
             }
-            permissions.push('viewer');
+            permissions.add('viewer');
 
             // Super Role
-            let superRole = await this.superRole(userId);
+            let superRole = await this.superRole(args.uid);
             if (superRole !== false) {
-                permissions.push(superRole);
+                permissions.add(superRole);
                 if (superRole === 'super-admin') {
-                    permissions.push('software-developer');
+                    permissions.add('software-developer');
                 }
             }
+        }
 
-            // Organization features
-            if (user.organization !== null) {
-                let features = ((await (user.organization as any).getFeatureFlags()) as [FeatureFlag]);
-                for (let f of features) {
-                    permissions.push('feature-' + f.key);
-                }
-            }
+        //
+        // Organization Based Permissions
+        //
+        if (args.uid && args.oid) {
 
-            // Members
-            let members = await DB.AccountMember.findAll({
+            //
+            // Membership
+            //
+
+            let member = await DB.OrganizationMember.find(({
                 where: {
-                    userId: userId
+                    userId: args.oid,
+                    orgId: args.oid
                 }
-            });
-            for (let m of members) {
-                let slug = (await DB.Account.findById(m.accountId))!!.slug;
-                permissions.push('account-' + slug + '-veiewer');
-                if (m.owner === true) {
-                    permissions.push('account-' + slug + '-admin');
+            }));
+            if (member) {
+                permissions.add('org-' + member.orgId + '-member');
+                if (member.isOwner) {
+                    permissions.add('org-' + member.orgId + '-admin');
+                }
+            }
+
+            //
+            // Organization features
+            //
+            let org = await DB.Organization.findById(args.oid);
+            if (org) {
+                let features = ((await (org as any).getFeatureFlags()) as [FeatureFlag]);
+                for (let f of features) {
+                    permissions.add('feature-' + f.key);
                 }
             }
         }

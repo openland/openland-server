@@ -11,7 +11,7 @@ export interface OrganizationMemberAttributes {
 export interface OrganizationMember extends sequelize.Instance<Partial<OrganizationMemberAttributes>>, OrganizationMemberAttributes {
 }
 
-export const OrganizationMemberTable = connection.define<OrganizationMemberAttributes, Partial<OrganizationMemberAttributes>>('organization_member', {
+export const OrganizationMemberTable = connection.define<OrganizationMember, Partial<OrganizationMemberAttributes>>('organization_member', {
     id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
     userId: { type: sequelize.INTEGER, allowNull: false, references: { model: 'user' } },
     orgId: { type: sequelize.INTEGER, allowNull: false, references: { model: 'organization' } },

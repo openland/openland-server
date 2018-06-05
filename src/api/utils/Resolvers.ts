@@ -3,9 +3,9 @@ import { Repos } from '../../repositories';
 
 async function fetchPermissions(context: CallContext) {
     if (context.cache.has('permissions')) {
-        return (await context.cache.get('permissions')) as string[];
+        return (await context.cache.get('permissions')) as Set<string>;
     }
-    let res = Repos.Permissions.resolvePermissions(context.uid);
+    let res = Repos.Permissions.resolvePermissions({ uid: context.uid, oid: context.oid });
     context.cache.set('permissions', res);
     return await res;
 }
@@ -24,11 +24,11 @@ export function withPermission<T = {}>(permission: string | string[], resolver: 
         let permissions = await fetchPermissions(context);
         if (Array.isArray(permission)) {
             for (let p of permission) {
-                if (permissions.indexOf(p) >= 0) {
+                if (permissions.has(p)) {
                     return resolver(args, context);
                 }
             }
-        } else if (permissions.indexOf(permission) >= 0) {
+        } else if (permissions.has(permission)) {
             return resolver(args, context);
         } else {
             throw Error('Access Denied');
@@ -41,11 +41,11 @@ export function withPermissionOptional<T = {}, C = {}>(permission: string | stri
         let permissions = await fetchPermissions(context);
         if (Array.isArray(permission)) {
             for (let p of permission) {
-                if (permissions.indexOf(p) >= 0) {
+                if (permissions.has(p)) {
                     return resolver(args, context, c);
                 }
             }
-        } else if (permissions.indexOf(permission) >= 0) {
+        } else if (permissions.has(permission)) {
             return resolver(args, context, c);
         } else {
             return null;

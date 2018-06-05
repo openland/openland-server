@@ -62,7 +62,7 @@ export const Resolvers = {
     Query: {
         permissions: async function (_: any, _params: {}, context: CallContext) {
             return {
-                roles: Repos.Permissions.resolvePermissions(context.uid)
+                roles: Repos.Permissions.resolvePermissions({ uid: context.uid, oid: context.oid })
             };
         },
         superAdmins: withPermission('super-admin', () => {
@@ -108,10 +108,10 @@ export const Resolvers = {
             return Repos.Super.suspendOrganization(IDs.SuperAccount.parse(args.id));
         }),
         superAccountMemberAdd: withPermission<{ id: string, userId: string }>('super-admin', (args) => {
-            return Repos.Super.assingOrganization(IDs.SuperAccount.parse(args.id), IDs.User.parse(args.userId));
+            return Repos.Super.addToOrganization(IDs.SuperAccount.parse(args.id), IDs.User.parse(args.userId));
         }),
         superAccountMemberRemove: withPermission<{ id: string, userId: string }>('super-admin', (args) => {
-            return Repos.Super.detachOrganization(IDs.SuperAccount.parse(args.id), IDs.User.parse(args.userId));
+            return Repos.Super.removeFromOrganization(IDs.SuperAccount.parse(args.id), IDs.User.parse(args.userId));
         }),
         featureFlagAdd: withPermission<{ key: string, title: string }>(['super-admin', 'software-developer'], async (args) => {
             return Repos.Permissions.createFeatureFlag(args.key, args.title);

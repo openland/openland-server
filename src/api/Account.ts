@@ -34,50 +34,83 @@ export const Resolver = {
             }
         },
         alphaAvailableOrganizationAccounts: withUser(async (args, uid) => {
-            let user = await DB.User.findById(uid, { include: [{ model: DB.Organization, as: 'organization' }] });
-            if (user && user.organization) {
-                return [user.organization];
-            }
-            return [];
+            let allOrgs = await DB.OrganizationMember.findAll({
+                where: {
+                    userId: uid
+                }
+            });
+            return await DB.Organization.findAll({
+                where: {
+                    id: {
+                        $in: allOrgs.map((v) => v.orgId)
+                    }
+                }
+            });
         }),
         myProfile: async function (_: any, args: {}, context: CallContext) {
+
+            // If there are no user in the context
             if (!context.uid) {
                 return {
                     isLoggedIn: false,
                     isProfileCreated: false,
+                    isAccountExists: false,
+                    isAccountPicked: false,
                     isAccountActivated: false,
                     isCompleted: false,
                     isBlocked: false
                 };
             }
-            let profile = !!(await DB.UserProfile.find({ where: { userId: context.uid } }));
-            let res = await DB.User.findById(context.uid, { include: [{ model: DB.Organization, as: 'organization' }] });
+
+            // User unknown?! Just softly ignore errors
+            let res = await DB.User.findById(context.uid);
             if (res === null) {
                 return {
                     isLoggedIn: false,
-                    isProfileCreated: profile,
+                    isProfileCreated: false,
+                    isAccountExists: false,
+                    isAccountPicked: false,
                     isAccountActivated: false,
                     isCompleted: false,
                     isBlocked: false
                 };
             }
-            return {
-                isLoggedIn: true,
-                isProfileCreated: profile,
-                isAccountActivated: (res.organization !== null && res.organization!!.status !== 'PENDING'),
-                isCompleted: (res.organization !== null && res.organization!!.status !== 'PENDING') && profile,
-                isBlocked: res.organization !== null ? res.organization!!.status === 'SUSPENDED' : false
+
+            // State 0: Is Logged In
+            let isLoggedIn = true; // Checked in previous steps
+
+            // Stage 1: Create Profile
+            let isProfileCreated = !!(await DB.UserProfile.find({ where: { userId: context.uid } }));
+
+            // Stage 2: Pick organization or create a new one (if there are no exists)
+            let organization = !!context.oid ? await DB.Organization.findById(context.oid) : null;
+            let isOrganizationPicked = organization !== null;
+            let isOrganizationExists = (await Repos.Users.fetchUserAccounts(context.uid)).length > 0;
+
+            // Stage 3: Organization Status
+            let isOrganizationActivated = isOrganizationPicked && organization!!.status !== 'PENDING';
+            let isOrganizationSuspended = isOrganizationPicked ? organization!!.status === 'SUSPENDED' : false;
+
+            let queryResult = {
+                isLoggedIn: isLoggedIn,
+                isProfileCreated: isProfileCreated,
+                isAccountExists: isOrganizationExists,
+                isAccountPicked: isOrganizationPicked,
+                isAccountActivated: isOrganizationActivated,
+                isCompleted: isProfileCreated && isOrganizationExists && isOrganizationPicked && isOrganizationActivated,
+                isBlocked: isOrganizationSuspended
             };
+            console.warn(queryResult);
+            return queryResult;
         },
         myAccount: async function (_: any, args: {}, context: CallContext) {
             if (!context.uid) {
                 return null;
             }
-            let res = await DB.User.findById(context.uid, { include: [{ model: DB.Organization, as: 'organization' }] });
-            if (res === null) {
-                throw Error('Access denied');
+            if (!context.oid) {
+                return null;
             }
-            return res.organization;
+            return DB.Organization.findById(context.oid);
         }
     },
     Mutation: {

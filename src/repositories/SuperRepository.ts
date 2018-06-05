@@ -47,33 +47,32 @@ export class SuperRepository {
         return org;
     }
 
-    async assingOrganization(organizationId: number, uid: number) {
-        let existing = await DB.User.findById(uid);
-        if (existing === null) {
-            throw Error('Unable to find user');
-        }
-        if (existing.organizationId !== null) {
-            throw Error('User already belongs to an organization');
-        }
-        existing.organizationId = organizationId;
-        await existing.save();
+    async addToOrganization(organizationId: number, uid: number) {
+        await DB.tx(async (tx) => {
+            let existing = await DB.OrganizationMember.find({ where: { orgId: organizationId, userId: uid }, transaction: tx, lock: tx.LOCK.UPDATE });
+            if (existing) {
+                return;
+            }
+            await DB.OrganizationMember.create({
+                userId: uid,
+                orgId: organizationId,
+                isOwner: true
+            }, { transaction: tx });
+        });
         return this.fetchById(organizationId);
     }
 
-    async detachOrganization(organizationId: number, uid: number) {
-        let existingOrg = await this.fetchById(organizationId);
-        let existing = await DB.User.findById(uid);
-        if (existing === null) {
-            throw Error('Unable to find user');
-        }
-        if (existing.organizationId === null) {
-            throw Error('User doesnt belong to an organization');
-        }
-        if (existing.organizationId !== existingOrg.id) {
-            throw Error('Organization id mismatch');
-        }
-        existing.organizationId = null;
-        await existing.save();
+    async removeFromOrganization(organizationId: number, uid: number) {
+        await DB.tx(async (tx) => {
+            let isLast = (await DB.OrganizationMember.count({ where: { orgId: organizationId }, transaction: tx })) === 1;
+            let existing = await DB.OrganizationMember.find({ where: { orgId: organizationId, userId: uid }, transaction: tx, lock: tx.LOCK.UPDATE });
+            if (existing) {
+                if (isLast) {
+                    throw Error('Ypu can\'t remove last member from the organization');
+                }
+                await existing.destroy({ transaction: tx });
+            }
+        });
         return this.fetchById(organizationId);
     }
 }

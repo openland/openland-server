@@ -17,6 +17,7 @@ type User {
     picture: String
     email: String!
     isYou: Boolean!
+    isCreated: Boolean!
 }
 
 type ProfilePrefill {
@@ -37,6 +38,8 @@ type MyAccount {
 type MyProfile {
     isLoggedIn: Boolean!
     isProfileCreated: Boolean!
+    isAccountExists: Boolean!
+    isAccountPicked: Boolean!
     isAccountActivated: Boolean!
     isCompleted: Boolean!
     isBlocked: Boolean!

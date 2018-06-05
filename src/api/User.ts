@@ -37,13 +37,10 @@ function userLoader(context: CallContext) {
     return loader;
 }
 
-function withProfile(handler: (user: User, profile: UserProfile) => any) {
+function withProfile(handler: (user: User, profile: UserProfile | null) => any) {
     return async (src: User, _params: {}, context: CallContext) => {
         let loader = userLoader(context);
         let profile = await loader.load(src.id!!);
-        if (!profile) {
-            throw Error('Profile not present');
-        }
         return handler(src, profile);
     };
 }
@@ -51,10 +48,11 @@ function withProfile(handler: (user: User, profile: UserProfile) => any) {
 export const Resolver = {
     User: {
         id: (src: User) => IDs.User.serialize(src.id!!),
-        name: withProfile((src, profile) => [profile.firstName, profile.lastName].filter((v) => !!v).join(' ')),
-        firstName: withProfile((src, profile) => profile.firstName),
-        lastName: withProfile((src, profile) => profile.lastName),
-        picture: withProfile((src, profile) => profile.picture ? buildBaseImageUrl(profile.picture) : null),
+        name: withProfile((src, profile) => profile ? [profile.firstName, profile.lastName].filter((v) => !!v).join(' ') : src.email),
+        firstName: withProfile((src, profile) => profile ? profile.firstName : src.email),
+        lastName: withProfile((src, profile) => profile ? profile.lastName : null),
+        picture: withProfile((src, profile) => profile && profile.picture ? buildBaseImageUrl(profile.picture) : null),
+        isCreated: withProfile((src, profile) => !!profile),
         email: (src: User) => src.email,
         isYou: (src: User, args: {}, context: CallContext) => src.id === context.uid
     },

@@ -5,9 +5,14 @@ export class UserRepository {
     private userCache = new Map<string, number | undefined>();
 
     async fetchOrganizationMembers(organizationId: number) {
+        let uids = (await DB.OrganizationMember.findAll({
+            where: {
+                orgId: organizationId
+            }
+        })).map((v) => v.userId);
         return await DB.User.findAll({
             where: {
-                organizationId: organizationId
+                id: { $in: uids }
             }
         });
     }
@@ -36,11 +41,11 @@ export class UserRepository {
     }
 
     async fetchUserAccounts(uid: number): Promise<number[]> {
-        let user = await DB.User.findById(uid);
-        if (user && user.organizationId) {
-            return [user.organizationId!!];
-        }
-        return [];
+        return (await DB.OrganizationMember.findAll({
+            where: {
+                userId: uid
+            }
+        })).map((v) => v.orgId);
     }
 
     async saveProfile(uid: number, firstName: string, lastName: string | null, photo?: ImageRef | null) {
