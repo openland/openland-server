@@ -15,6 +15,7 @@ type User {
     firstName: String!
     lastName: String
     picture: String
+    phone: Int
     email: String!
     isYou: Boolean!
 }
