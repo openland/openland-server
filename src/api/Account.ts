@@ -127,7 +127,7 @@ export const Resolver = {
         alphaCreateOrganization: withAccount<{ title: string, site?: string, role?: string, logo?: ImageRef }>(async (args, uid, orgId) => {
             return await DB.tx(async (tx) => {
                 let organization = await DB.Organization.create({
-                    title: name,
+                    title: args.title.trim(),
                 }, { transaction: tx });
                 await Repos.Super.addToOrganization(organization.id!!, uid, tx);
                 return organization;
