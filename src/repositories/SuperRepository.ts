@@ -12,14 +12,12 @@ export class SuperRepository {
         }
         return res;
     }
-    async createOrganization(title: string) {        
+    async createOrganization(title: string) {
         return await DB.tx(async (tx) => {
             let res = await DB.Organization.create({
                 title: title
-            }, {transaction: tx});
+            }, { transaction: tx });
 
-            console.log('createOrganization: ' +   res ? (String(res.id)) + ' | ' + String(res.title) : String(res));
-            
             let defaultFolder = ['1. Incoming', '2. Review', '3. Approved', '4. Snoozed', '5. Rejected'];
             for (let folderName of defaultFolder) {
                 await Repos.Folders.createFolder(res.id!!, folderName, tx);

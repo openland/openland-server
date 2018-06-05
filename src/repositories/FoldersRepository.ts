@@ -15,7 +15,8 @@ export class FoldersRepository {
         let folder = await DB.Folder.create({
             name: name,
             organizationId: orgId,
-        });
+        }, { transaction });
+
         if (initialParcels) {
             for (let parcelId of initialParcels) {
                 let parcel = await Repos.Parcels.fetchParcelByRawMapId(parcelId);
