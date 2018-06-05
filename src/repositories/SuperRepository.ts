@@ -18,6 +18,8 @@ export class SuperRepository {
                 title: title
             }, {transaction: tx});
 
+            console.log('createOrganization: ' +   res ? (String(res.id)) + ' | ' + String(res.title) : String(res));
+            
             let defaultFolder = ['1. Incoming', '2. Review', '3. Approved', '4. Snoozed', '5. Rejected'];
             for (let folderName of defaultFolder) {
                 await Repos.Folders.createFolder(res.id!!, folderName, tx);
