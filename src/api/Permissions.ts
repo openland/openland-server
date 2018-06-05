@@ -107,8 +107,11 @@ export const Resolvers = {
         superAccountSuspend: withPermission<{ id: string }>('super-admin', (args) => {
             return Repos.Super.suspendOrganization(IDs.SuperAccount.parse(args.id));
         }),
-        superAccountMemberAdd: withPermission<{ id: string, userId: string }>('super-admin', (args) => {
-            return Repos.Super.addToOrganization(IDs.SuperAccount.parse(args.id), IDs.User.parse(args.userId));
+        superAccountMemberAdd: withPermission<{ id: string, userId: string }>('super-admin', async (args) => {
+            return await DB.tx(async (tx) => {
+                return await Repos.Super.addToOrganization(IDs.SuperAccount.parse(args.id), IDs.User.parse(args.userId), tx);
+            });
+
         }),
         superAccountMemberRemove: withPermission<{ id: string, userId: string }>('super-admin', (args) => {
             return Repos.Super.removeFromOrganization(IDs.SuperAccount.parse(args.id), IDs.User.parse(args.userId));

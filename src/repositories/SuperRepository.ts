@@ -1,5 +1,6 @@
 import { DB } from '../tables';
 import { Repos } from '../repositories';
+import { Transaction } from 'sequelize';
 
 export class SuperRepository {
     async fetchAllOrganizations() {
@@ -47,18 +48,16 @@ export class SuperRepository {
         return org;
     }
 
-    async addToOrganization(organizationId: number, uid: number) {
-        await DB.tx(async (tx) => {
-            let existing = await DB.OrganizationMember.find({ where: { orgId: organizationId, userId: uid }, transaction: tx, lock: tx.LOCK.UPDATE });
-            if (existing) {
-                return;
-            }
-            await DB.OrganizationMember.create({
-                userId: uid,
-                orgId: organizationId,
-                isOwner: true
-            }, { transaction: tx });
-        });
+    async addToOrganization(organizationId: number, uid: number, tx: Transaction) {
+        let existing = await DB.OrganizationMember.find({ where: { orgId: organizationId, userId: uid }, transaction: tx, lock: tx.LOCK.UPDATE });
+        if (existing) {
+            return;
+        }
+        await DB.OrganizationMember.create({
+            userId: uid,
+            orgId: organizationId,
+            isOwner: true
+        }, { transaction: tx });
         return this.fetchById(organizationId);
     }
 

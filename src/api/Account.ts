@@ -6,6 +6,7 @@ import { normalizeNullableUserInput } from '../modules/Normalizer';
 import { Repos } from '../repositories';
 import { ImageRef } from '../repositories/Media';
 import { IDs } from './utils/IDs';
+import { withAccount } from './utils/Resolvers';
 
 export const Resolver = {
     MyAccount: {
@@ -122,6 +123,15 @@ export const Resolver = {
             }
             await Repos.Users.saveProfile(uid, firstNameNormalized, lastNameNormalized, args.photo, args.phone);
             return 'ok';
-        })
+        }),
+        alphaCreateOrganization: withAccount<{ title: string, logo?: ImageRef }>(async (args, uid, orgId) => {
+            return await DB.tx(async (tx) => {
+                let organization = await DB.Organization.create({
+                    title: name,
+                }, { transaction: tx });
+                await Repos.Super.addToOrganization(organization.id!!, uid, tx);
+                return organization;
+            });
+        }),
     }
 };
