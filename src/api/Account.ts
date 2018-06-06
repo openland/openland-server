@@ -7,6 +7,8 @@ import { Repos } from '../repositories';
 import { ImageRef } from '../repositories/Media';
 import { IDs } from './utils/IDs';
 import { withAccount } from './utils/Resolvers';
+import { OrganizationInvite } from '../tables/OrganizationInvite';
+import { randomKey } from '../utils/random';
 
 export const Resolver = {
     MyAccount: {
@@ -18,7 +20,14 @@ export const Resolver = {
         title: (src: Organization) => src.title,
         photo: (src: Organization) => null
     },
+    Invite: {
+        id: (src: OrganizationInvite) => IDs.Invite.serialize(src.id),
+        key: (src: OrganizationInvite) => src.uuid
+    },
     Query: {
+        alphaInvites: withAccount(async (args, uid, oid) => {
+            return await DB.OrganizationInvite.findAll({ where: { orgId: oid } });
+        }),
         alphaProfilePrefill: async function (_: any, args: {}, context: CallContext) {
             if (!context.uid) {
                 return {};
@@ -133,5 +142,21 @@ export const Resolver = {
                 return organization;
             });
         }),
+        alphaCreateInvite: withAccount(async (args, uid, oid) => {
+            return await DB.OrganizationInvite.create({
+                uuid: randomKey(),
+                orgId: oid
+            });
+        }),
+        alphaDeleteInvite: withAccount<{ id: string }>(async (args, uid, oid) => {
+            await DB.OrganizationInvite.destroy({
+                where: {
+                    orgId: oid,
+                    id: IDs.Invite.parse(args.id)
+                }
+            });
+            return 'ok';
+        }),
+
     }
 };

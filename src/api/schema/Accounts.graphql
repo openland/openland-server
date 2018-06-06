@@ -59,3 +59,8 @@ type OrganizationAccount {
     title: String!
     photo: String
 }
+
+type Invite {
+    id: ID!
+    key: String!
+}

@@ -94,4 +94,6 @@ type Query {
     alphaProfilePrefill: ProfilePrefill!
 
     alphaAvailableOrganizationAccounts: [OrganizationAccount!]!
+
+    alphaInvites: [Invite!]
 }
