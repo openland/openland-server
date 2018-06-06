@@ -52,7 +52,7 @@ export const Resolver = {
             }
             let joined = false;
             if (context.uid && context.oid) {
-                joined = (await DB.OrganizationMember.find({ where: { userId: context.uid, orgId: context.oid } })) !== null;
+                joined = (await DB.OrganizationMember.find({ where: { userId: context.uid, orgId: org.id } })) !== null;
             }
             return {
                 id: IDs.InviteInfo.serialize(invite.id),
@@ -169,7 +169,7 @@ export const Resolver = {
                 if (existing) {
                     return IDs.OrganizationAccount.serialize(invite.orgId);
                 }
-                await DB.OrganizationMember.create({ userId: uid, orgId: invite.orgId }, { transaction: tx });
+                await DB.OrganizationMember.create({ userId: uid, orgId: invite.orgId, isOwner: false }, { transaction: tx });
                 return IDs.OrganizationAccount.serialize(invite.orgId);
             });
         }),
