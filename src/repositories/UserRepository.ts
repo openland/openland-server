@@ -48,7 +48,7 @@ export class UserRepository {
         })).map((v) => v.orgId);
     }
 
-    async saveProfile(uid: number, firstName: string, lastName: string | null, photo?: ImageRef | null, phone?: number | null) {
+    async saveProfile(uid: number, firstName: string, lastName: string | null, photo?: ImageRef | null, phone?: string | null) {
         return await DB.tx(async (tx) => {
             let existing = await DB.UserProfile.find({ where: { userId: uid }, transaction: tx });
             if (!existing) {

@@ -7,7 +7,7 @@ export interface UserProfileAttributes {
     id: number;
     firstName: string;
     lastName: string | null;
-    phone?: number | null;
+    phone?: string | null;
     picture: ImageRef | null;
     userId?: number | null;
     user?: User | null;
@@ -21,7 +21,7 @@ export const UserProfileTable = connection.define<UserProfile, Partial<UserProfi
     id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
     firstName: { type: sequelize.STRING, allowNull: false },
     lastName: { type: sequelize.STRING, allowNull: true },
-    phone: { type: sequelize.INTEGER, allowNull: true },
+    phone: { type: sequelize.STRING, allowNull: true },
     picture: { type: sequelize.JSON, allowNull: true },
 }, { paranoid: true });
 
