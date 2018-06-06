@@ -182,7 +182,7 @@ export const Resolver = {
             await Repos.Users.saveProfile(uid, firstNameNormalized, lastNameNormalized, args.photo, args.phone);
             return 'ok';
         }),
-        alphaCreateOrganization: withAccount<{ title: string, website?: string, role?: string, logo?: ImageRef }>(async (args, uid, orgId) => {
+        alphaCreateOrganization: withUser<{ title: string, website?: string, role?: string, logo?: ImageRef }>(async (args, uid) => {
             return await DB.tx(async (tx) => {
                 let organization = await DB.Organization.create({
                     title: args.title.trim(),
