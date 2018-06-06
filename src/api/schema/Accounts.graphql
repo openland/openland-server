@@ -62,6 +62,7 @@ type Invite {
 type InviteInfo {
     id: ID!
     key: String!
+    orgId: ID!
     title: String!
     photo: String
     joined: Boolean!

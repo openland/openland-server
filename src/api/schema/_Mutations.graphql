@@ -72,5 +72,5 @@ type Mutation {
 
     alphaCreateInvite: Invite!
     alphaDeleteInvite(id: ID!): String!
-
+    alphaJoinInvite(key: String!): ID!
 }

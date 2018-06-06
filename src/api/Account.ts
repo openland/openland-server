@@ -57,9 +57,10 @@ export const Resolver = {
             return {
                 id: IDs.InviteInfo.serialize(invite.id),
                 key: args.key,
+                orgId: IDs.OrganizationAccount.serialize(org.id!!),
                 title: org.title,
                 photo: null,
-                joined: joined
+                joined: joined,
             };
         }),
         alphaProfilePrefill: async function (_: any, args: {}, context: CallContext) {
@@ -158,6 +159,20 @@ export const Resolver = {
         }
     },
     Mutation: {
+        alphaJoinInvite: withUser<{ key: string }>(async (args, uid) => {
+            return await DB.tx(async (tx) => {
+                let invite = await DB.OrganizationInvite.find({ where: { uuid: args.key }, transaction: tx });
+                if (!invite) {
+                    throw Error('Unable to find invite');
+                }
+                let existing = await DB.OrganizationMember.find({ where: { userId: uid, orgId: invite.orgId }, transaction: tx });
+                if (existing) {
+                    return IDs.OrganizationAccount.serialize(invite.orgId);
+                }
+                await DB.OrganizationMember.create({ userId: uid, orgId: invite.orgId }, { transaction: tx });
+                return IDs.OrganizationAccount.serialize(invite.orgId);
+            });
+        }),
         alphaSaveProfile: withUser<{ firstName: string, lastName?: string | null, photo?: ImageRef | null, phone?: string }>(async (args, uid) => {
             let lastNameNormalized = normalizeNullableUserInput(args.lastName);
             let firstNameNormalized = args.firstName.trim();
