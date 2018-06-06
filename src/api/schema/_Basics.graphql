@@ -73,3 +73,8 @@ input ImageRefInput {
     uuid: String!
     crop: ImageCrop
 }
+
+type Range{
+    from: Int
+    to: Int
+}

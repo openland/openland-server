@@ -9,6 +9,7 @@ import { IDs } from './utils/IDs';
 import { withAccount } from './utils/Resolvers';
 import { OrganizationInvite } from '../tables/OrganizationInvite';
 import { randomKey } from '../utils/random';
+import { buildBaseImageUrl } from '../repositories/Media';
 
 export const Resolver = {
     MyAccount: {
@@ -18,7 +19,19 @@ export const Resolver = {
     OrganizationAccount: {
         id: (src: Organization) => IDs.OrganizationAccount.serialize(src.id!!),
         title: (src: Organization) => src.title,
-        photo: (src: Organization) => null
+        logo: (src: Organization) => src.logo ? buildBaseImageUrl(src.logo) : null,
+        website: (src: Organization) => src.website,
+        potentialSites: (src: Organization) => src.extras ? src.extras.potentialSites : undefined,
+        siteSizes: (src: Organization) => src.extras ? src.extras.siteSizes : undefined,
+        description: (src: Organization) => src.extras ? src.extras.description : undefined,
+        twitter: (src: Organization) => src.extras ? src.extras.twitter : undefined,
+        facebook: (src: Organization) => src.extras ? src.extras.facebook : undefined,
+        developmentModels: (src: Organization) => src.extras ? src.extras.developmentModels : undefined,
+        availability: (src: Organization) => src.extras ? src.extras.availability : undefined,
+        contacts: (src: Organization) => src.extras ? src.extras.contacts : undefined,
+        landUse: (src: Organization) => src.extras ? src.extras.landUse : undefined,
+        goodFor: (src: Organization) => src.extras ? src.extras.goodFor : undefined,
+        specialAttributes: (src: Organization) => src.extras ? src.extras.specialAttributes : undefined,
     },
     Invite: {
         id: (src: OrganizationInvite) => IDs.Invite.serialize(src.id),
@@ -145,7 +158,7 @@ export const Resolver = {
         }
     },
     Mutation: {
-        alphaSaveProfile: withUser<{ firstName: string, lastName?: string | null, photo?: ImageRef | null, phone?: number }>(async (args, uid) => {
+        alphaSaveProfile: withUser<{ firstName: string, lastName?: string | null, photo?: ImageRef | null, phone?: string }>(async (args, uid) => {
             let lastNameNormalized = normalizeNullableUserInput(args.lastName);
             let firstNameNormalized = args.firstName.trim();
             if (firstNameNormalized.length === 0) {
@@ -154,10 +167,12 @@ export const Resolver = {
             await Repos.Users.saveProfile(uid, firstNameNormalized, lastNameNormalized, args.photo, args.phone);
             return 'ok';
         }),
-        alphaCreateOrganization: withAccount<{ title: string, site?: string, role?: string, logo?: ImageRef }>(async (args, uid, orgId) => {
+        alphaCreateOrganization: withAccount<{ title: string, website?: string, role?: string, logo?: ImageRef }>(async (args, uid, orgId) => {
             return await DB.tx(async (tx) => {
                 let organization = await DB.Organization.create({
                     title: args.title.trim(),
+                    website: args.website ? args.website.trim() : null,
+                    logo: args.logo,
                 }, { transaction: tx });
                 await Repos.Super.addToOrganization(organization.id!!, uid, tx);
                 return organization;

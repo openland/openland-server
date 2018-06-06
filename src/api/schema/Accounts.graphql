@@ -54,12 +54,6 @@ input AvatarUpload {
     cropH: Int!
 }
 
-type OrganizationAccount {
-    id: ID!
-    title: String!
-    photo: String
-}
-
 type Invite {
     id: ID!
     key: String!
@@ -71,4 +65,23 @@ type InviteInfo {
     title: String!
     photo: String
     joined: Boolean!
+}
+
+type OrganizationAccount {
+    id: ID!
+    title: String!
+    logo: String
+    website: String
+    # extras
+    potentialSites: Range
+    siteSizes: Range
+    description: String
+    twitter: String
+    facebook: String
+    developmentModels: [String]
+    availability: [String]
+    contacts: [String]
+    landUse: [String]
+    goodFor: [String]
+    specialAttributes: [String]
 }
