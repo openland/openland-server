@@ -190,7 +190,7 @@ export const Resolver = {
                     logo: args.logo,
                 }, { transaction: tx });
                 await Repos.Super.addToOrganization(organization.id!!, uid, tx);
-                return organization;
+                return IDs.OrganizationAccount.serialize(organization.id!!);
             });
         }),
         alphaCreateInvite: withAccount(async (args, uid, oid) => {

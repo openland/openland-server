@@ -68,7 +68,7 @@ type Mutation {
     superMultiplyValue(value: Int!): Task!
 
     alphaSaveProfile(firstName: String!, lastName: String, photo: ImageRefInput, phone: String): String!
-    alphaCreateOrganization(title: String!, website: String, role: String, logo: ImageRefInput): SuperAccount!
+    alphaCreateOrganization(title: String!, website: String, role: String, logo: ImageRefInput): String!
 
     alphaCreateInvite: Invite!
     alphaDeleteInvite(id: ID!): String!
