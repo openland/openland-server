@@ -96,4 +96,5 @@ type Query {
     alphaAvailableOrganizationAccounts: [OrganizationAccount!]!
 
     alphaInvites: [Invite!]
+    alphaInviteInfo(key: String!): InviteInfo
 }

@@ -64,3 +64,11 @@ type Invite {
     id: ID!
     key: String!
 }
+
+type InviteInfo {
+    id: ID!
+    key: String!
+    title: String!
+    photo: String
+    joined: Boolean!
+}

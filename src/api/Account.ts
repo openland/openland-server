@@ -1,7 +1,7 @@
 import { DB } from '../tables';
 import { Organization } from '../tables/Organization';
 import { CallContext } from './CallContext';
-import { withUser } from './utils/Resolvers';
+import { withUser, withAny } from './utils/Resolvers';
 import { normalizeNullableUserInput } from '../modules/Normalizer';
 import { Repos } from '../repositories';
 import { ImageRef } from '../repositories/Media';
@@ -27,6 +27,27 @@ export const Resolver = {
     Query: {
         alphaInvites: withAccount(async (args, uid, oid) => {
             return await DB.OrganizationInvite.findAll({ where: { orgId: oid } });
+        }),
+        alphaInviteInfo: withAny<{ key: string }>(async (args, context: CallContext) => {
+            let invite = await DB.OrganizationInvite.find({ where: { uuid: args.key } });
+            if (!invite) {
+                return null;
+            }
+            let org = await DB.Organization.findById(invite.orgId);
+            if (!org) {
+                return null;
+            }
+            let joined = false;
+            if (context.uid && context.oid) {
+                joined = (await DB.OrganizationMember.find({ where: { userId: context.uid, orgId: context.oid } })) !== null;
+            }
+            return {
+                id: IDs.InviteInfo.serialize(invite.id),
+                key: args.key,
+                title: org.title,
+                photo: null,
+                joined: joined
+            };
         }),
         alphaProfilePrefill: async function (_: any, args: {}, context: CallContext) {
             if (!context.uid) {

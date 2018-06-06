@@ -4,6 +4,7 @@ export const IDs = {
     Organization: new ID('Organization'),
     OrganizationAccount: new ID('Account'),
     Invite: new ID('Invite'),
+    InviteInfo: new ID('InviteInfo'),
     State: new ID('State'),
     County: new ID('County'),
     City: new ID('City'),
