@@ -34,7 +34,8 @@ export const Resolver = {
                     userId: uid,
                 }
             });
-            return { ...(await DB.Organization.findById(oid)), iAmOwner: member !== null && member.isOwner };
+            let organization = await DB.Organization.findById(oid);
+            return { ...organization, iAmOwner: member !== null && member.isOwner };
         }),
 
         alphaOrganizationProfile: withAccount<{ id: string }>(async (args, uid, oid) => {
