@@ -27,7 +27,6 @@ type Mutation {
         description: String
     ): Organization!
     
-    updateIncidents(area: String!, incidents: [IncidentInput!]!): String!
     superAdminAdd(userId: ID!, role: SuperAdminRole!): String!
     superAdminRemove(userId: ID!): String!
 
