@@ -1,12 +1,9 @@
-import { GraphQLOptions } from 'apollo-server-core';
 import * as express from 'express';
 import { DB } from '../tables';
 import { CallContext } from '../api/CallContext';
-import * as Schema from '../schema';
-import { graphqlExpress } from 'apollo-server-express';
-import * as Compose from 'compose-middleware';
 import { Repos } from '../repositories';
 import { IDs } from '../api/utils/IDs';
+import { NotFoundError } from '../errors/NotFoundError';
 let domainCache = new Map<string, number | null>();
 
 async function context(src: express.Request): Promise<CallContext> {
@@ -37,7 +34,7 @@ async function context(src: express.Request): Promise<CallContext> {
         }
     }
     if (accId == null) {
-        throw new Error('404: Unable to find account ' + domain);
+        throw new NotFoundError('Unable to find account ' + domain);
     }
     res.accountId = accId;
 
@@ -83,17 +80,7 @@ async function context(src: express.Request): Promise<CallContext> {
     return res;
 }
 
-function handleRequest(useEngine: boolean) {
-    return async function (req?: express.Request, res?: express.Response): Promise<GraphQLOptions> {
-        if (req === undefined || res === undefined) {
-            throw Error('Unexpected error!');
-        } else {
-            return { schema: Schema.Schema, context: res.locals.ctx, cacheControl: useEngine, tracing: useEngine };
-        }
-    };
-}
-
-async function buildContext(req: express.Request, res: express.Response, next: express.NextFunction) {
+export async function callContextMiddleware(req: express.Request, res: express.Response, next: express.NextFunction) {
     let ctx: CallContext;
     try {
         ctx = await context(req);
@@ -108,9 +95,4 @@ async function buildContext(req: express.Request, res: express.Response, next: e
     }
     res.locals.ctx = ctx;
     next();
-}
-
-export function graphqlMiddleware(useEngine: boolean) {
-    let gqlMiddleware = graphqlExpress(handleRequest(useEngine));
-    return Compose.compose(buildContext as any, gqlMiddleware as any);
 }

@@ -1,3 +1,4 @@
+import { UserError } from "../errors/UserError";
 
 export type QueryPart = OrQuery | AndQuery | IntValueQuery | IntValueSpanQuery | ValueEnumQuery | NotQuery;
 
@@ -86,7 +87,7 @@ export function buildElasticQuery(query: QueryPart): any {
             }
         };
     } else {
-        throw Error('Unknwon query ' + query);
+        throw new UserError('Unknwon query ' + query);
     }
 }
 
@@ -97,7 +98,7 @@ export class QueryParser {
         if (!this.registeredFields.has(name.toLocaleLowerCase())) {
             this.registeredFields.set(name.toLocaleLowerCase(), { type: 'int', mappedName: mappedName });
         } else {
-            throw Error('Double field registration: ' + name);
+            throw new UserError('Double field registration: ' + name);
         }
     }
 
@@ -105,7 +106,7 @@ export class QueryParser {
         if (!this.registeredFields.has(name.toLocaleLowerCase())) {
             this.registeredFields.set(name.toLocaleLowerCase(), { type: 'bool', mappedName: mappedName });
         } else {
-            throw Error('Double field registration: ' + name);
+            throw new UserError('Double field registration: ' + name);
         }
     }
 
@@ -113,7 +114,7 @@ export class QueryParser {
         if (!this.registeredFields.has(name.toLocaleLowerCase())) {
             this.registeredFields.set(name.toLocaleLowerCase(), { type: 'text', mappedName: mappedName });
         } else {
-            throw Error('Double field registration: ' + name);
+            throw new UserError('Double field registration: ' + name);
         }
     }
 
@@ -122,7 +123,7 @@ export class QueryParser {
         try {
             parsed = JSON.parse(query);
         } catch {
-            throw Error('Unable to parse query');
+            throw new UserError('Unable to parse query');
         }
 
         return this.parseQueryParsed(parsed);
@@ -131,13 +132,13 @@ export class QueryParser {
     private parseQueryParsed: ((src: any) => QueryPart) = (src: any) => {
         let names = Object.getOwnPropertyNames(src);
         if (names.length !== 1) {
-            throw Error('Expected to have only single field in json object');
+            throw new UserError('Expected to have only single field in json object');
         }
         let type = names[0];
         if (type.toLocaleLowerCase() === '$or') {
             let clauses = src[type];
             if (!Array.isArray(clauses)) {
-                throw Error('Expected array for OR clause');
+                throw new UserError('Expected array for OR clause');
             }
             return {
                 type: 'or',
@@ -146,7 +147,7 @@ export class QueryParser {
         } else if (type.toLocaleLowerCase() === '$and') {
             let clauses = src[type];
             if (!Array.isArray(clauses)) {
-                throw Error('Expected array for OR clause');
+                throw new UserError('Expected array for OR clause');
             }
             return {
                 type: 'and',
@@ -155,7 +156,7 @@ export class QueryParser {
         } else if (type.toLocaleLowerCase() === '$not') {
             let clauses = src[type];
             if (!Array.isArray(clauses)) {
-                throw Error('Expected array for OR clause');
+                throw new UserError('Expected array for OR clause');
             }
             return {
                 type: 'not',
@@ -164,7 +165,7 @@ export class QueryParser {
         } else {
             let tp = this.registeredFields.get(type.toLocaleLowerCase());
             if (!tp) {
-                throw Error('Unknown field "' + type + '"');
+                throw new UserError('Unknown field "' + type + '"');
             }
             if (tp.type === 'int') {
                 let value = src[type];
@@ -185,7 +186,7 @@ export class QueryParser {
                     } catch {
                         // Ignore
                     }
-                    throw Error('Unsupported int field value ' + value);
+                    throw new UserError('Unsupported int field value ' + value);
                 } else if (typeof value.gte === 'number' || typeof value.gt === 'number' || typeof value.lte === 'number' || typeof value.lt === 'number') {
                     let res = {
                         type: 'range',
@@ -209,7 +210,7 @@ export class QueryParser {
                     let vals: number[] = [];
                     for (let v of value) {
                         if (typeof v !== 'string' && typeof v !== 'number') {
-                            throw Error('Unsupported int field value ' + v);
+                            throw new UserError('Unsupported int field value ' + v);
                         }
                         if (typeof v === 'string') {
                             vals.push(parseInt(v, 10));
@@ -223,7 +224,7 @@ export class QueryParser {
                         values: vals
                     };
                 } else {
-                    throw Error('Unsupported int field value ' + value);
+                    throw new UserError('Unsupported int field value ' + value);
                 }
             } else if (tp.type === 'text') {
                 let value = src[type];
@@ -236,7 +237,7 @@ export class QueryParser {
                 } else if (Array.isArray(value)) {
                     for (let v of value) {
                         if (typeof v !== 'string') {
-                            throw Error('Unsupported text field value ' + v);
+                            throw new UserError('Unsupported text field value ' + v);
                         }
                     }
                     return {
@@ -245,7 +246,7 @@ export class QueryParser {
                         values: value
                     };
                 } else {
-                    throw Error('Unsupported text field value ' + value);
+                    throw new UserError('Unsupported text field value ' + value);
                 }
             } else if (tp.type === 'bool') {
                 let value = src[type];
@@ -262,10 +263,10 @@ export class QueryParser {
                         exact: value
                     };
                 } else {
-                    throw Error('Unsupported boolean field value ' + value);
+                    throw new UserError('Unsupported boolean field value ' + value);
                 }
             } else {
-                throw Error('Unsupported field type ' + tp.type);
+                throw new UserError('Unsupported field type ' + tp.type);
             }
         }
     }

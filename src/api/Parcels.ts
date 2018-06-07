@@ -13,6 +13,8 @@ import { createRectangle } from '../utils/map';
 import { normalizeCapitalized } from '../modules/Normalizer';
 import { LotUserDataAttributes } from '../tables/LotUserData';
 import { Services } from '../services';
+import { UserError } from '../errors/UserError';
+import { NotFoundError } from '../errors/NotFoundError';
 
 interface ParcelInput {
     id: string;
@@ -695,11 +697,11 @@ export const Resolver = {
         }),
         likeParcel: async function (_: any, args: { id: string }, context: CallContext) {
             if (!context.uid) {
-                throw Error('Authentication is required');
+                throw new UserError('Authentication is required');
             }
             let lot = (await Repos.Parcels.fetchParcelByRawMapId(args.id));
             if (!lot) {
-                throw Error('Unable to find Lot');
+                throw new NotFoundError('Unable to find Lot');
             }
             await lot.addLike(context.uid);
             (lot as any).changed('updatedAt', true);
@@ -708,11 +710,11 @@ export const Resolver = {
         },
         unlikeParcel: async function (_: any, args: { id: string }, context: CallContext) {
             if (!context.uid) {
-                throw Error('Authentication is required');
+                throw new UserError('Authentication is required');
             }
             let lot = await Repos.Parcels.fetchParcelByRawMapId(args.id);
             if (!lot) {
-                throw Error('Unable to find Lot');
+                throw new NotFoundError('Unable to find Lot');
             }
             await lot.removeLike(context.uid);
             (lot as any).changed('updatedAt', true);

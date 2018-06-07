@@ -21,7 +21,7 @@ export const FolderItemIndexer = createFolderItemsIndexer(ElasticClient);
 
 export async function enableIndexer() {
     if (!process.env.ELASTIC_ENDPOINT) {
-        throw Error('Elastic Search not configured!');
+        throw new Error('Elastic Search not configured!');
     }
     PermitsIndexer.start();
     LotIndexer.start();

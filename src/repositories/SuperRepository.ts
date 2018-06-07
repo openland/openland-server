@@ -1,6 +1,8 @@
 import { DB } from '../tables';
 import { Repos } from '../repositories';
 import { Transaction } from 'sequelize';
+import { NotFoundError } from '../errors/NotFoundError';
+import { UserError } from '../errors/UserError';
 
 export class SuperRepository {
     async fetchAllOrganizations() {
@@ -9,7 +11,7 @@ export class SuperRepository {
     async fetchById(id: number, tx?: Transaction) {
         let res = await DB.Organization.findById(id, {transaction: tx});
         if (!res) {
-            throw Error('Unabvle to find organization');
+            throw new NotFoundError('Unable to find organization');
         }
         return res;
     }
@@ -67,7 +69,7 @@ export class SuperRepository {
             let existing = await DB.OrganizationMember.find({ where: { orgId: organizationId, userId: uid }, transaction: tx, lock: tx.LOCK.UPDATE });
             if (existing) {
                 if (isLast) {
-                    throw Error('Ypu can\'t remove last member from the organization');
+                    throw new UserError('You can\'t remove last member from the organization');
                 }
                 await existing.destroy({ transaction: tx });
             }

@@ -1,6 +1,7 @@
 import { DB, Account } from '../tables';
 import { CallContext } from './CallContext';
 import * as DataLoader from 'dataloader';
+import { NotFoundError } from '../errors/NotFoundError';
 
 function convertAccount(account: Account | undefined | null, context: CallContext) {
     if (account == null || account === undefined) {
@@ -26,7 +27,7 @@ export async function resolveAccountId(domain: string) {
         }
     }));
     if (res == null) {
-        throw new Error('404: Unable to find account ' + domain);
+        throw new NotFoundError('Unable to find account ' + domain);
     }
     return res.id!!;
 }

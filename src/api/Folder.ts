@@ -8,6 +8,8 @@ import { SelectBuilder } from '../modules/SelectBuilder';
 import { FolderItem } from '../tables/FolderItem';
 import * as Turf from '@turf/turf';
 import { FoldeExportWorker } from '../workers';
+import { NotFoundError } from '../errors/NotFoundError';
+import { UserError } from '../errors/UserError';
 
 export const Resolver = {
     Folder: {
@@ -218,7 +220,7 @@ export const Resolver = {
                 });
 
                 if (!res) {
-                    throw Error('Unable to find folder');
+                    throw new NotFoundError('Unable to find folder');
                 }
 
                 return res;
@@ -256,12 +258,12 @@ export const Resolver = {
                     transaction: tx
                 });
                 if (!folder) {
-                    throw Error('Unable to find folder');
+                    throw new NotFoundError('Unable to find folder');
                 }
 
                 if (args.name !== undefined) {
                     if (args.name === null || args.name.trim() === '') {
-                        throw Error('Name can\'t be empty');
+                        throw new UserError('Name can\'t be empty');
                     }
 
                     folder.name = args.name.trim();
@@ -279,11 +281,11 @@ export const Resolver = {
         alphaParcelAddToFolder: withAccount<{ folderId: string, parcelId: string }>(async (args, uid, orgId) => {
             let folder = await DB.Folder.find({ where: { organizationId: orgId, id: IDs.Folder.parse(args.folderId) } });
             if (!folder) {
-                throw Error('Unable to find folder');
+                throw new NotFoundError('Unable to find folder');
             }
             let parcel = await Repos.Parcels.fetchParcelByRawMapId(args.parcelId);
             if (!parcel) {
-                throw Error('Unable to find parcel');
+                throw new NotFoundError('Unable to find parcel');
             }
 
             await DB.FolderItem.create({
@@ -296,7 +298,7 @@ export const Resolver = {
         alphaParcelSetFolder: withAccount<{ folderId?: string | null, parcelId: string }>(async (args, uid, orgId) => {
             let parcel = await Repos.Parcels.fetchParcelByRawMapId(args.parcelId);
             if (!parcel) {
-                throw Error('Unable to find folder');
+                throw new NotFoundError('Unable to find folder');
             }
 
             if (!args.folderId) {
@@ -313,7 +315,7 @@ export const Resolver = {
                         transaction: tx
                     });
                     if (!folder) {
-                        throw Error('Unable to find folder');
+                        throw new NotFoundError('Unable to find folder');
                     }
                     await Repos.Folders.setFolder(orgId, parcel!!.id!!, folder.id!!, tx);
                 });
@@ -331,7 +333,7 @@ export const Resolver = {
         alphaCreateFolderFromSearch: withAccount<{ name: string, state: string, county: string, city: string, query: string }>(async (args, uid, orgId) => {
             let name = args.name.trim();
             if (name === '') {
-                throw Error('Name can\'t be empty');
+                throw new UserError('Name can\'t be empty');
             }
             let cityid = await Repos.Area.resolveCity(args.state, args.county, args.city);
             let parcels = await Repos.Parcels.fetchAllParcels(cityid, args.query);
@@ -354,7 +356,7 @@ export const Resolver = {
                 },
             });
             if (!folder) {
-                throw Error('Unable to find folder');
+                throw new NotFoundError('Unable to find folder');
             }
 
             return FoldeExportWorker.pushWork({ folderId: id });

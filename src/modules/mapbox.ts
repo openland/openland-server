@@ -17,7 +17,7 @@ export function mapBoxConfigured(): boolean {
 
 export async function uploadFeature(dataset: string, id: string, geometry: GeoJsonGeometry) {
     if (!mapBoxConfigured()) {
-        throw Error('Map Box import is not configured');
+        throw new Error('Map Box import is not configured');
     }
     let url = `https://api.mapbox.com/datasets/v1/${process.env.MAPBOX_USER}/${dataset}/features/${id}?access_token=${process.env.MAPBOX_TOKEN}`;
     try {
@@ -36,7 +36,7 @@ export async function uploadFeature(dataset: string, id: string, geometry: GeoJs
             body: body
         });
         if (!res.ok) {
-            throw Error('Error during query: ' + res);
+            throw new Error('Error during query: ' + res);
         }
     } catch (e) {
         console.warn(e);

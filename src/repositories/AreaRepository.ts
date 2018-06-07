@@ -1,5 +1,6 @@
 import { DB, City, County, State } from '../tables/index';
 import * as DataLoader from 'dataloader';
+import { NotFoundError } from '../errors/NotFoundError';
 
 export class AreaRepository {
     private cityLoader = new DataLoader<number, City | null>(async (cities) => {
@@ -108,7 +109,7 @@ export class AreaRepository {
             if (r !== null && r !== undefined) {
                 return { id: r, slug: domain };
             } else {
-                throw Error('Unknown area ' + domain);
+                throw new NotFoundError('Unknown area ' + domain);
             }
         } else {
             let account = await DB.Account.findOne({ where: { slug: domain } });
@@ -117,7 +118,7 @@ export class AreaRepository {
                 return { id: account.id!!, slug: domain };
             } else {
                 this.cache.set(domain, null);
-                throw Error('Unknown area ' + domain);
+                throw new NotFoundError('Unknown area ' + domain);
             }
         }
     }
@@ -143,7 +144,7 @@ export class AreaRepository {
             }]
         });
         if (!res) {
-            throw 'City is not found for ' + state + ', ' + county + ', ' + city;
+            throw new NotFoundError('City is not found for ' + state + ', ' + county + ', ' + city);
         }
         return res.id!!;
     }
@@ -151,7 +152,7 @@ export class AreaRepository {
     async resolveCityByTag(tag: string) {
         let res = await this.cityTagLoader.load(tag);
         if (!res) {
-            throw 'City is not found for tag ' + tag;
+            throw new NotFoundError('City is not found for tag ' + tag);
         }
         return res.id!!;
     }

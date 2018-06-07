@@ -1,6 +1,7 @@
 import { DB, Developer } from '../tables';
 import { bulkApply } from '../utils/db_utils';
 import { Transaction } from 'sequelize';
+import { NotFoundError } from '../errors/NotFoundError';
 
 export interface BuildingProjectDescription {
     projectId: string;
@@ -118,7 +119,7 @@ export async function applyBuildingProjects(tx: Transaction, accountId: number, 
     let index = 0;
     for (let p of applied) {
         let bp = (await DB.BuidlingProject.findOne({
-            where: {id: p.id},
+            where: { id: p.id },
             transaction: tx,
             logging: false
         }))!!;
@@ -127,23 +128,23 @@ export async function applyBuildingProjects(tx: Transaction, accountId: number, 
         if (src.developers) {
             await bp.setDevelopers(src.developers.map((d) => {
                 if (developers[d.toLowerCase()] === undefined) {
-                    throw 'Unable to find Organization ' + d.toLowerCase();
+                    throw new NotFoundError('Unable to find Organization ' + d.toLowerCase());
                 }
                 return developers[d.toLowerCase()]!!;
-            }), {transaction: tx, logging: false});
+            }), { transaction: tx, logging: false });
         } else {
-            await bp.setDevelopers([], {transaction: tx, logging: false});
+            await bp.setDevelopers([], { transaction: tx, logging: false });
         }
 
         if (src.constructors) {
             await bp.setConstructors(src.constructors.map((d) => {
                 if (developers[d.toLowerCase()] === undefined) {
-                    throw 'Unable to find Organization ' + d.toLowerCase();
+                    throw new NotFoundError('Unable to find Organization ' + d.toLowerCase());
                 }
                 return developers[d.toLowerCase()]!!;
-            }), {transaction: tx, logging: false});
+            }), { transaction: tx, logging: false });
         } else {
-            await bp.setConstructors([], {transaction: tx, logging: false});
+            await bp.setConstructors([], { transaction: tx, logging: false });
         }
 
         if (src.permits) {
@@ -157,9 +158,9 @@ export async function applyBuildingProjects(tx: Transaction, accountId: number, 
                 transaction: tx,
                 logging: false
             });
-            await bp.setPermits(ex, {transaction: tx, logging: false});
+            await bp.setPermits(ex, { transaction: tx, logging: false });
         } else {
-            await bp.setPermits([], {transaction: tx, logging: false});
+            await bp.setPermits([], { transaction: tx, logging: false });
         }
 
         index++;

@@ -2,6 +2,7 @@ import { DB } from '../tables';
 import { sumRaw, countRaw, textLikeFieldsText, percentileRaw, histogramCountRaw, histogramSumRaw } from '../utils/db_utils';
 import * as sequelize from 'sequelize';
 import { SearchResponse } from 'elasticsearch';
+import { UserError } from '../errors/UserError';
 
 export type Order = 'ASC' | 'DESC' | 'ASC NULLS FIRST' | 'ASC NULLS LAST' | 'DESC NULLS FIRST' | 'DESC NULLS LAST';
 
@@ -40,7 +41,7 @@ export class SelectBuilder<TInstance, TAttributes> {
             if (limit <= 0) {
                 cloned.limitValue = null;
             } else if (limit > 100) {
-                throw 'Maximum number of fetched results is ' + 100;
+                throw new Error('Maximum number of fetched results is ' + 100);
             } else {
                 cloned.limitValue = limit;
             }
@@ -95,7 +96,7 @@ export class SelectBuilder<TInstance, TAttributes> {
             let sqlFields = fields.map((p) => {
                 let attr = attributes[p];
                 if (!attr) {
-                    throw 'Attribute ' + p + ' not found';
+                    throw new Error('Attribute ' + p + ' not found');
                 }
                 return '"' + p + '"';
             }).join();
@@ -103,7 +104,7 @@ export class SelectBuilder<TInstance, TAttributes> {
                 let res = p.map((v) => {
                     if (v == null || v === undefined) {
                         console.warn(p);
-                        throw 'Null value found!';
+                        throw new Error('Null value found!');
                     } else if (typeof v === 'string') {
                         return DB.connection.escape(v);
                     } else {
@@ -204,7 +205,7 @@ export class SelectBuilder<TInstance, TAttributes> {
 
     async findElastic(response: SearchResponse<any>, include?: Array<sequelize.Model<any, any> | sequelize.IncludeOptions>) {
         if (this.limitValue == null) {
-            throw 'Limit should be set!';
+            throw new UserError('Limit should be set!');
         }
         let ids = response.hits.hits.map((v) => parseInt(v._id, 10));
         let elements = await this.table.findAll({
@@ -278,7 +279,7 @@ export class SelectBuilder<TInstance, TAttributes> {
 
     async findAll(include?: Array<sequelize.Model<any, any> | sequelize.IncludeOptions>, whereRaw?: sequelize.WhereOptions<any>) {
         if (this.limitValue == null) {
-            throw 'Limit should be set!';
+            throw new UserError('Limit should be set!');
         }
         let offset = 0;
         if (this.afterValue) {

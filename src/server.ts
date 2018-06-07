@@ -5,7 +5,7 @@ import * as morgan from 'morgan';
 import { Engine } from 'apollo-engine';
 import * as compression from 'compression';
 import * as Auth2 from './handlers/authV2';
-import * as Context from './handlers/context';
+import { schemaHandler } from './handlers/schema';
 
 export async function startApi() {
 
@@ -58,7 +58,7 @@ export async function startApi() {
     //
     // API
     //
-    let graphqlMiddleware = Context.graphqlMiddleware(engine != null);
+    let graphqlMiddleware = schemaHandler(engine != null);
     app.use('/api', Auth2.TokenChecker, bodyParser.json({ limit: '5mb' }), graphqlMiddleware);
     app.use('/graphql', Auth2.TokenChecker, bodyParser.json({ limit: '5mb' }), graphqlMiddleware);
 

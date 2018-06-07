@@ -9,6 +9,7 @@ import { FeatureFlag } from '../tables/FeatureFlag';
 import { SuperCity } from '../tables/SuperCity';
 import { SampleWorker } from '../workers';
 import { Task } from '../tables/Task';
+import { UserError } from '../errors/UserError';
 
 export const Resolvers = {
     SuperAccount: {
@@ -159,7 +160,7 @@ export const Resolvers = {
         superAdminRemove: withPermission<{ userId: string }>('super-admin', async (args) => {
             let uid = IDs.User.parse(args.userId);
             if (await DB.SuperAdmin.count() <= 1) {
-                throw Error('You can\'t remove last Super Admin from the system');
+                throw new UserError('You can\'t remove last Super Admin from the system');
             }
             await DB.SuperAdmin.destroy({ where: { userId: uid } });
             return 'ok';

@@ -38,7 +38,7 @@ async function initMater() {
                     cp.execSync('psql -q -h localhost -U ' + process.env.DATABASE_USER + ' -d postgres -f ./dumps/dump.sql', { stdio: 'inherit' });
                     console.warn('Database imported');
                 } else {
-                    throw Error('Unable to find ./dumps/dump.sql');
+                    throw new Error('Unable to find ./dumps/dump.sql');
                 }
 
                 // Resetting locks and readers

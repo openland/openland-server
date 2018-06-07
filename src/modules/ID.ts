@@ -1,4 +1,5 @@
 import * as Base64 from '../utils/base64';
+import { IDMailformedError } from '../errors/IDMailformedError';
 
 export class ID {
     readonly type: string;
@@ -7,10 +8,10 @@ export class ID {
     }
     serialize = (src: number) => {
         if (src < 0) {
-            throw Error('Ids can\'t be negative!');
+            throw new IDMailformedError('Ids can\'t be negative!');
         }
         if (!Number.isInteger(src)) {
-            throw Error('Ids can\'t be float numbers!');
+            throw new IDMailformedError('Ids can\'t be float numbers!');
         }
         return Base64.encode(src.toString() + '|' + this.type.toLowerCase());
     }
@@ -19,7 +20,7 @@ export class ID {
         let decoded = Base64.decode(src);
         let parts = decoded.split('|', 2);
         if (parts[1] !== type) {
-            throw Error(`Type mismatch. Expected: ${type}, got ${parts[1]}`);
+            throw new IDMailformedError(`Type mismatch. Expected: ${type}, got ${parts[1]}`);
         }
         return parseInt(parts[0], 10);
     }

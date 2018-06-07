@@ -6,14 +6,14 @@ const filesBucket = process.env.FILES_BUCKET as string;
 
 export async function checkFilesConfig() {
     if (!filesBucket) {
-        throw Error('Buckets are not configured');
+        throw new Error('Buckets are not configured');
     }
     try {
         let bucket = filesStorage.bucket(filesBucket);
         await bucket.getFiles();
     } catch (e) {
         console.warn(e);
-        throw Error('Unable to connect to the bucket');
+        throw new Error('Unable to connect to the bucket');
     }
 }
 

@@ -22,7 +22,7 @@ async function findAllTuplesWithNull<TInstance>(tx: Transaction, accountId: numb
     let sqlFields = '(' + fields.map((p) => {
         let attr = attributes[p];
         if (!attr) {
-            throw 'Attribute ' + p + ' not found';
+            throw new Error('Attribute ' + p + ' not found');
         }
         return '"' + p + '"';
     }).join() + ')';
@@ -30,7 +30,7 @@ async function findAllTuplesWithNull<TInstance>(tx: Transaction, accountId: numb
         '(' + p.map((v) => {
             if (v == null || v === undefined) {
                 console.warn(p);
-                throw 'Null value found!';
+                throw new Error('Null value found!');
             } else if (typeof v === 'string') {
                 return connection.escape(v);
             } else {
@@ -50,7 +50,7 @@ async function findAllTuplesWithNotNull<TInstance>(tx: Transaction, accountId: n
     let sqlFields = '(' + fields.map((p) => {
         let attr = attributes[p];
         if (!attr) {
-            throw 'Attribute ' + p + ' not found';
+            throw new Error('Attribute ' + p + ' not found');
         }
         return '"' + p + '"';
     }).join() + ')';
@@ -58,7 +58,7 @@ async function findAllTuplesWithNotNull<TInstance>(tx: Transaction, accountId: n
         '(' + p.map((v) => {
             if (v == null || v === undefined) {
                 console.warn(p);
-                throw 'Null value found!';
+                throw new Error('Null value found!');
             } else if (typeof v === 'string') {
                 return connection.escape(v);
             } else {
@@ -76,7 +76,7 @@ export async function findAllTuples<TInstance>(tx: Transaction, accountId: numbe
     let attributes = (model as any).attributes;
     let nullable = fields.filter((p) => (attributes[p].allowNull && attributes[p].type.constructor.name === 'STRING'));
     if (nullable.length >= 2) {
-        throw 'More than one nullable is not supported!';
+        throw new Error('More than one nullable is not supported!');
     } else if (nullable.length === 1) {
         let withNulls = Array<Array<any>>();
         let withoutNulls = Array<Array<any>>();

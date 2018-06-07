@@ -15,6 +15,7 @@ import * as GeoHash from 'ngeohash';
 import supercluster from 'supercluster';
 import { cachedObject } from '../modules/cache';
 import * as stringify from 'json-stable-stringify';
+import { NotFoundError } from '../errors/NotFoundError';
 
 export class ParcelRepository {
 
@@ -41,7 +42,7 @@ export class ParcelRepository {
     async applyMetadata(id: number, metadata: { description?: string | null, currentUse?: string | null, available?: boolean | null, isOkForTower?: boolean | null }) {
         let lot = await DB.Lot.findById(id);
         if (!lot) {
-            throw Error('Unable to find lot');
+            throw new NotFoundError('Unable to find parcel');
         }
         let updated = Object.assign({}, lot.metadata);
         if (metadata.description !== undefined) {
@@ -499,7 +500,7 @@ export class ParcelRepository {
                 let rid = nids.map.get(i);
                 let m = all.find((v) => v.parcelId === rid);
                 if (!m) {
-                    throw Error('Inconsistentcy detected!');
+                    throw new Error('Inconsistentcy detected!');
                 }
                 res.set(i, m.id!!);
             }

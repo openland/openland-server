@@ -8,6 +8,7 @@ import { Chart, prepareHistogram, elasticChart, elasticQuarterChart } from '../u
 import { ElasticClient } from '../indexing';
 import { currentTime, printElapsed } from '../utils/timer';
 import { cachedObject } from '../modules/cache';
+import { NotFoundError } from '../errors/NotFoundError';
 
 interface PermitInfo {
     id: string;
@@ -558,7 +559,7 @@ export const Resolver = {
                 }]
             });
             if (!city) {
-                throw 'City is not found for ' + args.state + ', ' + args.county + ', ' + args.city;
+                throw new NotFoundError('City is not found for ' + args.state + ', ' + args.county + ', ' + args.city);
             }
             await applyPermits(call.accountId, city.id!!, args.sourceDate, args.permits);
             return 'ok';

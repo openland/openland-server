@@ -3,13 +3,15 @@ import { Transaction } from 'sequelize';
 import { FolderItemAttributes } from '../tables/FolderItem';
 import { ElasticClient } from '../indexing';
 import { Repos } from '../repositories';
+import { NotFoundError } from '../errors/NotFoundError';
+import { UserError } from '../errors/UserError';
 
 export class FoldersRepository {
 
     async createFolder(orgId: number, name: string, transaction: Transaction, initialParcels?: [string]) {
         name = name.trim();
         if (name === '') {
-            throw Error('Name can\'t be empty');
+            throw new UserError('Name can\'t be empty');
         }
 
         let folder = await DB.Folder.create({
@@ -21,7 +23,7 @@ export class FoldersRepository {
             for (let parcelId of initialParcels) {
                 let parcel = await Repos.Parcels.fetchParcelByRawMapId(parcelId);
                 if (!parcel) {
-                    throw Error('Unable to find parcel');
+                    throw new NotFoundError('Unable to find parcel');
                 }
                 await Repos.Folders.setFolder(orgId, parcel.id!!, folder.id!!, transaction);
             }
@@ -146,7 +148,7 @@ export class FoldersRepository {
                 transaction: tx
             });
             if (!folder) {
-                throw Error('Unable to find folder');
+                throw new NotFoundError('Unable to find folder');
             }
             await folder.destroy({ transaction: tx });
         });

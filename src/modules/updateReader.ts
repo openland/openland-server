@@ -29,7 +29,7 @@ export async function readReaderOffset(tx: sequelize.Transaction, key: string, v
     });
     if (res != null) {
         if (res.version!! > version) {
-            throw Error('New version found! Abort.');
+            throw new Error('New version found! Abort.');
         }
         // Reader was upgraded
         if (res.version!! < version) {
@@ -63,7 +63,7 @@ export async function writeReaderOffset(tx: sequelize.Transaction, key: string, 
         res.remaining = remaining;
         res.version = version;
         if (res.version!! > version) {
-            throw Error('New version found! Abort.');
+            throw new Error('New version found! Abort.');
         }
         await res.save({ transaction: tx, logging: false });
         (tx as any).afterCommit(() => {
@@ -155,7 +155,7 @@ export class UpdateReader<TInstance, TAttributes> {
                 });
                 if (res.errors) {
                     console.warn(JSON.stringify(res));
-                    throw Error('Error during indexing');
+                    throw new Error('Error during indexing');
                 }
             } catch (e) {
                 console.warn(e);
@@ -217,7 +217,7 @@ export class UpdateReader<TInstance, TAttributes> {
 
     async outOfOrder(id: number, tx?: Transaction) {
         if (!this.processorFunc) {
-            throw Error('Processor should be set!');
+            throw new Error('Processor should be set!');
         }
         let inst = await this.model.findById(id, { transaction: tx, include: this.includeVal });
         if (inst) {
@@ -227,7 +227,7 @@ export class UpdateReader<TInstance, TAttributes> {
 
     start() {
         if (!this.processorFunc) {
-            throw Error('Processor should be set!');
+            throw new Error('Processor should be set!');
         }
 
         updateReader(this.name, this.version, this.model, this.includeVal, this.delay, (data, tx) => this.processorFunc!!(data, tx, false), this.initFunc);

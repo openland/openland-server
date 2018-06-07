@@ -1,5 +1,6 @@
 import { DB } from '../tables/index';
 import { FeatureFlag } from '../tables/FeatureFlag';
+import { NotFoundError } from '../errors/NotFoundError';
 
 export interface AreaPermissions {
     isOwner: boolean;
@@ -32,7 +33,7 @@ export class PermissionRepository {
         if (args.uid) {
             let user = await DB.User.find({ where: { id: args.uid } });
             if (user == null) {
-                throw Error('Unable to find user');
+                throw new NotFoundError('Unable to find user');
             }
             permissions.add('viewer');
 

@@ -30,7 +30,7 @@ export class DynamicLock {
         class State implements LockState {
             check() {
                 if (!isAlive) {
-                    throw Error('Lock is not alive');
+                    throw new Error('Lock is not alive');
                 }
             }
             isAlive() {

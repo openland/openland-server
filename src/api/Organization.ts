@@ -6,6 +6,7 @@ import { withUser, withAccount } from './utils/Resolvers';
 import { Repos } from '../repositories';
 import { ImageRef } from '../repositories/Media';
 import { OrganizationExtras } from '../repositories/OrganizationExtras';
+import { UserError } from '../errors/UserError';
 
 export const Resolver = {
     OrganizationProfile: {
@@ -65,18 +66,18 @@ export const Resolver = {
             });
 
             if (member === null || !member.isOwner) {
-                throw Error('Only owner can edit orgnization');
+                throw new UserError('Only owner can edit orgnization');
             }
 
             return await DB.tx(async (tx) => {
                 let existing = await DB.Organization.find({ where: { id: oid }, transaction: tx });
                 if (!existing) {
-                    throw Error('Organization not found');
+                    throw new UserError('Organization not found');
 
                 } else {
                     if (args.title !== undefined) {
                         if (args.title === null || args.title.trim() === '') {
-                            throw Error('Title can\'t be empty');
+                            throw new UserError('Title can\'t be empty');
                         }
                         existing.title = args.title;
                     }
