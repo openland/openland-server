@@ -1,3 +1,7 @@
+#
+# Super Accounting
+#
+
 enum SuperAccountState {
     PENDING,
     ACTIVATED,
@@ -12,6 +16,10 @@ type SuperAccount {
     features: [FeatureFlag!]!
 }
 
+#
+# Super Admins
+#
+
 enum SuperAdminRole {
     SUPER_ADMIN,
     SOFTWARE_DEVELOPER,
@@ -22,6 +30,10 @@ type SuperAdmin {
     user: User!
     role: SuperAdminRole!
 }
+
+#
+# City Configurations
+#
 
 type SuperCity {
     id: ID!

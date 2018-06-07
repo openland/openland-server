@@ -46,14 +46,6 @@ type MyProfile {
     isBlocked: Boolean!
 }
 
-input AvatarUpload {
-    uploadId: String!
-    cropX: Int!
-    cropY: Int!
-    cropW: Int!
-    cropH: Int!
-}
-
 type Invite {
     id: ID!
     key: String!

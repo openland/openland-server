@@ -9,7 +9,6 @@ import * as CityOrganizations from './api/CityOrganizations';
 import * as Stats from './api/AreaStats';
 import * as Parcels from './api/Parcels';
 import * as Area from './api/Area';
-import * as CityIncidents from './api/CityIncident';
 import * as Search from './api/Search';
 import * as Permissions from './api/Permissions';
 import * as Account from './api/Account';
@@ -42,7 +41,6 @@ export const Schema = makeExecutableSchema({
         Area.Resolver,
         CityAccount.Resolver,
         CityOrganizations.Resolver,
-        CityIncidents.Resolvers,
         Search.Resolvers,
         Permissions.Resolvers,
         Addressing.Resolvers,
