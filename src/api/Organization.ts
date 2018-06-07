@@ -34,11 +34,11 @@ export const Resolver = {
                     userId: uid,
                 }
             });
-            return { ...DB.Organization.findById(oid), iAmOwner: member !== null && member.isOwner };
+            return { ...(await DB.Organization.findById(oid)), iAmOwner: member !== null && member.isOwner };
         }),
 
         alphaOrganizationProfile: withAccount<{ id: string }>(async (args, uid, oid) => {
-            return DB.Organization.findById(IDs.OrganizationAccount.parse(args.id));
+            return await DB.Organization.findById(IDs.OrganizationAccount.parse(args.id));
         }),
     },
     Mutation: {
