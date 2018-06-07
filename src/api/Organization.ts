@@ -5,13 +5,24 @@ import { buildBaseImageUrl } from '../repositories/Media';
 import { withUser, withAccount } from './utils/Resolvers';
 import { Repos } from '../repositories';
 import { ImageRef } from '../repositories/Media';
+import { CallContext } from './CallContext';
 import { OrganizationExtras } from '../repositories/OrganizationExtras';
 import { UserError } from '../errors/UserError';
+
+let amIOwner = async (oid: number, uid: number) => {
+    let member = await DB.OrganizationMember.find({
+        where: {
+            orgId: oid,
+            userId: uid,
+        }
+    });
+    return member && member.isOwner;
+};
 
 export const Resolver = {
     OrganizationProfile: {
         id: (src: Organization) => IDs.OrganizationAccount.serialize(src.id!!),
-        iAmOwner: (src: Organization & { iAmOwner?: boolean }) => src.iAmOwner,
+        iAmOwner: (src: Organization, args: {}, context: CallContext) => amIOwner(src.id!!, context.uid!!),
         title: (src: Organization) => src.title,
         logo: (src: Organization) => src.logo ? buildBaseImageUrl(src.logo) : null,
         website: (src: Organization) => src.website,
@@ -29,17 +40,11 @@ export const Resolver = {
     },
     Query: {
         alphaCurrentOrganizationProfile: withAccount(async (args, uid, oid) => {
-            let member = await DB.OrganizationMember.find({
-                where: {
-                    orgId: oid,
-                    userId: uid,
-                }
-            });
-            return { ...DB.Organization.findById(oid), iAmOwner: member !== null && member.isOwner };
+            return await DB.Organization.findById(oid);
         }),
 
         alphaOrganizationProfile: withAccount<{ id: string }>(async (args, uid, oid) => {
-            return DB.Organization.findById(IDs.OrganizationAccount.parse(args.id));
+            return await DB.Organization.findById(IDs.OrganizationAccount.parse(args.id));
         }),
     },
     Mutation: {

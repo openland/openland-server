@@ -71,7 +71,7 @@ type InviteInfo {
 type OrganizationAccount {
     id: ID!
     title: String!
-    logo: String
+    photo: String
     website: String
 }
 

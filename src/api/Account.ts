@@ -20,7 +20,7 @@ export const Resolver = {
     OrganizationAccount: {
         id: (src: Organization) => IDs.OrganizationAccount.serialize(src.id!!),
         title: (src: Organization) => src.title,
-        logo: (src: Organization) => src.logo ? buildBaseImageUrl(src.logo) : null,
+        photo: (src: Organization) => src.logo ? buildBaseImageUrl(src.logo) : null,
         website: (src: Organization) => src.website,
     },
     Invite: {
