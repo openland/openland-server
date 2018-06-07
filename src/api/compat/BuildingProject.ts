@@ -1,13 +1,13 @@
-import { CallContext } from './CallContext';
-import { DB } from '../tables';
-import { BuildingProject } from '../tables';
-import { resolveStreetView, resolvePicture } from '../utils/pictures';
-import { SelectBuilder } from '../modules/SelectBuilder';
-import { dateDiff } from '../utils/date_utils';
-import { cachedInt, isCached } from '../modules/cache';
+import { CallContext } from '../utils/CallContext';
+import { DB } from '../../tables';
+import { BuildingProject } from '../../tables';
+import { resolveStreetView, resolvePicture } from '../../utils/pictures';
+import { SelectBuilder } from '../../modules/SelectBuilder';
+import { dateDiff } from '../../utils/date_utils';
+import { cachedInt, isCached } from '../../modules/cache';
 import * as DataLoader from 'dataloader';
 import { setTimeout } from 'timers';
-import { Repos } from '../repositories/index';
+import { Repos } from '../../repositories/index';
 
 let buildingProjectLoader = new DataLoader<number, BuildingProject>(async (v) => {
     let mapped = v.map((id) => DB.BuidlingProject.findById(id, {

@@ -1,11 +1,10 @@
 import { Lot } from '../tables/Lot';
 import { Block } from '../tables/Block';
 import { Repos } from '../repositories/index';
-import { ExtrasInput } from './Core';
 import { DB } from '../tables';
 import { ElasticClient } from '../indexing';
 import * as Turf from '@turf/turf';
-import { CallContext } from './CallContext';
+import { CallContext } from './utils/CallContext';
 import { withPermission, withAuth, withPermissionOptional, withAccountTypeOptional, withAccount, withAny } from './utils/Resolvers';
 import { IDs } from './utils/IDs';
 import { serializeGeometry } from './utils/Serializers';
@@ -16,26 +15,7 @@ import { Services } from '../services';
 import { UserError } from '../errors/UserError';
 import { NotFoundError } from '../errors/NotFoundError';
 import { ErrorText } from '../errors/ErrorText';
-
-interface ParcelInput {
-    id: string;
-    blockId?: string | null;
-    geometry?: number[][][][] | null;
-    extras?: ExtrasInput | null;
-    addresses?: {
-        streetName: string,
-        streetNameSuffix?: string | null
-        streetNumber: number,
-        streetNumberSuffix?: string | null
-    }[];
-    retired?: boolean;
-}
-
-interface BlockInput {
-    id: string;
-    geometry?: number[][][][] | null;
-    extras?: ExtrasInput | null;
-}
+import { ParcelInput, BlockInput } from './types';
 
 export const Resolver = {
     ParcelUserData: {

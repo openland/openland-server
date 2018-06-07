@@ -1,5 +1,5 @@
 import { JsonMap } from '../utils/json';
-import { ExtrasInput } from '../api/Core';
+import { ExtrasInput } from '../api/types';
 
 export function buildExtrasFromInput(input?: ExtrasInput | null) {
     let res: JsonMap = {};

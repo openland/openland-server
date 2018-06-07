@@ -5,7 +5,7 @@ import { buildBaseImageUrl } from '../repositories/Media';
 import { withUser, withAccount } from './utils/Resolvers';
 import { Repos } from '../repositories';
 import { ImageRef } from '../repositories/Media';
-import { CallContext } from './CallContext';
+import { CallContext } from './utils/CallContext';
 import { OrganizationExtras } from '../repositories/OrganizationExtras';
 import { UserError } from '../errors/UserError';
 import { ErrorText } from '../errors/ErrorText';

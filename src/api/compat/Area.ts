@@ -1,6 +1,6 @@
-import { Repos } from '../repositories/index';
-import { CallContext } from './CallContext';
-import { AreaPermissions } from '../repositories/PermissionRepository';
+import { Repos } from '../../repositories/index';
+import { CallContext } from '../utils/CallContext';
+import { AreaPermissions } from '../../repositories/PermissionRepository';
 
 export interface AreaContext {
     _areadId: number;

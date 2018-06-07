@@ -7,29 +7,7 @@ import { Repos } from '../repositories';
 import { NotFoundError } from '../errors/NotFoundError';
 import { UserError } from '../errors/UserError';
 import { ErrorText } from '../errors/ErrorText';
-
-interface DealInput {
-    title?: string | null;
-    status?: 'ACTIVE' | 'CLOSED' | 'ON_HOLD' | null;
-    statusDescription?: string | null;
-    statusDate?: string | null;
-
-    location?: string | null;
-    address?: string | null;
-
-    price?: number | null;
-
-    extrasArea?: number | null;
-    extrasCompany?: string | null;
-    extrasAttorney?: string | null;
-    extrasReferee?: string | null;
-
-    extrasLotShape: string | null;
-    extrasLotSize: string | null;
-    extrasTaxBill: number | null;
-
-    parcelId: string | null;
-}
+import { DealInput } from './types';
 
 // price?: number | null;
 // area?: number | null;

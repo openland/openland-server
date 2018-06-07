@@ -1,6 +1,6 @@
-import { DB } from '../tables';
-import { ElasticClient } from '../indexing/index';
-import { cachedInt } from '../modules/cache';
+import { DB } from '../../tables';
+import { ElasticClient } from '../../indexing/index';
+import { cachedInt } from '../../modules/cache';
 import { AreaContext } from './Area';
 
 function resolve(id: number) {

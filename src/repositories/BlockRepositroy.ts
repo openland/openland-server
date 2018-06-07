@@ -1,5 +1,5 @@
 import { DB } from '../tables/index';
-import { ExtrasInput } from '../api/Core';
+import { ExtrasInput } from '../api/types';
 import { buildGeometryFromInput } from '../modules/geometry';
 import * as Normalizer from '../modules/Normalizer';
 import { buildExtrasFromInput } from '../modules/extras';

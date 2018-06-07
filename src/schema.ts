@@ -1,14 +1,8 @@
 import { merge } from 'lodash';
 import { makeExecutableSchema } from 'graphql-tools';
-import * as CityAccount from './api/CityAccount';
 import * as User from './api/User';
 import * as Permits from './api/Permit';
-import * as BuildingProject from './api/BuildingProject';
-import * as Picture from './api/Picture';
-import * as CityOrganizations from './api/CityOrganizations';
-import * as Stats from './api/AreaStats';
-import * as Parcels from './api/Parcels';
-import * as Area from './api/Area';
+
 import * as Search from './api/Search';
 import * as Permissions from './api/Permissions';
 import * as Account from './api/Account';
@@ -20,6 +14,14 @@ import * as Services from './api/Services';
 import * as Debug from './api/Debug';
 import * as Folder from './api/Folder';
 import * as Organization from './api/Organization';
+
+import * as CityAccount from './api/compat/CityAccount';
+import * as Picture from './api/compat/Picture';
+import * as BuildingProject from './api/compat/BuildingProject';
+import * as CityOrganizations from './api/compat/CityOrganizations';
+import * as Stats from './api/compat/AreaStats';
+import * as Area from './api/compat/Area';
+import * as Parcels from './api/Parcels';
 
 let schema = fs
     .readdirSync(__dirname + '/api/schema/')

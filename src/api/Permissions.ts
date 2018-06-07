@@ -1,4 +1,4 @@
-import { CallContext } from './CallContext';
+import { CallContext } from './utils/CallContext';
 import { Repos } from '../repositories';
 import { withPermission, withAny } from './utils/Resolvers';
 import { Organization } from '../tables/Organization';

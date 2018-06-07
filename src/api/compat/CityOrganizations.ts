@@ -1,11 +1,11 @@
-import { CallContext } from './CallContext';
-import { DB } from '../tables';
-import { Developer } from '../tables';
-import * as Normalizer from '../modules/Normalizer';
+import { CallContext } from '../utils/CallContext';
+import { DB } from '../../tables';
+import { Developer } from '../../tables';
+import * as Normalizer from '../../modules/Normalizer';
 import { AreaContext } from './Area';
-import { withPermission } from './utils/Resolvers';
-import { NotFoundError } from '../errors/NotFoundError';
-import { ErrorText } from '../errors/ErrorText';
+import { withPermission } from './../utils/Resolvers';
+import { NotFoundError } from '../../errors/NotFoundError';
+import { ErrorText } from '../../errors/ErrorText';
 
 export const Resolver = {
     Organization: {

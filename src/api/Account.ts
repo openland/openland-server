@@ -1,6 +1,6 @@
 import { DB } from '../tables';
 import { Organization } from '../tables/Organization';
-import { CallContext } from './CallContext';
+import { CallContext } from './utils/CallContext';
 import { withUser, withAny } from './utils/Resolvers';
 import { normalizeNullableUserInput } from '../modules/Normalizer';
 import { Repos } from '../repositories';

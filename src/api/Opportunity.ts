@@ -4,8 +4,7 @@ import { Opportunity } from '../tables/Opportunity';
 import { IDs } from './utils/IDs';
 import * as Turf from '@turf/turf';
 import { serializeGeometry } from './utils/Serializers';
-
-type OpportunitySort = 'DATE_ADDED_ASC' | 'DATE_ADDED_DESC' | 'AREA_ASC' | 'AREA_DESC' | 'CAPACITY_ASC' | 'CAPACITY_DESC';
+import { OpportunitySort } from './types';
 
 export const Resolver = {
     Opportunity: {

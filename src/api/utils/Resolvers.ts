@@ -1,4 +1,4 @@
-import { CallContext } from '../CallContext';
+import { CallContext } from './CallContext';
 import { Repos } from '../../repositories';
 import { AccessDeniedError } from '../../errors/AccessDeniedError';
 import { ErrorText } from '../../errors/ErrorText';

@@ -74,7 +74,7 @@ input ImageRefInput {
     crop: ImageCrop
 }
 
-type Range{
+type Range {
     from: Int
     to: Int
 }

@@ -1,6 +1,6 @@
 import * as express from 'express';
 import { DB } from '../tables';
-import { CallContext } from '../api/CallContext';
+import { CallContext } from '../api/utils/CallContext';
 import { Repos } from '../repositories';
 import { IDs } from '../api/utils/IDs';
 import { NotFoundError } from '../errors/NotFoundError';

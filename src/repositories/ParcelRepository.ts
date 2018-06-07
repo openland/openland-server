@@ -2,7 +2,7 @@ import { DB, Lot } from '../tables/index';
 import * as Normalizer from '../modules/Normalizer';
 import { normalizedProcessor } from '../utils/db_utils';
 import { buildGeometryFromInput } from '../modules/geometry';
-import { ExtrasInput } from '../api/Core';
+import { ExtrasInput } from '../api/types';
 import { buildExtrasFromInput } from '../modules/extras';
 import { SelectBuilder } from '../modules/SelectBuilder';
 import { ElasticClient } from '../indexing';

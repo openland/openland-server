@@ -1,4 +1,4 @@
-import { CallContext } from '../api/CallContext';
+import { CallContext } from '../api/utils/CallContext';
 import { IDMailformedError } from './IDMailformedError';
 import * as UUID from 'uuid/v4';
 import { NotFoundError } from './NotFoundError';

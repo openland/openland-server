@@ -1,8 +1,8 @@
-import { DB, Account } from '../tables';
-import { CallContext } from './CallContext';
+import { DB, Account } from '../../tables';
+import { CallContext } from '../utils/CallContext';
 import * as DataLoader from 'dataloader';
-import { NotFoundError } from '../errors/NotFoundError';
-import { ErrorText } from '../errors/ErrorText';
+import { NotFoundError } from '../../errors/NotFoundError';
+import { ErrorText } from '../../errors/ErrorText';
 
 function convertAccount(account: Account | undefined | null, context: CallContext) {
     if (account == null || account === undefined) {

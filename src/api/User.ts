@@ -1,5 +1,5 @@
 import { DB, User } from '../tables';
-import { CallContext } from './CallContext';
+import { CallContext } from './utils/CallContext';
 import { IDs } from './utils/IDs';
 import { UserProfile } from '../tables/UserProfile';
 import * as DataLoader from 'dataloader';

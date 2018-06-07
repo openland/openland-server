@@ -41,3 +41,89 @@ type Area {
     slug: String!
     writeAccess: Boolean!
 }
+
+type BuildingProject {
+    id: ID!
+    slug: String!
+    name: String!
+    description: String
+    status: String
+    startedAt: String
+    completedAt: String
+    expectedCompletedAt: String
+    verified: Boolean!
+
+    existingUnits: Int
+    proposedUnits: Int
+    existingAffordableUnits: Int
+    proposedAffordableUnits: Int
+
+    picture(height: Int, width: Int): Picture
+        
+    extrasDeveloper: String
+    extrasGeneralConstructor: String
+    extrasYearEnd: String
+    extrasAddress: String
+    extrasAddressSecondary: String
+    extrasPermit: String
+    extrasComment: String
+    extrasUrl: String
+    extrasLocation: Geo
+
+    approvalTime: Int
+
+    permits: [Permit!]!
+
+    developers: [Organization!]!
+    constructors: [Organization!]!
+}
+
+type BuildingProjectEdge {
+    node: BuildingProject!
+    cursor: String!
+}
+
+type BuildingProjectConnectionStats {
+    newUnits: Int!
+    newUnitsVerified: Int!
+    totalProjects: Int!
+    totalProjectsVerified: Int!
+}
+
+type BuildingProjectConnection {
+    edges: [BuildingProjectEdge!]!
+    pageInfo: PageInfo!
+    stats: BuildingProjectConnectionStats!
+}
+
+type Organization {
+    id: ID!
+    slug: String!
+        
+    title: String!
+    logo: String
+    cover: String
+    city: String
+    address: String
+    url: String
+    twitter: String
+    linkedin: String
+    facebook: String
+    comments: String
+    description: String
+        
+    isDeveloper: Boolean!
+    isConstructor: Boolean!
+
+    buildingProjects: [BuildingProject!]!
+        
+    developerIn: [BuildingProject!]!
+    constructorIn: [BuildingProject!]!
+        
+    partners: [Organization!]!
+}
+
+extend type Area {
+    organizations: [Organization!]!
+    organization(slug: String!): Organization!
+}

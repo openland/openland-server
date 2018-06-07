@@ -1,7 +1,7 @@
-import { CallContext } from './CallContext';
+import { CallContext } from './utils/CallContext';
 import { DB } from '../tables';
 import { applyPermits } from '../repositories/Permits';
-import { PermitStatus, Permit, PermitType } from '../tables/Permit';
+import { Permit } from '../tables/Permit';
 import { SelectBuilder } from '../modules/SelectBuilder';
 import { dateDiff } from '../utils/date_utils';
 import { Chart, prepareHistogram, elasticChart, elasticQuarterChart } from '../utils/charts';
@@ -10,42 +10,7 @@ import { currentTime, printElapsed } from '../utils/timer';
 import { cachedObject } from '../modules/cache';
 import { NotFoundError } from '../errors/NotFoundError';
 import { ErrorText } from '../errors/ErrorText';
-
-interface PermitInfo {
-    id: string;
-    status?: PermitStatus;
-    type?: PermitType;
-    typeWood?: boolean;
-
-    statusUpdatedAt?: string;
-    createdAt?: string;
-    issuedAt?: string;
-    filedAt?: string;
-    startedAt?: string;
-    completedAt?: string;
-    expiredAt?: string;
-    expiresAt?: string;
-
-    street?: [StreetNumberInfo];
-
-    existingStories?: number;
-    proposedStories?: number;
-    existingUnits?: number;
-    proposedUnits?: number;
-    existingAffordableUnits?: number;
-    proposedAffordableUnits?: number;
-    proposedUse?: string;
-    description?: string;
-
-    parcelId?: string;
-}
-
-interface StreetNumberInfo {
-    streetName: string;
-    streetNameSuffix?: string | null;
-    streetNumber: number;
-    streetNumberSuffix?: string | null;
-}
+import { PermitInfo } from './types';
 
 export const Resolver = {
     PermitEvent: {
