@@ -75,10 +75,13 @@ export const Resolver = {
 
                 } else {
                     if (args.title !== undefined) {
+                        if (args.title === null || args.title.trim() === '') {
+                            throw Error('Title can\'t be empty');
+                        }
                         existing.title = args.title;
                     }
                     if (args.website !== undefined) {
-                        existing.website = args.website;
+                        existing.website = args.website === null ? null : args.website.trim();
                     }
                     if (args.logo !== undefined) {
                         existing.logo = args.logo;
