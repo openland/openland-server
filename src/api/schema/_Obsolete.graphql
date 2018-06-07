@@ -1,3 +1,19 @@
+type Account {
+    id: ID!
+    domain: String!
+    name: String!
+    city: String
+    needAuthentication: Boolean!
+    readAccess: Boolean!
+    writeAccess: Boolean!
+    generation: Int!
+}
+
+extend type Query {
+    account: Account!
+    area(slug: String!): Area!
+}
+
 extend type AreaStats {
     year2017NewUnits: Int!
     year2017NewUnitsVerified: Int!

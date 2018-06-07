@@ -1,7 +1,30 @@
 type Query {
+
+    #
+    # Space Information
+    #
+
     me: User
     permissions: Permissions!
-    account: Account!
+    myAccount: MyAccount
+    myProfile: MyProfile!
+
+    #
+    #
+    #
+
+    alphaProfilePrefill: ProfilePrefill!
+    alphaAvailableOrganizationAccounts: [OrganizationAccount!]!
+
+    alphaInvites: [Invite!]
+    alphaInviteInfo(key: String!): InviteInfo
+
+    alphaCurrentOrganizationProfile: OrganizationProfile!
+    alphaOrganizationProfile(id: ID!): OrganizationProfile
+
+    #
+    # Permits
+    #
 
     permits(filter: String, type: PermitType, sort: PermitSorting, minUnits: Int,
             issuedYear: String, fromPipeline: Boolean,
@@ -12,12 +35,14 @@ type Query {
     permitsUnitsIssuedStats: Chart!
     permitsUnitsFiledStats: Chart!
     permitsUnitsCompletedStats: Chart!
-
     permitsUnitsFiledStatsMonthly: Chart!
+
+    #
+    # Parcels
+    #
 
     block(id: ID!): Block!
     parcel(id: ID!): Parcel!
-
     blocksConnection(
         state: String!, county: String!, city: String!, 
         query: String, 
@@ -28,7 +53,6 @@ type Query {
         query: String, 
         first: Int!, after: String, page: Int
     ): ParcelConnection!
-
     parcelsOverlay(box: GeoBox!, limit: Int!, filterZoning: [String!], query: String): [Parcel!]
     blocksOverlay(box: GeoBox!, limit: Int!, filterZoning: [String!], query: String): [Block!]
 
@@ -37,6 +61,12 @@ type Query {
     parcelFavorites: [Parcel!]!
     parcelFavoritesCount: Int!
     parcelsStats(query: String, state: String, county: String, city: String): Int!
+
+    searchParcels(query:String!): [Parcel!]!
+
+    #
+    # Statecraft
+    #
 
     organizations: [Organization!]!
     organization(slug: String!): Organization!
@@ -47,28 +77,26 @@ type Query {
     projects(area: String!, filter: String, minUnits: Int, year: String, first: Int!, after: String, page: Int): BuildingProjectConnection!
     project(area: String!, slug: String!): BuildingProject!
 
-    area(slug: String!): Area!
-
-    search(query: String!): SearchResult!
-    users(query:String!): [User!]!
-    superAccounts: [SuperAccount!]!
-    superAccount(id: ID!): SuperAccount!
-    featureFlags: [FeatureFlag!]!
-    superCities: [SuperCity!]!
-
-    superAdmins: [SuperAdmin!]!
-
-    myAccount: MyAccount
-    myProfile: MyProfile!
+    #
+    # Global
+    #
 
     states(active: Boolean): [State!]!
     counties(stateId: ID!): [County!]!
+    search(query: String!): SearchResult!
+    users(query:String!): [User!]!
+
+    #
+    # Deals
+    #
 
     deals: [Deal!]!
     dealsCount: Int!
     deal(id: ID!): Deal!
 
-    searchParcels(query:String!): [Parcel!]!
+    #
+    # Urbyn Opportunities
+    #
 
     alphaOpportunity(id: ID!): Opportunity
     alphaOpportunities(state: OpportunityState, sort: OpportunitySort, query: String, first: Int!, after: String, page: Int): OpportunityConnection!
@@ -80,7 +108,9 @@ type Query {
     alphaOpportunityUsers(state: OpportunityState, query: String): [String]
     alphaAllOpportunities(state: OpportunityState, sort: OpportunitySort, query: String): [Opportunity!]
 
-    debugReaderStates: [DebugReaderState!]!
+    #
+    # Folders
+    #
 
     alphaFolders: [Folder!]!
     alphaFolder(id: ID!): Folder!
@@ -89,15 +119,9 @@ type Query {
 
     alphaParcelMap(box: GeoBox!, limit: Int!, query: String!, zoom: Int): [MapPoint!]!
 
+    #
+    # Tasks
+    #
+
     alphaRefreshTask(id: ID!): Task!
-
-    alphaProfilePrefill: ProfilePrefill!
-
-    alphaAvailableOrganizationAccounts: [OrganizationAccount!]!
-
-    alphaInvites: [Invite!]
-    alphaInviteInfo(key: String!): InviteInfo
-
-    alphaCurrentOrganizationProfile: OrganizationProfile!
-    alphaOrganizationProfile(id: ID!): OrganizationProfile
 }

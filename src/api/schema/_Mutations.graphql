@@ -26,21 +26,7 @@ type Mutation {
         isConstructor: Boolean,
         description: String
     ): Organization!
-    
-    superAdminAdd(userId: ID!, role: SuperAdminRole!): String!
-    superAdminRemove(userId: ID!): String!
 
-    superAccountAdd(title: String!): SuperAccount!
-    superAccountRename(id: ID!, title: String!): SuperAccount!
-    superAccountActivate(id: ID!): SuperAccount!
-    superAccountSuspend(id: ID!): SuperAccount!
-
-    superAccountMemberAdd(id: ID!, userId: ID!): SuperAccount!
-    superAccountMemberRemove(id: ID!, userId: ID!): SuperAccount!
-    superAccountFeatureAdd(id: ID!, featureId: ID!): SuperAccount!
-    superAccountFeatureRemove(id: ID!, featureId: ID!): SuperAccount!
-
-    featureFlagAdd(key: String!, title: String!): FeatureFlag!
 
     dealAdd(input: DealInput!): Deal!
     dealRemove(id: ID!): String!

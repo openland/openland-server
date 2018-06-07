@@ -16,6 +16,21 @@ type SuperAccount {
     features: [FeatureFlag!]!
 }
 
+extend type Query {
+    superAccounts: [SuperAccount!]!
+    superAccount(id: ID!): SuperAccount!
+}
+
+extend type Mutation {
+    superAccountAdd(title: String!): SuperAccount!
+    superAccountRename(id: ID!, title: String!): SuperAccount!
+    superAccountActivate(id: ID!): SuperAccount!
+    superAccountSuspend(id: ID!): SuperAccount!
+
+    superAccountMemberAdd(id: ID!, userId: ID!): SuperAccount!
+    superAccountMemberRemove(id: ID!, userId: ID!): SuperAccount!
+}
+
 #
 # Super Admins
 #
@@ -31,6 +46,15 @@ type SuperAdmin {
     role: SuperAdminRole!
 }
 
+extend type Mutation {
+    superAdminAdd(userId: ID!, role: SuperAdminRole!): String!
+    superAdminRemove(userId: ID!): String!
+}
+
+extend type Query {
+    superAdmins: [SuperAdmin!]!
+}
+
 #
 # City Configurations
 #
@@ -44,4 +68,42 @@ type SuperCity {
     blockSourceLayer: String
     parcelSource: String
     parcelSourceLayer: String
+}
+
+extend type Query {
+    superCities: [SuperCity!]!
+}
+
+#
+# Feature Flags
+#
+
+type FeatureFlag {
+    id: ID!
+    key: String!
+    title: String!
+}
+
+extend type Query {
+    featureFlags: [FeatureFlag!]!
+}
+
+extend type Mutation {
+    featureFlagAdd(key: String!, title: String!): FeatureFlag!
+    superAccountFeatureAdd(id: ID!, featureId: ID!): SuperAccount!
+    superAccountFeatureRemove(id: ID!, featureId: ID!): SuperAccount!
+}
+
+#
+# Reader States
+#
+
+type DebugReaderState {
+    id: ID!
+    title: String!
+    remaining: Int!
+}
+
+extend type Query {
+    debugReaderStates: [DebugReaderState!]!
 }

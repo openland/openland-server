@@ -14,7 +14,7 @@ import * as Permissions from './api/Permissions';
 import * as Account from './api/Account';
 import * as Addressing from './api/Addressing';
 import * as Deals from './api/Deals';
-import * as Sourcing from './api/Sourcing';
+import * as Opportunity from './api/Opportunity';
 import * as fs from 'fs';
 import * as Services from './api/Services';
 import * as Debug from './api/Debug';
@@ -45,7 +45,7 @@ export const Schema = makeExecutableSchema({
         Permissions.Resolvers,
         Addressing.Resolvers,
         Deals.Resolver,
-        Sourcing.Resolver,
+        Opportunity.Resolver,
         Services.Resolvers,
         Debug.Resolver,
         Folder.Resolver,
