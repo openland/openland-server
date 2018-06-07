@@ -41,7 +41,7 @@ export interface Range {
 
 export interface ContactPerson {
     name: string;
-    avatar: ImageRef;
+    avatar?: ImageRef;
     role?: string;
     email?: string;
     phone?: string;
@@ -49,15 +49,15 @@ export interface ContactPerson {
 }
 
 export interface OrganizationExtras {
-    potentialSites?: Range;
-    siteSizes?: Range;
-    description?: String;
-    twitter?: string;
-    facebook?: string;
-    developmentModels?: DevelopmentModels[];
-    availability?: Availability[];
-    contacts?: ContactPerson[];
-    landUse?: LandUse[];
-    goodFor?: GoodFor[];
-    specialAttributes?: SpecialAttributes[];
+    potentialSites?: Range[] | null;
+    siteSizes?: Range[] | null;
+    description?: String | null;
+    twitter?: string | null;
+    facebook?: string | null;
+    developmentModels?: DevelopmentModels[] | null;
+    availability?: Availability[] | null;
+    contacts?: ContactPerson[] | null;
+    landUse?: LandUse[] | null;
+    goodFor?: GoodFor[] | null;
+    specialAttributes?: SpecialAttributes[] | null;
 }

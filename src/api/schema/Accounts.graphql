@@ -73,15 +73,55 @@ type OrganizationAccount {
     title: String!
     logo: String
     website: String
+}
+
+type ContactPerson {
+    name: String!
+    avatar: String
+    role: String
+    email: String
+    phone: String
+    link: String
+}
+
+type OrganizationProfile {
+    id: ID!
+    iAmOwner: Boolean
+    title: String!
+    logo: String
+    website: String
     # extras
-    potentialSites: Range
-    siteSizes: Range
+    potentialSites: [Range]
+    siteSizes: [Range]
     description: String
     twitter: String
     facebook: String
     developmentModels: [String]
     availability: [String]
-    contacts: [String]
+    contacts: [ContactPerson]
+    landUse: [String]
+    goodFor: [String]
+    specialAttributes: [String]
+}
+
+input ContactPersonInput {
+    name: String!
+    avatar: ImageRefInput
+    role: String
+    email: String
+    phone: String
+    link: String
+}
+
+input OrganizationProfileInput {
+    potentialSites: [RangeInput]
+    siteSizes: [RangeInput]
+    description: String
+    twitter: String
+    facebook: String
+    developmentModels: [String]
+    availability: [String]
+    contacts: [ContactPersonInput]
     landUse: [String]
     goodFor: [String]
     specialAttributes: [String]

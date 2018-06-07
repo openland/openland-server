@@ -20,6 +20,7 @@ import * as fs from 'fs';
 import * as Services from './api/Services';
 import * as Debug from './api/Debug';
 import * as Folder from './api/Folder';
+import * as Organization from './api/Organization';
 
 let schema = fs
     .readdirSync(__dirname + '/api/schema/')
@@ -49,6 +50,7 @@ export const Schema = makeExecutableSchema({
         Sourcing.Resolver,
         Services.Resolvers,
         Debug.Resolver,
-        Folder.Resolver
+        Folder.Resolver,
+        Organization.Resolver,
     )
 });

@@ -78,3 +78,8 @@ type Range{
     from: Int
     to: Int
 }
+
+input RangeInput{
+    from: Int
+    to: Int
+}

@@ -97,4 +97,7 @@ type Query {
 
     alphaInvites: [Invite!]
     alphaInviteInfo(key: String!): InviteInfo
+
+    alphaCurrentOrganizationProfile: OrganizationProfile!
+    alphaOrganizationProfile(id: ID!): OrganizationProfile
 }
