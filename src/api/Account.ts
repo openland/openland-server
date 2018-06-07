@@ -11,6 +11,7 @@ import { OrganizationInvite } from '../tables/OrganizationInvite';
 import { randomKey } from '../utils/random';
 import { buildBaseImageUrl } from '../repositories/Media';
 import { NotFoundError } from '../errors/NotFoundError';
+import { ErrorText } from '../errors/ErrorText';
 
 export const Resolver = {
     MyAccount: {
@@ -153,7 +154,7 @@ export const Resolver = {
             return await DB.tx(async (tx) => {
                 let invite = await DB.OrganizationInvite.find({ where: { uuid: args.key }, transaction: tx });
                 if (!invite) {
-                    throw new NotFoundError('Unable to find invite');
+                    throw new NotFoundError(ErrorText.unableToFindInvite);
                 }
                 let existing = await DB.OrganizationMember.find({ where: { userId: uid, orgId: invite.orgId }, transaction: tx });
                 if (existing) {
@@ -167,7 +168,7 @@ export const Resolver = {
             let lastNameNormalized = normalizeNullableUserInput(args.lastName);
             let firstNameNormalized = args.firstName.trim();
             if (firstNameNormalized.length === 0) {
-                throw new NotFoundError('First name can\'t be empty');
+                throw new NotFoundError(ErrorText.firstNameEmpty);
             }
             await Repos.Users.saveProfile(uid, firstNameNormalized, lastNameNormalized, args.photo, args.phone);
             return 'ok';

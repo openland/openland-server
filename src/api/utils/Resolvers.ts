@@ -1,6 +1,7 @@
 import { CallContext } from '../CallContext';
 import { Repos } from '../../repositories';
 import { AccessDeniedError } from '../../errors/AccessDeniedError';
+import { ErrorText } from '../../errors/ErrorText';
 
 async function fetchPermissions(context: CallContext) {
     if (context.cache.has('permissions')) {
@@ -32,7 +33,7 @@ export function withPermission<T = {}>(permission: string | string[], resolver: 
         } else if (permissions.has(permission)) {
             return resolver(args, context);
         } else {
-            throw new AccessDeniedError('Access Denied');
+            throw new AccessDeniedError(ErrorText.permissionDenied);
         }
     };
 }
@@ -57,7 +58,7 @@ export function withPermissionOptional<T = {}, C = {}>(permission: string | stri
 export function withAuth<T = {}>(resolver: (args: T, uid: number) => any) {
     return async function (_: any, args: T, context: CallContext) {
         if (!context.uid) {
-            throw new AccessDeniedError('Access Denied');
+            throw new AccessDeniedError(ErrorText.permissionDenied);
         }
         return resolver(args, context.uid!!);
     };
@@ -66,11 +67,11 @@ export function withAuth<T = {}>(resolver: (args: T, uid: number) => any) {
 export function withAccount<T = {}>(resolver: (args: T, uid: number, org: number) => any) {
     return async function (_: any, args: T, context: CallContext) {
         if (!context.uid) {
-            throw new AccessDeniedError('Access Denied');
+            throw new AccessDeniedError(ErrorText.permissionDenied);
         }
         let res = await fetchOrganizationId(context);
         if (res === null) {
-            throw new AccessDeniedError('Access Denied');
+            throw new AccessDeniedError(ErrorText.permissionDenied);
         }
 
         return resolver(args, context.uid!!, res);
@@ -80,7 +81,7 @@ export function withAccount<T = {}>(resolver: (args: T, uid: number, org: number
 export function withUser<T = {}>(resolver: (args: T, uid: number) => any) {
     return async function (_: any, args: T, context: CallContext) {
         if (!context.uid) {
-            throw new AccessDeniedError('Access Denied');
+            throw new AccessDeniedError(ErrorText.permissionDenied);
         }
         return resolver(args, context.uid!!);
     };

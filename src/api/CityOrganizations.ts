@@ -5,6 +5,7 @@ import * as Normalizer from '../modules/Normalizer';
 import { AreaContext } from './Area';
 import { withPermission } from './utils/Resolvers';
 import { NotFoundError } from '../errors/NotFoundError';
+import { ErrorText } from '../errors/ErrorText';
 
 export const Resolver = {
     Organization: {
@@ -119,7 +120,7 @@ export const Resolver = {
                 await existing.destroy();
                 return 'ok';
             } else {
-                throw new NotFoundError('Organization not found');
+                throw new NotFoundError(ErrorText.unableToFindOrganization);
             }
         }),
         organizationAlter: withPermission<{
@@ -145,7 +146,7 @@ export const Resolver = {
                 }
             });
             if (!existing) {
-                throw new NotFoundError('Not found');
+                throw new NotFoundError(ErrorText.unableToFindOrganization);
             }
 
             if (args.title !== undefined) {

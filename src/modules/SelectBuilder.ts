@@ -205,7 +205,7 @@ export class SelectBuilder<TInstance, TAttributes> {
 
     async findElastic(response: SearchResponse<any>, include?: Array<sequelize.Model<any, any> | sequelize.IncludeOptions>) {
         if (this.limitValue == null) {
-            throw new UserError('Limit should be set!');
+            throw new UserError('limit should be set!');
         }
         let ids = response.hits.hits.map((v) => parseInt(v._id, 10));
         let elements = await this.table.findAll({
@@ -279,7 +279,7 @@ export class SelectBuilder<TInstance, TAttributes> {
 
     async findAll(include?: Array<sequelize.Model<any, any> | sequelize.IncludeOptions>, whereRaw?: sequelize.WhereOptions<any>) {
         if (this.limitValue == null) {
-            throw new UserError('Limit should be set!');
+            throw new UserError('limit should be set!');
         }
         let offset = 0;
         if (this.afterValue) {

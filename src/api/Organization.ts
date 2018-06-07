@@ -8,6 +8,7 @@ import { ImageRef } from '../repositories/Media';
 import { CallContext } from './CallContext';
 import { OrganizationExtras } from '../repositories/OrganizationExtras';
 import { UserError } from '../errors/UserError';
+import { ErrorText } from '../errors/ErrorText';
 
 let amIOwner = async (oid: number, uid: number) => {
     let member = await DB.OrganizationMember.find({
@@ -71,18 +72,18 @@ export const Resolver = {
             });
 
             if (member === null || !member.isOwner) {
-                throw new UserError('Only owner can edit orgnization');
+                throw new UserError(ErrorText.permissionOnlyOwner);
             }
 
             return await DB.tx(async (tx) => {
                 let existing = await DB.Organization.find({ where: { id: oid }, transaction: tx });
                 if (!existing) {
-                    throw new UserError('Organization not found');
+                    throw new UserError(ErrorText.unableToFindOrganization);
 
                 } else {
                     if (args.title !== undefined) {
                         if (args.title === null || args.title.trim() === '') {
-                            throw new UserError('Title can\'t be empty');
+                            throw new UserError(ErrorText.titleRequired);
                         }
                         existing.title = args.title;
                     }

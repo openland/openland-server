@@ -6,6 +6,7 @@ import { normalizeDate } from '../modules/Normalizer';
 import { Repos } from '../repositories';
 import { NotFoundError } from '../errors/NotFoundError';
 import { UserError } from '../errors/UserError';
+import { ErrorText } from '../errors/ErrorText';
 
 interface DealInput {
     title?: string | null;
@@ -70,10 +71,10 @@ export const Resolver = {
         deal: withAccount<{ id: string }>(async (args, uid, org) => {
             let deal = await DB.Deal.findById(IDs.Deal.parse(args.id));
             if (deal === null) {
-                throw new NotFoundError('Unable to find deal');
+                throw new NotFoundError(ErrorText.unableToFindDeal);
             }
             if (deal.organizationId !== org) {
-                throw new NotFoundError('Unable to find deal');
+                throw new NotFoundError(ErrorText.unableToFindDeal);
             }
             return deal;
         })
@@ -81,7 +82,7 @@ export const Resolver = {
     Mutation: {
         dealAdd: withAccount<{ input: DealInput }>((args, uid, org) => {
             if (!args.input.title) {
-                throw new UserError('Title is required');
+                throw new UserError(ErrorText.titleRequired);
             }
             return DB.Deal.create({
                 title: args.input.title!!,
@@ -102,7 +103,7 @@ export const Resolver = {
             let id = IDs.Deal.parse(args.id);
             let existing = await DB.Deal.find({ where: { organizationId: org, id: id } });
             if (!existing) {
-                throw new NotFoundError('Unable to find deal');
+                throw new NotFoundError(ErrorText.unableToFindDeal);
             }
 
             if (args.input.title !== undefined && args.input.title !== null) {

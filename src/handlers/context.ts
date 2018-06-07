@@ -4,6 +4,7 @@ import { CallContext } from '../api/CallContext';
 import { Repos } from '../repositories';
 import { IDs } from '../api/utils/IDs';
 import { NotFoundError } from '../errors/NotFoundError';
+import { ErrorText } from '../errors/ErrorText';
 let domainCache = new Map<string, number | null>();
 
 async function context(src: express.Request): Promise<CallContext> {
@@ -34,7 +35,7 @@ async function context(src: express.Request): Promise<CallContext> {
         }
     }
     if (accId == null) {
-        throw new NotFoundError('Unable to find account ' + domain);
+        throw new NotFoundError(ErrorText.unableToFindAccount(domain));
     }
     res.accountId = accId;
 

@@ -16,6 +16,7 @@ import supercluster from 'supercluster';
 import { cachedObject } from '../modules/cache';
 import * as stringify from 'json-stable-stringify';
 import { NotFoundError } from '../errors/NotFoundError';
+import { ErrorText } from '../errors/ErrorText';
 
 export class ParcelRepository {
 
@@ -42,7 +43,7 @@ export class ParcelRepository {
     async applyMetadata(id: number, metadata: { description?: string | null, currentUse?: string | null, available?: boolean | null, isOkForTower?: boolean | null }) {
         let lot = await DB.Lot.findById(id);
         if (!lot) {
-            throw new NotFoundError('Unable to find parcel');
+            throw new NotFoundError(ErrorText.unableToFindParcel);
         }
         let updated = Object.assign({}, lot.metadata);
         if (metadata.description !== undefined) {

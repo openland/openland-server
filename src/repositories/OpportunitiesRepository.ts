@@ -6,6 +6,7 @@ import { currentTime } from '../utils/timer';
 import { QueryParser, buildElasticQuery } from '../modules/QueryParser';
 import { normalizeCapitalized } from '../modules/Normalizer';
 import { NotFoundError } from '../errors/NotFoundError';
+import { ErrorText } from '../errors/ErrorText';
 
 type OpportunitySort = 'DATE_ADDED_ASC' | 'DATE_ADDED_DESC' | 'AREA_ASC' | 'AREA_DESC' | 'CAPACITY_ASC' | 'CAPACITY_DESC';
 export class OpportunitiesRepository {
@@ -363,7 +364,7 @@ export class OpportunitiesRepository {
                 transaction: tx
             });
             if (!op) {
-                throw new NotFoundError('Unable to find opportunity');
+                throw new NotFoundError(ErrorText.unableToFindOpportunity);
             }
             if (state === 'INCOMING' && op.state === 'INCOMING') {
                 op.state = 'APPROVED_INITIAL';
@@ -390,7 +391,7 @@ export class OpportunitiesRepository {
                 transaction: tx
             });
             if (!op) {
-                throw new NotFoundError('Unable to find opportunity');
+                throw new NotFoundError(ErrorText.unableToFindOpportunity);
             }
             if (state === op.state) {
                 op.state = 'REJECTED';
@@ -411,7 +412,7 @@ export class OpportunitiesRepository {
                 transaction: tx
             });
             if (!op) {
-                throw new NotFoundError('Unable to find opportunity');
+                throw new NotFoundError(ErrorText.unableToFindOpportunity);
             }
             if (state === op.state) {
                 op.state = 'SNOOZED';
@@ -432,7 +433,7 @@ export class OpportunitiesRepository {
                 transaction: tx
             });
             if (!op) {
-                throw new NotFoundError('Unable to find opportunity');
+                throw new NotFoundError(ErrorText.unableToFindOpportunity);
             }
             if (state === op.state) {
                 op.state = 'INCOMING';
