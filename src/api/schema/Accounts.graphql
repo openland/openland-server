@@ -4,6 +4,7 @@ type User {
     firstName: String!
     lastName: String
     picture: String
+    pictureRef: ImageRef
     phone: Int
     email: String!
     isYou: Boolean!
