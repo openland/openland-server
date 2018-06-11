@@ -41,7 +41,7 @@ export interface Range {
 
 export interface ContactPerson {
     name: string;
-    photo?: ImageRef;
+    avatar?: ImageRef;
     role?: string;
     email?: string;
     phone?: string;
@@ -51,7 +51,7 @@ export interface ContactPerson {
 export interface OrganizationExtras {
     potentialSites?: Range[] | null;
     siteSizes?: Range[] | null;
-    description?: String | null;
+    about?: String | null;
     twitter?: string | null;
     facebook?: string | null;
     developmentModels?: DevelopmentModels[] | null;

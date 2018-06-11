@@ -17,6 +17,7 @@ type Permissions {
 type MyAccount {
     id: ID!
     title: String!
+    name: String!
 }
 
 #
@@ -50,12 +51,15 @@ type InviteInfo {
     orgId: ID!
     title: String!
     photo: String
+    photoRef: ImageRef
     joined: Boolean!
 }
 
 type OrganizationAccount {
     id: ID!
+    name: String!
     title: String!
+    logo: String
     photo: String
     photoRef: ImageRef
     website: String
@@ -78,12 +82,15 @@ type OrganizationProfile {
     id: ID!
     iAmOwner: Boolean
     title: String!
+    name: String!
+    logo: String
     photo: String
     photoRef: ImageRef
     website: String
     # extras
     potentialSites: [Range]
     siteSizes: [Range]
+    about: String
     description: String
     twitter: String
     facebook: String
@@ -107,7 +114,7 @@ input ContactPersonInput {
 input OrganizationProfileInput {
     potentialSites: [RangeInput]
     siteSizes: [RangeInput]
-    description: String
+    about: String
     twitter: String
     facebook: String
     developmentModels: [String]

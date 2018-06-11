@@ -19,7 +19,7 @@ export class SuperRepository {
     async createOrganization(title: string) {
         return await DB.tx(async (tx) => {
             let res = await DB.Organization.create({
-                title: title
+                name: title
             }, { transaction: tx });
 
             let defaultFolder = ['1. Incoming', '2. Review', '3. Approved', '4. Snoozed', '5. Rejected'];
@@ -32,7 +32,7 @@ export class SuperRepository {
 
     async renameOrganization(id: number, title: string) {
         let org = await this.fetchById(id);
-        org.title = title;
+        org.name = title;
         await org.save();
         return org;
     }

@@ -4,7 +4,7 @@ import { ImageRef } from '../repositories/Media';
 import { OrganizationExtras } from '../repositories/OrganizationExtras';
 export interface OrganizationAttributes {
     id?: number;
-    title?: string;
+    name?: string;
     status?: 'PENDING' | 'ACTIVATED' | 'SUSPENDED';
     website?: string | null;
     photo?: ImageRef | null;
@@ -20,7 +20,7 @@ export const OrganizationTable = connection.define<Organization, OrganizationAtt
         primaryKey: true,
         autoIncrement: true
     },
-    title: {
+    name: {
         type: sequelize.STRING,
         allowNull: true
     },

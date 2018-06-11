@@ -16,11 +16,14 @@ import { ErrorText } from '../errors/ErrorText';
 export const Resolver = {
     MyAccount: {
         id: (src: Organization) => IDs.Organization.serialize(src.id!!),
-        title: (src: Organization) => src.title
+        title: (src: Organization) => src.name,
+        name: (src: Organization) => src.name
     },
     OrganizationAccount: {
         id: (src: Organization) => IDs.OrganizationAccount.serialize(src.id!!),
-        title: (src: Organization) => src.title,
+        title: (src: Organization) => src.name,
+        name: (src: Organization) => src.name,
+        logo: (src: Organization) => src.photo ? buildBaseImageUrl(src.photo) : null,
         photo: (src: Organization) => src.photo ? buildBaseImageUrl(src.photo) : null,
         photoRef: (src: Organization) => src.photo,
         website: (src: Organization) => src.website,
@@ -50,8 +53,9 @@ export const Resolver = {
                 id: IDs.InviteInfo.serialize(invite.id),
                 key: args.key,
                 orgId: IDs.OrganizationAccount.serialize(org.id!!),
-                title: org.title,
-                photo: null,
+                title: org.name,
+                photo: org.photo ? buildBaseImageUrl(org.photo) : null,
+                photoRef: org.photo,
                 joined: joined,
             };
         }),

@@ -15,7 +15,8 @@ import { ErrorText } from '../errors/ErrorText';
 export const Resolvers = {
     SuperAccount: {
         id: (src: Organization) => IDs.SuperAccount.serialize(src.id!!),
-        title: (src: Organization) => src.title!!,
+        title: (src: Organization) => src.name!!,
+        name: (src: Organization) => src.name!!,
         state: (src: Organization) => src.status,
         members: (src: Organization) => Repos.Users.fetchOrganizationMembers(src.id!!),
         features: (src: Organization) => (src as any).getFeatureFlags()

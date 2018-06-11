@@ -11,6 +11,7 @@ enum SuperAccountState {
 type SuperAccount {
     id: ID!
     title: String!
+    name: String!
     state: SuperAccountState!
     members: [User!]!
     features: [FeatureFlag!]!

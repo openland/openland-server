@@ -24,12 +24,16 @@ export const Resolver = {
     OrganizationProfile: {
         id: (src: Organization) => IDs.OrganizationAccount.serialize(src.id!!),
         iAmOwner: (src: Organization, args: {}, context: CallContext) => amIOwner(src.id!!, context.uid!!),
-        title: (src: Organization) => src.title,
+        title: (src: Organization) => src.name,
+        name: (src: Organization) => src.name,
+        logo: (src: Organization) => src.photo ? buildBaseImageUrl(src.photo) : null,
         photo: (src: Organization) => src.photo ? buildBaseImageUrl(src.photo) : null,
+        photoRef: (src: Organization) => src.photo,
         website: (src: Organization) => src.website,
         potentialSites: (src: Organization) => src.extras ? src.extras.potentialSites : undefined,
         siteSizes: (src: Organization) => src.extras ? src.extras.siteSizes : undefined,
-        description: (src: Organization) => src.extras ? src.extras.description : undefined,
+        about: (src: Organization) => src.extras ? src.extras.about : undefined,
+        description: (src: Organization) => src.extras ? src.extras.about : undefined,
         twitter: (src: Organization) => src.extras ? src.extras.twitter : undefined,
         facebook: (src: Organization) => src.extras ? src.extras.facebook : undefined,
         developmentModels: (src: Organization) => src.extras ? src.extras.developmentModels : undefined,
@@ -50,19 +54,19 @@ export const Resolver = {
     },
     Mutation: {
 
-        alphaCreateOrganization: withUser<{ title: string, website?: string, photo?: ImageRef }>(async (args, uid) => {
+        alphaCreateOrganization: withUser<{ title: string, website?: string, logo?: ImageRef }>(async (args, uid) => {
             return await DB.tx(async (tx) => {
                 let organization = await DB.Organization.create({
-                    title: args.title.trim(),
+                    name: args.title.trim(),
                     website: args.website ? args.website.trim() : null,
-                    photo: args.photo,
+                    photo: args.logo,
                 }, { transaction: tx });
                 await Repos.Super.addToOrganization(organization.id!!, uid, tx);
                 return IDs.OrganizationAccount.serialize(organization.id!!);
             });
         }),
 
-        alphaEditOrganizationProfile: withAccount<{ name?: string, website?: string, photo?: ImageRef, extras?: OrganizationExtras }>(async (args, uid, oid) => {
+        alphaEditOrganizationProfile: withAccount<{ title?: string, website?: string, logo?: ImageRef, extras?: OrganizationExtras }>(async (args, uid, oid) => {
 
             let member = await DB.OrganizationMember.find({
                 where: {
@@ -81,17 +85,17 @@ export const Resolver = {
                     throw new UserError(ErrorText.unableToFindOrganization);
 
                 } else {
-                    if (args.name !== undefined) {
-                        if (args.name === null || args.name.trim() === '') {
+                    if (args.title !== undefined) {
+                        if (args.title === null || args.title.trim() === '') {
                             throw new UserError(ErrorText.titleRequired);
                         }
-                        existing.title = args.name;
+                        existing.name = args.title;
                     }
                     if (args.website !== undefined) {
                         existing.website = args.website === null ? null : args.website.trim();
                     }
-                    if (args.photo !== undefined) {
-                        existing.photo = args.photo;
+                    if (args.logo !== undefined) {
+                        existing.photo = args.logo;
                     }
                     if (args.extras !== undefined) {
                         let editedExtras: any = existing.extras || {};
@@ -99,7 +103,7 @@ export const Resolver = {
                             if (key === 'contacts') {
                                 if (args.extras.contacts !== undefined) {
                                     editedExtras.contacts = args.extras.contacts ? args.extras.contacts.map(((contact) => {
-                                        return { ...contact, photo: contact.photo ? buildBaseImageUrl(contact.photo) : undefined };
+                                        return { ...contact, avatar: contact.avatar ? buildBaseImageUrl(contact.avatar) : undefined };
                                     })) : undefined;
                                 }
                             } else if ((args.extras as any)[key] !== undefined) {
