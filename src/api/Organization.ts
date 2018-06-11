@@ -25,7 +25,7 @@ export const Resolver = {
         id: (src: Organization) => IDs.OrganizationAccount.serialize(src.id!!),
         iAmOwner: (src: Organization, args: {}, context: CallContext) => amIOwner(src.id!!, context.uid!!),
         title: (src: Organization) => src.title,
-        logo: (src: Organization) => src.logo ? buildBaseImageUrl(src.logo) : null,
+        photo: (src: Organization) => src.photo ? buildBaseImageUrl(src.photo) : null,
         website: (src: Organization) => src.website,
         potentialSites: (src: Organization) => src.extras ? src.extras.potentialSites : undefined,
         siteSizes: (src: Organization) => src.extras ? src.extras.siteSizes : undefined,
@@ -50,19 +50,19 @@ export const Resolver = {
     },
     Mutation: {
 
-        alphaCreateOrganization: withUser<{ title: string, website?: string, logo?: ImageRef }>(async (args, uid) => {
+        alphaCreateOrganization: withUser<{ title: string, website?: string, photo?: ImageRef }>(async (args, uid) => {
             return await DB.tx(async (tx) => {
                 let organization = await DB.Organization.create({
                     title: args.title.trim(),
                     website: args.website ? args.website.trim() : null,
-                    logo: args.logo,
+                    photo: args.photo,
                 }, { transaction: tx });
                 await Repos.Super.addToOrganization(organization.id!!, uid, tx);
                 return IDs.OrganizationAccount.serialize(organization.id!!);
             });
         }),
 
-        alphaEditOrganizationProfile: withAccount<{ title?: string, website?: string, logo?: ImageRef, extras?: OrganizationExtras }>(async (args, uid, oid) => {
+        alphaEditOrganizationProfile: withAccount<{ name?: string, website?: string, photo?: ImageRef, extras?: OrganizationExtras }>(async (args, uid, oid) => {
 
             let member = await DB.OrganizationMember.find({
                 where: {
@@ -81,17 +81,17 @@ export const Resolver = {
                     throw new UserError(ErrorText.unableToFindOrganization);
 
                 } else {
-                    if (args.title !== undefined) {
-                        if (args.title === null || args.title.trim() === '') {
+                    if (args.name !== undefined) {
+                        if (args.name === null || args.name.trim() === '') {
                             throw new UserError(ErrorText.titleRequired);
                         }
-                        existing.title = args.title;
+                        existing.title = args.name;
                     }
                     if (args.website !== undefined) {
                         existing.website = args.website === null ? null : args.website.trim();
                     }
-                    if (args.logo !== undefined) {
-                        existing.logo = args.logo;
+                    if (args.photo !== undefined) {
+                        existing.photo = args.photo;
                     }
                     if (args.extras !== undefined) {
                         let editedExtras: any = existing.extras || {};
@@ -99,7 +99,7 @@ export const Resolver = {
                             if (key === 'contacts') {
                                 if (args.extras.contacts !== undefined) {
                                     editedExtras.contacts = args.extras.contacts ? args.extras.contacts.map(((contact) => {
-                                        return { ...contact, avatar: contact.avatar ? buildBaseImageUrl(contact.avatar) : undefined };
+                                        return { ...contact, photo: contact.photo ? buildBaseImageUrl(contact.photo) : undefined };
                                     })) : undefined;
                                 }
                             } else if ((args.extras as any)[key] !== undefined) {

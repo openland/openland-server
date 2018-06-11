@@ -57,6 +57,7 @@ type OrganizationAccount {
     id: ID!
     title: String!
     photo: String
+    photoRef: ImageRef
     website: String
 }
 
@@ -77,7 +78,8 @@ type OrganizationProfile {
     id: ID!
     iAmOwner: Boolean
     title: String!
-    logo: String
+    photo: String
+    photoRef: ImageRef
     website: String
     # extras
     potentialSites: [Range]
@@ -95,7 +97,7 @@ type OrganizationProfile {
 
 input ContactPersonInput {
     name: String!
-    avatar: ImageRefInput
+    photo: ImageRefInput
     role: String
     email: String
     phone: String

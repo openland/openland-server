@@ -7,7 +7,7 @@ export interface OrganizationAttributes {
     title?: string;
     status?: 'PENDING' | 'ACTIVATED' | 'SUSPENDED';
     website?: string | null;
-    logo?: ImageRef | null;
+    photo?: ImageRef | null;
     extras?: OrganizationExtras;
 }
 
@@ -37,7 +37,7 @@ export const OrganizationTable = connection.define<Organization, OrganizationAtt
         type: sequelize.STRING,
         allowNull: true
     },
-    logo: {
+    photo: {
         type: sequelize.JSON,
         allowNull: true
     },

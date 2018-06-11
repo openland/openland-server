@@ -62,16 +62,28 @@ type Task {
     result: String
 }
 
-input ImageCrop {
+input ImageCropInput {
     x: Int!
     y: Int!
     w: Int!
     h: Int!
 }
 
-input ImageRefInput {
+type ImageCrop {
+    x: Int!
+    y: Int!
+    w: Int!
+    h: Int!
+}
+
+type ImageRef {
     uuid: String!
     crop: ImageCrop
+}
+
+input ImageRefInput {
+    uuid: String!
+    crop: ImageCropInput
 }
 
 type Range {
