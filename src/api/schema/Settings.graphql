@@ -3,7 +3,7 @@ input UpdateSettingsInput {
 }
 
 type Settings {
-    isEmailPublic: Boolean
+    isEmailPublic: Boolean!
 }
 
 extend type Query {
@@ -11,5 +11,5 @@ extend type Query {
 }
 
 extend type Mutation {
-    saveSettings(settings: SettingsInput): Settings!
+    updateSettings(settings: SettingsInput): Settings!
 }

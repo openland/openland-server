@@ -16,7 +16,25 @@ type User {
     isCreated: Boolean!
 }
 
-type UpdateUserInput {
+type UpdateProfileInput {
+    firstName: String
+    lastName: String
+    photoRef: ImageRefInput
+    website: String
+    about: String
+    location: String
+}
+
+type CreateProfileInput {
+    firstName: String!
+    lastName: String
+    photoRef: ImageRefInput
+    website: String
+    about: String
+    location: String
+}
+
+type Profile {
     firstName: String
     lastName: String
     photoRef: ImageRef
@@ -27,9 +45,12 @@ type UpdateUserInput {
 
 extend type Query {
     me: User
+    profile: Profile
 }
 
 extend type Mutation {
     alphaSaveProfile(firstName: String!, lastName: String, photo: ImageRefInput, phone: String): String!
-    updateProfile(input: UpdateUserInput!): User!
+    
+    createProfile(input: CreateProfileInput!): Profile!
+    updateProfile(input: UpdateProfileInput!): Profile!
 }
