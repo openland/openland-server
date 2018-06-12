@@ -3,10 +3,12 @@ import { IDMailformedError } from './IDMailformedError';
 import * as UUID from 'uuid/v4';
 import { NotFoundError } from './NotFoundError';
 import { UserError } from './UserError';
+import { InvalidInputError } from './InvalidInputError';
 
 interface FormattedError {
     uuid: string;
     message: string;
+    invalidFields?: [{ key: string, message: string }] | null;
     code?: number | null;
 }
 
@@ -28,6 +30,12 @@ export function errorHandler(error: { message: string, originalError: any }, con
         return {
             uuid: uuid,
             message: error.originalError.message
+        };
+    } else if (error.originalError instanceof InvalidInputError) {
+        return {
+            uuid: uuid,
+            message: error.originalError.message,
+            invalidFields: error.originalError.fields
         };
     }
     return {

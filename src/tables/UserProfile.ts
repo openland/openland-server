@@ -11,6 +11,7 @@ export interface UserProfileAttributes {
     about?: string | null;
     website?: string | null;
     location?: string | null;
+    email?: string | null;
     picture: ImageRef | null;
     userId?: number | null;
     user?: User | null;
@@ -29,6 +30,7 @@ export const UserProfileTable = connection.define<UserProfile, Partial<UserProfi
     about: { type: sequelize.STRING, allowNull: true },
     website: { type: sequelize.STRING, allowNull: true },
     location: { type: sequelize.STRING, allowNull: true },
+    email: { type: sequelize.STRING, allowNull: true },
 }, { paranoid: true });
 
 UserProfileTable.belongsTo(UserTable, { as: 'user' });

@@ -5,8 +5,8 @@ import { UserProfile } from '../tables/UserProfile';
 import * as DataLoader from 'dataloader';
 import { buildBaseImageUrl, ImageRef } from '../repositories/Media';
 import { withUser } from './utils/Resolvers';
-import { UserError } from '../errors/UserError';
 import { Sanitizer } from '../modules/Sanitizer';
+import { InvalidInputError } from '../errors/InvalidInputError';
 
 function userLoader(context: CallContext) {
     if (!context.cache.has('__profile_loader')) {
@@ -60,7 +60,7 @@ export const Resolver = {
         photo: withProfile((src, profile) => profile && profile.picture ? buildBaseImageUrl(profile.picture) : null),
         photoRef: withProfile((src, profile) => profile && profile.picture),
 
-        email: (src: User) => src.email,
+        email: withProfile((src, profile) => profile ? profile.email : null),
         phone: withProfile((src, profile) => profile ? profile.phone : null),
         about: withProfile((src, profile) => profile ? profile.about : null),
         website: withProfile((src, profile) => profile ? profile.website : null),
@@ -69,7 +69,24 @@ export const Resolver = {
         isCreated: withProfile((src, profile) => !!profile),
         isYou: (src: User, args: {}, context: CallContext) => src.id === context.uid
     },
+    Profile: {
+        id: (src: UserProfile) => IDs.Profile.serialize(src.id!!),
+        firstName: (src: UserProfile) => src.firstName,
+        lastName: (src: UserProfile) => src.lastName,
+        photoRef: (src: UserProfile) => src.picture,
+        email: (src: UserProfile) => src.email,
+        phone: (src: UserProfile) => src.phone,
+        website: (src: UserProfile) => src.website,
+        about: (src: UserProfile) => src.about,
+        location: (src: UserProfile) => src.location,
+    },
     Query: {
+        profile: async function (_obj: any, _params: {}, context: CallContext) {
+            if (context.uid == null) {
+                return null;
+            }
+            return DB.UserProfile.findById(context.uid);
+        },
         me: async function (_obj: any, _params: {}, context: CallContext) {
             if (context.uid == null) {
                 return null;
@@ -83,52 +100,102 @@ export const Resolver = {
         }
     },
     Mutation: {
-        updateProfile: withUser<{
+        createProfile: withUser<{
             input: {
-                firstName?: string | null,
+                firstName: string,
                 lastName?: string | null,
                 photoRef?: ImageRef | null,
+                phone?: string | null,
+                email?: string | null,
                 website?: string | null,
                 about?: string | null,
                 location?: string | null
             }
         }>(async (args, uid) => {
             return await DB.tx(async (tx) => {
-                let user = await DB.User.findById(uid);
+                let user = await DB.User.findById(uid, { transaction: tx });
                 if (!user) {
                     throw Error('Unable to find user');
                 }
-                let profile = await DB.UserProfile.find({ where: { userId: uid } });
+
+                // Do not create profile if already exists
+                let existing = await DB.UserProfile.find({ where: { userId: uid }, transaction: tx, lock: tx.LOCK.UPDATE });
+                if (existing) {
+                    return user;
+                }
+
+                // Check input
+                let firstName = Sanitizer.sanitizeString(args.input.firstName);
+                if (!firstName) {
+                    throw new InvalidInputError([{ key: 'input.firstName', message: 'First name can\'t be empty!' }]);
+                }
+
+                // Create pfofile
+                await DB.UserProfile.create({
+                    userId: uid,
+                    firstName: firstName,
+                    lastName: Sanitizer.sanitizeString(args.input.lastName),
+                    picture: Sanitizer.sanitizeImageRef(args.input.photoRef),
+                    phone: Sanitizer.sanitizeString(args.input.phone),
+                    email: Sanitizer.sanitizeString(args.input.email) || user.email,
+                    website: Sanitizer.sanitizeString(args.input.website),
+                    about: Sanitizer.sanitizeString(args.input.about),
+                    location: Sanitizer.sanitizeString(args.input.location)
+                }, { transaction: tx });
+
+                return user;
+            });
+        }),
+        updateProfile: withUser<{
+            input: {
+                firstName?: string | null,
+                lastName?: string | null,
+                photoRef?: ImageRef | null,
+                phone?: string | null,
+                email?: string | null,
+                website?: string | null,
+                about?: string | null,
+                location?: string | null
+            }
+        }>(async (args, uid) => {
+            return await DB.tx(async (tx) => {
+                let user = await DB.User.findById(uid, { transaction: tx });
+                if (!user) {
+                    throw Error('Unable to find user');
+                }
+                let profile = await DB.UserProfile.find({ where: { userId: uid }, transaction: tx, lock: tx.LOCK.UPDATE });
                 if (!profile) {
                     throw Error('Unable to find profile');
                 }
                 if (args.input.firstName !== undefined) {
                     let firstName = Sanitizer.sanitizeString(args.input.firstName);
                     if (!firstName) {
-                        throw new UserError('First name can\'t be empty!');
+                        throw new InvalidInputError([{ key: 'input.firstName', message: 'First name can\'t be empty!' }]);
                     }
                     profile.firstName = firstName;
                 }
                 if (args.input.lastName !== undefined) {
-                    let lastName = Sanitizer.sanitizeString(args.input.lastName);
-                    profile.lastName = lastName;
+                    profile.lastName = Sanitizer.sanitizeString(args.input.lastName);
                 }
                 if (args.input.location !== undefined) {
-                    let location = Sanitizer.sanitizeString(args.input.location);
-                    profile.location = location;
+                    profile.location = Sanitizer.sanitizeString(args.input.location);
                 }
                 if (args.input.website !== undefined) {
-                    let website = Sanitizer.sanitizeString(args.input.website);
-                    profile.website = website;
+                    profile.website = Sanitizer.sanitizeString(args.input.website);
                 }
                 if (args.input.about !== undefined) {
-                    let about = Sanitizer.sanitizeString(args.input.about);
-                    profile.about = about;
+                    profile.about = Sanitizer.sanitizeString(args.input.about);
                 }
                 if (args.input.photoRef !== undefined) {
                     profile.picture = args.input.photoRef;
                 }
-                await profile.save();
+                if (args.input.phone !== undefined) {
+                    profile.phone = Sanitizer.sanitizeString(args.input.phone);
+                }
+                if (args.input.email !== undefined) {
+                    profile.email = Sanitizer.sanitizeString(args.input.email);
+                }
+                await profile.save({ transaction: tx });
                 return user;
             });
         })

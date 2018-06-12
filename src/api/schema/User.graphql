@@ -20,6 +20,8 @@ input UpdateProfileInput {
     firstName: String
     lastName: String
     photoRef: ImageRefInput
+    phone: String
+    email: String
     website: String
     about: String
     location: String
@@ -29,15 +31,20 @@ input CreateProfileInput {
     firstName: String!
     lastName: String
     photoRef: ImageRefInput
+    phone: String
+    email: String
     website: String
     about: String
     location: String
 }
 
 type Profile {
+    id: ID!
     firstName: String
     lastName: String
     photoRef: ImageRef
+    phone: String
+    email: String
     website: String
     about: String
     location: String

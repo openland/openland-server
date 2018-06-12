@@ -9,6 +9,7 @@ export const IDs = {
     County: new ID('County'),
     City: new ID('City'),
     User: new ID('User'),
+    Profile: new ID('Profile'),
     Deal: new ID('Deal'),
     Block: new ID('Block'),
     SuperAccount: new ID('SuperAccount'),
