@@ -108,6 +108,7 @@ type OrganizationAccount {
 type ContactPerson {
     name: String!
     avatar: String
+    avatarRef: ImageRef
     role: String
     email: String
     phone: String
