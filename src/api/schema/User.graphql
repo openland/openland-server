@@ -1,0 +1,35 @@
+type User {
+    id: ID!
+    name: String!
+    firstName: String!
+    lastName: String
+    picture: String
+    pictureRef: ImageRef
+    photo: String
+    photoRef: ImageRef
+    phone: String
+    email: String
+    website: String
+    about: String
+    location: String
+    isYou: Boolean!
+    isCreated: Boolean!
+}
+
+type UpdateUserInput {
+    firstName: String
+    lastName: String
+    photoRef: ImageRef
+    website: String
+    about: String
+    location: String
+}
+
+extend type Query {
+    me: User
+}
+
+extend type Mutation {
+    alphaSaveProfile(firstName: String!, lastName: String, photo: ImageRefInput, phone: String): String!
+    updateProfile(input: UpdateUserInput!): User!
+}

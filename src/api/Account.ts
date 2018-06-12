@@ -12,6 +12,7 @@ import { randomKey } from '../utils/random';
 import { buildBaseImageUrl } from '../repositories/Media';
 import { NotFoundError } from '../errors/NotFoundError';
 import { ErrorText } from '../errors/ErrorText';
+import { UserError } from '../errors/UserError';
 
 export const Resolver = {
     MyAccount: {
@@ -175,7 +176,7 @@ export const Resolver = {
             let lastNameNormalized = normalizeNullableUserInput(args.lastName);
             let firstNameNormalized = args.firstName.trim();
             if (firstNameNormalized.length === 0) {
-                throw new NotFoundError(ErrorText.firstNameEmpty);
+                throw new UserError(ErrorText.firstNameEmpty);
             }
             await Repos.Users.saveProfile(uid, firstNameNormalized, lastNameNormalized, args.photo, args.phone);
             return 'ok';

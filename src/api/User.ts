@@ -3,7 +3,10 @@ import { CallContext } from './utils/CallContext';
 import { IDs } from './utils/IDs';
 import { UserProfile } from '../tables/UserProfile';
 import * as DataLoader from 'dataloader';
-import { buildBaseImageUrl } from '../repositories/Media';
+import { buildBaseImageUrl, ImageRef } from '../repositories/Media';
+import { withUser } from './utils/Resolvers';
+import { UserError } from '../errors/UserError';
+import { Sanitizer } from '../modules/Sanitizer';
 
 function userLoader(context: CallContext) {
     if (!context.cache.has('__profile_loader')) {
@@ -51,7 +54,7 @@ export const Resolver = {
         name: withProfile((src, profile) => profile ? [profile.firstName, profile.lastName].filter((v) => !!v).join(' ') : src.email),
         firstName: withProfile((src, profile) => profile ? profile.firstName : src.email),
         lastName: withProfile((src, profile) => profile ? profile.lastName : null),
-        
+
         picture: withProfile((src, profile) => profile && profile.picture ? buildBaseImageUrl(profile.picture) : null),
         pictureRef: withProfile((src, profile) => profile && profile.picture),
         photo: withProfile((src, profile) => profile && profile.picture ? buildBaseImageUrl(profile.picture) : null),
@@ -78,5 +81,56 @@ export const Resolver = {
                 return DB.User.findById(context.uid);
             }
         }
+    },
+    Mutation: {
+        updateProfile: withUser<{
+            input: {
+                firstName?: string | null,
+                lastName?: string | null,
+                photoRef?: ImageRef | null,
+                website?: string | null,
+                about?: string | null,
+                location?: string | null
+            }
+        }>(async (args, uid) => {
+            return await DB.tx(async (tx) => {
+                let user = await DB.User.findById(uid);
+                if (!user) {
+                    throw Error('Unable to find user');
+                }
+                let profile = await DB.UserProfile.find({ where: { userId: uid } });
+                if (!profile) {
+                    throw Error('Unable to find profile');
+                }
+                if (args.input.firstName !== undefined) {
+                    let firstName = Sanitizer.sanitizeString(args.input.firstName);
+                    if (!firstName) {
+                        throw new UserError('First name can\'t be empty!');
+                    }
+                    profile.firstName = firstName;
+                }
+                if (args.input.lastName !== undefined) {
+                    let lastName = Sanitizer.sanitizeString(args.input.lastName);
+                    profile.lastName = lastName;
+                }
+                if (args.input.location !== undefined) {
+                    let location = Sanitizer.sanitizeString(args.input.location);
+                    profile.location = location;
+                }
+                if (args.input.website !== undefined) {
+                    let website = Sanitizer.sanitizeString(args.input.website);
+                    profile.website = website;
+                }
+                if (args.input.about !== undefined) {
+                    let about = Sanitizer.sanitizeString(args.input.about);
+                    profile.about = about;
+                }
+                if (args.input.photoRef !== undefined) {
+                    profile.picture = args.input.photoRef;
+                }
+                await profile.save();
+                return user;
+            });
+        })
     }
 };

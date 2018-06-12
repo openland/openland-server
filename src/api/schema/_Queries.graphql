@@ -4,7 +4,6 @@ type Query {
     # Space Information
     #
 
-    me: User
     permissions: Permissions!
     myAccount: MyAccount
     myProfile: MyProfile!
