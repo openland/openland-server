@@ -103,7 +103,7 @@ export const Resolver = {
                             if (key === 'contacts') {
                                 if (args.extras.contacts !== undefined) {
                                     editedExtras.contacts = args.extras.contacts ? args.extras.contacts.map(((contact) => {
-                                        return { ...contact, avatar: contact.avatar ? buildBaseImageUrl(contact.avatar) : undefined };
+                                        return { ...contact, avatar: contact.avatar ? buildBaseImageUrl(contact.avatar) : undefined, avatarRef: contact.avatar };
                                     })) : undefined;
                                 }
                             } else if ((args.extras as any)[key] !== undefined) {
