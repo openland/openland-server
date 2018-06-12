@@ -51,11 +51,19 @@ export const Resolver = {
         name: withProfile((src, profile) => profile ? [profile.firstName, profile.lastName].filter((v) => !!v).join(' ') : src.email),
         firstName: withProfile((src, profile) => profile ? profile.firstName : src.email),
         lastName: withProfile((src, profile) => profile ? profile.lastName : null),
+        
         picture: withProfile((src, profile) => profile && profile.picture ? buildBaseImageUrl(profile.picture) : null),
         pictureRef: withProfile((src, profile) => profile && profile.picture),
-        isCreated: withProfile((src, profile) => !!profile),
-        phone: withProfile((src, profile) => profile ? profile.phone : null),
+        photo: withProfile((src, profile) => profile && profile.picture ? buildBaseImageUrl(profile.picture) : null),
+        photoRef: withProfile((src, profile) => profile && profile.picture),
+
         email: (src: User) => src.email,
+        phone: withProfile((src, profile) => profile ? profile.phone : null),
+        about: withProfile((src, profile) => profile ? profile.about : null),
+        website: withProfile((src, profile) => profile ? profile.website : null),
+        location: withProfile((src, profile) => profile ? profile.location : null),
+
+        isCreated: withProfile((src, profile) => !!profile),
         isYou: (src: User, args: {}, context: CallContext) => src.id === context.uid
     },
     Query: {

@@ -5,8 +5,13 @@ type User {
     lastName: String
     picture: String
     pictureRef: ImageRef
-    phone: Int
-    email: String!
+    photo: String
+    photoRef: ImageRef
+    phone: String
+    email: String
+    website: String
+    about: String
+    location: String
     isYou: Boolean!
     isCreated: Boolean!
 }
@@ -15,6 +20,7 @@ type Permissions {
     roles: [String!]!
 }
 
+# Deprecated
 type MyAccount {
     id: ID!
     title: String!
@@ -40,6 +46,35 @@ type MyProfile {
     isCompleted: Boolean!
     isBlocked: Boolean!
 }
+
+#
+# My Settings
+#
+
+input MySettingsInput {
+    firstName: String
+    lastName: String
+    photo: InputImageRef
+    phone: String
+    website: String
+    about: String
+    location: String
+}
+
+type MySettings {
+    firstName: String
+    lastName: String
+    photo: ImageRef
+    phone: String
+    email: String
+    website: String
+    about: String
+    location: String
+}
+
+#
+# Invites
+#
 
 type Invite {
     id: ID!

@@ -8,6 +8,9 @@ export interface UserProfileAttributes {
     firstName: string;
     lastName: string | null;
     phone?: string | null;
+    about?: string | null;
+    website?: string | null;
+    location?: string | null;
     picture: ImageRef | null;
     userId?: number | null;
     user?: User | null;
@@ -23,6 +26,9 @@ export const UserProfileTable = connection.define<UserProfile, Partial<UserProfi
     lastName: { type: sequelize.STRING, allowNull: true },
     phone: { type: sequelize.STRING, allowNull: true },
     picture: { type: sequelize.JSON, allowNull: true },
+    about: { type: sequelize.STRING, allowNull: true },
+    website: { type: sequelize.STRING, allowNull: true },
+    location: { type: sequelize.STRING, allowNull: true },
 }, { paranoid: true });
 
 UserProfileTable.belongsTo(UserTable, { as: 'user' });

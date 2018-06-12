@@ -121,7 +121,8 @@ export const Resolver = {
             let isLoggedIn = true; // Checked in previous steps
 
             // Stage 1: Create Profile
-            let isProfileCreated = !!(await DB.UserProfile.find({ where: { userId: context.uid } }));
+            let profile = (await DB.UserProfile.find({ where: { userId: context.uid } }));
+            let isProfileCreated = !!profile;
 
             // Stage 2: Pick organization or create a new one (if there are no exists)
             let organization = !!context.oid ? await DB.Organization.findById(context.oid) : null;
@@ -141,6 +142,7 @@ export const Resolver = {
                 isCompleted: isProfileCreated && isOrganizationExists && isOrganizationPicked && isOrganizationActivated,
                 isBlocked: isOrganizationSuspended
             };
+
             console.warn(queryResult);
             return queryResult;
         },
