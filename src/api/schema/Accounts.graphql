@@ -98,7 +98,8 @@ type OrganizationProfile {
 
 input ContactPersonInput {
     name: String!
-    photo: ImageRefInput
+    avatar: String
+    avatarRef: ImageRefInput
     role: String
     email: String
     phone: String

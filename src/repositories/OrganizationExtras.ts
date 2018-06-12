@@ -41,7 +41,8 @@ export interface Range {
 
 export interface ContactPerson {
     name: string;
-    avatar?: ImageRef;
+    avatar?: string;
+    avatarRef?: ImageRef;
     role?: string;
     email?: string;
     phone?: string;

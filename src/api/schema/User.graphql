@@ -16,7 +16,7 @@ type User {
     isCreated: Boolean!
 }
 
-type UpdateProfileInput {
+input UpdateProfileInput {
     firstName: String
     lastName: String
     photoRef: ImageRefInput
@@ -25,7 +25,7 @@ type UpdateProfileInput {
     location: String
 }
 
-type CreateProfileInput {
+input CreateProfileInput {
     firstName: String!
     lastName: String
     photoRef: ImageRefInput
