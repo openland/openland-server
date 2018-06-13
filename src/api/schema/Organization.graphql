@@ -98,11 +98,8 @@ extend type Query {
 }
 
 extend type Mutation {
-    alphaFollowOrganization(id: ID!, follow: Boolean!): Organization!
-
     updateOrganizationProfile(input: UpdateOrganizationProfileInput!): OrganizationProfile!
     createOrganization(input: CreateOrganizationInput): OrganizationProfile!
 
-    alphaCreateOrganization(title: String!, website: String, role: String, logo: ImageRefInput, personal: Boolean): String!
-    alphaEditOrganizationProfile(title: String, website: String, role: String, logo: ImageRefInput, extras: AlphaOrganizationProfileInput): String!
+    alphaFollowOrganization(id: ID!, follow: Boolean!): Organization!
 }
