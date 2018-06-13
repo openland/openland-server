@@ -106,6 +106,23 @@ export const Resolver = {
             }
             return null;
         },
+        myOrganizations: async (_: any, args: {}, context: CallContext) => {
+            if (context.uid) {
+                let allOrgs = await DB.OrganizationMember.findAll({
+                    where: {
+                        userId: context.uid
+                    }
+                });
+                return await DB.Organization.findAll({
+                    where: {
+                        id: {
+                            $in: allOrgs.map((v) => v.orgId)
+                        }
+                    }
+                });
+            }
+            return [];
+        },
         organization: withAny<{ id: string }>(async (args) => {
             let res = await DB.Organization.findById(IDs.Organization.parse(args.id));
             if (!res) {
@@ -220,34 +237,5 @@ export const Resolver = {
                 return await DB.Organization.findById(orgId, { transaction: tx });
             });
         }),
-
-        alphaAlterOrganizationFollow: withAccount<{ orgId: string, follow: boolean }>(async (args, uid, oid) => {
-            let targetId = IDs.OrganizationAccount.parse(args.orgId);
-            return await DB.tx(async (tx) => {
-                let existing = await DB.OrganizationConnect.find({
-                    where: {
-                        initiatorOrgId: oid,
-                        targetOrgId: targetId
-                    },
-                    transaction: tx
-                });
-                let newStatus: 'FOLLOWING' | 'NOT_FOLLOWING' = args.follow ? 'FOLLOWING' : 'NOT_FOLLOWING';
-                let res;
-                if (existing) {
-                    existing.followStatus = newStatus;
-                    res = existing;
-                    await existing.save({ transaction: tx });
-                } else {
-                    res = await DB.OrganizationConnect.create({
-                        initiatorOrgId: oid,
-                        targetOrgId: targetId,
-                        followStatus: newStatus,
-                    }, { transaction: tx });
-                }
-
-                return res;
-            });
-        })
-
     }
 };
