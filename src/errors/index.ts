@@ -16,30 +16,35 @@ export function errorHandler(error: { message: string, originalError: any }, con
     let uuid = UUID();
     if (error.originalError instanceof IDMailformedError) {
         return {
-            uuid: uuid,
             message: 'Not found',
-            code: 404
+            code: 404,
+            uuid: uuid,
         };
     } else if (error.originalError instanceof NotFoundError) {
         return {
-            uuid: uuid,
             message: error.originalError.message,
-            code: 404
+            code: 404,
+            uuid: uuid,
         };
     } else if (error.originalError instanceof UserError) {
         return {
+            message: error.originalError.message,
             uuid: uuid,
-            message: error.originalError.message
         };
     } else if (error.originalError instanceof InvalidInputError) {
         return {
-            uuid: uuid,
             message: error.originalError.message,
-            invalidFields: error.originalError.fields
+            invalidFields: error.originalError.fields,
+            uuid: uuid,
+        };
+    } else if (!error.originalError) {
+        return {
+            message: error.message,
+            uuid: uuid,
         };
     }
     return {
+        message: 'An unexpected error occurred. Please, try again. If the problem continues, please contact support@openland.com.',
         uuid: uuid,
-        message: 'An unexpected error occurred. Please, try again. If the problem continues, please contact support@openland.com.'
     };
 }
