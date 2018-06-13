@@ -2,7 +2,7 @@ import { DB } from '../tables';
 import { Organization } from '../tables/Organization';
 import { IDs } from './utils/IDs';
 import { buildBaseImageUrl } from '../repositories/Media';
-import { withUser, withAccount } from './utils/Resolvers';
+import { withUser, withAccount, withAny } from './utils/Resolvers';
 import { Repos } from '../repositories';
 import { ImageRef } from '../repositories/Media';
 import { CallContext } from './utils/CallContext';
@@ -97,7 +97,10 @@ export const Resolver = {
             }
             return null;
         },
-        
+        organization: withAny<{ id: string }>(async (args) => {
+            return await DB.Organization.findById(IDs.Organization.parse(args.id));
+        }),
+
         alphaCurrentOrganizationProfile: withAccount(async (args, uid, oid) => {
             return await DB.Organization.findById(oid);
         }),
