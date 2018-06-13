@@ -54,7 +54,8 @@ type Mutation {
 
     alphaCreateOrganization(title: String!, website: String, role: String, logo: ImageRefInput): String!
     alphaEditOrganizationProfile(title: String, website: String, role: String, logo: ImageRefInput, extras: OrganizationProfileInput): String!
-
+    alphaAlterOrganizationFollow(orgId: ID!, follow: Boolean!): String!
+    
     alphaCreateInvite: Invite!
     alphaDeleteInvite(id: ID!): String!
     alphaJoinInvite(key: String!): ID!

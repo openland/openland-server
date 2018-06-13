@@ -20,10 +20,23 @@ let amIOwner = async (oid: number, uid: number) => {
     return member && member.isOwner;
 };
 
+let isFollowed = async (initiatorOrgId: number, targetOrgId: number) => {
+    let connection = await DB.OrganizationConnect.find({
+        where: {
+            initiatorOrgId: initiatorOrgId,
+            targetOrgId: targetOrgId
+        }
+    });
+
+    return connection && connection.followStatus === 'FOLLOWING';
+};
+
 export const Resolver = {
     OrganizationProfile: {
         id: (src: Organization) => IDs.OrganizationAccount.serialize(src.id!!),
         iAmOwner: (src: Organization, args: {}, context: CallContext) => amIOwner(src.id!!, context.uid!!),
+        isCurrent: (src: Organization, args: {}, context: CallContext) => src.id!! === context.oid!!,
+        followed: (src: Organization, args: {}, context: CallContext) => isFollowed(context.oid!!, src.id!!),
         title: (src: Organization) => src.name,
         name: (src: Organization) => src.name,
         logo: (src: Organization) => src.photo ? buildBaseImageUrl(src.photo) : null,
@@ -55,6 +68,9 @@ export const Resolver = {
     Mutation: {
 
         alphaCreateOrganization: withUser<{ title: string, website?: string, logo?: ImageRef }>(async (args, uid) => {
+            if (!args.title || !args.title.trim()) {
+                throw new UserError(ErrorText.titleRequired);
+            }
             return await DB.tx(async (tx) => {
                 let organization = await DB.Organization.create({
                     name: args.title.trim(),
@@ -116,6 +132,32 @@ export const Resolver = {
                     await existing.save({ transaction: tx });
                     return 'ok';
                 }
+            });
+        }),
+
+        alphaAlterOrganizationFollow: withAccount<{ orgId: string, follow: boolean }>(async (args, uid, oid) => {
+            let targetId = IDs.OrganizationAccount.parse(args.orgId);
+            return await DB.tx(async (tx) => {
+                let existing = await DB.OrganizationConnect.find({
+                    where: {
+                        initiatorOrgId: oid,
+                        targetOrgId: targetId
+                    },
+                    transaction: tx
+                });
+                let newStatus: 'FOLLOWING' | 'NOT_FOLLOWING' = args.follow ? 'FOLLOWING' : 'NOT_FOLLOWING';
+                if (existing) {
+                    existing.followStatus = newStatus;
+                    await existing.save({ transaction: tx });
+                } else {
+                    await DB.OrganizationConnect.create({
+                        initiatorOrgId: oid,
+                        targetOrgId: targetId,
+                        followStatus: newStatus,
+                    }, { transaction: tx });
+                }
+
+                return 'ok';
             });
         })
 
