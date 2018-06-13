@@ -8,26 +8,6 @@ type Mutation {
 
     parcelAlterMetadata(id: ID!, data: ParcelMetadataInput!): Parcel!
 
-    organizationAdd(slug: String!, title: String!): Organization!
-    organizationRemove(slug: String!): String!
-        
-    organizationAlter(slug: String!, 
-        title: String,
-        logo: String,
-        cover: String,
-        city: String,
-        address: String,
-        url: String,
-        twitter: String,
-        linkedin: String,
-        facebook: String,
-        comments: String,
-        isDeveloper: Boolean,
-        isConstructor: Boolean,
-        description: String
-    ): Organization!
-
-
     dealAdd(input: DealInput!): Deal!
     dealRemove(id: ID!): String!
     dealAlter(id: ID!, input: DealInput!): Deal!

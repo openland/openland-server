@@ -64,19 +64,6 @@ type Query {
     searchParcels(query:String!): [Parcel!]!
 
     #
-    # Statecraft
-    #
-
-    organizations: [Organization!]!
-    organization(slug: String!): Organization!
-
-    buildingProjects(filter: String, minUnits: Int, year: String, first: Int!, after: String): BuildingProjectConnection!
-    buildingProject(slug: String!): BuildingProject!
-        
-    projects(area: String!, filter: String, minUnits: Int, year: String, first: Int!, after: String, page: Int): BuildingProjectConnection!
-    project(area: String!, slug: String!): BuildingProject!
-
-    #
     # Global
     #
 

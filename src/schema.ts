@@ -15,12 +15,6 @@ import * as Debug from './api/Debug';
 import * as Folder from './api/Folder';
 import * as Organization from './api/Organization';
 
-import * as CityAccount from './api/compat/CityAccount';
-import * as Picture from './api/compat/Picture';
-import * as BuildingProject from './api/compat/BuildingProject';
-import * as CityOrganizations from './api/compat/CityOrganizations';
-import * as Stats from './api/compat/AreaStats';
-import * as Area from './api/compat/Area';
 import * as Parcels from './api/Parcels';
 
 let schema = fs
@@ -36,13 +30,7 @@ export const Schema = makeExecutableSchema({
         Account.Resolver,
         User.Resolver,
         Permits.Resolver,
-        BuildingProject.Resolver,
-        Picture.Resolver,
-        Stats.Resolver,
         Parcels.Resolver,
-        Area.Resolver,
-        CityAccount.Resolver,
-        CityOrganizations.Resolver,
         Search.Resolvers,
         Permissions.Resolvers,
         Addressing.Resolvers,
