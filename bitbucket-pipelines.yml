@@ -1,20 +1,19 @@
 image: node:8.9.4
 
 pipelines:
-  default:
-    - step:
-        name: Test & Build
-        caches:
-          - node
-        script:
-          - yarn install
-          - yarn build
-          - yarn test
-          - docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
-          - docker build -t openland/server:v${BITBUCKET_BUILD_NUMBER} .
-          - docker push openland/server:v${BITBUCKET_BUILD_NUMBER}
   branches:
     master: 
+      - step:
+          name: Test & Build
+          caches:
+            - node
+          script:
+            - yarn install
+            - yarn build
+            - yarn test
+            - docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+            - docker build -t openland/server:v${BITBUCKET_BUILD_NUMBER} .
+            - docker push openland/server:v${BITBUCKET_BUILD_NUMBER}
       - step:
           name: Deploy to Staging
           deployment: staging
