@@ -220,7 +220,7 @@ export const Resolver = {
                     }, { transaction: tx });
                 }
 
-                return res;
+                return await DB.Organization.findById(orgId, { transaction: tx });
             });
         }),
 
