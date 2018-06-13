@@ -75,6 +75,21 @@ export const Resolver = {
                 return {};
             }
         },
+        profilePrefill: async function (_: any, args: {}, context: CallContext) {
+            if (!context.uid) {
+                return {};
+            }
+            let prefill = await DB.UserProfilePrefill.find({ where: { userId: context.uid } });
+            if (prefill) {
+                return {
+                    firstName: prefill.firstName,
+                    lastName: prefill.lastName,
+                    picture: prefill.picture
+                };
+            } else {
+                return {};
+            }
+        },
         alphaAvailableOrganizationAccounts: withUser(async (args, uid) => {
             let allOrgs = await DB.OrganizationMember.findAll({
                 where: {

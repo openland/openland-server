@@ -53,6 +53,9 @@ type Profile {
 extend type Query {
     me: User
     profile: Profile
+    profilePrefill: ProfilePrefill!
+
+    alphaProfilePrefill: ProfilePrefill!
 }
 
 extend type Mutation {
