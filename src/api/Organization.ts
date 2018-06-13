@@ -35,7 +35,7 @@ export const Resolver = {
     OrganizationProfile: {
         id: (src: Organization) => IDs.OrganizationAccount.serialize(src.id!!),
         iAmOwner: (src: Organization, args: {}, context: CallContext) => amIOwner(src.id!!, context.uid!!),
-        personalOrganizationUserId: (src: Organization) => src.userId !== null && src.userId !== undefined ? IDs.User.serialize(src.userId) : undefined,
+        personalOrganizationUser: (src: Organization) => src.userId !== null && src.userId !== undefined ? DB.User.findById(src.userId) : undefined,
         isCurrent: (src: Organization, args: {}, context: CallContext) => src.id!! === context.oid!!,
         followed: (src: Organization, args: {}, context: CallContext) => isFollowed(context.oid!!, src.id!!),
         title: (src: Organization) => src.name,

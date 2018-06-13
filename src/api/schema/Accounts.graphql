@@ -79,7 +79,7 @@ type OrganizationProfile {
     followed: Boolean!
     title: String!
     name: String!
-    personalOrganizationUserId: ID
+    personalOrganizationUser: User
     logo: String
     photo: String
     photoRef: ImageRef
