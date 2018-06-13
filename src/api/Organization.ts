@@ -187,18 +187,20 @@ export const Resolver = {
                     transaction: tx
                 });
                 let newStatus: 'FOLLOWING' | 'NOT_FOLLOWING' = args.follow ? 'FOLLOWING' : 'NOT_FOLLOWING';
+                let res;
                 if (existing) {
                     existing.followStatus = newStatus;
+                    res = existing;
                     await existing.save({ transaction: tx });
                 } else {
-                    await DB.OrganizationConnect.create({
+                    res = await DB.OrganizationConnect.create({
                         initiatorOrgId: oid,
                         targetOrgId: targetId,
                         followStatus: newStatus,
                     }, { transaction: tx });
                 }
 
-                return 'ok';
+                return res;
             });
         })
 
