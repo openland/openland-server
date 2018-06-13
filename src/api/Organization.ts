@@ -17,7 +17,7 @@ let amIOwner = async (oid: number, uid: number) => {
             userId: uid,
         }
     });
-    return member && member.isOwner;
+    return !!(member && member.isOwner);
 };
 
 let isFollowed = async (initiatorOrgId: number, targetOrgId: number) => {
@@ -28,7 +28,7 @@ let isFollowed = async (initiatorOrgId: number, targetOrgId: number) => {
         }
     });
 
-    return connection && connection.followStatus === 'FOLLOWING';
+    return !!(connection && connection.followStatus === 'FOLLOWING');
 };
 
 export const Resolver = {
