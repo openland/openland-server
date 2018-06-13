@@ -56,6 +56,7 @@ import { UserProfileTable } from './UserProfile';
 import { UserProfilePrefillTable } from './UserProfilePrefill';
 import { OrganizationMemberTable } from './OrganizationMember';
 import { OrganizationInviteTable } from './OrganizationInvite';
+import { OrganizationConnectTable } from './OrganizationConnect';
 
 export const DB = {
     User: UserTable,
@@ -81,6 +82,7 @@ export const DB = {
     SuperAdmin: SuperAdminTable,
     UserToken: UserTokenTable,
     Organization: OrganizationTable,
+    OrganizationConnect: OrganizationConnectTable,
     Deal: DealTable,
     FeatureFlag: FeatureFlagTable,
     Opportunities: OpportunityTable,

@@ -74,7 +74,9 @@ type ContactPerson {
 
 type OrganizationProfile {
     id: ID!
-    iAmOwner: Boolean
+    iAmOwner: Boolean!
+    isCurrent: Boolean!
+    followed: Boolean!
     title: String!
     name: String!
     logo: String
