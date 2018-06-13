@@ -31,10 +31,6 @@ type Mutation {
     alphaExportFolder(folderId: ID!): Task!
     
     superMultiplyValue(value: Int!): Task!
-
-    alphaCreateOrganization(title: String!, website: String, role: String, logo: ImageRefInput, personal: Boolean): String!
-    alphaEditOrganizationProfile(title: String, website: String, role: String, logo: ImageRefInput, extras: AlphaOrganizationProfileInput): String!
-    alphaAlterOrganizationFollow(orgId: ID!, follow: Boolean!): AlphaOrganizationProfile!
     
     alphaCreateInvite: Invite!
     alphaDeleteInvite(id: ID!): String!

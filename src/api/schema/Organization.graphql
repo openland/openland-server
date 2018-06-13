@@ -21,6 +21,8 @@ type Organization {
     facebook: String
     contacts: [OrganizationContact!]!
 
+    alphaFollowed: Boolean!
+
     alphaPotentialSites: [Range!]
     alphaSiteSizes: [Range!]
     alphaDevelopmentModels: [String!]
@@ -37,4 +39,12 @@ extend type Query {
     alphaAvailableOrganizationAccounts: [OrganizationAccount!]!
     alphaCurrentOrganizationProfile: AlphaOrganizationProfile!
     alphaOrganizationProfile(id: ID!): AlphaOrganizationProfile
+}
+
+extend type Mutation {
+    alphaFollowOrganization(id: ID!, follow: Boolean!): Organization!
+    
+    alphaCreateOrganization(title: String!, website: String, role: String, logo: ImageRefInput, personal: Boolean): String!
+    alphaEditOrganizationProfile(title: String, website: String, role: String, logo: ImageRefInput, extras: AlphaOrganizationProfileInput): String!
+    alphaAlterOrganizationFollow(orgId: ID!, follow: Boolean!): AlphaOrganizationProfile!
 }

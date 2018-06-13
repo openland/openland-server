@@ -88,6 +88,14 @@ export const Resolver = {
         alphaLandUse: (src: Organization) => src.extras && src.extras.landUse,
         alphaGoodFor: (src: Organization) => src.extras && src.extras.goodFor,
         alphaSpecialAttributes: (src: Organization) => src.extras && src.extras.specialAttributes,
+
+        alphaFollowed: async (src: Organization, args: {}, context: CallContext) => {
+            if (context.oid) {
+                return await isFollowed(context.oid, src.id!!);
+            } else {
+                return false;
+            }
+        },
     },
 
     Query: {
@@ -176,6 +184,38 @@ export const Resolver = {
                     await existing.save({ transaction: tx });
                     return 'ok';
                 }
+            });
+        }),
+
+        alphaFollowOrganization: withAccount<{ id: string, follow: boolean }>(async (args, uid, oid) => {
+            let orgId = IDs.Organization.parse(args.id);
+            if (orgId === oid) {
+                throw new UserError('Unable to follow your own organization');
+            }
+            return await DB.tx(async (tx) => {
+                let existing = await DB.OrganizationConnect.find({
+                    where: {
+                        initiatorOrgId: oid,
+                        targetOrgId: orgId
+                    },
+                    transaction: tx,
+                    lock: tx.LOCK.UPDATE
+                });
+                let newStatus: 'FOLLOWING' | 'NOT_FOLLOWING' = args.follow ? 'FOLLOWING' : 'NOT_FOLLOWING';
+                let res;
+                if (existing) {
+                    existing.followStatus = newStatus;
+                    res = existing;
+                    await existing.save({ transaction: tx });
+                } else {
+                    res = await DB.OrganizationConnect.create({
+                        initiatorOrgId: oid,
+                        targetOrgId: orgId,
+                        followStatus: newStatus,
+                    }, { transaction: tx });
+                }
+
+                return res;
             });
         }),
 
