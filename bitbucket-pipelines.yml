@@ -14,7 +14,7 @@ pipelines:
           - docker build -t openland/server:v${BITBUCKET_BUILD_NUMBER} .
           - docker push openland/server:v${BITBUCKET_BUILD_NUMBER}
   branches:
-    - master: 
+    master: 
         - step:
           name: Deploy to Staging
           deployment: staging
