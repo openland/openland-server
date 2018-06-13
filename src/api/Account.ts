@@ -13,7 +13,7 @@ import { ErrorText } from '../errors/ErrorText';
 
 export const Resolver = {
     OrganizationAccount: {
-        id: (src: Organization) => IDs.OrganizationAccount.serialize(src.id!!),
+        id: (src: Organization) => IDs.Organization.serialize(src.id!!),
         title: (src: Organization) => src.name,
         name: (src: Organization) => src.name,
         logo: (src: Organization) => src.photo ? buildBaseImageUrl(src.photo) : null,

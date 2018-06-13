@@ -57,15 +57,12 @@ type ProfilePrefill {
 }
 
 extend type Query {
-
     me: User
     myProfile: Profile
     myProfilePrefill: ProfilePrefill
 }
 
 extend type Mutation {
-    alphaSaveProfile(firstName: String!, lastName: String, photo: ImageRefInput, phone: String): String!
-    
     createProfile(input: CreateProfileInput!): Profile!
     updateProfile(input: UpdateProfileInput!): Profile!
 }

@@ -68,7 +68,7 @@ async function context(src: express.Request): Promise<CallContext> {
                 orgId = orgId[0];
             }
             try {
-                let porgId = IDs.OrganizationAccount.parse(orgId as string);
+                let porgId = IDs.Organization.parse(orgId as string);
                 if (accounts.indexOf(porgId) >= 0) {
                     res.oid = porgId;
                 }
