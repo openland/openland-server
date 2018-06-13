@@ -44,7 +44,7 @@ export function errorHandler(error: { message: string, originalError: any }, con
         };
     }
     return {
-        message: 'An unexpected error occurred. Please, try again. If the problem continues, please contact support@openland.com.',
+        message: 'An unexpected error occurred. Please, try again. If the problem persists, please contact support@openland.com.',
         uuid: uuid,
     };
 }
