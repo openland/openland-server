@@ -207,19 +207,16 @@ export const Resolver = {
                     lock: tx.LOCK.UPDATE
                 });
                 let newStatus: 'FOLLOWING' | 'NOT_FOLLOWING' = args.follow ? 'FOLLOWING' : 'NOT_FOLLOWING';
-                let res;
                 if (existing) {
                     existing.followStatus = newStatus;
-                    res = existing;
                     await existing.save({ transaction: tx });
                 } else {
-                    res = await DB.OrganizationConnect.create({
+                    await DB.OrganizationConnect.create({
                         initiatorOrgId: oid,
                         targetOrgId: orgId,
                         followStatus: newStatus,
                     }, { transaction: tx });
                 }
-
                 return await DB.Organization.findById(orgId, { transaction: tx });
             });
         }),
