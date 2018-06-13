@@ -2,9 +2,7 @@ import { DB } from '../tables';
 import { Organization } from '../tables/Organization';
 import { CallContext } from './utils/CallContext';
 import { withUser, withAny } from './utils/Resolvers';
-import { normalizeNullableUserInput } from '../modules/Normalizer';
 import { Repos } from '../repositories';
-import { ImageRef } from '../repositories/Media';
 import { IDs } from './utils/IDs';
 import { withAccount } from './utils/Resolvers';
 import { OrganizationInvite } from '../tables/OrganizationInvite';
@@ -12,14 +10,8 @@ import { randomKey } from '../utils/random';
 import { buildBaseImageUrl } from '../repositories/Media';
 import { NotFoundError } from '../errors/NotFoundError';
 import { ErrorText } from '../errors/ErrorText';
-import { UserError } from '../errors/UserError';
 
 export const Resolver = {
-    MyAccount: {
-        id: (src: Organization) => IDs.Organization.serialize(src.id!!),
-        title: (src: Organization) => src.name,
-        name: (src: Organization) => src.name
-    },
     OrganizationAccount: {
         id: (src: Organization) => IDs.OrganizationAccount.serialize(src.id!!),
         title: (src: Organization) => src.name,
@@ -131,15 +123,6 @@ export const Resolver = {
             
             return queryResult;
         },
-        myAccount: async function (_: any, args: {}, context: CallContext) {
-            if (!context.uid) {
-                return null;
-            }
-            if (!context.oid) {
-                return null;
-            }
-            return DB.Organization.findById(context.oid);
-        }
     },
     Mutation: {
         alphaJoinInvite: withUser<{ key: string }>(async (args, uid) => {
@@ -155,15 +138,6 @@ export const Resolver = {
                 await DB.OrganizationMember.create({ userId: uid, orgId: invite.orgId, isOwner: false }, { transaction: tx });
                 return IDs.OrganizationAccount.serialize(invite.orgId);
             });
-        }),
-        alphaSaveProfile: withUser<{ firstName: string, lastName?: string | null, photo?: ImageRef | null, phone?: string }>(async (args, uid) => {
-            let lastNameNormalized = normalizeNullableUserInput(args.lastName);
-            let firstNameNormalized = args.firstName.trim();
-            if (firstNameNormalized.length === 0) {
-                throw new UserError(ErrorText.firstNameEmpty);
-            }
-            await Repos.Users.saveProfile(uid, firstNameNormalized, lastNameNormalized, args.photo, args.phone);
-            return 'ok';
         }),
         alphaCreateInvite: withAccount(async (args, uid, oid) => {
             return await DB.OrganizationInvite.create({

@@ -30,15 +30,8 @@ type Organization {
     alphaSpecialAttributes: [String!]
 }
 
-type MyAccount {
-    id: ID!
-    title: String!
-    name: String!
-}
-
 extend type Query {
     myOrganization: Organization
-    myAccount: MyAccount
 
     alphaAvailableOrganizationAccounts: [OrganizationAccount!]!
     alphaCurrentOrganizationProfile: OrganizationProfile!
