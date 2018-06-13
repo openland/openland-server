@@ -32,7 +32,7 @@ let isFollowed = async (initiatorOrgId: number, targetOrgId: number) => {
 };
 
 export const Resolver = {
-    OrganizationProfile: {
+    AlphaOrganizationProfile: {
         id: (src: Organization) => IDs.OrganizationAccount.serialize(src.id!!),
         iAmOwner: (src: Organization, args: {}, context: CallContext) => amIOwner(src.id!!, context.uid!!),
         personalOrganizationUser: (src: Organization) => src.userId !== null && src.userId !== undefined ? DB.User.findById(src.userId) : undefined,

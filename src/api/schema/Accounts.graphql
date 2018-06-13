@@ -31,7 +31,7 @@ type OrganizationAccount {
 # Organization Profile
 #
 
-type ContactPerson {
+type AlphaContactPerson {
     name: String!
     avatar: String
     avatarRef: ImageRef
@@ -41,7 +41,7 @@ type ContactPerson {
     link: String
 }
 
-type OrganizationProfile {
+type AlphaOrganizationProfile {
     id: ID!
     iAmOwner: Boolean!
     isCurrent: Boolean!
@@ -62,13 +62,13 @@ type OrganizationProfile {
     facebook: String
     developmentModels: [String]
     availability: [String]
-    contacts: [ContactPerson]
+    contacts: [AlphaContactPerson]
     landUse: [String]
     goodFor: [String]
     specialAttributes: [String]
 }
 
-input ContactPersonInput {
+input AlphaContactPersonInput {
     name: String!
     avatar: String
     avatarRef: ImageRefInput
@@ -78,7 +78,7 @@ input ContactPersonInput {
     link: String
 }
 
-input OrganizationProfileInput {
+input AlphaOrganizationProfileInput {
     potentialSites: [RangeInput]
     siteSizes: [RangeInput]
     about: String
@@ -86,7 +86,7 @@ input OrganizationProfileInput {
     facebook: String
     developmentModels: [String]
     availability: [String]
-    contacts: [ContactPersonInput]
+    contacts: [AlphaContactPersonInput]
     landUse: [String]
     goodFor: [String]
     specialAttributes: [String]

@@ -34,6 +34,6 @@ extend type Query {
     myOrganization: Organization
 
     alphaAvailableOrganizationAccounts: [OrganizationAccount!]!
-    alphaCurrentOrganizationProfile: OrganizationProfile!
-    alphaOrganizationProfile(id: ID!): OrganizationProfile
+    alphaCurrentOrganizationProfile: AlphaOrganizationProfile!
+    alphaOrganizationProfile(id: ID!): AlphaOrganizationProfile
 }
