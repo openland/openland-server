@@ -81,16 +81,6 @@ export const Resolver = {
         location: (src: UserProfile) => src.location,
     },
     Query: {
-        profile: async function (_obj: any, _params: {}, context: CallContext) {
-            if (context.uid == null) {
-                return null;
-            }
-            return DB.UserProfile.find({
-                where: {
-                    userId: context.uid
-                }
-            });
-        },
         me: async function (_obj: any, _params: {}, context: CallContext) {
             if (context.uid == null) {
                 return null;
@@ -101,7 +91,72 @@ export const Resolver = {
                 }
                 return DB.User.findById(context.uid);
             }
-        }
+        },
+        profile: async function (_obj: any, _params: {}, context: CallContext) {
+            if (context.uid == null) {
+                return null;
+            }
+            return DB.UserProfile.find({
+                where: {
+                    userId: context.uid
+                }
+            });
+        },
+        myProfile: async function (_obj: any, _params: {}, context: CallContext) {
+            if (context.uid == null) {
+                return null;
+            }
+            return DB.UserProfile.find({
+                where: {
+                    userId: context.uid
+                }
+            });
+        },
+        alphaProfilePrefill: async function (_: any, args: {}, context: CallContext) {
+            if (!context.uid) {
+                return {};
+            }
+            let prefill = await DB.UserProfilePrefill.find({ where: { userId: context.uid } });
+            if (prefill) {
+                return {
+                    firstName: prefill.firstName,
+                    lastName: prefill.lastName,
+                    picture: prefill.picture
+                };
+            } else {
+                return {};
+            }
+        },
+        profilePrefill: async function (_: any, args: {}, context: CallContext) {
+            if (!context.uid) {
+                return {};
+            }
+            let prefill = await DB.UserProfilePrefill.find({ where: { userId: context.uid } });
+            if (prefill) {
+                return {
+                    firstName: prefill.firstName,
+                    lastName: prefill.lastName,
+                    picture: prefill.picture
+                };
+            } else {
+                return {};
+            }
+        },
+        myProfilePrefill: async function (_: any, args: {}, context: CallContext) {
+            if (!context.uid) {
+                return {};
+            }
+            let prefill = await DB.UserProfilePrefill.find({ where: { userId: context.uid } });
+            if (prefill) {
+                return {
+                    firstName: prefill.firstName,
+                    lastName: prefill.lastName,
+                    picture: prefill.picture
+                };
+            } else {
+                return {};
+            }
+        },
     },
     Mutation: {
         createProfile: withUser<{

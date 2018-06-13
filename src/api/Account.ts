@@ -60,36 +60,6 @@ export const Resolver = {
                 joined: joined,
             };
         }),
-        alphaProfilePrefill: async function (_: any, args: {}, context: CallContext) {
-            if (!context.uid) {
-                return {};
-            }
-            let prefill = await DB.UserProfilePrefill.find({ where: { userId: context.uid } });
-            if (prefill) {
-                return {
-                    firstName: prefill.firstName,
-                    lastName: prefill.lastName,
-                    picture: prefill.picture
-                };
-            } else {
-                return {};
-            }
-        },
-        profilePrefill: async function (_: any, args: {}, context: CallContext) {
-            if (!context.uid) {
-                return {};
-            }
-            let prefill = await DB.UserProfilePrefill.find({ where: { userId: context.uid } });
-            if (prefill) {
-                return {
-                    firstName: prefill.firstName,
-                    lastName: prefill.lastName,
-                    picture: prefill.picture
-                };
-            } else {
-                return {};
-            }
-        },
         alphaAvailableOrganizationAccounts: withUser(async (args, uid) => {
             let allOrgs = await DB.OrganizationMember.findAll({
                 where: {
@@ -104,63 +74,6 @@ export const Resolver = {
                 }
             });
         }),
-        myProfile: async function (_: any, args: {}, context: CallContext) {
-
-            // If there are no user in the context
-            if (!context.uid) {
-                return {
-                    isLoggedIn: false,
-                    isProfileCreated: false,
-                    isAccountExists: false,
-                    isAccountPicked: false,
-                    isAccountActivated: false,
-                    isCompleted: false,
-                    isBlocked: false
-                };
-            }
-
-            // User unknown?! Just softly ignore errors
-            let res = await DB.User.findById(context.uid);
-            if (res === null) {
-                return {
-                    isLoggedIn: false,
-                    isProfileCreated: false,
-                    isAccountExists: false,
-                    isAccountPicked: false,
-                    isAccountActivated: false,
-                    isCompleted: false,
-                    isBlocked: false
-                };
-            }
-
-            // State 0: Is Logged In
-            let isLoggedIn = true; // Checked in previous steps
-
-            // Stage 1: Create Profile
-            let profile = (await DB.UserProfile.find({ where: { userId: context.uid } }));
-            let isProfileCreated = !!profile;
-
-            // Stage 2: Pick organization or create a new one (if there are no exists)
-            let organization = !!context.oid ? await DB.Organization.findById(context.oid) : null;
-            let isOrganizationPicked = organization !== null;
-            let isOrganizationExists = (await Repos.Users.fetchUserAccounts(context.uid)).length > 0;
-
-            // Stage 3: Organization Status
-            let isOrganizationActivated = isOrganizationPicked && organization!!.status !== 'PENDING';
-            let isOrganizationSuspended = isOrganizationPicked ? organization!!.status === 'SUSPENDED' : false;
-
-            let queryResult = {
-                isLoggedIn: isLoggedIn,
-                isProfileCreated: isProfileCreated,
-                isAccountExists: isOrganizationExists,
-                isAccountPicked: isOrganizationPicked,
-                isAccountActivated: isOrganizationActivated,
-                isCompleted: isProfileCreated && isOrganizationExists && isOrganizationPicked && isOrganizationActivated,
-                isBlocked: isOrganizationSuspended
-            };
-
-            return queryResult;
-        },
         sessionState: async function (_: any, args: {}, context: CallContext) {
 
             // If there are no user in the context

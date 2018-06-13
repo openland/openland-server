@@ -1,0 +1,11 @@
+type Permissions {
+    roles: [String!]!
+}
+
+extend type Query {
+    myPermissions: Permissions!
+    
+    # Deprecated
+    
+    permissions: Permissions!
+}

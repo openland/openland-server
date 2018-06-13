@@ -1,0 +1,13 @@
+type SessionState {
+    isLoggedIn: Boolean!
+    isProfileCreated: Boolean!
+    isAccountExists: Boolean!
+    isAccountPicked: Boolean!
+    isAccountActivated: Boolean!
+    isCompleted: Boolean!
+    isBlocked: Boolean!
+}
+
+extend type Query {
+    sessionState: SessionState!
+}

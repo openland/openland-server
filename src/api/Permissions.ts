@@ -68,6 +68,11 @@ export const Resolvers = {
                 roles: Repos.Permissions.resolvePermissions({ uid: context.uid, oid: context.oid })
             };
         },
+        myPermissions: async function (_: any, _params: {}, context: CallContext) {
+            return {
+                roles: Repos.Permissions.resolvePermissions({ uid: context.uid, oid: context.oid })
+            };
+        },
         superAdmins: withPermission('super-admin', () => {
             return Repos.Permissions.fetchSuperAdmins();
         }),

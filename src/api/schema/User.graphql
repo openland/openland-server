@@ -50,11 +50,22 @@ type Profile {
     location: String
 }
 
+type ProfilePrefill {
+    firstName: String
+    lastName: String
+    picture: String
+}
+
 extend type Query {
+
     me: User
+    myProfile: Profile
+    myProfilePrefill: Profile
+
+    # Deprecated
+
     profile: Profile
     profilePrefill: ProfilePrefill!
-
     alphaProfilePrefill: ProfilePrefill!
 }
 

@@ -6,7 +6,7 @@ import { withUser, withAccount } from './utils/Resolvers';
 import { Repos } from '../repositories';
 import { ImageRef } from '../repositories/Media';
 import { CallContext } from './utils/CallContext';
-import { OrganizationExtras } from '../repositories/OrganizationExtras';
+import { OrganizationExtras, ContactPerson } from '../repositories/OrganizationExtras';
 import { UserError } from '../errors/UserError';
 import { ErrorText } from '../errors/ErrorText';
 
@@ -58,10 +58,46 @@ export const Resolver = {
         specialAttributes: (src: Organization) => src.extras ? src.extras.specialAttributes : undefined,
     },
 
+    OrganizationContact: {
+        name: (src: ContactPerson) => src.name,
+        photo: (src: ContactPerson) => src.avatarRef ? buildBaseImageUrl(src.avatarRef) : null,
+        photoRef: (src: ContactPerson) => src.avatarRef,
+        position: (src: ContactPerson) => src.role,
+        email: (src: ContactPerson) => src.email,
+        phone: (src: ContactPerson) => src.phone,
+        link: (src: ContactPerson) => src.link,
+    },
+    Organization: {
+        id: (src: Organization) => IDs.Organization.serialize(src.id!!),
+        isMine: (src: Organization, args: {}, context: CallContext) => src.id!! === context.oid!!,
+
+        name: (src: Organization) => src.name,
+        photo: (src: Organization) => src.photo ? buildBaseImageUrl(src.photo) : null,
+        photoRef: (src: Organization) => src.photo,
+
+        website: (src: Organization) => src.website,
+        about: (src: Organization) => src.extras && src.extras.about,
+        twitter: (src: Organization) => src.extras && src.extras.twitter,
+        facebook: (src: Organization) => src.extras && src.extras.facebook,
+        contacts: (src: Organization) => src.extras ? src.extras.contacts : undefined,
+
+        alphaPotentialSites: (src: Organization) => src.extras && src.extras.potentialSites,
+        alphaSiteSizes: (src: Organization) => src.extras && src.extras.siteSizes,
+        alphaDevelopmentModels: (src: Organization) => src.extras && src.extras.developmentModels,
+        alphaAvailability: (src: Organization) => src.extras && src.extras.availability,
+        alphaLandUse: (src: Organization) => src.extras && src.extras.landUse,
+        alphaGoodFor: (src: Organization) => src.extras && src.extras.goodFor,
+        alphaSpecialAttributes: (src: Organization) => src.extras && src.extras.specialAttributes,
+    },
+
     Query: {
-        myOrganization: () => {
+        myOrganization: async (_: any, args: {}, context: CallContext) => {
+            if (context.oid) {
+                return await DB.Organization.findById(context.oid);
+            }
             return null;
         },
+        
         alphaCurrentOrganizationProfile: withAccount(async (args, uid, oid) => {
             return await DB.Organization.findById(oid);
         }),

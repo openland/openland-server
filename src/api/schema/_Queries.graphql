@@ -1,29 +1,6 @@
 type Query {
-
-    #
-    # Space Information
-    #
-
-    permissions: Permissions!
-
-    # Deprecated
-    myAccount: MyAccount
-    # Deprecated
-    myProfile: MyProfile!
-
-    sessionState: SessionState!
-
-    #
-    #
-    #
-
-    alphaAvailableOrganizationAccounts: [OrganizationAccount!]!
-
     alphaInvites: [Invite!]
     alphaInviteInfo(key: String!): InviteInfo
-
-    alphaCurrentOrganizationProfile: OrganizationProfile!
-    alphaOrganizationProfile(id: ID!): OrganizationProfile
 
     #
     # Permits

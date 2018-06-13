@@ -19,7 +19,7 @@ type Organization {
     about: String
     twitter: String
     facebook: String
-    contacts: [OrganizationContact!]
+    contacts: [OrganizationContact!]!
 
     alphaPotentialSites: [Range!]
     alphaSiteSizes: [Range!]
@@ -30,6 +30,17 @@ type Organization {
     alphaSpecialAttributes: [String!]
 }
 
+type MyAccount {
+    id: ID!
+    title: String!
+    name: String!
+}
+
 extend type Query {
     myOrganization: Organization
+    myAccount: MyAccount
+
+    alphaAvailableOrganizationAccounts: [OrganizationAccount!]!
+    alphaCurrentOrganizationProfile: OrganizationProfile!
+    alphaOrganizationProfile(id: ID!): OrganizationProfile
 }
