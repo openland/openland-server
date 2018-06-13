@@ -9,6 +9,7 @@ import { CallContext } from './utils/CallContext';
 import { OrganizationExtras, ContactPerson } from '../repositories/OrganizationExtras';
 import { UserError } from '../errors/UserError';
 import { ErrorText } from '../errors/ErrorText';
+import { NotFoundError } from '../errors/NotFoundError';
 
 let amIOwner = async (oid: number, uid: number) => {
     let member = await DB.OrganizationMember.find({
@@ -106,7 +107,11 @@ export const Resolver = {
             return null;
         },
         organization: withAny<{ id: string }>(async (args) => {
-            return await DB.Organization.findById(IDs.Organization.parse(args.id));
+            let res = await DB.Organization.findById(IDs.Organization.parse(args.id));
+            if (!res) {
+                throw new NotFoundError('Unable to find organization');
+            }
+            return res;
         }),
 
         alphaCurrentOrganizationProfile: withAccount(async (args, uid, oid) => {
