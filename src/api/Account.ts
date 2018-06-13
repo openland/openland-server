@@ -1,5 +1,4 @@
 import { DB } from '../tables';
-import { Organization } from '../tables/Organization';
 import { CallContext } from './utils/CallContext';
 import { withUser, withAny } from './utils/Resolvers';
 import { Repos } from '../repositories';
@@ -12,15 +11,6 @@ import { NotFoundError } from '../errors/NotFoundError';
 import { ErrorText } from '../errors/ErrorText';
 
 export const Resolver = {
-    OrganizationAccount: {
-        id: (src: Organization) => IDs.Organization.serialize(src.id!!),
-        title: (src: Organization) => src.name,
-        name: (src: Organization) => src.name,
-        logo: (src: Organization) => src.photo ? buildBaseImageUrl(src.photo) : null,
-        photo: (src: Organization) => src.photo ? buildBaseImageUrl(src.photo) : null,
-        photoRef: (src: Organization) => src.photo,
-        website: (src: Organization) => src.website,
-    },
     Invite: {
         id: (src: OrganizationInvite) => IDs.Invite.serialize(src.id),
         key: (src: OrganizationInvite) => src.uuid
@@ -51,20 +41,6 @@ export const Resolver = {
                 photoRef: org.photo,
                 joined: joined,
             };
-        }),
-        alphaAvailableOrganizationAccounts: withUser(async (args, uid) => {
-            let allOrgs = await DB.OrganizationMember.findAll({
-                where: {
-                    userId: uid
-                }
-            });
-            return await DB.Organization.findAll({
-                where: {
-                    id: {
-                        $in: allOrgs.map((v) => v.orgId)
-                    }
-                }
-            });
         }),
         sessionState: async function (_: any, args: {}, context: CallContext) {
 

@@ -32,18 +32,73 @@ type Organization {
     alphaSpecialAttributes: [String!]
 }
 
+type OrganizationProfile {
+    id: ID!
+    name: String!
+    photoRef: ImageRef
+
+    website: String
+    about: String
+    twitter: String
+    facebook: String
+    contacts: [OrganizationContact!]!
+
+    alphaPotentialSites: [Range!]
+    alphaSiteSizes: [Range!]
+    alphaDevelopmentModels: [String!]
+    alphaAvailability: [String!]
+    alphaLandUse: [String!]
+    alphaGoodFor: [String!]
+    alphaSpecialAttributes: [String!]
+}
+
+input ContactPersonInput {
+    name: String!
+    photoRef: ImageRefInput
+    position: String
+    email: String
+    phone: String
+    link: String
+}
+
+input CreateOrganizationInput {
+    name: String!
+    website: String
+    personal: Boolean!
+    photoRef: ImageRefInput
+}
+
+input UpdateOrganizationProfileInput {
+    name: String
+    photoRef: ImageRefInput
+
+    website: String
+    about: String
+    twitter: String
+    facebook: String
+    contacts: [ContactPersonInput!]
+
+    alphaPotentialSites: [RangeInput]
+    alphaSiteSizes: [RangeInput]
+    alphaDevelopmentModels: [String]
+    alphaAvailability: [String]
+    alphaLandUse: [String]
+    alphaGoodFor: [String]
+    alphaSpecialAttributes: [String]
+}
+
 extend type Query {
     myOrganization: Organization
+    myOrganizationProfile: OrganizationProfile
     myOrganizations: [Organization!]!
     organization(id: ID!): Organization!
-
-    alphaAvailableOrganizationAccounts: [OrganizationAccount!]!
-    alphaCurrentOrganizationProfile: AlphaOrganizationProfile!
-    alphaOrganizationProfile(id: ID!): AlphaOrganizationProfile
 }
 
 extend type Mutation {
     alphaFollowOrganization(id: ID!, follow: Boolean!): Organization!
+
+    updateOrganizationProfile(input: UpdateOrganizationProfileInput!): OrganizationProfile!
+    createOrganization(input: CreateOrganizationInput): OrganizationProfile!
 
     alphaCreateOrganization(title: String!, website: String, role: String, logo: ImageRefInput, personal: Boolean): String!
     alphaEditOrganizationProfile(title: String, website: String, role: String, logo: ImageRefInput, extras: AlphaOrganizationProfileInput): String!

@@ -10,16 +10,8 @@ import { OrganizationExtras, ContactPerson } from '../repositories/OrganizationE
 import { UserError } from '../errors/UserError';
 import { ErrorText } from '../errors/ErrorText';
 import { NotFoundError } from '../errors/NotFoundError';
-
-let amIOwner = async (oid: number, uid: number) => {
-    let member = await DB.OrganizationMember.find({
-        where: {
-            orgId: oid,
-            userId: uid,
-        }
-    });
-    return !!(member && member.isOwner);
-};
+import { Sanitizer } from '../modules/Sanitizer';
+import { InvalidInputError } from '../errors/InvalidInputError';
 
 let isFollowed = async (initiatorOrgId: number, targetOrgId: number) => {
     let connection = await DB.OrganizationConnect.find({
@@ -33,30 +25,24 @@ let isFollowed = async (initiatorOrgId: number, targetOrgId: number) => {
 };
 
 export const Resolver = {
-    AlphaOrganizationProfile: {
-        id: (src: Organization) => IDs.OrganizationAccount.serialize(src.id!!),
-        iAmOwner: (src: Organization, args: {}, context: CallContext) => amIOwner(src.id!!, context.uid!!),
-        personalOrganizationUser: (src: Organization) => src.userId !== null && src.userId !== undefined ? DB.User.findById(src.userId) : undefined,
-        isCurrent: (src: Organization, args: {}, context: CallContext) => src.id!! === context.oid!!,
-        followed: (src: Organization, args: {}, context: CallContext) => isFollowed(context.oid!!, src.id!!),
-        title: (src: Organization) => src.name,
+    OrganizationProfile: {
+        id: (src: Organization) => IDs.Organization.serialize(src.id!!),
         name: (src: Organization) => src.name,
-        logo: (src: Organization) => src.photo ? buildBaseImageUrl(src.photo) : null,
-        photo: (src: Organization) => src.photo ? buildBaseImageUrl(src.photo) : null,
         photoRef: (src: Organization) => src.photo,
+
         website: (src: Organization) => src.website,
-        potentialSites: (src: Organization) => src.extras ? src.extras.potentialSites : undefined,
-        siteSizes: (src: Organization) => src.extras ? src.extras.siteSizes : undefined,
-        about: (src: Organization) => src.extras ? src.extras.about : undefined,
-        description: (src: Organization) => src.extras ? src.extras.about : undefined,
-        twitter: (src: Organization) => src.extras ? src.extras.twitter : undefined,
-        facebook: (src: Organization) => src.extras ? src.extras.facebook : undefined,
-        developmentModels: (src: Organization) => src.extras ? src.extras.developmentModels : undefined,
-        availability: (src: Organization) => src.extras ? src.extras.availability : undefined,
+        about: (src: Organization) => src.extras && src.extras.about,
+        twitter: (src: Organization) => src.extras && src.extras.twitter,
+        facebook: (src: Organization) => src.extras && src.extras.facebook,
         contacts: (src: Organization) => src.extras ? src.extras.contacts : undefined,
-        landUse: (src: Organization) => src.extras ? src.extras.landUse : undefined,
-        goodFor: (src: Organization) => src.extras ? src.extras.goodFor : undefined,
-        specialAttributes: (src: Organization) => src.extras ? src.extras.specialAttributes : undefined,
+
+        alphaPotentialSites: (src: Organization) => src.extras && src.extras.potentialSites,
+        alphaSiteSizes: (src: Organization) => src.extras && src.extras.siteSizes,
+        alphaDevelopmentModels: (src: Organization) => src.extras && src.extras.developmentModels,
+        alphaAvailability: (src: Organization) => src.extras && src.extras.availability,
+        alphaLandUse: (src: Organization) => src.extras && src.extras.landUse,
+        alphaGoodFor: (src: Organization) => src.extras && src.extras.goodFor,
+        alphaSpecialAttributes: (src: Organization) => src.extras && src.extras.specialAttributes,
     },
 
     OrganizationContact: {
@@ -106,6 +92,12 @@ export const Resolver = {
             }
             return null;
         },
+        myOrganizationProfile: async (_: any, args: {}, context: CallContext) => {
+            if (context.oid) {
+                await DB.Organization.findById(context.oid);
+            }
+            return null;
+        },
         myOrganizations: async (_: any, args: {}, context: CallContext) => {
             if (context.uid) {
                 let allOrgs = await DB.OrganizationMember.findAll({
@@ -130,16 +122,44 @@ export const Resolver = {
             }
             return res;
         }),
-
-        alphaCurrentOrganizationProfile: withAccount(async (args, uid, oid) => {
-            return await DB.Organization.findById(oid);
-        }),
-
-        alphaOrganizationProfile: withAccount<{ id: string }>(async (args, uid, oid) => {
-            return await DB.Organization.findById(IDs.OrganizationAccount.parse(args.id));
-        }),
     },
     Mutation: {
+        createOrganization: withUser<{
+            input: {
+                name: string,
+                website?: string | null
+                personal: boolean
+                photoRef?: ImageRef | null
+            }
+        }>(async (args, uid) => {
+            let name = Sanitizer.sanitizeString(args.input.name);
+            if (!name) {
+                throw new InvalidInputError([{ key: 'input.name', message: 'Name can\'t be empty!' }]);
+            }
+            return await DB.tx(async (tx) => {
+                // Avoid multiple personal one
+                if (args.input.personal) {
+                    let existing = await DB.Organization.find({
+                        where: {
+                            userId: uid
+                        },
+                        transaction: tx,
+                        lock: tx.LOCK.UPDATE
+                    });
+                    if (existing) {
+                        return existing;
+                    }
+                }
+                let organization = await DB.Organization.create({
+                    name: name!!,
+                    website: Sanitizer.sanitizeString(args.input.website),
+                    photo: Sanitizer.sanitizeImageRef(args.input.photoRef),
+                    userId: args.input.personal ? uid : null
+                }, { transaction: tx });
+                await Repos.Super.addToOrganization(organization.id!!, uid, tx);
+                return organization;
+            });
+        }),
         alphaCreateOrganization: withUser<{ title: string, website?: string, logo?: ImageRef, personal?: boolean }>(async (args, uid) => {
             if (!args.title || !args.title.trim()) {
                 throw new UserError(ErrorText.titleRequired);

@@ -9,7 +9,7 @@ export interface OrganizationAttributes {
     website?: string | null;
     photo?: ImageRef | null;
     extras?: OrganizationExtras;
-    userId?: number;
+    userId?: number | null;
 }
 
 export interface Organization extends sequelize.Instance<OrganizationAttributes>, OrganizationAttributes {

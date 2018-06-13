@@ -17,16 +17,6 @@ type InviteInfo {
     joined: Boolean!
 }
 
-type OrganizationAccount {
-    id: ID!
-    name: String!
-    title: String!
-    logo: String
-    photo: String
-    photoRef: ImageRef
-    website: String
-}
-
 #
 # Organization Profile
 #
