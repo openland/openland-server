@@ -9,6 +9,7 @@ export interface OrganizationAttributes {
     website?: string | null;
     photo?: ImageRef | null;
     extras?: OrganizationExtras;
+    userId?: number;
 }
 
 export interface Organization extends sequelize.Instance<OrganizationAttributes>, OrganizationAttributes {
@@ -46,4 +47,11 @@ export const OrganizationTable = connection.define<Organization, OrganizationAtt
         allowNull: false,
         defaultValue: {}
     },
+    userId: {
+        type: sequelize.INTEGER,
+        allowNull: true,
+        references: {
+            model: 'user',
+        }
+    }
 });
