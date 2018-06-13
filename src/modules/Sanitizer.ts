@@ -1,6 +1,12 @@
 import { ImageRef } from '../repositories/Media';
 
 export const Sanitizer = {
+    sanitizeAny<T>(src: T | null | undefined): T | null {
+        if (src !== null && src !== undefined) {
+            return src;
+        }
+        return null;
+    },
     sanitizeString(str: string | null | undefined): string | null {
         if (str !== null && str !== undefined) {
             str = str.trim();

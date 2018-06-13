@@ -20,6 +20,7 @@ type Organization {
     twitter: String
     facebook: String
     contacts: [OrganizationContact!]!
+    location: String
 
     alphaFollowed: Boolean!
 
@@ -42,6 +43,7 @@ type OrganizationProfile {
     twitter: String
     facebook: String
     contacts: [OrganizationContact!]!
+    location: String
 
     alphaPotentialSites: [Range!]
     alphaSiteSizes: [Range!]
@@ -76,6 +78,7 @@ input UpdateOrganizationProfileInput {
     about: String
     twitter: String
     facebook: String
+    location: String
     contacts: [ContactPersonInput!]
 
     alphaPotentialSites: [RangeInput]
@@ -89,7 +92,7 @@ input UpdateOrganizationProfileInput {
 
 extend type Query {
     myOrganization: Organization
-    myOrganizationProfile: OrganizationProfile
+    myOrganizationProfile: OrganizationProfile!
     myOrganizations: [Organization!]!
     organization(id: ID!): Organization!
 }

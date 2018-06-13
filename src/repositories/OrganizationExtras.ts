@@ -25,7 +25,7 @@ export type GoodFor = 'large_multi_family'
     | 'tower'
     | 'block_sized_development';
 
-export type SpecialAttributes  = 'waterfront'
+export type SpecialAttributes = 'waterfront'
     | 'downtown'
     | 'parking'
     | 'fully_entitled'
@@ -41,12 +41,11 @@ export interface Range {
 
 export interface ContactPerson {
     name: string;
-    avatar?: string;
-    avatarRef?: ImageRef;
-    role?: string;
-    email?: string;
-    phone?: string;
-    link?: string;
+    avatarRef?: ImageRef | null;
+    role?: string | null;
+    email?: string | null;
+    phone?: string | null;
+    link?: string | null;
 }
 
 export interface OrganizationExtras {
@@ -54,6 +53,7 @@ export interface OrganizationExtras {
     siteSizes?: Range[] | null;
     about?: String | null;
     twitter?: string | null;
+    location?: string | null;
     facebook?: string | null;
     developmentModels?: DevelopmentModels[] | null;
     availability?: Availability[] | null;

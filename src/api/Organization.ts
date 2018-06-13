@@ -6,7 +6,7 @@ import { withUser, withAccount, withAny } from './utils/Resolvers';
 import { Repos } from '../repositories';
 import { ImageRef } from '../repositories/Media';
 import { CallContext } from './utils/CallContext';
-import { OrganizationExtras, ContactPerson } from '../repositories/OrganizationExtras';
+import { OrganizationExtras, ContactPerson, Range, DevelopmentModels, Availability, LandUse, GoodFor, SpecialAttributes } from '../repositories/OrganizationExtras';
 import { UserError } from '../errors/UserError';
 import { ErrorText } from '../errors/ErrorText';
 import { NotFoundError } from '../errors/NotFoundError';
@@ -34,7 +34,8 @@ export const Resolver = {
         about: (src: Organization) => src.extras && src.extras.about,
         twitter: (src: Organization) => src.extras && src.extras.twitter,
         facebook: (src: Organization) => src.extras && src.extras.facebook,
-        contacts: (src: Organization) => src.extras ? src.extras.contacts : undefined,
+        location: (src: Organization) => src.extras && src.extras.location,
+        contacts: (src: Organization) => src.extras ? src.extras.contacts || [] : [],
 
         alphaPotentialSites: (src: Organization) => src.extras && src.extras.potentialSites,
         alphaSiteSizes: (src: Organization) => src.extras && src.extras.siteSizes,
@@ -66,7 +67,8 @@ export const Resolver = {
         about: (src: Organization) => src.extras && src.extras.about,
         twitter: (src: Organization) => src.extras && src.extras.twitter,
         facebook: (src: Organization) => src.extras && src.extras.facebook,
-        contacts: (src: Organization) => src.extras ? src.extras.contacts : undefined,
+        location: (src: Organization) => src.extras && src.extras.location,
+        contacts: (src: Organization) => src.extras ? src.extras.contacts || [] : [],
 
         alphaPotentialSites: (src: Organization) => src.extras && src.extras.potentialSites,
         alphaSiteSizes: (src: Organization) => src.extras && src.extras.siteSizes,
@@ -94,7 +96,7 @@ export const Resolver = {
         },
         myOrganizationProfile: async (_: any, args: {}, context: CallContext) => {
             if (context.oid) {
-                await DB.Organization.findById(context.oid);
+                return await DB.Organization.findById(context.oid);
             }
             return null;
         },
@@ -160,75 +162,109 @@ export const Resolver = {
                 return organization;
             });
         }),
-        alphaCreateOrganization: withUser<{ title: string, website?: string, logo?: ImageRef, personal?: boolean }>(async (args, uid) => {
-            if (!args.title || !args.title.trim()) {
-                throw new UserError(ErrorText.titleRequired);
+        updateOrganizationProfile: withAccount<{
+            input: {
+                name?: string | null,
+                photoRef?: ImageRef | null,
+
+                website?: string | null
+                about?: string | null
+                twitter?: string | null
+                facebook?: string | null
+                location?: string | null
+
+                contacts?: {
+                    name: string
+                    photoRef?: ImageRef | null
+                    position?: string | null
+                    email?: string | null
+                    phone?: string | null
+                    link?: string | null
+                }[] | null
+
+                alphaPotentialSites?: Range[] | null
+                alphaSiteSizes: Range[] | null
+                alphaDevelopmentModels?: DevelopmentModels[] | null
+                alphaAvailability?: Availability[] | null
+                alphaLandUse?: LandUse[] | null
+                alphaGoodFor?: GoodFor[] | null
+                alphaSpecialAttributes?: SpecialAttributes[] | null
             }
-            return await DB.tx(async (tx) => {
-                let organization = await DB.Organization.create({
-                    name: args.title.trim(),
-                    website: args.website ? args.website.trim() : null,
-                    photo: args.logo,
-                    userId: args.personal ? uid : undefined
-                }, { transaction: tx });
-                await Repos.Super.addToOrganization(organization.id!!, uid, tx);
-                return IDs.OrganizationAccount.serialize(organization.id!!);
-            });
-        }),
-
-        alphaEditOrganizationProfile: withAccount<{ title?: string, website?: string, logo?: ImageRef, extras?: OrganizationExtras }>(async (args, uid, oid) => {
-
+        }>(async (args, uid, oid) => {
             let member = await DB.OrganizationMember.find({
                 where: {
                     orgId: oid,
                     userId: uid,
                 }
             });
-
             if (member === null || !member.isOwner) {
                 throw new UserError(ErrorText.permissionOnlyOwner);
             }
-
             return await DB.tx(async (tx) => {
-                let existing = await DB.Organization.find({ where: { id: oid }, transaction: tx });
+                let existing = await DB.Organization.find({ where: { id: oid }, transaction: tx, lock: tx.LOCK.UPDATE });
                 if (!existing) {
                     throw new UserError(ErrorText.unableToFindOrganization);
-
-                } else {
-                    if (args.title !== undefined) {
-                        if (args.title === null || args.title.trim() === '') {
-                            throw new UserError(ErrorText.titleRequired);
-                        }
-                        existing.name = args.title;
-                    }
-                    if (args.website !== undefined) {
-                        existing.website = args.website === null ? null : args.website.trim();
-                    }
-                    if (args.logo !== undefined) {
-                        existing.photo = args.logo;
-                    }
-                    if (args.extras !== undefined) {
-                        let editedExtras: any = existing.extras || {};
-                        for (let key of Object.keys(args.extras)) {
-                            if (key === 'contacts') {
-                                if (args.extras.contacts !== undefined) {
-                                    editedExtras.contacts = args.extras.contacts ? args.extras.contacts.map(((contact) => {
-                                        return { ...contact, avatar: contact.avatarRef ? buildBaseImageUrl(contact.avatarRef) : undefined, avatarRef: contact.avatarRef };
-                                    })) : undefined;
-                                }
-                            } else if ((args.extras as any)[key] !== undefined) {
-                                editedExtras[key] = (args.extras as any)[key] || undefined;
-                            }
-                        }
-                        existing.extras = editedExtras;
-                    }
-
-                    await existing.save({ transaction: tx });
-                    return 'ok';
                 }
+
+                if (args.input.name !== undefined) {
+                    let name = Sanitizer.sanitizeString(args.input.name);
+                    if (!name) {
+                        throw new InvalidInputError([{ key: 'input.name', message: 'Name can\'t be empty!' }]);
+                    }
+                    existing.name = name;
+                }
+                if (args.input.website !== undefined) {
+                    existing.website = Sanitizer.sanitizeString(args.input.website);
+                }
+                if (args.input.photoRef !== undefined) {
+                    existing.photo = Sanitizer.sanitizeImageRef(args.input.photoRef);
+                }
+
+                let extras: OrganizationExtras = existing.extras || {};
+                if (args.input.location !== undefined) {
+                    extras.location = Sanitizer.sanitizeString(args.input.location);
+                }
+                if (args.input.twitter !== undefined) {
+                    extras.twitter = Sanitizer.sanitizeString(args.input.twitter);
+                }
+                if (args.input.facebook !== undefined) {
+                    extras.facebook = Sanitizer.sanitizeString(args.input.facebook);
+                }
+                if (args.input.about !== undefined) {
+                    extras.about = Sanitizer.sanitizeString(args.input.about);
+                }
+                if (args.input.alphaPotentialSites !== undefined) {
+                    extras.potentialSites = Sanitizer.sanitizeAny(args.input.alphaPotentialSites);
+                }
+                if (args.input.alphaSiteSizes !== undefined) {
+                    extras.siteSizes = Sanitizer.sanitizeAny(args.input.alphaSiteSizes);
+                }
+                if (args.input.alphaDevelopmentModels !== undefined) {
+                    extras.developmentModels = Sanitizer.sanitizeAny(args.input.alphaDevelopmentModels);
+                }
+                if (args.input.alphaAvailability !== undefined) {
+                    extras.availability = Sanitizer.sanitizeAny(args.input.alphaAvailability);
+                }
+                if (args.input.alphaLandUse !== undefined) {
+                    extras.landUse = Sanitizer.sanitizeAny(args.input.alphaLandUse);
+                }
+                if (args.input.alphaGoodFor !== undefined) {
+                    extras.goodFor = Sanitizer.sanitizeAny(args.input.alphaGoodFor);
+                }
+                if (args.input.alphaSpecialAttributes !== undefined) {
+                    extras.specialAttributes = Sanitizer.sanitizeAny(args.input.alphaSpecialAttributes);
+                }
+                if (args.input.contacts !== undefined) {
+                    if (args.input.contacts === null) {
+                        extras.contacts = [];
+                    }
+                    extras.contacts = args.input.contacts!!;
+                }
+                existing.extras = extras;
+                await existing.save({ transaction: tx });
+                return existing;
             });
         }),
-
         alphaFollowOrganization: withAccount<{ id: string, follow: boolean }>(async (args, uid, oid) => {
             let orgId = IDs.Organization.parse(args.id);
             if (orgId === oid) {
