@@ -68,6 +68,9 @@ export const Resolver = {
     Mutation: {
 
         alphaCreateOrganization: withUser<{ title: string, website?: string, logo?: ImageRef }>(async (args, uid) => {
+            if (!args.title || !args.title.trim()) {
+                throw new UserError(ErrorText.titleRequired);
+            }
             return await DB.tx(async (tx) => {
                 let organization = await DB.Organization.create({
                     name: args.title.trim(),
