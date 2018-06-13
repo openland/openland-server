@@ -20,14 +20,13 @@ export const Resolver = {
         title: (src: Organization) => src.name,
         name: (src: Organization) => src.name
     },
-    OrganizationAccount: {
+    AccountSwitchProfile: {
         id: (src: Organization) => IDs.OrganizationAccount.serialize(src.id!!),
         title: (src: Organization) => src.name,
         name: (src: Organization) => src.name,
         logo: (src: Organization) => src.photo ? buildBaseImageUrl(src.photo) : null,
         photo: (src: Organization) => src.photo ? buildBaseImageUrl(src.photo) : null,
         photoRef: (src: Organization) => src.photo,
-        website: (src: Organization) => src.website,
     },
     Invite: {
         id: (src: OrganizationInvite) => IDs.Invite.serialize(src.id),

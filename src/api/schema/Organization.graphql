@@ -1,0 +1,69 @@
+type OrganizationContact2 {
+    name: String!
+    photo: String
+    photoRef: ImageRef
+    role: String
+    email: String
+    phone: String
+    link: String
+}
+
+input OrganizationContactInput2 {
+    name: String!
+    photo: String
+    photoRef: ImageRefInput
+    role: String
+    email: String
+    phone: String
+    link: String
+}
+
+type OrganizationProfile2 {
+    id: ID!
+    name: String!
+    photoRef: ImageRef
+    website: String
+
+    about: String
+    description: String
+    twitter: String
+    facebook: String
+    contacts: [OrganizationContact2!]
+
+    alphaPotentialSites: [Range!]
+    alphaSiteSizes: [Range!]
+    alphaDevelopmentModels: [String!]
+    alphaAvailability: [String!]
+    alphaLandUse: [String!]
+    alphaGoodFor: [String!]
+    alphaSpecialAttributes: [String!]
+}
+
+input CreateOrganizationInput2 {
+    name: String!
+    photoRef: ImageRefInput
+    about: String
+
+    website: String
+    twitter: String
+    facebook: String
+}
+
+input UpdateOrganizationProfileInput2 {
+    name: String
+    photoRef: ImageRefInput
+    about: String
+
+    website: String
+    twitter: String
+    facebook: String
+    contacts: [OrganizationContactInput2!]
+
+    alphaPotentialSites: [RangeInput!]
+    alphaSiteSizes: [RangeInput!]
+    alphaDevelopmentModels: [String!]
+    alphaAvailability: [String!]
+    alphaLandUse: [String!]
+    alphaGoodFor: [String!]
+    alphaSpecialAttributes: [String!]
+}

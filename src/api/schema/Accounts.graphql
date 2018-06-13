@@ -48,14 +48,15 @@ type InviteInfo {
     joined: Boolean!
 }
 
-type OrganizationAccount {
+# Compact organization profile that is used during organization switch only
+type AccountSwitchProfile {
     id: ID!
     name: String!
     title: String!
+
     logo: String
     photo: String
     photoRef: ImageRef
-    website: String
 }
 
 #
@@ -120,77 +121,4 @@ input OrganizationProfileInput {
     landUse: [String]
     goodFor: [String]
     specialAttributes: [String]
-}
-
-#
-# Organization Profile
-#
-
-type OrganizationContact {
-    name: String!
-    photo: String
-    photoRef: ImageRef
-    role: String
-    email: String
-    phone: String
-    link: String
-}
-
-input OrganizationContactInput {
-    name: String!
-    photo: String
-    photoRef: ImageRefInput
-    role: String
-    email: String
-    phone: String
-    link: String
-}
-
-type OrganizationProfile {
-    id: ID!
-    name: String!
-    photoRef: ImageRef
-    website: String
-
-    about: String
-    description: String
-    twitter: String
-    facebook: String
-    contacts: [OrganizationContact!]
-
-    alphaPotentialSites: [Range!]
-    alphaSiteSizes: [Range!]
-    alphaDevelopmentModels: [String!]
-    alphaAvailability: [String!]
-    alphaLandUse: [String!]
-    alphaGoodFor: [String!]
-    alphaSpecialAttributes: [String!]
-}
-
-input CreateOrganizationProfileInput {
-    name: String!
-    photoRef: ImageRefInput
-    about: String
-    website: String
-    twitter: String
-    facebook: String
-}
-
-input UpdateOrganizationProfileInput {
-    name: String
-    photoRef: ImageRefInput
-    about: String
-    website: String
-
-    twitter: String
-    facebook: String
-    contacts: [OrganizationContactInput!]
-
-    alphaPotentialSites: [Range!]
-    alphaSiteSizes: [Range!]
-    alphaDevelopmentModels: [String!]
-    alphaAvailability: [String!]
-    alphaLandUse: [String!]
-    alphaGoodFor: [String!]
-    alphaSpecialAttributes: [String!]
 }

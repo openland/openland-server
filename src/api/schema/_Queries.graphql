@@ -13,7 +13,7 @@ type Query {
     #
 
     alphaProfilePrefill: ProfilePrefill!
-    alphaAvailableOrganizationAccounts: [OrganizationAccount!]!
+    alphaAvailableOrganizationAccounts: [AccountSwitchProfile!]!
 
     alphaInvites: [Invite!]
     alphaInviteInfo(key: String!): InviteInfo
