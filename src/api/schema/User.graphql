@@ -60,7 +60,7 @@ extend type Query {
 
     me: User
     myProfile: Profile
-    myProfilePrefill: Profile
+    myProfilePrefill: ProfilePrefill
 
     # Deprecated
 
