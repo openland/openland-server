@@ -85,7 +85,11 @@ export const Resolver = {
             if (context.uid == null) {
                 return null;
             }
-            return DB.UserProfile.findById(context.uid);
+            return DB.UserProfile.find({
+                where: {
+                    userId: context.uid
+                }
+            });
         },
         me: async function (_obj: any, _params: {}, context: CallContext) {
             if (context.uid == null) {
