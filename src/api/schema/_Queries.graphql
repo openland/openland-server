@@ -5,8 +5,13 @@ type Query {
     #
 
     permissions: Permissions!
+
+    # Deprecated
     myAccount: MyAccount
+    # Deprecated
     myProfile: MyProfile!
+
+    sessionState: SessionState!
 
     #
     #

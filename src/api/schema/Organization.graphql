@@ -1,0 +1,35 @@
+type OrganizationContact {
+    name: String!
+    photo: String
+    photoRef: ImageRef
+    position: String
+    email: String
+    phone: String
+    link: String
+}
+
+type Organization {
+    id: ID!
+    isMine: Boolean!
+    name: String!
+    photo: String
+    photoRef: ImageRef
+
+    website: String
+    about: String
+    twitter: String
+    facebook: String
+    contacts: [OrganizationContact!]
+
+    alphaPotentialSites: [Range!]
+    alphaSiteSizes: [Range!]
+    alphaDevelopmentModels: [String!]
+    alphaAvailability: [String!]
+    alphaLandUse: [String!]
+    alphaGoodFor: [String!]
+    alphaSpecialAttributes: [String!]
+}
+
+extend type Query {
+    myOrganization: Organization
+}

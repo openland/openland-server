@@ -57,7 +57,11 @@ export const Resolver = {
         goodFor: (src: Organization) => src.extras ? src.extras.goodFor : undefined,
         specialAttributes: (src: Organization) => src.extras ? src.extras.specialAttributes : undefined,
     },
+
     Query: {
+        myOrganization: () => {
+            return null;
+        },
         alphaCurrentOrganizationProfile: withAccount(async (args, uid, oid) => {
             return await DB.Organization.findById(oid);
         }),
@@ -67,7 +71,6 @@ export const Resolver = {
         }),
     },
     Mutation: {
-
         alphaCreateOrganization: withUser<{ title: string, website?: string, logo?: ImageRef, personal?: boolean }>(async (args, uid) => {
             if (!args.title || !args.title.trim()) {
                 throw new UserError(ErrorText.titleRequired);
