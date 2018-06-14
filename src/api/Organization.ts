@@ -6,12 +6,13 @@ import { withUser, withAccount, withAny } from './utils/Resolvers';
 import { Repos } from '../repositories';
 import { ImageRef } from '../repositories/Media';
 import { CallContext } from './utils/CallContext';
-import { OrganizationExtras, ContactPerson, Range, DevelopmentModels, Availability, LandUse, GoodFor, SpecialAttributes } from '../repositories/OrganizationExtras';
+import { OrganizationExtras, ContactPerson, Range, DevelopmentModels, Availability, LandUse, GoodFor, SpecialAttributes, DevelopmentModelsValues, AvailabilityValues, LandUseValues, GoodForValues, SpecialAttributesValues } from '../repositories/OrganizationExtras';
 import { UserError } from '../errors/UserError';
 import { ErrorText } from '../errors/ErrorText';
 import { NotFoundError } from '../errors/NotFoundError';
 import { Sanitizer } from '../modules/Sanitizer';
 import { InvalidInputError } from '../errors/InvalidInputError';
+import { InputValidator } from '../modules/InputValidator';
 
 let isFollowed = async (initiatorOrgId: number, targetOrgId: number) => {
     let connection = await DB.OrganizationConnect.find({
@@ -220,6 +221,7 @@ export const Resolver = {
                     existing.photo = Sanitizer.sanitizeImageRef(args.input.photoRef);
                 }
 
+                let extrasValidateError: { key: string, message: string }[] = [];
                 let extras: OrganizationExtras = existing.extras || {};
                 if (args.input.location !== undefined) {
                     extras.location = Sanitizer.sanitizeString(args.input.location);
@@ -240,18 +242,23 @@ export const Resolver = {
                     extras.siteSizes = Sanitizer.sanitizeAny(args.input.alphaSiteSizes);
                 }
                 if (args.input.alphaDevelopmentModels !== undefined) {
+                    InputValidator.validateEnumStrings(args.input.alphaDevelopmentModels, DevelopmentModelsValues, 'Development Models', 'input.alphaDevelopmentModels', extrasValidateError);
                     extras.developmentModels = Sanitizer.sanitizeAny(args.input.alphaDevelopmentModels);
                 }
                 if (args.input.alphaAvailability !== undefined) {
+                    InputValidator.validateEnumStrings(args.input.alphaAvailability, AvailabilityValues, 'Availability', 'input.alphaAvailability', extrasValidateError);
                     extras.availability = Sanitizer.sanitizeAny(args.input.alphaAvailability);
                 }
                 if (args.input.alphaLandUse !== undefined) {
+                    InputValidator.validateEnumStrings(args.input.alphaLandUse, LandUseValues, 'Land Use', 'input.alphaLandUse', extrasValidateError);
                     extras.landUse = Sanitizer.sanitizeAny(args.input.alphaLandUse);
                 }
                 if (args.input.alphaGoodFor !== undefined) {
+                    InputValidator.validateEnumStrings(args.input.alphaGoodFor, GoodForValues, 'Good For', 'input.alphaGoodFor', extrasValidateError);
                     extras.goodFor = Sanitizer.sanitizeAny(args.input.alphaGoodFor);
                 }
                 if (args.input.alphaSpecialAttributes !== undefined) {
+                    InputValidator.validateEnumStrings(args.input.alphaSpecialAttributes, SpecialAttributesValues, 'Special Attributes', 'input.alphaSpecialAttributes', extrasValidateError);
                     extras.specialAttributes = Sanitizer.sanitizeAny(args.input.alphaSpecialAttributes);
                 }
                 if (args.input.contacts !== undefined) {
@@ -260,6 +267,11 @@ export const Resolver = {
                     }
                     extras.contacts = args.input.contacts!!;
                 }
+
+                if (extrasValidateError.length > 0) {
+                    throw new InvalidInputError(extrasValidateError);
+                }
+
                 existing.extras = extras;
                 await existing.save({ transaction: tx });
                 return existing;
