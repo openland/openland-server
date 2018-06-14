@@ -8,7 +8,7 @@ import { InvalidInputError } from './InvalidInputError';
 interface FormattedError {
     uuid: string;
     message: string;
-    invalidFields?: [{ key: string, message: string }] | null;
+    invalidFields?: { key: string, message: string }[] | null;
     code?: number | null;
 }
 
