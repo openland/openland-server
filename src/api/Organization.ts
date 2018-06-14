@@ -49,8 +49,8 @@ export const Resolver = {
 
     OrganizationContact: {
         name: (src: ContactPerson) => src.name,
-        photo: (src: ContactPerson) => src.avatarRef ? buildBaseImageUrl(src.avatarRef) : null,
-        photoRef: (src: ContactPerson) => src.avatarRef,
+        photo: (src: ContactPerson) => src.photoRef ? buildBaseImageUrl(src.photoRef) : null,
+        photoRef: (src: ContactPerson) => src.photoRef,
         position: (src: ContactPerson) => src.role,
         email: (src: ContactPerson) => src.email,
         phone: (src: ContactPerson) => src.phone,
