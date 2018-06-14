@@ -262,10 +262,18 @@ export const Resolver = {
                     extras.specialAttributes = Sanitizer.sanitizeAny(args.input.alphaSpecialAttributes);
                 }
                 if (args.input.contacts !== undefined) {
-                    if (args.input.contacts === null) {
-                        extras.contacts = [];
+                    extras.contacts = args.input.contacts;
+                    if (extras.contacts) {
+                        for (let contact of extras.contacts) {
+                            InputValidator.validateNonEmpty(contact.name, 'name', 'name', extrasValidateError);
+                            contact.email = Sanitizer.sanitizeString(contact.email);
+                            InputValidator.validateEmail(contact.email, 'email', extrasValidateError);
+                            contact.link = Sanitizer.sanitizeString(contact.link);
+                            contact.role = Sanitizer.sanitizeString(contact.role);
+                            contact.phone = Sanitizer.sanitizeString(contact.phone);
+                        }
                     }
-                    extras.contacts = args.input.contacts!!;
+
                 }
 
                 if (extrasValidateError.length > 0) {
