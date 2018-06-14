@@ -1,15 +1,15 @@
 import { ImageRef } from './Media';
 
 export type DevelopmentModels = 'request_for_proposals'
-    | 'joint_venture '
-    | 'ground_lease  '
+    | 'joint_venture'
+    | 'ground_lease'
     | 'sale'
     | 'option_to_buy';
 
 export const DevelopmentModelsValues = [
     'request_for_proposals',
-    'joint_venture ',
-    'ground_lease  ',
+    'joint_venture',
+    'ground_lease',
     'sale',
     'option_to_buy'
 ];
