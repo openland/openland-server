@@ -44,6 +44,13 @@ type MapPoint {
     lon: Float!
 }
 
+input MapPointInput {
+    ref: String
+    count: Int
+    lat: Float!
+    lon: Float!
+}
+
 enum MapSearchZoom {
     LOW
     MEDIUM

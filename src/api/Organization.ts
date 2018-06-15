@@ -6,7 +6,7 @@ import { withUser, withAccount, withAny } from './utils/Resolvers';
 import { Repos } from '../repositories';
 import { ImageRef } from '../repositories/Media';
 import { CallContext } from './utils/CallContext';
-import { OrganizationExtras, ContactPerson, Range, DevelopmentModels, Availability, LandUse, GoodFor, SpecialAttributes, DevelopmentModelsValues, AvailabilityValues, LandUseValues, GoodForValues, SpecialAttributesValues } from '../repositories/OrganizationExtras';
+import { OrganizationExtras, ContactPerson, Range, DevelopmentModels, Availability, LandUse, GoodFor, SpecialAttributes, DevelopmentModelsValues, AvailabilityValues, LandUseValues, GoodForValues, SpecialAttributesValues, FeaturedOpportunity } from '../repositories/OrganizationExtras';
 import { UserError } from '../errors/UserError';
 import { ErrorText } from '../errors/ErrorText';
 import { NotFoundError } from '../errors/NotFoundError';
@@ -45,6 +45,7 @@ export const Resolver = {
         alphaLandUse: (src: Organization) => src.extras && src.extras.landUse,
         alphaGoodFor: (src: Organization) => src.extras && src.extras.goodFor,
         alphaSpecialAttributes: (src: Organization) => src.extras && src.extras.specialAttributes,
+        alphaDummyFeaturedOpportunities: (src: Organization) => src.extras && src.extras.featuredOpportunities,
     },
 
     OrganizationContact: {
@@ -78,7 +79,7 @@ export const Resolver = {
         alphaLandUse: (src: Organization) => src.extras && src.extras.landUse,
         alphaGoodFor: (src: Organization) => src.extras && src.extras.goodFor,
         alphaSpecialAttributes: (src: Organization) => src.extras && src.extras.specialAttributes,
-
+        alphaDummyFeaturedOpportunities: (src: Organization) => src.extras && src.extras.featuredOpportunities,
         alphaFollowed: async (src: Organization, args: {}, context: CallContext) => {
             if (context.oid) {
                 return await isFollowed(context.oid, src.id!!);
@@ -190,6 +191,7 @@ export const Resolver = {
                 alphaLandUse?: LandUse[] | null
                 alphaGoodFor?: GoodFor[] | null
                 alphaSpecialAttributes?: SpecialAttributes[] | null
+                alphaDummyFeaturedOpportunities?: FeaturedOpportunity[] | null
             }
         }>(async (args, uid, oid) => {
             let member = await DB.OrganizationMember.find({
@@ -273,7 +275,17 @@ export const Resolver = {
                             contact.phone = Sanitizer.sanitizeString(contact.phone);
                         }
                     }
-
+                }
+                if (args.input.alphaDummyFeaturedOpportunities !== undefined) {
+                    extras.featuredOpportunities = args.input.alphaDummyFeaturedOpportunities;
+                    if (extras.featuredOpportunities) {
+                        for (let featuredOpportunity of extras.featuredOpportunities) {
+                            InputValidator.validateNonEmpty(featuredOpportunity.title, 'title', 'title', extrasValidateError);
+                            InputValidator.validateNonEmpty(featuredOpportunity.locationTitle, 'Location Title', 'locationTitle', extrasValidateError);
+                            featuredOpportunity.tags = Sanitizer.sanitizeAny(featuredOpportunity.tags);
+                            InputValidator.validateEnumStrings(featuredOpportunity.tags, [...LandUseValues, ...GoodForValues, ...SpecialAttributesValues], 'Tags', 'tags', extrasValidateError);
+                        }
+                    }
                 }
 
                 if (extrasValidateError.length > 0) {

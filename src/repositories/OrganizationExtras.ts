@@ -91,6 +91,12 @@ export interface ContactPerson {
     phone?: string | null;
     link?: string | null;
 }
+export interface FeaturedOpportunity {
+    title: string;
+    location: { lon: number, lat: number, ref?: string, count?: number };
+    locationTitle: string;
+    tags?: string[] | null;
+}
 
 export interface OrganizationExtras {
     potentialSites?: Range[] | null;
@@ -105,4 +111,5 @@ export interface OrganizationExtras {
     landUse?: LandUse[] | null;
     goodFor?: GoodFor[] | null;
     specialAttributes?: SpecialAttributes[] | null;
+    featuredOpportunities?: FeaturedOpportunity[] | null;
 }
