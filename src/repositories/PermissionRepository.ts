@@ -2,6 +2,7 @@ import { DB } from '../tables/index';
 import { FeatureFlag } from '../tables/FeatureFlag';
 import { NotFoundError } from '../errors/NotFoundError';
 import { ErrorText } from '../errors/ErrorText';
+import { IDs } from '../api/utils/IDs';
 
 export interface AreaPermissions {
     isOwner: boolean;
@@ -59,14 +60,14 @@ export class PermissionRepository {
 
             let member = await DB.OrganizationMember.find(({
                 where: {
-                    userId: args.oid,
+                    userId: args.uid,
                     orgId: args.oid
                 }
             }));
             if (member) {
-                permissions.add('org-' + member.orgId + '-member');
+                permissions.add('org-' + IDs.Organization.serialize(args.oid) + '-member');
                 if (member.isOwner) {
-                    permissions.add('org-' + member.orgId + '-admin');
+                    permissions.add('org-' + IDs.Organization.serialize(args.oid) + '-admin');
                 }
             }
 
