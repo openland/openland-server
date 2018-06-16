@@ -5,6 +5,7 @@ import * as express from 'express';
 import { DB } from '../tables';
 import { Profile } from './Profile';
 import { Repos } from '../repositories';
+import { fetchKeyFromRequest } from '../utils/fetchKeyFromRequest';
 
 //
 // Main JWT verifier
@@ -36,7 +37,7 @@ export const JWTChecker = jwt({
 
 export const TokenChecker = async function (req: express.Request, response: express.Response, next: express.NextFunction) {
     try {
-        let accessToken = req.headers['x-openland-token'];
+        let accessToken = fetchKeyFromRequest(req, 'x-openland-token');
         if (accessToken) {
             let uid = await Repos.Tokens.fetchUserByToken(accessToken as string);
             if (uid !== null) {

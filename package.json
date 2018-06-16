@@ -94,6 +94,7 @@
     "sequelize-cli": "^2.8.0",
     "sequelize-typescript": "^0.4.0",
     "shimmer": "^1.2.0",
+    "subscriptions-transport-ws": "^0.9.11",
     "supercluster": "^3.0.2",
     "throng": "^4.0.0",
     "ts-jest": "^22.0.4",

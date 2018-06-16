@@ -5,6 +5,7 @@ import { Repos } from '../repositories';
 import { IDs } from '../api/utils/IDs';
 import { NotFoundError } from '../errors/NotFoundError';
 import { ErrorText } from '../errors/ErrorText';
+import { fetchKeyFromRequest } from '../utils/fetchKeyFromRequest';
 let domainCache = new Map<string, number | null>();
 
 async function context(src: express.Request): Promise<CallContext> {
@@ -55,14 +56,14 @@ async function context(src: express.Request): Promise<CallContext> {
     //
     if (res.uid) {
         let accounts = await Repos.Users.fetchUserAccounts(res.uid);
-        
+
         // Default behaviour: pick the default one
         if (accounts.length === 1) {
             res.oid = accounts[0];
         }
 
         // If there are organization cookie, try to use it instead
-        let orgId = src.headers['x-openland-org'];
+        let orgId = fetchKeyFromRequest(src, 'x-openland-org');
         if (orgId) {
             if (Array.isArray(orgId)) {
                 orgId = orgId[0];
