@@ -108,3 +108,7 @@ type DebugReaderState {
 extend type Query {
     debugReaderStates: [DebugReaderState!]!
 }
+
+#
+# Subscriptions
+#

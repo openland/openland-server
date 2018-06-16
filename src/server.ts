@@ -2,10 +2,12 @@ import * as bodyParser from 'body-parser';
 import * as express from 'express';
 import * as cors from 'cors';
 import * as morgan from 'morgan';
-import { Engine } from 'apollo-engine';
 import * as compression from 'compression';
 import * as Auth2 from './handlers/authV2';
 import { schemaHandler } from './handlers/schema';
+import { SubscriptionServer } from 'subscriptions-transport-ws';
+import { Schema } from './schema';
+import { execute, subscribe } from 'graphql';
 
 export async function startApi() {
 
@@ -18,21 +20,6 @@ export async function startApi() {
     let dport = 9000;
     if (port !== undefined && port !== '') {
         dport = parseInt(process.env.PORT as string, 10);
-    }
-
-    //
-    // Engine Integration
-    //
-    let engine: Engine | null = null;
-    if (process.env.APOLLO_ENGINE) {
-        engine = new Engine({
-            engineConfig: {
-                apiKey: process.env.APOLLO_ENGINE!!,
-            },
-            endpoint: '/api',
-            graphqlPort: dport
-        });
-        engine.start();
     }
 
     //
@@ -51,14 +38,11 @@ export async function startApi() {
     app.use(cors());
     app.use(morgan('tiny'));
     app.use(compression());
-    if (engine != null) {
-        app.use(engine.expressMiddleware());
-    }
 
     //
     // API
     //
-    let graphqlMiddleware = schemaHandler(engine != null);
+    let graphqlMiddleware = schemaHandler(false);
     app.use('/api', Auth2.TokenChecker, bodyParser.json({ limit: '5mb' }), graphqlMiddleware);
     app.use('/graphql', Auth2.TokenChecker, bodyParser.json({ limit: '5mb' }), graphqlMiddleware);
 
@@ -69,5 +53,12 @@ export async function startApi() {
 
     // Starting Api
     console.info('Binding to port ' + dport);
-    app.listen(dport);
+    let listener = app.listen(dport);
+
+    // Starting WS
+    new SubscriptionServer({
+        schema: Schema,
+        execute,
+        subscribe
+    }, { server: listener, path: '/api' });
 }

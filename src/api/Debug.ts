@@ -2,6 +2,7 @@ import { withPermissionOptional } from './utils/Resolvers';
 import { DB } from '../tables';
 import { normalizeCapitalized } from '../modules/Normalizer';
 import { IDs } from './utils/IDs';
+import { delay } from '../utils/timer';
 
 export const Resolver = {
     Query: {
@@ -13,5 +14,20 @@ export const Resolver = {
                 remaining: v.remaining
             }));
         })
+    },
+    Subscription: {
+        lifecheck: {
+            resolve: (root: any) => {
+                // console.log('subscription server resolve', { root });
+                return root;
+            },
+            subscribe: async function* g() {
+                console.warn('start');
+                while (true) {
+                    yield new Date().toUTCString();
+                    await delay(1000);
+                }
+            }
+        }
     }
 };
