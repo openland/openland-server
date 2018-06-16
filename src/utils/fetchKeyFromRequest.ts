@@ -8,8 +8,8 @@ export function fetchKeyFromRequest(req: express.Request, name: string) {
             return value[0];
         }
     }
-    if (req.headers.cookie && typeof req.headers.cookie === 'string') {
-        let cookie = req.headers.cookie;
+    let cookie = req.headers.cookie;
+    if (cookie && typeof cookie === 'string') {
         let valCookie = cookie.split(';').find((c: string) => c.trim().startsWith(name + '='));
         if (valCookie) {
             return valCookie.split('=')[1];
