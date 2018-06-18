@@ -3,9 +3,10 @@ import { delay, forever, delayBreakable } from '../utils/timer';
 import { DB } from '../tables';
 import { JsonMap } from '../utils/json';
 import { tryLock } from './locking';
-import sequelize from 'sequelize';
+import sequelize, { Transaction } from 'sequelize';
 import { exponentialBackoffDelay } from '../utils/exponentialBackoffDelay';
 import { Pubsub } from './pubsub';
+import * as UUID from 'uuid/v4';
 
 class TaskLocker implements LockProvider {
 
@@ -149,18 +150,19 @@ export class WorkQueue<ARGS extends JsonMap, RES extends JsonMap> {
         this.taskType = taskType;
     }
 
-    pushWork = async (work: ARGS) => {
+    pushWork = async (work: ARGS, tx?: Transaction) => {
         let res = (await DB.Task.create({
+            uid: UUID(),
             taskType: this.taskType,
             arguments: work
-        }));
+        }, { transaction: tx }));
         pubsub.publish('work_added', {
             taskId: res.id
         });
         return res;
     }
 
-    addWorker = (handler: (item: ARGS, state: LockState) => RES | Promise<RES>) => {
+    addWorker = (handler: (item: ARGS, state: LockState, uid: string) => RES | Promise<RES>) => {
         let maxKnownWorkId = 0;
         let waiter: (() => void) | null = null;
         pubsub.subscribe('work_added', (data) => {
@@ -200,7 +202,7 @@ export class WorkQueue<ARGS extends JsonMap, RES extends JsonMap> {
                     // Executing handler
                     let res: RES;
                     try {
-                        res = await handler(task!!.arguments as ARGS, state);
+                        res = await handler(task!!.arguments as ARGS, state, task!!.uid);
                     } catch (e) {
                         console.warn(e);
 

@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@google-cloud/storage": "^1.7.0",
+    "@sendgrid/mail": "^6.3.1",
     "@turf/turf": "^5.1.6",
     "@types/base-64": "^0.1.2",
     "@types/body-parser": "^1.16.4",

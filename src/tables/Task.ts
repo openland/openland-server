@@ -6,6 +6,7 @@ type TaskStatus = 'pending' | 'executing' | 'failing' | 'failed' | 'completed';
 
 export interface TaskAttributes {
     id: number;
+    uid: string;
     taskType: string;
     arguments: JsonMap;
     result: JsonMap | null;
@@ -23,6 +24,7 @@ export interface Task extends sequelize.Instance<Partial<TaskAttributes>>, TaskA
 
 export const TaskTable = connection.define<Task, Partial<TaskAttributes>>('task', {
     id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
+    uid: { type: sequelize.STRING, allowNull: false },
     taskType: { type: sequelize.STRING, allowNull: false },
     arguments: { type: sequelize.JSON, allowNull: false },
     result: { type: sequelize.JSON, allowNull: true },
