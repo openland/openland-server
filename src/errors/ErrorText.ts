@@ -1,25 +1,23 @@
 export const ErrorText = {
-    unableToFindOpportunity: 'Unable to find opportunity',
-    unableToFindUser: 'Unable to find user',
+    unableToFindOpportunity: 'Opportunity not found',
+    unableToFindUser: 'User not found',
     unableToFindInvite: 'Unable to find invite',
     unableToFindOrganization: 'Organization not found',
-    unableToFindOrganizationNamed: (name: string) => 'Unable to find Organization ' + name,
+    unableToFindOrganizationNamed: (name: string) =>  name + '- Organization not found',
     unableToFindDeal: 'Unable to find deal',
     unableToFindAccount: (domain: string) => 'Unable to find account ' + domain,
     unableToFindCity: (state: string, county: string, city: string) => 'City is not found for ' + state + ', ' + county + ', ' + city,
     unableToFindCityTag: (tag: string) => 'City is not found for tag ' + tag,
     unableToFindArea: (domain: string) => 'Unknown area ' + domain,
-    unableToFindFolder: 'Unable to find folder',
+    unableToFindFolder: 'Folder not found',
     unableToFindParcel: 'Unable to find parcel',
 
     titleRequired: 'Title is required',
     nameEmpty: 'Name can\'t be empty',
-    firstNameEmpty: 'First name can\'t be empty',
-
-    permissionDenied: 'Access Denied',
-    permissionOnlyOwner: 'Only owner can edit orgnization',
+    firstNameEmpty: 'First Name can\'t be empty',
+    permissionDenied: 'Access denied',
+    permissionOnlyOwner: 'Only organization owners can edit this profile',
     permissionAuthenticatoinRequired: 'Authentication is required',
-
-    unableToRemoveLastSuperAdmin: 'You can\'t remove last Super Admin from the system',
-    unableToRemoveLastMember: 'You can\'t remove last member from the organization'
+    unableToRemoveLastSuperAdmin: 'You can\'t remove the last Super Admin from the system',
+    unableToRemoveLastMember: 'You can\'t remove the last member from the organization'
 };
