@@ -611,7 +611,7 @@ export const Resolver = {
 
         }),
         alphaOrganizationDeleteListing: withAccount<{ id: string }>(async (args, uid, oid) => {
-            await DB.tx(async (tx) => {
+            return await DB.tx(async (tx) => {
                 let member = await DB.OrganizationMember.find({
                     where: {
                         orgId: oid,
