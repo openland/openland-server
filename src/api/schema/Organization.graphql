@@ -22,7 +22,7 @@ type AlphaOrganizationListing{
     id: ID!
     name: String!
     type: String!
-    summary: String!
+    summary: String
     specialAttributes: [String!]
     status: String
 
