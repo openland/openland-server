@@ -18,7 +18,7 @@ pipelines:
           name: Deploy to Staging
           deployment: staging
           script:
-            - ./scripts/deploy_prepare.sh
+            - source ./scripts/deploy_prepare.sh
             - ./kubectl set image deployment/statecraft-server-staging statecraft-server-staging=index.docker.io/openland/server:v${BITBUCKET_BUILD_NUMBER}
             - ./kubectl rollout status deployments statecraft-server-staging || true
       - step:
@@ -26,7 +26,7 @@ pipelines:
           deployment: production
           trigger: manual
           script:
-            - ./scripts/deploy_prepare.sh
+            - source ./scripts/deploy_prepare.sh
             - ./kubectl set image deployment/statecraft-server statecraft-server=index.docker.io/openland/server:v${BITBUCKET_BUILD_NUMBER}
             - ./kubectl rollout status deployments statecraft-server || true
 options:
