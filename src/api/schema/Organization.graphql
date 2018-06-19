@@ -8,6 +8,13 @@ type OrganizationContact {
     link: String
 }
 
+type AlphaDummyFeaturedOpportunity{
+    title: String!
+    location: MapPoint!
+    locationTitle: String!
+    tags: [String!]
+}
+
 type AlphaOrganizationListingLink{
     text: String!
     url: String!
@@ -94,6 +101,7 @@ type Organization {
     alphaSpecialAttributes: [String!]
     alphaListingDevelopmentOportunities: [AlphaOrganizationListing!]
     alphaListingAcquisitionRequests: [AlphaOrganizationListing!]
+    alphaDummyFeaturedOpportunities: [AlphaDummyFeaturedOpportunity!]
 }
 
 type OrganizationProfile {
@@ -117,6 +125,7 @@ type OrganizationProfile {
     alphaSpecialAttributes: [String!]
     alphaListingDevelopmentOportunities: [AlphaOrganizationListing!]
     alphaListingAcquisitionRequests: [AlphaOrganizationListing!]
+    alphaDummyFeaturedOpportunities: [AlphaDummyFeaturedOpportunity!]
 }
 
 input ContactPersonInput {

@@ -48,6 +48,7 @@ export const Resolver = {
         alphaSpecialAttributes: (src: Organization) => src.extras && src.extras.specialAttributes,
         alphaListingDevelopmentOportunities: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id, type: 'development_opportunity' } }),
         alphaListingAcquisitionRequests: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id, type: 'acquisition_request' } }),
+        alphaDummyFeaturedOpportunities: (src: Organization) => src.extras && src.extras.featuredOpportunities,
     },
 
     AlphaOrganizationListing: {
@@ -124,6 +125,7 @@ export const Resolver = {
         },
         alphaListingDevelopmentOportunities: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id, type: 'development_opportunity' } }),
         alphaListingAcquisitionRequests: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id, type: 'acquisition_request' } }),
+        alphaDummyFeaturedOpportunities: (src: Organization) => src.extras && src.extras.featuredOpportunities,
     },
 
     Query: {
