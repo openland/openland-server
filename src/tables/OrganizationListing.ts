@@ -39,7 +39,7 @@ export const OrganizationListingTable = connection.define<OrganizationListing, O
             model: 'user',
         }
     },
-    orgrId: {
+    orgId: {
         type: sequelize.INTEGER,
         allowNull: false,
         references: {
