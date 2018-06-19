@@ -515,7 +515,7 @@ export const Resolver = {
                     throw new UserError(ErrorText.permissionOnlyOwner);
                 }
 
-                let existing = await DB.OrganizationListing.find({ where: { id: oid }, transaction: tx, lock: tx.LOCK.UPDATE });
+                let existing = await DB.OrganizationListing.find({ where: { id: IDs.OrganizationListing.parse(args.id), orgId: oid }, transaction: tx, lock: tx.LOCK.UPDATE });
                 if (!existing) {
                     throw new UserError(ErrorText.unableToFindListing);
                 }
@@ -607,6 +607,32 @@ export const Resolver = {
                 return existing;
             });
 
-        })
+        }),
+        alphaOrganizationDeleteListing: withAccount<{ id: string }>(async (args, uid, oid) => {
+            await DB.tx(async (tx) => {
+                let member = await DB.OrganizationMember.find({
+                    where: {
+                        orgId: oid,
+                        userId: uid,
+                    },
+                    transaction: tx,
+                });
+                if (member === null || !member.isOwner) {
+                    throw new UserError(ErrorText.permissionOnlyOwner);
+                }
+
+                let listing = await DB.OrganizationListing.find({
+                    where: { orgId: oid, id: IDs.OrganizationListing.parse(args.id) },
+                    lock: tx.LOCK.UPDATE,
+                    transaction: tx
+                });
+
+                if (!listing) {
+                    throw new NotFoundError(ErrorText.unableToFindListing);
+                }
+                await listing.destroy({ transaction: tx });
+                return 'ok';
+            });
+        }),
     }
 };

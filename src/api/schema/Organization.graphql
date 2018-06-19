@@ -168,4 +168,5 @@ extend type Mutation {
     alphaFollowOrganization(id: ID!, follow: Boolean!): Organization!
     alphaOrganizationCreateListing(type: String!, input: AlphaOrganizationListingInput!): AlphaOrganizationListing!
     alphaOrganizationEditListing(id: ID!, input: AlphaOrganizationListingInput!): AlphaOrganizationListing!
+    alphaOrganizationDeleteListing(id: ID!): String!
 }
