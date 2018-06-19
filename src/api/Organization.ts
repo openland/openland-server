@@ -76,6 +76,7 @@ export const Resolver = {
         geographies: (src: OrganizationListing) => src.extras && src.extras.geographies,
         landUse: (src: OrganizationListing) => src.extras && src.extras.landUse,
         unitCapacity: (src: OrganizationListing) => src.extras && src.extras.unitCapacity,
+        updatedAt: (src: OrganizationListing) => (src as any).updatedAt,
     },
 
     AlphaOrganizationListingLink: {
@@ -462,7 +463,9 @@ export const Resolver = {
                 return await DB.OrganizationListing.create({
                     name: args.input.name,
                     type: args.type,
-                    extras: extras
+                    extras: extras,
+                    userId: uid,
+                    orgId: oid,
                 }, { transaction: tx });
 
             });

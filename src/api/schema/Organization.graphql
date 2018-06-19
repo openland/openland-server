@@ -42,6 +42,7 @@ type AlphaOrganizationListing{
     geographies: [String!]
     landUse: [String!]
     unitCapacity: [String!]
+    updatedAt: String!
 }
 
 input AlphaOrganizationListingInput{
