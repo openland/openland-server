@@ -16,6 +16,12 @@ export const Sanitizer = {
         }
         return null;
     },
+    sanitizeNumber(num: number | null | undefined): number | null {
+        if (num !== null && num !== undefined) {
+            return num;
+        }
+        return null;
+    },
     sanitizeImageRef(src: ImageRef | null | undefined): ImageRef | null {
         if (src !== null && src !== undefined) {
             return {

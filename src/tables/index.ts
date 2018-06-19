@@ -57,6 +57,7 @@ import { UserProfilePrefillTable } from './UserProfilePrefill';
 import { OrganizationMemberTable } from './OrganizationMember';
 import { OrganizationInviteTable } from './OrganizationInvite';
 import { OrganizationConnectTable } from './OrganizationConnect';
+import { OrganizationListingTable } from './OrganizationListing';
 
 export const DB = {
     User: UserTable,
@@ -96,6 +97,7 @@ export const DB = {
     UserProfilePrefill: UserProfilePrefillTable,
     OrganizationMember: OrganizationMemberTable,
     OrganizationInvite: OrganizationInviteTable,
+    OrganizationListing: OrganizationListingTable,
 
     tx: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>): Promise<A> {
         return await connection.transaction({ isolationLevel: 'SERIALIZABLE' }, (tx2: sequelize.Transaction) => handler(tx2));

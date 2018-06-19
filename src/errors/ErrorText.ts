@@ -3,6 +3,7 @@ export const ErrorText = {
     unableToFindUser: 'User not found',
     unableToFindInvite: 'Unable to find invite',
     unableToFindOrganization: 'Organization not found',
+    unableToFindListing: 'Listing not found',
     unableToFindOrganizationNamed: (name: string) =>  name + '- Organization not found',
     unableToFindDeal: 'Unable to find deal',
     unableToFindAccount: (domain: string) => 'Unable to find account ' + domain,

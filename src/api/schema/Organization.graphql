@@ -8,18 +8,64 @@ type OrganizationContact {
     link: String
 }
 
-type AlphaDummyFeaturedOpportunity{
-    title: String!
-    location: MapPoint!
-    locationTitle: String!
-    tags: [String!]
+type AlphaOrganizationListingLink{
+    text: String!
+    url: String!
 }
 
-input AlphaDummyFeaturedOpportunityInput{
-    title: String!
-    location: MapPointInput!
-    locationTitle: String!
-    tags: [String!]
+input AlphaOrganizationListingLinkInput{
+    text: String!
+    url: String!
+}
+
+type AlphaOrganizationListing{
+    id: ID!
+    name: String!
+    type: String!
+    summary: String!
+    specialAttributes: [String!]
+    status: String
+
+    location: MapPoint
+    locationTitle: String
+    availability: String
+    area: Int
+    price: Int
+    dealType: [String!]
+    shapeAndForm: [String!]
+    currentUse: [String!]
+    goodFitFor: [String!]
+    additionalLinks: [AlphaOrganizationListingLink!]
+
+    shortDescription: String
+    areaRange: Range
+    geographies: [String!]
+    landUse: [String!]
+    unitCapacity: [String!]
+}
+
+input AlphaOrganizationListingInput{
+    name: String
+    summary: String
+    specialAttributes: [String!]
+    status: String
+
+    location: MapPointInput
+    locationTitle: String
+    availability: String
+    area: Int
+    price: Int
+    dealType: [String!]
+    shapeAndForm: [String!]
+    currentUse: [String!]
+    goodFitFor: [String!]
+    additionalLinks: [AlphaOrganizationListingLinkInput!]
+
+    shortDescription: String
+    areaRange: RangeInput
+    geographies: [String!]
+    landUse: [String!]
+    unitCapacity: [String!]
 }
 
 type Organization {
@@ -45,7 +91,6 @@ type Organization {
     alphaLandUse: [String!]
     alphaGoodFor: [String!]
     alphaSpecialAttributes: [String!]
-    alphaDummyFeaturedOpportunities: [AlphaDummyFeaturedOpportunity!]
 }
 
 type OrganizationProfile {
@@ -67,7 +112,8 @@ type OrganizationProfile {
     alphaLandUse: [String!]
     alphaGoodFor: [String!]
     alphaSpecialAttributes: [String!]
-    alphaDummyFeaturedOpportunities: [AlphaDummyFeaturedOpportunity!]
+    alphaListingDevelopmentOportunities: [AlphaOrganizationListing!]
+    alphaListingAcquisitionRequests: [AlphaOrganizationListing!]
 }
 
 input ContactPersonInput {
@@ -104,7 +150,6 @@ input UpdateOrganizationProfileInput {
     alphaLandUse: [String]
     alphaGoodFor: [String]
     alphaSpecialAttributes: [String]
-    alphaDummyFeaturedOpportunities: [AlphaDummyFeaturedOpportunityInput!]
 }
 
 extend type Query {
@@ -117,6 +162,7 @@ extend type Query {
 extend type Mutation {
     updateOrganizationProfile(input: UpdateOrganizationProfileInput!): OrganizationProfile!
     createOrganization(input: CreateOrganizationInput): OrganizationProfile!
-
     alphaFollowOrganization(id: ID!, follow: Boolean!): Organization!
+    alphaOrganizationCreateListing(type: String!, input: AlphaOrganizationListingInput!): AlphaOrganizationListing!
+    alphaOrganizationEditListing(id: ID!, input: AlphaOrganizationListingInput!): AlphaOrganizationListing!
 }

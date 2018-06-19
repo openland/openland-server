@@ -3,6 +3,7 @@ import { ID } from '../../modules/ID';
 export const IDs = {
     Organization: new ID('Organization'),
     OrganizationAccount: new ID('Account'),
+    OrganizationListing: new ID('OrganizationListing'),
     Invite: new ID('Invite'),
     InviteInfo: new ID('InviteInfo'),
     State: new ID('State'),
