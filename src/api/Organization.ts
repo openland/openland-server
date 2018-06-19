@@ -122,6 +122,8 @@ export const Resolver = {
                 return false;
             }
         },
+        alphaListingDevelopmentOportunities: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id, type: 'development_opportunity' } }),
+        alphaListingAcquisitionRequests: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id, type: 'acquisition_request' } }),
     },
 
     Query: {
