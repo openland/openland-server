@@ -32,7 +32,8 @@ type AlphaOrganizationListing{
     summary: String
     specialAttributes: [String!]
     status: String
-
+    photo: ImageRef
+    
     location: MapPoint
     locationTitle: String
     availability: String
@@ -57,6 +58,7 @@ input AlphaOrganizationListingInput{
     summary: String
     specialAttributes: [String!]
     status: String
+    photo: ImageRefInput
 
     location: MapPointInput
     locationTitle: String

@@ -59,6 +59,8 @@ export const Resolver = {
         summary: (src: OrganizationListing) => src.extras && src.extras.summary,
         specialAttributes: (src: OrganizationListing) => src.extras && src.extras.specialAttributes,
         status: (src: OrganizationListing) => src.extras && src.extras.status,
+        updatedAt: (src: OrganizationListing) => (src as any).updatedAt,
+        photo: (src: OrganizationListing) => src.extras && src.extras.photoRef,
 
         // DO
         location: (src: OrganizationListing) => src.extras && src.extras.location,
@@ -77,7 +79,6 @@ export const Resolver = {
         geographies: (src: OrganizationListing) => src.extras && src.extras.geographies,
         landUse: (src: OrganizationListing) => src.extras && src.extras.landUse,
         unitCapacity: (src: OrganizationListing) => src.extras && src.extras.unitCapacity,
-        updatedAt: (src: OrganizationListing) => (src as any).updatedAt,
     },
 
     AlphaOrganizationListingLink: {
@@ -357,6 +358,7 @@ export const Resolver = {
                 summary?: string | null;
                 specialAttributes?: string[] | null;
                 status?: 'open' | null;
+                photoRef?: ImageRef | null
 
                 // DO
                 location?: { lon: number, lat: number, ref?: string, count?: number };
@@ -411,14 +413,18 @@ export const Resolver = {
                     extras.status = Sanitizer.sanitizeString(args.input.status) as ('open' | null);
                 }
 
-                // DO
-                extras.location = Sanitizer.sanitizeAny(args.input.location)!;
-                if (args.type === 'development_opportunity' && !extras.location) {
-                    extrasValidateError.push({ key: 'input.location', message: 'Location can\'t be empty' });
+                if (args.input.photoRef !== undefined) {
+                    extras.photoRef = Sanitizer.sanitizeImageRef(args.input.photoRef);
                 }
+
+                // DO
+                if (args.input.location !== undefined) {
+                    extras.location = Sanitizer.sanitizeAny(args.input.location)!;
+                }
+
                 extras.locationTitle = Sanitizer.sanitizeString(args.input.locationTitle)!;
                 if (args.type === 'development_opportunity' && !extras.locationTitle) {
-                    extrasValidateError.push({ key: 'input.locationTitle', message: 'locationTitle can\'t be empty' });
+                    extrasValidateError.push({ key: 'input.locationTitle', message: 'Full address can\'t be empty' });
                 }
 
                 if (args.input.availability !== undefined) {
@@ -460,6 +466,27 @@ export const Resolver = {
 
                 }
 
+                // AR 
+                if (args.input.shortDescription !== undefined) {
+                    extras.shortDescription = Sanitizer.sanitizeString(args.input.shortDescription);
+                }
+
+                if (args.input.areaRange !== undefined) {
+                    extras.areaRange = Sanitizer.sanitizeAny(args.input.areaRange);
+                }
+
+                if (args.input.landUse !== undefined) {
+                    extras.landUse = Sanitizer.sanitizeAny(args.input.landUse);
+                }
+
+                if (args.input.geographies !== undefined) {
+                    extras.geographies = Sanitizer.sanitizeAny(args.input.geographies);
+                }
+
+                if (args.input.unitCapacity !== undefined) {
+                    extras.unitCapacity = Sanitizer.sanitizeAny(args.input.unitCapacity);
+                }
+
                 if (extrasValidateError.length > 0) {
                     throw new InvalidInputError(extrasValidateError);
                 }
@@ -484,6 +511,7 @@ export const Resolver = {
                 summary?: string | null;
                 specialAttributes?: string[] | null;
                 status?: 'open' | null;
+                photoRef?: ImageRef | null
 
                 // DO
                 location?: { lon: number, lat: number, ref?: string, count?: number };
@@ -545,18 +573,20 @@ export const Resolver = {
                     extras.status = Sanitizer.sanitizeString(args.input.status) as ('open' | null);
                 }
 
+                if (args.input.photoRef !== undefined) {
+                    extras.photoRef = Sanitizer.sanitizeImageRef(args.input.photoRef);
+                }
+
                 // DO
                 if (extras.location !== undefined) {
                     extras.location = Sanitizer.sanitizeAny(args.input.location)!;
-                    if (existing.type === 'development_opportunity' && !extras.location) {
-                        extrasValidateError.push({ key: 'input.location', message: 'Location can\'t be empty' });
-                    }
                 }
 
                 if (extras.locationTitle !== undefined) {
                     extras.locationTitle = Sanitizer.sanitizeString(args.input.locationTitle)!;
                     if (existing.type === 'development_opportunity' && !extras.locationTitle) {
-                        extrasValidateError.push({ key: 'input.locationTitle', message: 'locationTitle can\'t be empty' });
+                        extras.availability = Sanitizer.sanitizeString(args.input.availability);
+                        extrasValidateError.push({ key: 'input.locationTitle', message: 'Full address can\'t be empty' });
                     }
                 }
 
@@ -597,6 +627,27 @@ export const Resolver = {
                         }
                     }
 
+                }
+
+                // AR 
+                if (args.input.shortDescription !== undefined) {
+                    extras.shortDescription = Sanitizer.sanitizeString(args.input.shortDescription);
+                }
+
+                if (args.input.areaRange !== undefined) {
+                    extras.areaRange = Sanitizer.sanitizeAny(args.input.areaRange);
+                }
+
+                if (args.input.landUse !== undefined) {
+                    extras.landUse = Sanitizer.sanitizeAny(args.input.landUse);
+                }
+
+                if (args.input.geographies !== undefined) {
+                    extras.geographies = Sanitizer.sanitizeAny(args.input.geographies);
+                }
+
+                if (args.input.unitCapacity !== undefined) {
+                    extras.unitCapacity = Sanitizer.sanitizeAny(args.input.unitCapacity);
                 }
 
                 existing.extras = extras;
