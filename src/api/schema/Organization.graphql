@@ -33,7 +33,7 @@ type AlphaOrganizationListing{
     specialAttributes: [String!]
     status: String
     photo: ImageRef
-    
+
     location: MapPoint
     locationTitle: String
     availability: String
@@ -104,6 +104,26 @@ type Organization {
     alphaListingDevelopmentOportunities: [AlphaOrganizationListing!]
     alphaListingAcquisitionRequests: [AlphaOrganizationListing!]
     alphaDummyFeaturedOpportunities: [AlphaDummyFeaturedOpportunity!]
+    alphaOrganizationType: [String!]
+    alphaLookingFor: [String!]
+    alphaGeographies: [String!]
+
+    alphaDOShapeAndForm: [String!]
+    alphaDOCurrentUse: [String!]
+    alphaDOGoodFitFor: [String!]
+    alphaDOSpecialAttributes: [String!]
+    alphaDOAvailability: [String!]
+
+    alphaARGeographies: [String!]
+    alphaARAreaRange: [String!]
+    alphaARHeightLimit: [String!]
+    alphaARActivityStatus: [String!]
+    alphaARAquisitionBudget: [String!]
+    alphaARAquisitionRate: [String!]
+    alphaARClosingTime: [String!]
+    alphaARSpecialAttributes: [String!]
+    alphaARLandUse: [String!]
+
 }
 
 type OrganizationProfile {
@@ -128,6 +148,26 @@ type OrganizationProfile {
     alphaListingDevelopmentOportunities: [AlphaOrganizationListing!]
     alphaListingAcquisitionRequests: [AlphaOrganizationListing!]
     alphaDummyFeaturedOpportunities: [AlphaDummyFeaturedOpportunity!]
+    alphaOrganizationType: [String!]
+    alphaLookingFor: [String!]
+    alphaGeographies: [String!]
+
+    alphaDOShapeAndForm: [String!]
+    alphaDOCurrentUse: [String!]
+    alphaDOGoodFitFor: [String!]
+    alphaDOSpecialAttributes: [String!]
+    alphaDOAvailability: [String!]
+
+    alphaARGeographies: [String!]
+    alphaARAreaRange: [String!]
+    alphaARHeightLimit: [String!]
+    alphaARActivityStatus: [String!]
+    alphaARAquisitionBudget: [String!]
+    alphaARAquisitionRate: [String!]
+    alphaARClosingTime: [String!]
+    alphaARSpecialAttributes: [String!]
+    alphaARLandUse: [String!]
+
 }
 
 input ContactPersonInput {
@@ -164,6 +204,25 @@ input UpdateOrganizationProfileInput {
     alphaLandUse: [String]
     alphaGoodFor: [String]
     alphaSpecialAttributes: [String]
+    alphaOrganizationType: [String!]
+    alphaLookingFor: [String!]
+    alphaGeographies: [String!]
+
+    alphaDOShapeAndForm: [String!]
+    alphaDOCurrentUse: [String!]
+    alphaDOGoodFitFor: [String!]
+    alphaDOSpecialAttributes: [String!]
+    alphaDOAvailability: [String!]
+
+    alphaARGeographies: [String!]
+    alphaARAreaRange: [String!]
+    alphaARHeightLimit: [String!]
+    alphaARActivityStatus: [String!]
+    alphaARAquisitionBudget: [String!]
+    alphaARAquisitionRate: [String!]
+    alphaARClosingTime: [String!]
+    alphaARSpecialAttributes: [String!]
+    alphaARLandUse: [String!]
 }
 
 extend type Query {

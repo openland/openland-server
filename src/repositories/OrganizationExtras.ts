@@ -38,7 +38,7 @@ export interface ListingExtras {
     currentUse?: string[] | null;
     goodFitFor?: string[] | null;
     additionalLinks?: { text: string, url: string }[] | null;
-    
+
     // AR
     shortDescription?: string | null;
     areaRange?: Range | null;
@@ -61,4 +61,21 @@ export interface OrganizationExtras {
     goodFor?: string[] | null;
     specialAttributes?: string[] | null;
     featuredOpportunities?: FeaturedOpportunity[] | null;
+    organizationType?: string[] | null;
+    lookingFor?: string[] | null;
+    geographies?: string[] | null;
+    doShapeAndForm?: string[] | null;
+    doCurrentUse?: string[] | null;
+    doGoodFitFor?: string[] | null;
+    doSpecialAttributes?: string[] | null;
+    doAvailability?: string[] | null;
+    arGeographies?: string[] | null;
+    arAreaRange?: string[] | null;
+    arHeightLimit?: string[] | null;
+    arActivityStatus?: string[] | null;
+    arAquisitionBudget?: string[] | null;
+    arAquisitionRate?: string[] | null;
+    arClosingTime?: string[] | null;
+    arSpecialAttributes?: string[] | null;
+    arLandUse?: string[] | null;
 }

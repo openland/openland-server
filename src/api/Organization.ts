@@ -49,6 +49,24 @@ export const Resolver = {
         alphaListingDevelopmentOportunities: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id, type: 'development_opportunity' } }),
         alphaListingAcquisitionRequests: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id, type: 'acquisition_request' } }),
         alphaDummyFeaturedOpportunities: (src: Organization) => src.extras && src.extras.featuredOpportunities,
+
+        alphaOrganizationType: (src: Organization) => src.extras && src.extras.organizationType,
+        alphaLookingFor: (src: Organization) => src.extras && src.extras.lookingFor,
+        alphaGeographies: (src: Organization) => src.extras && src.extras.geographies,
+        alphaDOShapeAndForm: (src: Organization) => src.extras && src.extras.doShapeAndForm,
+        alphaDOCurrentUse: (src: Organization) => src.extras && src.extras.doCurrentUse,
+        alphaDOGoodFitFor: (src: Organization) => src.extras && src.extras.doGoodFitFor,
+        alphaDOSpecialAttributes: (src: Organization) => src.extras && src.extras.doSpecialAttributes,
+        alphaDOAvailability: (src: Organization) => src.extras && src.extras.doAvailability,
+        alphaARGeographies: (src: Organization) => src.extras && src.extras.arGeographies,
+        alphaARAreaRange: (src: Organization) => src.extras && src.extras.arAreaRange,
+        alphaARHeightLimit: (src: Organization) => src.extras && src.extras.arHeightLimit,
+        alphaARActivityStatus: (src: Organization) => src.extras && src.extras.arActivityStatus,
+        alphaARAquisitionBudget: (src: Organization) => src.extras && src.extras.arAquisitionBudget,
+        alphaARAquisitionRate: (src: Organization) => src.extras && src.extras.arAquisitionRate,
+        alphaARClosingTime: (src: Organization) => src.extras && src.extras.arClosingTime,
+        alphaARSpecialAttributes: (src: Organization) => src.extras && src.extras.arSpecialAttributes,
+        alphaARLandUse: (src: Organization) => src.extras && src.extras.arLandUse,
     },
 
     AlphaOrganizationListing: {
@@ -127,6 +145,24 @@ export const Resolver = {
         alphaListingDevelopmentOportunities: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id, type: 'development_opportunity' } }),
         alphaListingAcquisitionRequests: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id, type: 'acquisition_request' } }),
         alphaDummyFeaturedOpportunities: (src: Organization) => src.extras && src.extras.featuredOpportunities,
+
+        alphaOrganizationType: (src: Organization) => src.extras && src.extras.organizationType,
+        alphaLookingFor: (src: Organization) => src.extras && src.extras.lookingFor,
+        alphaGeographies: (src: Organization) => src.extras && src.extras.geographies,
+        alphaDOShapeAndForm: (src: Organization) => src.extras && src.extras.doShapeAndForm,
+        alphaDOCurrentUse: (src: Organization) => src.extras && src.extras.doCurrentUse,
+        alphaDOGoodFitFor: (src: Organization) => src.extras && src.extras.doGoodFitFor,
+        alphaDOSpecialAttributes: (src: Organization) => src.extras && src.extras.doSpecialAttributes,
+        alphaDOAvailability: (src: Organization) => src.extras && src.extras.doAvailability,
+        alphaARGeographies: (src: Organization) => src.extras && src.extras.arGeographies,
+        alphaARAreaRange: (src: Organization) => src.extras && src.extras.arAreaRange,
+        alphaARHeightLimit: (src: Organization) => src.extras && src.extras.arHeightLimit,
+        alphaARActivityStatus: (src: Organization) => src.extras && src.extras.arActivityStatus,
+        alphaARAquisitionBudget: (src: Organization) => src.extras && src.extras.arAquisitionBudget,
+        alphaARAquisitionRate: (src: Organization) => src.extras && src.extras.arAquisitionRate,
+        alphaARClosingTime: (src: Organization) => src.extras && src.extras.arClosingTime,
+        alphaARSpecialAttributes: (src: Organization) => src.extras && src.extras.arSpecialAttributes,
+        alphaARLandUse: (src: Organization) => src.extras && src.extras.arLandUse,
     },
 
     Query: {
@@ -231,6 +267,23 @@ export const Resolver = {
                 alphaLandUse?: string[] | null
                 alphaGoodFor?: string[] | null
                 alphaSpecialAttributes?: string[] | null
+                alphaOrganizationType?: string[] | null
+                alphaLookingFor?: string[] | null
+                alphaGeographies?: string[] | null
+                alphaDOShapeAndForm?: string[] | null
+                alphaDOCurrentUse?: string[] | null
+                alphaDOGoodFitFor?: string[] | null
+                alphaDOSpecialAttributes?: string[] | null
+                alphaDOAvailability?: string[] | null
+                alphaARGeographies?: string[] | null
+                alphaARAreaRange?: string[] | null
+                alphaARHeightLimit?: string[] | null
+                alphaARActivityStatus?: string[] | null
+                alphaARAquisitionBudget?: string[] | null
+                alphaARAquisitionRate?: string[] | null
+                alphaARClosingTime?: string[] | null
+                alphaARSpecialAttributes?: string[] | null
+                alphaARLandUse?: string[] | null
             }
         }>(async (args, uid, oid) => {
             let member = await DB.OrganizationMember.find({
@@ -309,6 +362,58 @@ export const Resolver = {
                             contact.phone = Sanitizer.sanitizeString(contact.phone);
                         }
                     }
+                }
+
+                if (args.input.alphaOrganizationType !== undefined) {
+                    extras.organizationType = Sanitizer.sanitizeAny(args.input.alphaOrganizationType);
+                }
+                if (args.input.alphaLookingFor !== undefined) {
+                    extras.lookingFor = Sanitizer.sanitizeAny(args.input.alphaLookingFor);
+                }
+                if (args.input.alphaGeographies !== undefined) {
+                    extras.geographies = Sanitizer.sanitizeAny(args.input.alphaGeographies);
+                }
+                if (args.input.alphaDOShapeAndForm !== undefined) {
+                    extras.doShapeAndForm = Sanitizer.sanitizeAny(args.input.alphaDOShapeAndForm);
+                }
+                if (args.input.alphaDOCurrentUse !== undefined) {
+                    extras.doCurrentUse = Sanitizer.sanitizeAny(args.input.alphaDOCurrentUse);
+                }
+                if (args.input.alphaDOGoodFitFor !== undefined) {
+                    extras.doGoodFitFor = Sanitizer.sanitizeAny(args.input.alphaDOGoodFitFor);
+                }
+                if (args.input.alphaDOSpecialAttributes !== undefined) {
+                    extras.doSpecialAttributes = Sanitizer.sanitizeAny(args.input.alphaDOSpecialAttributes);
+                }
+                if (args.input.alphaDOAvailability !== undefined) {
+                    extras.doAvailability = Sanitizer.sanitizeAny(args.input.alphaDOAvailability);
+                }
+                if (args.input.alphaARGeographies !== undefined) {
+                    extras.arGeographies = Sanitizer.sanitizeAny(args.input.alphaARGeographies);
+                }
+                if (args.input.alphaARAreaRange !== undefined) {
+                    extras.arAreaRange = Sanitizer.sanitizeAny(args.input.alphaARAreaRange);
+                }
+                if (args.input.alphaARHeightLimit !== undefined) {
+                    extras.arHeightLimit = Sanitizer.sanitizeAny(args.input.alphaARHeightLimit);
+                }
+                if (args.input.alphaARActivityStatus !== undefined) {
+                    extras.arActivityStatus = Sanitizer.sanitizeAny(args.input.alphaARActivityStatus);
+                }
+                if (args.input.alphaARAquisitionBudget !== undefined) {
+                    extras.arAquisitionBudget = Sanitizer.sanitizeAny(args.input.alphaARAquisitionBudget);
+                }
+                if (args.input.alphaARAquisitionRate !== undefined) {
+                    extras.arAquisitionRate = Sanitizer.sanitizeAny(args.input.alphaARAquisitionRate);
+                }
+                if (args.input.alphaARClosingTime !== undefined) {
+                    extras.arClosingTime = Sanitizer.sanitizeAny(args.input.alphaARClosingTime);
+                }
+                if (args.input.alphaARSpecialAttributes !== undefined) {
+                    extras.arSpecialAttributes = Sanitizer.sanitizeAny(args.input.alphaARSpecialAttributes);
+                }
+                if (args.input.alphaARLandUse !== undefined) {
+                    extras.arLandUse = Sanitizer.sanitizeAny(args.input.alphaARLandUse);
                 }
 
                 if (extrasValidateError.length > 0) {
