@@ -683,11 +683,11 @@ export const Resolver = {
                 }
 
                 // DO
-                if (extras.location !== undefined) {
+                if (args.input.location !== undefined) {
                     extras.location = Sanitizer.sanitizeAny(args.input.location)!;
                 }
 
-                if (extras.locationTitle !== undefined) {
+                if (args.input.locationTitle !== undefined) {
                     extras.locationTitle = Sanitizer.sanitizeString(args.input.locationTitle)!;
                     if (existing.type === 'development_opportunity' && !extras.locationTitle) {
                         extras.availability = Sanitizer.sanitizeString(args.input.availability);
