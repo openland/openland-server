@@ -25,7 +25,7 @@ export interface ListingExtras {
     summary?: string | null;
     specialAttributes?: string[] | null;
     status?: 'open' | null;
-    photoRef?: ImageRef | null;
+    photo?: ImageRef | null;
 
     // DO
     location?: { lon: number, lat: number, ref?: string, count?: number };

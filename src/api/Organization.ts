@@ -60,7 +60,7 @@ export const Resolver = {
         specialAttributes: (src: OrganizationListing) => src.extras && src.extras.specialAttributes,
         status: (src: OrganizationListing) => src.extras && src.extras.status,
         updatedAt: (src: OrganizationListing) => (src as any).updatedAt,
-        photo: (src: OrganizationListing) => src.extras && src.extras.photoRef,
+        photo: (src: OrganizationListing) => src.extras && src.extras.photo,
 
         // DO
         location: (src: OrganizationListing) => src.extras && src.extras.location,
@@ -358,7 +358,7 @@ export const Resolver = {
                 summary?: string | null;
                 specialAttributes?: string[] | null;
                 status?: 'open' | null;
-                photoRef?: ImageRef | null
+                photo?: ImageRef | null
 
                 // DO
                 location?: { lon: number, lat: number, ref?: string, count?: number };
@@ -413,8 +413,8 @@ export const Resolver = {
                     extras.status = Sanitizer.sanitizeString(args.input.status) as ('open' | null);
                 }
 
-                if (args.input.photoRef !== undefined) {
-                    extras.photoRef = Sanitizer.sanitizeImageRef(args.input.photoRef);
+                if (args.input.photo !== undefined) {
+                    extras.photo = Sanitizer.sanitizeImageRef(args.input.photo);
                 }
 
                 // DO
@@ -511,7 +511,7 @@ export const Resolver = {
                 summary?: string | null;
                 specialAttributes?: string[] | null;
                 status?: 'open' | null;
-                photoRef?: ImageRef | null
+                photo?: ImageRef | null
 
                 // DO
                 location?: { lon: number, lat: number, ref?: string, count?: number };
@@ -573,8 +573,8 @@ export const Resolver = {
                     extras.status = Sanitizer.sanitizeString(args.input.status) as ('open' | null);
                 }
 
-                if (args.input.photoRef !== undefined) {
-                    extras.photoRef = Sanitizer.sanitizeImageRef(args.input.photoRef);
+                if (args.input.photo !== undefined) {
+                    extras.photo = Sanitizer.sanitizeImageRef(args.input.photo);
                 }
 
                 // DO
