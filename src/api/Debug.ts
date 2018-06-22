@@ -18,9 +18,7 @@ export const Resolver = {
     },
     Mutation: {
         debugSendWelcomeEmail: withUser(async (args, uid) => {
-            let user = await DB.User.findById(uid);
-            let profile = await DB.UserProfile.find({ where: { userId: uid } });
-            Emails.sendWelcomeEmail(user!!, profile!!);
+            await Emails.sendWelcomeEmail(uid);
             return 'ok';
         })
     },

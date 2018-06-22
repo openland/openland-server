@@ -99,7 +99,10 @@ export const DB = {
     OrganizationInvite: OrganizationInviteTable,
     OrganizationListing: OrganizationListingTable,
 
-    tx: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>): Promise<A> {
+    tx: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>, existingTx?: sequelize.Transaction): Promise<A> {
+        if (existingTx) {
+            return handler(existingTx);
+        }
         return await connection.transaction({ isolationLevel: 'SERIALIZABLE' }, (tx2: sequelize.Transaction) => handler(tx2));
     },
     txLight: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>): Promise<A> {

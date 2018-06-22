@@ -4,13 +4,14 @@ import { Transaction } from 'sequelize';
 import { NotFoundError } from '../errors/NotFoundError';
 import { UserError } from '../errors/UserError';
 import { ErrorText } from '../errors/ErrorText';
+import { Emails } from '../services/Emails';
 
 export class SuperRepository {
     async fetchAllOrganizations() {
         return await DB.Organization.findAll();
     }
     async fetchById(id: number, tx?: Transaction) {
-        let res = await DB.Organization.findById(id, {transaction: tx});
+        let res = await DB.Organization.findById(id, { transaction: tx });
         if (!res) {
             throw new NotFoundError(ErrorText.unableToFindOrganization);
         }
@@ -38,17 +39,27 @@ export class SuperRepository {
     }
 
     async activateOrganization(id: number) {
-        let org = await this.fetchById(id);
-        org.status = 'ACTIVATED';
-        await org.save();
-        return org;
+        return await DB.tx(async (tx) => {
+            let org = await this.fetchById(id, tx);
+            if (org.status !== 'ACTIVATED') {
+                org.status = 'ACTIVATED';
+                await org.save({ transaction: tx });
+                await Emails.sendAccountActivatedEmail(org.id!!, tx);
+            }
+            return org;
+        });
     }
 
     async suspendOrganization(id: number) {
-        let org = await this.fetchById(id);
-        org.status = 'SUSPENDED';
-        await org.save();
-        return org;
+        return await DB.tx(async (tx) => {
+            let org = await this.fetchById(id, tx);
+            if (org.status !== 'SUSPENDED') {
+                org.status = 'SUSPENDED';
+                await org.save({ transaction: tx });
+                await Emails.sendAccountDeactivatedEmail(org.id!!, tx);
+            }
+            return org;
+        });
     }
 
     async addToOrganization(organizationId: number, uid: number, tx: Transaction) {
