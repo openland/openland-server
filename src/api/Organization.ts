@@ -692,12 +692,15 @@ export const Resolver = {
                     extras.location = Sanitizer.sanitizeAny(args.input.location)!;
                 }
 
+                // if (args.input.locationTitle !== undefined) {
+                //     extras.locationTitle = Sanitizer.sanitizeString(args.input.locationTitle)!;
+                //     if (existing.type === 'development_opportunity' && !extras.locationTitle) {
+                //         extras.locationTitle = Sanitizer.sanitizeString(args.input.locationTitle);
+                //         extrasValidateError.push({ key: 'input.locationTitle', message: 'Full address can\'t be empty' });
+                //     }
+                // }
                 if (args.input.locationTitle !== undefined) {
-                    extras.locationTitle = Sanitizer.sanitizeString(args.input.locationTitle)!;
-                    if (existing.type === 'development_opportunity' && !extras.locationTitle) {
-                        extras.availability = Sanitizer.sanitizeString(args.input.availability);
-                        extrasValidateError.push({ key: 'input.locationTitle', message: 'Full address can\'t be empty' });
-                    }
+                    extras.locationTitle = Sanitizer.sanitizeAny(args.input.locationTitle)!;
                 }
 
                 if (args.input.availability !== undefined) {
