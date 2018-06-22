@@ -529,9 +529,12 @@ export const Resolver = {
                     extras.location = Sanitizer.sanitizeAny(args.input.location)!;
                 }
 
-                extras.locationTitle = Sanitizer.sanitizeString(args.input.locationTitle)!;
-                if (args.type === 'development_opportunity' && !extras.locationTitle) {
-                    extrasValidateError.push({ key: 'input.locationTitle', message: 'Full address can\'t be empty' });
+                // extras.locationTitle = Sanitizer.sanitizeString(args.input.locationTitle)!;
+                // if (args.type === 'development_opportunity' && !extras.locationTitle) {
+                //     extrasValidateError.push({ key: 'input.locationTitle', message: 'Full address can\'t be empty' });
+                // }
+                if (args.input.locationTitle !== undefined) {
+                    extras.locationTitle = Sanitizer.sanitizeAny(args.input.locationTitle)!;
                 }
 
                 if (args.input.availability !== undefined) {
