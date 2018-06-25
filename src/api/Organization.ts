@@ -46,9 +46,9 @@ export const Resolver = {
         alphaLandUse: (src: Organization) => src.extras && src.extras.landUse,
         alphaGoodFor: (src: Organization) => src.extras && src.extras.goodFor,
         alphaSpecialAttributes: (src: Organization) => src.extras && src.extras.specialAttributes,
-        alphaListingDevelopmentOportunities: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id, type: 'development_opportunity' } }),
-        alphaListingAcquisitionRequests: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id, type: 'acquisition_request' } }),
-        alphaListingsAll: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id } }),
+        alphaListingDevelopmentOportunities: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id, type: 'development_opportunity' }, order: [['updatedAt', 'DESC']] }),
+        alphaListingAcquisitionRequests: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id, type: 'acquisition_request' }, order: [['updatedAt', 'DESC']] }),
+        alphaListingsAll: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id }, order: [['updatedAt', 'DESC']] }),
         alphaDummyFeaturedOpportunities: (src: Organization) => src.extras && src.extras.featuredOpportunities,
 
         alphaOrganizationType: (src: Organization) => src.extras && src.extras.organizationType,
@@ -143,9 +143,9 @@ export const Resolver = {
                 return false;
             }
         },
-        alphaListingDevelopmentOportunities: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id, type: 'development_opportunity' } }),
-        alphaListingAcquisitionRequests: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id, type: 'acquisition_request' } }),
-        alphaListingsAll: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id } }),
+        alphaListingDevelopmentOportunities: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id, type: 'development_opportunity' }, order: [['updatedAt', 'DESC']] }),
+        alphaListingAcquisitionRequests: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id, type: 'acquisition_request' }, order: [['updatedAt', 'DESC']] }),
+        alphaListingsAll: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id }, order: [['updatedAt', 'DESC']] }),
         alphaDummyFeaturedOpportunities: (src: Organization) => src.extras && src.extras.featuredOpportunities,
 
         alphaOrganizationType: (src: Organization) => src.extras && src.extras.organizationType,
