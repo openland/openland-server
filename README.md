@@ -10,10 +10,11 @@
 7) Install yarn (+ node): `brew install yarn`
 8) Install dependencies `yarn install`
 9) Run Services: 
-   - `sudo brew services start postgresql`
-   - `sudo brew services start elasticsearch`
+   - `brew services start postgresql`
+   - `brew services start elasticsearch`
    - `sudo brew services start kibana`
    - `sudo brew services start minio`
+   - `brew services start redis`
 10) Configure credentials: 
  - `/usr/local/etc/minio/config.json`
      - accessKey: DVCZH2DPBB0PNY5SQSFB

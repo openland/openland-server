@@ -6,3 +6,4 @@ dumps
 coverage
 *.ols
 .vscode
+.DS_Store
