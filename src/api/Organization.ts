@@ -569,8 +569,8 @@ export const Resolver = {
                     extras.additionalLinks = Sanitizer.sanitizeAny(args.input.additionalLinks);
                     if (extras.additionalLinks) {
                         for (let [i, link] of extras.additionalLinks.entries()) {
-                            InputValidator.validateNonEmpty(link.text, 'text', 'input.text[' + i + ']', extrasValidateError);
-                            InputValidator.validateNonEmpty(link.url, 'url', 'input.url[' + i + ']', extrasValidateError);
+                            InputValidator.validateNonEmpty(link.text, 'text', 'input.additionalLinks.' + i + '.text', extrasValidateError);
+                            InputValidator.validateNonEmpty(link.url, 'url', 'input.additionalLinks.' + i + '.url', extrasValidateError);
                         }
                     }
 
@@ -735,8 +735,8 @@ export const Resolver = {
                     extras.additionalLinks = Sanitizer.sanitizeAny(args.input.additionalLinks);
                     if (extras.additionalLinks) {
                         for (let [i, link] of extras.additionalLinks.entries()) {
-                            InputValidator.validateNonEmpty(link.text, 'text', 'input.text[' + i + ']', extrasValidateError);
-                            InputValidator.validateNonEmpty(link.url, 'url', 'input.url[' + i + ']', extrasValidateError);
+                            InputValidator.validateNonEmpty(link.text, 'text', 'input.additionalLinks.' + i + '.text', extrasValidateError);
+                            InputValidator.validateNonEmpty(link.url, 'url', 'input.additionalLinks.' + i + '.url', extrasValidateError);
                         }
                     }
 
