@@ -215,7 +215,7 @@ export const Resolver = {
             }
             return res;
         }),
-        alphaOrganizationListings: async (_: any, args: AlphaOrganizationListingsParams) => {
+        alphaOrganizationListings: withAny<AlphaOrganizationListingsParams>(async args => {
             let clauses: any[] = [
                 { term: { orgId: IDs.Organization.parse(args.orgId) } }
             ];
@@ -244,7 +244,7 @@ export const Resolver = {
                 .limit(args.first);
 
             return await builder.findElastic(hits);
-        }
+        })
     },
     Mutation: {
         createOrganization: withUser<{
