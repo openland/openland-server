@@ -53,6 +53,16 @@ type AlphaOrganizationListing{
     updatedAt: String!
 }
 
+type AlphaOrganizationListingEdge {
+    node: AlphaOrganizationListing!
+    cursor: String!
+}
+
+type AlphaOrganizationListingConnection {
+    edges: [AlphaOrganizationListingEdge!]!
+    pageInfo: PageInfo!
+}
+
 input AlphaOrganizationListingInput{
     name: String
     summary: String
@@ -232,6 +242,13 @@ extend type Query {
     myOrganizationProfile: OrganizationProfile!
     myOrganizations: [Organization!]!
     organization(id: ID!): Organization!
+    alphaOrganizationListings(
+        orgId: ID!,
+        query: String,
+        first: Int!,
+        after: String,
+        page: Int
+    ): AlphaOrganizationListingConnection
 }
 
 extend type Mutation {

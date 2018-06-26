@@ -14,6 +14,9 @@ import { Sanitizer } from '../modules/Sanitizer';
 import { InvalidInputError } from '../errors/InvalidInputError';
 import { InputValidator } from '../modules/InputValidator';
 import { OrganizationListing } from '../tables/OrganizationListing';
+import { ElasticClient } from '../indexing';
+import { buildElasticQuery, QueryParser } from '../modules/QueryParser';
+import { SelectBuilder } from '../modules/SelectBuilder';
 
 let isFollowed = async (initiatorOrgId: number, targetOrgId: number) => {
     let connection = await DB.OrganizationConnect.find({
@@ -25,6 +28,14 @@ let isFollowed = async (initiatorOrgId: number, targetOrgId: number) => {
 
     return !!(connection && connection.followStatus === 'FOLLOWING');
 };
+
+interface AlphaOrganizationListingsParams {
+    orgId: string;
+    query?: string;
+    first: number;
+    after?: string;
+    page?: number;
+}
 
 export const Resolver = {
     OrganizationProfile: {
@@ -204,6 +215,36 @@ export const Resolver = {
             }
             return res;
         }),
+        alphaOrganizationListings: async (_: any, args: AlphaOrganizationListingsParams) => {
+            let clauses: any[] = [
+                { term: { orgId: IDs.Organization.parse(args.orgId) } }
+            ];
+
+            if (args.query) {
+                let parser = new QueryParser();
+                parser.registerText('name', 'name');
+                let parsed = parser.parseQuery(args.query);
+                let elasticQuery = buildElasticQuery(parsed);
+                clauses.push(elasticQuery);
+            }
+
+            let hits = await ElasticClient.search({
+                index: 'organization_listings',
+                type: 'organization_listing',
+                size: args.first,
+                from: args.page ? ((args.page - 1) * args.first) : 0,
+                body: {
+                    query: { bool: { must: clauses } }
+                }
+            });
+
+            let builder = new SelectBuilder(DB.OrganizationListing)
+                .after(args.after)
+                .page(args.page)
+                .limit(args.first);
+
+            return await builder.findElastic(hits);
+        }
     },
     Mutation: {
         createOrganization: withUser<{
