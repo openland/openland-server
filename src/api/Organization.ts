@@ -277,7 +277,8 @@ export const Resolver = {
                     name: name!!,
                     website: Sanitizer.sanitizeString(args.input.website),
                     photo: Sanitizer.sanitizeImageRef(args.input.photoRef),
-                    userId: args.input.personal ? uid : null
+                    userId: args.input.personal ? uid : null,
+                    status: (await Repos.Permissions.superRole(uid)) === 'super-admin' ? 'ACTIVATED' : 'PENDING',
                 }, { transaction: tx });
                 await Repos.Super.addToOrganization(organization.id!!, uid, tx);
                 return organization;
