@@ -1,11 +1,11 @@
 
-export type ValidationPrimitive = string|number;
+export type ValidationPrimitive = string | number;
 
-export type Validator = (value: ValidationPrimitive) => boolean|string;
+export type Validator = (value: ValidationPrimitive) => boolean | string;
 
-export type ValidationScheme = { [key: string]: Validator|ValidationScheme|Validator[]|ValidationScheme[] } | Validator;
+export type ValidationScheme = { [key: string]: Validator | ValidationScheme | Validator[] | ValidationScheme[] } | Validator;
 
-export type ValidationData = { [key: string]: ValidationPrimitive|ValidationData|ValidationPrimitive[]|ValidationData[] } | ValidationPrimitive;
+export type ValidationData = { [key: string]: ValidationPrimitive | ValidationData | ValidationPrimitive[] | ValidationData[] } | ValidationPrimitive;
 
 export type ValidationResult = { key: string, message: string };
 
@@ -107,7 +107,7 @@ export function validate(
     return validationResult;
 }
 
-export function stringNotEmpty(value: ValidationPrimitive): boolean|string {
+export function stringNotEmpty(value: ValidationPrimitive): boolean | string {
     if (typeof value !== 'string') {
         return 'not string';
     }
