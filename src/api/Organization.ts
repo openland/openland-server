@@ -422,7 +422,7 @@ export const Resolver = {
                             contact.email = Sanitizer.sanitizeString(contact.email);
                             // InputValidator.validateEmail(contact.email, 'email', extrasValidateError);
                             contact.link = Sanitizer.sanitizeString(contact.link);
-                            contact.role = Sanitizer.sanitizeString(contact.role);
+                            contact.role = Sanitizer.sanitizeString(contact.position);
                             contact.phone = Sanitizer.sanitizeString(contact.phone);
                         }
                     }

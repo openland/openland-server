@@ -9,6 +9,7 @@ export interface ContactPerson {
     name: string;
     photoRef?: ImageRef | null;
     role?: string | null;
+    position?: string | null;
     email?: string | null;
     phone?: string | null;
     link?: string | null;
