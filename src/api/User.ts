@@ -6,7 +6,6 @@ import * as DataLoader from 'dataloader';
 import { buildBaseImageUrl, ImageRef } from '../repositories/Media';
 import { withUser } from './utils/Resolvers';
 import { Sanitizer } from '../modules/Sanitizer';
-import { InvalidInputError } from '../errors/InvalidInputError';
 import { validate, stringNotEmpty } from '../modules/NewInputValidator';
 
 function userLoader(context: CallContext) {
@@ -188,11 +187,12 @@ export const Resolver = {
                     throw Error('Unable to find profile');
                 }
                 if (args.input.firstName !== undefined) {
-                    let firstName = Sanitizer.sanitizeString(args.input.firstName);
-                    if (!firstName) {
-                        throw new InvalidInputError([{ key: 'input.firstName', message: 'First name can\'t be empty!' }]);
-                    }
-                    profile.firstName = firstName;
+                    await validate(
+                        stringNotEmpty('First name can\'t be empty!'),
+                        args.input.firstName,
+                        'input.firstName'
+                    );
+                    profile.firstName =  Sanitizer.sanitizeString(args.input.firstName)!;
                 }
                 if (args.input.lastName !== undefined) {
                     profile.lastName = Sanitizer.sanitizeString(args.input.lastName);
