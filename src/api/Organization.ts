@@ -12,7 +12,6 @@ import { ErrorText } from '../errors/ErrorText';
 import { NotFoundError } from '../errors/NotFoundError';
 import { Sanitizer } from '../modules/Sanitizer';
 import { InvalidInputError } from '../errors/InvalidInputError';
-import { InputValidator } from '../modules/InputValidator';
 import { OrganizationListing } from '../tables/OrganizationListing';
 import { ElasticClient } from '../indexing';
 import { buildElasticQuery, QueryParser } from '../modules/QueryParser';
