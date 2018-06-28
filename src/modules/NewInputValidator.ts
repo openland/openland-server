@@ -1,32 +1,38 @@
+import { InvalidInputError } from '../errors/InvalidInputError';
 
 export type ValidationPrimitive = string|number;
 
-export type Validator = (value: ValidationPrimitive) => boolean|string;
+export type Validator = (value: ValidationPrimitive) => boolean|string|Promise<boolean|string>;
 
 export type ValidationScheme = { [key: string]: Validator|ValidationScheme|Validator[]|ValidationScheme[] } | Validator;
 
-export type ValidationData = { [key: string]: ValidationPrimitive|ValidationData|ValidationPrimitive[]|ValidationData[] } | ValidationPrimitive;
+export type ValidationData = { [key: string]: ValidationPrimitive|ValidationData|ValidationPrimitive[]|ValidationData[]|any } | ValidationPrimitive|undefined|null;
 
 export type ValidationResult = { key: string, message: string };
 
-//
-// usage:
-//
-// validate({ name: stringNotEmpty }, { name: '' })
-//
+export async function validate(scheme: ValidationScheme, data: ValidationData, keyPath?: string): Promise<void> {
+    let result = await validateInternal(
+        scheme, 
+        data, 
+        keyPath ? keyPath.split('.') : []
+    );
+    
+    if (result.length > 0) {
+        throw new InvalidInputError(result);
+    }
+}
 
-export function validate(
+async function validateInternal(
     scheme: ValidationScheme,
     data: ValidationData,
     keyPath: string[] = []
-): ValidationResult[] {
-
+): Promise<ValidationResult[]> {
     if (
         scheme instanceof Function &&
         typeof data === 'string' || typeof data === 'number'
     ) {
         let validator = (scheme as Validator);
-        let isValid = validator(data);
+        let isValid = await validator(data);
 
         if (isValid !== true) {
             return [{
@@ -43,7 +49,7 @@ export function validate(
     if (typeof scheme !== 'object') {
         throw new Error('Invalid scheme');
     }
-    if (typeof data !== 'object') {
+    if (typeof data !== 'object' || data === null || data === undefined) {
         throw new Error('Invalid data');
     }
 
@@ -66,7 +72,7 @@ export function validate(
         }
 
         if (schemeVal instanceof Function) {
-            let isValid = schemeVal(dataValue as ValidationPrimitive);
+            let isValid = await schemeVal(dataValue as ValidationPrimitive);
 
             if (isValid !== true) {
                 validationResult.push({
@@ -74,7 +80,7 @@ export function validate(
                     message: isValid as string
                 });
             }
-        } else if (schemeVal instanceof Array) {
+        } else if (Array.isArray(schemeVal)) {
             if (!(dataValue instanceof Array)) {
                 validationResult.push({
                     key: curKeyPath,
@@ -88,14 +94,14 @@ export function validate(
 
                 validationResult = [
                     ...validationResult,
-                    ...validate(schemeVal[0], arrVal, [...keyPath, key, `${i}`])
+                    ...await validateInternal(schemeVal[0], arrVal, [...keyPath, key, `${i}`])
                 ];
                 i++;
             }
         } else {
             validationResult = [
                 ...validationResult,
-                ...validate(
+                ...await validateInternal(
                     schemeVal,
                     data[key] as ValidationData,
                     [...keyPath, key]
@@ -107,13 +113,25 @@ export function validate(
     return validationResult;
 }
 
-export function stringNotEmpty(value: ValidationPrimitive): boolean|string {
-    if (typeof value !== 'string') {
-        return 'not string';
-    }
+export function stringNotEmpty(message?: string) {
+    message = message || 'string is empty';
 
-    return !(!value || /^\s*$/.test(value)) || 'string is empty';
+    return (value: ValidationPrimitive) => {
+        if (typeof value !== 'string') {
+            return 'not string';
+        }
+    
+        return !(!value || /^\s*$/.test(value)) || (message || 'string is empty');
+    };
 }
+
+// export function stringNotEmpty(value: ValidationPrimitive, message?: string): boolean|string {
+//     if (typeof value !== 'string') {
+//         return 'not string';
+//     }
+
+//     return !(!value || /^\s*$/.test(value)) || (message || 'string is empty');
+// }
 
 export function numberInRange(from: number, to: number) {
     return (value: ValidationPrimitive) => {

@@ -7,6 +7,7 @@ import { buildBaseImageUrl, ImageRef } from '../repositories/Media';
 import { withUser } from './utils/Resolvers';
 import { Sanitizer } from '../modules/Sanitizer';
 import { InvalidInputError } from '../errors/InvalidInputError';
+import { validate, stringNotEmpty } from '../modules/NewInputValidator';
 
 function userLoader(context: CallContext) {
     if (!context.cache.has('__profile_loader')) {
@@ -142,17 +143,17 @@ export const Resolver = {
                 if (existing) {
                     return user;
                 }
-
-                // Check input
-                let firstName = Sanitizer.sanitizeString(args.input.firstName);
-                if (!firstName) {
-                    throw new InvalidInputError([{ key: 'input.firstName', message: 'First name can\'t be empty!' }]);
-                }
+                
+                await validate(
+                    stringNotEmpty('First name can\'t be empty!'),
+                    args.input.firstName,
+                    'input.firstName'
+                );
 
                 // Create pfofile
                 await DB.UserProfile.create({
                     userId: uid,
-                    firstName: firstName,
+                    firstName: Sanitizer.sanitizeString(args.input.firstName)!,
                     lastName: Sanitizer.sanitizeString(args.input.lastName),
                     picture: Sanitizer.sanitizeImageRef(args.input.photoRef),
                     phone: Sanitizer.sanitizeString(args.input.phone),

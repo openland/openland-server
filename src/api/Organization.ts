@@ -17,6 +17,7 @@ import { OrganizationListing } from '../tables/OrganizationListing';
 import { ElasticClient } from '../indexing';
 import { buildElasticQuery, QueryParser } from '../modules/QueryParser';
 import { SelectBuilder } from '../modules/SelectBuilder';
+import { stringNotEmpty, validate } from '../modules/NewInputValidator';
 
 let isFollowed = async (initiatorOrgId: number, targetOrgId: number) => {
     let connection = await DB.OrganizationConnect.find({
@@ -255,10 +256,13 @@ export const Resolver = {
                 photoRef?: ImageRef | null
             }
         }>(async (args, uid) => {
-            let name = Sanitizer.sanitizeString(args.input.name);
-            if (!name) {
-                throw new InvalidInputError([{ key: 'input.name', message: 'Name can\'t be empty!' }]);
-            }
+
+            await validate(
+                stringNotEmpty('Name can\'t be empty!'),
+                args.input.name,
+                'input.name'
+            );
+
             return await DB.tx(async (tx) => {
                 // Avoid multiple personal one
                 if (args.input.personal) {
@@ -274,7 +278,7 @@ export const Resolver = {
                     }
                 }
                 let organization = await DB.Organization.create({
-                    name: name!!,
+                    name: Sanitizer.sanitizeString(args.input.name)!,
                     website: Sanitizer.sanitizeString(args.input.website),
                     photo: Sanitizer.sanitizeImageRef(args.input.photoRef),
                     userId: args.input.personal ? uid : null
@@ -345,11 +349,12 @@ export const Resolver = {
                 }
 
                 if (args.input.name !== undefined) {
-                    let name = Sanitizer.sanitizeString(args.input.name);
-                    if (!name) {
-                        throw new InvalidInputError([{ key: 'input.name', message: 'Name can\'t be empty!' }]);
-                    }
-                    existing.name = name;
+                    await validate(
+                        stringNotEmpty('Name can\'t be empty!'),
+                        args.input.name,
+                        'input.name'
+                    );
+                    existing.name = Sanitizer.sanitizeString(args.input.name)!;
                 }
                 if (args.input.website !== undefined) {
                     existing.website = Sanitizer.sanitizeString(args.input.website);
