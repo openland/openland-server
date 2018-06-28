@@ -45,6 +45,7 @@ enum SuperAdminRole {
 type SuperAdmin {
     user: User!
     role: SuperAdminRole!
+    email: String
 }
 
 extend type Mutation {
