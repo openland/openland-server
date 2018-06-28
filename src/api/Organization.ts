@@ -17,7 +17,7 @@ import { OrganizationListing } from '../tables/OrganizationListing';
 import { ElasticClient } from '../indexing';
 import { buildElasticQuery, QueryParser } from '../modules/QueryParser';
 import { SelectBuilder } from '../modules/SelectBuilder';
-import { defined, enumString, optional, stringNotEmpty, validate } from '../modules/NewInputValidator';
+import { defined, enumString, stringNotEmpty, validate } from '../modules/NewInputValidator';
 
 let isFollowed = async (initiatorOrgId: number, targetOrgId: number) => {
     let connection = await DB.OrganizationConnect.find({
