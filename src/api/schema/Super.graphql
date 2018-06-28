@@ -10,6 +10,7 @@ enum SuperAccountState {
 
 type SuperAccount {
     id: ID!
+    orgId: ID!
     title: String!
     name: String!
     state: SuperAccountState!
