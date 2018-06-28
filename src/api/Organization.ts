@@ -17,7 +17,7 @@ import { OrganizationListing } from '../tables/OrganizationListing';
 import { ElasticClient } from '../indexing';
 import { buildElasticQuery, QueryParser } from '../modules/QueryParser';
 import { SelectBuilder } from '../modules/SelectBuilder';
-import { stringNotEmpty, validate } from '../modules/NewInputValidator';
+import { defined, enumString, optional, stringNotEmpty, validate } from '../modules/NewInputValidator';
 
 let isFollowed = async (initiatorOrgId: number, targetOrgId: number) => {
     let connection = await DB.OrganizationConnect.find({
@@ -546,11 +546,23 @@ export const Resolver = {
                     throw new UserError(ErrorText.permissionOnlyOwner);
                 }
 
-                let extrasValidateError: { key: string, message: string }[] = [];
-
-                // basic
-                InputValidator.validateNonEmpty(args.input.name, 'name', 'input.name', extrasValidateError);
-                InputValidator.validateEnumString(args.type, ['development_opportunity', 'acquisition_request'], 'type', 'type', extrasValidateError, false);
+                await validate(
+                    {
+                        type: defined(enumString(['development_opportunity', 'acquisition_request'])),
+                        input: {
+                            name: defined(stringNotEmpty()),
+                            status: optional(enumString(['open'])),
+                            additionalLinks: [
+                                ,
+                                {
+                                    text: stringNotEmpty(),
+                                    url: stringNotEmpty()
+                                }
+                            ]
+                        }
+                    },
+                    args
+                );
 
                 // common
                 let extras = {} as ListingExtras;
@@ -560,11 +572,6 @@ export const Resolver = {
 
                 if (args.input.specialAttributes !== undefined) {
                     extras.specialAttributes = Sanitizer.sanitizeAny(args.input.specialAttributes);
-                }
-
-                if (args.input.status !== undefined) {
-                    InputValidator.validateEnumString(args.input.status, ['open'], 'status', 'input.status', extrasValidateError, false);
-                    extras.status = Sanitizer.sanitizeString(args.input.status) as ('open' | null);
                 }
 
                 if (args.input.photo !== undefined) {
@@ -612,17 +619,6 @@ export const Resolver = {
                     extras.goodFitFor = Sanitizer.sanitizeAny(args.input.goodFitFor);
                 }
 
-                if (args.input.additionalLinks !== undefined) {
-                    extras.additionalLinks = Sanitizer.sanitizeAny(args.input.additionalLinks);
-                    if (extras.additionalLinks) {
-                        for (let [i, link] of extras.additionalLinks.entries()) {
-                            InputValidator.validateNonEmpty(link.text, 'text', 'input.additionalLinks.' + i + '.text', extrasValidateError);
-                            InputValidator.validateNonEmpty(link.url, 'url', 'input.additionalLinks.' + i + '.url', extrasValidateError);
-                        }
-                    }
-
-                }
-
                 // AR 
                 if (args.input.shortDescription !== undefined) {
                     extras.shortDescription = Sanitizer.sanitizeString(args.input.shortDescription);
@@ -642,10 +638,6 @@ export const Resolver = {
 
                 if (args.input.unitCapacity !== undefined) {
                     extras.unitCapacity = Sanitizer.sanitizeAny(args.input.unitCapacity);
-                }
-
-                if (extrasValidateError.length > 0) {
-                    throw new InvalidInputError(extrasValidateError);
                 }
 
                 return await DB.OrganizationListing.create({

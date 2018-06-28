@@ -2,9 +2,9 @@ import { InvalidInputError } from '../errors/InvalidInputError';
 
 export type ValidationPrimitive = string | number;
 
-export type Validator = (value: ValidationPrimitive) => boolean|string|Promise<boolean|string>;
+export type Validator = (value: ValidationPrimitive, keyName: string) => boolean|string|Promise<boolean|string>;
 
-export type ValidationScheme = { [key: string]: Validator | ValidationScheme | Validator[] | ValidationScheme[] } | Validator;
+export type ValidationScheme = { [key: string]: Validator | ValidationScheme | (Validator|undefined)[] | (ValidationScheme|undefined)[] | boolean  } | Validator;
 
 export type ValidationData = { [key: string]: ValidationPrimitive|ValidationData|ValidationPrimitive[]|ValidationData[]|any } | ValidationPrimitive|undefined|null;
 
@@ -22,6 +22,24 @@ export async function validate(scheme: ValidationScheme, data: ValidationData, k
     }
 }
 
+// usage:
+//
+// validate(
+//     {
+//         name: optional(stringNotEmpty()),                       // optional field
+//         lastName: defined(stringNotEmpty()),                    // required field
+//         texts: [stringNotEmpty()],                              // array
+//         names: [, stringNotEmpty()],                            // optional array
+//         users: [ { name: defined(stringNotEmpty()) } ],         // complex array
+//
+//         friend: { name: defined(stringNotEmpty()) },            // object
+//         home: { city: defined(stringNotEmpty()), _opt: true }   // optional object
+//     },
+//     {
+//         names: '',
+//     }
+// );
+
 async function validateInternal(
     scheme: ValidationScheme,
     data: ValidationData,
@@ -32,7 +50,7 @@ async function validateInternal(
         typeof data === 'string' || typeof data === 'number'
     ) {
         let validator = (scheme as Validator);
-        let isValid = await validator(data);
+        let isValid = await validator(data, keyPath.join('.'));
 
         if (isValid !== true) {
             return [{
@@ -50,7 +68,11 @@ async function validateInternal(
         throw new Error('Invalid scheme');
     }
     if (typeof data !== 'object' || data === null || data === undefined) {
-        throw new Error('Invalid data');
+        if (scheme._opt === true) {
+            return [];
+        }
+
+        throw new Error(`${keyPath.join('.')} can't be empty`);
     }
 
     for (let key in scheme) {
@@ -63,16 +85,16 @@ async function validateInternal(
         let dataValue = data[key];
         let curKeyPath = ([...keyPath, key]).join('.');
 
-        if (dataValue === undefined || dataValue === null) {
-            validationResult.push({
-                key: curKeyPath,
-                message: `${key} cant by empty`
-            });
-            continue;
-        }
+        // if (dataValue === undefined || dataValue === null) {
+        //     validationResult.push({
+        //         key: curKeyPath,
+        //         message: `${key} cant by empty`
+        //     });
+        //     continue;
+        // }
 
         if (schemeVal instanceof Function) {
-            let isValid = await schemeVal(dataValue as ValidationPrimitive);
+            let isValid = await schemeVal(dataValue as ValidationPrimitive, curKeyPath);
 
             if (isValid !== true) {
                 validationResult.push({
@@ -81,24 +103,30 @@ async function validateInternal(
                 });
             }
         } else if (Array.isArray(schemeVal)) {
-            if (!(dataValue instanceof Array)) {
-                validationResult.push({
-                    key: curKeyPath,
-                    message: `${key} must be array`
-                });
-                continue;
+            let isOptional = schemeVal[0] === undefined;
+            let itemValidator = isOptional ? schemeVal[1] : schemeVal[0];
+
+            if (!Array.isArray(dataValue)) {
+                if (isOptional) {
+                    continue;
+                } else {
+                    validationResult.push({
+                        key: curKeyPath,
+                        message: `${key} can't be empty`
+                    });
+                    continue;
+                }
             }
 
             let i = 0;
             for (let arrVal of dataValue) {
-
                 validationResult = [
                     ...validationResult,
-                    ...await validateInternal(schemeVal[0], arrVal, [...keyPath, key, `${i}`])
+                    ...await validateInternal(itemValidator!, arrVal, [...keyPath, key, `${i}`])
                 ];
                 i++;
             }
-        } else {
+        } else if (typeof schemeVal === 'object') {
             validationResult = [
                 ...validationResult,
                 ...await validateInternal(
@@ -114,14 +142,12 @@ async function validateInternal(
 }
 
 export function stringNotEmpty(message?: string) {
-    message = message || 'string is empty';
-
-    return (value: ValidationPrimitive) => {
+    return (value: ValidationPrimitive, key: string) => {
         if (typeof value !== 'string') {
             return 'not string';
         }
-    
-        return !(!value || /^\s*$/.test(value)) || (message || 'string is empty');
+
+        return (!(!value || /^\s*$/.test(value))) || (message || `${key} can\'t be empty`);
     };
 }
 
@@ -136,5 +162,39 @@ export function numberInRange(from: number, to: number) {
         }
 
         return 'not in range';
+    };
+}
+
+export function enumString(strings: string[], message?: string) {
+    return (value: ValidationPrimitive, key: string) => {
+        if (typeof value !== 'string') {
+            return 'not string';
+        }
+
+        if (strings.indexOf(value) < 0) {
+            return message || `${key} can't be ${value}`;
+        }
+
+        return true;
+    };
+}
+
+export function optional(validator: Validator) {
+    return (value: ValidationPrimitive, keyName: string) => {
+        if (value === undefined || value === null) {
+            return true;
+        }
+
+        return validator(value, keyName);
+    };
+}
+
+export function defined(validator: Validator) {
+    return (value: ValidationPrimitive, keyName: string) => {
+        if (value === undefined || value === null) {
+            return `${keyName} can't be empty`;
+        }
+
+        return validator(value, keyName);
     };
 }
