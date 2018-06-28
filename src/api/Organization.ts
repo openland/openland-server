@@ -17,7 +17,10 @@ import { OrganizationListing } from '../tables/OrganizationListing';
 import { ElasticClient } from '../indexing';
 import { buildElasticQuery, QueryParser } from '../modules/QueryParser';
 import { SelectBuilder } from '../modules/SelectBuilder';
-import { defined, enumString, stringNotEmpty, validate } from '../modules/NewInputValidator';
+import {
+    defined, emailValidator, enumString, optionalNotNull, stringNotEmpty,
+    validate
+} from '../modules/NewInputValidator';
 
 let isFollowed = async (initiatorOrgId: number, targetOrgId: number) => {
     let connection = await DB.OrganizationConnect.find({
@@ -401,11 +404,24 @@ export const Resolver = {
                 }
                 if (args.input.contacts !== undefined) {
                     extras.contacts = args.input.contacts;
+
+                    await validate(
+                        {
+                            contacts: [,
+                                {
+                                    name: defined(stringNotEmpty()),
+                                    email: optionalNotNull(emailValidator)
+                                }
+                            ]
+                        },
+                        extras
+                    );
+
                     if (extras.contacts) {
                         for (let contact of extras.contacts) {
-                            InputValidator.validateNonEmpty(contact.name, 'name', 'name', extrasValidateError);
+                            // InputValidator.validateNonEmpty(contact.name, 'name', 'name', extrasValidateError);
                             contact.email = Sanitizer.sanitizeString(contact.email);
-                            InputValidator.validateEmail(contact.email, 'email', extrasValidateError);
+                            // InputValidator.validateEmail(contact.email, 'email', extrasValidateError);
                             contact.link = Sanitizer.sanitizeString(contact.link);
                             contact.role = Sanitizer.sanitizeString(contact.role);
                             contact.phone = Sanitizer.sanitizeString(contact.phone);

@@ -212,3 +212,19 @@ export function defined(validator: Validator) {
         return validator(value, keyName);
     };
 }
+
+export function emailValidator(value: ValidationPrimitive, keyName: string) {
+    if (typeof value !== 'string') {
+        return 'not string';
+    }
+
+    var lastAtPos = value.lastIndexOf('@');
+    var lastDotPos = value.lastIndexOf('.');
+    let isEmailValid = lastAtPos < lastDotPos && lastAtPos > 0 && value.indexOf('@@') === -1 && lastDotPos > 2 && (value.length - lastDotPos) > 2;
+
+    if (!isEmailValid) {
+        return 'not a valid email address';
+    }
+
+    return true;
+}
