@@ -1,10 +1,10 @@
 import { InvalidInputError } from '../errors/InvalidInputError';
 
-export type ValidationPrimitive = string|number;
+export type ValidationPrimitive = string | number;
 
 export type Validator = (value: ValidationPrimitive) => boolean|string|Promise<boolean|string>;
 
-export type ValidationScheme = { [key: string]: Validator|ValidationScheme|Validator[]|ValidationScheme[] } | Validator;
+export type ValidationScheme = { [key: string]: Validator | ValidationScheme | Validator[] | ValidationScheme[] } | Validator;
 
 export type ValidationData = { [key: string]: ValidationPrimitive|ValidationData|ValidationPrimitive[]|ValidationData[]|any } | ValidationPrimitive|undefined|null;
 
@@ -124,14 +124,6 @@ export function stringNotEmpty(message?: string) {
         return !(!value || /^\s*$/.test(value)) || (message || 'string is empty');
     };
 }
-
-// export function stringNotEmpty(value: ValidationPrimitive, message?: string): boolean|string {
-//     if (typeof value !== 'string') {
-//         return 'not string';
-//     }
-
-//     return !(!value || /^\s*$/.test(value)) || (message || 'string is empty');
-// }
 
 export function numberInRange(from: number, to: number) {
     return (value: ValidationPrimitive) => {
