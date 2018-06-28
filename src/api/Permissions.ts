@@ -31,7 +31,8 @@ export const Resolvers = {
             } else {
                 return 'SUPER_ADMIN';
             }
-        }
+        },
+        email: (src: SuperAdmin) => src.user ? src.user.email : null,
     },
     Task: {
         id: (src: Task) => IDs.Task.serialize(src.id),
