@@ -189,6 +189,20 @@ export function optional(validator: Validator) {
     };
 }
 
+export function optionalNotNull(validator: Validator) {
+    return (value: ValidationPrimitive, keyName: string) => {
+        if (value === undefined) {
+            return true;
+        }
+
+        if (value === null) {
+            return `${keyName} can't be empty`;
+        }
+
+        return validator(value, keyName);
+    };
+}
+
 export function defined(validator: Validator) {
     return (value: ValidationPrimitive, keyName: string) => {
         if (value === undefined || value === null) {

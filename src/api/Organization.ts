@@ -551,7 +551,7 @@ export const Resolver = {
                         type: defined(enumString(['development_opportunity', 'acquisition_request'])),
                         input: {
                             name: defined(stringNotEmpty()),
-                            status: optional(enumString(['open'])),
+                            status: defined(enumString(['open'])),
                             additionalLinks: [
                                 ,
                                 {
@@ -701,9 +701,25 @@ export const Resolver = {
 
                 let extrasValidateError: { key: string, message: string }[] = [];
 
+                await validate(
+                    {
+                        input: {
+                            name: defined(stringNotEmpty()),
+                            status: defined(enumString(['open'])),
+                            additionalLinks: [
+                                ,
+                                {
+                                    text: stringNotEmpty(),
+                                    url: stringNotEmpty()
+                                }
+                            ]
+                        }
+                    },
+                    args
+                );
+
                 // basic
                 if (args.input.name !== undefined) {
-                    InputValidator.validateNonEmpty(args.input.name, 'name', 'input.name', extrasValidateError);
                     existing.name = args.input.name;
                 }
 
@@ -718,7 +734,6 @@ export const Resolver = {
                 }
 
                 if (args.input.status !== undefined) {
-                    InputValidator.validateEnumString(args.input.status, ['open'], 'status', 'input.status', extrasValidateError, false);
                     extras.status = Sanitizer.sanitizeString(args.input.status) as ('open' | null);
                 }
 
@@ -772,13 +787,6 @@ export const Resolver = {
 
                 if (args.input.additionalLinks !== undefined) {
                     extras.additionalLinks = Sanitizer.sanitizeAny(args.input.additionalLinks);
-                    if (extras.additionalLinks) {
-                        for (let [i, link] of extras.additionalLinks.entries()) {
-                            InputValidator.validateNonEmpty(link.text, 'text', 'input.additionalLinks.' + i + '.text', extrasValidateError);
-                            InputValidator.validateNonEmpty(link.url, 'url', 'input.additionalLinks.' + i + '.url', extrasValidateError);
-                        }
-                    }
-
                 }
 
                 // AR 
