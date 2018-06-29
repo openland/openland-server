@@ -129,9 +129,9 @@
     
     "test:start": "./scripts/testing_start.sh",
     "test:stop": "./scripts/testing_stop.sh",
+    "test:prepare": ". ./scripts/set_testing_config.sh && node ./build/index.js --rebuild-test",
     "test:integration": "node ./node_modules/jest/bin/jest.js --testPathPattern=\"src/tests/\"",
-    "test:rebuild": "yarn test:start && yarn test:rebuild:invoke && yarn test:stop",
-    "test:rebuild:invoke": "source ./scripts/set_testing_config.sh && node ./build/index.js --rebuild-test"
+    "test:rebuild": "yarn test:start && yarn test:prepare && yarn test:stop"
   },
   "devDependencies": {}
 }
