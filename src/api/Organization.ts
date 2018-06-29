@@ -408,7 +408,7 @@ export const Resolver = {
                         {
                             contacts: [,
                                 {
-                                    name: defined(stringNotEmpty()),
+                                    name: defined(stringNotEmpty(`Name can't be empty!`)),
                                     email: optional(emailValidator)
                                 }
                             ]
@@ -565,13 +565,13 @@ export const Resolver = {
                     {
                         type: defined(enumString(['development_opportunity', 'acquisition_request'])),
                         input: {
-                            name: defined(stringNotEmpty()),
+                            name: defined(stringNotEmpty(`Name can't be empty!`)),
                             status: defined(enumString(['open'])),
                             additionalLinks: [
                                 ,
                                 {
-                                    text: stringNotEmpty(),
-                                    url: stringNotEmpty()
+                                    text: stringNotEmpty(`Text can't be empty!`),
+                                    url: stringNotEmpty(`Url can't be empty!`)
                                 }
                             ]
                         }
@@ -724,8 +724,8 @@ export const Resolver = {
                             additionalLinks: [
                                 ,
                                 {
-                                    text: stringNotEmpty(),
-                                    url: stringNotEmpty()
+                                    text: stringNotEmpty(`Text can't be empty!`),
+                                    url: stringNotEmpty(`Url can't be empty!`)
                                 }
                             ]
                         }
