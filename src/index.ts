@@ -15,7 +15,7 @@ if (args.indexOf('--rebuild-test') >= 0) {
     console.warn('Building test environment');
     async function rebuildTestDatabase() {
         try {
-            await initDatabase();
+            await initDatabase(true);
             console.warn('Database: OK');
             await initFiles();
             console.warn('Files: OK');
@@ -36,7 +36,7 @@ if (args.indexOf('--rebuild-test') >= 0) {
 } else {
     async function initServer() {
         try {
-            await initDatabase();
+            await initDatabase(false);
             await initFiles();
             await initElastic();
             await initWorkers();

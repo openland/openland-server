@@ -3,9 +3,9 @@ import * as cp from 'child_process';
 import * as db from '../connector';
 import { redisClient } from '../modules/redis/redis';
 
-export async function initDatabase() {
+export async function initDatabase(isTest: boolean) {
     if (process.env.NODE_ENV === 'development') {
-        console.info('Connecting to database in DEVELOPMENT mode');
+        if (!isTest) { console.info('Connecting to database in DEVELOPMENT mode'); }
         if (process.env.RECREATE_DB === 'true') {
 
             // Dropping Database
@@ -29,11 +29,11 @@ export async function initDatabase() {
             }
 
             // Resetting locks and readers
-            await db.connection.query('TRUNCATE TABLE locks;');
-            await db.connection.query('TRUNCATE TABLE reader_states;');
+            await db.connection.query('TRUNCATE TABLE locks;', { logging: !isTest });
+            await db.connection.query('TRUNCATE TABLE reader_states;', { logging: !isTest });
         }
     } else {
-        console.info('Connecting to database in RELEASE mode');
+        if (!isTest) { console.info('Connecting to database in RELEASE mode'); }
     }
     await db.migrate();
 }

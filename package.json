@@ -24,7 +24,7 @@
     "@types/google-cloud__storage": "^1.1.7",
     "@types/graphql": "^0.13.1",
     "@types/isomorphic-fetch": "^0.0.34",
-    "@types/jest": "^22.1.3",
+    "@types/jest": "^23.1.3",
     "@types/json-stable-stringify": "^1.0.32",
     "@types/knex": "^0.0.66",
     "@types/lodash": "^4.14.71",
@@ -124,13 +124,12 @@
     "promote": "kubectl set image deployment/statecraft-server statecraft-server=`kubectl get deployment statecraft-server-staging -o=jsonpath='{$.spec.template.spec.containers[1:2].image}'` && kubectl rollout status deployments statecraft-server",
     "lint": "NODE_ENV=production ./node_modules/.bin/tslint --project . --config ./tslint.json",
     "test": "yarn lint && yarn jest",
-    "jest": "node ./node_modules/jest/bin/jest.js --testPathPattern=\"^((?!src/tests).)*$\" --forceExit",
+    "jest": "node --no-deprecation ./node_modules/jest/bin/jest.js --testPathPattern=\"^((?!src/tests).)*$\" --forceExit",
     "jest:watch": "node ./node_modules/jest/bin/jest.js --watch",
-    
     "test:start": "./scripts/testing_start.sh",
     "test:stop": "./scripts/testing_stop.sh",
     "test:prepare": ". ./scripts/set_testing_config.sh && node ./build/index.js --rebuild-test",
-    "test:integration": ". ./scripts/set_testing_config.sh && node ./node_modules/jest/bin/jest.js --testPathPattern=\"src/tests/\" --forceExit --runInBand",
+    "test:integration": ". ./scripts/set_testing_config.sh && node --no-deprecation ./node_modules/jest/bin/jest.js --testPathPattern=\"src/tests\" --forceExit --runInBand --forceExit",
     "test:rebuild": "yarn test:start && yarn test:prepare && yarn test:stop"
   },
   "devDependencies": {}
