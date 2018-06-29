@@ -91,4 +91,8 @@ type Query {
     #
 
     alphaRefreshTask(id: ID!): Task!
+
+    me: User
+    myProfile: Profile
+    myProfilePrefill: ProfilePrefill
 }

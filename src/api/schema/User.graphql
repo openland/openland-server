@@ -55,14 +55,3 @@ type ProfilePrefill {
     lastName: String
     picture: String
 }
-
-extend type Query {
-    me: User
-    myProfile: Profile
-    myProfilePrefill: ProfilePrefill
-}
-
-extend type Mutation {
-    createProfile(input: CreateProfileInput!): Profile!
-    updateProfile(input: UpdateProfileInput!): Profile!
-}

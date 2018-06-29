@@ -1,5 +1,5 @@
 import { DB } from '../tables';
-import * as sequelize from 'sequelize';
+import sequelize from 'sequelize';
 import { IncludeOptions, Transaction } from 'sequelize';
 import { delay, forever, currentTime, printElapsed, delayBreakable } from '../utils/timer';
 import { tryLock } from './locking';

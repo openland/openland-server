@@ -9,3 +9,4 @@ export GOOGLE_APPLICATION_CREDENTIALS="`pwd`/scripts/google-cloud-dev.json"
 export FILES_BUCKET="files.datamakesperfect.com"
 export NO_DEPRECATION=sequelize,crypto
 export DATABASE_LOGGING=false
+export TESTING=true

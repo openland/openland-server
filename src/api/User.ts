@@ -140,7 +140,7 @@ export const Resolver = {
                 // Do not create profile if already exists
                 let existing = await DB.UserProfile.find({ where: { userId: uid }, transaction: tx, lock: tx.LOCK.UPDATE });
                 if (existing) {
-                    return user;
+                    return existing;
                 }
                 
                 await validate(

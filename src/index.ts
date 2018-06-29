@@ -8,14 +8,13 @@ import { initWorkers } from './workers';
 import { initDatabase } from './init/initDatabase';
 import { initElastic } from './init/initElastic';
 import { initFiles } from './init/initFiles';
-import { initTestDatabase } from './init/initTestDatabase';
+import initTestDatabase from './tests/data/index';
 
-var args = process.argv.splice(process.execArgv.length + 2);
-if (args.indexOf('--rebuild-test') >= 0) {
+if (process.argv.indexOf('--rebuild-test') >= 0) {
     console.warn('Building test environment');
     async function rebuildTestDatabase() {
         try {
-            await initDatabase(true);
+            await initDatabase(true, true);
             console.warn('Database: OK');
             await initFiles();
             console.warn('Files: OK');
@@ -36,7 +35,7 @@ if (args.indexOf('--rebuild-test') >= 0) {
 } else {
     async function initServer() {
         try {
-            await initDatabase(false);
+            await initDatabase(false, false);
             await initFiles();
             await initElastic();
             await initWorkers();

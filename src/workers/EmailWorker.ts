@@ -5,13 +5,16 @@ import { SENDGRID_KEY } from '../keys';
 export function createEmailWorker() {
     let queue = new WorkQueue<{ templateId: string, to: string, args: { [key: string]: string; } }, { result: string }>('emailSender');
     SendGrid.setApiKey(SENDGRID_KEY);
+    let isTesting = process.env.TESTING === 'true';
     queue.addWorker(async (args, lock, uid) => {
-        await SendGrid.send({
-            to: args.to,
-            from: { name: 'Openland', email: 'support@openland.com' },
-            templateId: args.templateId,
-            substitutions: args.args
-        });
+        if (!isTesting) {
+            await SendGrid.send({
+                to: args.to,
+                from: { name: 'Openland', email: 'support@openland.com' },
+                templateId: args.templateId,
+                substitutions: args.args
+            });
+        }
         return {
             result: 'ok'
         };
