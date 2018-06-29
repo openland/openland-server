@@ -1,5 +1,5 @@
 import * as Redis from './redis/redis';
-import * as DataLoader from 'dataloader';
+import DataLoader from 'dataloader';
 
 let clientLoader = new DataLoader<string, number | null>(async (v) => {
     let client2 = Redis.redisClient()!!;

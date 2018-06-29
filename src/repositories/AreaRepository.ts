@@ -1,5 +1,5 @@
 import { DB, City, County, State } from '../tables/index';
-import * as DataLoader from 'dataloader';
+import DataLoader from 'dataloader';
 import { NotFoundError } from '../errors/NotFoundError';
 import { ErrorText } from '../errors/ErrorText';
 

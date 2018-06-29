@@ -1,5 +1,5 @@
 import fetch from 'node-fetch';
-import * as jwt from 'express-jwt';
+import jwt from 'express-jwt';
 import * as jwksRsa from 'jwks-rsa';
 import * as express from 'express';
 import { DB } from '../tables';

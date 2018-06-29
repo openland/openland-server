@@ -2,7 +2,7 @@ import { DB, User } from '../tables';
 import { CallContext } from './utils/CallContext';
 import { IDs } from './utils/IDs';
 import { UserProfile } from '../tables/UserProfile';
-import * as DataLoader from 'dataloader';
+import DataLoader from 'dataloader';
 import { buildBaseImageUrl, ImageRef } from '../repositories/Media';
 import { withUser } from './utils/Resolvers';
 import { Sanitizer } from '../modules/Sanitizer';

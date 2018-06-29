@@ -1,6 +1,6 @@
 import { CacheRepository } from '../repositories/CacheRepository';
 import fetch from 'node-fetch';
-import * as cheerio from 'cheerio';
+import cheerio from 'cheerio';
 import { delay } from '../utils/timer';
 
 export interface BisBlockInformation {

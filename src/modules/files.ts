@@ -1,5 +1,5 @@
-import * as Storage from '@google-cloud/storage';
-import * as UUID from 'uuid/v4';
+import Storage from '@google-cloud/storage';
+import UUID from 'uuid/v4';
 
 const filesStorage = Storage();
 const filesBucket = process.env.FILES_BUCKET as string;

@@ -1,7 +1,7 @@
 import { DB } from '../tables';
 import { randomBytes } from 'crypto';
 import * as base64 from '../utils/base64';
-import * as DataLoader from 'dataloader';
+import DataLoader from 'dataloader';
 
 export class TokenRepository {
 

@@ -1,8 +1,8 @@
 import * as bodyParser from 'body-parser';
-import * as express from 'express';
-import * as cors from 'cors';
-import * as morgan from 'morgan';
-import * as compression from 'compression';
+import express from 'express';
+import cors from 'cors';
+import morgan from 'morgan';
+import compression from 'compression';
 import * as Auth2 from './handlers/authV2';
 import { schemaHandler } from './handlers/schema';
 import { SubscriptionServer } from 'subscriptions-transport-ws';

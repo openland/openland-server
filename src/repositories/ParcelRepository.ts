@@ -14,7 +14,7 @@ import { Repos } from '.';
 import * as GeoHash from 'ngeohash';
 import supercluster from 'supercluster';
 import { cachedObject } from '../modules/cache';
-import * as stringify from 'json-stable-stringify';
+import stringify from 'json-stable-stringify';
 import { NotFoundError } from '../errors/NotFoundError';
 import { ErrorText } from '../errors/ErrorText';
 

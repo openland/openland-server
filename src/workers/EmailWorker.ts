@@ -1,5 +1,5 @@
 import { WorkQueue } from '../modules/workerQueue';
-import * as SendGrid from '@sendgrid/mail';
+import SendGrid from '@sendgrid/mail';
 import { SENDGRID_KEY } from '../keys';
 
 export function createEmailWorker() {
