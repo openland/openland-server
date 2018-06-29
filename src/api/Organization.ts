@@ -17,7 +17,7 @@ import { ElasticClient } from '../indexing';
 import { buildElasticQuery, QueryParser } from '../modules/QueryParser';
 import { SelectBuilder } from '../modules/SelectBuilder';
 import {
-    defined, emailValidator, enumString, optionalNotNull, stringNotEmpty,
+    defined, emailValidator, enumString, optional, stringNotEmpty,
     validate
 } from '../modules/NewInputValidator';
 
@@ -409,7 +409,7 @@ export const Resolver = {
                             contacts: [,
                                 {
                                     name: defined(stringNotEmpty()),
-                                    email: optionalNotNull(emailValidator)
+                                    email: optional(emailValidator)
                                 }
                             ]
                         },
