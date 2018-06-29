@@ -12,7 +12,3 @@ export async function up(queryInterface: QueryInterface, dataTypes: DataTypes) {
         defaultValue: '[]'
     });
 }
-
-export async function down(queryInterface: QueryInterface, dataTypes: DataTypes) {
-
-}

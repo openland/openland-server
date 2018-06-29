@@ -122,8 +122,10 @@
     "dev:inspect": "source ./scripts/set_dev_config.sh && yarn build && BLUEBIRD_LONG_STACK_TRACES=0 node --inspect ./build/index.js",
     "dev:db": "source ./scripts/set_dev_config.sh && yarn build && RECREATE_DB=true yarn start",
     "promote": "kubectl set image deployment/statecraft-server statecraft-server=`kubectl get deployment statecraft-server-staging -o=jsonpath='{$.spec.template.spec.containers[1:2].image}'` && kubectl rollout status deployments statecraft-server",
-    "test": "node ./node_modules/jest/bin/jest.js",
-    "test:watch": "node ./node_modules/jest/bin/jest.js --watch"
+    "lint": "NODE_ENV=production ./node_modules/.bin/tslint --project . --config ./tslint.json",
+    "test": "yarn lint && yarn jest",
+    "jest": "node ./node_modules/jest/bin/jest.js",
+    "jest:watch": "node ./node_modules/jest/bin/jest.js --watch"
   },
   "devDependencies": {}
 }

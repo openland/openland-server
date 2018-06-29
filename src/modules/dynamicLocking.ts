@@ -27,6 +27,7 @@ export class DynamicLock {
         let lockSeed = Crypto.randomBytes(32).toString('hex');
         var isRunning = false;
         var asyncLock = new AsyncLock();
+        var isAlive = false;
         class State implements LockState {
             check() {
                 if (!isAlive) {
@@ -50,7 +51,7 @@ export class DynamicLock {
         };
         try {
             // Initial Locking
-            var isAlive = await provider.lock(lockSeed, Date.now() + this.lockTimeout);
+            isAlive = await provider.lock(lockSeed, Date.now() + this.lockTimeout);
 
             // Exit on failure or unsuccessful locking
             if (!isAlive) {

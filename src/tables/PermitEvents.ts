@@ -2,7 +2,7 @@ import { connection } from '../connector';
 import * as sequelize from 'sequelize';
 import { PermitTable, Permit } from './Permit';
 
-export type PermitEventType = 'status_changed' | 'field_changed'
+export type PermitEventType = 'status_changed' | 'field_changed';
 
 export interface PermitEventAttributes {
     id?: number;

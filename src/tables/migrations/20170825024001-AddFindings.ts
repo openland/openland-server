@@ -14,7 +14,3 @@ export async function up(queryInterface: QueryInterface, dataTypes: DataTypes) {
         intro: {type: dataTypes.STRING, allowNull: false}
     });
 }
-
-export async function down(queryInterface: QueryInterface, dataTypes: DataTypes) {
-
-}
