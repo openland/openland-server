@@ -11,7 +11,11 @@ module.exports = {
         'json',
         'node'
     ],
-    testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.(ts)x?$',
+    moduleDirectories: [
+        'node_modules',
+        'src'
+    ],
+    testRegex: '.*\\.spec\\.(ts)x?$',
     testPathIgnorePatterns: ['/node_modules/'],
     coverageDirectory: 'coverage',
     collectCoverageFrom: [

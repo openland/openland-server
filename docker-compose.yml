@@ -1,0 +1,28 @@
+version: '3'
+services:
+  redis:
+    image: redis
+    ports:
+     - "127.0.0.1:13001:6379"
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.3.0
+    environment:
+      - cluster.name=testing-cluster
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - ./.data/elastic:/usr/share/elasticsearch/data
+    ports:
+      - "127.0.0.1:13000:9200"
+  postgres:
+    image: postgres:10.4-alpine
+    environment: 
+      - "POSTGRES_USER=testing"
+    volumes:
+      - ./.data/postgres:/var/lib/postgresql/data
+    ports:
+     - "127.0.0.1:13002:5432"

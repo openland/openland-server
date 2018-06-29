@@ -32,6 +32,7 @@ if (process.env.DATABASE_URL !== undefined) {
 } else {
     connection = new sequelize('postgres', process.env.DATABASE_USER!, '', {
         host: 'localhost',
+        port: process.env.DATABASE_PORT ? parseInt(process.env.DATABASE_PORT!!, 10) : 5432,
         dialect: 'postgres',
         benchmark: true,
         pool: {
