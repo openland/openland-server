@@ -9,7 +9,9 @@ gcloud -v
 echo "Installing Kubernetes Tools"
 curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
 chmod +x ./kubectl
-echo $GCLOUD_API_KEYFILE | base64 --decode --ignore-garbage > ./gcloud-api-key.json
+if [ ! -f ./gcloud-api-key.json ]; then
+    echo $GCLOUD_API_KEYFILE | base64 --decode --ignore-garbage > ./gcloud-api-key.json
+fi
 echo "Activate Service Account"
 gcloud auth activate-service-account --key-file gcloud-api-key.json
 gcloud --quiet config set project statecraft-188615
