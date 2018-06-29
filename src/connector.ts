@@ -1,7 +1,7 @@
-import * as sequelize from 'sequelize';
+import sequelize from 'sequelize';
 import './utils/sequelize_afterCommit';
 import * as cls from 'continuation-local-storage';
-import * as umzug from 'umzug';
+import umzug from 'umzug';
 
 var namespace = cls.createNamespace('tx-namespace');
 (<any>sequelize).useCLS(namespace);

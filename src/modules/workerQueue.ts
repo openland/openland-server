@@ -6,7 +6,7 @@ import { tryLock } from './locking';
 import sequelize, { Transaction } from 'sequelize';
 import { exponentialBackoffDelay } from '../utils/exponentialBackoffDelay';
 import { Pubsub } from './pubsub';
-import * as UUID from 'uuid/v4';
+import UUID from 'uuid/v4';
 
 class TaskLocker implements LockProvider {
 
