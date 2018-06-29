@@ -566,7 +566,7 @@ export const Resolver = {
                         type: defined(enumString(['development_opportunity', 'acquisition_request'])),
                         input: {
                             name: defined(stringNotEmpty(`Name can't be empty!`)),
-                            status: defined(enumString(['open'])),
+                            status: optional(enumString(['open'])),
                             additionalLinks: [
                                 ,
                                 {
@@ -719,8 +719,8 @@ export const Resolver = {
                 await validate(
                     {
                         input: {
-                            name: defined(stringNotEmpty()),
-                            status: defined(enumString(['open'])),
+                            name: defined(stringNotEmpty(`Name cant't be empty`)),
+                            status: optional(enumString(['open'])),
                             additionalLinks: [
                                 ,
                                 {
