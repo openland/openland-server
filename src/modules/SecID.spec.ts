@@ -57,4 +57,26 @@ describe('SecID Module', () => {
         expect(() => type1.parse('somestring')).toThrow('Invalid id');
         expect(() => type1.parse('7e1f9518ed46bbb81e74366583b6d0')).toThrow('Invalid id');
     });
+
+    it('should resolve type', () => {
+        let factory = new SecIDFactory('Shared Secret', 'hex');
+        let type1 = factory.createId('type1');
+        factory.createId('type2');
+        factory.createId('type3');
+        factory.createId('type4');
+        let res = factory.resolve(type1.serialize(123));
+        expect(res.id).toEqual(123);
+        expect(res.type).toEqual(type1);
+    });
+
+    it('should handle large numbers', () => {
+        let factory = new SecIDFactory('Shared Secret', 'hex');
+        let type1 = factory.createId('type1');
+        expect(type1.parse(type1.serialize(2147483647))).toEqual(2147483647);
+    });
+    it('should crash for too large numbers', () => {
+        let factory = new SecIDFactory('Shared Secret', 'hex');
+        let type1 = factory.createId('type1');
+        expect(() => type1.serialize(2147483648)).toThrow();
+});
 });

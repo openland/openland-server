@@ -44,6 +44,72 @@ function encodeStyle(value: Buffer, style: SecIDStyle, hashids: Hashids) {
     }
 }
 
+function encrypt(value: number, typeId: number, encryptionKey: Buffer, encryptionIv: Buffer, hmacKey: Buffer) {
+    // Preflight check
+    if (value < 0) {
+        throw new IDMailformedError('Ids can\'t be negative!');
+    }
+    if (!Number.isInteger(value)) {
+        throw new IDMailformedError('Ids can\'t be float numbers!');
+    }
+    if (value > 2147483647) {
+        throw new IDMailformedError('Ids can\'t be bigger than 2147483647. Got: ' + value);
+    }
+
+    let buf = new Buffer(7);
+    // Write version
+    buf.writeInt8(CURRENT_VERSION, 0);
+    // Write type id
+    buf.writeUInt16BE(typeId, 1);
+    // Write id
+    buf.writeInt32BE(value, 3);
+
+    // Encrypt
+    let cipher = Crypto.createCipheriv('aes-128-ctr', encryptionKey, encryptionIv);
+    let res = cipher.update(buf);
+    res = Buffer.concat([res, cipher.final()]);
+
+    // then MAC
+    let hmac = Crypto.createHmac('sha256', hmacKey).update(res).digest().slice(0, HMAC_LENGTH);
+    res = Buffer.concat([res, hmac]);
+
+    return res;
+}
+
+function decrypt(value: Buffer, type: number | Set<number>, encryptionKey: Buffer, encryptionIv: Buffer, hmacKey: Buffer) {
+    // This code need to have constant time
+    let decipher = Crypto.createDecipheriv('aes-128-ctr', encryptionKey, encryptionIv);
+
+    let sourceContent = value.slice(0, 7);
+    let sourceHmac = value.slice(7);
+
+    // Decryption
+    let decoded = decipher.update(sourceContent);
+    decoded = Buffer.concat([decoded, decipher.final()]);
+
+    // Hmac
+    let hmacActual = Crypto.createHmac('sha256', hmacKey).update(sourceContent).digest().slice(0, HMAC_LENGTH);
+
+    // For consant time read evertyhing before checking
+    let hmacCorrect = Crypto.timingSafeEqual(hmacActual, sourceHmac);
+    let valueVersion = decoded.readUInt8(0);
+    let valueTypeId = decoded.readUInt16BE(1);
+    let valueRes = decoded.readUInt32BE(3);
+
+    // Constant time integrity check
+    let correctVersion = valueVersion === 1;
+    let correctType = false;
+    if (typeof type === 'number') {
+        correctType = valueTypeId === type;
+    } else {
+        correctType = type.has(valueTypeId);
+    }
+    if (correctType && correctVersion && hmacCorrect) {
+        return { id: valueRes, type: valueTypeId };
+    }
+    throw new IDMailformedError('Invalid id');
+}
+
 export class SecID {
     public readonly typeName: string;
     public readonly typeId: number;
@@ -71,68 +137,19 @@ export class SecID {
     }
 
     serialize(value: number) {
-
-        // Preflight check
-        if (value < 0) {
-            throw new IDMailformedError('Ids can\'t be negative!');
-        }
-        if (!Number.isInteger(value)) {
-            throw new IDMailformedError('Ids can\'t be float numbers!');
-        }
-
-        let buf = new Buffer(7);
-        // Write version
-        buf.writeInt8(CURRENT_VERSION, 0);
-        // Write type id
-        buf.writeUInt16BE(this.typeId, 1);
-        // Write id
-        buf.writeInt32BE(value, 3);
-
-        // Encrypt
-        let cipher = Crypto.createCipheriv('aes-128-ctr', this.encryptionKey, this.encryptionIv);
-        let res = cipher.update(buf);
-        res = Buffer.concat([res, cipher.final()]);
-
-        // then MAC
-        let hmac = Crypto.createHmac('sha256', this.hmacKey).update(res).digest().slice(0, HMAC_LENGTH);
-        res = Buffer.concat([res, hmac]);
-
-        return encodeStyle(res, this.style, this.hashids);
+        let encrypted = encrypt(value, this.typeId, this.encryptionKey, this.encryptionIv, this.hmacKey);
+        return encodeStyle(encrypted, this.style, this.hashids);
     }
 
     parse(value: string) {
-        // This code need to have constant time
 
-        let decipher = Crypto.createDecipheriv('aes-128-ctr', this.encryptionKey, this.encryptionIv);
-
-        // Split source data
+        // Decode style
         let source = decodeStyle(value, this.style, this.hashids);
         if (source.length !== KEY_LENGTH) {
             throw new IDMailformedError('Invalid id');
         }
-        let sourceContent = source.slice(0, 7);
-        let sourceHmac = source.slice(7);
 
-        // Decryption
-        let decoded = decipher.update(sourceContent);
-        decoded = Buffer.concat([decoded, decipher.final()]);
-
-        // Hmac
-        let hmacActual = Crypto.createHmac('sha256', this.hmacKey).update(sourceContent).digest().slice(0, HMAC_LENGTH);
-
-        // For consant time read evertyhing before checking
-        let hmacCorrect = Crypto.timingSafeEqual(hmacActual, sourceHmac);
-        let valueVersion = decoded.readUInt8(0);
-        let valueTypeId = decoded.readUInt16BE(1);
-        let valueRes = decoded.readUInt32BE(3);
-
-        // Constant time integrity check
-        let correctVersion = valueVersion === 1;
-        let correctType = valueTypeId === this.typeId;
-        if (correctType && correctVersion && hmacCorrect) {
-            return valueRes;
-        }
-        throw new IDMailformedError('Invalid id');
+        return decrypt(source, this.typeId, this.encryptionKey, this.encryptionIv, this.hmacKey).id;
     }
 }
 
@@ -144,6 +161,7 @@ export class SecIDFactory {
     private readonly style: SecIDStyle;
     private readonly hashids: Hashids;
     private knownTypes = new Set<number>();
+    private knownSecIDS = new Map<number, SecID>();
 
     constructor(secret: string, style: SecIDStyle = 'hashids') {
         this.style = style;
@@ -176,6 +194,20 @@ export class SecIDFactory {
         this.knownTypes.add(typeId);
 
         // Build SecID instance
-        return new SecID(type, typeId, this.encryptionKey, this.encryptionIv, this.hmacKey, this.style, this.hashids);
+        let id = new SecID(type, typeId, this.encryptionKey, this.encryptionIv, this.hmacKey, this.style, this.hashids);
+        this.knownSecIDS.set(typeId, id);
+        return id;
+    }
+
+    resolve(value: string) {
+        let source = decodeStyle(value, this.style, this.hashids);
+        if (source.length !== KEY_LENGTH) {
+            throw new IDMailformedError('Invalid id');
+        }
+        let res = decrypt(source, this.knownTypes, this.encryptionKey, this.encryptionIv, this.hmacKey);
+        return {
+            id: res.id,
+            type: this.knownSecIDS.get(res.type)!!
+        };
     }
 }
