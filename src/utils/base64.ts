@@ -14,10 +14,14 @@ export function encode(str: string, encoding?: string) {
     return escape(Buffer.from(str, encoding || 'utf8').toString('base64'));
 }
 
-export function encodeBuffer(buffer: Buffer, encoding?: string) {
+export function decode(str: string, encoding?: string) {
+    return Buffer.from(unescape(str), 'base64').toString(encoding || 'utf8');
+}
+
+export function encodeBuffer(buffer: Buffer) {
     return escape(buffer.toString('base64'));
 }
 
-export function decode(str: string, encoding?: string) {
-    return Buffer.from(unescape(str), 'base64').toString(encoding || 'utf8');
+export function decodeBuffer(str: string) {
+    return Buffer.from(unescape(str), 'base64');
 }

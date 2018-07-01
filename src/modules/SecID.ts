@@ -1,5 +1,6 @@
 import Crypto from 'crypto';
 import Hashids from 'hashids';
+import { decodeBuffer, encodeBuffer } from '../utils/base64';
 
 // Randomly generated string for using as salt for type name hashing
 const typeKeySalt = '2773246209f10fc3381f5ca55c67dac5486e27ff1ce3f698b1859008fe0053e3';
@@ -25,7 +26,7 @@ function decodeStyle(value: string, style: SecIDStyle, hashids: Hashids) {
     if (style === 'hex') {
         return Buffer.from(value, 'hex');
     } else if (style === 'base64') {
-        return Buffer.from(value, 'base64');
+        return decodeBuffer(value);
     } else {
         let hid = hashids.decodeHex(value);
         return Buffer.from(hid, 'hex');
@@ -36,7 +37,7 @@ function encodeStyle(value: Buffer, style: SecIDStyle, hashids: Hashids) {
     if (style === 'hex') {
         return value.toString('hex');
     } else if (style === 'base64') {
-        return value.toString('base64');
+        return encodeBuffer(value);
     } else {
         return hashids.encodeHex(value.toString('hex'));
     }
@@ -154,7 +155,7 @@ export class SecIDFactory {
         // Append type salt to avoid duplicates in different factory instances (with different secret).
         hash.update(this.typeSalt, 'utf8');
         // Append type as is
-        hash.update(type, 'utf8');
+        hash.update(type.toLowerCase(), 'utf8');
         // Read first two bytes of hash
         let res = hash.digest();
         let typeId = res.readUInt16BE(0);

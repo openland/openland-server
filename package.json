@@ -132,7 +132,7 @@
     "lint": "NODE_ENV=production ./node_modules/.bin/tslint --project . --config ./tslint.json",
     "test": "yarn lint && yarn jest",
     "jest": "node --no-deprecation ./node_modules/jest/bin/jest.js --testPathPattern=\"^((?!src/tests).)*$\" --forceExit",
-    "jest:watch": "node ./node_modules/jest/bin/jest.js --watch --verbose",
+    "jest:watch": "node ./node_modules/jest/bin/jest.js --testPathPattern=\"^((?!src/tests).)*$\" --watch --verbose",
     "test:start": "./scripts/testing_start.sh",
     "test:stop": "./scripts/testing_stop.sh",
     "test:prepare": ". ./scripts/set_testing_config.sh && DATABASE_LOGGING=true node ./build/index.js --rebuild-test",
