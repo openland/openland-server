@@ -1,5 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`API Server should authenticate correctly 1`] = `Object {}`;
+
 exports[`API Server should handle graphql queries 1`] = `
 Object {
   "data": Object {
@@ -32,6 +34,14 @@ Object {
     "me": Object {
       "id": "GvNrAkJ7rbFGQmJJJJdyhKaBr4",
     },
+  },
+}
+`;
+
+exports[`API Server should silently ignore graphql queries with bad tokens 1`] = `
+Object {
+  "data": Object {
+    "me": null,
   },
 }
 `;
