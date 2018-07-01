@@ -1,6 +1,7 @@
 import Crypto from 'crypto';
 import Hashids from 'hashids';
 import { decodeBuffer, encodeBuffer } from '../utils/base64';
+import { IDMailformedError } from '../errors/IDMailformedError';
 
 // Randomly generated string for using as salt for type name hashing
 const typeKeySalt = '2773246209f10fc3381f5ca55c67dac5486e27ff1ce3f698b1859008fe0053e3';
@@ -71,6 +72,14 @@ export class SecID {
 
     serialize(value: number) {
 
+        // Preflight check
+        if (value < 0) {
+            throw new IDMailformedError('Ids can\'t be negative!');
+        }
+        if (!Number.isInteger(value)) {
+            throw new IDMailformedError('Ids can\'t be float numbers!');
+        }
+
         let buf = new Buffer(7);
         // Write version
         buf.writeInt8(CURRENT_VERSION, 0);
@@ -99,13 +108,13 @@ export class SecID {
         // Split source data
         let source = decodeStyle(value, this.style, this.hashids);
         if (source.length !== KEY_LENGTH) {
-            throw Error('Invalid key length');
+            throw new IDMailformedError('Invalid id');
         }
         let sourceContent = source.slice(0, 7);
         let sourceHmac = source.slice(7);
 
         // Decryption
-        let decoded = decipher.update(source.slice(0, 7));
+        let decoded = decipher.update(sourceContent);
         decoded = Buffer.concat([decoded, decipher.final()]);
 
         // Hmac
@@ -123,7 +132,7 @@ export class SecID {
         if (correctType && correctVersion && hmacCorrect) {
             return valueRes;
         }
-        throw Error('Invalid id');
+        throw new IDMailformedError('Invalid id');
     }
 }
 
@@ -164,6 +173,7 @@ export class SecIDFactory {
         if (this.knownTypes.has(typeId)) {
             throw Error('SecID type collision for "' + type + '", please try to use different name.');
         }
+        this.knownTypes.add(typeId);
 
         // Build SecID instance
         return new SecID(type, typeId, this.encryptionKey, this.encryptionIv, this.hmacKey, this.style, this.hashids);
