@@ -22,6 +22,10 @@ export async function validate(scheme: ValidationScheme, data: ValidationData, k
     }
 }
 
+function isValidator(scheme: ValidationScheme): scheme is Validator {
+    return scheme instanceof Function;
+}
+
 // usage:
 //
 // validate(
@@ -45,28 +49,33 @@ async function validateInternal(
     data: ValidationData,
     keyPath: string[] = []
 ): Promise<ValidationResult[]> {
-    if (
-        scheme instanceof Function &&
-        typeof data === 'string' || typeof data === 'number'
-    ) {
-        let validator = (scheme as Validator);
-        let isValid = await validator(data, keyPath.join('.'));
 
-        if (isValid !== true) {
-            return [{
-                key: keyPath.join('.'),
-                message: isValid as string
-            }];
+    //
+    // Field Validation
+    //
+
+    if (isValidator(scheme)) {
+        if (typeof data === 'string' || typeof data === 'number') {
+            let isValid = await scheme(data, keyPath.join('.'));
+
+            if (isValid !== true) {
+                return [{
+                    key: keyPath.join('.'),
+                    message: isValid as string
+                }];
+            }
+
+            return [];
+        } else {
+            throw new Error('Invalid scheme');    
         }
-
-        return [];
     }
+
+    //
+    // Remaing
+    //
 
     let validationResult: ValidationResult[] = [];
-
-    if (typeof scheme !== 'object') {
-        throw new Error('Invalid scheme');
-    }
     if (typeof data !== 'object' || data === null || data === undefined) {
         if (scheme._opt === true) {
             return [];
