@@ -18,6 +18,7 @@ describe('New Input Validator', () => {
     it('should validate arrays', () => {
         expect(validate({ something: mustBeArray({ name: stringNotEmpty() }) }, { something: [{ name: 'somet' }] })).resolves.toBe(undefined);
         expect(validate({ something: mustBeArray({ name: stringNotEmpty() }) }, { something: [{ name: '' }] })).rejects.toThrow();
+        expect(validate({ something: mustBeArray({ name: stringNotEmpty() }) }, { something: { name: '' } })).rejects.toThrow();
         expect(validate({ something: mustBeOptionalArray({ name: stringNotEmpty() }) }, {})).resolves.toBe(undefined);
     });
 });
