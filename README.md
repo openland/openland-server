@@ -23,3 +23,11 @@
  - create bucket `files` at http://127.0.0.1:9900/
 9) Run server `yarn dev`
 10) go get some coffee
+
+# Running Tests
+
+1) Install Docker
+2) Start testing infrastructure: `yarn test:start`
+3) Prepare testing infrastructure: `yarn test:prepare`
+4) Run tests: `yarn test`, `yarn test:watch`
+5) Stop infrastructure: `yarn test:stop`
