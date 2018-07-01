@@ -1,4 +1,4 @@
-import { validate, stringNotEmpty } from './NewInputValidator';
+import { validate, stringNotEmpty, mustBeArray, mustBeOptionalArray } from './NewInputValidator';
 
 describe('New Input Validator', () => {
     it('should validate strings', async () => {
@@ -14,5 +14,10 @@ describe('New Input Validator', () => {
     });
     it('should ignore unknown fields', async () => {
         expect(validate({ something: { name: stringNotEmpty() } }, { something: { name: 'something', some: 'str' } })).resolves.toBe(undefined);
+    });
+    it('should validate arrays', () => {
+        expect(validate({ something: mustBeArray({ name: stringNotEmpty() }) }, { something: [{ name: 'somet' }] })).resolves.toBe(undefined);
+        expect(validate({ something: mustBeArray({ name: stringNotEmpty() }) }, { something: [{ name: '' }] })).rejects.toThrow();
+        expect(validate({ something: mustBeOptionalArray({ name: stringNotEmpty() }) }, {})).resolves.toBe(undefined);
     });
 });

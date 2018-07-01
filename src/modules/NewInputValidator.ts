@@ -2,21 +2,21 @@ import { InvalidInputError } from '../errors/InvalidInputError';
 
 export type ValidationPrimitive = string | number;
 
-export type Validator = (value: ValidationPrimitive, keyName: string) => boolean|string|Promise<boolean|string>;
+export type Validator = (value: ValidationPrimitive, keyName: string) => boolean | string | Promise<boolean | string>;
 
-export type ValidationScheme = { [key: string]: Validator | ValidationScheme | (Validator|undefined)[] | (ValidationScheme|undefined)[] | boolean  } | Validator;
+export type ValidationScheme = { [key: string]: Validator | ValidationScheme | (Validator | undefined)[] | (ValidationScheme | undefined)[] | boolean } | Validator;
 
-export type ValidationData = { [key: string]: ValidationPrimitive|ValidationData|ValidationPrimitive[]|ValidationData[]|any } | ValidationPrimitive|undefined|null;
+export type ValidationData = { [key: string]: ValidationPrimitive | ValidationData | ValidationPrimitive[] | ValidationData[] | any } | ValidationPrimitive | undefined | null;
 
 export type ValidationResult = { key: string, message: string };
 
 export async function validate(scheme: ValidationScheme, data: ValidationData, keyPath?: string): Promise<void> {
     let result = await validateInternal(
-        scheme, 
-        data, 
+        scheme,
+        data,
         keyPath ? keyPath.split('.') : []
     );
-    
+
     if (result.length > 0) {
         throw new InvalidInputError(result);
     }
@@ -227,4 +227,11 @@ export function emailValidator(value: ValidationPrimitive, keyName: string) {
     }
 
     return true;
+}
+
+export function mustBeArray(validator: ValidationScheme) {
+    return [validator];
+}
+export function mustBeOptionalArray(validator: ValidationScheme) {
+    return [, validator];
 }
