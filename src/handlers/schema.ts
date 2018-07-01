@@ -17,7 +17,6 @@ function handleRequest(useEngine: boolean) {
                 cacheControl: useEngine,
                 tracing: useEngine,
                 formatError: (err: any) => {
-                    console.warn(Object.getOwnPropertyNames(err));
                     return {
                         ...errorHandler(err, res.locals.ctx),
                         locations: err.locations,
