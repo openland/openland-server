@@ -1,45 +1,11 @@
 import * as express from 'express';
-import { DB } from '../tables';
 import { CallContext } from '../api/utils/CallContext';
 import { Repos } from '../repositories';
 import { IDs } from '../api/utils/IDs';
-import { NotFoundError } from '../errors/NotFoundError';
-import { ErrorText } from '../errors/ErrorText';
 import { fetchKeyFromRequest } from '../utils/fetchKeyFromRequest';
-let domainCache = new Map<string, number | null>();
 
 async function context(src: express.Request): Promise<CallContext> {
-
     let res = new CallContext();
-
-    //
-    // DEPRECATED: Resolving Account
-    //
-    let domain: string = 'sf';
-    let accId = null;
-    if (domainCache.has(domain)) {
-        accId = domainCache.get(domain);
-    } else {
-        let acc = (await DB.Account.findOne({
-            where: {
-                slug: domain,
-                activated: true
-            }
-        }));
-        if (acc != null) {
-            accId = acc.id!!;
-        } else {
-            accId = null;
-        }
-        if (!domainCache.has(domain)) {
-            domainCache.set(domain, accId);
-        }
-    }
-    if (accId == null) {
-        throw new NotFoundError(ErrorText.unableToFindAccount(domain));
-    }
-    res.accountId = accId;
-
     //
     // Loading UID
     //
@@ -82,7 +48,7 @@ async function context(src: express.Request): Promise<CallContext> {
     return res;
 }
 
-export async function callContextMiddleware(req: express.Request, res: express.Response, next: express.NextFunction) {
+export async function callContextMiddleware(isTest: boolean, req: express.Request, res: express.Response, next: express.NextFunction) {
     let ctx: CallContext;
     try {
         ctx = await context(req);
@@ -90,10 +56,12 @@ export async function callContextMiddleware(req: express.Request, res: express.R
         res!!.status(404).send('Unable to find domain');
         return;
     }
-    if (ctx.uid) {
-        console.log('GraphQL [#' + ctx.uid + ']: ' + JSON.stringify(req.body));
-    } else {
-        console.log('GraphQL [#ANON]: ' + JSON.stringify(req.body));
+    if (!isTest) {
+        if (ctx.uid) {
+            console.log('GraphQL [#' + ctx.uid + ']: ' + JSON.stringify(req.body));
+        } else {
+            console.log('GraphQL [#ANON]: ' + JSON.stringify(req.body));
+        }
     }
     res.locals.ctx = ctx;
     next();

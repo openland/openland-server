@@ -26,4 +26,9 @@ export async function createUsers() {
         authId: 'mock|gleb',
         email: 'gleb@openland.com'
     });
+
+    await DB.UserToken.create({
+        userId: user.id!!,
+        tokenSalt: 'mock-token'
+    });
 }

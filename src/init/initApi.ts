@@ -38,14 +38,16 @@ export async function initApi(isTest: boolean) {
     app.get('/favicon.ico', (req, res) => res.send(404));
 
     // Basic Configuration
-    app.use(cors());
-    app.use(morgan('tiny'));
-    app.use(compression());
+    if (!isTest) {
+        app.use(cors());
+        app.use(morgan('tiny'));
+        app.use(compression());
+    }
 
     //
     // API
     //
-    let graphqlMiddleware = schemaHandler(false);
+    let graphqlMiddleware = schemaHandler(isTest);
     app.use('/api', Auth2.TokenChecker, bodyParser.json({ limit: '5mb' }), graphqlMiddleware);
     app.use('/graphql', Auth2.TokenChecker, bodyParser.json({ limit: '5mb' }), graphqlMiddleware);
 
@@ -57,15 +59,17 @@ export async function initApi(isTest: boolean) {
     // Starting Api
     if (dport > 0) {
         console.info('Binding to port ' + dport);
-    }
-    let listener = app.listen(dport);
+        let listener = app.listen(dport);
 
-    // Starting WS
-    new SubscriptionServer({
-        schema: Schema,
-        execute,
-        subscribe
-    }, { server: listener, path: '/api' });
+        // Starting WS
+        new SubscriptionServer({
+            schema: Schema,
+            execute,
+            subscribe
+        }, { server: listener, path: '/api' });
+    } else {
+        await new Promise((resolver) => app.listen(0, () => resolver()));
+    }
 
     return app;
 }

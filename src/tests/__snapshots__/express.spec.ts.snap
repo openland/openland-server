@@ -1,0 +1,37 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`API Server should handle graphql queries 1`] = `
+Object {
+  "data": Object {
+    "me": null,
+  },
+}
+`;
+
+exports[`API Server should handle graphql queries 2`] = `
+Object {
+  "data": Object {
+    "me": null,
+  },
+}
+`;
+
+exports[`API Server should handle graphql queries with tokens 1`] = `
+Object {
+  "data": Object {
+    "me": Object {
+      "id": "GvNrAkJ7rbFGQmJJJJdyhKaBr4",
+    },
+  },
+}
+`;
+
+exports[`API Server should handle graphql queries with tokens in cookies 1`] = `
+Object {
+  "data": Object {
+    "me": Object {
+      "id": "GvNrAkJ7rbFGQmJJJJdyhKaBr4",
+    },
+  },
+}
+`;
