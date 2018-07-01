@@ -5,7 +5,7 @@ Object {
   "updateProfile": Object {
     "__typename": "Profile",
     "firstName": null,
-    "id": "5e_reziSDTwvBb9lu9Op",
+    "id": "a5WJmyLxWnTYZWMayk2bCw8pM6",
     "lastName": null,
   },
 }
@@ -16,10 +16,10 @@ Object {
   "me": Object {
     "__typename": "User",
     "firstName": "Steve",
-    "id": "5X1CeziSDVjaceJA-n7I",
+    "id": "GvNrAkJ7rbFGQmJJJJdyhKaBr4",
     "lastName": "Kite",
     "name": "Steve Kite",
-    Symbol(id): "User:5X1CeziSDVjaceJA-n7I",
+    Symbol(id): "User:GvNrAkJ7rbFGQmJJJJdyhKaBr4",
   },
   Symbol(id): "ROOT_QUERY",
 }
@@ -30,7 +30,7 @@ Object {
   "updateProfile": Object {
     "__typename": "Profile",
     "firstName": null,
-    "id": "5e_reziSDTwvBb9lu9Op",
+    "id": "a5WJmyLxWnTYZWMayk2bCw8pM6",
     "lastName": null,
   },
 }
@@ -41,7 +41,7 @@ Object {
   "createProfile": Object {
     "__typename": "Profile",
     "firstName": "Steve",
-    "id": "5e_reziSDTwvBb9lu9Op",
+    "id": "a5WJmyLxWnTYZWMayk2bCw8pM6",
     "lastName": "Kite",
   },
 }
@@ -52,10 +52,10 @@ Object {
   "me": Object {
     "__typename": "User",
     "firstName": "Steve",
-    "id": "5X1CeziSDVjaceJA-n7I",
+    "id": "GvNrAkJ7rbFGQmJJJJdyhKaBr4",
     "lastName": "Kite",
     "name": "Steve Kite",
-    Symbol(id): "User:5X1CeziSDVjaceJA-n7I",
+    Symbol(id): "User:GvNrAkJ7rbFGQmJJJJdyhKaBr4",
   },
   Symbol(id): "ROOT_QUERY",
 }
@@ -73,10 +73,10 @@ Object {
   "me": Object {
     "__typename": "User",
     "firstName": "Steve",
-    "id": "5X1CeziSDVjaceJA-n7I",
+    "id": "GvNrAkJ7rbFGQmJJJJdyhKaBr4",
     "lastName": "Kite",
     "name": "Steve Kite",
-    Symbol(id): "User:5X1CeziSDVjaceJA-n7I",
+    Symbol(id): "User:GvNrAkJ7rbFGQmJJJJdyhKaBr4",
   },
   Symbol(id): "ROOT_QUERY",
 }
