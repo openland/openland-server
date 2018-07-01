@@ -1,5 +1,5 @@
 import * as sequelize from 'sequelize';
-import { connection } from '../connector';
+import { connection } from '../modules/sequelizeConnector';
 import { Transaction } from 'sequelize';
 import { DB } from '../tables';
 import { QueryInterface } from 'sequelize';

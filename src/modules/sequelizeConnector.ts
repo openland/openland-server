@@ -1,5 +1,5 @@
 import sequelize from 'sequelize';
-import './utils/sequelize_afterCommit';
+import '../utils/sequelize_afterCommit';
 import * as cls from 'continuation-local-storage';
 import umzug from 'umzug';
 
@@ -45,7 +45,7 @@ if (process.env.DATABASE_URL !== undefined) {
     });
 }
 
-require('./tables');
+require('../tables');
 
 let migrator = new umzug({
     storage: 'sequelize',
@@ -54,7 +54,7 @@ let migrator = new umzug({
     },
     migrations: {
         params: [connection.getQueryInterface(), sequelize],
-        path: __dirname + '/tables/migrations'
+        path: __dirname + '/../tables/migrations'
     }
 });
 

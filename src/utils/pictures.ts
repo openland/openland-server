@@ -1,5 +1,5 @@
 import { CallContext } from '../api/utils/CallContext';
-import { STREET_VIEW_KEY } from '../keys';
+import { STREET_VIEW_KEY } from '../utils/keys';
 
 export function resolvePicture(src?: string, width?: number, height?: number) {
     if (src) {

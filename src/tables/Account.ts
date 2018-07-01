@@ -1,4 +1,4 @@
-import { connection } from '../connector';
+import { connection } from '../modules/sequelizeConnector';
 import * as sequelize from 'sequelize';
 
 export interface AccountAttributes {

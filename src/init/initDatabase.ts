@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as cp from 'child_process';
-import * as db from '../connector';
+import * as db from '../modules/sequelizeConnector';
 import { redisClient } from '../modules/redis/redis';
 
 export async function initDatabase(isTest: boolean, drop: boolean) {

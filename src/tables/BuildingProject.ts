@@ -1,4 +1,4 @@
-import { connection } from '../connector';
+import { connection } from '../modules/sequelizeConnector';
 import * as sequelize from 'sequelize';
 import { PermitTable, Permit } from './Permit';
 import { DeveloperTable, Developer } from './Developer';

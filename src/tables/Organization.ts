@@ -1,4 +1,4 @@
-import { connection } from '../connector';
+import { connection } from '../modules/sequelizeConnector';
 import * as sequelize from 'sequelize';
 import { ImageRef } from '../repositories/Media';
 import { OrganizationExtras } from '../repositories/OrganizationExtras';

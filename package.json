@@ -65,6 +65,7 @@
     "connect-ensure-login": "^0.1.1",
     "continuation-local-storage": "^3.2.0",
     "cors": "^2.8.4",
+    "coveralls": "^3.0.2",
     "cpx": "^1.5.0",
     "csv": "^2.0.0",
     "dataloader": "^1.4.0",
@@ -130,11 +131,8 @@
     "dev:db": "source ./scripts/set_dev_config.sh && yarn build && RECREATE_DB=true yarn start",
     "promote": "kubectl set image deployment/statecraft-server statecraft-server=`kubectl get deployment statecraft-server-staging -o=jsonpath='{$.spec.template.spec.containers[1:2].image}'` && kubectl rollout status deployments statecraft-server",
     "lint": "NODE_ENV=production ./node_modules/.bin/tslint --project . --config ./tslint.json",
-    
-    "test": "yarn lint && yarn jest",
     "test:watch": ". ./scripts/set_testing_config.sh && node ./node_modules/jest/bin/jest.js --watch --verbose",
-    "jest": ". ./scripts/set_testing_config.sh && node --no-deprecation ./node_modules/jest/bin/jest.js --forceExit --runInBand",
-    
+    "test": ". ./scripts/set_testing_config.sh && node --no-deprecation ./node_modules/jest/bin/jest.js --forceExit --runInBand --coverage",
     "test:start": "./scripts/testing_start.sh",
     "test:stop": "./scripts/testing_stop.sh",
     "test:prepare": ". ./scripts/set_testing_config.sh && DATABASE_LOGGING=true node ./build/index.js --rebuild-test",

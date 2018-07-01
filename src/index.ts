@@ -3,7 +3,7 @@ if (Symbol.asyncIterator === undefined) {
     ((Symbol as any).asyncIterator) = Symbol.for('asyncIterator');
 }
 
-import { startApi } from './server';
+import { initApi } from './init/initApi';
 import { initWorkers } from './workers';
 import { initDatabase } from './init/initDatabase';
 import { initElastic } from './init/initElastic';
@@ -39,7 +39,7 @@ if (process.argv.indexOf('--rebuild-test') >= 0) {
             await initFiles();
             await initElastic();
             await initWorkers();
-            await startApi();
+            await initApi(false);
         } catch (e) {
             console.error('Unable to init server');
             console.error(e);

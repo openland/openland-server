@@ -3,13 +3,13 @@ import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import compression from 'compression';
-import * as Auth2 from './handlers/authV2';
-import { schemaHandler } from './handlers/schema';
+import * as Auth2 from '../handlers/authV2';
+import { schemaHandler } from '../handlers/schema';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
-import { Schema } from './schema';
+import { Schema } from '../api/index';
 import { execute, subscribe } from 'graphql';
 
-export async function startApi() {
+export async function initApi(isTest: boolean) {
 
     console.info('Starting...');
 
@@ -20,6 +20,9 @@ export async function startApi() {
     let dport = 9000;
     if (port !== undefined && port !== '') {
         dport = parseInt(process.env.PORT as string, 10);
+    }
+    if (isTest) {
+        dport = 0;
     }
 
     //
@@ -52,7 +55,9 @@ export async function startApi() {
     app.post('/v2/auth', Auth2.JWTChecker, bodyParser.json(), Auth2.Authenticator);
 
     // Starting Api
-    console.info('Binding to port ' + dport);
+    if (dport > 0) {
+        console.info('Binding to port ' + dport);
+    }
     let listener = app.listen(dport);
 
     // Starting WS
@@ -61,4 +66,6 @@ export async function startApi() {
         execute,
         subscribe
     }, { server: listener, path: '/api' });
+
+    return app;
 }

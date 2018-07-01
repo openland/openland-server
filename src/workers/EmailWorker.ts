@@ -1,6 +1,6 @@
 import { WorkQueue } from '../modules/workerQueue';
 import SendGrid from '@sendgrid/mail';
-import { SENDGRID_KEY } from '../keys';
+import { SENDGRID_KEY } from '../utils/keys';
 
 export function createEmailWorker() {
     let queue = new WorkQueue<{ templateId: string, to: string, args: { [key: string]: string; } }, { result: string }>('emailSender');
