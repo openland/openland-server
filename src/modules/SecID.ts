@@ -42,49 +42,6 @@ function encodeStyle(value: Buffer, style: SecIDStyle, hashids: Hashids) {
     }
 }
 
-export class SecIDFactory {
-    private readonly typeSalt: string;
-    private readonly encryptionKey: Buffer;
-    private readonly encryptionIv: Buffer;
-    private readonly hmacKey: Buffer;
-    private readonly style: SecIDStyle;
-    private readonly hashids: Hashids;
-    private knownTypes = new Set<number>();
-
-    constructor(secret: string, style: SecIDStyle = 'hashids') {
-        this.style = style;
-        this.typeSalt = Crypto.pbkdf2Sync(secret, typeKeySalt, 100000, 32, 'sha512').toString('hex');
-        this.encryptionKey = Crypto.pbkdf2Sync(secret, encryptionKeySalt, 100000, 16, 'sha512');
-        this.encryptionIv = Crypto.pbkdf2Sync(secret, encryptionIvSalt, 100000, 16, 'sha512');
-        this.hmacKey = Crypto.pbkdf2Sync(secret, hmacSecretSalt, 100000, 64, 'sha512');
-        this.hashids = new Hashids(Crypto.pbkdf2Sync(secret, hashidsSalt, 100000, 32, 'sha512').toString('hex'));
-    }
-
-    createId(type: string) {
-        // Hashing of type name
-        // We don't need to make this hash secure. 
-        // Just to "compress" and use hash instead of a full name.
-
-        // Using simple hash: sha1
-        let hash = Crypto.createHash('sha1');
-        // Append type salt to avoid duplicates in different factory instances (with different secret).
-        hash.update(this.typeSalt, 'utf8');
-        // Append type as is
-        hash.update(type, 'utf8');
-        // Read first two bytes of hash
-        let res = hash.digest();
-        let typeId = res.readUInt16BE(0);
-
-        // Check for uniques since there could be collisions
-        if (this.knownTypes.has(typeId)) {
-            throw Error('SecID type collision for "' + type + '", please try to use different name.');
-        }
-
-        // Build SecID instance
-        return new SecID(type, typeId, this.encryptionKey, this.encryptionIv, this.hmacKey, this.style, this.hashids);
-    }
-}
-
 export class SecID {
     public readonly typeName: string;
     public readonly typeId: number;
@@ -166,5 +123,48 @@ export class SecID {
             return valueRes;
         }
         throw Error('Invalid id');
+    }
+}
+
+export class SecIDFactory {
+    private readonly typeSalt: string;
+    private readonly encryptionKey: Buffer;
+    private readonly encryptionIv: Buffer;
+    private readonly hmacKey: Buffer;
+    private readonly style: SecIDStyle;
+    private readonly hashids: Hashids;
+    private knownTypes = new Set<number>();
+
+    constructor(secret: string, style: SecIDStyle = 'hashids') {
+        this.style = style;
+        this.typeSalt = Crypto.pbkdf2Sync(secret, typeKeySalt, 100000, 32, 'sha512').toString('hex');
+        this.encryptionKey = Crypto.pbkdf2Sync(secret, encryptionKeySalt, 100000, 16, 'sha512');
+        this.encryptionIv = Crypto.pbkdf2Sync(secret, encryptionIvSalt, 100000, 16, 'sha512');
+        this.hmacKey = Crypto.pbkdf2Sync(secret, hmacSecretSalt, 100000, 64, 'sha512');
+        this.hashids = new Hashids(Crypto.pbkdf2Sync(secret, hashidsSalt, 100000, 32, 'sha512').toString('hex'));
+    }
+
+    createId(type: string) {
+        // Hashing of type name
+        // We don't need to make this hash secure. 
+        // Just to "compress" and use hash instead of a full name.
+
+        // Using simple hash: sha1
+        let hash = Crypto.createHash('sha1');
+        // Append type salt to avoid duplicates in different factory instances (with different secret).
+        hash.update(this.typeSalt, 'utf8');
+        // Append type as is
+        hash.update(type, 'utf8');
+        // Read first two bytes of hash
+        let res = hash.digest();
+        let typeId = res.readUInt16BE(0);
+
+        // Check for uniques since there could be collisions
+        if (this.knownTypes.has(typeId)) {
+            throw Error('SecID type collision for "' + type + '", please try to use different name.');
+        }
+
+        // Build SecID instance
+        return new SecID(type, typeId, this.encryptionKey, this.encryptionIv, this.hmacKey, this.style, this.hashids);
     }
 }
