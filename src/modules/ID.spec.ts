@@ -4,6 +4,14 @@ let ParcelId = new ID('Parcel');
 let BlockId = new ID('Block');
 
 describe('ID Module', () => {
+
+    it('should handle mangled ids', () => {
+        // TODO: Handle Case
+        // Type: Organization
+        // MXxvcmdhbml6YXRpb26
+        // MXxvcmdhbml6YXRpb24
+    });
+
     it('should serialize correctly', () => {
         let id1 = ParcelId.serialize(123);
         let id2 = ParcelId.serialize(123);

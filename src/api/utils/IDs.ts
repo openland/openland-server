@@ -1,4 +1,3 @@
-import { ID } from '../../modules/ID';
 import { SecIDFactory } from '../../modules/SecID';
 
 let salt = 'DEBUG_SALT. IF IN PRODUCTION - YOU WILL BE FIRED';
@@ -10,27 +9,27 @@ if (!process.env.AUTHENTICATION_SALT || process.env.AUTHENTICATION_SALT.trim() =
     salt = process.env.AUTHENTICATION_SALT!!.trim();
 }
 
-const Ids = new SecIDFactory(salt, 'hashids');
+const Ids = new SecIDFactory(salt, 'hex');
 
 export const IDs = {
-    Organization: new ID('Organization'),
-    OrganizationAccount: new ID('Account'),
-    OrganizationListing: new ID('OrganizationListing'),
-    Invite: new ID('Invite'),
-    InviteInfo: new ID('InviteInfo'),
-    State: new ID('State'),
-    County: new ID('County'),
-    City: new ID('City'),
-    User: new ID('User'),
-    Profile: new ID('Profile'),
-    Deal: new ID('Deal'),
-    Block: new ID('Block'),
+    Organization: Ids.createId('Organization'),
+    OrganizationAccount: Ids.createId('OrganizationAccount'),
+    OrganizationListing: Ids.createId('OrganizationListing'),
+    Invite: Ids.createId('Invite'),
+    InviteInfo: Ids.createId('InviteInfo'),
+    State: Ids.createId('State'),
+    County: Ids.createId('County'),
+    City: Ids.createId('City'),
+    User: Ids.createId('User'),
+    Profile: Ids.createId('Profile'),
+    Deal: Ids.createId('Deal'),
+    Block: Ids.createId('Block'),
     SuperAccount: Ids.createId('SuperAccount'),
-    SuperCity: new ID('SuperCity'),
-    FeatureFlag: new ID('FeatureFlag'),
-    Opportunities: new ID('Op'),
-    DebugReader: new ID('dr'),
-    Folder: new ID('f'),
-    FolderItem: new ID('fi'),
-    Task: new ID('task'),
+    SuperCity: Ids.createId('SuperCity'),
+    FeatureFlag: Ids.createId('FeatureFlag'),
+    Opportunities: Ids.createId('Opportunities'),
+    DebugReader: Ids.createId('DebugReader'),
+    Folder: Ids.createId('Folder'),
+    FolderItem: Ids.createId('FolderItem'),
+    Task: Ids.createId('Task'),
 };
