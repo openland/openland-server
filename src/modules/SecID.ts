@@ -15,8 +15,7 @@ const hashidsSalt = '11705939e5cad46fa04a6fc838a3fa25c0f50439c946101199b8506ff73
 // Contant for current version of an ID
 const CURRENT_VERSION = 1;
 // Expected Key Length
-const KEY_LENGTH = 14;
-
+const KEY_LENGTH = 15;
 // Truncated size of HMAC
 const HMAC_LENGTH = 8;
 
@@ -141,6 +140,9 @@ export class SecID {
 
         // Split source data
         let source = decodeStyle(value, this.style, this.hashids);
+        if (source.length !== KEY_LENGTH) {
+            throw Error('Invalid key length');
+        }
         let sourceContent = source.slice(0, 7);
         let sourceHmac = source.slice(7);
 
