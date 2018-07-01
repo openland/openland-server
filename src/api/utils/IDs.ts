@@ -9,7 +9,7 @@ if (!process.env.AUTHENTICATION_SALT || process.env.AUTHENTICATION_SALT.trim() =
     salt = process.env.AUTHENTICATION_SALT!!.trim();
 }
 
-const Ids = new SecIDFactory(salt, 'hex');
+const Ids = new SecIDFactory(salt, 'base64');
 
 export const IDs = {
     Organization: Ids.createId('Organization'),
