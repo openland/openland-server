@@ -16,7 +16,6 @@ export interface OrganizationMember extends sequelize.Instance<Partial<Organizat
 
 export const OrganizationMemberTable = connection.define<OrganizationMember, Partial<OrganizationMemberAttributes>>('organization_member', {
     id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
-    userId: { type: sequelize.INTEGER, allowNull: false, references: { model: 'user' } },
     orgId: { type: sequelize.INTEGER, allowNull: false, references: { model: 'organization' } },
     isOwner: { type: sequelize.BOOLEAN, allowNull: false },
     invitedBy: { type: sequelize.INTEGER, allowNull: true, references: { model: 'users' } }

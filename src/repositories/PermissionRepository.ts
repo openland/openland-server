@@ -91,12 +91,10 @@ export class PermissionRepository {
 
         for (let member of members) {
             if (member.user) {
-                let orgId = IDs.Organization.serialize(member.orgId);
-
-                let memberPermissions = [`org-${orgId}-member`];
+                let memberPermissions = [`MEMBER`];
 
                 if (member.isOwner) {
-                    memberPermissions.push(`org-${orgId}-admin`);
+                    memberPermissions.push(`OWNER`);
                 }
 
                 permissions.push(memberPermissions);
