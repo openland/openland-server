@@ -925,7 +925,7 @@ export const Resolver = {
                     throw new AccessDeniedError(ErrorText.permissionDenied);
                 }
 
-                if (isOwner && memberId === uid) {
+                if (isOwner && (memberId === uid)) {
                     throw new AccessDeniedError(ErrorText.permissionDenied);
                 }
 
@@ -943,6 +943,10 @@ export const Resolver = {
                 }
 
                 let memberId = IDs.User.parse(args.memberId);
+
+                if (memberId === uid) {
+                    throw new AccessDeniedError(ErrorText.permissionDenied);
+                }
 
                 let member = await DB.OrganizationMember.findOne({
                     where: {
