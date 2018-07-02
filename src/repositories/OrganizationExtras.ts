@@ -55,6 +55,7 @@ export interface OrganizationExtras {
     twitter?: string | null;
     location?: string | null;
     facebook?: string | null;
+    linkedin?: string | null;
     developmentModels?: string[] | null;
     availability?: string[] | null;
     contacts?: ContactPerson[] | null;
