@@ -4,7 +4,7 @@ import UUID from 'uuid/v4';
 import { NotFoundError } from './NotFoundError';
 import { UserError } from './UserError';
 import { InvalidInputError } from './InvalidInputError';
-import * as Raven from 'raven';
+import Raven from 'raven';
 
 interface FormattedError {
     uuid: string;
