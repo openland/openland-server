@@ -50,6 +50,7 @@ export const Resolver = {
         about: (src: Organization) => src.extras && src.extras.about,
         twitter: (src: Organization) => src.extras && src.extras.twitter,
         facebook: (src: Organization) => src.extras && src.extras.facebook,
+        linkedin: (src: Organization) => src.extras && src.extras.linkedin,
         location: (src: Organization) => src.extras && src.extras.location,
         contacts: (src: Organization) => src.extras ? src.extras.contacts || [] : [],
 
@@ -140,6 +141,7 @@ export const Resolver = {
         about: (src: Organization) => src.extras && src.extras.about,
         twitter: (src: Organization) => src.extras && src.extras.twitter,
         facebook: (src: Organization) => src.extras && src.extras.facebook,
+        linkedin: (src: Organization) => src.extras && src.extras.linkedin,
         location: (src: Organization) => src.extras && src.extras.location,
         contacts: (src: Organization) => src.extras ? src.extras.contacts || [] : [],
 
@@ -299,6 +301,7 @@ export const Resolver = {
                 about?: string | null
                 twitter?: string | null
                 facebook?: string | null
+                linkedin?: string | null
                 location?: string | null
 
                 contacts?: {
@@ -376,6 +379,9 @@ export const Resolver = {
                 }
                 if (args.input.facebook !== undefined) {
                     extras.facebook = Sanitizer.sanitizeString(args.input.facebook);
+                }
+                if (args.input.linkedin !== undefined) {
+                    extras.linkedin = Sanitizer.sanitizeString(args.input.linkedin);
                 }
                 if (args.input.about !== undefined) {
                     extras.about = Sanitizer.sanitizeString(args.input.about);
