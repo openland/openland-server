@@ -5,6 +5,7 @@ export interface OrganizationInviteAttributes {
     id: number;
     uuid: string;
     orgId: number;
+    creatorId: number;
 }
 
 export interface OrganizationInvite extends sequelize.Instance<Partial<OrganizationInviteAttributes>>, OrganizationInviteAttributes {
@@ -14,4 +15,5 @@ export const OrganizationInviteTable = connection.define<OrganizationInviteAttri
     id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
     uuid: { type: sequelize.STRING(256), allowNull: false, unique: true },
     orgId: { type: sequelize.INTEGER, allowNull: false, references: { model: 'organization' } },
+    creatorId: { type: sequelize.INTEGER, allowNull: true, references: { model: 'users' } }
 });

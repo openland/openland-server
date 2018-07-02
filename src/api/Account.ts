@@ -111,14 +111,15 @@ export const Resolver = {
                 if (existing) {
                     return IDs.OrganizationAccount.serialize(invite.orgId);
                 }
-                await DB.OrganizationMember.create({ userId: uid, orgId: invite.orgId, isOwner: false }, { transaction: tx });
+                await DB.OrganizationMember.create({ userId: uid, orgId: invite.orgId, isOwner: false, invitedBy: invite.creatorId }, { transaction: tx });
                 return IDs.OrganizationAccount.serialize(invite.orgId);
             });
         }),
         alphaCreateInvite: withAccount(async (args, uid, oid) => {
             return await DB.OrganizationInvite.create({
                 uuid: randomKey(),
-                orgId: oid
+                orgId: oid,
+                creatorId: uid
             });
         }),
         alphaDeleteInvite: withAccount<{ id: string }>(async (args, uid, oid) => {

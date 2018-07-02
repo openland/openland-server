@@ -237,6 +237,16 @@ input UpdateOrganizationProfileInput {
     alphaARLandUse: [String!]
 }
 
+type OrganizationMember {
+    user: User!,
+    permissions: Permissions!
+}
+
+enum OrganizationMemberRole {
+    OWNER,
+    MEMBER
+}
+
 extend type Query {
     myOrganization: Organization
     myOrganizationProfile: OrganizationProfile!
@@ -249,6 +259,7 @@ extend type Query {
         after: String,
         page: Int
     ): AlphaOrganizationListingConnection
+    alphaOrganizationMembers(orgId: ID!): [OrganizationMember!]!
 }
 
 extend type Mutation {
@@ -258,4 +269,6 @@ extend type Mutation {
     alphaOrganizationCreateListing(type: String!, input: AlphaOrganizationListingInput!): AlphaOrganizationListing!
     alphaOrganizationEditListing(id: ID!, input: AlphaOrganizationListingInput!): AlphaOrganizationListing!
     alphaOrganizationDeleteListing(id: ID!): String!
+    alphaOrganizationRemoveMember(memberId: ID!): String
+    alphaOrganizationChangeMemberRole(memberId: ID!, newRole: OrganizationMemberRole!): String
 }

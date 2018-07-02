@@ -1,4 +1,4 @@
-import { DB } from '../tables';
+import { DB, User } from '../tables';
 import { Organization } from '../tables/Organization';
 import { IDs } from './utils/IDs';
 import { buildBaseImageUrl } from '../repositories/Media';
@@ -20,6 +20,7 @@ import {
     defined, emailValidator, enumString, optional, stringNotEmpty,
     validate
 } from '../modules/NewInputValidator';
+import { AccessDeniedError } from '../errors/AccessDeniedError';
 
 let isFollowed = async (initiatorOrgId: number, targetOrgId: number) => {
     let connection = await DB.OrganizationConnect.find({
@@ -247,6 +248,38 @@ export const Resolver = {
                 .limit(args.first);
 
             return await builder.findElastic(hits);
+        }),
+
+        alphaOrganizationMembers: withAccount<{ orgId: string }>(async (args, uid, orgId) => {
+            let targetOrgId = IDs.Organization.parse(args.orgId);
+
+            let isMember = Repos.Users.isMemberOfOrganization(uid, targetOrgId);
+
+            if (isMember == null) {
+                throw new AccessDeniedError(ErrorText.permissionDenied);
+            }
+
+            let members = await Repos.Organizations.getOrganizationMembers(orgId);
+
+            let permissions = await Repos.Permissions.resolvePermissionsInOrganization(members);
+
+            let result: {
+                user: User,
+                permissions: {
+                    roles: string[]
+                }
+            }[] = [];
+
+            for (let i = 0; i < members.length; i++) {
+                result.push({
+                    user: members[i].user,
+                    permissions: {
+                        roles: permissions[i]
+                    }
+                });
+            }
+
+            return result;
         })
     },
     Mutation: {
@@ -859,6 +892,79 @@ export const Resolver = {
                     throw new NotFoundError(ErrorText.unableToFindListing);
                 }
                 await listing.destroy({ transaction: tx });
+                return 'ok';
+            });
+        }),
+        alphaOrganizationRemoveMember: withAccount<{ memberId: string }>(async (args, uid, oid) => {
+            return await DB.tx(async (tx) => {
+                let memberId = IDs.User.parse(args.memberId);
+
+                let member = await DB.OrganizationMember.findOne({
+                    where: {
+                        userId: memberId,
+                        orgId: oid
+                    },
+                    transaction: tx
+                });
+
+                if (!member) {
+                    return 'ok';
+                }
+
+                let invitedByUser = (member.invitedBy && (member.invitedBy === uid)) || false;
+
+                let isOwner = await Repos.Organizations.isOwnerOfOrganization(oid, uid);
+
+                if (!isOwner && !invitedByUser) {
+                    throw new AccessDeniedError(ErrorText.permissionDenied);
+                }
+
+                if (isOwner && memberId === uid) {
+                    throw new AccessDeniedError(ErrorText.permissionDenied);
+                }
+
+                await member.destroy({ transaction: tx });
+
+                return 'ok';
+            });
+        }),
+        alphaOrganizationChangeMemberRole: withAccount<{ memberId: string, newRole: 'OWNER'|'MEMBER' }>(async (args, uid, oid) => {
+            return await DB.tx(async (tx) => {
+                let isOwner = await Repos.Organizations.isOwnerOfOrganization(oid, uid);
+
+                if (!isOwner) {
+                    throw new UserError(ErrorText.permissionOnlyOwner);
+                }
+
+                let memberId = IDs.User.parse(args.memberId);
+
+                let member = await DB.OrganizationMember.findOne({
+                    where: {
+                        userId: memberId,
+                        orgId: oid
+                    },
+                    transaction: tx
+                });
+
+                if (!member) {
+                    throw new NotFoundError();
+                }
+
+                switch (args.newRole) {
+                    case 'OWNER':
+                        await member.update({
+                            isOwner: true,
+                        }, { transaction: tx });
+                        break;
+                    case 'MEMBER':
+                        await member.update({
+                            isOwner: false,
+                        }, { transaction: tx });
+                        break;
+                    default:
+                        break;
+                }
+
                 return 'ok';
             });
         }),

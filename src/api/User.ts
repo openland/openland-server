@@ -89,6 +89,7 @@ export const Resolver = {
                 if (profile === null) {
                     return null;
                 }
+
                 return DB.User.findById(context.uid);
             }
         },

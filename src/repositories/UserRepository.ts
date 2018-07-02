@@ -73,4 +73,15 @@ export class UserRepository {
             }
         });
     }
+
+    async isMemberOfOrganization(uid: number, orgId: number): Promise<boolean> {
+        let isMember = await DB.OrganizationMember.findOne({
+            where: {
+                userId: uid,
+                orgId: orgId
+            }
+        });
+
+        return !!isMember;
+    }
 }

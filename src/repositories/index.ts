@@ -8,6 +8,7 @@ import { UserRepository } from './UserRepository';
 import { SuperRepository } from './SuperRepository';
 import { OpportunitiesRepository } from './OpportunitiesRepository';
 import { FoldersRepository } from './FoldersRepository';
+import { OrganizationRepository } from './OrganizationRepository';
 
 export const Repos = {
     Area: new AreaRepository(),
@@ -19,5 +20,6 @@ export const Repos = {
     Users: new UserRepository(),
     Super: new SuperRepository(),
     Opportunities: new OpportunitiesRepository(),
-    Folders: new FoldersRepository()
+    Folders: new FoldersRepository(),
+    Organizations: new OrganizationRepository()
 };

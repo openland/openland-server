@@ -3,6 +3,7 @@ import { FeatureFlag } from '../tables/FeatureFlag';
 import { NotFoundError } from '../errors/NotFoundError';
 import { ErrorText } from '../errors/ErrorText';
 import { IDs } from '../api/utils/IDs';
+import { OrganizationMember } from '../tables/OrganizationMember';
 
 export interface AreaPermissions {
     isOwner: boolean;
@@ -82,6 +83,26 @@ export class PermissionRepository {
                 }
             }
         }
+        return permissions;
+    }
+
+    async resolvePermissionsInOrganization(members: OrganizationMember[]): Promise<string[][]> {
+        let permissions: string[][] = [];
+
+        for (let member of members) {
+            if (member.user) {
+                let orgId = IDs.Organization.serialize(member.orgId);
+
+                let memberPermissions = [`org-${orgId}-member`];
+
+                if (member.isOwner) {
+                    memberPermissions.push(`org-${orgId}-admin`);
+                }
+
+                permissions.push(memberPermissions);
+            }
+        }
+
         return permissions;
     }
 
