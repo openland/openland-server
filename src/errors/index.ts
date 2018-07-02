@@ -4,6 +4,7 @@ import UUID from 'uuid/v4';
 import { NotFoundError } from './NotFoundError';
 import { UserError } from './UserError';
 import { InvalidInputError } from './InvalidInputError';
+import * as Raven from 'raven';
 
 interface FormattedError {
     uuid: string;
@@ -43,6 +44,7 @@ export function errorHandler(error: { message: string, originalError: any }, con
             uuid: uuid,
         };
     }
+    Raven.captureException(error.originalError);
     return {
         message: 'An unexpected error occurred. Please, try again. If the problem persists, please contact support@openland.com.',
         uuid: uuid,
