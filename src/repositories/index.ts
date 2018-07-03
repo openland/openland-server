@@ -9,6 +9,7 @@ import { SuperRepository } from './SuperRepository';
 import { OpportunitiesRepository } from './OpportunitiesRepository';
 import { FoldersRepository } from './FoldersRepository';
 import { OrganizationRepository } from './OrganizationRepository';
+import { ChatsRepository } from './ChatRepository';
 
 export const Repos = {
     Area: new AreaRepository(),
@@ -21,5 +22,6 @@ export const Repos = {
     Super: new SuperRepository(),
     Opportunities: new OpportunitiesRepository(),
     Folders: new FoldersRepository(),
-    Organizations: new OrganizationRepository()
+    Organizations: new OrganizationRepository(),
+    Chats: new ChatsRepository()
 };
