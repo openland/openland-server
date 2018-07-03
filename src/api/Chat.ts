@@ -148,7 +148,7 @@ export const Resolver = {
                 let lastKnownSeq = args.fromSeq;
 
                 while (true) {
-                    if (lastKnownSeq) {
+                    if (lastKnownSeq !== undefined) {
                         let events = await DB.ConversationEvent.findAll({
                             where: {
                                 conversationId: conversationId,
