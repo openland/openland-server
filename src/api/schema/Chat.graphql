@@ -20,3 +20,7 @@ extend type Query {
     alphaChat(conversationId: ID!): Conversation!
     alphaLoadMessages(conversationId: ID!): [ConversationMessage!]!
 }
+
+extend type Subscription {
+    alphaChatSubscribe(conversationId: ID!, lastKnownId: ID): ConversationMessage!
+}
