@@ -97,10 +97,9 @@ export const Resolver = {
                     seq: seq
                 }, { transaction: tx });
 
-                // (tx as any).afterCommit(() => {
-                //     pubsub.publish('chat_' + conversationId, { eventId: res.id });
-                // });
-                pubsub.publish('chat_' + conversationId, { eventId: res.id });
+                (tx as any).afterCommit(() => {
+                    pubsub.publish('chat_' + conversationId, { eventId: res.id });
+                });
                 return res;
             });
         })
