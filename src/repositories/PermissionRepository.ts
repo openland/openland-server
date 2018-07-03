@@ -86,22 +86,20 @@ export class PermissionRepository {
         return permissions;
     }
 
-    async resolvePermissionsInOrganization(members: OrganizationMember[]): Promise<string[][]> {
-        let permissions: string[][] = [];
+    async resolveRoleInOrganization(members: OrganizationMember[]): Promise<string[]> {
+        let roles: string[] = [];
 
         for (let member of members) {
             if (member.user) {
-                let memberPermissions = [`MEMBER`];
-
                 if (member.isOwner) {
-                    memberPermissions.push(`OWNER`);
+                    roles.push(`OWNER`);
+                } else {
+                    roles.push(`MEMBER`);
                 }
-
-                permissions.push(memberPermissions);
             }
         }
 
-        return permissions;
+        return roles;
     }
 
     async superRole(userId: number | null | undefined): Promise<string | false> {
