@@ -3,6 +3,9 @@ if (Symbol.asyncIterator === undefined) {
     ((Symbol as any).asyncIterator) = Symbol.for('asyncIterator');
 }
 
+import Raven from 'raven';
+Raven.config('https://8fd3799350f74171b901606ddda8d91d@sentry.io/1236375').install();
+
 import { initApi } from './init/initApi';
 import { initWorkers } from './workers';
 import { initDatabase } from './init/initDatabase';
