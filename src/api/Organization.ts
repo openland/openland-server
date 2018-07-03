@@ -268,16 +268,18 @@ export const Resolver = {
             let result: {
                 user: User,
                 permissions: {
-                    roles: string[]
-                }
+                    role: string
+                }[]
             }[] = [];
 
             for (let i = 0; i < members.length; i++) {
                 result.push({
                     user: members[i].user,
-                    permissions: {
-                        roles: permissions[i]
-                    }
+                    permissions: permissions[i].map(role => {
+                        return {
+                            role
+                        };
+                    })
                 });
             }
 
