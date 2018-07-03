@@ -8,7 +8,7 @@ import { schemaHandler } from '../handlers/schema';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { Schema } from '../api/index';
 import { execute, subscribe } from 'graphql';
-
+import { fetchWebSocketParameters, buildWebSocketContext } from '../handlers/websocket';
 export async function initApi(isTest: boolean) {
 
     console.info('Starting...');
@@ -65,7 +65,21 @@ export async function initApi(isTest: boolean) {
         new SubscriptionServer({
             schema: Schema,
             execute,
-            subscribe
+            subscribe,
+            onConnect: async (args: any, webSocket: any) => {
+                console.warn(args);
+                webSocket.__params = await fetchWebSocketParameters(args, webSocket);
+            },
+            onOperation: (message: any, params: any, webSocket: any) => {
+                if (!isTest) {
+                    if (webSocket.__params.uid) {
+                        console.log('WS GraphQL [#' + webSocket.__params.uid + ']: ' + JSON.stringify(message.payload));
+                    } else {
+                        console.log('WS GraphQL [#ANON]: ' + JSON.stringify(message.payload));
+                    }
+                }
+                return { ...params, context:  buildWebSocketContext(webSocket.__params) };
+            }
         }, { server: listener, path: '/api' });
     } else {
         await new Promise((resolver) => app.listen(0, () => resolver()));
