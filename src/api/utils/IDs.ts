@@ -32,4 +32,6 @@ export const IDs = {
     Folder: Ids.createId('Folder'),
     FolderItem: Ids.createId('FolderItem'),
     Task: Ids.createId('Task'),
+    Conversation: Ids.createId('Conversation'),
+    ConversationMessage: Ids.createId('ConversationMessage'),
 };

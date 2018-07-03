@@ -1,0 +1,21 @@
+type Conversation {
+    id: ID!
+    title: String!
+}
+
+type ConversationMessage {
+    id: ID!
+    message: String!
+    sender: User!
+    date: String!
+}
+
+extend type Mutation {
+    superCreateChat(title: String!): Conversation!
+    alphaSendMessage(conversationId: ID!, message: String!): ConversationMessage!
+}
+
+extend type Query {
+    superAllChats: [Conversation!]!
+    alphaLoadMessages(conversationId: ID!): [ConversationMessage!]!
+}
