@@ -9,6 +9,7 @@ import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { Schema } from '../api/index';
 import { execute, subscribe } from 'graphql';
 import { fetchWebSocketParameters, buildWebSocketContext } from '../handlers/websocket';
+import { errorHandler } from '../errors';
 export async function initApi(isTest: boolean) {
 
     console.info('Starting...');
@@ -61,6 +62,15 @@ export async function initApi(isTest: boolean) {
         console.info('Binding to port ' + dport);
         let listener = app.listen(dport);
 
+        let formatError = (err: any) => {
+            console.warn(err);
+            return {
+                ...errorHandler(err),
+                locations: err.locations,
+                path: err.path
+            };
+        };
+
         // Starting WS
         new SubscriptionServer({
             schema: Schema,
@@ -71,6 +81,7 @@ export async function initApi(isTest: boolean) {
                 webSocket.__params = await fetchWebSocketParameters(args, webSocket);
             },
             onOperation: (message: any, params: any, webSocket: any) => {
+                console.warn(params);
                 if (!isTest) {
                     if (webSocket.__params.uid) {
                         console.log('WS GraphQL [#' + webSocket.__params.uid + ']: ' + JSON.stringify(message.payload));
@@ -78,7 +89,14 @@ export async function initApi(isTest: boolean) {
                         console.log('WS GraphQL [#ANON]: ' + JSON.stringify(message.payload));
                     }
                 }
-                return { ...params, context:  buildWebSocketContext(webSocket.__params) };
+                return {
+                    ...params,
+                    context: buildWebSocketContext(webSocket.__params),
+                    formatResponse: (value: any) => ({
+                        ...value,
+                        errors: value.errors && value.errors.map(formatError),
+                    })
+                };
             }
         }, { server: listener, path: '/api' });
     } else {

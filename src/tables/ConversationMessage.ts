@@ -8,6 +8,7 @@ export interface ConversationMessageAttributes {
     message: string;
     userId: number;
     conversationId: number;
+    repeatToken: string | null;
 }
 
 export interface ConversationMessage extends sequelize.Instance<Partial<ConversationMessageAttributes>>, ConversationMessageAttributes {
@@ -22,7 +23,8 @@ export const ConversationMessageTable = connection.define<ConversationMessage, P
         type: sequelize.STRING(4096), allowNull: false, validate: {
             notEmpty: true
         }
-    }
+    },
+    repeatToken: { type: sequelize.STRING, allowNull: true, unique: true },
 }, { paranoid: true });
 
 ConversationMessageTable.belongsTo(UserTable, { as: 'user', foreignKey: { allowNull: false } });
