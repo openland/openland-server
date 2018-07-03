@@ -109,9 +109,23 @@ export const Resolver = {
             resolve: async (msg: number) => {
                 return DB.ConversationEvent.findById(msg);
             },
-            subscribe: async function* (_: any, args: { conversationId: string }) {
+            subscribe: async function* (_: any, args: { conversationId: string, fromSeq?: number }) {
                 console.warn('subscribe');
                 let conversationId = IDs.Conversation.parse(args.conversationId);
+                if (args.fromSeq) {
+                    let res = await DB.ConversationEvent.findAll({
+                        where: {
+                            conversationId: conversationId,
+                            seq: {
+                                $gt: args.fromSeq
+                            }
+                        },
+                        order: ['seq']
+                    });
+                    for (let r of res) {
+                        return r;
+                    }
+                }
                 let lastMessageId: number = -1;
                 let breakable: (() => void) | null = null;
                 pubsub.subscribe('chat_' + conversationId, (msg) => {
