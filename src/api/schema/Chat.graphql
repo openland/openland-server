@@ -31,7 +31,7 @@ type ConversationState {
 
 extend type Mutation {
     superCreateChat(title: String!): Conversation!
-    alphaSendMessage(conversationId: ID!, message: String!): ConversationEventMessage!
+    alphaSendMessage(conversationId: ID!, message: String!, repeatKey: String): ConversationEventMessage!
 }
 
 extend type Query {

@@ -10,6 +10,7 @@ import { NotFoundError } from '../errors/NotFoundError';
 import { ConversationEvent } from '../tables/ConversationEvent';
 import { CallContext } from './utils/CallContext';
 import { Repos } from '../repositories';
+import { DoubleInvokeError } from '../errors/DoubleInvokeError';
 
 let pubsub = new Pubsub<{ eventId: number }>();
 
@@ -37,6 +38,9 @@ export const Resolver = {
     },
     ConversationEventMessage: {
         message: (src: ConversationEvent) => DB.ConversationMessage.findById(src.event.messageId as number)
+    },
+    ConversationEventDelete: {
+        messageId: (src: ConversationEvent) => IDs.ConversationMessage.serialize(src.event.messageId as number)
     },
     Query: {
         superAllChats: withPermission('software-developer', (args) => {
@@ -72,10 +76,24 @@ export const Resolver = {
                 title: args.title
             });
         }),
-        alphaSendMessage: withAccount<{ conversationId: string, message: string }>(async (args, uid) => {
+        alphaSendMessage: withAccount<{ conversationId: string, message: string, repeatKey?: string | null }>(async (args, uid) => {
             validate({ message: stringNotEmpty() }, args);
             let conversationId = IDs.Conversation.parse(args.conversationId);
             return await DB.tx(async (tx) => {
+
+                if (args.repeatKey) {
+                    if (await DB.ConversationMessage.find({
+                        where: {
+                            userId: uid,
+                            conversationId: conversationId,
+                            repeatToken: args.repeatKey
+                        },
+                        transaction: tx,
+                        lock: tx.LOCK.UPDATE
+                    })) {
+                        throw new DoubleInvokeError();
+                    }
+                }
 
                 let conv = await DB.Conversation.findById(conversationId, { lock: tx.LOCK.UPDATE, transaction: tx });
                 if (!conv) {
@@ -88,7 +106,8 @@ export const Resolver = {
                 let msg = await DB.ConversationMessage.create({
                     message: args.message,
                     conversationId: conversationId,
-                    userId: uid
+                    userId: uid,
+                    repeatToken: args.repeatKey
                 }, { transaction: tx });
                 let res = await DB.ConversationEvent.create({
                     conversationId: conversationId,
@@ -98,6 +117,23 @@ export const Resolver = {
                     },
                     seq: seq
                 }, { transaction: tx });
+
+                if (args.message === 'delete') {
+                    seq = seq + 1;
+                    conv.seq = seq;
+                    await conv.save({ transaction: tx });
+                    let res2 = await DB.ConversationEvent.create({
+                        conversationId: conversationId,
+                        eventType: 'delete_message',
+                        event: {
+                            messageId: msg.id
+                        },
+                        seq: seq
+                    }, { transaction: tx });
+                    (tx as any).afterCommit(() => {
+                        pubsub.publish('chat_' + conversationId, { eventId: res2.id });
+                    });
+                }
 
                 (tx as any).afterCommit(() => {
                     pubsub.publish('chat_' + conversationId, { eventId: res.id });
@@ -110,10 +146,8 @@ export const Resolver = {
         alphaChatSubscribe: {
             resolve: async (msg: any) => {
                 return msg;
-                // return DB.ConversationEvent.findById(msg);
             },
             subscribe: async function* (_: any, args: { conversationId: string, fromSeq?: number }) {
-                console.warn('subscribe');
                 let conversationId = IDs.Conversation.parse(args.conversationId);
                 if (args.fromSeq) {
                     let res = await DB.ConversationEvent.findAll({
@@ -126,28 +160,29 @@ export const Resolver = {
                         order: ['seq']
                     });
                     for (let r of res) {
-                        return r;
+                        yield r;
                     }
                 }
-                let lastMessageId: number = -1;
+                let lastMessageId: number[] = [];
                 let breakable: (() => void) | null = null;
                 pubsub.subscribe('chat_' + conversationId, (msg) => {
-                    lastMessageId = msg.eventId;
+                    lastMessageId.push(msg.eventId);
                     if (breakable) {
                         breakable();
                         breakable = null;
                     }
                 });
                 while (true) {
-                    let delay = delayBreakable(1000);
-                    breakable = delay.resolver;
-                    await delay.promise;
-                    if (lastMessageId !== -1) {
-                        let msg = lastMessageId;
-                        lastMessageId = -1;
-                        yield await DB.ConversationEvent.findById(msg);
-                        // console.warn(msg);
-                        // yield msg;
+                    if (lastMessageId.length === 0) {
+                        let delay = delayBreakable(1000);
+                        breakable = delay.resolver;
+                        await delay.promise;
+                    }
+                    if (lastMessageId.length > 0) {
+                        for (let msg of lastMessageId) {
+                            yield await DB.ConversationEvent.findById(msg);
+                        }
+                        lastMessageId = [];
                     }
                 }
             }

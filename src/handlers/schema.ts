@@ -18,7 +18,7 @@ function handleRequest() {
                 tracing: false,
                 formatError: (err: any) => {
                     return {
-                        ...errorHandler(err, res.locals.ctx),
+                        ...errorHandler(err),
                         locations: err.locations,
                         path: err.path
                     };
