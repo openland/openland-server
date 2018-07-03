@@ -263,23 +263,17 @@ export const Resolver = {
 
             let members = await Repos.Organizations.getOrganizationMembers(orgId);
 
-            let permissions = await Repos.Permissions.resolvePermissionsInOrganization(members);
+            let roles = await Repos.Permissions.resolveRoleInOrganization(members);
 
             let result: {
                 user: User,
-                permissions: {
-                    role: string
-                }[]
+                role: string
             }[] = [];
 
             for (let i = 0; i < members.length; i++) {
                 result.push({
                     user: members[i].user,
-                    permissions: permissions[i].map(role => {
-                        return {
-                            role
-                        };
-                    })
+                    role: roles[i]
                 });
             }
 

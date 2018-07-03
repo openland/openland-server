@@ -240,13 +240,9 @@ input UpdateOrganizationProfileInput {
     alphaARLandUse: [String!]
 }
 
-type OrganizationMemberPermission {
-    role: OrganizationMemberRole!
-}
-
 type OrganizationMember {
     user: User!
-    permissions: [OrganizationMemberPermission!]!
+    role: OrganizationMemberRole!
 }
 
 enum OrganizationMemberRole {
