@@ -16,7 +16,7 @@ export const Resolver = {
         id: (src: ConversationMessage) => IDs.ConversationMessage.serialize(src.id),
         message: (src: ConversationMessage) => src.message,
         sender: (src: ConversationMessage) => DB.User.findById(src.userId),
-        date: (src: ConversationMessage) => src.createdAt
+        date: (src: ConversationMessage) => src.createdAt.toUTCString()
     },
     Conversation: {
         id: (src: Conversation) => IDs.Conversation.serialize(src.id),
