@@ -10,17 +10,36 @@ type ConversationMessage {
     date: String!
 }
 
+interface ConversationEvent {
+    seq: Int!
+}
+
+type ConversationEventMessage implements ConversationEvent {
+    seq: Int!
+    message: ConversationMessage!
+}
+
+type ConversationEventDelete implements ConversationEvent {
+    seq: Int!
+    messageId: ID!
+}
+
+type ConversationState {
+    seq: Int!
+    messages: [ConversationMessage!]!
+}
+
 extend type Mutation {
     superCreateChat(title: String!): Conversation!
-    alphaSendMessage(conversationId: ID!, message: String!): ConversationMessage!
+    alphaSendMessage(conversationId: ID!, message: String!): ConversationEventMessage!
 }
 
 extend type Query {
     superAllChats: [Conversation!]!
     alphaChat(conversationId: ID!): Conversation!
-    alphaLoadMessages(conversationId: ID!): [ConversationMessage!]!
+    alphaLoadMessages(conversationId: ID!): ConversationState!
 }
 
 extend type Subscription {
-    alphaChatSubscribe(conversationId: ID!, lastKnownId: ID): ConversationMessage!
+    alphaChatSubscribe(conversationId: ID!, fromSeq: Int): ConversationEvent!
 }

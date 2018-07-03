@@ -241,7 +241,7 @@ async function updateReader<TInstance, TAttributes>(
     include: Array<IncludeOptions> = [],
     delayValue: number,
     processor: (data: TInstance[], tx: Transaction) => Promise<void>,
-    initFunc?: (tx: Transaction) => Promise<boolean>, ) {
+    initFunc?: (tx: Transaction) => Promise<boolean>) {
 
     let isParanoid = (model as any).options.paranoid as boolean;
     let modelName = (model as any).options.name.singular;

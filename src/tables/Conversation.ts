@@ -4,6 +4,7 @@ import * as sequelize from 'sequelize';
 export interface ConversationAttributes {
     id: number;
     title: string;
+    seq: number;
 }
 
 export interface Conversation extends sequelize.Instance<Partial<ConversationAttributes>>, ConversationAttributes {
@@ -17,4 +18,5 @@ export const ConversationTable = connection.define<Conversation, Partial<Convers
             notEmpty: true
         }
     },
+    seq: { type: sequelize.INTEGER, defaultValue: 0, allowNull: false }
 }, { paranoid: true });
