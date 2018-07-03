@@ -1,8 +1,42 @@
-import { DB } from '../tables';
+import { DB, User } from '../tables';
+import DataLoader from 'dataloader';
+import { CallContext } from '../api/utils/CallContext';
 import { ImageRef } from './Media';
 
 export class UserRepository {
     private userCache = new Map<string, number | undefined>();
+
+    userLoader(context: CallContext) {
+        if (!context.cache.has('__user_loader')) {
+            context.cache.set('__user_loader', new DataLoader<number, User | null>(async (ids) => {
+                let foundTokens = await DB.User.findAll({
+                    where: {
+                        id: {
+                            $in: ids
+                        }
+                    }
+                });
+
+                let res: (User | null)[] = [];
+                for (let i of ids) {
+                    let found = false;
+                    for (let f of foundTokens) {
+                        if (i === f.id) {
+                            res.push(f);
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        res.push(null);
+                    }
+                }
+                return res;
+            }));
+        }
+        let loader = context.cache.get('__user_loader') as DataLoader<number, User | null>;
+        return loader;
+    }
 
     async fetchOrganizationMembers(organizationId: number) {
         let uids = (await DB.OrganizationMember.findAll({

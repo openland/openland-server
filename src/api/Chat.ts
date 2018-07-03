@@ -8,6 +8,8 @@ import { Pubsub } from '../modules/pubsub';
 import { delayBreakable } from '../utils/timer';
 import { NotFoundError } from '../errors/NotFoundError';
 import { ConversationEvent } from '../tables/ConversationEvent';
+import { CallContext } from './utils/CallContext';
+import { Repos } from '../repositories';
 
 let pubsub = new Pubsub<{ eventId: number }>();
 
@@ -15,7 +17,7 @@ export const Resolver = {
     ConversationMessage: {
         id: (src: ConversationMessage) => IDs.ConversationMessage.serialize(src.id),
         message: (src: ConversationMessage) => src.message,
-        sender: (src: ConversationMessage) => DB.User.findById(src.userId),
+        sender: (src: ConversationMessage, _: any, context: CallContext) => Repos.Users.userLoader(context).load(src.userId),
         date: (src: ConversationMessage) => src.createdAt.toUTCString()
     },
     Conversation: {
@@ -106,8 +108,9 @@ export const Resolver = {
     },
     Subscription: {
         alphaChatSubscribe: {
-            resolve: async (msg: number) => {
-                return DB.ConversationEvent.findById(msg);
+            resolve: async (msg: any) => {
+                return msg;
+                // return DB.ConversationEvent.findById(msg);
             },
             subscribe: async function* (_: any, args: { conversationId: string, fromSeq?: number }) {
                 console.warn('subscribe');
@@ -142,8 +145,9 @@ export const Resolver = {
                     if (lastMessageId !== -1) {
                         let msg = lastMessageId;
                         lastMessageId = -1;
-                        console.warn(msg);
-                        yield msg;
+                        yield await DB.ConversationEvent.findById(msg);
+                        // console.warn(msg);
+                        // yield msg;
                     }
                 }
             }

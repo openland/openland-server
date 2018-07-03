@@ -19,7 +19,7 @@ export interface ConversationMessage extends sequelize.Instance<Partial<Conversa
 export const ConversationMessageTable = connection.define<ConversationMessage, Partial<ConversationMessageAttributes>>('conversation_message', {
     id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
     message: {
-        type: sequelize.STRING, allowNull: false, validate: {
+        type: sequelize.STRING(4096), allowNull: false, validate: {
             notEmpty: true
         }
     }
