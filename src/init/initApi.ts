@@ -76,6 +76,7 @@ export async function initApi(isTest: boolean) {
             schema: Schema,
             execute,
             subscribe,
+            keepAlive: 10000,
             onConnect: async (args: any, webSocket: any) => {
                 console.warn(args);
                 webSocket.__params = await fetchWebSocketParameters(args, webSocket);
