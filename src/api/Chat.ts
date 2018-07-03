@@ -22,6 +22,10 @@ export const Resolver = {
                 order: ['createdAt']
             });
         }),
+        alphaChat: withAny<{ conversationId: string }>((args) => {
+            let conversationId = IDs.Conversation.parse(args.conversationId);
+            return DB.Conversation.findById(conversationId);
+        }),
         alphaLoadMessages: withAny<{ conversationId: string }>((args) => {
             let conversationId = IDs.Conversation.parse(args.conversationId);
             return DB.ConversationMessage.findAll({
