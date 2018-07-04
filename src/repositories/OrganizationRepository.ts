@@ -1,14 +1,19 @@
 import { OrganizationMember } from '../tables/OrganizationMember';
 import { DB } from '../tables';
+import sequelize from 'sequelize';
 
 export class OrganizationRepository {
     async getOrganizationMembers(orgId: number): Promise<OrganizationMember[]> {
         return await DB.OrganizationMember.findAll({
             where: { orgId },
-            order: [['createdAt', 'DESC']],
+            order: [sequelize.literal('"user"."userProfile"."name"')],
             include: [{
                 model: DB.User,
-                as: 'user'
+                as: 'user',
+                include: [{
+                    model: DB.UserProfile,
+                    as: 'userProfile'
+                }]
             }]
         });
     }
