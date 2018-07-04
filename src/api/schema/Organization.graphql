@@ -242,7 +242,7 @@ input UpdateOrganizationProfileInput {
 
 type OrganizationMember {
     user: User!
-    joinedAt: String!
+    joinedAt: String
     email: String
     role: OrganizationMemberRole!
 }
