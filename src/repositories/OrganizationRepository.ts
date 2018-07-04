@@ -5,7 +5,7 @@ export class OrganizationRepository {
     async getOrganizationMembers(orgId: number): Promise<OrganizationMember[]> {
         return await DB.OrganizationMember.findAll({
             where: { orgId },
-            order: [[ 'user.userProfile.name', 'ASC']],
+            order: 'user.userProfile.name',
             include: [{
                 model: DB.User,
                 as: 'user',
