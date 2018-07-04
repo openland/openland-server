@@ -117,13 +117,23 @@ export const Resolver = {
         counter: (src: { uid: number, conversationId: number }) => src.uid
     },
     NotificationCounter: {
-        id: (uid: number) => IDs.NotificationCounter.serialize(uid),
-        unreadCount: async (uid: number) => {
-            let global = await DB.ConversationsUserGlobal.find({ where: { userId: uid } });
-            if (global) {
-                return global.unread;
+        id: (src: number | { uid: number, counter: number }) => {
+            if (typeof src === 'number') {
+                return IDs.NotificationCounter.serialize(src);
             } else {
-                return 0;
+                return IDs.NotificationCounter.serialize(src.uid);
+            }
+        },
+        unreadCount: async (src: number | { uid: number, counter: number }) => {
+            if (typeof src === 'number') {
+                let global = await DB.ConversationsUserGlobal.find({ where: { userId: src } });
+                if (global) {
+                    return global.unread;
+                } else {
+                    return 0;
+                }
+            } else {
+                return src.counter;
             }
         }
     },
@@ -472,6 +482,31 @@ export const Resolver = {
                     if (!lastKnownSeq) {
                         lastKnownSeq = res - 1;
                     }
+                }
+            }
+        },
+        alphaNotificationCounterSubscribe: {
+            resolve: async (msg: any) => {
+                return msg;
+            },
+            subscribe: async function* (_: any, args: any, context: CallContext) {
+                if (!context.uid) {
+                    throw Error('Not logged in');
+                }
+                let state = await DB.ConversationsUserGlobal.find({ where: { userId: context.uid!! } });
+                if (state) {
+                    yield {
+                        counter: state.unread,
+                        uid: context.uid
+                    };
+                }
+                while (true) {
+                    let counter = await Repos.Chats.counterReader.loadNext(context.uid!!);
+                    console.warn('counter');
+                    yield {
+                        counter,
+                        uid: context.uid
+                    };
                 }
             }
         }

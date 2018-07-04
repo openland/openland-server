@@ -1,10 +1,8 @@
-import { Pubsub } from '../modules/pubsub';
 import { DB } from '../tables';
-import { backoff, forever, delayBreakable } from '../utils/timer';
-import sequelize from 'sequelize';
-import { addAfterChangedCommitHook } from '../utils/sequelizeHooks';
-
-const pubsub = new Pubsub<{ chatId: number, seq: number }>();
+import { SuperBus } from '../modules/SuperBus';
+import { ConversationEventAttributes, ConversationEvent } from '../tables/ConversationEvent';
+import { ConversationUserGlobal } from '../tables/ConversationsUserGlobal';
+import { ConversationMessageAttributes } from '../tables/ConversationMessage';
 
 class ChatsEventReader {
     private knownHeads = new Map<number, number>();
@@ -54,60 +52,63 @@ class ChatsEventReader {
     }
 }
 
+class ChatCounterListener {
+    private received = new Map<number, { date: number, counter: number }>();
+    private pending = new Map<number, ((counter: number) => void)[]>();
+
+    onMessage(uid: number, date: number, counter: number) {
+        console.warn({ uid, date, counter });
+        let changed = false;
+        if (this.received.has(uid)) {
+            let existing = this.received.get(uid)!!;
+            if (existing.date < date && existing.counter !== counter) {
+                changed = true;
+                this.received.set(uid, { date: date, counter: counter });
+            }
+        } else {
+            changed = true;
+            this.received.set(uid, { date: date, counter: counter });
+        }
+        if (changed) {
+            console.warn('changed');
+            let callbacks = this.pending.get(uid);
+            if (callbacks && callbacks.length > 0) {
+                let cb = [...callbacks];
+                this.pending.set(uid, []);
+                for (let c of cb) {
+                    c(counter);
+                }
+            }
+        }
+    }
+
+    loadNext = async (uid: number) => {
+        if (!this.pending.has(uid)) {
+            this.pending.set(uid, []);
+        }
+        return new Promise<number>((resolve) => this.pending.get(uid)!!.push(resolve));
+    }
+}
+
 export class ChatsRepository {
 
     reader: ChatsEventReader;
+    counterReader: ChatCounterListener;
+    eventsSuperbus: SuperBus<{ chatId: number, seq: number }, ConversationEvent, Partial<ConversationEventAttributes>>;
+    countersSuperbus: SuperBus<{ userId: number, counter: number, date: number }, ConversationUserGlobal, Partial<ConversationMessageAttributes>>;
 
     constructor() {
         this.reader = new ChatsEventReader();
-        pubsub.subscribe('chat_events', (event) => {
-            this.reader.onMessage(event.chatId, event.seq);
-        });
-        this.startReader();
-        addAfterChangedCommitHook(DB.ConversationEvent, (event) => {
-            pubsub.publish('chat_events', { chatId: event.conversationId, seq: event.seq });
-        });
-    }
+        this.counterReader = new ChatCounterListener();
 
-    private async startReader() {
-        let firstEvent = await backoff(async () => DB.ConversationEvent.find({
-            order: [['createdAt', 'desc'], ['id', 'desc']]
-        }));
-        let offset: { id: number, date: Date } | null = null;
-        if (firstEvent) {
-            offset = { id: firstEvent.id, date: firstEvent.createdAt };
-        }
-        let breaker: (() => void) | null = null;
-        pubsub.subscribe('chat_events', (event) => {
-            if (breaker) {
-                breaker();
-                breaker = null;
-            }
-        });
-        forever(async () => {
-            let where = (offset
-                ? sequelize.literal(`("createdAt" >= '${offset.date.toISOString()}') AND (("createdAt" > '${offset.date.toISOString()}') OR ("conversation_events"."id" > ${offset.id}))`) as any
-                : {});
-            let events = await DB.ConversationEvent.findAll({
-                where: where,
-                order: [['createdAt', 'asc'], ['id', 'asc']],
-                limit: 100
-            });
-            if (events.length > 0) {
-                offset = { id: events[events.length - 1].id, date: events[events.length - 1].createdAt };
-                for (let e of events) {
-                    this.reader.onMessage(e.conversationId, e.seq);
-                }
-                let res = delayBreakable(1000);
-                breaker = res.resolver;
-                await res.promise;
-                breaker = null;
-            } else {
-                let res = delayBreakable(5000);
-                breaker = res.resolver;
-                await res.promise;
-                breaker = null;
-            }
-        });
+        this.eventsSuperbus = new SuperBus('chat_events_all', DB.ConversationEvent, 'conversation_events');
+        this.eventsSuperbus.eventBuilder((v) => ({ chatId: v.conversationId, seq: v.seq }));
+        this.eventsSuperbus.eventHandler((v) => this.reader.onMessage(v.chatId, v.seq));
+        this.eventsSuperbus.start();
+
+        this.countersSuperbus = new SuperBus('notification_counters', DB.ConversationsUserGlobal, 'conversation_user_global');
+        this.countersSuperbus.eventBuilder((v) => ({ userId: v.userId, counter: v.unread, date: v.updatedAt.getTime() }));
+        this.countersSuperbus.eventHandler((v) => this.counterReader.onMessage(v.userId, v.date, v.counter));
+        this.countersSuperbus.start();
     }
 }

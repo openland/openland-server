@@ -104,4 +104,5 @@ extend type Query {
 
 extend type Subscription {
     alphaChatSubscribe(conversationId: ID!, fromSeq: Int): ConversationEvent!
+    alphaNotificationCounterSubscribe: NotificationCounter!
 }
