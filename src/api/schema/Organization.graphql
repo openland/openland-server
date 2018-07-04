@@ -250,6 +250,7 @@ type OrganizationIvitedMember {
 
 type OrganizationMember {
     user: User!
+    joinedAt: String
     email: String
     role: OrganizationMemberRole!
 }

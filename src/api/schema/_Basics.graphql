@@ -98,7 +98,7 @@ type Range {
     to: Int
 }
 
-input RangeInput{
+input RangeInput {
     from: Int
     to: Int
 }

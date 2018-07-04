@@ -78,11 +78,9 @@ export async function initApi(isTest: boolean) {
             subscribe,
             keepAlive: 10000,
             onConnect: async (args: any, webSocket: any) => {
-                console.warn(args);
                 webSocket.__params = await fetchWebSocketParameters(args, webSocket);
             },
             onOperation: (message: any, params: any, webSocket: any) => {
-                console.warn(params);
                 if (!isTest) {
                     if (webSocket.__params.uid) {
                         console.log('WS GraphQL [#' + webSocket.__params.uid + ']: ' + JSON.stringify(message.payload));

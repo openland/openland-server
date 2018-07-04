@@ -1,7 +1,41 @@
-type Conversation {
+
+#
+# Types Of Conversations
+#
+
+interface Conversation {
     id: ID!
     title: String!
+    photoRefs: [ImageRef!]!
+    unreadCount: Int!
 }
+
+type AnonymousConversation implements Conversation {
+    id: ID!
+    title: String!
+    photoRefs: [ImageRef!]!
+    unreadCount: Int!
+}
+
+type SharedConversation implements Conversation {
+    id: ID!
+    title: String!
+    photoRefs: [ImageRef!]!
+    organizations: [Organization!]!
+    unreadCount: Int!
+}
+
+type PrivateConversation implements Conversation {
+    id: ID!
+    title: String!
+    photoRefs: [ImageRef!]!
+    members: [User!]!
+    unreadCount: Int!
+}
+
+#
+# Messaging Contents
+#
 
 type ConversationMessage {
     id: ID!
@@ -29,14 +63,42 @@ type ConversationState {
     messages: [ConversationMessage!]!
 }
 
+#
+# Conversation List
+#
+
+type ConversationEdge {
+    node: Conversation!
+    cursor: String!
+}
+
+type ConversationConnection {
+    edges: [FolderEdge!]!
+    pageInfo: PageInfo!
+}
+
+type NotificationCounter {
+    id: ID!
+    unreadCount: Int!
+}
+
+type ChatReadResult {
+    conversation: Conversation!
+    counter: NotificationCounter!
+}
+
 extend type Mutation {
     superCreateChat(title: String!): Conversation!
     alphaSendMessage(conversationId: ID!, message: String!, repeatKey: String): ConversationEventMessage!
+    alphaReadChat(conversationId: ID!, messageId: ID!): ChatReadResult!
 }
 
 extend type Query {
     superAllChats: [Conversation!]!
+    alphaNotificationCounter: NotificationCounter!
     alphaChat(conversationId: ID!): Conversation!
+    alphaChatOrganization(orgId: ID!): Conversation!
+    alphaChatUser(userId: ID!): Conversation!
     alphaLoadMessages(conversationId: ID!): ConversationState!
 }
 

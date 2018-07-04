@@ -285,6 +285,7 @@ export const Resolver = {
                 result.push({
                     _type: 'OrganizationMember',
                     user: members[i].user,
+                    joinedAt: (members[i] as any).createdAt,
                     email: members[i].user.email,
                     role: roles[i]
                 });
@@ -1049,41 +1050,5 @@ export const Resolver = {
                 return 'ok';
             });
         }),
-        alphaOrganizationInviteMember: withAccount<{ email: string, userName: string, role: 'OWNER'|'MEMBER' }>(async (args, uid, oid) => {
-            await validate(
-                {
-                    email: defined(emailValidator),
-                    userName: optional(stringNotEmpty())
-                },
-                args
-            );
-
-            return await DB.tx(async (tx) => {
-                let isDuplicate = await Repos.Invites.haveInviteForEmail(oid, args.email, tx);
-
-                if (isDuplicate) {
-                    throw new UserError(ErrorText.inviteAlreadyExists);
-                }
-
-                let isMemberDuplicate = await Repos.Organizations.haveMemberWithEmail(oid, args.email);
-
-                if (isMemberDuplicate) {
-                    throw new UserError(ErrorText.memberWithEmailAlreadyExists);
-                }
-
-                let invite = await Repos.Invites.createOneTimeInvite(
-                    oid,
-                    uid,
-                    args.userName,
-                    args.email,
-                    args.role,
-                    tx
-                );
-
-                await Emails.sendInviteEmail(oid, invite, tx);
-
-                return invite;
-            });
-        })
     }
 };
