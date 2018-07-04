@@ -10,6 +10,7 @@ import { OpportunitiesRepository } from './OpportunitiesRepository';
 import { FoldersRepository } from './FoldersRepository';
 import { OrganizationRepository } from './OrganizationRepository';
 import { ChatsRepository } from './ChatRepository';
+import InvitesRepository from './InvitesRepository';
 
 export const Repos = {
     Area: new AreaRepository(),
@@ -23,5 +24,6 @@ export const Repos = {
     Opportunities: new OpportunitiesRepository(),
     Folders: new FoldersRepository(),
     Organizations: new OrganizationRepository(),
-    Chats: new ChatsRepository()
+    Chats: new ChatsRepository(),
+    Invites: new InvitesRepository()
 };

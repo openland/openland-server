@@ -1,6 +1,6 @@
-import { DB, User } from '../tables';
+import { DB } from '../tables';
 import { Organization } from '../tables/Organization';
-import { IDs } from './utils/IDs';
+import { IDs, IdsFactory } from './utils/IDs';
 import { buildBaseImageUrl } from '../repositories/Media';
 import { withUser, withAccount, withAny } from './utils/Resolvers';
 import { Repos } from '../repositories';
@@ -21,6 +21,7 @@ import {
     validate
 } from '../modules/NewInputValidator';
 import { AccessDeniedError } from '../errors/AccessDeniedError';
+import { Emails } from '../services/Emails';
 
 let isFollowed = async (initiatorOrgId: number, targetOrgId: number) => {
     let connection = await DB.OrganizationConnect.find({
@@ -191,6 +192,12 @@ export const Resolver = {
         alphaARLandUse: (src: Organization) => src.extras && src.extras.arLandUse,
     },
 
+    OrganizationMemberType: {
+        __resolveType(src: any) {
+            return src._type;
+        }
+    },
+
     Query: {
         myOrganization: async (_: any, args: {}, context: CallContext) => {
             if (context.oid) {
@@ -264,7 +271,7 @@ export const Resolver = {
 
             let isMember = Repos.Users.isMemberOfOrganization(uid, targetOrgId);
 
-            if (isMember == null) {
+            if (!isMember) {
                 throw new AccessDeniedError(ErrorText.permissionDenied);
             }
 
@@ -272,17 +279,26 @@ export const Resolver = {
 
             let roles = await Repos.Permissions.resolveRoleInOrganization(members);
 
-            let result: {
-                user: User,
-                email?: string,
-                role: string
-            }[] = [];
+            let result: any[] = [];
 
             for (let i = 0; i < members.length; i++) {
                 result.push({
+                    _type: 'OrganizationMember',
                     user: members[i].user,
                     email: members[i].user.email,
                     role: roles[i]
+                });
+            }
+
+            let invites = await Repos.Invites.getOneTimeInvites(orgId);
+
+            for (let invite of invites) {
+                result.push({
+                    _type: 'OrganizationIvitedMember',
+                    name: invite.userName || '',
+                    email: invite.forEmail,
+                    role: invite.memberRole,
+                    inviteId: IDs.Invite.serialize(invite.id)
                 });
             }
 
@@ -317,7 +333,7 @@ export const Resolver = {
                 .limit(args.first);
 
             return await builder.findElastic(hits);
-        })
+        }),
     },
     Mutation: {
         createOrganization: withUser<{
@@ -966,6 +982,8 @@ export const Resolver = {
 
                 await member.destroy({ transaction: tx });
 
+                await Emails.sendMemberRemovedEmail(oid, memberId, tx);
+
                 return 'ok';
             });
         }),
@@ -977,41 +995,95 @@ export const Resolver = {
                     throw new UserError(ErrorText.permissionOnlyOwner);
                 }
 
-                let memberId = IDs.User.parse(args.memberId);
+                let idType = IdsFactory.resolve(args.memberId);
 
-                if (memberId === uid) {
-                    throw new AccessDeniedError(ErrorText.permissionDenied);
-                }
+                if (idType.type.typeName === 'User') {
+                    let memberId = IDs.User.parse(args.memberId);
 
-                let member = await DB.OrganizationMember.findOne({
-                    where: {
-                        userId: memberId,
-                        orgId: oid
-                    },
-                    transaction: tx
-                });
+                    if (memberId === uid) {
+                        throw new AccessDeniedError(ErrorText.permissionDenied);
+                    }
 
-                if (!member) {
-                    throw new NotFoundError();
-                }
+                    let member = await DB.OrganizationMember.findOne({
+                        where: {
+                            userId: memberId,
+                            orgId: oid
+                        },
+                        transaction: tx
+                    });
 
-                switch (args.newRole) {
-                    case 'OWNER':
-                        await member.update({
-                            isOwner: true,
-                        }, { transaction: tx });
-                        break;
-                    case 'MEMBER':
-                        await member.update({
-                            isOwner: false,
-                        }, { transaction: tx });
-                        break;
-                    default:
-                        break;
+                    if (!member) {
+                        throw new NotFoundError();
+                    }
+
+                    switch (args.newRole) {
+                        case 'OWNER':
+                            await member.update({
+                                isOwner: true,
+                            }, { transaction: tx });
+                            break;
+                        case 'MEMBER':
+                            await member.update({
+                                isOwner: false,
+                            }, { transaction: tx });
+                            break;
+                        default:
+                            break;
+                    }
+                } else if (idType.type.typeName === 'Invite') {
+                    let invite = await DB.OrganizationInvite.findOne({
+                        where: {
+                            id: IDs.Invite.parse(args.memberId)
+                        }
+                    });
+
+                    if (!invite) {
+                        throw new NotFoundError();
+                    }
+
+                    await invite.update({
+                        memberRole: args.newRole
+                    }, { transaction: tx});
                 }
 
                 return 'ok';
             });
         }),
+        alphaOrganizationInviteMember: withAccount<{ email: string, userName: string, role: 'OWNER'|'MEMBER' }>(async (args, uid, oid) => {
+            await validate(
+                {
+                    email: defined(emailValidator),
+                    userName: optional(stringNotEmpty())
+                },
+                args
+            );
+
+            return await DB.tx(async (tx) => {
+                let isDuplicate = await Repos.Invites.haveInviteForEmail(oid, args.email, tx);
+
+                if (isDuplicate) {
+                    throw new UserError(ErrorText.inviteAlreadyExists);
+                }
+
+                let isMemberDuplicate = await Repos.Organizations.haveMemberWithEmail(oid, args.email);
+
+                if (isMemberDuplicate) {
+                    throw new UserError(ErrorText.memberWithEmailAlreadyExists);
+                }
+
+                let invite = await Repos.Invites.createOneTimeInvite(
+                    oid,
+                    uid,
+                    args.userName,
+                    args.email,
+                    args.role,
+                    tx
+                );
+
+                await Emails.sendInviteEmail(oid, invite, tx);
+
+                return invite;
+            });
+        })
     }
 };

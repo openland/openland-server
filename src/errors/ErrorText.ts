@@ -20,5 +20,8 @@ export const ErrorText = {
     permissionOnlyOwner: 'Only organization owners can edit this profile',
     permissionAuthenticatoinRequired: 'Authentication is required',
     unableToRemoveLastSuperAdmin: 'You can\'t remove the last Super Admin from the system',
-    unableToRemoveLastMember: 'You can\'t remove the last member from the organization'
+    unableToRemoveLastMember: 'You can\'t remove the last member from the organization',
+
+    inviteAlreadyExists: `Invite for this email already exists`,
+    memberWithEmailAlreadyExists: `Member with this email already exists`,
 };

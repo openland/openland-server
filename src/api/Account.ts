@@ -111,7 +111,29 @@ export const Resolver = {
                 if (existing) {
                     return IDs.OrganizationAccount.serialize(invite.orgId);
                 }
-                await DB.OrganizationMember.create({ userId: uid, orgId: invite.orgId, isOwner: false, invitedBy: invite.creatorId }, { transaction: tx });
+
+                if (invite.ttl && (new Date().getTime() >= invite.ttl)) {
+                    await invite.destroy({ transaction: tx });
+                    throw new NotFoundError(ErrorText.unableToFindInvite);
+                }
+                if (invite.isOneTime) {
+                    await DB.OrganizationMember.create({
+                        userId: uid,
+                        orgId: invite.orgId,
+                        isOwner: invite.memberRole === 'OWNER',
+                        invitedBy: invite.creatorId
+                    }, { transaction: tx });
+
+                    await invite.destroy({ transaction: tx });
+                } else {
+                    await DB.OrganizationMember.create({
+                        userId: uid,
+                        orgId: invite.orgId,
+                        isOwner: false,
+                        invitedBy: invite.creatorId
+                    }, { transaction: tx });
+                }
+
                 return IDs.OrganizationAccount.serialize(invite.orgId);
             });
         }),

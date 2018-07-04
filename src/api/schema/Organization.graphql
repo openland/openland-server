@@ -240,17 +240,26 @@ input UpdateOrganizationProfileInput {
     alphaARLandUse: [String!]
 }
 
+
+type OrganizationIvitedMember {
+    name: String
+    email: String!
+    role: OrganizationMemberRole!
+    inviteId: ID!
+}
+
 type OrganizationMember {
     user: User!
     email: String
     role: OrganizationMemberRole!
 }
 
+union OrganizationMemberType = OrganizationMember | OrganizationIvitedMember
+
 enum OrganizationMemberRole {
     OWNER,
     MEMBER
 }
-
 
 type OrganizationsEdge {
     node: Organization!
@@ -274,13 +283,13 @@ extend type Query {
         after: String,
         page: Int
     ): AlphaOrganizationListingConnection
-    alphaOrganizationMembers(orgId: ID!): [OrganizationMember!]!
+    alphaOrganizationMembers(orgId: ID!): [OrganizationMemberType!]!
     alphaOrganizations(
         query: String,
         first: Int!,
         after: String,
         page: Int
-    ): OrganizationsConnection
+    ): OrganizationsConnection!
 }
 
 extend type Mutation {
@@ -290,6 +299,7 @@ extend type Mutation {
     alphaOrganizationCreateListing(type: String!, input: AlphaOrganizationListingInput!): AlphaOrganizationListing!
     alphaOrganizationEditListing(id: ID!, input: AlphaOrganizationListingInput!): AlphaOrganizationListing!
     alphaOrganizationDeleteListing(id: ID!): String!
-    alphaOrganizationRemoveMember(memberId: ID!): String
-    alphaOrganizationChangeMemberRole(memberId: ID!, newRole: OrganizationMemberRole!): String
+    alphaOrganizationRemoveMember(memberId: ID!): String!
+    alphaOrganizationChangeMemberRole(memberId: ID!, newRole: OrganizationMemberRole!): String!
+    alphaOrganizationInviteMember(email: String!, role: OrganizationMemberRole!, userName: String): Invite!
 }
