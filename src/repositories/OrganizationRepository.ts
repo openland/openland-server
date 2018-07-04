@@ -21,11 +21,7 @@ export class OrganizationRepository {
             order: [['createdAt', 'DESC']],
             include: [{
                 model: DB.User,
-                as: 'user',
-                include: [{
-                    model: DB.UserProfile,
-                    as: 'userProfile'
-                }]
+                as: 'user'
             }]
         });
     }
