@@ -11,7 +11,7 @@ export class OrganizationRepository {
                 as: 'user',
                 include: [{
                     model: DB.UserProfile,
-                    as: 'userProfile'
+                    as: 'user'
                 }]
             }]
         });
