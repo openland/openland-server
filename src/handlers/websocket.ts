@@ -26,7 +26,7 @@ export async function fetchWebSocketParameters(args: any, websocket: any) {
                             res.oid = porgId;
                         }
                     } catch (e) {
-                        console.warn(e);
+                        console.debug(e);
                     }
                 }
             }
