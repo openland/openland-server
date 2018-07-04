@@ -246,6 +246,13 @@ export const Resolver = {
                     transaction: tx,
                     lock: tx.LOCK.UPDATE
                 });
+                let existingGlobal = await DB.ConversationsUserGlobal.find({
+                    where: {
+                        userId: uid
+                    },
+                    transaction: tx,
+                    lock: tx.LOCK.UPDATE
+                });
                 let delta = 0;
                 if (existing) {
                     if (existing.readDate < messageId) {
@@ -260,6 +267,9 @@ export const Resolver = {
                                 }
                             }
                         });
+                        if (!existingGlobal) {
+                            throw Error('Internal inconsistency');
+                        }
                         if (remaining === 0) {
                             delta = -existing.unread;
                             existing.unread = 0;
@@ -291,25 +301,18 @@ export const Resolver = {
                             unread: remaining
                         });
                         delta = remaining;
+                        if (!existingGlobal) {
+                            throw Error('Internal inconsistency');
+                        }
                     }
                 }
-                if (delta !== 0) {
-                    let existingGlobal = await DB.ConversationsUserGlobal.find({
-                        where: {
-                            userId: uid
-                        },
-                        transaction: tx,
-                        lock: tx.LOCK.UPDATE
-                    });
-                    if (existingGlobal) {
-                        existingGlobal.unread = Math.max(0, existingGlobal.unread - delta);
-                        existingGlobal.save({ transaction: tx });
-                    } else if (delta > 0) {
-                        await DB.ConversationsUserGlobal.create({
-                            userId: uid,
-                            unread: delta
-                        });
+                if (existingGlobal && delta !== 0) {
+                    let unread = existingGlobal.unread + delta;
+                    if (unread < 0) {
+                        throw Error('Internal inconsistency');
                     }
+                    existingGlobal.unread = unread;
+                    await existingGlobal.save({ transaction: tx });
                 }
             });
             return {
