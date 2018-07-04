@@ -5,10 +5,14 @@ export class OrganizationRepository {
     async getOrganizationMembers(orgId: number): Promise<OrganizationMember[]> {
         return await DB.OrganizationMember.findAll({
             where: { orgId },
-            order: [[DB.User, {model: DB.UserProfile, as: 'MemberUserProfile'},  'name', 'ASC']],
+            order: [[{model: DB.User, as: 'user'}, {model: DB.UserProfile, as: 'userProfile'},  'name', 'ASC']],
             include: [{
                 model: DB.User,
-                as: 'user'
+                as: 'user',
+                include: [{
+                    model: DB.UserProfile,
+                    as: 'userProfile'
+                }]
             }]
         });
     }
