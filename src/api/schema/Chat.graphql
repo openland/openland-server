@@ -7,12 +7,14 @@ interface Conversation {
     id: ID!
     title: String!
     photoRefs: [ImageRef!]!
+    unreadCount: Int!
 }
 
 type AnonymousConversation implements Conversation {
     id: ID!
     title: String!
     photoRefs: [ImageRef!]!
+    unreadCount: Int!
 }
 
 type SharedConversation implements Conversation {
@@ -20,6 +22,7 @@ type SharedConversation implements Conversation {
     title: String!
     photoRefs: [ImageRef!]!
     organizations: [Organization!]!
+    unreadCount: Int!
 }
 
 type PrivateConversation implements Conversation {
@@ -27,6 +30,7 @@ type PrivateConversation implements Conversation {
     title: String!
     photoRefs: [ImageRef!]!
     members: [User!]!
+    unreadCount: Int!
 }
 
 #
@@ -62,6 +66,7 @@ type ConversationState {
 extend type Mutation {
     superCreateChat(title: String!): Conversation!
     alphaSendMessage(conversationId: ID!, message: String!, repeatKey: String): ConversationEventMessage!
+    alphaReadChat(conversationId: ID!, messageId: ID!): Conversation!
 }
 
 extend type Query {

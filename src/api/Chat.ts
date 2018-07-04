@@ -29,7 +29,15 @@ export const Resolver = {
     AnonymousConversation: {
         id: (src: Conversation) => IDs.Conversation.serialize(src.id),
         title: (src: Conversation) => src.title,
-        photoRefs: (src: Conversation) => []
+        photoRefs: (src: Conversation) => [],
+        unreadCount: async (src: Conversation, _: any, context: CallContext) => {
+            let state = await DB.ConversationUserState.find({ where: { conversationId: src.id, userId: context.uid!! } });
+            if (state) {
+                return state.unread;
+            } else {
+                return 0;
+            }
+        }
     },
     SharedConversation: {
         id: (src: Conversation) => IDs.Conversation.serialize(src.id),
@@ -42,7 +50,15 @@ export const Resolver = {
                 throw Error('Inconsistent Shared Conversation resolver');
             }
         },
-        photoRefs: (src: Conversation) => []
+        photoRefs: (src: Conversation) => [],
+        unreadCount: async (src: Conversation, _: any, context: CallContext) => {
+            let state = await DB.ConversationUserState.find({ where: { conversationId: src.id, userId: context.uid!! } });
+            if (state) {
+                return state.unread;
+            } else {
+                return 0;
+            }
+        }
     },
     PrivateConversation: {
         id: (src: Conversation) => IDs.Conversation.serialize(src.id),
@@ -62,7 +78,15 @@ export const Resolver = {
             }))!!;
             return [profile.firstName, profile.lastName].filter((v) => !!v).join(' ');
         },
-        photoRefs: (src: Conversation) => []
+        photoRefs: (src: Conversation) => [],
+        unreadCount: async (src: Conversation, _: any, context: CallContext) => {
+            let state = await DB.ConversationUserState.find({ where: { conversationId: src.id, userId: context.uid!! } });
+            if (state) {
+                return state.unread;
+            } else {
+                return 0;
+            }
+        }
     },
 
     ConversationMessage: {
@@ -180,7 +204,7 @@ export const Resolver = {
                         where: {
                             conversationId: conversationId
                         },
-                        order: [['createdAt', 'DESC']],
+                        order: [['id', 'DESC']],
                         transaction: tx
                     }))
                 };
@@ -194,10 +218,72 @@ export const Resolver = {
                 title: args.title
             });
         }),
+        alphaReadChat: withAccount<{ conversationId: string, messageId: string }>(async (args, uid) => {
+            let conversationId = IDs.Conversation.parse(args.conversationId);
+            let messageId = IDs.ConversationMessage.parse(args.messageId);
+            await DB.tx(async (tx) => {
+                let existing = await DB.ConversationUserState.find({
+                    where: {
+                        userId: uid,
+                        conversationId: conversationId
+                    },
+                    transaction: tx,
+                    lock: tx.LOCK.UPDATE
+                });
+                if (existing) {
+                    if (existing.readDate < messageId) {
+
+                        let remaining = await DB.ConversationMessage.count({
+                            where: {
+                                conversationId,
+                                id: {
+                                    $gt: messageId
+                                },
+                                userId: {
+                                    $not: uid
+                                }
+                            }
+                        });
+                        if (remaining === 0) {
+                            existing.unread = 0;
+                            existing.readDate = 0;
+                        } else {
+                            existing.readDate = messageId;
+                        }
+                        await existing.save({ transaction: tx });
+                    }
+                } else {
+                    let remaining = await DB.ConversationMessage.count({
+                        where: {
+                            conversationId,
+                            id: {
+                                $gt: messageId
+                            },
+                            userId: {
+                                $not: uid
+                            }
+                        }
+                    });
+                    if (remaining > 0) {
+                        await DB.ConversationUserState.create({
+                            userId: uid,
+                            conversationId: conversationId,
+                            readDate: messageId,
+                            unread: remaining
+                        });
+                    }
+                }
+            });
+            return DB.Conversation.findById(conversationId);
+        }),
         alphaSendMessage: withAccount<{ conversationId: string, message: string, repeatKey?: string | null }>(async (args, uid) => {
             validate({ message: stringNotEmpty() }, args);
             let conversationId = IDs.Conversation.parse(args.conversationId);
             return await DB.tx(async (tx) => {
+
+                //
+                // Handle retry
+                //
 
                 if (args.repeatKey) {
                     if (await DB.ConversationMessage.find({
@@ -213,6 +299,10 @@ export const Resolver = {
                     }
                 }
 
+                //
+                // Increment sequence number
+                //
+
                 let conv = await DB.Conversation.findById(conversationId, { lock: tx.LOCK.UPDATE, transaction: tx });
                 if (!conv) {
                     throw new NotFoundError('Conversation not found');
@@ -220,6 +310,10 @@ export const Resolver = {
                 let seq = conv.seq + 1;
                 conv.seq = seq;
                 await conv.save({ transaction: tx });
+
+                // 
+                // Persist Messages
+                //
 
                 let msg = await DB.ConversationMessage.create({
                     message: args.message,
@@ -236,19 +330,49 @@ export const Resolver = {
                     seq: seq
                 }, { transaction: tx });
 
-                if (args.message === 'delete') {
-                    seq = seq + 1;
-                    conv.seq = seq;
-                    await conv.save({ transaction: tx });
-                    await DB.ConversationEvent.create({
-                        conversationId: conversationId,
-                        eventType: 'delete_message',
-                        event: {
-                            messageId: msg.id
-                        },
-                        seq: seq
-                    }, { transaction: tx });
+                //
+                // Unread Counters
+                //
+                let members: number[] = [];
+                if (conv.type === 'private') {
+                    members = [conv.member1Id!!, conv.member2Id!!];
+                } else if (conv.type === 'shared') {
+                    for (let i of await Repos.Organizations.getOrganizationMembers(conv.organization1Id!!)) {
+                        if (members.indexOf(i.userId) < 0 && i.userId !== uid) {
+                            members.push(i.userId);
+                        }
+                    }
+                    for (let i of await Repos.Organizations.getOrganizationMembers(conv.organization2Id!!)) {
+                        if (members.indexOf(i.userId) < 0 && i.userId !== uid) {
+                            members.push(i.userId);
+                        }
+                    }
                 }
+                if (members.length > 0) {
+                    let currentStates = await DB.ConversationUserState.findAll({
+                        where: {
+                            conversationId: conversationId,
+                            userId: {
+                                $in: members
+                            }
+                        },
+                        transaction: tx,
+                        lock: tx.LOCK.UPDATE
+                    });
+                    for (let m of members) {
+                        let existing = currentStates.find((v) => v.userId === m);
+                        if (existing) {
+                            existing.unread++;
+                            await existing.save({ transaction: tx });
+                        } else {
+                            await DB.ConversationUserState.create({
+                                conversationId: conversationId,
+                                userId: m
+                            }, { transaction: tx });
+                        }
+                    }
+                }
+
                 return res;
             });
         })
