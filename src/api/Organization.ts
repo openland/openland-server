@@ -274,6 +274,7 @@ export const Resolver = {
 
             let result: {
                 user: User,
+                joinedAt: string,
                 email?: string,
                 role: string
             }[] = [];
@@ -281,6 +282,7 @@ export const Resolver = {
             for (let i = 0; i < members.length; i++) {
                 result.push({
                     user: members[i].user,
+                    joinedAt: (members[i] as any).createdAt,
                     email: members[i].user.email,
                     role: roles[i]
                 });
