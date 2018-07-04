@@ -11,15 +11,63 @@ import { Repos } from '../repositories';
 import { DoubleInvokeError } from '../errors/DoubleInvokeError';
 
 export const Resolver = {
+    Conversation: {
+        __resolveType: (src: Conversation) => {
+            if (src.type === 'anonymous') {
+                return 'AnonymousConversation';
+            } else if (src.type === 'shared') {
+                return 'SharedConversation';
+            } else if (src.type === 'private') {
+                return 'PrivateConversation';
+            } else {
+                throw Error('Unsupported Conversation Type');
+            }
+        },
+    },
+    AnonymousConversation: {
+        id: (src: Conversation) => IDs.Conversation.serialize(src.id),
+        title: (src: Conversation) => src.title,
+        photoRefs: (src: Conversation) => []
+    },
+    SharedConversation: {
+        id: (src: Conversation) => IDs.Conversation.serialize(src.id),
+        title: async (src: Conversation, _: any, context: CallContext) => {
+            if (src.organization1Id === context.oid || (src.organization1 && src.organization1.id === context.oid)) {
+                return (src.organization2 || await src.getOrganization2())!!.name;
+            } else if (src.organization2Id === context.oid || (src.organization2 && src.organization2.id === context.oid)) {
+                return (src.organization1 || await src.getOrganization1())!!.name;
+            } else {
+                throw Error('Inconsistent Shared Conversation resolver');
+            }
+        },
+        photoRefs: (src: Conversation) => []
+    },
+    PrivateConversation: {
+        id: (src: Conversation) => IDs.Conversation.serialize(src.id),
+        title: async (src: Conversation, _: any, context: CallContext) => {
+            let uid;
+            if (src.member1Id === context.uid || (src.member1 && src.member1.id === context.uid)) {
+                uid = (src.member2 || await src.getMember2())!!.id;
+            } else if (src.member2Id === context.uid || (src.member2 && src.member2.id === context.uid)) {
+                uid = (src.member1 || await src.getMember1())!!.id;
+            } else {
+                throw Error('Inconsistent Shared Conversation resolver');
+            }
+            let profile = (await DB.UserProfile.find({
+                where: {
+                    userId: uid
+                }
+            }))!!;
+            return [profile.firstName, profile.lastName].filter((v) => !!v).join(' ');
+        },
+        photoRefs: (src: Conversation) => []
+    },
+
     ConversationMessage: {
         id: (src: ConversationMessage) => IDs.ConversationMessage.serialize(src.id),
         message: (src: ConversationMessage) => src.message,
         sender: (src: ConversationMessage, _: any, context: CallContext) => Repos.Users.userLoader(context).load(src.userId),
         date: (src: ConversationMessage) => src.createdAt.toUTCString()
-    },
-    Conversation: {
-        id: (src: Conversation) => IDs.Conversation.serialize(src.id),
-        title: (src: Conversation) => src.title
     },
     ConversationEvent: {
         __resolveType(obj: ConversationEvent) {
@@ -47,6 +95,58 @@ export const Resolver = {
         alphaChat: withAny<{ conversationId: string }>((args) => {
             let conversationId = IDs.Conversation.parse(args.conversationId);
             return DB.Conversation.findById(conversationId);
+        }),
+        alphaChatOrganization: withAccount<{ orgId: string }>(async (args, uid, oid) => {
+            let orgId = IDs.Organization.parse(args.orgId);
+            let oid1 = Math.min(oid, orgId);
+            let oid2 = Math.max(oid, orgId);
+            return await DB.tx(async (tx) => {
+                let conversation = await DB.Conversation.find({
+                    where: {
+                        organization1Id: oid1,
+                        organization2Id: oid2,
+                        type: 'shared'
+                    },
+                    transaction: tx,
+                    lock: tx.LOCK.UPDATE
+                });
+                if (conversation) {
+                    return conversation;
+                }
+                let res = await DB.Conversation.create({
+                    type: 'shared',
+                    title: 'Cross Organization Chat',
+                    organization1Id: oid1,
+                    organization2Id: oid2
+                });
+                return res;
+            });
+        }),
+        alphaChatUser: withAccount<{ userId: string }>(async (args, uid, oid) => {
+            let userId = IDs.User.parse(args.userId);
+            let uid1 = Math.min(uid, userId);
+            let uid2 = Math.max(uid, userId);
+            return await DB.tx(async (tx) => {
+                let conversation = await DB.Conversation.find({
+                    where: {
+                        member1Id: uid1,
+                        member2Id: uid2,
+                        type: 'private'
+                    },
+                    transaction: tx,
+                    lock: tx.LOCK.UPDATE
+                });
+                if (conversation) {
+                    return conversation;
+                }
+                let res = await DB.Conversation.create({
+                    type: 'private',
+                    title: 'Private Chat',
+                    member1Id: uid1,
+                    member2Id: uid2
+                });
+                return res;
+            });
         }),
         alphaLoadMessages: withAny<{ conversationId: string }>((args) => {
             let conversationId = IDs.Conversation.parse(args.conversationId);
@@ -126,14 +226,7 @@ export const Resolver = {
                         },
                         seq: seq
                     }, { transaction: tx });
-                    // (tx as any).afterCommit(() => {
-                    //     pubsub.publish('chat_' + conversationId, { eventId: res2.id });
-                    // });
                 }
-
-                // (tx as any).afterCommit(() => {
-                //     pubsub.publish('chat_' + conversationId, { eventId: res.id });
-                // });
                 return res;
             });
         })
@@ -170,28 +263,6 @@ export const Resolver = {
                         lastKnownSeq = res - 1;
                     }
                 }
-                // let lastMessageId: number[] = [];
-                // let breakable: (() => void) | null = null;
-                // pubsub.subscribe('chat_' + conversationId, (msg) => {
-                //     lastMessageId.push(msg.eventId);
-                //     if (breakable) {
-                //         breakable();
-                //         breakable = null;
-                //     }
-                // });
-                // while (true) {
-                //     if (lastMessageId.length === 0) {
-                //         let delay = delayBreakable(1000);
-                //         breakable = delay.resolver;
-                //         await delay.promise;
-                //     }
-                //     if (lastMessageId.length > 0) {
-                //         for (let msg of lastMessageId) {
-                //             yield await DB.ConversationEvent.findById(msg);
-                //         }
-                //         lastMessageId = [];
-                //     }
-                // }
             }
         }
     }

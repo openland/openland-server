@@ -1,7 +1,37 @@
-type Conversation {
+
+#
+# Types Of Conversations
+#
+
+interface Conversation {
     id: ID!
     title: String!
+    photoRefs: [ImageRef!]!
 }
+
+type AnonymousConversation implements Conversation {
+    id: ID!
+    title: String!
+    photoRefs: [ImageRef!]!
+}
+
+type SharedConversation implements Conversation {
+    id: ID!
+    title: String!
+    photoRefs: [ImageRef!]!
+    organizations: [Organization!]!
+}
+
+type PrivateConversation implements Conversation {
+    id: ID!
+    title: String!
+    photoRefs: [ImageRef!]!
+    members: [User!]!
+}
+
+#
+# Messaging Contents
+#
 
 type ConversationMessage {
     id: ID!
@@ -37,6 +67,8 @@ extend type Mutation {
 extend type Query {
     superAllChats: [Conversation!]!
     alphaChat(conversationId: ID!): Conversation!
+    alphaChatOrganization(orgId: ID!): Conversation!
+    alphaChatUser(userId: ID!): Conversation!
     alphaLoadMessages(conversationId: ID!): ConversationState!
 }
 
