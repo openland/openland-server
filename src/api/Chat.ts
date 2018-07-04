@@ -4,15 +4,11 @@ import { Conversation } from '../tables/Conversation';
 import { DB } from '../tables';
 import { withPermission, withAny, withAccount } from './utils/Resolvers';
 import { validate, stringNotEmpty } from '../modules/NewInputValidator';
-import { Pubsub } from '../modules/pubsub';
-import { delayBreakable } from '../utils/timer';
 import { NotFoundError } from '../errors/NotFoundError';
 import { ConversationEvent } from '../tables/ConversationEvent';
 import { CallContext } from './utils/CallContext';
 import { Repos } from '../repositories';
 import { DoubleInvokeError } from '../errors/DoubleInvokeError';
-
-let pubsub = new Pubsub<{ eventId: number }>();
 
 export const Resolver = {
     ConversationMessage: {
@@ -122,7 +118,7 @@ export const Resolver = {
                     seq = seq + 1;
                     conv.seq = seq;
                     await conv.save({ transaction: tx });
-                    let res2 = await DB.ConversationEvent.create({
+                    await DB.ConversationEvent.create({
                         conversationId: conversationId,
                         eventType: 'delete_message',
                         event: {
@@ -130,14 +126,14 @@ export const Resolver = {
                         },
                         seq: seq
                     }, { transaction: tx });
-                    (tx as any).afterCommit(() => {
-                        pubsub.publish('chat_' + conversationId, { eventId: res2.id });
-                    });
+                    // (tx as any).afterCommit(() => {
+                    //     pubsub.publish('chat_' + conversationId, { eventId: res2.id });
+                    // });
                 }
 
-                (tx as any).afterCommit(() => {
-                    pubsub.publish('chat_' + conversationId, { eventId: res.id });
-                });
+                // (tx as any).afterCommit(() => {
+                //     pubsub.publish('chat_' + conversationId, { eventId: res.id });
+                // });
                 return res;
             });
         })
@@ -149,42 +145,53 @@ export const Resolver = {
             },
             subscribe: async function* (_: any, args: { conversationId: string, fromSeq?: number }) {
                 let conversationId = IDs.Conversation.parse(args.conversationId);
-                if (args.fromSeq) {
-                    let res = await DB.ConversationEvent.findAll({
-                        where: {
-                            conversationId: conversationId,
-                            seq: {
-                                $gt: args.fromSeq
-                            }
-                        },
-                        order: ['seq']
-                    });
-                    for (let r of res) {
-                        yield r;
-                    }
-                }
-                let lastMessageId: number[] = [];
-                let breakable: (() => void) | null = null;
-                pubsub.subscribe('chat_' + conversationId, (msg) => {
-                    lastMessageId.push(msg.eventId);
-                    if (breakable) {
-                        breakable();
-                        breakable = null;
-                    }
-                });
+                let lastKnownSeq = args.fromSeq;
+
                 while (true) {
-                    if (lastMessageId.length === 0) {
-                        let delay = delayBreakable(1000);
-                        breakable = delay.resolver;
-                        await delay.promise;
-                    }
-                    if (lastMessageId.length > 0) {
-                        for (let msg of lastMessageId) {
-                            yield await DB.ConversationEvent.findById(msg);
+                    if (lastKnownSeq !== undefined) {
+                        let events = await DB.ConversationEvent.findAll({
+                            where: {
+                                conversationId: conversationId,
+                                seq: {
+                                    $gt: lastKnownSeq
+                                }
+                            },
+                            order: ['seq']
+                        });
+                        for (let r of events) {
+                            yield r;
                         }
-                        lastMessageId = [];
+                        if (events.length > 0) {
+                            lastKnownSeq = events[events.length - 1].seq;
+                        }
+                    }
+                    let res = await new Promise<number>((resolve) => Repos.Chats.reader.loadNext(conversationId, lastKnownSeq ? lastKnownSeq : null, (arg) => resolve(arg)));
+                    if (!lastKnownSeq) {
+                        lastKnownSeq = res - 1;
                     }
                 }
+                // let lastMessageId: number[] = [];
+                // let breakable: (() => void) | null = null;
+                // pubsub.subscribe('chat_' + conversationId, (msg) => {
+                //     lastMessageId.push(msg.eventId);
+                //     if (breakable) {
+                //         breakable();
+                //         breakable = null;
+                //     }
+                // });
+                // while (true) {
+                //     if (lastMessageId.length === 0) {
+                //         let delay = delayBreakable(1000);
+                //         breakable = delay.resolver;
+                //         await delay.promise;
+                //     }
+                //     if (lastMessageId.length > 0) {
+                //         for (let msg of lastMessageId) {
+                //             yield await DB.ConversationEvent.findById(msg);
+                //         }
+                //         lastMessageId = [];
+                //     }
+                // }
             }
         }
     }
