@@ -7,10 +7,10 @@ export class OrganizationRepository {
             where: { orgId },
             order: [[{model: DB.User, as: 'user'}, {model: DB.UserProfile, as: 'userProfile'},  'name', 'ASC']],
             include: [{
-                model: DB.UserProfile,
+                model: DB.User,
                 as: 'user',
                 include: [{
-                    model: DB.User,
+                    model: DB.UserProfile,
                     as: 'userProfile'
                 }]
             }]
