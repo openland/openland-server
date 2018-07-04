@@ -250,6 +250,17 @@ enum OrganizationMemberRole {
     MEMBER
 }
 
+
+type OrganizationsEdge {
+    node: Organization!
+    cursor: String!
+}
+
+type OrganizationsConnection {
+    edges: [OrganizationsEdge!]!
+    pageInfo: PageInfo!
+}
+
 extend type Query {
     myOrganization: Organization
     myOrganizationProfile: OrganizationProfile!
@@ -263,6 +274,12 @@ extend type Query {
         page: Int
     ): AlphaOrganizationListingConnection
     alphaOrganizationMembers(orgId: ID!): [OrganizationMember!]!
+    alphaOrganizations(
+        query: String,
+        first: Int!,
+        after: String,
+        page: Int
+    ): OrganizationsConnection
 }
 
 extend type Mutation {

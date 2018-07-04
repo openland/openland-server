@@ -41,6 +41,13 @@ interface AlphaOrganizationListingsParams {
     page?: number;
 }
 
+interface AlphaOrganizationsParams {
+    query?: string;
+    first: number;
+    after?: string;
+    page?: number;
+}
+
 export const Resolver = {
     OrganizationProfile: {
         id: (src: Organization) => IDs.Organization.serialize(src.id!!),
@@ -278,6 +285,36 @@ export const Resolver = {
             }
 
             return result;
+        }),
+
+        alphaOrganizations: withAny<AlphaOrganizationsParams>(async args => {
+            let clauses: any[] = [];
+
+            if (args.query) {
+                let parser = new QueryParser();
+                parser.registerText('name', 'name');
+                parser.registerText('location', 'location');
+                let parsed = parser.parseQuery(args.query);
+                let elasticQuery = buildElasticQuery(parsed);
+                clauses.push(elasticQuery);
+            }
+
+            let hits = await ElasticClient.search({
+                index: 'organizations',
+                type: 'organization',
+                size: args.first,
+                from: args.page ? ((args.page - 1) * args.first) : 0,
+                body: {
+                    query: { bool: { must: clauses } }
+                }
+            });
+
+            let builder = new SelectBuilder(DB.Organization)
+                .after(args.after)
+                .page(args.page)
+                .limit(args.first);
+
+            return await builder.findElastic(hits);
         })
     },
     Mutation: {
