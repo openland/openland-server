@@ -274,12 +274,14 @@ export const Resolver = {
 
             let result: {
                 user: User,
+                email?: string,
                 role: string
             }[] = [];
 
             for (let i = 0; i < members.length; i++) {
                 result.push({
                     user: members[i].user,
+                    email: members[i].user.email,
                     role: roles[i]
                 });
             }

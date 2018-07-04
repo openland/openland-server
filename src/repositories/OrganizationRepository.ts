@@ -5,6 +5,7 @@ export class OrganizationRepository {
     async getOrganizationMembers(orgId: number): Promise<OrganizationMember[]> {
         return await DB.OrganizationMember.findAll({
             where: { orgId },
+            order: [['createdAt', 'ASC']],
             include: [{
                 model: DB.User,
                 as: 'user'
