@@ -9,6 +9,7 @@ export interface ConversationUserStateAttributes {
     conversationId: number;
     unread: number;
     readDate: number;
+    active: boolean;
 }
 
 export interface ConversationUserState extends sequelize.Instance<Partial<ConversationUserStateAttributes>>, ConversationUserStateAttributes {
@@ -19,7 +20,8 @@ export interface ConversationUserState extends sequelize.Instance<Partial<Conver
 export const ConversationUserStateTable = connection.define<ConversationUserState, Partial<ConversationUserStateAttributes>>('conversation_user_state', {
     id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
     unread: { type: sequelize.INTEGER, defaultValue: 0, allowNull: false },
-    readDate: { type: sequelize.INTEGER, defaultValue: 0, allowNull: true }
+    readDate: { type: sequelize.INTEGER, defaultValue: 0, allowNull: true },
+    active: { type: sequelize.BOOLEAN, defaultValue: true, allowNull: false }
 });
 
 ConversationUserStateTable.belongsTo(UserTable, { as: 'user', foreignKey: { allowNull: false } });

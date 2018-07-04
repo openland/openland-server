@@ -2,7 +2,7 @@ import { ConversationMessage } from '../tables/ConversationMessage';
 import { IDs } from './utils/IDs';
 import { Conversation } from '../tables/Conversation';
 import { DB } from '../tables';
-import { withPermission, withAny, withAccount } from './utils/Resolvers';
+import { withPermission, withAny, withAccount, withUser } from './utils/Resolvers';
 import { validate, stringNotEmpty } from '../modules/NewInputValidator';
 import { NotFoundError } from '../errors/NotFoundError';
 import { ConversationEvent } from '../tables/ConversationEvent';
@@ -112,7 +112,23 @@ export const Resolver = {
     ConversationEventDelete: {
         messageId: (src: ConversationEvent) => IDs.ConversationMessage.serialize(src.event.messageId as number)
     },
+    ChatReadResult: {
+        conversation: (src: { uid: number, conversationId: number }) => DB.Conversation.findById(src.conversationId),
+        counter: (src: { uid: number, conversationId: number }) => src.uid
+    },
+    NotificationCounter: {
+        id: (uid: number) => IDs.NotificationCounter.serialize(uid),
+        unreadCount: async (uid: number) => {
+            let global = await DB.ConversationsUserGlobal.find({ where: { userId: uid } });
+            if (global) {
+                return global.unread;
+            } else {
+                return 0;
+            }
+        }
+    },
     Query: {
+        alphaNotificationCounter: withUser((args, uid) => uid),
         superAllChats: withPermission('software-developer', async (args, context) => {
             let res = await DB.Conversation.findAll({
                 where: {
@@ -230,9 +246,9 @@ export const Resolver = {
                     transaction: tx,
                     lock: tx.LOCK.UPDATE
                 });
+                let delta = 0;
                 if (existing) {
                     if (existing.readDate < messageId) {
-
                         let remaining = await DB.ConversationMessage.count({
                             where: {
                                 conversationId,
@@ -245,9 +261,12 @@ export const Resolver = {
                             }
                         });
                         if (remaining === 0) {
+                            delta = -existing.unread;
                             existing.unread = 0;
                             existing.readDate = 0;
                         } else {
+                            delta = remaining - existing.unread;
+                            existing.unread = remaining;
                             existing.readDate = messageId;
                         }
                         await existing.save({ transaction: tx });
@@ -271,10 +290,32 @@ export const Resolver = {
                             readDate: messageId,
                             unread: remaining
                         });
+                        delta = remaining;
+                    }
+                }
+                if (delta !== 0) {
+                    let existingGlobal = await DB.ConversationsUserGlobal.find({
+                        where: {
+                            userId: uid
+                        },
+                        transaction: tx,
+                        lock: tx.LOCK.UPDATE
+                    });
+                    if (existingGlobal) {
+                        existingGlobal.unread = Math.max(0, existingGlobal.unread - delta);
+                        existingGlobal.save({ transaction: tx });
+                    } else if (delta > 0) {
+                        await DB.ConversationsUserGlobal.create({
+                            userId: uid,
+                            unread: delta
+                        });
                     }
                 }
             });
-            return DB.Conversation.findById(conversationId);
+            return {
+                uid: uid,
+                conversationId: conversationId
+            };
         }),
         alphaSendMessage: withAccount<{ conversationId: string, message: string, repeatKey?: string | null }>(async (args, uid) => {
             validate({ message: stringNotEmpty() }, args);
@@ -359,15 +400,35 @@ export const Resolver = {
                         transaction: tx,
                         lock: tx.LOCK.UPDATE
                     });
+                    let currentGlobals = await DB.ConversationsUserGlobal.findAll({
+                        where: {
+                            userId: {
+                                $in: members
+                            }
+                        },
+                        transaction: tx,
+                        lock: tx.LOCK.UPDATE
+                    });
                     for (let m of members) {
                         let existing = currentStates.find((v) => v.userId === m);
+                        let existingGlobal = currentGlobals.find((v) => v.userId === m);
+                        if (existingGlobal) {
+                            existingGlobal.unread++;
+                            await existingGlobal.save({ transaction: tx });
+                        } else {
+                            await DB.ConversationsUserGlobal.create({
+                                userId: m,
+                                unread: 1
+                            }, { transaction: tx });
+                        }
                         if (existing) {
                             existing.unread++;
                             await existing.save({ transaction: tx });
                         } else {
                             await DB.ConversationUserState.create({
                                 conversationId: conversationId,
-                                userId: m
+                                userId: m,
+                                unread: 1
                             }, { transaction: tx });
                         }
                     }

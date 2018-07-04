@@ -63,14 +63,39 @@ type ConversationState {
     messages: [ConversationMessage!]!
 }
 
+#
+# Conversation List
+#
+
+type ConversationEdge {
+    node: Conversation!
+    cursor: String!
+}
+
+type ConversationConnection {
+    edges: [FolderEdge!]!
+    pageInfo: PageInfo!
+}
+
+type NotificationCounter {
+    id: ID!
+    unreadCount: Int!
+}
+
+type ChatReadResult {
+    conversation: Conversation!
+    counter: NotificationCounter!
+}
+
 extend type Mutation {
     superCreateChat(title: String!): Conversation!
     alphaSendMessage(conversationId: ID!, message: String!, repeatKey: String): ConversationEventMessage!
-    alphaReadChat(conversationId: ID!, messageId: ID!): Conversation!
+    alphaReadChat(conversationId: ID!, messageId: ID!): ChatReadResult!
 }
 
 extend type Query {
     superAllChats: [Conversation!]!
+    alphaNotificationCounter: NotificationCounter!
     alphaChat(conversationId: ID!): Conversation!
     alphaChatOrganization(orgId: ID!): Conversation!
     alphaChatUser(userId: ID!): Conversation!
