@@ -33,4 +33,5 @@ export const UserProfileTable = connection.define<UserProfile, Partial<UserProfi
     email: { type: sequelize.STRING, allowNull: true },
 }, { paranoid: true });
 
+UserTable.hasMany(UserProfileTable, { as: 'userProfile' });
 UserProfileTable.belongsTo(UserTable, { as: 'user' });
