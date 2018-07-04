@@ -1,7 +1,7 @@
 version: '3'
 services:
   redis:
-    image: redis
+    image: redis:4.0.10
     ports:
      - "127.0.0.1:13001:6379"
   elasticsearch:
