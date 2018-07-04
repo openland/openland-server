@@ -95,7 +95,12 @@ export const Resolver = {
                     [Op.or]: [{
                         type: 'anonymous'
                     }, {
-                        type: 'shared'
+                        type: 'shared',
+                        [Op.or]: [{
+                            organization1Id: context.oid
+                        }, {
+                            organization2Id: context.oid
+                        }]
                     }, {
                         type: 'private',
                         [Op.or]: [{
@@ -105,7 +110,7 @@ export const Resolver = {
                         }]
                     }]
                 },
-                order: ['createdAt']
+                order: [['updatedAt', 'DESC']]
             });
             return res;
         }),
