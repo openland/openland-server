@@ -9,6 +9,8 @@ import { ConversationEvent } from '../tables/ConversationEvent';
 import { CallContext } from './utils/CallContext';
 import { Repos } from '../repositories';
 import { DoubleInvokeError } from '../errors/DoubleInvokeError';
+import Sequelize from 'sequelize';
+const Op = Sequelize.Op;
 
 export const Resolver = {
     Conversation: {
@@ -87,10 +89,25 @@ export const Resolver = {
         messageId: (src: ConversationEvent) => IDs.ConversationMessage.serialize(src.event.messageId as number)
     },
     Query: {
-        superAllChats: withPermission('software-developer', (args) => {
-            return DB.Conversation.findAll({
+        superAllChats: withPermission('software-developer', async (args, context) => {
+            let res = await DB.Conversation.findAll({
+                where: {
+                    [Op.or]: [{
+                        type: 'anonymous'
+                    }, {
+                        type: 'shared'
+                    }, {
+                        type: 'private',
+                        [Op.or]: [{
+                            member1Id: context.uid
+                        }, {
+                            member2Id: context.uid
+                        }]
+                    }]
+                },
                 order: ['createdAt']
             });
+            return res;
         }),
         alphaChat: withAny<{ conversationId: string }>((args) => {
             let conversationId = IDs.Conversation.parse(args.conversationId);
