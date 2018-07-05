@@ -195,20 +195,12 @@ export const Resolver = {
     OrganizationMemberType: {
         __resolveType(src: any) {
             return src._type;
-        }
-    },
-
-    OrganizationMember: {
+        },
         user: (src: any) => src.user,
         joinedAt: (src: any) => src.joinedAt,
         email: (src: any) => src.email,
         role: (src: any) => src.role,
-    },
-
-    OrganizationIvitedMember: {
         name: (src: any) => src.name,
-        email: (src: any) => src.email,
-        role: (src: any) => src.role,
         inviteId: (src: any) => src.inviteId,
     },
 
