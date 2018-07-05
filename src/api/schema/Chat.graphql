@@ -44,6 +44,10 @@ type ConversationMessage {
     date: String!
 }
 
+#
+# Conversation Events
+#
+
 interface ConversationEvent {
     seq: Int!
 }
@@ -64,17 +68,45 @@ type ConversationState {
 }
 
 #
+# User Events
+#
+
+interface UserEvent {
+    seq: Int!
+}
+
+type UserEventMessage implements UserEvent {
+    seq: Int!
+    unread: Int!
+    globalUnread: Int!
+    conversationId: ID!
+    message: ConversationMessage!
+    conversation: Conversation!
+    isOut: Boolean!
+}
+
+type UserEventOwnMessage implements UserEvent {
+    seq: Int!
+    conversationId: ID!
+    message: ConversationMessage!
+}
+
+type UserEventRead implements UserEvent {
+    seq: Int!
+    unread: Int!
+    globalUnread: Int!
+    conversationId: ID!
+}
+
+#
 # Conversation List
 #
 
-type ConversationEdge {
-    node: Conversation!
-    cursor: String!
-}
-
 type ConversationConnection {
-    edges: [FolderEdge!]!
-    pageInfo: PageInfo!
+    conversations: [Conversation!]!
+    counter: NotificationCounter!
+    seq: Int!
+    next: String
 }
 
 type NotificationCounter {
@@ -95,6 +127,7 @@ extend type Mutation {
 
 extend type Query {
     superAllChats: [Conversation!]!
+    alphaChats(first: Int!, after: String): ConversationConnection!
     alphaNotificationCounter: NotificationCounter!
     alphaChat(conversationId: ID!): Conversation!
     alphaChatOrganization(orgId: ID!): Conversation!
@@ -105,4 +138,5 @@ extend type Query {
 extend type Subscription {
     alphaChatSubscribe(conversationId: ID!, fromSeq: Int): ConversationEvent!
     alphaNotificationCounterSubscribe: NotificationCounter!
+    alphaSubscribeEvents(fromSeq: Int): UserEvent!
 }

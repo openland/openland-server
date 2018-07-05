@@ -51,7 +51,7 @@ export class SelectBuilder<TInstance, TAttributes> {
         return cloned;
     }
 
-    after(after?: string) {
+    after(after?: string | null) {
         let cloned = this.clone();
         if (after) {
             cloned.afterValue = after;

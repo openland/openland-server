@@ -63,6 +63,8 @@ import { ConversationMessageTable } from './ConversationMessage';
 import { ConversationEventTable } from './ConversationEvent';
 import { ConversationUserStateTable } from './ConversatonUserState';
 import { ConversationsUserGlobalTable } from './ConversationsUserGlobal';
+import { ConversationUserEventsTable } from './ConversationUserEvents';
+import { retry } from '../utils/timer';
 
 export const DB = {
     User: UserTable,
@@ -108,6 +110,7 @@ export const DB = {
     ConversationEvent: ConversationEventTable,
     ConversationUserState: ConversationUserStateTable,
     ConversationsUserGlobal: ConversationsUserGlobalTable,
+    ConversationUserEvents: ConversationUserEventsTable,
 
     tx: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>, existingTx?: sequelize.Transaction): Promise<A> {
         if (existingTx) {
@@ -117,6 +120,9 @@ export const DB = {
     },
     txLight: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>): Promise<A> {
         return await connection.transaction((tx2: sequelize.Transaction) => handler(tx2));
+    },
+    txStable: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>): Promise<A> {
+        return retry(async () => await connection.transaction((tx2: sequelize.Transaction) => handler(tx2)));
     },
     txSilent: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>): Promise<A> {
         return await connection.transaction({

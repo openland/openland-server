@@ -41,6 +41,27 @@ export async function backoff<T>(callback: () => Promise<T>): Promise<T> {
     }
 }
 
+export async function retry<T>(callback: () => Promise<T>): Promise<T> {
+    let currentFailureCount = 0;
+    const minDelay = 500;
+    const maxDelay = 15000;
+    const maxFailureCount = 5;
+    while (true) {
+        try {
+            return await callback();
+        } catch (e) {
+            if (currentFailureCount < maxFailureCount) {
+                currentFailureCount++;
+            }
+            if (currentFailureCount > maxFailureCount) {
+                throw e;
+            }
+            let waitForRequest = exponentialBackoffDelay(currentFailureCount, minDelay, maxDelay, maxFailureCount);
+            await delay(waitForRequest);
+        }
+    }
+}
+
 export async function forever(callback: () => Promise<void>) {
     while (true) {
         await backoff(callback);

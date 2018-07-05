@@ -192,10 +192,24 @@ export const Resolver = {
         alphaARLandUse: (src: Organization) => src.extras && src.extras.arLandUse,
     },
 
-    OrganizationMemberType: {
+    OrganizationMember: {
         __resolveType(src: any) {
             return src._type;
         }
+    },
+
+    OrganizationJoinedMember: {
+        user: (src: any) => src.user,
+        joinedAt: (src: any) => src.joinedAt,
+        email: (src: any) => src.email,
+        role: (src: any) => src.role,
+    },
+
+    OrganizationIvitedMember: {
+        name: (src: any) => src.name,
+        email: (src: any) => src.email,
+        role: (src: any) => src.role,
+        inviteId: (src: any) => src.inviteId,
     },
 
     Query: {
@@ -283,7 +297,7 @@ export const Resolver = {
 
             for (let i = 0; i < members.length; i++) {
                 result.push({
-                    _type: 'OrganizationMember',
+                    _type: 'OrganizationJoinedMember',
                     user: members[i].user,
                     joinedAt: (members[i] as any).createdAt,
                     email: members[i].user.email,
@@ -988,7 +1002,7 @@ export const Resolver = {
                 return 'ok';
             });
         }),
-        alphaOrganizationChangeMemberRole: withAccount<{ memberId: string, newRole: 'OWNER'|'MEMBER' }>(async (args, uid, oid) => {
+        alphaOrganizationChangeMemberRole: withAccount<{ memberId: string, newRole: 'OWNER' | 'MEMBER' }>(async (args, uid, oid) => {
             return await DB.tx(async (tx) => {
                 let isOwner = await Repos.Organizations.isOwnerOfOrganization(oid, uid);
 
@@ -1044,7 +1058,7 @@ export const Resolver = {
 
                     await invite.update({
                         memberRole: args.newRole
-                    }, { transaction: tx});
+                    }, { transaction: tx });
                 }
 
                 return 'ok';

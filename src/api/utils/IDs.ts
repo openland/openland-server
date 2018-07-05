@@ -34,5 +34,6 @@ export const IDs = {
     Task: IdsFactory.createId('Task'),
     Conversation: IdsFactory.createId('Conversation'),
     ConversationMessage: IdsFactory.createId('ConversationMessage'),
-    NotificationCounter: IdsFactory.createId('NotificationCounter')
+    NotificationCounter: IdsFactory.createId('NotificationCounter'),
+    UserEvent: IdsFactory.createId('UserEvent')
 };
