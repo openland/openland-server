@@ -240,22 +240,24 @@ input UpdateOrganizationProfileInput {
     alphaARLandUse: [String!]
 }
 
-
-type OrganizationIvitedMember {
-    name: String
+interface OrganizationMember{
     email: String!
     role: OrganizationMemberRole!
+}
+
+type OrganizationIvitedMember implements OrganizationMember{
+    email: String!
+    role: OrganizationMemberRole!
+    name: String
     inviteId: ID!
 }
 
-type OrganizationMember {
+type OrganizationJoinedMember implements OrganizationMember{
+    email: String!
+    role: OrganizationMemberRole!
     user: User!
     joinedAt: String
-    email: String
-    role: OrganizationMemberRole!
 }
-
-union OrganizationMemberType = OrganizationMember | OrganizationIvitedMember
 
 enum OrganizationMemberRole {
     OWNER,
@@ -284,7 +286,7 @@ extend type Query {
         after: String,
         page: Int
     ): AlphaOrganizationListingConnection
-    alphaOrganizationMembers(orgId: ID!): [OrganizationMemberType!]!
+    alphaOrganizationMembers(orgId: ID!): [OrganizationMember!]!
     alphaOrganizations(
         query: String,
         first: Int!,
