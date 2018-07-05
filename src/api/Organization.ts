@@ -192,7 +192,7 @@ export const Resolver = {
         alphaARLandUse: (src: Organization) => src.extras && src.extras.arLandUse,
     },
 
-    OrganizationMemberType: {
+    OrganizationMember: {
         __resolveType(src: any) {
             return src._type;
         }

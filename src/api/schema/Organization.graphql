@@ -286,7 +286,7 @@ extend type Query {
         after: String,
         page: Int
     ): AlphaOrganizationListingConnection
-    alphaOrganizationMembers(orgId: ID!): [OrganizationMemberType!]!
+    alphaOrganizationMembers(orgId: ID!): [OrganizationMember!]!
     alphaOrganizations(
         query: String,
         first: Int!,
