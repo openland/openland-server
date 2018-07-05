@@ -273,7 +273,7 @@ export const Resolver = {
         alphaReadChat: withAccount<{ conversationId: string, messageId: string }>(async (args, uid) => {
             let conversationId = IDs.Conversation.parse(args.conversationId);
             let messageId = IDs.ConversationMessage.parse(args.messageId);
-            await DB.tx(async (tx) => {
+            await DB.txStable(async (tx) => {
                 let existing = await DB.ConversationUserState.find({
                     where: {
                         userId: uid,
@@ -591,7 +591,7 @@ export const Resolver = {
             subscribe: async function* (_: any, args: { fromSeq?: number }, context: CallContext) {
                 let lastKnownSeq = args.fromSeq;
                 while (true) {
-                    if (lastKnownSeq !== undefined) {
+                    if (lastKnownSeq !== undefined && lastKnownSeq > 0) {
                         let events = await DB.ConversationUserEvents.findAll({
                             where: {
                                 userId: context.uid,
@@ -599,7 +599,7 @@ export const Resolver = {
                                     $gt: lastKnownSeq
                                 }
                             },
-                            order: ['seq']
+                            order: [['seq', 'asc']]
                         });
                         for (let r of events) {
                             yield r;
