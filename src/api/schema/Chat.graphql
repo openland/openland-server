@@ -39,9 +39,21 @@ type PrivateConversation implements Conversation {
 
 type ConversationMessage {
     id: ID!
-    message: String!
+    message: String
+    file: String
+    fileMetadata: FileMetadata
     sender: User!
     date: String!
+}
+
+type FileMetadata {
+    name: String!
+    mimeType: String
+    size: Int!
+    isImage: Boolean!
+    imageWidth: Int
+    imageHeight: Int
+    imageFormat: String
 }
 
 #

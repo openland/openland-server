@@ -11,6 +11,7 @@ import { Repos } from '../repositories';
 import { DoubleInvokeError } from '../errors/DoubleInvokeError';
 import { ConversationUserEvents } from '../tables/ConversationUserEvents';
 import request from 'request';
+import { JsonMap } from '../utils/json';
 
 export const Resolver = {
     Conversation: {
@@ -92,6 +93,22 @@ export const Resolver = {
     ConversationMessage: {
         id: (src: ConversationMessage) => IDs.ConversationMessage.serialize(src.id),
         message: (src: ConversationMessage) => src.message,
+        file: (src: ConversationMessage) => src.fileId,
+        fileMetadata: (src: ConversationMessage) => {
+            if (src.fileId && src.fileMetadata) {
+                return {
+                    name: src.fileMetadata.name,
+                    mimeType: src.fileMetadata.mimeType,
+                    isImage: src.fileMetadata.isImage,
+                    imageWidth: src.fileMetadata.imageWidth,
+                    imageHeight: src.fileMetadata.imageHeight,
+                    imageFormat: src.fileMetadata.imageFormat,
+                    size: src.fileMetadata.size
+                };
+            } else {
+                return null;
+            }
+        },
         sender: (src: ConversationMessage, _: any, context: CallContext) => Repos.Users.userLoader(context).load(src.userId),
         date: (src: ConversationMessage) => src.createdAt.toUTCString()
     },
@@ -393,14 +410,15 @@ export const Resolver = {
             };
         }),
         alphaSendMessage: withAccount<{ conversationId: string, message?: string | null, file?: string | null, repeatKey?: string | null }>(async (args, uid) => {
-            validate({ message: stringNotEmpty() }, args);
+            // validate({ message: stringNotEmpty() }, args);
             let conversationId = IDs.Conversation.parse(args.conversationId);
 
+            let fileMetadata: JsonMap | null;
             if (args.file) {
                 let res = await new Promise<any>(
                     (resolver, reject) => request(
                         {
-                            url: 'https://api.uploadcare.com/files/' + args.file!!,
+                            url: 'https://api.uploadcare.com/files/' + args.file!! + '/',
                             headers: {
                                 'Authorization': 'Uploadcare.Simple b70227616b5eac21ba88:65d4918fb06d4fe0bec8'
                             }
@@ -412,7 +430,23 @@ export const Resolver = {
                                 reject(error);
                             }
                         }));
-                console.warn(res);
+
+                let isImage = res.is_image as boolean;
+                let imageWidth = isImage ? res.image_info.width as number : null;
+                let imageHeight = isImage ? res.image_info.height as number : null;
+                let imageFormat = isImage ? res.image_info.format as string : null;
+                let mimeType = res.mime_type as string;
+                let name = res.original_filename as string;
+                let size = res.size as number;
+                fileMetadata = {
+                    isImage: isImage,
+                    mimeType: mimeType,
+                    name: name,
+                    size: size,
+                    imageWidth,
+                    imageHeight,
+                    imageFormat
+                };
             }
 
             return await DB.txStable(async (tx) => {
@@ -453,6 +487,8 @@ export const Resolver = {
 
                 let msg = await DB.ConversationMessage.create({
                     message: args.message,
+                    fileId: args.file,
+                    fileMetadata: fileMetadata,
                     conversationId: conversationId,
                     userId: uid,
                     repeatToken: args.repeatKey
