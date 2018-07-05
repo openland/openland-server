@@ -179,6 +179,7 @@ export const Emails = {
                 templateId: TEMPLATE_INVITE,
                 to: invite.forEmail,
                 args: {
+                    customText: invite.emailText || '',
                     inviteLink: domain + invite.uuid,
                     'organizationName': org.name!!,
                     ...userWelcome

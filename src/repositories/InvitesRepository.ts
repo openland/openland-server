@@ -16,6 +16,7 @@ export default class InvitesRepository {
         firstName: string,
         lastName: string,
         forEmail: string,
+        emailText: string,
         role: 'MEMBER' | 'OWNER',
         tx?: Transaction
     ): Promise<OrganizationInvite> {
@@ -28,7 +29,8 @@ export default class InvitesRepository {
             forEmail,
             ttl: new Date().getTime() + DEFAULT_ONE_TIME_TTL,
             isOneTime: true,
-            memberRole: role
+            memberRole: role,
+            emailText
         }, { transaction: tx });
     }
 

@@ -305,5 +305,5 @@ extend type Mutation {
     alphaOrganizationDeleteListing(id: ID!): String!
     alphaOrganizationRemoveMember(memberId: ID!): String!
     alphaOrganizationChangeMemberRole(memberId: ID!, newRole: OrganizationMemberRole!): String!
-    alphaOrganizationInviteMember(email: String!, role: OrganizationMemberRole!, firstName: String, lastName: String): Invite!
+    alphaOrganizationInviteMember(email: String!, emailText: String, role: OrganizationMemberRole!, firstName: String, lastName: String): Invite!
 }

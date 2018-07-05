@@ -1076,11 +1076,13 @@ export const Resolver = {
                 return 'ok';
             });
         }),
-        alphaOrganizationInviteMember: withAccount<{ email: string, firstName: string, lastName: string, role: 'OWNER'|'MEMBER' }>(async (args, uid, oid) => {
+        alphaOrganizationInviteMember: withAccount<{ email: string, emailText?: string, firstName?: string, lastName?: string, role: 'OWNER'|'MEMBER' }>(async (args, uid, oid) => {
             await validate(
                 {
                     email: defined(emailValidator),
-                    userName: optional(stringNotEmpty())
+                    firstName: optional(stringNotEmpty()),
+                    lastName: optional(stringNotEmpty()),
+                    emailText: optional(stringNotEmpty())
                 },
                 args
             );
@@ -1101,9 +1103,10 @@ export const Resolver = {
                 let invite = await Repos.Invites.createOneTimeInvite(
                     oid,
                     uid,
-                    args.firstName,
-                    args.lastName,
+                    args.firstName || '',
+                    args.lastName || '',
                     args.email,
+                    args.emailText || '',
                     args.role,
                     tx
                 );
