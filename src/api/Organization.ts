@@ -198,6 +198,20 @@ export const Resolver = {
         }
     },
 
+    OrganizationMember: {
+        user: (src: any) => src.user,
+        joinedAt: (src: any) => src.joinedAt,
+        email: (src: any) => src.email,
+        role: (src: any) => src.role,
+    },
+
+    OrganizationIvitedMember: {
+        name: (src: any) => src.name,
+        email: (src: any) => src.email,
+        role: (src: any) => src.role,
+        inviteId: (src: any) => src.inviteId,
+    },
+
     Query: {
         myOrganization: async (_: any, args: {}, context: CallContext) => {
             if (context.oid) {
@@ -988,7 +1002,7 @@ export const Resolver = {
                 return 'ok';
             });
         }),
-        alphaOrganizationChangeMemberRole: withAccount<{ memberId: string, newRole: 'OWNER'|'MEMBER' }>(async (args, uid, oid) => {
+        alphaOrganizationChangeMemberRole: withAccount<{ memberId: string, newRole: 'OWNER' | 'MEMBER' }>(async (args, uid, oid) => {
             return await DB.tx(async (tx) => {
                 let isOwner = await Repos.Organizations.isOwnerOfOrganization(oid, uid);
 
@@ -1044,7 +1058,7 @@ export const Resolver = {
 
                     await invite.update({
                         memberRole: args.newRole
-                    }, { transaction: tx});
+                    }, { transaction: tx });
                 }
 
                 return 'ok';
