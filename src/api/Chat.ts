@@ -394,7 +394,7 @@ export const Resolver = {
         alphaSendMessage: withAccount<{ conversationId: string, message: string, repeatKey?: string | null }>(async (args, uid) => {
             validate({ message: stringNotEmpty() }, args);
             let conversationId = IDs.Conversation.parse(args.conversationId);
-            return await DB.tx(async (tx) => {
+            return await DB.txStable(async (tx) => {
 
                 //
                 // Handle retry
