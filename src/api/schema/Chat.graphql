@@ -81,6 +81,7 @@ type UserEventMessage implements UserEvent {
     globalUnread: Int!
     conversationId: ID!
     message: ConversationMessage!
+    conversation: Conversation!
 }
 
 type UserEventOwnMessage implements UserEvent {
@@ -100,14 +101,11 @@ type UserEventRead implements UserEvent {
 # Conversation List
 #
 
-type ConversationEdge {
-    node: Conversation!
-    cursor: String!
-}
-
 type ConversationConnection {
-    edges: [FolderEdge!]!
-    pageInfo: PageInfo!
+    conversations: [Conversation!]!
+    counter: NotificationCounter!
+    seq: Int!
+    next: String
 }
 
 type NotificationCounter {
@@ -128,6 +126,7 @@ extend type Mutation {
 
 extend type Query {
     superAllChats: [Conversation!]!
+    alphaChats(first: Int!, after: String): ConversationConnection!
     alphaNotificationCounter: NotificationCounter!
     alphaChat(conversationId: ID!): Conversation!
     alphaChatOrganization(orgId: ID!): Conversation!

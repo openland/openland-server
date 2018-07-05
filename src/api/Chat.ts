@@ -9,9 +9,7 @@ import { ConversationEvent } from '../tables/ConversationEvent';
 import { CallContext } from './utils/CallContext';
 import { Repos } from '../repositories';
 import { DoubleInvokeError } from '../errors/DoubleInvokeError';
-import Sequelize from 'sequelize';
 import { ConversationUserEvents } from '../tables/ConversationUserEvents';
-const Op = Sequelize.Op;
 
 export const Resolver = {
     Conversation: {
@@ -133,7 +131,8 @@ export const Resolver = {
         unread: (src: ConversationUserEvents) => src.event.unread,
         globalUnread: (src: ConversationUserEvents) => src.event.unreadGlobal,
         conversationId: (src: ConversationUserEvents) => IDs.Conversation.serialize(src.event.conversationId as any),
-        message: (src: ConversationUserEvents) => DB.ConversationMessage.findById(src.event.messageId as any)
+        message: (src: ConversationUserEvents) => DB.ConversationMessage.findById(src.event.messageId as any),
+        conversation: (src: ConversationUserEvents) => DB.Conversation.findById(src.event.conversationId as any)
     },
     UserEventRead: {
         seq: (src: ConversationUserEvents) => src.seq,
@@ -166,29 +165,40 @@ export const Resolver = {
     Query: {
         alphaNotificationCounter: withUser((args, uid) => uid),
         superAllChats: withPermission('software-developer', async (args, context) => {
-            let res = await DB.Conversation.findAll({
+            let res = await DB.ConversationUserState.findAll({
                 where: {
-                    [Op.or]: [{
-                        type: 'anonymous'
-                    }, {
-                        type: 'shared',
-                        [Op.or]: [{
-                            organization1Id: context.oid
-                        }, {
-                            organization2Id: context.oid
-                        }]
-                    }, {
-                        type: 'private',
-                        [Op.or]: [{
-                            member1Id: context.uid
-                        }, {
-                            member2Id: context.uid
-                        }]
-                    }]
+                    userId: context.uid,
+                    active: true
                 },
-                order: [['updatedAt', 'DESC']]
+                order: [['updatedAt', 'DESC']],
+                include: [{
+                    model: DB.Conversation,
+                    as: 'conversation'
+                }]
             });
-            return res;
+            return res.map((v) => v.conversation!!);
+        }),
+        alphaChats: withAccount<{ first: number, after?: string | null }>(async (args, uid, oid) => {
+            return await DB.tx(async (tx) => {
+                let global = await DB.ConversationsUserGlobal.find({ where: { userId: uid }, transaction: tx });
+                let conversations = await DB.ConversationUserState.findAll({
+                    where: {
+                        userId: uid,
+                    },
+                    order: [['updatedAt', 'DESC']],
+                    limit: args.first,
+                    include: [{
+                        model: DB.Conversation,
+                        as: 'conversation'
+                    }]
+                });
+                return {
+                    conversations: conversations.map((v) => v.conversation!!),
+                    seq: global ? global.seq : 0,
+                    next: null,
+                    counter: uid
+                };
+            });
         }),
         alphaChat: withAny<{ conversationId: string }>((args) => {
             let conversationId = IDs.Conversation.parse(args.conversationId);
@@ -535,90 +545,114 @@ export const Resolver = {
             resolve: async (msg: any) => {
                 return msg;
             },
-            subscribe: async function* (_: any, args: { conversationId: string, fromSeq?: number }) {
+            subscribe: async function (_: any, args: { conversationId: string, fromSeq?: number }) {
                 let conversationId = IDs.Conversation.parse(args.conversationId);
-                let lastKnownSeq = args.fromSeq;
-
-                while (true) {
-                    if (lastKnownSeq !== undefined) {
-                        let events = await DB.ConversationEvent.findAll({
-                            where: {
-                                conversationId: conversationId,
-                                seq: {
-                                    $gt: lastKnownSeq
+                let ended = false;
+                return {
+                    ...async function* func() {
+                        let lastKnownSeq = args.fromSeq;
+                        while (!ended) {
+                            if (lastKnownSeq !== undefined) {
+                                let events = await DB.ConversationEvent.findAll({
+                                    where: {
+                                        conversationId: conversationId,
+                                        seq: {
+                                            $gt: lastKnownSeq
+                                        }
+                                    },
+                                    order: ['seq']
+                                });
+                                for (let r of events) {
+                                    yield r;
                                 }
-                            },
-                            order: ['seq']
-                        });
-                        for (let r of events) {
-                            yield r;
+                                if (events.length > 0) {
+                                    lastKnownSeq = events[events.length - 1].seq;
+                                }
+                            }
+                            let res = await new Promise<number>((resolve) => Repos.Chats.reader.loadNext(conversationId, lastKnownSeq ? lastKnownSeq : null, (arg) => resolve(arg)));
+                            if (!lastKnownSeq) {
+                                lastKnownSeq = res - 1;
+                            }
                         }
-                        if (events.length > 0) {
-                            lastKnownSeq = events[events.length - 1].seq;
-                        }
+                    }(),
+                    return: async () => {
+                        ended = true;
+                        return 'ok';
                     }
-                    let res = await new Promise<number>((resolve) => Repos.Chats.reader.loadNext(conversationId, lastKnownSeq ? lastKnownSeq : null, (arg) => resolve(arg)));
-                    if (!lastKnownSeq) {
-                        lastKnownSeq = res - 1;
-                    }
-                }
+                };
             }
         },
         alphaNotificationCounterSubscribe: {
             resolve: async (msg: any) => {
                 return msg;
             },
-            subscribe: async function* (_: any, args: any, context: CallContext) {
+            subscribe: async function (_: any, args: any, context: CallContext) {
                 if (!context.uid) {
                     throw Error('Not logged in');
                 }
-                let state = await DB.ConversationsUserGlobal.find({ where: { userId: context.uid!! } });
-                if (state) {
-                    yield {
-                        counter: state.unread,
-                        uid: context.uid
-                    };
-                }
-                while (true) {
-                    let counter = await Repos.Chats.counterReader.loadNext(context.uid!!);
-                    console.warn('counter');
-                    yield {
-                        counter,
-                        uid: context.uid
-                    };
-                }
+                let ended = false;
+                return {
+                    ...async function* func() {
+                        let state = await DB.ConversationsUserGlobal.find({ where: { userId: context.uid!! } });
+                        if (state) {
+                            yield {
+                                counter: state.unread,
+                                uid: context.uid
+                            };
+                        }
+                        while (!ended) {
+                            let counter = await Repos.Chats.counterReader.loadNext(context.uid!!);
+                            yield {
+                                counter,
+                                uid: context.uid
+                            };
+                        }
+                    }(),
+                    return: async () => {
+                        ended = true;
+                        return 'ok';
+                    }
+                };
             }
         },
         alphaSubscribeEvents: {
             resolve: async (msg: any) => {
                 return msg;
             },
-            subscribe: async function* (_: any, args: { fromSeq?: number }, context: CallContext) {
-                let lastKnownSeq = args.fromSeq;
-                while (true) {
-                    if (lastKnownSeq !== undefined && lastKnownSeq > 0) {
-                        let events = await DB.ConversationUserEvents.findAll({
-                            where: {
-                                userId: context.uid,
-                                seq: {
-                                    $gt: lastKnownSeq
+            subscribe: async function (_: any, args: { fromSeq?: number }, context: CallContext) {
+                let ended = false;
+                return {
+                    ...(async function* func() {
+                        let lastKnownSeq = args.fromSeq;
+                        while (!ended) {
+                            if (lastKnownSeq !== undefined && lastKnownSeq > 0) {
+                                let events = await DB.ConversationUserEvents.findAll({
+                                    where: {
+                                        userId: context.uid,
+                                        seq: {
+                                            $gt: lastKnownSeq
+                                        }
+                                    },
+                                    order: [['seq', 'asc']]
+                                });
+                                for (let r of events) {
+                                    yield r;
                                 }
-                            },
-                            order: [['seq', 'asc']]
-                        });
-                        for (let r of events) {
-                            yield r;
+                                if (events.length > 0) {
+                                    lastKnownSeq = events[events.length - 1].seq;
+                                }
+                            }
+                            let res = await Repos.Chats.userReader.loadNext(context.uid!!, lastKnownSeq ? lastKnownSeq : null);
+                            if (!lastKnownSeq) {
+                                lastKnownSeq = res - 1;
+                            }
                         }
-                        if (events.length > 0) {
-                            lastKnownSeq = events[events.length - 1].seq;
-                        }
+                    })(),
+                    return: async () => {
+                        ended = true;
+                        return 'ok';
                     }
-                    let res = await Repos.Chats.userReader.loadNext(context.uid!!, lastKnownSeq ? lastKnownSeq : null);
-                    console.warn(res);
-                    if (!lastKnownSeq) {
-                        lastKnownSeq = res - 1;
-                    }
-                }
+                };
             }
         }
     }

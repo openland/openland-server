@@ -1,7 +1,7 @@
 import { connection } from '../modules/sequelizeConnector';
 import * as sequelize from 'sequelize';
 import { UserTable } from './User';
-import { ConversationTable } from './Conversation';
+import { ConversationTable, Conversation } from './Conversation';
 
 export interface ConversationUserStateAttributes {
     id: number;
@@ -15,6 +15,7 @@ export interface ConversationUserStateAttributes {
 export interface ConversationUserState extends sequelize.Instance<Partial<ConversationUserStateAttributes>>, ConversationUserStateAttributes {
     createdAt: Date;
     updatedAt: Date;
+    conversation?: Conversation | null;
 }
 
 export const ConversationUserStateTable = connection.define<ConversationUserState, Partial<ConversationUserStateAttributes>>('conversation_user_state', {
