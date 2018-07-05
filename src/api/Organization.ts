@@ -297,7 +297,7 @@ export const Resolver = {
 
             for (let i = 0; i < members.length; i++) {
                 result.push({
-                    _type: 'OrganizationMember',
+                    _type: 'OrganizationJoinedMember',
                     user: members[i].user,
                     joinedAt: (members[i] as any).createdAt,
                     email: members[i].user.email,
