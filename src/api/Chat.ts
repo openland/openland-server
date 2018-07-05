@@ -133,7 +133,8 @@ export const Resolver = {
         conversationId: (src: ConversationUserEvents) => IDs.Conversation.serialize(src.event.conversationId as any),
         message: (src: ConversationUserEvents) => DB.ConversationMessage.findById(src.event.messageId as any),
         conversation: (src: ConversationUserEvents) => DB.Conversation.findById(src.event.conversationId as any),
-        isOut: (src: ConversationUserEvents, args: any, context: CallContext) => src.event.senderId === context.uid
+        isOut: (src: ConversationUserEvents, args: any, context: CallContext) => src.event.senderId === context.uid,
+        repeatKey: (src: ConversationUserEvents, args: any, context: CallContext) => src.event.senderId === context.uid ? DB.ConversationMessage.findById(src.event.messageId as any).then((v) => v && v.repeatToken) : null
     },
     UserEventRead: {
         seq: (src: ConversationUserEvents) => src.seq,
@@ -393,7 +394,7 @@ export const Resolver = {
         alphaSendMessage: withAccount<{ conversationId: string, message: string, repeatKey?: string | null }>(async (args, uid) => {
             validate({ message: stringNotEmpty() }, args);
             let conversationId = IDs.Conversation.parse(args.conversationId);
-            return await DB.tx(async (tx) => {
+            return await DB.txStable(async (tx) => {
 
                 //
                 // Handle retry
@@ -557,10 +558,11 @@ export const Resolver = {
                             eventType: 'new_message',
                             event: {
                                 conversationId: conversationId,
-                                messageId: res.id,
+                                messageId: msg.id,
                                 unreadGlobal: userUnread,
                                 unread: userChatUnread,
-                                senderId: uid
+                                senderId: uid,
+                                repeatKey: args.repeatKey ? args.repeatKey : null
                             }
                         }, { transaction: tx });
                     }

@@ -83,6 +83,7 @@ type UserEventMessage implements UserEvent {
     message: ConversationMessage!
     conversation: Conversation!
     isOut: Boolean!
+    repeatKey: String
 }
 
 type UserEventOwnMessage implements UserEvent {
