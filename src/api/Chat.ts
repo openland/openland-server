@@ -10,6 +10,7 @@ import { CallContext } from './utils/CallContext';
 import { Repos } from '../repositories';
 import { DoubleInvokeError } from '../errors/DoubleInvokeError';
 import { ConversationUserEvents } from '../tables/ConversationUserEvents';
+import request from 'request';
 
 export const Resolver = {
     Conversation: {
@@ -391,9 +392,29 @@ export const Resolver = {
                 conversationId: conversationId
             };
         }),
-        alphaSendMessage: withAccount<{ conversationId: string, message: string, repeatKey?: string | null }>(async (args, uid) => {
+        alphaSendMessage: withAccount<{ conversationId: string, message?: string | null, file?: string | null, repeatKey?: string | null }>(async (args, uid) => {
             validate({ message: stringNotEmpty() }, args);
             let conversationId = IDs.Conversation.parse(args.conversationId);
+
+            if (args.file) {
+                let res = await new Promise<any>(
+                    (resolver, reject) => request(
+                        {
+                            url: 'https://api.uploadcare.com/files/' + args.file!!,
+                            headers: {
+                                'Authorization': 'Uploadcare.Simple b70227616b5eac21ba88:65d4918fb06d4fe0bec8'
+                            }
+                        },
+                        (error, response, body) => {
+                            if (!error && response.statusCode === 200) {
+                                resolver(JSON.parse(body));
+                            } else {
+                                reject(error);
+                            }
+                        }));
+                console.warn(res);
+            }
+
             return await DB.txStable(async (tx) => {
 
                 //
