@@ -44,6 +44,10 @@ type ConversationMessage {
     date: String!
 }
 
+#
+# Conversation Events
+#
+
 interface ConversationEvent {
     seq: Int!
 }
@@ -61,6 +65,35 @@ type ConversationEventDelete implements ConversationEvent {
 type ConversationState {
     seq: Int!
     messages: [ConversationMessage!]!
+}
+
+#
+# User Events
+#
+
+interface UserEvent {
+    seq: Int!
+}
+
+type UserEventMessage implements UserEvent {
+    seq: Int!
+    unread: Int!
+    globalUnread: Int!
+    conversationId: ID!
+    message: ConversationMessage!
+}
+
+type UserEventOwnMessage implements UserEvent {
+    seq: Int!
+    conversationId: ID!
+    message: ConversationMessage!
+}
+
+type UserEventRead implements UserEvent {
+    seq: Int!
+    unread: Int!
+    globalUnread: Int!
+    conversationId: ID!
 }
 
 #
@@ -105,4 +138,5 @@ extend type Query {
 extend type Subscription {
     alphaChatSubscribe(conversationId: ID!, fromSeq: Int): ConversationEvent!
     alphaNotificationCounterSubscribe: NotificationCounter!
+    alphaSubscribeEvents(fromSeq: Int): UserEvent!
 }

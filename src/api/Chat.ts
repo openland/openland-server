@@ -10,6 +10,7 @@ import { CallContext } from './utils/CallContext';
 import { Repos } from '../repositories';
 import { DoubleInvokeError } from '../errors/DoubleInvokeError';
 import Sequelize from 'sequelize';
+import { ConversationUserEvents } from '../tables/ConversationUserEvents';
 const Op = Sequelize.Op;
 
 export const Resolver = {
@@ -116,6 +117,31 @@ export const Resolver = {
         conversation: (src: { uid: number, conversationId: number }) => DB.Conversation.findById(src.conversationId),
         counter: (src: { uid: number, conversationId: number }) => src.uid
     },
+
+    UserEvent: {
+        __resolveType(obj: ConversationUserEvents) {
+            if (obj.eventType === 'new_message') {
+                return 'UserEventMessage';
+            } else if (obj.eventType === 'conversation_read') {
+                return 'UserEventRead';
+            }
+            throw Error('Unknown type');
+        }
+    },
+    UserEventMessage: {
+        seq: (src: ConversationUserEvents) => src.seq,
+        unread: (src: ConversationUserEvents) => src.event.unread,
+        globalUnread: (src: ConversationUserEvents) => src.event.unreadGlobal,
+        conversationId: (src: ConversationUserEvents) => IDs.Conversation.serialize(src.event.conversationId as any),
+        message: (src: ConversationUserEvents) => DB.ConversationMessage.findById(src.event.messageId as any)
+    },
+    UserEventRead: {
+        seq: (src: ConversationUserEvents) => src.seq,
+        unread: (src: ConversationUserEvents) => src.event.unread,
+        globalUnread: (src: ConversationUserEvents) => src.event.unreadGlobal,
+        conversationId: (src: ConversationUserEvents) => IDs.Conversation.serialize(src.event.conversationId as any),
+    },
+
     NotificationCounter: {
         id: (src: number | { uid: number, counter: number }) => {
             if (typeof src === 'number') {
@@ -264,6 +290,7 @@ export const Resolver = {
                     lock: tx.LOCK.UPDATE
                 });
                 let delta = 0;
+                let totalUnread = 0;
                 if (existing) {
                     if (existing.readDate < messageId) {
                         let remaining = await DB.ConversationMessage.count({
@@ -288,6 +315,7 @@ export const Resolver = {
                             delta = remaining - existing.unread;
                             existing.unread = remaining;
                             existing.readDate = messageId;
+                            totalUnread = remaining;
                         }
                         await existing.save({ transaction: tx });
                     }
@@ -317,12 +345,33 @@ export const Resolver = {
                     }
                 }
                 if (existingGlobal && delta !== 0) {
+
+                    //
+                    // Update Global State
+                    //
+
                     let unread = existingGlobal.unread + delta;
                     if (unread < 0) {
                         throw Error('Internal inconsistency');
                     }
                     existingGlobal.unread = unread;
+                    existingGlobal.seq++;
                     await existingGlobal.save({ transaction: tx });
+
+                    //
+                    // Write Event
+                    //
+
+                    await DB.ConversationUserEvents.create({
+                        seq: existingGlobal.seq,
+                        userId: uid,
+                        eventType: 'conversation_read',
+                        event: {
+                            conversationId: conversationId,
+                            unread: totalUnread,
+                            unreadGlobal: existingGlobal.unread
+                        }
+                    }, { transaction: tx });
                 }
             });
             return {
@@ -425,17 +474,14 @@ export const Resolver = {
                     for (let m of members) {
                         let existing = currentStates.find((v) => v.userId === m);
                         let existingGlobal = currentGlobals.find((v) => v.userId === m);
-                        if (existingGlobal) {
-                            existingGlobal.unread++;
-                            await existingGlobal.save({ transaction: tx });
-                        } else {
-                            await DB.ConversationsUserGlobal.create({
-                                userId: m,
-                                unread: 1
-                            }, { transaction: tx });
-                        }
+                        let userSeq = 1;
+                        let userUnread = 1;
+                        let userChatUnread = 1;
+
+                        // Write user's chat state
                         if (existing) {
                             existing.unread++;
+                            userChatUnread = existing.unread;
                             await existing.save({ transaction: tx });
                         } else {
                             await DB.ConversationUserState.create({
@@ -444,6 +490,34 @@ export const Resolver = {
                                 unread: 1
                             }, { transaction: tx });
                         }
+
+                        // Update or Create global state
+                        if (existingGlobal) {
+                            existingGlobal.unread++;
+                            existingGlobal.seq++;
+                            userSeq = existingGlobal.seq;
+                            userUnread = existingGlobal.unread;
+                            await existingGlobal.save({ transaction: tx });
+                        } else {
+                            await DB.ConversationsUserGlobal.create({
+                                userId: m,
+                                unread: 1,
+                                seq: 1
+                            }, { transaction: tx });
+                        }
+
+                        // Write User Event
+                        await DB.ConversationUserEvents.create({
+                            userId: m,
+                            seq: userSeq,
+                            eventType: 'new_message',
+                            event: {
+                                conversationId: conversationId,
+                                messageId: res.id,
+                                unreadGlobal: userUnread,
+                                unread: userChatUnread
+                            }
+                        }, { transaction: tx });
                     }
                 }
 
@@ -507,6 +581,38 @@ export const Resolver = {
                         counter,
                         uid: context.uid
                     };
+                }
+            }
+        },
+        alphaSubscribeEvents: {
+            resolve: async (msg: any) => {
+                return msg;
+            },
+            subscribe: async function* (_: any, args: { fromSeq?: number }, context: CallContext) {
+                let lastKnownSeq = args.fromSeq;
+                while (true) {
+                    if (lastKnownSeq !== undefined) {
+                        let events = await DB.ConversationUserEvents.findAll({
+                            where: {
+                                userId: context.uid,
+                                seq: {
+                                    $gt: lastKnownSeq
+                                }
+                            },
+                            order: ['seq']
+                        });
+                        for (let r of events) {
+                            yield r;
+                        }
+                        if (events.length > 0) {
+                            lastKnownSeq = events[events.length - 1].seq;
+                        }
+                    }
+                    let res = await Repos.Chats.userReader.loadNext(context.uid!!, lastKnownSeq ? lastKnownSeq : null);
+                    console.warn(res);
+                    if (!lastKnownSeq) {
+                        lastKnownSeq = res - 1;
+                    }
                 }
             }
         }

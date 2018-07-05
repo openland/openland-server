@@ -63,6 +63,7 @@ import { ConversationMessageTable } from './ConversationMessage';
 import { ConversationEventTable } from './ConversationEvent';
 import { ConversationUserStateTable } from './ConversatonUserState';
 import { ConversationsUserGlobalTable } from './ConversationsUserGlobal';
+import { ConversationUserEventsTable } from './ConversationUserEvents';
 
 export const DB = {
     User: UserTable,
@@ -108,6 +109,7 @@ export const DB = {
     ConversationEvent: ConversationEventTable,
     ConversationUserState: ConversationUserStateTable,
     ConversationsUserGlobal: ConversationsUserGlobalTable,
+    ConversationUserEvents: ConversationUserEventsTable,
 
     tx: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>, existingTx?: sequelize.Transaction): Promise<A> {
         if (existingTx) {
