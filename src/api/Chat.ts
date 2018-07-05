@@ -557,7 +557,7 @@ export const Resolver = {
                             eventType: 'new_message',
                             event: {
                                 conversationId: conversationId,
-                                messageId: res.id,
+                                messageId: msg.id,
                                 unreadGlobal: userUnread,
                                 unread: userChatUnread,
                                 senderId: uid
