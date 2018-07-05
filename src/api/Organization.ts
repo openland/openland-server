@@ -17,7 +17,7 @@ import { ElasticClient } from '../indexing';
 import { buildElasticQuery, QueryParser } from '../modules/QueryParser';
 import { SelectBuilder } from '../modules/SelectBuilder';
 import {
-    defined, emailValidator, enumString, optional, stringNotEmpty,
+    defined, emailValidator, enumString, numberInRange, optional, stringNotEmpty,
     validate
 } from '../modules/NewInputValidator';
 import { AccessDeniedError } from '../errors/AccessDeniedError';
@@ -336,6 +336,10 @@ export const Resolver = {
 
             return await builder.findElastic(hits);
         }),
+
+        alphaOrganizationPublicInvite: withAccount(async (args, uid, orgId) => {
+            return Repos.Invites.getPublicInvite(orgId);
+        })
     },
     Mutation: {
         createOrganization: withUser<{
@@ -1114,6 +1118,37 @@ export const Resolver = {
                 await Emails.sendInviteEmail(oid, invite, tx);
 
                 return invite;
+            });
+        }),
+        alphaOrganizationCreatePublicInvite: withAccount<{expirationDays: number}>(async (args, uid, oid) => {
+            return DB.tx(async (tx) => {
+                await validate(
+                    {
+                        expirationDays: numberInRange(1, 30)
+                    },
+                    args
+                );
+
+                let isOwner = await Repos.Organizations.isOwnerOfOrganization(oid, uid, tx);
+
+                if (!isOwner) {
+                    throw new UserError(ErrorText.permissionOnlyOwner);
+                }
+
+                return await Repos.Invites.createPublicInvite(oid, args.expirationDays, tx);
+            });
+        }),
+        alphaOrganizationDeletePublicInvite: withAccount(async (args, uid, oid) => {
+            return DB.tx(async (tx) => {
+                let isOwner = await Repos.Organizations.isOwnerOfOrganization(oid, uid, tx);
+
+                if (!isOwner) {
+                    throw new UserError(ErrorText.permissionOnlyOwner);
+                }
+
+                await Repos.Invites.deletePublicInvite(oid, tx);
+
+                return 'ok';
             });
         })
     }
