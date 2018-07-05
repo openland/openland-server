@@ -438,7 +438,12 @@ export const Resolver = {
                 //
                 let members: number[] = [];
                 if (conv.type === 'private') {
-                    members = [conv.member1Id!!, conv.member2Id!!];
+                    if (conv.member1Id !== uid) {
+                        members.push(conv.member1Id!!);
+                    }
+                    if (conv.member2Id !== uid) {
+                        members.push(conv.member2Id!!);
+                    }
                 } else if (conv.type === 'shared') {
                     for (let i of await Repos.Organizations.getOrganizationMembers(conv.organization1Id!!)) {
                         if (members.indexOf(i.userId) < 0 && i.userId !== uid) {
