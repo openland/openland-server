@@ -6,7 +6,7 @@ import { OrganizationInvite } from '../tables/OrganizationInvite';
 
 const SECS_IN_DAY = 60 * 60 * 24;
 
-const DEFAULT_ONE_TIME_TTL = SECS_IN_DAY * 7;
+const DEFAULT_ONE_TIME_TTL = 7; // 7 days
 
 export default class InvitesRepository {
 
@@ -27,7 +27,7 @@ export default class InvitesRepository {
             memberFirstName: firstName,
             memberLastName: lastName,
             forEmail,
-            ttl: new Date().getTime() + DEFAULT_ONE_TIME_TTL,
+            ttl: this.createTTLvalue(DEFAULT_ONE_TIME_TTL),
             isOneTime: true,
             memberRole: role,
             emailText
@@ -74,5 +74,40 @@ export default class InvitesRepository {
         });
 
         return invites;
+    }
+
+    public async getPublicInvite(orgId: number, tx?: Transaction): Promise<OrganizationInvite|null> {
+        return await DB.OrganizationInvite.findOne({
+            where: {
+                isOneTime: false,
+                orgId
+            },
+            transaction: tx
+        });
+    }
+
+    public async deletePublicInvite(orgId: number, tx?: Transaction): Promise<void> {
+        await DB.OrganizationInvite.destroy({
+            where: {
+                isOneTime: false,
+                orgId
+            },
+            transaction: tx
+        });
+    }
+
+    public async createPublicInvite(orgId: number, expirationDays: number, tx?: Transaction): Promise<OrganizationInvite> {
+        await this.deletePublicInvite(orgId, tx);
+
+        return await DB.OrganizationInvite.create({
+            isOneTime: false,
+            orgId,
+            uuid: randomKey(),
+            ttl: this.createTTLvalue(expirationDays)
+        });
+    }
+
+    private createTTLvalue(expirationDays: number): number {
+        return new Date().getTime() + (SECS_IN_DAY * expirationDays);
     }
 }

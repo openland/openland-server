@@ -1,5 +1,6 @@
 import { OrganizationMember } from '../tables/OrganizationMember';
 import { DB } from '../tables';
+import { Transaction } from 'sequelize';
 
 export class OrganizationRepository {
     async getOrganizationMember(orgId: number, userId: number): Promise<OrganizationMember|null> {
@@ -26,13 +27,14 @@ export class OrganizationRepository {
         });
     }
 
-    async isOwnerOfOrganization(orgId: number, userId: number): Promise<boolean> {
+    async isOwnerOfOrganization(orgId: number, userId: number, tx?: Transaction): Promise<boolean> {
         let isOwner = await DB.OrganizationMember.findOne({
             where: {
                 orgId,
                 userId,
                 isOwner: true
-            }
+            },
+            transaction: tx
         });
 
         return !!isOwner;
