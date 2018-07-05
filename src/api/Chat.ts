@@ -132,7 +132,8 @@ export const Resolver = {
         globalUnread: (src: ConversationUserEvents) => src.event.unreadGlobal,
         conversationId: (src: ConversationUserEvents) => IDs.Conversation.serialize(src.event.conversationId as any),
         message: (src: ConversationUserEvents) => DB.ConversationMessage.findById(src.event.messageId as any),
-        conversation: (src: ConversationUserEvents) => DB.Conversation.findById(src.event.conversationId as any)
+        conversation: (src: ConversationUserEvents) => DB.Conversation.findById(src.event.conversationId as any),
+        isOut: (src: ConversationUserEvents, args: any, context: CallContext) => src.event.senderId === context.uid
     },
     UserEventRead: {
         seq: (src: ConversationUserEvents) => src.seq,
@@ -448,20 +449,21 @@ export const Resolver = {
                 //
                 let members: number[] = [];
                 if (conv.type === 'private') {
-                    if (conv.member1Id !== uid) {
-                        members.push(conv.member1Id!!);
-                    }
-                    if (conv.member2Id !== uid) {
-                        members.push(conv.member2Id!!);
-                    }
+                    // if (conv.member1Id !== uid) {
+                    //     members.push(conv.member1Id!!);
+                    // }
+                    // if (conv.member2Id !== uid) {
+                    //     members.push(conv.member2Id!!);
+                    // }
+                    members = [conv.member1Id!!, conv.member2Id!!];
                 } else if (conv.type === 'shared') {
                     for (let i of await Repos.Organizations.getOrganizationMembers(conv.organization1Id!!)) {
-                        if (members.indexOf(i.userId) < 0 && i.userId !== uid) {
+                        if (members.indexOf(i.userId) < 0) {
                             members.push(i.userId);
                         }
                     }
                     for (let i of await Repos.Organizations.getOrganizationMembers(conv.organization2Id!!)) {
-                        if (members.indexOf(i.userId) < 0 && i.userId !== uid) {
+                        if (members.indexOf(i.userId) < 0) {
                             members.push(i.userId);
                         }
                     }
@@ -490,35 +492,62 @@ export const Resolver = {
                         let existing = currentStates.find((v) => v.userId === m);
                         let existingGlobal = currentGlobals.find((v) => v.userId === m);
                         let userSeq = 1;
-                        let userUnread = 1;
-                        let userChatUnread = 1;
+                        let userUnread = 0;
+                        let userChatUnread = 0;
 
                         // Write user's chat state
-                        if (existing) {
-                            existing.unread++;
-                            userChatUnread = existing.unread;
-                            await existing.save({ transaction: tx });
+                        if (m !== uid) {
+                            if (existing) {
+                                existing.unread++;
+                                userChatUnread = existing.unread;
+                                await existing.save({ transaction: tx });
+                            } else {
+                                userUnread = 1;
+                                await DB.ConversationUserState.create({
+                                    conversationId: conversationId,
+                                    userId: m,
+                                    unread: 1
+                                }, { transaction: tx });
+
+                            }
                         } else {
-                            await DB.ConversationUserState.create({
-                                conversationId: conversationId,
-                                userId: m,
-                                unread: 1
-                            }, { transaction: tx });
+                            if (existing) {
+                                (existing as any).changed('updatedAt', true);
+                                await existing.save({ transaction: tx });
+                            } else {
+                                await DB.ConversationUserState.create({
+                                    conversationId: conversationId,
+                                    userId: m,
+                                    unread: 0
+                                }, { transaction: tx });
+                            }
                         }
 
                         // Update or Create global state
                         if (existingGlobal) {
-                            existingGlobal.unread++;
+                            if (m !== uid) {
+                                existingGlobal.unread++;
+                            }
                             existingGlobal.seq++;
                             userSeq = existingGlobal.seq;
                             userUnread = existingGlobal.unread;
                             await existingGlobal.save({ transaction: tx });
                         } else {
-                            await DB.ConversationsUserGlobal.create({
-                                userId: m,
-                                unread: 1,
-                                seq: 1
-                            }, { transaction: tx });
+                            if (m !== uid) {
+                                userUnread = 1;
+                                await DB.ConversationsUserGlobal.create({
+                                    userId: m,
+                                    unread: 1,
+                                    seq: 1
+                                }, { transaction: tx });
+                            } else {
+                                userUnread = 0;
+                                await DB.ConversationsUserGlobal.create({
+                                    userId: m,
+                                    unread: 0,
+                                    seq: 1
+                                }, { transaction: tx });
+                            }
                         }
 
                         // Write User Event
@@ -530,7 +559,8 @@ export const Resolver = {
                                 conversationId: conversationId,
                                 messageId: res.id,
                                 unreadGlobal: userUnread,
-                                unread: userChatUnread
+                                unread: userChatUnread,
+                                senderId: uid
                             }
                         }, { transaction: tx });
                     }

@@ -82,6 +82,7 @@ type UserEventMessage implements UserEvent {
     conversationId: ID!
     message: ConversationMessage!
     conversation: Conversation!
+    isOut: Boolean!
 }
 
 type UserEventOwnMessage implements UserEvent {
