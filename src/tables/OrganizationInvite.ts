@@ -7,7 +7,8 @@ export interface OrganizationInviteAttributes {
     orgId: number;
     creatorId: number;
     isOneTime: boolean;
-    userName: string;
+    memberFirstName: string;
+    memberLastName: string;
     ttl: number;
     forEmail: string;
     memberRole: string;
@@ -22,8 +23,9 @@ export const OrganizationInviteTable = connection.define<OrganizationInvite, Par
     orgId: { type: sequelize.INTEGER, allowNull: false, references: { model: 'organization' } },
     creatorId: { type: sequelize.INTEGER, allowNull: true, references: { model: 'users' } },
     isOneTime: { type: sequelize.BOOLEAN, allowNull: false, defaultValue: false },
-    userName: { type: sequelize.STRING, allowNull: true },
     ttl: { type: sequelize.INTEGER, allowNull: true },
     forEmail: { type: sequelize.STRING, allowNull: true },
     memberRole: { type: sequelize.STRING, allowNull: true },
+    memberFirstName: { type: sequelize.STRING, allowNull: true},
+    memberLastName: { type: sequelize.STRING,  allowNull: true }
 });

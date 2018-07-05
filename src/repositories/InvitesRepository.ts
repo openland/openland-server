@@ -13,7 +13,8 @@ export default class InvitesRepository {
     public async createOneTimeInvite(
         orgId: number,
         creatorId: number,
-        userName: string,
+        firstName: string,
+        lastName: string,
         forEmail: string,
         role: 'MEMBER' | 'OWNER',
         tx?: Transaction
@@ -22,7 +23,8 @@ export default class InvitesRepository {
             uuid: randomKey(),
             orgId,
             creatorId,
-            userName,
+            memberFirstName: firstName,
+            memberLastName: lastName,
             forEmail,
             ttl: new Date().getTime() + DEFAULT_ONE_TIME_TTL,
             isOneTime: true,

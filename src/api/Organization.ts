@@ -198,20 +198,6 @@ export const Resolver = {
         }
     },
 
-    OrganizationJoinedMember: {
-        user: (src: any) => src.user,
-        joinedAt: (src: any) => src.joinedAt,
-        email: (src: any) => src.email,
-        role: (src: any) => src.role,
-    },
-
-    OrganizationIvitedMember: {
-        name: (src: any) => src.name,
-        email: (src: any) => src.email,
-        role: (src: any) => src.role,
-        inviteId: (src: any) => src.inviteId,
-    },
-
     Query: {
         myOrganization: async (_: any, args: {}, context: CallContext) => {
             if (context.oid) {
@@ -310,7 +296,8 @@ export const Resolver = {
             for (let invite of invites) {
                 result.push({
                     _type: 'OrganizationIvitedMember',
-                    name: invite.userName || '',
+                    firstName: invite.memberFirstName || '',
+                    lastName: invite.memberLastName || '',
                     email: invite.forEmail,
                     role: invite.memberRole,
                     inviteId: IDs.Invite.serialize(invite.id)
@@ -1064,7 +1051,7 @@ export const Resolver = {
                 return 'ok';
             });
         }),
-        alphaOrganizationInviteMember: withAccount<{ email: string, userName: string, role: 'OWNER'|'MEMBER' }>(async (args, uid, oid) => {
+        alphaOrganizationInviteMember: withAccount<{ email: string, firstName: string, lastName: string, role: 'OWNER'|'MEMBER' }>(async (args, uid, oid) => {
             await validate(
                 {
                     email: defined(emailValidator),
@@ -1089,7 +1076,8 @@ export const Resolver = {
                 let invite = await Repos.Invites.createOneTimeInvite(
                     oid,
                     uid,
-                    args.userName,
+                    args.firstName,
+                    args.lastName,
                     args.email,
                     args.role,
                     tx
