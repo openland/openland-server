@@ -9,6 +9,7 @@ import { randomKey } from '../utils/random';
 import { buildBaseImageUrl } from '../repositories/Media';
 import { NotFoundError } from '../errors/NotFoundError';
 import { ErrorText } from '../errors/ErrorText';
+import { Emails } from '../services/Emails';
 
 export const Resolver = {
     Invite: {
@@ -133,6 +134,8 @@ export const Resolver = {
                         invitedBy: invite.creatorId
                     }, { transaction: tx });
                 }
+
+                await Emails.sendMemberJoinedEmails(invite.orgId, uid, tx);
 
                 return IDs.OrganizationAccount.serialize(invite.orgId);
             });

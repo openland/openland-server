@@ -10,6 +10,7 @@ const TEMPLATE_DEACTIVATED = 'e1e66916-41be-4719-8eca-7feb0828d600';
 const TEMPLATE_MEMBER_REMOVED = '8500f811-f29d-44f1-b1f6-c7975cdeae61';
 const TEMPLATE_MEMBERSHIP_LEVEL_CHANGED = '58c94c0c-a033-4406-935f-43fc5265e399';
 const TEMPLATE_INVITE = '024815a8-5602-4412-83f4-4be505c2026a';
+const TEMPLATE_MEMBER_JOINED = 'c76321cb-5560-4311-bdbf-e0fe337fa2cf';
 
 const loadUserState = async (uid: number, etx?: Transaction) => {
     return DB.tx(async (tx) => {
@@ -183,6 +184,38 @@ export const Emails = {
                     ...userWelcome
                 }
             }, tx);
+        });
+    },
+
+    async sendMemberJoinedEmails(oid: number, memberId: number, etx?: Transaction) {
+        await DB.tx(async (tx) => {
+            let org = await DB.Organization.findById(oid, { transaction: tx });
+            if (!org) {
+                throw Error('Unable to find organization');
+            }
+
+            let memberProfile = await DB.UserProfile.find({
+                where: {
+                    userId: memberId
+                },
+                transaction: tx
+            });
+
+            let organizationMembers = await Repos.Organizations.getOrganizationMembers(oid);
+
+            for (let member of organizationMembers) {
+                let user = await loadUserState(member.userId);
+
+                await EmailWorker.pushWork({
+                    templateId: TEMPLATE_MEMBER_JOINED,
+                    to: user.email,
+                    args: {
+                        memberName: memberProfile ? memberProfile.firstName : '',
+                        'organizationName': org.name!!,
+                        ...(user.args)
+                    }
+                }, tx);
+            }
         });
     }
 };
