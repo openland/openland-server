@@ -167,9 +167,9 @@ export const Emails = {
 
             let userWelcome = {
                 'userWelcome': 'Hi',
-                'userName': invite.userName || '',
-                'userFirstName': '',
-                'userLastName': ''
+                'userName': [invite.memberFirstName, invite.memberLastName].filter((v) => v).join(' '),
+                'userFirstName': invite.memberFirstName || '',
+                'userLastName': invite.memberLastName || ''
             };
 
             let domain = process.env.APP_ENVIRONMENT === 'production' ? 'https://openland.com/join/' : 'http://localhost:3000/join/';

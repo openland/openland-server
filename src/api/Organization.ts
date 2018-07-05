@@ -198,20 +198,6 @@ export const Resolver = {
         }
     },
 
-    OrganizationJoinedMember: {
-        user: (src: any) => src.user,
-        joinedAt: (src: any) => src.joinedAt,
-        email: (src: any) => src.email,
-        role: (src: any) => src.role,
-    },
-
-    OrganizationIvitedMember: {
-        name: (src: any) => src.name,
-        email: (src: any) => src.email,
-        role: (src: any) => src.role,
-        inviteId: (src: any) => src.inviteId,
-    },
-
     Query: {
         myOrganization: async (_: any, args: {}, context: CallContext) => {
             if (context.oid) {
@@ -310,7 +296,8 @@ export const Resolver = {
             for (let invite of invites) {
                 result.push({
                     _type: 'OrganizationIvitedMember',
-                    name: invite.userName || '',
+                    firstName: invite.memberFirstName || '',
+                    lastName: invite.memberLastName || '',
                     email: invite.forEmail,
                     role: invite.memberRole,
                     inviteId: IDs.Invite.serialize(invite.id)
@@ -969,35 +956,60 @@ export const Resolver = {
         }),
         alphaOrganizationRemoveMember: withAccount<{ memberId: string }>(async (args, uid, oid) => {
             return await DB.tx(async (tx) => {
-                let memberId = IDs.User.parse(args.memberId);
-
-                let member = await DB.OrganizationMember.findOne({
-                    where: {
-                        userId: memberId,
-                        orgId: oid
-                    },
-                    transaction: tx
-                });
-
-                if (!member) {
-                    return 'ok';
-                }
-
-                let invitedByUser = (member.invitedBy && (member.invitedBy === uid)) || false;
-
                 let isOwner = await Repos.Organizations.isOwnerOfOrganization(oid, uid);
 
-                if (!isOwner && !invitedByUser) {
-                    throw new AccessDeniedError(ErrorText.permissionDenied);
+                let idType = IdsFactory.resolve(args.memberId);
+
+                if (idType.type.typeName === 'User') {
+                    let memberId = IDs.User.parse(args.memberId);
+
+                    let member = await DB.OrganizationMember.findOne({
+                        where: {
+                            userId: memberId,
+                            orgId: oid
+                        },
+                        transaction: tx
+                    });
+
+                    if (!member) {
+                        return 'ok';
+                    }
+
+                    let invitedByUser = (member.invitedBy && (member.invitedBy === uid)) || false;
+
+                    if (!isOwner && !invitedByUser) {
+                        throw new AccessDeniedError(ErrorText.permissionDenied);
+                    }
+
+                    if (isOwner && (memberId === uid)) {
+                        throw new AccessDeniedError(ErrorText.permissionDenied);
+                    }
+
+                    await member.destroy({ transaction: tx });
+                    await Emails.sendMemberRemovedEmail(oid, memberId, tx);
+
+                } else if (idType.type.typeName === 'Invite') {
+                    let inviteId = IDs.Invite.parse(args.memberId);
+
+                    let invite = await DB.OrganizationInvite.findOne({
+                        where: {
+                            id: inviteId
+                        },
+                        transaction: tx
+                    });
+
+                    if (!invite) {
+                        return 'ok';
+                    }
+
+                    let invitedByUser = (invite.creatorId && (invite.creatorId === uid)) || false;
+
+                    if (!isOwner && !invitedByUser) {
+                        throw new AccessDeniedError(ErrorText.permissionDenied);
+                    }
+
+                    await invite.destroy({ transaction: tx });
                 }
-
-                if (isOwner && (memberId === uid)) {
-                    throw new AccessDeniedError(ErrorText.permissionDenied);
-                }
-
-                await member.destroy({ transaction: tx });
-
-                await Emails.sendMemberRemovedEmail(oid, memberId, tx);
 
                 return 'ok';
             });
@@ -1064,5 +1076,42 @@ export const Resolver = {
                 return 'ok';
             });
         }),
+        alphaOrganizationInviteMember: withAccount<{ email: string, firstName: string, lastName: string, role: 'OWNER'|'MEMBER' }>(async (args, uid, oid) => {
+            await validate(
+                {
+                    email: defined(emailValidator),
+                    userName: optional(stringNotEmpty())
+                },
+                args
+            );
+
+            return await DB.tx(async (tx) => {
+                let isDuplicate = await Repos.Invites.haveInviteForEmail(oid, args.email, tx);
+
+                if (isDuplicate) {
+                    throw new UserError(ErrorText.inviteAlreadyExists);
+                }
+
+                let isMemberDuplicate = await Repos.Organizations.haveMemberWithEmail(oid, args.email);
+
+                if (isMemberDuplicate) {
+                    throw new UserError(ErrorText.memberWithEmailAlreadyExists);
+                }
+
+                let invite = await Repos.Invites.createOneTimeInvite(
+                    oid,
+                    uid,
+                    args.firstName,
+                    args.lastName,
+                    args.email,
+                    args.role,
+                    tx
+                );
+
+                await Emails.sendInviteEmail(oid, invite, tx);
+
+                return invite;
+            });
+        })
     }
 };

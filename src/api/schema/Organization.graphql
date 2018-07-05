@@ -240,7 +240,7 @@ input UpdateOrganizationProfileInput {
     alphaARLandUse: [String!]
 }
 
-interface OrganizationMember{
+interface OrganizationMember {
     email: String!
     role: OrganizationMemberRole!
 }
@@ -248,7 +248,8 @@ interface OrganizationMember{
 type OrganizationIvitedMember implements OrganizationMember{
     email: String!
     role: OrganizationMemberRole!
-    name: String
+    firstName: String
+    lastName: String
     inviteId: ID!
 }
 
@@ -304,5 +305,5 @@ extend type Mutation {
     alphaOrganizationDeleteListing(id: ID!): String!
     alphaOrganizationRemoveMember(memberId: ID!): String!
     alphaOrganizationChangeMemberRole(memberId: ID!, newRole: OrganizationMemberRole!): String!
-    alphaOrganizationInviteMember(email: String!, role: OrganizationMemberRole!, userName: String): Invite!
+    alphaOrganizationInviteMember(email: String!, role: OrganizationMemberRole!, firstName: String, lastName: String): Invite!
 }
