@@ -27,6 +27,7 @@ export function createEmailWorker() {
                     };
                 }
             }
+            console.warn('Sending email task #' + uid);
             await SendGrid.send({
                 to: args.to,
                 from: { name: 'Openland', email: 'support@openland.com' },
