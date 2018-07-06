@@ -1,5 +1,5 @@
 import { QueryInterface, DataTypes } from 'sequelize';
-import { DB } from '../index';
+import { DB } from '..';
 import * as fs from 'fs';
 
 export async function up(queryInterface: QueryInterface, sequelize: DataTypes) {

@@ -1,5 +1,5 @@
 import sequelize from 'sequelize';
-import { Pubsub } from '../modules/pubsub';
+import { Pubsub } from './pubsub';
 import { addAfterChangedCommitHook } from '../utils/sequelizeHooks';
 import { backoff, forever, delayBreakable } from '../utils/timer';
 

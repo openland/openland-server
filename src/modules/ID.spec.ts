@@ -1,4 +1,4 @@
-import { ID } from '../../src/modules/ID';
+import { ID } from './ID';
 
 let ParcelId = new ID('Parcel');
 let BlockId = new ID('Block');

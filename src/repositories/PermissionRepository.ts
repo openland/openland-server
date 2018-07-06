@@ -1,4 +1,4 @@
-import { DB } from '../tables/index';
+import { DB } from '../tables';
 import { FeatureFlag } from '../tables/FeatureFlag';
 import { NotFoundError } from '../errors/NotFoundError';
 import { ErrorText } from '../errors/ErrorText';

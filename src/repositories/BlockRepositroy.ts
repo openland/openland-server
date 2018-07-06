@@ -1,4 +1,4 @@
-import { DB } from '../tables/index';
+import { DB } from '../tables';
 import { ExtrasInput } from '../api/types';
 import { buildGeometryFromInput } from '../modules/geometry';
 import * as Normalizer from '../modules/Normalizer';

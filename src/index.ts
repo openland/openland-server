@@ -11,7 +11,7 @@ import { initWorkers } from './workers';
 import { initDatabase } from './init/initDatabase';
 import { initElastic } from './init/initElastic';
 import { initFiles } from './init/initFiles';
-import initTestDatabase from './tests/data/index';
+import initTestDatabase from './tests/data';
 
 if (process.argv.indexOf('--rebuild-test') >= 0) {
     console.warn('Building test environment');

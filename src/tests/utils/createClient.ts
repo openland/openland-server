@@ -1,7 +1,7 @@
 import { ApolloClient } from 'apollo-client';
 import { InMemoryCache } from 'apollo-cache-inmemory';
 import { SchemaLink } from 'apollo-link-schema';
-import { Schema } from '../../api/index';
+import { Schema } from '../../api';
 import { CallContext } from '../../api/utils/CallContext';
 
 export function createApiClient(args?: { uid?: number, oid?: number }) {

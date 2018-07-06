@@ -1,5 +1,5 @@
 import { QueryInterface, DataTypes } from 'sequelize';
-import { DB } from '../index';
+import { DB } from '..';
 
 let allStates = [
     {

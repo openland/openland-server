@@ -1,4 +1,4 @@
-import { DB } from '../tables/index';
+import { DB } from '../tables';
 import { bulkApply } from '../utils/db_utils';
 import { IncidentAttributes, IncidentCategory } from '../tables/Incidents';
 

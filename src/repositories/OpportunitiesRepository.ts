@@ -1,4 +1,4 @@
-import { DB } from '../tables/index';
+import { DB } from '../tables';
 import { SelectBuilder } from '../modules/SelectBuilder';
 import { OpportunityAttributes } from '../tables/Opportunity';
 import { ElasticClient } from '../indexing';

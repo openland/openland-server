@@ -1,6 +1,6 @@
 import { Lot } from '../tables/Lot';
 import { Block } from '../tables/Block';
-import { Repos } from '../repositories/index';
+import { Repos } from '../repositories';
 import { DB } from '../tables';
 import { ElasticClient } from '../indexing';
 import * as Turf from '@turf/turf';

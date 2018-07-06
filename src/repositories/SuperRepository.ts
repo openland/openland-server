@@ -1,5 +1,5 @@
 import { DB } from '../tables';
-import { Repos } from '../repositories';
+import { Repos } from '.';
 import { Transaction } from 'sequelize';
 import { NotFoundError } from '../errors/NotFoundError';
 import { UserError } from '../errors/UserError';

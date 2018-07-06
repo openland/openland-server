@@ -1,4 +1,4 @@
-import { DB, Lot } from '../tables/index';
+import { DB, Lot } from '../tables';
 import * as Normalizer from '../modules/Normalizer';
 import { normalizedProcessor } from '../utils/db_utils';
 import { buildGeometryFromInput } from '../modules/geometry';

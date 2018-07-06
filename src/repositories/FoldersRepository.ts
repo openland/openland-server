@@ -2,7 +2,7 @@ import { DB } from '../tables';
 import { Transaction } from 'sequelize';
 import { FolderItemAttributes } from '../tables/FolderItem';
 import { ElasticClient } from '../indexing';
-import { Repos } from '../repositories';
+import { Repos } from '.';
 import { NotFoundError } from '../errors/NotFoundError';
 import { UserError } from '../errors/UserError';
 import { ErrorText } from '../errors/ErrorText';

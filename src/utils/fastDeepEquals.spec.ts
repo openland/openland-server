@@ -1,4 +1,4 @@
-import { fastDeepEquals } from '../../src/utils/fastDeepEquals';
+import { fastDeepEquals } from './fastDeepEquals';
 
 describe('Deep equals', () => {
     it('Should compare correctly', () => {

@@ -110,7 +110,7 @@ export const Resolver = {
             }
         },
         sender: (src: ConversationMessage, _: any, context: CallContext) => Repos.Users.userLoader(context).load(src.userId),
-        date: (src: ConversationMessage) => src.createdAt.toUTCString(),
+        date: (src: ConversationMessage) => src.createdAt,
         repeatKey: (src: ConversationMessage, args: any, context: CallContext) => src.userId === context.uid ? src.repeatToken : null
     },
     ConversationEvent: {

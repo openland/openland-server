@@ -2,7 +2,7 @@ import * as express from 'express';
 import * as Compose from 'compose-middleware';
 import { GraphQLOptions } from 'apollo-server-core';
 import { graphqlExpress } from 'apollo-server-express';
-import * as Schema from '../api/index';
+import * as Schema from '../api';
 import { callContextMiddleware } from './context';
 import { errorHandler } from '../errors';
 
