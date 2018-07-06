@@ -166,7 +166,7 @@ export const Emails = {
         }
 
         let userWelcome = {
-            'userWelcome': 'Hi',
+            'userWelcome': invite.memberFirstName ? 'Hi, ' + invite.memberFirstName : 'Hi',
             'userName': [invite.memberFirstName, invite.memberLastName].filter((v) => v).join(' '),
             'userFirstName': invite.memberFirstName || '',
             'userLastName': invite.memberLastName || ''
