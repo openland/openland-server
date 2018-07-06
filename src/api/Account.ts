@@ -15,7 +15,7 @@ export const Resolver = {
     Invite: {
         id: (src: OrganizationInvite) => IDs.Invite.serialize(src.id),
         key: (src: OrganizationInvite) => src.uuid,
-        ttl: (src: OrganizationInvite) => src.ttl
+        ttl: (src: OrganizationInvite) => String(src.ttl)
     },
     Query: {
         alphaInvites: withAccount(async (args, uid, oid) => {
