@@ -6,7 +6,7 @@ import compression from 'compression';
 import * as Auth2 from '../handlers/authV2';
 import { schemaHandler } from '../handlers/schema';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
-import { Schema } from '../api/index';
+import { Schema } from '../api';
 import { execute, subscribe } from 'graphql';
 import { fetchWebSocketParameters, buildWebSocketContext } from '../handlers/websocket';
 import { errorHandler } from '../errors';

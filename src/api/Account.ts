@@ -14,7 +14,8 @@ import { Emails } from '../services/Emails';
 export const Resolver = {
     Invite: {
         id: (src: OrganizationInvite) => IDs.Invite.serialize(src.id),
-        key: (src: OrganizationInvite) => src.uuid
+        key: (src: OrganizationInvite) => src.uuid,
+        ttl: (src: OrganizationInvite) => String(src.ttl)
     },
     Query: {
         alphaInvites: withAccount(async (args, uid, oid) => {

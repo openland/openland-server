@@ -110,7 +110,8 @@ export const Resolver = {
             }
         },
         sender: (src: ConversationMessage, _: any, context: CallContext) => Repos.Users.userLoader(context).load(src.userId),
-        date: (src: ConversationMessage) => src.createdAt.toUTCString()
+        date: (src: ConversationMessage) => src.createdAt,
+        repeatKey: (src: ConversationMessage, args: any, context: CallContext) => src.userId === context.uid ? src.repeatToken : null
     },
     ConversationEvent: {
         __resolveType(obj: ConversationEvent) {
@@ -430,7 +431,7 @@ export const Resolver = {
                                 reject(error);
                             }
                         }));
-
+                console.warn(res);
                 let isImage = res.is_image as boolean;
                 let imageWidth = isImage ? res.image_info.width as number : null;
                 let imageHeight = isImage ? res.image_info.height as number : null;
@@ -447,6 +448,10 @@ export const Resolver = {
                     imageHeight,
                     imageFormat
                 };
+            }
+
+            if (args.message === 'fuck') {
+                throw Error('');
             }
 
             return await DB.txStable(async (tx) => {
