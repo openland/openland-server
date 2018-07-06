@@ -1080,47 +1080,49 @@ export const Resolver = {
                 return 'ok';
             });
         }),
-        alphaOrganizationInviteMember: withAccount<{ email: string, emailText?: string, firstName?: string, lastName?: string, role: 'OWNER'|'MEMBER' }>(async (args, uid, oid) => {
+        alphaOrganizationInviteMembers: withAccount<{ inviteRequests: { email: string, emailText?: string, firstName?: string, lastName?: string, role: 'OWNER' | 'MEMBER' }[] }>(async (args, uid, oid) => {
             await validate(
                 {
-                    email: defined(emailValidator),
-                    firstName: optional(stringNotEmpty()),
-                    lastName: optional(stringNotEmpty()),
-                    emailText: optional(stringNotEmpty())
+                    inviteRequests: [
+                        {
+                            email: defined(emailValidator),
+                        }
+                    ]
                 },
                 args
             );
 
             return await DB.tx(async (tx) => {
-                let isDuplicate = await Repos.Invites.haveInviteForEmail(oid, args.email, tx);
+                for (let inviteRequest of args.inviteRequests) {
+                    let isDuplicate = await Repos.Invites.haveInviteForEmail(oid, inviteRequest.email, tx);
 
-                if (isDuplicate) {
-                    throw new UserError(ErrorText.inviteAlreadyExists);
+                    if (isDuplicate) {
+                        throw new UserError(ErrorText.inviteAlreadyExists);
+                    }
+
+                    let isMemberDuplicate = await Repos.Organizations.haveMemberWithEmail(oid, inviteRequest.email);
+
+                    if (isMemberDuplicate) {
+                        throw new UserError(ErrorText.memberWithEmailAlreadyExists);
+                    }
+
+                    let invite = await Repos.Invites.createOneTimeInvite(
+                        oid,
+                        uid,
+                        inviteRequest.firstName || '',
+                        inviteRequest.lastName || '',
+                        inviteRequest.email,
+                        inviteRequest.emailText || '',
+                        inviteRequest.role,
+                        tx
+                    );
+
+                    await Emails.sendInviteEmail(oid, invite, tx);
                 }
-
-                let isMemberDuplicate = await Repos.Organizations.haveMemberWithEmail(oid, args.email);
-
-                if (isMemberDuplicate) {
-                    throw new UserError(ErrorText.memberWithEmailAlreadyExists);
-                }
-
-                let invite = await Repos.Invites.createOneTimeInvite(
-                    oid,
-                    uid,
-                    args.firstName || '',
-                    args.lastName || '',
-                    args.email,
-                    args.emailText || '',
-                    args.role,
-                    tx
-                );
-
-                await Emails.sendInviteEmail(oid, invite, tx);
-
-                return invite;
+                return 'ok';
             });
         }),
-        alphaOrganizationCreatePublicInvite: withAccount<{expirationDays: number}>(async (args, uid, oid) => {
+        alphaOrganizationCreatePublicInvite: withAccount<{ expirationDays: number }>(async (args, uid, oid) => {
             return DB.tx(async (tx) => {
                 await validate(
                     {

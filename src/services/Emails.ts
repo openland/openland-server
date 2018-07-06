@@ -159,33 +159,31 @@ export const Emails = {
         });
     },
 
-    async sendInviteEmail(oid: number, invite: OrganizationInvite, etx?: Transaction) {
-        await DB.tx(async (tx) => {
-            let org = await DB.Organization.findById(oid, { transaction: tx });
-            if (!org) {
-                throw Error('Unable to find organization');
+    async sendInviteEmail(oid: number, invite: OrganizationInvite, tx: Transaction) {
+        let org = await DB.Organization.findById(oid, { transaction: tx });
+        if (!org) {
+            throw Error('Unable to find organization');
+        }
+
+        let userWelcome = {
+            'userWelcome': invite.memberFirstName ? 'Hi, ' + invite.memberFirstName : 'Hi',
+            'userName': [invite.memberFirstName, invite.memberLastName].filter((v) => v).join(' '),
+            'userFirstName': invite.memberFirstName || '',
+            'userLastName': invite.memberLastName || ''
+        };
+
+        let domain = process.env.APP_ENVIRONMENT === 'production' ? 'https://openland.com/join/' : 'http://localhost:3000/join/';
+
+        await EmailWorker.pushWork({
+            templateId: TEMPLATE_INVITE,
+            to: invite.forEmail,
+            args: {
+                customText: invite.emailText || '',
+                inviteLink: domain + invite.uuid,
+                'organizationName': org.name!!,
+                ...userWelcome
             }
-
-            let userWelcome = {
-                'userWelcome': 'Hi',
-                'userName': [invite.memberFirstName, invite.memberLastName].filter((v) => v).join(' '),
-                'userFirstName': invite.memberFirstName || '',
-                'userLastName': invite.memberLastName || ''
-            };
-
-            let domain = process.env.APP_ENVIRONMENT === 'production' ? 'https://openland.com/join/' : 'http://localhost:3000/join/';
-
-            await EmailWorker.pushWork({
-                templateId: TEMPLATE_INVITE,
-                to: invite.forEmail,
-                args: {
-                    customText: invite.emailText || '',
-                    inviteLink: domain + invite.uuid,
-                    'organizationName': org.name!!,
-                    ...userWelcome
-                }
-            }, tx);
-        });
+        }, tx);
     },
 
     async sendMemberJoinedEmails(oid: number, memberId: number, etx?: Transaction) {

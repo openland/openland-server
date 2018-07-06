@@ -5,6 +5,7 @@
 type Invite {
     id: ID!
     key: String!
+    ttl: Int
 }
 
 type InviteInfo {
