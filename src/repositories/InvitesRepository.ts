@@ -108,6 +108,6 @@ export default class InvitesRepository {
     }
 
     private createTTLvalue(expirationDays: number): number {
-        return new Date().getTime() + (SECS_IN_DAY * expirationDays);
+        return new Date().getTime() + (SECS_IN_DAY * 1000 * expirationDays);
     }
 }
