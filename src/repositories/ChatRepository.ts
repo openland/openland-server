@@ -164,4 +164,56 @@ export class ChatsRepository {
         this.userSuperbus.eventHandler((v) => this.userReader.onMessage(v.userId, v.seq));
         this.userSuperbus.start();
     }
+
+    loadPrivateChat = async (uid1: number, uid2: number) => {
+        let _uid1 = Math.min(uid1, uid2);
+        let _uid2 = Math.max(uid1, uid2);
+        return await DB.txStable(async (tx) => {
+            let conversation = await DB.Conversation.find({
+                where: {
+                    member1Id: _uid1,
+                    member2Id: _uid2,
+                    type: 'private'
+                },
+                transaction: tx,
+                lock: tx.LOCK.UPDATE
+            });
+            if (conversation) {
+                return conversation;
+            }
+            let res = await DB.Conversation.create({
+                type: 'private',
+                title: 'Private Chat',
+                member1Id: _uid1,
+                member2Id: _uid2
+            });
+            return res;
+        });
+    }
+
+    loadOrganizationalChat = async (oid1: number, oid2: number) => {
+        let _oid1 = Math.min(oid1, oid2);
+        let _oid2 = Math.max(oid1, oid2);
+        return await DB.txStable(async (tx) => {
+            let conversation = await DB.Conversation.find({
+                where: {
+                    organization1Id: _oid1,
+                    organization2Id: _oid2,
+                    type: 'shared'
+                },
+                transaction: tx,
+                lock: tx.LOCK.UPDATE
+            });
+            if (conversation) {
+                return conversation;
+            }
+            let res = await DB.Conversation.create({
+                type: 'shared',
+                title: 'Cross Organization Chat',
+                organization1Id: _oid1,
+                organization2Id: _oid2
+            });
+            return res;
+        });
+    }
 }

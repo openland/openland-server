@@ -1,5 +1,5 @@
 import { ConversationMessage } from '../tables/ConversationMessage';
-import { IDs } from './utils/IDs';
+import { IDs, IdsFactory } from './utils/IDs';
 import { Conversation } from '../tables/Conversation';
 import { DB } from '../tables';
 import { withPermission, withAny, withAccount, withUser } from './utils/Resolvers';
@@ -12,6 +12,7 @@ import { DoubleInvokeError } from '../errors/DoubleInvokeError';
 import { ConversationUserEvents } from '../tables/ConversationUserEvents';
 import request from 'request';
 import { JsonMap } from '../utils/json';
+import { IDMailformedError } from '../errors/IDMailformedError';
 
 export const Resolver = {
     Conversation: {
@@ -29,6 +30,7 @@ export const Resolver = {
     },
     AnonymousConversation: {
         id: (src: Conversation) => IDs.Conversation.serialize(src.id),
+        flexibleId: (src: Conversation) => IDs.Conversation.serialize(src.id),
         title: (src: Conversation) => src.title,
         photoRefs: (src: Conversation) => [],
         unreadCount: async (src: Conversation, _: any, context: CallContext) => {
@@ -42,6 +44,15 @@ export const Resolver = {
     },
     SharedConversation: {
         id: (src: Conversation) => IDs.Conversation.serialize(src.id),
+        flexibleId: (src: Conversation, _: any, context: CallContext) => {
+            if (src.organization1Id === context.oid || (src.organization1 && src.organization1.id === context.oid)) {
+                return IDs.Organization.serialize(src.organization2Id!!);
+            } else if (src.organization2Id === context.oid || (src.organization2 && src.organization2.id === context.oid)) {
+                return IDs.Organization.serialize(src.organization1Id!!);
+            } else {
+                throw Error('Inconsistent Shared Conversation resolver');
+            }
+        },
         title: async (src: Conversation, _: any, context: CallContext) => {
             if (src.organization1Id === context.oid || (src.organization1 && src.organization1.id === context.oid)) {
                 return (src.organization2 || await src.getOrganization2())!!.name;
@@ -63,12 +74,23 @@ export const Resolver = {
     },
     PrivateConversation: {
         id: (src: Conversation) => IDs.Conversation.serialize(src.id),
+        flexibleId: (src: Conversation, _: any, context: CallContext) => {
+            let uid;
+            if (src.member1Id === context.uid || (src.member1 && src.member1.id === context.uid)) {
+                uid = src.member2Id!!;
+            } else if (src.member2Id === context.uid || (src.member2 && src.member2.id === context.uid)) {
+                uid = src.member1Id!!;
+            } else {
+                throw Error('Inconsistent Shared Conversation resolver');
+            }
+            return IDs.User.serialize(uid);
+        },
         title: async (src: Conversation, _: any, context: CallContext) => {
             let uid;
             if (src.member1Id === context.uid || (src.member1 && src.member1.id === context.uid)) {
-                uid = (src.member2 || await src.getMember2())!!.id;
+                uid = src.member2Id!!;
             } else if (src.member2Id === context.uid || (src.member2 && src.member2.id === context.uid)) {
-                uid = (src.member1 || await src.getMember1())!!.id;
+                uid = src.member1Id!!;
             } else {
                 throw Error('Inconsistent Shared Conversation resolver');
             }
@@ -221,61 +243,25 @@ export const Resolver = {
                 };
             });
         }),
-        alphaChat: withAny<{ conversationId: string }>((args) => {
-            let conversationId = IDs.Conversation.parse(args.conversationId);
-            return DB.Conversation.findById(conversationId);
+        alphaChat: withAccount<{ conversationId: string }>((args, uid, oid) => {
+            let id = IdsFactory.resolve(args.conversationId);
+            if (id.type === IDs.Conversation) {
+                return DB.Conversation.findById(id.id);
+            } else if (id.type === IDs.User) {
+                return Repos.Chats.loadPrivateChat(id.id, uid);
+            } else if (id.type === IDs.Organization) {
+                return Repos.Chats.loadOrganizationalChat(oid, id.id);
+            } else {
+                throw new IDMailformedError('Invalid id');
+            }
         }),
         alphaChatOrganization: withAccount<{ orgId: string }>(async (args, uid, oid) => {
             let orgId = IDs.Organization.parse(args.orgId);
-            let oid1 = Math.min(oid, orgId);
-            let oid2 = Math.max(oid, orgId);
-            return await DB.tx(async (tx) => {
-                let conversation = await DB.Conversation.find({
-                    where: {
-                        organization1Id: oid1,
-                        organization2Id: oid2,
-                        type: 'shared'
-                    },
-                    transaction: tx,
-                    lock: tx.LOCK.UPDATE
-                });
-                if (conversation) {
-                    return conversation;
-                }
-                let res = await DB.Conversation.create({
-                    type: 'shared',
-                    title: 'Cross Organization Chat',
-                    organization1Id: oid1,
-                    organization2Id: oid2
-                });
-                return res;
-            });
+            return await Repos.Chats.loadOrganizationalChat(oid, orgId);
         }),
         alphaChatUser: withAccount<{ userId: string }>(async (args, uid, oid) => {
             let userId = IDs.User.parse(args.userId);
-            let uid1 = Math.min(uid, userId);
-            let uid2 = Math.max(uid, userId);
-            return await DB.tx(async (tx) => {
-                let conversation = await DB.Conversation.find({
-                    where: {
-                        member1Id: uid1,
-                        member2Id: uid2,
-                        type: 'private'
-                    },
-                    transaction: tx,
-                    lock: tx.LOCK.UPDATE
-                });
-                if (conversation) {
-                    return conversation;
-                }
-                let res = await DB.Conversation.create({
-                    type: 'private',
-                    title: 'Private Chat',
-                    member1Id: uid1,
-                    member2Id: uid2
-                });
-                return res;
-            });
+            return await Repos.Chats.loadPrivateChat(userId, uid);
         }),
         alphaLoadMessages: withAny<{ conversationId: string }>((args) => {
             let conversationId = IDs.Conversation.parse(args.conversationId);
@@ -571,7 +557,6 @@ export const Resolver = {
                                     userId: m,
                                     unread: 1
                                 }, { transaction: tx });
-
                             }
                         } else {
                             if (existing) {

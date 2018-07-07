@@ -5,6 +5,7 @@
 
 interface Conversation {
     id: ID!
+    flexibleId: ID!
     title: String!
     photoRefs: [ImageRef!]!
     unreadCount: Int!
@@ -12,6 +13,7 @@ interface Conversation {
 
 type AnonymousConversation implements Conversation {
     id: ID!
+    flexibleId: ID!
     title: String!
     photoRefs: [ImageRef!]!
     unreadCount: Int!
@@ -19,6 +21,7 @@ type AnonymousConversation implements Conversation {
 
 type SharedConversation implements Conversation {
     id: ID!
+    flexibleId: ID!
     title: String!
     photoRefs: [ImageRef!]!
     organizations: [Organization!]!
@@ -27,6 +30,7 @@ type SharedConversation implements Conversation {
 
 type PrivateConversation implements Conversation {
     id: ID!
+    flexibleId: ID!
     title: String!
     photoRefs: [ImageRef!]!
     members: [User!]!
