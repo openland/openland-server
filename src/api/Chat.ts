@@ -13,6 +13,7 @@ import { ConversationUserEvents } from '../tables/ConversationUserEvents';
 import request from 'request';
 import { JsonMap } from '../utils/json';
 import { IDMailformedError } from '../errors/IDMailformedError';
+import { ImageRef, buildBaseImageUrl } from '../repositories/Media';
 
 export const Resolver = {
     Conversation: {
@@ -32,7 +33,7 @@ export const Resolver = {
         id: (src: Conversation) => IDs.Conversation.serialize(src.id),
         flexibleId: (src: Conversation) => IDs.Conversation.serialize(src.id),
         title: (src: Conversation) => src.title,
-        photoRefs: (src: Conversation) => [],
+        photos: (src: Conversation) => [],
         unreadCount: async (src: Conversation, _: any, context: CallContext) => {
             let state = await DB.ConversationUserState.find({ where: { conversationId: src.id, userId: context.uid!! } });
             if (state) {
@@ -68,7 +69,21 @@ export const Resolver = {
                 throw Error('Inconsistent Shared Conversation resolver');
             }
         },
-        photoRefs: (src: Conversation) => [],
+        photos: async (src: Conversation, _: any, context: CallContext) => {
+            let photo: ImageRef | null = null;
+            if (src.organization1Id === context.oid || (src.organization1 && src.organization1.id === context.oid)) {
+                photo = (src.organization2 || await src.getOrganization2())!!.photo!!;
+            } else if (src.organization2Id === context.oid || (src.organization2 && src.organization2.id === context.oid)) {
+                photo = (src.organization1 || await src.getOrganization1())!!.photo!!;
+            } else {
+                throw Error('Inconsistent Shared Conversation resolver');
+            }
+            if (photo) {
+                return [buildBaseImageUrl(photo)];
+            } else {
+                return [];
+            }
+        },
         unreadCount: async (src: Conversation, _: any, context: CallContext) => {
             let state = await DB.ConversationUserState.find({ where: { conversationId: src.id, userId: context.uid!! } });
             if (state) {
@@ -113,7 +128,27 @@ export const Resolver = {
             }))!!;
             return [profile.firstName, profile.lastName].filter((v) => !!v).join(' ');
         },
-        photoRefs: (src: Conversation) => [],
+        photos: async (src: Conversation, _: any, context: CallContext) => {
+            let uid;
+            if (src.member1Id === context.uid || (src.member1 && src.member1.id === context.uid)) {
+                uid = src.member2Id!!;
+            } else if (src.member2Id === context.uid || (src.member2 && src.member2.id === context.uid)) {
+                uid = src.member1Id!!;
+            } else {
+                throw Error('Inconsistent Shared Conversation resolver');
+            }
+            let profile = (await DB.UserProfile.find({
+                where: {
+                    userId: uid
+                }
+            }))!!;
+
+            if (profile.picture) {
+                return [buildBaseImageUrl(profile.picture)];
+            } else {
+                return [];
+            }
+        },
         unreadCount: async (src: Conversation, _: any, context: CallContext) => {
             let state = await DB.ConversationUserState.find({ where: { conversationId: src.id, userId: context.uid!! } });
             if (state) {

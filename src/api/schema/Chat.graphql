@@ -7,7 +7,7 @@ interface Conversation {
     id: ID!
     flexibleId: ID!
     title: String!
-    photoRefs: [ImageRef!]!
+    photos: [String!]!
     unreadCount: Int!
     topMessage: ConversationMessage
 }
@@ -16,7 +16,7 @@ type AnonymousConversation implements Conversation {
     id: ID!
     flexibleId: ID!
     title: String!
-    photoRefs: [ImageRef!]!
+    photos: [String!]!
     unreadCount: Int!
     topMessage: ConversationMessage
 }
@@ -25,7 +25,7 @@ type SharedConversation implements Conversation {
     id: ID!
     flexibleId: ID!
     title: String!
-    photoRefs: [ImageRef!]!
+    photos: [String!]!
     organizations: [Organization!]!
     unreadCount: Int!
     topMessage: ConversationMessage
@@ -35,7 +35,7 @@ type PrivateConversation implements Conversation {
     id: ID!
     flexibleId: ID!
     title: String!
-    photoRefs: [ImageRef!]!
+    photos: [String!]!
     members: [User!]!
     unreadCount: Int!
     topMessage: ConversationMessage
