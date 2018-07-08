@@ -59,7 +59,8 @@ export class SuperBus<T, TInstance, TAttributes> {
 
     private async startReader() {
         let firstEvent = await backoff(async () => this.model.find({
-            order: [['updatedAt', 'desc'], ['id', 'desc']]
+            order: [['updatedAt', 'desc'], ['id', 'desc']],
+            logging: false
         }));
         let offset: { id: number, date: Date } | null = null;
         if (firstEvent) {
@@ -80,7 +81,8 @@ export class SuperBus<T, TInstance, TAttributes> {
             let events = await this.model.findAll({
                 where: where,
                 order: [['updatedAt', 'asc'], ['id', 'asc']],
-                limit: 100
+                limit: 100,
+                logging: false
             });
             if (events.length > 0) {
                 offset = { id: (events[events.length - 1] as any).id, date: (events[events.length - 1] as any).updatedAt };

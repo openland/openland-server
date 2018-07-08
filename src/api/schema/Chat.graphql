@@ -9,6 +9,7 @@ interface Conversation {
     title: String!
     photoRefs: [ImageRef!]!
     unreadCount: Int!
+    topMessage: ConversationMessage
 }
 
 type AnonymousConversation implements Conversation {
@@ -17,6 +18,7 @@ type AnonymousConversation implements Conversation {
     title: String!
     photoRefs: [ImageRef!]!
     unreadCount: Int!
+    topMessage: ConversationMessage
 }
 
 type SharedConversation implements Conversation {
@@ -26,6 +28,7 @@ type SharedConversation implements Conversation {
     photoRefs: [ImageRef!]!
     organizations: [Organization!]!
     unreadCount: Int!
+    topMessage: ConversationMessage
 }
 
 type PrivateConversation implements Conversation {
@@ -35,6 +38,7 @@ type PrivateConversation implements Conversation {
     photoRefs: [ImageRef!]!
     members: [User!]!
     unreadCount: Int!
+    topMessage: ConversationMessage
 }
 
 #
@@ -144,12 +148,9 @@ extend type Mutation {
 }
 
 extend type Query {
-    superAllChats: [Conversation!]!
     alphaChats(first: Int!, after: String): ConversationConnection!
     alphaNotificationCounter: NotificationCounter!
     alphaChat(conversationId: ID!): Conversation!
-    alphaChatOrganization(orgId: ID!): Conversation!
-    alphaChatUser(userId: ID!): Conversation!
     alphaLoadMessages(conversationId: ID!): ConversationState!
 }
 

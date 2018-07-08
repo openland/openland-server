@@ -40,7 +40,13 @@ export const Resolver = {
             } else {
                 return 0;
             }
-        }
+        },
+        topMessage: (src: Conversation) => DB.ConversationMessage.find({
+            where: {
+                conversationId: src.id,
+            },
+            order: [['id', 'DESC']]
+        })
     },
     SharedConversation: {
         id: (src: Conversation) => IDs.Conversation.serialize(src.id),
@@ -70,7 +76,13 @@ export const Resolver = {
             } else {
                 return 0;
             }
-        }
+        },
+        topMessage: (src: Conversation) => DB.ConversationMessage.find({
+            where: {
+                conversationId: src.id,
+            },
+            order: [['id', 'DESC']]
+        })
     },
     PrivateConversation: {
         id: (src: Conversation) => IDs.Conversation.serialize(src.id),
@@ -109,7 +121,13 @@ export const Resolver = {
             } else {
                 return 0;
             }
-        }
+        },
+        topMessage: (src: Conversation) => DB.ConversationMessage.find({
+            where: {
+                conversationId: src.id,
+            },
+            order: [['id', 'DESC']]
+        })
     },
 
     ConversationMessage: {
@@ -207,20 +225,6 @@ export const Resolver = {
     },
     Query: {
         alphaNotificationCounter: withUser((args, uid) => uid),
-        superAllChats: withPermission('software-developer', async (args, context) => {
-            let res = await DB.ConversationUserState.findAll({
-                where: {
-                    userId: context.uid,
-                    active: true
-                },
-                order: [['updatedAt', 'DESC']],
-                include: [{
-                    model: DB.Conversation,
-                    as: 'conversation'
-                }]
-            });
-            return res.map((v) => v.conversation!!);
-        }),
         alphaChats: withAccount<{ first: number, after?: string | null }>(async (args, uid, oid) => {
             return await DB.tx(async (tx) => {
                 let global = await DB.ConversationsUserGlobal.find({ where: { userId: uid }, transaction: tx });
@@ -254,14 +258,6 @@ export const Resolver = {
             } else {
                 throw new IDMailformedError('Invalid id');
             }
-        }),
-        alphaChatOrganization: withAccount<{ orgId: string }>(async (args, uid, oid) => {
-            let orgId = IDs.Organization.parse(args.orgId);
-            return await Repos.Chats.loadOrganizationalChat(oid, orgId);
-        }),
-        alphaChatUser: withAccount<{ userId: string }>(async (args, uid, oid) => {
-            let userId = IDs.User.parse(args.userId);
-            return await Repos.Chats.loadPrivateChat(userId, uid);
         }),
         alphaLoadMessages: withAny<{ conversationId: string }>((args) => {
             let conversationId = IDs.Conversation.parse(args.conversationId);

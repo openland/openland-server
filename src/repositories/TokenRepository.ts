@@ -11,7 +11,8 @@ export class TokenRepository {
                 tokenSalt: {
                     $in: tokens
                 }
-            }
+            },
+            logging: false
         });
         let res: (number | null)[] = [];
         for (let i of tokens) {
