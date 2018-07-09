@@ -117,4 +117,6 @@ extend type Query {
 
 extend type Mutation {
     debugSendWelcomeEmail: String!
+
+    debugSendEmail(email: String!, text: String!): String!
 }

@@ -216,5 +216,18 @@ export const Emails = {
                 }, tx);
             }
         });
+    },
+
+    async sendDebugEmail(email: string, text: string) {
+        await EmailWorker.pushWork({
+            templateId: TEMPLATE_INVITE,
+            to: email,
+            args: {
+                customText: text || '',
+                inviteLink: 'http://test.com/',
+                'organizationName': 'Debug',
+                'userWelcome': 'hello'
+            }
+        });
     }
 };

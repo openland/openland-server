@@ -20,6 +20,12 @@ export const Resolver = {
         debugSendWelcomeEmail: withUser(async (args, uid) => {
             await Emails.sendWelcomeEmail(uid);
             return 'ok';
+        }),
+
+        debugSendEmail: withPermissionOptional<{ email: string, text: string }>(['software-developer'], async (args) => {
+            await Emails.sendDebugEmail(args.email, args.text);
+
+            return 'ok';
         })
     },
     Subscription: {
