@@ -28,9 +28,7 @@ export interface Conversation extends sequelize.Instance<Partial<ConversationAtt
 export const ConversationTable = connection.define<Conversation, Partial<ConversationAttributes>>('conversation', {
     id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
     title: {
-        type: sequelize.STRING, allowNull: false, validate: {
-            notEmpty: true
-        }
+        type: sequelize.STRING, allowNull: false
     },
     seq: { type: sequelize.INTEGER, defaultValue: 0, allowNull: false },
     type: { type: sequelize.STRING, defaultValue: 'anonymous', allowNull: false }

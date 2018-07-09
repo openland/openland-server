@@ -167,7 +167,26 @@ export const Resolver = {
     GroupConversation: {
         id: (src: Conversation) => IDs.Conversation.serialize(src.id),
         flexibleId: (src: Conversation) => IDs.Conversation.serialize(src.id),
-        title: async (src: Conversation) => src.title,
+        title: async (src: Conversation, _: any, context: CallContext) => {
+            if (src.title !== '') {
+                return src.title;
+            }
+            let res = await DB.ConversationGroupMembers.findAll({
+                where: {
+                    conversationId: src.id,
+                    userId: {
+                        $not: context.uid
+                    }
+                },
+                order: ['userId']
+            });
+            let name: string[] = [];
+            for (let r of res) {
+                let p = (await DB.UserProfile.find({ where: { userId: r.userId } }))!!;
+                name.push([p.firstName, p.lastName].filter((v) => !!v).join(' '));
+            }
+            return name.join(', ');
+        },
         photos: async (src: Conversation, _: any, context: CallContext) => {
             let res = await DB.ConversationGroupMembers.findAll({
                 where: {
@@ -371,10 +390,11 @@ export const Resolver = {
         })
     },
     Mutation: {
-        alphaChatCreateGroup: withAccount<{ title: string, message: string, members: string[] }>(async (args, uid, oid) => {
+        alphaChatCreateGroup: withAccount<{ title?: string | null, message: string, members: string[] }>(async (args, uid, oid) => {
             return await DB.txStable(async (tx) => {
+                let title = args.title ? args.title!! : '';
                 let conv = await DB.Conversation.create({
-                    title: args.title,
+                    title: title,
                     type: 'group'
                 }, { transaction: tx });
                 let members = [uid, ...args.members.map((v) => IDs.User.parse(v))];

@@ -155,7 +155,7 @@ extend type Mutation {
     superCreateChat(title: String!): Conversation!
     alphaSendMessage(conversationId: ID!, message: String, file: String, repeatKey: String): ConversationEventMessage!
     alphaReadChat(conversationId: ID!, messageId: ID!): ChatReadResult!
-    alphaChatCreateGroup(title: String!, members: [ID!]!, message: String): Conversation!
+    alphaChatCreateGroup(title: String, members: [ID!]!, message: String): Conversation!
 }
 
 extend type Query {

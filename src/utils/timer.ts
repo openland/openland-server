@@ -50,9 +50,7 @@ export async function retry<T>(callback: () => Promise<T>): Promise<T> {
         try {
             return await callback();
         } catch (e) {
-            if (currentFailureCount < maxFailureCount) {
-                currentFailureCount++;
-            }
+            currentFailureCount++;
             if (currentFailureCount > maxFailureCount) {
                 throw e;
             }
