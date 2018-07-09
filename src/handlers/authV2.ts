@@ -70,6 +70,14 @@ export const Authenticator = async function (req: express.Request, response: exp
         });
         let profile = await res.json<Profile>();
 
+        // let r = await (await fetch('https://statecraft.auth0.com/api/v2/users/' + (profile as any).sub, {
+        //     method: 'GET',
+        //     headers: {
+        //         authorization: 'Bearer <TOKEN>'
+        //     }
+        // })).json();
+        // console.warn(r);
+
         let firstName: string | null = null;
         let lastName: string | null = null;
         if (profile.nickname) {
