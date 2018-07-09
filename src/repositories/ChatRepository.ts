@@ -345,7 +345,7 @@ export class ChatsRepository {
                         userChatUnread = existing.unread;
                         await existing.save({ transaction: tx });
                     } else {
-                        userUnread = 1;
+                        userChatUnread = 1;
                         await DB.ConversationUserState.create({
                             conversationId: conversationId,
                             userId: m,
