@@ -37,7 +37,7 @@ export const Resolver = {
             return {
                 id: IDs.InviteInfo.serialize(invite.id),
                 key: args.key,
-                orgId: IDs.OrganizationAccount.serialize(org.id!!),
+                orgId: IDs.Organization.serialize(org.id!!),
                 title: org.name,
                 photo: org.photo ? buildBaseImageUrl(org.photo) : null,
                 photoRef: org.photo,
@@ -111,7 +111,7 @@ export const Resolver = {
                 }
                 let existing = await DB.OrganizationMember.find({ where: { userId: uid, orgId: invite.orgId }, transaction: tx });
                 if (existing) {
-                    return IDs.OrganizationAccount.serialize(invite.orgId);
+                    return IDs.Organization.serialize(invite.orgId);
                 }
 
                 if (invite.ttl && (new Date().getTime() >= invite.ttl)) {
@@ -138,7 +138,7 @@ export const Resolver = {
 
                 await Emails.sendMemberJoinedEmails(invite.orgId, uid, tx);
 
-                return IDs.OrganizationAccount.serialize(invite.orgId);
+                return IDs.Organization.serialize(invite.orgId);
             });
         }),
         alphaCreateInvite: withAccount(async (args, uid, oid) => {
