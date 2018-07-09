@@ -1,7 +1,7 @@
 import { ConversationMessage } from '../tables/ConversationMessage';
 import { IDs, IdsFactory } from './utils/IDs';
 import { Conversation } from '../tables/Conversation';
-import { DB } from '../tables';
+import { DB, User } from '../tables';
 import { withPermission, withAny, withAccount, withUser } from './utils/Resolvers';
 import { validate, stringNotEmpty } from '../modules/NewInputValidator';
 import { ConversationEvent } from '../tables/ConversationEvent';
@@ -12,6 +12,7 @@ import request from 'request';
 import { JsonMap } from '../utils/json';
 import { IDMailformedError } from '../errors/IDMailformedError';
 import { ImageRef, buildBaseImageUrl } from '../repositories/Media';
+import { Organization } from '../tables/Organization';
 
 export const Resolver = {
     Conversation: {
@@ -305,6 +306,18 @@ export const Resolver = {
         conversationId: (src: ConversationUserEvents) => IDs.Conversation.serialize(src.event.conversationId as any),
     },
 
+    ComposeSearchResult: {
+        __resolveType(obj: User | Organization) {
+            // WTF, sequelize? Why Model is undefined??
+            if (obj.constructor.name === 'user') {
+                return 'User';
+            } else if (obj.constructor.name === 'organization') {
+                return 'Organization';
+            }
+            throw Error('Unknown type');
+        }
+    },
+
     NotificationCounter: {
         id: (src: number | { uid: number, counter: number }) => {
             if (typeof src === 'number') {
@@ -379,14 +392,29 @@ export const Resolver = {
             });
         }),
         alphaChatsSearchForCompose: withAccount<{ query: string }>(async (args, uid, oid) => {
-            return await DB.User.findAll({
+            let orgs = await DB.Organization.findAll({
                 where: {
-                    email: {
-                        $like: args.query + '%'
+                    name: {
+                        $ilike: args.query.toLowerCase() + '%'
+                    },
+                    id: {
+                        $not: oid
                     }
                 },
-                limit: 10
+                limit: 4
             });
+            let users = await DB.User.findAll({
+                where: {
+                    email: {
+                        $ilike: args.query.toLowerCase() + '%'
+                    },
+                    id: {
+                        $not: uid
+                    }
+                },
+                limit: 4
+            });
+            return [...orgs, ...users];
         })
     },
     Mutation: {

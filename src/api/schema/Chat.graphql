@@ -158,12 +158,14 @@ extend type Mutation {
     alphaChatCreateGroup(title: String, members: [ID!]!, message: String): Conversation!
 }
 
+union ComposeSearchResult = User | Organization
+
 extend type Query {
     alphaChats(first: Int!, after: String): ConversationConnection!
     alphaNotificationCounter: NotificationCounter!
     alphaChat(conversationId: ID!): Conversation!
     alphaLoadMessages(conversationId: ID!): ConversationState!
-    alphaChatsSearchForCompose(query: String): [User!]!
+    alphaChatsSearchForCompose(query: String): [ComposeSearchResult!]!
 }
 
 extend type Subscription {
