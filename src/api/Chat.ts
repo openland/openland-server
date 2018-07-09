@@ -419,6 +419,16 @@ export const Resolver = {
             let conversationId = IDs.Conversation.parse(args.conversationId);
             let messageId = IDs.ConversationMessage.parse(args.messageId);
             await DB.txStable(async (tx) => {
+                let msg = await DB.ConversationMessage.find({
+                    where: {
+                        id: messageId,
+                        conversationId: conversationId
+                    },
+                    transaction: tx
+                });
+                if (!msg) {
+                    throw Error('Invalid request');
+                }
                 let existing = await DB.ConversationUserState.find({
                     where: {
                         userId: uid,
@@ -447,7 +457,8 @@ export const Resolver = {
                                 userId: {
                                     $not: uid
                                 }
-                            }
+                            },
+                            transaction: tx
                         });
                         if (!existingGlobal) {
                             throw Error('Internal inconsistency');
@@ -455,7 +466,7 @@ export const Resolver = {
                         if (remaining === 0) {
                             delta = -existing.unread;
                             existing.unread = 0;
-                            existing.readDate = 0;
+                            existing.readDate = messageId;
                         } else {
                             delta = remaining - existing.unread;
                             existing.unread = remaining;
@@ -474,7 +485,8 @@ export const Resolver = {
                             userId: {
                                 $not: uid
                             }
-                        }
+                        },
+                        transaction: tx
                     });
                     if (remaining > 0) {
                         await DB.ConversationUserState.create({
@@ -482,7 +494,7 @@ export const Resolver = {
                             conversationId: conversationId,
                             readDate: messageId,
                             unread: remaining
-                        });
+                        }, { transaction: tx });
                         delta = remaining;
                         if (!existingGlobal) {
                             throw Error('Internal inconsistency');
