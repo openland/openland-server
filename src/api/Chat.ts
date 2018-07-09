@@ -454,7 +454,8 @@ export const Resolver = {
                             $in: suitableGroups
                         }
                     },
-                    order: ['updatedAt']
+                    order: [['updatedAt', 'DESC']],
+                    transaction: tx
                 });
             });
         })
