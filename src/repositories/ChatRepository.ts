@@ -4,6 +4,10 @@ import { ConversationEventAttributes, ConversationEvent } from '../tables/Conver
 import { ConversationUserGlobal } from '../tables/ConversationsUserGlobal';
 import { ConversationMessageAttributes } from '../tables/ConversationMessage';
 import { ConversationUserEvents, ConversationUserEventsAttributes } from '../tables/ConversationUserEvents';
+import { Transaction } from '../../node_modules/@types/sequelize';
+import { JsonMap } from '../utils/json';
+import { DoubleInvokeError } from '../errors/DoubleInvokeError';
+import { NotFoundError } from '../errors/NotFoundError';
 
 class ChatsEventReader {
     private knownHeads = new Map<number, number>();
@@ -215,5 +219,196 @@ export class ChatsRepository {
             });
             return res;
         });
+    }
+
+    sendMessage = async (tx: Transaction, conversationId: number, uid: number, message: { message?: string | null, file?: string | null, repeatKey?: string | null, fileMetadata?: JsonMap | null }) => {
+        if (message.message === 'fuck') {
+            throw Error('');
+        }
+
+        //
+        // Handle retry
+        //
+
+        if (message.repeatKey) {
+            if (await DB.ConversationMessage.find({
+                where: {
+                    userId: uid,
+                    conversationId: conversationId,
+                    repeatToken: message.repeatKey
+                },
+                transaction: tx,
+                lock: tx.LOCK.UPDATE
+            })) {
+                throw new DoubleInvokeError();
+            }
+        }
+
+        //
+        // Increment sequence number
+        //
+
+        let conv = await DB.Conversation.findById(conversationId, { lock: tx.LOCK.UPDATE, transaction: tx });
+        if (!conv) {
+            throw new NotFoundError('Conversation not found');
+        }
+        let seq = conv.seq + 1;
+        conv.seq = seq;
+        await conv.save({ transaction: tx });
+
+        // 
+        // Persist Messages
+        //
+
+        let msg = await DB.ConversationMessage.create({
+            message: message.message,
+            fileId: message.file,
+            fileMetadata: message.fileMetadata,
+            conversationId: conversationId,
+            userId: uid,
+            repeatToken: message.repeatKey
+        }, { transaction: tx });
+        let res = await DB.ConversationEvent.create({
+            conversationId: conversationId,
+            eventType: 'new_message',
+            event: {
+                messageId: msg.id
+            },
+            seq: seq
+        }, { transaction: tx });
+
+        //
+        // Unread Counters
+        //
+        let members: number[] = [];
+        if (conv.type === 'private') {
+            members = [conv.member1Id!!, conv.member2Id!!];
+        } else if (conv.type === 'shared') {
+            let m = await DB.OrganizationMember.findAll({
+                where: {
+                    orgId: {
+                        $in: [conv.organization1Id!!, conv.organization2Id!!]
+                    }
+                },
+                order: [['createdAt', 'DESC']],
+                transaction: tx
+            });
+            for (let i of m) {
+                if (members.indexOf(i.userId) < 0) {
+                    members.push(i.userId);
+                }
+            }
+        } else if (conv.type === 'group') {
+            let m = await DB.ConversationGroupMembers.findAll({
+                where: {
+                    conversationId: conv.id,
+                },
+                transaction: tx
+            });
+            for (let i of m) {
+                if (members.indexOf(i.userId) < 0) {
+                    members.push(i.userId);
+                }
+            }
+        }
+        if (members.length > 0) {
+            let currentStates = await DB.ConversationUserState.findAll({
+                where: {
+                    conversationId: conversationId,
+                    userId: {
+                        $in: members
+                    }
+                },
+                transaction: tx,
+                lock: tx.LOCK.UPDATE
+            });
+            let currentGlobals = await DB.ConversationsUserGlobal.findAll({
+                where: {
+                    userId: {
+                        $in: members
+                    }
+                },
+                transaction: tx,
+                lock: tx.LOCK.UPDATE
+            });
+            for (let m of members) {
+                let existing = currentStates.find((v) => v.userId === m);
+                let existingGlobal = currentGlobals.find((v) => v.userId === m);
+                let userSeq = 1;
+                let userUnread = 0;
+                let userChatUnread = 0;
+
+                // Write user's chat state
+                if (m !== uid) {
+                    if (existing) {
+                        existing.unread++;
+                        userChatUnread = existing.unread;
+                        await existing.save({ transaction: tx });
+                    } else {
+                        userUnread = 1;
+                        await DB.ConversationUserState.create({
+                            conversationId: conversationId,
+                            userId: m,
+                            unread: 1
+                        }, { transaction: tx });
+                    }
+                } else {
+                    if (existing) {
+                        (existing as any).changed('updatedAt', true);
+                        await existing.save({ transaction: tx });
+                    } else {
+                        await DB.ConversationUserState.create({
+                            conversationId: conversationId,
+                            userId: m,
+                            unread: 0
+                        }, { transaction: tx });
+                    }
+                }
+
+                // Update or Create global state
+                if (existingGlobal) {
+                    if (m !== uid) {
+                        existingGlobal.unread++;
+                    }
+                    existingGlobal.seq++;
+                    userSeq = existingGlobal.seq;
+                    userUnread = existingGlobal.unread;
+                    await existingGlobal.save({ transaction: tx });
+                } else {
+                    if (m !== uid) {
+                        userUnread = 1;
+                        await DB.ConversationsUserGlobal.create({
+                            userId: m,
+                            unread: 1,
+                            seq: 1
+                        }, { transaction: tx });
+                    } else {
+                        userUnread = 0;
+                        await DB.ConversationsUserGlobal.create({
+                            userId: m,
+                            unread: 0,
+                            seq: 1
+                        }, { transaction: tx });
+                    }
+                }
+
+                // Write User Event
+                await DB.ConversationUserEvents.create({
+                    userId: m,
+                    seq: userSeq,
+                    eventType: 'new_message',
+                    event: {
+                        conversationId: conversationId,
+                        messageId: msg.id,
+                        unreadGlobal: userUnread,
+                        unread: userChatUnread,
+                        senderId: uid,
+                        repeatKey: message.repeatKey ? message.repeatKey : null
+                    }
+                }, { transaction: tx });
+            }
+        }
+
+        return res;
     }
 }

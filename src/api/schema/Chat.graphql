@@ -41,6 +41,16 @@ type PrivateConversation implements Conversation {
     topMessage: ConversationMessage
 }
 
+type GroupConversation implements Conversation {
+    id: ID!
+    flexibleId: ID!
+    title: String!
+    photos: [String!]!
+    members: [User!]!
+    unreadCount: Int!
+    topMessage: ConversationMessage
+}
+
 #
 # Messaging Contents
 #
@@ -145,6 +155,7 @@ extend type Mutation {
     superCreateChat(title: String!): Conversation!
     alphaSendMessage(conversationId: ID!, message: String, file: String, repeatKey: String): ConversationEventMessage!
     alphaReadChat(conversationId: ID!, messageId: ID!): ChatReadResult!
+    alphaChatCreateGroup(title: String!, members: [ID!]!, message: String): Conversation!
 }
 
 extend type Query {
@@ -152,6 +163,7 @@ extend type Query {
     alphaNotificationCounter: NotificationCounter!
     alphaChat(conversationId: ID!): Conversation!
     alphaLoadMessages(conversationId: ID!): ConversationState!
+    alphaChatsSearchForCompose(query: String): [User!]!
 }
 
 extend type Subscription {

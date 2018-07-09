@@ -7,7 +7,7 @@ export interface ConversationAttributes {
     id: number;
     title: string;
     seq: number;
-    type: 'anonymous' | 'private' | 'shared';
+    type: 'anonymous' | 'private' | 'shared' | 'group';
     member1Id: number | null;
     member2Id: number | null;
     organization1Id: number | null;
