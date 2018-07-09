@@ -23,6 +23,7 @@ class TaskLocker implements LockProvider {
                 return false;
             }
             if (!task.taskLockSeed || (task.taskLockSeed === seed || task.taskLockTimeout!!.getTime() < now)) {
+                task.taskLockSeed = seed;
                 task.taskLockTimeout = new Date(timeout);
                 await task.save({ transaction: tx, logging: false });
                 return true;
@@ -51,7 +52,6 @@ class TaskLocker implements LockProvider {
 }
 
 const pubsub = new Pubsub<{ taskId: number }>();
-const Locker = new DynamicLock({ lockTimeout: 10000, refreshInterval: 1000 });
 const MaximumFailingNumber = 5;
 
 export function startScheduller() {
@@ -145,6 +145,7 @@ export function startScheduller() {
 
 export class WorkQueue<ARGS extends JsonMap, RES extends JsonMap> {
     private taskType: string;
+    private locker = new DynamicLock({ lockTimeout: 10000, refreshInterval: 1000 });
 
     constructor(taskType: string) {
         this.taskType = taskType;
@@ -192,7 +193,7 @@ export class WorkQueue<ARGS extends JsonMap, RES extends JsonMap> {
             });
             if (task) {
                 console.warn('Task #' + task.id);
-                await Locker.within(new TaskLocker(task.id), async (state) => {
+                await this.locker.within(new TaskLocker(task.id), async (state) => {
                     // Switch status to executing
                     await task!!.reload({ logging: false });
                     state.check();
