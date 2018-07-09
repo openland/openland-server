@@ -391,8 +391,8 @@ export const Resolver = {
                 };
             });
         }),
-        alphaChatsSearchForCompose: withAccount<{ query: string }>(async (args, uid, oid) => {
-            let orgs = await DB.Organization.findAll({
+        alphaChatsSearchForCompose: withAccount<{ query: string, organizations: boolean }>(async (args, uid, oid) => {
+            let orgs = args.organizations ? await DB.Organization.findAll({
                 where: {
                     name: {
                         $ilike: args.query.toLowerCase() + '%'
@@ -402,7 +402,7 @@ export const Resolver = {
                     }
                 },
                 limit: 4
-            });
+            }) : [];
             let users = await DB.User.findAll({
                 where: {
                     email: {

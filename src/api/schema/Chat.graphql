@@ -165,7 +165,7 @@ extend type Query {
     alphaNotificationCounter: NotificationCounter!
     alphaChat(conversationId: ID!): Conversation!
     alphaLoadMessages(conversationId: ID!): ConversationState!
-    alphaChatsSearchForCompose(query: String): [ComposeSearchResult!]!
+    alphaChatsSearchForCompose(query: String, organizations: Boolean): [ComposeSearchResult!]!
 }
 
 extend type Subscription {
