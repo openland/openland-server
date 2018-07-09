@@ -415,6 +415,48 @@ export const Resolver = {
                 limit: 4
             });
             return [...orgs, ...users];
+        }),
+        alphaChatSearch: withAccount<{ members: string[] }>(async (args, uid, oid) => {
+            let members = [...args.members.map((v) => IDs.User.parse(v)), uid];
+            return await DB.txStable(async (tx) => {
+                let groups = await DB.ConversationGroupMembers.findAll({
+                    where: {
+                        userId: uid
+                    },
+                    transaction: tx
+                });
+                let suitableGroups: number[] = [];
+                for (let f of groups) {
+                    let allMembers = await DB.ConversationGroupMembers.findAll({
+                        where: {
+                            conversationId: f.conversationId
+                        },
+                        transaction: tx
+                    });
+                    if (allMembers.length !== members.length) {
+                        continue;
+                    }
+
+                    let missed = members
+                        .map((v) => !!allMembers.find((v2) => v2.userId === v))
+                        .filter((v) => !v);
+                    if (missed.length > 0) {
+                        continue;
+                    }
+                    suitableGroups.push(f.conversationId);
+                }
+                if (suitableGroups.length === 0) {
+                    return null;
+                }
+                return await DB.Conversation.find({
+                    where: {
+                        id: {
+                            $in: suitableGroups
+                        }
+                    },
+                    order: ['updatedAt']
+                });
+            });
         })
     },
     Mutation: {
@@ -698,7 +740,7 @@ export const Resolver = {
                     ...(async function* func() {
                         let lastKnownSeq = args.fromSeq;
                         while (!ended) {
-                            if (lastKnownSeq !== undefined && lastKnownSeq > 0) {
+                            if (lastKnownSeq !== undefined) {
                                 let events = await DB.ConversationUserEvents.findAll({
                                     where: {
                                         userId: context.uid,

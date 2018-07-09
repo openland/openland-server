@@ -166,6 +166,7 @@ extend type Query {
     alphaChat(conversationId: ID!): Conversation!
     alphaLoadMessages(conversationId: ID!): ConversationState!
     alphaChatsSearchForCompose(query: String, organizations: Boolean): [ComposeSearchResult!]!
+    alphaChatSearch(members: [ID!]!): Conversation
 }
 
 extend type Subscription {
