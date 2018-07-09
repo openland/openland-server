@@ -32,7 +32,8 @@ export function createEmailWorker() {
                 to: args.to,
                 from: { name: 'Openland', email: 'support@openland.com' },
                 templateId: args.templateId,
-                substitutions: args.args
+                substitutions: args.args,
+                batchId: 'worker-' + uid
             });
         }
         return {
