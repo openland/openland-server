@@ -41,7 +41,7 @@ input AlphaDummyPostInput{
     type: String!
     description: String
     date: String!
-    image: ImageRef
+    image: ImageRefInput
     activity: [String!]
     links: [AlphaOrganizationListingLinkInput!]
     pinned: Boolean
