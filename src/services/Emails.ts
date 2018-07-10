@@ -173,7 +173,7 @@ export const Emails = {
             'userLastName': invite.memberLastName || ''
         };
 
-        let domain = process.env.APP_ENVIRONMENT === 'production' ? 'https://openland.com/join/' : 'http://localhost:3000/join/';
+        let domain = process.env.APP_ENVIRONMENT === 'production' ? 'https://app.openland.com/join/' : 'http://localhost:3000/join/';
 
         await EmailWorker.pushWork({
             templateId: TEMPLATE_INVITE,
@@ -200,7 +200,7 @@ export const Emails = {
             'userLastName': invite.memberLastName || ''
         };
 
-        let domain = process.env.APP_ENVIRONMENT === 'production' ? 'https://openland.com/invite/' : 'http://localhost:3000/invite/';
+        let domain = process.env.APP_ENVIRONMENT === 'production' ? 'https://app.openland.com/invite/' : 'http://localhost:3000/invite/';
 
         await EmailWorker.pushWork({
             templateId: TEMPLATE_INVITE_ORGANIZATION,
