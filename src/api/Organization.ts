@@ -1303,7 +1303,7 @@ export const Resolver = {
                     throw new UserError(ErrorText.permissionOnlyOwner);
                 }
 
-                await Repos.Invites.deletePublicInvite(oid, tx);
+                await Repos.Invites.deletePublicInviteForOrganizations(oid, tx);
 
                 return 'ok';
             });

@@ -162,7 +162,7 @@ export default class InvitesRepository {
     }
 
     public async createPublicInviteForOrganizations(orgId: number, expirationDays: number, tx?: Transaction): Promise<OrganizationInvite> {
-        await this.deletePublicInvite(orgId, tx);
+        await this.deletePublicInviteForOrganizations(orgId, tx);
 
         return await DB.OrganizationInvite.create({
             isOneTime: false,
