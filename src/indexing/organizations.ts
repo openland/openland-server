@@ -11,14 +11,27 @@ export function createOrganizationIndexer(client: ES.Client) {
         location: {
             type: 'text'
         },
+        organizationType: {
+            type: 'text'
+        },
+        interest: {
+            type: 'text'
+        },
 
     });
     reader.indexer(async (item) => {
+        let location = (item.extras && item.extras.location) ? item.extras.location : '';
+        let locations = (item.extras && item.extras.locations && item.extras.locations.length > 0) ? item.extras.locations.join(' ') : '';
+        let organizationTypes = (item.extras && item.extras.organizationType && item.extras.organizationType.length > 0) ? item.extras.organizationType.join(' ') : '';
+        let interests = (item.extras && item.extras.interests && item.extras.interests.length > 0) ? item.extras.interests.join(' ') : '';
+
         return {
             id: item.id!!,
             doc: {
                 name: item.name,
-                location: (item.extras && item.extras.location) ? item.extras.location : ''
+                location: (location + ' ' + locations).trim(),
+                organizationType: organizationTypes,
+                interest: interests,
             }
         };
     });

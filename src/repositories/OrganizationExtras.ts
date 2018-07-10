@@ -48,6 +48,17 @@ export interface ListingExtras {
     unitCapacity?: string[] | null;
 }
 
+export interface DummyPost {
+    text: string;
+    type: string;
+    description?: string | null;
+    date: string;
+    image?: ImageRef | null;
+    activity?: string[] | null;
+    links?: { text: string, url: string }[] | null;
+    pinned?: boolean | null;
+}
+
 export interface OrganizationExtras {
     potentialSites?: Range[] | null;
     siteSizes?: Range[] | null;
@@ -56,14 +67,20 @@ export interface OrganizationExtras {
     location?: string | null;
     facebook?: string | null;
     linkedin?: string | null;
+    contacts?: ContactPerson[] | null;
+
+    organizationType?: string[] | null;
+    locations?: string[] | null;
+    interests?: string[] | null;
+    dummyPosts?: DummyPost[] | null;
+
+    // depricated
     developmentModels?: string[] | null;
     availability?: string[] | null;
-    contacts?: ContactPerson[] | null;
     landUse?: string[] | null;
     goodFor?: string[] | null;
     specialAttributes?: string[] | null;
     featuredOpportunities?: FeaturedOpportunity[] | null;
-    organizationType?: string[] | null;
     lookingFor?: string[] | null;
     geographies?: string[] | null;
     doShapeAndForm?: string[] | null;

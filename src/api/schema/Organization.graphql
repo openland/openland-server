@@ -25,6 +25,29 @@ input AlphaOrganizationListingLinkInput{
     url: String!
 }
 
+type AlphaDummyPost{
+    text: String!
+    type: String!
+    description: String
+    date: String!
+    image: ImageRef
+    activity: [String!]
+    links: [AlphaOrganizationListingLink!]
+    pinned: Boolean
+}
+
+input AlphaDummyPostInput{
+    text: String!
+    type: String!
+    description: String
+    date: String!
+    image: ImageRef
+    activity: [String!]
+    links: [AlphaOrganizationListingLinkInput!]
+    pinned: Boolean
+}
+
+
 type AlphaOrganizationListing{
     id: ID!
     name: String!
@@ -105,6 +128,12 @@ type Organization {
 
     alphaFollowed: Boolean!
 
+    alphaLocations: [String!]
+    alphaInterests: [String!]
+    alphaOrganizationType: [String!]
+
+    alphaDummyPosts: [AlphaDummyPost!]
+
     alphaPotentialSites: [Range!]
     alphaSiteSizes: [Range!]
     alphaDevelopmentModels: [String!]
@@ -116,7 +145,6 @@ type Organization {
     alphaListingAcquisitionRequests: [AlphaOrganizationListing!]
     alphaListingsAll: [AlphaOrganizationListing!]
     alphaDummyFeaturedOpportunities: [AlphaDummyFeaturedOpportunity!]
-    alphaOrganizationType: [String!]
     alphaLookingFor: [String!]
     alphaGeographies: [String!]
 
@@ -151,6 +179,12 @@ type OrganizationProfile {
     contacts: [OrganizationContact!]!
     location: String
 
+    alphaLocations: [String!]
+    alphaInterests: [String!]
+    alphaOrganizationType: [String!]
+
+    alphaDummyPosts: [AlphaDummyPost!]
+
     alphaPotentialSites: [Range!]
     alphaSiteSizes: [Range!]
     alphaDevelopmentModels: [String!]
@@ -162,7 +196,6 @@ type OrganizationProfile {
     alphaListingAcquisitionRequests: [AlphaOrganizationListing!]
     alphaListingsAll: [AlphaOrganizationListing!]
     alphaDummyFeaturedOpportunities: [AlphaDummyFeaturedOpportunity!]
-    alphaOrganizationType: [String!]
     alphaLookingFor: [String!]
     alphaGeographies: [String!]
 
@@ -211,6 +244,12 @@ input UpdateOrganizationProfileInput {
     linkedin: String
     location: String
     contacts: [ContactPersonInput!]
+
+    alphaLocations: [String!]
+    alphaInterests: [String!]
+    alphaOrganizationType: [String!]
+    
+    alphaDummyPosts: [AlphaDummyPostInput!]
 
     alphaPotentialSites: [RangeInput]
     alphaSiteSizes: [RangeInput]

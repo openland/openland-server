@@ -6,7 +6,7 @@ import { withUser, withAccount, withAny } from './utils/Resolvers';
 import { Repos } from '../repositories';
 import { ImageRef } from '../repositories/Media';
 import { CallContext } from './utils/CallContext';
-import { OrganizationExtras, ContactPerson, Range, ListingExtras } from '../repositories/OrganizationExtras';
+import { OrganizationExtras, ContactPerson, Range, ListingExtras, DummyPost } from '../repositories/OrganizationExtras';
 import { UserError } from '../errors/UserError';
 import { ErrorText } from '../errors/ErrorText';
 import { NotFoundError } from '../errors/NotFoundError';
@@ -63,6 +63,16 @@ export const Resolver = {
         location: (src: Organization) => src.extras && src.extras.location,
         contacts: (src: Organization) => src.extras ? src.extras.contacts || [] : [],
 
+        alphaOrganizationType: (src: Organization) => src.extras && src.extras.organizationType,
+        alphaLocations: (src: Organization) => src.extras && src.extras.locations,
+        alphaInterests: (src: Organization) => src.extras && src.extras.interests,
+        alphaDummyPosts: (src: Organization) => src.extras && src.extras.dummyPosts,
+
+        alphaListingDevelopmentOportunities: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id, type: 'development_opportunity' }, order: [['updatedAt', 'DESC']] }),
+        alphaListingAcquisitionRequests: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id, type: 'acquisition_request' }, order: [['updatedAt', 'DESC']] }),
+        alphaListingsAll: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id }, order: [['updatedAt', 'DESC']] }),
+        
+        // depricated
         alphaPotentialSites: (src: Organization) => src.extras && src.extras.potentialSites,
         alphaSiteSizes: (src: Organization) => src.extras && src.extras.siteSizes,
         alphaDevelopmentModels: (src: Organization) => src.extras && src.extras.developmentModels,
@@ -70,12 +80,7 @@ export const Resolver = {
         alphaLandUse: (src: Organization) => src.extras && src.extras.landUse,
         alphaGoodFor: (src: Organization) => src.extras && src.extras.goodFor,
         alphaSpecialAttributes: (src: Organization) => src.extras && src.extras.specialAttributes,
-        alphaListingDevelopmentOportunities: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id, type: 'development_opportunity' }, order: [['updatedAt', 'DESC']] }),
-        alphaListingAcquisitionRequests: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id, type: 'acquisition_request' }, order: [['updatedAt', 'DESC']] }),
-        alphaListingsAll: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id }, order: [['updatedAt', 'DESC']] }),
         alphaDummyFeaturedOpportunities: (src: Organization) => src.extras && src.extras.featuredOpportunities,
-
-        alphaOrganizationType: (src: Organization) => src.extras && src.extras.organizationType,
         alphaLookingFor: (src: Organization) => src.extras && src.extras.lookingFor,
         alphaGeographies: (src: Organization) => src.extras && src.extras.geographies,
         alphaDOShapeAndForm: (src: Organization) => src.extras && src.extras.doShapeAndForm,
@@ -154,13 +159,11 @@ export const Resolver = {
         location: (src: Organization) => src.extras && src.extras.location,
         contacts: (src: Organization) => src.extras ? src.extras.contacts || [] : [],
 
-        alphaPotentialSites: (src: Organization) => src.extras && src.extras.potentialSites,
-        alphaSiteSizes: (src: Organization) => src.extras && src.extras.siteSizes,
-        alphaDevelopmentModels: (src: Organization) => src.extras && src.extras.developmentModels,
-        alphaAvailability: (src: Organization) => src.extras && src.extras.availability,
-        alphaLandUse: (src: Organization) => src.extras && src.extras.landUse,
-        alphaGoodFor: (src: Organization) => src.extras && src.extras.goodFor,
-        alphaSpecialAttributes: (src: Organization) => src.extras && src.extras.specialAttributes,
+        alphaOrganizationType: (src: Organization) => src.extras && src.extras.organizationType,
+        alphaLocations: (src: Organization) => src.extras && src.extras.locations,
+        alphaInterests: (src: Organization) => src.extras && src.extras.interests,
+        alphaDummyPosts: (src: Organization) => src.extras && src.extras.dummyPosts,
+
         alphaFollowed: async (src: Organization, args: {}, context: CallContext) => {
             if (context.oid) {
                 return await isFollowed(context.oid, src.id!!);
@@ -168,12 +171,22 @@ export const Resolver = {
                 return false;
             }
         },
+        
         alphaListingDevelopmentOportunities: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id, type: 'development_opportunity' }, order: [['updatedAt', 'DESC']] }),
         alphaListingAcquisitionRequests: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id, type: 'acquisition_request' }, order: [['updatedAt', 'DESC']] }),
         alphaListingsAll: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id }, order: [['updatedAt', 'DESC']] }),
+        
+        // depricated
+        alphaPotentialSites: (src: Organization) => src.extras && src.extras.potentialSites,
+        alphaSiteSizes: (src: Organization) => src.extras && src.extras.siteSizes,
+        alphaDevelopmentModels: (src: Organization) => src.extras && src.extras.developmentModels,
+        alphaAvailability: (src: Organization) => src.extras && src.extras.availability,
+        alphaLandUse: (src: Organization) => src.extras && src.extras.landUse,
+        alphaGoodFor: (src: Organization) => src.extras && src.extras.goodFor,
+        alphaSpecialAttributes: (src: Organization) => src.extras && src.extras.specialAttributes,
+        
         alphaDummyFeaturedOpportunities: (src: Organization) => src.extras && src.extras.featuredOpportunities,
 
-        alphaOrganizationType: (src: Organization) => src.extras && src.extras.organizationType,
         alphaLookingFor: (src: Organization) => src.extras && src.extras.lookingFor,
         alphaGeographies: (src: Organization) => src.extras && src.extras.geographies,
         alphaDOShapeAndForm: (src: Organization) => src.extras && src.extras.doShapeAndForm,
@@ -403,6 +416,12 @@ export const Resolver = {
                     link?: string | null
                 }[] | null
 
+                alphaOrganizationType?: string[] | null
+                alphaLocations?: string[] | null
+                alphaInterests?: string[] | null
+                alphaDummyPosts?: DummyPost[] | null
+
+                //  depricated
                 alphaPotentialSites?: Range[] | null
                 alphaSiteSizes: Range[] | null
                 alphaDevelopmentModels?: string[] | null
@@ -410,7 +429,6 @@ export const Resolver = {
                 alphaLandUse?: string[] | null
                 alphaGoodFor?: string[] | null
                 alphaSpecialAttributes?: string[] | null
-                alphaOrganizationType?: string[] | null
                 alphaLookingFor?: string[] | null
                 alphaGeographies?: string[] | null
                 alphaDOShapeAndForm?: string[] | null
@@ -476,27 +494,54 @@ export const Resolver = {
                 if (args.input.about !== undefined) {
                     extras.about = Sanitizer.sanitizeString(args.input.about);
                 }
-                if (args.input.alphaPotentialSites !== undefined) {
-                    extras.potentialSites = Sanitizer.sanitizeAny(args.input.alphaPotentialSites);
+
+                if (args.input.alphaOrganizationType !== undefined) {
+                    extras.organizationType = Sanitizer.sanitizeAny(args.input.alphaOrganizationType);
                 }
-                if (args.input.alphaSiteSizes !== undefined) {
-                    extras.siteSizes = Sanitizer.sanitizeAny(args.input.alphaSiteSizes);
+                if (args.input.alphaLocations !== undefined) {
+                    extras.locations = Sanitizer.sanitizeAny(args.input.alphaLocations);
                 }
-                if (args.input.alphaDevelopmentModels !== undefined) {
-                    extras.developmentModels = Sanitizer.sanitizeAny(args.input.alphaDevelopmentModels);
+                if (args.input.alphaInterests !== undefined) {
+                    extras.interests = Sanitizer.sanitizeAny(args.input.alphaInterests);
                 }
-                if (args.input.alphaAvailability !== undefined) {
-                    extras.availability = Sanitizer.sanitizeAny(args.input.alphaAvailability);
+
+                if (args.input.alphaDummyPosts !== undefined) {
+                    extras.dummyPosts = args.input.alphaDummyPosts;
+
+                    await validate(
+                        {
+                            alphaDummyPosts: [,
+                                {
+                                    name: defined(stringNotEmpty('Name can\'t be empty!')),
+                                    email: optional(emailValidator),
+
+                                    text: defined(stringNotEmpty('Text can\'t be empty!')),
+                                    type: defined(enumString(['update', 'news'], 'Invalid type')),
+                                    date: defined(stringNotEmpty('Date can\'t be empty')),
+                                    links: [,
+                                        {
+                                            text: defined(stringNotEmpty('Name can\'t be empty')),
+                                            url: defined(stringNotEmpty('URL can\'t be empty'))
+                                        }
+                                    ],
+                                }
+                            ]
+                        },
+                        extras
+                    );
+
+                    if (extras.contacts) {
+                        for (let contact of extras.contacts) {
+                            // InputValidator.validateNonEmpty(contact.name, 'name', 'name', extrasValidateError);
+                            contact.email = Sanitizer.sanitizeString(contact.email);
+                            // InputValidator.validateEmail(contact.email, 'email', extrasValidateError);
+                            contact.link = Sanitizer.sanitizeString(contact.link);
+                            contact.role = Sanitizer.sanitizeString(contact.position);
+                            contact.phone = Sanitizer.sanitizeString(contact.phone);
+                        }
+                    }
                 }
-                if (args.input.alphaLandUse !== undefined) {
-                    extras.landUse = Sanitizer.sanitizeAny(args.input.alphaLandUse);
-                }
-                if (args.input.alphaGoodFor !== undefined) {
-                    extras.goodFor = Sanitizer.sanitizeAny(args.input.alphaGoodFor);
-                }
-                if (args.input.alphaSpecialAttributes !== undefined) {
-                    extras.specialAttributes = Sanitizer.sanitizeAny(args.input.alphaSpecialAttributes);
-                }
+
                 if (args.input.contacts !== undefined) {
                     extras.contacts = args.input.contacts;
 
@@ -524,8 +569,28 @@ export const Resolver = {
                     }
                 }
 
-                if (args.input.alphaOrganizationType !== undefined) {
-                    extras.organizationType = Sanitizer.sanitizeAny(args.input.alphaOrganizationType);
+                // depricated
+
+                if (args.input.alphaPotentialSites !== undefined) {
+                    extras.potentialSites = Sanitizer.sanitizeAny(args.input.alphaPotentialSites);
+                }
+                if (args.input.alphaSiteSizes !== undefined) {
+                    extras.siteSizes = Sanitizer.sanitizeAny(args.input.alphaSiteSizes);
+                }
+                if (args.input.alphaDevelopmentModels !== undefined) {
+                    extras.developmentModels = Sanitizer.sanitizeAny(args.input.alphaDevelopmentModels);
+                }
+                if (args.input.alphaAvailability !== undefined) {
+                    extras.availability = Sanitizer.sanitizeAny(args.input.alphaAvailability);
+                }
+                if (args.input.alphaLandUse !== undefined) {
+                    extras.landUse = Sanitizer.sanitizeAny(args.input.alphaLandUse);
+                }
+                if (args.input.alphaGoodFor !== undefined) {
+                    extras.goodFor = Sanitizer.sanitizeAny(args.input.alphaGoodFor);
+                }
+                if (args.input.alphaSpecialAttributes !== undefined) {
+                    extras.specialAttributes = Sanitizer.sanitizeAny(args.input.alphaSpecialAttributes);
                 }
                 if (args.input.alphaLookingFor !== undefined) {
                     extras.lookingFor = Sanitizer.sanitizeAny(args.input.alphaLookingFor);
