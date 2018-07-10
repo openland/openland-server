@@ -105,7 +105,14 @@ export const Resolver = {
     Mutation: {
         alphaJoinInvite: withUser<{ key: string }>(async (args, uid) => {
             return await DB.tx(async (tx) => {
-                let invite = await DB.OrganizationInvite.find({ where: { uuid: args.key }, transaction: tx });
+                let invite = await DB.OrganizationInvite.find({
+                    where: {
+                        uuid: args.key,
+                        type: 'for_member'
+                    },
+                    transaction: tx
+                });
+
                 if (!invite) {
                     throw new NotFoundError(ErrorText.unableToFindInvite);
                 }
@@ -157,6 +164,5 @@ export const Resolver = {
             });
             return 'ok';
         }),
-
     }
 };

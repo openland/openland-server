@@ -334,6 +334,7 @@ extend type Query {
         page: Int
     ): OrganizationsConnection!
     alphaOrganizationPublicInvite: Invite
+    alphaOrganizationPublicInviteForOrganizations: Invite
 }
 
 input InviteRequest{
@@ -353,7 +354,13 @@ extend type Mutation {
     alphaOrganizationDeleteListing(id: ID!): String!
     alphaOrganizationRemoveMember(memberId: ID!): String!
     alphaOrganizationChangeMemberRole(memberId: ID!, newRole: OrganizationMemberRole!): String!
+
     alphaOrganizationInviteMembers(inviteRequests: [InviteRequest!]!): String!
     alphaOrganizationCreatePublicInvite(expirationDays: Int!): Invite!
     alphaOrganizationDeletePublicInvite: String!
+
+    alphaOrganizationInviteOrganization(email: String!, emailText: String, firstName: String, lastName: String): Invite!
+    alphaOrganizationActivateByInvite(key: String!): String!
+    alphaOrganizationCreatePublicInviteForOrganizations(expirationDays: Int!): Invite!
+    alphaOrganizationDeletePublicInviteForOrganizations: String!
 }

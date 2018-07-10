@@ -11,6 +11,7 @@ const TEMPLATE_MEMBER_REMOVED = '8500f811-f29d-44f1-b1f6-c7975cdeae61';
 const TEMPLATE_MEMBERSHIP_LEVEL_CHANGED = '58c94c0c-a033-4406-935f-43fc5265e399';
 const TEMPLATE_INVITE = '024815a8-5602-4412-83f4-4be505c2026a';
 const TEMPLATE_MEMBER_JOINED = 'c76321cb-5560-4311-bdbf-e0fe337fa2cf';
+const TEMPLATE_INVITE_ORGANIZATION = '8130da76-fa72-45a5-982c-f79f50fa396c';
 
 const loadUserState = async (uid: number, etx?: Transaction) => {
     return DB.tx(async (tx) => {
@@ -176,6 +177,33 @@ export const Emails = {
 
         await EmailWorker.pushWork({
             templateId: TEMPLATE_INVITE,
+            to: invite.forEmail,
+            args: {
+                customText: invite.emailText || '',
+                inviteLink: domain + invite.uuid,
+                'organizationName': org.name!!,
+                ...userWelcome
+            }
+        }, tx);
+    },
+
+    async sendOrganizationInviteEmail(oid: number, invite: OrganizationInvite, tx: Transaction) {
+        let org = await DB.Organization.findById(oid, { transaction: tx });
+        if (!org) {
+            throw Error('Unable to find organization');
+        }
+
+        let userWelcome = {
+            'userWelcome': invite.memberFirstName ? 'Hi, ' + invite.memberFirstName : 'Hi',
+            'userName': [invite.memberFirstName, invite.memberLastName].filter((v) => v).join(' '),
+            'userFirstName': invite.memberFirstName || '',
+            'userLastName': invite.memberLastName || ''
+        };
+
+        let domain = process.env.APP_ENVIRONMENT === 'production' ? 'https://openland.com/invite/' : 'http://localhost:3000/invite/';
+
+        await EmailWorker.pushWork({
+            templateId: TEMPLATE_INVITE_ORGANIZATION,
             to: invite.forEmail,
             args: {
                 customText: invite.emailText || '',

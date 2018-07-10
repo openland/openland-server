@@ -352,6 +352,9 @@ export const Resolver = {
 
         alphaOrganizationPublicInvite: withAccount(async (args, uid, orgId) => {
             return Repos.Invites.getPublicInvite(orgId);
+        }),
+        alphaOrganizationPublicInviteForOrganizations: withAccount(async (args, uid, orgId) => {
+            return Repos.Invites.getPublicInviteForOrganizations(orgId);
         })
     },
     Mutation: {
@@ -1206,6 +1209,96 @@ export const Resolver = {
             });
         }),
         alphaOrganizationDeletePublicInvite: withAccount(async (args, uid, oid) => {
+            return DB.tx(async (tx) => {
+                let isOwner = await Repos.Organizations.isOwnerOfOrganization(oid, uid, tx);
+
+                if (!isOwner) {
+                    throw new UserError(ErrorText.permissionOnlyOwner);
+                }
+
+                await Repos.Invites.deletePublicInvite(oid, tx);
+
+                return 'ok';
+            });
+        }),
+        alphaOrganizationInviteOrganization:  withAccount<{ email: string, emailText?: string, firstName?: string, lastName?: string }>(async (args, uid, oid) => {
+            await validate(
+                {
+                    email: defined(emailValidator),
+                },
+                args
+            );
+
+            return DB.tx(async (tx) => {
+                let isDuplicate = await Repos.Invites.haveOrganizationInviteForEmail(oid, args.email, tx);
+
+                if (isDuplicate) {
+                    throw new UserError(ErrorText.inviteAlreadyExists);
+                }
+
+                let invite = await Repos.Invites.createOneTimeInviteForOrg(
+                    oid,
+                    uid,
+                    args.firstName || '',
+                    args.lastName || '',
+                    args.email,
+                    args.emailText || '',
+                    tx
+                );
+
+                await Emails.sendOrganizationInviteEmail(oid, invite, tx);
+
+                return invite;
+            });
+        }),
+        alphaOrganizationActivateByInvite:  withAccount<{ key: string }>(async (args, uid, oid) => {
+            return await DB.tx(async (tx) => {
+                let invite = await DB.OrganizationInvite.find({
+                    where: {
+                        uuid: args.key,
+                        type: 'for_organization'
+                    },
+                    transaction: tx
+                });
+
+                if (!invite) {
+                    throw new NotFoundError(ErrorText.unableToFindInvite);
+                }
+
+                let org = await DB.Organization.findById(oid, { transaction: tx });
+
+                if (!org) {
+                    return 'ok';
+                }
+
+                await org.update({ status: 'ACTIVATED' }, { transaction: tx });
+
+                if (invite.isOneTime === true) {
+                    await invite.destroy({ transaction: tx });
+                }
+
+                return 'ok';
+            });
+        }),
+        alphaOrganizationCreatePublicInviteForOrganizations:  withAccount<{ expirationDays: number }>(async (args, uid, oid) => {
+            await validate(
+                {
+                    expirationDays: numberInRange(1, 30)
+                },
+                args
+            );
+
+            return await DB.tx(async (tx) => {
+                let isOwner = await Repos.Organizations.isOwnerOfOrganization(oid, uid, tx);
+
+                if (!isOwner) {
+                    throw new UserError(ErrorText.permissionOnlyOwner);
+                }
+
+                return await Repos.Invites.createPublicInviteForOrganizations(oid, args.expirationDays, tx);
+            });
+        }),
+        alphaOrganizationDeletePublicInviteForOrganizations:  withAccount<{ expirationDays: number }>(async (args, uid, oid) => {
             return DB.tx(async (tx) => {
                 let isOwner = await Repos.Organizations.isOwnerOfOrganization(oid, uid, tx);
 

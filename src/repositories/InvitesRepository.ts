@@ -30,7 +30,8 @@ export default class InvitesRepository {
             ttl: this.createTTLvalue(DEFAULT_ONE_TIME_TTL),
             isOneTime: true,
             memberRole: role,
-            emailText
+            emailText,
+            type: 'for_member'
         }, { transaction: tx });
     }
 
@@ -56,7 +57,8 @@ export default class InvitesRepository {
             where: {
                 orgId,
                 forEmail: email,
-                isOneTime: true
+                isOneTime: true,
+                type: 'for_member'
             },
             transaction: tx
         });
@@ -68,7 +70,8 @@ export default class InvitesRepository {
         let invites = await DB.OrganizationInvite.findAll({
             where: {
                 orgId,
-                isOneTime: true
+                isOneTime: true,
+                type: 'for_member'
             },
             transaction: tx
         });
@@ -80,6 +83,7 @@ export default class InvitesRepository {
         return await DB.OrganizationInvite.findOne({
             where: {
                 isOneTime: false,
+                type: 'for_member',
                 orgId
             },
             transaction: tx
@@ -90,6 +94,7 @@ export default class InvitesRepository {
         await DB.OrganizationInvite.destroy({
             where: {
                 isOneTime: false,
+                type: 'for_member',
                 orgId
             },
             transaction: tx
@@ -103,7 +108,79 @@ export default class InvitesRepository {
             isOneTime: false,
             orgId,
             uuid: randomKey(),
-            ttl: this.createTTLvalue(expirationDays)
+            ttl: this.createTTLvalue(expirationDays),
+            type: 'for_member'
+        });
+    }
+
+    public async createOneTimeInviteForOrg(
+        fromOrgId: number,
+        creatorId: number,
+        firstName: string,
+        lastName: string,
+        forEmail: string,
+        emailText: string,
+        tx?: Transaction
+    ): Promise<OrganizationInvite> {
+        return await DB.OrganizationInvite.create({
+            uuid: randomKey(),
+            orgId: fromOrgId,
+            creatorId,
+            memberFirstName: firstName,
+            memberLastName: lastName,
+            forEmail,
+            ttl: this.createTTLvalue(DEFAULT_ONE_TIME_TTL),
+            isOneTime: true,
+            emailText,
+            type: 'for_organization'
+        }, { transaction: tx });
+    }
+
+    public async haveOrganizationInviteForEmail(orgId: number, email: string|null|undefined, tx?: Transaction): Promise<boolean> {
+        let invite = await DB.OrganizationInvite.findOne({
+            where: {
+                orgId,
+                forEmail: email,
+                isOneTime: true,
+                type: 'for_organization'
+            },
+            transaction: tx
+        });
+
+        return !!invite;
+    }
+
+    public async getPublicInviteForOrganizations(orgId: number, tx?: Transaction) {
+        return await DB.OrganizationInvite.findOne({
+            where: {
+                isOneTime: false,
+                type: 'for_organization',
+                orgId
+            },
+            transaction: tx
+        });
+    }
+
+    public async createPublicInviteForOrganizations(orgId: number, expirationDays: number, tx?: Transaction): Promise<OrganizationInvite> {
+        await this.deletePublicInvite(orgId, tx);
+
+        return await DB.OrganizationInvite.create({
+            isOneTime: false,
+            orgId,
+            uuid: randomKey(),
+            ttl: this.createTTLvalue(expirationDays),
+            type: 'for_organization'
+        });
+    }
+
+    public async deletePublicInviteForOrganizations(orgId: number, tx?: Transaction) {
+        await DB.OrganizationInvite.destroy({
+            where: {
+                isOneTime: false,
+                type: 'for_organization',
+                orgId
+            },
+            transaction: tx
         });
     }
 

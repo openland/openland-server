@@ -28,12 +28,12 @@ export function createEmailWorker() {
                 }
             }
             console.warn('Sending email task #' + uid);
+
             await SendGrid.send({
                 to: args.to,
                 from: { name: 'Openland', email: 'support@openland.com' },
                 templateId: args.templateId,
-                substitutions: args.args,
-                batchId: 'worker-' + uid
+                substitutions: args.args
             });
         }
         return {

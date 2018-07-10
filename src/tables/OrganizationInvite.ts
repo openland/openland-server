@@ -13,9 +13,11 @@ export interface OrganizationInviteAttributes {
     forEmail: string;
     memberRole: string;
     emailText: string;
+    type: 'for_organization' | 'for_member';
 }
 
 export interface OrganizationInvite extends sequelize.Instance<Partial<OrganizationInviteAttributes>>, OrganizationInviteAttributes {
+
 }
 
 export const OrganizationInviteTable = connection.define<OrganizationInvite, Partial<OrganizationInviteAttributes>>('organization_invites', {
@@ -29,5 +31,10 @@ export const OrganizationInviteTable = connection.define<OrganizationInvite, Par
     memberRole: { type: sequelize.STRING, allowNull: true },
     memberFirstName: { type: sequelize.STRING, allowNull: true},
     memberLastName: { type: sequelize.STRING,  allowNull: true },
-    emailText: { type: sequelize.STRING(4096),  allowNull: true }
+    emailText: { type: sequelize.STRING(4096),  allowNull: true },
+    type: {
+        type: sequelize.ENUM('for_organization', 'for_member'),
+        allowNull: false,
+        defaultValue: 'for_member'
+    }
 });

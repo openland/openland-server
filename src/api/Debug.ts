@@ -23,6 +23,7 @@ export const Resolver = {
         }),
 
         debugSendEmail: withPermissionOptional<{ email: string, text: string }>(['software-developer'], async (args) => {
+            console.log(1223);
             await Emails.sendDebugEmail(args.email, args.text);
 
             return 'ok';
