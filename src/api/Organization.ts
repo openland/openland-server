@@ -71,7 +71,7 @@ export const Resolver = {
         alphaListingDevelopmentOportunities: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id, type: 'development_opportunity' }, order: [['updatedAt', 'DESC']] }),
         alphaListingAcquisitionRequests: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id, type: 'acquisition_request' }, order: [['updatedAt', 'DESC']] }),
         alphaListingsAll: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id }, order: [['updatedAt', 'DESC']] }),
-        
+
         // depricated
         alphaPotentialSites: (src: Organization) => src.extras && src.extras.potentialSites,
         alphaSiteSizes: (src: Organization) => src.extras && src.extras.siteSizes,
@@ -171,11 +171,11 @@ export const Resolver = {
                 return false;
             }
         },
-        
+
         alphaListingDevelopmentOportunities: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id, type: 'development_opportunity' }, order: [['updatedAt', 'DESC']] }),
         alphaListingAcquisitionRequests: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id, type: 'acquisition_request' }, order: [['updatedAt', 'DESC']] }),
         alphaListingsAll: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id }, order: [['updatedAt', 'DESC']] }),
-        
+
         // depricated
         alphaPotentialSites: (src: Organization) => src.extras && src.extras.potentialSites,
         alphaSiteSizes: (src: Organization) => src.extras && src.extras.siteSizes,
@@ -184,7 +184,7 @@ export const Resolver = {
         alphaLandUse: (src: Organization) => src.extras && src.extras.landUse,
         alphaGoodFor: (src: Organization) => src.extras && src.extras.goodFor,
         alphaSpecialAttributes: (src: Organization) => src.extras && src.extras.specialAttributes,
-        
+
         alphaDummyFeaturedOpportunities: (src: Organization) => src.extras && src.extras.featuredOpportunities,
 
         alphaLookingFor: (src: Organization) => src.extras && src.extras.lookingFor,
@@ -1218,37 +1218,43 @@ export const Resolver = {
                 return 'ok';
             });
         }),
-        alphaOrganizationInviteOrganization:  withAccount<{ email: string, emailText?: string, firstName?: string, lastName?: string }>(async (args, uid, oid) => {
+        alphaOrganizationInviteOrganization: withAccount<{ inviteRequests: { email: string, emailText?: string, firstName?: string, lastName?: string }[] }>(async (args, uid, oid) => {
             await validate(
                 {
-                    email: defined(emailValidator),
+                    inviteRequests: [
+                        {
+                            email: defined(emailValidator),
+                        }
+                    ]
                 },
                 args
             );
 
             return DB.tx(async (tx) => {
-                let isDuplicate = await Repos.Invites.haveOrganizationInviteForEmail(oid, args.email, tx);
+                for (let inviteRequest of args.inviteRequests) {
 
-                if (isDuplicate) {
-                    throw new UserError(ErrorText.inviteAlreadyExists);
+                    let isDuplicate = await Repos.Invites.haveOrganizationInviteForEmail(oid, inviteRequest.email, tx);
+
+                    if (isDuplicate) {
+                        throw new UserError(ErrorText.inviteAlreadyExists);
+                    }
+
+                    let invite = await Repos.Invites.createOneTimeInviteForOrg(
+                        oid,
+                        uid,
+                        inviteRequest.firstName || '',
+                        inviteRequest.lastName || '',
+                        inviteRequest.email,
+                        inviteRequest.emailText || '',
+                        tx
+                    );
+
+                    await Emails.sendOrganizationInviteEmail(oid, invite, tx);
                 }
-
-                let invite = await Repos.Invites.createOneTimeInviteForOrg(
-                    oid,
-                    uid,
-                    args.firstName || '',
-                    args.lastName || '',
-                    args.email,
-                    args.emailText || '',
-                    tx
-                );
-
-                await Emails.sendOrganizationInviteEmail(oid, invite, tx);
-
-                return invite;
+                return 'ok';
             });
         }),
-        alphaOrganizationActivateByInvite:  withAccount<{ key: string }>(async (args, uid, oid) => {
+        alphaOrganizationActivateByInvite: withAccount<{ key: string }>(async (args, uid, oid) => {
             return await DB.tx(async (tx) => {
                 let invite = await DB.OrganizationInvite.find({
                     where: {
@@ -1277,7 +1283,7 @@ export const Resolver = {
                 return 'ok';
             });
         }),
-        alphaOrganizationCreatePublicInviteForOrganizations:  withAccount<{ expirationDays: number }>(async (args, uid, oid) => {
+        alphaOrganizationCreatePublicInviteForOrganizations: withAccount<{ expirationDays: number }>(async (args, uid, oid) => {
             await validate(
                 {
                     expirationDays: numberInRange(1, 30)
@@ -1295,7 +1301,7 @@ export const Resolver = {
                 return await Repos.Invites.createPublicInviteForOrganizations(oid, args.expirationDays, tx);
             });
         }),
-        alphaOrganizationDeletePublicInviteForOrganizations:  withAccount<{ expirationDays: number }>(async (args, uid, oid) => {
+        alphaOrganizationDeletePublicInviteForOrganizations: withAccount<{ expirationDays: number }>(async (args, uid, oid) => {
             return DB.tx(async (tx) => {
                 let isOwner = await Repos.Organizations.isOwnerOfOrganization(oid, uid, tx);
 

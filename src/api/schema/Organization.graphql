@@ -345,6 +345,13 @@ input InviteRequest{
     lastName: String
 }
 
+input InviteRequestOrganization{
+    email: String!,
+    emailText: String, 
+    firstName: String,
+    lastName: String
+}
+
 extend type Mutation {
     updateOrganizationProfile(input: UpdateOrganizationProfileInput!): OrganizationProfile!
     createOrganization(input: CreateOrganizationInput): OrganizationProfile!
@@ -359,7 +366,7 @@ extend type Mutation {
     alphaOrganizationCreatePublicInvite(expirationDays: Int!): Invite!
     alphaOrganizationDeletePublicInvite: String!
 
-    alphaOrganizationInviteOrganization(email: String!, emailText: String, firstName: String, lastName: String): Invite!
+    alphaOrganizationInviteOrganization(inviteRequests: [InviteRequestOrganization!]!): String!
     alphaOrganizationActivateByInvite(key: String!): String!
     alphaOrganizationCreatePublicInviteForOrganizations(expirationDays: Int!): Invite!
     alphaOrganizationDeletePublicInviteForOrganizations: String!
