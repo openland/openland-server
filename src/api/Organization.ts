@@ -515,9 +515,6 @@ export const Resolver = {
                         {
                             alphaDummyPosts: [,
                                 {
-                                    name: defined(stringNotEmpty('Name can\'t be empty!')),
-                                    email: optional(emailValidator),
-
                                     text: defined(stringNotEmpty('Text can\'t be empty!')),
                                     type: defined(enumString(['update', 'news'], 'Invalid type')),
                                     date: defined(stringNotEmpty('Date can\'t be empty')),
