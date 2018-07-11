@@ -114,6 +114,9 @@ export const Resolvers = {
         superAccountActivate: withPermission<{ id: string }>('super-admin', (args) => {
             return Repos.Super.activateOrganization(IDs.SuperAccount.parse(args.id));
         }),
+        superAccountPend: withPermission<{ id: string }>('super-admin', (args) => {
+            return Repos.Super.pendOrganization(IDs.SuperAccount.parse(args.id));
+        }),
         superAccountSuspend: withPermission<{ id: string }>('super-admin', (args) => {
             return Repos.Super.suspendOrganization(IDs.SuperAccount.parse(args.id));
         }),

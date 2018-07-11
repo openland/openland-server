@@ -28,6 +28,7 @@ extend type Mutation {
     superAccountRename(id: ID!, title: String!): SuperAccount!
     superAccountActivate(id: ID!): SuperAccount!
     superAccountSuspend(id: ID!): SuperAccount!
+    superAccountPend(id: ID!): SuperAccount!
 
     superAccountMemberAdd(id: ID!, userId: ID!): SuperAccount!
     superAccountMemberRemove(id: ID!, userId: ID!): SuperAccount!
