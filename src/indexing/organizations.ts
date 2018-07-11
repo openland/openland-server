@@ -3,7 +3,7 @@ import { DB } from '../tables';
 import { UpdateReader } from '../modules/updateReader';
 
 export function createOrganizationIndexer(client: ES.Client) {
-    let reader = new UpdateReader('reader_organizations', 2, DB.Organization);
+    let reader = new UpdateReader('reader_organizations', 3, DB.Organization);
     reader.elastic(client, 'organizations', 'organization', {
         name: {
             type: 'text'
