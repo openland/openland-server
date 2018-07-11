@@ -2,7 +2,6 @@ import { JsonMap } from '../utils/json';
 import { DB } from '../tables';
 import { Repos } from '../repositories';
 
-
 export const NotificationsBot = {
     async sendNotification(uid: number, message: { message?: string | null, file?: string | null, repeatKey?: string | null, fileMetadata?: JsonMap | null }) {
         return await DB.tx(async (tx) => {
