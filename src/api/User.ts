@@ -68,6 +68,7 @@ export const Resolver = {
         location: withProfile((src, profile) => profile ? profile.location : null),
 
         isCreated: withProfile((src, profile) => !!profile),
+        isBot: (src: User) => src.isBot || false,
         isYou: (src: User, args: {}, context: CallContext) => src.id === context.uid
     },
     Profile: {
