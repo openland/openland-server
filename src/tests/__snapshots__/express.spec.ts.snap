@@ -22,7 +22,7 @@ exports[`API Server should handle graphql queries with tokens 1`] = `
 Object {
   "data": Object {
     "me": Object {
-      "id": "GvNrAkJ7rbFGQmJJJJdyhKaBr4",
+      "id": "Jo50Aa3v0bIGl0wZBdx2T92B30",
     },
   },
 }
@@ -32,7 +32,7 @@ exports[`API Server should handle graphql queries with tokens in cookies 1`] = `
 Object {
   "data": Object {
     "me": Object {
-      "id": "GvNrAkJ7rbFGQmJJJJdyhKaBr4",
+      "id": "Jo50Aa3v0bIGl0wZBdx2T92B30",
     },
   },
 }

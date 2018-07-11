@@ -5,7 +5,7 @@ import { createApiClient } from './utils/createClient';
 beforeAll(prepareApp);
 
 const emptyClient = createApiClient();
-const defaultClient = createApiClient({ uid: 1 });
+const defaultClient = createApiClient({ uid: 2 });
 
 describe('Me Query', () => {
     it('Should return null for non-authenticated user', async () => {

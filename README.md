@@ -27,7 +27,8 @@
 # Running Tests
 
 1) Install Docker
-2) Start testing infrastructure: `yarn test:start`
-3) Prepare testing infrastructure: `yarn test:prepare`
-4) Run tests: `yarn test`, `yarn test:watch`
-5) Stop infrastructure: `yarn test:stop`
+2) Prepare production build: `yarn build`
+3) Start testing infrastructure: `yarn test:start`
+4) Prepare testing infrastructure: `yarn test:prepare`
+5) Run tests: `yarn test`, `yarn test:watch`
+6) Stop infrastructure: `yarn test:stop`
