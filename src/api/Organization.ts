@@ -329,11 +329,14 @@ export const Resolver = {
                 let parser = new QueryParser();
                 parser.registerText('name', 'name');
                 parser.registerText('location', 'location');
+                parser.registerText('organizationType', 'organizationType');
+                parser.registerText('interest', 'interest');
                 let parsed = parser.parseQuery(args.query);
                 let elasticQuery = buildElasticQuery(parsed);
                 clauses.push(elasticQuery);
-                clauses.push({ term: { published: true } });
             }
+
+            clauses.push({ term: { published: true } });
 
             let hits = await ElasticClient.search({
                 index: 'organizations',
