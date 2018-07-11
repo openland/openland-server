@@ -69,6 +69,8 @@ export interface OrganizationExtras {
     linkedin?: string | null;
     contacts?: ContactPerson[] | null;
 
+    published?: boolean | null;
+
     organizationType?: string[] | null;
     locations?: string[] | null;
     interests?: string[] | null;

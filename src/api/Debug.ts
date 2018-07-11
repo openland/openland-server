@@ -4,6 +4,7 @@ import { normalizeCapitalized } from '../modules/Normalizer';
 import { IDs } from './utils/IDs';
 import { delay } from '../utils/timer';
 import { Emails } from '../services/Emails';
+import { NotificationsBot } from '../modules/NotificationsBot';
 
 export const Resolver = {
     Query: {
@@ -23,11 +24,20 @@ export const Resolver = {
         }),
 
         debugSendEmail: withPermissionOptional<{ email: string, text: string }>(['software-developer'], async (args) => {
-            console.log(1223);
             await Emails.sendDebugEmail(args.email, args.text);
 
             return 'ok';
-        })
+        }),
+
+        debugTestNotification: withPermissionOptional<any>(['software-developer'], async (args, ctx) => {
+            if (!ctx.uid) {
+                return 'ok';
+            }
+
+            await NotificationsBot.sendNotification(ctx.uid, { message: 'test notification' });
+
+            return 'ok';
+        }),
     },
     Subscription: {
         lifecheck: {

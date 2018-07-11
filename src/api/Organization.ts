@@ -63,6 +63,8 @@ export const Resolver = {
         location: (src: Organization) => src.extras && src.extras.location,
         contacts: (src: Organization) => src.extras ? src.extras.contacts || [] : [],
 
+        alphaPublished: (src: Organization) => !src.extras || src.extras.published !== false,
+
         alphaOrganizationType: (src: Organization) => src.extras && src.extras.organizationType,
         alphaLocations: (src: Organization) => src.extras && src.extras.locations,
         alphaInterests: (src: Organization) => src.extras && src.extras.interests,
@@ -327,10 +329,14 @@ export const Resolver = {
                 let parser = new QueryParser();
                 parser.registerText('name', 'name');
                 parser.registerText('location', 'location');
+                parser.registerText('organizationType', 'organizationType');
+                parser.registerText('interest', 'interest');
                 let parsed = parser.parseQuery(args.query);
                 let elasticQuery = buildElasticQuery(parsed);
                 clauses.push(elasticQuery);
             }
+
+            clauses.push({ term: { published: true } });
 
             let hits = await ElasticClient.search({
                 index: 'organizations',
@@ -419,6 +425,8 @@ export const Resolver = {
                     link?: string | null
                 }[] | null
 
+                alphaPublished?: boolean | null;
+
                 alphaOrganizationType?: string[] | null
                 alphaLocations?: string[] | null
                 alphaInterests?: string[] | null
@@ -496,6 +504,10 @@ export const Resolver = {
                 }
                 if (args.input.about !== undefined) {
                     extras.about = Sanitizer.sanitizeString(args.input.about);
+                }
+
+                if (args.input.alphaPublished !== undefined) {
+                    extras.published = Sanitizer.sanitizeAny(args.input.alphaPublished);
                 }
 
                 if (args.input.alphaOrganizationType !== undefined) {

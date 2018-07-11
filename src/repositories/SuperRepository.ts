@@ -50,6 +50,17 @@ export class SuperRepository {
         });
     }
 
+    async pendOrganization(id: number) {
+        return await DB.tx(async (tx) => {
+            let org = await this.fetchById(id, tx);
+            if (org.status !== 'PENDING') {
+                org.status = 'PENDING';
+                await org.save({ transaction: tx });
+            }
+            return org;
+        });
+    }
+
     async suspendOrganization(id: number) {
         return await DB.tx(async (tx) => {
             let org = await this.fetchById(id, tx);
