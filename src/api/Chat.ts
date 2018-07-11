@@ -480,8 +480,8 @@ export const Resolver = {
                 return conv;
             });
         }),
-        superCreateChat: withPermission<{ title: string }>('software-developer', (args) => {
-            validate({ title: stringNotEmpty() }, args);
+        superCreateChat: withPermission<{ title: string }>('software-developer', async (args) => {
+            await validate({ title: stringNotEmpty() }, args);
             return DB.Conversation.create({
                 title: args.title
             });
