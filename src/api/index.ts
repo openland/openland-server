@@ -15,6 +15,7 @@ import * as Debug from './Debug';
 import * as Folder from './Folder';
 import * as Organization from './Organization';
 import * as Chat from './Chat';
+import * as Push from './Push';
 
 import * as Parcels from './Parcels';
 
@@ -43,5 +44,6 @@ export const Schema = makeExecutableSchema({
         Folder.Resolver,
         Organization.Resolver,
         Chat.Resolver,
+        Push.Resolvers
     )
 });

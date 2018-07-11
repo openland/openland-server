@@ -1,0 +1,8 @@
+type PushSettings {
+    webPushKey: String
+
+}
+
+extend type Query {
+    pushSettings: PushSettings!
+}
