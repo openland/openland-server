@@ -179,6 +179,8 @@ type OrganizationProfile {
     contacts: [OrganizationContact!]!
     location: String
 
+    alphaPublished: Boolean!
+
     alphaLocations: [String!]
     alphaInterests: [String!]
     alphaOrganizationType: [String!]
@@ -244,6 +246,8 @@ input UpdateOrganizationProfileInput {
     linkedin: String
     location: String
     contacts: [ContactPersonInput!]
+
+    alphaPublished: Boolean
 
     alphaLocations: [String!]
     alphaInterests: [String!]

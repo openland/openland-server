@@ -17,6 +17,9 @@ export function createOrganizationIndexer(client: ES.Client) {
         interest: {
             type: 'text'
         },
+        published: {
+            type: 'boolean'
+        }
 
     });
     reader.indexer(async (item) => {
@@ -24,7 +27,7 @@ export function createOrganizationIndexer(client: ES.Client) {
         let locations = (item.extras && item.extras.locations && item.extras.locations.length > 0) ? item.extras.locations.join(' ') : '';
         let organizationTypes = (item.extras && item.extras.organizationType && item.extras.organizationType.length > 0) ? item.extras.organizationType.join(' ') : '';
         let interests = (item.extras && item.extras.interests && item.extras.interests.length > 0) ? item.extras.interests.join(' ') : '';
-
+        let published = !item.extras || item.extras.published !== false;
         return {
             id: item.id!!,
             doc: {
@@ -32,6 +35,7 @@ export function createOrganizationIndexer(client: ES.Client) {
                 location: (location + ' ' + locations).trim(),
                 organizationType: organizationTypes,
                 interest: interests,
+                published: published,
             }
         };
     });
