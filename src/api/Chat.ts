@@ -584,6 +584,7 @@ export const Resolver = {
                     }
                     existingGlobal.unread = unread;
                     existingGlobal.seq++;
+                    existingGlobal.hasUnnoticedUnread = false;
                     await existingGlobal.save({ transaction: tx });
 
                     //

@@ -12,6 +12,7 @@ const TEMPLATE_MEMBERSHIP_LEVEL_CHANGED = '58c94c0c-a033-4406-935f-43fc5265e399'
 const TEMPLATE_INVITE = '024815a8-5602-4412-83f4-4be505c2026a';
 const TEMPLATE_MEMBER_JOINED = 'c76321cb-5560-4311-bdbf-e0fe337fa2cf';
 const TEMPLATE_INVITE_ORGANIZATION = '8130da76-fa72-45a5-982c-f79f50fa396c';
+const TEMPLATE_UNREAD_MESSAGES = '02787351-db1c-49b5-afbf-3d63a3b7fd76';
 
 const loadUserState = async (uid: number, etx?: Transaction) => {
     return DB.tx(async (tx) => {
@@ -57,6 +58,19 @@ export const Emails = {
                 templateId: TEMPLATE_WELCOME,
                 to: user.email,
                 args: user.args
+            }, tx);
+        }, etx);
+    },
+    async sendUnreadMesages(uid: number, count: number, etx?: Transaction) {
+        return await DB.tx(async (tx) => {
+            let user = await loadUserState(uid, tx);
+            await EmailWorker.pushWork({
+                templateId: TEMPLATE_UNREAD_MESSAGES,
+                to: user.email,
+                args: {
+                    messageCount: count === 1 ? 'one new message' : count.toString() + ' new messages',
+                    ...user.args
+                }
             }, tx);
         }, etx);
     },

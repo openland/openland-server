@@ -2,6 +2,7 @@ import { DB, User } from '../tables';
 import DataLoader from 'dataloader';
 import { CallContext } from '../api/utils/CallContext';
 import { ImageRef } from './Media';
+import { Transaction } from 'sequelize';
 
 export class UserRepository {
     private userCache = new Map<string, number | undefined>();
@@ -141,5 +142,21 @@ export class UserRepository {
                 }, { transaction: tx });
             }
         });
+    }
+
+    async getUserLastSeen(uid: number, tx: Transaction) {
+        let existing: number | null = null;
+        let presence = await DB.UserPresence.findAll({
+            where: { userId: uid },
+            transaction: tx,
+            lock: tx.LOCK.UPDATE
+        });
+        for (let p of presence) {
+            let time = p.lastSeen.getTime();
+            if (existing === null || existing < time) {
+                existing = time;
+            }
+        }
+        return existing;
     }
 }
