@@ -1,4 +1,5 @@
 export class CallContext {
+    tid?: number;
     uid?: number;
     oid?: number;
     accountId: number = 0;

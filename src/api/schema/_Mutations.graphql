@@ -38,4 +38,6 @@ type Mutation {
 
     createProfile(input: CreateProfileInput!): Profile!
     updateProfile(input: UpdateProfileInput!): Profile!
+
+    alphaReportOnline(timeout: Int!): String!
 }

@@ -118,4 +118,28 @@ export class UserRepository {
 
         return !!isMember;
     }
+
+    async markUserOnline(uid: number, timeout: number, tokenId: number) {
+        let now = new Date();
+        let expires = new Date(now.getTime() + timeout);
+        await DB.txStable(async (tx) => {
+            let existing = await DB.UserPresence.find({
+                where: { userId: uid, tokenId: tokenId },
+                transaction: tx,
+                lock: tx.LOCK.UPDATE
+            });
+            if (existing) {
+                existing.lastSeen = now;
+                existing.lastSeenTimeout = expires;
+                await existing.save({ transaction: tx });
+            } else {
+                await DB.UserPresence.create({
+                    userId: uid,
+                    tokenId: tokenId,
+                    lastSeen: now,
+                    lastSeenTimeout: expires
+                }, { transaction: tx });
+            }
+        });
+    }
 }

@@ -4,7 +4,7 @@ import { ConversationEventAttributes, ConversationEvent } from '../tables/Conver
 import { ConversationUserGlobal } from '../tables/ConversationsUserGlobal';
 import { ConversationMessageAttributes } from '../tables/ConversationMessage';
 import { ConversationUserEvents, ConversationUserEventsAttributes } from '../tables/ConversationUserEvents';
-import { Transaction } from '../../node_modules/@types/sequelize';
+import { Transaction } from 'sequelize';
 import { JsonMap } from '../utils/json';
 import { DoubleInvokeError } from '../errors/DoubleInvokeError';
 import { NotFoundError } from '../errors/NotFoundError';

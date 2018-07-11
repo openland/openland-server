@@ -12,8 +12,9 @@ async function context(src: express.Request): Promise<CallContext> {
     if (src.user !== null && src.user !== undefined) {
         if (typeof src.user.sub === 'string') {
             res.uid = await Repos.Users.fetchUserByAuthId(src.user.sub);
-        } else if (typeof src.user.id === 'number') {
-            res.uid = src.user.id;
+        } else if (typeof src.user.uid === 'number' && typeof src.user.tid === 'number') {
+            res.uid = src.user.uid;
+            res.tid = src.user.tid;
         }
     }
 

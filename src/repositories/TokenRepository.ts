@@ -5,7 +5,7 @@ import DataLoader from 'dataloader';
 
 export class TokenRepository {
 
-    private loader = new DataLoader<string, number | null>(async (tokens) => {
+    private loader = new DataLoader<string, { uid: number, tid: number } | null>(async (tokens) => {
         let foundTokens = await DB.UserToken.findAll({
             where: {
                 tokenSalt: {
@@ -14,12 +14,12 @@ export class TokenRepository {
             },
             logging: false
         });
-        let res: (number | null)[] = [];
+        let res: ({ uid: number, tid: number } | null)[] = [];
         for (let i of tokens) {
             let found = false;
             for (let f of foundTokens) {
                 if (i === f.tokenSalt) {
-                    res.push(f.userId!!);
+                    res.push({ uid: f.userId!!, tid: f.id!! });
                     found = true;
                     break;
                 }

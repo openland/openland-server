@@ -8,7 +8,8 @@ export async function fetchWebSocketParameters(args: any, websocket: any) {
         let token = args['x-openland-token'] as string;
         let uid = await Repos.Tokens.fetchUserByToken(token);
         if (uid !== null) {
-            res.uid = uid;
+            res.uid = uid.uid;
+            res.tid = uid.tid;
             let accounts = await Repos.Users.fetchUserAccounts(res.uid);
             if (accounts.length === 1) {
                 res.oid = accounts[0];
@@ -37,8 +38,9 @@ export async function fetchWebSocketParameters(args: any, websocket: any) {
 
 export function buildWebSocketContext(args: any) {
     let res = new CallContext();
-    if (args.uid) {
+    if (args.uid && args.tid) {
         res.uid = args.uid;
+        res.tid = args.tid;
     }
     if (args.oid) {
         res.oid = args.oid;

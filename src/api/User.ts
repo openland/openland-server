@@ -7,6 +7,7 @@ import { buildBaseImageUrl, ImageRef } from '../repositories/Media';
 import { withUser } from './utils/Resolvers';
 import { Sanitizer } from '../modules/Sanitizer';
 import { validate, stringNotEmpty } from '../modules/NewInputValidator';
+import { Repos } from '../repositories';
 
 function userLoader(context: CallContext) {
     if (!context.cache.has('__profile_loader')) {
@@ -143,7 +144,7 @@ export const Resolver = {
                 if (existing) {
                     return existing;
                 }
-                
+
                 await validate(
                     stringNotEmpty('First name can\'t be empty!'),
                     args.input.firstName,
@@ -193,7 +194,7 @@ export const Resolver = {
                         args.input.firstName,
                         'input.firstName'
                     );
-                    profile.firstName =  Sanitizer.sanitizeString(args.input.firstName)!;
+                    profile.firstName = Sanitizer.sanitizeString(args.input.firstName)!;
                 }
                 if (args.input.lastName !== undefined) {
                     profile.lastName = Sanitizer.sanitizeString(args.input.lastName);
@@ -219,6 +220,19 @@ export const Resolver = {
                 await profile.save({ transaction: tx });
                 return user;
             });
-        })
+        }),
+        alphaReportOnline: async (_: any, args: { timeout: number }, context: CallContext) => {
+            if (!context.uid) {
+                throw Error('Not authorized');
+            }
+            if (args.timeout <= 0) {
+                throw Error('Invalid input');
+            }
+            if (args.timeout > 5000) {
+                throw Error('Invalid input');
+            }
+            await Repos.Users.markUserOnline(context.uid, args.timeout, context.tid!!);
+            return 'ok';
+        }
     }
 };
