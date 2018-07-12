@@ -608,6 +608,22 @@ export const Resolver = {
                 conversationId: conversationId
             };
         }),
+        alphaGlobalRead: withAccount<{ toSeq: number }>(async (args, uid) => {
+            await DB.txStable(async (tx) => {
+                let global = await DB.ConversationsUserGlobal.find({
+                    where: {
+                        userId: uid
+                    },
+                    transaction: tx,
+                    lock: tx.LOCK.UPDATE
+                });
+                if (global && global.readSeq < args.toSeq && args.toSeq <= global.seq) {
+                    global.readSeq = args.toSeq;
+                    await global.save({ transaction: tx });
+                }
+            });
+            return 'ok';
+        }),
         alphaSendMessage: withAccount<{ conversationId: string, message?: string | null, file?: string | null, repeatKey?: string | null }>(async (args, uid) => {
             // validate({ message: stringNotEmpty() }, args);
             let conversationId = IDs.Conversation.parse(args.conversationId);

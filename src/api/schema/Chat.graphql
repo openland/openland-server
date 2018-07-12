@@ -156,6 +156,7 @@ extend type Mutation {
     alphaSendMessage(conversationId: ID!, message: String, file: String, repeatKey: String): ConversationEventMessage!
     alphaReadChat(conversationId: ID!, messageId: ID!): ChatReadResult!
     alphaChatCreateGroup(title: String, members: [ID!]!, message: String): Conversation!
+    alphaGlobalRead(toSeq: Int): String!
 }
 
 union ComposeSearchResult = User | Organization

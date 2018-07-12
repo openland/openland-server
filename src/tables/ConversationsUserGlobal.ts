@@ -7,6 +7,7 @@ export interface ConversationUserGlobalAttributes {
     userId: number;
     unread: number;
     seq: number;
+    readSeq: number;
     hasUnnoticedUnread: boolean;
     lastEmailNotification: Date | null;
     lastPushNotification: Date | null;
@@ -21,6 +22,7 @@ export const ConversationsUserGlobalTable = connection.define<ConversationUserGl
     id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
     unread: { type: sequelize.INTEGER, defaultValue: 0, allowNull: false },
     seq: { type: sequelize.INTEGER, defaultValue: 0, allowNull: false },
+    readSeq: { type: sequelize.INTEGER, defaultValue: 0, allowNull: false },
     hasUnnoticedUnread: { type: sequelize.BOOLEAN, defaultValue: false, allowNull: false },
     lastEmailNotification: { type: sequelize.DATE, allowNull: true },
     lastPushNotification: { type: sequelize.DATE, allowNull: true }
