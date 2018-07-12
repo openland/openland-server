@@ -6,3 +6,7 @@ type PushSettings {
 extend type Query {
     pushSettings: PushSettings!
 }
+
+extend type Mutation {
+    registerWebPush(endpoint: String!): String!
+}

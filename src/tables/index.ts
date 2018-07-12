@@ -67,6 +67,7 @@ import { ConversationUserEventsTable } from './ConversationUserEvents';
 import { retry } from '../utils/timer';
 import { ConversationGroupMembersTable } from './ConversationGroupMembers';
 import { UserPresenceTable } from './UserPresence';
+import { UserPushRegistrationTable } from './UserPushRegistration';
 
 export const DB = {
     User: UserTable,
@@ -115,6 +116,7 @@ export const DB = {
     ConversationUserEvents: ConversationUserEventsTable,
     ConversationGroupMembers: ConversationGroupMembersTable,
     UserPresence: UserPresenceTable,
+    UserPushRegistration: UserPushRegistrationTable,
 
     tx: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>, existingTx?: sequelize.Transaction): Promise<A> {
         if (existingTx) {
