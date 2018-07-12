@@ -2,29 +2,71 @@ import { staticWorker } from '../modules/staticWorker';
 import { DB } from '../tables';
 import { PushWorker } from '.';
 import { Repos } from '../repositories';
+import { buildBaseImageUrl } from '../repositories/Media';
 
 export function startPushNotificationWorker() {
+
     staticWorker({ name: 'push_notifications', delay: 1000 }, async (tx) => {
+
         let unreadUsers = await DB.ConversationsUserGlobal.findAll({
             where: {
-                unread: { $gt: 0 }
+                unread: { $gt: 0 },
             },
             transaction: tx,
-            lock: tx.LOCK.UPDATE
+            lock: tx.LOCK.UPDATE,
+            logging: false
         });
-        // let now = Date.now();
+
         for (let u of unreadUsers) {
             let lastSeen = await Repos.Users.getUserLastSeen(u.userId, tx);
-            // if ((lastSeen !== null && lastSeen < now - 60 * 1000) && (u.lastEmailNotification === null || u.lastEmailNotification.getTime() < now - 60 * 60 * 1000) && (u.lastEmailNotification === null || u.lastEmailNotification.getTime() < lastSeen || u.lastEmailNotification.getTime() < now - 24 * 60 * 60 * 1000)) {
-            //     u.lastEmailNotification = new Date();
-            //     u.save({ transaction: tx });
-            //     await Emails.sendUnreadMesages(u.userId, u.unread, tx);
-            // }
-            if ((lastSeen !== null) && (u.lastPushNotification === null || u.lastPushNotification.getTime() < lastSeen)) {
-                u.lastPushNotification = new Date();
-                await u.save({ transaction: tx });
-                await PushWorker.pushWork({ uid: u.userId, title: 'New message', body: 'You have ' + u.unread + ' unread messages' }, tx);
+
+            // Ignore online or never-online users
+            if (lastSeen === null) {
+                continue;
             }
+
+            // Ignore read updates
+            if (u.readSeq === u.seq) {
+                continue;
+            }
+
+            // Ignore already processed updates
+            if (u.lastPushSeq === u.seq) {
+                continue;
+            }
+
+            // Scanning updates
+            let remainingUpdates = await DB.ConversationUserEvents.findAll({
+                where: {
+                    seq: {
+                        $gt: Math.max(u.lastPushSeq, u.readSeq)
+                    }
+                },
+                transaction: tx,
+                logging: false
+            });
+
+            // Handling unread messages
+            let messages = remainingUpdates.filter((v) => v.eventType === 'new_message');
+            for (let m of messages) {
+                let messageId = m.event.messageId as number;
+                let senderId = m.event.senderId as number;
+                let message = await DB.ConversationMessage.findById(messageId, { transaction: tx });
+                let user = await DB.UserProfile.find({ where: { userId: senderId }, transaction: tx });
+                await PushWorker.pushWork({
+                    uid: u.userId,
+                    title: [user!!.firstName, user!!.lastName].filter((v) => !!v).join(' '),
+                    body: message!!.message ? message!!.message!! : '<file>',
+                    picture: user!!.picture ? buildBaseImageUrl(user!!.picture!!) : null,
+                }, tx);
+            }
+
+            // Save state
+            if (messages.length > 0) {
+                u.lastPushNotification = new Date();
+            }
+            u.lastPushSeq = u.seq;
+            await u.save({ transaction: tx });
         }
 
         return false;

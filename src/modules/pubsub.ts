@@ -37,12 +37,14 @@ export class Pubsub<T> {
         } else {
 
             // Simulate redis if not configured
-            let subscribers = this.subscribers.get(topic);
-            if (subscribers) {
-                for (let r of subscribers) {
-                    r.listener(data);
+            setTimeout(() => {
+                let subscribers = this.subscribers.get(topic);
+                if (subscribers) {
+                    for (let r of subscribers) {
+                        r.listener(data);
+                    }
                 }
-            }
+            });
         }
     }
 

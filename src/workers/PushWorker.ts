@@ -3,7 +3,7 @@ import { DB } from '../tables';
 import WebPush from 'web-push';
 
 export function createPushWorker() {
-    let queue = new WorkQueue<{ uid: number, title: string, body: string }, { result: string }>('push_sender');
+    let queue = new WorkQueue<{ uid: number, title: string, body: string, picture: string | null, }, { result: string }>('push_sender');
     if (process.env.WEB_PUSH_PUBLIC && process.env.WEB_PUSH_PRIVATE) {
         WebPush.setVapidDetails(
             'mailto:support@openland.com',
@@ -18,12 +18,16 @@ export function createPushWorker() {
             });
             lock.check();
             for (let reg of registrations) {
-                let res = await WebPush.sendNotification(JSON.parse(reg.pushEndpoint), JSON.stringify({
-                    title: args.title,
-                    body: args.body 
-                }));
-                console.warn(res);
-                // 
+                try {
+                    await WebPush.sendNotification(JSON.parse(reg.pushEndpoint), JSON.stringify({
+                        title: args.title,
+                        body: args.body,
+                        picture: args.picture
+                    }));
+                } catch (e) {
+                    // Fast ignore for push notifications
+                    console.warn(e);
+                }
             }
             return {
                 result: 'ok'

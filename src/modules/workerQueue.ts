@@ -157,9 +157,18 @@ export class WorkQueue<ARGS extends JsonMap, RES extends JsonMap> {
             taskType: this.taskType,
             arguments: work
         }, { transaction: tx }));
-        pubsub.publish('work_added', {
-            taskId: res.id
-        });
+        if (tx) {
+            (tx as any).afterCommit(() => {
+                pubsub.publish('work_added', {
+                    taskId: res.id
+                });
+            });
+        } else {
+            pubsub.publish('work_added', {
+                taskId: res.id
+            });
+        }
+        
         return res;
     }
 
@@ -172,14 +181,6 @@ export class WorkQueue<ARGS extends JsonMap, RES extends JsonMap> {
                     maxKnownWorkId = data.taskId;
                     waiter();
                 }
-                // if (lastOffset !== null && lastSecondary !== null) {
-                //     let lastTime = new Date(lastOffset).getTime();
-                //     let dataTime = new Date(data.offset).getTime();
-                //     let changed = dataTime > lastTime || (dataTime === lastTime && lastSecondary > data.secondary);
-                //     if (changed) {
-                //         waiter();
-                //     }
-                // }
             }
         });
         forever(async () => {

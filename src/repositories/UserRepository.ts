@@ -123,29 +123,30 @@ export class UserRepository {
     async markUserOnline(uid: number, timeout: number, tokenId: number) {
         let now = new Date();
         let expires = new Date(now.getTime() + timeout);
-        await DB.txStable(async (tx) => {
+        await DB.txStableSilent(async (tx) => {
             let existing = await DB.UserPresence.find({
                 where: { userId: uid, tokenId: tokenId },
                 transaction: tx,
-                lock: tx.LOCK.UPDATE
+                lock: tx.LOCK.UPDATE,
+                logging: false
             });
             if (existing) {
                 existing.lastSeen = now;
                 existing.lastSeenTimeout = expires;
-                await existing.save({ transaction: tx });
+                await existing.save({ transaction: tx, logging: false });
             } else {
                 await DB.UserPresence.create({
                     userId: uid,
                     tokenId: tokenId,
                     lastSeen: now,
                     lastSeenTimeout: expires
-                }, { transaction: tx });
+                }, { transaction: tx, logging: false });
             }
-            let user = await DB.User.findById(uid, { transaction: tx, lock: tx.LOCK.UPDATE });
+            let user = await DB.User.findById(uid, { transaction: tx, lock: tx.LOCK.UPDATE, logging: false });
             if (user) {
                 if (user.lastSeen === null || user.lastSeen!!.getTime() < expires.getTime()) {
                     user.lastSeen = expires;
-                    await user.save({ transaction: tx });
+                    await user.save({ transaction: tx, logging: false });
                 }
             }
         });
