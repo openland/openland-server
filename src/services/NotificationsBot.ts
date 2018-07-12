@@ -1,6 +1,6 @@
 import { JsonMap } from '../utils/json';
-import { DB } from '../tables';
-import { Repos } from '../repositories';
+import { DB } from '../tables/index';
+import { Repos } from '../repositories/index';
 
 export const NotificationsBot = {
     async sendNotification(uid: number, message: { message?: string | null, file?: string | null, repeatKey?: string | null, fileMetadata?: JsonMap | null }) {

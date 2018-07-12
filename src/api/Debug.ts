@@ -4,7 +4,7 @@ import { normalizeCapitalized } from '../modules/Normalizer';
 import { IDs } from './utils/IDs';
 import { delay } from '../utils/timer';
 import { Emails } from '../services/Emails';
-import { NotificationsBot } from '../modules/NotificationsBot';
+import { NotificationsBot } from '../services/NotificationsBot';
 
 export const Resolver = {
     Query: {
