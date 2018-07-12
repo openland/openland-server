@@ -10,7 +10,9 @@ let devTeamEmails = [
     'gleb@openland.com',
     'narek@openland.com',
     'xeroxaltox@gmail.com',
-    'nabovyan@bk.ru'
+    'nabovyan@bk.ru',
+    'steve+kite@openland.com',
+    'steve+k@openland.com'
 ];
 
 export function createEmailWorker() {

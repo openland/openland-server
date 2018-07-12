@@ -9,7 +9,7 @@ import { randomKey } from '../utils/random';
 import { buildBaseImageUrl } from '../repositories/Media';
 import { NotFoundError } from '../errors/NotFoundError';
 import { ErrorText } from '../errors/ErrorText';
-import { Emails } from '../services/Emails';
+import { Hooks } from '../repositories/Hooks';
 
 export const Resolver = {
     Invite: {
@@ -98,7 +98,7 @@ export const Resolver = {
                 isCompleted: isProfileCreated && isOrganizationExists && isOrganizationPicked && isOrganizationActivated,
                 isBlocked: isOrganizationSuspended
             };
-            
+
             return queryResult;
         },
     },
@@ -143,7 +143,7 @@ export const Resolver = {
                     }, { transaction: tx });
                 }
 
-                await Emails.sendMemberJoinedEmails(invite.orgId, uid, tx);
+                await Hooks.onUserJoined(uid, invite.orgId, tx);
 
                 return IDs.Organization.serialize(invite.orgId);
             });

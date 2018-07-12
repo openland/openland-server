@@ -58,7 +58,10 @@ export const Resolver = {
             } else if (src.organization2Id === context.oid || (src.organization2 && src.organization2.id === context.oid)) {
                 return IDs.Organization.serialize(src.organization1Id!!);
             } else {
-                throw Error('Inconsistent Shared Conversation resolver');
+                return IDs.Conversation.serialize(src.id);
+                // console.warn(src);
+                // console.warn(context);
+                // throw Error('Inconsistent Shared Conversation resolver');
             }
         },
         title: async (src: Conversation, _: any, context: CallContext) => {
@@ -67,7 +70,15 @@ export const Resolver = {
             } else if (src.organization2Id === context.oid || (src.organization2 && src.organization2.id === context.oid)) {
                 return (src.organization1 || await src.getOrganization1())!!.name;
             } else {
-                throw Error('Inconsistent Shared Conversation resolver');
+                let org1 = (src.organization1 || await src.getOrganization2())!!;
+                let org2 = (src.organization2 || await src.getOrganization2())!!;
+                if (org1.id === org2.id) {
+                    return org1.name;
+                }
+                return org1.name + ', ' + org2.name;
+                // console.warn(src);
+                // console.warn(context);
+                // throw Error('Inconsistent Shared Conversation resolver');
             }
         },
         photos: async (src: Conversation, _: any, context: CallContext) => {
@@ -77,7 +88,9 @@ export const Resolver = {
             } else if (src.organization2Id === context.oid || (src.organization2 && src.organization2.id === context.oid)) {
                 photo = (src.organization1 || await src.getOrganization1())!!.photo!!;
             } else {
-                throw Error('Inconsistent Shared Conversation resolver');
+                // console.warn(src);
+                // console.warn(context);
+                // throw Error('Inconsistent Shared Conversation resolver');
             }
             if (photo) {
                 return [buildBaseImageUrl(photo)];
@@ -109,7 +122,7 @@ export const Resolver = {
             } else if (src.member2Id === context.uid || (src.member2 && src.member2.id === context.uid)) {
                 uid = src.member1Id!!;
             } else {
-                throw Error('Inconsistent Shared Conversation resolver');
+                throw Error('Inconsistent Private Conversation resolver');
             }
             return IDs.User.serialize(uid);
         },
@@ -120,7 +133,7 @@ export const Resolver = {
             } else if (src.member2Id === context.uid || (src.member2 && src.member2.id === context.uid)) {
                 uid = src.member1Id!!;
             } else {
-                throw Error('Inconsistent Shared Conversation resolver');
+                throw Error('Inconsistent Private Conversation resolver');
             }
             let profile = (await DB.UserProfile.find({
                 where: {
@@ -136,7 +149,7 @@ export const Resolver = {
             } else if (src.member2Id === context.uid || (src.member2 && src.member2.id === context.uid)) {
                 uid = src.member1Id!!;
             } else {
-                throw Error('Inconsistent Shared Conversation resolver');
+                throw Error('Inconsistent Private Conversation resolver');
             }
             let profile = (await DB.UserProfile.find({
                 where: {

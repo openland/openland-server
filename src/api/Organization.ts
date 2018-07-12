@@ -22,6 +22,7 @@ import {
 } from '../modules/NewInputValidator';
 import { AccessDeniedError } from '../errors/AccessDeniedError';
 import { Emails } from '../services/Emails';
+import { Hooks } from '../repositories/Hooks';
 
 let isFollowed = async (initiatorOrgId: number, targetOrgId: number) => {
     let connection = await DB.OrganizationConnect.find({
@@ -401,6 +402,7 @@ export const Resolver = {
                     status: (await Repos.Permissions.superRole(uid)) === 'super-admin' ? 'ACTIVATED' : 'PENDING',
                 }, { transaction: tx });
                 await Repos.Super.addToOrganization(organization.id!!, uid, tx);
+                await Hooks.onOrganizstionCreated(uid, organization.id!!, tx);
                 return organization;
             });
         }),

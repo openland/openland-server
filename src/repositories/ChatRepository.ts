@@ -9,6 +9,15 @@ import { JsonMap } from '../utils/json';
 import { DoubleInvokeError } from '../errors/DoubleInvokeError';
 import { NotFoundError } from '../errors/NotFoundError';
 
+export interface Message {
+    message?: string | null;
+    file?: string | null;
+    fileMetadata?: JsonMap | null;
+    isMuted?: boolean | null;
+    isService?: boolean | null;
+    repeatKey?: string | null;
+}
+
 class ChatsEventReader {
     private knownHeads = new Map<number, number>();
     private pending = new Map<number, ((seq: number) => void)[]>();
@@ -195,7 +204,7 @@ export class ChatsRepository {
         });
     }
 
-    loadOrganizationalChat = async (oid1: number, oid2: number) => {
+    loadOrganizationalChat = async (oid1: number, oid2: number, exTx?: Transaction) => {
         let _oid1 = Math.min(oid1, oid2);
         let _oid2 = Math.max(oid1, oid2);
         return await DB.txStable(async (tx) => {
@@ -216,12 +225,12 @@ export class ChatsRepository {
                 title: 'Cross Organization Chat',
                 organization1Id: _oid1,
                 organization2Id: _oid2
-            });
+            }, { transaction: tx });
             return res;
-        });
+        }, exTx);
     }
 
-    sendMessage = async (tx: Transaction, conversationId: number, uid: number, message: { message?: string | null, file?: string | null, repeatKey?: string | null, fileMetadata?: JsonMap | null }) => {
+    sendMessage = async (tx: Transaction, conversationId: number, uid: number, message: Message) => {
         if (message.message === 'fuck') {
             throw Error('');
         }
@@ -266,7 +275,9 @@ export class ChatsRepository {
             fileMetadata: message.fileMetadata,
             conversationId: conversationId,
             userId: uid,
-            repeatToken: message.repeatKey
+            repeatToken: message.repeatKey,
+            isMuted: message.isMuted || false,
+            isService: message.isService || false
         }, { transaction: tx });
         let res = await DB.ConversationEvent.create({
             conversationId: conversationId,

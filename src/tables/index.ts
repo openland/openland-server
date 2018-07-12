@@ -127,7 +127,10 @@ export const DB = {
     txLight: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>): Promise<A> {
         return await connection.transaction((tx2: sequelize.Transaction) => handler(tx2));
     },
-    txStable: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>): Promise<A> {
+    txStable: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>, existingTx?: sequelize.Transaction): Promise<A> {
+        if (existingTx) {
+            return handler(existingTx);
+        }
         return retry(async () => await connection.transaction((tx2: sequelize.Transaction) => handler(tx2)));
     },
     txStableSilent: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>): Promise<A> {

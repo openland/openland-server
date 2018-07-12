@@ -55,8 +55,15 @@ export function startEmailNotificationWorker() {
                 .filter((v) => v.eventType === 'new_message')
                 .filter((v) => v.event.senderId !== u.userId);
 
+            let hasNonMuted = false;
+            for (let m of messages) {
+                if (!(await DB.ConversationMessage.findById(m.event.messageId as number, { transaction: tx }))!!.isMuted) {
+                    hasNonMuted = true;
+                }
+            }
+
             // Send email notification if there are some
-            if (messages.length > 0) {
+            if (hasNonMuted) {
                 u.lastEmailNotification = new Date();
                 await Emails.sendUnreadMesages(u.userId, u.unread, tx);
             }
