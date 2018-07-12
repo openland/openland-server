@@ -22,7 +22,7 @@ export function startEmailNotificationWorker() {
             }
 
             // Ignore recently online users
-            if (lastSeen < now - 5 * 60 * 1000) {
+            if (lastSeen > now - 5 * 60 * 1000) {
                 continue;
             }
 
