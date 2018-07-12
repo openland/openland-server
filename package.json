@@ -120,7 +120,8 @@
     "typed-promisify": "^0.4.0",
     "typeorm": "^0.1.7",
     "typescript": "^2.9",
-    "uuid": "^3.2.1"
+    "uuid": "^3.2.1",
+    "web-push": "^3.3.2"
   },
   "scripts": {
     "assets": "yarn cpx \"./src/assets/**/*\" ./build/assets/",

@@ -151,9 +151,14 @@ export class UserRepository {
             transaction: tx,
             lock: tx.LOCK.UPDATE
         });
+        let now = Date.now();
         for (let p of presence) {
             let time = p.lastSeen.getTime();
+            if (p.lastSeenTimeout.getTime() > now) {
+                continue;
+            }
             if (existing === null || existing < time) {
+                p.lastSeenTimeout.getTime();
                 existing = time;
             }
         }

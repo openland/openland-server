@@ -17,7 +17,7 @@ export function startEmailNotificationWorker() {
             let lastSeen = await Repos.Users.getUserLastSeen(u.userId, tx);
             if ((lastSeen !== null && lastSeen < now - 5 * 60 * 1000) && (u.lastEmailNotification === null || u.lastEmailNotification.getTime() < now - 60 * 60 * 1000) && (u.lastEmailNotification === null || u.lastEmailNotification.getTime() < lastSeen || u.lastEmailNotification.getTime() < now - 24 * 60 * 60 * 1000)) {
                 u.lastEmailNotification = new Date();
-                u.save({ transaction: tx });
+                await u.save({ transaction: tx });
                 await Emails.sendUnreadMesages(u.userId, u.unread, tx);
             }
         }

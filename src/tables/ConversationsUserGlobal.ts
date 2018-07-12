@@ -9,6 +9,7 @@ export interface ConversationUserGlobalAttributes {
     seq: number;
     hasUnnoticedUnread: boolean;
     lastEmailNotification: Date | null;
+    lastPushNotification: Date | null;
 }
 
 export interface ConversationUserGlobal extends sequelize.Instance<Partial<ConversationUserGlobalAttributes>>, ConversationUserGlobalAttributes {
@@ -21,7 +22,8 @@ export const ConversationsUserGlobalTable = connection.define<ConversationUserGl
     unread: { type: sequelize.INTEGER, defaultValue: 0, allowNull: false },
     seq: { type: sequelize.INTEGER, defaultValue: 0, allowNull: false },
     hasUnnoticedUnread: { type: sequelize.BOOLEAN, defaultValue: false, allowNull: false },
-    lastEmailNotification: { type: sequelize.DATE, allowNull: true }
+    lastEmailNotification: { type: sequelize.DATE, allowNull: true },
+    lastPushNotification: { type: sequelize.DATE, allowNull: true }
 });
 
 ConversationsUserGlobalTable.belongsTo(UserTable, { as: 'user', foreignKey: { allowNull: false } });
