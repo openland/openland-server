@@ -176,12 +176,12 @@ export const Resolver = {
                     let user = await DB.User.find({ where: { id: uid }, transaction: tx });
                     if (user) {
                         user.status = 'ACTIVATED';
-                        await user.save({ transaction: tx });
+                        await user.save();
                     }
                 }
 
                 if (invite.isOneTime === true) {
-                    await invite.destroy();
+                    await invite.destroy({ transaction: tx });
                 }
 
                 return 'ok';
