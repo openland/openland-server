@@ -4,7 +4,7 @@ import { PushWorker } from '.';
 import { Repos } from '../repositories';
 
 export function startPushNotificationWorker() {
-    staticWorker({ name: 'email_notifications', delay: 1000 }, async (tx) => {
+    staticWorker({ name: 'push_notifications', delay: 1000 }, async (tx) => {
         let unreadUsers = await DB.ConversationsUserGlobal.findAll({
             where: {
                 unread: { $gt: 0 }
