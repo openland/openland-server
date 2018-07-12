@@ -17,7 +17,7 @@ import { ElasticClient } from '../indexing';
 import { buildElasticQuery, QueryParser } from '../modules/QueryParser';
 import { SelectBuilder } from '../modules/SelectBuilder';
 import {
-    defined, emailValidator, enumString, numberInRange, optional, stringNotEmpty,
+    defined, emailValidator, enumString, optional, stringNotEmpty,
     validate
 } from '../modules/NewInputValidator';
 import { AccessDeniedError } from '../errors/AccessDeniedError';
