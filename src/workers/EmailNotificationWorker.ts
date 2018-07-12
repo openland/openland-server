@@ -15,11 +15,55 @@ export function startEmailNotificationWorker() {
         let now = Date.now();
         for (let u of unreadUsers) {
             let lastSeen = await Repos.Users.getUserLastSeen(u.userId, tx);
-            if ((lastSeen !== null && lastSeen < now - 5 * 60 * 1000) && (u.lastEmailNotification === null || u.lastEmailNotification.getTime() < now - 60 * 60 * 1000) && (u.lastEmailNotification === null || u.lastEmailNotification.getTime() < lastSeen || u.lastEmailNotification.getTime() < now - 24 * 60 * 60 * 1000)) {
+
+            // Ignore online or never-online users
+            if (lastSeen === null) {
+                continue;
+            }
+
+            // Ignore recently online users
+            if (lastSeen < now - 5 * 60 * 1000) {
+                continue;
+            }
+
+            // Ignore read updates
+            if (u.readSeq === u.seq) {
+                continue;
+            }
+
+            // Ignore already processed updates
+            if (u.lastEmailSeq === u.seq) {
+                continue;
+            }
+
+            // Do not send emails more than one in an hour
+            if (u.lastEmailNotification !== null && u.lastEmailNotification.getTime() < now - 60 * 60 * 1000) {
+                continue;
+            }
+
+            // Fetch pending updates
+            let remainingUpdates = await DB.ConversationUserEvents.findAll({
+                where: {
+                    seq: {
+                        $gt: Math.max(u.lastEmailSeq, u.readSeq)
+                    }
+                },
+                transaction: tx,
+                logging: false
+            });
+            let messages = remainingUpdates
+                .filter((v) => v.eventType === 'new_message')
+                .filter((v) => v.event.senderId !== u.userId);
+
+            // Send email notification if there are some
+            if (messages.length > 0) {
                 u.lastEmailNotification = new Date();
-                await u.save({ transaction: tx });
                 await Emails.sendUnreadMesages(u.userId, u.unread, tx);
             }
+
+            // Save state
+            u.lastEmailSeq = u.seq;
+            await u.save({ transaction: tx });
         }
 
         return false;
