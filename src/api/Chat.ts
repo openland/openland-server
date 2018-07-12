@@ -76,9 +76,6 @@ export const Resolver = {
                     return org1.name;
                 }
                 return org1.name + ', ' + org2.name;
-                // console.warn(src);
-                // console.warn(context);
-                // throw Error('Inconsistent Shared Conversation resolver');
             }
         },
         photos: async (src: Conversation, _: any, context: CallContext) => {
@@ -268,7 +265,8 @@ export const Resolver = {
         },
         sender: (src: ConversationMessage, _: any, context: CallContext) => Repos.Users.userLoader(context).load(src.userId),
         date: (src: ConversationMessage) => src.createdAt,
-        repeatKey: (src: ConversationMessage, args: any, context: CallContext) => src.userId === context.uid ? src.repeatToken : null
+        repeatKey: (src: ConversationMessage, args: any, context: CallContext) => src.userId === context.uid ? src.repeatToken : null,
+        isService: (src: ConversationMessage) => src.isService,
     },
     ConversationEvent: {
         __resolveType(obj: ConversationEvent) {

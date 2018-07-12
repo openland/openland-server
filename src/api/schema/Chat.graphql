@@ -63,6 +63,7 @@ type ConversationMessage {
     sender: User!
     date: Date!
     repeatKey: String
+    isService: Boolean!
 }
 
 type FileMetadata {
