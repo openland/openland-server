@@ -2,8 +2,10 @@ import { JsonMap } from '../utils/json';
 import { DB } from '../tables/index';
 import { Repos } from '../repositories/index';
 
+export type NotificationMessage = { message?: string | null, file?: string | null, fileMetadata?: JsonMap | null };
+
 export const NotificationsBot = {
-    async sendNotification(uid: number, message: { message?: string | null, file?: string | null, repeatKey?: string | null, fileMetadata?: JsonMap | null }) {
+    async sendNotification(uid: number, message: NotificationMessage) {
         return await DB.tx(async (tx) => {
             let notificationsBot = await DB.User.findOne({
                 where: {
