@@ -51,13 +51,28 @@ export function startPushNotificationWorker() {
             for (let m of messages) {
                 let messageId = m.event.messageId as number;
                 let senderId = m.event.senderId as number;
+                // Ignore current user
+                if (senderId === u.userId) {
+                    continue;
+                }
                 let message = await DB.ConversationMessage.findById(messageId, { transaction: tx });
+                if (!message) {
+                    continue;
+                }
                 let user = await DB.UserProfile.find({ where: { userId: senderId }, transaction: tx });
+                if (!user) {
+                    continue;
+                }
+                let conversation = await DB.Conversation.findById(message.conversationId, { transaction: tx });
+                if (!conversation) {
+                    continue;
+                }
+                let senderName = [user.firstName, user.lastName].filter((v) => !!v).join(' ');
                 await PushWorker.pushWork({
                     uid: u.userId,
-                    title: [user!!.firstName, user!!.lastName].filter((v) => !!v).join(' '),
-                    body: message!!.message ? message!!.message!! : '<file>',
-                    picture: user!!.picture ? buildBaseImageUrl(user!!.picture!!) : null,
+                    title: senderName,
+                    body: message.message ? message.message!! : '<file>',
+                    picture: user.picture ? buildBaseImageUrl(user.picture!!) : null,
                 }, tx);
             }
 
