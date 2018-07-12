@@ -394,12 +394,17 @@ export const Resolver = {
                         return existing;
                     }
                 }
+                let status: 'ACTIVATED' | 'PENDING' = 'PENDING';
+                let user = await DB.User.find({ where: { id: uid } });
+                if (user && user.status === 'ACTIVATED') {
+                    status = 'ACTIVATED';
+                }
                 let organization = await DB.Organization.create({
                     name: Sanitizer.sanitizeString(args.input.name)!,
                     website: Sanitizer.sanitizeString(args.input.website),
                     photo: Sanitizer.sanitizeImageRef(args.input.photoRef),
                     userId: args.input.personal ? uid : null,
-                    status: (await Repos.Permissions.superRole(uid)) === 'super-admin' ? 'ACTIVATED' : 'PENDING',
+                    status: status,
                 }, { transaction: tx });
                 await Repos.Super.addToOrganization(organization.id!!, uid, tx);
                 await Hooks.onOrganizstionCreated(uid, organization.id!!, tx);

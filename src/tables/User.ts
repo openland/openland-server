@@ -8,6 +8,7 @@ export interface UserAttributes {
     email?: string;
     isBot?: boolean;
     lastSeen?: Date | null;
+    status?: 'PENDING' | 'ACTIVATED' | 'SUSPENDED';
 }
 
 export interface User extends sequelize.Instance<UserAttributes>, UserAttributes {
@@ -19,7 +20,16 @@ export const UserTable = connection.define<User, UserAttributes>('user', {
     authId: { type: sequelize.STRING, unique: true },
     email: { type: sequelize.STRING, allowNull: false },
     isBot: { type: sequelize.BOOLEAN, allowNull: true, defaultValue: false },
-    lastSeen: { type: sequelize.DATE, allowNull: true }
+    lastSeen: { type: sequelize.DATE, allowNull: true },
+    status: {
+        type: sequelize.ENUM(
+            'PENDING',
+            'ACTIVATED',
+            'SUSPENDED'
+        ),
+        defaultValue: 'PENDING',
+        allowNull: false
+    },
 });
 
 UserTable.belongsTo(OrganizationTable, { as: 'organization' });

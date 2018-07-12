@@ -144,8 +144,47 @@ export const Resolver = {
                 }
 
                 await Hooks.onUserJoined(uid, invite.orgId, tx);
+                // Activate user if organizaton is ACTIVATED
+                let organization = await DB.Organization.find({ where: { id: invite.orgId }, transaction: tx });
+                if (organization && organization.status === 'ACTIVATED') {
+                    let user = await DB.User.find({ where: { id: uid }, transaction: tx });
+                    if (user) {
+                        user.status = 'ACTIVATED';
+                        user.save({ transaction: tx });
+                    }
+                }
 
                 return IDs.Organization.serialize(invite.orgId);
+            });
+        }),
+        alphaJoinGlobalInvite: withAccount<{ key: string }>(async (args, uid, oid) => {
+            return await DB.tx(async (tx) => {
+                let invite = await DB.OrganizationInvite.find({
+                    where: {
+                        uuid: args.key,
+                        type: 'for_organization'
+                    },
+                    transaction: tx
+                });
+
+                if (!invite) {
+                    throw new NotFoundError(ErrorText.unableToFindInvite);
+                }
+
+                let organization = await DB.Organization.find({ where: { id: invite.orgId }, transaction: tx });
+                if (organization && organization.status === 'ACTIVATED') {
+                    let user = await DB.User.find({ where: { id: uid }, transaction: tx });
+                    if (user) {
+                        user.status = 'ACTIVATED';
+                        user.save({ transaction: tx });
+                    }
+                }
+
+                if (invite.isOneTime === true) {
+                    await invite.destroy({ transaction: tx });
+                }
+
+                return 'ok';
             });
         }),
         alphaCreateInvite: withAccount(async (args, uid, oid) => {
