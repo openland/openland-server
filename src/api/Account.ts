@@ -110,13 +110,21 @@ export const Resolver = {
                         uuid: args.key,
                         type: 'for_member'
                     },
+                    lock: tx.LOCK.UPDATE,
                     transaction: tx
                 });
 
                 if (!invite) {
                     throw new NotFoundError(ErrorText.unableToFindInvite);
                 }
-                let existing = await DB.OrganizationMember.find({ where: { userId: uid, orgId: invite.orgId }, transaction: tx });
+                let existing = await DB.OrganizationMember.find({
+                    where: {
+                        userId: uid,
+                        orgId: invite.orgId
+                    },
+                    lock: tx.LOCK.UPDATE,
+                    transaction: tx
+                });
                 if (existing) {
                     return IDs.Organization.serialize(invite.orgId);
                 }
@@ -147,10 +155,16 @@ export const Resolver = {
                 // Activate user if organizaton is ACTIVATED
                 let organization = await DB.Organization.find({ where: { id: invite.orgId }, transaction: tx });
                 if (organization && organization.status === 'ACTIVATED') {
-                    let user = await DB.User.find({ where: { id: uid }, transaction: tx });
+                    let user = await DB.User.find({
+                        where: {
+                            id: uid
+                        },
+                        lock: tx.LOCK.UPDATE,
+                        transaction: tx
+                    });
                     if (user) {
                         user.status = 'ACTIVATED';
-                        await user.save();
+                        await user.save({ transaction: tx });
                     }
                 }
 
@@ -164,6 +178,7 @@ export const Resolver = {
                         uuid: args.key,
                         type: 'for_organization'
                     },
+                    lock: tx.LOCK.UPDATE,
                     transaction: tx
                 });
 
@@ -173,7 +188,13 @@ export const Resolver = {
 
                 let organization = await DB.Organization.find({ where: { id: invite.orgId }, transaction: tx });
                 if (organization && organization.status === 'ACTIVATED') {
-                    let user = await DB.User.find({ where: { id: uid }, transaction: tx });
+                    let user = await DB.User.find({
+                        where: {
+                            id: uid
+                        },
+                        lock: tx.LOCK.UPDATE,
+                        transaction: tx
+                    });
                     if (user) {
                         user.status = 'ACTIVATED';
                         await user.save();
