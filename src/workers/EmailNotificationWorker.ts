@@ -37,7 +37,7 @@ export function startEmailNotificationWorker() {
             }
 
             // Do not send emails more than one in an hour
-            if (u.lastEmailNotification !== null && u.lastEmailNotification.getTime() < now - 60 * 60 * 1000) {
+            if (u.lastEmailNotification !== null && u.lastEmailNotification.getTime() > now - 60 * 60 * 1000) {
                 continue;
             }
 
