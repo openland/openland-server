@@ -157,7 +157,7 @@ export const Resolver = {
                 return IDs.Organization.serialize(invite.orgId);
             });
         }),
-        alphaJoinGlobalInvite: withAccount<{ key: string }>(async (args, uid, oid) => {
+        alphaJoinGlobalInvite: withUser<{ key: string }>(async (args, uid) => {
             return await DB.tx(async (tx) => {
                 let invite = await DB.OrganizationInvite.find({
                     where: {
