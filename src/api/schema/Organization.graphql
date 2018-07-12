@@ -367,11 +367,11 @@ extend type Mutation {
     alphaOrganizationChangeMemberRole(memberId: ID!, newRole: OrganizationMemberRole!): String!
 
     alphaOrganizationInviteMembers(inviteRequests: [InviteRequest!]!): String!
-    alphaOrganizationCreatePublicInvite(expirationDays: Int!): Invite!
+    alphaOrganizationCreatePublicInvite(expirationDays: Int): Invite!
     alphaOrganizationDeletePublicInvite: String!
 
     alphaOrganizationInviteOrganization(inviteRequests: [InviteRequestOrganization!]!): String!
     alphaOrganizationActivateByInvite(key: String!): String!
-    alphaOrganizationCreatePublicInviteForOrganizations(expirationDays: Int!): Invite!
+    alphaOrganizationCreatePublicInviteForOrganizations(expirationDays: Int): Invite!
     alphaOrganizationDeletePublicInviteForOrganizations: String!
 }

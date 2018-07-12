@@ -358,10 +358,24 @@ export const Resolver = {
         }),
 
         alphaOrganizationPublicInvite: withAccount(async (args, uid, orgId) => {
-            return Repos.Invites.getPublicInvite(orgId);
+            return await DB.tx(async (tx) => {
+                let res = await Repos.Invites.getPublicInvite(orgId, tx);
+                if (!res) {
+                    res = await Repos.Invites.createPublicInvite(orgId, undefined, tx);
+                }
+                return res;
+            });
+
         }),
         alphaOrganizationPublicInviteForOrganizations: withAccount(async (args, uid, orgId) => {
-            return Repos.Invites.getPublicInviteForOrganizations(orgId);
+            return await DB.tx(async (tx) => {
+                let res = await Repos.Invites.getPublicInviteForOrganizations(orgId, tx);
+                if (!res) {
+                    res = await Repos.Invites.createPublicInviteForOrganizations(orgId, undefined, tx);
+                }
+                return res;
+
+            });
         })
     },
     Mutation: {
@@ -1206,14 +1220,8 @@ export const Resolver = {
                 return 'ok';
             });
         }),
-        alphaOrganizationCreatePublicInvite: withAccount<{ expirationDays: number }>(async (args, uid, oid) => {
+        alphaOrganizationCreatePublicInvite: withAccount<{ expirationDays?: number }>(async (args, uid, oid) => {
             return DB.tx(async (tx) => {
-                await validate(
-                    {
-                        expirationDays: numberInRange(1, 30)
-                    },
-                    args
-                );
 
                 let isOwner = await Repos.Organizations.isOwnerOfOrganization(oid, uid, tx);
 
@@ -1302,13 +1310,7 @@ export const Resolver = {
                 return 'ok';
             });
         }),
-        alphaOrganizationCreatePublicInviteForOrganizations: withAccount<{ expirationDays: number }>(async (args, uid, oid) => {
-            await validate(
-                {
-                    expirationDays: numberInRange(1, 30)
-                },
-                args
-            );
+        alphaOrganizationCreatePublicInviteForOrganizations: withAccount<{ expirationDays?: number }>(async (args, uid, oid) => {
 
             return await DB.tx(async (tx) => {
                 let isOwner = await Repos.Organizations.isOwnerOfOrganization(oid, uid, tx);
