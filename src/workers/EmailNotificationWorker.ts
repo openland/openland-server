@@ -44,6 +44,7 @@ export function startEmailNotificationWorker() {
             // Fetch pending updates
             let remainingUpdates = await DB.ConversationUserEvents.findAll({
                 where: {
+                    userId: u.userId,
                     seq: {
                         $gt: Math.max(u.lastEmailSeq, u.readSeq)
                     }

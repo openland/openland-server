@@ -38,6 +38,7 @@ export function startPushNotificationWorker() {
             // Scanning updates
             let remainingUpdates = await DB.ConversationUserEvents.findAll({
                 where: {
+                    userId: u.userId,
                     seq: {
                         $gt: Math.max(u.lastPushSeq, u.readSeq)
                     }
