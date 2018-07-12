@@ -7,17 +7,19 @@ export interface UserAttributes {
     authId?: string;
     email?: string;
     isBot?: boolean;
+    lastSeen?: Date | null;
 }
 
 export interface User extends sequelize.Instance<UserAttributes>, UserAttributes {
-    
+
 }
 
 export const UserTable = connection.define<User, UserAttributes>('user', {
     id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
     authId: { type: sequelize.STRING, unique: true },
     email: { type: sequelize.STRING, allowNull: false },
-    isBot: { type: sequelize.BOOLEAN, allowNull: true, defaultValue: false }
+    isBot: { type: sequelize.BOOLEAN, allowNull: true, defaultValue: false },
+    lastSeen: { type: sequelize.DATE, allowNull: true }
 });
 
 UserTable.belongsTo(OrganizationTable, { as: 'organization' });

@@ -141,27 +141,31 @@ export class UserRepository {
                     lastSeenTimeout: expires
                 }, { transaction: tx });
             }
+            let user = await DB.User.findById(uid, { transaction: tx, lock: tx.LOCK.UPDATE });
+            if (user) {
+                if (user.lastSeen === null || user.lastSeen!!.getTime() < expires.getTime()) {
+                    user.lastSeen = expires;
+                    await user.save({ transaction: tx });
+                }
+            }
         });
     }
 
     async getUserLastSeen(uid: number, tx: Transaction) {
-        let existing: number | null = null;
-        let presence = await DB.UserPresence.findAll({
-            where: { userId: uid },
-            transaction: tx,
-            lock: tx.LOCK.UPDATE
-        });
+        let user = await DB.User.findById(uid);
         let now = Date.now();
-        for (let p of presence) {
-            let time = p.lastSeen.getTime();
-            if (p.lastSeenTimeout.getTime() > now) {
-                continue;
-            }
-            if (existing === null || existing < time) {
-                p.lastSeenTimeout.getTime();
-                existing = time;
+        if (!user) {
+            return null;
+        } else {
+            if (user.lastSeen) {
+                if (user.lastSeen.getTime() > now) {
+                    return null;
+                } else {
+                    return user.lastSeen.getTime();
+                }
+            } else {
+                return null;
             }
         }
-        return existing;
     }
 }
