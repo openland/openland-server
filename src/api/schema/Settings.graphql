@@ -1,9 +1,16 @@
+enum EmailFrequency {
+    NEVER
+    MIN_15
+    HOUR_1
+}
+
 input UpdateSettingsInput {
-    isEmailPublic: Boolean
+    emailFrequency: EmailFrequency
 }
 
 type Settings {
-    isEmailPublic: Boolean!
+    primaryEmail: String!
+    emailFrequency: EmailFrequency!
 }
 
 extend type Query {
