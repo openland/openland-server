@@ -172,7 +172,7 @@ export const Resolver = {
             });
         }),
         alphaJoinGlobalInvite: withUser<{ key: string }>(async (args, uid) => {
-            return await DB.tx(async (tx) => {
+            return await DB.txStable(async (tx) => {
                 let invite = await DB.OrganizationInvite.find({
                     where: {
                         uuid: args.key,
