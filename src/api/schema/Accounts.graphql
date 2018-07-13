@@ -16,6 +16,9 @@ type InviteInfo {
     photo: String
     photoRef: ImageRef
     joined: Boolean!
+    acceptedBy: User
+    forEmail: String
+    isGlobal: Boolean!
 }
 
 #

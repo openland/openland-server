@@ -22,7 +22,7 @@ export const Resolver = {
             return await DB.OrganizationInvite.findAll({ where: { orgId: oid } });
         }),
         alphaInviteInfo: withAny<{ key: string }>(async (args, context: CallContext) => {
-            let invite = await DB.OrganizationInvite.find({ where: { uuid: args.key } });
+            let invite = await DB.OrganizationInvite.find({ where: { uuid: args.key, acceptedById: null } });
             if (!invite) {
                 return null;
             }
@@ -30,10 +30,7 @@ export const Resolver = {
             if (!org) {
                 return null;
             }
-            let joined = false;
-            if (context.uid && context.oid) {
-                joined = (await DB.OrganizationMember.find({ where: { userId: context.uid, orgId: org.id } })) !== null;
-            }
+            let joined = invite.acceptedById !== null;
             return {
                 id: IDs.InviteInfo.serialize(invite.id),
                 key: args.key,
@@ -42,7 +39,13 @@ export const Resolver = {
                 photo: org.photo ? buildBaseImageUrl(org.photo) : null,
                 photoRef: org.photo,
                 joined: joined,
+                acceptedBy: invite.acceptedById ? await DB.User.findOne({ where: { id: invite.acceptedById } }) : null,
+                forEmail: invite.forEmail,
+                isGlobal: invite.type === 'for_organization',
             };
+        }),
+        alphaInvitesHistory: withAccount(async (args, uid, oid) => {
+            return await DB.OrganizationInvite.findAll({ where: { orgId: oid, isOneTime: true } });
         }),
         sessionState: async function (_: any, args: {}, context: CallContext) {
 
@@ -108,7 +111,8 @@ export const Resolver = {
                 let invite = await DB.OrganizationInvite.find({
                     where: {
                         uuid: args.key,
-                        type: 'for_member'
+                        type: 'for_member',
+                        acceptedById: null
                     },
                     lock: tx.LOCK.UPDATE,
                     transaction: tx
@@ -141,7 +145,8 @@ export const Resolver = {
                         invitedBy: invite.creatorId
                     }, { transaction: tx });
 
-                    await invite.destroy({ transaction: tx });
+                    invite.acceptedById = uid;
+                    await invite.save({ transaction: tx });
                 } else {
                     await DB.OrganizationMember.create({
                         userId: uid,
@@ -176,7 +181,8 @@ export const Resolver = {
                 let invite = await DB.OrganizationInvite.find({
                     where: {
                         uuid: args.key,
-                        type: 'for_organization'
+                        type: 'for_organization',
+                        acceptedById: null
                     },
                     lock: tx.LOCK.UPDATE,
                     transaction: tx
@@ -202,7 +208,8 @@ export const Resolver = {
                 }
 
                 if (invite.isOneTime === true) {
-                    await invite.destroy({ transaction: tx });
+                    invite.acceptedById = uid;
+                    await invite.save({ transaction: tx });
                 }
 
                 return 'ok';

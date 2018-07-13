@@ -58,7 +58,8 @@ export default class InvitesRepository {
                 orgId,
                 forEmail: email,
                 isOneTime: true,
-                type: 'for_member'
+                type: 'for_member',
+                acceptedById: null
             },
             transaction: tx
         });
@@ -71,7 +72,8 @@ export default class InvitesRepository {
             where: {
                 orgId,
                 isOneTime: true,
-                type: 'for_member'
+                type: 'for_member',
+                acceptedById: null
             },
             transaction: tx
         });
@@ -142,7 +144,8 @@ export default class InvitesRepository {
                 orgId,
                 forEmail: email,
                 isOneTime: true,
-                type: 'for_organization'
+                type: 'for_organization',
+                acceptedById: null
             },
             transaction: tx
         });
