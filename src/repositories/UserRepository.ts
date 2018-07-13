@@ -5,7 +5,6 @@ import { ImageRef } from './Media';
 import { Transaction } from 'sequelize';
 import { UserSettings, UserSettingsAttributes } from '../tables/UserSettings';
 import { SuperBus } from '../modules/SuperBus';
-import { JsonMap } from '../utils/json';
 
 export interface Settings {
     emailFrequency: '1hour' | '15min' | 'never';
