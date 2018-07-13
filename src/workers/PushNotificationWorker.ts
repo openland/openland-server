@@ -35,51 +35,67 @@ export function startPushNotificationWorker() {
                 continue;
             }
 
-            // Scanning updates
-            let remainingUpdates = await DB.ConversationUserEvents.findAll({
-                where: {
-                    userId: u.userId,
-                    seq: {
-                        $gt: Math.max(u.lastPushSeq, u.readSeq)
+            // Loading user's settings
+            let settings = await Repos.Users.getUserSettings(u.userId);
+
+            if (settings.desktopNotifications !== 'none') {
+
+                // Scanning updates
+                let remainingUpdates = await DB.ConversationUserEvents.findAll({
+                    where: {
+                        userId: u.userId,
+                        seq: {
+                            $gt: Math.max(u.lastPushSeq, u.readSeq)
+                        }
+                    },
+                    transaction: tx,
+                    logging: false
+                });
+
+                // Handling unread messages
+                let messages = remainingUpdates.filter((v) => v.eventType === 'new_message');
+                let hasMessage = false;
+                for (let m of messages) {
+                    let messageId = m.event.messageId as number;
+                    let senderId = m.event.senderId as number;
+                    // Ignore current user
+                    if (senderId === u.userId) {
+                        continue;
                     }
-                },
-                transaction: tx,
-                logging: false
-            });
+                    let message = await DB.ConversationMessage.findById(messageId, { transaction: tx });
+                    if (!message) {
+                        continue;
+                    }
+                    let user = await DB.UserProfile.find({ where: { userId: senderId }, transaction: tx });
+                    if (!user) {
+                        continue;
+                    }
+                    let conversation = await DB.Conversation.findById(message.conversationId, { transaction: tx });
+                    if (!conversation) {
+                        continue;
+                    }
 
-            // Handling unread messages
-            let messages = remainingUpdates.filter((v) => v.eventType === 'new_message');
-            for (let m of messages) {
-                let messageId = m.event.messageId as number;
-                let senderId = m.event.senderId as number;
-                // Ignore current user
-                if (senderId === u.userId) {
-                    continue;
-                }
-                let message = await DB.ConversationMessage.findById(messageId, { transaction: tx });
-                if (!message) {
-                    continue;
-                }
-                let user = await DB.UserProfile.find({ where: { userId: senderId }, transaction: tx });
-                if (!user) {
-                    continue;
-                }
-                let conversation = await DB.Conversation.findById(message.conversationId, { transaction: tx });
-                if (!conversation) {
-                    continue;
-                }
-                let senderName = [user.firstName, user.lastName].filter((v) => !!v).join(' ');
-                await PushWorker.pushWork({
-                    uid: u.userId,
-                    title: senderName,
-                    body: message.message ? message.message!! : '<file>',
-                    picture: user.picture ? buildBaseImageUrl(user.picture!!) : null,
-                }, tx);
-            }
+                    // Filter non-private if only direct messages enabled
+                    if (settings.desktopNotifications === 'direct') {
+                        if (conversation.type !== 'private') {
+                            continue;
+                        }
+                    }
 
-            // Save state
-            if (messages.length > 0) {
-                u.lastPushNotification = new Date();
+                    hasMessage = true;
+                    let senderName = [user.firstName, user.lastName].filter((v) => !!v).join(' ');
+                    await PushWorker.pushWork({
+                        uid: u.userId,
+                        title: senderName,
+                        body: message.message ? message.message!! : '<file>',
+                        picture: user.picture ? buildBaseImageUrl(user.picture!!) : null,
+                    }, tx);
+                }
+                
+                // Save state
+                if (hasMessage) {
+                    u.lastPushNotification = new Date();
+                }
             }
             u.lastPushSeq = u.seq;
             await u.save({ transaction: tx });

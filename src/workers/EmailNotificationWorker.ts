@@ -36,37 +36,44 @@ export function startEmailNotificationWorker() {
                 continue;
             }
 
-            // Do not send emails more than one in an hour
-            if (u.lastEmailNotification !== null && u.lastEmailNotification.getTime() > now - 60 * 60 * 1000) {
-                continue;
-            }
+            let settings = await Repos.Users.getUserSettings(u.userId);
+            if (settings.emailFrequency !== 'never') {
 
-            // Fetch pending updates
-            let remainingUpdates = await DB.ConversationUserEvents.findAll({
-                where: {
-                    userId: u.userId,
-                    seq: {
-                        $gt: Math.max(u.lastEmailSeq, u.readSeq)
-                    }
-                },
-                transaction: tx,
-                logging: false
-            });
-            let messages = remainingUpdates
-                .filter((v) => v.eventType === 'new_message')
-                .filter((v) => v.event.senderId !== u.userId);
+                // Read email timeouts
+                let delta = settings.emailFrequency === '1hour' ? 60 * 60 * 1000 : 15 * 60 * 1000;
 
-            let hasNonMuted = false;
-            for (let m of messages) {
-                if (!(await DB.ConversationMessage.findById(m.event.messageId as number, { transaction: tx }))!!.isMuted) {
-                    hasNonMuted = true;
+                // Do not send emails more than one in an hour
+                if (u.lastEmailNotification !== null && u.lastEmailNotification.getTime() > now - delta) {
+                    continue;
                 }
-            }
 
-            // Send email notification if there are some
-            if (hasNonMuted) {
-                u.lastEmailNotification = new Date();
-                await Emails.sendUnreadMesages(u.userId, u.unread, tx);
+                // Fetch pending updates
+                let remainingUpdates = await DB.ConversationUserEvents.findAll({
+                    where: {
+                        userId: u.userId,
+                        seq: {
+                            $gt: Math.max(u.lastEmailSeq, u.readSeq)
+                        }
+                    },
+                    transaction: tx,
+                    logging: false
+                });
+                let messages = remainingUpdates
+                    .filter((v) => v.eventType === 'new_message')
+                    .filter((v) => v.event.senderId !== u.userId);
+
+                let hasNonMuted = false;
+                for (let m of messages) {
+                    if (!(await DB.ConversationMessage.findById(m.event.messageId as number, { transaction: tx }))!!.isMuted) {
+                        hasNonMuted = true;
+                    }
+                }
+
+                // Send email notification if there are some
+                if (hasNonMuted) {
+                    u.lastEmailNotification = new Date();
+                    await Emails.sendUnreadMesages(u.userId, u.unread, tx);
+                }
             }
 
             // Save state
