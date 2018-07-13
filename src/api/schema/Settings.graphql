@@ -29,3 +29,7 @@ extend type Query {
 extend type Mutation {
     updateSettings(settings: UpdateSettingsInput): Settings!
 }
+
+extend type Subscription {
+    watchSettings: Settings!
+}

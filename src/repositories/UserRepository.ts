@@ -3,15 +3,53 @@ import DataLoader from 'dataloader';
 import { CallContext } from '../api/utils/CallContext';
 import { ImageRef } from './Media';
 import { Transaction } from 'sequelize';
-import { UserSettings } from '../tables/UserSettings';
+import { UserSettings, UserSettingsAttributes } from '../tables/UserSettings';
+import { SuperBus } from '../modules/SuperBus';
+import { JsonMap } from '../utils/json';
 
 export interface Settings {
     emailFrequency: '1hour' | '15min' | 'never';
     desktopNotifications: 'all' | 'direct' | 'none';
 }
 
+class UserSettingsReader {
+    private pending = new Map<number, (() => void)[]>();
+
+    onMessage(userId: number) {
+        if (this.pending.has(userId)) {
+            let callbacks = this.pending.get(userId)!!;
+            if (callbacks.length > 0) {
+                let cb = [...callbacks];
+                this.pending.set(userId, []);
+                for (let c of cb) {
+                    c();
+                }
+            }
+        }
+    }
+
+    loadNext = async (userId: number) => {
+        if (!this.pending.has(userId)) {
+            this.pending.set(userId, []);
+        }
+        return await new Promise<number>((resolver) => this.pending.get(userId)!!.push(resolver));
+    }
+}
+
 export class UserRepository {
-    private userCache = new Map<string, number | undefined>();
+    readonly settingsReader: UserSettingsReader;
+    private readonly userCache = new Map<string, number | undefined>();
+    private readonly settingsSuperbus: SuperBus<{ userId: number }, UserSettings, Partial<UserSettingsAttributes>>;
+
+    constructor() {
+        this.settingsReader = new UserSettingsReader();
+        this.settingsSuperbus = new SuperBus('user_settings', DB.UserSettings, 'user_settings');
+        this.settingsSuperbus.eventBuilder((src) => ({ userId: src.userId }));
+        this.settingsSuperbus.eventHandler((event) => {
+            this.settingsReader.onMessage(event.userId);
+        });
+        this.settingsSuperbus.start();
+    }
 
     userLoader(context: CallContext) {
         if (!context.cache.has('__user_loader')) {

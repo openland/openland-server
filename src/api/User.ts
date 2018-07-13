@@ -283,5 +283,34 @@ export const Resolver = {
                 return settings;
             });
         })
+    },
+    Subscription: {
+        watchSettings: {
+            resolve: async (msg: any) => {
+                return msg;
+            },
+            subscribe: async function (_: any, args: any, context: CallContext) {
+                let ended = false;
+                return {
+                    ...(async function* func() {
+                        while (!ended) {
+                            let settings = await DB.tx(async (tx) => {
+                                let st = await DB.UserSettings.find({ where: { userId: context.uid }, transaction: tx, lock: 'UPDATE' });
+                                if (!st) {
+                                    st = await DB.UserSettings.create({ userId: context.uid }, { transaction: tx });
+                                }
+                                return st;
+                            });
+                            yield settings;
+                            await Repos.Users.settingsReader.loadNext(context.uid!!);
+                        }
+                    })(),
+                    return: async () => {
+                        ended = true;
+                        return 'ok';
+                    }
+                };
+            }
+        }
     }
 };
