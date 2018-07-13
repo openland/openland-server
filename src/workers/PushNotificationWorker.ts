@@ -30,6 +30,11 @@ export function startPushNotificationWorker() {
                 continue;
             }
 
+            // Ignore never opened apps
+            if (u.readSeq === null) {
+                continue;
+            }
+
             // Ignore already processed updates
             if (u.lastPushSeq === u.seq) {
                 continue;
@@ -91,7 +96,7 @@ export function startPushNotificationWorker() {
                         picture: user.picture ? buildBaseImageUrl(user.picture!!) : null,
                     }, tx);
                 }
-                
+
                 // Save state
                 if (hasMessage) {
                     u.lastPushNotification = new Date();

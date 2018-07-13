@@ -628,7 +628,7 @@ export const Resolver = {
                     transaction: tx,
                     lock: tx.LOCK.UPDATE
                 });
-                if (global && global.readSeq < args.toSeq && args.toSeq <= global.seq) {
+                if (global && (global.readSeq === null || global.readSeq < args.toSeq) && args.toSeq <= global.seq) {
                     global.readSeq = args.toSeq;
                     await global.save({ transaction: tx });
                 }

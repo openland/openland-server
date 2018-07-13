@@ -26,6 +26,11 @@ export function startEmailNotificationWorker() {
                 continue;
             }
 
+            // Ignore never opened apps
+            if (u.readSeq === null) {
+                continue;
+            }
+
             // Ignore read updates
             if (u.readSeq === u.seq) {
                 continue;
