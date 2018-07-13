@@ -1,7 +1,7 @@
 type Query {
     alphaInvites: [Invite!]
     alphaInviteInfo(key: String!): InviteInfo
-    alphaInvitesHistory: [InviteInfo!]
+    alphaInvitesHistory: [InviteHistotyInfo!]
 
     #
     # Permits
