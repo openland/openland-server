@@ -1,15 +1,27 @@
 import { QueryInterface, DataTypes } from 'sequelize';
-import { DB } from '../index';
 
 export async function up(queryInterface: QueryInterface, sequelize: DataTypes) {
-    let user = await DB.User.create({
-        authId: 'bot_notifications',
-        email: 'hello@openland.com',
-        isBot: true
-    });
 
-    await DB.UserProfile.create({
-        userId: user.id,
-        firstName: 'Notifications bot'
-    });
+    let user = await queryInterface.sequelize.query(
+        'insert into "users" ("authId", "email", "isBot") VALUES (:authId, :email, :isBot) RETURNING *;',
+        {
+            replacements: {
+                authId: 'bot_notifications',
+                email: 'hello@openland.com',
+                isBot: true
+            }
+        }
+    );
+
+    let id = user[0][0].id;
+
+    await queryInterface.sequelize.query(
+        'insert into "user_profiles" ("userId", "firstName") VALUES (:userId, :firstName) RETURNING *;',
+        {
+            replacements: {
+                userId: id,
+                firstName: 'Notifications bot',
+            }
+        }
+    );
 }

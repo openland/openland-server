@@ -110,13 +110,21 @@ export const Resolver = {
                         uuid: args.key,
                         type: 'for_member'
                     },
+                    lock: tx.LOCK.UPDATE,
                     transaction: tx
                 });
 
                 if (!invite) {
                     throw new NotFoundError(ErrorText.unableToFindInvite);
                 }
-                let existing = await DB.OrganizationMember.find({ where: { userId: uid, orgId: invite.orgId }, transaction: tx });
+                let existing = await DB.OrganizationMember.find({
+                    where: {
+                        userId: uid,
+                        orgId: invite.orgId
+                    },
+                    lock: tx.LOCK.UPDATE,
+                    transaction: tx
+                });
                 if (existing) {
                     return IDs.Organization.serialize(invite.orgId);
                 }
@@ -144,8 +152,60 @@ export const Resolver = {
                 }
 
                 await Hooks.onUserJoined(uid, invite.orgId, tx);
+                // Activate user if organizaton is ACTIVATED
+                let organization = await DB.Organization.find({ where: { id: invite.orgId }, transaction: tx });
+                if (organization && organization.status === 'ACTIVATED') {
+                    let user = await DB.User.find({
+                        where: {
+                            id: uid
+                        },
+                        lock: tx.LOCK.UPDATE,
+                        transaction: tx
+                    });
+                    if (user) {
+                        user.status = 'ACTIVATED';
+                        await user.save({ transaction: tx });
+                    }
+                }
 
                 return IDs.Organization.serialize(invite.orgId);
+            });
+        }),
+        alphaJoinGlobalInvite: withUser<{ key: string }>(async (args, uid) => {
+            return await DB.tx(async (tx) => {
+                let invite = await DB.OrganizationInvite.find({
+                    where: {
+                        uuid: args.key,
+                        type: 'for_organization'
+                    },
+                    lock: tx.LOCK.UPDATE,
+                    transaction: tx
+                });
+
+                if (!invite) {
+                    throw new NotFoundError(ErrorText.unableToFindInvite);
+                }
+
+                let organization = await DB.Organization.find({ where: { id: invite.orgId }, transaction: tx });
+                if (organization && organization.status === 'ACTIVATED') {
+                    let user = await DB.User.find({
+                        where: {
+                            id: uid
+                        },
+                        lock: tx.LOCK.UPDATE,
+                        transaction: tx
+                    });
+                    if (user) {
+                        user.status = 'ACTIVATED';
+                        await user.save();
+                    }
+                }
+
+                if (invite.isOneTime === true) {
+                    await invite.destroy({ transaction: tx });
+                }
+
+                return 'ok';
             });
         }),
         alphaCreateInvite: withAccount(async (args, uid, oid) => {

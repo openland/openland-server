@@ -16,7 +16,7 @@ let devTeamEmails = [
 ];
 
 export function createEmailWorker() {
-    let queue = new WorkQueue<{ templateId: string, to: string, args: { [key: string]: string; } }, { result: string }>('emailSender');
+    let queue = new WorkQueue<{ templateId: string, to: string, subject: string, args: { [key: string]: string; } }, { result: string }>('emailSender');
     SendGrid.setApiKey(SENDGRID_KEY);
     let isTesting = process.env.TESTING === 'true';
     queue.addWorker(async (args, lock, uid) => {
@@ -35,7 +35,8 @@ export function createEmailWorker() {
                 to: args.to,
                 from: { name: 'Openland', email: 'support@openland.com' },
                 templateId: args.templateId,
-                substitutions: args.args
+                substitutions: args.args,
+                subject: args.subject
             });
         }
         return {

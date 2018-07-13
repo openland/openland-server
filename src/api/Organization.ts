@@ -17,7 +17,7 @@ import { ElasticClient } from '../indexing';
 import { buildElasticQuery, QueryParser } from '../modules/QueryParser';
 import { SelectBuilder } from '../modules/SelectBuilder';
 import {
-    defined, emailValidator, enumString, numberInRange, optional, stringNotEmpty,
+    defined, emailValidator, enumString, optional, stringNotEmpty,
     validate
 } from '../modules/NewInputValidator';
 import { AccessDeniedError } from '../errors/AccessDeniedError';
@@ -358,10 +358,24 @@ export const Resolver = {
         }),
 
         alphaOrganizationPublicInvite: withAccount(async (args, uid, orgId) => {
-            return Repos.Invites.getPublicInvite(orgId);
+            return await DB.tx(async (tx) => {
+                let res = await Repos.Invites.getPublicInvite(orgId, tx);
+                if (!res) {
+                    res = await Repos.Invites.createPublicInvite(orgId, undefined, tx);
+                }
+                return res;
+            });
+
         }),
         alphaOrganizationPublicInviteForOrganizations: withAccount(async (args, uid, orgId) => {
-            return Repos.Invites.getPublicInviteForOrganizations(orgId);
+            return await DB.tx(async (tx) => {
+                let res = await Repos.Invites.getPublicInviteForOrganizations(orgId, tx);
+                if (!res) {
+                    res = await Repos.Invites.createPublicInviteForOrganizations(orgId, undefined, tx);
+                }
+                return res;
+
+            });
         })
     },
     Mutation: {
@@ -394,12 +408,17 @@ export const Resolver = {
                         return existing;
                     }
                 }
+                let status: 'ACTIVATED' | 'PENDING' = 'PENDING';
+                let user = await DB.User.find({ where: { id: uid } });
+                if (user && user.status === 'ACTIVATED') {
+                    status = 'ACTIVATED';
+                }
                 let organization = await DB.Organization.create({
                     name: Sanitizer.sanitizeString(args.input.name)!,
                     website: Sanitizer.sanitizeString(args.input.website),
                     photo: Sanitizer.sanitizeImageRef(args.input.photoRef),
                     userId: args.input.personal ? uid : null,
-                    status: (await Repos.Permissions.superRole(uid)) === 'super-admin' ? 'ACTIVATED' : 'PENDING',
+                    status: status,
                 }, { transaction: tx });
                 await Repos.Super.addToOrganization(organization.id!!, uid, tx);
                 await Hooks.onOrganizstionCreated(uid, organization.id!!, tx);
@@ -1201,14 +1220,8 @@ export const Resolver = {
                 return 'ok';
             });
         }),
-        alphaOrganizationCreatePublicInvite: withAccount<{ expirationDays: number }>(async (args, uid, oid) => {
+        alphaOrganizationCreatePublicInvite: withAccount<{ expirationDays?: number }>(async (args, uid, oid) => {
             return DB.tx(async (tx) => {
-                await validate(
-                    {
-                        expirationDays: numberInRange(1, 30)
-                    },
-                    args
-                );
 
                 let isOwner = await Repos.Organizations.isOwnerOfOrganization(oid, uid, tx);
 
@@ -1297,13 +1310,7 @@ export const Resolver = {
                 return 'ok';
             });
         }),
-        alphaOrganizationCreatePublicInviteForOrganizations: withAccount<{ expirationDays: number }>(async (args, uid, oid) => {
-            await validate(
-                {
-                    expirationDays: numberInRange(1, 30)
-                },
-                args
-            );
+        alphaOrganizationCreatePublicInviteForOrganizations: withAccount<{ expirationDays?: number }>(async (args, uid, oid) => {
 
             return await DB.tx(async (tx) => {
                 let isOwner = await Repos.Organizations.isOwnerOfOrganization(oid, uid, tx);

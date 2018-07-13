@@ -101,14 +101,14 @@ export default class InvitesRepository {
         });
     }
 
-    public async createPublicInvite(orgId: number, expirationDays: number, tx?: Transaction): Promise<OrganizationInvite> {
+    public async createPublicInvite(orgId: number, expirationDays?: number, tx?: Transaction): Promise<OrganizationInvite> {
         await this.deletePublicInvite(orgId, tx);
 
         return await DB.OrganizationInvite.create({
             isOneTime: false,
             orgId,
             uuid: randomKey(),
-            ttl: this.createTTLvalue(expirationDays),
+            ttl: expirationDays ? this.createTTLvalue(expirationDays) : undefined,
             type: 'for_member'
         });
     }
@@ -161,14 +161,14 @@ export default class InvitesRepository {
         });
     }
 
-    public async createPublicInviteForOrganizations(orgId: number, expirationDays: number, tx?: Transaction): Promise<OrganizationInvite> {
+    public async createPublicInviteForOrganizations(orgId: number, expirationDays?: number, tx?: Transaction): Promise<OrganizationInvite> {
         await this.deletePublicInviteForOrganizations(orgId, tx);
 
         return await DB.OrganizationInvite.create({
             isOneTime: false,
             orgId,
             uuid: randomKey(),
-            ttl: this.createTTLvalue(expirationDays),
+            ttl: expirationDays ? this.createTTLvalue(expirationDays) : undefined,
             type: 'for_organization'
         });
     }
