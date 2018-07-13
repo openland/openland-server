@@ -197,7 +197,7 @@ export const Resolver = {
                     });
                     if (user) {
                         user.status = 'ACTIVATED';
-                        await user.save();
+                        await user.save({ transaction: tx });
                     }
                 }
 
