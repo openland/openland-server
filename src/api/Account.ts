@@ -45,7 +45,7 @@ export const Resolver = {
             };
         }),
         alphaInvitesHistory: withAccount(async (args, uid, oid) => {
-            let invites = await DB.OrganizationInvite.findAll({ where: { orgId: oid, isOneTime: true } });
+            let invites = await DB.OrganizationInvite.findAll({ where: { orgId: oid, isOneTime: true }, order: [['createdAt', 'DESC']] });
             return invites.map(async (invite) => {
                 return ({
                     acceptedBy: invite.acceptedById ? await DB.User.findOne({ where: { id: invite.acceptedById } }) : null,
