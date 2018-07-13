@@ -4,13 +4,22 @@ enum EmailFrequency {
     HOUR_1
 }
 
+enum NotificationMessages {
+    ALL
+    DIRECT
+    NONE
+}
+
 input UpdateSettingsInput {
     emailFrequency: EmailFrequency
+    desktopNotifications: NotificationMessages
 }
 
 type Settings {
+    id: ID!
     primaryEmail: String!
     emailFrequency: EmailFrequency!
+    desktopNotifications: NotificationMessages!
 }
 
 extend type Query {

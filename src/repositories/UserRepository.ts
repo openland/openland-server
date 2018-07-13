@@ -3,6 +3,12 @@ import DataLoader from 'dataloader';
 import { CallContext } from '../api/utils/CallContext';
 import { ImageRef } from './Media';
 import { Transaction } from 'sequelize';
+import { UserSettings } from '../tables/UserSettings';
+
+export interface Settings {
+    emailFrequency: '1hour' | '15min' | 'never';
+    desktopNotifications: 'all' | 'direct' | 'none';
+}
 
 export class UserRepository {
     private userCache = new Map<string, number | undefined>();
@@ -168,5 +174,38 @@ export class UserRepository {
                 return null;
             }
         }
+    }
+
+    getUserSettingsFromInstance(instance: UserSettings) {
+        let settings: Settings = {
+            emailFrequency: '1hour',
+            desktopNotifications: 'all'
+        };
+        if (instance) {
+            if (instance.settings.emailFrequency) {
+                settings.emailFrequency = instance.settings.emailFrequency as any;
+            }
+            if (instance.settings.desktopNotifications) {
+                settings.desktopNotifications = instance.settings.desktopNotifications as any;
+            }
+        }
+        return settings;
+    }
+
+    async getUserSettings(uid: number) {
+        let res = await DB.UserSettings.find({ where: { userId: uid } });
+        let settings: Settings = {
+            emailFrequency: '1hour',
+            desktopNotifications: 'all'
+        };
+        if (res) {
+            if (res.settings.emailFrequency) {
+                settings.emailFrequency = res.settings.emailFrequency as any;
+            }
+            if (res.settings.desktopNotifications) {
+                settings.desktopNotifications = res.settings.desktopNotifications as any;
+            }
+        }
+        return settings;
     }
 }

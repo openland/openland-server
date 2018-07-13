@@ -35,5 +35,6 @@ export const IDs = {
     Conversation: IdsFactory.createId('Conversation'),
     ConversationMessage: IdsFactory.createId('ConversationMessage'),
     NotificationCounter: IdsFactory.createId('NotificationCounter'),
-    UserEvent: IdsFactory.createId('UserEvent')
+    UserEvent: IdsFactory.createId('UserEvent'),
+    Settings: IdsFactory.createId('Settings')
 };

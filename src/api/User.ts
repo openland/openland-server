@@ -8,6 +8,7 @@ import { withUser } from './utils/Resolvers';
 import { Sanitizer } from '../modules/Sanitizer';
 import { validate, stringNotEmpty } from '../modules/NewInputValidator';
 import { Repos } from '../repositories';
+import { UserSettings } from '../tables/UserSettings';
 
 function userLoader(context: CallContext) {
     if (!context.cache.has('__profile_loader')) {
@@ -50,6 +51,16 @@ function withProfile(handler: (user: User, profile: UserProfile | null) => any) 
 }
 
 export const Resolver = {
+    EmailFrequency: {
+        NEVER: 'never',
+        MIN_15: '15min',
+        HOUR_1: '1hour'
+    },
+    NotificationMessages: {
+        ALL: 'all',
+        DIRECT: 'direct',
+        NONE: 'none'
+    },
     User: {
         id: (src: User) => IDs.User.serialize(src.id!!),
         name: withProfile((src, profile) => profile ? [profile.firstName, profile.lastName].filter((v) => !!v).join(' ') : src.email),
@@ -81,6 +92,12 @@ export const Resolver = {
         website: (src: UserProfile) => src.website,
         about: (src: UserProfile) => src.about,
         location: (src: UserProfile) => src.location,
+    },
+    Settings: {
+        id: (src: UserSettings) => IDs.Settings.serialize(src.id),
+        primaryEmail: async (src: UserSettings) => (await DB.User.findById(src.userId))!!.email,
+        emailFrequency: (src: UserSettings) => Repos.Users.getUserSettingsFromInstance(src).emailFrequency,
+        desktopNotifications: (src: UserSettings) => Repos.Users.getUserSettingsFromInstance(src).desktopNotifications,
     },
     Query: {
         me: async function (_obj: any, _params: {}, context: CallContext) {
@@ -120,6 +137,15 @@ export const Resolver = {
                 return {};
             }
         },
+        settings: withUser(async (args, uid) => {
+            return await DB.tx(async (tx) => {
+                let instance = await DB.UserSettings.find({ where: { userId: uid }, transaction: tx, lock: 'UPDATE' });
+                if (!instance) {
+                    instance = await DB.UserSettings.create({ userId: uid }, { transaction: tx });
+                }
+                return instance;
+            });
+        })
     },
     Mutation: {
         createProfile: withUser<{
@@ -234,6 +260,28 @@ export const Resolver = {
             }
             await Repos.Users.markUserOnline(context.uid, args.timeout, context.tid!!);
             return 'ok';
-        }
+        },
+        updateSettings: withUser<{ settings: { emailFrequency?: string | null, desktopNotifications?: string | null } }>(async (args, uid) => {
+            return await DB.tx(async (tx) => {
+                let settings = await DB.UserSettings.find({ where: { userId: uid }, transaction: tx, lock: 'UPDATE' });
+                if (!settings) {
+                    settings = await DB.UserSettings.create({ userId: uid }, { transaction: tx });
+                }
+                if (args.settings.emailFrequency) {
+                    settings.settings = {
+                        ...settings.settings,
+                        emailFrequency: args.settings.emailFrequency
+                    };
+                }
+                if (args.settings.desktopNotifications) {
+                    settings.settings = {
+                        ...settings.settings,
+                        desktopNotifications: args.settings.desktopNotifications
+                    };
+                }
+                await settings.save({ transaction: tx });
+                return settings;
+            });
+        })
     }
 };
