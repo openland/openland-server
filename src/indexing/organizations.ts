@@ -3,7 +3,7 @@ import { DB } from '../tables';
 import { UpdateReader } from '../modules/updateReader';
 
 export function createOrganizationIndexer(client: ES.Client) {
-    let reader = new UpdateReader('reader_organizations', 3, DB.Organization);
+    let reader = new UpdateReader('reader_organizations', 4, DB.Organization);
     reader.elastic(client, 'organizations', 'organization', {
         name: {
             type: 'text'
@@ -27,7 +27,7 @@ export function createOrganizationIndexer(client: ES.Client) {
         let locations = (item.extras && item.extras.locations && item.extras.locations.length > 0) ? item.extras.locations.join(' ') : '';
         let organizationTypes = (item.extras && item.extras.organizationType && item.extras.organizationType.length > 0) ? item.extras.organizationType.join(' ') : '';
         let interests = (item.extras && item.extras.interests && item.extras.interests.length > 0) ? item.extras.interests.join(' ') : '';
-        let published = !item.extras || item.extras.published !== false;
+        let published = (!item.extras || item.extras.published !== false) && item.status === 'ACTIVATED';
         return {
             id: item.id!!,
             doc: {
