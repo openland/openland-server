@@ -108,8 +108,17 @@ type DebugReaderState {
     remaining: Int!
 }
 
+type URLInfo {
+    url: String!
+    title: String
+    description: String
+    imageURL: String
+}
+
 extend type Query {
     debugReaderStates: [DebugReaderState!]!
+
+    debugURLInfo(url: String!): URLInfo!
 }
 
 #

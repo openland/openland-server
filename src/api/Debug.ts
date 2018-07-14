@@ -5,6 +5,7 @@ import { IDs } from './utils/IDs';
 import { delay } from '../utils/timer';
 import { Emails } from '../services/Emails';
 import { NotificationsBot } from '../services/NotificationsBot';
+import { Services } from '../services';
 
 export const Resolver = {
     Query: {
@@ -15,7 +16,11 @@ export const Resolver = {
                 title: normalizeCapitalized(v.key!!.replace('_', ' ')),
                 remaining: v.remaining
             }));
-        })
+        }),
+
+        debugURLInfo: withPermissionOptional<{ url: string }>(['software-developer'], async (args, ctx) => {
+            return await Services.URLInfo.fetchURLInfo(args.url);
+        }),
     },
     Mutation: {
         debugSendWelcomeEmail: withUser(async (args, uid) => {
@@ -37,7 +42,7 @@ export const Resolver = {
             await NotificationsBot.sendNotification(ctx.uid, { message: 'test notification' });
 
             return 'ok';
-        }),
+        })
     },
     Subscription: {
         lifecheck: {
