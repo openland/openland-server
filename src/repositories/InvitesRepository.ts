@@ -1,4 +1,4 @@
-import { randomKey } from '../utils/random';
+import { randomGlobalInviteKey, randomInviteKey } from '../utils/random';
 import { DB } from '../tables';
 import { Transaction } from 'sequelize';
 import { NotFoundError } from '../errors/NotFoundError';
@@ -21,7 +21,7 @@ export default class InvitesRepository {
         tx?: Transaction
     ): Promise<OrganizationInvite> {
         return await DB.OrganizationInvite.create({
-            uuid: randomKey(),
+            uuid: randomInviteKey(),
             orgId,
             creatorId,
             memberFirstName: firstName,
@@ -107,7 +107,7 @@ export default class InvitesRepository {
         return await DB.OrganizationInvite.create({
             isOneTime: false,
             orgId,
-            uuid: randomKey(),
+            uuid: randomInviteKey(),
             ttl: this.createTTLvalue(expirationDays),
             type: 'for_member'
         });
@@ -123,7 +123,7 @@ export default class InvitesRepository {
         tx?: Transaction
     ): Promise<OrganizationInvite> {
         return await DB.OrganizationInvite.create({
-            uuid: randomKey(),
+            uuid: randomGlobalInviteKey(),
             orgId: fromOrgId,
             creatorId,
             memberFirstName: firstName,
@@ -167,7 +167,7 @@ export default class InvitesRepository {
         return await DB.OrganizationInvite.create({
             isOneTime: false,
             orgId,
-            uuid: randomKey(),
+            uuid: randomGlobalInviteKey(),
             ttl: this.createTTLvalue(expirationDays),
             type: 'for_organization'
         });
