@@ -22,7 +22,7 @@ export const Resolver = {
             return await DB.OrganizationInvite.findAll({ where: { orgId: oid } });
         }),
         alphaInviteInfo: withAny<{ key: string }>(async (args, context: CallContext) => {
-            let invite = await DB.OrganizationInvite.find({ where: { uuid: args.key } });
+            let invite = await DB.OrganizationInvite.find({ where: { uuid: args.key, acceptedById: null } });
             if (!invite) {
                 return null;
             }
@@ -30,10 +30,7 @@ export const Resolver = {
             if (!org) {
                 return null;
             }
-            let joined = false;
-            if (context.uid && context.oid) {
-                joined = (await DB.OrganizationMember.find({ where: { userId: context.uid, orgId: org.id } })) !== null;
-            }
+            let joined = invite.acceptedById !== null;
             return {
                 id: IDs.InviteInfo.serialize(invite.id),
                 key: args.key,
@@ -42,7 +39,20 @@ export const Resolver = {
                 photo: org.photo ? buildBaseImageUrl(org.photo) : null,
                 photoRef: org.photo,
                 joined: joined,
+                acceptedBy: invite.acceptedById ? await DB.User.findOne({ where: { id: invite.acceptedById } }) : null,
+                forEmail: invite.forEmail,
+                isGlobal: invite.type === 'for_organization',
             };
+        }),
+        alphaInvitesHistory: withAccount(async (args, uid, oid) => {
+            let invites = await DB.OrganizationInvite.findAll({ where: { orgId: oid, isOneTime: true }, order: [['createdAt', 'DESC']] });
+            return invites.map(async (invite) => {
+                return ({
+                    acceptedBy: invite.acceptedById ? await DB.User.findOne({ where: { id: invite.acceptedById } }) : null,
+                    forEmail: invite.forEmail,
+                    isGlobal: invite.type === 'for_organization',
+                });
+            });
         }),
         sessionState: async function (_: any, args: {}, context: CallContext) {
 
@@ -108,15 +118,24 @@ export const Resolver = {
                 let invite = await DB.OrganizationInvite.find({
                     where: {
                         uuid: args.key,
-                        type: 'for_member'
+                        type: 'for_member',
+                        acceptedById: null
                     },
+                    lock: tx.LOCK.UPDATE,
                     transaction: tx
                 });
 
                 if (!invite) {
                     throw new NotFoundError(ErrorText.unableToFindInvite);
                 }
-                let existing = await DB.OrganizationMember.find({ where: { userId: uid, orgId: invite.orgId }, transaction: tx });
+                let existing = await DB.OrganizationMember.find({
+                    where: {
+                        userId: uid,
+                        orgId: invite.orgId
+                    },
+                    lock: tx.LOCK.UPDATE,
+                    transaction: tx
+                });
                 if (existing) {
                     return IDs.Organization.serialize(invite.orgId);
                 }
@@ -133,7 +152,8 @@ export const Resolver = {
                         invitedBy: invite.creatorId
                     }, { transaction: tx });
 
-                    await invite.destroy({ transaction: tx });
+                    invite.acceptedById = uid;
+                    await invite.save({ transaction: tx });
                 } else {
                     await DB.OrganizationMember.create({
                         userId: uid,
@@ -144,8 +164,62 @@ export const Resolver = {
                 }
 
                 await Hooks.onUserJoined(uid, invite.orgId, tx);
+                // Activate user if organizaton is ACTIVATED
+                let organization = await DB.Organization.find({ where: { id: invite.orgId }, transaction: tx });
+                if (organization && organization.status === 'ACTIVATED') {
+                    let user = await DB.User.find({
+                        where: {
+                            id: uid
+                        },
+                        lock: tx.LOCK.UPDATE,
+                        transaction: tx
+                    });
+                    if (user) {
+                        user.status = 'ACTIVATED';
+                        await user.save({ transaction: tx });
+                    }
+                }
 
                 return IDs.Organization.serialize(invite.orgId);
+            });
+        }),
+        alphaJoinGlobalInvite: withUser<{ key: string }>(async (args, uid) => {
+            return await DB.txStable(async (tx) => {
+                let invite = await DB.OrganizationInvite.find({
+                    where: {
+                        uuid: args.key,
+                        type: 'for_organization',
+                        acceptedById: null
+                    },
+                    lock: tx.LOCK.UPDATE,
+                    transaction: tx
+                });
+
+                if (!invite) {
+                    throw new NotFoundError(ErrorText.unableToFindInvite);
+                }
+
+                let organization = await DB.Organization.find({ where: { id: invite.orgId }, transaction: tx });
+                if (organization && organization.status === 'ACTIVATED') {
+                    let user = await DB.User.find({
+                        where: {
+                            id: uid
+                        },
+                        lock: tx.LOCK.UPDATE,
+                        transaction: tx
+                    });
+                    if (user) {
+                        user.status = 'ACTIVATED';
+                        await user.save({ transaction: tx });
+                    }
+                }
+
+                if (invite.isOneTime === true) {
+                    invite.acceptedById = uid;
+                    await invite.save({ transaction: tx });
+                }
+
+                return 'ok';
             });
         }),
         alphaCreateInvite: withAccount(async (args, uid, oid) => {

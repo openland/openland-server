@@ -18,6 +18,12 @@ type InviteInfo {
     joined: Boolean!
 }
 
+type InviteHistotyInfo{
+    acceptedBy: User
+    forEmail: String!
+    isGlobal: Boolean!
+}
+
 #
 # Organization Profile
 #

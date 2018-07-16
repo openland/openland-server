@@ -1,9 +1,25 @@
+enum EmailFrequency {
+    NEVER
+    MIN_15
+    HOUR_1
+}
+
+enum NotificationMessages {
+    ALL
+    DIRECT
+    NONE
+}
+
 input UpdateSettingsInput {
-    isEmailPublic: Boolean
+    emailFrequency: EmailFrequency
+    desktopNotifications: NotificationMessages
 }
 
 type Settings {
-    isEmailPublic: Boolean!
+    id: ID!
+    primaryEmail: String!
+    emailFrequency: EmailFrequency!
+    desktopNotifications: NotificationMessages!
 }
 
 extend type Query {
@@ -12,4 +28,8 @@ extend type Query {
 
 extend type Mutation {
     updateSettings(settings: UpdateSettingsInput): Settings!
+}
+
+extend type Subscription {
+    watchSettings: Settings!
 }
