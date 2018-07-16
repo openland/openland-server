@@ -39,7 +39,8 @@ export const Resolver = {
                 photo: org.photo ? buildBaseImageUrl(org.photo) : null,
                 photoRef: org.photo,
                 joined: joined,
-                creator: invite.creatorId ? await DB.User.findOne({ where: { id: invite.creatorId } }) : null
+                creator: invite.creatorId ? await DB.User.findOne({ where: { id: invite.creatorId } }) : null,
+                forEmail: invite.forEmail,
             };
         }),
         alphaInvitesHistory: withAccount(async (args, uid, oid) => {
