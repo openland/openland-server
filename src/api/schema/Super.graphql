@@ -16,6 +16,7 @@ type SuperAccount {
     state: SuperAccountState!
     members: [User!]!
     features: [FeatureFlag!]!
+    alphaPublished: Boolean!
 }
 
 extend type Query {
