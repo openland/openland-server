@@ -2,7 +2,7 @@ import { DB } from '../tables';
 import { Organization } from '../tables/Organization';
 import { IDs, IdsFactory } from './utils/IDs';
 import { buildBaseImageUrl } from '../repositories/Media';
-import { withUser, withAccount, withAny } from './utils/Resolvers';
+import { withUser, withAccount, withAny, withPermission } from './utils/Resolvers';
 import { Repos } from '../repositories';
 import { ImageRef } from '../repositories/Media';
 import { CallContext } from './utils/CallContext';
@@ -423,6 +423,19 @@ export const Resolver = {
                 await Repos.Super.addToOrganization(organization.id!!, uid, tx);
                 await Hooks.onOrganizstionCreated(uid, organization.id!!, tx);
                 return organization;
+            });
+        }),
+        alphaAlterPublished: withPermission<{ id: string, published: boolean }>(['super-admin', 'editor'], async (args) => {
+            return await DB.tx(async (tx) => {
+                let org = await DB.Organization.find({ where: { id: IDs.Organization.parse(args.id) }, transaction: tx });
+                if (!org) {
+                    throw new UserError(ErrorText.unableToFindOrganization);
+                }
+                let extras = org.extras || {};
+                extras.published = args.published;
+                org.extras = extras;
+                await org.save({ transaction: tx });
+                return org;
             });
         }),
         updateOrganizationProfile: withAccount<{

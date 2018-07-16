@@ -374,4 +374,5 @@ extend type Mutation {
     alphaOrganizationActivateByInvite(key: String!): String!
     alphaOrganizationCreatePublicInviteForOrganizations(expirationDays: Int): Invite!
     alphaOrganizationDeletePublicInviteForOrganizations: String!
+    alphaAlterPublished(id: ID!, published: Boolean!): Organization!
 }
