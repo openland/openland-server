@@ -126,6 +126,8 @@ type Organization {
     contacts: [OrganizationContact!]!
     location: String
 
+    alphaPublished: Boolean!
+
     alphaFollowed: Boolean!
 
     alphaLocations: [String!]

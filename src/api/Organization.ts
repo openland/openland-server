@@ -162,6 +162,8 @@ export const Resolver = {
         location: (src: Organization) => src.extras && src.extras.location,
         contacts: (src: Organization) => src.extras ? src.extras.contacts || [] : [],
 
+        alphaPublished: (src: Organization) => !src.extras || src.extras.published !== false,
+
         alphaOrganizationType: (src: Organization) => src.extras && src.extras.organizationType,
         alphaLocations: (src: Organization) => src.extras && src.extras.locations,
         alphaInterests: (src: Organization) => src.extras && src.extras.interests,
