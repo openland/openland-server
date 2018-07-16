@@ -41,6 +41,7 @@ export const Resolver = {
                 joined: joined,
                 creator: invite.creatorId ? await DB.User.findOne({ where: { id: invite.creatorId } }) : null,
                 forEmail: invite.forEmail,
+                forName: invite.memberFirstName,
             };
         }),
         alphaInvitesHistory: withAccount(async (args, uid, oid) => {

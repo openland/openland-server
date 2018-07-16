@@ -18,6 +18,7 @@ type InviteInfo {
     joined: Boolean!
     creator: User
     forEmail: String
+    forName: String
 }
 
 type InviteHistotyInfo{
