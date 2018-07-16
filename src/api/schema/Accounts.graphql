@@ -16,6 +16,7 @@ type InviteInfo {
     photo: String
     photoRef: ImageRef
     joined: Boolean!
+    creator: User
 }
 
 type InviteHistotyInfo{
