@@ -70,6 +70,7 @@ export interface OrganizationExtras {
     contacts?: ContactPerson[] | null;
 
     published?: boolean | null;
+    editorial?: boolean | null;
 
     organizationType?: string[] | null;
     locations?: string[] | null;

@@ -65,6 +65,7 @@ export const Resolver = {
         contacts: (src: Organization) => src.extras ? src.extras.contacts || [] : [],
 
         alphaPublished: (src: Organization) => !src.extras || src.extras.published !== false,
+        alphaEditorial: (src: Organization) => src.extras && src.extras.editorial,
 
         alphaOrganizationType: (src: Organization) => src.extras && src.extras.organizationType,
         alphaLocations: (src: Organization) => src.extras && src.extras.locations,
@@ -163,6 +164,7 @@ export const Resolver = {
         contacts: (src: Organization) => src.extras ? src.extras.contacts || [] : [],
 
         alphaPublished: (src: Organization) => !src.extras || src.extras.published !== false,
+        alphaEditorial: (src: Organization) => src.extras && src.extras.editorial,
 
         alphaOrganizationType: (src: Organization) => src.extras && src.extras.organizationType,
         alphaLocations: (src: Organization) => src.extras && src.extras.locations,
@@ -469,6 +471,7 @@ export const Resolver = {
                 }[] | null
 
                 alphaPublished?: boolean | null;
+                alphaEditorial?: boolean | null;
 
                 alphaOrganizationType?: string[] | null
                 alphaLocations?: string[] | null
@@ -563,6 +566,10 @@ export const Resolver = {
 
                 if (args.input.alphaPublished !== undefined) {
                     extras.published = Sanitizer.sanitizeAny(args.input.alphaPublished);
+                }
+
+                if (args.input.alphaEditorial !== undefined) {
+                    extras.editorial = Sanitizer.sanitizeAny(args.input.alphaEditorial);
                 }
 
                 if (args.input.alphaOrganizationType !== undefined) {

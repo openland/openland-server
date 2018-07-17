@@ -127,6 +127,7 @@ type Organization {
     location: String
 
     alphaPublished: Boolean!
+    alphaEditorial: Boolean!
 
     alphaFollowed: Boolean!
 
@@ -182,6 +183,7 @@ type OrganizationProfile {
     location: String
 
     alphaPublished: Boolean!
+    alphaEditorial: Boolean!
 
     alphaLocations: [String!]
     alphaInterests: [String!]
@@ -250,6 +252,7 @@ input UpdateOrganizationProfileInput {
     contacts: [ContactPersonInput!]
 
     alphaPublished: Boolean
+    alphaEditorial: Boolean
 
     alphaLocations: [String!]
     alphaInterests: [String!]
