@@ -65,7 +65,7 @@ export const Resolver = {
         contacts: (src: Organization) => src.extras ? src.extras.contacts || [] : [],
 
         alphaPublished: (src: Organization) => !src.extras || src.extras.published !== false,
-        alphaEditorial: (src: Organization) => src.extras && src.extras.editorial,
+        alphaEditorial: (src: Organization) => !!(src.extras && src.extras.editorial),
 
         alphaOrganizationType: (src: Organization) => src.extras && src.extras.organizationType,
         alphaLocations: (src: Organization) => src.extras && src.extras.locations,
@@ -164,7 +164,7 @@ export const Resolver = {
         contacts: (src: Organization) => src.extras ? src.extras.contacts || [] : [],
 
         alphaPublished: (src: Organization) => !src.extras || src.extras.published !== false,
-        alphaEditorial: (src: Organization) => src.extras && src.extras.editorial,
+        alphaEditorial: (src: Organization) => !!(src.extras && src.extras.editorial),
 
         alphaOrganizationType: (src: Organization) => src.extras && src.extras.organizationType,
         alphaLocations: (src: Organization) => src.extras && src.extras.locations,
