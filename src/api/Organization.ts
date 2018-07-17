@@ -253,6 +253,13 @@ export const Resolver = {
             }
             return res;
         }),
+        organizationProfile: withAny<{ id: string }>(async (args) => {
+            let res = await DB.Organization.findById(IDs.Organization.parse(args.id));
+            if (!res) {
+                throw new NotFoundError('Unable to find organization');
+            }
+            return res;
+        }),
         alphaOrganizationListings: withAny<AlphaOrganizationListingsParams>(async args => {
             let clauses: any[] = [
                 { term: { orgId: IDs.Organization.parse(args.orgId) } }
@@ -492,19 +499,31 @@ export const Resolver = {
                 alphaARClosingTime?: string[] | null
                 alphaARSpecialAttributes?: string[] | null
                 alphaARLandUse?: string[] | null
-            }
+            },
+            id?: string;
         }>(async (args, uid, oid) => {
-            let member = await DB.OrganizationMember.find({
-                where: {
-                    orgId: oid,
-                    userId: uid,
+            
+            let orgId = oid;
+            if (args.id) {
+                let role = await Repos.Permissions.superRole(uid);
+                if (!(role === 'super-admin' || role === 'editor')) {
+                    throw new UserError(ErrorText.permissionOnlyOwner);
                 }
-            });
-            if (member === null || !member.isOwner) {
-                throw new UserError(ErrorText.permissionOnlyOwner);
+                orgId = IDs.Organization.parse(args.id);
+            } else {
+                let member = await DB.OrganizationMember.find({
+                    where: {
+                        orgId: oid,
+                        userId: uid,
+                    }
+                });
+                if (member === null || !member.isOwner) {
+                    throw new UserError(ErrorText.permissionOnlyOwner);
+                }
             }
+
             return await DB.tx(async (tx) => {
-                let existing = await DB.Organization.find({ where: { id: oid }, transaction: tx, lock: tx.LOCK.UPDATE });
+                let existing = await DB.Organization.find({ where: { id: orgId }, transaction: tx, lock: tx.LOCK.UPDATE });
                 if (!existing) {
                     throw new UserError(ErrorText.unableToFindOrganization);
                 }

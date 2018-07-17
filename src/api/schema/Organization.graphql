@@ -325,6 +325,7 @@ extend type Query {
     myOrganizationProfile: OrganizationProfile!
     myOrganizations: [Organization!]!
     organization(id: ID!): Organization!
+    organizationProfile(id: ID!): OrganizationProfile!
     alphaOrganizationListings(
         orgId: ID!,
         query: String,
@@ -359,7 +360,7 @@ input InviteRequestOrganization{
 }
 
 extend type Mutation {
-    updateOrganizationProfile(input: UpdateOrganizationProfileInput!): OrganizationProfile!
+    updateOrganizationProfile(input: UpdateOrganizationProfileInput!, id: ID): OrganizationProfile!
     createOrganization(input: CreateOrganizationInput): OrganizationProfile!
     alphaFollowOrganization(id: ID!, follow: Boolean!): Organization!
     alphaOrganizationCreateListing(type: String!, input: AlphaOrganizationListingInput!): AlphaOrganizationListing!
