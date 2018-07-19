@@ -398,7 +398,7 @@ export const Resolver = {
             }
         }>(async (args, uid) => {
             return await DB.tx(async (tx) => {
-                await Repos.Organizations.createOrganization(uid, args.input, tx);
+                return await Repos.Organizations.createOrganization(uid, args.input, tx);
             });
         }),
         alphaAlterPublished: withPermission<{ id: string, published: boolean }>(['super-admin', 'editor'], async (args) => {
