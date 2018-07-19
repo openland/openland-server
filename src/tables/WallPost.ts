@@ -4,11 +4,13 @@ import { JsonMap } from '../utils/json';
 
 export interface WallPostAttributes {
     id?: number;
-    orgId: number;
-    creatorId: number;
-    type: 'UPDATE' | 'NEWS' | 'LISTING';
-    text: string;
+    orgId?: number;
+    creatorId?: number;
+    type?: 'UPDATE' | 'NEWS' | 'LISTING';
+    text?: string;
     extras?: JsonMap;
+    isPinned?: boolean;
+    lastEditor?: number;
 }
 
 export interface WallPost extends sequelize.Instance<WallPostAttributes>, WallPostAttributes {
@@ -27,5 +29,7 @@ export const WallPostTable = connection.define<WallPost, WallPostAttributes>('wa
         type: sequelize.JSON,
         allowNull: false,
         defaultValue: {}
-    }
-}, { indexes: [{ unique: true, fields: ['cityId', 'blockId'] }] });
+    },
+    isPinned: { type: sequelize.BOOLEAN, allowNull: false, defaultValue: false },
+    lastEditor: { type: sequelize.INTEGER, allowNull: true, references: { model: 'users' } }
+}, { });

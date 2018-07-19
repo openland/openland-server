@@ -2,26 +2,28 @@ interface WallEntity {
     id: ID!
     creationTime: Int!
     creator: User!
+    lastEditor: User
+    isPinned: Boolean!
 }
 
-type WallUpdate implements WallEntity {
+type WallPost implements WallEntity {
     id: ID!
     creationTime: Int!
     creator: User!
+    lastEditor: User
+    isPinned: Boolean!
 
     text: String!
-}
-
-type WallNews implements WallEntity {
-    id: ID!
-    creationTime: Int!
-    creator: User!
-
-    text: String!
+    type: String! ## NEWS | UPDATE
+    tags: [String!]
 }
 
 input WallPostInput {
+    isPinned: Boolean!
+
     text: String!
+    type: String! ## NEWS | UPDATE
+    tags: [String!]
 }
 
 type WallEntityEdge {
@@ -32,6 +34,7 @@ type WallEntityEdge {
 type WallEntityConnection {
     edges: [WallEntityEdge!]!
     pageInfo: PageInfo!
+    isPinned: Boolean!
 }
 
 extend type Query {
@@ -41,18 +44,25 @@ extend type Query {
         after: String,
         page: Int
     ): WallEntityConnection
+
+    wallMyOrg(
+        first: Int!,
+        after: String,
+        page: Int
+    ): WallEntityConnection
+
     wallEntity(id: ID!): WallEntity
 }
 
 extend type Mutation {
 
-    wallAddUpdate(input: WallPostInput): WallUpdate!
-    wallAddNews(input: WallPostInput): WallNews!
+    wallAddPost(input: WallPostInput): WallPost!
 
-    wallEditUpdate(id: ID!, input: WallPostInput): WallUpdate
+    wallEditPost(id: ID!, input: WallPostInput): WallPost
 
     wallDeleteEntity(id: ID!): String!
 
-    test: String
+    wallPin(id: ID!): String!
 
+    wallUnpin(id: ID!): String!
 }
