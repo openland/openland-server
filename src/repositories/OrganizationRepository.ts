@@ -1,9 +1,56 @@
 import { OrganizationMember } from '../tables/OrganizationMember';
 import { DB } from '../tables';
 import { Transaction } from 'sequelize';
+import { validate, stringNotEmpty } from '../modules/NewInputValidator';
+import { ImageRef } from './Media';
+import { Sanitizer } from '../modules/Sanitizer';
+import { Repos } from '.';
+import { Hooks } from './Hooks';
 
 export class OrganizationRepository {
-    async getOrganizationMember(orgId: number, userId: number): Promise<OrganizationMember|null> {
+
+    async createOrganization(uid: number, input: {
+        name: string,
+        website?: string | null
+        personal: boolean
+        photoRef?: ImageRef | null
+    }, tx: Transaction) {
+        await validate(
+            stringNotEmpty('Name can\'t be empty!'),
+            input.name,
+            'input.name'
+        );
+        // Avoid multiple personal one
+        if (input.personal) {
+            let existing = await DB.Organization.find({
+                where: {
+                    userId: uid
+                },
+                transaction: tx,
+                lock: tx.LOCK.UPDATE
+            });
+            if (existing) {
+                return existing;
+            }
+        }
+        let status: 'ACTIVATED' | 'PENDING' = 'PENDING';
+        let user = await DB.User.find({ where: { id: uid } });
+        if (user && user.status === 'ACTIVATED') {
+            status = 'ACTIVATED';
+        }
+        let organization = await DB.Organization.create({
+            name: Sanitizer.sanitizeString(input.name)!,
+            website: Sanitizer.sanitizeString(input.website),
+            photo: Sanitizer.sanitizeImageRef(input.photoRef),
+            userId: input.personal ? uid : null,
+            status: status,
+        }, { transaction: tx });
+        await Repos.Super.addToOrganization(organization.id!!, uid, tx);
+        await Hooks.onOrganizstionCreated(uid, organization.id!!, tx);
+        return organization;
+    }
+
+    async getOrganizationMember(orgId: number, userId: number): Promise<OrganizationMember | null> {
         return await DB.OrganizationMember.findOne({
             where: {
                 orgId,

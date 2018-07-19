@@ -91,3 +91,12 @@ input AlphaOrganizationProfileInput {
     goodFor: [String]
     specialAttributes: [String]
 }
+
+#
+# Signup
+#
+
+type AlphaSignupData {
+    organization: OrganizationProfile!
+    user: Profile!
+}
