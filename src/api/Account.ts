@@ -6,7 +6,7 @@ import { IDs } from './utils/IDs';
 import { withAccount } from './utils/Resolvers';
 import { OrganizationInvite } from '../tables/OrganizationInvite';
 import { randomKey } from '../utils/random';
-import { buildBaseImageUrl } from '../repositories/Media';
+import { buildBaseImageUrl, ImageRef } from '../repositories/Media';
 import { NotFoundError } from '../errors/NotFoundError';
 import { ErrorText } from '../errors/ErrorText';
 import { Hooks } from '../repositories/Hooks';
@@ -237,6 +237,33 @@ export const Resolver = {
                 }
             });
             return 'ok';
+        }),
+        alphaCreateUserProfileAndOrganization: withUser<{
+            user: {
+                firstName: string,
+                lastName?: string | null,
+                photoRef?: ImageRef | null,
+                phone?: string | null,
+                email?: string | null,
+                website?: string | null,
+                about?: string | null,
+                location?: string | null
+            },
+            organization: {
+                name: string,
+                website?: string | null
+                personal: boolean
+                photoRef?: ImageRef | null
+            }
+        }>(async (args, uid) => {
+            return await DB.tx(async (tx) => {
+                let userProfile = await Repos.Users.createUser(uid, args.user, tx);
+                let organization = await Repos.Organizations.createOrganization(uid, { ...args.organization, personal: false }, tx);
+                return {
+                    user: userProfile,
+                    organization: organization
+                };
+            });
         }),
     }
 };

@@ -22,7 +22,6 @@ import {
 } from '../modules/NewInputValidator';
 import { AccessDeniedError } from '../errors/AccessDeniedError';
 import { Emails } from '../services/Emails';
-import { Hooks } from '../repositories/Hooks';
 
 let isFollowed = async (initiatorOrgId: number, targetOrgId: number) => {
     let connection = await DB.OrganizationConnect.find({
@@ -398,42 +397,8 @@ export const Resolver = {
                 photoRef?: ImageRef | null
             }
         }>(async (args, uid) => {
-
-            await validate(
-                stringNotEmpty('Name can\'t be empty!'),
-                args.input.name,
-                'input.name'
-            );
-
             return await DB.tx(async (tx) => {
-                // Avoid multiple personal one
-                if (args.input.personal) {
-                    let existing = await DB.Organization.find({
-                        where: {
-                            userId: uid
-                        },
-                        transaction: tx,
-                        lock: tx.LOCK.UPDATE
-                    });
-                    if (existing) {
-                        return existing;
-                    }
-                }
-                let status: 'ACTIVATED' | 'PENDING' = 'PENDING';
-                let user = await DB.User.find({ where: { id: uid } });
-                if (user && user.status === 'ACTIVATED') {
-                    status = 'ACTIVATED';
-                }
-                let organization = await DB.Organization.create({
-                    name: Sanitizer.sanitizeString(args.input.name)!,
-                    website: Sanitizer.sanitizeString(args.input.website),
-                    photo: Sanitizer.sanitizeImageRef(args.input.photoRef),
-                    userId: args.input.personal ? uid : null,
-                    status: status,
-                }, { transaction: tx });
-                await Repos.Super.addToOrganization(organization.id!!, uid, tx);
-                await Hooks.onOrganizstionCreated(uid, organization.id!!, tx);
-                return organization;
+                Repos.Organizations.createOrganization(uid, args.input, tx);
             });
         }),
         alphaAlterPublished: withPermission<{ id: string, published: boolean }>(['super-admin', 'editor'], async (args) => {
@@ -505,7 +470,7 @@ export const Resolver = {
             },
             id?: string;
         }>(async (args, uid, oid) => {
-            
+
             let orgId = oid;
             if (args.id) {
                 let role = await Repos.Permissions.superRole(uid);

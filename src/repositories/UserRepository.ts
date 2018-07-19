@@ -5,6 +5,8 @@ import { ImageRef } from './Media';
 import { Transaction } from 'sequelize';
 import { UserSettings, UserSettingsAttributes } from '../tables/UserSettings';
 import { SuperBus } from '../modules/SuperBus';
+import { validate, stringNotEmpty } from '../modules/NewInputValidator';
+import { Sanitizer } from '../modules/Sanitizer';
 
 export interface Settings {
     emailFrequency: '1hour' | '15min' | 'never';
@@ -48,6 +50,49 @@ export class UserRepository {
             this.settingsReader.onMessage(event.userId);
         });
         this.settingsSuperbus.start();
+    }
+
+    async createUser(uid: number, input: {
+        firstName: string,
+        lastName?: string | null,
+        photoRef?: ImageRef | null,
+        phone?: string | null,
+        email?: string | null,
+        website?: string | null,
+        about?: string | null,
+        location?: string | null
+    }, tx: Transaction) {
+        let user = await DB.User.findById(uid, { transaction: tx });
+        if (!user) {
+            throw Error('Unable to find user');
+        }
+
+        // Do not create profile if already exists
+        let existing = await DB.UserProfile.find({ where: { userId: uid }, transaction: tx, lock: tx.LOCK.UPDATE });
+        if (existing) {
+            return existing;
+        }
+
+        await validate(
+            stringNotEmpty('First name can\'t be empty!'),
+            input.firstName,
+            'input.firstName'
+        );
+
+        // Create pfofile
+        await DB.UserProfile.create({
+            userId: uid,
+            firstName: Sanitizer.sanitizeString(input.firstName)!,
+            lastName: Sanitizer.sanitizeString(input.lastName),
+            picture: Sanitizer.sanitizeImageRef(input.photoRef),
+            phone: Sanitizer.sanitizeString(input.phone),
+            email: Sanitizer.sanitizeString(input.email) || user.email,
+            website: Sanitizer.sanitizeString(input.website),
+            about: Sanitizer.sanitizeString(input.about),
+            location: Sanitizer.sanitizeString(input.location)
+        }, { transaction: tx });
+
+        return user;
     }
 
     userLoader(context: CallContext) {

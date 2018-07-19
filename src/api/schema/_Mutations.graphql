@@ -41,4 +41,6 @@ type Mutation {
     updateProfile(input: UpdateProfileInput!): Profile!
 
     alphaReportOnline(timeout: Int!): String!
+
+    alphaCreateUserProfileAndOrganization(user: CreateProfileInput!, organization: CreateOrganizationInput!): AlphaSignupData!
 }

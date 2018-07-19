@@ -161,37 +161,7 @@ export const Resolver = {
             }
         }>(async (args, uid) => {
             return await DB.tx(async (tx) => {
-                let user = await DB.User.findById(uid, { transaction: tx });
-                if (!user) {
-                    throw Error('Unable to find user');
-                }
-
-                // Do not create profile if already exists
-                let existing = await DB.UserProfile.find({ where: { userId: uid }, transaction: tx, lock: tx.LOCK.UPDATE });
-                if (existing) {
-                    return existing;
-                }
-
-                await validate(
-                    stringNotEmpty('First name can\'t be empty!'),
-                    args.input.firstName,
-                    'input.firstName'
-                );
-
-                // Create pfofile
-                await DB.UserProfile.create({
-                    userId: uid,
-                    firstName: Sanitizer.sanitizeString(args.input.firstName)!,
-                    lastName: Sanitizer.sanitizeString(args.input.lastName),
-                    picture: Sanitizer.sanitizeImageRef(args.input.photoRef),
-                    phone: Sanitizer.sanitizeString(args.input.phone),
-                    email: Sanitizer.sanitizeString(args.input.email) || user.email,
-                    website: Sanitizer.sanitizeString(args.input.website),
-                    about: Sanitizer.sanitizeString(args.input.about),
-                    location: Sanitizer.sanitizeString(args.input.location)
-                }, { transaction: tx });
-
-                return user;
+                return await Repos.Users.createUser(uid, args.input, tx);
             });
         }),
         updateProfile: withUser<{
