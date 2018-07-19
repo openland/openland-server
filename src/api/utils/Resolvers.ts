@@ -2,6 +2,9 @@ import { CallContext } from './CallContext';
 import { Repos } from '../../repositories';
 import { AccessDeniedError } from '../../errors/AccessDeniedError';
 import { ErrorText } from '../../errors/ErrorText';
+import { UserError } from '../../errors/UserError';
+import { DB } from '../../tables';
+import { SecID } from '../../modules/SecID';
 
 async function fetchPermissions(context: CallContext) {
     if (context.cache.has('permissions')) {
@@ -78,6 +81,31 @@ export function withAccount<T = {}>(resolver: (args: T, uid: number, org: number
     };
 }
 
+export function withOrgOwner<T = {}>(resolver: (args: T, uid: number, org: number) => any) {
+    return async function (_: any, args: T, context: CallContext) {
+        if (!context.uid) {
+            throw new AccessDeniedError(ErrorText.permissionDenied);
+        }
+        let res = await fetchOrganizationId(context);
+        if (res === null) {
+            throw new AccessDeniedError(ErrorText.permissionDenied);
+        }
+
+        let member = await DB.OrganizationMember.find({
+            where: {
+                orgId: res,
+                userId: context.uid,
+            },
+        });
+
+        if (member === null || !member.isOwner) {
+            throw new UserError(ErrorText.permissionOnlyOwner);
+        }
+
+        return resolver(args, context.uid!!, res);
+    };
+}
+
 export function withUser<T = {}>(resolver: (args: T, uid: number) => any) {
     return async function (_: any, args: T, context: CallContext) {
         if (!context.uid) {
@@ -104,5 +132,11 @@ export function withAccountTypeOptional<T = {}>(resolver: (args: T, uid?: number
 export function withAny<T = {}>(resolver: (args: T, context: CallContext) => any) {
     return async function (_: any, args: T, context: CallContext) {
         return resolver(args, context);
+    };
+}
+
+export function resolveID(id: SecID) {
+    return function (src: { id: number }, args: any, context: CallContext) {
+        return id.serialize(src.id);
     };
 }

@@ -1,0 +1,58 @@
+interface WallEntity {
+    id: ID!
+    creationTime: Int!
+    creator: User!
+}
+
+type WallUpdate implements WallEntity {
+    id: ID!
+    creationTime: Int!
+    creator: User!
+
+    text: String!
+}
+
+type WallNews implements WallEntity {
+    id: ID!
+    creationTime: Int!
+    creator: User!
+
+    text: String!
+}
+
+input WallPostInput {
+    text: String!
+}
+
+type WallEntityEdge {
+    node: WallEntity!
+    cursor: String!
+}
+
+type WallEntityConnection {
+    edges: [WallEntityEdge!]!
+    pageInfo: PageInfo!
+}
+
+extend type Query {
+    wall(
+        orgId: ID!
+        first: Int!,
+        after: String,
+        page: Int
+    ): WallEntityConnection
+    wallEntity(id: ID!): WallEntity
+}
+
+extend type Mutation {
+
+    wallAddUpdate(input: WallPostInput): WallUpdate!
+    wallAddNews(input: WallPostInput): WallNews!
+
+    wallEditUpdate(id: ID!, input: WallPostInput): WallUpdate
+
+    wallDeleteEntity(id: ID!): String!
+
+    test: String
+
+}
