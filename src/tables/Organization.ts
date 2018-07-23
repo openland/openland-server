@@ -7,6 +7,7 @@ export interface OrganizationAttributes {
     name?: string;
     status?: 'PENDING' | 'ACTIVATED' | 'SUSPENDED';
     website?: string | null;
+    websiteTitle?: string | null;
     photo?: ImageRef | null;
     extras?: OrganizationExtras;
     userId?: number | null;

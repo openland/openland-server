@@ -56,6 +56,7 @@ export const Resolver = {
         photoRef: (src: Organization) => src.photo,
 
         website: (src: Organization) => src.website,
+        websiteTitle: (src: Organization) => src.website,
         about: (src: Organization) => src.extras && src.extras.about,
         twitter: (src: Organization) => src.extras && src.extras.twitter,
         facebook: (src: Organization) => src.extras && src.extras.facebook,
@@ -155,6 +156,7 @@ export const Resolver = {
         photoRef: (src: Organization) => src.photo,
 
         website: (src: Organization) => src.website,
+        websiteTitle: (src: Organization) => src.website,
         about: (src: Organization) => src.extras && src.extras.about,
         twitter: (src: Organization) => src.extras && src.extras.twitter,
         facebook: (src: Organization) => src.extras && src.extras.facebook,
@@ -420,6 +422,7 @@ export const Resolver = {
                 photoRef?: ImageRef | null,
 
                 website?: string | null
+                websiteTitle?: string | null
                 about?: string | null
                 twitter?: string | null
                 facebook?: string | null
@@ -506,6 +509,9 @@ export const Resolver = {
                 }
                 if (args.input.website !== undefined) {
                     existing.website = Sanitizer.sanitizeString(args.input.website);
+                }
+                if (args.input.websiteTitle !== undefined) {
+                    existing.websiteTitle = Sanitizer.sanitizeString(args.input.websiteTitle);
                 }
                 if (args.input.photoRef !== undefined) {
                     existing.photo = Sanitizer.sanitizeImageRef(args.input.photoRef);
