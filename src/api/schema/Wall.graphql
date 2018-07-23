@@ -46,6 +46,66 @@ input WallPostInput {
     links: [PostLinkInput!]
 }
 
+type WallListing implements WallEntity {
+    id: ID!
+    creationTime: Int!
+    creator: User!
+    lastEditor: User
+    isPinned: Boolean!
+
+    name: String!
+    type: String!
+    summary: String
+    specialAttributes: [String!]
+    status: String
+    photo: ImageRef
+
+    location: MapPoint
+    locationTitle: String
+    availability: String
+    area: Int
+    price: Int
+    dealType: [String!]
+    shapeAndForm: [String!]
+    currentUse: [String!]
+    goodFitFor: [String!]
+    additionalLinks: [AlphaOrganizationListingLink!]
+
+    shortDescription: String
+    areaRange: Range
+    geographies: [String!]
+    landUse: [String!]
+    unitCapacity: [String!]
+    updatedAt: String!
+}
+
+input WallListingInput {
+    isPinned: Boolean!
+    name: String
+    summary: String
+    specialAttributes: [String!]
+    status: String
+    photo: ImageRefInput
+    type: String!
+
+    location: MapPointInput
+    locationTitle: String
+    availability: String
+    area: Int
+    price: Int
+    dealType: [String!]
+    shapeAndForm: [String!]
+    currentUse: [String!]
+    goodFitFor: [String!]
+    additionalLinks: [AlphaOrganizationListingLinkInput!]
+
+    shortDescription: String
+    areaRange: RangeInput
+    geographies: [String!]
+    landUse: [String!]
+    unitCapacity: [String!]
+}
+
 type WallEntityEdge {
     node: WallEntity!
     cursor: String!
@@ -75,14 +135,14 @@ extend type Query {
 }
 
 extend type Mutation {
-
     wallAddPost(input: WallPostInput): WallPost!
-
     wallEditPost(id: ID!, input: WallPostInput): WallPost
 
-    wallDeleteEntity(id: ID!): String!
+    wallAddListing(input: WallListingInput): WallListing!
+    wallEditListing(id: ID!, input: WallListingInput): WallListing
 
     wallPin(id: ID!): String!
-
     wallUnpin(id: ID!): String!
+
+    wallDeleteEntity(id: ID!): String!
 }
