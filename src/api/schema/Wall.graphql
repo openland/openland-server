@@ -6,6 +6,24 @@ interface WallEntity {
     isPinned: Boolean!
 }
 
+type PostLinkInfo {
+    url: String
+    title: String
+    description: String
+    imageURL: String
+}
+
+type PostLink {
+    text: String!
+    url: String!
+    extraInfo: PostLinkInfo
+}
+
+input PostLinkInput {
+    text: String!
+    url: String!
+}
+
 type WallPost implements WallEntity {
     id: ID!
     creationTime: Int!
@@ -16,6 +34,7 @@ type WallPost implements WallEntity {
     text: String!
     type: String! ## NEWS | UPDATE
     tags: [String!]
+    links: [PostLink!]
 }
 
 input WallPostInput {
@@ -24,6 +43,7 @@ input WallPostInput {
     text: String!
     type: String! ## NEWS | UPDATE
     tags: [String!]
+    links: [PostLinkInput!]
 }
 
 type WallEntityEdge {

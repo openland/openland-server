@@ -165,6 +165,16 @@ export class UpdateReader<TInstance, TAttributes> {
         return this;
     }
 
+    onUpdate(processor: (item: TInstance) => any) {
+        this.processorFunc = async (data, tx, outOfOrder) => {
+            for (let p of data) {
+                await processor(p);
+            }
+        };
+
+        return this;
+    }
+
     setDelay(value: number) {
         this.delay = value;
         return this;

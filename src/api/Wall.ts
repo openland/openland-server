@@ -4,6 +4,7 @@ import { IDs } from './utils/IDs';
 import { WallPost } from '../tables/WallPost';
 import { SelectBuilder } from '../modules/SelectBuilder';
 import { enumString, stringNotEmpty, validate } from '../modules/NewInputValidator';
+import { WallPostsWorker } from '../workers';
 
 const EntityTypes: { [key: string]: string } = {
     'NEWS': 'WallPost'
@@ -14,16 +15,22 @@ interface PostInput {
     type: string;
     isPinned: boolean;
     tags: string[];
+    links: { url: string, text: string };
 }
 
 export const Resolver = {
+    PostLink: {
+        extraInfo: (src: any) => src.extraInfo || null
+    },
+
     WallPost: {
         id: resolveID(IDs.WallEntity),
         creator: async (src: WallPost) => await DB.User.findById(src.creatorId),
         lastEditor: async (src: WallPost) => src.lastEditor ? await DB.User.findById(src.lastEditor) : null,
         type: (src: WallPost) => src.extras!.type || 'UNKNOWN',
         isPinned: (src: WallPost) => src.isPinned,
-        tags: (src: WallPost) => src.extras!.tags || []
+        tags: (src: WallPost) => src.extras!.tags || [],
+        links: (src: WallPost) => src.extras!.links || []
     },
 
     WallEntity: {
@@ -74,7 +81,14 @@ export const Resolver = {
                 {
                     text: stringNotEmpty(),
                     type: enumString(['UPDATE', 'NEWS']),
-                    tags: [, stringNotEmpty()]
+                    tags: [, stringNotEmpty()],
+                    links: [
+                        ,
+                        {
+                            text: stringNotEmpty(`Text can't be empty!`),
+                            url: stringNotEmpty(`Url can't be empty!`)
+                        }
+                    ]
                 },
                 args.input
             );
@@ -94,9 +108,10 @@ export const Resolver = {
                     type: 'NEWS',
                     extras: {
                         type: args.input.type,
-                        tags: args.input.tags || []
+                        tags: args.input.tags || [],
+                        links: args.input.links || []
                     },
-                    isPinned: args.input.isPinned
+                    isPinned: args.input.isPinned,
                 }, { transaction: tx });
             });
         }),
@@ -106,7 +121,14 @@ export const Resolver = {
                 {
                     text: stringNotEmpty(),
                     type: enumString(['UPDATE', 'NEWS']),
-                    tags: [, stringNotEmpty()]
+                    tags: [, stringNotEmpty()],
+                    links: [
+                        ,
+                        {
+                            text: stringNotEmpty(`Text can't be empty!`),
+                            url: stringNotEmpty(`Url can't be empty!`)
+                        }
+                    ]
                 },
                 args.input
             );
@@ -132,17 +154,22 @@ export const Resolver = {
                     );
                 }
 
-                return await post.update(
+                let updatetPost = await post.update(
                     {
                         text: args.input.text,
                         lastEditor: uid,
                         extras: {
                             type: args.input.type,
                             tags: args.input.tags || [],
+                            links: args.input.links || []
                         }
                     },
                     { transaction: tx }
                 );
+
+                await WallPostsWorker.pushWork({ postId: post.id! });
+
+                return updatetPost;
             });
         }),
 
