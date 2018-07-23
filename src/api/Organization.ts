@@ -146,6 +146,7 @@ export const Resolver = {
         email: (src: ContactPerson) => src.email,
         phone: (src: ContactPerson) => src.phone,
         link: (src: ContactPerson) => src.link,
+        twitter: (src: ContactPerson) => src.twitter,
     },
     Organization: {
         id: (src: Organization) => IDs.Organization.serialize(src.id!!),
@@ -581,6 +582,7 @@ export const Resolver = {
                             contact.email = Sanitizer.sanitizeString(contact.email);
                             // InputValidator.validateEmail(contact.email, 'email', extrasValidateError);
                             contact.link = Sanitizer.sanitizeString(contact.link);
+                            contact.twitter = Sanitizer.sanitizeString(contact.twitter);
                             contact.role = Sanitizer.sanitizeString(contact.position);
                             contact.phone = Sanitizer.sanitizeString(contact.phone);
                         }

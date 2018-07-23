@@ -13,6 +13,7 @@ export interface ContactPerson {
     email?: string | null;
     phone?: string | null;
     link?: string | null;
+    twitter?: string | null;
 }
 export interface FeaturedOpportunity {
     title: string;
