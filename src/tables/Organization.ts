@@ -11,6 +11,7 @@ export interface OrganizationAttributes {
     photo?: ImageRef | null;
     extras?: OrganizationExtras;
     userId?: number | null;
+    createdBy?: number | null;
 }
 
 export interface Organization extends sequelize.Instance<OrganizationAttributes>, OrganizationAttributes {
@@ -49,6 +50,13 @@ export const OrganizationTable = connection.define<Organization, OrganizationAtt
         defaultValue: {}
     },
     userId: {
+        type: sequelize.INTEGER,
+        allowNull: true,
+        references: {
+            model: 'user',
+        }
+    },
+    createdBy: {
         type: sequelize.INTEGER,
         allowNull: true,
         references: {
