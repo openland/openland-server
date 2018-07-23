@@ -30,8 +30,6 @@ input UpdateProfileInput {
     alphaLocations: [String!],
     alphaLinkedin: String,
     alphaPrimaryOrganizationId: ID,
-    alphaJoinedAt: String,
-    alphaInvitedBy: User
 }
 
 input CreateProfileInput {
