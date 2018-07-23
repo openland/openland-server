@@ -82,8 +82,8 @@ export const Resolvers = {
         superAccounts: withPermission('super-admin', () => {
             return Repos.Super.fetchAllOrganizations();
         }),
-        superAccount: withPermission<{ id: string }>('super-admin', (args) => {
-            return Repos.Super.fetchById(IDs.SuperAccount.parse(args.id));
+        superAccount: withPermission<{ id: string, viaOrgId?: boolean }>('super-admin', (args) => {
+            return Repos.Super.fetchById(args.viaOrgId ? IDs.Organization.parse(args.id) : IDs.SuperAccount.parse(args.id));
         }),
         users: withPermission<{ query: string }>('super-admin', async (args) => {
             return await DB.User.findAll({
