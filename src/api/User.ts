@@ -9,6 +9,7 @@ import { Sanitizer } from '../modules/Sanitizer';
 import { validate, stringNotEmpty } from '../modules/NewInputValidator';
 import { Repos } from '../repositories';
 import { UserSettings } from '../tables/UserSettings';
+import { UserExtras } from '../repositories/UserExtras';
 
 function userLoader(context: CallContext) {
     if (!context.cache.has('__profile_loader')) {
@@ -92,6 +93,10 @@ export const Resolver = {
         website: (src: UserProfile) => src.website,
         about: (src: UserProfile) => src.about,
         location: (src: UserProfile) => src.location,
+        alphaRole: (src: UserProfile) =>  src.extras && src.extras.locations,
+        alphaLocations: (src: UserProfile) =>  src.extras && src.extras.locations,
+        alphaLinkedin: (src: UserProfile) =>  src.extras && src.extras.linkedin,
+        alphaPrimaryOrganizationId: (src: UserProfile) =>  src.extras && src.extras.primaryOrganizationId,
     },
     Settings: {
         id: (src: UserSettings) => IDs.Settings.serialize(src.id),
@@ -173,7 +178,11 @@ export const Resolver = {
                 email?: string | null,
                 website?: string | null,
                 about?: string | null,
-                location?: string | null
+                location?: string | null,
+                alphaLocations?: string[] | null,
+                alphaLinkedin?: string | null,
+                alphaRole?: string | null,
+                alphaPrimaryOrganizationId?: string | null,
             }
         }>(async (args, uid) => {
             return await DB.tx(async (tx) => {
@@ -214,6 +223,27 @@ export const Resolver = {
                 if (args.input.email !== undefined) {
                     profile.email = Sanitizer.sanitizeString(args.input.email);
                 }
+
+                let extras: UserExtras = profile.extras || {};
+
+                if (args.input.alphaLocations !== undefined) {
+                    extras.locations = Sanitizer.sanitizeAny(args.input.alphaLocations);
+                }
+
+                if (args.input.alphaLinkedin !== undefined) {
+                    extras.linkedin = Sanitizer.sanitizeString(args.input.alphaLinkedin);
+                }
+
+                if (args.input.alphaRole !== undefined) {
+                    extras.role = Sanitizer.sanitizeString(args.input.alphaRole);
+                }
+
+                if (args.input.alphaPrimaryOrganizationId !== undefined) {
+                    extras.primaryOrganizationId = Sanitizer.sanitizeString(args.input.alphaPrimaryOrganizationId);
+                }
+
+                profile.extras = extras;
+
                 await profile.save({ transaction: tx });
                 return user;
             });

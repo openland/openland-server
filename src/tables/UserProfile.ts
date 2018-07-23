@@ -2,6 +2,7 @@ import { connection } from '../modules/sequelizeConnector';
 import * as sequelize from 'sequelize';
 import { User, UserTable } from './User';
 import { ImageRef } from '../repositories/Media';
+import { UserExtras } from '../repositories/UserExtras';
 
 export interface UserProfileAttributes {
     id: number;
@@ -15,6 +16,7 @@ export interface UserProfileAttributes {
     picture: ImageRef | null;
     userId?: number | null;
     user?: User | null;
+    extras?: UserExtras;
 }
 
 export interface UserProfile extends sequelize.Instance<Partial<UserProfileAttributes>>, UserProfileAttributes {
@@ -31,6 +33,11 @@ export const UserProfileTable = connection.define<UserProfile, Partial<UserProfi
     website: { type: sequelize.STRING, allowNull: true },
     location: { type: sequelize.STRING, allowNull: true },
     email: { type: sequelize.STRING, allowNull: true },
+    extras: {
+        type: sequelize.JSON,
+        allowNull: false,
+        defaultValue: {}
+    },
 }, { paranoid: true });
 
 UserProfileTable.belongsTo(UserTable, { as: 'user' });
