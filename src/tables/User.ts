@@ -9,6 +9,7 @@ export interface UserAttributes {
     isBot?: boolean;
     lastSeen?: Date | null;
     status?: 'PENDING' | 'ACTIVATED' | 'SUSPENDED';
+    invitedBy?: number;
 }
 
 export interface User extends sequelize.Instance<UserAttributes>, UserAttributes {
@@ -30,6 +31,7 @@ export const UserTable = connection.define<User, UserAttributes>('user', {
         defaultValue: 'PENDING',
         allowNull: false
     },
+    invitedBy: { type: sequelize.INTEGER, allowNull: true, references: { model: 'users' } }
 });
 
 UserTable.belongsTo(OrganizationTable, { as: 'organization' });

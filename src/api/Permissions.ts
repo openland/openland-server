@@ -23,7 +23,7 @@ export const Resolvers = {
         features: (src: Organization) => (src as any).getFeatureFlags(),
         alphaPublished: (src: Organization) => !!(!src.extras || src.extras.published),
         createdAt: (src: Organization) => (src as any).createdAt,
-        createdBy: async (src: Organization) => await DB.User.findOne({ where: { id: src.userId } }),
+        createdBy: async (src: Organization) => await DB.User.findOne({ where: { id: src.createdBy } }),
     },
     SuperAdmin: {
         user: (src: SuperAdmin) => src.user,
