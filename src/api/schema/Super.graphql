@@ -17,6 +17,8 @@ type SuperAccount {
     members: [User!]!
     features: [FeatureFlag!]!
     alphaPublished: Boolean!
+    createdAt: String,
+    createdBy: User,
 }
 
 extend type Query {
