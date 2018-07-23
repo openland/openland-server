@@ -119,6 +119,7 @@ type Organization {
     photoRef: ImageRef
 
     website: String
+    websiteTitle: String
     about: String
     twitter: String
     facebook: String
@@ -175,6 +176,7 @@ type OrganizationProfile {
     photoRef: ImageRef
 
     website: String
+    websiteTitle: String
     about: String
     twitter: String
     facebook: String
@@ -244,6 +246,7 @@ input UpdateOrganizationProfileInput {
     photoRef: ImageRefInput
 
     website: String
+    websiteTitle: String
     about: String
     twitter: String
     facebook: String
