@@ -290,4 +290,12 @@ export class UserRepository {
         }
         return settings;
     }
+
+    async getUserInvitedBy(uid: number) {
+        let user = await DB.User.findOne({ where: { id: uid } });
+        if (user && user.invitedBy) {
+            return await DB.User.findOne({ where: { id: user.invitedBy } });
+        }
+        return null;
+    }
 }
