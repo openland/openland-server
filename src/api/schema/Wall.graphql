@@ -4,6 +4,7 @@ interface WallEntity {
     creator: User!
     lastEditor: User
     isPinned: Boolean!
+    organization: Organization!
 }
 
 type PostLinkInfo {
@@ -30,6 +31,7 @@ type WallPost implements WallEntity {
     creator: User!
     lastEditor: User
     isPinned: Boolean!
+    organization: Organization!
 
     text: String!
     type: String! ## NEWS | UPDATE
@@ -52,6 +54,7 @@ type WallListing implements WallEntity {
     creator: User!
     lastEditor: User
     isPinned: Boolean!
+    organization: Organization!
 
     name: String!
     type: String!
@@ -132,6 +135,13 @@ extend type Query {
     ): WallEntityConnection
 
     wallEntity(id: ID!): WallEntity
+
+    wallSearch(
+        query: String,
+        first: Int!,
+        after: String,
+        page: Int
+    ): WallEntityConnection
 }
 
 extend type Mutation {
