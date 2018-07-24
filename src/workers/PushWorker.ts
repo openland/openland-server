@@ -55,7 +55,7 @@ export function createPushWorker() {
                             not.alert = { title: args.title, body: args.body };
                             not.topic = bundleId;
                             let res = await (providers.get(team.teamId)!!).send(not, token);
-                            console.log(res);
+                            console.log(JSON.stringify(res));
                         } else {
                             console.warn('Unable to match bundle id ' + bundleId);
                             console.warn(AppConfiuguration.apple);
