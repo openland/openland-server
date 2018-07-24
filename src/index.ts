@@ -12,11 +12,14 @@ import { initDatabase } from './init/initDatabase';
 import { initElastic } from './init/initElastic';
 import { initFiles } from './init/initFiles';
 import initTestDatabase from './tests/data';
+import { initConfig } from './init/initConfig';
 
 if (process.argv.indexOf('--rebuild-test') >= 0) {
     console.warn('Building test environment');
     async function rebuildTestDatabase() {
         try {
+            await initConfig();
+            console.warn('Config: OK');
             await initDatabase(true, true);
             console.warn('Database: OK');
             await initFiles();

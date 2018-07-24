@@ -1,10 +1,11 @@
 import { CallContext } from './utils/CallContext';
 import { DB } from '../tables';
+import { AppConfiuguration } from '../init/initConfig';
 
 export const Resolvers = {
     Query: {
         pushSettings: () => ({
-            webPushKey: process.env.WEB_PUSH_PUBLIC
+            webPushKey: AppConfiuguration.webPush && AppConfiuguration.webPush.public
         })
     },
     Mutation: {
