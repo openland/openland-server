@@ -41,6 +41,7 @@ if (process.argv.indexOf('--rebuild-test') >= 0) {
 } else {
     async function initServer() {
         try {
+            await initConfig();
             await initDatabase(false, false);
             await initFiles();
             await initElastic();
