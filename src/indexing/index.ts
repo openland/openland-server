@@ -8,6 +8,7 @@ import { createFoldersIndexer } from './folders';
 import { createFolderItemsIndexer } from './folderItem';
 import { createOrganizationListingIndexer } from './organizationListing';
 import { createOrganizationIndexer } from './organizations';
+import { createWallPostsIndexer } from './wallPosts';
 
 export let ElasticClient = new ES.Client({
     host: process.env.ELASTIC_ENDPOINT
@@ -22,6 +23,7 @@ export const FolderIndexer = createFoldersIndexer(ElasticClient);
 export const FolderItemIndexer = createFolderItemsIndexer(ElasticClient);
 export const OrganizationListingIndexer = createOrganizationListingIndexer(ElasticClient);
 export const OrganizationIndexer = createOrganizationIndexer(ElasticClient);
+export const WalPostsIndexer = createWallPostsIndexer(ElasticClient);
 
 export async function enableIndexer() {
     if (!process.env.ELASTIC_ENDPOINT) {
@@ -36,4 +38,5 @@ export async function enableIndexer() {
     FolderItemIndexer.start();
     OrganizationListingIndexer.start();
     OrganizationIndexer.start();
+    WalPostsIndexer.start();
 }

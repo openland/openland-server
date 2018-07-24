@@ -9,6 +9,8 @@ import { ImageRef } from '../repositories/Media';
 import { ListingExtras, Range } from '../repositories/OrganizationExtras';
 import { Sanitizer } from '../modules/Sanitizer';
 import { InvalidInputError } from '../errors/InvalidInputError';
+import { buildElasticQuery, QueryParser } from '../modules/QueryParser';
+import { ElasticClient } from '../indexing';
 
 const EntityTypes: { [key: string]: string } = {
     'NEWS': 'WallPost',
@@ -54,6 +56,13 @@ interface ListingInput {
     unitCapacity?: string[] | null;
 }
 
+interface WallSearchParams {
+    query?: string;
+    first: number;
+    after?: string;
+    page?: number;
+}
+
 export const Resolver = {
     PostLink: {
         extraInfo: (src: any) => src.extraInfo || null
@@ -65,6 +74,7 @@ export const Resolver = {
         lastEditor: async (src: WallPost) => src.lastEditor ? await DB.User.findById(src.lastEditor) : null,
         type: (src: WallPost) => src.extras!.type || 'UNKNOWN',
         isPinned: (src: WallPost) => src.isPinned,
+        organization: (src: WallPost) => DB.Organization.findById(src.orgId),
         tags: (src: WallPost) => src.extras!.tags || [],
         links: (src: WallPost) => src.extras!.links || []
     },
@@ -74,6 +84,7 @@ export const Resolver = {
         creator: async (src: WallPost) => await DB.User.findById(src.creatorId),
         lastEditor: async (src: WallPost) => src.lastEditor ? await DB.User.findById(src.lastEditor) : null,
         isPinned: (src: WallPost) => src.isPinned,
+        organization: (src: WallPost) => DB.Organization.findById(src.orgId),
 
         name: (src: WallPost) => src.text,
         type: (src: WallPost) => src.extras && src.extras.type,
@@ -141,6 +152,35 @@ export const Resolver = {
                 .limit(args.first);
 
             return builder.findAll([], {});
+        }),
+
+        wallSearch: withAccount<WallSearchParams>(async (args, uid, orgId) => {
+            let clauses: any[] = [];
+
+            if (args.query) {
+                let parser = new QueryParser();
+                parser.registerText('tag', 'tags');
+                let parsed = parser.parseQuery(args.query);
+                let elasticQuery = buildElasticQuery(parsed);
+                clauses.push(elasticQuery);
+            }
+
+            let hits = await ElasticClient.search({
+                index: 'wall_posts',
+                type: 'wall_post',
+                size: args.first,
+                from: args.page ? ((args.page - 1) * args.first) : 0,
+                body: {
+                    query: { bool: { must: clauses } }
+                }
+            });
+
+            let builder = new SelectBuilder(DB.WallPost)
+                .after(args.after)
+                .page(args.page)
+                .limit(args.first);
+
+            return await builder.findElastic(hits);
         }),
     },
 

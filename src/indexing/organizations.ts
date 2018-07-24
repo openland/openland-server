@@ -3,7 +3,7 @@ import { DB } from '../tables';
 import { UpdateReader } from '../modules/updateReader';
 
 export function createOrganizationIndexer(client: ES.Client) {
-    let reader = new UpdateReader('reader_organizations', 4, DB.Organization);
+    let reader = new UpdateReader('reader_organizations', 5, DB.Organization);
     reader.elastic(client, 'organizations', 'organization', {
         name: {
             type: 'text'
@@ -19,8 +19,10 @@ export function createOrganizationIndexer(client: ES.Client) {
         },
         published: {
             type: 'boolean'
+        },
+        tags: {
+            type: 'keyword'
         }
-
     });
     reader.indexer(async (item) => {
         let location = (item.extras && item.extras.location) ? item.extras.location : '';
@@ -28,6 +30,19 @@ export function createOrganizationIndexer(client: ES.Client) {
         let organizationTypes = (item.extras && item.extras.organizationType && item.extras.organizationType.length > 0) ? item.extras.organizationType.join(' ') : '';
         let interests = (item.extras && item.extras.interests && item.extras.interests.length > 0) ? item.extras.interests.join(' ') : '';
         let published = (!item.extras || item.extras.published !== false) && item.status === 'ACTIVATED';
+
+        let posts = await DB.WallPost.findAll({
+            where: {
+                orgId: item.id
+            }
+        });
+
+        let tags: string[][] = posts.map(p => p.extras!.tags as string[] || []);
+
+        let flatTags = tags.reduce((a, b) => {
+            return a.concat(b);
+        }, []);
+
         return {
             id: item.id!!,
             doc: {
@@ -36,6 +51,7 @@ export function createOrganizationIndexer(client: ES.Client) {
                 organizationType: organizationTypes,
                 interest: interests,
                 published: published,
+                tags: flatTags
             }
         };
     });
