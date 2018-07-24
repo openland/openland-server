@@ -12,6 +12,7 @@ interface FormattedError {
     invalidFields?: { key: string, message: string }[] | null;
     code?: number | null;
     doubleInvoke?: boolean;
+    shouldRetry?: boolean;
 }
 
 export function errorHandler(error: { message: string, originalError: any }): FormattedError {
@@ -55,5 +56,6 @@ export function errorHandler(error: { message: string, originalError: any }): Fo
     return {
         message: 'An unexpected error occurred. Please, try again. If the problem persists, please contact support@openland.com.',
         uuid: uuid,
+        shouldRetry: true
     };
 }
