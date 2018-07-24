@@ -63,6 +63,7 @@ export function startPushNotificationWorker() {
                 for (let m of messages) {
                     let messageId = m.event.messageId as number;
                     let senderId = m.event.senderId as number;
+                    let unreadCount = m.event.unreadGlobal as number;
                     // Ignore current user
                     if (senderId === u.userId) {
                         continue;
@@ -94,6 +95,7 @@ export function startPushNotificationWorker() {
                         title: senderName,
                         body: message.message ? message.message!! : '<file>',
                         picture: user.picture ? buildBaseImageUrl(user.picture!!) : null,
+                        counter: unreadCount
                     }, tx);
                 }
 

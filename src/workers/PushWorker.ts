@@ -7,7 +7,7 @@ import APN from 'apn';
 let providers = new Map<string, APN.Provider>();
 
 export function createPushWorker() {
-    let queue = new WorkQueue<{ uid: number, title: string, body: string, picture: string | null, }, { result: string }>('push_sender');
+    let queue = new WorkQueue<{ uid: number, title: string, body: string, picture: string | null, counter: number }, { result: string }>('push_sender');
     if (AppConfiuguration.webPush || AppConfiuguration.apple) {
         console.log('Starting push worker');
         queue.addWorker(async (args, lock) => {
@@ -54,6 +54,7 @@ export function createPushWorker() {
                             var not = new APN.Notification();
                             not.expiry = Math.floor(Date.now() / 1000) + 3600;
                             not.alert = { title: args.title, body: args.body };
+                            not.badge = args.counter;
                             not.topic = bundleId;
                             let res = await (providers.get(team.teamId)!!).send(not, token);
                             console.log(JSON.stringify(res));
