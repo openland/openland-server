@@ -161,7 +161,6 @@ export const Resolver = {
                 let parser = new QueryParser();
                 parser.registerText('tag', 'tags');
                 let parsed = parser.parseQuery(args.query);
-                console.dir(parsed, {depth: null});
                 let elasticQuery = buildElasticQuery(parsed);
                 clauses.push(elasticQuery);
             }

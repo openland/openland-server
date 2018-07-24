@@ -345,6 +345,7 @@ export const Resolver = {
                 parser.registerText('location', 'location');
                 parser.registerText('organizationType', 'organizationType');
                 parser.registerText('interest', 'interest');
+                parser.registerText('tag', 'tags');
                 let parsed = parser.parseQuery(args.query);
                 let elasticQuery = buildElasticQuery(parsed);
                 clauses.push(elasticQuery);
