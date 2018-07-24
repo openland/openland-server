@@ -47,7 +47,8 @@ export function createPushWorker() {
                                         key: Buffer.from(team.key, 'base64'),
                                         keyId: team.keyId,
                                         teamId: team.teamId
-                                    }
+                                    },
+                                    production: false
                                 }));
                             }
                             var not = new APN.Notification();
