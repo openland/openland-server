@@ -1,6 +1,9 @@
 type PushSettings {
     webPushKey: String
+}
 
+enum PushType {
+    WEB_PUSH, IOS, ANDROID
 }
 
 extend type Query {
@@ -9,4 +12,5 @@ extend type Query {
 
 extend type Mutation {
     registerWebPush(endpoint: String!): String!
+    registerPush(endpoint: String!, type: PushType!): String!
 }

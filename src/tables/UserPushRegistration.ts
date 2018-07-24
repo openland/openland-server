@@ -8,6 +8,7 @@ export interface UserPushRegistrationAttributes {
     userId: number;
     tokenId: number;
     pushEndpoint: string;
+    pushType: 'web-push' | 'safari' | 'ios' | 'android';
 }
 
 export interface UserPushRegistration extends sequelize.Instance<Partial<UserPushRegistrationAttributes>>, UserPushRegistrationAttributes {
@@ -17,6 +18,7 @@ export interface UserPushRegistration extends sequelize.Instance<Partial<UserPus
 export const UserPushRegistrationTable = connection.define<UserPushRegistration, Partial<UserPushRegistrationAttributes>>('user_push_registration', {
     id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
     pushEndpoint: { type: sequelize.STRING(4096), allowNull: false, unique: true },
+    pushType: { type: sequelize.STRING, allowNull: false, defaultValue: 'web-push' }
 });
 
 UserPushRegistrationTable.belongsTo(UserTable, { as: 'user' });

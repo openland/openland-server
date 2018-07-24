@@ -18,15 +18,17 @@ export function createPushWorker() {
             });
             lock.check();
             for (let reg of registrations) {
-                try {
-                    await WebPush.sendNotification(JSON.parse(reg.pushEndpoint), JSON.stringify({
-                        title: args.title,
-                        body: args.body,
-                        picture: args.picture
-                    }));
-                } catch (e) {
-                    // Fast ignore for push notifications
-                    console.warn(e);
+                if (reg.pushType === 'web-push') {
+                    try {
+                        await WebPush.sendNotification(JSON.parse(reg.pushEndpoint), JSON.stringify({
+                            title: args.title,
+                            body: args.body,
+                            picture: args.picture
+                        }));
+                    } catch (e) {
+                        // Fast ignore for push notifications
+                        console.warn(e);
+                    }
                 }
             }
             return {
