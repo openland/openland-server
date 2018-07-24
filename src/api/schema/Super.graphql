@@ -17,11 +17,13 @@ type SuperAccount {
     members: [User!]!
     features: [FeatureFlag!]!
     alphaPublished: Boolean!
+    createdAt: String,
+    createdBy: User,
 }
 
 extend type Query {
     superAccounts: [SuperAccount!]!
-    superAccount(id: ID!): SuperAccount!
+    superAccount(id: ID!, viaOrgId: Boolean): SuperAccount!
 }
 
 extend type Mutation {

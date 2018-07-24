@@ -163,6 +163,22 @@ export const Resolver = {
                     }, { transaction: tx });
                 }
 
+                // User set invitedBy if none
+                if (invite.creatorId) {
+                    let user = await DB.User.find({
+                        where: {
+                            id: uid,
+                            invitedBy: null
+                        },
+                        lock: tx.LOCK.UPDATE,
+                        transaction: tx
+                    });
+                    if (user) {
+                        user.invitedBy = invite.creatorId;
+                        await user.save({ transaction: tx });
+                    }
+                }
+
                 await Hooks.onUserJoined(uid, invite.orgId, tx);
                 // Activate user if organizaton is ACTIVATED
                 let organization = await DB.Organization.find({ where: { id: invite.orgId }, transaction: tx });
@@ -197,6 +213,22 @@ export const Resolver = {
 
                 if (!invite) {
                     throw new NotFoundError(ErrorText.unableToFindInvite);
+                }
+
+                // User set invitedBy if none
+                if (invite.creatorId) {
+                    let user = await DB.User.find({
+                        where: {
+                            id: uid,
+                            invitedBy: null
+                        },
+                        lock: tx.LOCK.UPDATE,
+                        transaction: tx
+                    });
+                    if (user) {
+                        user.invitedBy = invite.creatorId;
+                        await user.save({ transaction: tx });
+                    }
                 }
 
                 let organization = await DB.Organization.find({ where: { id: invite.orgId }, transaction: tx });

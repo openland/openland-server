@@ -56,6 +56,7 @@ export const Resolver = {
         photoRef: (src: Organization) => src.photo,
 
         website: (src: Organization) => src.website,
+        websiteTitle: (src: Organization) => src.website,
         about: (src: Organization) => src.extras && src.extras.about,
         twitter: (src: Organization) => src.extras && src.extras.twitter,
         facebook: (src: Organization) => src.extras && src.extras.facebook,
@@ -145,6 +146,7 @@ export const Resolver = {
         email: (src: ContactPerson) => src.email,
         phone: (src: ContactPerson) => src.phone,
         link: (src: ContactPerson) => src.link,
+        twitter: (src: ContactPerson) => src.twitter,
     },
     Organization: {
         id: (src: Organization) => IDs.Organization.serialize(src.id!!),
@@ -155,6 +157,7 @@ export const Resolver = {
         photoRef: (src: Organization) => src.photo,
 
         website: (src: Organization) => src.website,
+        websiteTitle: (src: Organization) => src.website,
         about: (src: Organization) => src.extras && src.extras.about,
         twitter: (src: Organization) => src.extras && src.extras.twitter,
         facebook: (src: Organization) => src.extras && src.extras.facebook,
@@ -420,6 +423,7 @@ export const Resolver = {
                 photoRef?: ImageRef | null,
 
                 website?: string | null
+                websiteTitle?: string | null
                 about?: string | null
                 twitter?: string | null
                 facebook?: string | null
@@ -507,6 +511,9 @@ export const Resolver = {
                 if (args.input.website !== undefined) {
                     existing.website = Sanitizer.sanitizeString(args.input.website);
                 }
+                if (args.input.websiteTitle !== undefined) {
+                    existing.websiteTitle = Sanitizer.sanitizeString(args.input.websiteTitle);
+                }
                 if (args.input.photoRef !== undefined) {
                     existing.photo = Sanitizer.sanitizeImageRef(args.input.photoRef);
                 }
@@ -575,6 +582,7 @@ export const Resolver = {
                             contact.email = Sanitizer.sanitizeString(contact.email);
                             // InputValidator.validateEmail(contact.email, 'email', extrasValidateError);
                             contact.link = Sanitizer.sanitizeString(contact.link);
+                            contact.twitter = Sanitizer.sanitizeString(contact.twitter);
                             contact.role = Sanitizer.sanitizeString(contact.position);
                             contact.phone = Sanitizer.sanitizeString(contact.phone);
                         }

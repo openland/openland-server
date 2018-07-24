@@ -38,12 +38,23 @@ export class OrganizationRepository {
         if (user && user.status === 'ACTIVATED') {
             status = 'ACTIVATED';
         }
+
+        let isEditor = await DB.SuperAdmin.findOne({
+            where: {
+                userId: uid,
+                role: 'editor'
+            }
+        });
+
         let organization = await DB.Organization.create({
             name: Sanitizer.sanitizeString(input.name)!,
             website: Sanitizer.sanitizeString(input.website),
             photo: Sanitizer.sanitizeImageRef(input.photoRef),
             userId: input.personal ? uid : null,
             status: status,
+            extras: {
+                editorial: !!isEditor
+            }
         }, { transaction: tx });
         await Repos.Super.addToOrganization(organization.id!!, uid, tx);
         await Hooks.onOrganizstionCreated(uid, organization.id!!, tx);

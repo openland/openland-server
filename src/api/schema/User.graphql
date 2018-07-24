@@ -26,6 +26,10 @@ input UpdateProfileInput {
     website: String
     about: String
     location: String
+    alphaRole: String,
+    alphaLocations: [String!],
+    alphaLinkedin: String,
+    alphaPrimaryOrganizationId: ID,
 }
 
 input CreateProfileInput {
@@ -49,6 +53,12 @@ type Profile {
     website: String
     about: String
     location: String
+    alphaRole: String,
+    alphaLocations: [String!],
+    alphaLinkedin: String,
+    alphaPrimaryOrganizationId: ID,
+    alphaJoinedAt: String,
+    alphaInvitedBy: User
 }
 
 type ProfilePrefill {

@@ -6,6 +6,7 @@ type OrganizationContact {
     email: String
     phone: String
     link: String
+    twitter: String
 }
 
 type AlphaDummyFeaturedOpportunity{
@@ -119,6 +120,7 @@ type Organization {
     photoRef: ImageRef
 
     website: String
+    websiteTitle: String
     about: String
     twitter: String
     facebook: String
@@ -175,6 +177,7 @@ type OrganizationProfile {
     photoRef: ImageRef
 
     website: String
+    websiteTitle: String
     about: String
     twitter: String
     facebook: String
@@ -230,6 +233,7 @@ input ContactPersonInput {
     email: String
     phone: String
     link: String
+    twitter: String
 }
 
 input CreateOrganizationInput {
@@ -244,6 +248,7 @@ input UpdateOrganizationProfileInput {
     photoRef: ImageRefInput
 
     website: String
+    websiteTitle: String
     about: String
     twitter: String
     facebook: String
