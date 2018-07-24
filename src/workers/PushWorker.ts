@@ -54,7 +54,11 @@ export function createPushWorker() {
                             not.expiry = Math.floor(Date.now() / 1000) + 3600;
                             not.alert = { title: args.title, body: args.body };
                             not.topic = bundleId;
-                            await (providers.get(team.teamId)!!).send(not, token);
+                            let res = await (providers.get(team.teamId)!!).send(not, token);
+                            console.log(res);
+                        } else {
+                            console.warn('Unable to match bundle id ' + bundleId);
+                            console.warn(AppConfiuguration.apple);
                         }
                     } catch (e) {
                         // Fast ignore for push notifications
