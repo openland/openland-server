@@ -48,7 +48,7 @@ export function createPushWorker() {
                                         keyId: team.keyId,
                                         teamId: team.teamId
                                     },
-                                    production: false
+                                    production: !isSandbox
                                 }));
                             }
                             var not = new APN.Notification();
