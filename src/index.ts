@@ -12,14 +12,12 @@ import { initDatabase } from './init/initDatabase';
 import { initElastic } from './init/initElastic';
 import { initFiles } from './init/initFiles';
 import initTestDatabase from './tests/data';
-import { initConfig } from './init/initConfig';
+import './init/initConfig';
 
 if (process.argv.indexOf('--rebuild-test') >= 0) {
     console.warn('Building test environment');
     async function rebuildTestDatabase() {
         try {
-            await initConfig();
-            console.warn('Config: OK');
             await initDatabase(true, true);
             console.warn('Database: OK');
             await initFiles();
@@ -41,7 +39,6 @@ if (process.argv.indexOf('--rebuild-test') >= 0) {
 } else {
     async function initServer() {
         try {
-            await initConfig();
             await initDatabase(false, false);
             await initFiles();
             await initElastic();
