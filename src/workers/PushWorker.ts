@@ -4,7 +4,7 @@ import WebPush from 'web-push';
 import { AppConfiuguration } from '../init/initConfig';
 import APN from 'apn';
 
-let providers = new Map<string, APN.Provider>();
+let providers = new Map<boolean, Map<string, APN.Provider>>();
 
 export function createPushWorker() {
     let queue = new WorkQueue<{ uid: number, title: string, body: string, picture: string | null, counter: number }, { result: string }>('push_sender');
@@ -34,15 +34,15 @@ export function createPushWorker() {
                         let endpoint = JSON.parse(reg.pushEndpoint);
                         let bundleId = endpoint.bundleId as string;
                         let token = endpoint.token as string;
-                        let isSandbox = endpoint.sandbox as string;
-                        // Ignore production for now
-                        if (!isSandbox) {
-                            continue;
-                        }
+                        let isSandbox = endpoint.sandbox as boolean;
                         let team = AppConfiuguration.apple.find((v) => v.bundles.indexOf(bundleId) >= 0);
                         if (team) {
-                            if (!providers.has(team.teamId)) {
-                                providers.set(team.teamId, new APN.Provider({
+                            if (!providers.has(isSandbox)) {
+                                providers.set(isSandbox, new Map());
+                            }
+                            let provs = providers.get(isSandbox)!!;
+                            if (!provs.has(team.teamId)) {
+                                provs.set(team.teamId, new APN.Provider({
                                     token: {
                                         key: Buffer.from(team.key, 'base64'),
                                         keyId: team.keyId,
@@ -56,7 +56,7 @@ export function createPushWorker() {
                             not.alert = { title: args.title, body: args.body };
                             not.badge = args.counter;
                             not.topic = bundleId;
-                            let res = await (providers.get(team.teamId)!!).send(not, token);
+                            let res = await (provs.get(team.teamId)!!).send(not, token);
                             console.log(JSON.stringify(res));
                         } else {
                             console.warn('Unable to match bundle id ' + bundleId);
