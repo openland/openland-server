@@ -6,6 +6,7 @@ import { AppConfiuguration } from '../init/initConfig';
 export function createPushWorker() {
     let queue = new WorkQueue<{ uid: number, title: string, body: string, picture: string | null, }, { result: string }>('push_sender');
     if (AppConfiuguration.webPush) {
+        console.log('Starting push worker');
         queue.addWorker(async (args, lock) => {
             let registrations = await DB.UserPushRegistration.findAll({
                 where: {
@@ -31,6 +32,9 @@ export function createPushWorker() {
                 result: 'ok'
             };
         });
+    } else {
+        console.warn('Unable to start push worker');
+        console.log(AppConfiuguration);
     }
     return queue;
 }
