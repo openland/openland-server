@@ -39,7 +39,7 @@ export function createPushWorker() {
                         if (!isSandbox) {
                             continue;
                         }
-                        let team = AppConfiuguration.apple.find((v) => v.bundles.indexOf(bundleId) > 0);
+                        let team = AppConfiuguration.apple.find((v) => v.bundles.indexOf(bundleId) >= 0);
                         if (team) {
                             if (!providers.has(team.teamId)) {
                                 providers.set(team.teamId, new APN.Provider({
