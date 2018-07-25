@@ -173,27 +173,29 @@ export class WorkQueue<ARGS extends JsonMap, RES extends JsonMap> {
     }
 
     pushWorkWithCollapseKey = async (work: ARGS, collapseKey: string, tx?: Transaction) => {
-        await this.cancelAllWithCollapseKey(collapseKey, tx);
+        return await DB.txStable(async (txStable) => {
+            await this.cancelAllWithCollapseKey(collapseKey, txStable);
 
-        let res = (await DB.Task.create({
-            uid: UUID(),
-            taskType: this.taskType,
-            arguments: work,
-            collapseKey
-        }, { transaction: tx }));
-        if (tx) {
-            (tx as any).afterCommit(() => {
+            let res = (await DB.Task.create({
+                uid: UUID(),
+                taskType: this.taskType,
+                arguments: work,
+                collapseKey
+            }, { transaction: txStable }));
+            if (tx) {
+                (tx as any).afterCommit(() => {
+                    pubsub.publish('work_added', {
+                        taskId: res.id
+                    });
+                });
+            } else {
                 pubsub.publish('work_added', {
                     taskId: res.id
                 });
-            });
-        } else {
-            pubsub.publish('work_added', {
-                taskId: res.id
-            });
-        }
+            }
 
-        return res;
+            return res;
+        }, tx);
     }
 
     addWorker = (handler: (item: ARGS, state: LockState, uid: string) => RES | Promise<RES>) => {
