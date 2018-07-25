@@ -2,7 +2,7 @@ import { connection } from '../modules/sequelizeConnector';
 import * as sequelize from 'sequelize';
 import { JsonMap } from '../utils/json';
 
-type TaskStatus = 'pending' | 'executing' | 'failing' | 'failed' | 'completed';
+type TaskStatus = 'pending' | 'executing' | 'failing' | 'failed' | 'completed' | 'canceled';
 
 export interface TaskAttributes {
     id: number;
@@ -16,6 +16,8 @@ export interface TaskAttributes {
     taskFailureTime: Date | null;
     taskLockSeed: string | null;
     taskLockTimeout: Date | null;
+
+    collapseKey: string | null;
 }
 
 export interface Task extends sequelize.Instance<Partial<TaskAttributes>>, TaskAttributes {
@@ -35,4 +37,5 @@ export const TaskTable = connection.define<Task, Partial<TaskAttributes>>('task'
     taskFailureTime: { type: sequelize.DATE, allowNull: true },
     taskLockSeed: { type: sequelize.STRING, allowNull: true },
     taskLockTimeout: { type: sequelize.DATE, allowNull: true },
+    collapseKey: { type: sequelize.STRING, allowNull: true }
 });

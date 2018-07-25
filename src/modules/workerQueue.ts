@@ -172,6 +172,30 @@ export class WorkQueue<ARGS extends JsonMap, RES extends JsonMap> {
         return res;
     }
 
+    pushWorkWithCollapseKey = async (work: ARGS, collapseKey: string, tx?: Transaction) => {
+        await this.cancelAllWithCollapseKey(collapseKey, tx);
+
+        let res = (await DB.Task.create({
+            uid: UUID(),
+            taskType: this.taskType,
+            arguments: work,
+            collapseKey
+        }, { transaction: tx }));
+        if (tx) {
+            (tx as any).afterCommit(() => {
+                pubsub.publish('work_added', {
+                    taskId: res.id
+                });
+            });
+        } else {
+            pubsub.publish('work_added', {
+                taskId: res.id
+            });
+        }
+
+        return res;
+    }
+
     addWorker = (handler: (item: ARGS, state: LockState, uid: string) => RES | Promise<RES>) => {
         let maxKnownWorkId = 0;
         let waiter: (() => void) | null = null;
@@ -232,5 +256,20 @@ export class WorkQueue<ARGS extends JsonMap, RES extends JsonMap> {
                 waiter = null;
             }
         });
+    }
+
+    cancelAllWithCollapseKey = async (collapseKey: string, tx?: Transaction) => {
+        return await DB.Task.update(
+            {
+                taskStatus: 'canceled'
+            },
+            {
+                where: {
+                    taskStatus: 'pending',
+                    collapseKey
+                },
+                transaction: tx
+            }
+        );
     }
 }
