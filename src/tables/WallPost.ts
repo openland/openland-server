@@ -11,6 +11,7 @@ export interface WallPostAttributes {
     extras?: JsonMap;
     isPinned?: boolean;
     lastEditor?: number;
+    isDeleted?: boolean;
 }
 
 export interface WallPost extends sequelize.Instance<WallPostAttributes>, WallPostAttributes {
@@ -31,5 +32,6 @@ export const WallPostTable = connection.define<WallPost, WallPostAttributes>('wa
         defaultValue: {}
     },
     isPinned: { type: sequelize.BOOLEAN, allowNull: false, defaultValue: false },
-    lastEditor: { type: sequelize.INTEGER, allowNull: true, references: { model: 'users' } }
+    lastEditor: { type: sequelize.INTEGER, allowNull: true, references: { model: 'users' } },
+    isDeleted: { type: sequelize.BOOLEAN,  allowNull: false,  defaultValue: false }
 }, { });
