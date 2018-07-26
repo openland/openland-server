@@ -1,0 +1,17 @@
+input HitInput {
+    category: String!
+    tags: [String!]!
+}
+
+type CategoryHits {
+    category: String!
+    tags: [String!]!
+}
+
+extend type Query {
+    hitsPopular(categories: [String!]!): [CategoryHits!]
+}
+
+extend type Mutation {
+    hitsAdd(hits: [HitInput!]!): String
+}
