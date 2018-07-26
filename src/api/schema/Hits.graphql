@@ -9,9 +9,9 @@ type CategoryHits {
 }
 
 extend type Query {
-    hitsPopular(categories: [String!]!): [CategoryHits!]
+    alphaHitsPopular(categories: [String!]!): [CategoryHits!]
 }
 
 extend type Mutation {
-    hitsAdd(hits: [HitInput!]!): String
+    alphaHitsAdd(hits: [HitInput!]!): String
 }
