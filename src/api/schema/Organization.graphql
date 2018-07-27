@@ -260,7 +260,7 @@ input UpdateOrganizationProfileInput {
 
     alphaPublished: Boolean
     alphaEditorial: Boolean
-    alphaFeatured: Boolean!
+    alphaFeatured: Boolean
 
     alphaLocations: [String!]
     alphaInterests: [String!]
