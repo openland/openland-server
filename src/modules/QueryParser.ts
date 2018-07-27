@@ -91,6 +91,13 @@ export function buildElasticQuery(query: QueryPart): any {
     }
 }
 
+interface SortEntry {
+    [type: string]: {
+        order?: 'asc' | 'desc';
+        mode?: 'min' | 'max' | 'sum' | 'avg' | 'median';
+        nested?: any;
+    };
+}
 export class QueryParser {
     private registeredFields = new Map<string, { type: string, mappedName: string }>();
 
@@ -127,6 +134,48 @@ export class QueryParser {
         }
 
         return this.parseQueryParsed(parsed);
+    }
+
+    parseSort: (query: string) => (string | SortEntry)[] = (query: string) => {
+        let parsed: any;
+        try {
+            parsed = JSON.parse(query);
+        } catch {
+            throw new UserError('Unable to parse sort');
+        }
+
+        if (!Array.isArray(parsed)) {
+            throw new UserError('Sort must by array');
+        }
+
+        let res: (string | SortEntry)[] = [];
+
+        for (let sortEntry of parsed) {
+            res.push(this.parseSortParsed(sortEntry));
+        }
+
+        return res;
+    }
+
+    private parseSortParsed = (sortEntry: any) => {
+        if (typeof sortEntry === 'string') {
+            let tp = this.registeredFields.get(sortEntry.toLocaleLowerCase());
+            if (!tp) {
+                throw new UserError('Unknown field "' + sortEntry + '"');
+            }
+            return sortEntry;
+        } else {
+            let names = Object.getOwnPropertyNames(sortEntry);
+            if (names.length !== 1) {
+                throw new UserError('Expected to have only single field in json object');
+            }
+            let type = names[0];
+            let tp = this.registeredFields.get(type.toLocaleLowerCase());
+            if (!tp) {
+                throw new UserError('Unknown field "' + type + '"');
+            }
+            return { [type]: { order: sortEntry.order, mode: sortEntry.mode } };
+        }
     }
 
     private parseQueryParsed: ((src: any) => QueryPart) = (src: any) => {

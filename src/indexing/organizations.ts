@@ -3,7 +3,7 @@ import { DB } from '../tables';
 import { UpdateReader } from '../modules/updateReader';
 
 export function createOrganizationIndexer(client: ES.Client) {
-    let reader = new UpdateReader('reader_organizations', 5, DB.Organization);
+    let reader = new UpdateReader('reader_organizations', 6, DB.Organization);
     reader.elastic(client, 'organizations', 'organization', {
         name: {
             type: 'text'
@@ -20,9 +20,18 @@ export function createOrganizationIndexer(client: ES.Client) {
         published: {
             type: 'boolean'
         },
+        featured: {
+            type: 'boolean'
+        },
         tags: {
             type: 'keyword'
-        }
+        },
+        createdAt: {
+            type: 'date'
+        },
+        updatedAt: {
+            type: 'date'
+        },
     });
     reader.indexer(async (item) => {
         let location = (item.extras && item.extras.location) ? item.extras.location : '';
@@ -30,6 +39,7 @@ export function createOrganizationIndexer(client: ES.Client) {
         let organizationTypes = (item.extras && item.extras.organizationType && item.extras.organizationType.length > 0) ? item.extras.organizationType.join(' ') : '';
         let interests = (item.extras && item.extras.interests && item.extras.interests.length > 0) ? item.extras.interests.join(' ') : '';
         let published = (!item.extras || item.extras.published !== false) && item.status === 'ACTIVATED';
+        let featured = !!(item.extras && item.extras.featured);
 
         let posts = await DB.WallPost.findAll({
             where: {
@@ -51,7 +61,10 @@ export function createOrganizationIndexer(client: ES.Client) {
                 organizationType: organizationTypes,
                 interest: interests,
                 published: published,
-                tags: flatTags
+                featured: featured,
+                tags: flatTags,
+                createdAt: (item as any).createdAt,
+                updatedAt: (item as any).updatedAt,
             }
         };
     });
