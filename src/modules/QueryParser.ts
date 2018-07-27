@@ -174,7 +174,7 @@ export class QueryParser {
             if (!tp) {
                 throw new UserError('Unknown field "' + type + '"');
             }
-            return { [type]: { order: sortEntry.order, mode: sortEntry.mode } };
+            return { [type]: { order: sortEntry[type].order, mode: sortEntry[type].mode } };
         }
     }
 
