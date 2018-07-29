@@ -96,4 +96,6 @@ type Query {
     me: User
     myProfile: Profile
     myProfilePrefill: ProfilePrefill
+
+    user(id: ID!): User!
 }

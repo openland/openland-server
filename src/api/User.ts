@@ -4,7 +4,7 @@ import { IDs } from './utils/IDs';
 import { UserProfile } from '../tables/UserProfile';
 import DataLoader from 'dataloader';
 import { buildBaseImageUrl, ImageRef } from '../repositories/Media';
-import { withUser } from './utils/Resolvers';
+import { withUser, withAny } from './utils/Resolvers';
 import { Sanitizer } from '../modules/Sanitizer';
 import { validate, stringNotEmpty } from '../modules/NewInputValidator';
 import { Repos } from '../repositories';
@@ -152,6 +152,9 @@ export const Resolver = {
                 }
                 return instance;
             });
+        }),
+        user: withAny<{ id: string }>((args) => {
+            return DB.User.findById(IDs.User.parse(args.id));
         })
     },
     Mutation: {
