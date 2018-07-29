@@ -132,6 +132,7 @@ export const Resolver = {
 
         wall: withAny<{ orgId: string, first: number, after?: string, page?: number }>(async (args) => {
             let builder = new SelectBuilder(DB.WallPost)
+                .whereEq('isDeleted', false)
                 .whereEq('orgId', IDs.Organization.parse(args.orgId))
                 .orderBy('isPinned', 'DESC')
                 .orderBy('createdAt')
@@ -144,6 +145,7 @@ export const Resolver = {
 
         wallMyOrg: withAccount<{ first: number, after?: string, page?: number }>(async (args, uid, orgId) => {
             let builder = new SelectBuilder(DB.WallPost)
+                .whereEq('isDeleted', false)
                 .whereEq('orgId', orgId)
                 .orderBy('isPinned', 'DESC')
                 .orderBy('createdAt')
@@ -171,12 +173,13 @@ export const Resolver = {
                 size: args.first,
                 from: args.page ? ((args.page - 1) * args.first) : 0,
                 body: {
-                    query: { bool: { must: clauses } }
+                    query: {bool: {must: clauses}}
                 }
             });
 
             let builder = new SelectBuilder(DB.WallPost)
                 .after(args.after)
+                .whereEq('isDeleted', false)
                 .page(args.page)
                 .limit(args.first);
 
@@ -205,8 +208,8 @@ export const Resolver = {
             return DB.tx(async (tx) => {
                 if (args.input.isPinned === true) {
                     await DB.WallPost.update(
-                        { isPinned: false },
-                        { where: { orgId: oid }, transaction: tx }
+                        {isPinned: false},
+                        {where: {orgId: oid}, transaction: tx}
                     );
                 }
 
@@ -221,7 +224,7 @@ export const Resolver = {
                         links: args.input.links || []
                     },
                     isPinned: args.input.isPinned,
-                }, { transaction: tx });
+                }, {transaction: tx});
             });
         }),
 
@@ -258,8 +261,8 @@ export const Resolver = {
 
                 if (args.input.isPinned === true) {
                     await DB.WallPost.update(
-                        { isPinned: false },
-                        { where: { orgId: oid }, transaction: tx }
+                        {isPinned: false},
+                        {where: {orgId: oid}, transaction: tx}
                     );
                 }
 
@@ -273,10 +276,10 @@ export const Resolver = {
                             links: args.input.links || []
                         }
                     },
-                    { transaction: tx }
+                    {transaction: tx}
                 );
 
-                await WallPostsWorker.pushWork({ postId: post.id! });
+                await WallPostsWorker.pushWork({postId: post.id!});
 
                 return updatetPost;
             });
@@ -302,8 +305,8 @@ export const Resolver = {
             return DB.tx(async (tx) => {
                 if (args.input.isPinned === true) {
                     await DB.WallPost.update(
-                        { isPinned: false },
-                        { where: { orgId: oid }, transaction: tx }
+                        {isPinned: false},
+                        {where: {orgId: oid}, transaction: tx}
                     );
                 }
 
@@ -393,7 +396,7 @@ export const Resolver = {
                         type: args.input.type
                     },
                     isPinned: args.input.isPinned,
-                }, { transaction: tx });
+                }, {transaction: tx});
             });
         }),
 
@@ -414,8 +417,8 @@ export const Resolver = {
 
                 if (args.input.isPinned === true) {
                     await DB.WallPost.update(
-                        { isPinned: false },
-                        { where: { orgId: oid }, transaction: tx }
+                        {isPinned: false},
+                        {where: {orgId: oid}, transaction: tx}
                     );
                 }
 
@@ -538,18 +541,22 @@ export const Resolver = {
                     throw new InvalidInputError(extrasValidateError);
                 }
 
-                await post.save({ transaction: tx });
+                await post.save({transaction: tx});
                 return post;
             });
         }),
 
         wallDeleteEntity: withOrgOwner<{ id: string }>(async (args, uid, oid) => {
-            await DB.WallPost.destroy({
-                where: {
-                    orgId: oid,
-                    id: IDs.WallEntity.parse(args.id)
-                }
-            });
+            await DB.WallPost.update(
+                {
+                    isDeleted: true
+                },
+                {
+                    where: {
+                        orgId: oid,
+                        id: IDs.WallEntity.parse(args.id)
+                    }
+                });
 
             return 'ok';
         }),
@@ -569,13 +576,13 @@ export const Resolver = {
                 }
 
                 await DB.WallPost.update(
-                    { isPinned: false },
-                    { where: { orgId: oid }, transaction: tx }
+                    {isPinned: false},
+                    {where: {orgId: oid}, transaction: tx}
                 );
 
                 await DB.WallPost.update(
-                    { isPinned: true },
-                    { where: { orgId: oid, id: IDs.WallEntity.parse(args.id) }, transaction: tx }
+                    {isPinned: true},
+                    {where: {orgId: oid, id: IDs.WallEntity.parse(args.id)}, transaction: tx}
                 );
 
                 return 'ok';
@@ -597,8 +604,8 @@ export const Resolver = {
                 }
 
                 await DB.WallPost.update(
-                    { isPinned: false },
-                    { where: { orgId: oid, id: IDs.WallEntity.parse(args.id) }, transaction: tx }
+                    {isPinned: false},
+                    {where: {orgId: oid, id: IDs.WallEntity.parse(args.id)}, transaction: tx}
                 );
 
                 return 'ok';

@@ -130,6 +130,7 @@ type Organization {
 
     alphaPublished: Boolean!
     alphaEditorial: Boolean!
+    alphaFeatured: Boolean!
 
     alphaFollowed: Boolean!
 
@@ -187,6 +188,7 @@ type OrganizationProfile {
 
     alphaPublished: Boolean!
     alphaEditorial: Boolean!
+    alphaFeatured: Boolean!
 
     alphaLocations: [String!]
     alphaInterests: [String!]
@@ -258,6 +260,7 @@ input UpdateOrganizationProfileInput {
 
     alphaPublished: Boolean
     alphaEditorial: Boolean
+    alphaFeatured: Boolean
 
     alphaLocations: [String!]
     alphaInterests: [String!]
@@ -344,6 +347,7 @@ extend type Query {
     alphaOrganizationMembers(orgId: ID!): [OrganizationMember!]!
     alphaOrganizations(
         query: String,
+        sort: String,
         first: Int!,
         after: String,
         page: Int

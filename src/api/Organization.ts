@@ -47,6 +47,7 @@ interface AlphaOrganizationsParams {
     first: number;
     after?: string;
     page?: number;
+    sort?: string;
 }
 
 export const Resolver = {
@@ -66,6 +67,7 @@ export const Resolver = {
 
         alphaPublished: (src: Organization) => !src.extras || src.extras.published !== false,
         alphaEditorial: (src: Organization) => !!(src.extras && src.extras.editorial),
+        alphaFeatured: (src: Organization) => !!(src.extras && src.extras.featured),
 
         alphaOrganizationType: (src: Organization) => src.extras && src.extras.organizationType,
         alphaLocations: (src: Organization) => src.extras && src.extras.locations,
@@ -167,6 +169,7 @@ export const Resolver = {
 
         alphaPublished: (src: Organization) => !src.extras || src.extras.published !== false,
         alphaEditorial: (src: Organization) => !!(src.extras && src.extras.editorial),
+        alphaFeatured: (src: Organization) => !!(src.extras && src.extras.featured),
 
         alphaOrganizationType: (src: Organization) => src.extras && src.extras.organizationType,
         alphaLocations: (src: Organization) => src.extras && src.extras.locations,
@@ -338,17 +341,27 @@ export const Resolver = {
 
         alphaOrganizations: withAny<AlphaOrganizationsParams>(async args => {
             let clauses: any[] = [];
-
-            if (args.query) {
+            let sort: any[] | undefined = undefined;
+            if (args.query || args.sort) {
                 let parser = new QueryParser();
                 parser.registerText('name', 'name');
                 parser.registerText('location', 'location');
                 parser.registerText('organizationType', 'organizationType');
                 parser.registerText('interest', 'interest');
                 parser.registerText('tag', 'tags');
-                let parsed = parser.parseQuery(args.query);
-                let elasticQuery = buildElasticQuery(parsed);
-                clauses.push(elasticQuery);
+                parser.registerText('createdAt', 'createdAt');
+                parser.registerText('updatedAt', 'updatedAt');
+                parser.registerText('featured', 'featured');
+
+                if (args.query) {
+                    let parsed = parser.parseQuery(args.query);
+                    let elasticQuery = buildElasticQuery(parsed);
+                    clauses.push(elasticQuery);
+                }
+
+                if (args.sort) {
+                    sort = parser.parseSort(args.sort);
+                }
             }
 
             clauses.push({ term: { published: true } });
@@ -359,6 +372,7 @@ export const Resolver = {
                 size: args.first,
                 from: args.page ? ((args.page - 1) * args.first) : 0,
                 body: {
+                    sort: sort,
                     query: { bool: { must: clauses } }
                 }
             });
@@ -442,6 +456,7 @@ export const Resolver = {
 
                 alphaPublished?: boolean | null;
                 alphaEditorial?: boolean | null;
+                alphaFeatured?: boolean | null;
 
                 alphaOrganizationType?: string[] | null
                 alphaLocations?: string[] | null
@@ -543,6 +558,10 @@ export const Resolver = {
 
                 if (args.input.alphaEditorial !== undefined) {
                     extras.editorial = Sanitizer.sanitizeAny(args.input.alphaEditorial);
+                }
+
+                if (args.input.alphaFeatured !== undefined) {
+                    extras.featured = Sanitizer.sanitizeAny(args.input.alphaFeatured);
                 }
 
                 if (args.input.alphaOrganizationType !== undefined) {
