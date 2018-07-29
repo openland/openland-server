@@ -210,34 +210,36 @@ export const Resolver = {
             return name.join(', ');
         },
         photos: async (src: Conversation, _: any, context: CallContext) => {
-            let res = await DB.ConversationGroupMembers.findAll({
-                where: {
-                    conversationId: src.id,
-                    userId: {
-                        $not: context.uid
-                    }
-                },
-                order: ['userId']
-            });
-            let photos: string[] = [];
-            for (let r of res) {
-                let p = (await DB.UserProfile.find({ where: { userId: r.userId } }))!!.picture;
-                if (p) {
-                    photos.push(buildBaseImageUrl(p));
-                }
-                if (photos.length >= 4) {
-                    break;
-                }
-            }
-            return photos;
+            // let res = await DB.ConversationGroupMembers.findAll({
+            //     where: {
+            //         conversationId: src.id,
+            //         userId: {
+            //             $not: context.uid
+            //         }
+            //     },
+            //     order: ['userId']
+            // });
+            // let photos: string[] = [];
+            // for (let r of res) {
+            //     let p = (await DB.UserProfile.find({ where: { userId: r.userId } }))!!.picture;
+            //     if (p) {
+            //         photos.push(buildBaseImageUrl(p));
+            //     }
+            //     if (photos.length >= 4) {
+            //         break;
+            //     }
+            // }
+            // return photos;
+            return [];
         },
-        members: (src: Conversation) => {
-            return DB.ConversationGroupMembers.findAll({
+        members: async (src: Conversation) => {
+            let res = await DB.ConversationGroupMembers.findAll({
                 where: {
                     conversationId: src.id
                 },
                 order: ['userId']
             });
+            return res.map((v) => DB.User.findById(v.userId));
         },
         unreadCount: async (src: Conversation, _: any, context: CallContext) => {
             let state = await DB.ConversationUserState.find({ where: { conversationId: src.id, userId: context.uid!! } });
