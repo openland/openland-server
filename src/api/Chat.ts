@@ -173,7 +173,18 @@ export const Resolver = {
                 conversationId: src.id,
             },
             order: [['id', 'DESC']]
-        })
+        }),
+        user: async (src: Conversation, _: any, context: CallContext) => {
+            let uid;
+            if (src.member1Id === context.uid || (src.member1 && src.member1.id === context.uid)) {
+                uid = src.member2Id!!;
+            } else if (src.member2Id === context.uid || (src.member2 && src.member2.id === context.uid)) {
+                uid = src.member1Id!!;
+            } else {
+                throw Error('Inconsistent Private Conversation resolver');
+            }
+            return DB.User.findById(uid);
+        },
     },
     GroupConversation: {
         id: (src: Conversation) => IDs.Conversation.serialize(src.id),

@@ -36,7 +36,7 @@ type PrivateConversation implements Conversation {
     flexibleId: ID!
     title: String!
     photos: [String!]!
-    members: [User!]!
+    user: User!
     unreadCount: Int!
     topMessage: ConversationMessage
 }
