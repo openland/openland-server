@@ -664,6 +664,28 @@ export const Resolver = {
                 let mimeType = res.mime_type as string;
                 let name = res.original_filename as string;
                 let size = res.size as number;
+                let isReady = res.is_ready as boolean;
+
+                // Store file
+                if (!isReady) {
+                    await new Promise<any>(
+                        (resolver, reject) =>
+                            request({
+                                method: 'PUT',
+                                url: 'https://api.uploadcare.com/files/' + args.file!! + '/storage',
+                                headers: {
+                                    'Authorization': 'Uploadcare.Simple b70227616b5eac21ba88:65d4918fb06d4fe0bec8'
+                                }
+                            },
+                                (error, response, body) => {
+                                    if (!error && response.statusCode === 200) {
+                                        resolver(JSON.parse(body));
+                                    } else {
+                                        reject(error);
+                                    }
+                                }));
+                }
+
                 fileMetadata = {
                     isImage: isImage,
                     mimeType: mimeType,
