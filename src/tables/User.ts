@@ -1,6 +1,7 @@
 import { connection } from '../modules/sequelizeConnector';
 import * as sequelize from 'sequelize';
 import { OrganizationTable } from './Organization';
+import { Profile } from '../handlers/Profile';
 
 export interface UserAttributes {
     id?: number;
@@ -9,6 +10,7 @@ export interface UserAttributes {
     isBot?: boolean;
     lastSeen?: Date | null;
     status?: 'PENDING' | 'ACTIVATED' | 'SUSPENDED';
+    profile: Profile;
     invitedBy?: number;
 }
 

@@ -91,7 +91,11 @@ export class OrganizationRepository {
             order: [['createdAt', 'ASC']],
             include: [{
                 model: DB.User,
-                as: 'user'
+                as: 'user',
+                include : [{
+                    model: DB.UserProfile,
+                    as: 'profile'
+                }]
             }]
         });
     }
