@@ -167,6 +167,8 @@ export const Resolver = {
         location: (src: Organization) => src.extras && src.extras.location,
         contacts: (src: Organization) => src.extras ? src.extras.contacts || [] : [],
 
+        alphaContacts: async (src: Organization) => (await Repos.Organizations.getOrganizationContacts(src.id!!)).map(m => m.user),
+
         alphaPublished: (src: Organization) => !src.extras || src.extras.published !== false,
         alphaEditorial: (src: Organization) => !!(src.extras && src.extras.editorial),
         alphaFeatured: (src: Organization) => !!(src.extras && src.extras.featured),
@@ -319,6 +321,7 @@ export const Resolver = {
                     user: members[i].user,
                     joinedAt: (members[i] as any).createdAt,
                     email: members[i].user.email,
+                    showInContacts: members[i].showInContacts,
                     role: roles[i]
                 });
             }
@@ -337,6 +340,39 @@ export const Resolver = {
             }
 
             return result;
+        }),
+
+        alphaAlterMemberAsContact: withUser<{ orgId: string, memberId: string, showInContacts: boolean }>(async (args, uid) => {
+            let orgId = IDs.Organization.parse(args.orgId);
+
+            let role = await Repos.Permissions.superRole(uid);
+            let canEdit = role === 'super-admin' || role === 'editor';
+
+            let member = await DB.OrganizationMember.find({
+                where: {
+                    orgId: orgId,
+                    userId: uid,
+                }
+            });
+            canEdit = canEdit || (member !== null && member.isOwner);
+
+            if (!canEdit) {
+                throw new UserError(ErrorText.permissionOnlyOwner);
+            }
+
+            let targetMember = await DB.OrganizationMember.find({
+                where: {
+                    orgId: orgId,
+                    userId: IDs.User.parse(args.memberId),
+                }
+            });
+
+            if (!targetMember) {
+                throw new UserError(ErrorText.unableToFindUser);
+            }
+
+            targetMember.showInContacts = args.showInContacts;
+            await targetMember.save();
         }),
 
         alphaOrganizations: withAny<AlphaOrganizationsParams>(async args => {

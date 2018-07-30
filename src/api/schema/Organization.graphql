@@ -127,6 +127,8 @@ type Organization {
     linkedin: String
     contacts: [OrganizationContact!]!
     location: String
+    
+    alphaContacts: [Profile!]!
 
     alphaPublished: Boolean!
     alphaEditorial: Boolean!
@@ -314,6 +316,7 @@ type OrganizationJoinedMember implements OrganizationMember{
     role: OrganizationMemberRole!
     user: User!
     joinedAt: String
+    showInContacts: Boolean!
 }
 
 enum OrganizationMemberRole {

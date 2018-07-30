@@ -85,6 +85,17 @@ export class OrganizationRepository {
         });
     }
 
+    async getOrganizationContacts(orgId: number): Promise<OrganizationMember[]> {
+        return await DB.OrganizationMember.findAll({
+            where: { orgId, showInContacts: true },
+            order: [['createdAt', 'ASC']],
+            include: [{
+                model: DB.User,
+                as: 'user'
+            }]
+        });
+    }
+
     async isOwnerOfOrganization(orgId: number, userId: number, tx?: Transaction): Promise<boolean> {
         let isOwner = await DB.OrganizationMember.findOne({
             where: {
