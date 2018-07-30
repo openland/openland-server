@@ -342,40 +342,6 @@ export const Resolver = {
             return result;
         }),
 
-        alphaAlterMemberAsContact: withUser<{ orgId: string, memberId: string, showInContacts: boolean }>(async (args, uid) => {
-            let orgId = IDs.Organization.parse(args.orgId);
-
-            let role = await Repos.Permissions.superRole(uid);
-            let canEdit = role === 'super-admin' || role === 'editor';
-
-            let member = await DB.OrganizationMember.find({
-                where: {
-                    orgId: orgId,
-                    userId: uid,
-                }
-            });
-            canEdit = canEdit || (member !== null && member.isOwner);
-
-            if (!canEdit) {
-                throw new UserError(ErrorText.permissionOnlyOwner);
-            }
-
-            let targetMember = await DB.OrganizationMember.find({
-                where: {
-                    orgId: orgId,
-                    userId: IDs.User.parse(args.memberId),
-                }
-            });
-
-            if (!targetMember) {
-                throw new UserError(ErrorText.unableToFindUser);
-            }
-
-            targetMember.showInContacts = args.showInContacts;
-            await targetMember.save();
-            return 'ok';
-        }),
-
         alphaOrganizations: withAny<AlphaOrganizationsParams>(async args => {
             let clauses: any[] = [];
             let sort: any[] | undefined = undefined;
@@ -1405,6 +1371,39 @@ export const Resolver = {
 
                 return 'ok';
             });
-        })
+        }),
+        alphaAlterMemberAsContact: withUser<{ orgId: string, memberId: string, showInContacts: boolean }>(async (args, uid) => {
+            let orgId = IDs.Organization.parse(args.orgId);
+
+            let role = await Repos.Permissions.superRole(uid);
+            let canEdit = role === 'super-admin' || role === 'editor';
+
+            let member = await DB.OrganizationMember.find({
+                where: {
+                    orgId: orgId,
+                    userId: uid,
+                }
+            });
+            canEdit = canEdit || (member !== null && member.isOwner);
+
+            if (!canEdit) {
+                throw new UserError(ErrorText.permissionOnlyOwner);
+            }
+
+            let targetMember = await DB.OrganizationMember.find({
+                where: {
+                    orgId: orgId,
+                    userId: IDs.User.parse(args.memberId),
+                }
+            });
+
+            if (!targetMember) {
+                throw new UserError(ErrorText.unableToFindUser);
+            }
+
+            targetMember.showInContacts = args.showInContacts;
+            await targetMember.save();
+            return 'ok';
+        }),
     }
 };
