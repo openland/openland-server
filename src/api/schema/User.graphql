@@ -29,6 +29,7 @@ input UpdateProfileInput {
     alphaRole: String,
     alphaLocations: [String!],
     alphaLinkedin: String,
+    alphaTwitter: String,
     alphaPrimaryOrganizationId: ID,
 }
 
@@ -56,6 +57,7 @@ type Profile {
     alphaRole: String,
     alphaLocations: [String!],
     alphaLinkedin: String,
+    alphaTwitter: String,
     alphaPrimaryOrganizationId: ID,
     alphaJoinedAt: String,
     alphaInvitedBy: User

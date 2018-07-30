@@ -96,6 +96,7 @@ export const Resolver = {
         alphaRole: (src: UserProfile) => src.extras && src.extras.locations,
         alphaLocations: (src: UserProfile) => src.extras && src.extras.locations,
         alphaLinkedin: (src: UserProfile) => src.extras && src.extras.linkedin,
+        alphaTwitter: (src: UserProfile) => src.extras && src.extras.twitter,
         alphaPrimaryOrganizationId: (src: UserProfile) => src.extras && src.extras.primaryOrganizationId,
         alphaJoinedAt: (src: UserProfile) => (src as any).createdAt,
         alphaInvitedBy: async (src: UserProfile) => await Repos.Users.getUserInvitedBy(src.userId!!),
@@ -186,6 +187,7 @@ export const Resolver = {
                 location?: string | null,
                 alphaLocations?: string[] | null,
                 alphaLinkedin?: string | null,
+                alphaTwitter?: string | null,
                 alphaRole?: string | null,
                 alphaPrimaryOrganizationId?: string | null,
             }
@@ -237,6 +239,10 @@ export const Resolver = {
 
                 if (args.input.alphaLinkedin !== undefined) {
                     extras.linkedin = Sanitizer.sanitizeString(args.input.alphaLinkedin);
+                }
+
+                if (args.input.alphaTwitter !== undefined) {
+                    extras.twitter = Sanitizer.sanitizeString(args.input.alphaTwitter);
                 }
 
                 if (args.input.alphaRole !== undefined) {
