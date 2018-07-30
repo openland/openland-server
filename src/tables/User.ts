@@ -10,7 +10,7 @@ export interface UserAttributes {
     isBot?: boolean;
     lastSeen?: Date | null;
     status?: 'PENDING' | 'ACTIVATED' | 'SUSPENDED';
-    profile: Profile;
+    profile?: Profile;
     invitedBy?: number;
 }
 
