@@ -373,6 +373,7 @@ export const Resolver = {
 
             targetMember.showInContacts = args.showInContacts;
             await targetMember.save();
+            return 'ok';
         }),
 
         alphaOrganizations: withAny<AlphaOrganizationsParams>(async args => {
