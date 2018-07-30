@@ -355,7 +355,6 @@ extend type Query {
         after: String,
         page: Int
     ): OrganizationsConnection!
-    alphaAlterMemberAsContact(orgId: ID!, memberId: ID!, showInContacts: Boolean!): String
     alphaOrganizationPublicInvite: Invite
     alphaOrganizationPublicInviteForOrganizations: Invite
 }
@@ -394,4 +393,5 @@ extend type Mutation {
     alphaOrganizationCreatePublicInviteForOrganizations(expirationDays: Int): Invite!
     alphaOrganizationDeletePublicInviteForOrganizations: String!
     alphaAlterPublished(id: ID!, published: Boolean!): Organization!
+    alphaAlterMemberAsContact(orgId: ID!, memberId: ID!, showInContacts: Boolean!): String!
 }
