@@ -2,7 +2,7 @@ import { connection } from '../modules/sequelizeConnector';
 import * as sequelize from 'sequelize';
 import { OrganizationTable } from './Organization';
 import { Profile } from '../handlers/Profile';
-import { DB } from '.';
+import { UserProfileTable } from './UserProfile';
 
 export interface UserAttributes {
     id?: number;
@@ -38,4 +38,4 @@ export const UserTable = connection.define<User, UserAttributes>('user', {
 });
 
 UserTable.belongsTo(OrganizationTable, { as: 'organization' });
-UserTable.hasOne(DB.UserProfile, { as: 'profile' });
+UserTable.hasOne(UserProfileTable, { as: 'profile' });
