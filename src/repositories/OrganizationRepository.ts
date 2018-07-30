@@ -88,15 +88,7 @@ export class OrganizationRepository {
     async getOrganizationContacts(orgId: number): Promise<OrganizationMember[]> {
         return await DB.OrganizationMember.findAll({
             where: { orgId, showInContacts: true },
-            order: [['createdAt', 'ASC']],
-            include: [{
-                model: DB.User,
-                as: 'user',
-                include : [{
-                    model: DB.UserProfile,
-                    as: 'profile'
-                }]
-            }]
+            order: [['createdAt', 'ASC']]
         });
     }
 

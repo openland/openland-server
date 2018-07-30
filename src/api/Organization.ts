@@ -167,7 +167,7 @@ export const Resolver = {
         location: (src: Organization) => src.extras && src.extras.location,
         contacts: (src: Organization) => src.extras ? src.extras.contacts || [] : [],
 
-        alphaContacts: async (src: Organization) => (await Repos.Organizations.getOrganizationContacts(src.id!!)).map(m => m.user.profile),
+        alphaContacts: async (src: Organization) => (await Repos.Organizations.getOrganizationContacts(src.id!!)).map(async (m) => await DB.UserProfile.findOne({ where: { userId: m.userId } })).filter(p => p),
 
         alphaPublished: (src: Organization) => !src.extras || src.extras.published !== false,
         alphaEditorial: (src: Organization) => !!(src.extras && src.extras.editorial),
