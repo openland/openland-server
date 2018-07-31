@@ -19,6 +19,23 @@ export async function delay(ms: number) {
     return new Promise(resolve => { setTimeout(resolve, ms); });
 }
 
+export function debouncer(ms: number) {
+    let locks: Map<number, boolean> = new Map();
+
+    return (tag: number, cb: () => {}) => {
+        if (locks.has(tag)) {
+            return;
+        } else {
+            cb();
+            locks.set(tag, true);
+
+            setTimeout(() => {
+                locks.delete(tag);
+            }, ms);
+        }
+    };
+}
+
 export async function backoff<T>(callback: () => Promise<T>): Promise<T> {
     let currentFailureCount = 0;
     const minDelay = 500;

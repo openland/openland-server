@@ -424,4 +424,45 @@ export class ChatsRepository {
 
         return res;
     }
+
+    async getConversationMembers(conversationId: number): Promise<number[]> {
+        let conv = await DB.Conversation.findById(conversationId);
+
+        if (!conv) {
+            throw new NotFoundError('Conversation not found');
+        }
+
+        let members: number[] = [];
+
+        if (conv.type === 'private') {
+            members = [conv.member1Id!!, conv.member2Id!!];
+        } else if (conv.type === 'shared') {
+            let m = await DB.OrganizationMember.findAll({
+                where: {
+                    orgId: {
+                        $in: [conv.organization1Id!!, conv.organization2Id!!]
+                    }
+                },
+                order: [['createdAt', 'DESC']]
+            });
+            for (let i of m) {
+                if (members.indexOf(i.userId) < 0) {
+                    members.push(i.userId);
+                }
+            }
+        } else if (conv.type === 'group') {
+            let m = await DB.ConversationGroupMembers.findAll({
+                where: {
+                    conversationId: conv.id,
+                }
+            });
+            for (let i of m) {
+                if (members.indexOf(i.userId) < 0) {
+                    members.push(i.userId);
+                }
+            }
+        }
+
+        return members;
+    }
 }

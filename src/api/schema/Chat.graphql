@@ -158,9 +158,17 @@ extend type Mutation {
     alphaReadChat(conversationId: ID!, messageId: ID!): ChatReadResult!
     alphaChatCreateGroup(title: String, members: [ID!]!, message: String): Conversation!
     alphaGlobalRead(toSeq: Int): String!
+
+    alphaSetTyping(conversationId: ID!): String!
+
 }
 
 union ComposeSearchResult = User | Organization
+
+type TypingEvent {
+    conversation: Conversation!
+    user: User!
+}
 
 extend type Query {
     alphaChats(first: Int!, after: String): ConversationConnection!
@@ -175,4 +183,6 @@ extend type Subscription {
     alphaChatSubscribe(conversationId: ID!, fromSeq: Int): ConversationEvent!
     alphaNotificationCounterSubscribe: NotificationCounter!
     alphaSubscribeEvents(fromSeq: Int): UserEvent!
+
+    alphaSubscribeTypings: TypingEvent!
 }

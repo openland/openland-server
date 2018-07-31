@@ -13,6 +13,12 @@ import { JsonMap } from '../utils/json';
 import { IDMailformedError } from '../errors/IDMailformedError';
 import { ImageRef, buildBaseImageUrl } from '../repositories/Media';
 import { Organization } from '../tables/Organization';
+import { PubSub, withFilter } from 'graphql-subscriptions';
+import { debouncer } from '../utils/timer';
+
+const TYPINGS_PUBSUB = new PubSub();
+
+let typingDebounce = debouncer(1000);
 
 export const Resolver = {
     Conversation: {
@@ -363,6 +369,12 @@ export const Resolver = {
             }
         }
     },
+
+    TypingEvent: {
+        conversation: (src: any) => DB.Conversation.findById(src.conversationId),
+        user: (src: any) => DB.User.findById(src.userId),
+    },
+
     Query: {
         alphaNotificationCounter: withUser((args, uid) => uid),
         alphaChats: withAccount<{ first: number, after?: string | null }>(async (args, uid, oid) => {
@@ -717,6 +729,24 @@ export const Resolver = {
                     repeatKey: args.repeatKey
                 });
             });
+        }),
+        alphaSetTyping: withAccount<{ conversationId: string }>(async (args, uid) => {
+
+            let conversationId = IDs.Conversation.parse(args.conversationId);
+
+            typingDebounce(conversationId, async () => {
+                let members = await Repos.Chats.getConversationMembers(conversationId);
+
+                for (let member of members) {
+                    TYPINGS_PUBSUB.publish('TYPING', {
+                        forUserId: member,
+                        userId: uid,
+                        conversationId: conversationId
+                    });
+                }
+            });
+
+            return 'ok';
         })
     },
     Subscription: {
@@ -832,6 +862,20 @@ export const Resolver = {
                         return 'ok';
                     }
                 };
+            }
+        },
+        alphaSubscribeTypings: {
+            resolve: async (msg: any) => {
+                return msg;
+            },
+            subscribe: async function (_: any, args: any, context: CallContext) {
+                if (!context.uid) {
+                    throw Error('Not logged in');
+                }
+
+                return withFilter(() => TYPINGS_PUBSUB.asyncIterator('TYPING'), (payload, variables) => {
+                    return payload.forUserId === context.uid;
+                })(null, {}, context);
             }
         }
     }
