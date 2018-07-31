@@ -29,6 +29,7 @@ type SharedConversation implements Conversation {
     organizations: [Organization!]!
     unreadCount: Int!
     topMessage: ConversationMessage
+    organization: Organization
 }
 
 type PrivateConversation implements Conversation {

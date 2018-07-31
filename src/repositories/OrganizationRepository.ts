@@ -91,10 +91,17 @@ export class OrganizationRepository {
     }
 
     async getOrganizationContacts(orgId: number): Promise<OrganizationMember[]> {
-        return (await DB.OrganizationMember.findAll({
+        let members = await DB.OrganizationMember.findAll({
             where: { orgId, showInContacts: true },
             order: [['createdAt', 'ASC']]
-        })).filter(async m => await this.notAdminOrOrgIsOpenland(m));
+        });
+        let res: OrganizationMember[] = [];
+        for (let m of members) {
+            if (await this.notAdminOrOrgIsOpenland(m)) {
+                res.push(m);
+            }
+        }
+        return res;
     }
 
     async isOwnerOfOrganization(orgId: number, userId: number, tx?: Transaction): Promise<boolean> {
