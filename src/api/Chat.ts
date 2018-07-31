@@ -108,7 +108,15 @@ export const Resolver = {
                 conversationId: src.id,
             },
             order: [['id', 'DESC']]
-        })
+        }),
+        organization: async (src: Conversation, _: any, context: CallContext) => {
+            if (src.organization1Id === context.oid || (src.organization1 && src.organization1.id === context.oid)) {
+                return (src.organization2 || await src.getOrganization2())!!;
+            } else if (src.organization2Id === context.oid || (src.organization2 && src.organization2.id === context.oid)) {
+                return (src.organization1 || await src.getOrganization1())!!;
+            }
+            return undefined;
+        }
     },
     PrivateConversation: {
         id: (src: Conversation) => IDs.Conversation.serialize(src.id),
