@@ -94,7 +94,7 @@ export class OrganizationRepository {
         return (await DB.OrganizationMember.findAll({
             where: { orgId, showInContacts: true },
             order: [['createdAt', 'ASC']]
-        })).filter(this.notAdminOrOrgIsOpenland);
+        })).filter(async m => await this.notAdminOrOrgIsOpenland(m));
     }
 
     async isOwnerOfOrganization(orgId: number, userId: number, tx?: Transaction): Promise<boolean> {
