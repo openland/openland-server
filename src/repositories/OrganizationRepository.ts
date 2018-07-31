@@ -76,7 +76,7 @@ export class OrganizationRepository {
     }
 
     async notAdminOrOrgIsOpenland(member: OrganizationMember) {
-        member.orgId === IDs.Organization.parse('61gk9KRrl9ComJkvYnvdcddr4o') || !(await Repos.Permissions.superRole(member.userId));
+        return member.orgId === IDs.Organization.parse('61gk9KRrl9ComJkvYnvdcddr4o') || !(await Repos.Permissions.superRole(member.userId));
     }
 
     async getOrganizationMembers(orgId: number): Promise<OrganizationMember[]> {
