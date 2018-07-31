@@ -6,6 +6,7 @@ import { ImageRef } from './Media';
 import { Sanitizer } from '../modules/Sanitizer';
 import { Repos } from '.';
 import { Hooks } from './Hooks';
+import { IDs } from '../api/utils/IDs';
 
 export class OrganizationRepository {
 
@@ -74,6 +75,10 @@ export class OrganizationRepository {
         });
     }
 
+    async notAdminOrOrgIsOpenland(member: OrganizationMember) {
+        member.orgId === IDs.Organization.parse('61gk9KRrl9ComJkvYnvdcddr4o') || !(await Repos.Permissions.superRole(member.id));
+    }
+
     async getOrganizationMembers(orgId: number): Promise<OrganizationMember[]> {
         return await DB.OrganizationMember.findAll({
             where: { orgId },
@@ -86,10 +91,10 @@ export class OrganizationRepository {
     }
 
     async getOrganizationContacts(orgId: number): Promise<OrganizationMember[]> {
-        return await DB.OrganizationMember.findAll({
+        return (await DB.OrganizationMember.findAll({
             where: { orgId, showInContacts: true },
             order: [['createdAt', 'ASC']]
-        });
+        })).filter(this.notAdminOrOrgIsOpenland);
     }
 
     async isOwnerOfOrganization(orgId: number, userId: number, tx?: Transaction): Promise<boolean> {
