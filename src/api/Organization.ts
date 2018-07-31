@@ -342,6 +342,27 @@ export const Resolver = {
             return result;
         }),
 
+        alphaOrganizationByPrefix: withAny<{ query: string }>(async args => {
+
+            let hits = await ElasticClient.search({
+                index: 'organizations',
+                type: 'organization',
+                body: {
+                    query: { prefix: { name: args.query } }
+                }
+            });
+            let res = await DB.Organization.findAll({
+                where: {
+                    id: {
+                        $in: hits.hits.hits.map((v) => v._id)
+                    }
+                },
+                limit: 1
+            });
+
+            return res[0];
+        }),
+
         alphaOrganizations: withAny<AlphaOrganizationsParams>(async args => {
             let clauses: any[] = [];
             let sort: any[] | undefined = undefined;

@@ -355,6 +355,9 @@ extend type Query {
         after: String,
         page: Int
     ): OrganizationsConnection!
+    alphaOrganizationByPrefix(
+        query: String,
+    ): Organization
     alphaOrganizationPublicInvite: Invite
     alphaOrganizationPublicInviteForOrganizations: Invite
 }
