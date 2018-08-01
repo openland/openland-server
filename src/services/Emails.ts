@@ -193,6 +193,17 @@ export const Emails = {
             'userLastName': invite.memberLastName || ''
         };
 
+        let profile = await DB.UserProfile.find({
+            where: {
+                userId: invite.creatorId
+            },
+            transaction: tx
+        });
+
+        if (!profile) {
+            throw Error('Internal inconsistency');
+        }
+
         let domain = process.env.APP_ENVIRONMENT === 'production' ? 'https://app.openland.com/join/' : 'http://localhost:3000/join/';
 
         await EmailWorker.pushWork({
@@ -200,9 +211,12 @@ export const Emails = {
             templateId: TEMPLATE_INVITE,
             to: invite.forEmail,
             args: {
+                firstName: profile.firstName || '',
+                lastName: profile.lastName || '',
                 customText: invite.emailText || '',
                 inviteLink: domain + invite.uuid,
-                'organizationName': org.name!!,
+                link: domain + invite.uuid,
+                organizationName: org.name!!,
                 ...userWelcome
             }
         }, tx);
@@ -221,6 +235,17 @@ export const Emails = {
             'userLastName': invite.memberLastName || ''
         };
 
+        let profile = await DB.UserProfile.find({
+            where: {
+                userId: invite.creatorId
+            },
+            transaction: tx
+        });
+
+        if (!profile) {
+            throw Error('Internal inconsistency');
+        }
+
         let domain = process.env.APP_ENVIRONMENT === 'production' ? 'https://app.openland.com/invite/' : 'http://localhost:3000/invite/';
 
         await EmailWorker.pushWork({
@@ -228,8 +253,10 @@ export const Emails = {
             templateId: TEMPLATE_INVITE_ORGANIZATION,
             to: invite.forEmail,
             args: {
+                firstName: profile.firstName || '',
+                lastName: profile.lastName || '',
                 customText: invite.emailText || '',
-                inviteLink: domain + invite.uuid,
+                link: domain + invite.uuid,
                 'organizationName': org.name!!,
                 ...userWelcome
             }
@@ -250,6 +277,10 @@ export const Emails = {
                 transaction: tx
             });
 
+            if (!memberProfile) {
+                throw Error('Internal inconsistency');
+            }
+
             let organizationMembers = await Repos.Organizations.getOrganizationMembers(oid);
 
             for (let member of organizationMembers) {
@@ -260,7 +291,10 @@ export const Emails = {
                     templateId: TEMPLATE_MEMBER_JOINED,
                     to: user.email,
                     args: {
-                        memberName: memberProfile ? memberProfile.firstName : '',
+                        memberName: memberProfile.firstName || '',
+                        firstName: memberProfile.firstName || '',
+                        lastName: memberProfile.lastName || '',
+                        link: 'https://app.openland.com/mail',
                         'organizationName': org.name!!,
                         ...(user.args)
                     }
