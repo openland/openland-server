@@ -416,16 +416,26 @@ export const Resolver = {
                 throw new IDMailformedError('Invalid id');
             }
         }),
-        alphaLoadMessages: withAny<{ conversationId: string }>((args) => {
+        alphaLoadMessages: withAny<{ conversationId: string, first?: number, before?: string, after?: string }>((args) => {
             let conversationId = IDs.Conversation.parse(args.conversationId);
             return DB.tx(async (tx) => {
+                let beforeMessage: ConversationMessage | null = null;
+                if (args.before) {
+                    beforeMessage = await DB.ConversationMessage.findOne({ where: { id: IDs.ConversationMessage.parse(args.before) } });
+                }
+                let afterMessage: ConversationMessage | null = null;
+                if (args.after) {
+                    afterMessage = await DB.ConversationMessage.findOne({ where: { id: IDs.ConversationMessage.parse(args.after) } });
+                }
                 let seq = (await DB.Conversation.findById(conversationId))!!.seq;
                 return {
                     seq: seq,
                     messages: await (DB.ConversationMessage.findAll({
                         where: {
-                            conversationId: conversationId
+                            conversationId: conversationId,
+                            id: beforeMessage ? { $lt: beforeMessage.id } : afterMessage ? { $gt: afterMessage.id } : undefined,
                         },
+                        limit: args.first,
                         order: [['id', 'DESC']],
                         transaction: tx
                     }))
