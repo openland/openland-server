@@ -3,7 +3,7 @@ import { IDs, IdsFactory } from './utils/IDs';
 import { Conversation } from '../tables/Conversation';
 import { DB, User } from '../tables';
 import { withPermission, withAny, withAccount, withUser } from './utils/Resolvers';
-import { validate, stringNotEmpty } from '../modules/NewInputValidator';
+import { validate, stringNotEmpty, enumString, optional } from '../modules/NewInputValidator';
 import { ConversationEvent } from '../tables/ConversationEvent';
 import { CallContext } from './utils/CallContext';
 import { Repos } from '../repositories';
@@ -13,12 +13,7 @@ import { JsonMap } from '../utils/json';
 import { IDMailformedError } from '../errors/IDMailformedError';
 import { ImageRef, buildBaseImageUrl } from '../repositories/Media';
 import { Organization } from '../tables/Organization';
-import { PubSub, withFilter } from 'graphql-subscriptions';
-import { debouncer } from '../utils/timer';
-
-const TYPINGS_PUBSUB = new PubSub();
-
-let typingDebounce = debouncer(1000);
+import { TypingEvent } from '../repositories/ChatRepository';
 
 export const Resolver = {
     Conversation: {
@@ -379,8 +374,10 @@ export const Resolver = {
     },
 
     TypingEvent: {
-        conversation: (src: any) => DB.Conversation.findById(src.conversationId),
-        user: (src: any) => DB.User.findById(src.userId),
+        type: (src: TypingEvent) => src.type,
+        cancel: (src: TypingEvent) => src.cancel,
+        conversation: (src: TypingEvent) => DB.Conversation.findById(src.conversationId),
+        user: (src: TypingEvent) => DB.User.findById(src.userId),
     },
 
     Query: {
@@ -738,21 +735,13 @@ export const Resolver = {
                 });
             });
         }),
-        alphaSetTyping: withAccount<{ conversationId: string }>(async (args, uid) => {
+        alphaSetTyping: withAccount<{ conversationId: string, type: string }>(async (args, uid) => {
+
+            await validate({ type: optional(enumString(['text', 'photo'])) }, args);
 
             let conversationId = IDs.Conversation.parse(args.conversationId);
 
-            typingDebounce(conversationId, async () => {
-                let members = await Repos.Chats.getConversationMembers(conversationId);
-
-                for (let member of members) {
-                    TYPINGS_PUBSUB.publish('TYPING', {
-                        forUserId: member,
-                        userId: uid,
-                        conversationId: conversationId
-                    });
-                }
-            });
+            await Repos.Chats.typingManager.setTyping(uid, conversationId, args.type || 'text');
 
             return 'ok';
         })
@@ -881,9 +870,7 @@ export const Resolver = {
                     throw Error('Not logged in');
                 }
 
-                return withFilter(() => TYPINGS_PUBSUB.asyncIterator('TYPING'), (payload, variables) => {
-                    return payload.forUserId === context.uid;
-                })(null, {}, context);
+                return Repos.Chats.typingManager.getIterator(context.uid);
             }
         }
     }

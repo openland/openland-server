@@ -8,6 +8,10 @@ import { Transaction } from 'sequelize';
 import { JsonMap } from '../utils/json';
 import { DoubleInvokeError } from '../errors/DoubleInvokeError';
 import { NotFoundError } from '../errors/NotFoundError';
+import { debouncer } from '../utils/timer';
+import { PubSub, withFilter } from 'graphql-subscriptions';
+import { AsyncIterator } from 'async';
+import { Repos } from './index';
 
 export interface Message {
     message?: string | null;
@@ -148,8 +152,76 @@ class UserEventsReader {
     }
 }
 
-export class ChatsRepository {
+export interface TypingEvent {
+    forUserId: number;
+    userId: number;
+    conversationId: number;
+    type: string;
+    cancel: boolean;
+}
 
+class TypingManager {
+    private pubSub = new PubSub();
+
+    private debounce = debouncer(1000);
+
+    private cache = new Map<number, number[]>();
+
+    public async setTyping(uid: number, conversationId: number, type: string) {
+        this.debounce(conversationId, async () => {
+            let members = await this.getChatMembers(conversationId);
+
+            for (let member of members) {
+                this.pubSub.publish('TYPING', {
+                    forUserId: member,
+                    userId: uid,
+                    conversationId: conversationId,
+                    type,
+                    cancel: false
+                });
+            }
+        });
+    }
+
+    public async cancelTyping(uid: number, conversationId: number) {
+        let members = await this.getChatMembers(conversationId);
+
+        for (let member of members) {
+            this.pubSub.publish('TYPING', {
+                forUserId: member,
+                userId: uid,
+                conversationId: conversationId,
+                type: 'cancel',
+                cancel: true
+            });
+        }
+    }
+
+    public getIterator(uid: number): AsyncIterator<TypingEvent, any> {
+        return withFilter(() => this.pubSub.asyncIterator('TYPING'), (payload, variables) => {
+            return payload.forUserId === uid;
+        })(null, {}, {}) as any;
+    }
+
+    public resetCache(charId: number) {
+        this.cache.delete(charId);
+    }
+
+    private async getChatMembers(chatId: number): Promise<number[]> {
+        if (this.cache.has(chatId)) {
+            return this.cache.get(chatId)!;
+        } else {
+            let members = await Repos.Chats.getConversationMembers(chatId);
+
+            this.cache.set(chatId, members);
+
+            return members;
+        }
+    }
+}
+
+export class ChatsRepository {
+    typingManager = new TypingManager();
     reader: ChatsEventReader;
     counterReader: ChatCounterListener;
     userReader: UserEventsReader;
@@ -234,6 +306,8 @@ export class ChatsRepository {
         if (message.message === 'fuck') {
             throw Error('');
         }
+
+        await this.typingManager.cancelTyping(uid, conversationId);
 
         //
         // Handle retry

@@ -6,7 +6,6 @@ import { ImageRef } from './Media';
 import { Sanitizer } from '../modules/Sanitizer';
 import { Repos } from '.';
 import { Hooks } from './Hooks';
-import { IDs } from '../api/utils/IDs';
 
 export class OrganizationRepository {
 
@@ -76,7 +75,7 @@ export class OrganizationRepository {
     }
 
     async notAdminOrOrgIsOpenland(member: OrganizationMember) {
-        return member.orgId === IDs.Organization.parse('61gk9KRrl9ComJkvYnvdcddr4o') || !(await Repos.Permissions.superRole(member.userId));
+        return member.orgId === 1 || !(await Repos.Permissions.superRole(member.userId));
     }
 
     async getOrganizationMembers(orgId: number): Promise<OrganizationMember[]> {

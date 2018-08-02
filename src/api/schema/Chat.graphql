@@ -160,8 +160,7 @@ extend type Mutation {
     alphaChatCreateGroup(title: String, members: [ID!]!, message: String): Conversation!
     alphaGlobalRead(toSeq: Int): String!
 
-    alphaSetTyping(conversationId: ID!): String!
-
+    alphaSetTyping(conversationId: ID!, type: String): String!
 }
 
 union ComposeSearchResult = User | Organization
@@ -169,6 +168,8 @@ union ComposeSearchResult = User | Organization
 type TypingEvent {
     conversation: Conversation!
     user: User!
+    type: String!
+    cancel: Boolean!
 }
 
 extend type Query {
