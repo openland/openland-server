@@ -28,8 +28,9 @@ export const Resolver = {
             return 'ok';
         }),
 
-        debugSendEmail: withPermissionOptional<{ email: string, text: string }>(['software-developer'], async (args) => {
-            await Emails.sendDebugEmail(args.email, args.text);
+        debugSendEmail: withPermissionOptional<{ email: string, text: string }>(['software-developer'], async (args, ctx) => {
+            // await Emails.sendDebugEmail(args.email, args.text);
+            await Emails.sendUnreadMesages(ctx.uid!, 10);
 
             return 'ok';
         }),

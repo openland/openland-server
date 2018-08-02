@@ -6,6 +6,7 @@ import { DB } from '../tables';
 import { Profile } from './Profile';
 import { Repos } from '../repositories';
 import { fetchKeyFromRequest } from '../utils/fetchKeyFromRequest';
+import { Emails } from '../services/Emails';
 
 //
 // Main JWT verifier
@@ -96,6 +97,8 @@ export const Authenticator = async function (req: express.Request, response: exp
         let uid = await DB.tx(async (tx) => {
             let userKey = req.user.sub;
 
+            let isNewAccount = false;
+
             // Account
             let user = await DB.User.find({
                 where: {
@@ -105,6 +108,7 @@ export const Authenticator = async function (req: express.Request, response: exp
             });
             if (user === null) {
                 user = (await DB.User.create({ authId: userKey, email: profile.email.toLowerCase(), }, { transaction: tx }));
+                isNewAccount = true;
             }
 
             // Prefill
@@ -116,6 +120,10 @@ export const Authenticator = async function (req: express.Request, response: exp
                     lastName: lastName,
                     picture: profile.picture
                 }, { transaction: tx });
+            }
+
+            if (isNewAccount) {
+                await Emails.sendWelcomeEmail(user.id!, tx);
             }
 
             return user.id!!;
