@@ -175,7 +175,7 @@ extend type Query {
     alphaChats(first: Int!, after: String): ConversationConnection!
     alphaNotificationCounter: NotificationCounter!
     alphaChat(conversationId: ID!): Conversation!
-    alphaLoadMessages(conversationId: ID!): ConversationState!
+    alphaLoadMessages(conversationId: ID!, first: Int, before: String, after: String): ConversationState!
     alphaChatsSearchForCompose(query: String, organizations: Boolean): [ComposeSearchResult!]!
     alphaChatSearch(members: [ID!]!): Conversation
 }
