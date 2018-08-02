@@ -161,14 +161,20 @@ export interface TypingEvent {
 }
 
 class TypingManager {
+    public TIMEOUT = 2000;
+
     private pubSub = new PubSub();
 
-    private debounce = debouncer(1000);
+    private debounce = debouncer(this.TIMEOUT);
 
     private cache = new Map<number, number[]>();
 
+    private typingState = new Map<number, boolean>();
+
     public async setTyping(uid: number, conversationId: number, type: string) {
         this.debounce(conversationId, async () => {
+            this.typingState.set(uid, true);
+            setTimeout(() => this.typingState.delete(uid), this.TIMEOUT);
             let members = await this.getChatMembers(conversationId);
 
             for (let member of members) {
@@ -184,6 +190,10 @@ class TypingManager {
     }
 
     public async cancelTyping(uid: number, conversationId: number) {
+        if (!this.typingState.has(uid)) {
+            return;
+        }
+
         let members = await this.getChatMembers(conversationId);
 
         for (let member of members) {
