@@ -70,7 +70,7 @@ export const Emails = {
                 templateId: TEMPLATE_UNREAD_MESSAGES,
                 to: user.email,
                 args: {
-                    messageCount: count === 1 ? 'one new message' : count.toString() + ' new messages',
+                    messageCount: count.toString(),
                     ...user.args
                 }
             }, tx);
