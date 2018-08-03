@@ -433,7 +433,7 @@ export const Resolver = {
                     messages: await (DB.ConversationMessage.findAll({
                         where: {
                             conversationId: conversationId,
-                            id: beforeMessage ? { $lt: beforeMessage.id } : afterMessage ? { $gt: afterMessage.id } : undefined,
+                            ...((beforeMessage || afterMessage) ? { id: beforeMessage ? { $lt: beforeMessage.id } : { $gt: afterMessage!!.id } } : {}),
                         },
                         limit: args.first,
                         order: [['id', 'DESC']],
