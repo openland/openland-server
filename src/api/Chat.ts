@@ -382,7 +382,7 @@ export const Resolver = {
 
     Query: {
         alphaNotificationCounter: withUser((args, uid) => uid),
-        alphaChats: withAccount<{ first: number, after?: string | null }>(async (args, uid, oid) => {
+        alphaChats: withAccount<{ first: number, after?: string | null, seq?: number }>(async (args, uid, oid) => {
             return await DB.tx(async (tx) => {
                 let global = await DB.ConversationsUserGlobal.find({ where: { userId: uid }, transaction: tx });
                 let conversations = await DB.ConversationUserState.findAll({
@@ -390,16 +390,16 @@ export const Resolver = {
                         userId: uid,
                     },
                     order: [['updatedAt', 'DESC']],
-                    limit: args.first,
+                    limit: args.first + 1,
                     include: [{
                         model: DB.Conversation,
                         as: 'conversation'
                     }]
                 });
                 return {
-                    conversations: conversations.map((v) => v.conversation!!),
+                    conversations: conversations.map((v) => v.conversation!!).filter((c, i) => i < args.first),
                     seq: global ? global.seq : 0,
-                    next: null,
+                    next: conversations.length > args.first ? conversations[args.first].id : null,
                     counter: uid
                 };
             });
