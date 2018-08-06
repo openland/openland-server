@@ -385,6 +385,10 @@ export const Resolver = {
         alphaChats: withAccount<{ first: number, after?: string | null, seq?: number }>(async (args, uid, oid) => {
             return await DB.tx(async (tx) => {
                 let global = await DB.ConversationsUserGlobal.find({ where: { userId: uid }, transaction: tx });
+                let seq = global ? global.seq : 0;
+                if (args.seq !== undefined && args.seq !== null && args.seq !== seq) {
+                    throw new Error('Inconsistent request');
+                }
                 let conversations = await DB.ConversationUserState.findAll({
                     where: {
                         userId: uid,
@@ -398,7 +402,7 @@ export const Resolver = {
                 });
                 return {
                     conversations: conversations.map((v) => v.conversation!!).filter((c, i) => i < args.first),
-                    seq: global ? global.seq : 0,
+                    seq: seq,
                     next: conversations.length > args.first ? conversations[args.first].id : null,
                     counter: uid
                 };
