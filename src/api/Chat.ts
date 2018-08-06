@@ -873,6 +873,7 @@ export const Resolver = {
         },
         alphaSubscribeTypings: {
             resolve: async (msg: any) => {
+                console.log(msg);
                 return msg;
             },
             subscribe: async function (_: any, args: any, context: CallContext) {
@@ -880,7 +881,7 @@ export const Resolver = {
                     throw Error('Not logged in');
                 }
 
-                return Repos.Chats.typingManager.getIterator(context.uid);
+                return Repos.Chats.typingManager.getXIterator(context.uid);
             }
         }
     }

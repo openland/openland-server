@@ -9,9 +9,8 @@ import { JsonMap } from '../utils/json';
 import { DoubleInvokeError } from '../errors/DoubleInvokeError';
 import { NotFoundError } from '../errors/NotFoundError';
 import { debouncer } from '../utils/timer';
-import { PubSub, withFilter } from 'graphql-subscriptions';
-import { AsyncIterator } from 'async';
 import { Repos } from './index';
+import { Pubsub } from '../modules/pubsub';
 
 export interface Message {
     message?: string | null;
@@ -163,13 +162,13 @@ export interface TypingEvent {
 class TypingManager {
     public TIMEOUT = 2000;
 
-    private pubSub = new PubSub();
-
     private debounce = debouncer(this.TIMEOUT);
 
     private cache = new Map<number, number[]>();
 
     private typingState = new Map<number, boolean>();
+
+    private xPubSub = new Pubsub<TypingEvent>();
 
     public async setTyping(uid: number, conversationId: number, type: string) {
         this.debounce(conversationId, async () => {
@@ -178,7 +177,7 @@ class TypingManager {
             let members = await this.getChatMembers(conversationId);
 
             for (let member of members) {
-                this.pubSub.publish('TYPING', {
+                this.xPubSub.publish(`TYPING_${member}`, {
                     forUserId: member,
                     userId: uid,
                     conversationId: conversationId,
@@ -197,7 +196,7 @@ class TypingManager {
         let members = await this.getChatMembers(conversationId);
 
         for (let member of members) {
-            this.pubSub.publish('TYPING', {
+            this.xPubSub.publish(`TYPING_${member}`, {
                 forUserId: member,
                 userId: uid,
                 conversationId: conversationId,
@@ -207,14 +206,55 @@ class TypingManager {
         }
     }
 
-    public getIterator(uid: number): AsyncIterator<TypingEvent, any> {
-        return withFilter(() => this.pubSub.asyncIterator('TYPING'), (payload, variables) => {
-            return payload.forUserId === uid;
-        })(null, {}, {}) as any;
-    }
-
     public resetCache(charId: number) {
         this.cache.delete(charId);
+    }
+
+    public async getXIterator(uid: number) {
+
+        let events: TypingEvent[] = [];
+        let resolvers: any[] = [];
+
+        let sub = await this.xPubSub.xSubscribe(`TYPING_${uid}`, ev => {
+            if (resolvers.length > 0) {
+                resolvers.shift()({ value: ev, done: false });
+            } else {
+                events.push(ev);
+            }
+        });
+
+        const getValue = () => {
+            return new Promise((resolve => {
+                if (events.length > 0) {
+                    let val = events.shift();
+
+                    resolve({
+                        value: val,
+                        done: false
+                    });
+                } else {
+                    resolvers.push(resolve);
+                }
+            }));
+        };
+
+        return {
+            next(): any {
+                return getValue();
+            },
+            return(): any {
+                events = [];
+                resolvers = [];
+                sub.unsubscribe();
+                return Promise.resolve({ value: undefined, done: true });
+            },
+            throw(error: any) {
+                return Promise.reject(error);
+            },
+            [Symbol.asyncIterator]() {
+                return this;
+            }
+        };
     }
 
     private async getChatMembers(chatId: number): Promise<number[]> {

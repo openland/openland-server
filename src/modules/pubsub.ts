@@ -60,4 +60,15 @@ export class Pubsub<T> {
         }
         this.subscribers.get(topic)!!.push({ listener: receiver });
     }
+
+    async xSubscribe(topic: string, receiver: (data: T) => void): Promise<{ unsubscribe(): void }> {
+        await this.subscribe(topic, receiver);
+
+        return {
+            unsubscribe: () => {
+                let filteredSubscribers = this.subscribers.get(topic)!.filter(s => s.listener !== receiver);
+                this.subscribers.set(topic, filteredSubscribers);
+            }
+        };
+    }
 }
