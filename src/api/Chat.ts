@@ -392,6 +392,11 @@ export const Resolver = {
                 let conversations = await DB.ConversationUserState.findAll({
                     where: {
                         userId: uid,
+                        ...args.after ? {
+                            updatedAt: {
+                                $lte: args.after
+                            }
+                        } : {},
                     },
                     order: [['updatedAt', 'DESC']],
                     limit: args.first + 1,
@@ -403,7 +408,7 @@ export const Resolver = {
                 return {
                     conversations: conversations.map((v) => v.conversation!!).filter((c, i) => i < args.first),
                     seq: seq,
-                    next: conversations.length > args.first ? conversations[args.first].id : null,
+                    next: conversations.length > args.first ? conversations[args.first].updatedAt : null,
                     counter: uid
                 };
             });

@@ -10,6 +10,7 @@ export interface ConversationUserStateAttributes {
     unread: number;
     readDate: number;
     active: boolean;
+    updatedAt: Date;
 }
 
 export interface ConversationUserState extends sequelize.Instance<Partial<ConversationUserStateAttributes>>, ConversationUserStateAttributes {
