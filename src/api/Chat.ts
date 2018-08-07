@@ -408,7 +408,7 @@ export const Resolver = {
                 return {
                     conversations: conversations.map((v) => v.conversation!!).filter((c, i) => i < args.first),
                     seq: seq,
-                    next: conversations.length > args.first ? conversations[args.first].updatedAt : null,
+                    next: conversations.length > args.first ? conversations[args.first - 1].updatedAt : null,
                     counter: uid
                 };
             });
