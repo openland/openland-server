@@ -387,24 +387,33 @@ export const Resolver = {
 
     Query: {
         alphaNotificationCounter: withUser((args, uid) => uid),
-        alphaChats: withAccount<{ first: number, after?: string | null }>(async (args, uid, oid) => {
+        alphaChats: withAccount<{ first: number, after?: string | null, seq?: number }>(async (args, uid, oid) => {
             return await DB.tx(async (tx) => {
                 let global = await DB.ConversationsUserGlobal.find({ where: { userId: uid }, transaction: tx });
+                let seq = global ? global.seq : 0;
+                if (args.seq !== undefined && args.seq !== null && args.seq !== seq) {
+                    throw new Error('Inconsistent request');
+                }
                 let conversations = await DB.ConversationUserState.findAll({
                     where: {
                         userId: uid,
+                        ...args.after ? {
+                            updatedAt: {
+                                $lte: args.after
+                            }
+                        } : {},
                     },
                     order: [['updatedAt', 'DESC']],
-                    limit: args.first,
+                    limit: args.first + 1,
                     include: [{
                         model: DB.Conversation,
                         as: 'conversation'
                     }]
                 });
                 return {
-                    conversations: conversations.map((v) => v.conversation!!),
-                    seq: global ? global.seq : 0,
-                    next: null,
+                    conversations: conversations.map((v) => v.conversation!!).filter((c, i) => i < args.first),
+                    seq: seq,
+                    next: conversations.length > args.first ? conversations[args.first - 1].updatedAt : null,
                     counter: uid
                 };
             });
