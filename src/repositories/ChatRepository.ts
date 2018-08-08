@@ -12,6 +12,8 @@ import { debouncer } from '../utils/timer';
 import { Repos } from './index';
 import { Pubsub } from '../modules/pubsub';
 
+export type ChatEventType = 'new_message' | 'title_change';
+
 export interface Message {
     message?: string | null;
     file?: string | null;
@@ -588,5 +590,33 @@ export class ChatsRepository {
         }
 
         return members;
+    }
+
+    async groupChatExists(conversationId: number): Promise<boolean> {
+        return !!await DB.Conversation.findOne({
+            where: {
+                id: conversationId,
+                type: 'group'
+            }
+        });
+    }
+
+    async addChatEvent(conversationId: number, eventType: ChatEventType, event: JsonMap, exTx?: Transaction) {
+        return await DB.txStable(async (tx) => {
+            let conv = await DB.Conversation.findById(conversationId, { lock: tx.LOCK.UPDATE, transaction: tx });
+            if (!conv) {
+                throw new NotFoundError('Conversation not found');
+            }
+            let seq = conv.seq + 1;
+            conv.seq = seq;
+            await conv.save({ transaction: tx });
+
+            await DB.ConversationEvent.create({
+                conversationId: conversationId,
+                eventType: eventType,
+                event,
+                seq: seq
+            }, { transaction: tx });
+        }, exTx);
     }
 }

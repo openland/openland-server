@@ -3,7 +3,7 @@ import { IDs, IdsFactory } from './utils/IDs';
 import { Conversation } from '../tables/Conversation';
 import { DB, User } from '../tables';
 import { withPermission, withAny, withAccount, withUser } from './utils/Resolvers';
-import { validate, stringNotEmpty, enumString, optional } from '../modules/NewInputValidator';
+import { validate, stringNotEmpty, enumString, optional, defined } from '../modules/NewInputValidator';
 import { ConversationEvent } from '../tables/ConversationEvent';
 import { CallContext } from './utils/CallContext';
 import { Repos } from '../repositories';
@@ -296,6 +296,8 @@ export const Resolver = {
                 return 'ConversationEventMessage';
             } else if (obj.eventType === 'delete_message') {
                 return 'ConversationEventDelete';
+            } else if (obj.eventType === 'title_change') {
+                return 'ConversationEventTitle';
             }
             throw Error('Unknown type');
         },
@@ -306,6 +308,9 @@ export const Resolver = {
     },
     ConversationEventDelete: {
         messageId: (src: ConversationEvent) => IDs.ConversationMessage.serialize(src.event.messageId as number)
+    },
+    ConversationEventTitle: {
+        title: (src: ConversationEvent) => src.event.title
     },
     ChatReadResult: {
         conversation: (src: { uid: number, conversationId: number }) => DB.Conversation.findById(src.conversationId),
@@ -524,7 +529,8 @@ export const Resolver = {
                     await DB.ConversationGroupMembers.create({
                         conversationId: conv.id,
                         invitedById: uid,
-                        userId: m
+                        userId: m,
+                        role: m === uid ? 'creator' : 'member'
                     }, { transaction: tx });
                 }
                 await Repos.Chats.sendMessage(tx, conv.id, uid, { message: args.message });
@@ -754,6 +760,34 @@ export const Resolver = {
             await Repos.Chats.typingManager.setTyping(uid, conversationId, args.type || 'text');
 
             return 'ok';
+        }),
+        alphaChatChangeGroupTitle: withAccount<{ conversationId: string, title: string }>(async (args, uid) => {
+            return DB.tx(async (tx) => {
+                await validate({ title: defined(stringNotEmpty()) }, args);
+
+                let conversationId = IDs.Conversation.parse(args.conversationId);
+
+                let chat = await DB.Conversation.findById(conversationId, { transaction: tx });
+
+                if (!chat || chat.type !== 'group') {
+                    throw new Error('Chat not found');
+                }
+
+                await chat.update({
+                    title: args.title
+                }, { transaction: tx });
+
+                await Repos.Chats.addChatEvent(
+                    conversationId,
+                    'title_change',
+                    {
+                        title: args.title
+                    },
+                    tx
+                );
+
+                return 'ok';
+            });
         })
     },
     Subscription: {

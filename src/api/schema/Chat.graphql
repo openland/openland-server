@@ -95,6 +95,11 @@ type ConversationEventDelete implements ConversationEvent {
     messageId: ID!
 }
 
+type ConversationEventTitle implements ConversationEvent {
+    seq: Int!
+    title: String!
+}
+
 type ConversationState {
     seq: Int!
     messages: [ConversationMessage!]!
@@ -161,6 +166,7 @@ extend type Mutation {
     alphaGlobalRead(toSeq: Int): String!
 
     alphaSetTyping(conversationId: ID!, type: String): String!
+    alphaChatChangeGroupTitle(conversationId: ID!, title: String!): String!
 }
 
 union ComposeSearchResult = User | Organization
