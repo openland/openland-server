@@ -956,6 +956,39 @@ export const Resolver = {
                 return 'ok';
             });
         }),
+        alphaChatCopyGroup: withAccount<{ conversationId: string, extraMembers: string[], title?: string, message: string }>(async (args, uid) => {
+            return DB.tx(async (tx) => {
+                let conversationId = IDs.Conversation.parse(args.conversationId);
+                let chat = await DB.Conversation.findById(conversationId, { transaction: tx });
+
+                if (!chat || chat.type !== 'group') {
+                    throw new Error('Chat not found');
+                }
+
+                let title = args.title ? args.title! : chat.title;
+                let conv = await DB.Conversation.create({
+                    title,
+                    type: 'group'
+                }, { transaction: tx });
+
+                let members = Array.from(new Set([
+                    ...await Repos.Chats.getConversationMembers(conversationId),
+                    ...args.extraMembers.map(id => IDs.User.parse(id))
+                ]));
+
+                for (let member of members) {
+                    await DB.ConversationGroupMembers.create({
+                        conversationId: conv.id,
+                        invitedById: uid,
+                        userId: member,
+                        role: member === uid ? 'creator' : 'member'
+                    }, { transaction: tx });
+                }
+                await Repos.Chats.sendMessage(tx, conv.id, uid, { message: args.message });
+
+                return 'ok';
+            });
+        }),
     },
     Subscription: {
         alphaChatSubscribe: {
