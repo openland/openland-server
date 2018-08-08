@@ -197,6 +197,7 @@ extend type Mutation {
     alphaSetTyping(conversationId: ID!, type: String): String!
     alphaChatChangeGroupTitle(conversationId: ID!, title: String!): String!
     alphaChatInviteToGroup(conversationId: ID!, invites: [GroupConversationInvite]!): String!
+    alphaChatKickFromGroup(conversationId: ID!, userId: ID!): String!
 }
 
 extend type Subscription {

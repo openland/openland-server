@@ -15,6 +15,7 @@ import { ImageRef, buildBaseImageUrl } from '../repositories/Media';
 import { Organization } from '../tables/Organization';
 import { TypingEvent } from '../repositories/ChatRepository';
 import { ConversationGroupMember } from '../tables/ConversationGroupMembers';
+import { AccessDeniedError } from '../errors/AccessDeniedError';
 
 export const Resolver = {
     Conversation: {
@@ -847,6 +848,62 @@ export const Resolver = {
                         { message: `user<${invite.userId}> Joined chat`, isService: true, isMuted: true }
                     );
                 }
+
+                return 'ok';
+            });
+        }),
+        alphaChatKickFromGroup: withAccount<{ conversationId: string, userId: string }>(async (args, uid) => {
+            return DB.tx(async (tx) => {
+                let conversationId = IDs.Conversation.parse(args.conversationId);
+                let userId = IDs.User.parse(args.userId);
+
+                let chat = await DB.Conversation.findById(conversationId, { transaction: tx });
+
+                if (!chat || chat.type !== 'group') {
+                    throw new Error('Chat not found');
+                }
+
+                let member = await DB.ConversationGroupMembers.findOne({
+                    where: {
+                        conversationId,
+                        userId
+                    }
+                });
+
+                if (!member) {
+                    return true;
+                }
+
+                let curMember = await DB.ConversationGroupMembers.findOne({
+                    where: {
+                        conversationId,
+                        userId: uid
+                    }
+                });
+
+                if (!curMember) {
+                    throw new AccessDeniedError();
+                }
+
+                let canKick = curMember.role === 'admin' || curMember.role === 'creator' || member.invitedById === uid;
+
+                if (!canKick) {
+                    throw new AccessDeniedError();
+                }
+
+                await DB.ConversationGroupMembers.destroy({
+                    where: {
+                        conversationId,
+                        userId
+                    }
+                });
+
+                await Repos.Chats.sendMessage(
+                    tx,
+                    conversationId,
+                    uid,
+                    { message: `user<${userId}> was kicked from chat`, isService: true, isMuted: true }
+                );
 
                 return 'ok';
             });
