@@ -291,7 +291,34 @@ export const Resolver = {
         date: (src: ConversationMessage) => src.createdAt,
         repeatKey: (src: ConversationMessage, args: any, context: CallContext) => src.userId === context.uid ? src.repeatToken : null,
         isService: (src: ConversationMessage) => src.isService,
+        serviceMetadata: (src: ConversationMessage) => {
+            if (src.extras && src.extras.serviceMetadata && (src.extras.serviceMetadata as any).type) {
+                return src.extras.serviceMetadata;
+            }
+
+            return null;
+        }
     },
+    InviteServiceMetadata: {
+        user: resolveUser(),
+        invitedBy: (src: any) => DB.User.findById(src.invitedById)
+    },
+    KickServiceMetadata: {
+        user: resolveUser(),
+        kickedBy: (src: any) => DB.User.findById(src.kickedById)
+    },
+    ServiceMetadata: {
+        __resolveType(src: any) {
+            if (src.type === 'user_invite') {
+                return 'InviteServiceMetadata';
+            } else if (src.type === 'user_kick') {
+                return 'KickServiceMetadata';
+            }
+
+            throw new Error('Unknown type');
+        }
+    },
+
     ConversationEvent: {
         __resolveType(obj: ConversationEvent) {
             if (obj.eventType === 'new_message') {
@@ -560,6 +587,7 @@ export const Resolver = {
                         role: m === uid ? 'creator' : 'member'
                     }, { transaction: tx });
                 }
+
                 await Repos.Chats.sendMessage(tx, conv.id, uid, { message: args.message });
                 return conv;
             });
@@ -845,7 +873,16 @@ export const Resolver = {
                         tx,
                         conversationId,
                         uid,
-                        { message: `user<${invite.userId}> Joined chat`, isService: true, isMuted: true }
+                        {
+                            message: `user<${invite.userId}> Joined chat`,
+                            isService: true,
+                            isMuted: true,
+                            serviceMetadata: {
+                                type: 'user_invite',
+                                userId: IDs.User.parse(invite.userId),
+                                invitedById: uid
+                            }
+                        }
                     );
                 }
 
@@ -902,7 +939,16 @@ export const Resolver = {
                     tx,
                     conversationId,
                     uid,
-                    { message: `user<${userId}> was kicked from chat`, isService: true, isMuted: true }
+                    {
+                        message: `user<${userId}> was kicked from chat`,
+                        isService: true,
+                        isMuted: true,
+                        serviceMetadata: {
+                            type: 'user_kick',
+                            userId,
+                            kickedById: uid
+                        }
+                    }
                 );
 
                 return 'ok';

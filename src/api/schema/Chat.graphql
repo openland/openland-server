@@ -56,6 +56,18 @@ type GroupConversation implements Conversation {
 # Messaging Contents
 #
 
+type InviteServiceMetadata {
+    user: User!
+    invitedBy: User!
+}
+
+type KickServiceMetadata {
+    user: User!
+    kickedBy: User!
+}
+
+union ServiceMetadata = InviteServiceMetadata | KickServiceMetadata
+
 type ConversationMessage {
     id: ID!
     message: String
@@ -65,6 +77,7 @@ type ConversationMessage {
     date: Date!
     repeatKey: String
     isService: Boolean!
+    serviceMetadata: ServiceMetadata
 }
 
 type FileMetadata {

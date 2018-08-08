@@ -14,6 +14,8 @@ import { Pubsub } from '../modules/pubsub';
 
 export type ChatEventType = 'new_message' | 'title_change';
 
+export type ServiceMessageMetadataType = 'user_invite' | 'user_kick';
+
 export interface Message {
     message?: string | null;
     file?: string | null;
@@ -21,6 +23,7 @@ export interface Message {
     isMuted?: boolean | null;
     isService?: boolean | null;
     repeatKey?: string | null;
+    serviceMetadata?: any & { type: ServiceMessageMetadataType };
 }
 
 class ChatsEventReader {
@@ -354,7 +357,7 @@ export class ChatsRepository {
         }, exTx);
     }
 
-    sendMessage = async (tx: Transaction, conversationId: number, uid: number, message: Message) => {
+    async sendMessage(tx: Transaction, conversationId: number, uid: number, message: Message) {
         if (message.message === 'fuck') {
             throw Error('');
         }
@@ -403,7 +406,10 @@ export class ChatsRepository {
             userId: uid,
             repeatToken: message.repeatKey,
             isMuted: message.isMuted || false,
-            isService: message.isService || false
+            isService: message.isService || false,
+            extras: {
+                serviceMetadata: message.serviceMetadata || {}
+            }
         }, { transaction: tx });
         let res = await DB.ConversationEvent.create({
             conversationId: conversationId,

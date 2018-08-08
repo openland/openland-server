@@ -14,6 +14,7 @@ export interface ConversationMessageAttributes {
     repeatToken: string | null;
     isMuted: boolean;
     isService: boolean;
+    extras: JsonMap;
 }
 
 export interface ConversationMessage extends sequelize.Instance<Partial<ConversationMessageAttributes>>, ConversationMessageAttributes {
@@ -33,7 +34,8 @@ export const ConversationMessageTable = connection.define<ConversationMessage, P
     fileMetadata: { type: sequelize.JSON, allowNull: true },
     repeatToken: { type: sequelize.STRING, allowNull: true, unique: true },
     isMuted: { type: sequelize.BOOLEAN, allowNull: false, defaultValue: false },
-    isService: { type: sequelize.BOOLEAN, allowNull: false, defaultValue: false }
+    isService: { type: sequelize.BOOLEAN, allowNull: false, defaultValue: false },
+    extras: { type: sequelize.JSON, allowNull: false, defaultValue: {} }
 }, {
         paranoid: true,
         validate: {
