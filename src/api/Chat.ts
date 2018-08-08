@@ -2,8 +2,8 @@ import { ConversationMessage } from '../tables/ConversationMessage';
 import { IDs, IdsFactory } from './utils/IDs';
 import { Conversation } from '../tables/Conversation';
 import { DB, User } from '../tables';
-import { withPermission, withAny, withAccount, withUser } from './utils/Resolvers';
-import { validate, stringNotEmpty, enumString, optional, defined } from '../modules/NewInputValidator';
+import { withPermission, withAny, withAccount, withUser, resolveUser } from './utils/Resolvers';
+import { validate, stringNotEmpty, enumString, optional, defined, mustBeArray } from '../modules/NewInputValidator';
 import { ConversationEvent } from '../tables/ConversationEvent';
 import { CallContext } from './utils/CallContext';
 import { Repos } from '../repositories';
@@ -14,6 +14,7 @@ import { IDMailformedError } from '../errors/IDMailformedError';
 import { ImageRef, buildBaseImageUrl } from '../repositories/Media';
 import { Organization } from '../tables/Organization';
 import { TypingEvent } from '../repositories/ChatRepository';
+import { ConversationGroupMember } from '../tables/ConversationGroupMembers';
 
 export const Resolver = {
     Conversation: {
@@ -385,6 +386,11 @@ export const Resolver = {
         user: (src: TypingEvent) => DB.User.findById(src.userId),
     },
 
+    GroupConversationMember: {
+        role: (src: ConversationGroupMember) => src.role,
+        user: resolveUser<ConversationGroupMember>()
+    },
+
     Query: {
         alphaNotificationCounter: withUser((args, uid) => uid),
         alphaChats: withAccount<{ first: number, after?: string | null, seq?: number }>(async (args, uid, oid) => {
@@ -523,7 +529,18 @@ export const Resolver = {
                     transaction: tx
                 });
             });
-        })
+        }),
+        alphaGroupConversationMembers: withAccount<{ conversationId: string }>(async (args, uid, oid) => {
+            let conversationId = IDs.Conversation.parse(args.conversationId);
+
+            let members = await DB.ConversationGroupMembers.findAll({
+                where: {
+                    conversationId
+                }
+            });
+
+            return members;
+        }),
     },
     Mutation: {
         alphaChatCreateGroup: withAccount<{ title?: string | null, message: string, members: string[] }>(async (args, uid, oid) => {
@@ -797,7 +814,43 @@ export const Resolver = {
 
                 return 'ok';
             });
-        })
+        }),
+        alphaChatInviteToGroup: withAccount<{ conversationId: string, invites: { userId: string, role: string }[] }>(async (args, uid) => {
+            return DB.tx(async (tx) => {
+                await validate({
+                    invites: mustBeArray({
+                        userId: defined(stringNotEmpty()),
+                        role: defined(enumString(['member', 'admin']))
+                    })
+                }, args);
+
+                let conversationId = IDs.Conversation.parse(args.conversationId);
+
+                let chat = await DB.Conversation.findById(conversationId, { transaction: tx });
+
+                if (!chat || chat.type !== 'group') {
+                    throw new Error('Chat not found');
+                }
+
+                for (let invite of args.invites) {
+                    await DB.ConversationGroupMembers.create({
+                        conversationId: conversationId,
+                        invitedById: uid,
+                        userId: IDs.User.parse(invite.userId),
+                        role: invite.role
+                    }, { transaction: tx });
+
+                    await Repos.Chats.sendMessage(
+                        tx,
+                        conversationId,
+                        uid,
+                        { message: `user<${invite.userId}> Joined chat`, isService: true, isMuted: true }
+                    );
+                }
+
+                return 'ok';
+            });
+        }),
     },
     Subscription: {
         alphaChatSubscribe: {

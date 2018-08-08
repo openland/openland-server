@@ -122,6 +122,7 @@ extend type Query {
     debugReaderStates: [DebugReaderState!]!
 
     debugURLInfo(url: String!): URLInfo!
+    debugSerializeId(id: Int!, type: String): ID!
 }
 
 #

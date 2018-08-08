@@ -21,6 +21,10 @@ export const Resolver = {
         debugURLInfo: withPermissionOptional<{ url: string }>(['software-developer'], async (args, ctx) => {
             return await Services.URLInfo.fetchURLInfo(args.url);
         }),
+
+        debugSerializeId: withPermissionOptional<any>(['software-developer'], async (args, ctx) => {
+            return (IDs as any)[args.type].serialize(args.id);
+        }),
     },
     Mutation: {
         debugSendWelcomeEmail: withUser(async (args, uid) => {

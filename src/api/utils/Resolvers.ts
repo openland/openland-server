@@ -140,3 +140,9 @@ export function resolveID(id: SecID) {
         return id.serialize(src.id);
     };
 }
+
+export function resolveUser<T extends { userId: number }>() {
+    return function (src: T) {
+        return DB.User.findById(src.userId);
+    };
+}

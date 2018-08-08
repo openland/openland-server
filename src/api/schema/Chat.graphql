@@ -158,17 +158,6 @@ type ChatReadResult {
     counter: NotificationCounter!
 }
 
-extend type Mutation {
-    superCreateChat(title: String!): Conversation!
-    alphaSendMessage(conversationId: ID!, message: String, file: String, repeatKey: String): ConversationEventMessage!
-    alphaReadChat(conversationId: ID!, messageId: ID!): ChatReadResult!
-    alphaChatCreateGroup(title: String, members: [ID!]!, message: String): Conversation!
-    alphaGlobalRead(toSeq: Int): String!
-
-    alphaSetTyping(conversationId: ID!, type: String): String!
-    alphaChatChangeGroupTitle(conversationId: ID!, title: String!): String!
-}
-
 union ComposeSearchResult = User | Organization
 
 type TypingEvent {
@@ -178,6 +167,16 @@ type TypingEvent {
     cancel: Boolean!
 }
 
+type GroupConversationMember {
+    user: User!
+    role: String! # member | creator | admin
+}
+
+input GroupConversationInvite {
+    userId: ID!
+    role: String! # member | creator | admin
+}
+
 extend type Query {
     alphaChats(first: Int!, after: String): ConversationConnection!
     alphaNotificationCounter: NotificationCounter!
@@ -185,6 +184,19 @@ extend type Query {
     alphaLoadMessages(conversationId: ID!, first: Int, before: ID, after: ID): ConversationState!
     alphaChatsSearchForCompose(query: String, organizations: Boolean): [ComposeSearchResult!]!
     alphaChatSearch(members: [ID!]!): Conversation
+    alphaGroupConversationMembers(conversationId: ID!): [GroupConversationMember!]!
+}
+
+extend type Mutation {
+    superCreateChat(title: String!): Conversation!
+    alphaSendMessage(conversationId: ID!, message: String, file: String, repeatKey: String): ConversationEventMessage!
+    alphaReadChat(conversationId: ID!, messageId: ID!): ChatReadResult!
+    alphaChatCreateGroup(title: String, members: [ID!]!, message: String): Conversation!
+    alphaGlobalRead(toSeq: Int): String!
+
+    alphaSetTyping(conversationId: ID!, type: String): String!
+    alphaChatChangeGroupTitle(conversationId: ID!, title: String!): String!
+    alphaChatInviteToGroup(conversationId: ID!, invites: [GroupConversationInvite]!): String!
 }
 
 extend type Subscription {
