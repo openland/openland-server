@@ -908,6 +908,54 @@ export const Resolver = {
                 return 'ok';
             });
         }),
+        alphaChatChangeRoleInGroup: withAccount<{ conversationId: string, userId: string, newRole: string }>(async (args, uid) => {
+            return DB.tx(async (tx) => {
+                await validate({
+                    newRole: defined(enumString(['member', 'admin']))
+                }, args);
+
+                let conversationId = IDs.Conversation.parse(args.conversationId);
+                let userId = IDs.User.parse(args.userId);
+
+                let chat = await DB.Conversation.findById(conversationId, { transaction: tx });
+
+                if (!chat || chat.type !== 'group') {
+                    throw new Error('Chat not found');
+                }
+
+                let member = await DB.ConversationGroupMembers.findOne({
+                    where: {
+                        conversationId,
+                        userId
+                    }
+                });
+
+                if (!member) {
+                    return true;
+                }
+
+                let curMember = await DB.ConversationGroupMembers.findOne({
+                    where: {
+                        conversationId,
+                        userId: uid
+                    }
+                });
+
+                if (!curMember) {
+                    throw new AccessDeniedError();
+                }
+
+                let canChangeRole = curMember.role === 'admin' || curMember.role === 'creator';
+
+                if (!canChangeRole) {
+                    throw new AccessDeniedError();
+                }
+
+                await member.update({ role: args.newRole });
+
+                return 'ok';
+            });
+        }),
     },
     Subscription: {
         alphaChatSubscribe: {
