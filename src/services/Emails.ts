@@ -55,7 +55,7 @@ export const Emails = {
         return await DB.tx(async (tx) => {
             let user = await loadUserState(uid, tx);
             await EmailWorker.pushWork({
-                subject: 'Welcome',
+                subject: 'Welcome to Openland!',
                 templateId: TEMPLATE_WELCOME,
                 to: user.email,
                 args: user.args
@@ -66,7 +66,7 @@ export const Emails = {
         return await DB.tx(async (tx) => {
             let user = await loadUserState(uid, tx);
             await EmailWorker.pushWork({
-                subject: 'Unread messages',
+                subject: 'You’ve got new messages\n',
                 templateId: TEMPLATE_UNREAD_MESSAGES,
                 to: user.email,
                 args: {
@@ -91,7 +91,7 @@ export const Emails = {
             for (let m of members) {
                 let user = await loadUserState(m.userId);
                 await EmailWorker.pushWork({
-                    subject: 'Account activated',
+                    subject: 'Organization account activated',
                     templateId: TEMPLATE_ACTIVATEED,
                     to: user.email,
                     args: {
@@ -117,7 +117,7 @@ export const Emails = {
             for (let m of members) {
                 let user = await loadUserState(m.userId);
                 await EmailWorker.pushWork({
-                    subject: 'Account deactivated',
+                    subject: 'Organization account deactivated',
                     templateId: TEMPLATE_DEACTIVATED,
                     to: user.email,
                     args: {
@@ -139,7 +139,7 @@ export const Emails = {
             let user = await loadUserState(uid);
 
             await EmailWorker.pushWork({
-                subject: 'Member removed',
+                subject: `You were removed from ${org.name!}`,
                 templateId: TEMPLATE_MEMBER_REMOVED,
                 to: user.email,
                 args: {
@@ -168,12 +168,12 @@ export const Emails = {
             let user = await loadUserState(uid);
 
             await EmailWorker.pushWork({
-                subject: 'Membership level changed',
+                subject: `Your role at ${org.name!}} was updated`,
                 templateId: TEMPLATE_MEMBERSHIP_LEVEL_CHANGED,
                 to: user.email,
                 args: {
                     levelName,
-                    'organizationName': org.name!!,
+                    organizationName: org.name!,
                     ...(user.args)
                 }
             }, tx);
@@ -207,7 +207,7 @@ export const Emails = {
         let domain = process.env.APP_ENVIRONMENT === 'production' ? 'https://app.openland.com/join/' : 'http://localhost:3000/join/';
 
         await EmailWorker.pushWork({
-            subject: 'Invite',
+            subject: `Join ${org.name!}} at Openland`,
             templateId: TEMPLATE_INVITE,
             to: invite.forEmail,
             args: {
@@ -249,7 +249,7 @@ export const Emails = {
         let domain = process.env.APP_ENVIRONMENT === 'production' ? 'https://app.openland.com/invite/' : 'http://localhost:3000/invite/';
 
         await EmailWorker.pushWork({
-            subject: 'Invite',
+            subject: 'Invitation for Openland',
             templateId: TEMPLATE_INVITE_ORGANIZATION,
             to: invite.forEmail,
             args: {
@@ -287,7 +287,7 @@ export const Emails = {
                 let user = await loadUserState(member.userId);
 
                 await EmailWorker.pushWork({
-                    subject: 'Member joined',
+                    subject: 'Invitation accepted',
                     templateId: TEMPLATE_MEMBER_JOINED,
                     to: user.email,
                     args: {
