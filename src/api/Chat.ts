@@ -16,6 +16,7 @@ import { Organization } from '../tables/Organization';
 import { TypingEvent } from '../repositories/ChatRepository';
 import { ConversationGroupMember } from '../tables/ConversationGroupMembers';
 import { AccessDeniedError } from '../errors/AccessDeniedError';
+import { ConversationBlocked } from '../tables/ConversationBlocked';
 
 export const Resolver = {
     Conversation: {
@@ -419,6 +420,11 @@ export const Resolver = {
         user: resolveUser<ConversationGroupMember>()
     },
 
+    ConversationBlockedUser: {
+        user: (src: ConversationBlocked) => DB.User.findOne({ where: { id: src.user } }),
+        blockedBy: (src: ConversationBlocked) => DB.User.findOne({ where: { id: src.blockedBy } }),
+    },
+
     Query: {
         alphaNotificationCounter: withUser((args, uid) => uid),
         alphaChats: withAccount<{ first: number, after?: string | null, seq?: number }>(async (args, uid, oid) => {
@@ -570,6 +576,16 @@ export const Resolver = {
             });
 
             return members;
+        }),
+        alphaBlockedList: withAccount<{ conversationId?: string }>(async (args, uid, oid) => {
+            let conversationId = args.conversationId ? IDs.Conversation.parse(args.conversationId) : null;
+
+            return await DB.ConversationBlocked.findAll({
+                where: {
+                    conversation: conversationId,
+                    ...(conversationId ? {} : { blockedBy: uid })
+                }
+            });
         }),
     },
     Mutation: {
@@ -863,11 +879,30 @@ export const Resolver = {
                     throw new Error('Chat not found');
                 }
 
+                let curMember = await DB.ConversationGroupMembers.findOne({
+                    where: {
+                        conversationId,
+                        userId: uid
+                    }
+                });
+
+                if (!curMember) {
+                    throw new AccessDeniedError();
+                }
+
                 for (let invite of args.invites) {
+                    let userId = IDs.User.parse(invite.userId);
+
+                    let blocked = DB.ConversationBlocked.findOne({ where: { user: userId, conversation: conversationId } });
+
+                    if (blocked && !(curMember.role === 'admin' || curMember.role === 'creator')) {
+                        throw new Error('Can\'t invite blocked user');
+                    }
+
                     await DB.ConversationGroupMembers.create({
                         conversationId: conversationId,
                         invitedById: uid,
-                        userId: IDs.User.parse(invite.userId),
+                        userId: userId,
                         role: invite.role
                     }, { transaction: tx });
 
@@ -936,6 +971,8 @@ export const Resolver = {
                         userId
                     }
                 });
+
+                await Repos.Chats.blockUser(tx, userId, uid, conversationId);
 
                 await Repos.Chats.sendMessage(
                     tx,
@@ -1036,6 +1073,28 @@ export const Resolver = {
 
                 return 'ok';
             });
+        }),
+
+        alphaBlockUser: withAccount<{ userId: string }>(async (args, uid) => {
+            return DB.tx(async (tx) => {
+                await Repos.Chats.blockUser(tx, IDs.User.parse(args.userId), uid);
+                return 'ok';
+            });
+        }),
+
+        alphaUnblockUser: withAccount<{ userId: string, conversationId?: string }>(async (args, uid) => {
+            let conversationId = args.conversationId ? IDs.Conversation.parse(args.conversationId) : null;
+            let blocked = await DB.ConversationBlocked.findOne({
+                where: {
+                    user: IDs.User.parse(args.userId),
+                    conversation: conversationId,
+                    ...(conversationId ? {} : { blockedBy: uid })
+                }
+            });
+            if (blocked) {
+                await blocked.destroy();
+            }
+            return 'ok';
         }),
     },
     Subscription: {
