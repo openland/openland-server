@@ -498,7 +498,8 @@ export const Resolver = {
                     },
                     id: {
                         $not: oid
-                    }
+                    },
+                    status: 'ACTIVATED'
                 },
                 limit: 4
             }) : [];
@@ -509,7 +510,8 @@ export const Resolver = {
                     },
                     id: {
                         $not: uid
-                    }
+                    },
+                    status: 'ACTIVATED'
                 },
                 limit: 4
             });
