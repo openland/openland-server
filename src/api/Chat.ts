@@ -1149,7 +1149,7 @@ export const Resolver = {
                 });
 
                 if (!member) {
-                    throw new Error('Member not found')
+                    throw new Error('Member not found');
                 }
 
                 let curMember = await DB.ConversationGroupMembers.findOne({
