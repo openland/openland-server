@@ -12,7 +12,7 @@ export interface ConversationBlocked extends sequelize.Instance<Partial<Conversa
 
 }
 
-export const ConversationBlockedTable = connection.define<ConversationBlocked, Partial<ConversationBlockedAttributes>>('conversation_blocked', {
+export const ConversationBlockedTable = connection.define<ConversationBlocked, Partial<ConversationBlockedAttributes>>('conversation_blocked_users', {
     id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
     conversationId: { type: sequelize.INTEGER, allowNull: true },
     user: { type: sequelize.INTEGER, allowNull: false },
