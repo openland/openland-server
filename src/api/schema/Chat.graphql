@@ -40,6 +40,7 @@ type PrivateConversation implements Conversation {
     user: User!
     unreadCount: Int!
     topMessage: ConversationMessage
+    blocked: Boolean!
 }
 
 type GroupConversation implements Conversation {
@@ -209,6 +210,11 @@ type GroupChatUpdateResponse {
     userEvent: UserEvent
 }
 
+type ConversationBlockedUser{
+    user: User!
+    blockedBy: User!
+}
+
 extend type Query {
     alphaChats(first: Int!, after: String): ConversationConnection!
     alphaNotificationCounter: NotificationCounter!
@@ -217,6 +223,7 @@ extend type Query {
     alphaChatsSearchForCompose(query: String, organizations: Boolean): [ComposeSearchResult!]!
     alphaChatSearch(members: [ID!]!): Conversation
     alphaGroupConversationMembers(conversationId: ID!): [GroupConversationMember!]!
+    alphaBlockedList(conversationId: ID): [ConversationBlockedUser!]!
 }
 
 extend type Mutation {
@@ -237,6 +244,8 @@ extend type Mutation {
     alphaChatKickFromGroup(conversationId: ID!, userId: ID!): String!
     alphaChatChangeRoleInGroup(conversationId: ID!, userId: ID!, newRole: String!): String!
     alphaChatCopyGroup(conversationId: ID!, title: String, extraMembers: [ID!], message: String!): String!
+    alphaBlockUser(userId: ID!): String!
+    alphaUnblockUser(userId: ID!, conversationId: ID): String!
 }
 
 extend type Subscription {

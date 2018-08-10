@@ -11,6 +11,7 @@ import { NotFoundError } from '../errors/NotFoundError';
 import { debouncer } from '../utils/timer';
 import { Repos } from './index';
 import { Pubsub } from '../modules/pubsub';
+import { AccessDeniedError } from '../errors/AccessDeniedError';
 
 export type ChatEventType = 'new_message' | 'title_change';
 
@@ -384,14 +385,28 @@ export class ChatsRepository {
             }
         }
 
-        //
-        // Increment sequence number
-        //
-
         let conv = await DB.Conversation.findById(conversationId, { lock: tx.LOCK.UPDATE, transaction: tx });
         if (!conv) {
             throw new NotFoundError('Conversation not found');
         }
+
+        //
+        // Check access
+        //
+        let blocked;
+        if (conv.type === 'private') {
+            blocked = DB.ConversationBlocked.findOne({ where: { user: uid, blockedBy: uid === conv.member1Id ? conv.member2Id : conv.member1Id, conversation: null } });
+        } else {
+            blocked = DB.ConversationBlocked.findOne({ where: { user: uid, conversation: conversationId } });
+        }
+        if (blocked) {
+            throw new AccessDeniedError();
+        }
+
+        //
+        // Increment sequence number
+        //
+
         let seq = conv.seq + 1;
         conv.seq = seq;
         await conv.save({ transaction: tx });
@@ -687,5 +702,21 @@ export class ChatsRepository {
 
             return userSeq;
         }, exTx);
+    }
+
+    async blockUser(tx: Transaction, userId: number, blockedBy: number, conversation?: number) {
+        let user = DB.User.findOne({ where: { id: userId } });
+        if (!user) {
+            throw new Error('User not found');
+        }
+        let existing = DB.ConversationBlocked.findOne({ where: { user: userId, ...(conversation ? { blockedBy: blockedBy } : { conversation: conversation }) }, transaction: tx });
+        if (existing) {
+            return;
+        }
+        await DB.ConversationBlocked.create({
+            user: userId,
+            blockedBy: blockedBy,
+            conversation: conversation
+        }, { transaction: tx });
     }
 }

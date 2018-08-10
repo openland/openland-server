@@ -61,6 +61,7 @@ import { OrganizationListingTable } from './OrganizationListing';
 import { ConversationTable } from './Conversation';
 import { ConversationMessageTable } from './ConversationMessage';
 import { ConversationEventTable } from './ConversationEvent';
+import { ConversationBlockedTable } from './ConversationBlocked';
 import { ConversationUserStateTable } from './ConversatonUserState';
 import { ConversationsUserGlobalTable } from './ConversationsUserGlobal';
 import { ConversationUserEventsTable } from './ConversationUserEvents';
@@ -118,6 +119,7 @@ export const DB = {
     ConversationsUserGlobal: ConversationsUserGlobalTable,
     ConversationUserEvents: ConversationUserEventsTable,
     ConversationGroupMembers: ConversationGroupMembersTable,
+    ConversationBlocked: ConversationBlockedTable,
     UserPresence: UserPresenceTable,
     UserPushRegistration: UserPushRegistrationTable,
     UserSettings: UserSettingsTable,
