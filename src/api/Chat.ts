@@ -197,6 +197,7 @@ export const Resolver = {
             }
             return DB.User.findById(uid);
         },
+        blocked: async (src: Conversation, _: any, context: CallContext) => !!(await DB.ConversationBlocked.findOne({ where: { user: src.member1Id === context.uid ? src.member2Id : src.member1Id, conversation: null } })),
     },
     GroupConversation: {
         id: (src: Conversation) => IDs.Conversation.serialize(src.id),
