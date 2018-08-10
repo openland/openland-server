@@ -360,7 +360,7 @@ export class ChatsRepository {
         }, exTx);
     }
 
-    async sendMessage(tx: Transaction, conversationId: number, uid: number, message: Message): Promise<{ conversationEvent: ConversationEvent, userEvent: ConversationUserEvents  }> {
+    async sendMessage(tx: Transaction, conversationId: number, uid: number, message: Message): Promise<{ conversationEvent: ConversationEvent, userEvent: ConversationUserEvents }> {
         if (message.message === 'fuck') {
             throw Error('');
         }
@@ -395,9 +395,9 @@ export class ChatsRepository {
         //
         let blocked;
         if (conv.type === 'private') {
-            blocked = DB.ConversationBlocked.findOne({ where: { user: uid, blockedBy: uid === conv.member1Id ? conv.member2Id : conv.member1Id, conversation: null } });
+            blocked = await DB.ConversationBlocked.findOne({ where: { user: uid, blockedBy: uid === conv.member1Id ? conv.member2Id : conv.member1Id, conversation: null } });
         } else {
-            blocked = DB.ConversationBlocked.findOne({ where: { user: uid, conversation: conversationId } });
+            blocked = await DB.ConversationBlocked.findOne({ where: { user: uid, conversation: conversationId } });
         }
         if (blocked) {
             throw new AccessDeniedError();
@@ -709,7 +709,7 @@ export class ChatsRepository {
         if (!user) {
             throw new Error('User not found');
         }
-        let existing = DB.ConversationBlocked.findOne({ where: { user: userId, ...(conversation ? { blockedBy: blockedBy } : { conversation: conversation }) }, transaction: tx });
+        let existing = await DB.ConversationBlocked.findOne({ where: { user: userId, ...(conversation ? { blockedBy: blockedBy } : { conversation: conversation }) }, transaction: tx });
         if (existing) {
             return;
         }

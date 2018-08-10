@@ -931,7 +931,7 @@ export const Resolver = {
                 for (let invite of args.invites) {
                     let userId = IDs.User.parse(invite.userId);
 
-                    let blocked = DB.ConversationBlocked.findOne({ where: { user: userId, conversation: conversationId } });
+                    let blocked = await DB.ConversationBlocked.findOne({ where: { user: userId, conversation: conversationId } });
 
                     if (blocked && !(curMember.role === 'admin' || curMember.role === 'creator')) {
                         throw new Error('Can\'t invite blocked user');
