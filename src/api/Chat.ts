@@ -313,6 +313,8 @@ export const Resolver = {
                 return 'InviteServiceMetadata';
             } else if (src.type === 'user_kick') {
                 return 'KickServiceMetadata';
+            } else if (src.type === 'title_change') {
+                return 'TitleChangeServiceMetadata';
             }
 
             throw new Error('Unknown type');
@@ -352,6 +354,8 @@ export const Resolver = {
                 return 'UserEventMessage';
             } else if (obj.eventType === 'conversation_read') {
                 return 'UserEventRead';
+            } else if (obj.eventType === 'title_change') {
+                return 'UserEventTitleChange';
             }
             throw Error('Unknown type');
         }
@@ -371,6 +375,10 @@ export const Resolver = {
         unread: (src: ConversationUserEvents) => src.event.unread,
         globalUnread: (src: ConversationUserEvents) => src.event.unreadGlobal,
         conversationId: (src: ConversationUserEvents) => IDs.Conversation.serialize(src.event.conversationId as any),
+    },
+    UserEventTitleChange: {
+        seq: (src: ConversationUserEvents) => src.seq,
+        title: (src: ConversationUserEvents) => src.event.title,
     },
 
     ComposeSearchResult: {
@@ -798,12 +806,12 @@ export const Resolver = {
                 };
             }
             return await DB.txStable(async (tx) => {
-                return await Repos.Chats.sendMessage(tx, conversationId, uid!, {
+                return (await Repos.Chats.sendMessage(tx, conversationId, uid!, {
                     message: args.message,
                     file: args.file,
                     fileMetadata: fileMetadata,
                     repeatKey: args.repeatKey
-                });
+                })).conversationEvent;
             });
         }),
         alphaSetTyping: withAccount<{ conversationId: string, type: string }>(async (args, uid) => {
@@ -832,7 +840,7 @@ export const Resolver = {
                     title: args.title
                 }, { transaction: tx });
 
-                await Repos.Chats.addChatEvent(
+                let titleChatEvent = await Repos.Chats.addChatEvent(
                     conversationId,
                     'title_change',
                     {
@@ -841,7 +849,36 @@ export const Resolver = {
                     tx
                 );
 
-                return 'ok';
+                let titleUserEvent = await Repos.Chats.addUserEventsInConversation(
+                    conversationId,
+                    uid,
+                    'title_change',
+                    {
+                        title: args.title
+                    },
+                    tx
+                );
+
+                let {
+                    conversationEvent,
+                    userEvent
+                } = await Repos.Chats.sendMessage(tx, conversationId, uid, {
+                    message: `new title: ${args.title}`,
+                    isService: true,
+                    isMuted: true,
+                    serviceMetadata: {
+                        type: 'title_change',
+                        title: args.title
+                    }
+                });
+
+                return {
+                    chat,
+                    chatEventMessage: conversationEvent,
+                    userEventMessage: userEvent,
+                    chatEvent: titleChatEvent,
+                    userEvent: titleUserEvent
+                };
             });
         }),
         alphaChatInviteToGroup: withAccount<{ conversationId: string, invites: { userId: string, role: string }[] }>(async (args, uid) => {

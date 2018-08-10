@@ -14,7 +14,9 @@ import { Pubsub } from '../modules/pubsub';
 
 export type ChatEventType = 'new_message' | 'title_change';
 
-export type ServiceMessageMetadataType = 'user_invite' | 'user_kick';
+export type UserEventType = 'new_message' | 'conversation_read' | 'title_change';
+
+export type ServiceMessageMetadataType = 'user_invite' | 'user_kick' | 'title_change';
 
 export interface Message {
     message?: string | null;
@@ -357,7 +359,7 @@ export class ChatsRepository {
         }, exTx);
     }
 
-    async sendMessage(tx: Transaction, conversationId: number, uid: number, message: Message) {
+    async sendMessage(tx: Transaction, conversationId: number, uid: number, message: Message): Promise<{ conversationEvent: ConversationEvent, userEvent: ConversationUserEvents  }> {
         if (message.message === 'fuck') {
             throw Error('');
         }
@@ -454,6 +456,9 @@ export class ChatsRepository {
                 }
             }
         }
+
+        let userEvent: ConversationUserEvents;
+
         if (members.length > 0) {
             let currentStates = await DB.ConversationUserState.findAll({
                 where: {
@@ -538,7 +543,7 @@ export class ChatsRepository {
                 }
 
                 // Write User Event
-                await DB.ConversationUserEvents.create({
+                let _userEvent = await DB.ConversationUserEvents.create({
                     userId: m,
                     seq: userSeq,
                     eventType: 'new_message',
@@ -551,10 +556,17 @@ export class ChatsRepository {
                         repeatKey: message.repeatKey ? message.repeatKey : null
                     }
                 }, { transaction: tx });
+
+                if (m === uid) {
+                    userEvent = _userEvent;
+                }
             }
         }
 
-        return res;
+        return {
+            conversationEvent: res,
+            userEvent: userEvent!
+        };
     }
 
     async getConversationMembers(conversationId: number): Promise<number[]> {
@@ -607,7 +619,7 @@ export class ChatsRepository {
         });
     }
 
-    async addChatEvent(conversationId: number, eventType: ChatEventType, event: JsonMap, exTx?: Transaction) {
+    async addChatEvent(conversationId: number, eventType: ChatEventType, event: JsonMap, exTx?: Transaction): Promise<ConversationEvent> {
         return await DB.txStable(async (tx) => {
             let conv = await DB.Conversation.findById(conversationId, { lock: tx.LOCK.UPDATE, transaction: tx });
             if (!conv) {
@@ -617,12 +629,63 @@ export class ChatsRepository {
             conv.seq = seq;
             await conv.save({ transaction: tx });
 
-            await DB.ConversationEvent.create({
+            return await DB.ConversationEvent.create({
                 conversationId: conversationId,
                 eventType: eventType,
                 event,
                 seq: seq
             }, { transaction: tx });
+        }, exTx);
+    }
+
+    async addUserEvent(userId: number, eventType: UserEventType, event: JsonMap, exTx?: Transaction): Promise<ConversationUserEvents> {
+        return await DB.txStable(async (tx) => {
+            let seq = await this.userEventsSeqInc(userId, exTx);
+
+            return await DB.ConversationUserEvents.create({
+                userId,
+                seq,
+                eventType: eventType,
+                event,
+            }, { transaction: tx });
+        }, exTx);
+    }
+
+    async addUserEventsInConversation(conversationId: number, userId: number, eventType: UserEventType, event: JsonMap, exTx?: Transaction): Promise<ConversationUserEvents> {
+        let members = await this.getConversationMembers(conversationId);
+
+        let userEvent: ConversationUserEvents;
+
+        for (let member of members) {
+            let ev = await this.addUserEvent(member, eventType, event, exTx);
+
+            if (member === userId) {
+                userEvent = ev;
+            }
+        }
+
+        return userEvent!;
+    }
+
+    async userEventsSeqInc(userId: number, exTx?: Transaction): Promise<number> {
+        return await DB.txStable(async (tx) => {
+            let userSeq = 1;
+
+            let currentGlobal = await DB.ConversationsUserGlobal.findOne({
+                where: {
+                    userId
+                },
+                transaction: tx,
+                lock: tx.LOCK.UPDATE
+            });
+
+            if (currentGlobal) {
+                currentGlobal.seq++;
+                userSeq = currentGlobal.seq;
+                await currentGlobal.save({ transaction: tx });
+            }
+
+            return userSeq;
         }, exTx);
     }
 }
