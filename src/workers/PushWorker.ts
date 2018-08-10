@@ -3,6 +3,7 @@ import { DB } from '../tables';
 import WebPush from 'web-push';
 import { AppConfiuguration } from '../init/initConfig';
 import APN from 'apn';
+import * as Friebase from 'firebase-admin';
 
 let providers = new Map<boolean, Map<string, APN.Provider>>();
 
@@ -53,7 +54,7 @@ export function createPushWorker() {
                             }
                             var not = new APN.Notification();
                             not.expiry = Math.floor(Date.now() / 1000) + 3600;
-                            not.alert = { title: args.title, body: args.body };
+                            not.alert = {title: args.title, body: args.body};
                             not.badge = args.counter;
                             not.topic = bundleId;
                             let res = await (provs.get(team.teamId)!!).send(not, token);
@@ -66,6 +67,21 @@ export function createPushWorker() {
                         // Fast ignore for push notifications
                         console.warn(e);
                     }
+                } else if (reg.pushType === 'android') {
+                    let endpoint = JSON.parse(reg.pushEndpoint);
+                    let token = endpoint.token as string;
+
+                    let res = await Friebase.messaging().sendToDevice(
+                        token,
+                        {
+                            notification: {
+                                title: args.title,
+                                body: args.body
+                            }
+                        }
+                    );
+
+                    console.log(res);
                 }
             }
             return {

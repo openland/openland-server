@@ -77,6 +77,7 @@
     "express": "^4.15.3",
     "express-jwt": "^5.3.0",
     "express-jwt-authz": "^1.0.0",
+    "firebase-admin": "^6.0.0",
     "graphql": "^0.13.2",
     "graphql-import": "^0.4.5",
     "graphql-subscriptions": "^0.5.8",
