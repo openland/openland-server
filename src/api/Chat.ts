@@ -334,6 +334,10 @@ export const Resolver = {
                 return 'ConversationEventTitle';
             } else if (obj.eventType === 'new_members') {
                 return 'ConversationEventNewMembers';
+            } else if (obj.eventType === 'kick_member') {
+                return 'ConversationEventKick';
+            } else if (obj.eventType === 'update_role') {
+                return 'ConversationEventUpdateRole';
             }
             throw Error('Unknown type');
         },
@@ -351,6 +355,14 @@ export const Resolver = {
     ConversationEventNewMembers: {
         users: (src: ConversationEvent) => (src.event.userIds! as any).map((id: number) => DB.User.findById(id)),
         invitedBy: (src: any) => DB.User.findById(src.event.invitedById)
+    },
+    ConversationEventKick: {
+        user: (src: ConversationEvent) => DB.User.findById(src.event.userId as any),
+        kickedBy: (src: ConversationEvent) => DB.User.findById(src.event.kickedById as any)
+    },
+    ConversationEventUpdateRole: {
+        user: (src: ConversationEvent) => DB.User.findById(src.event.userId as any),
+        newRole: (src: ConversationEvent) => src.event.newRole
     },
     ChatReadResult: {
         conversation: (src: { uid: number, conversationId: number }) => DB.Conversation.findById(src.conversationId),
@@ -1033,7 +1045,7 @@ export const Resolver = {
                 });
 
                 if (!member) {
-                    return true;
+                    throw new Error('No such member');
                 }
 
                 let curMember = await DB.ConversationGroupMembers.findOne({
@@ -1062,7 +1074,10 @@ export const Resolver = {
 
                 await Repos.Chats.blockUser(tx, userId, uid, conversationId);
 
-                await Repos.Chats.sendMessage(
+                let {
+                    conversationEvent,
+                    userEvent
+                } = await Repos.Chats.sendMessage(
                     tx,
                     conversationId,
                     uid,
@@ -1078,7 +1093,36 @@ export const Resolver = {
                     }
                 );
 
-                return 'ok';
+                let chatEvent = await Repos.Chats.addChatEvent(
+                    conversationId,
+                    'kick_member',
+                    {
+                        userId: userId,
+                        kickedBy: uid
+                    },
+                    tx
+                );
+
+                let membersCount = await Repos.Chats.membersCountInConversation(conversationId);
+
+                let inviteUserEvent = await Repos.Chats.addUserEventsInConversation(
+                    conversationId,
+                    uid,
+                    'new_members_count',
+                    {
+                        conversationId,
+                        membersCount: membersCount
+                    },
+                    tx
+                );
+
+                return {
+                    chat,
+                    chatEventMessage: conversationEvent,
+                    userEventMessage: userEvent,
+                    chatEvent,
+                    userEvent: inviteUserEvent
+                };
             });
         }),
         alphaChatChangeRoleInGroup: withAccount<{ conversationId: string, userId: string, newRole: string }>(async (args, uid) => {
@@ -1100,11 +1144,12 @@ export const Resolver = {
                     where: {
                         conversationId,
                         userId
-                    }
+                    },
+                    transaction: tx
                 });
 
                 if (!member) {
-                    return true;
+                    throw new Error('Member not found')
                 }
 
                 let curMember = await DB.ConversationGroupMembers.findOne({
@@ -1124,9 +1169,22 @@ export const Resolver = {
                     throw new AccessDeniedError();
                 }
 
-                await member.update({ role: args.newRole });
+                await member.update({ role: args.newRole }, {transaction: tx});
 
-                return 'ok';
+                let chatEvent = await Repos.Chats.addChatEvent(
+                    conversationId,
+                    'update_role',
+                    {
+                        userId: userId,
+                        newRole: args.newRole
+                    },
+                    tx
+                );
+
+                return {
+                    chat,
+                    chatEvent,
+                };
             });
         }),
         alphaChatCopyGroup: withAccount<{ conversationId: string, extraMembers: string[], title?: string, message: string }>(async (args, uid) => {
@@ -1157,9 +1215,16 @@ export const Resolver = {
                         role: member === uid ? 'creator' : 'member'
                     }, { transaction: tx });
                 }
-                await Repos.Chats.sendMessage(tx, conv.id, uid, { message: args.message });
+                let {
+                    conversationEvent,
+                    userEvent
+                } = await Repos.Chats.sendMessage(tx, conv.id, uid, { message: args.message });
 
-                return 'ok';
+                return {
+                    chat,
+                    chatEventMessage: conversationEvent,
+                    userEventMessage: userEvent,
+                };
             });
         }),
 

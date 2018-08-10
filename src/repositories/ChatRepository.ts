@@ -16,7 +16,9 @@ import { AccessDeniedError } from '../errors/AccessDeniedError';
 export type ChatEventType =
     'new_message' |
     'title_change' |
-    'new_members';
+    'new_members' |
+    'kick_member' |
+    'update_role';
 
 export type UserEventType =
     'new_message' |

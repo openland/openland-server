@@ -120,9 +120,21 @@ type ConversationEventNewMembers implements ConversationEvent {
     invitedBy: User!
 }
 
+type ConversationEventKick implements ConversationEvent {
+    seq: Int!
+    user: User!
+    kickedBy: User!
+}
+
 type ConversationEventTitle implements ConversationEvent {
     seq: Int!
     title: String!
+}
+
+type ConversationEventUpdateRole implements ConversationEvent {
+    seq: Int!
+    user: User!
+    newRole: String!
 }
 
 type ConversationState {
@@ -254,9 +266,9 @@ extend type Mutation {
     alphaChatCreateGroup(title: String, members: [ID!]!, message: String): Conversation!
     alphaChatChangeGroupTitle(conversationId: ID!, title: String!): GroupChatUpdateResponse!
     alphaChatInviteToGroup(conversationId: ID!, invites: [GroupConversationInvite!]!): GroupChatUpdateResponse!
-    alphaChatKickFromGroup(conversationId: ID!, userId: ID!): String!
-    alphaChatChangeRoleInGroup(conversationId: ID!, userId: ID!, newRole: String!): String!
-    alphaChatCopyGroup(conversationId: ID!, title: String, extraMembers: [ID!], message: String!): String!
+    alphaChatKickFromGroup(conversationId: ID!, userId: ID!): GroupChatUpdateResponse!
+    alphaChatChangeRoleInGroup(conversationId: ID!, userId: ID!, newRole: String!): GroupChatUpdateResponse!
+    alphaChatCopyGroup(conversationId: ID!, title: String, extraMembers: [ID!], message: String!): GroupChatUpdateResponse!
 
     #
     # BlackList
