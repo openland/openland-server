@@ -71,17 +71,18 @@ export function createPushWorker() {
                     let endpoint = JSON.parse(reg.pushEndpoint);
                     let token = endpoint.token as string;
 
-                    let res = await Friebase.messaging().sendToDevice(
-                        token,
+                    let res = await Friebase.messaging().send(
                         {
                             notification: {
                                 title: args.title,
                                 body: args.body
-                            }
+                            },
+                            topic: 'notifications',
+                            token
                         }
                     );
 
-                    console.log(res);
+                    console.log('push_android', res);
                 }
             }
             return {
