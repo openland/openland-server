@@ -267,7 +267,8 @@ export const Resolver = {
                 conversationId: src.id,
             },
             order: [['id', 'DESC']]
-        })
+        }),
+        membersCount: (src: Conversation) => Repos.Chats.membersCountInConversation(src.id)
     },
 
     ConversationMessage: {
@@ -302,7 +303,7 @@ export const Resolver = {
         }
     },
     InviteServiceMetadata: {
-        user: resolveUser(),
+        users: (src: any) => src.userIds.map((id: number) => DB.User.findById(id)),
         invitedBy: (src: any) => DB.User.findById(src.invitedById)
     },
     KickServiceMetadata: {
@@ -331,6 +332,8 @@ export const Resolver = {
                 return 'ConversationEventDelete';
             } else if (obj.eventType === 'title_change') {
                 return 'ConversationEventTitle';
+            } else if (obj.eventType === 'new_members') {
+                return 'ConversationEventNewMembers';
             }
             throw Error('Unknown type');
         },
@@ -345,6 +348,10 @@ export const Resolver = {
     ConversationEventTitle: {
         title: (src: ConversationEvent) => src.event.title
     },
+    ConversationEventNewMembers: {
+        users: (src: ConversationEvent) => (src.event.userIds! as any).map((id: number) => DB.User.findById(id)),
+        invitedBy: (src: any) => DB.User.findById(src.event.invitedById)
+    },
     ChatReadResult: {
         conversation: (src: { uid: number, conversationId: number }) => DB.Conversation.findById(src.conversationId),
         counter: (src: { uid: number, conversationId: number }) => src.uid
@@ -358,6 +365,8 @@ export const Resolver = {
                 return 'UserEventRead';
             } else if (obj.eventType === 'title_change') {
                 return 'UserEventTitleChange';
+            } else if (obj.eventType === 'new_members_count') {
+                return 'UserEventNewMembersCount';
             }
             throw Error('Unknown type');
         }
@@ -381,6 +390,10 @@ export const Resolver = {
     UserEventTitleChange: {
         seq: (src: ConversationUserEvents) => src.seq,
         title: (src: ConversationUserEvents) => src.event.title,
+    },
+    UserEventNewMembersCount: {
+        conversationId: (src: ConversationUserEvents) => IDs.Conversation.serialize(src.event.conversationId as any),
+        membersCount: (src: ConversationUserEvents) => src.event.membersCount
     },
 
     ComposeSearchResult: {
@@ -598,27 +611,6 @@ export const Resolver = {
         }),
     },
     Mutation: {
-        alphaChatCreateGroup: withAccount<{ title?: string | null, message: string, members: string[] }>(async (args, uid, oid) => {
-            return await DB.txStable(async (tx) => {
-                let title = args.title ? args.title!! : '';
-                let conv = await DB.Conversation.create({
-                    title: title,
-                    type: 'group'
-                }, { transaction: tx });
-                let members = [uid, ...args.members.map((v) => IDs.User.parse(v))];
-                for (let m of members) {
-                    await DB.ConversationGroupMembers.create({
-                        conversationId: conv.id,
-                        invitedById: uid,
-                        userId: m,
-                        role: m === uid ? 'creator' : 'member'
-                    }, { transaction: tx });
-                }
-
-                await Repos.Chats.sendMessage(tx, conv.id, uid, { message: args.message });
-                return conv;
-            });
-        }),
         superCreateChat: withPermission<{ title: string }>('software-developer', async (args) => {
             await validate({ title: stringNotEmpty() }, args);
             return DB.Conversation.create({
@@ -843,6 +835,28 @@ export const Resolver = {
 
             return 'ok';
         }),
+
+        alphaChatCreateGroup: withAccount<{ title?: string | null, message: string, members: string[] }>(async (args, uid, oid) => {
+            return await DB.txStable(async (tx) => {
+                let title = args.title ? args.title!! : '';
+                let conv = await DB.Conversation.create({
+                    title: title,
+                    type: 'group'
+                }, { transaction: tx });
+                let members = [uid, ...args.members.map((v) => IDs.User.parse(v))];
+                for (let m of members) {
+                    await DB.ConversationGroupMembers.create({
+                        conversationId: conv.id,
+                        invitedById: uid,
+                        userId: m,
+                        role: m === uid ? 'creator' : 'member'
+                    }, { transaction: tx });
+                }
+
+                await Repos.Chats.sendMessage(tx, conv.id, uid, { message: args.message });
+                return conv;
+            });
+        }),
         alphaChatChangeGroupTitle: withAccount<{ conversationId: string, title: string }>(async (args, uid) => {
             return DB.tx(async (tx) => {
                 await validate({ title: defined(stringNotEmpty()) }, args);
@@ -933,35 +947,71 @@ export const Resolver = {
 
                     let blocked = await DB.ConversationBlocked.findOne({ where: { user: userId, conversation: conversationId } });
 
-                    if (blocked && !(curMember.role === 'admin' || curMember.role === 'creator')) {
+                    if (blocked && !(curMember!.role === 'admin' || curMember!.role === 'creator')) {
                         throw new Error('Can\'t invite blocked user');
                     }
 
-                    await DB.ConversationGroupMembers.create({
-                        conversationId: conversationId,
-                        invitedById: uid,
-                        userId: userId,
-                        role: invite.role
-                    }, { transaction: tx });
-
-                    await Repos.Chats.sendMessage(
-                        tx,
-                        conversationId,
-                        uid,
-                        {
-                            message: `user<${invite.userId}> Joined chat`,
-                            isService: true,
-                            isMuted: true,
-                            serviceMetadata: {
-                                type: 'user_invite',
-                                userId: IDs.User.parse(invite.userId),
-                                invitedById: uid
-                            }
-                        }
-                    );
+                    try {
+                        await DB.ConversationGroupMembers.create({
+                            conversationId: conversationId,
+                            invitedById: uid,
+                            userId: userId,
+                            role: invite.role
+                        }, { transaction: tx });
+                    } catch (e) {
+                        throw new Error('User already invited');
+                    }
                 }
 
-                return 'ok';
+                let {
+                    conversationEvent,
+                    userEvent
+                } = await Repos.Chats.sendMessage(
+                    tx,
+                    conversationId,
+                    uid,
+                    {
+                        message: `users<${args.invites.map(i => i.userId).join(',')}> Joined chat`,
+                        isService: true,
+                        isMuted: true,
+                        serviceMetadata: {
+                            type: 'user_invite',
+                            userIds: args.invites.map(i => IDs.User.parse(i.userId)),
+                            invitedById: uid
+                        }
+                    }
+                );
+
+                let chatEvent = await Repos.Chats.addChatEvent(
+                    conversationId,
+                    'new_members',
+                    {
+                        userIds: args.invites.map(i => IDs.User.parse(i.userId)),
+                        invitedById: uid
+                    },
+                    tx
+                );
+
+                let membersCount = await Repos.Chats.membersCountInConversation(conversationId);
+
+                let inviteUserEvent = await Repos.Chats.addUserEventsInConversation(
+                    conversationId,
+                    uid,
+                    'new_members_count',
+                    {
+                        conversationId,
+                        membersCount: membersCount + args.invites.length
+                    },
+                    tx
+                );
+
+                return {
+                    chat,
+                    chatEventMessage: conversationEvent,
+                    userEventMessage: userEvent,
+                    chatEvent,
+                    userEvent: inviteUserEvent
+                };
             });
         }),
         alphaChatKickFromGroup: withAccount<{ conversationId: string, userId: string }>(async (args, uid) => {
@@ -1119,7 +1169,6 @@ export const Resolver = {
                 return 'ok';
             });
         }),
-
         alphaUnblockUser: withAccount<{ userId: string, conversationId?: string }>(async (args, uid) => {
             let conversationId = args.conversationId ? IDs.Conversation.parse(args.conversationId) : null;
             let blocked = await DB.ConversationBlocked.findOne({

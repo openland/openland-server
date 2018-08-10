@@ -51,6 +51,7 @@ type GroupConversation implements Conversation {
     members: [User!]!
     unreadCount: Int!
     topMessage: ConversationMessage
+    membersCount: Int!
 }
 
 #
@@ -58,7 +59,7 @@ type GroupConversation implements Conversation {
 #
 
 type InviteServiceMetadata {
-    user: User!
+    users: [User!]
     invitedBy: User!
 }
 
@@ -113,6 +114,12 @@ type ConversationEventDelete implements ConversationEvent {
     messageId: ID!
 }
 
+type ConversationEventNewMembers implements ConversationEvent {
+    seq: Int!
+    users: [User!]
+    invitedBy: User!
+}
+
 type ConversationEventTitle implements ConversationEvent {
     seq: Int!
     title: String!
@@ -158,6 +165,12 @@ type UserEventRead implements UserEvent {
 type UserEventTitleChange implements UserEvent {
     seq: Int!
     title: String!
+}
+
+type UserEventNewMembersCount implements UserEvent {
+    seq: Int!
+    conversationId: ID!
+    membersCount: Int!
 }
 
 #
@@ -240,10 +253,15 @@ extend type Mutation {
 
     alphaChatCreateGroup(title: String, members: [ID!]!, message: String): Conversation!
     alphaChatChangeGroupTitle(conversationId: ID!, title: String!): GroupChatUpdateResponse!
-    alphaChatInviteToGroup(conversationId: ID!, invites: [GroupConversationInvite!]!): String!
+    alphaChatInviteToGroup(conversationId: ID!, invites: [GroupConversationInvite!]!): GroupChatUpdateResponse!
     alphaChatKickFromGroup(conversationId: ID!, userId: ID!): String!
     alphaChatChangeRoleInGroup(conversationId: ID!, userId: ID!, newRole: String!): String!
     alphaChatCopyGroup(conversationId: ID!, title: String, extraMembers: [ID!], message: String!): String!
+
+    #
+    # BlackList
+    #
+
     alphaBlockUser(userId: ID!): String!
     alphaUnblockUser(userId: ID!, conversationId: ID): String!
 }

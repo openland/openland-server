@@ -13,11 +13,21 @@ import { Repos } from './index';
 import { Pubsub } from '../modules/pubsub';
 import { AccessDeniedError } from '../errors/AccessDeniedError';
 
-export type ChatEventType = 'new_message' | 'title_change';
+export type ChatEventType =
+    'new_message' |
+    'title_change' |
+    'new_members';
 
-export type UserEventType = 'new_message' | 'conversation_read' | 'title_change';
+export type UserEventType =
+    'new_message' |
+    'conversation_read' |
+    'title_change' |
+    'new_members_count';
 
-export type ServiceMessageMetadataType = 'user_invite' | 'user_kick' | 'title_change';
+export type ServiceMessageMetadataType =
+    'user_invite' |
+    'user_kick' |
+    'title_change';
 
 export interface Message {
     message?: string | null;
@@ -718,5 +728,13 @@ export class ChatsRepository {
             blockedBy: blockedBy,
             conversation: conversation
         }, { transaction: tx });
+    }
+
+    async membersCountInConversation(conversationId: number): Promise<number> {
+        return await DB.ConversationGroupMembers.count({
+            where: {
+                conversationId: conversationId,
+            }
+        });
     }
 }
