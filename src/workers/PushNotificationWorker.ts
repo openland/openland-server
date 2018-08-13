@@ -95,7 +95,9 @@ export function startPushNotificationWorker() {
                         title: senderName,
                         body: message.message ? message.message!! : '<file>',
                         picture: user.picture ? buildBaseImageUrl(user.picture!!) : null,
-                        counter: unreadCount
+                        counter: unreadCount,
+                        group: 'conversation_' + conversation.id,
+                        conversationId: conversation.id,
                     }, tx);
                 }
 
