@@ -13,8 +13,7 @@ export function createPushWorker() {
         console.log('Starting push worker');
 
         Friebase.initializeApp({
-            credential: Friebase.credential.cert(`
-            {
+            credential: Friebase.credential.cert(JSON.parse(`{
                 "type": "service_account",
                 "project_id": "actor-51469",
                 "private_key_id": "08e25dbbb3cc17f7a9c7dd5d11a3fc754bd1ce36",
@@ -25,8 +24,7 @@ export function createPushWorker() {
                 "token_uri": "https://oauth2.googleapis.com/token",
                 "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
                 "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-5gipf%40actor-51469.iam.gserviceaccount.com"
-              }
-              `),
+              }`)),
             databaseURL: 'https://actor-51469.firebaseio.com'
         });
         queue.addWorker(async (args, lock) => {
