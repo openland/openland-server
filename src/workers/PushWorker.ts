@@ -11,6 +11,14 @@ export function createPushWorker() {
     let queue = new WorkQueue<{ uid: number, title: string, body: string, picture: string | null, counter: number }, { result: string }>('push_sender');
     if (AppConfiuguration.webPush || AppConfiuguration.apple) {
         console.log('Starting push worker');
+         Friebase.initializeApp({
+            credential: Friebase.credential.cert({
+              projectId: 'actor-51469',
+              clientEmail: 'foo@actor-51469.iam.gserviceaccount.com',
+              privateKey: '-----BEGIN PRIVATE KEY-----\nAIzaSyDFgx1QX04_P8GXy9mA21UyPfgvv_l5Rt0\n-----END PRIVATE KEY-----\n'
+            }),
+            databaseURL: 'https://actor-51469.firebaseio.com'
+          });
         queue.addWorker(async (args, lock) => {
             let registrations = await DB.UserPushRegistration.findAll({
                 where: {
@@ -54,7 +62,7 @@ export function createPushWorker() {
                             }
                             var not = new APN.Notification();
                             not.expiry = Math.floor(Date.now() / 1000) + 3600;
-                            not.alert = {title: args.title, body: args.body};
+                            not.alert = { title: args.title, body: args.body };
                             not.badge = args.counter;
                             not.topic = bundleId;
                             let res = await (provs.get(team.teamId)!!).send(not, token);
@@ -70,6 +78,7 @@ export function createPushWorker() {
                 } else if (reg.pushType === 'android') {
                     let endpoint = JSON.parse(reg.pushEndpoint);
                     let token = endpoint.token as string;
+                    let bundleId = endpoint.bundleId as string;
 
                     let res = await Friebase.messaging().send(
                         {
@@ -77,7 +86,7 @@ export function createPushWorker() {
                                 title: args.title,
                                 body: args.body
                             },
-                            topic: 'notifications',
+                            topic: bundleId,
                             token
                         }
                     );
