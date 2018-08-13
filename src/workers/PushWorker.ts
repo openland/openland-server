@@ -15,7 +15,7 @@ export function createPushWorker() {
             credential: Friebase.credential.cert({
               projectId: 'actor-51469',
               clientEmail: 'foo@actor-51469.iam.gserviceaccount.com',
-              privateKey: '-----BEGIN PRIVATE KEY-----\nAIzaSyDFgx1QX04_P8GXy9mA21UyPfgvv_l5Rt0\n-----END PRIVATE KEY-----\n'
+              privateKey: '-----BEGIN PRIVATE KEY-----\nAAAA_zc8_jw:APA91bEufQaxO8LeP61LNdY97qR_ejuuB384kSiHKgGGdZP6Vi0B6GkYLQ_pva9QGXskMcjfQTLeYuPJEZvrRJqrnRLP5put1V4NP84FZrAxplSdrTc9wi5Q53N3wW7hVvfSUVUD8GDhz78XtZOhe6lLqDhUDLoncg\n-----END PRIVATE KEY-----\n'
             }),
             databaseURL: 'https://actor-51469.firebaseio.com'
           });
