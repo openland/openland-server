@@ -12,7 +12,7 @@ export function createPushWorker() {
     if (AppConfiuguration.webPush || AppConfiuguration.apple) {
         console.log('Starting push worker');
 
-        Friebase.initializeApp({
+        let firebase = Friebase.initializeApp({
             credential: Friebase.credential.cert(JSON.parse(`{
                 "type": "service_account",
                 "project_id": "actor-51469",
@@ -87,7 +87,7 @@ export function createPushWorker() {
                     let endpoint = JSON.parse(reg.pushEndpoint);
                     let token = endpoint.token as string;
 
-                    let res = await Friebase.messaging().send(
+                    let res = await firebase.messaging().send(
                         {
                             android: {
                                 collapseKey: args.group,
