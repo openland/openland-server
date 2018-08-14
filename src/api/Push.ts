@@ -53,6 +53,17 @@ export const Resolvers = {
                 type = 'android';
             }
             return DB.txStable(async (tx) => {
+                // clean up after login in different acc on same device
+                await DB.UserPushRegistration.destroy({
+                    where: {
+                        pushEndpoint: args.endpoint,
+                        tokenId: {
+                            $not: context.tid!!
+                        }
+                    },
+                    transaction: tx,
+                });
+
                 let existing = await DB.UserPushRegistration.find({
                     where: {
                         userId: context.uid!!,
@@ -62,6 +73,7 @@ export const Resolvers = {
                     transaction: tx,
                     lock: tx.LOCK.UPDATE
                 });
+
                 if (existing) {
                     if (existing.pushEndpoint === args.endpoint) {
                         return 'ok';
@@ -79,6 +91,7 @@ export const Resolvers = {
                     }, { transaction: tx });
                     return 'ok';
                 }
+
             });
         }
     }
