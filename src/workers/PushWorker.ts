@@ -79,6 +79,7 @@ export function createPushWorker() {
                 } else if (reg.pushType === 'android') {
                     let endpoint = JSON.parse(reg.pushEndpoint);
                     let token = endpoint.token as string;
+                    console.log('push_android', '...' + token.substring(token.length - 5));
 
                     let res = await firebase.messaging().send(
                         {
