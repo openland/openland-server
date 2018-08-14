@@ -4,6 +4,8 @@ import WebPush from 'web-push';
 import { AppConfiuguration } from '../init/initConfig';
 import APN from 'apn';
 import * as Friebase from 'firebase-admin';
+import { IDs } from '../api/utils/IDs';
+import { doSimpleHash } from '../utils/hash';
 
 let providers = new Map<boolean, Map<string, APN.Provider>>();
 
@@ -88,11 +90,11 @@ export function createPushWorker() {
                                     title: args.title,
                                     body: args.body,
                                 },
-                                data: { 
-                                    ['conversationId']: args.conversationId.toString(),
+                                data: {
+                                    ['conversationId']: IDs.Conversation.serialize(args.conversationId),
                                     ['title']: args.title,
                                     ['message']: args.body,
-                                    ['id']: args.group,
+                                    ['id']: doSimpleHash(args.group).toString(),
                                 },
                                 token: token
                             }
