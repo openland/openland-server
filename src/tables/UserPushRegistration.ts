@@ -18,7 +18,9 @@ export interface UserPushRegistration extends sequelize.Instance<Partial<UserPus
 export const UserPushRegistrationTable = connection.define<UserPushRegistration, Partial<UserPushRegistrationAttributes>>('user_push_registration', {
     id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
     pushEndpoint: { type: sequelize.STRING(4096), allowNull: false, unique: true },
-    pushType: { type: sequelize.STRING, allowNull: false, defaultValue: 'web-push' }
+    pushType: { type: sequelize.STRING, allowNull: false, defaultValue: 'web-push' },
+    userId: { type: sequelize.INTEGER, allowNull: false },
+    tokenId: { type: sequelize.INTEGER, allowNull: false },
 });
 
 UserPushRegistrationTable.belongsTo(UserTable, { as: 'user' });
