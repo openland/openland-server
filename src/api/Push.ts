@@ -67,18 +67,16 @@ export const Resolvers = {
                         return 'ok';
                     } else {
                         existing.pushEndpoint = args.endpoint;
-                        await existing.save({ transaction: tx });
-                        return 'ok';
+                        await existing.destroy({ transaction: tx });
                     }
-                } else {
-                    await DB.UserPushRegistration.create({
-                        userId: context.uid,
-                        tokenId: context.tid,
-                        pushEndpoint: args.endpoint,
-                        pushType: type as any
-                    }, { transaction: tx });
-                    return 'ok';
-                }
+                } 
+                await DB.UserPushRegistration.create({
+                    userId: context.uid,
+                    tokenId: context.tid,
+                    pushEndpoint: args.endpoint,
+                    pushType: type as any
+                }, { transaction: tx });
+                return 'ok';
             });
         }
     }
