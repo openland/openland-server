@@ -18,6 +18,7 @@ import * as Chat from './Chat';
 import * as Push from './Push';
 import * as Wall from './Wall';
 import * as Hits from './Hits';
+import * as Channels from './Channels';
 
 import * as Parcels from './Parcels';
 
@@ -48,6 +49,7 @@ export const Schema = makeExecutableSchema({
         Chat.Resolver,
         Push.Resolvers,
         Wall.Resolver,
-        Hits.Resolver
+        Hits.Resolver,
+        Channels.Resolver
     )
 });

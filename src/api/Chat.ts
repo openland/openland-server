@@ -29,6 +29,8 @@ export const Resolver = {
                 return 'PrivateConversation';
             } else if (src.type === 'group') {
                 return 'GroupConversation';
+            } else if (src.type === 'channel') {
+                return 'ChannelConversation';
             } else {
                 throw Error('Unsupported Conversation Type');
             }

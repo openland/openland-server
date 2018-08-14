@@ -452,37 +452,7 @@ export class ChatsRepository {
         //
         // Unread Counters
         //
-        let members: number[] = [];
-        if (conv.type === 'private') {
-            members = [conv.member1Id!!, conv.member2Id!!];
-        } else if (conv.type === 'shared') {
-            let m = await DB.OrganizationMember.findAll({
-                where: {
-                    orgId: {
-                        $in: [conv.organization1Id!!, conv.organization2Id!!]
-                    }
-                },
-                order: [['createdAt', 'DESC']],
-                transaction: tx
-            });
-            for (let i of m) {
-                if (members.indexOf(i.userId) < 0) {
-                    members.push(i.userId);
-                }
-            }
-        } else if (conv.type === 'group') {
-            let m = await DB.ConversationGroupMembers.findAll({
-                where: {
-                    conversationId: conv.id,
-                },
-                transaction: tx
-            });
-            for (let i of m) {
-                if (members.indexOf(i.userId) < 0) {
-                    members.push(i.userId);
-                }
-            }
-        }
+        let members = await this.getConversationMembers(conversationId, tx);
 
         let userEvent: ConversationUserEvents;
 
@@ -596,45 +566,66 @@ export class ChatsRepository {
         };
     }
 
-    async getConversationMembers(conversationId: number): Promise<number[]> {
-        let conv = await DB.Conversation.findById(conversationId);
+    async getConversationMembers(conversationId: number, eTx?: Transaction): Promise<number[]> {
+        return DB.txStable(async (tx) => {
+            let conv = await DB.Conversation.findById(conversationId, {transaction: tx});
 
-        if (!conv) {
-            throw new NotFoundError('Conversation not found');
-        }
+            if (!conv) {
+                throw new NotFoundError('Conversation not found');
+            }
 
-        let members: number[] = [];
+            let members: number[] = [];
 
-        if (conv.type === 'private') {
-            members = [conv.member1Id!!, conv.member2Id!!];
-        } else if (conv.type === 'shared') {
-            let m = await DB.OrganizationMember.findAll({
-                where: {
-                    orgId: {
-                        $in: [conv.organization1Id!!, conv.organization2Id!!]
+            if (conv.type === 'private') {
+                members = [conv.member1Id!!, conv.member2Id!!];
+            } else if (conv.type === 'shared') {
+                let m = await DB.OrganizationMember.findAll({
+                    where: {
+                        orgId: {
+                            $in: [conv.organization1Id!!, conv.organization2Id!!]
+                        }
+                    },
+                    order: [['createdAt', 'DESC']],
+                    transaction: tx
+                });
+                for (let i of m) {
+                    if (members.indexOf(i.userId) < 0) {
+                        members.push(i.userId);
                     }
-                },
-                order: [['createdAt', 'DESC']]
-            });
-            for (let i of m) {
-                if (members.indexOf(i.userId) < 0) {
-                    members.push(i.userId);
                 }
-            }
-        } else if (conv.type === 'group') {
-            let m = await DB.ConversationGroupMembers.findAll({
-                where: {
-                    conversationId: conv.id,
+            } else if (conv.type === 'group') {
+                let m = await DB.ConversationGroupMembers.findAll({
+                    where: {
+                        conversationId: conv.id,
+                    },
+                    transaction: tx
+                });
+                for (let i of m) {
+                    if (members.indexOf(i.userId) < 0) {
+                        members.push(i.userId);
+                    }
                 }
-            });
-            for (let i of m) {
-                if (members.indexOf(i.userId) < 0) {
-                    members.push(i.userId);
-                }
-            }
-        }
+            } else if (conv.type === 'channel') {
+                let orgs = await DB.ConversationChannelMembers.findAll({
+                    where: {
+                        conversationId: conv.id,
+                        status: 'member'
+                    },
+                    transaction: tx
+                });
 
-        return members;
+                for (let org of orgs) {
+                    let orgMembers = await Repos.Organizations.getOrganizationMembers(org.orgId);
+
+                    for (let member of orgMembers) {
+                        members.push(member.userId);
+                    }
+                }
+            }
+
+            console.log(members);
+            return members;
+        }, eTx);
     }
 
     async groupChatExists(conversationId: number): Promise<boolean> {

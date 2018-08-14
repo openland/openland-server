@@ -1,0 +1,51 @@
+type ChannelConversation implements Conversation {
+    id: ID!
+    flexibleId: ID!
+    title: String!
+    photos: [String!]!
+    members: [User!]!
+    unreadCount: Int!
+    topMessage: ConversationMessage
+
+    membersCount: Int!
+    featured: Boolean!
+}
+
+type ChannelMember {
+    organization: Organization!
+    role: String!
+    status: String!
+}
+
+type ChannelInvite {
+    channel: ChannelConversation!
+    invitedByOrg: Organization!
+    invitedByUser: User!
+}
+
+type ChannelJoinRequest {
+    organization: Organization!
+    user: User!
+}
+
+extend type Mutation {
+    alphaChannelCreate(title: String!, message: String!): Conversation!
+
+    # approves join request if there was one
+    # creates invite if there was no request
+    alphaChannelInvite(channelId: ID!, orgId: ID!): String!
+
+    # joins channel if organization was already invited
+    # creates request if there was no invite
+    alphaChannelJoin(channelId: ID!): String!
+    alphaChannelSetFeatured(channelId: ID!, featured: Boolean!): String!
+}
+
+extend type Query {
+    alphaChannels(first: Int!, after: String): ConversationConnection!
+    alphaChannelMembers(channelId: ID!): [ChannelMember!]!
+    alphaChannelMyOrgInvites: [ChannelInvite!]!
+    alphaChannelJoinRequests(channelId: ID!): [ChannelJoinRequest!]!
+    alphaChannelsFeatured: [ChannelConversation!]!
+}
+

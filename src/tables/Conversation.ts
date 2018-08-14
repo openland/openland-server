@@ -2,16 +2,18 @@ import { connection } from '../modules/sequelizeConnector';
 import * as sequelize from 'sequelize';
 import { UserTable, User } from './User';
 import { OrganizationTable, Organization } from './Organization';
+import { JsonMap } from '../utils/json';
 
 export interface ConversationAttributes {
     id: number;
     title: string;
     seq: number;
-    type: 'anonymous' | 'private' | 'shared' | 'group';
+    type: 'anonymous' | 'private' | 'shared' | 'group' | 'channel';
     member1Id: number | null;
     member2Id: number | null;
     organization1Id: number | null;
     organization2Id: number | null;
+    extras: JsonMap;
 }
 
 export interface Conversation extends sequelize.Instance<Partial<ConversationAttributes>>, ConversationAttributes {
@@ -31,7 +33,12 @@ export const ConversationTable = connection.define<Conversation, Partial<Convers
         type: sequelize.STRING, allowNull: false
     },
     seq: { type: sequelize.INTEGER, defaultValue: 0, allowNull: false },
-    type: { type: sequelize.STRING, defaultValue: 'anonymous', allowNull: false }
+    type: { type: sequelize.STRING, defaultValue: 'anonymous', allowNull: false },
+    extras: {
+        type: sequelize.JSON,
+        allowNull: false,
+        defaultValue: {}
+    }
 }, {
         paranoid: true, validate: {
             validateMemberOrder() {
