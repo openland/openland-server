@@ -77,25 +77,31 @@ export function createPushWorker() {
                         console.warn(e);
                     }
                 } else if (reg.pushType === 'android') {
-                    let endpoint = JSON.parse(reg.pushEndpoint);
-                    let token = endpoint.token as string;
-                    console.log('push_android', '...' + token.substring(token.length - 5));
+                    try {
+                        let endpoint = JSON.parse(reg.pushEndpoint);
+                        let token = endpoint.token as string;
+                        console.log('push_android', '...' + token.substring(token.length - 5));
 
-                    let res = await firebase.messaging().send(
-                        {
-                            android: {
-                                collapseKey: args.group,
-                                notification: {
-                                    title: args.title,
-                                    body: args.body,
+                        let res = await firebase.messaging().send(
+                            {
+                                android: {
+                                    collapseKey: args.group,
+                                    notification: {
+                                        title: args.title,
+                                        body: args.body,
+                                    },
+                                    data: { ['conversationId']: args.conversationId.toString() },
                                 },
-                                data: { ['conversationId']: args.conversationId.toString() },
-                            },
-                            token: token
-                        }
-                    );
+                                token: token
+                            }
+                        );
 
-                    console.log('push_android', res);
+                        console.log('push_android', res);
+                    } catch (e) {
+                        // Fast ignore for push notifications
+                        console.warn(e);
+                    }
+
                 }
             }
             return {
