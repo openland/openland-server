@@ -84,13 +84,15 @@ export function createPushWorker() {
 
                         let res = await firebase.messaging().send(
                             {
-                                android: {
-                                    collapseKey: args.group,
-                                    notification: {
-                                        title: args.title,
-                                        body: args.body,
-                                    },
-                                    data: { ['conversationId']: args.conversationId.toString() },
+                                notification: {
+                                    title: args.title,
+                                    body: args.body,
+                                },
+                                data: { 
+                                    ['conversationId']: args.conversationId.toString(),
+                                    ['title']: args.title,
+                                    ['message']: args.body,
+                                    ['id']: args.group,
                                 },
                                 token: token
                             }
