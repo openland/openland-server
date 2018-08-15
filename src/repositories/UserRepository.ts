@@ -300,7 +300,15 @@ export class UserRepository {
         return null;
     }
 
-    async resolvePrimaryOrganization(uid: number, oid?: number | null) {
+    async resolvePrimaryOrganization(uid: number) {
+        let oid: number | null | undefined = undefined;
+
+        // resolve primary org id from extras
+        let userProfile = await DB.UserProfile.find({ where: { userId: uid } });
+        if (userProfile) {
+            oid = userProfile.extras && userProfile.extras.primaryOrganization;
+        }
+
         let org: Organization | undefined | null;
 
         // if has saved id - try to resolve it

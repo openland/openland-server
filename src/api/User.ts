@@ -82,7 +82,7 @@ export const Resolver = {
         isCreated: withProfile((src, profile) => !!profile),
         isBot: (src: User) => src.isBot || false,
         isYou: (src: User, args: {}, context: CallContext) => src.id === context.uid,
-        alphaPrimaryOrganization: (src: UserProfile) => Repos.Users.resolvePrimaryOrganization(src.userId!!, src.extras && src.extras.primaryOrganization),
+        alphaPrimaryOrganization: (src: User) => Repos.Users.resolvePrimaryOrganization(src.id!!),
     },
     Profile: {
         id: (src: UserProfile) => IDs.Profile.serialize(src.id!!),
@@ -99,7 +99,7 @@ export const Resolver = {
         alphaLinkedin: (src: UserProfile) => src.extras && src.extras.linkedin,
         alphaTwitter: (src: UserProfile) => src.extras && src.extras.twitter,
         alphaPrimaryOrganizationId: (src: UserProfile) => src.extras && src.extras.primaryOrganizationId,
-        alphaPrimaryOrganization: (src: UserProfile) => Repos.Users.resolvePrimaryOrganization(src.userId!!, src.extras && src.extras.primaryOrganization),
+        alphaPrimaryOrganization: (src: UserProfile) => Repos.Users.resolvePrimaryOrganization(src.userId!!),
         alphaJoinedAt: (src: UserProfile) => (src as any).createdAt,
         alphaInvitedBy: async (src: UserProfile) => await Repos.Users.getUserInvitedBy(src.userId!!),
     },
