@@ -17,7 +17,6 @@ import { TypingEvent } from '../repositories/ChatRepository';
 import { ConversationGroupMember } from '../tables/ConversationGroupMembers';
 import { AccessDeniedError } from '../errors/AccessDeniedError';
 import { ConversationBlocked } from '../tables/ConversationBlocked';
-import * as sequelize from 'sequelize';
 
 export const Resolver = {
     Conversation: {
@@ -550,13 +549,14 @@ export const Resolver = {
             let primaryOrganization = await Repos.Users.resolvePrimaryOrganization(uid);
             let primaryOrgUsers: User[] = [];
             let membersUserIds: number[] = [];
+            let sequelize = DB.connection;
             if (primaryOrganization) {
                 let members = await DB.OrganizationMember.findAll({ where: { orgId: primaryOrganization.id } });
                 let membersIds = members.map(m => m.id);
                 let membersProfiles = await DB.UserProfile.findAll({
                     where:
                         [
-                            sequelize.and([
+                            sequelize.and(
                                 {
                                     userId: {
                                         $in: membersIds
@@ -567,7 +567,7 @@ export const Resolver = {
                                         $not: uid
                                     }
                                 },
-                                sequelize.or([
+                                sequelize.or(
                                     {
                                         firstName: {
                                             $ilike: args.query.toLowerCase() + '%'
@@ -579,8 +579,8 @@ export const Resolver = {
                                             $ilike: args.query.toLowerCase() + '%'
                                         }
                                     }
-                                ]),
-                            ])
+                                ),
+                            )
                         ],
                     limit: 4
                 });
@@ -597,7 +597,7 @@ export const Resolver = {
             let usersProfiles = await DB.UserProfile.findAll({
                 where:
                     [
-                        sequelize.and([
+                        sequelize.and(
                             {
                                 status: 'ACTIVATED'
                             },
@@ -606,7 +606,7 @@ export const Resolver = {
                                     $not: uid
                                 }
                             },
-                            sequelize.or([
+                            sequelize.or(
                                 {
                                     firstName: {
                                         $ilike: args.query.toLowerCase() + '%'
@@ -618,15 +618,15 @@ export const Resolver = {
                                         $ilike: args.query.toLowerCase() + '%'
                                     }
                                 }
-                            ]),
-                        ])
+                            ),
+                        )
                     ],
                 limit: 4
             });
             let usersIds = usersProfiles.map(m => m.userId!!);
             let users = await DB.User.findAll({
                 where: [
-                    sequelize.and([
+                    sequelize.and(
                         {
                             id: {
                                 $in: usersIds
@@ -637,7 +637,7 @@ export const Resolver = {
                                 $notIn: membersUserIds
                             }
                         }
-                    ])
+                    )
                 ],
                 limit: 4
             });
