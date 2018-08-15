@@ -1,8 +1,8 @@
 import { connection } from '../modules/sequelizeConnector';
 import * as sequelize from 'sequelize';
 import { UserTable } from './User';
-import { ConversationTable } from './Conversation';
-import { OrganizationTable } from './Organization';
+import { Conversation, ConversationTable } from './Conversation';
+import { Organization, OrganizationTable } from './Organization';
 
 export interface ConversationChannelMemberAttributes {
     id: number;
@@ -12,6 +12,8 @@ export interface ConversationChannelMemberAttributes {
     conversationId: number;
     role: 'member' | 'creator';
     status: 'invited' | 'member' | 'requested';
+    org: Organization;
+    conversation: Conversation;
 }
 
 export interface ConversationChannelMember extends sequelize.Instance<Partial<ConversationChannelMemberAttributes>>, ConversationChannelMemberAttributes {

@@ -103,6 +103,21 @@ export const Resolver = {
         alphaARClosingTime: (src: Organization) => src.extras && src.extras.arClosingTime,
         alphaARSpecialAttributes: (src: Organization) => src.extras && src.extras.arSpecialAttributes,
         alphaARLandUse: (src: Organization) => src.extras && src.extras.arLandUse,
+
+        alphaJoinedChannels: async (src: Organization) => {
+            let members = await DB.ConversationChannelMembers.findAll({
+                where: {
+                    orgId: src.id,
+                    status: 'member'
+                },
+                include: [{
+                    model: DB.Conversation,
+                    as: 'conversation'
+                }]
+            });
+
+            return members.map(m => m.conversation);
+        }
     },
 
     AlphaOrganizationListing: {
