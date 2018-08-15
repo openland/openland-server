@@ -15,6 +15,7 @@ type User {
     isYou: Boolean!
     isCreated: Boolean!
     isBot: Boolean!
+    alphaPrimaryOrganization: Organization!,
 }
 
 input UpdateProfileInput {
@@ -59,6 +60,7 @@ type Profile {
     alphaLinkedin: String,
     alphaTwitter: String,
     alphaPrimaryOrganizationId: ID,
+    alphaPrimaryOrganization: Organization!,
     alphaJoinedAt: String,
     alphaInvitedBy: User
 }
