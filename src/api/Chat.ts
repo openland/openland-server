@@ -569,7 +569,7 @@ export const Resolver = {
                                 },
                                 sequelize.or(
                                     sequelize.where(sequelize.fn('concat', sequelize.col('firstName'), ' ', sequelize.col('lastName')), {
-                                        like: args.query.toLowerCase() + '%'
+                                        $ilike: args.query.toLowerCase() + '%'
                                     }),
                                     {
                                         firstName: {
@@ -612,7 +612,7 @@ export const Resolver = {
                             },
                             sequelize.or(
                                 sequelize.where(sequelize.fn('concat', sequelize.col('firstName'), ' ', sequelize.col('lastName')), {
-                                    like: args.query.toLowerCase() + '%'
+                                    $ilike: args.query.toLowerCase() + '%'
                                 }),
                                 {
                                     firstName: {
