@@ -28,6 +28,16 @@ type ChannelJoinRequest {
     user: User!
 }
 
+type ChannelConversationConnectionEdge {
+    node: ChannelConversation!
+    cursor: String!
+}
+
+type ChannelConversationConnection {
+    edges: [ChannelConversationConnectionEdge!]!
+    pageInfo: PageInfo!
+}
+
 extend type Mutation {
     alphaChannelCreate(title: String!, message: String!): Conversation!
 
@@ -42,10 +52,16 @@ extend type Mutation {
 }
 
 extend type Query {
-    alphaChannels(first: Int!, after: String): ConversationConnection!
+    alphaChannelsList(first: Int!, after: String): ConversationConnection!
     alphaChannelMembers(channelId: ID!): [ChannelMember!]!
     alphaChannelMyOrgInvites: [ChannelInvite!]!
     alphaChannelJoinRequests(channelId: ID!): [ChannelJoinRequest!]!
     alphaChannelsFeatured: [ChannelConversation!]!
+    alphaChannels(
+        query: String,
+        first: Int!,
+        after: String,
+        page: Int
+    ): ChannelConversationConnection!
 }
 

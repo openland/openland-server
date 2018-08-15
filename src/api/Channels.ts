@@ -5,6 +5,17 @@ import { Conversation } from '../tables/Conversation';
 import { IDs } from './utils/IDs';
 import { CallContext } from './utils/CallContext';
 import { ConversationChannelMember } from '../tables/ConversationChannelMembers';
+import { ElasticClient } from '../indexing';
+import { buildElasticQuery, QueryParser } from '../modules/QueryParser';
+import { SelectBuilder } from '../modules/SelectBuilder';
+
+interface AlphaChannelsParams {
+    orgId: string;
+    query?: string;
+    first: number;
+    after?: string;
+    page?: number;
+}
 
 export const Resolver = {
     ChannelConversation: {
@@ -172,7 +183,7 @@ export const Resolver = {
     },
 
     Query: {
-        alphaChannels: withAccount<{ first: number, after?: string | null, seq?: number }>(async (args, uid, oid) => {
+        alphaChannelsList: withAccount<{ first: number, after?: string | null, seq?: number }>(async (args, uid, oid) => {
             return await DB.tx(async (tx) => {
                 let global = await DB.ConversationsUserGlobal.find({where: {userId: uid}, transaction: tx});
                 let seq = global ? global.seq : 0;
@@ -240,6 +251,35 @@ export const Resolver = {
                     extras: { featured: true }
                 }
             });
+        }),
+        alphaChannels: withAccount<AlphaChannelsParams>(async (args, uid, oid) => {
+            let clauses: any[] = [];
+
+            if (args.query) {
+                let parser = new QueryParser();
+                parser.registerText('title', 'title');
+                parser.registerBoolean('featured', 'featured');
+                let parsed = parser.parseQuery(args.query);
+                let elasticQuery = buildElasticQuery(parsed);
+                clauses.push(elasticQuery);
+            }
+
+            let hits = await ElasticClient.search({
+                index: 'channels',
+                type: 'channel',
+                size: args.first,
+                from: args.page ? ((args.page - 1) * args.first) : 0,
+                body: {
+                    query: { bool: { must: clauses } }
+                }
+            });
+
+            let builder = new SelectBuilder(DB.Conversation)
+                .after(args.after)
+                .page(args.page)
+                .limit(args.first);
+
+            return await builder.findElastic(hits);
         }),
     }
 };
