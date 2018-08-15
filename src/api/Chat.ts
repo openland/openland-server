@@ -552,7 +552,7 @@ export const Resolver = {
             let sequelize = DB.connection;
             if (primaryOrganization) {
                 let members = await DB.OrganizationMember.findAll({ where: { orgId: primaryOrganization.id } });
-                let membersIds = members.map(m => m.id);
+                let membersIds = members.map(m => m.userId);
                 let membersProfiles = await DB.UserProfile.findAll({
                     where:
                         [
@@ -599,9 +599,6 @@ export const Resolver = {
                     [
                         sequelize.and(
                             {
-                                status: 'ACTIVATED'
-                            },
-                            {
                                 userId: {
                                     $not: uid
                                 }
@@ -631,6 +628,9 @@ export const Resolver = {
                             id: {
                                 $in: usersIds
                             }
+                        },
+                        {
+                            status: 'ACTIVATED'
                         },
                         {
                             id: {
