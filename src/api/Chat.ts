@@ -589,6 +589,8 @@ export const Resolver = {
                     limit: 4
                 });
                 membersUserIds = membersProfiles.map(m => m.userId!!);
+                console.warn('alphaChatsSearchForCompose', membersUserIds);
+                console.warn('alphaChatsSearchForCompose', membersProfiles);
                 primaryOrgUsers = await DB.User.findAll({
                     where: {
                         id: {
@@ -604,7 +606,7 @@ export const Resolver = {
                         sequelize.and(
                             {
                                 userId: {
-                                    $not: uid
+                                    $notIn: [uid, ...membersUserIds]
                                 }
                             },
                             sequelize.or(
@@ -639,11 +641,6 @@ export const Resolver = {
                         },
                         {
                             status: 'ACTIVATED'
-                        },
-                        {
-                            id: {
-                                $notIn: membersUserIds
-                            }
                         }
                     )
                 ],
