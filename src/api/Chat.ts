@@ -568,6 +568,9 @@ export const Resolver = {
                                     }
                                 },
                                 sequelize.or(
+                                    sequelize.where(sequelize.fn('concat', sequelize.col('firstName'), ' ', sequelize.col('lastName')), {
+                                        like: args.query.toLowerCase() + '%'
+                                    }),
                                     {
                                         firstName: {
                                             $ilike: args.query.toLowerCase() + '%'
@@ -589,8 +592,6 @@ export const Resolver = {
                     limit: 4
                 });
                 membersUserIds = membersProfiles.map(m => m.userId!!);
-                console.warn('alphaChatsSearchForCompose', membersUserIds);
-                console.warn('alphaChatsSearchForCompose', membersProfiles);
                 primaryOrgUsers = await DB.User.findAll({
                     where: {
                         id: {
@@ -610,6 +611,9 @@ export const Resolver = {
                                 }
                             },
                             sequelize.or(
+                                sequelize.where(sequelize.fn('concat', sequelize.col('firstName'), ' ', sequelize.col('lastName')), {
+                                    like: args.query.toLowerCase() + '%'
+                                }),
                                 {
                                     firstName: {
                                         $ilike: args.query.toLowerCase() + '%'
