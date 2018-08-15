@@ -17,6 +17,7 @@ import { TypingEvent } from '../repositories/ChatRepository';
 import { ConversationGroupMember } from '../tables/ConversationGroupMembers';
 import { AccessDeniedError } from '../errors/AccessDeniedError';
 import { ConversationBlocked } from '../tables/ConversationBlocked';
+import * as sequelize from 'sequelize';
 
 export const Resolver = {
     Conversation: {
@@ -545,19 +546,102 @@ export const Resolver = {
                 },
                 limit: 4
             }) : [];
-            let users = await DB.User.findAll({
-                where: {
-                    email: {
-                        $ilike: args.query.toLowerCase() + '%'
-                    },
-                    id: {
-                        $not: uid
-                    },
-                    status: 'ACTIVATED'
-                },
+
+            let primaryOrganization = await Repos.Users.resolvePrimaryOrganization(uid);
+            let primaryOrgUsers: User[] = [];
+            let membersUserIds: number[] = [];
+            if (primaryOrganization) {
+                let members = await DB.OrganizationMember.findAll({ where: { orgId: primaryOrganization.id } });
+                let membersIds = members.map(m => m.id);
+                let membersProfiles = await DB.UserProfile.findAll({
+                    where:
+                        [
+                            sequelize.and([
+                                {
+                                    userId: {
+                                        $in: membersIds
+                                    }
+                                },
+                                {
+                                    userId: {
+                                        $not: uid
+                                    }
+                                },
+                                sequelize.or([
+                                    {
+                                        firstName: {
+                                            $ilike: args.query.toLowerCase() + '%'
+                                        },
+                                        lastName: {
+                                            $ilike: args.query.toLowerCase() + '%'
+                                        },
+                                        email: {
+                                            $ilike: args.query.toLowerCase() + '%'
+                                        }
+                                    }
+                                ]),
+                            ])
+                        ],
+                    limit: 4
+                });
+                membersUserIds = membersProfiles.map(m => m.userId!!);
+                primaryOrgUsers = await DB.User.findAll({
+                    where: {
+                        id: {
+                            $in: membersUserIds
+                        }
+                    }
+                });
+            }
+
+            let usersProfiles = await DB.UserProfile.findAll({
+                where:
+                    [
+                        sequelize.and([
+                            {
+                                status: 'ACTIVATED'
+                            },
+                            {
+                                userId: {
+                                    $not: uid
+                                }
+                            },
+                            sequelize.or([
+                                {
+                                    firstName: {
+                                        $ilike: args.query.toLowerCase() + '%'
+                                    },
+                                    lastName: {
+                                        $ilike: args.query.toLowerCase() + '%'
+                                    },
+                                    email: {
+                                        $ilike: args.query.toLowerCase() + '%'
+                                    }
+                                }
+                            ]),
+                        ])
+                    ],
                 limit: 4
             });
-            return [...orgs, ...users];
+            let usersIds = usersProfiles.map(m => m.userId!!);
+            let users = await DB.User.findAll({
+                where: [
+                    sequelize.and([
+                        {
+                            id: {
+                                $in: usersIds
+                            }
+                        },
+                        {
+                            id: {
+                                $notIn: membersUserIds
+                            }
+                        }
+                    ])
+                ],
+                limit: 4
+            });
+            return [...orgs, ...primaryOrgUsers, ...users];
         }),
         alphaChatSearch: withAccount<{ members: string[] }>(async (args, uid, oid) => {
             let members = [...args.members.map((v) => IDs.User.parse(v)), uid];
@@ -1171,7 +1255,7 @@ export const Resolver = {
                     throw new AccessDeniedError();
                 }
 
-                await member.update({ role: args.newRole }, {transaction: tx});
+                await member.update({ role: args.newRole }, { transaction: tx });
 
                 let chatEvent = await Repos.Chats.addChatEvent(
                     conversationId,
