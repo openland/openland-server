@@ -571,10 +571,14 @@ export const Resolver = {
                                     {
                                         firstName: {
                                             $ilike: args.query.toLowerCase() + '%'
-                                        },
+                                        }
+                                    },
+                                    {
                                         lastName: {
                                             $ilike: args.query.toLowerCase() + '%'
-                                        },
+                                        }
+                                    },
+                                    {
                                         email: {
                                             $ilike: args.query.toLowerCase() + '%'
                                         }
@@ -607,10 +611,14 @@ export const Resolver = {
                                 {
                                     firstName: {
                                         $ilike: args.query.toLowerCase() + '%'
-                                    },
+                                    }
+                                },
+                                {
                                     lastName: {
                                         $ilike: args.query.toLowerCase() + '%'
-                                    },
+                                    }
+                                },
+                                {
                                     email: {
                                         $ilike: args.query.toLowerCase() + '%'
                                     }
