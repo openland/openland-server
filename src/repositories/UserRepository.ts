@@ -7,6 +7,7 @@ import { UserSettings, UserSettingsAttributes } from '../tables/UserSettings';
 import { SuperBus } from '../modules/SuperBus';
 import { validate, stringNotEmpty } from '../modules/NewInputValidator';
 import { Sanitizer } from '../modules/Sanitizer';
+import { Organization } from '../tables/Organization';
 
 export interface Settings {
     emailFrequency: '1hour' | '15min' | 'never';
@@ -297,5 +298,30 @@ export class UserRepository {
             return await DB.User.findOne({ where: { id: user.invitedBy } });
         }
         return null;
+    }
+
+    async resolvePrimaryOrganization(uid: number) {
+        let oid: number | null | undefined = undefined;
+
+        // resolve primary org id from extras
+        let userProfile = await DB.UserProfile.find({ where: { userId: uid } });
+        if (userProfile) {
+            oid = userProfile.extras && userProfile.extras.primaryOrganization;
+        }
+
+        let org: Organization | undefined | null;
+
+        // if has saved id - try to resolve it
+        if (oid) {
+            org = await DB.Organization.find({ where: { id: oid } });
+        }
+        // if none - try find first org user joined
+        if (!org) {
+            let userAsMember = await DB.OrganizationMember.find({ where: { userId: uid }, order: [['createdAt', 'ASC']] });
+            if (userAsMember) {
+                return await DB.Organization.find({ where: { id: userAsMember.orgId } });
+            }
+        }
+        return org;
     }
 }

@@ -4,4 +4,5 @@ export interface UserExtras {
     twitter?: string | null;
     role?: string | null;
     primaryOrganizationId?: string | null;
+    primaryOrganization?: number | null;
 }

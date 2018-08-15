@@ -10,7 +10,7 @@ import { doSimpleHash } from '../utils/hash';
 let providers = new Map<boolean, Map<string, APN.Provider>>();
 
 export function createPushWorker() {
-    let queue = new WorkQueue<{ uid: number, title: string, body: string, picture: string | null, counter: number, group: string, conversationId: number }, { result: string }>('push_sender');
+    let queue = new WorkQueue<{ uid: number, title: string, body: string, picture: string | null, counter: number, conversationId: number }, { result: string }>('push_sender');
     if (AppConfiuguration.webPush || AppConfiuguration.apple) {
         console.log('Starting push worker');
 
@@ -94,7 +94,7 @@ export function createPushWorker() {
                                     ['conversationId']: IDs.Conversation.serialize(args.conversationId),
                                     ['title']: args.title,
                                     ['message']: args.body,
-                                    ['id']: doSimpleHash(args.group).toString(),
+                                    ['id']: doSimpleHash(IDs.Conversation.serialize(args.conversationId)).toString(),
                                 },
                                 token: token
                             }
