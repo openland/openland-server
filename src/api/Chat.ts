@@ -817,7 +817,19 @@ export const Resolver = {
             let userAsMember = await DB.OrganizationMember.findAll({
                 where: {
                     userId: uid
-                }
+                },
+                include: [
+                    {
+                        model: DB.Organization,
+                        as: 'organization',
+                        required: true,
+                        where: {
+                            name: {
+                                $ilike: args.query.toLowerCase() + '%'
+                            }
+                        }
+                    }
+                ]
             });
             let orgsIds = userAsMember.map(m => m.orgId);
             let orgsInner = await DB.Conversation.findAll({

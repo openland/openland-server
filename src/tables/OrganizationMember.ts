@@ -1,6 +1,7 @@
 import { connection } from '../modules/sequelizeConnector';
 import * as sequelize from 'sequelize';
 import { User, UserTable } from './User';
+import { OrganizationTable } from './Organization';
 
 export interface OrganizationMemberAttributes {
     id: number;
@@ -24,3 +25,4 @@ export const OrganizationMemberTable = connection.define<OrganizationMember, Par
 }, { indexes: [{ fields: ['userId', 'orgId'], index: 'UNIQUE' }] });
 
 OrganizationMemberTable.belongsTo(UserTable, { as: 'user' });
+OrganizationMemberTable.belongsTo(OrganizationTable, { as: 'organization' });
