@@ -249,6 +249,7 @@ extend type Query {
     alphaChatSearch(members: [ID!]!): Conversation
     alphaGroupConversationMembers(conversationId: ID!): [GroupConversationMember!]!
     alphaBlockedList(conversationId: ID): [ConversationBlockedUser!]!
+    alphaChatTextSearch(query: String!): [Conversation!]!
 }
 
 extend type Mutation {

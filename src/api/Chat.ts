@@ -695,6 +695,134 @@ export const Resolver = {
                 });
             });
         }),
+        alphaChatTextSearch: withAccount<{ query: string }>(async (args, uid, oid) => {
+            // GROUPS / CHANNELS has titles we can search 
+            let sequelize = DB.connection;
+            let groupsChannels = await DB.Conversation.findAll({
+                where: {
+                    type: {
+                        $in: ['group', 'channel']
+                    },
+                    title: {
+                        $ilike: args.query.toLowerCase() + '%'
+                    }
+                }
+            });
+
+            // PERSONAL - search users first, then matching conversations with current user
+            let usersProfiles = await DB.UserProfile.findAll({
+                where:
+                    [
+                        sequelize.and(
+                            {
+                                userId: {
+                                    $not: uid
+                                }
+                            },
+                            sequelize.or(
+                                sequelize.where(sequelize.fn('concat', sequelize.col('firstName'), ' ', sequelize.col('lastName')), {
+                                    $ilike: args.query.toLowerCase() + '%'
+                                }),
+                                {
+                                    firstName: {
+                                        $ilike: args.query.toLowerCase() + '%'
+                                    }
+                                },
+                                {
+                                    lastName: {
+                                        $ilike: args.query.toLowerCase() + '%'
+                                    }
+                                },
+                                {
+                                    email: {
+                                        $ilike: args.query.toLowerCase() + '%'
+                                    }
+                                }
+                            ),
+                        )
+                    ],
+            });
+            let userIds = usersProfiles.map(u => u.userId!!);
+
+            let personal = await DB.Conversation.findAll({
+                where: [
+                    sequelize.and(
+                        {
+                            type: 'private'
+                        },
+                        sequelize.or(
+                            {
+                                member1Id: uid,
+                                member2Id: {
+                                    $in: userIds
+                                }
+                            },
+                            {
+                                member2Id: uid,
+                                member1Id: {
+                                    $in: userIds
+                                }
+                            }
+                        )
+                    )
+                ]
+            });
+
+            // SHARED search org1 matching name, org2 current and vice versa
+            let orgs1 = await DB.Conversation.findAll({
+                include: [
+                    {
+                        model: DB.Organization,
+                        as: 'organization1',
+                        required: true,
+                        where: {
+                            id: {
+                                $not: oid
+                            },
+                            name: {
+                                $ilike: args.query.toLowerCase() + '%'
+                            }
+                        }
+                    },
+                    {
+                        model: DB.Organization,
+                        as: 'organization2',
+                        required: true,
+                        where: {
+                            id: oid
+                        }
+                    }
+                ]
+            });
+            let orgs2 = await DB.Conversation.findAll({
+                include: [
+                    {
+                        model: DB.Organization,
+                        as: 'organization2',
+                        required: true,
+                        where: {
+                            id: {
+                                $not: oid
+                            },
+                            name: {
+                                $ilike: args.query.toLowerCase() + '%'
+                            }
+                        }
+                    },
+                    {
+                        model: DB.Organization,
+                        as: 'organization1',
+                        required: true,
+                        where: {
+                            id: oid
+                        }
+                    }
+                ]
+            });
+
+            return [...personal, ...groupsChannels, ...orgs1, ...orgs2];
+
+        }),
         alphaGroupConversationMembers: withAccount<{ conversationId: string }>(async (args, uid, oid) => {
             let conversationId = IDs.Conversation.parse(args.conversationId);
 
