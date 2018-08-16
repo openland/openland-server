@@ -776,9 +776,6 @@ export const Resolver = {
                         as: 'organization1',
                         required: true,
                         where: {
-                            id: {
-                                $not: oid
-                            },
                             name: {
                                 $ilike: args.query.toLowerCase() + '%'
                             }
@@ -801,9 +798,6 @@ export const Resolver = {
                         as: 'organization2',
                         required: true,
                         where: {
-                            id: {
-                                $not: oid
-                            },
                             name: {
                                 $ilike: args.query.toLowerCase() + '%'
                             }
@@ -819,8 +813,39 @@ export const Resolver = {
                     }
                 ]
             });
+            // ORG INNER CHATS
+            let userAsMember = await DB.OrganizationMember.findAll({
+                where: {
+                    userId: uid
+                }
+            });
+            let orgsIds = userAsMember.map(m => m.orgId);
+            let orgsInner = await DB.Conversation.findAll({
+                include: [
+                    {
+                        model: DB.Organization,
+                        as: 'organization1',
+                        required: true,
+                        where: {
+                            id: {
+                                $in: orgsIds,
+                            }
+                        }
+                    },
+                    {
+                        model: DB.Organization,
+                        as: 'organization2',
+                        required: true,
+                        where: {
+                            id: {
+                                $in: orgsIds,
+                            }
+                        }
+                    },
+                ]
+            });
 
-            return [...personal, ...groupsChannels, ...orgs1, ...orgs2];
+            return [...personal, ...groupsChannels, ...orgs1, ...orgs2, ...orgsInner];
 
         }),
         alphaGroupConversationMembers: withAccount<{ conversationId: string }>(async (args, uid, oid) => {
