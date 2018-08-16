@@ -117,6 +117,16 @@ export const Resolver = {
             });
 
             return members.map(m => m.conversation);
+        },
+        alphaCreatedChannels: async (src: Organization) => {
+            return DB.Conversation.findAll({
+                where: {
+                    type: 'channel',
+                    extras: {
+                        creatorOrgId: src.id
+                    }
+                }
+            });
         }
     },
 
@@ -232,6 +242,17 @@ export const Resolver = {
         alphaARClosingTime: (src: Organization) => src.extras && src.extras.arClosingTime,
         alphaARSpecialAttributes: (src: Organization) => src.extras && src.extras.arSpecialAttributes,
         alphaARLandUse: (src: Organization) => src.extras && src.extras.arLandUse,
+
+        alphaCreatedChannels: async (src: Organization) => {
+            return DB.Conversation.findAll({
+                where: {
+                    type: 'channel',
+                    extras: {
+                        creatorOrgId: src.id
+                    }
+                }
+            });
+        }
     },
 
     OrganizationMember: {

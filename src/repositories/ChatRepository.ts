@@ -606,24 +606,36 @@ export class ChatsRepository {
                     }
                 }
             } else if (conv.type === 'channel') {
-                let orgs = await DB.ConversationChannelMembers.findAll({
+                let m = await DB.ConversationGroupMembers.findAll({
                     where: {
                         conversationId: conv.id,
                         status: 'member'
                     },
                     transaction: tx
                 });
-
-                for (let org of orgs) {
-                    let orgMembers = await Repos.Organizations.getOrganizationMembers(org.orgId);
-
-                    for (let member of orgMembers) {
-                        members.push(member.userId);
+                for (let i of m) {
+                    if (members.indexOf(i.userId) < 0) {
+                        members.push(i.userId);
                     }
                 }
+
+                // let orgs = await DB.ConversationChannelMembers.findAll({
+                //     where: {
+                //         conversationId: conv.id,
+                //         status: 'member'
+                //     },
+                //     transaction: tx
+                // });
+                //
+                // for (let org of orgs) {
+                //     let orgMembers = await Repos.Organizations.getOrganizationMembers(org.orgId);
+                //
+                //     for (let member of orgMembers) {
+                //         members.push(member.userId);
+                //     }
+                // }
             }
 
-            console.log(members);
             return members;
         }, eTx);
     }

@@ -172,6 +172,7 @@ type Organization {
     alphaARSpecialAttributes: [String!]
     alphaARLandUse: [String!]
 
+    alphaCreatedChannels: [ChannelConversation]!
 }
 
 type OrganizationProfile {
@@ -229,6 +230,7 @@ type OrganizationProfile {
     alphaARLandUse: [String!]
 
     alphaJoinedChannels: [ChannelConversation]!
+    alphaCreatedChannels: [ChannelConversation]!
 }
 
 input ContactPersonInput {

@@ -9,6 +9,7 @@ export interface ConversationGroupMemberAttributes {
     invitedById: number;
     conversationId: number;
     role: string;
+    status: 'invited' | 'member' | 'requested';
 }
 
 export interface ConversationGroupMember extends sequelize.Instance<Partial<ConversationGroupMemberAttributes>>, ConversationGroupMemberAttributes {
@@ -18,7 +19,8 @@ export interface ConversationGroupMember extends sequelize.Instance<Partial<Conv
 
 export const ConversationGroupMembersTable = connection.define<ConversationGroupMember, Partial<ConversationGroupMemberAttributes>>('conversation_group_member', {
     id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
-    role: { type: sequelize.STRING, allowNull: false, defaultValue: 'member' }
+    role: { type: sequelize.STRING, allowNull: false, defaultValue: 'member' },
+    status: { type: sequelize.STRING, allowNull: true, defaultValue: 'member' },
 });
 
 ConversationGroupMembersTable.belongsTo(UserTable, { as: 'user', foreignKey: { allowNull: false } });
