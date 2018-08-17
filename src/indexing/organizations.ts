@@ -32,6 +32,9 @@ export function createOrganizationIndexer(client: ES.Client) {
         updatedAt: {
             type: 'date'
         },
+        isCommunity: {
+            type: 'boolean'
+        },
     });
     reader.indexer(async (item) => {
         let location = (item.extras && item.extras.location) ? item.extras.location : '';
@@ -40,6 +43,7 @@ export function createOrganizationIndexer(client: ES.Client) {
         let interests = (item.extras && item.extras.interests && item.extras.interests.length > 0) ? item.extras.interests.join(' ') : '';
         let published = (!item.extras || item.extras.published !== false) && item.status === 'ACTIVATED';
         let featured = !!(item.extras && item.extras.featured);
+        let isCommunity = !!(item.extras && item.extras.isCommunity);
 
         let posts = await DB.WallPost.findAll({
             where: {
@@ -62,6 +66,7 @@ export function createOrganizationIndexer(client: ES.Client) {
                 interest: interests,
                 published: published,
                 featured: featured,
+                isCommunity: isCommunity,
                 tags: flatTags,
                 createdAt: (item as any).createdAt,
                 updatedAt: (item as any).updatedAt,

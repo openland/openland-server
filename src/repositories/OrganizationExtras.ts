@@ -72,6 +72,7 @@ export interface OrganizationExtras {
 
     published?: boolean | null;
     editorial?: boolean | null;
+    isCommunity?: boolean | null;
     featured?: boolean | null;
 
     organizationType?: string[] | null;

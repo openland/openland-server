@@ -14,6 +14,8 @@ export class OrganizationRepository {
         website?: string | null
         personal: boolean
         photoRef?: ImageRef | null
+        about?: string
+        isCommunity?: boolean
     }, tx: Transaction) {
         await validate(
             stringNotEmpty('Name can\'t be empty!'),
@@ -53,7 +55,9 @@ export class OrganizationRepository {
             userId: input.personal ? uid : null,
             status: status,
             extras: {
-                editorial: !!isEditor
+                editorial: !!isEditor,
+                about: Sanitizer.sanitizeString(input.about),
+                isCommunity: input.isCommunity,
             }
         }, { transaction: tx });
         await Repos.Super.addToOrganization(organization.id!!, uid, tx);
