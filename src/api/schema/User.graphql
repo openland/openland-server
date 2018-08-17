@@ -15,6 +15,7 @@ type User {
     isYou: Boolean!
     isCreated: Boolean!
     isBot: Boolean!
+    alphaRole: String,
     alphaPrimaryOrganization: Organization,
     alphaLinkedin: String,
     alphaTwitter: String,

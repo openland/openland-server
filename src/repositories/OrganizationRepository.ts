@@ -114,6 +114,27 @@ export class OrganizationRepository {
         });
     }
 
+    async getOrganizationJoinedMembers(orgId: number) {
+        let members = await Repos.Organizations.getOrganizationMembers(orgId);
+
+        let roles = await Repos.Permissions.resolveRoleInOrganization(members);
+
+        let result: any[] = [];
+
+        for (let i = 0; i < members.length; i++) {
+            result.push({
+                _type: 'OrganizationJoinedMember',
+                user: members[i].user,
+                joinedAt: (members[i] as any).createdAt,
+                email: members[i].user.email,
+                showInContacts: members[i].showInContacts,
+                role: roles[i]
+            });
+        }
+
+        return result;
+    }
+
     async getOrganizationContacts(orgId: number): Promise<OrganizationMember[]> {
         let members = await DB.OrganizationMember.findAll({
             where: { orgId, showInContacts: true },

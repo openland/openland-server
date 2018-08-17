@@ -194,7 +194,7 @@ export const Resolver = {
         contacts: (src: Organization) => src.extras ? src.extras.contacts || [] : [],
 
         alphaContacts: async (src: Organization) => (await Repos.Organizations.getOrganizationContacts(src.id!!)).map(async (m) => await DB.UserProfile.findOne({ where: { userId: m.userId } })).filter(p => p),
-
+        aplphaOrganizationMembers: async (src: Organization) => await Repos.Organizations.getOrganizationJoinedMembers(src.id!!),
         alphaPublished: (src: Organization) => !src.extras || src.extras.published !== false,
         alphaEditorial: (src: Organization) => !!(src.extras && src.extras.editorial),
         alphaFeatured: (src: Organization) => !!(src.extras && src.extras.featured),
@@ -347,22 +347,9 @@ export const Resolver = {
                 throw new AccessDeniedError(ErrorText.permissionDenied);
             }
 
-            let members = await Repos.Organizations.getOrganizationMembers(orgId);
-
-            let roles = await Repos.Permissions.resolveRoleInOrganization(members);
-
             let result: any[] = [];
 
-            for (let i = 0; i < members.length; i++) {
-                result.push({
-                    _type: 'OrganizationJoinedMember',
-                    user: members[i].user,
-                    joinedAt: (members[i] as any).createdAt,
-                    email: members[i].user.email,
-                    showInContacts: members[i].showInContacts,
-                    role: roles[i]
-                });
-            }
+            result.push(... await Repos.Organizations.getOrganizationJoinedMembers(orgId));
 
             let invites = await Repos.Invites.getOneTimeInvites(orgId);
 
