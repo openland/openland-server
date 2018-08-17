@@ -129,7 +129,7 @@ type Organization {
     location: String
     
     alphaContacts: [Profile!]!
-    aplphaOrganizationMembers: [OrganizationJoinedMember!]!
+    alphaOrganizationMembers: [OrganizationJoinedMember!]!
     alphaPublished: Boolean!
     alphaEditorial: Boolean!
     alphaFeatured: Boolean!

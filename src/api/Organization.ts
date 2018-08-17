@@ -194,7 +194,7 @@ export const Resolver = {
         contacts: (src: Organization) => src.extras ? src.extras.contacts || [] : [],
 
         alphaContacts: async (src: Organization) => (await Repos.Organizations.getOrganizationContacts(src.id!!)).map(async (m) => await DB.UserProfile.findOne({ where: { userId: m.userId } })).filter(p => p),
-        aplphaOrganizationMembers: async (src: Organization) => await Repos.Organizations.getOrganizationJoinedMembers(src.id!!),
+        alphaOrganizationMembers: async (src: Organization) => await Repos.Organizations.getOrganizationJoinedMembers(src.id!!),
         alphaPublished: (src: Organization) => !src.extras || src.extras.published !== false,
         alphaEditorial: (src: Organization) => !!(src.extras && src.extras.editorial),
         alphaFeatured: (src: Organization) => !!(src.extras && src.extras.featured),
