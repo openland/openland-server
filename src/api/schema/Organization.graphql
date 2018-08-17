@@ -365,7 +365,7 @@ extend type Query {
     alphaOrganizationPublicInviteForOrganizations: Invite
 }
 
-input InviteRequest{
+input InviteRequest {
     email: String!,
     emailText: String, 
     role: OrganizationMemberRole!, 

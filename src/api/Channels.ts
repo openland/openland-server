@@ -9,6 +9,12 @@ import { ElasticClient } from '../indexing';
 import { buildElasticQuery, QueryParser } from '../modules/QueryParser';
 import { SelectBuilder } from '../modules/SelectBuilder';
 import { ConversationGroupMember } from '../tables/ConversationGroupMembers';
+import { defined, emailValidator, validate } from '../modules/NewInputValidator';
+import { ErrorText } from '../errors/ErrorText';
+import { UserError } from '../errors/UserError';
+import { Emails } from '../services/Emails';
+import { randomInviteKey } from '../utils/random';
+import { NotFoundError } from '../errors/NotFoundError';
 
 interface AlphaChannelsParams {
     orgId: string;
@@ -211,7 +217,7 @@ export const Resolver = {
                     return 'ok';
                 }
 
-                await channel.update({ extras: {...channel.extras, featured: args.featured } });
+                await channel.update({extras: {...channel.extras, featured: args.featured}});
 
                 return 'ok';
             });
@@ -327,6 +333,89 @@ export const Resolver = {
                 return 'ok';
             });
         }),
+        alphaChannelInviteMembers: withAccount<{ channelId: string, inviteRequests: { email: string, emailText?: string, firstName?: string, lastName?: string }[] }>(async (args, uid, oid) => {
+            await validate(
+                {
+                    inviteRequests: [
+                        {
+                            email: defined(emailValidator),
+                        }
+                    ]
+                },
+                args
+            );
+
+            return await DB.txStable(async (tx) => {
+                let channelId = IDs.Conversation.parse(args.channelId);
+
+                for (let inviteRequest of args.inviteRequests) {
+                    let isDuplicate = !!await DB.ChannelInvite.findOne({
+                        where: {
+                            channelId,
+                            forEmail: inviteRequest.email
+                        }, transaction: tx
+                    });
+
+                    if (isDuplicate) {
+                        throw new UserError(ErrorText.inviteAlreadyExists);
+                    }
+
+                    let invite = await DB.ChannelInvite.create({
+                        uuid: randomInviteKey(),
+                        channelId,
+                        creatorId: uid,
+                        memberFirstName: inviteRequest.firstName || '',
+                        memberLastName: inviteRequest.lastName || '',
+                        forEmail: inviteRequest.email,
+                        emailText: inviteRequest.emailText
+                    }, {transaction: tx });
+
+                    await Emails.sendChannelInviteEmail(channelId, invite, tx);
+                }
+
+                return 'ok';
+            });
+        }),
+        alphaChannelJoinInvite: withAccount<{ invite: string }>(async (args, uid, oid) => {
+            return await DB.txStable(async (tx) => {
+
+                let invite = await DB.ChannelInvite.findOne({
+                    where: {
+                        uuid: args.invite,
+                        acceptedById: null
+                    },
+                    transaction: tx
+                });
+
+                if (!invite) {
+                    throw new NotFoundError(ErrorText.unableToFindInvite);
+                }
+
+                let existing = await DB.ConversationGroupMembers.findOne({
+                    where: {
+                        userId: uid,
+                        conversationId: invite.channelId
+                    },
+                    transaction: tx
+                });
+
+                if (existing) {
+                    return IDs.Conversation.serialize(invite.channelId);
+                }
+
+                await DB.ConversationGroupMembers.create({
+                    conversationId: invite.channelId,
+                    invitedById: uid,
+                    role: 'member',
+                    status: 'member',
+                    userId: uid
+                }, {transaction: tx});
+
+                await invite.update({ acceptedById: uid }, {transaction: tx});
+
+                return IDs.Conversation.serialize(invite.channelId);
+            });
+        }),
     },
 
     Query: {
@@ -404,7 +493,7 @@ export const Resolver = {
             return await DB.Conversation.findAll({
                 where: {
                     type: 'channel',
-                    extras: { featured: true }
+                    extras: {featured: true}
                 }
             });
         }),
@@ -426,7 +515,7 @@ export const Resolver = {
                 size: args.first,
                 from: args.page ? ((args.page - 1) * args.first) : 0,
                 body: {
-                    query: { bool: { must: clauses } }
+                    query: {bool: {must: clauses}}
                 }
             });
 

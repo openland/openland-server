@@ -73,6 +73,7 @@ import { UserSettingsTable } from './UserSettings';
 import { WallPostTable } from './WallPost';
 import { HitsTable } from './Hit';
 import { ConversationChannelMembersTable } from './ConversationChannelMembers';
+import { ChannelInviteTable } from './ChannelInvite';
 
 export const DB = {
     User: UserTable,
@@ -127,6 +128,7 @@ export const DB = {
     WallPost: WallPostTable,
     Hit: HitsTable,
     ConversationChannelMembers: ConversationChannelMembersTable,
+    ChannelInvite: ChannelInviteTable,
 
     tx: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>, existingTx?: sequelize.Transaction): Promise<A> {
         if (existingTx) {

@@ -55,6 +55,13 @@ type ChannelConversationConnection {
     pageInfo: PageInfo!
 }
 
+input ChannelInviteRequest {
+    email: String!,
+    emailText: String,
+    firstName: String,
+    lastName: String
+}
+
 extend type Mutation {
     alphaChannelCreate(title: String!, message: String!, description: String): Conversation!
 
@@ -71,6 +78,9 @@ extend type Mutation {
     alphaChannelJoin(channelId: ID!): String!
     alphaChannelRevokeInvite(channelId: ID!, userId: ID!): String!
     alphaChannelCancelRequest(channelId: ID!): String
+
+    alphaChannelInviteMembers(channelId: ID!, inviteRequests: [ChannelInviteRequest!]!): String!
+    alphaChannelJoinInvite(invite: String!): ID!
 }
 
 extend type Query {
