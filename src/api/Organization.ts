@@ -382,19 +382,18 @@ export const Resolver = {
                     }
                 }
             });
-            let res = await DB.Organization.findAll({
+            let res = await DB.Organization.find({
                 where: {
                     id: {
                         $in: hits.hits.hits.map((v) => v._id)
                     }
                 },
-                limit: 1
             });
 
-            return res[0];
+            return res;
         }),
 
-        alphaComunityPrefixSearch: withAny<{ query: string }>(async args => {
+        alphaComunityPrefixSearch: withAny<AlphaOrganizationsParams>(async args => {
 
             let hits = await ElasticClient.search({
                 index: 'organizations',
@@ -417,16 +416,12 @@ export const Resolver = {
                     }
                 }
             });
-            let res = await DB.Organization.findAll({
-                where: {
-                    id: {
-                        $in: hits.hits.hits.map((v) => v._id)
-                    }
-                },
-                limit: 1
-            });
+            let builder = new SelectBuilder(DB.Organization)
+                .after(args.after)
+                .page(args.page)
+                .limit(args.first);
 
-            return res[0];
+            return await builder.findElastic(hits);
         }),
 
         alphaOrganizations: withAny<AlphaOrganizationsParams>(async args => {

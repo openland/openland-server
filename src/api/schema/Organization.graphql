@@ -363,6 +363,13 @@ extend type Query {
     alphaOrganizationByPrefix(
         query: String,
     ): Organization
+     alphaComunityPrefixSearch(
+        query: String,
+        sort: String,
+        first: Int!,
+        after: String,
+        page: Int
+    ): OrganizationsConnection!
     alphaOrganizationPublicInvite: Invite
     alphaOrganizationPublicInviteForOrganizations: Invite
 }
