@@ -251,7 +251,7 @@ input CreateOrganizationInput {
     personal: Boolean!
     photoRef: ImageRefInput
     about: String
-    isCommunity: String
+    isCommunity: Boolean
 }
 
 input UpdateOrganizationProfileInput {
