@@ -68,6 +68,7 @@ export const Resolver = {
         alphaPublished: (src: Organization) => !src.extras || src.extras.published !== false,
         alphaEditorial: (src: Organization) => !!(src.extras && src.extras.editorial),
         alphaFeatured: (src: Organization) => !!(src.extras && src.extras.featured),
+        alphaIsCommunity: (src: Organization) => !!(src.extras && src.extras.isCommunity),
 
         alphaOrganizationType: (src: Organization) => src.extras && src.extras.organizationType,
         alphaLocations: (src: Organization) => src.extras && src.extras.locations,
@@ -197,6 +198,7 @@ export const Resolver = {
         alphaPublished: (src: Organization) => !src.extras || src.extras.published !== false,
         alphaEditorial: (src: Organization) => !!(src.extras && src.extras.editorial),
         alphaFeatured: (src: Organization) => !!(src.extras && src.extras.featured),
+        alphaIsCommunity: (src: Organization) => !!(src.extras && src.extras.isCommunity),
 
         alphaOrganizationType: (src: Organization) => src.extras && src.extras.organizationType,
         alphaLocations: (src: Organization) => src.extras && src.extras.locations,
@@ -384,19 +386,63 @@ export const Resolver = {
                 index: 'organizations',
                 type: 'organization',
                 body: {
-                    query: { prefix: { name: args.query } }
+                    query: {
+                        bool: {
+                            must: [
+                                {
+                                    term: { isCommunity: false }
+                                },
+                                {
+                                    term: { published: true }
+                                },
+                                {
+                                    prefix: { name: args.query }
+                                }
+                            ]
+                        }
+                    }
                 }
             });
-            let res = await DB.Organization.findAll({
+            let res = await DB.Organization.find({
                 where: {
                     id: {
                         $in: hits.hits.hits.map((v) => v._id)
                     }
                 },
-                limit: 1
             });
 
-            return res[0];
+            return res;
+        }),
+
+        alphaComunityPrefixSearch: withAny<AlphaOrganizationsParams>(async args => {
+
+            let hits = await ElasticClient.search({
+                index: 'organizations',
+                type: 'organization',
+                body: {
+                    query: {
+                        bool: {
+                            must: [
+                                {
+                                    term: { isCommunity: true }
+                                },
+                                {
+                                    term: { published: true }
+                                },
+                                {
+                                    prefix: { name: args.query }
+                                }
+                            ]
+                        }
+                    }
+                }
+            });
+            let builder = new SelectBuilder(DB.Organization)
+                .after(args.after)
+                .page(args.page)
+                .limit(args.first);
+
+            return await builder.findElastic(hits);
         }),
 
         alphaOrganizations: withAny<AlphaOrganizationsParams>(async args => {
@@ -425,6 +471,7 @@ export const Resolver = {
             }
 
             clauses.push({ term: { published: true } });
+            clauses.push({ term: { isCommunity: false } });
 
             let hits = await ElasticClient.search({
                 index: 'organizations',
@@ -473,6 +520,8 @@ export const Resolver = {
                 website?: string | null
                 personal: boolean
                 photoRef?: ImageRef | null
+                about?: string
+                isCommunity?: boolean
             }
         }>(async (args, uid) => {
             return await DB.tx(async (tx) => {

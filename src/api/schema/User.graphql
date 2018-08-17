@@ -16,6 +16,8 @@ type User {
     isCreated: Boolean!
     isBot: Boolean!
     alphaPrimaryOrganization: Organization,
+    alphaLinkedin: String,
+    alphaTwitter: String,
 }
 
 input UpdateProfileInput {

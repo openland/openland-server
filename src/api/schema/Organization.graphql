@@ -133,6 +133,7 @@ type Organization {
     alphaPublished: Boolean!
     alphaEditorial: Boolean!
     alphaFeatured: Boolean!
+    alphaIsCommunity: Boolean!
 
     alphaFollowed: Boolean!
 
@@ -192,6 +193,7 @@ type OrganizationProfile {
     alphaPublished: Boolean!
     alphaEditorial: Boolean!
     alphaFeatured: Boolean!
+    alphaIsCommunity: Boolean!
 
     alphaLocations: [String!]
     alphaInterests: [String!]
@@ -248,6 +250,8 @@ input CreateOrganizationInput {
     website: String
     personal: Boolean!
     photoRef: ImageRefInput
+    about: String
+    isCommunity: String
 }
 
 input UpdateOrganizationProfileInput {
@@ -361,6 +365,13 @@ extend type Query {
     alphaOrganizationByPrefix(
         query: String,
     ): Organization
+     alphaComunityPrefixSearch(
+        query: String,
+        sort: String,
+        first: Int!,
+        after: String,
+        page: Int
+    ): OrganizationsConnection!
     alphaOrganizationPublicInvite: Invite
     alphaOrganizationPublicInviteForOrganizations: Invite
 }

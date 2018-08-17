@@ -77,6 +77,8 @@ export const Resolver = {
         phone: withProfile((src, profile) => profile ? profile.phone : null),
         about: withProfile((src, profile) => profile ? profile.about : null),
         website: withProfile((src, profile) => profile ? profile.website : null),
+        alphaLinkedin: withProfile((src, profile) => profile && profile.extras && profile.extras.linkedin),
+        alphaTwitter: withProfile((src, profile) => profile && profile.extras && profile.extras.twitter),
         location: withProfile((src, profile) => profile ? profile.location : null),
 
         isCreated: withProfile((src, profile) => !!profile),
