@@ -30,9 +30,12 @@ export interface BoxPreviewsResult {
 export class BoxPreviews {
     private cache = new CacheRepository<BoxPreviewsResult>('box_preview_generator');
 
-    async generatePreviewId(boxId: string): Promise<string> {
-        let res = await client.files.getEmbedLink(boxId);
-        return res;
+    async generatePreviewId(boxId: string): Promise<string | null> {
+        try {
+            return await client.files.getEmbedLink(boxId);
+        } catch (e) {
+            return null;
+        }
     }
 
     async uploadToBox(uuid: string): Promise<BoxPreviewsResult> {

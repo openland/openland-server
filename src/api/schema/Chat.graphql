@@ -251,7 +251,7 @@ extend type Query {
     alphaBlockedList(conversationId: ID): [ConversationBlockedUser!]!
     alphaChatTextSearch(query: String!): [Conversation!]!
 
-    alphaFilePreviewLink(uuid: String!): String!
+    alphaFilePreviewLink(uuid: String!): String
 }
 
 extend type Mutation {
