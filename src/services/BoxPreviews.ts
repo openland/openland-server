@@ -110,7 +110,7 @@ export class BoxPreviews {
                         return;
                     }
                     if (!error) {
-                        resolve(response.body);
+                        resolve(response);
                     } else {
                         reject(error);
                     }
