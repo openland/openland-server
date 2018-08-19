@@ -17,6 +17,9 @@ import { TypingEvent } from '../repositories/ChatRepository';
 import { ConversationGroupMember } from '../tables/ConversationGroupMembers';
 import { AccessDeniedError } from '../errors/AccessDeniedError';
 import { ConversationBlocked } from '../tables/ConversationBlocked';
+import { Services } from '../services';
+import { UserError } from '../errors/UserError';
+import { NotFoundError } from '../errors/NotFoundError';
 
 export const Resolver = {
     Conversation: {
@@ -462,6 +465,16 @@ export const Resolver = {
     },
 
     Query: {
+        alphaFilePreviewLink: withAny<{ uuid: string }>(async (args) => {
+            let res = await Services.BoxPreview.uploadToBox(args.uuid);
+            if (!res.fileExists) {
+                throw new NotFoundError();
+            }
+            if (!res.boxAllowed) {
+                throw new UserError('Preview are available only for files less than 15 mb');
+            }
+            return await Services.BoxPreview.generatePreviewId(res.boxId!!);
+        }),
         alphaNotificationCounter: withUser((args, uid) => uid),
         alphaChats: withAccount<{ first: number, after?: string | null, seq?: number }>(async (args, uid, oid) => {
             return await DB.tx(async (tx) => {
