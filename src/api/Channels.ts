@@ -22,6 +22,7 @@ interface AlphaChannelsParams {
     first: number;
     after?: string;
     page?: number;
+    sort?: string;
 }
 
 export const Resolver = {
@@ -499,14 +500,22 @@ export const Resolver = {
         }),
         alphaChannels: withAccount<AlphaChannelsParams>(async (args, uid, oid) => {
             let clauses: any[] = [];
+            let sort: any[] | undefined = undefined;
 
             if (args.query) {
                 let parser = new QueryParser();
                 parser.registerText('title', 'title');
                 parser.registerBoolean('featured', 'featured');
+                parser.registerText('createdAt', 'createdAt');
+                parser.registerText('updatedAt', 'updatedAt');
+                parser.registerText('membersCount', 'membersCount');
                 let parsed = parser.parseQuery(args.query);
                 let elasticQuery = buildElasticQuery(parsed);
                 clauses.push(elasticQuery);
+
+                if (args.sort) {
+                    sort = parser.parseSort(args.sort);
+                }
             }
 
             let hits = await ElasticClient.search({
@@ -515,6 +524,7 @@ export const Resolver = {
                 size: args.first,
                 from: args.page ? ((args.page - 1) * args.first) : 0,
                 body: {
+                    sort: sort,
                     query: {bool: {must: clauses}}
                 }
             });

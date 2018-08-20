@@ -94,7 +94,8 @@ extend type Query {
         query: String,
         first: Int!,
         after: String,
-        page: Int
+        page: Int,
+        sort: String
     ): ChannelConversationConnection!
 }
 
