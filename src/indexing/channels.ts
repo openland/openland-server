@@ -34,7 +34,7 @@ export function createChannelIndexer(client: ES.Client) {
                 featured: item.extras.featured || false,
                 createdAt: (item as any).createdAt,
                 updatedAt: (item as any).updatedAt,
-                membersCount: Repos.Chats.membersCountInConversation(item.id),
+                membersCount: await Repos.Chats.membersCountInConversation(item.id),
             }
         };
     });
