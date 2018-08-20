@@ -33,7 +33,7 @@ export const Resolver = {
         photos: () => [],
         members: () => [],
         unreadCount: async (src: Conversation, _: any, context: CallContext) => {
-            let state = await DB.ConversationUserState.find({where: {conversationId: src.id, userId: context.uid!!}});
+            let state = await DB.ConversationUserState.find({ where: { conversationId: src.id, userId: context.uid!! } });
             if (state) {
                 return state.unread;
             } else {
@@ -100,7 +100,7 @@ export const Resolver = {
                         description: args.description || '',
                         creatorOrgId: oid
                     }
-                }, {transaction: tx});
+                }, { transaction: tx });
 
                 // await DB.ConversationChannelMembers.create({
                 //     conversationId: chat.id,
@@ -117,9 +117,9 @@ export const Resolver = {
                     role: 'creator',
                     status: 'member',
                     userId: uid
-                }, {transaction: tx});
+                }, { transaction: tx });
 
-                await Repos.Chats.sendMessage(tx, chat.id, uid, {message: args.message});
+                await Repos.Chats.sendMessage(tx, chat.id, uid, { message: args.message });
 
                 return chat;
             });
@@ -141,7 +141,7 @@ export const Resolver = {
                     if (member.status === 'member' || member.status === 'invited') {
                         return 'ok';
                     } else if (member.status === 'requested') {
-                        await member.update({status: 'member'});
+                        await member.update({ status: 'member' });
                         await Repos.Chats.sendMessage(
                             tx,
                             channelId,
@@ -160,7 +160,7 @@ export const Resolver = {
                         orgId: orgId,
                         role: 'member',
                         status: 'invited'
-                    }, {transaction: tx});
+                    }, { transaction: tx });
                 }
 
                 return 'ok';
@@ -182,7 +182,7 @@ export const Resolver = {
                     if (member.status === 'member') {
                         return 'ok';
                     } else if (member.status === 'invited') {
-                        await member.update({status: 'member'});
+                        await member.update({ status: 'member' });
                         await Repos.Chats.sendMessage(
                             tx,
                             channelId,
@@ -202,7 +202,7 @@ export const Resolver = {
                         orgId: oid,
                         role: 'member',
                         status: 'requested'
-                    }, {transaction: tx});
+                    }, { transaction: tx });
                 }
 
                 return 'ok';
@@ -218,7 +218,7 @@ export const Resolver = {
                     return 'ok';
                 }
 
-                await channel.update({extras: {...channel.extras, featured: args.featured}});
+                await channel.update({ extras: { ...channel.extras, featured: args.featured } });
 
                 return 'ok';
             });
@@ -240,7 +240,7 @@ export const Resolver = {
                     if (member.status === 'member' || member.status === 'invited') {
                         return 'ok';
                     } else if (member.status === 'requested') {
-                        await member.update({status: 'member'});
+                        await member.update({ status: 'member' });
                         await Repos.Chats.sendMessage(
                             tx,
                             channelId,
@@ -257,7 +257,7 @@ export const Resolver = {
                         invitedById: uid,
                         role: 'member',
                         status: 'invited'
-                    }, {transaction: tx});
+                    }, { transaction: tx });
                 }
 
                 return 'ok';
@@ -279,7 +279,7 @@ export const Resolver = {
                     if (member.status === 'member') {
                         return 'ok';
                     } else if (member.status === 'invited') {
-                        await member.update({status: 'member'});
+                        await member.update({ status: 'member' });
                         await Repos.Chats.sendMessage(
                             tx,
                             channelId,
@@ -297,7 +297,7 @@ export const Resolver = {
                         invitedById: uid,
                         role: 'member',
                         status: 'requested'
-                    }, {transaction: tx});
+                    }, { transaction: tx });
                 }
 
                 return 'ok';
@@ -369,7 +369,7 @@ export const Resolver = {
                         memberLastName: inviteRequest.lastName || '',
                         forEmail: inviteRequest.email,
                         emailText: inviteRequest.emailText
-                    }, {transaction: tx });
+                    }, { transaction: tx });
 
                     await Emails.sendChannelInviteEmail(channelId, invite, tx);
                 }
@@ -410,9 +410,9 @@ export const Resolver = {
                     role: 'member',
                     status: 'member',
                     userId: uid
-                }, {transaction: tx});
+                }, { transaction: tx });
 
-                await invite.update({ acceptedById: uid }, {transaction: tx});
+                await invite.update({ acceptedById: uid }, { transaction: tx });
 
                 return IDs.Conversation.serialize(invite.channelId);
             });
@@ -422,7 +422,7 @@ export const Resolver = {
     Query: {
         alphaChannelsList: withAccount<{ first: number, after?: string | null, seq?: number }>(async (args, uid, oid) => {
             return await DB.tx(async (tx) => {
-                let global = await DB.ConversationsUserGlobal.find({where: {userId: uid}, transaction: tx});
+                let global = await DB.ConversationsUserGlobal.find({ where: { userId: uid }, transaction: tx });
                 let seq = global ? global.seq : 0;
                 if (args.seq !== undefined && args.seq !== null && args.seq !== seq) {
                     throw new Error('Inconsistent request');
@@ -494,7 +494,7 @@ export const Resolver = {
             return await DB.Conversation.findAll({
                 where: {
                     type: 'channel',
-                    extras: {featured: true}
+                    extras: { featured: true }
                 }
             });
         }),
@@ -502,16 +502,17 @@ export const Resolver = {
             let clauses: any[] = [];
             let sort: any[] | undefined = undefined;
 
-            if (args.query) {
+            if (args.query || args.sort) {
                 let parser = new QueryParser();
                 parser.registerText('title', 'title');
                 parser.registerBoolean('featured', 'featured');
                 parser.registerText('createdAt', 'createdAt');
                 parser.registerText('updatedAt', 'updatedAt');
                 parser.registerText('membersCount', 'membersCount');
-                let parsed = parser.parseQuery(args.query);
-                let elasticQuery = buildElasticQuery(parsed);
-                clauses.push(elasticQuery);
+
+                if (args.query) {
+                    clauses.push({ prefix: { name: args.query } });
+                }
 
                 if (args.sort) {
                     sort = parser.parseSort(args.sort);
@@ -525,7 +526,7 @@ export const Resolver = {
                 from: args.page ? ((args.page - 1) * args.first) : 0,
                 body: {
                     sort: sort,
-                    query: {bool: {must: clauses}}
+                    query: { bool: { must: clauses } }
                 }
             });
 
