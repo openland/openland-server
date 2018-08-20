@@ -383,7 +383,7 @@ export const Resolver = {
                                     term: { published: true }
                                 },
                                 {
-                                    prefix: { name: args.query }
+                                    match_phrase_prefix: { name: args.query }
                                 }
                             ]
                         }
@@ -417,7 +417,7 @@ export const Resolver = {
                                     term: { published: true }
                                 },
                                 {
-                                    prefix: { name: args.query }
+                                    match_phrase_prefix: { name: args.query }
                                 }
                             ]
                         }
