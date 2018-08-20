@@ -6,7 +6,7 @@ import { IDs } from './utils/IDs';
 import { CallContext } from './utils/CallContext';
 import { ConversationChannelMember } from '../tables/ConversationChannelMembers';
 import { ElasticClient } from '../indexing';
-import { buildElasticQuery, QueryParser } from '../modules/QueryParser';
+import { QueryParser } from '../modules/QueryParser';
 import { SelectBuilder } from '../modules/SelectBuilder';
 import { ConversationGroupMember } from '../tables/ConversationGroupMembers';
 import { defined, emailValidator, validate } from '../modules/NewInputValidator';
