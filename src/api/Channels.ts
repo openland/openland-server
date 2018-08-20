@@ -511,7 +511,7 @@ export const Resolver = {
                 parser.registerText('membersCount', 'membersCount');
 
                 if (args.query) {
-                    clauses.push({ prefix: { name: args.query } });
+                    clauses.push({ prefix: { title: args.query } });
                 }
 
                 if (args.sort) {
