@@ -110,6 +110,8 @@ input AlphaOrganizationListingInput{
     geographies: [String!]
     landUse: [String!]
     unitCapacity: [String!]
+
+    channels: [String!]
 }
 
 type Organization {

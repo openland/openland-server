@@ -305,7 +305,8 @@ export const Resolver = {
             }
 
             return null;
-        }
+        },
+        urlAugmentation: (src: ConversationMessage) => src.extras && src.extras.urlAugmentation,
     },
     InviteServiceMetadata: {
         users: (src: any) => src.userIds.map((id: number) => DB.User.findById(id)),

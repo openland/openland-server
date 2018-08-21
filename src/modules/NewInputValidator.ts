@@ -67,7 +67,7 @@ async function validateInternal(
 
             return [];
         } else {
-            throw new Error('Invalid scheme');    
+            throw new Error('Invalid scheme');
         }
     }
 

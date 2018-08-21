@@ -843,7 +843,7 @@ export const Resolver = {
         }),
         alphaOrganizationCreateListing: withAccount<{
 
-            type: 'development_opportunity' | 'acquisition_request';
+            type: 'development_opportunity' | 'acquisition_request' | 'common';
 
             input: {
                 // common
@@ -852,6 +852,8 @@ export const Resolver = {
                 specialAttributes?: string[] | null;
                 status?: 'open' | null;
                 photo?: ImageRef | null
+
+                channels?: string[];
 
                 // DO
                 location?: { lon: number, lat: number, ref?: string, count?: number };
@@ -887,7 +889,7 @@ export const Resolver = {
 
                 await validate(
                     {
-                        type: defined(enumString(['development_opportunity', 'acquisition_request'])),
+                        type: defined(enumString(['development_opportunity', 'acquisition_request', 'common'])),
                         input: {
                             name: defined(stringNotEmpty(`Name can't be empty!`)),
                             status: optional(enumString(['open'])),
@@ -979,13 +981,28 @@ export const Resolver = {
                     extras.unitCapacity = Sanitizer.sanitizeAny(args.input.unitCapacity);
                 }
 
-                return await DB.OrganizationListing.create({
+                let res = await DB.OrganizationListing.create({
                     name: args.input.name,
                     type: args.type,
                     extras: extras,
                     userId: uid,
                     orgId: oid,
                 }, { transaction: tx });
+
+                if (args.input.channels) {
+                    for (let c of args.input.channels) {
+                        Repos.Chats.sendMessage(tx, IDs.Conversation.parse(c), uid, {
+                            urlAugmentation: {
+                                url: '/o/' + oid + '#' + IDs.OrganizationListing.serialize(res.id!!),
+                                tile: args.input.name,
+                                description: args.input.shortDescription,
+                                photo: args.input.photo
+                            }
+                        });
+                    }
+                }
+
+                return res;
 
             });
 

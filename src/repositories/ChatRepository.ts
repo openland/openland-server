@@ -12,6 +12,7 @@ import { debouncer } from '../utils/timer';
 import { Repos } from './index';
 import { Pubsub } from '../modules/pubsub';
 import { AccessDeniedError } from '../errors/AccessDeniedError';
+import { ImageRef } from './Media';
 
 export type ChatEventType =
     'new_message' |
@@ -39,6 +40,7 @@ export interface Message {
     isService?: boolean | null;
     repeatKey?: string | null;
     serviceMetadata?: any & { type: ServiceMessageMetadataType };
+    urlAugmentation?: any & { url: string, title?: string, description?: string, photo?: ImageRef };
 }
 
 class ChatsEventReader {
@@ -437,7 +439,8 @@ export class ChatsRepository {
             isMuted: message.isMuted || false,
             isService: message.isService || false,
             extras: {
-                serviceMetadata: message.serviceMetadata || {}
+                serviceMetadata: message.serviceMetadata || {},
+                ...message.urlAugmentation ? { urlAugmentation: message.urlAugmentation } : {},
             }
         }, { transaction: tx });
         let res = await DB.ConversationEvent.create({
@@ -568,7 +571,7 @@ export class ChatsRepository {
 
     async getConversationMembers(conversationId: number, eTx?: Transaction): Promise<number[]> {
         return DB.txStable(async (tx) => {
-            let conv = await DB.Conversation.findById(conversationId, {transaction: tx});
+            let conv = await DB.Conversation.findById(conversationId, { transaction: tx });
 
             if (!conv) {
                 throw new NotFoundError('Conversation not found');

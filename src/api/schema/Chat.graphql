@@ -72,6 +72,13 @@ type TitleChangeServiceMetadata {
     title: String!
 }
 
+type UrlAugmentation {
+    url: String!
+    title: String
+    description: String
+    photo: ImageRef
+}
+
 union ServiceMetadata = InviteServiceMetadata | KickServiceMetadata | TitleChangeServiceMetadata
 
 type ConversationMessage {
@@ -84,6 +91,7 @@ type ConversationMessage {
     repeatKey: String
     isService: Boolean!
     serviceMetadata: ServiceMetadata
+    urlAugmentation: UrlAugmentation
 }
 
 type FileMetadata {

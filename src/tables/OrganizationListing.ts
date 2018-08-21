@@ -4,7 +4,7 @@ import { ListingExtras } from '../repositories/OrganizationExtras';
 export interface OrganizationListingAttributes {
     id?: number;
     name?: string;
-    type?: 'development_opportunity' | 'acquisition_request';
+    type?: 'development_opportunity' | 'acquisition_request' | 'common';
     extras?: ListingExtras;
     orgId?: number;
     userId?: number;
