@@ -295,4 +295,5 @@ extend type Subscription {
     alphaSubscribeEvents(fromSeq: Int): UserEvent!
 
     alphaSubscribeTypings: TypingEvent!
+    alphaSubscribeChatTypings(conversationId: ID!): TypingEvent!
 }

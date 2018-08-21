@@ -232,12 +232,16 @@ class TypingManager {
         this.cache.delete(charId);
     }
 
-    public async getXIterator(uid: number) {
+    public async getXIterator(uid: number, conversationId?: number) {
 
         let events: TypingEvent[] = [];
         let resolvers: any[] = [];
 
         let sub = await this.xPubSub.xSubscribe(`TYPING_${uid}`, ev => {
+            if (conversationId && ev.conversationId !== conversationId) {
+                return;
+            }
+
             if (resolvers.length > 0) {
                 resolvers.shift()({ value: ev, done: false });
             } else {

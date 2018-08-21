@@ -1634,7 +1634,6 @@ export const Resolver = {
         },
         alphaSubscribeTypings: {
             resolve: async (msg: any) => {
-                console.log(msg);
                 return msg;
             },
             subscribe: async function (_: any, args: any, context: CallContext) {
@@ -1643,6 +1642,20 @@ export const Resolver = {
                 }
 
                 return Repos.Chats.typingManager.getXIterator(context.uid);
+            }
+        },
+        alphaSubscribeChatTypings: {
+            resolve: async (msg: any) => {
+                return msg;
+            },
+            subscribe: async function (_: any, args: { conversationId: string }, context: CallContext) {
+                let conversationId = IDs.Conversation.parse(args.conversationId);
+
+                if (!context.uid) {
+                    throw Error('Not logged in');
+                }
+
+                return Repos.Chats.typingManager.getXIterator(context.uid, conversationId);
             }
         }
     }
