@@ -991,7 +991,7 @@ export const Resolver = {
 
                 if (args.input.channels) {
                     for (let c of args.input.channels) {
-                        Repos.Chats.sendMessage(tx, IDs.Conversation.parse(c), uid, {
+                        await Repos.Chats.sendMessage(tx, IDs.Conversation.parse(c), uid, {
                             urlAugmentation: {
                                 url: '/o/' + oid + '#' + IDs.OrganizationListing.serialize(res.id!!),
                                 tile: args.input.name,
