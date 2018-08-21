@@ -1330,7 +1330,7 @@ export const Resolver = {
 
                 let chat = await DB.Conversation.findById(conversationId, {transaction: tx});
 
-                if (!chat || chat.type !== 'group') {
+                if (!chat || (chat.type !== 'group' && chat.type !== 'channel')) {
                     throw new Error('Chat not found');
                 }
 

@@ -989,13 +989,17 @@ export const Resolver = {
                     orgId: oid,
                 }, { transaction: tx });
 
+                let listingUrl = 'https://app.openland.com/o/' + IDs.Organization.serialize(oid) + '/listings#' + IDs.OrganizationListing.serialize(res.id!!);
                 if (args.input.channels) {
+                    let org = (await DB.Organization.find({ where: { id: oid } }))!!.name!!;
                     for (let c of args.input.channels) {
                         await Repos.Chats.sendMessage(tx, IDs.Conversation.parse(c), uid, {
-                            message: '',
+                            message: listingUrl,
                             urlAugmentation: {
-                                url: '/o/' + oid + '#' + IDs.OrganizationListing.serialize(res.id!!),
-                                tile: args.input.name,
+                                url: listingUrl,
+                                title: org,
+                                date: (res as any).createdAt,
+                                subtitle: args.input.name,
                                 description: args.input.shortDescription,
                                 photo: args.input.photo
                             }

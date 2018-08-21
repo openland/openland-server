@@ -75,6 +75,8 @@ type TitleChangeServiceMetadata {
 type UrlAugmentation {
     url: String!
     title: String
+    date: String
+    subtitle: String
     description: String
     photo: ImageRef
 }
