@@ -19,13 +19,15 @@ export type ChatEventType =
     'title_change' |
     'new_members' |
     'kick_member' |
-    'update_role';
+    'update_role' |
+    'edit_message';
 
 export type UserEventType =
     'new_message' |
     'conversation_read' |
     'title_change' |
-    'new_members_count';
+    'new_members_count' |
+    'edit_message';
 
 export type ServiceMessageMetadataType =
     'user_invite' |
@@ -571,6 +573,46 @@ export class ChatsRepository {
             conversationEvent: res,
             userEvent: userEvent!
         };
+    }
+
+    async editMessage(tx: Transaction, messageId: number, uid: number, newMessage: Message, markAsEdited: boolean): Promise<ConversationEvent> {
+        let message = await DB.ConversationMessage.findById(messageId, {transaction: tx});
+
+        if (!message) {
+            throw new Error('Message not found');
+        }
+
+        if (message.userId !== uid) {
+            throw new AccessDeniedError();
+        }
+
+        message.message = newMessage.message;
+
+        if (markAsEdited) {
+            (message as any).changed('extras', true);
+            message.extras.edited = true;
+        }
+
+        await message.save({transaction: tx});
+
+        await Repos.Chats.addUserEventsInConversation(
+            message.conversationId,
+            uid,
+            'edit_message',
+            {
+                messageId: message.id
+            },
+            tx
+        );
+
+        return await Repos.Chats.addChatEvent(
+            message.conversationId,
+            'edit_message',
+            {
+                messageId: message.id
+            },
+            tx
+        );
     }
 
     async getConversationMembers(conversationId: number, eTx?: Transaction): Promise<number[]> {

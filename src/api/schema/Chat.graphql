@@ -92,6 +92,7 @@ type ConversationMessage {
     isService: Boolean!
     serviceMetadata: ServiceMetadata
     urlAugmentation: UrlAugmentation
+    edited: Boolean!
 }
 
 type FileMetadata {
@@ -113,6 +114,11 @@ interface ConversationEvent {
 }
 
 type ConversationEventMessage implements ConversationEvent {
+    seq: Int!
+    message: ConversationMessage!
+}
+
+type ConversationEventEditMessage implements ConversationEvent {
     seq: Int!
     message: ConversationMessage!
 }
@@ -167,6 +173,11 @@ type UserEventMessage implements UserEvent {
     conversation: Conversation!
     isOut: Boolean!
     repeatKey: String
+}
+
+type UserEventEditMessage implements UserEvent {
+    seq: Int!
+    message: ConversationMessage!
 }
 
 type UserEventOwnMessage implements UserEvent {
@@ -265,6 +276,7 @@ extend type Query {
 extend type Mutation {
     superCreateChat(title: String!): Conversation!
     alphaSendMessage(conversationId: ID!, message: String, file: String, repeatKey: String): ConversationEventMessage!
+    alphaEditMessage(messageId: ID!, message: String): ConversationEventEditMessage!
     alphaReadChat(conversationId: ID!, messageId: ID!): ChatReadResult!
     alphaGlobalRead(toSeq: Int): String!
 
