@@ -996,7 +996,9 @@ export const Resolver = {
                             message: listingUrl,
                             urlAugmentation: {
                                 url: listingUrl,
-                                tile: args.input.name,
+                                title: args.input.name,
+                                date: (res as any).createdAt,
+                                subtile: args.input.name,
                                 description: args.input.shortDescription,
                                 photo: args.input.photo
                             }

@@ -40,7 +40,7 @@ export interface Message {
     isService?: boolean | null;
     repeatKey?: string | null;
     serviceMetadata?: any & { type: ServiceMessageMetadataType };
-    urlAugmentation?: any & { url: string, title?: string, description?: string, photo?: ImageRef };
+    urlAugmentation?: any & { url: string, title?: string, date?: string, subtitle?: string, description?: string, photo?: ImageRef };
 }
 
 class ChatsEventReader {
