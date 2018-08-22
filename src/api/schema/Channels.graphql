@@ -99,5 +99,6 @@ extend type Query {
         sort: String
     ): ChannelConversationConnection!
     alphaChannelInviteInfo(uuid: String!): ChannelInvite
+    alphaChannelInviteLink: String!
 }
 

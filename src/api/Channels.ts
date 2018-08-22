@@ -390,7 +390,7 @@ export const Resolver = {
                     transaction: tx
                 });
                 if (existing) {
-                    existing.destroy({ transaction: tx });
+                    await existing.destroy({ transaction: tx });
                 }
                 let invite = await DB.ChannelInvite.create({
                     uuid: randomInviteKey(),
