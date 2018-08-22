@@ -1,11 +1,14 @@
 import fetch from 'node-fetch';
 import cheerio from 'cheerio';
+import { ImageRef } from '../repositories/Media';
 
 export interface URLInfo {
     url: string;
     title: string|null;
+    subtitle: string|null;
     description: string|null;
     imageURL: string|null;
+    photo: ImageRef|null;
 }
 
 export async function fetchURLInfo(url: string): Promise<URLInfo> {
@@ -42,8 +45,10 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
     return {
         url,
         title,
+        subtitle: null,
         description,
-        imageURL
+        imageURL,
+        photo: null
     };
 }
 

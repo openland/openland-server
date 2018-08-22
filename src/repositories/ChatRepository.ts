@@ -13,6 +13,7 @@ import { Repos } from './index';
 import { Pubsub } from '../modules/pubsub';
 import { AccessDeniedError } from '../errors/AccessDeniedError';
 import { ImageRef } from './Media';
+import { ConversationMessagesWorker } from '../workers';
 
 export type ChatEventType =
     'new_message' |
@@ -594,6 +595,8 @@ export class ChatsRepository {
         }
 
         await message.save({transaction: tx});
+
+        await ConversationMessagesWorker.pushWork({ messageId: message.id }, tx);
 
         await Repos.Chats.addUserEventsInConversation(
             message.conversationId,
