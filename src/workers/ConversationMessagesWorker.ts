@@ -3,6 +3,7 @@ import { DB } from '../tables';
 import linkify from 'linkify-it';
 import tlds from 'tlds';
 import { Services } from '../services';
+import { Repos } from '../repositories';
 
 const linkifyInstance = linkify()
     .tlds(tlds)
@@ -24,9 +25,34 @@ export function createConversationMessagesWorker() {
         let urlInfo = await Services.URLInfo.fetchURLInfo(firstUrl.url);
 
         if (urlInfo.title) {
-            message.extras.urlAugmentation = urlInfo as any;
-            (message as any).changed('extras', true);
-            await message.save();
+            await DB.tx(async (tx) => {
+                if (!message || !message.message) {
+                    return { result: 'ok' };
+                }
+
+                message!.extras.urlAugmentation = urlInfo as any;
+                (message as any).changed('extras', true);
+                await message.save();
+
+                await Repos.Chats.addUserEventsInConversation(
+                    message.conversationId,
+                    message.userId,
+                    'edit_message',
+                    {
+                        messageId: message.id
+                    },
+                    tx
+                );
+
+                return await Repos.Chats.addChatEvent(
+                    message.conversationId,
+                    'edit_message',
+                    {
+                        messageId: message.id
+                    },
+                    tx
+                );
+            });
         }
 
         return { result: 'ok' };
