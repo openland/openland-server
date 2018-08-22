@@ -1690,6 +1690,40 @@ export const Resolver = {
 
                 return Repos.Chats.typingManager.getXIterator(context.uid, conversationId);
             }
-        }
+        },
+        alphaUpdateConversationSettings: withUser<{ settings: { emailFrequency?: string | null, desktopNotifications?: string | null, mobileNotifications?: string | null, mute?: string | null }, conversationId: string }>(async (args, uid) => {
+            return await DB.tx(async (tx) => {
+                let settings = await DB.UserSettings.find({ where: { userId: uid, conversationId: IDs.Conversation.parse(args.conversationId) }, transaction: tx, lock: 'UPDATE' });
+                if (!settings) {
+                    settings = await DB.UserSettings.create({ userId: uid, conversationId: args.conversationId ? IDs.Conversation.parse(args.conversationId) : null }, { transaction: tx });
+                }
+                if (args.settings.emailFrequency) {
+                    settings.settings = {
+                        ...settings.settings,
+                        emailFrequency: args.settings.emailFrequency
+                    };
+                }
+                if (args.settings.desktopNotifications) {
+                    settings.settings = {
+                        ...settings.settings,
+                        desktopNotifications: args.settings.desktopNotifications
+                    };
+                }
+                if (args.settings.mobileNotifications) {
+                    settings.settings = {
+                        ...settings.settings,
+                        mobileNotifications: args.settings.mobileNotifications
+                    };
+                }
+                if (args.settings.mute) {
+                    settings.settings = {
+                        ...settings.settings,
+                        mute: args.settings.mute
+                    };
+                }
+                await settings.save({ transaction: tx });
+                return settings;
+            });
+        })
     }
 };

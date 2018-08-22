@@ -38,7 +38,7 @@ extend type Query {
 }
 
 extend type Mutation {
-    updateSettings(settings: UpdateSettingsInput, conversationId: ID): Settings!
+    updateSettings(settings: UpdateSettingsInput): Settings!
 }
 
 extend type Subscription {

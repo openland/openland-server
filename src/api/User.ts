@@ -277,11 +277,11 @@ export const Resolver = {
             await Repos.Users.markUserOnline(context.uid, args.timeout, context.tid!!);
             return 'ok';
         },
-        updateSettings: withUser<{ settings: { emailFrequency?: string | null, desktopNotifications?: string | null }, conversationId?: string | null }>(async (args, uid) => {
+        updateSettings: withUser<{ settings: { emailFrequency?: string | null, desktopNotifications?: string | null } }>(async (args, uid) => {
             return await DB.tx(async (tx) => {
-                let settings = await DB.UserSettings.find({ where: { userId: uid, conversationId: args.conversationId ? IDs.Conversation.parse(args.conversationId) : null }, transaction: tx, lock: 'UPDATE' });
+                let settings = await DB.UserSettings.find({ where: { userId: uid, conversationId: null }, transaction: tx, lock: 'UPDATE' });
                 if (!settings) {
-                    settings = await DB.UserSettings.create({ userId: uid, conversationId: args.conversationId ? IDs.Conversation.parse(args.conversationId) : null }, { transaction: tx });
+                    settings = await DB.UserSettings.create({ userId: uid }, { transaction: tx });
                 }
                 if (args.settings.emailFrequency) {
                     settings.settings = {
