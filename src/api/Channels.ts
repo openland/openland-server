@@ -379,6 +379,29 @@ export const Resolver = {
                 return 'ok';
             });
         }),
+        alphaChannelInviteLink: withAccount<{ channelId: string }>(async (args, uid, oid) => {
+            let channelId = IDs.Conversation.parse(args.channelId);
+            return await DB.txStable(async (tx) => {
+                let existing = await DB.ChannelInvite.find({
+                    where: {
+                        creatorId: uid,
+                        isOneTime: false
+                    },
+                    transaction: tx
+                });
+                if (existing) {
+                    existing.destroy({ transaction: tx });
+                }
+                let invite = await DB.ChannelInvite.create({
+                    uuid: randomInviteKey(),
+                    channelId,
+                    creatorId: uid,
+                    isOneTime: false,
+                }, { transaction: tx });
+
+                return invite.uuid;
+            });
+        }),
         alphaChannelJoinInvite: withAccount<{ invite: string }>(async (args, uid, oid) => {
             return await DB.txStable(async (tx) => {
 
@@ -414,7 +437,9 @@ export const Resolver = {
                     userId: uid
                 }, { transaction: tx });
 
-                await invite.update({ acceptedById: uid }, { transaction: tx });
+                if (invite.isOneTime) {
+                    await invite.update({ acceptedById: uid }, { transaction: tx });
+                }
 
                 return IDs.Conversation.serialize(invite.channelId);
             });
@@ -539,5 +564,8 @@ export const Resolver = {
 
             return await builder.findElastic(hits);
         }),
+        alphaChannelInviteInfo: withAccount<{ uuid: string }>(async (args, uid, oid) => {
+            return await DB.ChannelInvite.find({ where: { uuid: args.uuid } });
+        })
     }
 };
