@@ -10,7 +10,7 @@ import { doSimpleHash } from '../utils/hash';
 let providers = new Map<boolean, Map<string, APN.Provider>>();
 
 export function createPushWorker() {
-    let queue = new WorkQueue<{ uid: number, title: string, body: string, picture: string | null, counter: number, conversationId: number }, { result: string }>('push_sender');
+    let queue = new WorkQueue<{ uid: number, title: string, body: string, picture: string | null, counter: number, conversationId: number, mobile: boolean }, { result: string }>('push_sender');
     if (AppConfiuguration.webPush || AppConfiuguration.apple) {
         console.log('Starting push worker');
 
@@ -42,6 +42,9 @@ export function createPushWorker() {
                         console.warn(e);
                     }
                 } else if (reg.pushType === 'ios' && AppConfiuguration.apple) {
+                    if (!args.mobile) {
+                        continue;
+                    }
                     try {
                         let endpoint = JSON.parse(reg.pushEndpoint);
                         let bundleId = endpoint.bundleId as string;
@@ -79,10 +82,12 @@ export function createPushWorker() {
                         console.warn(e);
                     }
                 } else if (reg.pushType === 'android') {
+                    if (!args.mobile) {
+                        continue;
+                    }
                     try {
                         let endpoint = JSON.parse(reg.pushEndpoint);
                         let token = endpoint.token as string;
-                        console.log('push_android', '...' + token.substring(token.length - 5));
 
                         let res = await firebase.messaging().send(
                             {

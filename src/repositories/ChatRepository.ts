@@ -46,6 +46,11 @@ export interface Message {
     urlAugmentation?: any & { url: string, title?: string, date?: string, subtitle?: string, description?: string, photo?: ImageRef };
 }
 
+export interface Settings {
+    mobileNotifications: 'all' | 'direct' | 'none';
+    mute: boolean;
+}
+
 class ChatsEventReader {
     private knownHeads = new Map<number, number>();
     private pending = new Map<number, ((seq: number) => void)[]>();
@@ -493,6 +498,8 @@ export class ChatsRepository {
                 let userUnread = 0;
                 let userChatUnread = 0;
 
+                let muted = (await this.getConversationSettings(uid, conversationId)).mute;
+
                 // Write user's chat state
                 if (m !== uid) {
                     if (existing) {
@@ -522,7 +529,7 @@ export class ChatsRepository {
 
                 // Update or Create global state
                 if (existingGlobal) {
-                    if (m !== uid) {
+                    if (m !== uid && !muted) {
                         existingGlobal.unread++;
                     }
                     existingGlobal.seq++;
@@ -530,7 +537,7 @@ export class ChatsRepository {
                     userUnread = existingGlobal.unread;
                     await existingGlobal.save({ transaction: tx });
                 } else {
-                    if (m !== uid) {
+                    if (m !== uid && !muted) {
                         userUnread = 1;
                         await DB.ConversationsUserGlobal.create({
                             userId: m,
@@ -577,7 +584,7 @@ export class ChatsRepository {
     }
 
     async editMessage(tx: Transaction, messageId: number, uid: number, newMessage: Message, markAsEdited: boolean): Promise<ConversationEvent> {
-        let message = await DB.ConversationMessage.findById(messageId, {transaction: tx});
+        let message = await DB.ConversationMessage.findById(messageId, { transaction: tx });
 
         if (!message) {
             throw new Error('Message not found');
@@ -594,7 +601,7 @@ export class ChatsRepository {
             message.extras.edited = true;
         }
 
-        await message.save({transaction: tx});
+        await message.save({ transaction: tx });
 
         await ConversationMessagesWorker.pushWork({ messageId: message.id }, tx);
 
@@ -791,7 +798,25 @@ export class ChatsRepository {
         return await DB.ConversationGroupMembers.count({
             where: {
                 conversationId: conversationId,
+                status: 'member'
             }
         });
+    }
+
+    async getConversationSettings(uid: number, cid: number) {
+        let res = await DB.ConversationUserState.find({ where: { userId: uid, conversationId: cid } });
+        let settings: Settings = {
+            mobileNotifications: 'all',
+            mute: false
+        };
+        if (res) {
+            if (res.notificationsSettings.mobileNotifications) {
+                settings.mobileNotifications = res.notificationsSettings.mobileNotifications as any;
+            }
+            if (res.notificationsSettings.mute) {
+                settings.mute = res.notificationsSettings.mute as any;
+            }
+        }
+        return settings;
     }
 }
