@@ -1566,7 +1566,7 @@ export const Resolver = {
                     };
                 }
                 await conversationUserState.save({ transaction: tx });
-                return conversationUserState;
+                return conversationUserState.notificationsSettings;
             });
         })
     },
