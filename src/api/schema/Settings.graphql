@@ -29,8 +29,8 @@ type Settings {
 type ConversationSettings {
     emailFrequency: EmailFrequency!
     desktopNotifications: NotificationMessages!
-    mobileNotifications: NotificationMessages
-    mute: Boolean    
+    mobileNotifications: NotificationMessages!
+    mute: Boolean!    
 }
 
 extend type Query {
