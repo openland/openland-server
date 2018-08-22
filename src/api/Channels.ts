@@ -297,7 +297,8 @@ export const Resolver = {
                         conversationId: channelId,
                         invitedById: uid,
                         role: 'member',
-                        status: 'requested'
+                        status: 'requested',
+                        userId: uid,
                     }, { transaction: tx });
                 }
 
