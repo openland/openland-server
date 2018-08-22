@@ -26,6 +26,13 @@ type Settings {
     mute: Boolean    
 }
 
+type ConversationSettings {
+    emailFrequency: EmailFrequency!
+    desktopNotifications: NotificationMessages!
+    mobileNotifications: NotificationMessages
+    mute: Boolean    
+}
+
 extend type Query {
     settings: Settings!
 }

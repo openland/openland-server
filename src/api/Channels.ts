@@ -64,7 +64,8 @@ export const Resolver = {
             return member.status;
         },
         organization: (src: Conversation) => src.extras!.creatorOrgId ? DB.Organization.findById(src.extras!.creatorOrgId as number) : null,
-        isRoot: (src: Conversation) => src.extras.isRoot || false
+        isRoot: (src: Conversation) => src.extras.isRoot || false,
+        settings: (src: Conversation, _: any, context: CallContext) => Repos.Users.getUserSettings(context.uid!!, src.id)
     },
 
     ChannelMemberOrg: {
