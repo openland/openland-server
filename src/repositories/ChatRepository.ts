@@ -795,6 +795,7 @@ export class ChatsRepository {
         return await DB.ConversationGroupMembers.count({
             where: {
                 conversationId: conversationId,
+                status: 'member'
             }
         });
     }
