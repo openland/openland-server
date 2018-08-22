@@ -307,7 +307,7 @@ extend type Mutation {
     alphaBlockUser(userId: ID!): String!
     alphaUnblockUser(userId: ID!, conversationId: ID): String!
     
-    alphaUpdateConversationSettings(settings: UpdateSettingsInput, conversationId: ID!): ConversationSettings!
+    alphaUpdateConversationSettings(settings: UpdateConversationSettingsInput!, conversationId: ID!): ConversationSettings!
 }
 
 extend type Subscription {

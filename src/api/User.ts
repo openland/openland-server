@@ -152,7 +152,7 @@ export const Resolver = {
         },
         settings: withUser(async (args, uid) => {
             return await DB.tx(async (tx) => {
-                let instance = await DB.UserSettings.find({ where: { userId: uid, conversationId: null }, transaction: tx, lock: 'UPDATE' });
+                let instance = await DB.UserSettings.find({ where: { userId: uid }, transaction: tx, lock: 'UPDATE' });
                 if (!instance) {
                     instance = await DB.UserSettings.create({ userId: uid }, { transaction: tx });
                 }
@@ -279,7 +279,7 @@ export const Resolver = {
         },
         updateSettings: withUser<{ settings: { emailFrequency?: string | null, desktopNotifications?: string | null } }>(async (args, uid) => {
             return await DB.tx(async (tx) => {
-                let settings = await DB.UserSettings.find({ where: { userId: uid, conversationId: null }, transaction: tx, lock: 'UPDATE' });
+                let settings = await DB.UserSettings.find({ where: { userId: uid }, transaction: tx, lock: 'UPDATE' });
                 if (!settings) {
                     settings = await DB.UserSettings.create({ userId: uid }, { transaction: tx });
                 }
@@ -311,7 +311,7 @@ export const Resolver = {
                     ...(async function* func() {
                         while (!ended) {
                             let settings = await DB.tx(async (tx) => {
-                                let st = await DB.UserSettings.find({ where: { userId: context.uid, conversationId: null }, transaction: tx, lock: 'UPDATE' });
+                                let st = await DB.UserSettings.find({ where: { userId: context.uid }, transaction: tx, lock: 'UPDATE' });
                                 if (!st) {
                                     st = await DB.UserSettings.create({ userId: context.uid }, { transaction: tx });
                                 }

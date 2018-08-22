@@ -45,6 +45,11 @@ export interface Message {
     urlAugmentation?: any & { url: string, title?: string, date?: string, subtitle?: string, description?: string, photo?: ImageRef };
 }
 
+export interface Settings {
+    mobileNotifications: 'all' | 'direct' | 'none';
+    mute: boolean;
+}
+
 class ChatsEventReader {
     private knownHeads = new Map<number, number>();
     private pending = new Map<number, ((seq: number) => void)[]>();
@@ -492,7 +497,7 @@ export class ChatsRepository {
                 let userUnread = 0;
                 let userChatUnread = 0;
 
-                let muted = (await Repos.Users.getUserSettings(uid, conversationId)).mute;
+                let muted = (await this.getConversationSettings(uid, conversationId)).mute;
 
                 // Write user's chat state
                 if (m !== uid) {
@@ -578,7 +583,7 @@ export class ChatsRepository {
     }
 
     async editMessage(tx: Transaction, messageId: number, uid: number, newMessage: Message, markAsEdited: boolean): Promise<ConversationEvent> {
-        let message = await DB.ConversationMessage.findById(messageId, {transaction: tx});
+        let message = await DB.ConversationMessage.findById(messageId, { transaction: tx });
 
         if (!message) {
             throw new Error('Message not found');
@@ -595,7 +600,7 @@ export class ChatsRepository {
             message.extras.edited = true;
         }
 
-        await message.save({transaction: tx});
+        await message.save({ transaction: tx });
 
         await Repos.Chats.addUserEventsInConversation(
             message.conversationId,
@@ -792,5 +797,22 @@ export class ChatsRepository {
                 conversationId: conversationId,
             }
         });
+    }
+
+    async getConversationSettings(uid: number, cid: number) {
+        let res = await DB.ConversationUserState.find({ where: { userId: uid, conversationId: cid } });
+        let settings: Settings = {
+            mobileNotifications: 'all',
+            mute: false
+        };
+        if (res) {
+            if (res.notificationsSettings.mobileNotifications) {
+                settings.mobileNotifications = res.notificationsSettings.mobileNotifications as any;
+            }
+            if (res.notificationsSettings.mute) {
+                settings.mute = res.notificationsSettings.mute as any;
+            }
+        }
+        return settings;
     }
 }

@@ -2,6 +2,7 @@ import { connection } from '../modules/sequelizeConnector';
 import * as sequelize from 'sequelize';
 import { UserTable } from './User';
 import { ConversationTable, Conversation } from './Conversation';
+import { JsonMap } from '../utils/json';
 
 export interface ConversationUserStateAttributes {
     id: number;
@@ -11,6 +12,7 @@ export interface ConversationUserStateAttributes {
     readDate: number;
     active: boolean;
     updatedAt: Date;
+    notificationsSettings: JsonMap;
 }
 
 export interface ConversationUserState extends sequelize.Instance<Partial<ConversationUserStateAttributes>>, ConversationUserStateAttributes {
@@ -23,7 +25,8 @@ export const ConversationUserStateTable = connection.define<ConversationUserStat
     id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
     unread: { type: sequelize.INTEGER, defaultValue: 0, allowNull: false },
     readDate: { type: sequelize.INTEGER, defaultValue: 0, allowNull: true },
-    active: { type: sequelize.BOOLEAN, defaultValue: true, allowNull: false }
+    active: { type: sequelize.BOOLEAN, defaultValue: true, allowNull: false },
+    notificationsSettings: { type: sequelize.JSON, defaultValue: {}, allowNull: false }
 });
 
 ConversationUserStateTable.belongsTo(UserTable, { as: 'user', foreignKey: { allowNull: false } });

@@ -26,9 +26,13 @@ type Settings {
     mute: Boolean    
 }
 
+input UpdateConversationSettingsInput {
+    mobileNotifications: NotificationMessages
+    mute: Boolean
+}
+
+
 type ConversationSettings {
-    emailFrequency: EmailFrequency!
-    desktopNotifications: NotificationMessages!
     mobileNotifications: NotificationMessages!
     mute: Boolean!    
 }

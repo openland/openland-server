@@ -88,7 +88,7 @@ export function startPushNotificationWorker() {
                         }
                     }
 
-                    let conversationSettings = await Repos.Users.getUserSettings(u.userId, conversation.id);
+                    let conversationSettings = await Repos.Chats.getConversationSettings(u.userId, conversation.id);
 
                     if (conversationSettings.mute) {
                         continue;
@@ -96,7 +96,7 @@ export function startPushNotificationWorker() {
 
                     let mobile = conversationSettings.mobileNotifications !== 'none';
 
-                    if (settings.mobileNotifications === 'direct') {
+                    if (conversationSettings.mobileNotifications === 'direct') {
                         if (conversation.type !== 'private') {
                             mobile = false;
                         }

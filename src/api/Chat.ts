@@ -58,7 +58,7 @@ export const Resolver = {
             },
             order: [['id', 'DESC']]
         }),
-        settings: (src: Conversation, _: any, context: CallContext) => Repos.Users.getUserSettings(context.uid!!, src.id)
+        settings: (src: Conversation, _: any, context: CallContext) => Repos.Chats.getConversationSettings(context.uid!!, src.id)
     },
     SharedConversation: {
         id: (src: Conversation) => IDs.Conversation.serialize(src.id),
@@ -127,7 +127,7 @@ export const Resolver = {
             }
             return undefined;
         },
-        settings: (src: Conversation, _: any, context: CallContext) => Repos.Users.getUserSettings(context.uid!!, src.id)
+        settings: (src: Conversation, _: any, context: CallContext) => Repos.Chats.getConversationSettings(context.uid!!, src.id)
     },
     PrivateConversation: {
         id: (src: Conversation) => IDs.Conversation.serialize(src.id),
@@ -210,7 +210,7 @@ export const Resolver = {
                 conversation: null
             }
         })),
-        settings: (src: Conversation, _: any, context: CallContext) => Repos.Users.getUserSettings(context.uid!!, src.id)
+        settings: (src: Conversation, _: any, context: CallContext) => Repos.Chats.getConversationSettings(context.uid!!, src.id)
     },
     GroupConversation: {
         id: (src: Conversation) => IDs.Conversation.serialize(src.id),
@@ -282,7 +282,7 @@ export const Resolver = {
             order: [['id', 'DESC']]
         }),
         membersCount: (src: Conversation) => Repos.Chats.membersCountInConversation(src.id),
-        settings: (src: Conversation, _: any, context: CallContext) => Repos.Users.getUserSettings(context.uid!!, src.id)
+        settings: (src: Conversation, _: any, context: CallContext) => Repos.Chats.getConversationSettings(context.uid!!, src.id)
     },
 
     ConversationMessage: {
@@ -1549,38 +1549,24 @@ export const Resolver = {
             }
             return 'ok';
         }),
-        alphaUpdateConversationSettings: withUser<{ settings: { emailFrequency?: string | null, desktopNotifications?: string | null, mobileNotifications?: string | null, mute?: string | null }, conversationId: string }>(async (args, uid) => {
+        alphaUpdateConversationSettings: withUser<{ settings: { mobileNotifications?: string | null, mute?: boolean | null }, conversationId: string }>(async (args, uid) => {
             return await DB.tx(async (tx) => {
-                let settings = await DB.UserSettings.find({ where: { userId: uid, conversationId: IDs.Conversation.parse(args.conversationId) }, transaction: tx, lock: 'UPDATE' });
-                if (!settings) {
-                    settings = await DB.UserSettings.create({ userId: uid, conversationId: args.conversationId ? IDs.Conversation.parse(args.conversationId) : null }, { transaction: tx });
-                }
-                if (args.settings.emailFrequency) {
-                    settings.settings = {
-                        ...settings.settings,
-                        emailFrequency: args.settings.emailFrequency
-                    };
-                }
-                if (args.settings.desktopNotifications) {
-                    settings.settings = {
-                        ...settings.settings,
-                        desktopNotifications: args.settings.desktopNotifications
-                    };
-                }
+                let conversationUserState = (await DB.ConversationUserState.find({ where: { userId: uid, conversationId: IDs.Conversation.parse(args.conversationId) }, transaction: tx, lock: 'UPDATE' }))!!;
+
                 if (args.settings.mobileNotifications) {
-                    settings.settings = {
-                        ...settings.settings,
+                    conversationUserState.notificationsSettings = {
+                        ...conversationUserState.notificationsSettings,
                         mobileNotifications: args.settings.mobileNotifications
                     };
                 }
-                if (args.settings.mute) {
-                    settings.settings = {
-                        ...settings.settings,
+                if (args.settings.mute !== undefined) {
+                    conversationUserState.notificationsSettings = {
+                        ...conversationUserState.notificationsSettings,
                         mute: args.settings.mute
                     };
                 }
-                await settings.save({ transaction: tx });
-                return settings;
+                await conversationUserState.save({ transaction: tx });
+                return conversationUserState;
             });
         })
     },
