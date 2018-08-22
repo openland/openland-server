@@ -88,6 +88,20 @@ export function startPushNotificationWorker() {
                         }
                     }
 
+                    let conversationSettings = await Repos.Users.getUserSettings(u.userId, conversation.id);
+
+                    if (conversationSettings.mute) {
+                        continue;
+                    }
+
+                    let mobile = conversationSettings.mobileNotifications !== 'none';
+
+                    if (settings.mobileNotifications === 'direct') {
+                        if (conversation.type !== 'private') {
+                            mobile = false;
+                        }
+                    }
+
                     hasMessage = true;
                     let senderName = [user.firstName, user.lastName].filter((v) => !!v).join(' ');
                     await PushWorker.pushWork({
@@ -97,6 +111,7 @@ export function startPushNotificationWorker() {
                         picture: user.picture ? buildBaseImageUrl(user.picture!!) : null,
                         counter: unreadCount,
                         conversationId: conversation.id,
+                        mobile: mobile,
                     }, tx);
                 }
 

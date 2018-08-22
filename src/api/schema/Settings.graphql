@@ -13,6 +13,8 @@ enum NotificationMessages {
 input UpdateSettingsInput {
     emailFrequency: EmailFrequency
     desktopNotifications: NotificationMessages
+    mobileNotifications: NotificationMessages
+    mute: Boolean
 }
 
 type Settings {
@@ -20,6 +22,8 @@ type Settings {
     primaryEmail: String!
     emailFrequency: EmailFrequency!
     desktopNotifications: NotificationMessages!
+    mobileNotifications: NotificationMessages
+    mute: Boolean    
 }
 
 extend type Query {
@@ -27,7 +31,7 @@ extend type Query {
 }
 
 extend type Mutation {
-    updateSettings(settings: UpdateSettingsInput): Settings!
+    updateSettings(settings: UpdateSettingsInput, conversationId: ID): Settings!
 }
 
 extend type Subscription {

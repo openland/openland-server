@@ -12,6 +12,8 @@ import { Organization } from '../tables/Organization';
 export interface Settings {
     emailFrequency: '1hour' | '15min' | 'never';
     desktopNotifications: 'all' | 'direct' | 'none';
+    mobileNotifications: 'all' | 'direct' | 'none';
+    mute: boolean;
 }
 
 class UserSettingsReader {
@@ -262,7 +264,9 @@ export class UserRepository {
     getUserSettingsFromInstance(instance: UserSettings) {
         let settings: Settings = {
             emailFrequency: '1hour',
-            desktopNotifications: 'all'
+            desktopNotifications: 'all',
+            mobileNotifications: 'all',
+            mute: false
         };
         if (instance) {
             if (instance.settings.emailFrequency) {
@@ -271,15 +275,20 @@ export class UserRepository {
             if (instance.settings.desktopNotifications) {
                 settings.desktopNotifications = instance.settings.desktopNotifications as any;
             }
+            if (instance.settings.mobileNotifications) {
+                settings.mobileNotifications = instance.settings.mobileNotifications as any;
+            }
         }
         return settings;
     }
 
-    async getUserSettings(uid: number) {
-        let res = await DB.UserSettings.find({ where: { userId: uid } });
+    async getUserSettings(uid: number, conversationId?: number) {
+        let res = await DB.UserSettings.find({ where: { userId: uid, conversationId: conversationId || null } });
         let settings: Settings = {
             emailFrequency: '1hour',
-            desktopNotifications: 'all'
+            desktopNotifications: 'all',
+            mobileNotifications: 'all',
+            mute: false
         };
         if (res) {
             if (res.settings.emailFrequency) {
@@ -287,6 +296,12 @@ export class UserRepository {
             }
             if (res.settings.desktopNotifications) {
                 settings.desktopNotifications = res.settings.desktopNotifications as any;
+            }
+            if (res.settings.mobileNotifications) {
+                settings.mobileNotifications = res.settings.mobileNotifications as any;
+            }
+            if (res.settings.mute) {
+                settings.mute = res.settings.mute as any;
             }
         }
         return settings;

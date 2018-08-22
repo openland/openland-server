@@ -6,6 +6,7 @@ type ChannelConversation implements Conversation {
     members: [User!]!
     unreadCount: Int!
     topMessage: ConversationMessage
+    settings: Settings!
 
     membersCount: Int!
     featured: Boolean!

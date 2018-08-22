@@ -492,6 +492,8 @@ export class ChatsRepository {
                 let userUnread = 0;
                 let userChatUnread = 0;
 
+                let muted = (await Repos.Users.getUserSettings(uid, conversationId)).mute;
+
                 // Write user's chat state
                 if (m !== uid) {
                     if (existing) {
@@ -521,7 +523,7 @@ export class ChatsRepository {
 
                 // Update or Create global state
                 if (existingGlobal) {
-                    if (m !== uid) {
+                    if (m !== uid && !muted) {
                         existingGlobal.unread++;
                     }
                     existingGlobal.seq++;
@@ -529,7 +531,7 @@ export class ChatsRepository {
                     userUnread = existingGlobal.unread;
                     await existingGlobal.save({ transaction: tx });
                 } else {
-                    if (m !== uid) {
+                    if (m !== uid && !muted) {
                         userUnread = 1;
                         await DB.ConversationsUserGlobal.create({
                             userId: m,
