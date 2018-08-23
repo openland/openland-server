@@ -199,7 +199,11 @@ export const Resolver = {
                 return IDs.Organization.serialize(invite.orgId);
             });
         }),
-        alphaJoinGlobalInvite: withUser<{ key: string }>(async (args, uid) => {
+        alphaJoinGlobalInvite: withAny<{ key: string }>(async (args, context) => {
+            let uid = context.uid;
+            if (uid === undefined) {
+                return;
+            }
             return await DB.txStable(async (tx) => {
                 let invite = await DB.OrganizationInvite.find({
                     where: {
@@ -246,8 +250,23 @@ export const Resolver = {
                     }
                 }
 
+                if (context.oid !== undefined) {
+                    // Activate organization
+                    let org = await DB.Organization.find({
+                        where: {
+                            id: context.oid
+                        },
+                        lock: tx.LOCK.UPDATE,
+                        transaction: tx
+                    });
+                    if (org) {
+                        org.status = 'ACTIVATED';
+                        await org.save({ transaction: tx });
+                    }
+                }
+
                 if (invite.isOneTime === true) {
-                    invite.acceptedById = uid;
+                    invite.acceptedById = uid!;
                     await invite.save({ transaction: tx });
                 }
 

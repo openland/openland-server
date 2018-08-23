@@ -1,4 +1,4 @@
-import { withAccount, withPermission, withAny } from './utils/Resolvers';
+import { withAccount, withPermission, withAny, withUser } from './utils/Resolvers';
 import { DB } from '../tables';
 import { Repos } from '../repositories';
 import { Conversation } from '../tables/Conversation';
@@ -413,7 +413,11 @@ export const Resolver = {
                 return invite.uuid;
             });
         }),
-        alphaChannelJoinInvite: withAccount<{ invite: string }>(async (args, uid, oid) => {
+        alphaChannelJoinInvite: withAny<{ invite: string }>(async (args, context) => {
+            let uid = context.uid;
+            if (uid === undefined) {
+                return;
+            }
             return await DB.txStable(async (tx) => {
 
                 let invite = await DB.ChannelInvite.findOne({
@@ -457,6 +461,21 @@ export const Resolver = {
                     }
 
                     await user.save({ transaction: tx });
+                }
+
+                if (context.oid !== undefined) {
+                    // Activate organization
+                    let org = await DB.Organization.find({
+                        where: {
+                            id: context.oid
+                        },
+                        lock: tx.LOCK.UPDATE,
+                        transaction: tx
+                    });
+                    if (org) {
+                        org.status = 'ACTIVATED';
+                        await org.save({ transaction: tx });
+                    }
                 }
 
                 await DB.ConversationGroupMembers.create({
