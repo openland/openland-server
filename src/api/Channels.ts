@@ -569,7 +569,14 @@ export const Resolver = {
             return await builder.findElastic(hits);
         }),
         alphaChannelInviteInfo: withAccount<{ uuid: string }>(async (args, uid, oid) => {
-            return await DB.ChannelInvite.find({ where: { uuid: args.uuid } });
+            let invite = await DB.ChannelInvite.find({ where: { uuid: args.uuid } });
+            if (invite) {
+                return {
+                    channel: DB.Conversation.findById(invite.channelId),
+                    invitedByUser: DB.User.findById(invite.creatorId)
+                };
+            }
+            return null;
         }),
         alphaChannelInviteLink: withAccount<{ channelId: string }>(async (args, uid, oid) => {
             let channelId = IDs.Conversation.parse(args.channelId);

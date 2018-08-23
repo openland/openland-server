@@ -37,7 +37,7 @@ type ChannelMember {
 
 type ChannelInvite {
     channel: ChannelConversation!
-    invitedByOrg: Organization!
+    invitedByOrg: Organization
     invitedByUser: User!
 }
 
