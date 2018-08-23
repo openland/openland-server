@@ -39,6 +39,7 @@ export interface Message {
     message?: string | null;
     file?: string | null;
     fileMetadata?: JsonMap | null;
+    filePreview?: string | null;
     isMuted?: boolean | null;
     isService?: boolean | null;
     repeatKey?: string | null;
@@ -453,6 +454,7 @@ export class ChatsRepository {
             extras: {
                 serviceMetadata: message.serviceMetadata || {},
                 ...message.urlAugmentation ? { urlAugmentation: message.urlAugmentation } : {},
+                filePreview: message.filePreview || null
             }
         }, { transaction: tx });
         let res = await DB.ConversationEvent.create({

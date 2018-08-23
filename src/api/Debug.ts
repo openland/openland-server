@@ -25,6 +25,10 @@ export const Resolver = {
         debugSerializeId: withPermissionOptional<any>(['software-developer'], async (args, ctx) => {
             return (IDs as any)[args.type].serialize(args.id);
         }),
+
+        debugImagePreview: withPermissionOptional<{ uuid: string }>(['software-developer'], async (args, ctx) => {
+            return await Services.UploadCare.fetchLowResPreview(args.uuid);
+        })
     },
     Mutation: {
         debugSendWelcomeEmail: withUser(async (args, uid) => {

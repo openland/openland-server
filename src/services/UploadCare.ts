@@ -67,4 +67,21 @@ export class UploadCare {
 
         return fileInfo;
     }
+
+    async fetchLowResPreview(uuid: string): Promise<string> {
+        let res = await new Promise<any>((resolve, reject) => {
+            request({
+                encoding: null,
+                url: `https://ucarecdn.com/${uuid}/-/preview/20x20/-/format/jpeg/-/quality/lightest/`
+            }, (error, response, body) => {
+                if (!error && response.statusCode === 200) {
+                    resolve(body);
+                } else {
+                    reject(new Error('File error'));
+                }
+            });
+        });
+
+        return `data:image/jpeg;base64,${res.toString('base64')}`;
+    }
 }

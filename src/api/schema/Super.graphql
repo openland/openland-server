@@ -123,6 +123,7 @@ extend type Query {
 
     debugURLInfo(url: String!): URLInfo!
     debugSerializeId(id: Int!, type: String): ID!
+    debugImagePreview(uuid: String!): String
 }
 
 #

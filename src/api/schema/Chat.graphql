@@ -94,6 +94,7 @@ type ConversationMessage {
     message: String
     file: String
     fileMetadata: FileMetadata
+    filePreview: String
     sender: User!
     date: Date!
     repeatKey: String

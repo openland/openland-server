@@ -304,6 +304,7 @@ export const Resolver = {
                 return null;
             }
         },
+        filePreview: (src: ConversationMessage) => src.extras.filePreview || null,
         sender: (src: ConversationMessage, _: any, context: CallContext) => Repos.Users.userLoader(context).load(src.userId),
         date: (src: ConversationMessage) => src.createdAt,
         repeatKey: (src: ConversationMessage, args: any, context: CallContext) => src.userId === context.uid ? src.repeatToken : null,
@@ -1061,17 +1062,24 @@ export const Resolver = {
             let conversationId = IDs.Conversation.parse(args.conversationId);
 
             let fileMetadata: JsonMap | null;
+            let filePreview: string | null;
 
             if (args.file) {
-                fileMetadata = await Services.UploadCare.saveFile(args.file) as any;
+                let fileInfo = await Services.UploadCare.saveFile(args.file);
+                fileMetadata = fileInfo as any;
+
+                if (fileInfo.isImage) {
+                    filePreview = await Services.UploadCare.fetchLowResPreview(args.file);
+                }
             }
 
             return await DB.txStable(async (tx) => {
                 return (await Repos.Chats.sendMessage(tx, conversationId, uid!, {
                     message: args.message,
                     file: args.file,
-                    fileMetadata: fileMetadata,
-                    repeatKey: args.repeatKey
+                    fileMetadata,
+                    repeatKey: args.repeatKey,
+                    filePreview
                 })).conversationEvent;
             });
         }),
