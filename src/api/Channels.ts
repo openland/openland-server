@@ -15,6 +15,7 @@ import { UserError } from '../errors/UserError';
 import { Emails } from '../services/Emails';
 import { randomInviteKey } from '../utils/random';
 import { NotFoundError } from '../errors/NotFoundError';
+import { ChannelInvite } from '../tables/ChannelInvite';
 
 interface AlphaChannelsParams {
     orgId: string;
@@ -80,10 +81,15 @@ export const Resolver = {
         user: (src: ConversationGroupMember) => DB.User.findById(src.userId)
     },
 
-    ChannelInvite: {
+    ChannelOrgInvite: {
         channel: (src: ConversationChannelMember) => DB.Conversation.findById(src.conversationId),
         invitedByOrg: (src: ConversationChannelMember) => DB.Organization.findById(src.orgId),
         invitedByUser: (src: ConversationChannelMember) => DB.User.findById(src.invitedByUser)
+    },
+
+    ChannelInvite: {
+        channel: (src: ChannelInvite) => DB.Conversation.findById(src.channelId),
+        invitedByUser: (src: ChannelInvite) => DB.User.findById(src.creatorId)
     },
 
     ChannelJoinRequestOrg: {
@@ -388,6 +394,7 @@ export const Resolver = {
             return await DB.tx(async (tx) => {
                 let existing = await DB.ChannelInvite.find({
                     where: {
+                        channelId,
                         creatorId: uid,
                         isOneTime: false
                     },
@@ -576,6 +583,7 @@ export const Resolver = {
             return await DB.tx(async (tx) => {
                 let existing = await DB.ChannelInvite.find({
                     where: {
+                        channelId,
                         creatorId: uid,
                         isOneTime: false
                     },
