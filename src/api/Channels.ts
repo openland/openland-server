@@ -9,7 +9,7 @@ import { ElasticClient } from '../indexing';
 import { QueryParser } from '../modules/QueryParser';
 import { SelectBuilder } from '../modules/SelectBuilder';
 import { ConversationGroupMember } from '../tables/ConversationGroupMembers';
-import { defined, emailValidator, validate } from '../modules/NewInputValidator';
+import { defined, emailValidator, stringNotEmpty, validate } from '../modules/NewInputValidator';
 import { ErrorText } from '../errors/ErrorText';
 import { UserError } from '../errors/UserError';
 import { Emails } from '../services/Emails';
@@ -93,9 +93,13 @@ export const Resolver = {
 
     Mutation: {
         alphaChannelCreate: withAccount<{ title: string, message: string, description?: string }>(async (args, uid, oid) => {
+            await validate({
+                title: defined(stringNotEmpty('Title cant be empty'))
+            }, args);
+
             return await DB.txStable(async (tx) => {
                 let chat = await DB.Conversation.create({
-                    title: args.title,
+                    title: args.title.trim(),
                     type: 'channel',
                     extras: {
                         description: args.description || '',

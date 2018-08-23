@@ -20,6 +20,7 @@ import { ConversationBlocked } from '../tables/ConversationBlocked';
 import { Services } from '../services';
 import { UserError } from '../errors/UserError';
 import { NotFoundError } from '../errors/NotFoundError';
+import { UserProfile } from '../tables/UserProfile';
 
 export const Resolver = {
     Conversation: {
@@ -1204,7 +1205,7 @@ export const Resolver = {
                     conversationEvent,
                     userEvent
                 } = await Repos.Chats.sendMessage(tx, conversationId, uid, {
-                    message: `new title: ${args.title}`,
+                    message: `New chat title: ${args.title}`,
                     isService: true,
                     isMuted: true,
                     serviceMetadata: {
@@ -1276,6 +1277,12 @@ export const Resolver = {
                     }
                 }
 
+                let users: UserProfile[] = [];
+
+                for (let invite of args.invites) {
+                    users.push((await DB.UserProfile.findById(invite.userId))!);
+                }
+
                 let {
                     conversationEvent,
                     userEvent
@@ -1284,7 +1291,7 @@ export const Resolver = {
                     conversationId,
                     uid,
                     {
-                        message: `users<${args.invites.map(i => i.userId).join(',')}> Joined chat`,
+                        message: `Users <${users.map(u => u.firstName).join(', ')}> joined chat`,
                         isService: true,
                         isMuted: true,
                         serviceMetadata: {
@@ -1375,6 +1382,8 @@ export const Resolver = {
 
                 await Repos.Chats.blockUser(tx, userId, uid, conversationId);
 
+                let profile = await DB.UserProfile.findById(userId);
+
                 let {
                     conversationEvent,
                     userEvent
@@ -1383,7 +1392,7 @@ export const Resolver = {
                     conversationId,
                     uid,
                     {
-                        message: `user<${userId}> was kicked from chat`,
+                        message: `${profile!.firstName} was kicked from chat`,
                         isService: true,
                         isMuted: true,
                         serviceMetadata: {
