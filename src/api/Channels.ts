@@ -440,6 +440,25 @@ export const Resolver = {
                     return IDs.Conversation.serialize(invite.channelId);
                 }
 
+                // Activate user
+                let user = await DB.User.find({
+                    where: {
+                        id: uid
+                    },
+                    lock: tx.LOCK.UPDATE,
+                    transaction: tx
+                });
+                if (user) {
+                    user.status = 'ACTIVATED';
+
+                    // User set invitedBy if none
+                    if (invite.creatorId && !user.invitedBy) {
+                        user.invitedBy = invite.creatorId;
+                    }
+
+                    await user.save({ transaction: tx });
+                }
+
                 await DB.ConversationGroupMembers.create({
                     conversationId: invite.channelId,
                     invitedById: uid,
