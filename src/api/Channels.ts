@@ -486,6 +486,16 @@ export const Resolver = {
                     userId: uid
                 }, { transaction: tx });
 
+                await Repos.Chats.sendMessage(
+                    tx,
+                    invite.channelId,
+                    uid!,
+                    {
+                        message: `User ${uid} joined to channel!`,
+                        isService: true
+                    }
+                );
+
                 if (invite.isOneTime) {
                     await invite.update({ acceptedById: uid }, { transaction: tx });
                 }
