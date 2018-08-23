@@ -15,6 +15,7 @@ import { UserError } from '../errors/UserError';
 import { Emails } from '../services/Emails';
 import { randomInviteKey } from '../utils/random';
 import { NotFoundError } from '../errors/NotFoundError';
+import { ChannelInvite } from '../tables/ChannelInvite';
 
 interface AlphaChannelsParams {
     orgId: string;
@@ -80,10 +81,15 @@ export const Resolver = {
         user: (src: ConversationGroupMember) => DB.User.findById(src.userId)
     },
 
-    ChannelInvite: {
+    ChannelOrgInvite: {
         channel: (src: ConversationChannelMember) => DB.Conversation.findById(src.conversationId),
         invitedByOrg: (src: ConversationChannelMember) => DB.Organization.findById(src.orgId),
         invitedByUser: (src: ConversationChannelMember) => DB.User.findById(src.invitedByUser)
+    },
+
+    ChannelInvite: {
+        channel: (src: ChannelInvite) => DB.Conversation.findById(src.channelId),
+        invitedByUser: (src: ChannelInvite) => DB.User.findById(src.creatorId)
     },
 
     ChannelJoinRequestOrg: {
@@ -569,14 +575,7 @@ export const Resolver = {
             return await builder.findElastic(hits);
         }),
         alphaChannelInviteInfo: withAccount<{ uuid: string }>(async (args, uid, oid) => {
-            let invite = await DB.ChannelInvite.find({ where: { uuid: args.uuid } });
-            if (invite) {
-                return {
-                    channel: DB.Conversation.findById(invite.channelId),
-                    invitedByUser: DB.User.findById(invite.creatorId)
-                };
-            }
-            return null;
+            return await DB.ChannelInvite.find({ where: { uuid: args.uuid } });
         }),
         alphaChannelInviteLink: withAccount<{ channelId: string }>(async (args, uid, oid) => {
             let channelId = IDs.Conversation.parse(args.channelId);

@@ -37,7 +37,12 @@ type ChannelMember {
 
 type ChannelInvite {
     channel: ChannelConversation!
-    invitedByOrg: Organization
+    invitedByUser: User!
+}
+
+type ChannelOrgInvite {
+    channel: ChannelConversation!
+    invitedByOrg: Organization!
     invitedByUser: User!
 }
 
@@ -89,7 +94,7 @@ extend type Query {
     alphaChannelsList(first: Int!, after: String): ConversationConnection!
     alphaChannelMembersOrg(channelId: ID!): [ChannelMemberOrg!]!
     alphaChannelMembers(channelId: ID!): [ChannelMember!]!
-    alphaChannelMyOrgInvites: [ChannelInvite!]!
+    alphaChannelMyOrgInvites: [ChannelOrgInvite!]!
     alphaChannelJoinRequestsOrg(channelId: ID!): [ChannelJoinRequestOrg!]!
     alphaChannelsFeatured: [ChannelConversation!]!
     alphaChannels(
