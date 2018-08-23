@@ -1,4 +1,4 @@
-import { withAccount, withPermission, withAny, withUser } from './utils/Resolvers';
+import { withAccount, withPermission, withAny } from './utils/Resolvers';
 import { DB } from '../tables';
 import { Repos } from '../repositories';
 import { Conversation } from '../tables/Conversation';
