@@ -400,28 +400,20 @@ export const Resolver = {
 
             return res;
         }),
-
         alphaComunityPrefixSearch: withAny<AlphaOrganizationsParams>(async args => {
+
+            let clauses: any[] = [];
+            clauses.push({ term: { isCommunity: true } });
+            clauses.push({ term: { published: true } });
+            if (args.query && args.query.length > 0) {
+                clauses.push({ match_phrase_prefix: { name: args.query } });
+            }
 
             let hits = await ElasticClient.search({
                 index: 'organizations',
                 type: 'organization',
                 body: {
-                    query: {
-                        bool: {
-                            must: [
-                                {
-                                    term: { isCommunity: true }
-                                },
-                                {
-                                    term: { published: true }
-                                },
-                                {
-                                    match_phrase_prefix: { name: args.query }
-                                }
-                            ]
-                        }
-                    }
+                    query: { bool: { must: clauses } }
                 }
             });
             let builder = new SelectBuilder(DB.Organization)
