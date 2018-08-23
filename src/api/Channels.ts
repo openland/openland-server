@@ -1,4 +1,4 @@
-import { withAccount, withPermission } from './utils/Resolvers';
+import { withAccount, withPermission, withAny } from './utils/Resolvers';
 import { DB } from '../tables';
 import { Repos } from '../repositories';
 import { Conversation } from '../tables/Conversation';
@@ -594,7 +594,7 @@ export const Resolver = {
 
             return await builder.findElastic(hits);
         }),
-        alphaChannelInviteInfo: withAccount<{ uuid: string }>(async (args, uid, oid) => {
+        alphaChannelInviteInfo: withAny<{ uuid: string }>(async (args, context: CallContext) => {
             return await DB.ChannelInvite.find({ where: { uuid: args.uuid } });
         }),
         alphaChannelInviteLink: withAccount<{ channelId: string }>(async (args, uid, oid) => {
