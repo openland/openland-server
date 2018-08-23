@@ -342,7 +342,7 @@ export const Emails = {
             throw Error('Internal inconsistency');
         }
 
-        let domain = process.env.APP_ENVIRONMENT === 'production' ? 'https://app.openland.com/join/' : 'http://localhost:3000/join/';
+        let domain = process.env.APP_ENVIRONMENT === 'production' ? 'https://app.openland.com/joinChannel/' : 'http://localhost:3000/joinChannel/';
 
         await EmailWorker.pushWork({
             subject: `Join ${channel.title!} at Openland`,
