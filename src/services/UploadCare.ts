@@ -1,6 +1,7 @@
 import request from 'request';
 
 export interface UploadCareFileInfo {
+    isImage: boolean;
     isStored: boolean;
     imageWidth: number | null;
     imageHeight: number | null;
@@ -11,22 +12,30 @@ export interface UploadCareFileInfo {
 }
 
 export class UploadCare {
+    static UPLOAD_CARE_AUTH = 'Uploadcare.Simple b70227616b5eac21ba88:65d4918fb06d4fe0bec8';
+
+    async call(path: string, method: string = 'GET'): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            request({
+                method,
+                url: 'https://api.uploadcare.com/' + path,
+                headers: {
+                    'Authorization': UploadCare.UPLOAD_CARE_AUTH
+                }
+            }, (error, response, body) => {
+                if (!error && response.statusCode === 200) {
+                    resolve(JSON.parse(body));
+                } else {
+                    reject(new Error('File error'));
+                    // reject(error);
+                }
+            });
+        });
+    }
+
     async fetchFileInfo(uuid: string): Promise<UploadCareFileInfo> {
-        let res = await new Promise<any>(
-            (resolver, reject) => request(
-                {
-                    url: 'https://api.uploadcare.com/files/' + uuid + '/',
-                    headers: {
-                        'Authorization': 'Uploadcare.Simple b70227616b5eac21ba88:65d4918fb06d4fe0bec8'
-                    }
-                },
-                (error, response, body) => {
-                    if (!error && response.statusCode === 200) {
-                        resolver(JSON.parse(body));
-                    } else {
-                        reject(error);
-                    }
-                }));
+        let res = await this.call('files/' + uuid + '/');
+
         let isImage = res.is_image as boolean;
         let imageWidth = isImage ? res.image_info.width as number : null;
         let imageHeight = isImage ? res.image_info.height as number : null;
@@ -38,6 +47,7 @@ export class UploadCare {
 
         return {
             isStored: isReady,
+            isImage,
             imageWidth,
             imageHeight,
             imageFormat,
@@ -45,5 +55,16 @@ export class UploadCare {
             name,
             size
         };
+    }
+
+    async saveFile(uuid: string): Promise<UploadCareFileInfo> {
+        let fileInfo = await this.fetchFileInfo(uuid);
+
+        if (!fileInfo.isStored) {
+            await this.call('/files/' + uuid + '/storage', 'PUT');
+            fileInfo.isStored = true;
+        }
+
+        return fileInfo;
     }
 }

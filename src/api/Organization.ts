@@ -22,6 +22,7 @@ import {
 } from '../modules/NewInputValidator';
 import { AccessDeniedError } from '../errors/AccessDeniedError';
 import { Emails } from '../services/Emails';
+import { Services } from '../services';
 
 let isFollowed = async (initiatorOrgId: number, targetOrgId: number) => {
     let connection = await DB.OrganizationConnect.find({
@@ -619,6 +620,9 @@ export const Resolver = {
                     existing.websiteTitle = Sanitizer.sanitizeString(args.input.websiteTitle);
                 }
                 if (args.input.photoRef !== undefined) {
+                    if (args.input.photoRef !== null) {
+                        await Services.UploadCare.saveFile(args.input.photoRef.uuid);
+                    }
                     existing.photo = Sanitizer.sanitizeImageRef(args.input.photoRef);
                 }
 
@@ -908,6 +912,9 @@ export const Resolver = {
                 }
 
                 if (args.input.photo !== undefined) {
+                    if (args.input.photo !== null) {
+                        await Services.UploadCare.saveFile(args.input.photo.uuid);
+                    }
                     extras.photo = Sanitizer.sanitizeImageRef(args.input.photo);
                 }
 
@@ -1091,6 +1098,9 @@ export const Resolver = {
                 }
 
                 if (args.input.photo !== undefined) {
+                    if (args.input.photo !== null) {
+                        await Services.UploadCare.saveFile(args.input.photo.uuid);
+                    }
                     extras.photo = Sanitizer.sanitizeImageRef(args.input.photo);
                 }
 

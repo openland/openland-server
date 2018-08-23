@@ -8,7 +8,6 @@ import { ConversationEvent } from '../tables/ConversationEvent';
 import { CallContext } from './utils/CallContext';
 import { Repos } from '../repositories';
 import { ConversationUserEvents } from '../tables/ConversationUserEvents';
-import request from 'request';
 import { JsonMap } from '../utils/json';
 import { IDMailformedError } from '../errors/IDMailformedError';
 import { ImageRef, buildBaseImageUrl } from '../repositories/Media';
@@ -1062,62 +1061,11 @@ export const Resolver = {
             let conversationId = IDs.Conversation.parse(args.conversationId);
 
             let fileMetadata: JsonMap | null;
+
             if (args.file) {
-                let res = await new Promise<any>(
-                    (resolver, reject) => request(
-                        {
-                            url: 'https://api.uploadcare.com/files/' + args.file!! + '/',
-                            headers: {
-                                'Authorization': 'Uploadcare.Simple b70227616b5eac21ba88:65d4918fb06d4fe0bec8'
-                            }
-                        },
-                        (error, response, body) => {
-                            if (!error && response.statusCode === 200) {
-                                resolver(JSON.parse(body));
-                            } else {
-                                reject(error);
-                            }
-                        }));
-                console.warn(res);
-                let isImage = res.is_image as boolean;
-                let imageWidth = isImage ? res.image_info.width as number : null;
-                let imageHeight = isImage ? res.image_info.height as number : null;
-                let imageFormat = isImage ? res.image_info.format as string : null;
-                let mimeType = res.mime_type as string;
-                let name = res.original_filename as string;
-                let size = res.size as number;
-                let isReady = res.is_ready as boolean;
-
-                // Store file
-                if (!isReady) {
-                    await new Promise<any>(
-                        (resolver, reject) =>
-                            request({
-                                method: 'PUT',
-                                url: 'https://api.uploadcare.com/files/' + args.file!! + '/storage',
-                                headers: {
-                                    'Authorization': 'Uploadcare.Simple b70227616b5eac21ba88:65d4918fb06d4fe0bec8'
-                                }
-                            },
-                                (error, response, body) => {
-                                    if (!error && response.statusCode === 200) {
-                                        resolver(JSON.parse(body));
-                                    } else {
-                                        reject(error);
-                                    }
-                                }));
-                }
-
-                fileMetadata = {
-                    isImage: isImage,
-                    mimeType: mimeType,
-                    name: name,
-                    size: size,
-                    imageWidth,
-                    imageHeight,
-                    imageFormat
-                };
+                fileMetadata = await Services.UploadCare.saveFile(args.file) as any;
             }
+
             return await DB.txStable(async (tx) => {
                 return (await Repos.Chats.sendMessage(tx, conversationId, uid!, {
                     message: args.message,

@@ -11,6 +11,7 @@ import { Sanitizer } from '../modules/Sanitizer';
 import { InvalidInputError } from '../errors/InvalidInputError';
 import { buildElasticQuery, QueryParser } from '../modules/QueryParser';
 import { ElasticClient } from '../indexing';
+import { Services } from '../services';
 
 const EntityTypes: { [key: string]: string } = {
     'NEWS': 'WallPost',
@@ -321,6 +322,9 @@ export const Resolver = {
                 }
 
                 if (args.input.photo !== undefined) {
+                    if (args.input.photo !== null) {
+                        await Services.UploadCare.saveFile(args.input.photo.uuid);
+                    }
                     extras.photo = Sanitizer.sanitizeImageRef(args.input.photo);
                 }
 
@@ -460,6 +464,9 @@ export const Resolver = {
                 }
 
                 if (args.input.photo !== undefined) {
+                    if (args.input.photo !== null) {
+                        await Services.UploadCare.saveFile(args.input.photo.uuid);
+                    }
                     extras.photo = Sanitizer.sanitizeImageRef(args.input.photo);
                 }
 

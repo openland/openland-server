@@ -10,6 +10,7 @@ import { validate, stringNotEmpty } from '../modules/NewInputValidator';
 import { Repos } from '../repositories';
 import { UserSettings } from '../tables/UserSettings';
 import { UserExtras } from '../repositories/UserExtras';
+import { Services } from '../services';
 
 function userLoader(context: CallContext) {
     if (!context.cache.has('__profile_loader')) {
@@ -227,7 +228,10 @@ export const Resolver = {
                     profile.about = Sanitizer.sanitizeString(args.input.about);
                 }
                 if (args.input.photoRef !== undefined) {
-                    profile.picture = args.input.photoRef;
+                    if (args.input.photoRef !== null) {
+                        await Services.UploadCare.saveFile(args.input.photoRef.uuid);
+                    }
+                    profile.picture = Sanitizer.sanitizeImageRef(args.input.photoRef);
                 }
                 if (args.input.phone !== undefined) {
                     profile.phone = Sanitizer.sanitizeString(args.input.phone);
