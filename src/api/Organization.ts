@@ -417,8 +417,13 @@ export const Resolver = {
                                     term: { published: true }
                                 },
                                 {
-                                    match_phrase_prefix: { name: args.query }
+                                    ...args.query && args.query.length > 0 ?
+                                        {
+                                            match_phrase_prefix: { name: args.query }
+                                        } :
+                                        {}
                                 }
+
                             ]
                         }
                     }
