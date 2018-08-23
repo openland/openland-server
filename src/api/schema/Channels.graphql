@@ -82,7 +82,7 @@ extend type Mutation {
 
     alphaChannelInviteMembers(channelId: ID!, inviteRequests: [ChannelInviteRequest!]!): String!
     alphaChannelJoinInvite(invite: String!): ID!
-    alphaChannelInviteLink: String!
+    alphaChannelInviteLink(channelId: ID!): String!
 }
 
 extend type Query {
