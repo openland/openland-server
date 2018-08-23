@@ -394,6 +394,7 @@ export const Resolver = {
             return await DB.tx(async (tx) => {
                 let existing = await DB.ChannelInvite.find({
                     where: {
+                        channelId,
                         creatorId: uid,
                         isOneTime: false
                     },
@@ -582,6 +583,7 @@ export const Resolver = {
             return await DB.tx(async (tx) => {
                 let existing = await DB.ChannelInvite.find({
                     where: {
+                        channelId,
                         creatorId: uid,
                         isOneTime: false
                     },
