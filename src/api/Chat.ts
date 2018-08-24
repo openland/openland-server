@@ -542,9 +542,15 @@ export const Resolver = {
                 throw new IDMailformedError('Invalid id');
             }
         }),
-        alphaLoadMessages: withAny<{ conversationId: string, first?: number, before?: string, after?: string }>((args) => {
+        alphaLoadMessages: withUser<{ conversationId: string, first?: number, before?: string, after?: string }>((args, uid) => {
             let conversationId = IDs.Conversation.parse(args.conversationId);
             return DB.tx(async (tx) => {
+
+                let conversationUserState = await DB.ConversationUserState.find({ where: { userId: uid, conversationId: conversationId } });
+                if (!conversationUserState) {
+                    throw new AccessDeniedError();
+                }
+
                 let beforeMessage: ConversationMessage | null = null;
                 if (args.before) {
                     beforeMessage = await DB.ConversationMessage.findOne({ where: { id: IDs.ConversationMessage.parse(args.before) } });
@@ -553,7 +559,8 @@ export const Resolver = {
                 if (args.after) {
                     afterMessage = await DB.ConversationMessage.findOne({ where: { id: IDs.ConversationMessage.parse(args.after) } });
                 }
-                let seq = (await DB.Conversation.findById(conversationId))!!.seq;
+                let conversation = await DB.Conversation.findById(conversationId);
+                let seq = (conversation)!!.seq;
                 return {
                     seq: seq,
                     messages: await (DB.ConversationMessage.findAll({
@@ -732,7 +739,9 @@ export const Resolver = {
             });
         }),
         alphaChatTextSearch: withAccount<{ query: string }>(async (args, uid, oid) => {
+
             // GROUPS / CHANNELS has titles we can search 
+            let searchableConversations = (await DB.ConversationUserState.findAll({ where: { userId: uid } })).map(s => s.conversationId);
             let sequelize = DB.connection;
             let groupsChannels = await DB.Conversation.findAll({
                 where: {
@@ -741,6 +750,9 @@ export const Resolver = {
                     },
                     title: {
                         $ilike: args.query.toLowerCase() + '%'
+                    },
+                    id: {
+                        $in: searchableConversations
                     }
                 }
             });
@@ -887,7 +899,17 @@ export const Resolver = {
                 ]
             });
 
-            return [...personal, ...groupsChannels, ...orgs1, ...orgs2, ...orgsInner];
+            let res = [...personal, ...groupsChannels, ...orgs1, ...orgs2, ...orgsInner];
+            res = res.reduce(
+                (p, x) => {
+                    if (!p.find(c => c.id === x.id)) {
+                        p.push(x);
+                    }
+                    return p;
+                },
+                [] as any[]
+            );
+            return res;
 
         }),
         alphaGroupConversationMembers: withAccount<{ conversationId: string }>(async (args, uid, oid) => {
@@ -1540,8 +1562,16 @@ export const Resolver = {
             resolve: async (msg: any) => {
                 return msg;
             },
-            subscribe: async function (_: any, args: { conversationId: string, fromSeq?: number }) {
+            subscribe: async function (_: any, args: { conversationId: string, fromSeq?: number }, context: CallContext) {
                 let conversationId = IDs.Conversation.parse(args.conversationId);
+                if (!context.uid) {
+                    throw Error('Not logged in');
+                }
+                let conversationUserState = await DB.ConversationUserState.find({ where: { userId: context.uid, conversationId: conversationId } });
+                if (!conversationUserState) {
+                    throw new AccessDeniedError();
+                }
+
                 let ended = false;
                 return {
                     ...async function* func() {
