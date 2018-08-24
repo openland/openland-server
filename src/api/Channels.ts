@@ -243,6 +243,7 @@ export const Resolver = {
             return await DB.txStable(async (tx) => {
                 let channelId = IDs.Conversation.parse(args.channelId);
                 let userId = IDs.User.parse(args.userId);
+                let channel = await DB.Conversation.findById(channelId, { transaction: tx });
 
                 let member = await DB.ConversationGroupMembers.findOne({
                     where: {
@@ -253,17 +254,42 @@ export const Resolver = {
 
                 if (member) {
                     if (member.status === 'member' || member.status === 'invited') {
-                        return 'ok';
+                        return {
+                            chat: channel,
+                            curSeq: channel!.seq
+                        };
                     } else if (member.status === 'requested') {
-                        await member.update({ status: 'member' });
+                        await member.update({ status: 'member' }, { transaction: tx });
+
+                        let name = (await DB.UserProfile.findById(userId))!.firstName;
+
                         await Repos.Chats.sendMessage(
                             tx,
                             channelId,
                             uid,
                             {
-                                message: `User ${userId} joined to channel!`,
-                                isService: true
+                                message: `${name} joined to channel!`,
+                                isService: true,
+                                isMuted: true,
+                                serviceMetadata: {
+                                    type: 'user_invite',
+                                    userIds: [userId],
+                                    invitedById: uid
+                                }
                             }
+                        );
+
+                        let membersCount = await Repos.Chats.membersCountInConversation(channelId);
+
+                        await Repos.Chats.addUserEventsInConversation(
+                            channelId,
+                            uid,
+                            'new_members_count',
+                            {
+                                conversationId: channelId,
+                                membersCount: membersCount + 1
+                            },
+                            tx
                         );
                     }
                 } else {
@@ -275,12 +301,18 @@ export const Resolver = {
                     }, { transaction: tx });
                 }
 
-                return 'ok';
+                await channel!.reload({ transaction: tx });
+
+                return {
+                    chat: channel,
+                    curSeq: channel!.seq
+                };
             });
         }),
         alphaChannelJoin: withAccount<{ channelId: string }>(async (args, uid, oid) => {
             return await DB.txStable(async (tx) => {
                 let channelId = IDs.Conversation.parse(args.channelId);
+                let channel = await DB.Conversation.findById(channelId, { transaction: tx });
 
                 let member = await DB.ConversationGroupMembers.findOne({
                     where: {
@@ -292,19 +324,43 @@ export const Resolver = {
 
                 if (member) {
                     if (member.status === 'member') {
-                        return 'ok';
+                        return {
+                            chat: channel,
+                            curSeq: channel!.seq
+                        };
                     } else if (member.status === 'invited') {
-                        await member.update({ status: 'member' });
+                        await member.update({ status: 'member' }, { transaction: tx });
+
+                        let name = (await DB.UserProfile.findById(uid))!.firstName;
+
                         await Repos.Chats.sendMessage(
                             tx,
                             channelId,
                             uid,
                             {
-                                message: `User ${uid} joined to channel!`,
-                                isService: true
+                                message: `${name} joined to channel!`,
+                                isService: true,
+                                isMuted: true,
+                                serviceMetadata: {
+                                    type: 'user_invite',
+                                    userIds: [uid],
+                                    invitedById: uid
+                                }
                             }
                         );
-                        return 'ok';
+
+                        let membersCount = await Repos.Chats.membersCountInConversation(channelId);
+
+                        await Repos.Chats.addUserEventsInConversation(
+                            channelId,
+                            uid,
+                            'new_members_count',
+                            {
+                                conversationId: channelId,
+                                membersCount: membersCount + 1
+                            },
+                            tx
+                        );
                     }
                 } else {
                     await DB.ConversationGroupMembers.create({
@@ -316,7 +372,12 @@ export const Resolver = {
                     }, { transaction: tx });
                 }
 
-                return 'ok';
+                await channel!.reload({ transaction: tx });
+
+                return {
+                    chat: channel,
+                    curSeq: channel!.seq
+                };
             });
         }),
         alphaChannelRevokeInvite: withAccount<{ channelId: string, userId: string }>(async (args, uid, oid) => {

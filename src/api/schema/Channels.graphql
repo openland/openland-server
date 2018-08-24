@@ -83,8 +83,8 @@ extend type Mutation {
     alphaChannelJoinOrg(channelId: ID!): String!
     alphaChannelSetFeatured(channelId: ID!, featured: Boolean!): String!
 
-    alphaChannelInvite(channelId: ID!, userId: ID!): String!
-    alphaChannelJoin(channelId: ID!): String!
+    alphaChannelInvite(channelId: ID!, userId: ID!): ConversationUpdateResponse!
+    alphaChannelJoin(channelId: ID!): ConversationUpdateResponse!
     alphaChannelRevokeInvite(channelId: ID!, userId: ID!): String!
     alphaChannelCancelRequest(channelId: ID!): String
 
