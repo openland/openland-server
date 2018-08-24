@@ -1673,7 +1673,8 @@ export const Resolver = {
         }),
         alphaUpdateConversationSettings: withUser<{ settings: { mobileNotifications?: string | null, mute?: boolean | null }, conversationId: string }>(async (args, uid) => {
             return await DB.tx(async (tx) => {
-                let conversationUserState = (await DB.ConversationUserState.find({ where: { userId: uid, conversationId: IDs.Conversation.parse(args.conversationId) }, transaction: tx, lock: 'UPDATE' }))!!;
+                let cid = IDs.Conversation.parse(args.conversationId);
+                let conversationUserState = (await DB.ConversationUserState.find({ where: { userId: uid, conversationId: cid }, transaction: tx, lock: 'UPDATE' }))!!;
 
                 if (args.settings.mobileNotifications) {
                     conversationUserState.notificationsSettings = {
@@ -1688,7 +1689,10 @@ export const Resolver = {
                     };
                 }
                 await conversationUserState.save({ transaction: tx });
-                return conversationUserState.notificationsSettings;
+                return {
+                    ...conversationUserState.notificationsSettings,
+                    id: IDs.ConversationSettings.serialize(cid)
+                };
             });
         })
     },
