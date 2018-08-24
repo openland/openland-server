@@ -21,19 +21,22 @@ export type ChatEventType =
     'new_members' |
     'kick_member' |
     'update_role' |
-    'edit_message';
+    'edit_message'|
+    'chat_update';
 
 export type UserEventType =
     'new_message' |
     'conversation_read' |
     'title_change' |
     'new_members_count' |
-    'edit_message';
+    'edit_message' |
+    'chat_update';
 
 export type ServiceMessageMetadataType =
     'user_invite' |
     'user_kick' |
-    'title_change';
+    'title_change' |
+    'photo_change';
 
 export interface Message {
     message?: string | null;
@@ -820,5 +823,16 @@ export class ChatsRepository {
             }
         }
         return settings;
+    }
+
+    async getConversationSec(conversationId: number, exTx?: Transaction): Promise<number> {
+        return await DB.txStable(async (tx) => {
+            let conv = await DB.Conversation.findById(conversationId, { lock: tx.LOCK.UPDATE, transaction: tx });
+            if (!conv) {
+                throw new NotFoundError('Conversation not found');
+            }
+
+            return conv.seq;
+        }, exTx);
     }
 }

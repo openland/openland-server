@@ -57,6 +57,9 @@ type GroupConversation implements Conversation {
     topMessage: ConversationMessage
     membersCount: Int!
     settings: ConversationSettings!
+
+    photo: String
+    photoRef: ImageRef
 }
 
 #
@@ -75,6 +78,11 @@ type KickServiceMetadata {
 
 type TitleChangeServiceMetadata {
     title: String!
+}
+
+type PhotoChangeServiceMetadata {
+    photo: String
+    photoRef: ImageRef
 }
 
 type UrlAugmentation {
@@ -154,6 +162,11 @@ type ConversationEventTitle implements ConversationEvent {
     title: String!
 }
 
+type ConversationEventUpdate implements ConversationEvent {
+    seq: Int!
+    chat: Conversation!
+}
+
 type ConversationEventUpdateRole implements ConversationEvent {
     seq: Int!
     user: User!
@@ -213,6 +226,11 @@ type UserEventNewMembersCount implements UserEvent {
     membersCount: Int!
 }
 
+type UserEventConversationUpdate implements UserEvent {
+    seq: Int!
+    chat: Conversation!
+}
+
 #
 # Conversation List
 #
@@ -263,6 +281,11 @@ type GroupChatUpdateResponse {
     userEvent: UserEvent
 }
 
+type ConversationUpdateResponse {
+    chat: Conversation!
+    curSeq: Int!
+}
+
 type ConversationBlockedUser{
     user: User!
     blockedBy: User!
@@ -282,6 +305,11 @@ extend type Query {
     alphaFilePreviewLink(uuid: String!): String
 }
 
+input UpdateGroupInput {
+    title: String
+    photoRef: ImageRefInput
+}
+
 extend type Mutation {
     superCreateChat(title: String!): Conversation!
     alphaSendMessage(conversationId: ID!, message: String, file: String, repeatKey: String): ConversationEventMessage!
@@ -296,6 +324,7 @@ extend type Mutation {
     #
 
     alphaChatCreateGroup(title: String, members: [ID!]!, message: String): Conversation!
+    alphaChatUpdateGroup(conversationId: ID!, input: UpdateGroupInput!): ConversationUpdateResponse!
     alphaChatChangeGroupTitle(conversationId: ID!, title: String!): GroupChatUpdateResponse!
     alphaChatInviteToGroup(conversationId: ID!, invites: [GroupConversationInvite!]!): GroupChatUpdateResponse!
     alphaChatKickFromGroup(conversationId: ID!, userId: ID!): GroupChatUpdateResponse!

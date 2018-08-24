@@ -14,6 +14,9 @@ type ChannelConversation implements Conversation {
     myStatus: ChannelMembershipStatus!
     organization: Organization
     isRoot: Boolean!
+
+    photo: String
+    photoRef: ImageRef
 }
 
 enum ChannelMembershipStatus {

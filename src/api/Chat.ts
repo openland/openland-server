@@ -10,7 +10,7 @@ import { Repos } from '../repositories';
 import { ConversationUserEvents } from '../tables/ConversationUserEvents';
 import { JsonMap } from '../utils/json';
 import { IDMailformedError } from '../errors/IDMailformedError';
-import { ImageRef, buildBaseImageUrl } from '../repositories/Media';
+import { ImageRef, buildBaseImageUrl, imageRefEquals } from '../repositories/Media';
 import { Organization } from '../tables/Organization';
 import { TypingEvent } from '../repositories/ChatRepository';
 import { ConversationGroupMember } from '../tables/ConversationGroupMembers';
@@ -20,6 +20,7 @@ import { Services } from '../services';
 import { UserError } from '../errors/UserError';
 import { NotFoundError } from '../errors/NotFoundError';
 import { UserProfile } from '../tables/UserProfile';
+import { Sanitizer } from '../modules/Sanitizer';
 
 export const Resolver = {
     Conversation: {
@@ -58,7 +59,7 @@ export const Resolver = {
             },
             order: [['id', 'DESC']]
         }),
-        settings: (src: Conversation, _: any, context: CallContext) => Repos.Chats.getConversationSettings(context.uid!!, src.id)
+        settings: (src: Conversation, _: any, context: CallContext) => Repos.Chats.getConversationSettings(context.uid!!, src.id),
     },
     SharedConversation: {
         id: (src: Conversation) => IDs.Conversation.serialize(src.id),
@@ -127,7 +128,7 @@ export const Resolver = {
             }
             return undefined;
         },
-        settings: (src: Conversation, _: any, context: CallContext) => Repos.Chats.getConversationSettings(context.uid!!, src.id)
+        settings: (src: Conversation, _: any, context: CallContext) => Repos.Chats.getConversationSettings(context.uid!!, src.id),
     },
     PrivateConversation: {
         id: (src: Conversation) => IDs.Conversation.serialize(src.id),
@@ -210,7 +211,7 @@ export const Resolver = {
                 conversation: null
             }
         })),
-        settings: (src: Conversation, _: any, context: CallContext) => Repos.Chats.getConversationSettings(context.uid!!, src.id)
+        settings: (src: Conversation, _: any, context: CallContext) => Repos.Chats.getConversationSettings(context.uid!!, src.id),
     },
     GroupConversation: {
         id: (src: Conversation) => IDs.Conversation.serialize(src.id),
@@ -282,7 +283,10 @@ export const Resolver = {
             order: [['id', 'DESC']]
         }),
         membersCount: (src: Conversation) => Repos.Chats.membersCountInConversation(src.id),
-        settings: (src: Conversation, _: any, context: CallContext) => Repos.Chats.getConversationSettings(context.uid!!, src.id)
+        settings: (src: Conversation, _: any, context: CallContext) => Repos.Chats.getConversationSettings(context.uid!!, src.id),
+
+        photo: (src: Conversation) => src.extras && src.extras.picture ? buildBaseImageUrl(src.extras.picture as any) : null,
+        photoRef: (src: Conversation) => src.extras && src.extras.picture,
     },
 
     ConversationMessage: {
@@ -335,10 +339,16 @@ export const Resolver = {
                 return 'KickServiceMetadata';
             } else if (src.type === 'title_change') {
                 return 'TitleChangeServiceMetadata';
+            } else if (src.type === 'photo_change') {
+                return 'PhotoChangeServiceMetadata';
             }
 
             throw new Error('Unknown type');
         }
+    },
+    PhotoChangeServiceMetadata: {
+        photo: (src: any) => src.picture ? buildBaseImageUrl(src.extras.picture as any) : null,
+        photoRef: (src: any) => src.picture,
     },
 
     ConversationEvent: {
@@ -357,6 +367,8 @@ export const Resolver = {
                 return 'ConversationEventUpdateRole';
             } else if (obj.eventType === 'edit_message') {
                 return 'ConversationEventEditMessage';
+            } else if (obj.eventType === 'chat_update') {
+                return 'ConversationEventUpdate';
             }
             throw Error('Unknown type');
         },
@@ -386,6 +398,9 @@ export const Resolver = {
         user: (src: ConversationEvent) => DB.User.findById(src.event.userId as any),
         newRole: (src: ConversationEvent) => src.event.newRole
     },
+    ConversationEventUpdate: {
+        chat: (src: ConversationEvent) => DB.Conversation.findById(src.conversationId)
+    },
     ChatReadResult: {
         conversation: (src: { uid: number, conversationId: number }) => DB.Conversation.findById(src.conversationId),
         counter: (src: { uid: number, conversationId: number }) => src.uid
@@ -403,6 +418,8 @@ export const Resolver = {
                 return 'UserEventNewMembersCount';
             } else if (obj.eventType === 'edit_message') {
                 return 'UserEventEditMessage';
+            } else if (obj.eventType === 'chat_update') {
+                return 'UserEventConversationUpdate';
             }
             throw Error('Unknown type');
         }
@@ -434,6 +451,10 @@ export const Resolver = {
     UserEventEditMessage: {
         seq: (src: ConversationUserEvents) => src.seq,
         message: (src: ConversationUserEvents) => DB.ConversationMessage.findById(src.event.messageId as any)
+    },
+    UserEventConversationUpdate: {
+        seq: (src: ConversationUserEvents) => src.seq,
+        chat: (src: ConversationUserEvents) => DB.Conversation.findById(src.event.conversationId as any),
     },
 
     ComposeSearchResult: {
@@ -1144,6 +1165,98 @@ export const Resolver = {
 
                 await Repos.Chats.sendMessage(tx, conv.id, uid, { message: args.message });
                 return conv;
+            });
+        }),
+        alphaChatUpdateGroup: withAccount<{ conversationId: string, input: { title?: string | null, photoRef?: ImageRef | null } }>(async (args, uid, oid) => {
+            await validate(
+                {
+                    title: optional(stringNotEmpty('Title can\'t be empty!'))
+                },
+                args.input,
+                'input.firstName'
+            );
+
+            let conversationId = IDs.Conversation.parse(args.conversationId);
+
+            return await DB.txStable(async (tx) => {
+                let chat = await DB.Conversation.findById(conversationId, { transaction: tx });
+
+                if (!chat) {
+                    throw new Error('Chat not found');
+                }
+
+                let chatChanged = false;
+
+                if (args.input.title !== undefined && args.input.title !== chat.title) {
+                    chatChanged = true;
+                    chat.title = args.input.title!.trim();
+
+                    await Repos.Chats.sendMessage(tx, conversationId, uid, {
+                        message: `New chat title: ${args.input.title}`,
+                        isService: true,
+                        isMuted: true,
+                        serviceMetadata: {
+                            type: 'title_change',
+                            title: args.input.title
+                        }
+                    });
+                }
+
+                let imageRef = Sanitizer.sanitizeImageRef(args.input.photoRef);
+
+                if (
+                    args.input.photoRef !== undefined &&
+                    (
+                        !chat.extras.picture ||
+                        args.input.photoRef === null ||
+                        !imageRefEquals(chat.extras.picture as any, imageRef!)
+                    )
+                ) {
+                    chatChanged = true;
+                    if (args.input.photoRef !== null) {
+                        await Services.UploadCare.saveFile(args.input.photoRef.uuid);
+                    }
+                    (chat as any).changed('extras', true);
+                    chat.extras.picture = imageRef as any;
+
+                    await Repos.Chats.sendMessage(tx, conversationId, uid, {
+                        message: `New chat photo`,
+                        isService: true,
+                        isMuted: true,
+                        serviceMetadata: {
+                            type: 'photo_change',
+                            picture: imageRef as any
+                        }
+                    });
+                }
+
+                if (chatChanged) {
+                    await Repos.Chats.addChatEvent(
+                        conversationId,
+                        'chat_update',
+                        { },
+                        tx
+                    );
+
+                    await Repos.Chats.addUserEventsInConversation(
+                        conversationId,
+                        uid,
+                        'chat_update',
+                        {
+                            conversationId
+                        },
+                        tx
+                    );
+
+                    await chat.save({ transaction: tx });
+                }
+
+                await chat.reload({ transaction: tx });
+
+                return {
+                    chat,
+                    curSeq: chat.seq
+                };
             });
         }),
         alphaChatChangeGroupTitle: withAccount<{ conversationId: string, title: string }>(async (args, uid) => {

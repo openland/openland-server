@@ -17,3 +17,17 @@ export function buildBaseImageUrl(image: ImageRef) {
     }
     return res;
 }
+
+export function imageCropEquals(crop1: ImageCrop, crop2: ImageCrop) {
+    return crop1.h === crop2.h &&
+        crop1.w === crop2.w &&
+        crop1.x === crop2.x &&
+        crop1.y === crop2.y;
+}
+
+export function imageRefEquals(ref1: ImageRef, ref2: ImageRef) {
+    return (
+        ref1.uuid === ref2.uuid &&
+        (ref1.crop && ref2.crop ? imageCropEquals(ref1.crop, ref2.crop) : (ref1.crop === ref2.crop))
+    );
+}
