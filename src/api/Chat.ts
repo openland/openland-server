@@ -276,12 +276,26 @@ export const Resolver = {
                 return 0;
             }
         },
-        topMessage: (src: Conversation) => DB.ConversationMessage.find({
-            where: {
-                conversationId: src.id,
-            },
-            order: [['id', 'DESC']]
-        }),
+        topMessage: async (src: Conversation, _: any, context: CallContext) => {
+            let member = await DB.ConversationGroupMembers.find({
+                where: {
+                    conversationId: src.id,
+                    userId: context.uid,
+                    status: 'member'
+                }
+            });
+
+            if (!member) {
+                throw new AccessDeniedError();
+            }
+
+            return await  DB.ConversationMessage.find({
+                where: {
+                    conversationId: src.id,
+                },
+                order: [['id', 'DESC']]
+            });
+        },
         membersCount: (src: Conversation) => Repos.Chats.membersCountInConversation(src.id),
         settings: (src: Conversation, _: any, context: CallContext) => Repos.Chats.getConversationSettings(context.uid!!, src.id),
 
@@ -569,7 +583,13 @@ export const Resolver = {
                 let conversation = (await DB.Conversation.findById(conversationId))!;
 
                 if (conversation.type === 'group' || conversation.type === 'channel') {
-                    let member = await DB.ConversationGroupMembers.find({ where: { userId: uid, status: 'member' } });
+                    let member = await DB.ConversationGroupMembers.find({
+                        where: {
+                            conversationId,
+                            userId: uid,
+                            status: 'member'
+                        }
+                    });
                     if (!member) {
                         throw new AccessDeniedError();
                     }

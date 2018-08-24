@@ -17,6 +17,7 @@ import { randomInviteKey } from '../utils/random';
 import { NotFoundError } from '../errors/NotFoundError';
 import { ChannelInvite } from '../tables/ChannelInvite';
 import { buildBaseImageUrl } from '../repositories/Media';
+import { AccessDeniedError } from '../errors/AccessDeniedError';
 
 interface AlphaChannelsParams {
     orgId: string;
@@ -42,12 +43,26 @@ export const Resolver = {
                 return 0;
             }
         },
-        topMessage: (src: Conversation) => DB.ConversationMessage.find({
-            where: {
-                conversationId: src.id,
-            },
-            order: [['id', 'DESC']]
-        }),
+        topMessage: async (src: Conversation, _: any, context: CallContext) => {
+            let member = await DB.ConversationGroupMembers.find({
+                where: {
+                    conversationId: src.id,
+                    userId: context.uid,
+                    status: 'member'
+                }
+            });
+
+            if (!member) {
+                throw new AccessDeniedError();
+            }
+
+            return await  DB.ConversationMessage.find({
+                where: {
+                    conversationId: src.id,
+                },
+                order: [['id', 'DESC']]
+            });
+        },
         membersCount: (src: Conversation) => Repos.Chats.membersCountInConversation(src.id),
         featured: (src: Conversation) => src.extras.featured || false,
         description: (src: Conversation) => src.extras.description || '',
