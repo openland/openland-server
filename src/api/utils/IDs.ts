@@ -33,6 +33,7 @@ export const IDs = {
     FolderItem: IdsFactory.createId('FolderItem'),
     Task: IdsFactory.createId('Task'),
     Conversation: IdsFactory.createId('Conversation'),
+    ConversationSettings: IdsFactory.createId('ConversationSettings'),
     ConversationMessage: IdsFactory.createId('ConversationMessage'),
     NotificationCounter: IdsFactory.createId('NotificationCounter'),
     UserEvent: IdsFactory.createId('UserEvent'),

@@ -14,6 +14,7 @@ import { Pubsub } from '../modules/pubsub';
 import { AccessDeniedError } from '../errors/AccessDeniedError';
 import { ImageRef } from './Media';
 import { ConversationMessagesWorker } from '../workers';
+import { IDs } from '../api/utils/IDs';
 
 export type ChatEventType =
     'new_message' |
@@ -53,6 +54,7 @@ export interface Message {
 export interface Settings {
     mobileNotifications: 'all' | 'direct' | 'none';
     mute: boolean;
+    id: string;
 }
 
 class ChatsEventReader {
@@ -503,7 +505,7 @@ export class ChatsRepository {
                 let userUnread = 0;
                 let userChatUnread = 0;
 
-                let muted = (await this.getConversationSettings(uid, conversationId)).mute;
+                // let muted = (await this.getConversationSettings(m, conversationId)).mute;
 
                 // Write user's chat state
                 if (m !== uid) {
@@ -534,7 +536,7 @@ export class ChatsRepository {
 
                 // Update or Create global state
                 if (existingGlobal) {
-                    if (m !== uid && !muted) {
+                    if (m !== uid) {
                         existingGlobal.unread++;
                     }
                     existingGlobal.seq++;
@@ -542,7 +544,7 @@ export class ChatsRepository {
                     userUnread = existingGlobal.unread;
                     await existingGlobal.save({ transaction: tx });
                 } else {
-                    if (m !== uid && !muted) {
+                    if (m !== uid) {
                         userUnread = 1;
                         await DB.ConversationsUserGlobal.create({
                             userId: m,
@@ -812,7 +814,8 @@ export class ChatsRepository {
         let res = await DB.ConversationUserState.find({ where: { userId: uid, conversationId: cid } });
         let settings: Settings = {
             mobileNotifications: 'all',
-            mute: false
+            mute: false,
+            id: IDs.ConversationSettings.serialize(cid)
         };
         if (res) {
             if (res.notificationsSettings.mobileNotifications) {

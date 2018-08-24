@@ -33,6 +33,7 @@ input UpdateConversationSettingsInput {
 
 
 type ConversationSettings {
+    id: ID!
     mobileNotifications: NotificationMessages!
     mute: Boolean!    
 }
