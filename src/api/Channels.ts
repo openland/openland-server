@@ -53,7 +53,7 @@ export const Resolver = {
             });
 
             if (!member) {
-                throw new AccessDeniedError();
+                return null;
             }
 
             return await  DB.ConversationMessage.find({
