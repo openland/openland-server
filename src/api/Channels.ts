@@ -551,12 +551,14 @@ export const Resolver = {
                     userId: uid
                 }, { transaction: tx });
 
+                let name = (await DB.UserProfile.findById(uid))!.firstName;
+
                 await Repos.Chats.sendMessage(
                     tx,
                     invite.channelId,
                     uid!,
                     {
-                        message: `User ${uid} joined to channel!`,
+                        message: `${name} joined to channel!`,
                         isService: true
                     }
                 );
