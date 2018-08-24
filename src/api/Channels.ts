@@ -17,7 +17,6 @@ import { randomInviteKey } from '../utils/random';
 import { NotFoundError } from '../errors/NotFoundError';
 import { ChannelInvite } from '../tables/ChannelInvite';
 import { buildBaseImageUrl } from '../repositories/Media';
-import { AccessDeniedError } from '../errors/AccessDeniedError';
 
 interface AlphaChannelsParams {
     orgId: string;
