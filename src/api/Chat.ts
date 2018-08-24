@@ -545,10 +545,13 @@ export const Resolver = {
         alphaLoadMessages: withUser<{ conversationId: string, first?: number, before?: string, after?: string }>((args, uid) => {
             let conversationId = IDs.Conversation.parse(args.conversationId);
             return DB.tx(async (tx) => {
+                let conversation = (await DB.Conversation.findById(conversationId))!;
 
-                let conversationUserState = await DB.ConversationUserState.find({ where: { userId: uid, conversationId: conversationId } });
-                if (!conversationUserState) {
-                    throw new AccessDeniedError();
+                if (conversation.type === 'group' || conversation.type === 'channel') {
+                    let member = await DB.ConversationGroupMembers.find({ where: { userId: uid, status: 'member' } });
+                    if (!member) {
+                        throw new AccessDeniedError();
+                    }
                 }
 
                 let beforeMessage: ConversationMessage | null = null;
@@ -559,7 +562,6 @@ export const Resolver = {
                 if (args.after) {
                     afterMessage = await DB.ConversationMessage.findOne({ where: { id: IDs.ConversationMessage.parse(args.after) } });
                 }
-                let conversation = await DB.Conversation.findById(conversationId);
                 let seq = (conversation)!!.seq;
                 return {
                     seq: seq,
@@ -1567,9 +1569,12 @@ export const Resolver = {
                 if (!context.uid) {
                     throw Error('Not logged in');
                 }
-                let conversationUserState = await DB.ConversationUserState.find({ where: { userId: context.uid, conversationId: conversationId } });
-                if (!conversationUserState) {
-                    throw new AccessDeniedError();
+                let conversation = (await DB.Conversation.findById(conversationId))!;
+                if (conversation.type === 'group' || conversation.type === 'channel') {
+                    let member = await DB.ConversationGroupMembers.find({ where: { userId: context.uid, status: 'member' } });
+                    if (!member) {
+                        throw new AccessDeniedError();
+                    }
                 }
 
                 let ended = false;
