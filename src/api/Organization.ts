@@ -999,7 +999,7 @@ export const Resolver = {
                                 title: org,
                                 date: (res as any).createdAt,
                                 subtitle: args.input.name,
-                                description: args.input.shortDescription,
+                                description: args.input.summary,
                                 photo: args.input.photo
                             }
                         });
