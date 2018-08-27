@@ -337,6 +337,17 @@ export const Resolver = {
                     transaction: tx
                 });
 
+                let org = channel && channel.extras!.creatorOrgId ? await DB.Organization.findById(channel.extras!.creatorOrgId as number) : null;
+                let orgMember = undefined;
+                if (org) {
+                    orgMember = await DB.OrganizationMember.find({
+                        where: {
+                            userId: uid,
+                            orgId: org.id
+                        }
+                    });
+                }
+
                 if (member) {
                     if (member.status === 'member') {
                         return {
@@ -377,6 +388,32 @@ export const Resolver = {
                             tx
                         );
                     }
+                } else if (orgMember) {
+                    let name = (await DB.UserProfile.findById(uid))!.firstName;
+                    await DB.ConversationGroupMembers.create({
+                        conversationId: channelId,
+                        invitedById: uid,
+                        role: 'admin',
+                        status: 'member',
+                        userId: uid,
+                    }, { transaction: tx });
+
+                    await Repos.Chats.sendMessage(
+                        tx,
+                        channelId,
+                        uid,
+                        {
+                            message: `${name} joined to channel!`,
+                            isService: true,
+                            isMuted: true,
+                            serviceMetadata: {
+                                type: 'user_invite',
+                                userIds: [uid],
+                                invitedById: uid
+                            }
+                        }
+                    );
+                    return 'ok';
                 } else {
                     await DB.ConversationGroupMembers.create({
                         conversationId: channelId,
