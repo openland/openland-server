@@ -21,6 +21,7 @@ import * as Hits from './Hits';
 import * as Channels from './Channels';
 
 import * as Parcels from './Parcels';
+import { Directives, IDScalars } from './directives';
 
 let schema = fs
     .readdirSync(__dirname + '/schema/')
@@ -50,6 +51,8 @@ export const Schema = makeExecutableSchema({
         Push.Resolvers,
         Wall.Resolver,
         Hits.Resolver,
-        Channels.Resolver
-    )
+        Channels.Resolver,
+        IDScalars
+    ),
+    schemaDirectives: Directives
 });

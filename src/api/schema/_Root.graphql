@@ -3,3 +3,13 @@ schema {
     mutation: Mutation
     subscription: Subscription
 }
+
+directive @withAuth on FIELD_DEFINITION
+
+directive @withPermissions(permission: [String!]!) on FIELD_DEFINITION
+directive @withPermission(permission: String!) on FIELD_DEFINITION
+
+directive @stringNotEmpty on INPUT_FIELD_DEFINITION
+
+directive @userID on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION | FIELD_DEFINITION
+directive @organizationID on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION | FIELD_DEFINITION

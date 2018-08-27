@@ -118,12 +118,52 @@ type URLInfo {
     imageURL: String
 }
 
+# scalar TestType
+
+scalar OrganizationID
+scalar OrganizationAccountID
+scalar OrganizationListingID
+scalar InviteID
+scalar InviteInfoID
+scalar StateID
+scalar CountyID
+scalar CityID
+scalar UserID
+scalar ProfileID
+scalar DealID
+scalar BlockID
+scalar SuperAccountID
+scalar SuperCityID
+scalar FeatureFlagID
+scalar OpportunitiesID
+scalar DebugReaderID
+scalar FolderID
+scalar FolderItemID
+scalar TaskID
+scalar ConversationID
+scalar ConversationSettingsID
+scalar ConversationMessageID
+scalar NotificationCounterID
+scalar UserEventID
+scalar SettingsID
+scalar WallEntityID
+
+
+input TestInput {
+    testStr: String! @stringNotEmpty  #@stringNotEmpty
+
+    mda: ID! @userID
+}
+
 extend type Query {
     debugReaderStates: [DebugReaderState!]!
 
     debugURLInfo(url: String!): URLInfo!
     debugSerializeId(id: Int!, type: String): ID!
     debugImagePreview(uuid: String!): String
+
+    # directives are executed in reverse-order
+    debugTest(lol: ID! @userID, input: TestInput!): ID @userID # @withPermission(permission: "software-developer") @withAuth
 }
 
 #

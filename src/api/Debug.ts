@@ -28,7 +28,12 @@ export const Resolver = {
 
         debugImagePreview: withPermissionOptional<{ uuid: string }>(['software-developer'], async (args, ctx) => {
             return await Services.UploadCare.fetchLowResPreview(args.uuid);
-        })
+        }),
+
+        debugTest: (src: any, args: any) => {
+            console.log(args);
+            return 1;
+        }
     },
     Mutation: {
         debugSendWelcomeEmail: withUser(async (args, uid) => {
