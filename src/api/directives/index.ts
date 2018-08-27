@@ -121,7 +121,6 @@ class TestType extends GraphQLScalarType {
     }
 }
 
-
 export const Directives = {
     withAuth: createFieldDirective(async (root, args, ctx, info, resolve) => {
         if (!ctx.uid) {
