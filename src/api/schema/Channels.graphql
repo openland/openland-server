@@ -9,6 +9,7 @@ type ChannelConversation implements Conversation {
     settings: ConversationSettings!
 
     membersCount: Int!
+    memberRequestsCount: Int!
     featured: Boolean!
     description: String!
     myStatus: ChannelMembershipStatus!

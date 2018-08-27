@@ -55,7 +55,7 @@ export const Resolver = {
                 return null;
             }
 
-            return await  DB.ConversationMessage.find({
+            return await DB.ConversationMessage.find({
                 where: {
                     conversationId: src.id,
                 },
@@ -63,6 +63,7 @@ export const Resolver = {
             });
         },
         membersCount: (src: Conversation) => Repos.Chats.membersCountInConversation(src.id),
+        memberRequestsCount: (src: Conversation) => Repos.Chats.membersCountInConversation(src.id, 'requested'),
         featured: (src: Conversation) => src.extras.featured || false,
         description: (src: Conversation) => src.extras.description || '',
         myStatus: async (src: Conversation, _: any, context: CallContext) => {

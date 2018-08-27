@@ -801,11 +801,11 @@ export class ChatsRepository {
         }, { transaction: tx });
     }
 
-    async membersCountInConversation(conversationId: number): Promise<number> {
+    async membersCountInConversation(conversationId: number, status?: string): Promise<number> {
         return await DB.ConversationGroupMembers.count({
             where: {
                 conversationId: conversationId,
-                status: 'member'
+                status: status || 'member'
             }
         });
     }

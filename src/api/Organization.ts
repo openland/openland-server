@@ -180,6 +180,7 @@ export const Resolver = {
     Organization: {
         id: (src: Organization) => IDs.Organization.serialize(src.id!!),
         isMine: (src: Organization, args: {}, context: CallContext) => src.id!! === context.oid!!,
+        alphaIsOwner: (src: Organization, args: {}, context: CallContext) => Repos.Organizations.isOwnerOfOrganization(src.id!!, context.uid!!),
 
         name: (src: Organization) => src.name,
         photo: (src: Organization) => src.photo ? buildBaseImageUrl(src.photo) : null,
