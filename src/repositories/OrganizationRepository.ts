@@ -98,7 +98,7 @@ export class OrganizationRepository {
             }]
         });
     }
-
+    
     async notAdminOrOrgIsOpenland(member: OrganizationMember) {
         return member.orgId === 1 || !(await Repos.Permissions.superRole(member.userId));
     }
