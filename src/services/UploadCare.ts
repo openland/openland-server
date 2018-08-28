@@ -36,7 +36,7 @@ export class UploadCare {
     async fetchFileInfo(uuid: string): Promise<UploadCareFileInfo> {
         let res = await this.call('files/' + uuid + '/');
 
-        let isImage = !!(res.is_image);
+        let isImage = (!!(res.is_image) || res.image_info);
         let imageWidth = isImage ? res.image_info.width as number : null;
         let imageHeight = isImage ? res.image_info.height as number : null;
         let imageFormat = isImage ? res.image_info.format as string : null;
@@ -69,11 +69,16 @@ export class UploadCare {
     }
 
     async fetchLowResPreview(uuid: string): Promise<string> {
+        console.log(`https://ucarecdn.com/${uuid}/-/preview/20x20/-/format/jpeg/-/quality/lightest/`);
         let res = await new Promise<any>((resolve, reject) => {
             request({
                 encoding: null,
-                url: `https://ucarecdn.com/${uuid}/-/preview/20x20/-/format/jpeg/-/quality/lightest/`
+                url: `https://ucarecdn.com/${uuid}/-/preview/20x20/-/format/jpeg/-/quality/lightest/`,
+                headers: {
+                    // 'Authorization': UploadCare.UPLOAD_CARE_AUTH
+                }
             }, (error, response, body) => {
+                console.log(error, response.statusCode);
                 if (!error && response.statusCode === 200) {
                     resolve(body);
                 } else {
