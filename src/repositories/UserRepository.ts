@@ -299,29 +299,4 @@ export class UserRepository {
         }
         return null;
     }
-
-    async resolvePrimaryOrganization(uid: number) {
-        let oid: number | null | undefined = undefined;
-
-        // resolve primary org id from extras
-        let userProfile = await DB.UserProfile.find({ where: { userId: uid } });
-        if (userProfile) {
-            oid = userProfile.extras && userProfile.extras.primaryOrganization;
-        }
-
-        let org: Organization | undefined | null;
-
-        // if has saved id - try to resolve it
-        if (oid) {
-            org = await DB.Organization.find({ where: { id: oid } });
-        }
-        // if none - try find first org user joined
-        if (!org) {
-            let userAsMember = await DB.OrganizationMember.find({ where: { userId: uid }, order: [['createdAt', 'ASC']] });
-            if (userAsMember) {
-                return await DB.Organization.find({ where: { id: userAsMember.orgId } });
-            }
-        }
-        return org;
-    }
 }

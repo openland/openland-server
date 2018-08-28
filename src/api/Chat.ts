@@ -289,7 +289,7 @@ export const Resolver = {
                 return null;
             }
 
-            return await  DB.ConversationMessage.find({
+            return await DB.ConversationMessage.find({
                 where: {
                     conversationId: src.id,
                 },
@@ -632,12 +632,13 @@ export const Resolver = {
                 limit: 4
             }) : [];
 
-            let primaryOrganization = await Repos.Users.resolvePrimaryOrganization(uid);
+            let user = await DB.UserProfile.find({ where: { userId: uid } });
+            let primaryOrganization = user ? user.primaryOrganization : undefined;
             let primaryOrgUsers: User[] = [];
             let membersUserIds: number[] = [];
             let sequelize = DB.connection;
             if (primaryOrganization) {
-                let members = await DB.OrganizationMember.findAll({ where: { orgId: primaryOrganization.id } });
+                let members = await DB.OrganizationMember.findAll({ where: { orgId: primaryOrganization } });
                 let membersIds = members.map(m => m.userId);
                 let membersProfiles = await DB.UserProfile.findAll({
                     where:
@@ -1254,7 +1255,7 @@ export const Resolver = {
                     await Repos.Chats.addChatEvent(
                         conversationId,
                         'chat_update',
-                        { },
+                        {},
                         tx
                     );
 

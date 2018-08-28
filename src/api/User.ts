@@ -86,7 +86,7 @@ export const Resolver = {
         isCreated: withProfile((src, profile) => !!profile),
         isBot: (src: User) => src.isBot || false,
         isYou: (src: User, args: {}, context: CallContext) => src.id === context.uid,
-        alphaPrimaryOrganization: (src: User) => Repos.Users.resolvePrimaryOrganization(src.id!!),
+        alphaPrimaryOrganization: withProfile(async (src, profile) => profile && profile.primaryOrganization ? await DB.Organization.findById(profile.primaryOrganization) : null),
     },
     Profile: {
         id: (src: UserProfile) => IDs.Profile.serialize(src.id!!),
@@ -103,7 +103,7 @@ export const Resolver = {
         alphaLinkedin: (src: UserProfile) => src.extras && src.extras.linkedin,
         alphaTwitter: (src: UserProfile) => src.extras && src.extras.twitter,
         alphaPrimaryOrganizationId: (src: UserProfile) => src.extras && src.extras.primaryOrganizationId,
-        alphaPrimaryOrganization: (src: UserProfile) => Repos.Users.resolvePrimaryOrganization(src.userId!!),
+        alphaPrimaryOrganization: async (src: UserProfile) => src.primaryOrganization ? await DB.Organization.findById(src.primaryOrganization) : null,
         alphaJoinedAt: (src: UserProfile) => (src as any).createdAt,
         alphaInvitedBy: async (src: UserProfile) => await Repos.Users.getUserInvitedBy(src.userId!!),
     },
@@ -259,7 +259,7 @@ export const Resolver = {
                 }
 
                 if (args.input.alphaPrimaryOrganizationId !== undefined) {
-                    extras.primaryOrganization = IDs.Organization.parse(args.input.alphaPrimaryOrganizationId);
+                    user.primaryOrganization = IDs.Organization.parse(args.input.alphaPrimaryOrganizationId);
                 }
 
                 profile.extras = extras;

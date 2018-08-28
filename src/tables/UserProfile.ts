@@ -17,6 +17,7 @@ export interface UserProfileAttributes {
     userId?: number | null;
     user?: User | null;
     extras?: UserExtras;
+    primaryOrganization?: number;
 }
 
 export interface UserProfile extends sequelize.Instance<Partial<UserProfileAttributes>>, UserProfileAttributes {
@@ -38,6 +39,13 @@ export const UserProfileTable = connection.define<UserProfile, Partial<UserProfi
         allowNull: false,
         defaultValue: {}
     },
+    primaryOrganization: {
+        type: sequelize.INTEGER,
+        allowNull: true,
+        references: {
+            model: 'organizations'
+        }
+    }
 }, { paranoid: true });
 
 UserProfileTable.belongsTo(UserTable, { as: 'user' });
