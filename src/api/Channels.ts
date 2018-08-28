@@ -276,7 +276,7 @@ export const Resolver = {
                     } else if (member.status === 'requested') {
                         await member.update({ status: 'member' }, { transaction: tx });
 
-                        let name = (await DB.UserProfile.findById(userId))!.firstName;
+                        let name = (await DB.UserProfile.find({ where: { user: userId } }))!.firstName;
 
                         await Repos.Chats.sendMessage(
                             tx,
@@ -357,7 +357,7 @@ export const Resolver = {
                     } else if (member.status === 'invited') {
                         await member.update({ status: 'member' }, { transaction: tx });
 
-                        let name = (await DB.UserProfile.findById(uid))!.firstName;
+                        let name = (await DB.UserProfile.find({ where: { userId: uid } }))!.firstName;
 
                         await Repos.Chats.sendMessage(
                             tx,
@@ -389,7 +389,7 @@ export const Resolver = {
                         );
                     }
                 } else if (orgMember) {
-                    let name = (await DB.UserProfile.findById(uid))!.firstName;
+                    let name = (await DB.UserProfile.find({ where: { userId: uid } }))!.firstName;
                     await DB.ConversationGroupMembers.create({
                         conversationId: channelId,
                         invitedById: uid,
@@ -603,7 +603,7 @@ export const Resolver = {
                     userId: uid
                 }, { transaction: tx });
 
-                let name = (await DB.UserProfile.findById(uid))!.firstName;
+                let name = (await DB.UserProfile.find({ where: { userId: uid } }))!.firstName;
 
                 await Repos.Chats.sendMessage(
                     tx,
