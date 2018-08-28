@@ -43,6 +43,8 @@ export async function initApi(isTest: boolean) {
 
     const app = express();
 
+    app.enable('trust proxy');
+
     // To avoid logging on this route
     app.get('/', (req, res) => res.send('Welcome to Openland API!'));
     app.get('/status', (req, res) => res.send('Welcome to Openland API!'));
