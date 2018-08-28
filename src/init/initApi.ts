@@ -10,6 +10,7 @@ import { Schema } from '../api';
 import { execute, subscribe } from 'graphql';
 import { fetchWebSocketParameters, buildWebSocketContext } from '../handlers/websocket';
 import { errorHandler } from '../errors';
+import { Rate } from '../utils/rateLimit';
 import { Server as HttpServer } from 'http';
 import { ApolloEngine } from 'apollo-engine';
 
@@ -96,6 +97,21 @@ export async function initApi(isTest: boolean) {
                             console.log('WS GraphQL [#ANON]: ' + JSON.stringify(message.payload));
                         }
                     }
+
+                    let clientId = '';
+
+                    if (webSocket.__params.uid) {
+                        clientId = 'user_' + webSocket.__params.uid;
+                    } else {
+                        clientId = 'ip_' + webSocket._socket.remoteAddress;
+                    }
+
+                    if (!Rate.WS.canHandle(clientId)) {
+                        throw new Error('Rate limit!');
+                    }
+
+                    Rate.WS.hit(clientId);
+
                     return {
                         ...params,
                         context: buildWebSocketContext(webSocket.__params),
