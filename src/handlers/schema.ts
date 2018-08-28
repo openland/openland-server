@@ -6,7 +6,7 @@ import * as Schema from '../api';
 import { callContextMiddleware } from './context';
 import { errorHandler } from '../errors';
 
-function handleRequest() {
+function handleRequest(withEngine: boolean) {
     return async function (req?: express.Request, res?: express.Response): Promise<GraphQLOptions> {
         if (req === undefined || res === undefined) {
             throw new Error('Unexpected error!');
@@ -14,8 +14,8 @@ function handleRequest() {
             return {
                 schema: Schema.Schema,
                 context: res.locals.ctx,
-                cacheControl: false,
-                tracing: false,
+                cacheControl: withEngine,
+                tracing: withEngine,
                 formatError: (err: any) => {
                     return {
                         ...errorHandler(err),
@@ -28,8 +28,8 @@ function handleRequest() {
     };
 }
 
-export function schemaHandler(isTest: boolean) {
-    let gqlMiddleware = graphqlExpress(handleRequest());
+export function schemaHandler(isTest: boolean, withEngine: boolean) {
+    let gqlMiddleware = graphqlExpress(handleRequest(withEngine));
     let contestMiddleware = (req: express.Request, res: express.Response, next: express.NextFunction) => callContextMiddleware(isTest, req, res, next);
     return Compose.compose(contestMiddleware as any, gqlMiddleware as any);
 }

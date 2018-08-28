@@ -10,6 +10,7 @@ import { Schema } from '../api';
 import { execute, subscribe } from 'graphql';
 import { fetchWebSocketParameters, buildWebSocketContext } from '../handlers/websocket';
 import { errorHandler } from '../errors';
+
 export async function initApi(isTest: boolean) {
 
     console.info('Starting...');
@@ -25,6 +26,9 @@ export async function initApi(isTest: boolean) {
     if (isTest) {
         dport = 0;
     }
+
+    // Fetchin Apollo Engine
+    let engineKey = process.env.APOLLO_ENGINE_KEY;
 
     //
     // Middlewares
@@ -48,7 +52,7 @@ export async function initApi(isTest: boolean) {
     //
     // API
     //
-    let graphqlMiddleware = schemaHandler(isTest);
+    let graphqlMiddleware = schemaHandler(isTest, !!engineKey);
     app.use('/api', Auth2.TokenChecker, bodyParser.json({ limit: '5mb' }), graphqlMiddleware);
     app.use('/graphql', Auth2.TokenChecker, bodyParser.json({ limit: '5mb' }), graphqlMiddleware);
 
