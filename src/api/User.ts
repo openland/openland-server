@@ -259,7 +259,7 @@ export const Resolver = {
                 }
 
                 if (args.input.alphaPrimaryOrganizationId !== undefined) {
-                    user.primaryOrganization = IDs.Organization.parse(args.input.alphaPrimaryOrganizationId);
+                    profile.primaryOrganization = IDs.Organization.parse(args.input.alphaPrimaryOrganizationId);
                 }
 
                 profile.extras = extras;
