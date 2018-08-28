@@ -7,6 +7,7 @@ import { callContextMiddleware } from './context';
 import { errorHandler } from '../errors';
 import { CallContext } from '../api/utils/CallContext';
 import { Rate } from '../utils/rateLimit';
+import { delay } from '../utils/timer';
 
 function getClientId(req: express.Request, res: express.Response) {
     if (res.locals.ctx) {
@@ -27,8 +28,14 @@ function handleRequest(withEngine: boolean) {
         } else {
             let clientId = getClientId(req, res);
 
-            if (!Rate.HTTP.canHandle(clientId)) {
-                throw new Error('Rate limit!');
+            let handleStatus = Rate.HTTP.canHandle(clientId);
+
+            if (!handleStatus.canHandle) {
+                if (handleStatus.delay) {
+                    await delay(handleStatus.delay);
+                } else {
+                    throw new Error('Rate limit!');
+                }
             }
 
             Rate.HTTP.hit(clientId);

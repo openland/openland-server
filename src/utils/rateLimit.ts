@@ -1,12 +1,16 @@
+import { exponentialBackoffDelay } from './exponentialBackoffDelay';
+
 class RateLimit {
     private data = new Map<string, number>();
 
     constructor(
-        private requestsPerSec: number
+        private windowSizeMs: number,
+        private requestsPerWindow: number,
+        private softMode: boolean = true
     ) {
         setInterval(() => {
             this.data.clear();
-        }, 1000);
+        }, this.windowSizeMs);
     }
 
     hit(cId: string) {
@@ -19,12 +23,23 @@ class RateLimit {
         this.data.set(cId, hits! + 1);
     }
 
-    canHandle(cId: string) {
-        return true || !(this.data.has(cId) && this.data.get(cId)! > this.requestsPerSec);
+    canHandle(cId: string): { canHandle: boolean, delay: number } {
+        let clientHits = this.data.get(cId) || 1;
+        let delay = 0;
+        let canHandle = clientHits <= this.requestsPerWindow;
+
+        if (!canHandle && this.softMode) {
+            delay = exponentialBackoffDelay(clientHits, 1000, 1000, 100);
+        }
+
+        return {
+            canHandle,
+            delay
+        };
     }
 }
 
 export const Rate = {
-    HTTP: new RateLimit(3),
-    WS: new RateLimit(3),
+    HTTP: new RateLimit(1000, 50, true),
+    WS: new RateLimit(1000, 50, true),
 };

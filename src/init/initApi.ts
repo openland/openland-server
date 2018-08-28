@@ -13,6 +13,7 @@ import { errorHandler } from '../errors';
 import { Rate } from '../utils/rateLimit';
 import { Server as HttpServer } from 'http';
 import { ApolloEngine } from 'apollo-engine';
+import { delay } from '../utils/timer';
 
 export async function initApi(isTest: boolean) {
 
@@ -89,7 +90,7 @@ export async function initApi(isTest: boolean) {
                 onConnect: async (args: any, webSocket: any) => {
                     webSocket.__params = await fetchWebSocketParameters(args, webSocket);
                 },
-                onOperation: (message: any, params: any, webSocket: any) => {
+                onOperation: async (message: any, params: any, webSocket: any) => {
                     if (!isTest) {
                         if (webSocket.__params.uid) {
                             console.log('WS GraphQL [#' + webSocket.__params.uid + ']: ' + JSON.stringify(message.payload));
@@ -106,8 +107,14 @@ export async function initApi(isTest: boolean) {
                         clientId = 'ip_' + webSocket._socket.remoteAddress;
                     }
 
-                    if (!Rate.WS.canHandle(clientId)) {
-                        throw new Error('Rate limit!');
+                    let handleStatus = Rate.WS.canHandle(clientId);
+
+                    if (!handleStatus.canHandle) {
+                        if (handleStatus.delay) {
+                            await delay(handleStatus.delay);
+                        } else {
+                            throw new Error('Rate limit!');
+                        }
                     }
 
                     Rate.WS.hit(clientId);
