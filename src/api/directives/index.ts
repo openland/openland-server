@@ -104,22 +104,22 @@ export const IDScalars = {
     WallEntityID: IDType(IDs.WallEntity),
 };
 
-class TestType extends GraphQLScalarType {
-    constructor () {
-        super({
-            name: `TestType`,
-            serialize (value: any) {
-                return '';
-            },
-            parseValue (value: any) {
-                return '11';
-            },
-            parseLiteral (ast: any) {
-                return '11';
-            }
-        });
-    }
-}
+// class TestType extends GraphQLScalarType {
+//     constructor () {
+//         super({
+//             name: `TestType`,
+//             serialize (value: any) {
+//                 return '';
+//             },
+//             parseValue (value: any) {
+//                 return '11';
+//             },
+//             parseLiteral (ast: any) {
+//                 return '11';
+//             }
+//         });
+//     }
+// }
 
 export const Directives = {
     withAuth: createFieldDirective(async (root, args, ctx, info, resolve) => {
