@@ -149,11 +149,11 @@ scalar SettingsID
 scalar WallEntityID
 
 
-input TestInput {
-    testStr: String! @stringNotEmpty  #@stringNotEmpty
+# input TestInput {
+#     testStr: String! @stringNotEmpty  #@stringNotEmpty
 
-    mda: ID! @userID
-}
+#     mda: ID! @userID
+# }
 
 extend type Query {
     debugReaderStates: [DebugReaderState!]!
@@ -163,7 +163,7 @@ extend type Query {
     debugImagePreview(uuid: String!): String
 
     # directives are executed in reverse-order
-    debugTest(lol: ID! @userID, input: TestInput!): ID @userID # @withPermission(permission: "software-developer") @withAuth
+    # debugTest(lol: ID! @userID, input: TestInput!): ID @userID # @withPermission(permission: "software-developer") @withAuth
 }
 
 #

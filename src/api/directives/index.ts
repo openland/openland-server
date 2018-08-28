@@ -148,26 +148,26 @@ export const Directives = {
         )(root, args, ctx);
     }),
 
-    stringNotEmpty: class extends SchemaDirectiveVisitor {
-        visitInputFieldDefinition(field: GraphQLInputField) {
-            // if (
-            //     field.type instanceof TestType ||
-            //     (
-            //         field.type instanceof GraphQLNonNull &&
-            //         field.type.ofType instanceof TestType
-            //     )
-            // ) {
-            //     return;
-            // }
-            //
-            console.log(field);
-            if (field.type instanceof GraphQLNonNull) {
-                field.type = new GraphQLNonNull(new TestType());
-            } else if (field.type instanceof GraphQLScalarType) {
-                field.type = new TestType();
-            }
-        }
-    },
+    // stringNotEmpty: class extends SchemaDirectiveVisitor {
+    //     visitInputFieldDefinition(field: GraphQLInputField) {
+    //         // if (
+    //         //     field.type instanceof TestType ||
+    //         //     (
+    //         //         field.type instanceof GraphQLNonNull &&
+    //         //         field.type.ofType instanceof TestType
+    //         //     )
+    //         // ) {
+    //         //     return;
+    //         // }
+    //         //
+    //         console.log(field);
+    //         if (field.type instanceof GraphQLNonNull) {
+    //             field.type = new GraphQLNonNull(new TestType());
+    //         } else if (field.type instanceof GraphQLScalarType) {
+    //             field.type = new TestType();
+    //         }
+    //     }
+    // },
 
     userID: createIDDirective(IDScalars.UserID),
     organizationID: createIDDirective(IDScalars.OrganizationID)
