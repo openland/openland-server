@@ -7,10 +7,10 @@ export async function up(queryInterface: QueryInterface, sequelize: DataTypes) {
     for (let user of users[0]) {
         if (user.extras && user.extras.primaryOrganization) {
             await queryInterface.sequelize.query(
-                'update "user_profiles" set "primaryOrganization" = :primaryOrganization where userId=:userId;',
+                'update "user_profiles" set "primaryOrganization" = :primaryOrganization where "userId" = :userId;',
                 {
                     replacements: {
-                        userId: user.id,
+                        userId: user.userId,
                         primaryOrganization: user.extras.primaryOrganization
                     }
                 }
@@ -29,10 +29,10 @@ export async function up(queryInterface: QueryInterface, sequelize: DataTypes) {
 
             if (org) {
                 await queryInterface.sequelize.query(
-                    'update "user_profiles" set "primaryOrganization" = :primaryOrganization where userId=:userId;',
+                    'update "user_profiles" set "primaryOrganization" = :primaryOrganization where "userId" = :userId;',
                     {
                         replacements: {
-                            userId: user.id,
+                            userId: user.userId,
                             primaryOrganization: org.id
                         }
                     }
