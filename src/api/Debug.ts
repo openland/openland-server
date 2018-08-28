@@ -30,10 +30,10 @@ export const Resolver = {
             return await Services.UploadCare.fetchLowResPreview(args.uuid);
         }),
 
-        debugTest: (src: any, args: any) => {
-            console.log(args);
-            return 1;
-        }
+        // debugTest: (src: any, args: any) => {
+        //     console.log(args);
+        //     return 1;
+        // }
     },
     Mutation: {
         debugSendWelcomeEmail: withUser(async (args, uid) => {
