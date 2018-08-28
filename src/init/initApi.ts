@@ -10,6 +10,8 @@ import { Schema } from '../api';
 import { execute, subscribe } from 'graphql';
 import { fetchWebSocketParameters, buildWebSocketContext } from '../handlers/websocket';
 import { errorHandler } from '../errors';
+import { Server as HttpServer } from 'http';
+import { ApolloEngine } from 'apollo-engine';
 
 export async function initApi(isTest: boolean) {
 
@@ -29,6 +31,9 @@ export async function initApi(isTest: boolean) {
 
     // Fetchin Apollo Engine
     let engineKey = process.env.APOLLO_ENGINE_KEY;
+    if (engineKey) {
+        console.log('Starting with Apollo Engine');
+    }
 
     //
     // Middlewares
@@ -64,7 +69,6 @@ export async function initApi(isTest: boolean) {
     // Starting Api
     if (dport > 0) {
         console.info('Binding to port ' + dport);
-        let listener = app.listen(dport);
 
         let formatError = (err: any) => {
             console.warn(err);
@@ -75,33 +79,51 @@ export async function initApi(isTest: boolean) {
             };
         };
 
-        // Starting WS
-        new SubscriptionServer({
-            schema: Schema,
-            execute,
-            subscribe,
-            keepAlive: 10000,
-            onConnect: async (args: any, webSocket: any) => {
-                webSocket.__params = await fetchWebSocketParameters(args, webSocket);
-            },
-            onOperation: (message: any, params: any, webSocket: any) => {
-                if (!isTest) {
-                    if (webSocket.__params.uid) {
-                        console.log('WS GraphQL [#' + webSocket.__params.uid + ']: ' + JSON.stringify(message.payload));
-                    } else {
-                        console.log('WS GraphQL [#ANON]: ' + JSON.stringify(message.payload));
+        function createWebSocketServer(server: HttpServer) {
+            new SubscriptionServer({
+                schema: Schema,
+                execute,
+                subscribe,
+                keepAlive: 10000,
+                onConnect: async (args: any, webSocket: any) => {
+                    webSocket.__params = await fetchWebSocketParameters(args, webSocket);
+                },
+                onOperation: (message: any, params: any, webSocket: any) => {
+                    if (!isTest) {
+                        if (webSocket.__params.uid) {
+                            console.log('WS GraphQL [#' + webSocket.__params.uid + ']: ' + JSON.stringify(message.payload));
+                        } else {
+                            console.log('WS GraphQL [#ANON]: ' + JSON.stringify(message.payload));
+                        }
                     }
+                    return {
+                        ...params,
+                        context: buildWebSocketContext(webSocket.__params),
+                        formatResponse: (value: any) => ({
+                            ...value,
+                            errors: value.errors && value.errors.map(formatError),
+                        })
+                    };
                 }
-                return {
-                    ...params,
-                    context: buildWebSocketContext(webSocket.__params),
-                    formatResponse: (value: any) => ({
-                        ...value,
-                        errors: value.errors && value.errors.map(formatError),
-                    })
-                };
-            }
-        }, { server: listener, path: '/api' });
+            }, { server: server, path: '/api' });
+        }
+
+        if (engineKey) {
+            // Starting server with Apollo Engine
+            let server = new HttpServer(app);
+            const engine = new ApolloEngine({
+                apiKey: engineKey
+            });
+            engine.listen({
+                port,
+                httpServer: server,
+                graphqlPaths: ['/graphql', '/api']
+            }, () => { createWebSocketServer(server); });
+        } else {
+            // Starting server
+            createWebSocketServer(app.listen(dport));
+        }
+
     } else {
         await new Promise((resolver) => app.listen(0, () => resolver()));
     }
