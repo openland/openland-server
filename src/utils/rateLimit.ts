@@ -24,13 +24,15 @@ class RateLimit {
     }
 
     canHandle(cId: string): { canHandle: boolean, delay: number } {
-        let clientHits = this.data.get(cId) || 1;
+        let clientHits = this.data.get(cId) || 0;
         let delay = 0;
         let canHandle = clientHits <= this.requestsPerWindow;
 
         if (!canHandle && this.softMode) {
-            delay = exponentialBackoffDelay(clientHits, 1000, 1000, 100);
+            delay = exponentialBackoffDelay(clientHits, 1000, 10000, 100);
         }
+
+        console.log(clientHits);
 
         return {
             canHandle,
@@ -40,6 +42,6 @@ class RateLimit {
 }
 
 export const Rate = {
-    HTTP: new RateLimit(1000, 50, true),
-    WS: new RateLimit(1000, 50, true),
+    HTTP: new RateLimit(1000 * 10, 5, true),
+    WS: new RateLimit(1000 * 10, 5, true),
 };

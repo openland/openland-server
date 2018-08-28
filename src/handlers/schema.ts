@@ -32,13 +32,14 @@ function handleRequest(withEngine: boolean) {
 
             if (!handleStatus.canHandle) {
                 if (handleStatus.delay) {
+                    Rate.HTTP.hit(clientId);
                     await delay(handleStatus.delay);
                 } else {
                     throw new Error('Rate limit!');
                 }
+            } else {
+                Rate.HTTP.hit(clientId);
             }
-
-            Rate.HTTP.hit(clientId);
 
             return {
                 schema: Schema.Schema,

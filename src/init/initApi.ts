@@ -113,13 +113,14 @@ export async function initApi(isTest: boolean) {
 
                     if (!handleStatus.canHandle) {
                         if (handleStatus.delay) {
+                            Rate.WS.hit(clientId);
                             await delay(handleStatus.delay);
                         } else {
                             throw new Error('Rate limit!');
                         }
+                    } else {
+                        Rate.HTTP.hit(clientId);
                     }
-
-                    Rate.WS.hit(clientId);
 
                     return {
                         ...params,
