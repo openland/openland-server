@@ -115,7 +115,7 @@ export async function initApi(isTest: boolean) {
                 apiKey: engineKey
             });
             engine.listen({
-                port,
+                port: dport,
                 httpServer: server,
                 graphqlPaths: ['/graphql', '/api']
             }, () => { createWebSocketServer(server); });
