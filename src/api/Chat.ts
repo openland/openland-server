@@ -1193,8 +1193,7 @@ export const Resolver = {
                 {
                     title: optional(stringNotEmpty('Title can\'t be empty!'))
                 },
-                args.input,
-                'input.firstName'
+                args.input
             );
 
             let conversationId = IDs.Conversation.parse(args.conversationId);
@@ -1225,14 +1224,7 @@ export const Resolver = {
 
                 let imageRef = Sanitizer.sanitizeImageRef(args.input.photoRef);
 
-                if (
-                    args.input.photoRef !== undefined &&
-                    (
-                        !chat.extras.picture ||
-                        args.input.photoRef === null ||
-                        !imageRefEquals(chat.extras.picture as any, imageRef!)
-                    )
-                ) {
+                if (args.input.photoRef !== undefined && !imageRefEquals(chat.extras.picture as any, imageRef)) {
                     chatChanged = true;
                     if (args.input.photoRef !== null) {
                         await Services.UploadCare.saveFile(args.input.photoRef.uuid);

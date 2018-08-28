@@ -25,7 +25,13 @@ export function imageCropEquals(crop1: ImageCrop, crop2: ImageCrop) {
         crop1.y === crop2.y;
 }
 
-export function imageRefEquals(ref1: ImageRef, ref2: ImageRef) {
+export function imageRefEquals(ref1: ImageRef|null, ref2: ImageRef|null) {
+    if (ref1 === null && ref2 === null) {
+        return true;
+    } else if (ref1 === null || ref2 === null) {
+        return false;
+    }
+
     return (
         ref1.uuid === ref2.uuid &&
         (ref1.crop && ref2.crop ? imageCropEquals(ref1.crop, ref2.crop) : (ref1.crop === ref2.crop))

@@ -95,7 +95,7 @@ type UrlAugmentation {
     imageURL: String
 }
 
-union ServiceMetadata = InviteServiceMetadata | KickServiceMetadata | TitleChangeServiceMetadata
+union ServiceMetadata = InviteServiceMetadata | KickServiceMetadata | TitleChangeServiceMetadata | PhotoChangeServiceMetadata
 
 type ConversationMessage {
     id: ID!

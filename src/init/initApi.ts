@@ -119,7 +119,7 @@ export async function initApi(isTest: boolean) {
                             throw new Error('Rate limit!');
                         }
                     } else {
-                        Rate.HTTP.hit(clientId);
+                        Rate.WS.hit(clientId);
                     }
 
                     return {

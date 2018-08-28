@@ -32,8 +32,6 @@ class RateLimit {
             delay = exponentialBackoffDelay(clientHits, 1000, 10000, 100);
         }
 
-        console.log(clientHits);
-
         return {
             canHandle,
             delay
