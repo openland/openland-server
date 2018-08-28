@@ -312,7 +312,7 @@ export const Resolver = {
                 return {
                     name: src.fileMetadata.name,
                     mimeType: src.fileMetadata.mimeType,
-                    isImage: src.fileMetadata.isImage,
+                    isImage: !!(src.fileMetadata.isImage),
                     imageWidth: src.fileMetadata.imageWidth,
                     imageHeight: src.fileMetadata.imageHeight,
                     imageFormat: src.fileMetadata.imageFormat,

@@ -36,14 +36,14 @@ export class UploadCare {
     async fetchFileInfo(uuid: string): Promise<UploadCareFileInfo> {
         let res = await this.call('files/' + uuid + '/');
 
-        let isImage = res.is_image as boolean;
+        let isImage = !!(res.is_image);
         let imageWidth = isImage ? res.image_info.width as number : null;
         let imageHeight = isImage ? res.image_info.height as number : null;
         let imageFormat = isImage ? res.image_info.format as string : null;
         let mimeType = res.mime_type as string;
         let name = res.original_filename as string;
         let size = res.size as number;
-        let isReady = res.is_ready as boolean;
+        let isReady = !!(res.is_ready);
 
         return {
             isStored: isReady,
