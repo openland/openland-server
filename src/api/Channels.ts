@@ -293,7 +293,7 @@ export const Resolver = {
                     } else if (member.status === 'requested') {
                         await member.update({ status: 'member' }, { transaction: tx });
 
-                        let name = (await DB.UserProfile.find({ where: { user: userId } }))!.firstName;
+                        let name = (await DB.UserProfile.find({ where: { userId: userId } }))!.firstName;
 
                         await Repos.Chats.sendMessage(
                             tx,
