@@ -11,6 +11,7 @@ type ChannelConversation implements Conversation {
     membersCount: Int!
     memberRequestsCount: Int!
     featured: Boolean!
+    hidden: Boolean!
     description: String!
     myStatus: ChannelMembershipStatus!
     organization: Organization
@@ -82,8 +83,9 @@ extend type Mutation {
     # joins channel if organization was already invited
     # creates request if there was no invite
     alphaChannelJoinOrg(channelId: ID!): String!
-    alphaChannelSetFeatured(channelId: ID!, featured: Boolean!): String!
-
+    alphaChannelSetFeatured(channelId: ID!, featured: Boolean!): Conversation!
+    alphaChannelHideFromSearch(channelId: ID!, hidden: Boolean!): Conversation!
+    
     alphaChannelInvite(channelId: ID!, userId: ID!): ConversationUpdateResponse!
     alphaChannelJoin(channelId: ID!): ConversationUpdateResponse!
     alphaChannelRevokeInvite(channelId: ID!, userId: ID!): String!

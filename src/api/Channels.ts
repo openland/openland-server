@@ -65,6 +65,7 @@ export const Resolver = {
         membersCount: (src: Conversation) => Repos.Chats.membersCountInConversation(src.id),
         memberRequestsCount: (src: Conversation) => Repos.Chats.membersCountInConversation(src.id, 'requested'),
         featured: (src: Conversation) => src.extras.featured || false,
+        hidden: (src: Conversation) => src.extras.hidden || false,
         description: (src: Conversation) => src.extras.description || '',
         myStatus: async (src: Conversation, _: any, context: CallContext) => {
             let member = await DB.ConversationGroupMembers.findOne({
@@ -250,7 +251,23 @@ export const Resolver = {
 
                 await channel.update({ extras: { ...channel.extras, featured: args.featured } });
 
-                return 'ok';
+                return channel;
+            });
+        }),
+
+        alphaChannelHideFromSearch: withPermission<{ channelId: string, hidden: boolean }>('super-admin', (args) => {
+            return DB.tx(async (tx) => {
+                let channelId = IDs.Conversation.parse(args.channelId);
+
+                let channel = await DB.Conversation.findById(channelId);
+
+                if (!channel) {
+                    return 'ok';
+                }
+
+                await channel.update({ extras: { ...channel.extras, hidden: args.hidden } });
+
+                return channel;
             });
         }),
 
@@ -723,6 +740,8 @@ export const Resolver = {
                     sort = parser.parseSort(args.sort);
                 }
             }
+
+            clauses.push({ term: { hidden: false } });
 
             let hits = await ElasticClient.search({
                 index: 'channels',

@@ -4,12 +4,15 @@ import { UpdateReader } from '../modules/updateReader';
 import { Repos } from '../repositories';
 
 export function createChannelIndexer(client: ES.Client) {
-    let reader = new UpdateReader('reader_channels', 3, DB.Conversation);
+    let reader = new UpdateReader('reader_channels', 4, DB.Conversation);
     reader.elastic(client, 'channels', 'channel', {
         title: {
             type: 'text'
         },
         featured: {
+            type: 'boolean'
+        },
+        hidden: {
             type: 'boolean'
         },
         createdAt: {
@@ -32,6 +35,7 @@ export function createChannelIndexer(client: ES.Client) {
             doc: {
                 title: item.title,
                 featured: item.extras.featured || false,
+                hidden: item.extras.hidden || false,
                 createdAt: (item as any).createdAt,
                 updatedAt: (item as any).updatedAt,
                 membersCount: await Repos.Chats.membersCountInConversation(item.id),
