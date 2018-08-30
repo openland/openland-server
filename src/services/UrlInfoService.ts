@@ -43,7 +43,9 @@ export default class UrlInfoService {
     }
 
     private isListingUrl(url: string): boolean {
-        return this.listingRegexp.test(url);
+        // TODO recover - fast fix, tx + UPDATE Lock needed
+        return false;
+        // return this.listingRegexp.test(url);
     }
 
     private async parseListingUrl(url: string): Promise<URLInfo> {
