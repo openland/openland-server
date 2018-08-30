@@ -652,7 +652,8 @@ export class ChatsRepository {
                         }
                     },
                     order: [['createdAt', 'DESC']],
-                    transaction: tx
+                    transaction: tx,
+                    lock: tx.LOCK.UPDATE
                 });
                 for (let i of m) {
                     if (members.indexOf(i.userId) < 0) {
@@ -664,7 +665,8 @@ export class ChatsRepository {
                     where: {
                         conversationId: conv.id,
                     },
-                    transaction: tx
+                    transaction: tx,
+                    lock: tx.LOCK.UPDATE
                 });
                 for (let i of m) {
                     if (members.indexOf(i.userId) < 0) {

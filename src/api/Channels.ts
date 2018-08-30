@@ -281,7 +281,9 @@ export const Resolver = {
                     where: {
                         conversationId: channelId,
                         userId
-                    }
+                    },
+                    transaction: tx,
+                    lock: tx.LOCK.UPDATE
                 });
 
                 if (member) {

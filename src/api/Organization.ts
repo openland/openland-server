@@ -25,7 +25,7 @@ import { Emails } from '../services/Emails';
 import { Services } from '../services';
 
 let isFollowed = async (initiatorOrgId: number, targetOrgId: number) => {
-    let connection = await DB.OrganizationConnect.find({
+    let connection = await DB.OrganizationConnect.find({    
         where: {
             initiatorOrgId: initiatorOrgId,
             targetOrgId: targetOrgId

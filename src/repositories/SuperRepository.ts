@@ -8,7 +8,7 @@ import { Emails } from '../services/Emails';
 
 export class SuperRepository {
     async fetchAllOrganizations() {
-        return await DB.Organization.findAll();
+        return await DB.Organization.findAll({order: [['createdAt', 'DESC']]});
     }
     async fetchById(id: number, tx?: Transaction) {
         let res = await DB.Organization.findById(id, { transaction: tx });
