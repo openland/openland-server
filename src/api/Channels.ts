@@ -178,7 +178,7 @@ export const Resolver = {
                             channelId,
                             uid,
                             {
-                                message: `Organization ${orgId} joined to channel!`,
+                                message: `Organization ${orgId} has joined the channel!`,
                                 isService: true
                             }
                         );
@@ -219,7 +219,7 @@ export const Resolver = {
                             channelId,
                             uid,
                             {
-                                message: `Organization ${oid} joined to channel!`,
+                                message: `Organization ${oid} has joined the channel!`,
                                 isService: true
                             }
                         );
@@ -300,7 +300,7 @@ export const Resolver = {
                             channelId,
                             uid,
                             {
-                                message: `${name} joined to channel!`,
+                                message: `${name} has joined the channel!`,
                                 isService: true,
                                 isMuted: true,
                                 serviceMetadata: {
@@ -381,7 +381,7 @@ export const Resolver = {
                             channelId,
                             uid,
                             {
-                                message: `${name} joined to channel!`,
+                                message: `${name} has joined the channel!`,
                                 isService: true,
                                 isMuted: true,
                                 serviceMetadata: {
@@ -420,7 +420,7 @@ export const Resolver = {
                         channelId,
                         uid,
                         {
-                            message: `${name} joined to channel!`,
+                            message: `${name} has joined the channel!`,
                             isService: true,
                             isMuted: true,
                             serviceMetadata: {
@@ -627,7 +627,7 @@ export const Resolver = {
                     invite.channelId,
                     uid!,
                     {
-                        message: `${name} joined to channel!`,
+                        message: `${name} has joined the channel!`,
                         isService: true
                     }
                 );

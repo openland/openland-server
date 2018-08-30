@@ -22,7 +22,7 @@ export type ChatEventType =
     'new_members' |
     'kick_member' |
     'update_role' |
-    'edit_message'|
+    'edit_message' |
     'chat_update';
 
 export type UserEventType =
@@ -837,5 +837,31 @@ export class ChatsRepository {
 
             return conv.seq;
         }, exTx);
+    }
+
+    async addToChannel(tx: Transaction, channelId: number, uid: number, firstName: string) {
+        await DB.ConversationGroupMembers.create({
+            conversationId: channelId,
+            invitedById: uid,
+            role: 'member',
+            status: 'member',
+            userId: uid,
+        }, { transaction: tx });
+
+        await Repos.Chats.sendMessage(
+            tx,
+            channelId,
+            uid,
+            {
+                message: `${firstName} has joined the channel!`,
+                isService: true,
+                isMuted: true,
+                serviceMetadata: {
+                    type: 'user_invite',
+                    userIds: [uid],
+                    invitedById: uid
+                }
+            }
+        );
     }
 }

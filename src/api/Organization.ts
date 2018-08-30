@@ -991,7 +991,7 @@ export const Resolver = {
 
                 let listingUrl = 'https://app.openland.com/o/' + IDs.Organization.serialize(oid) + '/listings#' + IDs.OrganizationListing.serialize(res.id!!);
                 if (args.input.channels) {
-                    let org = (await DB.Organization.find({ where: { id: oid } }))!!.name!!;
+                    let org = (await DB.Organization.find({ where: { id: oid }, transaction: tx }))!!.name!!;
                     for (let c of args.input.channels) {
                         await Repos.Chats.sendMessage(tx, IDs.Conversation.parse(c), uid, {
                             message: listingUrl,
