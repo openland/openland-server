@@ -7,6 +7,8 @@ import { UserSettings, UserSettingsAttributes } from '../tables/UserSettings';
 import { SuperBus } from '../modules/SuperBus';
 import { validate, stringNotEmpty } from '../modules/NewInputValidator';
 import { Sanitizer } from '../modules/Sanitizer';
+import { IDs } from '../api/utils/IDs';
+import { Repos } from '.';
 
 export interface Settings {
     emailFrequency: '1hour' | '15min' | 'never';
@@ -91,6 +93,9 @@ export class UserRepository {
             about: Sanitizer.sanitizeString(input.about),
             location: Sanitizer.sanitizeString(input.location)
         }, { transaction: tx });
+
+        let channelId = IDs.Conversation.parse('vmZR69a4eDTkZ5nvryyVidje1Q');
+        await Repos.Chats.addToChannel(tx, channelId, uid, input.firstName);
 
         return user;
     }

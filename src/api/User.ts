@@ -179,8 +179,6 @@ export const Resolver = {
         }>(async (args, uid) => {
             return await DB.tx(async (tx) => {
                 let res = await Repos.Users.createUser(uid, args.input, tx);
-                let channelId = IDs.Conversation.parse('vmZR69a4eDTkZ5nvryyVidje1Q');
-                await Repos.Chats.addToChannel(tx, channelId, uid, args.input.firstName);
                 return res;
             });
         }),
