@@ -1,5 +1,5 @@
 import { staticWorker } from '../modules/staticWorker';
-import { DB } from '../tables';
+import { DB, DB_SILENT } from '../tables';
 import { PushWorker } from '.';
 import { Repos } from '../repositories';
 import { buildBaseImageUrl } from '../repositories/Media';
@@ -14,8 +14,11 @@ export function startPushNotificationWorker() {
             },
             transaction: tx,
             lock: tx.LOCK.UPDATE,
-            logging: false
+            logging: DB_SILENT
         });
+
+        // console.log(11111);
+        // console.log(unreadUsers);
 
         for (let u of unreadUsers) {
             let lastSeen = await Repos.Users.getUserLastSeen(u.userId, tx);
@@ -54,7 +57,7 @@ export function startPushNotificationWorker() {
                         }
                     },
                     transaction: tx,
-                    logging: false
+                    logging: DB_SILENT
                 });
 
                 // Handling unread messages

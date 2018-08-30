@@ -1,4 +1,4 @@
-import { DB, User } from '../tables';
+import { DB, DB_SILENT, User } from '../tables';
 import DataLoader from 'dataloader';
 import { CallContext } from '../api/utils/CallContext';
 import { ImageRef } from './Media';
@@ -221,32 +221,32 @@ export class UserRepository {
                 where: { userId: uid, tokenId: tokenId },
                 transaction: tx,
                 lock: tx.LOCK.UPDATE,
-                logging: false
+                logging: DB_SILENT
             });
             if (existing) {
                 existing.lastSeen = now;
                 existing.lastSeenTimeout = expires;
-                await existing.save({ transaction: tx, logging: false });
+                await existing.save({ transaction: tx, logging: DB_SILENT });
             } else {
                 await DB.UserPresence.create({
                     userId: uid,
                     tokenId: tokenId,
                     lastSeen: now,
                     lastSeenTimeout: expires
-                }, { transaction: tx, logging: false });
+                }, { transaction: tx, logging: DB_SILENT });
             }
-            let user = await DB.User.findById(uid, { transaction: tx, lock: tx.LOCK.UPDATE, logging: false });
+            let user = await DB.User.findById(uid, { transaction: tx, lock: tx.LOCK.UPDATE, logging: DB_SILENT });
             if (user) {
                 if (user.lastSeen === null || user.lastSeen!!.getTime() < expires.getTime()) {
                     user.lastSeen = expires;
-                    await user.save({ transaction: tx, logging: false });
+                    await user.save({ transaction: tx, logging: DB_SILENT });
                 }
             }
         });
     }
 
     async getUserLastSeen(uid: number, tx: Transaction) {
-        let user = await DB.User.findById(uid, { logging: false });
+        let user = await DB.User.findById(uid, { logging: DB_SILENT });
         let now = Date.now();
         if (!user) {
             return null;

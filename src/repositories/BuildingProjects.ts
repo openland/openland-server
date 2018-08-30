@@ -1,4 +1,4 @@
-import { DB, Developer } from '../tables';
+import { DB, DB_SILENT, Developer } from '../tables';
 import { bulkApply } from '../utils/db_utils';
 import { Transaction } from 'sequelize';
 import { NotFoundError } from '../errors/NotFoundError';
@@ -109,7 +109,7 @@ export async function applyBuildingProjects(tx: Transaction, accountId: number, 
                 }
             },
             transaction: tx,
-            logging: false
+            logging: DB_SILENT
         })).forEach((d) => {
             developers[d.slug!!] = d;
         });
@@ -122,7 +122,7 @@ export async function applyBuildingProjects(tx: Transaction, accountId: number, 
         let bp = (await DB.BuidlingProject.findOne({
             where: { id: p.id },
             transaction: tx,
-            logging: false
+            logging: DB_SILENT
         }))!!;
         let src = projects[index];
 
@@ -132,9 +132,9 @@ export async function applyBuildingProjects(tx: Transaction, accountId: number, 
                     throw new NotFoundError(ErrorText.unableToFindOrganizationNamed(d.toLocaleLowerCase()));
                 }
                 return developers[d.toLowerCase()]!!;
-            }), { transaction: tx, logging: false });
+            }), { transaction: tx, logging: DB_SILENT });
         } else {
-            await bp.setDevelopers([], { transaction: tx, logging: false });
+            await bp.setDevelopers([], { transaction: tx, logging: DB_SILENT });
         }
 
         if (src.constructors) {
@@ -143,9 +143,9 @@ export async function applyBuildingProjects(tx: Transaction, accountId: number, 
                     throw new NotFoundError(ErrorText.unableToFindOrganizationNamed(d.toLocaleLowerCase()));
                 }
                 return developers[d.toLowerCase()]!!;
-            }), { transaction: tx, logging: false });
+            }), { transaction: tx, logging: DB_SILENT });
         } else {
-            await bp.setConstructors([], { transaction: tx, logging: false });
+            await bp.setConstructors([], { transaction: tx, logging: DB_SILENT });
         }
 
         if (src.permits) {
@@ -157,11 +157,11 @@ export async function applyBuildingProjects(tx: Transaction, accountId: number, 
                     }
                 },
                 transaction: tx,
-                logging: false
+                logging: DB_SILENT
             });
-            await bp.setPermits(ex, { transaction: tx, logging: false });
+            await bp.setPermits(ex, { transaction: tx, logging: DB_SILENT });
         } else {
-            await bp.setPermits([], { transaction: tx, logging: false });
+            await bp.setPermits([], { transaction: tx, logging: DB_SILENT });
         }
 
         index++;

@@ -2,6 +2,7 @@ import sequelize from 'sequelize';
 import { Pubsub } from './pubsub';
 import { addAfterChangedCommitHook } from '../utils/sequelizeHooks';
 import { backoff, forever, delayBreakable } from '../utils/timer';
+import { DB_SILENT } from '../tables';
 
 /**
  * SuperBus is reliable EventBus that guaranteed to deliver all updates from the table
@@ -60,7 +61,7 @@ export class SuperBus<T, TInstance, TAttributes> {
     private async startReader() {
         let firstEvent = await backoff(async () => this.model.find({
             order: [['updatedAt', 'desc'], ['id', 'desc']],
-            logging: false
+            logging: DB_SILENT
         }));
         let offset: { id: number, date: Date } | null = null;
         if (firstEvent) {
@@ -82,7 +83,7 @@ export class SuperBus<T, TInstance, TAttributes> {
                 where: where,
                 order: [['updatedAt', 'asc'], ['id', 'asc']],
                 limit: 100,
-                logging: false
+                logging: DB_SILENT
             });
             if (events.length > 0) {
                 offset = { id: (events[events.length - 1] as any).id, date: (events[events.length - 1] as any).updatedAt };

@@ -1,7 +1,7 @@
 import * as sequelize from 'sequelize';
 import { connection } from '../modules/sequelizeConnector';
 import { Transaction } from 'sequelize';
-import { DB } from '../tables';
+import { DB, DB_SILENT } from '../tables';
 import { QueryInterface } from 'sequelize';
 
 export interface Applied<T> {
@@ -14,7 +14,7 @@ export interface Applied<T> {
 }
 
 export async function findAllRaw<TInstance>(sql: string, model: sequelize.Model<TInstance, any>, tx?: Transaction): Promise<TInstance[]> {
-    return (await connection.query(sql, { model: model, raw: true, logging: false, transaction: tx })) as TInstance[];
+    return (await connection.query(sql, { model: model, raw: true, logging: DB_SILENT, transaction: tx })) as TInstance[];
 }
 
 async function findAllTuplesWithNull<TInstance>(tx: Transaction, accountId: number, fields: string[], nullField: string, tuples: any[][], model: sequelize.Model<TInstance, any>): Promise<TInstance[]> {
@@ -107,7 +107,7 @@ export async function bulkAssociations(tx: Transaction, table: string, key1: str
     let date = new Date().toUTCString();
     let sqlValues = values.map((v) => `('${date}','${date}',${v.value1},${v.value2})`).join();
     let query = 'INSERT INTO "' + table + '" ("createdAt","updatedAt","' + key1 + '","' + key2 + '") VALUES ' + sqlValues + ' ON CONFLICT DO NOTHING';
-    await connection.query(query, { logging: false, transaction: tx });
+    await connection.query(query, { logging: DB_SILENT, transaction: tx });
 }
 
 export async function bulkInsert<TRow>(tx: Transaction, model: sequelize.Model<any, TRow> | string, rows: TRow[], options?: { inlcudeDates?: boolean }): Promise<number[]> {
@@ -170,7 +170,7 @@ function valueEquals(a: any, b: any) {
 
 export async function bulkApply<TRow extends { id?: number | null, account?: number | null }>(tx: Transaction, model: sequelize.Model<any, TRow>, accountId: number, key: string, rows: TRow[]) {
     let query = `SELECT * from ${model.getTableName()} WHERE "account" = ${accountId} AND "${key}" IN (${rows.map(r => `${loadField(r, key)}`).join()})`;
-    let existing = (await connection.query(query, { transaction: tx, logging: false }))[1].rows as TRow[];
+    let existing = (await connection.query(query, { transaction: tx, logging: DB_SILENT }))[1].rows as TRow[];
     let forInsert: TRow[] = [];
     let forUpdate: PromiseLike<any>[] = [];
     let indexes = new Array<Applied<TRow>>(rows.length);

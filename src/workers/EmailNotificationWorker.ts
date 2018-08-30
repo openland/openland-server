@@ -1,5 +1,5 @@
 import { staticWorker } from '../modules/staticWorker';
-import { DB } from '../tables';
+import { DB, DB_SILENT } from '../tables';
 import { Repos } from '../repositories';
 import { Emails } from '../services/Emails';
 
@@ -61,7 +61,7 @@ export function startEmailNotificationWorker() {
                         }
                     },
                     transaction: tx,
-                    logging: false
+                    logging: DB_SILENT
                 });
                 let messages = remainingUpdates
                     .filter((v) => v.eventType === 'new_message')

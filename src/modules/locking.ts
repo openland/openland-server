@@ -1,6 +1,6 @@
 import * as Crypto from 'crypto';
 import * as sequelize from 'sequelize';
-import { DB } from '../tables';
+import { DB, DB_SILENT } from '../tables';
 
 let lockSeed = Crypto.randomBytes(32).toString('hex');
 
@@ -11,7 +11,7 @@ export async function tryLock(tx: sequelize.Transaction, key: string, version: n
         },
         transaction: tx,
         lock: tx.LOCK.UPDATE,
-        logging: false
+        logging: DB_SILENT
     });
     let now = new Date();
     let currentTimeout = new Date(now.getTime() + 10 * 1000);
@@ -26,13 +26,13 @@ export async function tryLock(tx: sequelize.Transaction, key: string, version: n
             existing.timeout = currentTimeout.toUTCString();
             existing.version = version;
             existing.minVersion = version;
-            await existing.save({ transaction: tx, logging: false });
+            await existing.save({ transaction: tx, logging: DB_SILENT });
             return true;
         } else {
             // Bump minumum version if needed
             if (version > existing.minVersion!!) {
                 existing.minVersion = version;
-                await existing.save({ transaction: tx, logging: false });
+                await existing.save({ transaction: tx, logging: DB_SILENT });
             }
             return false;
         }
@@ -43,7 +43,7 @@ export async function tryLock(tx: sequelize.Transaction, key: string, version: n
             minVersion: version,
             seed: lockSeed,
             timeout: currentTimeout.toUTCString()
-        }, { transaction: tx, logging: false });
+        }, { transaction: tx, logging: DB_SILENT });
         return true;
     }
 }

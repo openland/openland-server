@@ -1,4 +1,4 @@
-import { DB } from '../tables';
+import { DB, DB_SILENT } from '../tables';
 import sequelize from 'sequelize';
 import { IncludeOptions, Transaction } from 'sequelize';
 import { delay, forever, currentTime, printElapsed, delayBreakable } from '../utils/timer';
@@ -15,7 +15,7 @@ export async function resetReaderOffset(tx: sequelize.Transaction, key: string) 
             key: key
         },
         transaction: tx,
-        logging: false
+        logging: DB_SILENT
     });
 }
 
@@ -25,7 +25,7 @@ export async function readReaderOffset(tx: sequelize.Transaction, key: string, v
             key: key
         },
         transaction: tx,
-        logging: false
+        logging: DB_SILENT
     });
     if (res != null) {
         if (res.version!! > version) {
@@ -55,7 +55,7 @@ export async function writeReaderOffset(tx: sequelize.Transaction, key: string, 
             key: key
         },
         transaction: tx,
-        logging: false
+        logging: DB_SILENT
     });
     if (res != null) {
         res.currentOffset = offset.offset;
@@ -65,7 +65,7 @@ export async function writeReaderOffset(tx: sequelize.Transaction, key: string, 
         if (res.version!! > version) {
             throw new Error('New version found! Abort.');
         }
-        await res.save({ transaction: tx, logging: false });
+        await res.save({ transaction: tx, logging: DB_SILENT });
         (tx as any).afterCommit(() => {
             pubsub.publish('reader_' + key, { key, offset: offset.offset.toUTCString(), secondary: offset.secondary });
         });
@@ -76,7 +76,7 @@ export async function writeReaderOffset(tx: sequelize.Transaction, key: string, 
             currentOffsetSecondary: offset.secondary,
             remaining: remaining,
             version: version,
-        }, { transaction: tx, logging: false });
+        }, { transaction: tx, logging: DB_SILENT });
         (tx as any).afterCommit(() => {
             pubsub.publish('reader_' + key, { key, offset: offset.offset.toUTCString(), secondary: offset.secondary });
         });
@@ -280,7 +280,7 @@ async function updateReader<TInstance, TAttributes>(
     });
     let shouldInit = true;
     await forever(async () => {
-        let res = await DB.connection.transaction({ logging: false as any }, async (tx) => {
+        let res = await DB.connection.transaction({ logging: DB_SILENT as any }, async (tx) => {
 
             let start = currentTime();
 
@@ -341,7 +341,7 @@ async function updateReader<TInstance, TAttributes>(
                 limit: 1000,
                 transaction: tx,
                 include: include,
-                logging: false,
+                logging: DB_SILENT,
                 paranoid: false
             }));
             // start = printElapsed(`[${name}]Checked`, start);
@@ -359,7 +359,7 @@ async function updateReader<TInstance, TAttributes>(
             let remaining = Math.max((await model.count({
                 where: where,
                 transaction: tx,
-                logging: false
+                logging: DB_SILENT
             })) - 1000, 0);
 
             start = printElapsed(`[${name}]Prepared`, start);

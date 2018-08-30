@@ -1,6 +1,6 @@
 import { LockState, LockProvider, DynamicLock } from './dynamicLocking';
 import { delay, forever, delayBreakable } from '../utils/timer';
-import { DB } from '../tables';
+import { DB, DB_SILENT } from '../tables';
 import { JsonMap } from '../utils/json';
 import { tryLock } from './locking';
 import sequelize, { Transaction } from 'sequelize';
@@ -17,23 +17,23 @@ class TaskLocker implements LockProvider {
 
     async lock(seed: string, timeout: number) {
         let now = Date.now();
-        return await DB.connection.transaction({ logging: false as any }, async (tx) => {
-            let task = await DB.Task.findById(this.taskId, { lock: tx.LOCK.UPDATE, transaction: tx, logging: false });
+        return await DB.connection.transaction({ logging: DB_SILENT as any }, async (tx) => {
+            let task = await DB.Task.findById(this.taskId, { lock: tx.LOCK.UPDATE, transaction: tx, logging: DB_SILENT });
             if (!task) {
                 return false;
             }
             if (!task.taskLockSeed || (task.taskLockSeed === seed || task.taskLockTimeout!!.getTime() < now)) {
                 task.taskLockSeed = seed;
                 task.taskLockTimeout = new Date(timeout);
-                await task.save({ transaction: tx, logging: false });
+                await task.save({ transaction: tx, logging: DB_SILENT });
                 return true;
             }
             return false;
         });
     }
     async unlock(seed: string) {
-        return await DB.connection.transaction({ logging: false as any }, async (tx) => {
-            let task = await DB.Task.findById(this.taskId, { lock: tx.LOCK.UPDATE, transaction: tx, logging: false });
+        return await DB.connection.transaction({ logging: DB_SILENT as any }, async (tx) => {
+            let task = await DB.Task.findById(this.taskId, { lock: tx.LOCK.UPDATE, transaction: tx, logging: DB_SILENT });
             if (!task) {
                 return false;
             }
@@ -56,7 +56,7 @@ const MaximumFailingNumber = 5;
 
 export function startScheduller() {
     forever(async () => {
-        let res = await DB.connection.transaction({ logging: false as any }, async (tx) => {
+        let res = await DB.connection.transaction({ logging: DB_SILENT as any }, async (tx) => {
 
             // Prerequisites
             if (!(await tryLock(tx, 'work_scheduler', 1))) {
@@ -80,7 +80,7 @@ export function startScheduller() {
                     }
                 },
                 transaction: tx,
-                logging: false
+                logging: DB_SILENT
             }))[0];
             if (failed > 0) {
                 console.warn('Failed ' + failed + ' tasks');
@@ -104,7 +104,7 @@ export function startScheduller() {
                     }
                 },
                 transaction: tx,
-                logging: false
+                logging: DB_SILENT
             }))[0];
             if (retried > 0) {
                 console.warn('Retried ' + retried + ' tasks');
@@ -126,7 +126,7 @@ export function startScheduller() {
                         },
                     },
                     transaction: tx,
-                    logging: false
+                    logging: DB_SILENT
                 }))[0];
             if (timeouted > 0) {
                 console.warn('Timeouted ' + timeouted + ' tasks');
@@ -190,16 +190,16 @@ export class WorkQueue<ARGS extends JsonMap, RES extends JsonMap> {
                     taskStatus: 'pending'
                 },
                 order: [['id', 'asc']],
-                logging: false
+                logging: DB_SILENT
             });
             if (task) {
                 console.warn('Task #' + task.id);
                 await this.locker.within(new TaskLocker(task.id), async (state) => {
                     // Switch status to executing
-                    await task!!.reload({ logging: false });
+                    await task!!.reload({ logging: DB_SILENT });
                     state.check();
                     task!!.taskStatus = 'executing';
-                    await task!!.save({ logging: false });
+                    await task!!.save({ logging: DB_SILENT });
 
                     // Executing handler
                     let res: RES;
@@ -214,7 +214,7 @@ export class WorkQueue<ARGS extends JsonMap, RES extends JsonMap> {
                         task!!.taskFailureTime = new Date(Date.now() + exponentialBackoffDelay(failureCount, 1000, 10000, MaximumFailingNumber));
                         task!!.taskFailureCount = (task!!.taskFailureCount || 0) + 1;
                         task!!.taskStatus = 'failing';
-                        await task!!.save({ logging: false });
+                        await task!!.save({ logging: DB_SILENT });
                         return;
                     }
 
@@ -222,7 +222,7 @@ export class WorkQueue<ARGS extends JsonMap, RES extends JsonMap> {
                     state.check();
                     task!!.result = res;
                     task!!.taskStatus = 'completed';
-                    await task!!.save({ logging: false });
+                    await task!!.save({ logging: DB_SILENT });
                 });
                 await delay(100);
             } else {

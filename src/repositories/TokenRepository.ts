@@ -1,4 +1,4 @@
-import { DB } from '../tables';
+import { DB, DB_SILENT } from '../tables';
 import { randomBytes } from 'crypto';
 import * as base64 from '../utils/base64';
 import DataLoader from 'dataloader';
@@ -12,7 +12,7 @@ export class TokenRepository {
                     $in: tokens
                 }
             },
-            logging: false
+            logging: DB_SILENT
         });
         let res: ({ uid: number, tid: number } | null)[] = [];
         for (let i of tokens) {

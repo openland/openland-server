@@ -75,6 +75,9 @@ import { HitsTable } from './Hit';
 import { ConversationChannelMembersTable } from './ConversationChannelMembers';
 import { ChannelInviteTable } from './ChannelInvite';
 
+const SILENT_TX_ACTUALLY_SILENT = false;
+export const DB_SILENT = SILENT_TX_ACTUALLY_SILENT;
+
 export const DB = {
     User: UserTable,
     Account: AccountTable,
@@ -146,18 +149,28 @@ export const DB = {
         return retry(async () => await connection.transaction((tx2: sequelize.Transaction) => handler(tx2)));
     },
     txStableSilent: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>): Promise<A> {
-        return retry(async () => await connection.transaction({
-            logging: () => {
-                //
-            }
-        }, (tx2: sequelize.Transaction) => handler(tx2)));
+        if (SILENT_TX_ACTUALLY_SILENT) {
+            return retry(async () => await connection.transaction({
+                logging: () => {
+                    //
+                }
+            }, (tx2: sequelize.Transaction) => handler(tx2)));
+        } else {
+            return retry(async () => await connection.transaction({ }, (tx2: sequelize.Transaction) => handler(tx2)));
+        }
     },
     txSilent: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>): Promise<A> {
-        return await connection.transaction({
-            isolationLevel: 'SERIALIZABLE', logging: () => {
-                //
-            }
-        }, (tx2: sequelize.Transaction) => handler(tx2));
+        if (SILENT_TX_ACTUALLY_SILENT) {
+            return await connection.transaction({
+                isolationLevel: 'SERIALIZABLE', logging: () => {
+                    //
+                }
+            }, (tx2: sequelize.Transaction) => handler(tx2));
+        } else {
+            return await connection.transaction({
+                isolationLevel: 'SERIALIZABLE'
+            }, (tx2: sequelize.Transaction) => handler(tx2));
+        }
     },
     connection: connection
 };

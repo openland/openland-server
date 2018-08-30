@@ -1,11 +1,11 @@
 import { Transaction } from 'sequelize';
-import { DB } from '../tables';
+import { DB, DB_SILENT } from '../tables';
 import { forever, delay } from '../utils/timer';
 import { tryLock } from './locking';
 
 export function staticWorker(config: { name: string, version?: number, delay?: number }, worker: (tx: Transaction) => Promise<boolean>) {
     forever(async () => {
-        let res = await DB.connection.transaction({ logging: false as any }, async (tx) => {
+        let res = await DB.connection.transaction({ logging: DB_SILENT as any }, async (tx) => {
             // Locking
             if (!(await tryLock(tx, 'worker_' + config.name, config.version))) {
                 return false;
