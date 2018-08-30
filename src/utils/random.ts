@@ -1,12 +1,11 @@
 import UUID from 'uuid/v4';
-import { randomBytes } from 'crypto';
 
 export function randomKey() {
     return UUID();
 }
 
-export function randomGlobalInviteKey() {
-    let length = 6;
+export function randomGlobalInviteKey(len: number = 6) {
+    let length = len; // 6;
     let alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     let key = '';
 
@@ -18,7 +17,8 @@ export function randomGlobalInviteKey() {
 }
 
 export function randomInviteKey() {
-    let rnd = randomBytes(16);
-
-    return rnd.toString('base64');
+    return randomGlobalInviteKey(7);
+    // let rnd = randomBytes(16);
+    //
+    // return rnd.toString('base64');
 }
