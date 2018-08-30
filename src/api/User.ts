@@ -180,7 +180,7 @@ export const Resolver = {
             return await DB.tx(async (tx) => {
                 let res = await Repos.Users.createUser(uid, args.input, tx);
                 let channelId = IDs.Conversation.parse('vmZR69a4eDTkZ5nvryyVidje1Q');
-                Repos.Chats.addToChannel(tx, channelId, uid, args.input.firstName);
+                await Repos.Chats.addToChannel(tx, channelId, uid, args.input.firstName);
                 return res;
             });
         }),
