@@ -89,8 +89,9 @@ export function createPushWorker() {
                         let endpoint = JSON.parse(reg.pushEndpoint);
                         let token = endpoint.token as string;
 
-                        let res = await firebase.messaging().send(
-                            {
+                        let res = await firebase.messaging().send({
+                            android: {
+                                collapseKey: IDs.Conversation.serialize(args.conversationId),
                                 notification: {
                                     title: args.title,
                                     body: args.body,
@@ -102,8 +103,9 @@ export function createPushWorker() {
                                     ['id']: doSimpleHash(IDs.Conversation.serialize(args.conversationId)).toString(),
                                 },
                                 token: token
-                            }
-                        );
+                            },
+                            token: token
+                        });
 
                         console.log('push_android', res);
                     } catch (e) {
