@@ -17,14 +17,18 @@ export function startPushNotificationWorker() {
             logging: DB_SILENT
         });
 
-        // console.log(11111);
-        // console.log(unreadUsers);
-
         for (let u of unreadUsers) {
+            let now = Date.now();
+
             let lastSeen = await Repos.Users.getUserLastSeen(u.userId, tx);
 
             // Ignore online or never-online users
             if (lastSeen === null) {
+                continue;
+            }
+
+            // Pause notifications till 1 minute passes from last active timeout
+            if (lastSeen > (now - 60 * 1000)) {
                 continue;
             }
 

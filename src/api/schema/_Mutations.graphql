@@ -1,3 +1,7 @@
+enum Platform {
+    WEB, IOS, ANDROID
+}
+
 type Mutation {
     updatePermits(state: String!, county: String!, city: String!, sourceDate: String!, permits: [PermitInfo]!): String!
     importParcels(state: String!, county: String!, city: String!, parcels: [ParcelInput!]!): String!
@@ -40,7 +44,7 @@ type Mutation {
     createProfile(input: CreateProfileInput!): Profile!
     updateProfile(input: UpdateProfileInput!): Profile!
 
-    alphaReportOnline(timeout: Int!): String!
+    alphaReportOnline(timeout: Int!, platform: Platform): String!
 
     alphaCreateUserProfileAndOrganization(user: CreateProfileInput!, organization: CreateOrganizationInput!): AlphaSignupData!
 }

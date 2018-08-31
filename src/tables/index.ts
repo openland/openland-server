@@ -75,7 +75,7 @@ import { HitsTable } from './Hit';
 import { ConversationChannelMembersTable } from './ConversationChannelMembers';
 import { ChannelInviteTable } from './ChannelInvite';
 
-const SILENT_TX_ACTUALLY_SILENT = false;
+const SILENT_TX_ACTUALLY_SILENT = true;
 export const DB_SILENT = !SILENT_TX_ACTUALLY_SILENT;
 
 export const DB = {

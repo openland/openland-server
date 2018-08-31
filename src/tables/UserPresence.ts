@@ -9,6 +9,7 @@ export interface UserPresenceAttributes {
     tokenId: number;
     lastSeen: Date;
     lastSeenTimeout: Date;
+    platform: string|null;
 }
 
 export interface UserPresence extends sequelize.Instance<Partial<UserPresenceAttributes>>, UserPresenceAttributes {
@@ -18,7 +19,8 @@ export interface UserPresence extends sequelize.Instance<Partial<UserPresenceAtt
 export const UserPresenceTable = connection.define<UserPresence, Partial<UserPresenceAttributes>>('user_presence', {
     id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
     lastSeen: { type: sequelize.DATE, allowNull: false },
-    lastSeenTimeout: { type: sequelize.DATE, allowNull: false }
+    lastSeenTimeout: { type: sequelize.DATE, allowNull: false },
+    platform: { type: sequelize.STRING, allowNull: true }
 });
 
 UserPresenceTable.belongsTo(UserTable, { as: 'user' });

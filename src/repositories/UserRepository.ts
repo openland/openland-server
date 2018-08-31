@@ -213,7 +213,7 @@ export class UserRepository {
         return !!isMember;
     }
 
-    async markUserOnline(uid: number, timeout: number, tokenId: number) {
+    async markUserOnline(uid: number, timeout: number, tokenId: number, platform?: string) {
         let now = new Date();
         let expires = new Date(now.getTime() + timeout);
         await DB.txStableSilent(async (tx) => {
@@ -226,13 +226,15 @@ export class UserRepository {
             if (existing) {
                 existing.lastSeen = now;
                 existing.lastSeenTimeout = expires;
+                existing.platform = platform || null;
                 await existing.save({ transaction: tx, logging: DB_SILENT });
             } else {
                 await DB.UserPresence.create({
                     userId: uid,
                     tokenId: tokenId,
                     lastSeen: now,
-                    lastSeenTimeout: expires
+                    lastSeenTimeout: expires,
+                    platform: platform || null
                 }, { transaction: tx, logging: DB_SILENT });
             }
             let user = await DB.User.findById(uid, { transaction: tx, lock: tx.LOCK.UPDATE, logging: DB_SILENT });

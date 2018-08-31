@@ -269,7 +269,7 @@ export const Resolver = {
                 return user;
             });
         }),
-        alphaReportOnline: async (_: any, args: { timeout: number }, context: CallContext) => {
+        alphaReportOnline: async (_: any, args: { timeout: number, platform?: string }, context: CallContext) => {
             if (!context.uid) {
                 throw Error('Not authorized');
             }
@@ -279,7 +279,7 @@ export const Resolver = {
             if (args.timeout > 5000) {
                 throw Error('Invalid input');
             }
-            await Repos.Users.markUserOnline(context.uid, args.timeout, context.tid!!);
+            await Repos.Users.markUserOnline(context.uid, args.timeout, context.tid!!, args.platform);
             return 'ok';
         },
         updateSettings: withUser<{ settings: { emailFrequency?: string | null, desktopNotifications?: string | null } }>(async (args, uid) => {
