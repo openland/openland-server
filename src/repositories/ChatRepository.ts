@@ -653,7 +653,6 @@ export class ChatsRepository {
                     },
                     order: [['createdAt', 'DESC']],
                     transaction: tx,
-                    lock: tx.LOCK.UPDATE
                 });
                 for (let i of m) {
                     if (members.indexOf(i.userId) < 0) {
@@ -666,7 +665,6 @@ export class ChatsRepository {
                         conversationId: conv.id,
                     },
                     transaction: tx,
-                    lock: tx.LOCK.UPDATE
                 });
                 for (let i of m) {
                     if (members.indexOf(i.userId) < 0) {
@@ -680,7 +678,6 @@ export class ChatsRepository {
                         status: 'member'
                     },
                     transaction: tx,
-                    lock: tx.LOCK.UPDATE
                 });
                 for (let i of m) {
                     if (members.indexOf(i.userId) < 0) {
