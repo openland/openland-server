@@ -14,6 +14,7 @@ import { Rate } from '../utils/rateLimit';
 import { Server as HttpServer } from 'http';
 import { ApolloEngine } from 'apollo-engine';
 import { delay } from '../utils/timer';
+import { DB } from '../tables';
 
 export async function initApi(isTest: boolean) {
 
@@ -47,8 +48,28 @@ export async function initApi(isTest: boolean) {
 
     // To avoid logging on this route
     app.get('/', (req, res) => res.send('Welcome to Openland API!'));
-    app.get('/status', (req, res) => res.send('Welcome to Openland API!'));
-    app.get('/healthz', (req, res) => res.send('Welcome to Openland API!'));
+    app.get('/status', async (req, res) => {
+        try  {
+            let org = await DB.Organization.findById(1);
+            console.log('db check', org ? org.id : null);
+            res.send('Welcome to Openland API!');
+        } catch (e) {
+            console.log('db error');
+            console.log(e);
+            res.status(500).send(':(');
+        }
+    });
+    app.get('/status', async (req, res) => {
+        try  {
+            let org = await DB.Organization.findById(1);
+            console.log('db check', org ? org.id : null);
+            res.send('Welcome to Openland API!');
+        } catch (e) {
+            console.log('db error');
+            console.log(e);
+            res.status(500).send(':(');
+        }
+    });
     app.get('/favicon.ico', (req, res) => res.send(404));
 
     // Basic Configuration

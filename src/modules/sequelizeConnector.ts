@@ -17,7 +17,7 @@ if (process.env.DATABASE_URL !== undefined) {
             ssl: true
         },
         pool: {
-            max: 50,
+            max: 20,
             acquire: 10000
         }
     });
@@ -27,7 +27,7 @@ if (process.env.DATABASE_URL !== undefined) {
         benchmark: process.env.DATABASE_LOGGING !== 'false',
         logging: process.env.DATABASE_LOGGING !== 'false',
         pool: {
-            max: 50,
+            max: 20,
             acquire: 10000
         }
     });
@@ -39,7 +39,7 @@ if (process.env.DATABASE_URL !== undefined) {
         benchmark: process.env.DATABASE_LOGGING !== 'false',
         logging: process.env.DATABASE_LOGGING !== 'false',
         pool: {
-            max: 50,
+            max: 20,
             acquire: 10000
         }
     });
