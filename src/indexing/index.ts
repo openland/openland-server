@@ -31,15 +31,15 @@ export async function enableIndexer() {
     if (!process.env.ELASTIC_ENDPOINT) {
         throw new Error('Elastic Search not configured!');
     }
-    PermitsIndexer.start();
-    LotIndexer.start();
-    BlocksIndexer.start();
-    IncidentsIndexer.start();
-    ProspectingIndexer.start();
-    FolderIndexer.start();
-    FolderItemIndexer.start();
-    OrganizationListingIndexer.start();
-    OrganizationIndexer.start();
-    WalPostsIndexer.start();
-    ChannelsIndexer.start();
+    // PermitsIndexer.start();
+    // LotIndexer.start();
+    // BlocksIndexer.start();
+    // IncidentsIndexer.start();
+    // ProspectingIndexer.start();
+    // FolderIndexer.start();
+    // FolderItemIndexer.start();
+    // OrganizationListingIndexer.start();
+    // OrganizationIndexer.start();
+    // WalPostsIndexer.start();
+    // ChannelsIndexer.start();
 }
