@@ -70,6 +70,14 @@ export function createPushWorker() {
                             not.expiry = Math.floor(Date.now() / 1000) + 3600;
                             not.alert = { title: args.title, body: args.body };
                             not.badge = args.counter;
+                            not.collapseId = IDs.Conversation.serialize(args.conversationId);
+                            not.payload = JSON.stringify({
+                                ['conversationId']: IDs.Conversation.serialize(args.conversationId),
+                                ['title']: args.title,
+                                ['message']: args.body,
+                                ['id']: doSimpleHash(IDs.Conversation.serialize(args.conversationId)).toString(),
+                                ...(args.picture ? { ['picture']: args.picture! } : {}),
+                            });
                             not.topic = bundleId;
                             let res = await (provs.get(team.teamId)!!).send(not, token);
                             console.log(JSON.stringify(res));
@@ -101,6 +109,7 @@ export function createPushWorker() {
                                     ['title']: args.title,
                                     ['message']: args.body,
                                     ['id']: doSimpleHash(IDs.Conversation.serialize(args.conversationId)).toString(),
+                                    ...(args.picture ? { ['picture']: args.picture! } : {}),
                                 },
                                 token: token
                             },
