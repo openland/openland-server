@@ -11,6 +11,7 @@ export var connection: sequelize.Sequelize;
 if (process.env.DATABASE_URL !== undefined) {
     connection = new sequelize(process.env.DATABASE_URL!, {
         dialect: 'postgres',
+        native: true,
         benchmark: process.env.DATABASE_LOGGING !== 'false',
         logging: process.env.DATABASE_LOGGING !== 'false',
         dialectOptions: {
@@ -24,6 +25,7 @@ if (process.env.DATABASE_URL !== undefined) {
 } else if (process.env.DATABASE_PASSWORD !== undefined && process.env.DATABASE_USER !== undefined) {
     connection = new sequelize('postgres', process.env.DATABASE_USER!, process.env.DATABASE_PASSWORD!, {
         dialect: 'postgres',
+        native: true,
         benchmark: process.env.DATABASE_LOGGING !== 'false',
         logging: process.env.DATABASE_LOGGING !== 'false',
         pool: {
@@ -36,6 +38,7 @@ if (process.env.DATABASE_URL !== undefined) {
         host: 'localhost',
         port: process.env.DATABASE_PORT ? parseInt(process.env.DATABASE_PORT!!, 10) : 5432,
         dialect: 'postgres',
+        native: true,
         benchmark: process.env.DATABASE_LOGGING !== 'false',
         logging: process.env.DATABASE_LOGGING !== 'false',
         pool: {

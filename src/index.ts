@@ -1,4 +1,6 @@
 // AsyncIterator polyfil
+import { serverRoleEnabled } from './utils/serverRoles';
+
 if (Symbol.asyncIterator === undefined) {
     ((Symbol as any).asyncIterator) = Symbol.for('asyncIterator');
 }
@@ -41,9 +43,13 @@ if (process.argv.indexOf('--rebuild-test') >= 0) {
         try {
             await initDatabase(false, false);
             await initFiles();
-            await initElastic();
+            if (serverRoleEnabled('indexing')) {
+                await initElastic();
+            }
             await initWorkers();
-            await initApi(false);
+            if (serverRoleEnabled('api')) {
+                await initApi(false);
+            }
         } catch (e) {
             console.error('Unable to init server');
             console.error(e);
