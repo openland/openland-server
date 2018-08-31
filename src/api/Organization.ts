@@ -872,7 +872,7 @@ export const Resolver = {
                 unitCapacity?: string[] | null;
             }
         }>(async (args, uid, oid) => {
-            return await DB.tx(async (tx) => {
+            return await DB.txStable(async (tx) => {
                 let member = await DB.OrganizationMember.find({
                     where: {
                         orgId: oid,
