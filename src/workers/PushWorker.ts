@@ -32,11 +32,13 @@ export function createPushWorker() {
             for (let reg of registrations) {
                 if (reg.pushType === 'web-push' && AppConfiuguration.webPush) {
                     try {
-                        await WebPush.sendNotification(JSON.parse(reg.pushEndpoint), JSON.stringify({
+                        let res = await WebPush.sendNotification(JSON.parse(reg.pushEndpoint), JSON.stringify({
                             title: args.title,
                             body: args.body,
                             picture: args.picture
                         }));
+
+                        console.log('web_push %d', args.uid, res);
                     } catch (e) {
                         // Fast ignore for push notifications
                         console.warn(e);
@@ -80,7 +82,7 @@ export function createPushWorker() {
                             });
                             not.topic = bundleId;
                             let res = await (provs.get(team.teamId)!!).send(not, token);
-                            console.log(JSON.stringify(res));
+                            console.log('ios_push %d', args.uid, JSON.stringify(res));
                         } else {
                             console.warn('Unable to match bundle id ' + bundleId);
                             console.warn(AppConfiuguration.apple);
@@ -116,7 +118,7 @@ export function createPushWorker() {
                             token: token
                         });
 
-                        console.log('push_android', res);
+                        console.log('android_push %d', args.uid, res);
                     } catch (e) {
                         // Fast ignore for push notifications
                         console.warn(e);
