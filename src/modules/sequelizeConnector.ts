@@ -8,7 +8,7 @@ var namespace = cls.createNamespace('tx-namespace');
 
 export var connection: sequelize.Sequelize;
 
-const USE_NATIVE_DRIVER = true;
+const USE_NATIVE_DRIVER = false;
 
 if (process.env.DATABASE_URL !== undefined) {
     connection = new sequelize(process.env.DATABASE_URL!, {
