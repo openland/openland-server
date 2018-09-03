@@ -1,6 +1,6 @@
 FROM node:8.9.4-alpine
 
-RUN apk add --no-cache tini
+RUN apk add --no-cache tini libpq
 ENTRYPOINT ["/sbin/tini", "--"]
 
 ADD package.json /app/
