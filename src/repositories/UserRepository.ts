@@ -7,8 +7,6 @@ import { UserSettings, UserSettingsAttributes } from '../tables/UserSettings';
 import { SuperBus } from '../modules/SuperBus';
 import { validate, stringNotEmpty } from '../modules/NewInputValidator';
 import { Sanitizer } from '../modules/Sanitizer';
-import { IDs } from '../api/utils/IDs';
-import { Repos } from '.';
 
 export interface Settings {
     emailFrequency: '1hour' | '15min' | 'never';
