@@ -94,9 +94,6 @@ export class UserRepository {
             location: Sanitizer.sanitizeString(input.location)
         }, { transaction: tx });
 
-        let channelId = IDs.Conversation.parse('EQvPJ1LaODSWXZ3xJ0P5CybWBL');
-        await Repos.Chats.addToChannel(tx, channelId, uid, input.firstName);
-
         return user;
     }
 
