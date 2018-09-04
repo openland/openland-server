@@ -52,92 +52,105 @@ export function startPushNotificationWorker() {
             // Loading user's settings
             let settings = await Repos.Users.getUserSettings(u.userId);
 
-            if (settings.desktopNotifications !== 'none') {
-
-                // Scanning updates
-                let remainingUpdates = await DB.ConversationUserEvents.findAll({
-                    where: {
-                        userId: u.userId,
-                        seq: {
-                            $gt: Math.max(u.lastPushSeq, u.readSeq)
-                        }
-                    },
-                    transaction: tx,
-                    logging: DB_SILENT
-                });
-
-                // Handling unread messages
-                let messages = remainingUpdates.filter((v) => v.eventType === 'new_message');
-                let hasMessage = false;
-                for (let m of messages) {
-                    let messageId = m.event.messageId as number;
-                    let senderId = m.event.senderId as number;
-                    let unreadCount = m.event.unreadGlobal as number;
-                    // Ignore current user
-                    if (senderId === u.userId) {
-                        continue;
-                    }
-                    let message = await DB.ConversationMessage.findById(messageId, { transaction: tx });
-                    if (!message) {
-                        continue;
-                    }
-                    let user = await DB.UserProfile.find({ where: { userId: senderId }, transaction: tx });
-                    if (!user) {
-                        continue;
-                    }
-                    let conversation = await DB.Conversation.findById(message.conversationId, { transaction: tx });
-                    if (!conversation) {
-                        continue;
-                    }
-
-                    // Filter non-private if only direct messages enabled
-                    if (settings.desktopNotifications === 'direct') {
-                        if (conversation.type !== 'private') {
-                            continue;
-                        }
-                    }
-
-                    let conversationSettings = await Repos.Chats.getConversationSettings(u.userId, conversation.id);
-
-                    if (conversationSettings.mute) {
-                        continue;
-                    }
-
-                    let mobile = conversationSettings.mobileNotifications !== 'none';
-
-                    if (conversationSettings.mobileNotifications === 'direct') {
-                        if (conversation.type !== 'private') {
-                            mobile = false;
-                        }
-                    }
-
-                    hasMessage = true;
-                    let senderName = [user.firstName, user.lastName].filter((v) => !!v).join(' ');
-                    console.log(logPrefix, 'new_push', {
-                        uid: u.userId,
-                        title: senderName,
-                        body: message.message ? message.message!! : '<file>',
-                        picture: user.picture ? buildBaseImageUrl(user.picture!!) : null,
-                        counter: unreadCount,
-                        conversationId: conversation.id,
-                        mobile: mobile,
-                    });
-                    await PushWorker.pushWork({
-                        uid: u.userId,
-                        title: senderName,
-                        body: message.message ? message.message!! : '<file>',
-                        picture: user.picture ? buildBaseImageUrl(user.picture!!) : null,
-                        counter: unreadCount,
-                        conversationId: conversation.id,
-                        mobile: mobile,
-                    }, tx);
-                }
-
-                // Save state
-                if (hasMessage) {
-                    u.lastPushNotification = new Date();
-                }
+            // Ignore user's with disabled notifications
+            if (settings.mobileNotifications === 'none' && settings.desktopNotifications === 'none') {
+                continue;
             }
+
+            // Scanning updates
+            let remainingUpdates = await DB.ConversationUserEvents.findAll({
+                where: {
+                    userId: u.userId,
+                    seq: {
+                        $gt: Math.max(u.lastPushSeq, u.readSeq)
+                    }
+                },
+                transaction: tx,
+                logging: DB_SILENT
+            });
+
+            // Handling unread messages
+            let messages = remainingUpdates.filter((v) => v.eventType === 'new_message');
+            let hasMessage = false;
+            for (let m of messages) {
+                let messageId = m.event.messageId as number;
+                let senderId = m.event.senderId as number;
+                let unreadCount = m.event.unreadGlobal as number;
+                // Ignore current user
+                if (senderId === u.userId) {
+                    continue;
+                }
+                let message = await DB.ConversationMessage.findById(messageId, { transaction: tx });
+                if (!message) {
+                    continue;
+                }
+                let user = await DB.UserProfile.find({ where: { userId: senderId }, transaction: tx });
+                if (!user) {
+                    continue;
+                }
+                let conversation = await DB.Conversation.findById(message.conversationId, { transaction: tx });
+                if (!conversation) {
+                    continue;
+                }
+
+                let sendDesktop = settings.desktopNotifications !== 'none';
+                let sendMobile = settings.mobileNotifications !== 'none';
+
+                // Filter non-private if only direct messages enabled
+                if (settings.desktopNotifications === 'direct') {
+                    if (conversation.type !== 'private') {
+                        sendDesktop = false;
+                    }
+                }
+                if (settings.mobileNotifications === 'direct') {
+                    if (conversation.type !== 'private') {
+                        sendMobile = false;
+                    }
+                }
+
+                let conversationSettings = await Repos.Chats.getConversationSettings(u.userId, conversation.id);
+
+                if (conversationSettings.mute) {
+                    continue;
+                }
+
+                if (conversationSettings.mobileNotifications === 'none') {
+                    sendMobile = false;
+                }
+
+                if (!sendMobile && !sendDesktop) {
+                    continue;
+                }
+
+                hasMessage = true;
+                let senderName = [user.firstName, user.lastName].filter((v) => !!v).join(' ');
+                console.log(logPrefix, 'new_push', {
+                    uid: u.userId,
+                    title: senderName,
+                    body: message.message ? message.message!! : '<file>',
+                    picture: user.picture ? buildBaseImageUrl(user.picture!!) : null,
+                    counter: unreadCount,
+                    conversationId: conversation.id,
+                    mobile: sendMobile,
+                    desktop: sendDesktop
+                });
+                await PushWorker.pushWork({
+                    uid: u.userId,
+                    title: senderName,
+                    body: message.message ? message.message!! : '<file>',
+                    picture: user.picture ? buildBaseImageUrl(user.picture!!) : null,
+                    counter: unreadCount,
+                    conversationId: conversation.id,
+                    mobile: sendMobile,
+                    desktop: sendDesktop
+                }, tx);
+            }
+
+            // Save state
+            if (hasMessage) {
+                u.lastPushNotification = new Date();
+            }
+
             u.lastPushSeq = u.seq;
             await u.save({ transaction: tx });
         }

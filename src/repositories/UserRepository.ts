@@ -279,6 +279,9 @@ export class UserRepository {
             if (instance.settings.desktopNotifications) {
                 settings.desktopNotifications = instance.settings.desktopNotifications as any;
             }
+            if (instance.settings.mobileNotifications) {
+                settings.mobileNotifications = instance.settings.mobileNotifications as any;
+            }
         }
         return settings;
     }
@@ -296,6 +299,9 @@ export class UserRepository {
             }
             if (res.settings.desktopNotifications) {
                 settings.desktopNotifications = res.settings.desktopNotifications as any;
+            }
+            if (res.settings.mobileNotifications) {
+                settings.mobileNotifications = res.settings.mobileNotifications as any;
             }
         }
         return settings;

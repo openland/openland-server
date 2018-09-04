@@ -10,7 +10,7 @@ import { doSimpleHash } from '../utils/hash';
 let providers = new Map<boolean, Map<string, APN.Provider>>();
 
 export function createPushWorker() {
-    let queue = new WorkQueue<{ uid: number, title: string, body: string, picture: string | null, counter: number, conversationId: number, mobile: boolean }, { result: string }>('push_sender');
+    let queue = new WorkQueue<{ uid: number, title: string, body: string, picture: string | null, counter: number, conversationId: number, mobile: boolean, desktop: boolean }, { result: string }>('push_sender');
     if (AppConfiuguration.webPush || AppConfiuguration.apple) {
         console.log('Starting push worker');
 
@@ -31,6 +31,9 @@ export function createPushWorker() {
             lock.check();
             for (let reg of registrations) {
                 if (reg.pushType === 'web-push' && AppConfiuguration.webPush) {
+                    if (!args.mobile) {
+                        continue;
+                    }
                     try {
                         let res = await WebPush.sendNotification(JSON.parse(reg.pushEndpoint), JSON.stringify({
                             title: args.title,
