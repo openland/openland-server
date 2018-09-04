@@ -691,8 +691,8 @@ export class ChatsRepository {
                 existing.unread--;
                 existingGlobal.unread--;
                 existingGlobal.seq++;
-                await existing.save({transaction: tx});
-                await existingGlobal.save({transaction: tx});
+                await existing.save({ transaction: tx });
+                await existingGlobal.save({ transaction: tx });
 
                 await DB.ConversationUserEvents.create({
                     seq: existingGlobal.seq,
@@ -703,7 +703,7 @@ export class ChatsRepository {
                         unread: existing.unread,
                         unreadGlobal: existingGlobal.unread
                     }
-                }, {transaction: tx});
+                }, { transaction: tx });
             }
         }
 
@@ -940,6 +940,16 @@ export class ChatsRepository {
     }
 
     async addToChannel(tx: Transaction, channelId: number, uid: number, firstName: string) {
+        let existing = await DB.ConversationGroupMembers.find({
+            where: {
+                conversationId: channelId,
+                userId: uid,
+            },
+            transaction: tx,
+        });
+        if (existing) {
+            return;
+        }
         await DB.ConversationGroupMembers.create({
             conversationId: channelId,
             invitedById: uid,
