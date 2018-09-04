@@ -1,14 +1,19 @@
-FROM node:8.9.4-alpine
+FROM node:8.9.4
 
 WORKDIR /app
 
-RUN apk add --no-cache tini libpq python3
-ENTRYPOINT ["/sbin/tini", "--"]
+ENV TINI_VERSION v0.18.0
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
+RUN chmod +x /tini
+ENTRYPOINT ["/tini", "--"]
+
+RUN apt-get update && apt-get install libpq-dev python && rm -rf /var/lib/apt/lists/*
 
 ADD package.json /app/
 COPY node_modules/ /app/node_modules/
-COPY build/ /app/
 RUN yarn install
+
+COPY build/ /app/
 
 EXPOSE 9000
 ENV NODE_ENV=production
