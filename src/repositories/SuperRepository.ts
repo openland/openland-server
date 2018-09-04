@@ -84,7 +84,7 @@ export class SuperRepository {
             isOwner: true
         }, { transaction: tx });
 
-        let user = await DB.UserProfile.findById(uid, { transaction: tx, lock: tx.LOCK.UPDATE });
+        let user = await DB.UserProfile.find({ where: { userId: uid }, transaction: tx, lock: tx.LOCK.UPDATE });
         if (user && !user.primaryOrganization) {
             user.primaryOrganization = organizationId;
             user.save({ transaction: tx });
