@@ -246,7 +246,7 @@ export class UserRepository {
     async getUserLastSeen(uid: number, tx: Transaction) {
         let user = await DB.User.findById(uid, { logging: DB_SILENT });
         let now = Date.now();
-        if (!user) {
+        if (!user || user.status !== 'ACTIVATED') {
             return null;
         } else {
             if (user.lastSeen) {
