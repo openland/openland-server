@@ -8,7 +8,7 @@ import { Emails } from '../services/Emails';
 
 export class SuperRepository {
     async fetchAllOrganizations() {
-        return await DB.Organization.findAll({order: [['createdAt', 'DESC']]});
+        return await DB.Organization.findAll({ order: [['createdAt', 'DESC']] });
     }
     async fetchById(id: number, tx?: Transaction) {
         let res = await DB.Organization.findById(id, { transaction: tx });
@@ -83,6 +83,13 @@ export class SuperRepository {
             orgId: organizationId,
             isOwner: true
         }, { transaction: tx });
+
+        let user = await DB.UserProfile.findById(uid, { transaction: tx, lock: tx.LOCK.UPDATE });
+        if (user && !user.primaryOrganization) {
+            user.primaryOrganization = organizationId;
+            user.save({ transaction: tx });
+        }
+
         return this.fetchById(organizationId, tx);
     }
 
