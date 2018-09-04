@@ -24,7 +24,6 @@ export function startPushNotificationWorker() {
 
             let logPrefix = 'push ' + u.userId;
 
-            console.log(logPrefix, 'last seen', lastSeen);
             // Ignore online or never-online users
             if (lastSeen === null) {
                 continue;
@@ -32,32 +31,26 @@ export function startPushNotificationWorker() {
 
             // Pause notifications till 1 minute passes from last active timeout
             if (lastSeen > (now - 60 * 1000)) {
-                console.log(logPrefix, 'Pause notifications till 1 minute passes from last active timeout');
                 continue;
             }
 
             // Ignore read updates
             if (u.readSeq === u.seq) {
-                console.log(logPrefix, 'Ignore read updates');
                 continue;
             }
 
             // Ignore never opened apps
             if (u.readSeq === null) {
-                console.log(logPrefix, 'Ignore never opened apps');
                 continue;
             }
 
             // Ignore already processed updates
             if (u.lastPushSeq === u.seq) {
-                console.log(logPrefix, 'Ignore already processed updates');
                 continue;
             }
 
             // Loading user's settings
             let settings = await Repos.Users.getUserSettings(u.userId);
-
-            console.log(settings);
 
             if (settings.desktopNotifications !== 'none') {
 
