@@ -602,6 +602,17 @@ export class ChatsRepository {
         }
 
         message.message = newMessage.message;
+        if (newMessage.file) {
+            message.fileId = newMessage.file;
+        }
+        if (newMessage.fileMetadata) {
+            (message as any).changed('fileMetadata', true);
+            message.fileMetadata = newMessage.fileMetadata;
+        }
+        if (newMessage.filePreview) {
+            (message as any).changed('extras', true);
+            message.extras.filePreview = newMessage.filePreview;
+        }
 
         if (markAsEdited) {
             (message as any).changed('extras', true);

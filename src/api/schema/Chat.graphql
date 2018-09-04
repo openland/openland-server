@@ -313,7 +313,7 @@ input UpdateGroupInput {
 extend type Mutation {
     superCreateChat(title: String!): Conversation!
     alphaSendMessage(conversationId: ID!, message: String, file: String, repeatKey: String): ConversationEventMessage!
-    alphaEditMessage(messageId: ID!, message: String): ConversationEventEditMessage!
+    alphaEditMessage(messageId: ID!, message: String, file: String): ConversationEventEditMessage!
     alphaReadChat(conversationId: ID!, messageId: ID!): ChatReadResult!
     alphaGlobalRead(toSeq: Int): String!
 
