@@ -13,6 +13,7 @@ import { Repos } from '.';
 export interface Settings {
     emailFrequency: '1hour' | '15min' | 'never';
     desktopNotifications: 'all' | 'direct' | 'none';
+    mobileNotifications: 'all' | 'direct' | 'none';
 }
 
 class UserSettingsReader {
@@ -268,7 +269,8 @@ export class UserRepository {
     getUserSettingsFromInstance(instance: UserSettings) {
         let settings: Settings = {
             emailFrequency: '1hour',
-            desktopNotifications: 'all'
+            desktopNotifications: 'all',
+            mobileNotifications: 'all'
         };
         if (instance) {
             if (instance.settings.emailFrequency) {
@@ -285,7 +287,8 @@ export class UserRepository {
         let res = await DB.UserSettings.find({ where: { userId: uid } });
         let settings: Settings = {
             emailFrequency: '1hour',
-            desktopNotifications: 'all'
+            desktopNotifications: 'all',
+            mobileNotifications: 'all'
         };
         if (res) {
             if (res.settings.emailFrequency) {

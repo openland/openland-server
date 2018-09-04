@@ -112,6 +112,7 @@ export const Resolver = {
         primaryEmail: async (src: UserSettings) => (await DB.User.findById(src.userId))!!.email,
         emailFrequency: (src: UserSettings) => Repos.Users.getUserSettingsFromInstance(src).emailFrequency,
         desktopNotifications: (src: UserSettings) => Repos.Users.getUserSettingsFromInstance(src).desktopNotifications,
+        mobileNotifications: (src: UserSettings) => Repos.Users.getUserSettingsFromInstance(src).mobileNotifications,
     },
     Query: {
         me: async function (_obj: any, _params: {}, context: CallContext) {
@@ -282,7 +283,7 @@ export const Resolver = {
             await Repos.Users.markUserOnline(context.uid, args.timeout, context.tid!!, args.platform);
             return 'ok';
         },
-        updateSettings: withUser<{ settings: { emailFrequency?: string | null, desktopNotifications?: string | null } }>(async (args, uid) => {
+        updateSettings: withUser<{ settings: { emailFrequency?: string | null, desktopNotifications?: string | null, mobileNotifications?: string | null } }>(async (args, uid) => {
             return await DB.tx(async (tx) => {
                 let settings = await DB.UserSettings.find({ where: { userId: uid }, transaction: tx, lock: 'UPDATE' });
                 if (!settings) {
@@ -298,6 +299,12 @@ export const Resolver = {
                     settings.settings = {
                         ...settings.settings,
                         desktopNotifications: args.settings.desktopNotifications
+                    };
+                }
+                if (args.settings.mobileNotifications) {
+                    settings.settings = {
+                        ...settings.settings,
+                        mobileNotifications: args.settings.mobileNotifications
                     };
                 }
                 await settings.save({ transaction: tx });
