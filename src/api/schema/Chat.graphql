@@ -202,6 +202,11 @@ type UserEventEditMessage implements UserEvent {
     message: ConversationMessage!
 }
 
+type UserEventDeleteMessage implements UserEvent {
+    seq: Int!
+    message: ConversationMessage!
+}
+
 type UserEventOwnMessage implements UserEvent {
     seq: Int!
     conversationId: ID!
@@ -314,6 +319,7 @@ extend type Mutation {
     superCreateChat(title: String!): Conversation!
     alphaSendMessage(conversationId: ID!, message: String, file: String, repeatKey: String): ConversationEventMessage!
     alphaEditMessage(messageId: ID!, message: String, file: String): ConversationEventEditMessage!
+    alphaDeleteMessage(messageId: ID!): ConversationEventDelete!
     alphaReadChat(conversationId: ID!, messageId: ID!): ChatReadResult!
     alphaGlobalRead(toSeq: Int): String!
 

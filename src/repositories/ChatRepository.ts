@@ -18,6 +18,7 @@ import { IDs } from '../api/utils/IDs';
 
 export type ChatEventType =
     'new_message' |
+    'delete_message' |
     'title_change' |
     'new_members' |
     'kick_member' |
@@ -27,6 +28,7 @@ export type ChatEventType =
 
 export type UserEventType =
     'new_message' |
+    'delete_message' |
     'conversation_read' |
     'title_change' |
     'new_members_count' |
@@ -636,6 +638,93 @@ export class ChatsRepository {
         return await Repos.Chats.addChatEvent(
             message.conversationId,
             'edit_message',
+            {
+                messageId: message.id
+            },
+            tx
+        );
+    }
+
+    async deleteMessage(tx: Transaction, messageId: number, uid: number): Promise<ConversationEvent> {
+        let message = await DB.ConversationMessage.findById(messageId, { transaction: tx });
+
+        if (!message) {
+            throw new Error('Message not found');
+        }
+
+        if (message.userId !== uid) {
+            throw new AccessDeniedError();
+        }
+
+        //
+        //  Update counters
+        //
+
+        let members = await this.getConversationMembers(message.conversationId, tx);
+
+        for (let member of members) {
+            if (member === uid) {
+                continue;
+            }
+
+            let existing = await DB.ConversationUserState.find({
+                where: {
+                    userId: member,
+                    conversationId: message.conversationId
+                },
+                transaction: tx,
+                lock: tx.LOCK.UPDATE
+            });
+            let existingGlobal = await DB.ConversationsUserGlobal.find({
+                where: {
+                    userId: member
+                },
+                transaction: tx,
+                lock: tx.LOCK.UPDATE
+            });
+
+            if (!existing || !existingGlobal) {
+                throw Error('Internal inconsistency');
+            }
+
+            if (existing.readDate < message.id) {
+                existing.unread--;
+                existingGlobal.unread--;
+                existingGlobal.seq++;
+                await existing.save({transaction: tx});
+                await existingGlobal.save({transaction: tx});
+
+                await DB.ConversationUserEvents.create({
+                    seq: existingGlobal.seq,
+                    userId: member,
+                    eventType: 'conversation_read',
+                    event: {
+                        conversationId: message.conversationId,
+                        unread: existing.unread,
+                        unreadGlobal: existingGlobal.unread
+                    }
+                }, {transaction: tx});
+            }
+        }
+
+        //
+        // Delete message
+        //
+
+        await message.destroy();
+        await Repos.Chats.addUserEventsInConversation(
+            message.conversationId,
+            uid,
+            'delete_message',
+            {
+                messageId: message.id
+            },
+            tx
+        );
+
+        return await Repos.Chats.addChatEvent(
+            message.conversationId,
+            'delete_message',
             {
                 messageId: message.id
             },

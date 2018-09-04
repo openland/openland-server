@@ -434,6 +434,8 @@ export const Resolver = {
                 return 'UserEventEditMessage';
             } else if (obj.eventType === 'chat_update') {
                 return 'UserEventConversationUpdate';
+            } else if (obj.eventType === 'delete_message') {
+                return 'UserEventDeleteMessage';
             }
             throw Error('Unknown type');
         }
@@ -463,6 +465,10 @@ export const Resolver = {
         membersCount: (src: ConversationUserEvents) => src.event.membersCount
     },
     UserEventEditMessage: {
+        seq: (src: ConversationUserEvents) => src.seq,
+        message: (src: ConversationUserEvents) => DB.ConversationMessage.findById(src.event.messageId as any)
+    },
+    UserEventDeleteMessage: {
         seq: (src: ConversationUserEvents) => src.seq,
         message: (src: ConversationUserEvents) => DB.ConversationMessage.findById(src.event.messageId as any)
     },
@@ -1177,6 +1183,13 @@ export const Resolver = {
                     },
                     true
                 );
+            });
+        }),
+        alphaDeleteMessage: withAccount<{ messageId: string }>(async (args, uid) => {
+            let messageId = IDs.ConversationMessage.parse(args.messageId);
+
+            return await DB.txStable(async (tx) => {
+                return await Repos.Chats.deleteMessage(tx, messageId, uid);
             });
         }),
         alphaSetTyping: withAccount<{ conversationId: string, type: string }>(async (args, uid) => {
