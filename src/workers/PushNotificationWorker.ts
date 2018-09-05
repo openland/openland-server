@@ -160,7 +160,8 @@ export function startPushNotificationWorker() {
                     conversationId: conversation.id,
                     mobile: sendMobile,
                     desktop: sendDesktop,
-                    mobileAlert: settings.mobileAlert
+                    mobileAlert: settings.mobileAlert,
+                    mobileIncludeText: settings.mobileIncludeText
                 };
 
                 console.log(logPrefix, 'new_push', push);

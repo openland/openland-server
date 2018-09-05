@@ -10,7 +10,7 @@ import { doSimpleHash } from '../utils/hash';
 let providers = new Map<boolean, Map<string, APN.Provider>>();
 
 export function createPushWorker() {
-    let queue = new WorkQueue<{ uid: number, title: string, body: string, picture: string | null, counter: number, conversationId: number, mobile: boolean, desktop: boolean, mobileAlert: boolean }, { result: string }>('push_sender');
+    let queue = new WorkQueue<{ uid: number, title: string, body: string, picture: string | null, counter: number, conversationId: number, mobile: boolean, desktop: boolean, mobileAlert: boolean, mobileIncludeText: boolean }, { result: string }>('push_sender');
     if (AppConfiuguration.webPush || AppConfiuguration.apple) {
         console.log('Starting push worker');
 
@@ -29,6 +29,9 @@ export function createPushWorker() {
                 }
             });
             lock.check();
+
+            let mobileBody = args.mobileIncludeText ? args.body : 'New message';
+
             for (let reg of registrations) {
                 if (reg.pushType === 'web-push' && AppConfiuguration.webPush) {
                     if (!args.mobile) {
@@ -76,13 +79,16 @@ export function createPushWorker() {
                                 not.sound = 'default';
                             }
                             not.expiry = Math.floor(Date.now() / 1000) + 3600;
-                            not.alert = { title: args.title, body: args.body };
+                            not.alert = {
+                                title: args.title,
+                                body: mobileBody
+                            };
                             not.badge = args.counter;
                             not.collapseId = IDs.Conversation.serialize(args.conversationId);
                             not.payload = JSON.stringify({
                                 ['conversationId']: IDs.Conversation.serialize(args.conversationId),
                                 ['title']: args.title,
-                                ['message']: args.body,
+                                ['message']: mobileBody,
                                 ['id']: doSimpleHash(IDs.Conversation.serialize(args.conversationId)).toString(),
                                 ...(args.picture ? { ['picture']: args.picture! } : {}),
                             });
@@ -110,13 +116,13 @@ export function createPushWorker() {
                                 collapseKey: IDs.Conversation.serialize(args.conversationId),
                                 notification: {
                                     title: args.title,
-                                    body: args.body,
+                                    body: mobileBody,
                                     ...(args.mobileAlert === true ? { sound: 'default' } : {})
                                 },
                                 data: {
                                     ['conversationId']: IDs.Conversation.serialize(args.conversationId),
                                     ['title']: args.title,
-                                    ['message']: args.body,
+                                    ['message']: mobileBody,
                                     ['id']: doSimpleHash(IDs.Conversation.serialize(args.conversationId)).toString(),
                                     ...(args.picture ? { ['picture']: args.picture! } : {}),
                                 },
