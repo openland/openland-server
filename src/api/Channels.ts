@@ -738,6 +738,8 @@ export const Resolver = {
 
                 if (args.query) {
                     clauses.push({ match_phrase_prefix: { title: args.query } });
+                } else {
+                    clauses.push({ term: { featured: true } });
                 }
 
                 if (args.sort) {
