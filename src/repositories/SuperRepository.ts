@@ -39,12 +39,27 @@ export class SuperRepository {
     }
 
     async activateOrganization(id: number) {
-        return await DB.tx(async (tx) => {
+        return await DB.txStable(async (tx) => {
             let org = await this.fetchById(id, tx);
             if (org.status !== 'ACTIVATED') {
                 org.status = 'ACTIVATED';
                 await org.save({ transaction: tx });
                 await Emails.sendAccountActivatedEmail(org.id!!, tx);
+
+                let members = await DB.OrganizationMember.findAll({
+                    where: { orgId: id },
+                    include: [{
+                        model: DB.User,
+                        as: 'user'
+                    }],
+                    transaction: tx
+                });
+                for (let m of members) {
+                    m.user.status = 'ACTIVATED';
+                    m.user.save({ transaction: tx });
+
+                    Repos.Chats.addToInitialChannel(m.user.id!, tx);
+                }
             }
             return org;
         });

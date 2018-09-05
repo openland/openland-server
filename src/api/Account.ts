@@ -193,6 +193,9 @@ export const Resolver = {
                     if (user) {
                         user.status = 'ACTIVATED';
                         await user.save({ transaction: tx });
+
+                        Repos.Chats.addToInitialChannel(user.id!, tx);
+
                     }
                 }
 
@@ -247,6 +250,8 @@ export const Resolver = {
                     if (user) {
                         user.status = 'ACTIVATED';
                         await user.save({ transaction: tx });
+                        Repos.Chats.addToInitialChannel(user.id!, tx);
+
                     }
                 }
 
@@ -308,14 +313,8 @@ export const Resolver = {
             }
         }>(async (args, uid) => {
             return await DB.txStable(async (tx) => {
-                let isNewUser = !(await DB.UserProfile.find({ where: { userId: uid }, transaction: tx }));
                 let userProfile = await Repos.Users.createUser(uid, args.user, tx);
                 let organization = await Repos.Organizations.createOrganization(uid, { ...args.organization, personal: false }, tx);
-
-                if (isNewUser) {
-                    let channelId = IDs.Conversation.parse('EQvPJ1LaODSWXZ3xJ0P5CybWBL');
-                    await Repos.Chats.addToChannel(tx, channelId, uid, args.user.firstName);
-                }
 
                 return {
                     user: userProfile,

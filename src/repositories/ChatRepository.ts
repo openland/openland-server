@@ -1,4 +1,4 @@
-import { DB } from '../tables';
+import { DB, User } from '../tables';
 import { SuperBus } from '../modules/SuperBus';
 import { ConversationEventAttributes, ConversationEvent } from '../tables/ConversationEvent';
 import { ConversationUserGlobal } from '../tables/ConversationsUserGlobal';
@@ -937,6 +937,12 @@ export class ChatsRepository {
 
             return conv.seq;
         }, exTx);
+    }
+
+    async addToInitialChannel(uid: number, tx: Transaction) {
+        let channelId = IDs.Conversation.parse('EQvPJ1LaODSWXZ3xJ0P5CybWBL');
+        let profile = await DB.UserProfile.find({ where: { userId: uid }, transaction: tx });
+        await Repos.Chats.addToChannel(tx, channelId, uid, profile!!.firstName);
     }
 
     async addToChannel(tx: Transaction, channelId: number, uid: number, firstName: string) {
