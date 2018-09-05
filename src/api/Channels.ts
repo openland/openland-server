@@ -753,7 +753,7 @@ export const Resolver = {
                 index: 'channels',
                 type: 'channel',
                 size: args.first,
-                from: args.page ? ((args.page - 1) * args.first) : 0,
+                from: args.after ? parseInt(args.after, 10) : (args.page ? ((args.page - 1) * args.first) : 0),
                 body: {
                     sort: sort,
                     query: { bool: { must: clauses } }

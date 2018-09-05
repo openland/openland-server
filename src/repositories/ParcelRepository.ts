@@ -126,7 +126,7 @@ export class ParcelRepository {
             index: 'parcels',
             type: 'parcel',
             size: first,
-            from: page ? ((page - 1) * first) : 0,
+            from: after ? parseInt(after, 10) : (page ? ((page - 1) * first) : 0),
             body: {
                 query: { bool: { must: clauses } },
                 sort: sort

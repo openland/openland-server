@@ -172,7 +172,7 @@ export const Resolver = {
                 index: 'wall_posts',
                 type: 'wall_post',
                 size: args.first,
-                from: args.page ? ((args.page - 1) * args.first) : 0,
+                from: args.after ? parseInt(args.after, 10) : (args.page ? ((args.page - 1) * args.first) : 0),
                 body: {
                     query: {bool: {must: clauses}}
                 }

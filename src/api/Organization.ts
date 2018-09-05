@@ -326,7 +326,7 @@ export const Resolver = {
                 index: 'organization_listings',
                 type: 'organization_listing',
                 size: args.first,
-                from: args.page ? ((args.page - 1) * args.first) : 0,
+                from: args.after ? parseInt(args.after, 10) : (args.page ? ((args.page - 1) * args.first) : 0),
                 body: {
                     query: { bool: { must: clauses } }
                 }

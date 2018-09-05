@@ -404,12 +404,11 @@ export const Resolver = {
                 sort = [{ 'permitCreated': { 'order': 'desc' } }];
                 clauses.push({ exists: { field: 'permitCreated' } });
             }
-
             let hits = await ElasticClient.search({
                 index: 'permits',
                 type: 'permit',
                 size: args.first,
-                from: args.page ? (args.page!! * args.first) : 0,
+                from: args.after ? parseInt(args.after, 10) : (args.page ? (args.page!! * args.first) : 0),
                 body: {
                     query: { bool: { must: clauses } },
                     sort: sort
