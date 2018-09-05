@@ -12,6 +12,7 @@ export interface Settings {
     emailFrequency: '1hour' | '15min' | 'never';
     desktopNotifications: 'all' | 'direct' | 'none';
     mobileNotifications: 'all' | 'direct' | 'none';
+    mobileAlert: boolean;
 }
 
 class UserSettingsReader {
@@ -265,7 +266,8 @@ export class UserRepository {
         let settings: Settings = {
             emailFrequency: '1hour',
             desktopNotifications: 'all',
-            mobileNotifications: 'all'
+            mobileNotifications: 'all',
+            mobileAlert: true
         };
         if (instance) {
             if (instance.settings.emailFrequency) {
@@ -274,8 +276,8 @@ export class UserRepository {
             if (instance.settings.desktopNotifications) {
                 settings.desktopNotifications = instance.settings.desktopNotifications as any;
             }
-            if (instance.settings.mobileNotifications) {
-                settings.mobileNotifications = instance.settings.mobileNotifications as any;
+            if (instance.settings.mobileAlert !== undefined) {
+                settings.mobileAlert = instance.settings.mobileAlert as any;
             }
         }
         return settings;
@@ -286,7 +288,8 @@ export class UserRepository {
         let settings: Settings = {
             emailFrequency: '1hour',
             desktopNotifications: 'all',
-            mobileNotifications: 'all'
+            mobileNotifications: 'all',
+            mobileAlert: true
         };
         if (res) {
             if (res.settings.emailFrequency) {
@@ -297,6 +300,9 @@ export class UserRepository {
             }
             if (res.settings.mobileNotifications) {
                 settings.mobileNotifications = res.settings.mobileNotifications as any;
+            }
+            if (res.settings.mobileAlert !== undefined) {
+                settings.mobileAlert = res.settings.mobileAlert as any;
             }
         }
         return settings;

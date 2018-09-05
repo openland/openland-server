@@ -14,6 +14,7 @@ input UpdateSettingsInput {
     emailFrequency: EmailFrequency
     desktopNotifications: NotificationMessages
     mobileNotifications: NotificationMessages
+    mobileAlert: Boolean
     mute: Boolean
 }
 
@@ -22,7 +23,8 @@ type Settings {
     primaryEmail: String!
     emailFrequency: EmailFrequency!
     desktopNotifications: NotificationMessages!
-    mobileNotifications: NotificationMessages
+    mobileNotifications: NotificationMessages!
+    mobileAlert: Boolean!
     mute: Boolean    
 }
 
