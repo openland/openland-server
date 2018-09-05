@@ -939,6 +939,12 @@ export class ChatsRepository {
         }, exTx);
     }
 
+    async addToInitialChannel(uid: number, tx: Transaction) {
+        let channelId = IDs.Conversation.parse('EQvPJ1LaODSWXZ3xJ0P5CybWBL');
+        let profile = await DB.UserProfile.find({ where: { userId: uid }, transaction: tx });
+        await Repos.Chats.addToChannel(tx, channelId, uid, profile!!.firstName);
+    }
+
     async addToChannel(tx: Transaction, channelId: number, uid: number, firstName: string) {
         let existing = await DB.ConversationGroupMembers.find({
             where: {
