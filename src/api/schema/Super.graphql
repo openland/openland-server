@@ -166,6 +166,15 @@ extend type Query {
     # debugTest(lol: ID! @userID, input: TestInput!): ID @userID # @withPermission(permission: "software-developer") @withAuth
 }
 
+type ChatStats {
+    messagesSent: Int!
+    usersActive: Int!
+}
+
+extend type Query {
+    statsChats(fromDate: String!, toDate: String!): ChatStats! @withPermissions(permission: ["super-admin", "software-developer"]) @withAuth
+}
+
 #
 # Subscriptions
 #

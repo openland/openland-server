@@ -1,4 +1,4 @@
-import { withPermissionOptional, withUser } from './utils/Resolvers';
+import { withAny, withPermissionOptional, withUser } from './utils/Resolvers';
 import { DB } from '../tables';
 import { normalizeCapitalized } from '../modules/Normalizer';
 import { IDs } from './utils/IDs';
@@ -6,6 +6,7 @@ import { delay } from '../utils/timer';
 import { Emails } from '../services/Emails';
 import { NotificationsBot } from '../services/NotificationsBot';
 import { Services } from '../services';
+import { UserError } from '../errors/UserError';
 
 export const Resolver = {
     Query: {
@@ -29,6 +30,42 @@ export const Resolver = {
         debugImagePreview: withPermissionOptional<{ uuid: string }>(['software-developer'], async (args, ctx) => {
             return await Services.UploadCare.fetchLowResPreview(args.uuid);
         }),
+
+        statsChats: withAny<{fromDate: string, toDate: string}>(async args => {
+            let {fromDate, toDate} = args;
+
+            let _fromDate = parseInt(fromDate, 10);
+            let _toDate = parseInt(toDate, 10);
+
+            if (isNaN(_fromDate) || isNaN(_toDate)) {
+                throw new UserError('toDate & fromDate must be numbers');
+            }
+
+            if (!(toDate > fromDate)) {
+                throw new UserError('toDate must be greater then fromDate');
+            }
+
+            let messages = await DB.ConversationMessage.count({
+                where: {
+                    createdAt: { $gte: _fromDate, $lte: _toDate }
+                },
+                paranoid: false
+            } as any);
+
+            let activeUsers = await DB.ConversationMessage.count({
+                distinct: true,
+                where: {
+                    createdAt: { $gte: _fromDate, $lte: _toDate }
+                },
+                col: 'userId',
+                paranoid: false
+            } as any);
+
+            return {
+                messagesSent: messages,
+                usersActive: activeUsers
+            };
+        })
 
         // debugTest: (src: any, args: any) => {
         //     console.log(args);
