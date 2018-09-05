@@ -242,11 +242,11 @@ export class SelectBuilder<TInstance, TAttributes> {
                 };
             }),
             pageInfo: {
-                hasNextPage: ids.length === this.limitValue,
+                hasNextPage: (total - (offset + 1)) >= this.limitValue, // ids.length === this.limitValue,
                 hasPreviousPage: false,
 
                 itemsCount: total,
-                pagesCount: Math.min(Math.floor(8000 / this.limitValue), Math.floor(total / this.limitValue)),
+                pagesCount: Math.min(Math.floor(8000 / this.limitValue), Math.ceil(total / this.limitValue)),
                 currentPage: Math.floor(offset / this.limitValue) + 1,
                 openEnded: true
             },
