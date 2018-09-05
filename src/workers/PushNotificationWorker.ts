@@ -142,7 +142,8 @@ export function startPushNotificationWorker() {
                     counter: unreadCount,
                     conversationId: conversation.id,
                     mobile: sendMobile,
-                    desktop: sendDesktop
+                    desktop: sendDesktop,
+                    mobileAlert: settings.mobileAlert
                 }, tx);
             }
 

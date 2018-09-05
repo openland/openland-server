@@ -10,7 +10,7 @@ import { doSimpleHash } from '../utils/hash';
 let providers = new Map<boolean, Map<string, APN.Provider>>();
 
 export function createPushWorker() {
-    let queue = new WorkQueue<{ uid: number, title: string, body: string, picture: string | null, counter: number, conversationId: number, mobile: boolean, desktop: boolean }, { result: string }>('push_sender');
+    let queue = new WorkQueue<{ uid: number, title: string, body: string, picture: string | null, counter: number, conversationId: number, mobile: boolean, desktop: boolean, mobileAlert: boolean }, { result: string }>('push_sender');
     if (AppConfiuguration.webPush || AppConfiuguration.apple) {
         console.log('Starting push worker');
 
@@ -72,6 +72,9 @@ export function createPushWorker() {
                                 }));
                             }
                             var not = new APN.Notification();
+                            if (args.mobileAlert === true) {
+                                not.sound = 'default';
+                            }
                             not.expiry = Math.floor(Date.now() / 1000) + 3600;
                             not.alert = { title: args.title, body: args.body };
                             not.badge = args.counter;
@@ -108,6 +111,7 @@ export function createPushWorker() {
                                 notification: {
                                     title: args.title,
                                     body: args.body,
+                                    ...(args.mobileAlert === true ? { sound: 'default' } : {})
                                 },
                                 data: {
                                     ['conversationId']: IDs.Conversation.serialize(args.conversationId),
