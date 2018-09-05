@@ -194,7 +194,7 @@ export const Resolver = {
                         user.status = 'ACTIVATED';
                         await user.save({ transaction: tx });
 
-                        Repos.Chats.addToInitialChannel(user.id!, tx);
+                        await Repos.Chats.addToInitialChannel(user.id!, tx);
 
                     }
                 }
@@ -250,7 +250,7 @@ export const Resolver = {
                     if (user) {
                         user.status = 'ACTIVATED';
                         await user.save({ transaction: tx });
-                        Repos.Chats.addToInitialChannel(user.id!, tx);
+                        await Repos.Chats.addToInitialChannel(user.id!, tx);
 
                     }
                 }
