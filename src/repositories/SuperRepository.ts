@@ -58,7 +58,7 @@ export class SuperRepository {
                     m.user.status = 'ACTIVATED';
                     m.user.save({ transaction: tx });
 
-                    Repos.Chats.addToInitialChannel(m.user.id!, tx);
+                    await Repos.Chats.addToInitialChannel(m.user.id!, tx);
                 }
             }
             return org;

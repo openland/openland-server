@@ -597,7 +597,7 @@ export const Resolver = {
                     }
 
                     await user.save({ transaction: tx });
-                    Repos.Chats.addToInitialChannel(user.id!, tx);
+                    await Repos.Chats.addToInitialChannel(user.id!, tx);
 
                 }
 
