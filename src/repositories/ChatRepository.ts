@@ -1,4 +1,4 @@
-import { DB, User } from '../tables';
+import { DB } from '../tables';
 import { SuperBus } from '../modules/SuperBus';
 import { ConversationEventAttributes, ConversationEvent } from '../tables/ConversationEvent';
 import { ConversationUserGlobal } from '../tables/ConversationsUserGlobal';
