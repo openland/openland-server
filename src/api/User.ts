@@ -114,6 +114,7 @@ export const Resolver = {
         desktopNotifications: (src: UserSettings) => Repos.Users.getUserSettingsFromInstance(src).desktopNotifications,
         mobileNotifications: (src: UserSettings) => Repos.Users.getUserSettingsFromInstance(src).mobileNotifications,
         mobileAlert: (src: UserSettings) => Repos.Users.getUserSettingsFromInstance(src).mobileAlert,
+        mobileIncludeText: (src: UserSettings) => Repos.Users.getUserSettingsFromInstance(src).mobileIncludeText,
     },
     Query: {
         me: async function (_obj: any, _params: {}, context: CallContext) {
@@ -284,7 +285,7 @@ export const Resolver = {
             await Repos.Users.markUserOnline(context.uid, args.timeout, context.tid!!, args.platform);
             return 'ok';
         },
-        updateSettings: withUser<{ settings: { emailFrequency?: string | null, desktopNotifications?: string | null, mobileNotifications?: string | null, mobileAlert?: boolean|null } }>(async (args, uid) => {
+        updateSettings: withUser<{ settings: { emailFrequency?: string | null, desktopNotifications?: string | null, mobileNotifications?: string | null, mobileAlert?: boolean|null, mobileIncludeText?: boolean|null } }>(async (args, uid) => {
             return await DB.tx(async (tx) => {
                 let settings = await DB.UserSettings.find({ where: { userId: uid }, transaction: tx, lock: 'UPDATE' });
                 if (!settings) {
@@ -312,6 +313,18 @@ export const Resolver = {
                     settings.settings = {
                         ...settings.settings,
                         mobileAlert: args.settings.mobileAlert as boolean
+                    };
+                }
+                if (args.settings.mobileAlert !== null) {
+                    settings.settings = {
+                        ...settings.settings,
+                        mobileAlert: args.settings.mobileAlert as boolean
+                    };
+                }
+                if (args.settings.mobileIncludeText !== null) {
+                    settings.settings = {
+                        ...settings.settings,
+                        mobileIncludeText: args.settings.mobileIncludeText as boolean
                     };
                 }
                 await settings.save({ transaction: tx });

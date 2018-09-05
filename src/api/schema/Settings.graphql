@@ -15,6 +15,7 @@ input UpdateSettingsInput {
     desktopNotifications: NotificationMessages
     mobileNotifications: NotificationMessages
     mobileAlert: Boolean
+    mobileIncludeText: Boolean
     mute: Boolean
 }
 
@@ -25,6 +26,7 @@ type Settings {
     desktopNotifications: NotificationMessages!
     mobileNotifications: NotificationMessages!
     mobileAlert: Boolean!
+    mobileIncludeText: Boolean!
     mute: Boolean    
 }
 

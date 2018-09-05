@@ -13,6 +13,7 @@ export interface Settings {
     desktopNotifications: 'all' | 'direct' | 'none';
     mobileNotifications: 'all' | 'direct' | 'none';
     mobileAlert: boolean;
+    mobileIncludeText: boolean;
 }
 
 class UserSettingsReader {
@@ -267,7 +268,8 @@ export class UserRepository {
             emailFrequency: '1hour',
             desktopNotifications: 'all',
             mobileNotifications: 'all',
-            mobileAlert: true
+            mobileAlert: true,
+            mobileIncludeText: true
         };
         if (instance) {
             if (instance.settings.emailFrequency) {
@@ -276,8 +278,14 @@ export class UserRepository {
             if (instance.settings.desktopNotifications) {
                 settings.desktopNotifications = instance.settings.desktopNotifications as any;
             }
+            if (instance.settings.mobileNotifications) {
+                settings.mobileNotifications = instance.settings.mobileNotifications as any;
+            }
             if (instance.settings.mobileAlert !== undefined) {
                 settings.mobileAlert = instance.settings.mobileAlert as any;
+            }
+            if (instance.settings.mobileIncludeText !== undefined) {
+                settings.mobileIncludeText = instance.settings.mobileIncludeText as any;
             }
         }
         return settings;
@@ -289,7 +297,8 @@ export class UserRepository {
             emailFrequency: '1hour',
             desktopNotifications: 'all',
             mobileNotifications: 'all',
-            mobileAlert: true
+            mobileAlert: true,
+            mobileIncludeText: true
         };
         if (res) {
             if (res.settings.emailFrequency) {
@@ -303,6 +312,9 @@ export class UserRepository {
             }
             if (res.settings.mobileAlert !== undefined) {
                 settings.mobileAlert = res.settings.mobileAlert as any;
+            }
+            if (res.settings.mobileIncludeText !== undefined) {
+                settings.mobileIncludeText = res.settings.mobileIncludeText as any;
             }
         }
         return settings;
