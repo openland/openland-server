@@ -84,8 +84,12 @@ export function startPushNotificationWorker() {
                 if (!message) {
                     continue;
                 }
-                let user = await DB.UserProfile.find({ where: { userId: senderId }, transaction: tx });
-                if (!user) {
+                let sender = await DB.UserProfile.find({ where: { userId: senderId }, transaction: tx });
+                if (!sender) {
+                    continue;
+                }
+                let receiver = await DB.UserProfile.find({ where: { userId: u.userId }, transaction: tx });
+                if (!receiver) {
                     continue;
                 }
                 let conversation = await DB.Conversation.findById(message.conversationId, { transaction: tx });
@@ -122,29 +126,45 @@ export function startPushNotificationWorker() {
                     continue;
                 }
 
+                let receiverPrimaryOrg = receiver.primaryOrganization;
+                let chatTitle = await Repos.Chats.getConversationTitle(conversation.id, receiverPrimaryOrg, u.userId);
+
                 hasMessage = true;
-                let senderName = [user.firstName, user.lastName].filter((v) => !!v).join(' ');
-                console.log(logPrefix, 'new_push', {
+                let senderName = [sender.firstName, sender.lastName].filter((v) => !!v).join(' ');
+
+                let pushTitle = `${senderName} at ${chatTitle}`;
+
+                if (conversation.type === 'private') {
+                    pushTitle = chatTitle;
+                }
+
+                if (message.isService) {
+                    pushTitle = chatTitle;
+                }
+
+                let pushBody = '';
+
+                if (message.message) {
+                    pushBody += message.message;
+                }
+                if (message.fileMetadata) {
+                    pushBody += message.fileMetadata.isImage === true ? '<image>' : '<file>';
+                }
+
+                let push = {
                     uid: u.userId,
-                    title: senderName,
-                    body: message.message ? message.message!! : '<file>',
-                    picture: user.picture ? buildBaseImageUrl(user.picture!!) : null,
-                    counter: unreadCount,
-                    conversationId: conversation.id,
-                    mobile: sendMobile,
-                    desktop: sendDesktop
-                });
-                await PushWorker.pushWork({
-                    uid: u.userId,
-                    title: senderName,
-                    body: message.message ? message.message!! : '<file>',
-                    picture: user.picture ? buildBaseImageUrl(user.picture!!) : null,
+                    title: pushTitle,
+                    body: pushBody,
+                    picture: sender.picture ? buildBaseImageUrl(sender.picture!!) : null,
                     counter: unreadCount,
                     conversationId: conversation.id,
                     mobile: sendMobile,
                     desktop: sendDesktop,
                     mobileAlert: settings.mobileAlert
-                }, tx);
+                };
+
+                console.log(logPrefix, 'new_push', push);
+                await PushWorker.pushWork(push, tx);
             }
 
             // Save state

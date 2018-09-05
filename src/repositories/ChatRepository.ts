@@ -980,4 +980,65 @@ export class ChatsRepository {
             }
         );
     }
+
+    async getConversationTitle(conversationId: number, oid: number|undefined, uid: number): Promise<string> {
+        let conv = await DB.Conversation.findById(conversationId);
+
+        if (!conv) {
+            throw new NotFoundError('Conversation not found');
+        }
+
+        if (conv.type === 'private') {
+            let _uid;
+            if (conv.member1Id === uid || (conv.member1 && conv.member1.id === uid)) {
+                _uid = conv.member2Id!!;
+            } else if (conv.member2Id === uid || (conv.member2 && conv.member2.id === uid)) {
+                _uid = conv.member1Id!!;
+            } else {
+                throw Error('Inconsistent Private Conversation resolver');
+            }
+            let profile = (await DB.UserProfile.find({
+                where: {
+                    userId: _uid
+                }
+            }))!!;
+            return [profile.firstName, profile.lastName].filter((v) => !!v).join(' ');
+        } else if (conv.type === 'shared') {
+            if (conv.organization1Id === oid || (conv.organization1 && conv.organization1.id === oid)) {
+                return (conv.organization2 || await conv.getOrganization2())!!.name!;
+            } else if (conv.organization2Id === oid || (conv.organization2 && conv.organization2.id === oid)) {
+                return (conv.organization1 || await conv.getOrganization1())!!.name!;
+            } else {
+                let org1 = (conv.organization1 || await conv.getOrganization2())!!;
+                let org2 = (conv.organization2 || await conv.getOrganization2())!!;
+                if (org1.id === org2.id) {
+                    return org1.name!;
+                }
+                return org1.name + ', ' + org2.name;
+            }
+        } else if (conv.type === 'group') {
+            if (conv.title !== '') {
+                return conv.title;
+            }
+            let res = await DB.ConversationGroupMembers.findAll({
+                where: {
+                    conversationId: conv.id,
+                    userId: {
+                        $not: uid
+                    }
+                },
+                order: ['userId']
+            });
+            let name: string[] = [];
+            for (let r of res) {
+                let p = (await DB.UserProfile.find({where: {userId: r.userId}}))!!;
+                name.push([p.firstName, p.lastName].filter((v) => !!v).join(' '));
+            }
+            return name.join(', ');
+        } else if (conv.type === 'channel') {
+            return conv.title;
+        }
+
+        throw new Error('Unknown chat type');
+    }
 }
