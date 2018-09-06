@@ -14,6 +14,7 @@ export interface Settings {
     mobileNotifications: 'all' | 'direct' | 'none';
     mobileAlert: boolean;
     mobileIncludeText: boolean;
+    notificationsDelay: 'none' | '1min' | '15min';
 }
 
 class UserSettingsReader {
@@ -295,7 +296,8 @@ export class UserRepository {
             desktopNotifications: 'all',
             mobileNotifications: 'all',
             mobileAlert: true,
-            mobileIncludeText: true
+            mobileIncludeText: true,
+            notificationsDelay: '1min'
         };
         if (instance) {
             if (instance.settings.emailFrequency) {
@@ -313,6 +315,9 @@ export class UserRepository {
             if (instance.settings.mobileIncludeText !== undefined) {
                 settings.mobileIncludeText = instance.settings.mobileIncludeText as any;
             }
+            if (instance.settings.notificationsDelay) {
+                settings.notificationsDelay = instance.settings.notificationsDelay as any;
+            }
         }
         return settings;
     }
@@ -324,7 +329,8 @@ export class UserRepository {
             desktopNotifications: 'all',
             mobileNotifications: 'all',
             mobileAlert: true,
-            mobileIncludeText: true
+            mobileIncludeText: true,
+            notificationsDelay: '1min'
         };
         if (res) {
             if (res.settings.emailFrequency) {
@@ -341,6 +347,9 @@ export class UserRepository {
             }
             if (res.settings.mobileIncludeText !== undefined) {
                 settings.mobileIncludeText = res.settings.mobileIncludeText as any;
+            }
+            if (res.settings.notificationsDelay) {
+                settings.notificationsDelay = res.settings.notificationsDelay as any;
             }
         }
         return settings;

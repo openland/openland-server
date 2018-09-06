@@ -10,6 +10,12 @@ enum NotificationMessages {
     NONE
 }
 
+enum NotificationsDelay {
+    NONE
+    MIN_1
+    MIN_15
+}
+
 input UpdateSettingsInput {
     emailFrequency: EmailFrequency
     desktopNotifications: NotificationMessages
@@ -17,6 +23,7 @@ input UpdateSettingsInput {
     mobileAlert: Boolean
     mobileIncludeText: Boolean
     mute: Boolean
+    notificationsDelay: NotificationsDelay
 }
 
 type Settings {
@@ -27,7 +34,8 @@ type Settings {
     mobileNotifications: NotificationMessages!
     mobileAlert: Boolean!
     mobileIncludeText: Boolean!
-    mute: Boolean    
+    mute: Boolean
+    notificationsDelay: NotificationsDelay!
 }
 
 input UpdateConversationSettingsInput {

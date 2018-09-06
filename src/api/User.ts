@@ -63,6 +63,11 @@ export const Resolver = {
         DIRECT: 'direct',
         NONE: 'none'
     },
+    NotificationsDelay: {
+        NONE: 'none',
+        MIN_1: '1min',
+        MIN_15: '15min'
+    },
     User: {
         id: (src: User) => IDs.User.serialize(src.id!!),
         name: withProfile((src, profile) => profile ? [profile.firstName, profile.lastName].filter((v) => !!v).join(' ') : src.email),
@@ -116,6 +121,7 @@ export const Resolver = {
         mobileNotifications: (src: UserSettings) => Repos.Users.getUserSettingsFromInstance(src).mobileNotifications,
         mobileAlert: (src: UserSettings) => Repos.Users.getUserSettingsFromInstance(src).mobileAlert,
         mobileIncludeText: (src: UserSettings) => Repos.Users.getUserSettingsFromInstance(src).mobileIncludeText,
+        notificationsDelay: (src: UserSettings) => Repos.Users.getUserSettingsFromInstance(src).notificationsDelay,
     },
     Query: {
         me: async function (_obj: any, _params: {}, context: CallContext) {
@@ -290,7 +296,7 @@ export const Resolver = {
             await Repos.Users.markUserOffline(ctx.uid!, ctx.tid!!, args.platform);
             return 'ok';
         }),
-        updateSettings: withUser<{ settings: { emailFrequency?: string | null, desktopNotifications?: string | null, mobileNotifications?: string | null, mobileAlert?: boolean|null, mobileIncludeText?: boolean|null } }>(async (args, uid) => {
+        updateSettings: withUser<{ settings: { emailFrequency?: string | null, desktopNotifications?: string | null, mobileNotifications?: string | null, mobileAlert?: boolean|null, mobileIncludeText?: boolean|null, notificationsDelay?: boolean|null } }>(async (args, uid) => {
             return await DB.tx(async (tx) => {
                 let settings = await DB.UserSettings.find({ where: { userId: uid }, transaction: tx, lock: 'UPDATE' });
                 if (!settings) {
@@ -330,6 +336,12 @@ export const Resolver = {
                     settings.settings = {
                         ...settings.settings,
                         mobileIncludeText: args.settings.mobileIncludeText as boolean
+                    };
+                }
+                if (args.settings.notificationsDelay) {
+                    settings.settings = {
+                        ...settings.settings,
+                        notificationsDelay: args.settings.notificationsDelay
                     };
                 }
                 await settings.save({ transaction: tx });
