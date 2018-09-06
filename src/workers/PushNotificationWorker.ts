@@ -4,6 +4,12 @@ import { PushWorker } from '.';
 import { Repos } from '../repositories';
 import { buildBaseImageUrl } from '../repositories/Media';
 
+const Delays = {
+  'none': 0,
+  '1min': 60 * 1000,
+  '15min': 15 * 60 * 1000
+};
+
 export function startPushNotificationWorker() {
 
     staticWorker({ name: 'push_notifications', delay: 1000 }, async (tx) => {
@@ -29,11 +35,6 @@ export function startPushNotificationWorker() {
                 continue;
             }
 
-            // Pause notifications till 1 minute passes from last active timeout
-            if (lastSeen > (now - 60 * 1000)) {
-                continue;
-            }
-
             // Ignore read updates
             if (u.readSeq === u.seq) {
                 continue;
@@ -51,6 +52,11 @@ export function startPushNotificationWorker() {
 
             // Loading user's settings
             let settings = await Repos.Users.getUserSettings(u.userId);
+
+            // Pause notifications till 1 minute passes from last active timeout
+            if (lastSeen > (now - Delays[settings.notificationsDelay])) {
+                continue;
+            }
 
             // Ignore user's with disabled notifications
             if (settings.mobileNotifications === 'none' && settings.desktopNotifications === 'none') {
