@@ -297,7 +297,7 @@ export class UserRepository {
             mobileNotifications: 'all',
             mobileAlert: true,
             mobileIncludeText: true,
-            notificationsDelay: '1min'
+            notificationsDelay: 'none'
         };
         if (instance) {
             if (instance.settings.emailFrequency) {
@@ -330,7 +330,7 @@ export class UserRepository {
             mobileNotifications: 'all',
             mobileAlert: true,
             mobileIncludeText: true,
-            notificationsDelay: '1min'
+            notificationsDelay: 'none'
         };
         if (res) {
             if (res.settings.emailFrequency) {
