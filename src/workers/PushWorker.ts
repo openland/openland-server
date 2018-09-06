@@ -123,7 +123,7 @@ export function createPushWorker() {
                                     ['conversationId']: IDs.Conversation.serialize(args.conversationId),
                                     ['title']: args.title,
                                     ['message']: mobileBody,
-                                    ['playSound']: args.mobileAlert === true ? 'default' : 'silence.mp3',
+                                    ['soundName']: args.mobileAlert ? 'default' : 'silence.mp3',
                                     ['id']: doSimpleHash(IDs.Conversation.serialize(args.conversationId)).toString(),
                                     ...(args.picture ? { ['picture']: args.picture! } : {}),
                                 }
