@@ -118,7 +118,7 @@ export function createPushWorker() {
                                 notification: {
                                     title: args.title,
                                     body: mobileBody,
-                                    ...(args.mobileAlert === true ? { sound: 'default' } : {})
+                                    sound: args.mobileAlert === true ? 'default' : 'silence.mp3'
                                 },
                                 data: {
                                     ['conversationId']: IDs.Conversation.serialize(args.conversationId),
