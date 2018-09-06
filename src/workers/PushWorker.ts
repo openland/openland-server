@@ -126,8 +126,7 @@ export function createPushWorker() {
                                     ['playSound']: args.mobileAlert === true ? 'default' : 'silence.mp3',
                                     ['id']: doSimpleHash(IDs.Conversation.serialize(args.conversationId)).toString(),
                                     ...(args.picture ? { ['picture']: args.picture! } : {}),
-                                },
-                                token: token
+                                }
                             },
                             token: token
                         });
