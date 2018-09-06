@@ -301,6 +301,8 @@ export const Resolver = {
 
         photo: (src: Conversation) => src.extras && src.extras.picture ? buildBaseImageUrl(src.extras.picture as any) : null,
         photoRef: (src: Conversation) => src.extras && src.extras.picture,
+        description: (src: Conversation) => src.extras.description || '',
+        longDescription: (src: Conversation) => src.extras.longDescription || '',
     },
 
     ConversationMessage: {
@@ -1224,7 +1226,7 @@ export const Resolver = {
                 return conv;
             });
         }),
-        alphaChatUpdateGroup: withAccount<{ conversationId: string, input: { title?: string | null, photoRef?: ImageRef | null } }>(async (args, uid, oid) => {
+        alphaChatUpdateGroup: withAccount<{ conversationId: string, input: { title?: string | null, description?: string | null, longDescription?: string | null, photoRef?: ImageRef | null } }>(async (args, uid, oid) => {
             await validate(
                 {
                     title: optional(stringNotEmpty('Title can\'t be empty!'))
@@ -1277,6 +1279,13 @@ export const Resolver = {
                             picture: imageRef as any
                         }
                     });
+                }
+
+                if (args.input.description !== undefined) {
+                    chat.extras.description = Sanitizer.sanitizeString(args.input.description);
+                }
+                if (args.input.longDescription !== undefined) {
+                    chat.extras.longDescription = Sanitizer.sanitizeString(args.input.longDescription);
                 }
 
                 if (chatChanged) {

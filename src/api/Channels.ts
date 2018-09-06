@@ -67,6 +67,7 @@ export const Resolver = {
         featured: (src: Conversation) => src.extras.featured || false,
         hidden: (src: Conversation) => src.extras.hidden || false,
         description: (src: Conversation) => src.extras.description || '',
+        longDescription: (src: Conversation) => src.extras.longDescription || '',
         myStatus: async (src: Conversation, _: any, context: CallContext) => {
             let member = await DB.ConversationGroupMembers.findOne({
                 where: {
