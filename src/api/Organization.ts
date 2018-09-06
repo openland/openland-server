@@ -25,7 +25,7 @@ import { Emails } from '../services/Emails';
 import { Services } from '../services';
 
 let isFollowed = async (initiatorOrgId: number, targetOrgId: number) => {
-    let connection = await DB.OrganizationConnect.find({    
+    let connection = await DB.OrganizationConnect.find({
         where: {
             initiatorOrgId: initiatorOrgId,
             targetOrgId: targetOrgId
@@ -492,6 +492,22 @@ export const Resolver = {
                 return res;
 
             });
+        }),
+
+        alphaTopCategories: withAccount(async (args, uid, orgId) => {
+            let orgs = await DB.Organization.findAll();
+            let topCategoriesMap: { [category: string]: number } = {};
+            for (let org of orgs) {
+                let categories = (org.extras && org.extras.organizationType) || [];
+                for (let c of categories) {
+                    topCategoriesMap[c] = (topCategoriesMap[c] || 0) + 1;
+                }
+            }
+            let topCategories: { category: string, count: number }[] = [];
+            for (let key of Object.keys(topCategoriesMap)) {
+                topCategories.push({ category: key, count: topCategoriesMap[key] });
+            }
+            return topCategories.filter(c => c.count >= 3).sort((a, b) => a.count - b.count).map(c => c.category);
         })
     },
     Mutation: {
