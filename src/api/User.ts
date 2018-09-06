@@ -285,6 +285,10 @@ export const Resolver = {
             await Repos.Users.markUserOnline(context.uid, args.timeout, context.tid!!, args.platform);
             return 'ok';
         },
+        alphaReportOffline: withAny<{ platform?: string }>(async (args, ctx) => {
+            await Repos.Users.markUserOffline(ctx.uid!, ctx.tid!!, args.platform);
+            return 'ok';
+        }),
         updateSettings: withUser<{ settings: { emailFrequency?: string | null, desktopNotifications?: string | null, mobileNotifications?: string | null, mobileAlert?: boolean|null, mobileIncludeText?: boolean|null } }>(async (args, uid) => {
             return await DB.tx(async (tx) => {
                 let settings = await DB.UserSettings.find({ where: { userId: uid }, transaction: tx, lock: 'UPDATE' });

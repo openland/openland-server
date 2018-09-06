@@ -245,6 +245,18 @@ export class UserRepository {
         });
     }
 
+    async markUserOffline(uid: number, tokenId: number, platform?: string) {
+        await DB.txStableSilent(async (tx) => {
+            await DB.UserPresence.destroy({
+                where: {
+                    userId: uid,
+                    tokenId: tokenId
+                },
+                transaction: tx,
+            });
+        });
+    }
+
     async getUserLastSeen(uid: number, tx: Transaction) {
         let user = await DB.User.findById(uid, { logging: DB_SILENT });
         let now = Date.now();

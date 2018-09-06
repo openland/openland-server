@@ -45,6 +45,7 @@ type Mutation {
     updateProfile(input: UpdateProfileInput!): Profile!
 
     alphaReportOnline(timeout: Int!, platform: Platform): String!
+    alphaReportOffline(platform: Platform): String! @withAuth
 
     alphaCreateUserProfileAndOrganization(user: CreateProfileInput!, organization: CreateOrganizationInput!): AlphaSignupData!
 }
