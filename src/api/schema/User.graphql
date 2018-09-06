@@ -20,6 +20,7 @@ type User {
     alphaLinkedin: String
     alphaTwitter: String
     online: Boolean!
+    lastSeen: String
 }
 
 input UpdateProfileInput {
