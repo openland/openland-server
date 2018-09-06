@@ -122,6 +122,7 @@
     "subscriptions-transport-ws": "^0.9.11",
     "supercluster": "^3.0.2",
     "supertest": "^3.1.0",
+    "telesignsdk": "^2.2.0",
     "throng": "^4.0.0",
     "tlds": "^1.203.1",
     "tmp": "^0.0.33",

@@ -7187,6 +7187,10 @@ os-tmpdir@^1.0.0, os-tmpdir@^1.0.1, os-tmpdir@~1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/os-tmpdir/-/os-tmpdir-1.0.2.tgz#bbe67406c79aa85c5cfec766fe5734555dfa1274"
 
+os@0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/os/-/os-0.1.1.tgz#208845e89e193ad4d971474b93947736a56d13f3"
+
 osenv@^0.1.4:
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/osenv/-/osenv-0.1.4.tgz#42fe6d5953df06c8064be6f176c3d05aaaa34644"
@@ -8978,6 +8982,17 @@ tar@^4:
     safe-buffer "^5.1.2"
     yallist "^3.0.2"
 
+telesignsdk@^2.0.1, telesignsdk@^2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/telesignsdk/-/telesignsdk-2.2.0.tgz#e8c95521aec23aa1b494b10ec08c66effd09947a"
+  dependencies:
+    os "0.1.1"
+    querystring "0.2.0"
+    request "2.81.0"
+    telesignsdk "^2.0.1"
+    urijs "1.18.10"
+    uuid-v4.js "1.0.2"
+
 term-size@^1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/term-size/-/term-size-1.2.0.tgz#458b83887f288fc56d6fffbfad262e26638efa69"
@@ -9441,6 +9456,10 @@ upper-case@^1.0.3, upper-case@^1.1.0, upper-case@^1.1.1, upper-case@^1.1.3:
   version "1.1.3"
   resolved "https://registry.yarnpkg.com/upper-case/-/upper-case-1.1.3.tgz#f6b4501c2ec4cdd26ba78be7222961de77621598"
 
+urijs@1.18.10:
+  version "1.18.10"
+  resolved "https://registry.yarnpkg.com/urijs/-/urijs-1.18.10.tgz#b94463eaba59a1a796036a467bb633c667f221ab"
+
 urix@^0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/urix/-/urix-0.1.0.tgz#da937f7a62e21fec1fd18d49b35c2935067a6c72"
@@ -9489,6 +9508,10 @@ util.promisify@^1.0.0:
 utils-merge@1.0.1, utils-merge@1.x.x:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/utils-merge/-/utils-merge-1.0.1.tgz#9f95710f50a267947b2ccc124741c1028427e713"
+
+uuid-v4.js@1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/uuid-v4.js/-/uuid-v4.js-1.0.2.tgz#624853b66318b186d033403719eb9a4ba9213f1b"
 
 uuid@3.0.0:
   version "3.0.0"
