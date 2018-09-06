@@ -67,6 +67,7 @@ export const Resolver = {
         featured: (src: Conversation) => src.extras.featured || false,
         hidden: (src: Conversation) => src.extras.hidden || false,
         description: (src: Conversation) => src.extras.description || '',
+        longDescription: (src: Conversation) => src.extras.longDescription || '',
         myStatus: async (src: Conversation, _: any, context: CallContext) => {
             let member = await DB.ConversationGroupMembers.findOne({
                 where: {
@@ -87,6 +88,8 @@ export const Resolver = {
 
         photo: (src: Conversation) => src.extras && src.extras.picture ? buildBaseImageUrl(src.extras.picture as any) : null,
         photoRef: (src: Conversation) => src.extras && src.extras.picture,
+        socialImage: (src: Conversation) => src.extras && src.extras.socialImage ? buildBaseImageUrl(src.extras.socialImage as any) : null,
+        socialImageRef: (src: Conversation) => src.extras && src.extras.socialImage,
     },
 
     ChannelMemberOrg: {

@@ -60,6 +60,8 @@ type GroupConversation implements Conversation {
 
     photo: String
     photoRef: ImageRef
+    description: String!
+    longDescription: String!
 }
 
 #
@@ -313,6 +315,9 @@ extend type Query {
 input UpdateGroupInput {
     title: String
     photoRef: ImageRefInput
+    description: String
+    longDescription: String
+    socialImageRef: ImageRefInput
 }
 
 extend type Mutation {
