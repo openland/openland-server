@@ -275,6 +275,20 @@ export class UserRepository {
         }
     }
 
+    async isUserOnline(uid: number): Promise<boolean> {
+        let user = await DB.User.findById(uid, { logging: DB_SILENT });
+        let now = Date.now();
+        if (!user || user.status !== 'ACTIVATED') {
+            return false;
+        } else {
+            if (user.lastSeen) {
+                return user.lastSeen.getTime() > now;
+            } else {
+                return false;
+            }
+        }
+    }
+
     getUserSettingsFromInstance(instance: UserSettings) {
         let settings: Settings = {
             emailFrequency: '1hour',

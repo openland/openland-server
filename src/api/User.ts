@@ -87,6 +87,7 @@ export const Resolver = {
         isBot: (src: User) => src.isBot || false,
         isYou: (src: User, args: {}, context: CallContext) => src.id === context.uid,
         alphaPrimaryOrganization: withProfile(async (src, profile) => profile && profile.primaryOrganization ? await DB.Organization.findById(profile.primaryOrganization) : null),
+        online: async (src: User) => await Repos.Users.isUserOnline(src.id!)
     },
     Profile: {
         id: (src: UserProfile) => IDs.Profile.serialize(src.id!!),
