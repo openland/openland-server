@@ -6,6 +6,7 @@ import APN from 'apn';
 import * as Friebase from 'firebase-admin';
 import { IDs } from '../api/utils/IDs';
 import { doSimpleHash } from '../utils/hash';
+import { Texts } from '../texts';
 
 let providers = new Map<boolean, Map<string, APN.Provider>>();
 
@@ -30,7 +31,7 @@ export function createPushWorker() {
             });
             lock.check();
 
-            let mobileBody = args.mobileIncludeText ? args.body : 'New message';
+            let mobileBody = args.mobileIncludeText ? args.body : Texts.Notifications.NEW_MESSAGE_ANONYMOUS;
 
             for (let reg of registrations) {
                 if (reg.pushType === 'web-push' && AppConfiuguration.webPush) {

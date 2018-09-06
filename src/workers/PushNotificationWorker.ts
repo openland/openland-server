@@ -3,6 +3,7 @@ import { DB, DB_SILENT } from '../tables';
 import { PushWorker } from '.';
 import { Repos } from '../repositories';
 import { buildBaseImageUrl } from '../repositories/Media';
+import { Texts } from '../texts';
 
 const Delays = {
   'none': 0,
@@ -138,7 +139,7 @@ export function startPushNotificationWorker() {
                 hasMessage = true;
                 let senderName = [sender.firstName, sender.lastName].filter((v) => !!v).join(' ');
 
-                let pushTitle = `${senderName} at ${chatTitle}`;
+                let pushTitle = Texts.Notifications.GROUP_PUSH_TITLE({ senderName, chatTitle });
 
                 if (conversation.type === 'private') {
                     pushTitle = chatTitle;
@@ -154,7 +155,7 @@ export function startPushNotificationWorker() {
                     pushBody += message.message;
                 }
                 if (message.fileMetadata) {
-                    pushBody += message.fileMetadata.isImage === true ? '<image>' : '<file>';
+                    pushBody += message.fileMetadata.isImage === true ? Texts.Notifications.IMAGE_ATTACH : Texts.Notifications.FILE_ATTACH;
                 }
 
                 let push = {
