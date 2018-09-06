@@ -20,6 +20,9 @@ type ChannelConversation implements Conversation {
 
     photo: String
     photoRef: ImageRef
+    
+    socialImage: String
+    socialImageRef: ImageRef
 }
 
 enum ChannelMembershipStatus {

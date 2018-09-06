@@ -317,6 +317,7 @@ input UpdateGroupInput {
     photoRef: ImageRefInput
     description: String
     longDescription: String
+    socialImageRef: ImageRefInput
 }
 
 extend type Mutation {

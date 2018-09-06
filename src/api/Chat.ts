@@ -1226,7 +1226,7 @@ export const Resolver = {
                 return conv;
             });
         }),
-        alphaChatUpdateGroup: withAccount<{ conversationId: string, input: { title?: string | null, description?: string | null, longDescription?: string | null, photoRef?: ImageRef | null } }>(async (args, uid, oid) => {
+        alphaChatUpdateGroup: withAccount<{ conversationId: string, input: { title?: string | null, description?: string | null, longDescription?: string | null, photoRef?: ImageRef | null, socialImageRef?: ImageRef | null } }>(async (args, uid, oid) => {
             await validate(
                 {
                     title: optional(stringNotEmpty('Title can\'t be empty!'))
@@ -1282,10 +1282,21 @@ export const Resolver = {
                 }
 
                 if (args.input.description !== undefined) {
+                    chatChanged = true;
                     chat.extras.description = Sanitizer.sanitizeString(args.input.description);
                 }
                 if (args.input.longDescription !== undefined) {
+                    chatChanged = true;
                     chat.extras.longDescription = Sanitizer.sanitizeString(args.input.longDescription);
+                }
+
+                let socialImageRef = Sanitizer.sanitizeImageRef(args.input.socialImageRef);
+                if (args.input.socialImageRef !== undefined && !imageRefEquals(chat.extras.socialImage as any || null, socialImageRef)) {
+                    chatChanged = true;
+                    if (args.input.socialImageRef !== null) {
+                        await Services.UploadCare.saveFile(args.input.socialImageRef.uuid);
+                    }
+                    chat.extras.socialImage = socialImageRef as any;
                 }
 
                 if (chatChanged) {
