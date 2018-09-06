@@ -164,6 +164,8 @@ extend type Query {
 
     # directives are executed in reverse-order
     # debugTest(lol: ID! @userID, input: TestInput!): ID @userID # @withPermission(permission: "software-developer") @withAuth
+
+    debugSendSMS(phone: String!, text: String!): String @withPermissions(permission: ["super-admin", "software-developer"]) @withAuth
 }
 
 type ChatStats {
