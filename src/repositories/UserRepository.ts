@@ -276,6 +276,24 @@ export class UserRepository {
         }
     }
 
+    async getUserLastSeenExtended(uid: number, tx?: Transaction) {
+        let user = await DB.User.findById(uid, { logging: DB_SILENT });
+        let now = Date.now();
+        if (!user || user.status !== 'ACTIVATED') {
+            return 'never_online';
+        } else {
+            if (user.lastSeen) {
+                if (user.lastSeen.getTime() > now) {
+                    return 'online';
+                } else {
+                    return user.lastSeen.getTime();
+                }
+            } else {
+                return 'never_online';
+            }
+        }
+    }
+
     async isUserOnline(uid: number): Promise<boolean> {
         let user = await DB.User.findById(uid, { logging: DB_SILENT });
         let now = Date.now();
@@ -323,7 +341,7 @@ export class UserRepository {
     }
 
     async getUserSettings(uid: number) {
-        let res = await DB.UserSettings.find({ where: { userId: uid } });
+        let res = await DB.UserSettings.find({ where: { userId: uid }, logging: false });
         let settings: Settings = {
             emailFrequency: '1hour',
             desktopNotifications: 'all',

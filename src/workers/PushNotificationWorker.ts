@@ -25,15 +25,31 @@ export function startPushNotificationWorker() {
         });
 
         for (let u of unreadUsers) {
-            let now = Date.now();
+            // Loading user's settings
+            let settings = await Repos.Users.getUserSettings(u.userId);
 
-            let lastSeen = await Repos.Users.getUserLastSeen(u.userId, tx);
+            let now = Date.now();
 
             let logPrefix = 'push ' + u.userId;
 
-            // Ignore online or never-online users
-            if (lastSeen === null) {
+            let lastSeen = await Repos.Users.getUserLastSeenExtended(u.userId, tx);
+
+            // Ignore never-online users
+            if (lastSeen === 'never_online') {
                 continue;
+            }
+
+            // Pause notifications only if delay was set
+            if (settings.notificationsDelay !== 'none') {
+                // Ignore online
+                if (lastSeen === 'online') {
+                    continue;
+                }
+
+                // Pause notifications till 1 minute passes from last active timeout
+                if (lastSeen > (now - Delays[settings.notificationsDelay])) {
+                    continue;
+                }
             }
 
             // Ignore read updates
@@ -48,14 +64,6 @@ export function startPushNotificationWorker() {
 
             // Ignore already processed updates
             if (u.lastPushSeq === u.seq) {
-                continue;
-            }
-
-            // Loading user's settings
-            let settings = await Repos.Users.getUserSettings(u.userId);
-
-            // Pause notifications till 1 minute passes from last active timeout
-            if (lastSeen > (now - Delays[settings.notificationsDelay])) {
                 continue;
             }
 
