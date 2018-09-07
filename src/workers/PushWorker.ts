@@ -28,8 +28,6 @@ export function createPushWorker() {
                         }),
                         databaseURL: creds.databaseURL
                     }, pkg);
-
-                    console.warn('add creds for ' + pkg + ' pk_' + creds.privateKey.substring(creds.privateKey.length / 2, creds.privateKey.length / 2 + 5) + ' pi_' + creds.projectId + ' ce_' + creds.clientEmail + ' du_' + creds.databaseURL);
                 }
             }
         }
