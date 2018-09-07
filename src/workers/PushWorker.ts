@@ -85,7 +85,7 @@ export function createPushWorker() {
                                 body: mobileBody
                             };
                             not.badge = args.counter;
-                            not.collapseId = IDs.Conversation.serialize(args.conversationId);
+                            // not.collapseId = IDs.Conversation.serialize(args.conversationId);
                             not.payload = JSON.stringify({
                                 ['conversationId']: IDs.Conversation.serialize(args.conversationId),
                                 ['title']: args.title,
