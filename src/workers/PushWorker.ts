@@ -12,7 +12,7 @@ let providers = new Map<boolean, Map<string, APN.Provider>>();
 
 export function createPushWorker() {
     let queue = new WorkQueue<{ uid: number, title: string, body: string, picture: string | null, counter: number, conversationId: number, mobile: boolean, desktop: boolean, mobileAlert: boolean, mobileIncludeText: boolean }, { result: string }>('push_sender');
-    if (AppConfiuguration.webPush || AppConfiuguration.apple || AppConfiuguration.apple) {
+    if (AppConfiuguration.webPush || AppConfiuguration.apple || AppConfiuguration.google) {
         console.log('Starting push worker');
 
         let firbaseApps: { [pkg: string]: Friebase.app.App } = {};
@@ -27,7 +27,9 @@ export function createPushWorker() {
                             clientEmail: creds.clientEmail
                         }),
                         databaseURL: creds.databaseURL
-                    });
+                    }, pkg);
+
+                    console.warn('add creds for ' + pkg + ' pk_' + creds.privateKey.substring(creds.privateKey.length / 2, creds.privateKey.length / 2 + 5) + ' pi_' + creds.projectId + ' ce_' + creds.clientEmail + ' du_' + creds.databaseURL);
                 }
             }
         }
@@ -148,7 +150,7 @@ export function createPushWorker() {
                             });
                             console.log('android_push %d', args.uid, res);
                         } else {
-                            console.warn('android_push no credentials for package %d', bundleId);
+                            console.warn('android_push no credentials for package ' + bundleId);
                         }
 
                     } catch (e) {
