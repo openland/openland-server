@@ -15,6 +15,7 @@ import { AccessDeniedError } from '../errors/AccessDeniedError';
 import { ImageRef } from './Media';
 import { ConversationMessagesWorker } from '../workers';
 import { IDs } from '../api/utils/IDs';
+import { CacheRepository } from './CacheRepository';
 
 export type ChatEventType =
     'new_message' |
@@ -321,6 +322,8 @@ export class ChatsRepository {
     countersSuperbus: SuperBus<{ userId: number, counter: number, date: number }, ConversationUserGlobal, Partial<ConversationMessageAttributes>>;
     userSuperbus: SuperBus<{ userId: number, seq: number }, ConversationUserEvents, Partial<ConversationUserEventsAttributes>>;
 
+    draftsCache = new CacheRepository<{ message: string }>('message_draft');
+
     constructor() {
         this.reader = new ChatsEventReader();
         this.counterReader = new ChatCounterListener();
@@ -587,6 +590,8 @@ export class ChatsRepository {
         }
 
         await ConversationMessagesWorker.pushWork({ messageId: msg.id }, tx);
+
+        await this.deleteDraftMessage(uid, conversationId);
 
         return {
             conversationEvent: res,
@@ -1042,5 +1047,17 @@ export class ChatsRepository {
         }
 
         throw new Error('Unknown chat type');
+    }
+
+    async getDraftMessage(uid: number, conversationId: number) {
+        return this.draftsCache.read(`${uid}_${conversationId}`);
+    }
+
+    async saveDraftMessage(uid: number, conversationId: number, message: string) {
+        return this.draftsCache.write(`${uid}_${conversationId}`, { message });
+    }
+
+    async deleteDraftMessage(uid: number, conversationId: number) {
+        return this.draftsCache.delete(`${uid}_${conversationId}`);
     }
 }

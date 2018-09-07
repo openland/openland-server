@@ -310,6 +310,7 @@ extend type Query {
     alphaChatTextSearch(query: String!): [Conversation!]!
 
     alphaFilePreviewLink(uuid: String!): String
+    alphaDraftMessage(conversationId: ID!): String
 }
 
 input UpdateGroupInput {
@@ -327,6 +328,7 @@ extend type Mutation {
     alphaDeleteMessage(messageId: ID!): ConversationEventDelete!
     alphaReadChat(conversationId: ID!, messageId: ID!): ChatReadResult!
     alphaGlobalRead(toSeq: Int): String!
+    alphaSaveDraftMessage(conversationId: ID!, message: String): String!
 
     alphaSetTyping(conversationId: ID!, type: String): String!
 

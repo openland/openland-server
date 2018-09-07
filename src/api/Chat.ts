@@ -985,6 +985,17 @@ export const Resolver = {
                 }
             });
         }),
+        alphaDraftMessage: withAccount<{ conversationId: string }>(async (args, uid, oid) => {
+            let conversationId = IDs.Conversation.parse(args.conversationId);
+
+            let draft = await Repos.Chats.getDraftMessage(uid, conversationId);
+
+            if (draft) {
+                return draft.message;
+            }
+
+            return null;
+        }),
     },
     Mutation: {
         superCreateChat: withPermission<{ title: string }>('software-developer', async (args) => {
@@ -1748,7 +1759,18 @@ export const Resolver = {
                     id: IDs.ConversationSettings.serialize(cid)
                 };
             });
-        })
+        }),
+        alphaSaveDraftMessage: withAccount<{ conversationId: string, message?: string }>(async (args, uid) => {
+            let conversationId = IDs.Conversation.parse(args.conversationId);
+
+            if (!args.message) {
+                await Repos.Chats.deleteDraftMessage(uid, conversationId);
+            } else {
+                await Repos.Chats.saveDraftMessage(uid, conversationId, args.message);
+            }
+
+            return 'ok';
+        }),
     },
     Subscription: {
         alphaChatSubscribe: {

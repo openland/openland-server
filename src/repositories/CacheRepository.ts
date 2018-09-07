@@ -23,4 +23,14 @@ export class CacheRepository<T> {
             content: value as any
         }, { transaction: tx });
     }
+
+    async delete(key: string, tx?: Transaction) {
+        await DB.ServicesCache.destroy({
+            where: {
+                service: this.service,
+                key: key,
+            },
+            transaction: tx
+        });
+    }
 }
