@@ -941,11 +941,12 @@ export class ChatsRepository {
 
     async addToInitialChannel(uid: number, tx: Transaction) {
         let channelId = IDs.Conversation.parse('EQvPJ1LaODSWXZ3xJ0P5CybWBL');
-        let profile = await DB.UserProfile.find({ where: { userId: uid }, transaction: tx });
-        await Repos.Chats.addToChannel(tx, channelId, uid, profile!!.firstName);
+        await Repos.Chats.addToChannel(tx, channelId, uid);
     }
 
-    async addToChannel(tx: Transaction, channelId: number, uid: number, firstName: string) {
+    async addToChannel(tx: Transaction, channelId: number, uid: number) {
+        let profile = await DB.UserProfile.find({ where: { userId: uid }, transaction: tx });
+        let firstName = profile!!.firstName;
         let existing = await DB.ConversationGroupMembers.find({
             where: {
                 conversationId: channelId,
@@ -981,7 +982,7 @@ export class ChatsRepository {
         );
     }
 
-    async getConversationTitle(conversationId: number, oid: number|undefined, uid: number): Promise<string> {
+    async getConversationTitle(conversationId: number, oid: number | undefined, uid: number): Promise<string> {
         let conv = await DB.Conversation.findById(conversationId);
 
         if (!conv) {
@@ -1031,7 +1032,7 @@ export class ChatsRepository {
             });
             let name: string[] = [];
             for (let r of res) {
-                let p = (await DB.UserProfile.find({where: {userId: r.userId}}))!!;
+                let p = (await DB.UserProfile.find({ where: { userId: r.userId } }))!!;
                 name.push([p.firstName, p.lastName].filter((v) => !!v).join(' '));
             }
             return name.join(', ');

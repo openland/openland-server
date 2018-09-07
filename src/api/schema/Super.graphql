@@ -35,6 +35,8 @@ extend type Mutation {
 
     superAccountMemberAdd(id: ID!, userId: ID!): SuperAccount!
     superAccountMemberRemove(id: ID!, userId: ID!): SuperAccount!
+
+    superAccountChannelMemberAdd(id: ID!, userId: ID!): String!
 }
 
 #
