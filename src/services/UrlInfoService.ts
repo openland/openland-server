@@ -43,9 +43,7 @@ export default class UrlInfoService {
     }
 
     private isListingUrl(url: string): boolean {
-        // TODO recover - fast fix, tx + UPDATE Lock needed
-        return false;
-        // return this.listingRegexp.test(url);
+        return this.listingRegexp.test(url);
     }
 
     private async parseListingUrl(url: string): Promise<URLInfo> {
@@ -61,7 +59,7 @@ export default class UrlInfoService {
             url,
             title: org!.name || null,
             subtitle: listing!.name || null,
-            description: listing!.extras!.shortDescription || null,
+            description: listing!.extras!.summary || null,
             imageURL: null,
             photo: listing!.extras!.photo || null
         };
