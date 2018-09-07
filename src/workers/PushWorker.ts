@@ -42,7 +42,8 @@ export function createPushWorker() {
                         let res = await WebPush.sendNotification(JSON.parse(reg.pushEndpoint), JSON.stringify({
                             title: args.title,
                             body: args.body,
-                            picture: args.picture
+                            picture: args.picture,
+                            conversationId: IDs.Conversation.serialize(args.conversationId)
                         }));
 
                         console.log('web_push %d', args.uid, res);
