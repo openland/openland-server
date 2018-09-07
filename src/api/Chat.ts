@@ -96,9 +96,8 @@ export const Resolver = {
             } else if (src.organization2Id === context.oid || (src.organization2 && src.organization2.id === context.oid)) {
                 photo = (src.organization1 || await src.getOrganization1())!!.photo!!;
             } else {
-                // console.warn(src);
-                // console.warn(context);
-                // throw Error('Inconsistent Shared Conversation resolver');
+               // it can be inner shared conversation from another org of this user
+               photo = (src.organization1 || await src.getOrganization1())!!.photo!!;
             }
             if (photo) {
                 return [buildBaseImageUrl(photo)];

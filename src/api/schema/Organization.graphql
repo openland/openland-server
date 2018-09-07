@@ -377,6 +377,7 @@ extend type Query {
     ): OrganizationsConnection!
     alphaOrganizationPublicInvite: Invite
     alphaOrganizationPublicInviteForOrganizations: Invite
+    alphaTopCategories: [String!]!
 }
 
 input InviteRequest {

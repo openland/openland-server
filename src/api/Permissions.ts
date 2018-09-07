@@ -182,6 +182,13 @@ export const Resolvers = {
         }),
         superMultiplyValue: withPermission<{ value: number }>(['super-admin', 'software-developer'], async (args) => {
             return SampleWorker.pushWork({ someArgument: args.value });
-        })
+        }),
+        superAccountChannelMemberAdd: withPermission<{ id: string, userId: string }>('super-admin', async (args) => {
+            return await DB.tx(async (tx) => {
+                await Repos.Chats.addToChannel(tx, IDs.Conversation.parse(args.id), IDs.User.parse(args.userId));
+                return 'ok';
+            });
+
+        }),
     }
 };
