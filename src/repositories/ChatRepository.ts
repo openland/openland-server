@@ -586,6 +586,8 @@ export class ChatsRepository {
             }
         }
 
+        await ConversationMessagesWorker.pushWork({ messageId: msg.id }, tx);
+
         return {
             conversationEvent: res,
             userEvent: userEvent!
