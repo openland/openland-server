@@ -393,7 +393,7 @@ export const Resolver = {
         message: (src: ConversationEvent) => DB.ConversationMessage.findById(src.event.messageId as number, { paranoid: false })
     },
     ConversationEventEditMessage: {
-        message: (src: ConversationEvent) => DB.ConversationMessage.findById(src.event.messageId as number)
+        message: (src: ConversationEvent) => DB.ConversationMessage.findById(src.event.messageId as number, { paranoid: false })
     },
     ConversationEventDelete: {
         messageId: (src: ConversationEvent) => IDs.ConversationMessage.serialize(src.event.messageId as number)
@@ -446,10 +446,10 @@ export const Resolver = {
         unread: (src: ConversationUserEvents) => src.event.unread,
         globalUnread: (src: ConversationUserEvents) => src.event.unreadGlobal,
         conversationId: (src: ConversationUserEvents) => IDs.Conversation.serialize(src.event.conversationId as any),
-        message: (src: ConversationUserEvents) => DB.ConversationMessage.findById(src.event.messageId as any),
+        message: (src: ConversationUserEvents) => DB.ConversationMessage.findById(src.event.messageId as any, { paranoid: false }),
         conversation: (src: ConversationUserEvents) => DB.Conversation.findById(src.event.conversationId as any),
         isOut: (src: ConversationUserEvents, args: any, context: CallContext) => src.event.senderId === context.uid,
-        repeatKey: (src: ConversationUserEvents, args: any, context: CallContext) => src.event.senderId === context.uid ? DB.ConversationMessage.findById(src.event.messageId as any).then((v) => v && v.repeatToken) : null
+        repeatKey: (src: ConversationUserEvents, args: any, context: CallContext) => src.event.senderId === context.uid ? DB.ConversationMessage.findById(src.event.messageId as any, { paranoid: false }).then((v) => v && v.repeatToken) : null
     },
     UserEventRead: {
         seq: (src: ConversationUserEvents) => src.seq,
@@ -467,11 +467,11 @@ export const Resolver = {
     },
     UserEventEditMessage: {
         seq: (src: ConversationUserEvents) => src.seq,
-        message: (src: ConversationUserEvents) => DB.ConversationMessage.findById(src.event.messageId as any)
+        message: (src: ConversationUserEvents) => DB.ConversationMessage.findById(src.event.messageId as any, { paranoid: false })
     },
     UserEventDeleteMessage: {
         seq: (src: ConversationUserEvents) => src.seq,
-        message: (src: ConversationUserEvents) => DB.ConversationMessage.findById(src.event.messageId as any)
+        message: (src: ConversationUserEvents) => DB.ConversationMessage.findById(src.event.messageId as any, { paranoid: false })
     },
     UserEventConversationUpdate: {
         seq: (src: ConversationUserEvents) => src.seq,
