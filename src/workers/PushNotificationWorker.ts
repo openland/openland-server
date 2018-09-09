@@ -13,7 +13,7 @@ const Delays = {
 
 export function startPushNotificationWorker() {
 
-    staticWorker({ name: 'push_notifications', delay: 1000 }, async (tx) => {
+    staticWorker({ name: 'push_notifications', delay: 3000 }, async (tx) => {
 
         let unreadUsers = await DB.ConversationsUserGlobal.findAll({
             where: {
