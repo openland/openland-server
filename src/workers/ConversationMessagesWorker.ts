@@ -26,6 +26,10 @@ export function createConversationMessagesWorker() {
 
         urls = urls.filter(u => u.url.startsWith('http:') || u.url.startsWith('https:'));
 
+        if (urls.length === 0) {
+            return { result: 'ok' };
+        }
+
         let firstUrl = urls[0];
 
         let urlInfo = await Services.URLInfo.fetchURLInfo(firstUrl.url);
