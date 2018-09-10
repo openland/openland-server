@@ -959,6 +959,7 @@ export class ChatsRepository {
                 conversationId: channelId,
                 userId: uid,
             },
+            lock: tx.LOCK.UPDATE,
             transaction: tx,
         });
         if (existing) {
