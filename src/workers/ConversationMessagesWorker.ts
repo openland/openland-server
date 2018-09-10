@@ -18,9 +18,20 @@ export function createConversationMessagesWorker() {
             return { result: 'ok' };
         }
 
-        let urls = linkifyInstance.match(message.message).filter(u => u.url.startsWith('http:') || u.url.startsWith('https:'));
+        // actually it's nullable (https://github.com/markdown-it/linkify-it)
+        let urls = linkifyInstance.match(message.message);
+
+        if (!urls) {
+            return { result: 'ok' };
+        }
+
+        urls = urls.filter(u => (u.url.startsWith('http:') || u.url.startsWith('https:')) && u.url);
 
         let firstUrl = urls[0];
+
+        if (!firstUrl) {
+            return { result: 'ok' };
+        }
 
         let urlInfo = await Services.URLInfo.fetchURLInfo(firstUrl.url);
 
