@@ -18,7 +18,13 @@ export function createConversationMessagesWorker() {
             return { result: 'ok' };
         }
 
-        let urls = linkifyInstance.match(message.message).filter(u => u.url.startsWith('http:') || u.url.startsWith('https:'));
+        let urls = linkifyInstance.match(message.message);
+
+        if (!urls) {
+            return { result: 'ok' };
+        }
+
+        urls = urls.filter(u => u.url.startsWith('http:') || u.url.startsWith('https:'));
 
         let firstUrl = urls[0];
 
