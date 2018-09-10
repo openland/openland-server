@@ -1293,10 +1293,12 @@ export const Resolver = {
 
                 if (args.input.description !== undefined) {
                     chatChanged = true;
+                    (chat as any).changed('extras', true);
                     chat.extras.description = Sanitizer.sanitizeString(args.input.description);
                 }
                 if (args.input.longDescription !== undefined) {
                     chatChanged = true;
+                    (chat as any).changed('extras', true);
                     chat.extras.longDescription = Sanitizer.sanitizeString(args.input.longDescription);
                 }
 
@@ -1306,6 +1308,7 @@ export const Resolver = {
                     if (args.input.socialImageRef !== null) {
                         await Services.UploadCare.saveFile(args.input.socialImageRef.uuid);
                     }
+                    (chat as any).changed('extras', true);
                     chat.extras.socialImage = socialImageRef as any;
                 }
 
