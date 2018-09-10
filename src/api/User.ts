@@ -11,6 +11,7 @@ import { Repos } from '../repositories';
 import { UserSettings } from '../tables/UserSettings';
 import { UserExtras } from '../repositories/UserExtras';
 import { Services } from '../services';
+import { AccessDeniedError } from '../errors/AccessDeniedError';
 
 function userLoader(context: CallContext) {
     if (!context.cache.has('__profile_loader')) {
@@ -208,9 +209,17 @@ export const Resolver = {
                 alphaTwitter?: string | null,
                 alphaRole?: string | null,
                 alphaPrimaryOrganizationId?: string,
-            }
+            },
+            uid?: string
         }>(async (args, uid) => {
             return await DB.tx(async (tx) => {
+                if (args.uid) {
+                    let role = await Repos.Permissions.superRole(uid);
+                    if (!(role === 'super-admin')) {
+                        throw new AccessDeniedError();
+                    }
+                    uid = IDs.User.parse(args.uid);
+                }
                 let user = await DB.User.findById(uid, { transaction: tx });
                 if (!user) {
                     throw Error('Unable to find user');
@@ -297,7 +306,7 @@ export const Resolver = {
             await Repos.Users.markUserOffline(ctx.uid!, ctx.tid!!, args.platform);
             return 'ok';
         }),
-        updateSettings: withUser<{ settings: { emailFrequency?: string | null, desktopNotifications?: string | null, mobileNotifications?: string | null, mobileAlert?: boolean|null, mobileIncludeText?: boolean|null, notificationsDelay?: boolean|null } }>(async (args, uid) => {
+        updateSettings: withUser<{ settings: { emailFrequency?: string | null, desktopNotifications?: string | null, mobileNotifications?: string | null, mobileAlert?: boolean | null, mobileIncludeText?: boolean | null, notificationsDelay?: boolean | null } }>(async (args, uid) => {
             return await DB.tx(async (tx) => {
                 let settings = await DB.UserSettings.find({ where: { userId: uid }, transaction: tx, lock: 'UPDATE' });
                 if (!settings) {
