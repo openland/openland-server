@@ -179,7 +179,7 @@ export function startPushNotificationWorker() {
                     mobileIncludeText: settings.mobileIncludeText
                 };
 
-                console.log(logPrefix, 'new_push', push);
+                console.log(logPrefix, 'new_push', JSON.stringify(push));
                 await PushWorker.pushWork(push, tx);
             }
 
