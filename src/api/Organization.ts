@@ -498,9 +498,16 @@ export const Resolver = {
         }),
 
         alphaTopCategories: withAccount(async (args, uid, orgId) => {
-            let orgs = await DB.Organization.findAll();
+            let orgs = await DB.Organization.findAll({
+                where: {
+                    status: 'ACTIVATED',
+                }
+            });
             let topCategoriesMap: { [category: string]: number } = {};
             for (let org of orgs) {
+                if (org.extras && !org.extras.published) {
+                    continue;
+                }
                 let categories = (org.extras && org.extras.organizationType) || [];
                 for (let c of categories) {
                     topCategoriesMap[c] = (topCategoriesMap[c] || 0) + 1;
