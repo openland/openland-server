@@ -2,6 +2,12 @@ export class Perf {
     private data = new Map<string, number>();
     private names: string[] = [];
 
+    constructor(
+        private name: string
+    ) {
+
+    }
+
     start(name: string) {
         this.data.set(name, Date.now());
         this.names.push(name);
@@ -12,7 +18,7 @@ export class Perf {
     }
 
     print() {
-        console.log('\n\n\n-----PERF----');
+        console.log(`\n\n\n-----PERF-${this.name}----`);
         for (let name of this.names) {
             let start = this.data.get(name)!;
             let end = this.data.get(name + '_end');
@@ -23,6 +29,6 @@ export class Perf {
 
             console.log(`${name} - ${end - start}`);
         }
-        console.log('---ENDPERF---\n\n\n');
+        console.log(`---ENDPERF-${this.name}---\n\n\n`);
     }
 }

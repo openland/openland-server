@@ -398,7 +398,7 @@ export class ChatsRepository {
     }
 
     async sendMessage(tx: Transaction, conversationId: number, uid: number, message: Message): Promise<{ conversationEvent: ConversationEvent, userEvent: ConversationUserEvents }> {
-        let perf = new Perf();
+        let perf = new Perf('sendMessage');
 
         perf.start('sendMessage');
 
@@ -428,8 +428,7 @@ export class ChatsRepository {
         perf.start('conv');
         let conv = await DB.Conversation.findById(conversationId, {
             lock: tx.LOCK.UPDATE,
-            transaction: tx,
-            paranoid: false
+            transaction: tx
         });
         if (!conv) {
             throw new NotFoundError('Conversation not found');
