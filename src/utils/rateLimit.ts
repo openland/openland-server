@@ -1,5 +1,7 @@
 import { exponentialBackoffDelay } from './exponentialBackoffDelay';
 
+const RATE_LIMIT_ENABLED = true;
+
 class RateLimit {
     private data = new Map<string, number>();
 
@@ -24,6 +26,13 @@ class RateLimit {
     }
 
     canHandle(cId: string): { canHandle: boolean, delay: number } {
+        if (!RATE_LIMIT_ENABLED) {
+            return {
+                canHandle: true,
+                delay: 0
+            };
+        }
+
         let clientHits = this.data.get(cId) || 0;
         let delay = 0;
         let canHandle = clientHits <= this.requestsPerWindow;

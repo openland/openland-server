@@ -16,6 +16,8 @@ import { ImageRef } from './Media';
 import { ConversationMessagesWorker } from '../workers';
 import { IDs } from '../api/utils/IDs';
 import { CacheRepository } from './CacheRepository';
+import { Perf } from '../utils/perf';
+import { Conversation } from '../tables/Conversation';
 
 export type ChatEventType =
     'new_message' |
@@ -227,12 +229,10 @@ class TypingManager {
         });
     }
 
-    public async cancelTyping(uid: number, conversationId: number) {
+    public async cancelTyping(uid: number, conversationId: number, members: number[]) {
         if (!this.typingState.has(uid)) {
             return;
         }
-
-        let members = await this.getChatMembers(conversationId);
 
         for (let member of members) {
             this.xPubSub.publish(`TYPING_${member}`, {
@@ -398,16 +398,18 @@ export class ChatsRepository {
     }
 
     async sendMessage(tx: Transaction, conversationId: number, uid: number, message: Message): Promise<{ conversationEvent: ConversationEvent, userEvent: ConversationUserEvents }> {
+        let perf = new Perf();
+
+        perf.start('sendMessage');
+
         if (message.message === 'fuck') {
             throw Error('');
         }
 
-        await this.typingManager.cancelTyping(uid, conversationId);
-
         //
         // Handle retry
         //
-
+        perf.start('Handle retry');
         if (message.repeatKey) {
             if (await DB.ConversationMessage.find({
                 where: {
@@ -421,15 +423,23 @@ export class ChatsRepository {
                 throw new DoubleInvokeError();
             }
         }
+        perf.end('Handle retry');
 
-        let conv = await DB.Conversation.findById(conversationId, { lock: tx.LOCK.UPDATE, transaction: tx });
+        perf.start('conv');
+        let conv = await DB.Conversation.findById(conversationId, {
+            // lock: tx.LOCK.UPDATE,
+            transaction: tx,
+            paranoid: false
+        });
         if (!conv) {
             throw new NotFoundError('Conversation not found');
         }
+        perf.end('conv');
 
         //
         // Check access
         //
+        perf.start('Check access');
         let blocked;
         if (conv.type === 'private') {
             blocked = await DB.ConversationBlocked.findOne({ where: { user: uid, blockedBy: uid === conv.member1Id ? conv.member2Id : conv.member1Id, conversation: null } });
@@ -439,19 +449,25 @@ export class ChatsRepository {
         if (blocked) {
             throw new AccessDeniedError();
         }
+        perf.end('Check access');
 
         //
         // Increment sequence number
         //
 
+        perf.start('Increment sequence number');
         let seq = conv.seq + 1;
-        conv.seq = seq;
-        await conv.save({ transaction: tx });
+        // conv.seq = seq;
+        // await conv.save({ transaction: tx });
+
+        await conv.increment('seq', { transaction: tx });
+        perf.end('Increment sequence number');
 
         // 
         // Persist Messages
         //
 
+        perf.start('Persist Messages');
         let msg = await DB.ConversationMessage.create({
             message: message.message,
             fileId: message.file,
@@ -475,14 +491,21 @@ export class ChatsRepository {
             },
             seq: seq
         }, { transaction: tx });
-
+        perf.end('Persist Messages');
         //
         // Unread Counters
         //
-        let members = await this.getConversationMembers(conversationId, tx);
+
+        perf.start('getConversationMembers');
+        // let members = await this.getConversationMembers(conversationId, tx);
+        let members = await this.getConversationMembersFast(conversationId, conv, tx);
+        perf.end('getConversationMembers');
+
+        await this.typingManager.cancelTyping(uid, conversationId, members);
 
         let userEvent: ConversationUserEvents;
 
+        perf.start('membersEvents');
         if (members.length > 0) {
             let currentStates = await DB.ConversationUserState.findAll({
                 where: {
@@ -588,10 +611,15 @@ export class ChatsRepository {
                 }
             }
         }
+        perf.end('membersEvents');
 
         await ConversationMessagesWorker.pushWork({ messageId: msg.id }, tx);
 
         await this.deleteDraftMessage(uid, conversationId);
+
+        perf.end('sendMessage');
+
+        perf.print();
 
         return {
             conversationEvent: res,
@@ -737,6 +765,79 @@ export class ChatsRepository {
             },
             tx
         );
+    }
+
+    async getConversationMembersFast(conversationId: number, conv: Conversation, eTx?: Transaction): Promise<number[]> {
+        return DB.txStable(async (tx) => {
+
+            if (!conv) {
+                throw new NotFoundError('Conversation not found');
+            }
+
+            let members: number[] = [];
+
+            if (conv.type === 'private') {
+                members = [conv.member1Id!!, conv.member2Id!!];
+            } else if (conv.type === 'shared') {
+                let m = await DB.OrganizationMember.findAll({
+                    where: {
+                        orgId: {
+                            $in: [conv.organization1Id!!, conv.organization2Id!!]
+                        }
+                    },
+                    order: [['createdAt', 'DESC']],
+                    transaction: tx,
+                });
+                for (let i of m) {
+                    if (members.indexOf(i.userId) < 0) {
+                        members.push(i.userId);
+                    }
+                }
+            } else if (conv.type === 'group') {
+                let m = await DB.ConversationGroupMembers.findAll({
+                    where: {
+                        conversationId: conv.id,
+                    },
+                    transaction: tx,
+                });
+                for (let i of m) {
+                    if (members.indexOf(i.userId) < 0) {
+                        members.push(i.userId);
+                    }
+                }
+            } else if (conv.type === 'channel') {
+                let m = await DB.ConversationGroupMembers.findAll({
+                    where: {
+                        conversationId: conv.id,
+                        status: 'member'
+                    },
+                    transaction: tx,
+                });
+                for (let i of m) {
+                    if (members.indexOf(i.userId) < 0) {
+                        members.push(i.userId);
+                    }
+                }
+
+                // let orgs = await DB.ConversationChannelMembers.findAll({
+                //     where: {
+                //         conversationId: conv.id,
+                //         status: 'member'
+                //     },
+                //     transaction: tx
+                // });
+                //
+                // for (let org of orgs) {
+                //     let orgMembers = await Repos.Organizations.getOrganizationMembers(org.orgId);
+                //
+                //     for (let member of orgMembers) {
+                //         members.push(member.userId);
+                //     }
+                // }
+            }
+
+            return members;
+        }, eTx);
     }
 
     async getConversationMembers(conversationId: number, eTx?: Transaction): Promise<number[]> {
