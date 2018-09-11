@@ -800,7 +800,7 @@ export const Resolver = {
                         $in: ['group', 'channel']
                     },
                     title: {
-                        $ilike: args.query.toLowerCase() + '%'
+                        $ilike: '%' + args.query.toLowerCase() + '%'
                     },
                     id: {
                         $in: searchableConversations
@@ -820,7 +820,7 @@ export const Resolver = {
                             },
                             sequelize.or(
                                 sequelize.where(sequelize.fn('concat', sequelize.col('firstName'), ' ', sequelize.col('lastName')), {
-                                    $ilike: args.query.toLowerCase() + '%'
+                                    $ilike: '%' + args.query.toLowerCase() + '%'
                                 }),
                                 {
                                     firstName: {
@@ -834,7 +834,7 @@ export const Resolver = {
                                 },
                                 {
                                     email: {
-                                        $ilike: args.query.toLowerCase() + '%'
+                                        $ilike: '%' + args.query.toLowerCase() + '%'
                                     }
                                 }
                             ),
@@ -876,7 +876,7 @@ export const Resolver = {
                         required: true,
                         where: {
                             name: {
-                                $ilike: args.query.toLowerCase() + '%'
+                                $ilike: '%' + args.query.toLowerCase() + '%'
                             }
                         }
                     },
@@ -898,7 +898,7 @@ export const Resolver = {
                         required: true,
                         where: {
                             name: {
-                                $ilike: args.query.toLowerCase() + '%'
+                                $ilike: '%' + args.query.toLowerCase() + '%'
                             }
                         }
                     },
@@ -930,7 +930,7 @@ export const Resolver = {
                                 $in: orgsIds,
                             },
                             name: {
-                                $ilike: args.query.toLowerCase() + '%'
+                                $ilike: '%' + args.query.toLowerCase() + '%'
                             }
                         }
                     },
@@ -943,7 +943,7 @@ export const Resolver = {
                                 $in: orgsIds,
                             },
                             name: {
-                                $ilike: args.query.toLowerCase() + '%'
+                                $ilike: '%' + args.query.toLowerCase() + '%'
                             }
                         }
                     },
