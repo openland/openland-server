@@ -14,7 +14,6 @@ const Delays = {
 export function startPushNotificationWorker() {
 
     staticWorker({ name: 'push_notifications', delay: 3000 }, async (tx) => {
-        console.log('PushNotificationWork start');
         let unreadUsers = await DB.ConversationsUserGlobal.findAll({
             where: {
                 unread: { $gt: 0 },
@@ -23,7 +22,6 @@ export function startPushNotificationWorker() {
             logging: DB_SILENT
         });
 
-        let pushCount = 0;
         for (let u of unreadUsers) {
 
             // Loading user's settings
@@ -34,8 +32,6 @@ export function startPushNotificationWorker() {
             let logPrefix = 'push_worker ' + u.userId;
 
             let lastSeen = await Repos.Users.getUserLastSeenExtended(u.userId, tx);
-
-            console.log(logPrefix, settings, lastSeen, u.readSeq);
 
             // Ignore never-online users
             if (lastSeen === 'never_online') {
@@ -82,7 +78,6 @@ export function startPushNotificationWorker() {
             if (!notificationsState) {
                 notificationsState = await DB.ConversationsUserGlobalNotifications.create({ userId: u.userId }, { transaction: tx });
             }
-            console.log(logPrefix, JSON.stringify(notificationsState));
 
             // Ignore already processed updates
             if (u.lastPushSeq === u.seq) {
@@ -197,7 +192,6 @@ export function startPushNotificationWorker() {
                 };
 
                 console.log(logPrefix, 'new_push', JSON.stringify(push));
-                pushCount++;
                 await PushWorker.pushWork(push, tx);
             }
 
@@ -210,8 +204,6 @@ export function startPushNotificationWorker() {
             await notificationsState.save({ transaction: tx });
 
         }
-        console.log('push_worker push_count ' + pushCount);
-        console.log('PushNotificationWork end');
 
         return false;
     });
