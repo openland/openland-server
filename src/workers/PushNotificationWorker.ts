@@ -78,7 +78,7 @@ export function startPushNotificationWorker() {
             });
 
             if (!notificationsState) {
-                notificationsState = await DB.ConversationsUserGlobalNotifications.create({ userId: u.id });
+                notificationsState = await DB.ConversationsUserGlobalNotifications.create({ userId: u.id }, { transaction: tx });
             }
             console.log('PushNotificationWork', JSON.stringify);
 
