@@ -25,16 +25,6 @@ export function startPushNotificationWorker() {
 
         let pushCount = 0;
         for (let u of unreadUsers) {
-            let notificationsState = (await DB.ConversationsUserGlobalNotifications.findOrCreate({
-                where: {
-                    userId: u.id,
-                },
-                transaction: tx,
-                lock: tx.LOCK.UPDATE,
-                logging: DB_SILENT,
-                defaults: { userId: u.id }
-            }))[0];
-            console.log('PushNotificationWork', JSON.stringify(notificationsState));
 
             // Loading user's settings
             let settings = await Repos.Users.getUserSettings(u.userId);
@@ -73,13 +63,27 @@ export function startPushNotificationWorker() {
                 continue;
             }
 
-            // Ignore already processed updates
-            if (notificationsState.lastPushSeq === u.seq) {
+            // Ignore user's with disabled notifications
+            if (settings.mobileNotifications === 'none' && settings.desktopNotifications === 'none') {
                 continue;
             }
 
-            // Ignore user's with disabled notifications
-            if (settings.mobileNotifications === 'none' && settings.desktopNotifications === 'none') {
+            let notificationsState = await DB.ConversationsUserGlobalNotifications.find({
+                where: {
+                    userId: u.id,
+                },
+                transaction: tx,
+                lock: tx.LOCK.UPDATE,
+                logging: DB_SILENT,
+            });
+
+            if (!notificationsState) {
+                notificationsState = await DB.ConversationsUserGlobalNotifications.create({ userId: u.id });
+            }
+            console.log('PushNotificationWork', JSON.stringify);
+
+            // Ignore already processed updates
+            if (notificationsState.lastPushSeq === u.seq) {
                 continue;
             }
 
