@@ -505,8 +505,8 @@ export class ChatsRepository {
 
         let userEvent: ConversationUserEvents;
 
-        perf.start('membersEvents');
         if (members.length > 0) {
+            perf.start('currentStates');
             let currentStates = await DB.ConversationUserState.findAll({
                 where: {
                     conversationId: conversationId,
@@ -517,6 +517,8 @@ export class ChatsRepository {
                 transaction: tx,
                 lock: tx.LOCK.UPDATE
             });
+            perf.end('currentStates');
+            perf.start('currentGlobals');
             let currentGlobals = await DB.ConversationsUserGlobal.findAll({
                 where: {
                     userId: {
@@ -526,6 +528,8 @@ export class ChatsRepository {
                 transaction: tx,
                 lock: tx.LOCK.UPDATE
             });
+            perf.end('currentGlobals');
+            perf.start('membersEvents');
             for (let m of members) {
                 let existing = currentStates.find((v) => v.userId === m);
                 let existingGlobal = currentGlobals.find((v) => v.userId === m);
@@ -610,8 +614,8 @@ export class ChatsRepository {
                     userEvent = _userEvent;
                 }
             }
+            perf.end('membersEvents');
         }
-        perf.end('membersEvents');
 
         await ConversationMessagesWorker.pushWork({ messageId: msg.id }, tx);
 
