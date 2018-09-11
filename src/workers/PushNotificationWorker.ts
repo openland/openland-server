@@ -31,9 +31,11 @@ export function startPushNotificationWorker() {
 
             let now = Date.now();
 
-            let logPrefix = 'push ' + u.userId;
+            let logPrefix = 'push_worker ' + u.userId;
 
             let lastSeen = await Repos.Users.getUserLastSeenExtended(u.userId, tx);
+
+            console.log(logPrefix, settings, lastSeen, u.readSeq);
 
             // Ignore never-online users
             if (lastSeen === 'never_online') {
@@ -80,7 +82,7 @@ export function startPushNotificationWorker() {
             if (!notificationsState) {
                 notificationsState = await DB.ConversationsUserGlobalNotifications.create({ userId: u.id }, { transaction: tx });
             }
-            console.log('PushNotificationWork', JSON.stringify);
+            console.log(logPrefix, JSON.stringify(notificationsState));
 
             // Ignore already processed updates
             if (notificationsState.lastPushSeq === u.seq) {
