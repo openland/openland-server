@@ -25,7 +25,7 @@ async function context(src: express.Request): Promise<CallContext> {
         let accounts = await Repos.Users.fetchUserAccounts(res.uid);
 
         // Default behaviour: pick the default one
-        if (accounts.length === 1) {
+        if (accounts.length >= 1) {
             res.oid = accounts[0];
         }
 
