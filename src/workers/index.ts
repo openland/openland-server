@@ -4,7 +4,7 @@ import { createExportWorker } from './FoldeExportWorker';
 import { createEmailWorker } from './EmailWorker';
 import { startEmailNotificationWorker } from './EmailNotificationWorker';
 import { createPushWorker } from './PushWorker';
-import { startPushNotificationWorker } from './PushNotificationWorker';
+// import { startPushNotificationWorker } from './PushNotificationWorker';
 import { createWallPostsWorker } from './WallPostsWorker';
 import { createConversationMessagesWorker } from './ConversationMessagesWorker';
 import { serverRoleEnabled } from '../utils/serverRoles';
@@ -21,7 +21,7 @@ export async function initWorkers() {
     if (serverRoleEnabled('email_notifications')) {
         startEmailNotificationWorker();
     }
-    if (serverRoleEnabled('push_notifications')) {
-        startPushNotificationWorker();
-    }
+    // if (serverRoleEnabled('push_notifications')) {
+    //     startPushNotificationWorker();
+    // }
 }

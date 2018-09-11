@@ -19,7 +19,7 @@ export function startPushNotificationWorker() {
                 unread: { $gt: 0 },
             },
             transaction: tx,
-            // lock: tx.LOCK.UPDATE,
+            lock: tx.LOCK.UPDATE,
             logging: DB_SILENT
         });
 
@@ -184,7 +184,7 @@ export function startPushNotificationWorker() {
 
             // Save state
             if (hasMessage) {
-                // u.lastPushNotification = new Date();
+                u.lastPushNotification = new Date();
             }
 
             u.lastPushSeq = u.seq;
