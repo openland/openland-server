@@ -6,9 +6,9 @@ import { buildBaseImageUrl } from '../repositories/Media';
 import { Texts } from '../texts';
 
 const Delays = {
-  'none': 0,
-  '1min': 60 * 1000,
-  '15min': 15 * 60 * 1000
+    'none': 0,
+    '1min': 60 * 1000,
+    '15min': 15 * 60 * 1000
 };
 
 export function startPushNotificationWorker() {
@@ -19,11 +19,20 @@ export function startPushNotificationWorker() {
                 unread: { $gt: 0 },
             },
             transaction: tx,
-            lock: tx.LOCK.UPDATE,
             logging: DB_SILENT
         });
 
+        let pushCount = 0;
         for (let u of unreadUsers) {
+            let notificationsState = (await DB.ConversationsUserGlobalNotifications.findOrCreate({
+                where: {
+                    userId: u.id,
+                },
+                transaction: tx,
+                lock: tx.LOCK.UPDATE,
+                logging: DB_SILENT,
+                defaults: { userId: u.id }
+            }))[0];
             // Loading user's settings
             let settings = await Repos.Users.getUserSettings(u.userId);
 
@@ -62,7 +71,7 @@ export function startPushNotificationWorker() {
             }
 
             // Ignore already processed updates
-            if (u.lastPushSeq === u.seq) {
+            if (notificationsState.lastPushSeq === u.seq) {
                 continue;
             }
 
@@ -76,7 +85,7 @@ export function startPushNotificationWorker() {
                 where: {
                     userId: u.userId,
                     seq: {
-                        $gt: Math.max(u.lastPushSeq, u.readSeq)
+                        $gt: Math.max(Math.max(u.lastPushSeq, notificationsState.lastPushSeq), u.readSeq)
                     }
                 },
                 transaction: tx,
@@ -179,16 +188,19 @@ export function startPushNotificationWorker() {
                 };
 
                 console.log(logPrefix, 'new_push', JSON.stringify(push));
+                pushCount++;
                 await PushWorker.pushWork(push, tx);
             }
 
             // Save state
             if (hasMessage) {
-                u.lastPushNotification = new Date();
+                notificationsState.lastPushNotification = new Date();
             }
 
-            u.lastPushSeq = u.seq;
-            await u.save({ transaction: tx });
+            notificationsState.lastPushSeq = u.seq;
+            await notificationsState.save({ transaction: tx });
+            console.log(logPrefix, 'push_count ' + pushCount);
+
         }
 
         return false;

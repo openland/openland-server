@@ -74,6 +74,7 @@ import { WallPostTable } from './WallPost';
 import { HitsTable } from './Hit';
 import { ConversationChannelMembersTable } from './ConversationChannelMembers';
 import { ChannelInviteTable } from './ChannelInvite';
+import { ConversationsUserGlobalNotificationsTable } from './ConversationsUserGlobalNotifications';
 
 const SILENT_TX_ACTUALLY_SILENT = true;
 export const DB_SILENT = !SILENT_TX_ACTUALLY_SILENT;
@@ -132,6 +133,7 @@ export const DB = {
     Hit: HitsTable,
     ConversationChannelMembers: ConversationChannelMembersTable,
     ChannelInvite: ChannelInviteTable,
+    ConversationsUserGlobalNotifications: ConversationsUserGlobalNotificationsTable,
 
     tx: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>, existingTx?: sequelize.Transaction): Promise<A> {
         if (existingTx) {
