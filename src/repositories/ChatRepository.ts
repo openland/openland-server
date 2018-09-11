@@ -402,13 +402,16 @@ export class ChatsRepository {
             throw Error('');
         }
 
+        console.time('send_message_time cancel_typing');
         await this.typingManager.cancelTyping(uid, conversationId);
+        console.timeEnd('send_message_time cancel_typing');
 
         //
         // Handle retry
         //
 
         if (message.repeatKey) {
+            console.time('send_message_time retry');
             if (await DB.ConversationMessage.find({
                 where: {
                     userId: uid,
@@ -420,16 +423,20 @@ export class ChatsRepository {
             })) {
                 throw new DoubleInvokeError();
             }
+            console.timeEnd('send_message_time retry');
         }
 
+        console.time('send_message_time find_converation');
         let conv = await DB.Conversation.findById(conversationId, { lock: tx.LOCK.UPDATE, transaction: tx });
         if (!conv) {
             throw new NotFoundError('Conversation not found');
         }
+        console.timeEnd('send_message_time find_converation');
 
         //
         // Check access
         //
+        console.time('send_message_time check_access');
         let blocked;
         if (conv.type === 'private') {
             blocked = await DB.ConversationBlocked.findOne({ where: { user: uid, blockedBy: uid === conv.member1Id ? conv.member2Id : conv.member1Id, conversation: null } });
@@ -439,19 +446,23 @@ export class ChatsRepository {
         if (blocked) {
             throw new AccessDeniedError();
         }
+        console.timeEnd('send_message_time check_access');
 
         //
         // Increment sequence number
         //
 
+        console.time('send_message_time increment_sequence_number');
         let seq = conv.seq + 1;
         conv.seq = seq;
         await conv.save({ transaction: tx });
+        console.timeEnd('send_message_time increment_sequence_number');
 
         // 
         // Persist Messages
         //
 
+        console.time('send_message_time persist_messages');
         let msg = await DB.ConversationMessage.create({
             message: message.message,
             fileId: message.file,
@@ -475,6 +486,7 @@ export class ChatsRepository {
             },
             seq: seq
         }, { transaction: tx });
+        console.timeEnd('send_message_time persist_messages');
 
         //
         // Unread Counters
@@ -484,6 +496,7 @@ export class ChatsRepository {
         let userEvent: ConversationUserEvents;
 
         if (members.length > 0) {
+            console.time('send_message_time prepare_unread_counters');
             let currentStates = await DB.ConversationUserState.findAll({
                 where: {
                     conversationId: conversationId,
@@ -503,6 +516,7 @@ export class ChatsRepository {
                 transaction: tx,
                 lock: tx.LOCK.UPDATE
             });
+            console.timeEnd('send_message_time prepare_unread_counters');
             for (let m of members) {
                 let existing = currentStates.find((v) => v.userId === m);
                 let existingGlobal = currentGlobals.find((v) => v.userId === m);
@@ -513,6 +527,7 @@ export class ChatsRepository {
                 // let muted = (await this.getConversationSettings(m, conversationId)).mute;
 
                 // Write user's chat state
+                console.time('send_message_time write_user_chat_state');
                 if (m !== uid) {
                     if (existing) {
                         existing.unread++;
@@ -538,8 +553,10 @@ export class ChatsRepository {
                         }, { transaction: tx });
                     }
                 }
+                console.timeEnd('send_message_time write_user_chat_state');
 
                 // Update or Create global state
+                console.time('send_message_time update_or_create_global_state');
                 if (existingGlobal) {
                     if (m !== uid) {
                         existingGlobal.unread++;
@@ -567,8 +584,10 @@ export class ChatsRepository {
                         }, { transaction: tx });
                     }
                 }
+                console.timeEnd('send_message_time update_or_create_global_state');
 
                 // Write User Event
+                console.time('send_message_time write_user_event');
                 let _userEvent = await DB.ConversationUserEvents.create({
                     userId: m,
                     seq: userSeq,
@@ -582,6 +601,7 @@ export class ChatsRepository {
                         repeatKey: message.repeatKey ? message.repeatKey : null
                     }
                 }, { transaction: tx });
+                console.timeEnd('send_message_time write_user_event');
 
                 if (m === uid) {
                     userEvent = _userEvent;
@@ -589,9 +609,13 @@ export class ChatsRepository {
             }
         }
 
+        console.time('send_message_time push_work');
         await ConversationMessagesWorker.pushWork({ messageId: msg.id }, tx);
+        console.timeEnd('send_message_time push_work');
 
+        console.time('send_message_time delete_draft');
         await this.deleteDraftMessage(uid, conversationId);
+        console.timeEnd('send_message_time delete_draft');
 
         return {
             conversationEvent: res,
