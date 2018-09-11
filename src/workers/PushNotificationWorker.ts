@@ -20,6 +20,7 @@ export function startPushNotificationWorker() {
                 unread: { $gt: 0 },
             },
             transaction: tx,
+            lock: tx.LOCK.UPDATE,
             logging: DB_SILENT
         });
 
@@ -70,22 +71,22 @@ export function startPushNotificationWorker() {
                 continue;
             }
 
-            let notificationsState = await DB.ConversationsUserGlobalNotifications.find({
-                where: {
-                    userId: u.id,
-                },
-                transaction: tx,
-                lock: tx.LOCK.UPDATE,
-                logging: DB_SILENT,
-            });
+            // let notificationsState = await DB.ConversationsUserGlobalNotifications.find({
+            //     where: {
+            //         userId: u.id,
+            //     },
+            //     transaction: tx,
+            //     lock: tx.LOCK.UPDATE,
+            //     logging: DB_SILENT,
+            // });
 
-            if (!notificationsState) {
-                notificationsState = await DB.ConversationsUserGlobalNotifications.create({ userId: u.id }, { transaction: tx });
-            }
-            console.log(logPrefix, JSON.stringify(notificationsState));
+            // if (!notificationsState) {
+            //     notificationsState = await DB.ConversationsUserGlobalNotifications.create({ userId: u.id }, { transaction: tx });
+            // }
+            // console.log(logPrefix, JSON.stringify(notificationsState));
 
             // Ignore already processed updates
-            if (notificationsState.lastPushSeq === u.seq) {
+            if (u.lastPushSeq === u.seq) {
                 continue;
             }
 
@@ -94,7 +95,7 @@ export function startPushNotificationWorker() {
                 where: {
                     userId: u.userId,
                     seq: {
-                        $gt: Math.max(Math.max(u.lastPushSeq, notificationsState.lastPushSeq), u.readSeq)
+                        $gt: Math.max(Math.max(u.lastPushSeq, u.lastPushSeq), u.readSeq)
                     }
                 },
                 transaction: tx,
@@ -203,11 +204,11 @@ export function startPushNotificationWorker() {
 
             // Save state
             if (hasMessage) {
-                notificationsState.lastPushNotification = new Date();
+                u.lastPushNotification = new Date();
             }
 
-            notificationsState.lastPushSeq = u.seq;
-            await notificationsState.save({ transaction: tx });
+            u.lastPushSeq = u.seq;
+            await u.save({ transaction: tx });
             console.log(logPrefix, 'push_count ' + pushCount);
 
         }
