@@ -427,7 +427,7 @@ export class ChatsRepository {
 
         perf.start('conv');
         let conv = await DB.Conversation.findById(conversationId, {
-            // lock: tx.LOCK.UPDATE,
+            lock: tx.LOCK.UPDATE,
             transaction: tx,
             paranoid: false
         });
