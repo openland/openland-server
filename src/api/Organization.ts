@@ -282,13 +282,16 @@ export const Resolver = {
             if (context.uid) {
                 let allOrgs = await DB.OrganizationMember.findAll({
                     where: {
-                        userId: context.uid
+                        userId: context.uid,
                     }
                 });
                 return await DB.Organization.findAll({
                     where: {
                         id: {
                             $in: allOrgs.map((v) => v.orgId)
+                        },
+                        status: {
+                            $not: 'SUSPENDED'
                         }
                     }
                 });
