@@ -88,10 +88,37 @@ export const Resolvers = {
             return Repos.Super.fetchById(args.viaOrgId ? IDs.Organization.parse(args.id) : IDs.SuperAccount.parse(args.id));
         }),
         users: withPermission<{ query: string }>('super-admin', async (args) => {
+            let sequelize = DB.connection;
+            let usersProfiles = await DB.UserProfile.findAll({
+                where:
+                    [
+                        sequelize.or(
+                            sequelize.where(sequelize.fn('concat', sequelize.col('firstName'), ' ', sequelize.col('lastName')), {
+                                $ilike: '%' + args.query.toLowerCase() + '%'
+                            }),
+                            {
+                                firstName: {
+                                    $ilike: args.query.toLowerCase() + '%'
+                                }
+                            },
+                            {
+                                lastName: {
+                                    $ilike: args.query.toLowerCase() + '%'
+                                }
+                            },
+                            {
+                                email: {
+                                    $ilike: '%' + args.query.toLowerCase() + '%'
+                                }
+                            }
+                        ),
+                    ],
+            });
+            let userIds = usersProfiles.map(u => u.userId!!);
             return await DB.User.findAll({
                 where: {
-                    email: {
-                        $like: args.query + '%'
+                    id: {
+                        $in: userIds
                     }
                 },
                 limit: 10
@@ -184,7 +211,7 @@ export const Resolvers = {
             return SampleWorker.pushWork({ someArgument: args.value });
         }),
         superAccountChannelMemberAdd: withPermission<{ id: string, userId: string }>('super-admin', async (args) => {
-            return await DB.tx(async (tx) => {
+            return await DB.txStable(async (tx) => {
                 await Repos.Chats.addToChannel(tx, IDs.Conversation.parse(args.id), IDs.User.parse(args.userId));
                 return 'ok';
             });

@@ -42,7 +42,7 @@ type Mutation {
     alphaJoinGlobalInvite(key: String!): ID!
 
     createProfile(input: CreateProfileInput!): Profile!
-    updateProfile(input: UpdateProfileInput!): Profile!
+    updateProfile(input: UpdateProfileInput!, uid: ID): Profile!
 
     alphaReportOnline(timeout: Int!, platform: Platform): String!
     alphaReportOffline(platform: Platform): String! @withAuth
