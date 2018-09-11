@@ -14,13 +14,12 @@ const Delays = {
 export function startPushNotificationWorker() {
 
     staticWorker({ name: 'push_notifications', delay: 3000 }, async (tx) => {
-        console.log('push_notifications start');
         let unreadUsers = await DB.ConversationsUserGlobal.findAll({
             where: {
                 unread: { $gt: 0 },
             },
             transaction: tx,
-            lock: tx.LOCK.UPDATE,
+            // lock: tx.LOCK.UPDATE,
             logging: DB_SILENT
         });
 
@@ -185,13 +184,12 @@ export function startPushNotificationWorker() {
 
             // Save state
             if (hasMessage) {
-                u.lastPushNotification = new Date();
+                // u.lastPushNotification = new Date();
             }
 
             u.lastPushSeq = u.seq;
             await u.save({ transaction: tx });
         }
-        console.log('push_notifications end');
 
         return false;
     });
