@@ -14,6 +14,7 @@ const Delays = {
 export function startPushNotificationWorker() {
 
     staticWorker({ name: 'push_notifications', delay: 3000 }, async (tx) => {
+        console.log('PushNotificationWork start');
         let unreadUsers = await DB.ConversationsUserGlobal.findAll({
             where: {
                 unread: { $gt: 0 },
@@ -33,6 +34,8 @@ export function startPushNotificationWorker() {
                 logging: DB_SILENT,
                 defaults: { userId: u.id }
             }))[0];
+            console.log('PushNotificationWork', JSON.stringify(notificationsState));
+
             // Loading user's settings
             let settings = await Repos.Users.getUserSettings(u.userId);
 
@@ -202,6 +205,7 @@ export function startPushNotificationWorker() {
             console.log(logPrefix, 'push_count ' + pushCount);
 
         }
+        console.log('PushNotificationWork start');
 
         return false;
     });
