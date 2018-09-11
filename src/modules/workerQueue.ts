@@ -146,9 +146,11 @@ export function startScheduller() {
 export class WorkQueue<ARGS extends JsonMap, RES extends JsonMap> {
     private taskType: string;
     private locker = new DynamicLock({ lockTimeout: 10000, refreshInterval: 1000 });
+    private pubSubTopic: string;
 
     constructor(taskType: string) {
         this.taskType = taskType;
+        this.pubSubTopic = 'work_added' + this.taskType;
     }
 
     pushWork = async (work: ARGS, tx?: Transaction) => {
@@ -159,12 +161,12 @@ export class WorkQueue<ARGS extends JsonMap, RES extends JsonMap> {
         }, { transaction: tx }));
         if (tx) {
             (tx as any).afterCommit(() => {
-                pubsub.publish('work_added', {
+                pubsub.publish(this.pubSubTopic, {
                     taskId: res.id
                 });
             });
         } else {
-            pubsub.publish('work_added', {
+            pubsub.publish(this.pubSubTopic, {
                 taskId: res.id
             });
         }
@@ -175,7 +177,7 @@ export class WorkQueue<ARGS extends JsonMap, RES extends JsonMap> {
     addWorker = (handler: (item: ARGS, state: LockState, uid: string) => RES | Promise<RES>) => {
         let maxKnownWorkId = 0;
         let waiter: (() => void) | null = null;
-        pubsub.subscribe('work_added', (data) => {
+        pubsub.subscribe(this.pubSubTopic, (data) => {
             if (waiter) {
                 if (maxKnownWorkId < data.taskId) {
                     maxKnownWorkId = data.taskId;
@@ -184,6 +186,7 @@ export class WorkQueue<ARGS extends JsonMap, RES extends JsonMap> {
             }
         });
         forever(async () => {
+            // console.log('WORKER_LOOP' + this.taskType);
             let task = await DB.Task.find({
                 where: {
                     taskType: this.taskType,

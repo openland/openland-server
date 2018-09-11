@@ -35,7 +35,7 @@ export function createConversationMessagesWorker() {
         let urlInfo = await Services.URLInfo.fetchURLInfo(firstUrl.url);
 
         if (urlInfo.title) {
-            await DB.tx(async (tx) => {
+            await DB.txStable(async (tx) => {
                 if (!message || !message.message) {
                     return { result: 'ok' };
                 }
