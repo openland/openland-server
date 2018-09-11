@@ -209,7 +209,7 @@ export function startPushNotificationWorker() {
             console.log(logPrefix, 'push_count ' + pushCount);
 
         }
-        console.log('PushNotificationWork start');
+        console.log('PushNotificationWork end');
 
         return false;
     });
