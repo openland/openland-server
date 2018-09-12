@@ -580,6 +580,7 @@ export const Resolver = {
                 });
 
                 if (existing) {
+                    await Repos.Chats.addToChannel(tx, invite.channelId, uid!);
                     return IDs.Conversation.serialize(invite.channelId);
                 }
 
