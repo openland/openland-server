@@ -173,6 +173,7 @@ extend type Query {
 type ChatStats {
     messagesSent: Int!
     usersActive: Int!
+    usersMutedEmail: Int!
 }
 
 extend type Query {
