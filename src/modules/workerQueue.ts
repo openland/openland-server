@@ -186,7 +186,6 @@ export class WorkQueue<ARGS extends JsonMap, RES extends JsonMap> {
             }
         });
         forever(async () => {
-            // console.log('WORKER_LOOP' + this.taskType);
             let task = await DB.Task.find({
                 where: {
                     taskType: this.taskType,
