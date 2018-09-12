@@ -61,14 +61,13 @@ export const Resolver = {
                 paranoid: false
             } as any);
 
-
             let usersMutedEmail = await DB.UserSettings.count({
                 where: {
                     settings: {
                         emailFrequency: 'never'
                     }
                 }
-            })
+            });
 
             return {
                 messagesSent: messages,
