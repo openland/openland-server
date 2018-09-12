@@ -7,8 +7,14 @@ import { Emails } from '../services/Emails';
 import { NotificationsBot } from '../services/NotificationsBot';
 import { Services } from '../services';
 import { UserError } from '../errors/UserError';
+import { fn, col } from 'sequelize';
 
 export const Resolver = {
+    MessagesLeaderboardItem: {
+        count: (src: any) => src.dataValues.count,
+        userId: (src: any) => IDs.User.serialize(src.userId)
+    },
+
     Query: {
         debugReaderStates: withPermissionOptional(['software-developer'], async () => {
             let readers = (await DB.ReaderState.findAll());
@@ -69,10 +75,23 @@ export const Resolver = {
                 }
             });
 
+            let messagesLeaderboard = await DB.ConversationMessage.findAll({
+                limit: 20,
+                attributes: [
+                    'userId',
+                    [fn('COUNT', col('conversation_message.userId')), 'count']
+                ],
+                order: [['count', 'DESC']],
+                group: 'userId'
+            });
+
+            console.log(messagesLeaderboard);
+
             return {
                 messagesSent: messages,
                 usersActive: activeUsers,
-                usersMutedEmail
+                usersMutedEmail,
+                messagesLeaderboard
             };
         }),
 

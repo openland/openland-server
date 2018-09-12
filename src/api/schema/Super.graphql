@@ -170,10 +170,16 @@ extend type Query {
     debugSendSMS(phone: String!, text: String!): String @withPermissions(permission: ["super-admin", "software-developer"]) @withAuth
 }
 
+type MessagesLeaderboardItem {
+    userId: ID!
+    count: Int!
+}
+
 type ChatStats {
     messagesSent: Int!
     usersActive: Int!
     usersMutedEmail: Int!
+    messagesLeaderboard: [MessagesLeaderboardItem!]!
 }
 
 extend type Query {
