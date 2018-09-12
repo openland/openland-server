@@ -22,23 +22,14 @@ export function startPushNotificationWorker() {
             logging: DB_SILENT
         });
 
-        let pushCount = 0;
         for (let u of unreadUsers) {
-            let notificationsState = (await DB.ConversationsUserGlobalNotifications.findOrCreate({
-                where: {
-                    userId: u.id,
-                },
-                transaction: tx,
-                lock: tx.LOCK.UPDATE,
-                logging: DB_SILENT,
-                defaults: { userId: u.id }
-            }))[0];
+
             // Loading user's settings
             let settings = await Repos.Users.getUserSettings(u.userId);
 
             let now = Date.now();
 
-            let logPrefix = 'push ' + u.userId;
+            let logPrefix = 'push_worker ' + u.userId;
 
             let lastSeen = await Repos.Users.getUserLastSeenExtended(u.userId, tx);
 
@@ -70,13 +61,26 @@ export function startPushNotificationWorker() {
                 continue;
             }
 
-            // Ignore already processed updates
-            if (notificationsState.lastPushSeq === u.seq) {
+            // Ignore user's with disabled notifications
+            if (settings.mobileNotifications === 'none' && settings.desktopNotifications === 'none') {
                 continue;
             }
 
-            // Ignore user's with disabled notifications
-            if (settings.mobileNotifications === 'none' && settings.desktopNotifications === 'none') {
+            let notificationsState = await DB.ConversationsUserGlobalNotifications.find({
+                where: {
+                    userId: u.userId,
+                },
+                transaction: tx,
+                lock: tx.LOCK.UPDATE,
+                logging: DB_SILENT,
+            });
+
+            if (!notificationsState) {
+                notificationsState = await DB.ConversationsUserGlobalNotifications.create({ userId: u.userId }, { transaction: tx });
+            }
+
+            // Ignore already processed updates
+            if (u.lastPushSeq === u.seq) {
                 continue;
             }
 
@@ -85,7 +89,7 @@ export function startPushNotificationWorker() {
                 where: {
                     userId: u.userId,
                     seq: {
-                        $gt: Math.max(Math.max(u.lastPushSeq, notificationsState.lastPushSeq), u.readSeq)
+                        $gt: Math.max(Math.max(notificationsState.lastPushSeq, u.lastPushSeq), u.readSeq)
                     }
                 },
                 transaction: tx,
@@ -188,7 +192,6 @@ export function startPushNotificationWorker() {
                 };
 
                 console.log(logPrefix, 'new_push', JSON.stringify(push));
-                pushCount++;
                 await PushWorker.pushWork(push, tx);
             }
 
@@ -199,7 +202,6 @@ export function startPushNotificationWorker() {
 
             notificationsState.lastPushSeq = u.seq;
             await notificationsState.save({ transaction: tx });
-            console.log(logPrefix, 'push_count ' + pushCount);
 
         }
 

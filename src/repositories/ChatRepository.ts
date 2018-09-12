@@ -418,7 +418,7 @@ export class ChatsRepository {
                     repeatToken: message.repeatKey
                 },
                 transaction: tx,
-                 lock: tx.LOCK.UPDATE
+                lock: tx.LOCK.UPDATE
             })) {
                 throw new DoubleInvokeError();
             }
@@ -1065,15 +1065,21 @@ export class ChatsRepository {
             transaction: tx,
         });
         if (existing) {
-            return;
+            if (existing.status === 'member') {
+                return;
+            } else {
+                existing.status = 'member';
+                await existing.save({ transaction: tx });
+            }
+        } else {
+            await DB.ConversationGroupMembers.create({
+                conversationId: channelId,
+                invitedById: uid,
+                role: 'member',
+                status: 'member',
+                userId: uid,
+            }, { transaction: tx });
         }
-        await DB.ConversationGroupMembers.create({
-            conversationId: channelId,
-            invitedById: uid,
-            role: 'member',
-            status: 'member',
-            userId: uid,
-        }, { transaction: tx });
 
         await Repos.Chats.sendMessage(
             tx,

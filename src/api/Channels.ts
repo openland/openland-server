@@ -580,6 +580,7 @@ export const Resolver = {
                 });
 
                 if (existing) {
+                    await Repos.Chats.addToChannel(tx, invite.channelId, uid!);
                     return IDs.Conversation.serialize(invite.channelId);
                 }
 
@@ -600,7 +601,7 @@ export const Resolver = {
                     }
 
                     await user.save({ transaction: tx });
-                    await Repos.Chats.addToInitialChannel(user.id!, tx);
+                    // await Repos.Chats.addToInitialChannel(user.id!, tx);
 
                 }
 
@@ -619,31 +620,37 @@ export const Resolver = {
                     }
                 }
 
-                await DB.ConversationGroupMembers.create({
-                    conversationId: invite.channelId,
-                    invitedById: uid,
-                    role: 'member',
-                    status: 'member',
-                    userId: uid
-                }, { transaction: tx });
+                try {
+                    await DB.ConversationGroupMembers.create({
+                        conversationId: invite.channelId,
+                        invitedById: uid,
+                        role: 'member',
+                        status: 'member',
+                        userId: uid
+                    }, { transaction: tx });
 
-                let name = (await DB.UserProfile.find({ where: { userId: uid } }))!.firstName;
+                    let name = (await DB.UserProfile.find({ where: { userId: uid }, transaction: tx }))!.firstName;
 
-                await Repos.Chats.sendMessage(
-                    tx,
-                    invite.channelId,
-                    uid!,
-                    {
-                        message: `${name} has joined the channel!`,
-                        isService: true
+                    await Repos.Chats.sendMessage(
+                        tx,
+                        invite.channelId,
+                        uid!,
+                        {
+                            message: `${name} has joined the channel!`,
+                            isService: true
+                        }
+                    );
+
+                    if (invite.isOneTime) {
+                        await invite.update({ acceptedById: uid }, { transaction: tx });
                     }
-                );
 
-                if (invite.isOneTime) {
-                    await invite.update({ acceptedById: uid }, { transaction: tx });
+                    return IDs.Conversation.serialize(invite.channelId);
+                } catch (e) {
+                    console.warn(e);
+                    throw e;
                 }
 
-                return IDs.Conversation.serialize(invite.channelId);
             });
         }),
     },
