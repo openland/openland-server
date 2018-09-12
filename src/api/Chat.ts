@@ -1773,6 +1773,81 @@ export const Resolver = {
 
             return 'ok';
         }),
+        alphaChatLeave: withAccount<{ conversationId: string }>(async (args, uid) => {
+            return DB.tx(async (tx) => {
+                let conversationId = IDs.Conversation.parse(args.conversationId);
+
+                let chat = await DB.Conversation.findById(conversationId, { transaction: tx });
+
+                if (!chat || (chat.type !== 'group' && chat.type !== 'channel')) {
+                    throw new Error('Chat not found');
+                }
+
+                let member = await DB.ConversationGroupMembers.findOne({
+                    where: {
+                        conversationId,
+                        userId: uid
+                    }
+                });
+
+                if (!member) {
+                    throw new Error('No such member');
+                }
+
+                await DB.ConversationGroupMembers.destroy({
+                    where: {
+                        conversationId,
+                        userId: uid
+                    }
+                });
+
+                let profile = await DB.UserProfile.findById(uid);
+
+                await Repos.Chats.sendMessage(
+                    tx,
+                    conversationId,
+                    uid,
+                    {
+                        message: `${profile!.firstName} leaved chat`,
+                        isService: true,
+                        isMuted: true,
+                        serviceMetadata: {
+                            type: 'user_kick',
+                            userId: uid,
+                            kickedById: uid
+                        }
+                    }
+                );
+
+                await Repos.Chats.addChatEvent(
+                    conversationId,
+                    'kick_member',
+                    {
+                        userId: uid,
+                        kickedBy: uid
+                    },
+                    tx
+                );
+
+                let membersCount = await Repos.Chats.membersCountInConversation(conversationId);
+
+                await Repos.Chats.addUserEventsInConversation(
+                    conversationId,
+                    uid,
+                    'new_members_count',
+                    {
+                        conversationId,
+                        membersCount: membersCount
+                    },
+                    tx
+                );
+
+                return {
+                    chat,
+                    curSeq: chat.seq
+                };
+            });
+        }),
     },
     Subscription: {
         alphaChatSubscribe: {

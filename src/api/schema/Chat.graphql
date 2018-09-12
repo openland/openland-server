@@ -344,6 +344,8 @@ extend type Mutation {
     alphaChatChangeRoleInGroup(conversationId: ID!, userId: ID!, newRole: String!): GroupChatUpdateResponse!
     alphaChatCopyGroup(conversationId: ID!, title: String, extraMembers: [ID!], message: String!): GroupChatUpdateResponse!
 
+    alphaChatLeave(conversationId: ID!): ConversationUpdateResponse!
+
     #
     # BlackList
     #
