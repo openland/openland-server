@@ -303,7 +303,7 @@ export const Resolver = {
                         await Repos.Chats.sendMessage(
                             tx,
                             channelId,
-                            uid,
+                            userId,
                             {
                                 message: `${name} has joined the channel!`,
                                 isService: true,
