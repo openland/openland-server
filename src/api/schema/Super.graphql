@@ -180,6 +180,7 @@ type ChatStats {
     usersActive: Int!
     usersMutedEmail: Int!
     messagesLeaderboard: [MessagesLeaderboardItem!]!
+    usersMutedOpenlandBeta: Int!
 }
 
 extend type Query {
