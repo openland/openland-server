@@ -62,12 +62,12 @@ export class PermissionRepository {
             // Membership
             //
 
-            let member = await DB.OrganizationMember.find(({
+            let members = await DB.OrganizationMember.findAll(({
                 where: {
                     userId: args.uid,
                 }
             }));
-            if (member) {
+            for (let member of members) {
                 permissions.add('org-' + IDs.Organization.serialize(member.orgId) + '-member');
                 if (member.isOwner) {
                     permissions.add('org-' + IDs.Organization.serialize(member.orgId) + '-admin');
