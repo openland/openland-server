@@ -476,7 +476,7 @@ export const Resolver = {
             return await builder.findElastic(hits);
         }),
 
-        alphaOrganizationPublicInvite: withAccount(async (args, uid, orgId) => {
+        alphaOrganizationPublicInvite: withAccount<{ oid?: string }>(async (args, uid, orgId) => {
             return await DB.tx(async (tx) => {
                 let res = await Repos.Invites.getPublicInvite(orgId, tx);
                 if (!res) {
@@ -486,7 +486,7 @@ export const Resolver = {
             });
 
         }),
-        alphaOrganizationPublicInviteForOrganizations: withAccount(async (args, uid, orgId) => {
+        alphaOrganizationPublicInviteForOrganizations: withAccount<{ oid?: string }>(async (args, uid, orgId) => {
             return await DB.tx(async (tx) => {
                 let res = await Repos.Invites.getPublicInviteForOrganizations(orgId, tx);
                 if (!res) {
@@ -497,7 +497,7 @@ export const Resolver = {
             });
         }),
 
-        alphaTopCategories: withAccount(async (args, uid, orgId) => {
+        alphaTopCategories: withUser(async (args, uid) => {
             let orgs = await DB.Organization.findAll({
                 where: {
                     status: 'ACTIVATED',
@@ -1237,7 +1237,10 @@ export const Resolver = {
                 return 'ok';
             });
         }),
-        alphaOrganizationRemoveMember: withAccount<{ memberId: string }>(async (args, uid, oid) => {
+
+        // todo: remove withAccount
+        alphaOrganizationRemoveMember: withAccount<{ memberId: string, oid?: string }>(async (args, uid, oid) => {
+            oid = args.oid ? IDs.Organization.parse(args.oid) : oid;
             return await DB.tx(async (tx) => {
                 let isOwner = await Repos.Organizations.isOwnerOfOrganization(oid, uid);
 
@@ -1297,7 +1300,11 @@ export const Resolver = {
                 return 'ok';
             });
         }),
-        alphaOrganizationChangeMemberRole: withAccount<{ memberId: string, newRole: 'OWNER' | 'MEMBER' }>(async (args, uid, oid) => {
+
+        // todo: remove withAccount
+        alphaOrganizationChangeMemberRole: withAccount<{ memberId: string, newRole: 'OWNER' | 'MEMBER', oid?: string }>(async (args, uid, oid) => {
+            oid = args.oid ? IDs.Organization.parse(args.oid) : oid;
+
             return await DB.tx(async (tx) => {
                 let isOwner = await Repos.Organizations.isOwnerOfOrganization(oid, uid);
 
@@ -1359,7 +1366,9 @@ export const Resolver = {
                 return 'ok';
             });
         }),
-        alphaOrganizationInviteMembers: withAccount<{ inviteRequests: { email: string, emailText?: string, firstName?: string, lastName?: string, role: 'OWNER' | 'MEMBER' }[] }>(async (args, uid, oid) => {
+        // todo: remove withAccount
+        alphaOrganizationInviteMembers: withAccount<{ inviteRequests: { email: string, emailText?: string, firstName?: string, lastName?: string, role: 'OWNER' | 'MEMBER' }[], oid?: string }>(async (args, uid, oid) => {
+            oid = args.oid ? IDs.Organization.parse(args.oid) : oid;
             await validate(
                 {
                     inviteRequests: [
@@ -1401,9 +1410,10 @@ export const Resolver = {
                 return 'ok';
             });
         }),
-        alphaOrganizationCreatePublicInvite: withAccount<{ expirationDays?: number }>(async (args, uid, oid) => {
+        // todo: remove withAccount
+        alphaOrganizationCreatePublicInvite: withAccount<{ expirationDays?: number, oid?: string }>(async (args, uid, oid) => {
             return DB.tx(async (tx) => {
-
+                oid = args.oid ? IDs.Organization.parse(args.oid) : oid;
                 let isOwner = await Repos.Organizations.isOwnerOfOrganization(oid, uid, tx);
 
                 if (!isOwner) {
@@ -1413,7 +1423,9 @@ export const Resolver = {
                 return await Repos.Invites.createPublicInvite(oid, args.expirationDays, tx);
             });
         }),
-        alphaOrganizationDeletePublicInvite: withAccount(async (args, uid, oid) => {
+        // todo: remove withAccount
+        alphaOrganizationDeletePublicInvite: withAccount<{ oid?: string }>(async (args, uid, oid) => {
+            oid = args.oid ? IDs.Organization.parse(args.oid) : oid;
             return DB.tx(async (tx) => {
                 let isOwner = await Repos.Organizations.isOwnerOfOrganization(oid, uid, tx);
 
@@ -1426,7 +1438,9 @@ export const Resolver = {
                 return 'ok';
             });
         }),
-        alphaOrganizationInviteOrganization: withAccount<{ inviteRequests: { email: string, emailText?: string, firstName?: string, lastName?: string }[] }>(async (args, uid, oid) => {
+        // todo: remove withAccount
+        alphaOrganizationInviteOrganization: withAccount<{ inviteRequests: { email: string, emailText?: string, firstName?: string, lastName?: string }[], oid?: string }>(async (args, uid, oid) => {
+            oid = args.oid ? IDs.Organization.parse(args.oid) : oid;
             await validate(
                 {
                     inviteRequests: [
@@ -1462,37 +1476,10 @@ export const Resolver = {
                 return 'ok';
             });
         }),
-        alphaOrganizationActivateByInvite: withAccount<{ key: string }>(async (args, uid, oid) => {
-            return await DB.tx(async (tx) => {
-                let invite = await DB.OrganizationInvite.find({
-                    where: {
-                        uuid: args.key,
-                        type: 'for_organization'
-                    },
-                    transaction: tx
-                });
 
-                if (!invite) {
-                    throw new NotFoundError(ErrorText.unableToFindInvite);
-                }
-
-                let org = await DB.Organization.findById(oid, { transaction: tx });
-
-                if (!org) {
-                    return 'ok';
-                }
-
-                await org.update({ status: 'ACTIVATED' }, { transaction: tx });
-
-                if (invite.isOneTime === true) {
-                    await invite.destroy({ transaction: tx });
-                }
-
-                return 'ok';
-            });
-        }),
-        alphaOrganizationCreatePublicInviteForOrganizations: withAccount<{ expirationDays?: number }>(async (args, uid, oid) => {
-
+        // todo: remove withAccount
+        alphaOrganizationCreatePublicInviteForOrganizations: withAccount<{ expirationDays?: number, oid?: string }>(async (args, uid, oid) => {
+            oid = args.oid ? IDs.Organization.parse(args.oid) : oid;
             return await DB.tx(async (tx) => {
                 let isOwner = await Repos.Organizations.isOwnerOfOrganization(oid, uid, tx);
 
@@ -1503,7 +1490,10 @@ export const Resolver = {
                 return await Repos.Invites.createPublicInviteForOrganizations(oid, args.expirationDays, tx);
             });
         }),
-        alphaOrganizationDeletePublicInviteForOrganizations: withAccount<{ expirationDays: number }>(async (args, uid, oid) => {
+
+        // todo: remove withAccount
+        alphaOrganizationDeletePublicInviteForOrganizations: withAccount<{ expirationDays: number, oid?: string }>(async (args, uid, oid) => {
+            oid = args.oid ? IDs.Organization.parse(args.oid) : oid;
             return DB.tx(async (tx) => {
                 let isOwner = await Repos.Organizations.isOwnerOfOrganization(oid, uid, tx);
 
@@ -1516,6 +1506,8 @@ export const Resolver = {
                 return 'ok';
             });
         }),
+        
+        // todo: remove withAccount
         alphaAlterMemberAsContact: withUser<{ orgId: string, memberId: string, showInContacts: boolean }>(async (args, uid) => {
             let orgId = IDs.Organization.parse(args.orgId);
 

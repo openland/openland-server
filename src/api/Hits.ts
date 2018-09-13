@@ -1,4 +1,4 @@
-import { withAccount } from './utils/Resolvers';
+import { withUser } from './utils/Resolvers';
 import { DB } from '../tables';
 
 interface HitInput {
@@ -10,7 +10,7 @@ const POPULAR_RESPONSE_MAX = 20;
 
 export const Resolver = {
     Query: {
-        alphaHitsPopular: withAccount<{ categories: string[] }>(async (args, uid, orgId) => {
+        alphaHitsPopular: withUser<{ categories: string[] }>(async (args, uid) => {
             let hits: HitInput[] = [];
 
             for (let category of args.categories) {
@@ -37,7 +37,7 @@ export const Resolver = {
     },
 
     Mutation: {
-        alphaHitsAdd: withAccount<{ hits: HitInput[] }>(async (args, uid, orgId) => {
+        alphaHitsAdd: withUser<{ hits: HitInput[] }>(async (args, uid) => {
             return DB.tx(async (tx) => {
                 for (let hit of args.hits) {
                     for (let tag of hit.tags) {
@@ -56,7 +56,7 @@ export const Resolver = {
                                     tag,
                                     hitsCount: 1
                                 },
-                                {transaction: tx}
+                                { transaction: tx }
                             );
                         } else {
                             await stored.increment('hitsCount');

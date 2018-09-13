@@ -1,4 +1,4 @@
-import { resolveID, withAccount, withAny, withOrgOwner } from './utils/Resolvers';
+import { resolveID, withAny, withOrgOwner, withUser } from './utils/Resolvers';
 import { DB } from '../tables';
 import { IDs } from './utils/IDs';
 import { WallPost } from '../tables/WallPost';
@@ -144,20 +144,7 @@ export const Resolver = {
             return builder.findAll([], {});
         }),
 
-        wallMyOrg: withAccount<{ first: number, after?: string, page?: number }>(async (args, uid, orgId) => {
-            let builder = new SelectBuilder(DB.WallPost)
-                .whereEq('isDeleted', false)
-                .whereEq('orgId', orgId)
-                .orderBy('isPinned', 'DESC')
-                .orderBy('createdAt')
-                .after(args.after)
-                .page(args.page)
-                .limit(args.first);
-
-            return builder.findAll([], {});
-        }),
-
-        wallSearch: withAccount<WallSearchParams>(async (args, uid, orgId) => {
+        wallSearch: withUser<WallSearchParams>(async (args, uid) => {
             let clauses: any[] = [];
 
             if (args.query) {

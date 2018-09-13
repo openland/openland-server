@@ -1,11 +1,13 @@
 type SessionState {
     isLoggedIn: Boolean!
     isProfileCreated: Boolean!
+    isActivated: Boolean!
     isAccountExists: Boolean!
-    isAccountPicked: Boolean!
-    isAccountActivated: Boolean!
     isCompleted: Boolean!
     isBlocked: Boolean!
+    # depricated
+    isAccountPicked: Boolean!
+    isAccountActivated: Boolean!
 }
 
 extend type Query {

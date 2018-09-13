@@ -2,7 +2,7 @@ import { ConversationMessage } from '../tables/ConversationMessage';
 import { IDs, IdsFactory } from './utils/IDs';
 import { Conversation } from '../tables/Conversation';
 import { DB, User } from '../tables';
-import { withPermission, withAny, withAccount, withUser, resolveUser } from './utils/Resolvers';
+import { withPermission, withAny, withUser, resolveUser, withAccount } from './utils/Resolvers';
 import { validate, stringNotEmpty, enumString, optional, defined, mustBeArray } from '../modules/NewInputValidator';
 import { ConversationEvent } from '../tables/ConversationEvent';
 import { CallContext } from './utils/CallContext';
@@ -541,7 +541,7 @@ export const Resolver = {
             return await Services.BoxPreview.generatePreviewId(res.boxId!!);
         }),
         alphaNotificationCounter: withUser((args, uid) => uid),
-        alphaChats: withAccount<{ first: number, after?: string | null, seq?: number }>(async (args, uid, oid) => {
+        alphaChats: withUser<{ first: number, after?: string | null, seq?: number }>(async (args, uid) => {
             return await DB.tx(async (tx) => {
                 let global = await DB.ConversationsUserGlobal.find({ where: { userId: uid }, transaction: tx });
                 let seq = global ? global.seq : 0;
@@ -746,7 +746,7 @@ export const Resolver = {
             });
             return [...orgs, ...primaryOrgUsers, ...users];
         }),
-        alphaChatSearch: withAccount<{ members: string[] }>(async (args, uid, oid) => {
+        alphaChatSearch: withUser<{ members: string[] }>(async (args, uid) => {
             let members = [...args.members.map((v) => IDs.User.parse(v)), uid];
             return await DB.txStable(async (tx) => {
                 let groups = await DB.ConversationGroupMembers.findAll({
@@ -963,7 +963,7 @@ export const Resolver = {
             return res;
 
         }),
-        alphaGroupConversationMembers: withAccount<{ conversationId: string }>(async (args, uid, oid) => {
+        alphaGroupConversationMembers: withUser<{ conversationId: string }>(async (args, uid) => {
             let conversationId = IDs.Conversation.parse(args.conversationId);
 
             let members = await DB.ConversationGroupMembers.findAll({
@@ -974,7 +974,7 @@ export const Resolver = {
 
             return members;
         }),
-        alphaBlockedList: withAccount<{ conversationId?: string }>(async (args, uid, oid) => {
+        alphaBlockedList: withUser<{ conversationId?: string }>(async (args, uid) => {
             let conversationId = args.conversationId ? IDs.Conversation.parse(args.conversationId) : null;
 
             return await DB.ConversationBlocked.findAll({
@@ -984,7 +984,7 @@ export const Resolver = {
                 }
             });
         }),
-        alphaDraftMessage: withAccount<{ conversationId: string }>(async (args, uid, oid) => {
+        alphaDraftMessage: withUser<{ conversationId: string }>(async (args, uid) => {
             let conversationId = IDs.Conversation.parse(args.conversationId);
 
             let draft = await Repos.Chats.getDraftMessage(uid, conversationId);
@@ -1003,7 +1003,7 @@ export const Resolver = {
                 title: args.title
             });
         }),
-        alphaReadChat: withAccount<{ conversationId: string, messageId: string }>(async (args, uid) => {
+        alphaReadChat: withUser<{ conversationId: string, messageId: string }>(async (args, uid) => {
             let conversationId = IDs.Conversation.parse(args.conversationId);
             let messageId = IDs.ConversationMessage.parse(args.messageId);
             await DB.txStable(async (tx) => {
@@ -1125,7 +1125,7 @@ export const Resolver = {
                 conversationId: conversationId
             };
         }),
-        alphaGlobalRead: withAccount<{ toSeq: number }>(async (args, uid) => {
+        alphaGlobalRead: withUser<{ toSeq: number }>(async (args, uid) => {
             await DB.txStable(async (tx) => {
                 let global = await DB.ConversationsUserGlobal.find({
                     where: {
@@ -1141,7 +1141,7 @@ export const Resolver = {
             });
             return 'ok';
         }),
-        alphaSendMessage: withAccount<{ conversationId: string, message?: string | null, file?: string | null, repeatKey?: string | null }>(async (args, uid) => {
+        alphaSendMessage: withUser<{ conversationId: string, message?: string | null, file?: string | null, repeatKey?: string | null }>(async (args, uid) => {
             // validate({ message: stringNotEmpty() }, args);
             let conversationId = IDs.Conversation.parse(args.conversationId);
 
@@ -1167,7 +1167,7 @@ export const Resolver = {
                 })).conversationEvent;
             });
         }),
-        alphaEditMessage: withAccount<{ messageId: string, message?: string | null, file?: string | null }>(async (args, uid) => {
+        alphaEditMessage: withUser<{ messageId: string, message?: string | null, file?: string | null }>(async (args, uid) => {
             let fileMetadata: JsonMap | null;
             let filePreview: string | null;
 
@@ -1197,14 +1197,14 @@ export const Resolver = {
                 );
             });
         }),
-        alphaDeleteMessage: withAccount<{ messageId: string }>(async (args, uid) => {
+        alphaDeleteMessage: withUser<{ messageId: string }>(async (args, uid) => {
             let messageId = IDs.ConversationMessage.parse(args.messageId);
 
             return await DB.txStable(async (tx) => {
                 return await Repos.Chats.deleteMessage(tx, messageId, uid);
             });
         }),
-        alphaSetTyping: withAccount<{ conversationId: string, type: string }>(async (args, uid) => {
+        alphaSetTyping: withUser<{ conversationId: string, type: string }>(async (args, uid) => {
 
             await validate({ type: optional(enumString(['text', 'photo'])) }, args);
 
@@ -1215,7 +1215,7 @@ export const Resolver = {
             return 'ok';
         }),
 
-        alphaChatCreateGroup: withAccount<{ title?: string | null, message: string, members: string[] }>(async (args, uid, oid) => {
+        alphaChatCreateGroup: withUser<{ title?: string | null, message: string, members: string[] }>(async (args, uid) => {
             return await DB.txStable(async (tx) => {
                 let title = args.title ? args.title!! : '';
                 let conv = await DB.Conversation.create({
@@ -1236,7 +1236,7 @@ export const Resolver = {
                 return conv;
             });
         }),
-        alphaChatUpdateGroup: withAccount<{ conversationId: string, input: { title?: string | null, description?: string | null, longDescription?: string | null, photoRef?: ImageRef | null, socialImageRef?: ImageRef | null } }>(async (args, uid, oid) => {
+        alphaChatUpdateGroup: withUser<{ conversationId: string, input: { title?: string | null, description?: string | null, longDescription?: string | null, photoRef?: ImageRef | null, socialImageRef?: ImageRef | null } }>(async (args, uid) => {
             await validate(
                 {
                     title: optional(stringNotEmpty('Title can\'t be empty!'))
@@ -1341,7 +1341,7 @@ export const Resolver = {
                 };
             });
         }),
-        alphaChatChangeGroupTitle: withAccount<{ conversationId: string, title: string }>(async (args, uid) => {
+        alphaChatChangeGroupTitle: withUser<{ conversationId: string, title: string }>(async (args, uid) => {
             return DB.tx(async (tx) => {
                 await validate({ title: defined(stringNotEmpty()) }, args);
 
@@ -1398,7 +1398,7 @@ export const Resolver = {
                 };
             });
         }),
-        alphaChatInviteToGroup: withAccount<{ conversationId: string, invites: { userId: string, role: string }[] }>(async (args, uid) => {
+        alphaChatInviteToGroup: withUser<{ conversationId: string, invites: { userId: string, role: string }[] }>(async (args, uid) => {
             return DB.tx(async (tx) => {
                 await validate({
                     invites: mustBeArray({
@@ -1509,7 +1509,7 @@ export const Resolver = {
                 };
             });
         }),
-        alphaChatKickFromGroup: withAccount<{ conversationId: string, userId: string }>(async (args, uid) => {
+        alphaChatKickFromGroup: withUser<{ conversationId: string, userId: string }>(async (args, uid) => {
             return DB.tx(async (tx) => {
                 let conversationId = IDs.Conversation.parse(args.conversationId);
                 let userId = IDs.User.parse(args.userId);
@@ -1610,7 +1610,7 @@ export const Resolver = {
                 };
             });
         }),
-        alphaChatChangeRoleInGroup: withAccount<{ conversationId: string, userId: string, newRole: string }>(async (args, uid) => {
+        alphaChatChangeRoleInGroup: withUser<{ conversationId: string, userId: string, newRole: string }>(async (args, uid) => {
             return DB.tx(async (tx) => {
                 await validate({
                     newRole: defined(enumString(['member', 'admin']))
@@ -1672,7 +1672,7 @@ export const Resolver = {
                 };
             });
         }),
-        alphaChatCopyGroup: withAccount<{ conversationId: string, extraMembers: string[], title?: string, message: string }>(async (args, uid) => {
+        alphaChatCopyGroup: withUser<{ conversationId: string, extraMembers: string[], title?: string, message: string }>(async (args, uid) => {
             return DB.tx(async (tx) => {
                 let conversationId = IDs.Conversation.parse(args.conversationId);
                 let chat = await DB.Conversation.findById(conversationId, { transaction: tx });
@@ -1713,13 +1713,13 @@ export const Resolver = {
             });
         }),
 
-        alphaBlockUser: withAccount<{ userId: string }>(async (args, uid) => {
+        alphaBlockUser: withUser<{ userId: string }>(async (args, uid) => {
             return DB.tx(async (tx) => {
                 await Repos.Chats.blockUser(tx, IDs.User.parse(args.userId), uid);
                 return 'ok';
             });
         }),
-        alphaUnblockUser: withAccount<{ userId: string, conversationId?: string }>(async (args, uid) => {
+        alphaUnblockUser: withUser<{ userId: string, conversationId?: string }>(async (args, uid) => {
             let conversationId = args.conversationId ? IDs.Conversation.parse(args.conversationId) : null;
             let blocked = await DB.ConversationBlocked.findOne({
                 where: {
@@ -1762,7 +1762,7 @@ export const Resolver = {
                 };
             });
         }),
-        alphaSaveDraftMessage: withAccount<{ conversationId: string, message?: string }>(async (args, uid) => {
+        alphaSaveDraftMessage: withUser<{ conversationId: string, message?: string }>(async (args, uid) => {
             let conversationId = IDs.Conversation.parse(args.conversationId);
 
             if (!args.message) {

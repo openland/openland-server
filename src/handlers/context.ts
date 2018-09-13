@@ -3,6 +3,7 @@ import { CallContext } from '../api/utils/CallContext';
 import { Repos } from '../repositories';
 import { IDs } from '../api/utils/IDs';
 import { fetchKeyFromRequest } from '../utils/fetchKeyFromRequest';
+import { DB } from '../tables';
 
 async function context(src: express.Request): Promise<CallContext> {
     let res = new CallContext();
@@ -27,8 +28,12 @@ async function context(src: express.Request): Promise<CallContext> {
         // Default behaviour: pick the default one
         if (accounts.length >= 1) {
             res.oid = accounts[0];
+
+            let profile = await DB.UserProfile.find({ where: { userId: res.uid } });
+            res.oid = (profile && profile.primaryOrganization) || res.oid;
         }
 
+        // todo: remove
         // If there are organization cookie, try to use it instead
         let orgId = fetchKeyFromRequest(src, 'x-openland-org');
         if (orgId) {

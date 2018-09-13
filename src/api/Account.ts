@@ -1,9 +1,8 @@
 import { DB } from '../tables';
 import { CallContext } from './utils/CallContext';
-import { withUser, withAny } from './utils/Resolvers';
+import { withUser, withAny, withAccount } from './utils/Resolvers';
 import { Repos } from '../repositories';
 import { IDs } from './utils/IDs';
-import { withAccount } from './utils/Resolvers';
 import { OrganizationInvite } from '../tables/OrganizationInvite';
 import { randomKey } from '../utils/random';
 import { buildBaseImageUrl, ImageRef } from '../repositories/Media';
@@ -18,8 +17,8 @@ export const Resolver = {
         ttl: (src: OrganizationInvite) => String(src.ttl)
     },
     Query: {
-        alphaInvites: withAccount(async (args, uid, oid) => {
-            return await DB.OrganizationInvite.findAll({ where: { orgId: oid } });
+        alphaInvites: withUser(async (args, uid) => {
+            return await DB.OrganizationInvite.findAll({ where: { creatorId: uid } });
         }),
         alphaInviteInfo: withAny<{ key: string }>(async (args, context: CallContext) => {
             let invite = await DB.OrganizationInvite.find({ where: { uuid: args.key, acceptedById: null } });
@@ -44,8 +43,8 @@ export const Resolver = {
                 forName: invite.memberFirstName,
             };
         }),
-        alphaInvitesHistory: withAccount(async (args, uid, oid) => {
-            let invites = await DB.OrganizationInvite.findAll({ where: { orgId: oid, isOneTime: true }, order: [['createdAt', 'DESC']] });
+        alphaInvitesHistory: withUser(async (args, uid) => {
+            let invites = await DB.OrganizationInvite.findAll({ where: { creatorId: uid, isOneTime: true }, order: [['createdAt', 'DESC']] });
             return invites.map(async (invite) => {
                 return ({
                     acceptedBy: invite.acceptedById ? await DB.User.findOne({ where: { id: invite.acceptedById } }) : null,
@@ -61,11 +60,13 @@ export const Resolver = {
                 return {
                     isLoggedIn: false,
                     isProfileCreated: false,
+                    isActivated: false,
                     isAccountExists: false,
+                    isCompleted: false,
+                    isBlocked: false,
+                    // depricated
                     isAccountPicked: false,
                     isAccountActivated: false,
-                    isCompleted: false,
-                    isBlocked: false
                 };
             }
 
@@ -75,11 +76,13 @@ export const Resolver = {
                 return {
                     isLoggedIn: false,
                     isProfileCreated: false,
+                    isActivated: false,
                     isAccountExists: false,
+                    isCompleted: false,
+                    isBlocked: false,
+                    // depricated
                     isAccountPicked: false,
                     isAccountActivated: false,
-                    isCompleted: false,
-                    isBlocked: false
                 };
             }
 
@@ -93,20 +96,26 @@ export const Resolver = {
             // Stage 2: Pick organization or create a new one (if there are no exists)
             let organization = !!context.oid ? await DB.Organization.findById(context.oid) : null;
             let isOrganizationPicked = organization !== null;
-            let isOrganizationExists = (await Repos.Users.fetchUserAccounts(context.uid)).length > 0;
+            let orgsIDs = await Repos.Users.fetchUserAccounts(context.uid);
+            let isOrganizationExists = orgsIDs.length > 0;
 
-            // Stage 3: Organization Status
+            // Stage 3: Activation Status
+            let orgs = await DB.Organization.findAll({ where: { id: { $in: orgsIDs } } });
+            let isAllOrganizationsSuspended = orgs.filter(o => o.status === 'SUSPENDED').length === orgs.length;
+            let isActivated = orgs.filter(o => o.status === 'ACTIVATED').length > 0;
+            // depricated
             let isOrganizationActivated = isOrganizationPicked && organization!!.status !== 'PENDING';
-            let isOrganizationSuspended = isOrganizationPicked ? organization!!.status === 'SUSPENDED' : false;
 
             let queryResult = {
                 isLoggedIn: isLoggedIn,
                 isProfileCreated: isProfileCreated,
+                isActivated: isActivated,
                 isAccountExists: isOrganizationExists,
+                isCompleted: isProfileCreated && isOrganizationExists && isOrganizationPicked && isOrganizationActivated,
+                isBlocked: isAllOrganizationsSuspended,
+                // depricated
                 isAccountPicked: isOrganizationPicked,
                 isAccountActivated: isOrganizationActivated,
-                isCompleted: isProfileCreated && isOrganizationExists && isOrganizationPicked && isOrganizationActivated,
-                isBlocked: isOrganizationSuspended
             };
 
             return queryResult;

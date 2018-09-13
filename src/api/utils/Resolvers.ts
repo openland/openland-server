@@ -24,6 +24,12 @@ async function fetchOrganizationId(context: CallContext) {
     return context.oid !== undefined ? context.oid : null;
 }
 
+async function fetchPrimaryOrganizationId(context: CallContext) {
+    let user = await DB.UserProfile.find({ where: { userId: context.uid } });
+
+    return user && user.primaryOrganization ? user.primaryOrganization : (await Repos.Users.fetchUserAccounts(context.uid!!))[0];
+}
+
 export function withPermission<T = {}>(permission: string | string[], resolver: (args: T, context: CallContext) => any) {
     return async function (_: any, args: T, context: CallContext) {
         let permissions = await fetchPermissions(context);

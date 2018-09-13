@@ -402,17 +402,16 @@ extend type Mutation {
     alphaOrganizationCreateListing(type: String!, input: AlphaOrganizationListingInput!): AlphaOrganizationListing!
     alphaOrganizationEditListing(id: ID!, input: AlphaOrganizationListingInput!): AlphaOrganizationListing!
     alphaOrganizationDeleteListing(id: ID!): String!
-    alphaOrganizationRemoveMember(memberId: ID!): String!
-    alphaOrganizationChangeMemberRole(memberId: ID!, newRole: OrganizationMemberRole!): String!
+    alphaOrganizationRemoveMember(memberId: ID!, oid: ID): String!
+    alphaOrganizationChangeMemberRole(memberId: ID!, newRole: OrganizationMemberRole!, oid: ID): String!
 
-    alphaOrganizationInviteMembers(inviteRequests: [InviteRequest!]!): String!
-    alphaOrganizationCreatePublicInvite(expirationDays: Int): Invite!
-    alphaOrganizationDeletePublicInvite: String!
+    alphaOrganizationInviteMembers(inviteRequests: [InviteRequest!]!, oid: ID): String!
+    alphaOrganizationCreatePublicInvite(expirationDays: Int, oid: ID): Invite!
+    alphaOrganizationDeletePublicInvite(oid: ID): String!
 
-    alphaOrganizationInviteOrganization(inviteRequests: [InviteRequestOrganization!]!): String!
-    alphaOrganizationActivateByInvite(key: String!): String!
-    alphaOrganizationCreatePublicInviteForOrganizations(expirationDays: Int): Invite!
-    alphaOrganizationDeletePublicInviteForOrganizations: String!
+    alphaOrganizationInviteOrganization(inviteRequests: [InviteRequestOrganization!]!, oid: ID): String!
+    alphaOrganizationCreatePublicInviteForOrganizations(expirationDays: Int, oid: ID): Invite!
+    alphaOrganizationDeletePublicInviteForOrganizations(oid: ID): String!
     alphaAlterPublished(id: ID!, published: Boolean!): Organization!
     alphaAlterMemberAsContact(orgId: ID!, memberId: ID!, showInContacts: Boolean!): String!
 }

@@ -111,7 +111,7 @@ export const Resolver = {
         alphaLinkedin: (src: UserProfile) => src.extras && src.extras.linkedin,
         alphaTwitter: (src: UserProfile) => src.extras && src.extras.twitter,
         alphaPrimaryOrganizationId: (src: UserProfile) => src.extras && src.extras.primaryOrganizationId,
-        alphaPrimaryOrganization: async (src: UserProfile) => src.primaryOrganization ? await DB.Organization.findById(src.primaryOrganization) : null,
+        alphaPrimaryOrganization: async (src: UserProfile) => await DB.Organization.findById(src.primaryOrganization || (await Repos.Users.fetchUserAccounts(src.userId!))[0]),
         alphaJoinedAt: (src: UserProfile) => (src as any).createdAt,
         alphaInvitedBy: async (src: UserProfile) => await Repos.Users.getUserInvitedBy(src.userId!!),
     },

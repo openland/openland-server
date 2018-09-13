@@ -1,4 +1,4 @@
-import { withAccount, withPermission, withAny } from './utils/Resolvers';
+import { withPermission, withAny, withAccount, withUser } from './utils/Resolvers';
 import { DB } from '../tables';
 import { Repos } from '../repositories';
 import { Conversation } from '../tables/Conversation';
@@ -121,7 +121,8 @@ export const Resolver = {
     },
 
     Mutation: {
-        alphaChannelCreate: withAccount<{ title: string, message: string, description?: string }>(async (args, uid, oid) => {
+        alphaChannelCreate: withAccount<{ title: string, message: string, description?: string, oid?: string }>(async (args, uid, oid) => {
+            oid = args.oid ? IDs.Organization.parse(args.oid) : oid;
             await validate({
                 title: defined(stringNotEmpty('Title cant be empty'))
             }, args);
@@ -158,90 +159,7 @@ export const Resolver = {
                 return chat;
             });
         }),
-        alphaChannelInviteOrg: withAccount<{ channelId: string, orgId: string }>(async (args, uid, oid) => {
-            return await DB.txStable(async (tx) => {
-                let channelId = IDs.Conversation.parse(args.channelId);
-                let orgId = IDs.Organization.parse(args.orgId);
 
-                let member = await DB.ConversationChannelMembers.findOne({
-                    where: {
-                        conversationId: channelId,
-                        orgId: orgId
-                    },
-                    transaction: tx
-                });
-
-                if (member) {
-                    if (member.status === 'member' || member.status === 'invited') {
-                        return 'ok';
-                    } else if (member.status === 'requested') {
-                        await member.update({ status: 'member' });
-                        await Repos.Chats.sendMessage(
-                            tx,
-                            channelId,
-                            uid,
-                            {
-                                message: `Organization ${orgId} has joined the channel!`,
-                                isService: true
-                            }
-                        );
-                    }
-                } else {
-                    await DB.ConversationChannelMembers.create({
-                        conversationId: channelId,
-                        invitedByOrg: oid,
-                        invitedByUser: uid,
-                        orgId: orgId,
-                        role: 'member',
-                        status: 'invited'
-                    }, { transaction: tx });
-                }
-
-                return 'ok';
-            });
-        }),
-        alphaChannelJoinOrg: withAccount<{ channelId: string }>(async (args, uid, oid) => {
-            return await DB.txStable(async (tx) => {
-                let channelId = IDs.Conversation.parse(args.channelId);
-
-                let member = await DB.ConversationChannelMembers.findOne({
-                    where: {
-                        conversationId: channelId,
-                        orgId: oid
-                    },
-                    transaction: tx
-                });
-
-                if (member) {
-                    if (member.status === 'member') {
-                        return 'ok';
-                    } else if (member.status === 'invited') {
-                        await member.update({ status: 'member' });
-                        await Repos.Chats.sendMessage(
-                            tx,
-                            channelId,
-                            uid,
-                            {
-                                message: `Organization ${oid} has joined the channel!`,
-                                isService: true
-                            }
-                        );
-                        return 'ok';
-                    }
-                } else {
-                    await DB.ConversationChannelMembers.create({
-                        conversationId: channelId,
-                        invitedByOrg: oid,
-                        invitedByUser: uid,
-                        orgId: oid,
-                        role: 'member',
-                        status: 'requested'
-                    }, { transaction: tx });
-                }
-
-                return 'ok';
-            });
-        }),
         alphaChannelSetFeatured: withPermission<{ channelId: string, featured: boolean }>('super-admin', (args) => {
             return DB.tx(async (tx) => {
                 let channelId = IDs.Conversation.parse(args.channelId);
@@ -274,7 +192,7 @@ export const Resolver = {
             });
         }),
 
-        alphaChannelInvite: withAccount<{ channelId: string, userId: string }>(async (args, uid, oid) => {
+        alphaChannelInvite: withUser<{ channelId: string, userId: string }>(async (args, uid) => {
             return await DB.txStable(async (tx) => {
                 let channelId = IDs.Conversation.parse(args.channelId);
                 let userId = IDs.User.parse(args.userId);
@@ -346,7 +264,7 @@ export const Resolver = {
                 };
             });
         }),
-        alphaChannelJoin: withAccount<{ channelId: string }>(async (args, uid, oid) => {
+        alphaChannelJoin: withUser<{ channelId: string }>(async (args, uid) => {
             return await DB.txStable(async (tx) => {
                 let channelId = IDs.Conversation.parse(args.channelId);
                 let channel = await DB.Conversation.findById(channelId, { transaction: tx });
@@ -454,7 +372,7 @@ export const Resolver = {
                 };
             });
         }),
-        alphaChannelRevokeInvite: withAccount<{ channelId: string, userId: string }>(async (args, uid, oid) => {
+        alphaChannelRevokeInvite: withUser<{ channelId: string, userId: string }>(async (args, uid) => {
             return await DB.txStable(async (tx) => {
                 let userId = IDs.User.parse(args.userId);
                 let channelId = IDs.Conversation.parse(args.channelId);
@@ -470,7 +388,7 @@ export const Resolver = {
                 return 'ok';
             });
         }),
-        alphaChannelCancelRequest: withAccount<{ channelId: string }>(async (args, uid, oid) => {
+        alphaChannelCancelRequest: withUser<{ channelId: string }>(async (args, uid) => {
             return await DB.txStable(async (tx) => {
                 let channelId = IDs.Conversation.parse(args.channelId);
 
@@ -485,7 +403,7 @@ export const Resolver = {
                 return 'ok';
             });
         }),
-        alphaChannelInviteMembers: withAccount<{ channelId: string, inviteRequests: { email: string, emailText?: string, firstName?: string, lastName?: string }[] }>(async (args, uid, oid) => {
+        alphaChannelInviteMembers: withUser<{ channelId: string, inviteRequests: { email: string, emailText?: string, firstName?: string, lastName?: string }[] }>(async (args, uid) => {
             await validate(
                 {
                     inviteRequests: [
@@ -528,7 +446,7 @@ export const Resolver = {
                 return 'ok';
             });
         }),
-        alphaChannelRenewInviteLink: withAccount<{ channelId: string }>(async (args, uid, oid) => {
+        alphaChannelRenewInviteLink: withUser<{ channelId: string }>(async (args, uid) => {
             let channelId = IDs.Conversation.parse(args.channelId);
             return await DB.tx(async (tx) => {
                 let existing = await DB.ChannelInvite.find({
@@ -656,7 +574,7 @@ export const Resolver = {
     },
 
     Query: {
-        alphaChannelsList: withAccount<{ first: number, after?: string | null, seq?: number }>(async (args, uid, oid) => {
+        alphaChannelsList: withUser<{ first: number, after?: string | null, seq?: number }>(async (args, uid) => {
             return await DB.tx(async (tx) => {
                 let global = await DB.ConversationsUserGlobal.find({ where: { userId: uid }, transaction: tx });
                 let seq = global ? global.seq : 0;
@@ -690,7 +608,7 @@ export const Resolver = {
                 };
             });
         }),
-        alphaChannelMembersOrg: withAccount<{ channelId: string }>(async (args, uid, oid) => {
+        alphaChannelMembersOrg: withUser<{ channelId: string }>(async (args, uid) => {
             let convId = IDs.Conversation.parse(args.channelId);
 
             return await DB.ConversationChannelMembers.findAll({
@@ -699,7 +617,7 @@ export const Resolver = {
                 }
             });
         }),
-        alphaChannelMembers: withAccount<{ channelId: string }>(async (args, uid, oid) => {
+        alphaChannelMembers: withUser<{ channelId: string }>(async (args, uid) => {
             let convId = IDs.Conversation.parse(args.channelId);
 
             return await DB.ConversationGroupMembers.findAll({
@@ -708,25 +626,8 @@ export const Resolver = {
                 }
             });
         }),
-        alphaChannelMyOrgInvites: withAccount<{}>(async (args, uid, oid) => {
-            return await DB.ConversationChannelMembers.findAll({
-                where: {
-                    orgId: oid,
-                    status: 'invited'
-                }
-            });
-        }),
-        alphaChannelJoinRequestsOrg: withAccount<{ channelId: string }>(async (args, uid, oid) => {
-            let convId = IDs.Conversation.parse(args.channelId);
 
-            return await DB.ConversationChannelMembers.findAll({
-                where: {
-                    status: 'requested',
-                    conversationId: convId
-                }
-            });
-        }),
-        alphaChannelsFeatured: withAccount<{}>(async (args, uid, oid) => {
+        alphaChannelsFeatured: withUser<{}>(async (args, uid) => {
             return await DB.Conversation.findAll({
                 where: {
                     type: 'channel',
@@ -734,7 +635,7 @@ export const Resolver = {
                 }
             });
         }),
-        alphaChannels: withAccount<AlphaChannelsParams>(async (args, uid, oid) => {
+        alphaChannels: withUser<AlphaChannelsParams>(async (args, uid) => {
             let clauses: any[] = [];
             let sort: any[] | undefined = undefined;
 
@@ -780,7 +681,7 @@ export const Resolver = {
         alphaChannelInviteInfo: withAny<{ uuid: string }>(async (args, context: CallContext) => {
             return await DB.ChannelInvite.find({ where: { uuid: args.uuid } });
         }),
-        alphaChannelInviteLink: withAccount<{ channelId: string }>(async (args, uid, oid) => {
+        alphaChannelInviteLink: withUser<{ channelId: string }>(async (args, uid) => {
             let channelId = IDs.Conversation.parse(args.channelId);
             return await DB.tx(async (tx) => {
                 let existing = await DB.ChannelInvite.find({
