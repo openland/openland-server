@@ -13,8 +13,10 @@ export function startEmailNotificationWorker() {
             lock: tx.LOCK.UPDATE
         });
         let now = Date.now();
+
         for (let u of unreadUsers) {
             let lastSeen = await Repos.Users.getUserLastSeen(u.userId, tx);
+            let tag = 'email_notifications ' + u.userId;
 
             // Ignore online or never-online users
             if (lastSeen === null) {
@@ -69,14 +71,18 @@ export function startEmailNotificationWorker() {
 
                 let hasNonMuted = false;
                 for (let m of messages) {
-                    if (!(await DB.ConversationMessage.findById(m.event.messageId as number, { transaction: tx }))!!.isMuted) {
+                    let message = await DB.ConversationMessage.findById(m.event.messageId as number, { transaction: tx });
+                    if (!message) {
+                        continue;
+                    }
+                    if (!message.isMuted) {
                         hasNonMuted = true;
                     }
                 }
 
                 // Send email notification if there are some
                 if (hasNonMuted) {
-                    u.lastEmailNotification = new Date();
+                    console.log(tag, 'new_email_notification');
                     await Emails.sendUnreadMesages(u.userId, u.unread, tx);
                 }
             }
@@ -85,7 +91,6 @@ export function startEmailNotificationWorker() {
             u.lastEmailSeq = u.seq;
             await u.save({ transaction: tx });
         }
-
         return false;
     });
 }

@@ -80,7 +80,7 @@ export function startPushNotificationWorker() {
             }
 
             // Ignore already processed updates
-            if (u.lastPushSeq === u.seq) {
+            if (notificationsState.lastPushSeq >= u.seq) {
                 continue;
             }
 

@@ -71,7 +71,7 @@ export class OrganizationRepository {
                 creatorOrgId: organization.id!,
                 isRoot: true
             }
-        }, {transaction: tx});
+        }, { transaction: tx });
 
         await DB.ConversationGroupMembers.create({
             conversationId: channel.id,
@@ -79,9 +79,9 @@ export class OrganizationRepository {
             role: 'creator',
             status: 'member',
             userId: uid
-        }, {transaction: tx});
+        }, { transaction: tx });
 
-        await Repos.Chats.sendMessage(tx, channel.id, uid, {message: 'Channel created', isService: true});
+        await Repos.Chats.sendMessage(tx, channel.id, uid, { message: 'Channel created', isService: true });
 
         return organization;
     }
@@ -98,7 +98,7 @@ export class OrganizationRepository {
             }]
         });
     }
-    
+
     async notAdminOrOrgIsOpenland(member: OrganizationMember) {
         return member.orgId === 1 || !(await Repos.Permissions.superRole(member.userId));
     }
