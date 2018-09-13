@@ -5,6 +5,7 @@ import { Emails } from '../services/Emails';
 
 export function startEmailNotificationWorker() {
     staticWorker({ name: 'email_notifications', delay: 15000 }, async (tx) => {
+        console.log('email_notifications start');
         let unreadUsers = await DB.ConversationsUserGlobal.findAll({
             where: {
                 unread: { $gt: 0 }
@@ -13,8 +14,12 @@ export function startEmailNotificationWorker() {
             lock: tx.LOCK.UPDATE
         });
         let now = Date.now();
+        console.log('email_notifications users: ' + unreadUsers.length);
+
         for (let u of unreadUsers) {
             let lastSeen = await Repos.Users.getUserLastSeen(u.userId, tx);
+            let tag = 'email_notifications ' + u.userId;
+            console.log(tag, lastSeen, JSON.stringify(u));
 
             // Ignore online or never-online users
             if (lastSeen === null) {
@@ -42,6 +47,7 @@ export function startEmailNotificationWorker() {
             }
 
             let settings = await Repos.Users.getUserSettings(u.userId);
+            console.log(tag, lastSeen, JSON.stringify(settings));
             if (settings.emailFrequency !== 'never') {
 
                 // Read email timeouts
@@ -85,6 +91,7 @@ export function startEmailNotificationWorker() {
             u.lastEmailSeq = u.seq;
             await u.save({ transaction: tx });
         }
+        console.log('email_notifications end');
 
         return false;
     });
