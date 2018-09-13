@@ -101,7 +101,7 @@ export const Resolver = {
 
             // Stage 3: Activation Status
             let orgs = await DB.Organization.findAll({ where: { id: { $in: orgsIDs } } });
-            let isAllOrganizationsSuspended = orgs.filter(o => o.status === 'SUSPENDED').length === orgs.length;
+            let isAllOrganizationsSuspended = orgs.length > 0 &&  orgs.filter(o => o.status === 'SUSPENDED').length === orgs.length;
             let isActivated = orgs.filter(o => o.status === 'ACTIVATED').length > 0;
             // depricated
             let isOrganizationActivated = isOrganizationPicked && organization!!.status !== 'PENDING';
