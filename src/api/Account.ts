@@ -111,7 +111,7 @@ export const Resolver = {
                 isProfileCreated: isProfileCreated,
                 isActivated: isActivated,
                 isAccountExists: isOrganizationExists,
-                isCompleted: isProfileCreated && isOrganizationExists && isOrganizationPicked && isOrganizationActivated,
+                isCompleted: isProfileCreated && isOrganizationExists && isOrganizationPicked && isActivated,
                 isBlocked: isAllOrganizationsSuspended,
                 // depricated
                 isAccountPicked: isOrganizationPicked,
