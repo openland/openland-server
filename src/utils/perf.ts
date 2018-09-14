@@ -18,7 +18,10 @@ export class Perf {
     }
 
     print() {
-        console.log(`\n\n\n-----PERF-${this.name}----`);
+        let text = '';
+
+        text += `\n\n\n-----PERF-${this.name}----`;
+
         for (let name of this.names) {
             let start = this.data.get(name)!;
             let end = this.data.get(name + '_end');
@@ -27,8 +30,10 @@ export class Perf {
                 throw new Error('Perf error');
             }
 
-            console.log(`${name} - ${end - start}`);
+            text += (`${name} - ${end - start}`);
         }
-        console.log(`---ENDPERF-${this.name}---\n\n\n`);
+        text += (`---ENDPERF-${this.name}---\n\n\n`);
+
+        console.log(text);
     }
 }
