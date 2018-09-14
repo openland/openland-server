@@ -133,7 +133,8 @@ export const Resolver = {
                     type: 'channel',
                     extras: {
                         description: args.description || '',
-                        creatorOrgId: oid
+                        creatorOrgId: oid,
+                        creatorId: uid
                     }
                 }, { transaction: tx });
 
