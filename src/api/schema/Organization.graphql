@@ -116,6 +116,7 @@ input AlphaOrganizationListingInput{
 
 type Organization {
     id: ID!
+    superAccountId: ID!
     isMine: Boolean!
     alphaIsOwner: Boolean!
     name: String!
