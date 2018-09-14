@@ -12,7 +12,7 @@ import { fn, col } from 'sequelize';
 export const Resolver = {
     MessagesLeaderboardItem: {
         count: (src: any) => src.dataValues.count,
-        userId: (src: any) => IDs.User.serialize(src.userId)
+        user: (src: any) => DB.User.findById(src.userId),
     },
 
     Query: {
@@ -37,8 +37,8 @@ export const Resolver = {
             return await Services.UploadCare.fetchLowResPreview(args.uuid);
         }),
 
-        statsChats: withAny<{fromDate: string, toDate: string}>(async args => {
-            let {fromDate, toDate} = args;
+        statsChats: withAny<{ fromDate: string, toDate: string }>(async args => {
+            let { fromDate, toDate } = args;
 
             let _fromDate = parseInt(fromDate, 10);
             let _toDate = parseInt(toDate, 10);
@@ -86,12 +86,12 @@ export const Resolver = {
             });
 
             let usersMutedOpenlandBeta = await DB.ConversationUserState.count({
-               where: {
-                   conversationId: 621,
-                   notificationsSettings: {
-                       mute: true
-                   }
-               }
+                where: {
+                    conversationId: 621,
+                    notificationsSettings: {
+                        mute: true
+                    }
+                }
             });
 
             return {
@@ -103,8 +103,8 @@ export const Resolver = {
             };
         }),
 
-        debugSendSMS: withAny<{phone: string, text: string}>(async args => {
-            let {phone, text} = args;
+        debugSendSMS: withAny<{ phone: string, text: string }>(async args => {
+            let { phone, text } = args;
 
             let res = await Services.TeleSign.sendSMS(phone, text);
             console.log(res);
