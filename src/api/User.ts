@@ -123,6 +123,15 @@ export const Resolver = {
 
                 return chats;
             });
+        },
+        shortname: async (src: User) => {
+            let shortName = await DB.ShortName.findOne({ where: {type: 'user', ownerId: src.id}});
+
+            if (shortName) {
+                return shortName.name;
+            }
+
+            return null;
         }
     },
     Profile: {

@@ -23,6 +23,7 @@ type User {
     lastSeen: String
     createdChannels: [ChannelConversation!]!
     channelsJoined: [ChannelConversation!]!
+    shortname: String
 }
 
 input UpdateProfileInput {
