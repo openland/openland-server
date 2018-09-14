@@ -103,6 +103,26 @@ export const Resolver = {
                     }
                 }
             });
+        },
+        channelsJoined: async (src: User) => {
+            return DB.txStable(async (tx) => {
+                let memberships = await DB.ConversationGroupMembers.findAll({
+                    where: {
+                        userId: src.id
+                    },
+                    transaction: tx
+                });
+
+                let chats = await DB.Conversation.findAll({
+                    where: {
+                        id: { $in: memberships.map(m => m.conversationId) },
+                        type: 'channel'
+                    },
+                    transaction: tx
+                });
+
+                return chats;
+            });
         }
     },
     Profile: {

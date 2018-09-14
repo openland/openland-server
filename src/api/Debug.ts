@@ -114,7 +114,7 @@ export const Resolver = {
             //
             //     console.log(await Services.TeleSign.smsStatus(res.reference_id));
             // }
-            //
+
             return 'ok';
         }),
 
