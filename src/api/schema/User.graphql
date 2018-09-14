@@ -21,6 +21,7 @@ type User {
     alphaTwitter: String
     online: Boolean!
     lastSeen: String
+    createdChannels: [ChannelConversation!]!
 }
 
 input UpdateProfileInput {
