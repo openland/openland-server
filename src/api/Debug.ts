@@ -109,6 +109,12 @@ export const Resolver = {
             let res = await Services.TeleSign.sendSMS(phone, text);
             console.log(res);
 
+            // while(true) {
+            //     await delay(3000);
+            //
+            //     console.log(await Services.TeleSign.smsStatus(res.reference_id));
+            // }
+            //
             return 'ok';
         }),
 
