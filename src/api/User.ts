@@ -318,6 +318,11 @@ export const Resolver = {
                 return user;
             });
         }),
+        alphaDeleteProfile: withUser<{ }>(async (args, uid) => {
+            await DB.UserProfile.destroy({ where: { id: uid } });
+
+            return 'ok';
+        }),
         alphaReportOnline: async (_: any, args: { timeout: number, platform?: string }, context: CallContext) => {
             if (!context.uid) {
                 throw Error('Not authorized');
