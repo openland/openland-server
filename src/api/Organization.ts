@@ -179,6 +179,7 @@ export const Resolver = {
     },
     Organization: {
         id: (src: Organization) => IDs.Organization.serialize(src.id!!),
+        superAccountId: (src: Organization) => IDs.SuperAccount.serialize(src.id!!),
         isMine: (src: Organization, args: {}, context: CallContext) => src.id!! === context.oid!!,
         alphaIsOwner: (src: Organization, args: {}, context: CallContext) => Repos.Organizations.isOwnerOfOrganization(src.id!!, context.uid!!),
 
@@ -1273,6 +1274,10 @@ export const Resolver = {
 
                     await member.destroy({ transaction: tx });
                     await Emails.sendMemberRemovedEmail(oid, memberId, tx);
+                    // pick new primary organization
+                    let user = (await DB.UserProfile.find({ where: { userId: memberId }, transaction: tx, lock: tx.LOCK.UPDATE }))!;
+                    user.primaryOrganization = (await Repos.Users.fetchUserAccounts(uid))[0];
+                    user.save({ transaction: tx });
 
                 } else if (idType.type.typeName === 'Invite') {
                     let inviteId = IDs.Invite.parse(args.memberId);
@@ -1506,7 +1511,7 @@ export const Resolver = {
                 return 'ok';
             });
         }),
-        
+
         // todo: remove withAccount
         alphaAlterMemberAsContact: withUser<{ orgId: string, memberId: string, showInContacts: boolean }>(async (args, uid) => {
             let orgId = IDs.Organization.parse(args.orgId);
