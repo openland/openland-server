@@ -117,6 +117,11 @@ export class SuperRepository {
                     throw new UserError(ErrorText.unableToRemoveLastMember);
                 }
                 await existing.destroy({ transaction: tx });
+
+                // pick new primary organization
+                let user = (await DB.UserProfile.find({ where: { userId: uid }, transaction: tx, lock: tx.LOCK.UPDATE }))!;
+                user.primaryOrganization = (await Repos.Users.fetchUserAccounts(uid))[0];
+                user.save({ transaction: tx });
             }
         });
         return this.fetchById(organizationId);
