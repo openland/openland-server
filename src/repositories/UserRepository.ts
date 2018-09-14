@@ -7,6 +7,7 @@ import { UserSettings, UserSettingsAttributes } from '../tables/UserSettings';
 import { SuperBus } from '../modules/SuperBus';
 import { validate, stringNotEmpty } from '../modules/NewInputValidator';
 import { Sanitizer } from '../modules/Sanitizer';
+import { Repos } from '.';
 
 export interface Settings {
     emailFrequency: '1hour' | '15min' | 'never';
@@ -95,6 +96,10 @@ export class UserRepository {
             about: Sanitizer.sanitizeString(input.about),
             location: Sanitizer.sanitizeString(input.location)
         }, { transaction: tx });
+
+        if (user.status === 'ACTIVATED') {
+            await Repos.Chats.addToInitialChannel(user.id!!, tx);
+        }
 
         return user;
     }

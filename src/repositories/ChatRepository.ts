@@ -1056,6 +1056,10 @@ export class ChatsRepository {
 
     async addToChannel(tx: Transaction, channelId: number, uid: number) {
         let profile = await DB.UserProfile.find({ where: { userId: uid }, transaction: tx });
+        // no profile - user not signed up
+        if (!profile) {
+            return;
+        }
         let firstName = profile!!.firstName;
         let existing = await DB.ConversationGroupMembers.find({
             where: {
