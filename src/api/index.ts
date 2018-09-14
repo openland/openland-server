@@ -19,6 +19,7 @@ import * as Push from './Push';
 import * as Wall from './Wall';
 import * as Hits from './Hits';
 import * as Channels from './Channels';
+import * as ShortName from './ShortName';
 
 import * as Parcels from './Parcels';
 import { Directives, IDScalars } from './directives';
@@ -52,6 +53,7 @@ export const Schema = makeExecutableSchema({
         Wall.Resolver,
         Hits.Resolver,
         Channels.Resolver,
+        ShortName.Resolvers,
         IDScalars
     ),
     schemaDirectives: Directives
