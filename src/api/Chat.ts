@@ -598,7 +598,7 @@ export const Resolver = {
                     throw new IDMailformedError('Invalid id');
                 }
             } else {
-                throw new UserError('No id passed')
+                throw new UserError('No id passed');
             }
         }),
         alphaLoadMessages: withUser<{ conversationId: string, first?: number, before?: string, after?: string }>((args, uid) => {
