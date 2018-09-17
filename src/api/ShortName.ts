@@ -16,7 +16,13 @@ function testShortName(name: string) {
 export const Resolvers = {
     ShortNameDestination: {
         __resolveType(src: any) {
-            return 'User';
+            if (src instanceof (DB.User as any)) {
+                return 'User';
+            } else if (src instanceof (DB.Organization as any)) {
+                return 'Organization';
+            }
+
+            throw new Error('Unknown shortname type');
         }
     },
 
@@ -34,6 +40,8 @@ export const Resolvers = {
 
             if (shortname.type === 'user') {
                 return await DB.User.findById(shortname.ownerId);
+            } else if (shortname.type === 'org') {
+                return await DB.Organization.findById(shortname.ownerId);
             }
 
             return null;
