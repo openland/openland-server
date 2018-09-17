@@ -173,7 +173,7 @@ export const Resolver = {
                         }
                     },
                     attributes: [
-                        [fn('COUNT', col('conversation_message.userId')), 'count']
+                        [fn('COUNT', col('conversation_message.id')), 'count']
                     ],
                     paranoid: false,
                     group: [sequelize.fn('date_trunc', trunc, sequelize.col('createdAt'))]
