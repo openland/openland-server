@@ -4801,9 +4801,9 @@ hash-stream-validation@^0.2.1:
   dependencies:
     through2 "^2.0.0"
 
-hashids@^1.1.4:
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/hashids/-/hashids-1.2.1.tgz#b19d9c9eebca73c393f6e6df25929ca0771a92e2"
+hashids@1.1.4:
+  version "1.1.4"
+  resolved "https://registry.yarnpkg.com/hashids/-/hashids-1.1.4.tgz#e4ff92ad66b684a3bd6aace7c17d66618ee5fa21"
 
 hawk@3.1.3, hawk@~3.1.3:
   version "3.1.3"

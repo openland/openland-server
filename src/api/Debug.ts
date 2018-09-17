@@ -15,6 +15,11 @@ export const Resolver = {
         user: (src: any) => DB.User.findById(src.userId),
     },
 
+    MessagesSentEntry: {
+        count: (src: any) => src.dataValues.count,
+        date: (src: any) => src.dataValues.date,
+    },
+
     Query: {
         debugReaderStates: withPermissionOptional(['software-developer'], async () => {
             let readers = (await DB.ReaderState.findAll());
@@ -168,17 +173,19 @@ export const Resolver = {
                 let data = await DB.ConversationMessage.findAll({
                     where: {
                         createdAt: { $gte: _fromDate, $lte: _toDate },
-                        userId: {
+                        userId: { 
                             $notIn: userIds
-                        }
+                         }
                     },
                     attributes: [
+                        [sequelize.fn('date_trunc', 'day', sequelize.col('createdAt')), 'date'],
                         [fn('COUNT', col('conversation_message.id')), 'count']
                     ],
                     paranoid: false,
-                    group: [sequelize.fn('date_trunc', trunc, sequelize.col('createdAt'))]
+                    group: ['date']
                 } as any);
-                return data.map(d => (d as any).count);
+
+                return data;
             } catch (e) {
                 console.warn(e);
                 throw e;

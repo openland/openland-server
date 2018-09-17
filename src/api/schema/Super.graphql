@@ -175,6 +175,11 @@ type MessagesLeaderboardItem {
     count: Int!
 }
 
+type MessagesSentEntry{
+    count: Int!
+    date: Date!
+}
+
 type ChatStats {
     messagesSent: Int!
     usersActive: Int!
@@ -185,7 +190,7 @@ type ChatStats {
 
 extend type Query {
     statsChats(fromDate: String!, toDate: String!): ChatStats! @withPermissions(permission: ["super-admin", "software-developer"]) @withAuth
-    messagesSentStats(fromDate: String!, toDate: String!, trunc: String): [Int!]! @withPermissions(permission: ["super-admin", "software-developer"]) @withAuth
+    messagesSentStats(fromDate: String!, toDate: String!, trunc: String): [MessagesSentEntry!]! @withPermissions(permission: ["super-admin", "software-developer"]) @withAuth
 }
 
 #
