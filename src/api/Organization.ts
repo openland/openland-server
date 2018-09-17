@@ -257,6 +257,15 @@ export const Resolver = {
                     }
                 }
             });
+        },
+        shortname: async (src: Organization) => {
+            let shortName = await DB.ShortName.findOne({ where: {type: 'org', ownerId: src.id}});
+
+            if (shortName) {
+                return shortName.name;
+            }
+
+            return null;
         }
     },
 

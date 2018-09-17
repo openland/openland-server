@@ -178,6 +178,7 @@ type Organization {
     alphaARLandUse: [String!]
 
     alphaCreatedChannels: [ChannelConversation]!
+    shortname: String
 }
 
 type OrganizationProfile {
