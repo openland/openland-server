@@ -178,11 +178,12 @@ export const Resolver = {
                          }
                     },
                     attributes: [
-                        [sequelize.fn('date_trunc', 'day', sequelize.col('createdAt')), 'date'],
+                        [sequelize.fn('date_trunc', trunc, sequelize.col('createdAt')), 'date'],
                         [fn('COUNT', col('conversation_message.id')), 'count']
                     ],
                     paranoid: false,
-                    group: ['date']
+                    group: ['date'],
+                    order: [['date', 'ASC']],
                 } as any);
 
                 return data;
