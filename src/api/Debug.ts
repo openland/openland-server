@@ -183,7 +183,7 @@ export const Resolver = {
                     ],
                     paranoid: false,
                     group: ['date'],
-                    order: [['date', 'ASC']],
+                    order: sequelize.literal('date ASC')
                 } as any);
 
                 return data;
