@@ -10,7 +10,6 @@ ENTRYPOINT ["/tini", "--"]
 RUN apt-get update && apt-get install libpq-dev python && rm -rf /var/lib/apt/lists/*
 
 ADD package.json /app/
-ADD yarn.lock /app/
 COPY node_modules/ /app/node_modules/
 RUN yarn install
 
