@@ -572,16 +572,33 @@ export const Resolver = {
                 };
             });
         }),
-        alphaChat: withAccount<{ conversationId: string }>((args, uid, oid) => {
-            let id = IdsFactory.resolve(args.conversationId);
-            if (id.type === IDs.Conversation) {
-                return DB.Conversation.findById(id.id);
-            } else if (id.type === IDs.User) {
-                return Repos.Chats.loadPrivateChat(id.id, uid);
-            } else if (id.type === IDs.Organization) {
-                return Repos.Chats.loadOrganizationalChat(oid, id.id);
+        alphaChat: withAccount<{ conversationId?: string, shortName?: string }>(async (args, uid, oid) => {
+            if (args.shortName) {
+                let shortName = await DB.ShortName.findOne({ where: { name: args.shortName }});
+                if (!shortName) {
+                    throw new NotFoundError();
+                }
+
+                if (shortName.type === 'user') {
+                    return Repos.Chats.loadPrivateChat(shortName.ownerId!, uid);
+                } else if (shortName.type === 'org') {
+                    return Repos.Chats.loadOrganizationalChat(oid, shortName.ownerId!);
+                } else {
+                    throw new NotFoundError();
+                }
+            } else if (args.conversationId) {
+                let id = IdsFactory.resolve(args.conversationId);
+                if (id.type === IDs.Conversation) {
+                    return DB.Conversation.findById(id.id);
+                } else if (id.type === IDs.User) {
+                    return Repos.Chats.loadPrivateChat(id.id, uid);
+                } else if (id.type === IDs.Organization) {
+                    return Repos.Chats.loadOrganizationalChat(oid, id.id);
+                } else {
+                    throw new IDMailformedError('Invalid id');
+                }
             } else {
-                throw new IDMailformedError('Invalid id');
+                throw new UserError('No id passed')
             }
         }),
         alphaLoadMessages: withUser<{ conversationId: string, first?: number, before?: string, after?: string }>((args, uid) => {
