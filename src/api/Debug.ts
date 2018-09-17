@@ -51,9 +51,19 @@ export const Resolver = {
                 throw new UserError('toDate must be greater then fromDate');
             }
 
+            // removing openland stuff from stats
+            let userIds = (await DB.OrganizationMember.findAll({
+                where: {
+                    orgId: 1
+                }
+            })).map(m => m.userId);
+
             let messages = await DB.ConversationMessage.count({
                 where: {
-                    createdAt: { $gte: _fromDate, $lte: _toDate }
+                    createdAt: { $gte: _fromDate, $lte: _toDate },
+                    userId: {
+                        $notIn: userIds
+                    }
                 },
                 paranoid: false
             } as any);
@@ -61,7 +71,10 @@ export const Resolver = {
             let activeUsers = await DB.ConversationMessage.count({
                 distinct: true,
                 where: {
-                    createdAt: { $gte: _fromDate, $lte: _toDate }
+                    createdAt: { $gte: _fromDate, $lte: _toDate },
+                    userId: {
+                        $notIn: userIds
+                    }
                 },
                 col: 'userId',
                 paranoid: false
@@ -71,12 +84,20 @@ export const Resolver = {
                 where: {
                     settings: {
                         emailFrequency: 'never'
+                    },
+                    userId: {
+                        $notIn: userIds
                     }
                 }
             });
 
             let messagesLeaderboard = await DB.ConversationMessage.findAll({
                 limit: 20,
+                where: {
+                    userId: {
+                        $notIn: userIds
+                    }
+                },
                 attributes: [
                     'userId',
                     [fn('COUNT', col('conversation_message.userId')), 'count']
@@ -90,6 +111,9 @@ export const Resolver = {
                     conversationId: 621,
                     notificationsSettings: {
                         mute: true
+                    },
+                    userId: {
+                        $notIn: userIds
                     }
                 }
             });
@@ -101,6 +125,60 @@ export const Resolver = {
                 messagesLeaderboard,
                 usersMutedOpenlandBeta
             };
+        }),
+
+        messagesSentStats: withAny<{ fromDate: string, toDate: string, trunc?: string }>(async args => {
+            let { fromDate, toDate } = args;
+
+            let _fromDate = parseInt(fromDate, 10);
+            let _toDate = parseInt(toDate, 10);
+
+            if (isNaN(_fromDate) || isNaN(_toDate)) {
+                throw new UserError('toDate & fromDate must be numbers');
+            }
+
+            if (!(toDate > fromDate)) {
+                throw new UserError('toDate must be greater then fromDate');
+            }
+
+            let trunc = args.trunc || 'day';
+            let truncs = [
+                'second',
+                'minute',
+                'hour',
+                'day',
+                'week',
+                'month',
+                'quarter',
+                'year',
+            ];
+            if (truncs.indexOf(trunc) === -1) {
+                throw new Error('invalid trunc');
+            }
+            let sequelize = DB.connection;
+
+            // removing openland stuff from stats
+            let userIds = (await DB.OrganizationMember.findAll({
+                where: {
+                    orgId: 1
+                }
+            })).map(m => m.userId);
+
+            let data = await DB.ConversationMessage.findAll({
+                where: {
+                    createdAt: { $gte: _fromDate, $lte: _toDate },
+                    userId: {
+                        $notIn: userIds
+                    }
+                },
+                attributes: [
+                    'id',
+                    [fn('COUNT', col('conversation_message.userId')), 'count']
+                ],
+                paranoid: false,
+                group: [sequelize.fn('date_trunc', trunc, sequelize.col('createdAt'))]
+            } as any);
+            return data.map(d => (d as any).count);
         }),
 
         debugSendSMS: withAny<{ phone: string, text: string }>(async args => {

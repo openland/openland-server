@@ -185,6 +185,7 @@ type ChatStats {
 
 extend type Query {
     statsChats(fromDate: String!, toDate: String!): ChatStats! @withPermissions(permission: ["super-admin", "software-developer"]) @withAuth
+    messagesSentStats(fromDate: String!, toDate: String!): [Int!]! @withPermissions(permission: ["super-admin", "software-developer"]) @withAuth
 }
 
 #
