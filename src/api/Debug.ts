@@ -153,32 +153,38 @@ export const Resolver = {
                 'year',
             ];
             if (truncs.indexOf(trunc) === -1) {
-                throw new Error('invalid trunc');
+                throw new UserError('invalid trunc');
             }
-            let sequelize = DB.connection;
+            try {
+                let sequelize = DB.connection;
 
-            // removing openland stuff from stats
-            let userIds = (await DB.OrganizationMember.findAll({
-                where: {
-                    orgId: 1
-                }
-            })).map(m => m.userId);
-
-            let data = await DB.ConversationMessage.findAll({
-                where: {
-                    createdAt: { $gte: _fromDate, $lte: _toDate },
-                    userId: {
-                        $notIn: userIds
+                // removing openland stuff from stats
+                let userIds = (await DB.OrganizationMember.findAll({
+                    where: {
+                        orgId: 1
                     }
-                },
-                attributes: [
-                    'id',
-                    [fn('COUNT', col('conversation_message.userId')), 'count']
-                ],
-                paranoid: false,
-                group: [sequelize.fn('date_trunc', trunc, sequelize.col('createdAt'))]
-            } as any);
-            return data.map(d => (d as any).count);
+                })).map(m => m.userId);
+
+                let data = await DB.ConversationMessage.findAll({
+                    where: {
+                        createdAt: { $gte: _fromDate, $lte: _toDate },
+                        userId: {
+                            $notIn: userIds
+                        }
+                    },
+                    attributes: [
+                        'id',
+                        [fn('COUNT', col('conversation_message.userId')), 'count']
+                    ],
+                    paranoid: false,
+                    group: [sequelize.fn('date_trunc', trunc, sequelize.col('createdAt'))]
+                } as any);
+                return data.map(d => (d as any).count);
+            } catch (e) {
+                console.warn(e);
+                throw e;
+            }
+
         }),
 
         debugSendSMS: withAny<{ phone: string, text: string }>(async args => {
