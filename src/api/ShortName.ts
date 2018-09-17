@@ -1,6 +1,17 @@
 import { DB } from '../tables';
 import { withAccount } from './utils/Resolvers';
 import { UserError } from '../errors/UserError';
+import { ErrorText } from '../errors/ErrorText';
+
+function testShortName(name: string) {
+    if (!/^\w*$/.test(name)) {
+        throw new UserError('Invalid shortname');
+    }
+
+    if (name.length < 5) {
+        throw new UserError('Too short');
+    }
+}
 
 export const Resolvers = {
     ShortNameDestination: {
@@ -31,26 +42,51 @@ export const Resolvers = {
     Mutation: {
         alphaSetUserShortName: withAccount<{ shortname: string }>(async (args, uid, orgId) => {
             return await DB.tx(async (tx) => {
-                if (!/^\w*$/.test(args.shortname)) {
-                    throw new UserError('Invalid shortname');
-                }
-
-                if (args.shortname.length < 5) {
-                    throw new UserError('Too short');
-                }
+                testShortName(args.shortname);
 
                 let existing = await DB.ShortName.findOne({ where: { name: args.shortname }, transaction: tx});
 
-                if (existing && existing.ownerId === uid) {
-                    await existing.destroy();
-                } else if (existing) {
+                if (existing && existing.ownerId !== uid) {
                     throw new UserError('Shortname already used');
                 }
+
+                await DB.ShortName.destroy({ where: { ownerId: uid }, transaction: tx});
 
                 await DB.ShortName.create({
                     name: args.shortname,
                     ownerId: uid,
                     type: 'user'
+                }, { transaction: tx });
+
+                return 'ok';
+            });
+        }),
+        alphaSetOrgShortName: withAccount<{ shortname: string, id: number }>(async (args, uid, orgId) => {
+            return await DB.tx(async (tx) => {
+                testShortName(args.shortname);
+
+                let member = await DB.OrganizationMember.find({
+                    where: {
+                        orgId: args.id,
+                        userId: uid,
+                    }
+                });
+                if (member === null || !member.isOwner) {
+                    throw new UserError(ErrorText.permissionOnlyOwner);
+                }
+
+                let existing = await DB.ShortName.findOne({ where: { name: args.shortname }, transaction: tx});
+
+                if (existing && existing.ownerId !== args.id) {
+                    throw new UserError('Shortname already used');
+                }
+
+                await DB.ShortName.destroy({ where: { ownerId: args.id }, transaction: tx});
+
+                await DB.ShortName.create({
+                    name: args.shortname,
+                    ownerId: args.id,
+                    type: 'org'
                 }, { transaction: tx });
 
                 return 'ok';
