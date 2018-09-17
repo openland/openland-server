@@ -173,7 +173,6 @@ export const Resolver = {
                         }
                     },
                     attributes: [
-                        'id',
                         [fn('COUNT', col('conversation_message.userId')), 'count']
                     ],
                     paranoid: false,
