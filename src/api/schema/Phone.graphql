@@ -1,0 +1,4 @@
+extend type Mutation {
+    alphaPhoneSendCode(phoneNumber: String!): String! @withAuth
+    alphaPhoneVerify(phoneNumber: String!, code: String): String! @withAuth
+}

@@ -49,7 +49,4 @@ type Mutation {
     alphaReportOffline(platform: Platform): String! @withAuth
 
     alphaCreateUserProfileAndOrganization(user: CreateProfileInput!, organization: CreateOrganizationInput!): AlphaSignupData!
-
-#    alphaPhoneSendCode(phoneNumber: String!): String!
-#    alphaPhoneAuth(phoneNumber: String!, code: String): String!
 }

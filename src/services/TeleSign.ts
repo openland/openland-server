@@ -10,6 +10,7 @@ export class TeleSign {
 
     sendSMS(phone: string, text: string): Promise<any> {
         return new Promise((resolve, reject) => {
+            console.log('[SMS]: ' + text);
             this.client.sms.message(
                 (err, response) => {
                     if (err) {

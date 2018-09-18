@@ -22,3 +22,7 @@ export function randomInviteKey() {
     //
     // return rnd.toString('base64');
 }
+
+export function randomString(len: number) {
+    return randomGlobalInviteKey(len);
+}

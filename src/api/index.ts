@@ -20,6 +20,7 @@ import * as Wall from './Wall';
 import * as Hits from './Hits';
 import * as Channels from './Channels';
 import * as ShortName from './ShortName';
+import * as Phone from './Phone';
 
 import * as Parcels from './Parcels';
 import { Directives, IDScalars } from './directives';
@@ -54,6 +55,7 @@ export const Schema = makeExecutableSchema({
         Hits.Resolver,
         Channels.Resolver,
         ShortName.Resolvers,
+        Phone.Resolvers,
         IDScalars
     ),
     schemaDirectives: Directives
