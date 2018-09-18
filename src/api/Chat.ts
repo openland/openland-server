@@ -1572,8 +1572,6 @@ export const Resolver = {
                     }
                 });
 
-                await Repos.Chats.blockUser(tx, userId, uid, conversationId);
-
                 let profile = await DB.UserProfile.findById(userId);
 
                 let {

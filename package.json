@@ -89,7 +89,7 @@
     "graphql-tag": "^2.9.2",
     "graphql-tools": "^3.0.2",
     "handy-redis": "^1.3.0",
-    "hashids": "^1.1.4",
+    "hashids": "1.1.4",
     "isomorphic-fetch": "^2.2.1",
     "jest": "^22.3.0",
     "json-stable-stringify": "^1.0.1",
@@ -157,7 +157,8 @@
     "test:stop": "./scripts/testing_stop.sh",
     "test:prepare": ". ./scripts/set_testing_config.sh && DATABASE_LOGGING=true node ./build/index.js --rebuild-test",
     "test:integration": "yarn test:jest",
-    "test:rebuild": "yarn test:start && yarn test:prepare && yarn test:stop"
+    "test:rebuild": "yarn test:start && yarn test:prepare && yarn test:stop",
+    "schema:publish": "apollo schema:publish --key=\"service:openland-production:qrYALC8Flb8hv-SGm4grug\" --endpoint=\"https://api.openland.com/api\""
   },
   "devDependencies": {}
 }

@@ -15,6 +15,11 @@ export const Resolver = {
         user: (src: any) => DB.User.findById(src.userId),
     },
 
+    MessagesSentEntry: {
+        count: (src: any) => src.dataValues.count,
+        date: (src: any) => src.dataValues.date,
+    },
+
     Query: {
         debugReaderStates: withPermissionOptional(['software-developer'], async () => {
             let readers = (await DB.ReaderState.findAll());
@@ -153,32 +158,40 @@ export const Resolver = {
                 'year',
             ];
             if (truncs.indexOf(trunc) === -1) {
-                throw new Error('invalid trunc');
+                throw new UserError('invalid trunc');
             }
-            let sequelize = DB.connection;
+            try {
+                let sequelize = DB.connection;
 
-            // removing openland stuff from stats
-            let userIds = (await DB.OrganizationMember.findAll({
-                where: {
-                    orgId: 1
-                }
-            })).map(m => m.userId);
-
-            let data = await DB.ConversationMessage.findAll({
-                where: {
-                    createdAt: { $gte: _fromDate, $lte: _toDate },
-                    userId: {
-                        $notIn: userIds
+                // removing openland stuff from stats
+                let userIds = (await DB.OrganizationMember.findAll({
+                    where: {
+                        orgId: 1
                     }
-                },
-                attributes: [
-                    'id',
-                    [fn('COUNT', col('conversation_message.userId')), 'count']
-                ],
-                paranoid: false,
-                group: [sequelize.fn('date_trunc', trunc, sequelize.col('createdAt'))]
-            } as any);
-            return data.map(d => (d as any).count);
+                })).map(m => m.userId);
+
+                let data = await DB.ConversationMessage.findAll({
+                    where: {
+                        createdAt: { $gte: _fromDate, $lte: _toDate },
+                        userId: { 
+                            $notIn: userIds
+                         }
+                    },
+                    attributes: [
+                        [sequelize.fn('date_trunc', trunc, sequelize.col('createdAt')), 'date'],
+                        [fn('COUNT', col('conversation_message.id')), 'count']
+                    ],
+                    paranoid: false,
+                    group: ['date'],
+                    order: sequelize.literal('date ASC')
+                } as any);
+
+                return data;
+            } catch (e) {
+                console.warn(e);
+                throw e;
+            }
+
         }),
 
         debugSendSMS: withAny<{ phone: string, text: string }>(async args => {
