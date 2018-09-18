@@ -76,6 +76,7 @@ import { ConversationChannelMembersTable } from './ConversationChannelMembers';
 import { ChannelInviteTable } from './ChannelInvite';
 import { ConversationsUserGlobalNotificationsTable } from './ConversationsUserGlobalNotifications';
 import { ShortNameTable } from './ShortName';
+import { PhoneTable } from './Phone';
 
 const SILENT_TX_ACTUALLY_SILENT = true;
 export const DB_SILENT = !SILENT_TX_ACTUALLY_SILENT;
@@ -136,6 +137,7 @@ export const DB = {
     ChannelInvite: ChannelInviteTable,
     ConversationsUserGlobalNotifications: ConversationsUserGlobalNotificationsTable,
     ShortName: ShortNameTable,
+    Phone: PhoneTable,
 
     tx: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>, existingTx?: sequelize.Transaction): Promise<A> {
         if (existingTx) {
