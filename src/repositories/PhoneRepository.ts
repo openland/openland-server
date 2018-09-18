@@ -87,4 +87,8 @@ export class PhoneRepository {
             throw new UserError('Invalid code');
         }
     }
+
+    async getUserPhones(uid: number) {
+        return (await DB.Phone.findAll({ where: { userId: uid, status: 'VERIFIED' }})).map(p => p.phone);
+    }
 }

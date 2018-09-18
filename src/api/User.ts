@@ -132,6 +132,9 @@ export const Resolver = {
             }
 
             return null;
+        },
+        phones: async (src: User) => {
+            return Repos.Phones.getUserPhones(src.id!);
         }
     },
     Profile: {

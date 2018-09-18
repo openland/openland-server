@@ -24,6 +24,7 @@ type User {
     createdChannels: [ChannelConversation!]!
     channelsJoined: [ChannelConversation!]!
     shortname: String
+    phones: [String!]!
 }
 
 input UpdateProfileInput {
