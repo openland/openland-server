@@ -1,8 +1,6 @@
 import * as express from 'express';
 import { CallContext } from '../api/utils/CallContext';
 import { Repos } from '../repositories';
-import { IDs } from '../api/utils/IDs';
-import { fetchKeyFromRequest } from '../utils/fetchKeyFromRequest';
 import { DB } from '../tables';
 
 async function context(src: express.Request): Promise<CallContext> {
@@ -31,23 +29,6 @@ async function context(src: express.Request): Promise<CallContext> {
 
             let profile = await DB.UserProfile.find({ where: { userId: res.uid } });
             res.oid = (profile && profile.primaryOrganization) || res.oid;
-        }
-
-        // todo: remove
-        // If there are organization cookie, try to use it instead
-        let orgId = fetchKeyFromRequest(src, 'x-openland-org');
-        if (orgId) {
-            if (Array.isArray(orgId)) {
-                orgId = orgId[0];
-            }
-            try {
-                let porgId = IDs.Organization.parse(orgId as string);
-                if (accounts.indexOf(porgId) >= 0) {
-                    res.oid = porgId;
-                }
-            } catch (e) {
-                console.warn(e);
-            }
         }
     }
 
