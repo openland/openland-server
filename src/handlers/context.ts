@@ -1,8 +1,6 @@
 import * as express from 'express';
 import { CallContext } from '../api/utils/CallContext';
 import { Repos } from '../repositories';
-import { IDs } from '../api/utils/IDs';
-import { fetchKeyFromRequest } from '../utils/fetchKeyFromRequest';
 import { DB } from '../tables';
 
 async function context(src: express.Request): Promise<CallContext> {
