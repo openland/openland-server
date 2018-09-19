@@ -1,4 +1,11 @@
+type PhoneAuthResponse {
+    token: String!
+}
+
 extend type Mutation {
     alphaPhoneSendCode(phoneNumber: String!): String! @withAuth
     alphaPhoneVerify(phoneNumber: String!, code: String): String! @withAuth
+
+    alphaPhoneSendAuthCode(phoneNumber: String!): String!
+    alphaPhoneAuth(phoneNumber: String!, code: String): PhoneAuthResponse!
 }

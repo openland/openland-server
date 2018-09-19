@@ -2,6 +2,7 @@ import { randomString } from '../utils/random';
 import { Services } from '../services';
 import { DB } from '../tables';
 import { UserError } from '../errors/UserError';
+import { Repos } from './index';
 
 const PHONE_CODE_TTL = 1000 * 60;
 const PHONE_CODE_LEN = 5;
@@ -57,20 +58,20 @@ export class PhoneRepository {
         return /^[1-9](\d{10})$/.test(phone);
     }
 
-    async sendCode(uid: number, phone: string) {
-        let code = this.codes.genCode(phone);
+    async sendCode(phone: string, auth: boolean = false) {
         if (this.codes.haveCode(phone)) {
             throw new UserError('Code was sent already');
         }
-        if (await DB.Phone.findOne({ where: { phone } })) {
+        if (!auth && await DB.Phone.findOne({ where: { phone } })) {
             throw new UserError('Phone already registered');
         }
+        let code = this.codes.genCode(phone);
         if (!isTestPhone(phone)) {
             await Services.TeleSign.sendSMS(phone, 'Your code: ' + code);
         }
     }
 
-    async authPhone(uid: number, phone: string, code: string) {
+    async authVerify(uid: number, phone: string, code: string) {
         if (!this.codes.haveCode(phone)) {
             throw new UserError('No code was sent');
         }
@@ -86,6 +87,39 @@ export class PhoneRepository {
         } else {
             throw new UserError('Invalid code');
         }
+    }
+
+    async authPhone(phone: string, code: string) {
+        return DB.tx(async (tx) => {
+            if (!this.codes.haveCode(phone)) {
+                throw new UserError('No code was sent');
+            }
+
+            let isValid = this.codes.checkCode(phone, code);
+
+            if (!isValid) {
+                throw new UserError('Invalid code');
+            }
+
+            let existing = await DB.Phone.findOne({ where: { phone }, transaction: tx });
+
+            if (existing) {
+                return await Repos.Tokens.createToken(existing.userId!);
+            }
+
+            let user = await DB.User.create({
+                authId: 'phone|' + phone,
+                email: '',
+            }, { transaction: tx });
+
+            await DB.Phone.create({
+                phone,
+                status: 'VERIFIED',
+                userId: user.id
+            }, { transaction: tx });
+
+            return await Repos.Tokens.createToken(user.id!);
+        });
     }
 
     async getUserPhones(uid: number) {
