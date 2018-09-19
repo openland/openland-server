@@ -1483,7 +1483,7 @@ export const Resolver = {
                     conversationId,
                     uid,
                     {
-                        message: `Users <${users.map(u => u.firstName).join(', ')}> joined chat`,
+                        message: `${users.map(u => u.firstName).join(', ')} joined chat`,
                         isService: true,
                         isMuted: true,
                         serviceMetadata: {
