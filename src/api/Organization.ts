@@ -180,7 +180,7 @@ export const Resolver = {
     Organization: {
         id: (src: Organization) => IDs.Organization.serialize(src.id!!),
         superAccountId: (src: Organization) => IDs.SuperAccount.serialize(src.id!!),
-        isMine: (src: Organization, args: {}, context: CallContext) => src.id!! === context.oid!!,
+        isMine: (src: Organization, args: {}, context: CallContext) => Repos.Organizations.isMemberOfOrganization(src.id!!, context.uid!!),
         alphaIsOwner: (src: Organization, args: {}, context: CallContext) => Repos.Organizations.isOwnerOfOrganization(src.id!!, context.uid!!),
 
         name: (src: Organization) => src.name,
@@ -515,7 +515,7 @@ export const Resolver = {
             });
             let topCategoriesMap: { [category: string]: number } = {};
             for (let org of orgs) {
-                if (org.extras && !org.extras.published) {
+                if (org.extras && org.extras.published === false) {
                     continue;
                 }
                 let categories = (org.extras && org.extras.organizationType) || [];

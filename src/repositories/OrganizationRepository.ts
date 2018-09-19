@@ -162,6 +162,18 @@ export class OrganizationRepository {
         return !!isOwner;
     }
 
+    async isMemberOfOrganization(orgId: number, userId: number, tx?: Transaction): Promise<boolean> {
+        let isMember = await DB.OrganizationMember.findOne({
+            where: {
+                orgId,
+                userId,
+            },
+            transaction: tx
+        });
+
+        return !!isMember;
+    }
+
     async haveMemberWithEmail(orgId: number, email: string): Promise<boolean> {
         let member = await DB.OrganizationMember.findOne({
             where: {
