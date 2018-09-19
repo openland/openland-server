@@ -1472,7 +1472,7 @@ export const Resolver = {
                 let users: UserProfile[] = [];
 
                 for (let invite of args.invites) {
-                    users.push((await DB.UserProfile.findById(invite.userId))!);
+                    users.push((await DB.UserProfile.find({ where: { userId: IDs.User.parse(invite.userId) } }))!);
                 }
 
                 let {
@@ -1572,7 +1572,7 @@ export const Resolver = {
                     }
                 });
 
-                let profile = await DB.UserProfile.findById(userId);
+                let profile = await DB.UserProfile.find({ where: { userId: userId } });
 
                 let {
                     conversationEvent,
@@ -1816,7 +1816,7 @@ export const Resolver = {
                     }
                 });
 
-                let profile = await DB.UserProfile.findById(uid);
+                let profile = await DB.UserProfile.find({ where: { userId: uid } });
 
                 await Repos.Chats.sendMessage(
                     tx,
