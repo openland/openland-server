@@ -57,7 +57,8 @@ export const Resolver = {
     EmailFrequency: {
         NEVER: 'never',
         MIN_15: '15min',
-        HOUR_1: '1hour'
+        HOUR_1: '1hour',
+        HOUR_24: '24hour'
     },
     NotificationMessages: {
         ALL: 'all',

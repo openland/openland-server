@@ -47,7 +47,15 @@ export function startEmailNotificationWorker() {
             if (settings.emailFrequency !== 'never') {
 
                 // Read email timeouts
-                let delta = settings.emailFrequency === '1hour' ? 60 * 60 * 1000 : 15 * 60 * 1000;
+                let delta = 0;
+
+                if (settings.emailFrequency === '1hour') {
+                    delta = 60 * 60 * 1000;
+                } else if (settings.emailFrequency === '15min') {
+                    delta = 15 * 60 * 1000;
+                } else if (settings.emailFrequency === '24hour') {
+                    delta = 24 * 60 * 60 * 1000;
+                }
 
                 // Do not send emails more than one in an hour
                 if (u.lastEmailNotification !== null && u.lastEmailNotification.getTime() > now - delta) {
