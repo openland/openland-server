@@ -574,7 +574,7 @@ export const Resolver = {
         }),
         alphaChat: withAccount<{ conversationId?: string, shortName?: string }>(async (args, uid, oid) => {
             if (args.shortName) {
-                let shortName = await DB.ShortName.findOne({ where: { name: args.shortName }});
+                let shortName = await DB.ShortName.findOne({ where: { name: args.shortName } });
                 if (!shortName) {
                     throw new NotFoundError();
                 }
@@ -642,7 +642,8 @@ export const Resolver = {
                 };
             });
         }),
-        alphaChatsSearchForCompose: withAccount<{ query: string, organizations: boolean }>(async (args, uid, oid) => {
+        alphaChatsSearchForCompose: withAccount<{ query: string, organizations: boolean, limit?: number }>(async (args, uid, oid) => {
+            let limit = args.limit || 8;
             let orgs = args.organizations ? await DB.Organization.findAll({
                 where: {
                     name: {
@@ -653,16 +654,15 @@ export const Resolver = {
                     },
                     status: 'ACTIVATED'
                 },
-                limit: 4
+                limit: limit
             }) : [];
 
-            let user = await DB.UserProfile.find({ where: { userId: uid } });
-            let primaryOrganization = user ? user.primaryOrganization : undefined;
             let primaryOrgUsers: User[] = [];
             let membersUserIds: number[] = [];
             let sequelize = DB.connection;
-            if (primaryOrganization) {
-                let members = await DB.OrganizationMember.findAll({ where: { orgId: primaryOrganization } });
+            let orgsIds = await Repos.Users.fetchUserAccounts(uid);
+            if (orgsIds.length > 0) {
+                let members = await DB.OrganizationMember.findAll({ where: { orgId: { $in: orgsIds } } });
                 let membersIds = members.map(m => m.userId);
                 let membersProfiles = await DB.UserProfile.findAll({
                     where:
@@ -700,7 +700,7 @@ export const Resolver = {
                                 ),
                             )
                         ],
-                    limit: 4
+                    limit: limit
                 });
                 membersUserIds = membersProfiles.map(m => m.userId!!);
                 primaryOrgUsers = await DB.User.findAll({
@@ -743,7 +743,7 @@ export const Resolver = {
                             ),
                         )
                     ],
-                limit: 4
+                limit: limit
             });
             let usersIds = usersProfiles.map(m => m.userId!!);
             let users = await DB.User.findAll({
@@ -759,9 +759,9 @@ export const Resolver = {
                         }
                     )
                 ],
-                limit: 4
+                limit: limit
             });
-            return [...orgs, ...primaryOrgUsers, ...users];
+            return [...orgs, ...primaryOrgUsers, ...users].filter((o, i) => i < limit);
         }),
         alphaChatSearch: withUser<{ members: string[] }>(async (args, uid) => {
             let members = [...args.members.map((v) => IDs.User.parse(v)), uid];
