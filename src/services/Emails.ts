@@ -208,7 +208,7 @@ export const Emails = {
         let domain = process.env.APP_ENVIRONMENT === 'production' ? 'https://app.openland.com/join/' : 'http://localhost:3000/join/';
 
         await EmailWorker.pushWork({
-            subject: `Join ${org.name!}} at Openland`,
+            subject: `Join ${org.name!} at Openland`,
             templateId: TEMPLATE_INVITE,
             to: invite.forEmail,
             args: {
