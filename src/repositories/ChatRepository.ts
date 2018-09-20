@@ -448,6 +448,12 @@ export class ChatsRepository {
         if (blocked) {
             throw new AccessDeniedError();
         }
+
+        if (conv.type === 'channel' || conv.type === 'group') {
+            if (!(await DB.ConversationGroupMembers.findOne({ where: { conversationId, userId: uid }, transaction: tx}))) {
+                throw new AccessDeniedError();
+            }
+        }
         perf.end('Check access');
 
         //
