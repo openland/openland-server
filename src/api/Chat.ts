@@ -574,7 +574,7 @@ export const Resolver = {
         }),
         alphaChat: withAccount<{ conversationId?: string, shortName?: string }>(async (args, uid, oid) => {
             if (args.shortName) {
-                let shortName = await DB.ShortName.findOne({ where: { name: args.shortName }});
+                let shortName = await DB.ShortName.findOne({ where: { name: args.shortName } });
                 if (!shortName) {
                     throw new NotFoundError();
                 }
@@ -642,7 +642,8 @@ export const Resolver = {
                 };
             });
         }),
-        alphaChatsSearchForCompose: withAccount<{ query: string, organizations: boolean }>(async (args, uid, oid) => {
+        alphaChatsSearchForCompose: withAccount<{ query: string, organizations: boolean, limit?: number }>(async (args, uid, oid) => {
+            let limit = args.limit || 8;
             let orgs = args.organizations ? await DB.Organization.findAll({
                 where: {
                     name: {
@@ -653,16 +654,15 @@ export const Resolver = {
                     },
                     status: 'ACTIVATED'
                 },
-                limit: 4
+                limit: limit
             }) : [];
 
-            let user = await DB.UserProfile.find({ where: { userId: uid } });
-            let primaryOrganization = user ? user.primaryOrganization : undefined;
             let primaryOrgUsers: User[] = [];
             let membersUserIds: number[] = [];
             let sequelize = DB.connection;
-            if (primaryOrganization) {
-                let members = await DB.OrganizationMember.findAll({ where: { orgId: primaryOrganization } });
+            let orgsIds = await Repos.Users.fetchUserAccounts(uid);
+            if (orgsIds.length > 0) {
+                let members = await DB.OrganizationMember.findAll({ where: { orgId: { $in: orgsIds } } });
                 let membersIds = members.map(m => m.userId);
                 let membersProfiles = await DB.UserProfile.findAll({
                     where:
@@ -700,7 +700,7 @@ export const Resolver = {
                                 ),
                             )
                         ],
-                    limit: 4
+                    limit: limit
                 });
                 membersUserIds = membersProfiles.map(m => m.userId!!);
                 primaryOrgUsers = await DB.User.findAll({
@@ -743,7 +743,7 @@ export const Resolver = {
                             ),
                         )
                     ],
-                limit: 4
+                limit: limit
             });
             let usersIds = usersProfiles.map(m => m.userId!!);
             let users = await DB.User.findAll({
@@ -759,9 +759,9 @@ export const Resolver = {
                         }
                     )
                 ],
-                limit: 4
+                limit: limit
             });
-            return [...orgs, ...primaryOrgUsers, ...users];
+            return [...orgs, ...primaryOrgUsers, ...users].filter((o, i) => i < limit);
         }),
         alphaChatSearch: withUser<{ members: string[] }>(async (args, uid) => {
             let members = [...args.members.map((v) => IDs.User.parse(v)), uid];
@@ -1472,7 +1472,7 @@ export const Resolver = {
                 let users: UserProfile[] = [];
 
                 for (let invite of args.invites) {
-                    users.push((await DB.UserProfile.findById(invite.userId))!);
+                    users.push((await DB.UserProfile.find({ where: { userId: IDs.User.parse(invite.userId) } }))!);
                 }
 
                 let {
@@ -1483,7 +1483,7 @@ export const Resolver = {
                     conversationId,
                     uid,
                     {
-                        message: `Users <${users.map(u => u.firstName).join(', ')}> joined chat`,
+                        message: `${users.map(u => u.firstName).join(', ')} joined chat`,
                         isService: true,
                         isMuted: true,
                         serviceMetadata: {
@@ -1572,7 +1572,7 @@ export const Resolver = {
                     }
                 });
 
-                let profile = await DB.UserProfile.findById(userId);
+                let profile = await DB.UserProfile.find({ where: { userId: userId } });
 
                 let {
                     conversationEvent,
@@ -1816,7 +1816,7 @@ export const Resolver = {
                     }
                 });
 
-                let profile = await DB.UserProfile.findById(uid);
+                let profile = await DB.UserProfile.find({ where: { userId: uid } });
 
                 await Repos.Chats.sendMessage(
                     tx,

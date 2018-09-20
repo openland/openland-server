@@ -53,6 +53,7 @@ export function errorHandler(error: { message: string, originalError: any }): Fo
         };
     }
     Raven.captureException(error.originalError);
+    console.warn('unexpected_error', error.originalError);
     return {
         message: 'An unexpected error occurred. Please, try again. If the problem persists, please contact support@openland.com.',
         uuid: uuid,

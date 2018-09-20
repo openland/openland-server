@@ -303,7 +303,7 @@ extend type Query {
     alphaNotificationCounter: NotificationCounter!
     alphaChat(conversationId: ID, shortName: String): Conversation!
     alphaLoadMessages(conversationId: ID!, first: Int, before: ID, after: ID): ConversationState!
-    alphaChatsSearchForCompose(query: String, organizations: Boolean): [ComposeSearchResult!]!
+    alphaChatsSearchForCompose(query: String, organizations: Boolean, limit: Int): [ComposeSearchResult!]!
     alphaChatSearch(members: [ID!]!): Conversation
     alphaGroupConversationMembers(conversationId: ID!): [GroupConversationMember!]!
     alphaBlockedList(conversationId: ID): [ConversationBlockedUser!]!
