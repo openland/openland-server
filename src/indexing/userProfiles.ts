@@ -3,7 +3,7 @@ import { DB } from '../tables';
 import { UpdateReader } from '../modules/updateReader';
 
 export function createUserProfilesIndexer(client: ES.Client) {
-    let reader = new UpdateReader('reader_user_profiles', 2, DB.UserProfile);
+    let reader = new UpdateReader('reader_user_profiles', 3, DB.UserProfile);
     reader.elastic(client, 'user_profiles', 'user_profile', {
         firstName: {
             type: 'text'
