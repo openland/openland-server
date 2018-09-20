@@ -79,3 +79,17 @@ type ProfilePrefill {
     lastName: String
     picture: String
 }
+
+type ProfileEdge {
+    node: Profile!
+    cursor: String!
+}
+
+type ProfileConnection {
+    edges: [ProfileEdge!]!
+    pageInfo: PageInfo!
+}
+
+extend type Query {
+    alphaProfiles(query: String, first: Int!, after: String, page: Int): ProfileConnection! @withAuth
+}

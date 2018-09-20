@@ -12,6 +12,9 @@ import { UserSettings } from '../tables/UserSettings';
 import { UserExtras } from '../repositories/UserExtras';
 import { Services } from '../services';
 import { AccessDeniedError } from '../errors/AccessDeniedError';
+import { buildElasticQuery, QueryParser } from '../modules/QueryParser';
+import { ElasticClient } from '../indexing';
+import { SelectBuilder } from '../modules/SelectBuilder';
 
 function userLoader(context: CallContext) {
     if (!context.cache.has('__profile_loader')) {
@@ -216,7 +219,38 @@ export const Resolver = {
         }),
         user: withAny<{ id: string }>((args) => {
             return DB.User.findById(IDs.User.parse(args.id));
-        })
+        }),
+        alphaProfiles: withAny<{ query: string, first: number, after: string, page: number }>(async (args) => {
+            let clauses: any[] = [ ];
+
+            if (args.query) {
+                let parser = new QueryParser();
+                parser.registerText('firstName', 'firstName');
+                parser.registerText('lastName', 'lastName');
+                parser.registerText('shortName', 'shortName');
+                parser.registerText('name', 'name');
+                let parsed = parser.parseQuery(args.query);
+                let elasticQuery = buildElasticQuery(parsed);
+                clauses.push(elasticQuery);
+            }
+
+            let hits = await ElasticClient.search({
+                index: 'user_profiles',
+                type: 'user_profile',
+                size: args.first,
+                from: args.after ? parseInt(args.after, 10) : (args.page ? ((args.page - 1) * args.first) : 0),
+                body: {
+                    query: { bool: { must: clauses } }
+                }
+            });
+
+            let builder = new SelectBuilder(DB.UserProfile)
+                .after(args.after)
+                .page(args.page)
+                .limit(args.first);
+
+            return await builder.findElastic(hits);
+        }),
     },
     Mutation: {
         createProfile: withUser<{

@@ -10,6 +10,7 @@ import { createOrganizationListingIndexer } from './organizationListing';
 import { createOrganizationIndexer } from './organizations';
 import { createWallPostsIndexer } from './wallPosts';
 import { createChannelIndexer } from './channels';
+import { createUserProfilesIndexer } from './userProfiles';
 
 export let ElasticClient = new ES.Client({
     host: process.env.ELASTIC_ENDPOINT
@@ -26,6 +27,7 @@ export const OrganizationListingIndexer = createOrganizationListingIndexer(Elast
 export const OrganizationIndexer = createOrganizationIndexer(ElasticClient);
 export const WalPostsIndexer = createWallPostsIndexer(ElasticClient);
 export const ChannelsIndexer = createChannelIndexer(ElasticClient);
+export const UserProfiles = createUserProfilesIndexer(ElasticClient);
 
 export async function enableIndexer() {
     if (!process.env.ELASTIC_ENDPOINT) {
@@ -42,4 +44,5 @@ export async function enableIndexer() {
     OrganizationIndexer.start();
     WalPostsIndexer.start();
     ChannelsIndexer.start();
+    UserProfiles.start();
 }
