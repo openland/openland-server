@@ -1572,7 +1572,7 @@ export const Resolver = {
                     }
                 });
 
-                let profile = await DB.UserProfile.find({ where: { userId: userId } });
+                let profile = await DB.UserProfile.find({ where: { userId: member.userId } });
 
                 let {
                     conversationEvent,
