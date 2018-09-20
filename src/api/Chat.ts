@@ -1174,7 +1174,7 @@ export const Resolver = {
                 }
             }
 
-            return await DB.txStable(async (tx) => {
+            return await DB.txLight(async (tx) => {
                 return (await Repos.Chats.sendMessage(tx, conversationId, uid!, {
                     message: args.message,
                     file: args.file,
