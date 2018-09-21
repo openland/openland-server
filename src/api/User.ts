@@ -96,7 +96,7 @@ export const Resolver = {
         isCreated: withProfile((src, profile) => !!profile),
         isBot: (src: User) => src.isBot || false,
         isYou: (src: User, args: {}, context: CallContext) => src.id === context.uid,
-        alphaPrimaryOrganization: withProfile(async (src, profile) => profile && profile.primaryOrganization ? await DB.Organization.findById(profile.primaryOrganization) : null),
+        alphaPrimaryOrganization: withProfile(async (src, profile) => await DB.Organization.findById(profile ? profile.primaryOrganization : (await Repos.Users.fetchUserAccounts(src.id!))[0])),
         online: async (src: User) => await Repos.Users.isUserOnline(src.id!),
         lastSeen: async (src: User) => await Repos.Users.getUserLastSeen(src.id!),
         createdChannels: async (src: User) => {
