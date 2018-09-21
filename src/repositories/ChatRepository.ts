@@ -199,126 +199,6 @@ export interface TypingEvent {
     type: string;
     cancel: boolean;
 }
-
-class TypingManager {
-    public TIMEOUT = 2000;
-
-    private debounce = debouncer(this.TIMEOUT);
-
-    private cache = new Map<number, number[]>();
-
-    private typingState = new Map<number, boolean>();
-
-    private xPubSub = new Pubsub<TypingEvent>();
-
-    public async setTyping(uid: number, conversationId: number, type: string) {
-        this.debounce(conversationId, async () => {
-            this.typingState.set(uid, true);
-            setTimeout(() => this.typingState.delete(uid), this.TIMEOUT);
-            let members = await this.getChatMembers(conversationId);
-
-            for (let member of members) {
-                this.xPubSub.publish(`TYPING_${member}`, {
-                    forUserId: member,
-                    userId: uid,
-                    conversationId: conversationId,
-                    type,
-                    cancel: false
-                });
-            }
-        });
-    }
-
-    public async cancelTyping(uid: number, conversationId: number, members: number[]) {
-        if (!this.typingState.has(uid)) {
-            return;
-        }
-
-        for (let member of members) {
-            this.xPubSub.publish(`TYPING_${member}`, {
-                forUserId: member,
-                userId: uid,
-                conversationId: conversationId,
-                type: 'cancel',
-                cancel: true
-            });
-        }
-    }
-
-    public resetCache(charId: number) {
-        this.cache.delete(charId);
-    }
-
-    public async getXIterator(uid: number, conversationId?: number) {
-
-        let events: TypingEvent[] = [];
-        let resolvers: any[] = [];
-
-        let sub = await this.xPubSub.xSubscribe(`TYPING_${uid}`, ev => {
-            if (conversationId && ev.conversationId !== conversationId) {
-                return;
-            }
-
-            if (resolvers.length > 0) {
-                resolvers.shift()({ value: ev, done: false });
-            } else {
-                events.push(ev);
-            }
-        });
-
-        const getValue = () => {
-            return new Promise((resolve => {
-                if (events.length > 0) {
-                    let val = events.shift();
-
-                    resolve({
-                        value: val,
-                        done: false
-                    });
-                } else {
-                    resolvers.push(resolve);
-                }
-            }));
-        };
-
-        return {
-            next(): any {
-                return getValue();
-            },
-            return(): any {
-                events = [];
-                resolvers = [];
-                sub.unsubscribe();
-                return Promise.resolve({ value: undefined, done: true });
-            },
-            throw(error: any) {
-                return Promise.reject(error);
-            },
-            [Symbol.asyncIterator]() {
-                return this;
-            }
-        };
-    }
-
-    private async getChatMembers(chatId: number): Promise<number[]> {
-        if (this.cache.has(chatId)) {
-            return this.cache.get(chatId)!;
-        } else {
-            let members = await Repos.Chats.getConversationMembers(chatId);
-
-            this.cache.set(chatId, members);
-
-            return members;
-        }
-    }
-}
-
-export interface OnlineEventInternal {
-    userId: number;
-    timeout: number;
-    online: boolean;
-}
-
 class SubscriptionEngine<T> {
     private events: T[] = [];
     private resolvers: any[] = [];
@@ -376,6 +256,91 @@ class SubscriptionEngine<T> {
             }
         };
     }
+}
+
+class TypingManager {
+    public TIMEOUT = 2000;
+
+    private debounce = debouncer(this.TIMEOUT);
+
+    private cache = new Map<number, number[]>();
+
+    private typingState = new Map<number, boolean>();
+
+    private xPubSub = new Pubsub<TypingEvent>();
+
+    public async setTyping(uid: number, conversationId: number, type: string) {
+        this.debounce(conversationId, async () => {
+            this.typingState.set(uid, true);
+            setTimeout(() => this.typingState.delete(uid), this.TIMEOUT);
+            let members = await this.getChatMembers(conversationId);
+
+            for (let member of members) {
+                this.xPubSub.publish(`TYPING_${member}`, {
+                    forUserId: member,
+                    userId: uid,
+                    conversationId: conversationId,
+                    type,
+                    cancel: false
+                });
+            }
+        });
+    }
+
+    public async cancelTyping(uid: number, conversationId: number, members: number[]) {
+        if (!this.typingState.has(uid)) {
+            return;
+        }
+
+        for (let member of members) {
+            this.xPubSub.publish(`TYPING_${member}`, {
+                forUserId: member,
+                userId: uid,
+                conversationId: conversationId,
+                type: 'cancel',
+                cancel: true
+            });
+        }
+    }
+
+    public resetCache(charId: number) {
+        this.cache.delete(charId);
+    }
+
+    public async getXIterator(uid: number, conversationId?: number) {
+
+        let sub: PubsubSubcription|undefined;
+
+        let subEng = new SubscriptionEngine<TypingEvent>(() => sub ? sub.unsubscribe() : {});
+
+        sub = await this.xPubSub.xSubscribe(`TYPING_${uid}`, ev => {
+            if (conversationId && ev.conversationId !== conversationId) {
+                return;
+            }
+
+            subEng.pushEvent(ev);
+        });
+
+        return subEng.getIterator();
+    }
+
+    private async getChatMembers(chatId: number): Promise<number[]> {
+        if (this.cache.has(chatId)) {
+            return this.cache.get(chatId)!;
+        } else {
+            let members = await Repos.Chats.getConversationMembers(chatId);
+
+            this.cache.set(chatId, members);
+
+            return members;
+        }
+    }
+}
+
+export interface OnlineEventInternal {
+    userId: number;
+    timeout: number;
+    online: boolean;
 }
 
 class OnlineEngine {
