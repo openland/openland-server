@@ -172,6 +172,13 @@ export const Resolver = {
                     }, { transaction: tx });
                 }
 
+                // make organization primary if none
+                let userProfile = await DB.UserProfile.find({ where: { userId: uid }, transaction: tx, lock: tx.LOCK.UPDATE });
+                if (userProfile && !userProfile.primaryOrganization) {
+                    userProfile.primaryOrganization = invite.orgId;
+                    userProfile.save({ transaction: tx });
+                }
+
                 // User set invitedBy if none
                 if (invite.creatorId) {
                     let user = await DB.User.find({
