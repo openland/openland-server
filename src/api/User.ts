@@ -96,7 +96,7 @@ export const Resolver = {
         isCreated: withProfile((src, profile) => !!profile),
         isBot: (src: User) => src.isBot || false,
         isYou: (src: User, args: {}, context: CallContext) => src.id === context.uid,
-        alphaPrimaryOrganization: withProfile(async (src, profile) => await DB.Organization.findById(profile ? profile.primaryOrganization : (await Repos.Users.fetchUserAccounts(src.id!))[0])),
+        alphaPrimaryOrganization: withProfile(async (src, profile) => await DB.Organization.findById((profile && profile.primaryOrganization) || (await Repos.Users.fetchUserAccounts(src.id!))[0])),
         online: async (src: User) => await Repos.Users.isUserOnline(src.id!),
         lastSeen: async (src: User) => await Repos.Users.getUserLastSeen(src.id!),
         createdChannels: async (src: User) => {
@@ -129,7 +129,7 @@ export const Resolver = {
             });
         },
         shortname: async (src: User) => {
-            let shortName = await DB.ShortName.findOne({ where: {type: 'user', ownerId: src.id}});
+            let shortName = await DB.ShortName.findOne({ where: { type: 'user', ownerId: src.id } });
 
             if (shortName) {
                 return shortName.name;
@@ -221,7 +221,7 @@ export const Resolver = {
             return DB.User.findById(IDs.User.parse(args.id));
         }),
         alphaProfiles: withAny<{ query: string, first: number, after: string, page: number }>(async (args) => {
-            let clauses: any[] = [ ];
+            let clauses: any[] = [];
 
             if (args.query) {
                 let parser = new QueryParser();
@@ -365,7 +365,7 @@ export const Resolver = {
                 return user;
             });
         }),
-        alphaDeleteProfile: withUser<{ }>(async (args, uid) => {
+        alphaDeleteProfile: withUser<{}>(async (args, uid) => {
             await DB.UserProfile.destroy({ where: { id: uid } });
 
             return 'ok';
