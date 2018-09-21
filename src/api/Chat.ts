@@ -520,8 +520,8 @@ export const Resolver = {
     },
     OnlineEvent: {
         type: (src: any) => src.type,
-        conversation: (src: any) => DB.Conversation.findById(src.conversationId),
         user: (src: any) => DB.User.findById(src.userId),
+        timeout: (src: any) => src.timeout,
     },
 
     GroupConversationMember: {
@@ -2030,14 +2030,14 @@ export const Resolver = {
             resolve: async (msg: any) => {
                 return msg;
             },
-            subscribe: async function (_: any, args: { conversationId: string }, context: CallContext) {
-                let conversationId = IDs.Conversation.parse(args.conversationId);
+            subscribe: async function (_: any, args: { conversations: string[] }, context: CallContext) {
+                let conversationIds = args.conversations.map(c => IDs.Conversation.parse(c));
 
                 if (!context.uid) {
                     throw Error('Not logged in');
                 }
 
-                return Repos.Chats.onlineEngine.getXIterator(context.uid, conversationId);
+                return Repos.Chats.onlineEngine.getXIterator(context.uid, conversationIds);
             }
         }
     }

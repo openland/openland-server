@@ -199,6 +199,7 @@ export interface TypingEvent {
     type: string;
     cancel: boolean;
 }
+
 class SubscriptionEngine<T> {
     private events: T[] = [];
     private resolvers: any[] = [];
@@ -377,15 +378,18 @@ class OnlineEngine {
         );
     }
 
-    public async getXIterator(uid: number, conversationId: number) {
+    public async getXIterator(uid: number, conversations: number[]) {
 
-        let members = await this.getChatMembers(conversationId);
+        let members: number[] = [];
+        for (let chat of conversations) {
+            members.push(...await this.getChatMembers(chat));
+        }
+
         let subscriptions: PubsubSubcription[] = [];
         let sub = new SubscriptionEngine(() => subscriptions.forEach(s => s.unsubscribe()));
 
         let genEvent = (ev: OnlineEventInternal) => {
             return {
-                conversationId,
                 type: ev.online ? 'online' : 'offline',
                 timeout: ev!.timeout,
                 userId: ev!.userId,
