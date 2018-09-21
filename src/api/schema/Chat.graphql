@@ -268,6 +268,13 @@ type TypingEvent {
     cancel: Boolean!
 }
 
+type OnlineEvent {
+    conversation: Conversation!
+    user: User!
+    type: String!
+    timeout: Int!
+}
+
 type GroupConversationMember {
     user: User!
     role: String! # member | creator | admin
@@ -363,4 +370,5 @@ extend type Subscription {
 
     alphaSubscribeTypings: TypingEvent!
     alphaSubscribeChatTypings(conversationId: ID!): TypingEvent!
+    alphaSubscribeChatOnline(conversationId: ID!): OnlineEvent!
 }

@@ -381,10 +381,12 @@ export const Resolver = {
                 throw Error('Invalid input');
             }
             await Repos.Users.markUserOnline(context.uid, args.timeout, context.tid!!, args.platform);
+            await Repos.Chats.onlineEngine.setOnline(context.uid, args.timeout);
             return 'ok';
         },
         alphaReportOffline: withAny<{ platform?: string }>(async (args, ctx) => {
             await Repos.Users.markUserOffline(ctx.uid!, ctx.tid!!, args.platform);
+            await Repos.Chats.onlineEngine.setOffline(ctx.uid!);
             return 'ok';
         }),
         updateSettings: withUser<{ settings: { emailFrequency?: string | null, desktopNotifications?: string | null, mobileNotifications?: string | null, mobileAlert?: boolean | null, mobileIncludeText?: boolean | null, notificationsDelay?: boolean | null } }>(async (args, uid) => {

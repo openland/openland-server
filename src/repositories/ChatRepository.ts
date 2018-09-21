@@ -10,7 +10,7 @@ import { DoubleInvokeError } from '../errors/DoubleInvokeError';
 import { NotFoundError } from '../errors/NotFoundError';
 import { debouncer } from '../utils/timer';
 import { Repos } from './index';
-import { Pubsub } from '../modules/pubsub';
+import { Pubsub, PubsubSubcription } from '../modules/pubsub';
 import { AccessDeniedError } from '../errors/AccessDeniedError';
 import { ImageRef } from './Media';
 import { ConversationMessagesWorker } from '../workers';
@@ -313,6 +313,134 @@ class TypingManager {
     }
 }
 
+export interface OnlineEventInternal {
+    userId: number;
+    timeout: number;
+    online: boolean;
+}
+
+class SubscriptionEngine<T> {
+    private events: T[] = [];
+    private resolvers: any[] = [];
+
+    constructor(
+        private onExit: () => void
+    ) {
+
+    }
+
+    pushEvent(event: T) {
+        if (this.resolvers.length > 0) {
+            this.resolvers.shift()({
+                value: event,
+                done: false
+            });
+        } else {
+            this.events.push(event);
+        }
+    }
+
+    getIterator() {
+        const getValue = () => {
+            return new Promise((resolve => {
+                if (this.events.length > 0) {
+                    let val = this.events.shift();
+
+                    resolve({
+                        value: val,
+                        done: false
+                    });
+                } else {
+                    this.resolvers.push(resolve);
+                }
+            }));
+        };
+
+        let onReturn = () => {
+            this.events = [];
+            this.resolvers = [];
+            this.onExit();
+            return Promise.resolve({ value: undefined, done: true });
+        };
+
+        return {
+            next(): any {
+                return getValue();
+            },
+            return: onReturn,
+            throw(error: any) {
+                return Promise.reject(error);
+            },
+            [Symbol.asyncIterator]() {
+                return this;
+            }
+        };
+    }
+}
+
+class OnlineEngine {
+    private xPubSub = new Pubsub<OnlineEventInternal>();
+    private cache = new Map<number, number[]>();
+
+    async setOnline(uid: number, timeout: number) {
+        await this.xPubSub.publish(
+            'ONLINE_' + uid,
+            {
+                userId: uid,
+                timeout,
+                online: true
+            }
+        );
+    }
+
+    async setOffline(uid: number) {
+        await this.xPubSub.publish(
+            'ONLINE_' + uid,
+            {
+                userId: uid,
+                timeout: 0,
+                online: false
+            }
+        );
+    }
+
+    public async getXIterator(uid: number, conversationId: number) {
+
+        let members = await this.getChatMembers(conversationId);
+        let subscriptions: PubsubSubcription[] = [];
+        let sub = new SubscriptionEngine(() => subscriptions.forEach(s => s.unsubscribe()));
+
+        let genEvent = (ev: OnlineEventInternal) => {
+            return {
+                conversationId,
+                type: ev.online ? 'online' : 'offline',
+                timeout: ev!.timeout,
+                userId: ev!.userId,
+            };
+        };
+
+        for (let member of members) {
+            subscriptions.push(await this.xPubSub.xSubscribe('ONLINE_' + member, ev => {
+                sub.pushEvent(genEvent(ev));
+            }));
+        }
+
+        return sub.getIterator();
+    }
+
+    private async getChatMembers(chatId: number): Promise<number[]> {
+        if (this.cache.has(chatId)) {
+            return this.cache.get(chatId)!;
+        } else {
+            let members = await Repos.Chats.getConversationMembers(chatId);
+
+            this.cache.set(chatId, members);
+
+            return members;
+        }
+    }
+}
+
 export class ChatsRepository {
     typingManager = new TypingManager();
     reader: ChatsEventReader;
@@ -323,6 +451,7 @@ export class ChatsRepository {
     userSuperbus: SuperBus<{ userId: number, seq: number }, ConversationUserEvents, Partial<ConversationUserEventsAttributes>>;
 
     draftsCache = new CacheRepository<{ message: string }>('message_draft');
+    onlineEngine = new OnlineEngine();
 
     constructor() {
         this.reader = new ChatsEventReader();

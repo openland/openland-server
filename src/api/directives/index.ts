@@ -170,5 +170,6 @@ export const Directives = {
     // },
 
     userID: createIDDirective(IDScalars.UserID),
-    organizationID: createIDDirective(IDScalars.OrganizationID)
+    organizationID: createIDDirective(IDScalars.OrganizationID),
+    chatId: createIDDirective(IDScalars.ConversationID),
 };

@@ -1,5 +1,7 @@
 import * as Redis from './redis/redis';
 
+export type PubsubSubcription = { unsubscribe(): void };
+
 export class Pubsub<T> {
 
     private client = Redis.redisClient();
@@ -61,7 +63,7 @@ export class Pubsub<T> {
         this.subscribers.get(topic)!!.push({ listener: receiver });
     }
 
-    async xSubscribe(topic: string, receiver: (data: T) => void): Promise<{ unsubscribe(): void }> {
+    async xSubscribe(topic: string, receiver: (data: T) => void): Promise<PubsubSubcription> {
         await this.subscribe(topic, receiver);
 
         return {

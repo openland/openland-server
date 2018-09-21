@@ -518,6 +518,11 @@ export const Resolver = {
         conversation: (src: TypingEvent) => DB.Conversation.findById(src.conversationId),
         user: (src: TypingEvent) => DB.User.findById(src.userId),
     },
+    OnlineEvent: {
+        type: (src: any) => src.type,
+        conversation: (src: any) => DB.Conversation.findById(src.conversationId),
+        user: (src: any) => DB.User.findById(src.userId),
+    },
 
     GroupConversationMember: {
         role: (src: ConversationGroupMember) => src.role,
@@ -2019,6 +2024,20 @@ export const Resolver = {
                 }
 
                 return Repos.Chats.typingManager.getXIterator(context.uid, conversationId);
+            }
+        },
+        alphaSubscribeChatOnline: {
+            resolve: async (msg: any) => {
+                return msg;
+            },
+            subscribe: async function (_: any, args: { conversationId: string }, context: CallContext) {
+                let conversationId = IDs.Conversation.parse(args.conversationId);
+
+                if (!context.uid) {
+                    throw Error('Not logged in');
+                }
+
+                return Repos.Chats.onlineEngine.getXIterator(context.uid, conversationId);
             }
         }
     }
