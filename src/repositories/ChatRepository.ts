@@ -269,6 +269,10 @@ class TypingManager {
 
     private xPubSub = new Pubsub<TypingEvent>();
 
+    constructor() {
+        setInterval(() => this.cache.clear(), 1000 * 30);
+    }
+
     public async setTyping(uid: number, conversationId: number, type: string) {
         this.debounce(conversationId, async () => {
             this.typingState.set(uid, true);
@@ -346,6 +350,10 @@ export interface OnlineEventInternal {
 class OnlineEngine {
     private xPubSub = new Pubsub<OnlineEventInternal>();
     private cache = new Map<number, number[]>();
+
+    constructor() {
+        setInterval(() => this.cache.clear(), 1000 * 30);
+    }
 
     async setOnline(uid: number, timeout: number) {
         await this.xPubSub.publish(
