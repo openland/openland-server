@@ -381,9 +381,12 @@ class OnlineEngine {
     public async getXIterator(uid: number, conversations: number[]) {
 
         let members: number[] = [];
+
         for (let chat of conversations) {
             members.push(...await this.getChatMembers(chat));
         }
+
+        members = Array.from(new Set(members)); // remove duplicates
 
         let subscriptions: PubsubSubcription[] = [];
         let sub = new SubscriptionEngine(() => subscriptions.forEach(s => s.unsubscribe()));
