@@ -234,9 +234,7 @@ export const Resolver = {
                 parser.registerText('updatedAt', 'updatedAt');
 
                 if (args.query) {
-                    let parsed = parser.parseQuery(args.query);
-                    let elasticQuery = buildElasticQuery(parsed);
-                    clauses.push(elasticQuery);
+                    clauses.push({ match_phrase_prefix: { search: args.query } });
                 }
 
                 if (args.sort) {
