@@ -18,7 +18,7 @@ export function createUserProfilesIndexer(client: ES.Client) {
             type: 'text'
         },
         userId: {
-            type: 'integer'
+            type: 'long'
         },
     });
     reader.indexer(async (item) => {
