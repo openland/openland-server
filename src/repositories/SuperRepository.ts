@@ -121,7 +121,7 @@ export class SuperRepository {
                 // pick new primary organization
                 let user = (await DB.UserProfile.find({ where: { userId: uid }, transaction: tx, lock: tx.LOCK.UPDATE }))!;
                 user.primaryOrganization = (await Repos.Users.fetchUserAccounts(uid, tx))[0];
-                user.save({ transaction: tx });
+                await user.save({ transaction: tx });
             }
         });
         return this.fetchById(organizationId);

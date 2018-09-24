@@ -1285,7 +1285,7 @@ export const Resolver = {
                     // pick new primary organization
                     let user = (await DB.UserProfile.find({ where: { userId: memberId }, transaction: tx, lock: tx.LOCK.UPDATE }))!;
                     user.primaryOrganization = (await Repos.Users.fetchUserAccounts(uid, tx))[0];
-                    user.save({ transaction: tx });
+                    await user.save({ transaction: tx });
 
                 } else if (idType.type.typeName === 'Invite') {
                     let inviteId = IDs.Invite.parse(args.memberId);
