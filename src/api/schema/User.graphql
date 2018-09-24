@@ -80,16 +80,16 @@ type ProfilePrefill {
     picture: String
 }
 
-type ProfileEdge {
-    node: Profile!
+type UserEdge {
+    node: User!
     cursor: String!
 }
 
-type ProfileConnection {
-    edges: [ProfileEdge!]!
+type UserConnection {
+    edges: [UserEdge!]!
     pageInfo: PageInfo!
 }
 
 extend type Query {
-    alphaProfiles(query: String, first: Int!, after: String, page: Int): ProfileConnection! @withAuth
+    alphaProfiles(query: String, first: Int!, after: String, page: Int, sort: String): UserConnection! @withAuth
 }

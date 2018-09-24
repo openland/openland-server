@@ -220,18 +220,28 @@ export const Resolver = {
         user: withAny<{ id: string }>((args) => {
             return DB.User.findById(IDs.User.parse(args.id));
         }),
-        alphaProfiles: withAny<{ query: string, first: number, after: string, page: number }>(async (args) => {
+        alphaProfiles: withAny<{ query: string, first: number, after: string, page: number, sort?: string }>(async (args) => {
             let clauses: any[] = [];
+            let sort: any[] | undefined = undefined;
 
-            if (args.query) {
+            if (args.query || args.sort) {
                 let parser = new QueryParser();
                 parser.registerText('firstName', 'firstName');
                 parser.registerText('lastName', 'lastName');
                 parser.registerText('shortName', 'shortName');
                 parser.registerText('name', 'name');
-                let parsed = parser.parseQuery(args.query);
-                let elasticQuery = buildElasticQuery(parsed);
-                clauses.push(elasticQuery);
+                parser.registerText('createdAt', 'createdAt');
+                parser.registerText('updatedAt', 'updatedAt');
+
+                if (args.query) {
+                    let parsed = parser.parseQuery(args.query);
+                    let elasticQuery = buildElasticQuery(parsed);
+                    clauses.push(elasticQuery);
+                }
+
+                if (args.sort) {
+                    sort = parser.parseSort(args.sort);
+                }
             }
 
             let hits = await ElasticClient.search({
@@ -240,11 +250,14 @@ export const Resolver = {
                 size: args.first,
                 from: args.after ? parseInt(args.after, 10) : (args.page ? ((args.page - 1) * args.first) : 0),
                 body: {
+                    sort: sort,
                     query: { bool: { must: clauses } }
                 }
             });
 
-            let builder = new SelectBuilder(DB.UserProfile)
+            hits.hits.hits = hits.hits.hits.map(v => ({ ...v, _id: (v._source as any).userId }));
+
+            let builder = new SelectBuilder(DB.User)
                 .after(args.after)
                 .page(args.page)
                 .limit(args.first);
