@@ -12,7 +12,7 @@ import { UserSettings } from '../tables/UserSettings';
 import { UserExtras } from '../repositories/UserExtras';
 import { Services } from '../services';
 import { AccessDeniedError } from '../errors/AccessDeniedError';
-import { buildElasticQuery, QueryParser } from '../modules/QueryParser';
+import { QueryParser } from '../modules/QueryParser';
 import { ElasticClient } from '../indexing';
 import { SelectBuilder } from '../modules/SelectBuilder';
 
