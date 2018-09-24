@@ -109,7 +109,7 @@ export class SuperRepository {
     }
 
     async removeFromOrganization(organizationId: number, uid: number) {
-        await DB.tx(async (tx) => {
+        await DB.txStable(async (tx) => {
             let isLast = (await DB.OrganizationMember.count({ where: { orgId: organizationId }, transaction: tx })) === 1;
             let existing = await DB.OrganizationMember.find({ where: { orgId: organizationId, userId: uid }, transaction: tx, lock: tx.LOCK.UPDATE });
             if (existing) {
@@ -120,7 +120,7 @@ export class SuperRepository {
 
                 // pick new primary organization
                 let user = (await DB.UserProfile.find({ where: { userId: uid }, transaction: tx, lock: tx.LOCK.UPDATE }))!;
-                user.primaryOrganization = (await Repos.Users.fetchUserAccounts(uid))[0];
+                user.primaryOrganization = (await Repos.Users.fetchUserAccounts(uid, tx))[0];
                 user.save({ transaction: tx });
             }
         });

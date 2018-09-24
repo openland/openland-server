@@ -259,7 +259,7 @@ export const Resolver = {
             });
         },
         shortname: async (src: Organization) => {
-            let shortName = await DB.ShortName.findOne({ where: {type: 'org', ownerId: src.id}});
+            let shortName = await DB.ShortName.findOne({ where: { type: 'org', ownerId: src.id } });
 
             if (shortName) {
                 return shortName.name;
@@ -1250,7 +1250,7 @@ export const Resolver = {
 
         alphaOrganizationRemoveMember: withAccount<{ memberId: string, organiztionId: string }>(async (args, uid, oid) => {
             oid = args.organiztionId ? IDs.Organization.parse(args.organiztionId) : oid;
-            return await DB.tx(async (tx) => {
+            return await DB.txStable(async (tx) => {
                 let isOwner = await Repos.Organizations.isOwnerOfOrganization(oid, uid);
 
                 let idType = IdsFactory.resolve(args.memberId);
@@ -1284,7 +1284,7 @@ export const Resolver = {
                     await Emails.sendMemberRemovedEmail(oid, memberId, tx);
                     // pick new primary organization
                     let user = (await DB.UserProfile.find({ where: { userId: memberId }, transaction: tx, lock: tx.LOCK.UPDATE }))!;
-                    user.primaryOrganization = (await Repos.Users.fetchUserAccounts(uid))[0];
+                    user.primaryOrganization = (await Repos.Users.fetchUserAccounts(uid, tx))[0];
                     user.save({ transaction: tx });
 
                 } else if (idType.type.typeName === 'Invite') {

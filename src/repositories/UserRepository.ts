@@ -172,11 +172,12 @@ export class UserRepository {
         }
     }
 
-    async fetchUserAccounts(uid: number): Promise<number[]> {
+    async fetchUserAccounts(uid: number, tx?: Transaction): Promise<number[]> {
         return (await DB.OrganizationMember.findAll({
             where: {
                 userId: uid
-            }
+            },
+            transaction: tx
         })).map((v) => v.orgId);
     }
 
