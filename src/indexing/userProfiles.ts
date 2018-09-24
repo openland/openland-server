@@ -3,7 +3,7 @@ import { DB } from '../tables';
 import { UpdateReader } from '../modules/updateReader';
 
 export function createUserProfilesIndexer(client: ES.Client) {
-    let reader = new UpdateReader('reader_user_profiles', 7, DB.UserProfile);
+    let reader = new UpdateReader('reader_user_profiles', 8, DB.UserProfile);
     reader.elastic(client, 'user_profiles', 'user_profile', {
         firstName: {
             type: 'text'
@@ -46,6 +46,7 @@ export function createUserProfilesIndexer(client: ES.Client) {
                 lastName: item.lastName,
                 name: (item.firstName || '') + (item.lastName || ''),
                 shortName: shortName ? shortName.name : undefined,
+                userId: item.userId,
                 search: searchData.join(' '),
                 createdAt: (item as any).createdAt,
                 updatedAt: (item as any).updatedAt,
