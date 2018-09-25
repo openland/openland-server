@@ -10,7 +10,7 @@ import { Sanitizer } from '../modules/Sanitizer';
 import { Repos } from '.';
 
 export interface Settings {
-    emailFrequency: '1hour' | '15min' | 'never' | '24hour';
+    emailFrequency: '1hour' | '15min' | 'never' | '24hour' | '1week';
     desktopNotifications: 'all' | 'direct' | 'none';
     mobileNotifications: 'all' | 'direct' | 'none';
     mobileAlert: boolean;

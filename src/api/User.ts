@@ -61,7 +61,8 @@ export const Resolver = {
         NEVER: 'never',
         MIN_15: '15min',
         HOUR_1: '1hour',
-        HOUR_24: '24hour'
+        HOUR_24: '24hour',
+        WEEK_1: '1week',
     },
     NotificationMessages: {
         ALL: 'all',

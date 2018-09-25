@@ -55,6 +55,8 @@ export function startEmailNotificationWorker() {
                     delta = 15 * 60 * 1000;
                 } else if (settings.emailFrequency === '24hour') {
                     delta = 24 * 60 * 60 * 1000;
+                } else if (settings.emailFrequency === '1week') {
+                    delta = 7 * 24 * 60 * 60 * 1000;
                 }
 
                 // Do not send emails more than one in an hour

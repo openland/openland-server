@@ -3,6 +3,7 @@ enum EmailFrequency {
     MIN_15
     HOUR_1
     HOUR_24
+    WEEK_1
 }
 
 enum NotificationMessages {
