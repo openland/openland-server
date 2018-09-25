@@ -6,7 +6,7 @@ import { buildBaseImageUrl } from '../repositories/Media';
 import { Texts } from '../texts';
 
 const Delays = {
-    'none': 0,
+    'none': 10 * 1000,
     '1min': 60 * 1000,
     '15min': 15 * 60 * 1000
 };
