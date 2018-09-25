@@ -304,6 +304,10 @@ export const Resolver = {
         longDescription: (src: Conversation) => src.extras.longDescription || '',
     },
 
+    MessageReaction: {
+        user: (src: any) => DB.User.findById(src.userId),
+        reaction: (src: any) => src.reaction
+    },
     ConversationMessage: {
         id: (src: ConversationMessage) => IDs.ConversationMessage.serialize(src.id),
         message: (src: ConversationMessage) => src.message,
@@ -336,7 +340,8 @@ export const Resolver = {
             return null;
         },
         urlAugmentation: (src: ConversationMessage) => src.extras && src.extras.urlAugmentation,
-        edited: (src: ConversationMessage) => src.extras && src.extras.edited
+        edited: (src: ConversationMessage) => src.extras && src.extras.edited,
+        reactions: (src: ConversationMessage) => src.extras.reactions || []
     },
     InviteServiceMetadata: {
         users: (src: any) => src.userIds.map((id: number) => DB.User.findById(id)),
@@ -1866,6 +1871,13 @@ export const Resolver = {
                     chat,
                     curSeq: chat.seq
                 };
+            });
+        }),
+
+        alphaChatSetReaction: withAccount<{ messageId: number, reaction: string }>(async (args, uid) => {
+            return DB.tx(async (tx) => {
+                await Repos.Chats.setReaction(tx, args.messageId, uid, args.reaction);
+                return 'ok';
             });
         }),
     },

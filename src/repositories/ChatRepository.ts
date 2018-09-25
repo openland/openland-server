@@ -800,6 +800,46 @@ export class ChatsRepository {
         );
     }
 
+    async setReaction(tx: Transaction, messageId: number, uid: number, reaction: string) {
+        let message = await DB.ConversationMessage.findById(messageId, { transaction: tx });
+
+        if (!message) {
+            throw new Error('Message not found');
+        }
+
+        let reactions: { reaction: string, userId: number }[] = message.extras.reactions as any || [];
+
+        if (reactions.find(r => (r.userId === uid) && (r.reaction === reaction))) {
+            return;
+        }
+
+        reactions.push({ userId: uid, reaction });
+
+        message.extras.reactions = reactions;
+        (message as any).changed('extras', true);
+
+        await message.save({ transaction: tx });
+
+        await Repos.Chats.addUserEventsInConversation(
+            message.conversationId,
+            uid,
+            'edit_message',
+            {
+                messageId: message.id
+            },
+            tx
+        );
+
+        return await Repos.Chats.addChatEvent(
+            message.conversationId,
+            'edit_message',
+            {
+                messageId: message.id
+            },
+            tx
+        );
+    }
+
     async deleteMessage(tx: Transaction, messageId: number, uid: number): Promise<ConversationEvent> {
         let message = await DB.ConversationMessage.findById(messageId, { transaction: tx });
 

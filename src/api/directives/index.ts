@@ -171,5 +171,6 @@ export const Directives = {
 
     userID: createIDDirective(IDScalars.UserID),
     organizationID: createIDDirective(IDScalars.OrganizationID),
-    chatId: createIDDirective(IDScalars.ConversationID),
+    chatID: createIDDirective(IDScalars.ConversationID),
+    messageID: createIDDirective(IDScalars.ConversationMessageID)
 };
