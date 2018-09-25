@@ -800,7 +800,7 @@ export class ChatsRepository {
         );
     }
 
-    async setReaction(tx: Transaction, messageId: number, uid: number, reaction: string) {
+    async setReaction(tx: Transaction, messageId: number, uid: number, reaction: string, reset: boolean = false) {
         let message = await DB.ConversationMessage.findById(messageId, { transaction: tx });
 
         if (!message) {
@@ -810,10 +810,15 @@ export class ChatsRepository {
         let reactions: { reaction: string, userId: number }[] = message.extras.reactions as any || [];
 
         if (reactions.find(r => (r.userId === uid) && (r.reaction === reaction))) {
-            return;
-        }
+            if (reset) {
+                reactions = reactions.filter(r => !((r.userId === uid) && (r.reaction === reaction)));
+            } else {
+                return;
 
-        reactions.push({ userId: uid, reaction });
+            }
+        } else {
+            reactions.push({ userId: uid, reaction });
+        }
 
         message.extras.reactions = reactions;
         (message as any).changed('extras', true);

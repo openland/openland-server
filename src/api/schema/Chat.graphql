@@ -372,6 +372,7 @@ extend type Mutation {
     # Reactions
     #
     alphaChatSetReaction(messageId: ID! @messageID, reaction: String!): String!
+    alphaChatUnsetReaction(messageId: ID! @messageID, reaction: String!): String!
 
 
 }

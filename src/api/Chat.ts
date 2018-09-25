@@ -1880,6 +1880,12 @@ export const Resolver = {
                 return 'ok';
             });
         }),
+        alphaChatUnsetReaction: withAccount<{ messageId: number, reaction: string }>(async (args, uid) => {
+            return DB.tx(async (tx) => {
+                await Repos.Chats.setReaction(tx, args.messageId, uid, args.reaction, true);
+                return 'ok';
+            });
+        }),
     },
     Subscription: {
         alphaChatSubscribe: {
