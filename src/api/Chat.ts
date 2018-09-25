@@ -1885,7 +1885,7 @@ export const Resolver = {
                 await Repos.Chats.setReaction(tx, args.messageId, uid, args.reaction, true);
                 return 'ok';
             });
-        }),
+        })
     },
     Subscription: {
         alphaChatSubscribe: {
