@@ -19,7 +19,7 @@ export const ConversationMessagesWorker = createConversationMessagesWorker();
 export async function initWorkers() {
     startScheduller();
     if (serverRoleEnabled('email_notifications')) {
-        startEmailNotificationWorker();
+        // startEmailNotificationWorker();
     }
     if (serverRoleEnabled('push_notifications')) {
         startPushNotificationWorker();
