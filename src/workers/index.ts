@@ -2,7 +2,7 @@ import { startScheduller } from '../modules/workerQueue';
 import { createSampleWorker } from './SampleWorker';
 import { createExportWorker } from './FoldeExportWorker';
 import { createEmailWorker } from './EmailWorker';
-// import { startEmailNotificationWorker } from './EmailNotificationWorker';
+import { startEmailNotificationWorker } from './EmailNotificationWorker';
 import { createPushWorker } from './PushWorker';
 import { startPushNotificationWorker } from './PushNotificationWorker';
 import { createWallPostsWorker } from './WallPostsWorker';
@@ -19,7 +19,7 @@ export const ConversationMessagesWorker = createConversationMessagesWorker();
 export async function initWorkers() {
     startScheduller();
     if (serverRoleEnabled('email_notifications')) {
-        // startEmailNotificationWorker();
+        startEmailNotificationWorker();
     }
     if (serverRoleEnabled('push_notifications')) {
         startPushNotificationWorker();

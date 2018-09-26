@@ -85,6 +85,12 @@ export function startEmailNotificationWorker() {
                     if (!message) {
                         continue;
                     }
+
+                    // disable email notificaitons for channels
+                    let conversation = await DB.Conversation.findById(message.conversationId);
+                    if (!conversation || conversation.type === 'channel') {
+                        continue;
+                    }
                     if (!message.isMuted) {
                         hasNonMuted = true;
                     }
