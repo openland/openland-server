@@ -71,7 +71,7 @@ export const Emails = {
                 templateId: TEMPLATE_UNREAD_MESSAGES,
                 to: user.email,
                 args: {
-                    messageCount: count.toString(),
+                    messageCount: `${count} new message${count > 1 ? 's' : ''}`,
                     ...user.args
                 }
             }, tx);
