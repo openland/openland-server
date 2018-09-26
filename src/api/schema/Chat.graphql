@@ -95,6 +95,7 @@ type UrlAugmentation {
     description: String
     photo: ImageRef
     imageURL: String
+    hostname: String
 }
 
 union ServiceMetadata = InviteServiceMetadata | KickServiceMetadata | TitleChangeServiceMetadata | PhotoChangeServiceMetadata

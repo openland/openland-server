@@ -1,6 +1,7 @@
 import fetch from 'node-fetch';
 import cheerio from 'cheerio';
 import { ImageRef } from '../repositories/Media';
+import * as URL from 'url';
 
 export interface URLInfo {
     url: string;
@@ -9,6 +10,7 @@ export interface URLInfo {
     description: string|null;
     imageURL: string|null;
     photo: ImageRef|null;
+    hostname: string|null;
 }
 
 export async function fetchURLInfo(url: string): Promise<URLInfo> {
@@ -42,13 +44,16 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
         getMeta(doc, 'twitter:image') ||
         null;
 
+    let {hostname} = URL.parse(url);
+
     return {
         url,
         title,
         subtitle: null,
         description,
         imageURL,
-        photo: null
+        photo: null,
+        hostname: hostname || null
     };
 }
 

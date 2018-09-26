@@ -2,6 +2,8 @@ import { CacheRepository } from '../repositories/CacheRepository';
 import { fetchURLInfo, URLInfo } from '../modules/UrlInfo';
 import { IDs } from '../api/utils/IDs';
 import { DB } from '../tables';
+import * as URL from 'url';
+
 
 export default class UrlInfoService {
     private listingRegexp = /^(http:\/\/localhost:3000|https:\/\/app.openland.com)\/o\/(.*)\/listings\#(.*)/;
@@ -29,15 +31,14 @@ export default class UrlInfoService {
 
             return info;
         } catch (e) {
-            console.warn(e);
-
             return {
                 url,
                 title: null,
                 subtitle: null,
                 description: null,
                 imageURL: null,
-                photo: null
+                photo: null,
+                hostname: null
             };
         }
     }
@@ -48,6 +49,7 @@ export default class UrlInfoService {
 
     private async parseListingUrl(url: string): Promise<URLInfo> {
         let [, , _orgId, _listingId] = this.listingRegexp.exec(url)!;
+        let {hostname} = URL.parse(url);
 
         let orgId = IDs.Organization.parse(_orgId);
         let listingId = IDs.OrganizationListing.parse(_listingId);
@@ -61,7 +63,8 @@ export default class UrlInfoService {
             subtitle: listing!.name || null,
             description: listing!.extras!.summary || null,
             imageURL: null,
-            photo: listing!.extras!.photo || null
+            photo: listing!.extras!.photo || null,
+            hostname: hostname || null
         };
     }
 }
