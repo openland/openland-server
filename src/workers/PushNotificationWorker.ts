@@ -39,17 +39,17 @@ export function startPushNotificationWorker() {
             }
 
             // Pause notifications only if delay was set
-            if (settings.notificationsDelay !== 'none') {
-                // Ignore online
-                if (lastSeen === 'online') {
-                    continue;
-                }
-
-                // Pause notifications till 1 minute passes from last active timeout
-                if (lastSeen > (now - Delays[settings.notificationsDelay])) {
-                    continue;
-                }
+            // if (settings.notificationsDelay !== 'none') {
+            // Ignore online
+            if (lastSeen === 'online') {
+                continue;
             }
+
+            // Pause notifications till 1 minute passes from last active timeout
+            if (lastSeen > (now - Delays[settings.notificationsDelay])) {
+                continue;
+            }
+            // }
 
             // Ignore read updates
             if (u.readSeq === u.seq) {
