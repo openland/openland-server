@@ -21,6 +21,7 @@ import { UserError } from '../errors/UserError';
 import { NotFoundError } from '../errors/NotFoundError';
 import { UserProfile } from '../tables/UserProfile';
 import { Sanitizer } from '../modules/Sanitizer';
+import { URLAugmentation } from '../services/UrlInfoService';
 
 export const Resolver = {
     Conversation: {
@@ -307,6 +308,46 @@ export const Resolver = {
     MessageReaction: {
         user: (src: any) => DB.User.findById(src.userId),
         reaction: (src: any) => src.reaction
+    },
+    UrlAugmentationExtra: {
+        __resolveType(src: any) {
+            if (src instanceof (DB.User as any)) {
+                return 'User';
+            } else if (src instanceof (DB.Organization as any)) {
+                return 'Organization';
+            } else if (src instanceof (DB.OrganizationListing as any)) {
+                return 'AlphaOrganizationListing';
+            } else if (src instanceof (DB.Conversation as any)) {
+                return 'ChannelConversation';
+            }
+
+            throw new Error('Unknown UrlAugmentationExtra');
+        }
+    },
+    UrlAugmentation: {
+        url: (src: URLAugmentation) => src.url,
+        title: (src: URLAugmentation) => src.title,
+        subtitle: (src: URLAugmentation) => src.subtitle,
+        description: (src: URLAugmentation) => src.description,
+        imageURL: (src: URLAugmentation) => src.imageURL,
+        photo: (src: URLAugmentation) => src.photo,
+        hostname: (src: URLAugmentation) => src.hostname,
+        type: (src: URLAugmentation) => src.type,
+        extra: async (src: URLAugmentation) => {
+            if (src.type === 'url') {
+                return null;
+            } else if (src.type === 'listing') {
+                return DB.OrganizationListing.findById(src.extra);
+            } else if (src.type === 'user') {
+                return DB.User.findById(src.extra);
+            } else if (src.type === 'org') {
+                return DB.Organization.findById(src.extra);
+            }  else if (src.type === 'channel') {
+                return DB.Conversation.findById(src.extra);
+            }
+
+            throw new Error('Unknown UrlAugmentationExtra');
+        },
     },
     ConversationMessage: {
         id: (src: ConversationMessage) => IDs.ConversationMessage.serialize(src.id),

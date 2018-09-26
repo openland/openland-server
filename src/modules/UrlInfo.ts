@@ -53,7 +53,7 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
         description,
         imageURL,
         photo: null,
-        hostname: hostname || null
+        hostname: hostname || null,
     };
 }
 

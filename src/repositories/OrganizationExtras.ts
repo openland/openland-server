@@ -63,7 +63,7 @@ export interface DummyPost {
 export interface OrganizationExtras {
     potentialSites?: Range[] | null;
     siteSizes?: Range[] | null;
-    about?: String | null;
+    about?: string | null;
     twitter?: string | null;
     location?: string | null;
     facebook?: string | null;

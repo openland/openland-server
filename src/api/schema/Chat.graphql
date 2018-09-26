@@ -87,6 +87,8 @@ type PhotoChangeServiceMetadata {
     photoRef: ImageRef
 }
 
+union UrlAugmentationExtra = AlphaOrganizationListing | User | Organization | ChannelConversation
+
 type UrlAugmentation {
     url: String!
     title: String
@@ -96,6 +98,8 @@ type UrlAugmentation {
     photo: ImageRef
     imageURL: String
     hostname: String
+    type: String
+    extra: UrlAugmentationExtra
 }
 
 union ServiceMetadata = InviteServiceMetadata | KickServiceMetadata | TitleChangeServiceMetadata | PhotoChangeServiceMetadata
