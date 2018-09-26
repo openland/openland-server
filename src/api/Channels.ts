@@ -556,7 +556,13 @@ export const Resolver = {
                         uid!,
                         {
                             message: `${name} has joined the channel!`,
-                            isService: true
+                            isService: true,
+                            isMuted: true,
+                            serviceMetadata: {
+                                type: 'user_invite',
+                                userIds: [uid],
+                                invitedById: invite.creatorId || uid
+                            }
                         }
                     );
 
