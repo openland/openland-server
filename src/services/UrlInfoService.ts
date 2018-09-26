@@ -4,7 +4,6 @@ import { IDs } from '../api/utils/IDs';
 import { DB } from '../tables';
 import * as URL from 'url';
 
-
 export default class UrlInfoService {
     private listingRegexp = /^(http:\/\/localhost:3000|https:\/\/app.openland.com)\/o\/(.*)\/listings\#(.*)/;
     private cache = new CacheRepository<URLInfo>('url_info');
