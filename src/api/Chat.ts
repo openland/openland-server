@@ -1033,6 +1033,11 @@ export const Resolver = {
                 },
                 [] as any[]
             );
+            res.sort((a, b) => {
+                let lastMessageA = DB.ConversationMessage.find({ where: { conversationId: a.id }, order: [['id', 'DESC']] });
+                let lastMessageB = DB.ConversationMessage.find({ where: { conversationId: b.id }, order: [['id', 'DESC']] });
+                return new Date((lastMessageA as any).createdAt).getTime() - new Date((lastMessageB as any).createdAt).getTime();
+            });
             return res;
 
         }),
