@@ -342,7 +342,7 @@ export const Resolver = {
                 return DB.User.findById(src.extra);
             } else if (src.type === 'org') {
                 return DB.Organization.findById(src.extra);
-            }  else if (src.type === 'channel') {
+            } else if (src.type === 'channel') {
                 return DB.Conversation.findById(src.extra);
             }
 
@@ -708,7 +708,7 @@ export const Resolver = {
                 limit: limit
             }) : [];
 
-            let primaryOrgUsers: User[] = [];
+            let sameOrgUsers: User[] = [];
             let membersUserIds: number[] = [];
             let sequelize = DB.connection;
             let orgsIds = await Repos.Users.fetchUserAccounts(uid);
@@ -754,13 +754,18 @@ export const Resolver = {
                     limit: limit
                 });
                 membersUserIds = membersProfiles.map(m => m.userId!!);
-                primaryOrgUsers = await DB.User.findAll({
+                sameOrgUsers = await DB.User.findAll({
                     where: {
                         id: {
                             $in: membersUserIds
                         }
                     }
                 });
+
+                // move primary org users to top
+                let primaryOrgMembers = (await DB.OrganizationMember.findAll({ where: { orgId: oid } })).map(m => m.userId);
+                sameOrgUsers.sort(u => primaryOrgMembers.indexOf(u.id!) > -1 ? 1 : 0);
+
             }
 
             let usersProfiles = await DB.UserProfile.findAll({
@@ -812,7 +817,7 @@ export const Resolver = {
                 ],
                 limit: limit
             });
-            return [...orgs, ...primaryOrgUsers, ...users].filter((o, i) => i < limit);
+            return [...orgs, ...sameOrgUsers, ...users].filter((o, i) => i < limit);
         }),
         alphaChatSearch: withUser<{ members: string[] }>(async (args, uid) => {
             let members = [...args.members.map((v) => IDs.User.parse(v)), uid];
