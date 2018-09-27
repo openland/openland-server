@@ -85,6 +85,19 @@ export function startEmailNotificationWorker() {
                     if (!message) {
                         continue;
                     }
+
+                    // disable email notificaitons for channels
+                    let conversation = await DB.Conversation.findById(message.conversationId);
+                    if (!conversation || conversation.type === 'channel') {
+                        continue;
+                    }
+
+                    let conversationSettings = await Repos.Chats.getConversationSettings(u.userId, conversation.id);
+
+                    if (conversationSettings.mute) {
+                        continue;
+                    }
+
                     if (!message.isMuted) {
                         hasNonMuted = true;
                     }
@@ -94,6 +107,7 @@ export function startEmailNotificationWorker() {
                 if (hasNonMuted) {
                     console.log(tag, 'new_email_notification');
                     await Emails.sendUnreadMesages(u.userId, u.unread, tx);
+                    u.lastEmailNotification = new Date();
                 }
             }
 

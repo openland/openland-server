@@ -101,7 +101,7 @@ export const Resolver = {
 
             // Stage 3: Activation Status
             let orgs = await DB.Organization.findAll({ where: { id: { $in: orgsIDs } } });
-            let isAllOrganizationsSuspended = orgs.length > 0 &&  orgs.filter(o => o.status === 'SUSPENDED').length === orgs.length;
+            let isAllOrganizationsSuspended = orgs.length > 0 && orgs.filter(o => o.status === 'SUSPENDED').length === orgs.length;
             let isActivated = orgs.filter(o => o.status === 'ACTIVATED').length > 0;
             // depricated
             let isOrganizationActivated = isOrganizationPicked && organization!!.status !== 'PENDING';
@@ -328,7 +328,7 @@ export const Resolver = {
                 photoRef?: ImageRef | null
             }
         }>(async (args, uid) => {
-            return await DB.txStable(async (tx) => {
+            return await DB.txLight(async (tx) => {
                 let userProfile = await Repos.Users.createUser(uid, args.user, tx);
                 let organization = await Repos.Organizations.createOrganization(uid, { ...args.organization, personal: false }, tx);
 
