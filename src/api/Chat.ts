@@ -344,6 +344,8 @@ export const Resolver = {
                 return DB.Organization.findById(src.extra);
             } else if (src.type === 'channel') {
                 return DB.Conversation.findById(src.extra);
+            }  else if (src.type === 'intro') {
+                return DB.User.findById(src.extra);
             }
 
             throw new Error('Unknown UrlAugmentationExtra');
