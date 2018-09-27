@@ -40,7 +40,7 @@ export const ConversationMessageTable = connection.define<ConversationMessage, P
         paranoid: true,
         validate: {
             validateContent() {
-                if (!this.message && !this.fileId) {
+                if (!this.message && !this.fileId && !this.extras.serviceMetadata) {
                     throw Error('Content is not provided');
                 }
                 if (!!this.fileId && !this.fileMetadata) {

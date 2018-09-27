@@ -582,6 +582,7 @@ export class ChatsRepository {
         //
 
         perf.start('Persist Messages');
+        console.log(777, message);
         let msg = await DB.ConversationMessage.create({
             message: message.message,
             fileId: message.file,
