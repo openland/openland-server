@@ -1250,7 +1250,7 @@ export const Resolver = {
                 })).conversationEvent;
             });
         }),
-        alphaSendInto: withUser<{ conversationId: string, userId: number, about: string, message?: string | null, file?: string | null, repeatKey?: string | null }>(async (args, uid) => {
+        alphaSendIntro: withUser<{ conversationId: string, userId: number, about: string, message?: string | null, file?: string | null, repeatKey?: string | null }>(async (args, uid) => {
             let conversationId = IDs.Conversation.parse(args.conversationId);
 
             let fileMetadata: JsonMap | null;
