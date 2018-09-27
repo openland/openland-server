@@ -91,6 +91,13 @@ export function startEmailNotificationWorker() {
                     if (!conversation || conversation.type === 'channel') {
                         continue;
                     }
+
+                    let conversationSettings = await Repos.Chats.getConversationSettings(u.userId, conversation.id);
+
+                    if (conversationSettings.mute) {
+                        continue;
+                    }
+
                     if (!message.isMuted) {
                         hasNonMuted = true;
                     }
