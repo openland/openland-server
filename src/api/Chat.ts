@@ -817,7 +817,7 @@ export const Resolver = {
                 ],
                 limit: limit
             });
-            return [...orgs, ...sameOrgUsers, ...users].filter((o, i) => i < limit);
+            return [...sameOrgUsers, ...users, ...orgs].filter((o, i) => i < limit);
         }),
         alphaChatSearch: withUser<{ members: string[] }>(async (args, uid) => {
             let members = [...args.members.map((v) => IDs.User.parse(v)), uid];
@@ -1033,11 +1033,16 @@ export const Resolver = {
                 },
                 [] as any[]
             );
-            res.sort((a, b) => {
-                let lastMessageA = DB.ConversationMessage.find({ where: { conversationId: a.id }, order: [['id', 'DESC']] });
-                let lastMessageB = DB.ConversationMessage.find({ where: { conversationId: b.id }, order: [['id', 'DESC']] });
-                return new Date((lastMessageA as any).createdAt).getTime() - new Date((lastMessageB as any).createdAt).getTime();
-            });
+            let messages = new Map<number, ConversationMessage | null>();
+            for (let c of res) {
+                messages.set(c.id, await DB.ConversationMessage.find({ where: { conversationId: c.id }, order: [['id', 'DESC']] }));
+            }
+            res = res.filter(c => messages.get(c.id))
+                .sort((a, b) => {
+                    let lastMessageA = messages.get(a.id);
+                    let lastMessageB = messages.get(b.id);
+                    return (lastMessageA ? new Date((lastMessageA as any).createdAt).getTime() : 0) - (lastMessageB ? new Date((lastMessageB as any).createdAt).getTime() : 0);
+                });
             return res;
 
         }),
