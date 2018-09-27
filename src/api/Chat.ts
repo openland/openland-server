@@ -1041,7 +1041,7 @@ export const Resolver = {
                 .sort((a, b) => {
                     let lastMessageA = messages.get(a.id);
                     let lastMessageB = messages.get(b.id);
-                    return (lastMessageA ? new Date((lastMessageA as any).createdAt).getTime() : 0) - (lastMessageB ? new Date((lastMessageB as any).createdAt).getTime() : 0);
+                    return (lastMessageB ? new Date((lastMessageB as any).createdAt).getTime() : 0) - (lastMessageA ? new Date((lastMessageA as any).createdAt).getTime() : 0);
                 });
             return res;
 
