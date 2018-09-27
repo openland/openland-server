@@ -1038,7 +1038,7 @@ export const Resolver = {
                                 subtitle: args.input.name,
                                 description: args.input.summary,
                                 photo: args.input.photo
-                            }
+                            } as any
                         });
                     }
                 }

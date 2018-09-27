@@ -13,7 +13,7 @@ export interface URLAugmentation {
     imageURL: string|null;
     photo: ImageRef|null;
     hostname: string|null;
-    type: string;
+    type: 'org' | 'listing' | 'user' | 'url' | 'none' | 'channel' | 'intro';
     extra?: any;
 }
 

@@ -1235,6 +1235,48 @@ export const Resolver = {
                 })).conversationEvent;
             });
         }),
+        alphaSendInto: withUser<{ conversationId: string, userId: number, about: string, message?: string | null, file?: string | null, repeatKey?: string | null }>(async (args, uid) => {
+            let conversationId = IDs.Conversation.parse(args.conversationId);
+
+            let fileMetadata: JsonMap | null;
+            let filePreview: string | null;
+
+            if (args.file) {
+                let fileInfo = await Services.UploadCare.saveFile(args.file);
+                fileMetadata = fileInfo as any;
+
+                if (fileInfo.isImage) {
+                    filePreview = await Services.UploadCare.fetchLowResPreview(args.file);
+                }
+            }
+
+            return await DB.txLight(async (tx) => {
+                let profile = await DB.UserProfile.findOne({ where: {userId: args.userId }});
+
+                if (!profile) {
+                    throw new NotFoundError();
+                }
+
+                return (await Repos.Chats.sendMessage(tx, conversationId, uid!, {
+                    message: args.message,
+                    file: args.file,
+                    fileMetadata,
+                    repeatKey: args.repeatKey,
+                    filePreview,
+                    urlAugmentation: {
+                        type: 'intro',
+                        extra: args.userId,
+                        url: `https://next.openland.com/mail/u/${IDs.User.serialize(args.userId)}`,
+                        title: profile.firstName + ' ' + profile.lastName,
+                        subtitle: 'intro',
+                        description: args.about,
+                        imageURL: null,
+                        photo: profile!.picture,
+                        hostname: 'openland.com',
+                    }
+                })).conversationEvent;
+            });
+        }),
         alphaEditMessage: withUser<{ messageId: string, message?: string | null, file?: string | null }>(async (args, uid) => {
             let fileMetadata: JsonMap | null;
             let filePreview: string | null;

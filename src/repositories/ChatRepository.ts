@@ -12,12 +12,12 @@ import { debouncer } from '../utils/timer';
 import { Repos } from './index';
 import { Pubsub, PubsubSubcription } from '../modules/pubsub';
 import { AccessDeniedError } from '../errors/AccessDeniedError';
-import { ImageRef } from './Media';
 import { ConversationMessagesWorker } from '../workers';
 import { IDs } from '../api/utils/IDs';
 import { CacheRepository } from './CacheRepository';
 import { Perf } from '../utils/perf';
 import { Conversation } from '../tables/Conversation';
+import { URLAugmentation } from '../services/UrlInfoService';
 
 export type ChatEventType =
     'new_message' |
@@ -53,7 +53,7 @@ export interface Message {
     isService?: boolean | null;
     repeatKey?: string | null;
     serviceMetadata?: any & { type: ServiceMessageMetadataType };
-    urlAugmentation?: any & { url: string, title?: string, date?: string, subtitle?: string, description?: string, photo?: ImageRef };
+    urlAugmentation?: URLAugmentation;
 }
 
 export interface Settings {
@@ -593,7 +593,7 @@ export class ChatsRepository {
             isService: message.isService || false,
             extras: {
                 serviceMetadata: message.serviceMetadata || {},
-                ...message.urlAugmentation ? { urlAugmentation: message.urlAugmentation } : {},
+                ...message.urlAugmentation ? { urlAugmentation: message.urlAugmentation as any } : {},
                 filePreview: message.filePreview || null
             }
         }, { transaction: tx });
