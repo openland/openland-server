@@ -19,6 +19,19 @@ const sendError = (response: express.Response, code: number) => {
     response.json({ ok: false, errorCode: code, errorText: (ERROR_TEXT as any)[code] });
 };
 
+const TEST_EMAIL_REGEX = /^auth_test_(\d{3})@openland.com$/;
+
+const isTestEmail = (email: string) => {
+    console.log(TEST_EMAIL_REGEX);
+    return TEST_EMAIL_REGEX.test(email);
+};
+
+const testEmailCode = (email: string) => {
+    let [, num] = TEST_EMAIL_REGEX.exec(email)!;
+
+    return num[num.length - 1].repeat(5);
+};
+
 export async function sendCode(req: express.Request, response: express.Response) {
     let {
         email,
@@ -49,7 +62,13 @@ export async function sendCode(req: express.Request, response: express.Response)
     let code = randomString(5);
 
     if (email) {
-        await Emails.sendDebugEmail(email, 'Your code: ' + code);
+        let isTest = isTestEmail(email);
+
+        if (!isTest) {
+            await Emails.sendDebugEmail(email, 'Your code: ' + code);
+        } else {
+            code = testEmailCode(email);
+        }
 
         if (!authSession!) {
             authSession = await DB.AuthSession.create({
