@@ -5,6 +5,7 @@ import { DB } from '../tables';
 import * as base64 from '../utils/base64';
 import { randomBytes } from 'crypto';
 import { Repos } from '../repositories';
+import { AuthSession } from '../tables/AuthSession';
 
 const ERROR_TEXT = {
     0: 'Wrong arguments passed',
@@ -21,10 +22,24 @@ const sendError = (response: express.Response, code: number) => {
 export async function sendCode(req: express.Request, response: express.Response) {
     let {
         email,
-        phone
+        phone,
+        session
     } = req.body;
 
     console.log('auth_sendCode', JSON.stringify(req.body));
+
+    let authSession: AuthSession;
+
+    if (session) {
+        let existing = await DB.AuthSession.findOne({ where: { sessionSalt: session } });
+
+        // No session found
+        if (!existing) {
+            sendError(response, 2);
+            return;
+        }
+        authSession = existing;
+    }
 
     if (!email && !phone) {
         sendError(response, 0);
@@ -36,16 +51,20 @@ export async function sendCode(req: express.Request, response: express.Response)
     if (email) {
         await Emails.sendDebugEmail(email, 'Your code: ' + code);
 
-        let session = await DB.AuthSession.create({
-            sessionSalt: base64.encodeBuffer(randomBytes(64)),
-            code,
-            codeExpires: new Date(Date.now() + 1000 * 60 * 5), // 5 minutes
-            extras: {
-                email
-            }
-        });
+        if (!authSession!) {
+            authSession = await DB.AuthSession.create({
+                sessionSalt: base64.encodeBuffer(randomBytes(64)),
+                code,
+                codeExpires: new Date(Date.now() + 1000 * 60 * 5), // 5 minutes
+                extras: {
+                    email
+                }
+            });
+        } else {
+            await authSession!.update({ code });
+        }
 
-        response.json({ ok: true, session: session.sessionSalt });
+        response.json({ ok: true, session: authSession!.sessionSalt });
     } else if (phone) {
         console.log(phone);
         sendError(response, 1);
