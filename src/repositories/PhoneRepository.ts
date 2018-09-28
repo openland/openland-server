@@ -7,11 +7,11 @@ import { Repos } from './index';
 const PHONE_CODE_TTL = 1000 * 60;
 const PHONE_CODE_LEN = 5;
 
-function isTestPhone(phone: string) {
+export function isTestPhone(phone: string) {
     return phone.substr(0, 2) === '19';
 }
 
-function getTestPhoneCode(phone: string) {
+export function getTestPhoneCode(phone: string) {
     return phone.substr(-5);
 }
 
