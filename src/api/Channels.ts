@@ -354,7 +354,10 @@ export const Resolver = {
                             }
                         }
                     );
-                    return 'ok';
+                    return {
+                        chat: channel,
+                        curSeq: channel!.seq
+                    };
                 } else {
                     await DB.ConversationGroupMembers.create({
                         conversationId: channelId,
