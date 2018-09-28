@@ -362,6 +362,7 @@ extend type Query {
     alphaOrganizationMembers(orgId: ID!): [OrganizationMember!]!
     alphaOrganizations(
         query: String,
+        prefix: String,
         sort: String,
         first: Int!,
         after: String,

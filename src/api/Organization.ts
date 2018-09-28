@@ -45,6 +45,7 @@ interface AlphaOrganizationListingsParams {
 
 interface AlphaOrganizationsParams {
     query?: string;
+    prefix?: string;
     first: number;
     after?: string;
     page?: number;
@@ -457,6 +458,10 @@ export const Resolver = {
                     let parsed = parser.parseQuery(args.query);
                     let elasticQuery = buildElasticQuery(parsed);
                     clauses.push(elasticQuery);
+                }
+
+                if (args.prefix && args.prefix.length > 0) {
+                    clauses.push({ match_phrase_prefix: { name: args.prefix } });
                 }
 
                 if (args.sort) {

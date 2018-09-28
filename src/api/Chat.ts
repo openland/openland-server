@@ -761,13 +761,11 @@ export const Resolver = {
                             $in: membersUserIds
                         }
                     },
-                    limit: limit
                 });
 
                 // move primary org users to top
                 let primaryOrgMembers = (await DB.OrganizationMember.findAll({ where: { orgId: oid } })).map(m => m.userId);
-                sameOrgUsers.sort(u => primaryOrgMembers.indexOf(u.id!) > -1 ? 1 : 0);
-
+                sameOrgUsers = sameOrgUsers.sort(u => primaryOrgMembers.indexOf(u.id!) > -1 ? -1 : 1).filter((o, i) => i < limit);
             }
 
             let usersProfiles = await DB.UserProfile.findAll({
