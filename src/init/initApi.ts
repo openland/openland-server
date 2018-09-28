@@ -54,7 +54,7 @@ export async function initApi(isTest: boolean) {
     // To avoid logging on this route
     app.get('/', (req, res) => res.send('Welcome to Openland API!'));
     app.get('/status', async (req, res) => {
-        try  {
+        try {
             let org = await DB.Organization.findById(1);
             console.log('db check', org ? org.id : null);
             res.send('Welcome to Openland API!');
@@ -65,7 +65,7 @@ export async function initApi(isTest: boolean) {
         }
     });
     app.get('/status', async (req, res) => {
-        try  {
+        try {
             let org = await DB.Organization.findById(1);
             console.log('db check', org ? org.id : null);
             res.send('Welcome to Openland API!');
@@ -102,6 +102,8 @@ export async function initApi(isTest: boolean) {
             phone
         } = req.body;
 
+        console.log('auth_sendCode', JSON.stringify(req.body));
+
         if (!email && !phone) {
             response.json({ ok: false });
             return;
@@ -115,7 +117,7 @@ export async function initApi(isTest: boolean) {
             let session = await DB.AuthSession.create({
                 sessionSalt: base64.encodeBuffer(randomBytes(64)),
                 code,
-                codeExpires: new Date(Date.now() + 1000 * 60 * 5 ), // 5 minutes
+                codeExpires: new Date(Date.now() + 1000 * 60 * 5), // 5 minutes
                 extras: {
                     email
                 }
@@ -147,7 +149,7 @@ export async function initApi(isTest: boolean) {
         }
 
         // Code expired
-        if (new Date() > authSession.codeExpires! ) {
+        if (new Date() > authSession.codeExpires!) {
             response.json({ ok: false });
             return;
         }
