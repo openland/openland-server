@@ -696,7 +696,7 @@ export const Resolver = {
             });
         }),
         alphaChatsSearchForCompose: withAccount<{ query: string, organizations: boolean, limit?: number }>(async (args, uid, oid) => {
-            let limit = args.limit || 8;
+            let limit = args.limit || 10;
             let orgs = args.organizations ? await DB.Organization.findAll({
                 where: {
                     name: {
@@ -753,7 +753,6 @@ export const Resolver = {
                                 ),
                             )
                         ],
-                    limit: limit
                 });
                 membersUserIds = membersProfiles.map(m => m.userId!!);
                 sameOrgUsers = await DB.User.findAll({
@@ -761,7 +760,8 @@ export const Resolver = {
                         id: {
                             $in: membersUserIds
                         }
-                    }
+                    },
+                    limit: limit
                 });
 
                 // move primary org users to top
@@ -801,7 +801,6 @@ export const Resolver = {
                             ),
                         )
                     ],
-                limit: limit
             });
             let usersIds = usersProfiles.map(m => m.userId!!);
             let users = await DB.User.findAll({
