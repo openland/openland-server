@@ -314,7 +314,7 @@ class TypingManager {
 
     public async getXIterator(uid: number, conversationId?: number) {
 
-        let sub: PubsubSubcription|undefined;
+        let sub: PubsubSubcription | undefined;
 
         let subEng = new SubscriptionEngine<TypingEvent>(() => sub ? sub.unsubscribe() : {});
 
@@ -559,7 +559,7 @@ export class ChatsRepository {
         }
 
         if (conv.type === 'channel' || conv.type === 'group') {
-            if (!(await DB.ConversationGroupMembers.findOne({ where: { conversationId, userId: uid }, transaction: tx}))) {
+            if (!(await DB.ConversationGroupMembers.findOne({ where: { conversationId, userId: uid }, transaction: tx }))) {
                 throw new AccessDeniedError();
             }
         }
@@ -1181,8 +1181,8 @@ export class ChatsRepository {
         });
     }
 
-    async getConversationSettings(uid: number, cid: number) {
-        let res = await DB.ConversationUserState.find({ where: { userId: uid, conversationId: cid } });
+    async getConversationSettings(uid: number, cid: number, tx?: Transaction) {
+        let res = await DB.ConversationUserState.find({ where: { userId: uid, conversationId: cid }, transaction: tx });
         let settings: Settings = {
             mobileNotifications: 'all',
             mute: false,
