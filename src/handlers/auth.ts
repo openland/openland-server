@@ -6,6 +6,18 @@ import * as base64 from '../utils/base64';
 import { randomBytes } from 'crypto';
 import { Repos } from '../repositories';
 
+const ERROR_TEXT = {
+    0: 'Wrong arguments passed',
+    1: 'Server error',
+    2: 'Session not found',
+    3: 'Code expired',
+    4: 'Wrong code',
+};
+
+const sendError = (response: express.Response, code: number) => {
+    response.json({ ok: false, errorCode: code, errorText: (ERROR_TEXT as any)[code] });
+};
+
 export async function sendCode(req: express.Request, response: express.Response) {
     let {
         email,
@@ -15,7 +27,7 @@ export async function sendCode(req: express.Request, response: express.Response)
     console.log('auth_sendCode', JSON.stringify(req.body));
 
     if (!email && !phone) {
-        response.json({ ok: false });
+        sendError(response, 0);
         return;
     }
 
@@ -36,7 +48,7 @@ export async function sendCode(req: express.Request, response: express.Response)
         response.json({ ok: true, session: session.sessionSalt });
     } else if (phone) {
         console.log(phone);
-        response.json({ ok: false });
+        sendError(response, 1);
     }
 }
 
@@ -47,7 +59,7 @@ export async function checkCode(req: express.Request, response: express.Response
     } = req.body;
 
     if (!session && !code) {
-        response.json({ ok: false });
+        sendError(response, 0);
         return;
     }
 
@@ -55,19 +67,19 @@ export async function checkCode(req: express.Request, response: express.Response
 
     // No session found
     if (!authSession) {
-        response.json({ ok: false });
+        sendError(response, 2);
         return;
     }
 
     // Code expired
     if (new Date() > authSession.codeExpires!) {
-        response.json({ ok: false });
+        sendError(response, 3);
         return;
     }
 
     // Wrong code
     if (authSession.code! !== code) {
-        response.json({ ok: false });
+        sendError(response, 4);
         return;
     }
 
@@ -85,7 +97,7 @@ export async function getAccessToken(req: express.Request, response: express.Res
     } = req.body;
 
     if (!session && !authToken) {
-        response.json({ ok: false });
+        sendError(response, 0);
         return;
     }
 
@@ -93,7 +105,7 @@ export async function getAccessToken(req: express.Request, response: express.Res
 
     // No session found
     if (!authSession) {
-        response.json({ ok: false });
+        sendError(response, 2);
         return;
     }
 
@@ -116,6 +128,6 @@ export async function getAccessToken(req: express.Request, response: express.Res
             return;
         }
     } else {
-        response.json({ ok: false });
+        sendError(response, 1);
     }
 }
