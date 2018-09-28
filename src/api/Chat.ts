@@ -1859,9 +1859,9 @@ export const Resolver = {
             return 'ok';
         }),
         alphaUpdateConversationSettings: withUser<{ settings: { mobileNotifications?: 'all' | 'direct' | 'none' | null, mute?: boolean | null }, conversationId: string }>(async (args, uid) => {
-            return await DB.tx(async (tx) => {
+            return await DB.txStable(async (tx) => {
                 let cid = IDs.Conversation.parse(args.conversationId);
-                let settings = await Repos.Chats.getConversationSettings(uid, cid);
+                let settings = await Repos.Chats.getConversationSettings(uid, cid, tx);
                 if (args.settings.mobileNotifications) {
                     settings.mobileNotifications = args.settings.mobileNotifications;
                 }
