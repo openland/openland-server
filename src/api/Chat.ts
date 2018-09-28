@@ -344,7 +344,7 @@ export const Resolver = {
                 return DB.Organization.findById(src.extra);
             } else if (src.type === 'channel') {
                 return DB.Conversation.findById(src.extra);
-            }  else if (src.type === 'intro') {
+            } else if (src.type === 'intro') {
                 return DB.User.findById(src.extra);
             }
 
@@ -1268,7 +1268,7 @@ export const Resolver = {
             }
 
             return await DB.txLight(async (tx) => {
-                let profile = await DB.UserProfile.findOne({ where: {userId: args.userId }});
+                let profile = await DB.UserProfile.findOne({ where: { userId: args.userId } });
 
                 if (!profile) {
                     throw new NotFoundError();
@@ -1858,33 +1858,19 @@ export const Resolver = {
             }
             return 'ok';
         }),
-        alphaUpdateConversationSettings: withUser<{ settings: { mobileNotifications?: string | null, mute?: boolean | null }, conversationId: string }>(async (args, uid) => {
+        alphaUpdateConversationSettings: withUser<{ settings: { mobileNotifications?: 'all' | 'direct' | 'none' | null, mute?: boolean | null }, conversationId: string }>(async (args, uid) => {
             return await DB.tx(async (tx) => {
                 let cid = IDs.Conversation.parse(args.conversationId);
-                let conversationUserState = (await DB.ConversationUserState.find({
-                    where: {
-                        userId: uid,
-                        conversationId: cid
-                    }, transaction: tx, lock: 'UPDATE'
-                }))!!;
-
+                let settings = await Repos.Chats.getConversationSettings(uid, cid);
                 if (args.settings.mobileNotifications) {
-                    conversationUserState.notificationsSettings = {
-                        ...conversationUserState.notificationsSettings,
-                        mobileNotifications: args.settings.mobileNotifications
-                    };
+                    settings.mobileNotifications = args.settings.mobileNotifications;
                 }
-                if (args.settings.mute !== undefined) {
-                    conversationUserState.notificationsSettings = {
-                        ...conversationUserState.notificationsSettings,
-                        mute: args.settings.mute
-                    };
+                if (args.settings.mute !== undefined && args.settings.mute !== null) {
+                    settings.mute = args.settings.mute;
                 }
-                await conversationUserState.save({ transaction: tx });
-                return {
-                    ...conversationUserState.notificationsSettings,
-                    id: IDs.ConversationSettings.serialize(cid)
-                };
+
+                await DB.ConversationUserState.update({ notificationsSettings: { ...settings } }, { where: { userId: uid, conversationId: cid }, transaction: tx });
+                return settings;
             });
         }),
         alphaSaveDraftMessage: withUser<{ conversationId: string, message?: string }>(async (args, uid) => {
