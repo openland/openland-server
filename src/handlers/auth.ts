@@ -12,6 +12,8 @@ export async function sendCode(req: express.Request, response: express.Response)
         phone
     } = req.body;
 
+    console.log('auth_sendCode', JSON.stringify(req.body));
+
     if (!email && !phone) {
         response.json({ ok: false });
         return;
@@ -25,7 +27,7 @@ export async function sendCode(req: express.Request, response: express.Response)
         let session = await DB.AuthSession.create({
             sessionSalt: base64.encodeBuffer(randomBytes(64)),
             code,
-            codeExpires: new Date(Date.now() + 1000 * 60 * 5 ), // 5 minutes
+            codeExpires: new Date(Date.now() + 1000 * 60 * 5), // 5 minutes
             extras: {
                 email
             }
@@ -58,7 +60,7 @@ export async function checkCode(req: express.Request, response: express.Response
     }
 
     // Code expired
-    if (new Date() > authSession.codeExpires! ) {
+    if (new Date() > authSession.codeExpires!) {
         response.json({ ok: false });
         return;
     }
