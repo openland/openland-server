@@ -132,7 +132,7 @@ export const Resolver = {
             };
         }),
 
-        messagesSentStats: withAny<{ fromDate: string, toDate: string, trunc?: string }>(async args => {
+        messagesSentStats: withAny<{ fromDate: string, toDate: string, trunc?: string, excudeTeam?: boolean }>(async args => {
             let { fromDate, toDate } = args;
 
             let _fromDate = parseInt(fromDate, 10);
@@ -162,20 +162,23 @@ export const Resolver = {
             }
             try {
                 let sequelize = DB.connection;
-
+             
                 // removing openland stuff from stats
-                let userIds = (await DB.OrganizationMember.findAll({
-                    where: {
-                        orgId: 1
-                    }
-                })).map(m => m.userId);
+                let userIds: number[] = [];
+                if (args.excudeTeam !== false) {
+                    userIds = (await DB.OrganizationMember.findAll({
+                        where: {
+                            orgId: 1
+                        }
+                    })).map(m => m.userId);
+                }
 
                 let data = await DB.ConversationMessage.findAll({
                     where: {
                         createdAt: { $gte: _fromDate, $lte: _toDate },
-                        userId: { 
+                        userId: {
                             $notIn: userIds
-                         }
+                        }
                     },
                     attributes: [
                         [sequelize.fn('date_trunc', trunc, sequelize.col('createdAt')), 'date'],

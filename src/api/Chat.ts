@@ -348,7 +348,7 @@ export const Resolver = {
                 return DB.User.findById(src.extra);
             }
 
-            throw new Error('Unknown UrlAugmentationExtra');
+            return null;
         },
     },
     ConversationMessage: {
