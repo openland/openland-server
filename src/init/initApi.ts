@@ -94,8 +94,8 @@ export async function initApi(isTest: boolean) {
     app.post('/v2/auth', Auth2.JWTChecker, bodyParser.json(), Auth2.Authenticator);
 
     app.post('/auth/sendCode', bodyParser.json(), withAudit(Auth.sendCode));
-    app.post('/auth/checkCode', bodyParser.json(), Auth.checkCode);
-    app.post('/auth/getAccessToken', bodyParser.json(), Auth.getAccessToken);
+    app.post('/auth/checkCode', bodyParser.json(), withAudit(Auth.checkCode));
+    app.post('/auth/getAccessToken', bodyParser.json(), withAudit(Auth.getAccessToken));
 
     // Starting Api
     if (dport > 0) {
