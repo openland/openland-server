@@ -21,10 +21,9 @@ const sendError = (response: express.Response, code: number) => {
     response.json({ ok: false, errorCode: code, errorText: (ERROR_TEXT as any)[code] });
 };
 
-const TEST_EMAIL_REGEX = /^auth_test_(\d{3})@openland.com$/;
+const TEST_EMAIL_REGEX = /^test(\d{4})@openland.com$/;
 
 const isTestEmail = (email: string) => {
-    console.log(TEST_EMAIL_REGEX);
     return TEST_EMAIL_REGEX.test(email);
 };
 
