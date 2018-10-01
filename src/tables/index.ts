@@ -78,6 +78,7 @@ import { ConversationsUserGlobalNotificationsTable } from './ConversationsUserGl
 import { ShortNameTable } from './ShortName';
 import { PhoneTable } from './Phone';
 import { AuthSessionTable } from './AuthSession';
+import { AuthAuditTable } from './AuthAudit';
 
 const SILENT_TX_ACTUALLY_SILENT = true;
 export const DB_SILENT = !SILENT_TX_ACTUALLY_SILENT;
@@ -140,6 +141,7 @@ export const DB = {
     ShortName: ShortNameTable,
     Phone: PhoneTable,
     AuthSession: AuthSessionTable,
+    AuthAudit: AuthAuditTable,
 
     tx: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>, existingTx?: sequelize.Transaction): Promise<A> {
         if (existingTx) {

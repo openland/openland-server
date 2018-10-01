@@ -16,6 +16,7 @@ import { Server as HttpServer } from 'http';
 import { ApolloEngine } from 'apollo-engine';
 import { delay } from '../utils/timer';
 import { DB } from '../tables';
+import { withAudit } from '../handlers/auth';
 
 export async function initApi(isTest: boolean) {
 
@@ -92,7 +93,7 @@ export async function initApi(isTest: boolean) {
     //
     app.post('/v2/auth', Auth2.JWTChecker, bodyParser.json(), Auth2.Authenticator);
 
-    app.post('/auth/sendCode', bodyParser.json(), Auth.sendCode);
+    app.post('/auth/sendCode', bodyParser.json(), withAudit(Auth.sendCode));
     app.post('/auth/checkCode', bodyParser.json(), Auth.checkCode);
     app.post('/auth/getAccessToken', bodyParser.json(), Auth.getAccessToken);
 

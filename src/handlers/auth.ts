@@ -33,6 +33,30 @@ const testEmailCode = (email: string) => {
     return num[num.length - 1].repeat(5);
 };
 
+export function withAudit(handler: (req: express.Request, response: express.Response) => void) {
+    return async (req: express.Request, response: express.Response) => {
+        let oldEnd = response.end;
+
+        let data: Buffer;
+
+        (response.end as any) = (chunk: any, ...rest: any[]) => {
+            data = chunk;
+            oldEnd.call(response, chunk, ...rest);
+        };
+
+        await handler(req, response);
+
+        let ip = req.ip;
+
+        await DB.AuthAudit.create({
+            ip,
+            method: req.path,
+            request: JSON.stringify(req.body),
+            response: JSON.stringify(data!.toString())
+        });
+    };
+}
+
 export async function sendCode(req: express.Request, response: express.Response) {
     let {
         email,
