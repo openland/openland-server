@@ -8,6 +8,7 @@ import { errorHandler } from '../errors';
 import { CallContext } from '../api/utils/CallContext';
 import { Rate } from '../utils/rateLimit';
 import { delay } from '../utils/timer';
+import { disableIntrospection } from '../api/utils/ValidationRules';
 
 function getClientId(req: express.Request, res: express.Response) {
     if (res.locals.ctx) {
@@ -52,7 +53,10 @@ function handleRequest(withEngine: boolean) {
                         locations: err.locations,
                         path: err.path
                     };
-                }
+                },
+                validationRules: [
+                    disableIntrospection((res.locals.ctx as CallContext) || undefined)
+                ]
             };
         }
     };

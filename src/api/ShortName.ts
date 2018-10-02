@@ -100,5 +100,9 @@ export const Resolvers = {
                 return 'ok';
             });
         }),
+    },
+
+    __Schema: {
+
     }
 };

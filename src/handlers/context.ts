@@ -30,6 +30,8 @@ async function context(src: express.Request): Promise<CallContext> {
             let profile = await DB.UserProfile.find({ where: { userId: res.uid } });
             res.oid = (profile && profile.primaryOrganization) || res.oid;
         }
+
+        res.superRope = await Repos.Permissions.superRole(res.uid);
     }
 
     return res;
