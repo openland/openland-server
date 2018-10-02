@@ -1,6 +1,12 @@
 import { SchemaDirectiveVisitor } from 'graphql-tools';
 import {
-    defaultFieldResolver, GraphQLArgument, GraphQLField, GraphQLInputField, GraphQLNonNull, GraphQLScalarType,
+    defaultFieldResolver,
+    GraphQLArgument,
+    GraphQLField,
+    GraphQLInputField,
+    GraphQLList,
+    GraphQLNonNull,
+    GraphQLScalarType,
     Kind
 } from 'graphql';
 import { CallContext } from '../utils/CallContext';
@@ -28,7 +34,15 @@ function createFieldDirective(
 
 function createIDDirective(id: GraphQLScalarType) {
     const replaceType = (obj: { type: GraphQLInputType | GraphQLOutputType }) => {
-        if (obj.type instanceof GraphQLNonNull) {
+        if (obj.type instanceof GraphQLList) {
+            let vecType = obj.type.ofType;
+
+            if (vecType instanceof GraphQLNonNull) {
+                obj.type = new GraphQLList(new GraphQLNonNull(id));
+            } else if (vecType instanceof GraphQLScalarType) {
+                obj.type = new GraphQLList(id);
+            }
+        } else if (obj.type instanceof GraphQLNonNull) {
             obj.type = new GraphQLNonNull(id);
         } else if (obj.type instanceof GraphQLScalarType) {
             obj.type = id;
