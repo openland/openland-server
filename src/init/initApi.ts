@@ -17,7 +17,6 @@ import { ApolloEngine } from 'apollo-engine';
 import { delay } from '../utils/timer';
 import { DB } from '../tables';
 import { withAudit } from '../handlers/auth';
-import { disableIntrospection } from '../api/utils/ValidationRules';
 
 export async function initApi(isTest: boolean) {
 
@@ -160,7 +159,7 @@ export async function initApi(isTest: boolean) {
                     };
                 },
                 validationRules: [
-                    disableIntrospection(undefined) // any introspection over WS is disabled
+                    // disableIntrospection(undefined) // any introspection over WS is disabled
                 ]
             }, { server: server, path: '/api' });
         }

@@ -31,7 +31,7 @@ async function context(src: express.Request): Promise<CallContext> {
             res.oid = (profile && profile.primaryOrganization) || res.oid;
         }
 
-        res.superRope = await Repos.Permissions.superRole(res.uid);
+        // res.superRope = await Repos.Permissions.superRole(res.uid);
     }
 
     return res;
