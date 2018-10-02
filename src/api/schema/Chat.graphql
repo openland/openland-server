@@ -123,6 +123,7 @@ type ConversationMessage {
     urlAugmentation: UrlAugmentation
     edited: Boolean!
     reactions: [MessageReaction!]!
+    replyMessages: [ConversationMessage!]
 }
 
 type FileMetadata {
@@ -340,9 +341,9 @@ input UpdateGroupInput {
 
 extend type Mutation {
     superCreateChat(title: String!): Conversation!
-    alphaSendMessage(conversationId: ID!, message: String, file: String, repeatKey: String): ConversationEventMessage!
+    alphaSendMessage(conversationId: ID!, message: String, file: String, repeatKey: String, replyMessages: [ID!] @messageID): ConversationEventMessage!
+    alphaEditMessage(messageId: ID!, message: String, file: String, replyMessages: [ID!] @messageID): ConversationEventEditMessage!
     alphaSendIntro(conversationId: ID!, userId: ID! @userID, about: String!, message: String, file: String, repeatKey: String): ConversationEventMessage!
-    alphaEditMessage(messageId: ID!, message: String, file: String): ConversationEventEditMessage!
     alphaDeleteMessage(messageId: ID!): ConversationEventDelete!
     alphaReadChat(conversationId: ID!, messageId: ID!): ChatReadResult!
     alphaGlobalRead(toSeq: Int): String!

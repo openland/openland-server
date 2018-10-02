@@ -54,6 +54,7 @@ export interface Message {
     repeatKey?: string | null;
     serviceMetadata?: any & { type: ServiceMessageMetadataType };
     urlAugmentation?: URLAugmentation;
+    replyMessages?: number[] | null;
 }
 
 export interface Settings {
@@ -594,6 +595,7 @@ export class ChatsRepository {
             extras: {
                 serviceMetadata: message.serviceMetadata || {},
                 ...message.urlAugmentation ? { urlAugmentation: message.urlAugmentation as any } : {},
+                ...message.replyMessages ? { replyMessages: message.replyMessages } : {},
                 filePreview: message.filePreview || null
             }
         }, { transaction: tx });
@@ -769,6 +771,10 @@ export class ChatsRepository {
         if (newMessage.filePreview) {
             (message as any).changed('extras', true);
             message.extras.filePreview = newMessage.filePreview;
+        }
+        if (newMessage.replyMessages) {
+            (message as any).changed('extras', true);
+            message.extras.replyMessages = newMessage.replyMessages;
         }
 
         if (markAsEdited) {

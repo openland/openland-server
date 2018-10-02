@@ -384,7 +384,10 @@ export const Resolver = {
         },
         urlAugmentation: (src: ConversationMessage) => src.extras && src.extras.urlAugmentation,
         edited: (src: ConversationMessage) => src.extras && src.extras.edited,
-        reactions: (src: ConversationMessage) => src.extras.reactions || []
+        reactions: (src: ConversationMessage) => src.extras.reactions || [],
+        replyMessages: async (src: ConversationMessage) => {
+            return src.extras.replyMessages ? (src.extras.replyMessages as number[]).map(id => DB.ConversationMessage.findById(id)) : null;
+        }
     },
     InviteServiceMetadata: {
         users: (src: any) => src.userIds.map((id: number) => DB.User.findById(id)),
@@ -1223,7 +1226,7 @@ export const Resolver = {
             });
             return 'ok';
         }),
-        alphaSendMessage: withUser<{ conversationId: string, message?: string | null, file?: string | null, repeatKey?: string | null }>(async (args, uid) => {
+        alphaSendMessage: withUser<{ conversationId: string, message?: string | null, file?: string | null, repeatKey?: string | null, replyMessages?: number[] | null }>(async (args, uid) => {
             // validate({ message: stringNotEmpty() }, args);
             let conversationId = IDs.Conversation.parse(args.conversationId);
 
@@ -1245,7 +1248,8 @@ export const Resolver = {
                     file: args.file,
                     fileMetadata,
                     repeatKey: args.repeatKey,
-                    filePreview
+                    filePreview,
+                    replyMessages: args.replyMessages
                 })).conversationEvent;
             });
         }),
@@ -1291,7 +1295,7 @@ export const Resolver = {
                 })).conversationEvent;
             });
         }),
-        alphaEditMessage: withUser<{ messageId: string, message?: string | null, file?: string | null }>(async (args, uid) => {
+        alphaEditMessage: withUser<{ messageId: string, message?: string | null, file?: string | null, replyMessages?: number[] | null  }>(async (args, uid) => {
             let fileMetadata: JsonMap | null;
             let filePreview: string | null;
 
@@ -1315,7 +1319,8 @@ export const Resolver = {
                         message: args.message,
                         file: args.file,
                         fileMetadata,
-                        filePreview
+                        filePreview,
+                        replyMessages: args.replyMessages
                     },
                     true
                 );
