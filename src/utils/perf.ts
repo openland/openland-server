@@ -30,7 +30,7 @@ export class Perf {
                 throw new Error('Perf error');
             }
 
-            text += (`${name} - ${end - start}`);
+            text += (`${name} - ${end - start}\n`);
         }
         text += (`---ENDPERF-${this.name}---\n\n\n`);
 
