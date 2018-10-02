@@ -549,21 +549,7 @@ export class ChatsRepository {
         // Check access
         //
         perf.start('Check access');
-        let blocked;
-        if (conv.type === 'private') {
-            blocked = await DB.ConversationBlocked.findOne({ where: { user: uid, blockedBy: uid === conv.member1Id ? conv.member2Id : conv.member1Id, conversation: null } });
-        } else {
-            blocked = await DB.ConversationBlocked.findOne({ where: { user: uid, conversation: conversationId } });
-        }
-        if (blocked) {
-            throw new AccessDeniedError();
-        }
-
-        if (conv.type === 'channel' || conv.type === 'group') {
-            if (!(await DB.ConversationGroupMembers.findOne({ where: { conversationId, userId: uid }, transaction: tx }))) {
-                throw new AccessDeniedError();
-            }
-        }
+        await this.checkAccessToChat(uid, conv, tx);
         perf.end('Check access');
 
         //
@@ -1341,5 +1327,69 @@ export class ChatsRepository {
 
     async deleteDraftMessage(uid: number, conversationId: number) {
         return this.draftsCache.delete(`${uid}_${conversationId}`);
+    }
+
+    async checkAccessToChat(uid: number, conversation: Conversation, tx: Transaction) {
+        let blocked;
+        if (conversation.type === 'private') {
+            blocked = await DB.ConversationBlocked.findOne({ where: { user: uid, blockedBy: uid === conversation.member1Id ? conversation.member2Id : conversation.member1Id, conversation: null } });
+        } else {
+            blocked = await DB.ConversationBlocked.findOne({ where: { user: uid, conversation: conversation.id } });
+        }
+        if (blocked) {
+            throw new AccessDeniedError();
+        }
+
+        if (conversation.type === 'channel' || conversation.type === 'group') {
+            if (!(await DB.ConversationGroupMembers.findOne({ where: { conversationId: conversation.id, userId: uid }, transaction: tx }))) {
+                throw new AccessDeniedError();
+            }
+        }
+    }
+
+    async pinMessage(tx: Transaction, uid: number, conversationId: number, messageId: number|undefined) {
+        let conv = await DB.Conversation.findById(conversationId, {
+            lock: tx.LOCK.UPDATE,
+            transaction: tx
+        });
+        if (!conv) {
+            throw new NotFoundError('Conversation not found');
+        }
+        if (conv.type !== 'channel' && conv.type !== 'group') {
+            throw new NotFoundError();
+        }
+        await this.checkAccessToChat(uid, conv, tx);
+
+        let prev = conv.extras && conv.extras.pinnedMessage || undefined;
+
+        if (prev !== messageId) {
+            conv.extras.pinnedMessage = messageId || null;
+            (conv as any).changed('extras', true);
+            await conv.save({ transaction: tx });
+
+            await Repos.Chats.addChatEvent(
+                conversationId,
+                'chat_update',
+                {},
+                tx
+            );
+
+            await Repos.Chats.addUserEventsInConversation(
+                conversationId,
+                uid,
+                'chat_update',
+                {
+                    conversationId
+                },
+                tx
+            );
+
+            await conv.reload({ transaction: tx });
+        }
+
+        return {
+            chat: conv,
+            curSeq: conv.seq
+        };
     }
 }

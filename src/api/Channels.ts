@@ -90,6 +90,7 @@ export const Resolver = {
         photoRef: (src: Conversation) => src.extras && src.extras.picture,
         socialImage: (src: Conversation) => src.extras && src.extras.socialImage ? buildBaseImageUrl(src.extras.socialImage as any) : null,
         socialImageRef: (src: Conversation) => src.extras && src.extras.socialImage,
+        pinnedMessage: (src: Conversation) => src.extras && src.extras.pinnedMessage ? DB.ConversationMessage.findById(src.extras.pinnedMessage as any) : null
     },
 
     ChannelMemberOrg: {

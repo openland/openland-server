@@ -62,6 +62,7 @@ type GroupConversation implements Conversation {
     photoRef: ImageRef
     description: String!
     longDescription: String!
+    pinnedMessage: ConversationMessage
 }
 
 #
@@ -382,6 +383,10 @@ extend type Mutation {
     alphaChatUnsetReaction(messageId: ID! @messageID, reaction: String!): String!
 
 
+    #
+    # Pinned message
+    #
+    alphaChatPinMessage(conversationId: ID! @chatID, messageId: ID @messageID): ConversationUpdateResponse!
 }
 
 extend type Subscription {

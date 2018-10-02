@@ -303,6 +303,7 @@ export const Resolver = {
         photoRef: (src: Conversation) => src.extras && src.extras.picture,
         description: (src: Conversation) => src.extras.description || '',
         longDescription: (src: Conversation) => src.extras.longDescription || '',
+        pinnedMessage: (src: Conversation) => src.extras && src.extras.pinnedMessage ? DB.ConversationMessage.findById(src.extras.pinnedMessage as any) : null
     },
 
     MessageReaction: {
@@ -1973,7 +1974,13 @@ export const Resolver = {
                 await Repos.Chats.setReaction(tx, args.messageId, uid, args.reaction, true);
                 return 'ok';
             });
-        })
+        }),
+
+        alphaChatPinMessage: withAccount<{ conversationId: number, messageId?: number }>(async (args, uid) => {
+            return DB.tx(async (tx) => {
+                return await Repos.Chats.pinMessage(tx, uid, args.conversationId, args.messageId);
+            });
+        }),
     },
     Subscription: {
         alphaChatSubscribe: {
