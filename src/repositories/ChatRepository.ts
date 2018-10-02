@@ -582,7 +582,6 @@ export class ChatsRepository {
         //
 
         perf.start('Persist Messages');
-        console.log(777, message);
         let msg = await DB.ConversationMessage.create({
             message: message.message,
             fileId: message.file,
@@ -854,7 +853,9 @@ export class ChatsRepository {
         }
 
         if (message.userId !== uid) {
-            throw new AccessDeniedError();
+            if (await Repos.Permissions.superRole(uid) !== 'super-admin') {
+                throw new AccessDeniedError();
+            }
         }
 
         //
