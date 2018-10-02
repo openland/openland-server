@@ -139,7 +139,7 @@ export async function sendCode(req: express.Request, response: express.Response)
 
             response.json({ok: true, session: authSession!.sessionSalt});
         }
-    };
+    });
 }
 
 export async function checkCode(req: express.Request, response: express.Response) {
@@ -179,7 +179,7 @@ export async function checkCode(req: express.Request, response: express.Response
         await authSession.save();
 
         response.json({ok: true, authToken: authSession.extras!.authToken});
-    };
+    });
 }
 
 export async function getAccessToken(req: express.Request, response: express.Response) {
