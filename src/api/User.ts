@@ -140,6 +140,14 @@ export const Resolver = {
         },
         phones: async (src: User) => {
             return Repos.Phones.getUserPhones(src.id!);
+        },
+        lastIP: async (src: User) => {
+            let profile = await DB.UserProfile.findOne({ where: { userId: src.id }})
+            if (!profile) {
+                return null;
+            }
+
+            return profile.extras!.lastIP;
         }
     },
     Profile: {

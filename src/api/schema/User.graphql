@@ -25,6 +25,7 @@ type User {
     channelsJoined: [ChannelConversation!]!
     shortname: String
     phones: [String!]!
+    lastIP: String @withPermissions(permission: ["super-admin", "software-developer"]) @withAuth
 }
 
 input UpdateProfileInput {
