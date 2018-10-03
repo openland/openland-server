@@ -436,11 +436,9 @@ class OnlineEngine {
         };
 
         for (let member of members) {
-            subscriptions.push(await this.xPubSub.xSubscribe('ONLINE_' + member, debounce(1000, (ev: OnlineEventInternal) => {
-                console.log('ONLINE EVENT', ev);
-                console.log('\n\n\n');
+            subscriptions.push(await this.xPubSub.xSubscribe('ONLINE_' + member,(ev: OnlineEventInternal) => {
                 sub.pushEvent(genEvent(ev));
-            })));
+            }));
         }
 
         return sub.getIterator();
