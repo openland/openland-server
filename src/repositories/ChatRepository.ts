@@ -18,6 +18,7 @@ import { CacheRepository } from './CacheRepository';
 import { Perf } from '../utils/perf';
 import { Conversation } from '../tables/Conversation';
 import { URLAugmentation } from '../services/UrlInfoService';
+import Timer = NodeJS.Timer;
 
 export type ChatEventType =
     'new_message' |
@@ -352,31 +353,65 @@ export interface OnlineEventInternal {
 class OnlineEngine {
     private xPubSub = new Pubsub<OnlineEventInternal>();
     private cache = new Map<number, number[]>();
+    private onlines = new Map<number, { online: boolean, timer?: Timer }>();
 
     constructor() {
         setInterval(() => this.cache.clear(), 1000 * 30);
     }
 
     async setOnline(uid: number, timeout: number) {
-        await this.xPubSub.publish(
-            'ONLINE_' + uid,
-            {
-                userId: uid,
-                timeout,
-                online: true
-            }
-        );
+        let prev = this.onlines.get(uid);
+
+        let isChanged = !prev || !prev.online;
+
+        if (prev && prev.timer) {
+            clearTimeout(prev.timer);
+        }
+        let timer = setTimeout(async () => {
+            this.onlines.set(uid, { online: false });
+            await this.xPubSub.publish(
+                'ONLINE_' + uid,
+                {
+                    userId: uid,
+                    timeout: 0,
+                    online: false
+                }
+            );
+        }, timeout);
+        this.onlines.set(uid, { online: true, timer });
+
+        if (isChanged) {
+            await this.xPubSub.publish(
+                'ONLINE_' + uid,
+                {
+                    userId: uid,
+                    timeout,
+                    online: true
+                }
+            );
+        }
     }
 
     async setOffline(uid: number) {
-        await this.xPubSub.publish(
-            'ONLINE_' + uid,
-            {
-                userId: uid,
-                timeout: 0,
-                online: false
-            }
-        );
+        let prev = this.onlines.get(uid);
+
+        let isChanged = prev && prev.online;
+
+        if (prev && prev.timer) {
+            clearTimeout(prev.timer);
+        }
+        this.onlines.set(uid, { online: false });
+
+        if (isChanged) {
+            await this.xPubSub.publish(
+                'ONLINE_' + uid,
+                {
+                    userId: uid,
+                    timeout: 0,
+                    online: false
+                }
+            );
+        }
     }
 
     public async getXIterator(uid: number, conversations: number[]) {
@@ -402,6 +437,8 @@ class OnlineEngine {
 
         for (let member of members) {
             subscriptions.push(await this.xPubSub.xSubscribe('ONLINE_' + member, debounce(1000, (ev: OnlineEventInternal) => {
+                console.log('ONLINE EVENT', ev);
+                console.log('\n\n\n');
                 sub.pushEvent(genEvent(ev));
             })));
         }
