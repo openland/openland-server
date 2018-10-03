@@ -25,7 +25,7 @@ export const Resolver = {
     GeoIPLocation: {
         locationCode: (src: GeoIPResponse) => src.location_code,
         locationName: (src: GeoIPResponse) => src.location_name,
-        coordinates: (src: GeoIPResponse) => countries[src.location_code] || null
+        coordinates: (src: GeoIPResponse) => countries[src.location_code] ? { latitude: countries[src.location_code].lat, longitude: countries[src.location_code].long } : null
     },
 
     OnlineUser: {
