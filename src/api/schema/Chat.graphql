@@ -356,7 +356,7 @@ extend type Mutation {
     # Groups
     #
 
-    alphaChatCreateGroup(title: String, members: [ID!]!, message: String): Conversation!
+    alphaChatCreateGroup(title: String, hotoRef: ImageRefInput, members: [ID!]!, message: String): Conversation!
     alphaChatUpdateGroup(conversationId: ID!, input: UpdateGroupInput!): ConversationUpdateResponse!
     alphaChatChangeGroupTitle(conversationId: ID!, title: String!): GroupChatUpdateResponse!
     alphaChatInviteToGroup(conversationId: ID!, invites: [GroupConversationInvite!]!): GroupChatUpdateResponse!

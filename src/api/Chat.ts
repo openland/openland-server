@@ -1345,12 +1345,20 @@ export const Resolver = {
             return 'ok';
         }),
 
-        alphaChatCreateGroup: withUser<{ title?: string | null, message: string, members: string[] }>(async (args, uid) => {
+        alphaChatCreateGroup: withUser<{ title?: string | null, photoRef?: ImageRef | null, message: string, members: string[] }>(async (args, uid) => {
             return await DB.txStable(async (tx) => {
                 let title = args.title ? args.title!! : '';
+
+                let imageRef = Sanitizer.sanitizeImageRef(args.photoRef);
+
+                if (imageRef) {
+                    await Services.UploadCare.saveFile(imageRef.uuid);
+                }
+
                 let conv = await DB.Conversation.create({
                     title: title,
-                    type: 'group'
+                    type: 'group',
+                    ...(imageRef ? { extras: { picture: imageRef } } as any : {}),
                 }, { transaction: tx });
                 let members = [uid, ...args.members.map((v) => IDs.User.parse(v))];
                 for (let m of members) {
