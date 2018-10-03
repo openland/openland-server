@@ -9,6 +9,7 @@ import { Services } from '../services';
 import { UserError } from '../errors/UserError';
 import { fn, col } from 'sequelize';
 import { geoIP, GeoIPResponse } from '../utils/geoIp/geoIP';
+import countries from '../utils/geoIp/countries.json';
 
 export const Resolver = {
     MessagesLeaderboardItem: {
@@ -23,7 +24,8 @@ export const Resolver = {
 
     GeoIPLocation: {
         locationCode: (src: GeoIPResponse) => src.location_code,
-        locationName: (src: GeoIPResponse) => src.location_name
+        locationName: (src: GeoIPResponse) => src.location_name,
+        coordinates: (src: GeoIPResponse) => countries[src.location_code] || null
     },
 
     OnlineUser: {

@@ -191,6 +191,7 @@ type ChatStats {
 type GeoIPLocation {
     locationCode: String!
     locationName: String!
+    coordinates: Geo
 }
 
 type OnlineUser {

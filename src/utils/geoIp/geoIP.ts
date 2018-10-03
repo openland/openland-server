@@ -1,4 +1,3 @@
-// const geoIpv4 = require('./geo_ip_v4.json');
 import geoIpv4 from './geo_ip_v4.json';
 
 // [fromIp, toIp, location_code, location_name]
