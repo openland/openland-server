@@ -1296,7 +1296,7 @@ export const Resolver = {
                 })).conversationEvent;
             });
         }),
-        alphaEditMessage: withUser<{ messageId: string, message?: string | null, file?: string | null, replyMessages?: number[] | null  }>(async (args, uid) => {
+        alphaEditMessage: withUser<{ messageId: string, message?: string | null, file?: string | null, replyMessages?: number[] | null }>(async (args, uid) => {
             let fileMetadata: JsonMap | null;
             let filePreview: string | null;
 
@@ -1345,7 +1345,7 @@ export const Resolver = {
             return 'ok';
         }),
 
-        alphaChatCreateGroup: withUser<{ title?: string | null, photoRef?: ImageRef | null, message: string, members: string[] }>(async (args, uid) => {
+        alphaChatCreateGroup: withUser<{ title?: string | null, photoRef?: ImageRef | null, message?: string, members: string[] }>(async (args, uid) => {
             return await DB.txStable(async (tx) => {
                 let title = args.title ? args.title!! : '';
 
@@ -1370,7 +1370,9 @@ export const Resolver = {
                     }, { transaction: tx });
                 }
 
-                await Repos.Chats.sendMessage(tx, conv.id, uid, { message: args.message });
+                if (args.message) {
+                    await Repos.Chats.sendMessage(tx, conv.id, uid, { message: args.message });
+                }
                 return conv;
             });
         }),
