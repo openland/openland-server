@@ -8,7 +8,7 @@ import { Transaction } from 'sequelize';
 import { JsonMap } from '../utils/json';
 import { DoubleInvokeError } from '../errors/DoubleInvokeError';
 import { NotFoundError } from '../errors/NotFoundError';
-import { debouncer } from '../utils/timer';
+import { debounce, debouncer } from '../utils/timer';
 import { Repos } from './index';
 import { Pubsub, PubsubSubcription } from '../modules/pubsub';
 import { AccessDeniedError } from '../errors/AccessDeniedError';
@@ -401,9 +401,9 @@ class OnlineEngine {
         };
 
         for (let member of members) {
-            subscriptions.push(await this.xPubSub.xSubscribe('ONLINE_' + member, ev => {
+            subscriptions.push(await this.xPubSub.xSubscribe('ONLINE_' + member, debounce(1000, (ev: OnlineEventInternal) => {
                 sub.pushEvent(genEvent(ev));
-            }));
+            })));
         }
 
         return sub.getIterator();

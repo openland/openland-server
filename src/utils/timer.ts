@@ -36,6 +36,22 @@ export function debouncer(ms: number) {
     };
 }
 
+export function debounce(ms: number, func: (...args: any[]) => any) {
+    let lock = false;
+
+    return (...args2: any[]) => {
+        if (lock) {
+            return;
+        }
+
+        lock = true;
+        setTimeout(() => {
+            lock = false;
+        }, ms);
+        return func(...args2);
+    };
+}
+
 export async function backoff<T>(callback: () => Promise<T>): Promise<T> {
     let currentFailureCount = 0;
     const minDelay = 500;
