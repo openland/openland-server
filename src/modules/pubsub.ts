@@ -9,7 +9,10 @@ export class Pubsub<T> {
     private subscribers = new Map<string, Array<{ listener: (data: T) => void }>>();
     private subscribedTopics = new Set<string>();
 
-    constructor() {
+    constructor(useRedis: boolean = true) {
+        if (!useRedis) {
+            this.client = null;
+        }
         if (this.subscriberClient) {
             this.subscriberClient.redis.on('message', (topic: string, message) => {
                 // Check topic

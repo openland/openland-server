@@ -351,7 +351,7 @@ export interface OnlineEventInternal {
 }
 
 class OnlineEngine {
-    private xPubSub = new Pubsub<OnlineEventInternal>();
+    private xPubSub = new Pubsub<OnlineEventInternal>(false);
     private pubSubGlobal = new Pubsub<OnlineEventInternal>();
     private cache = new Map<number, number[]>();
     private onlines = new Map<number, { online: boolean, timer?: Timer }>();
