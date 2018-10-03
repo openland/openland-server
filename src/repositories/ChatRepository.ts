@@ -8,7 +8,7 @@ import { Transaction } from 'sequelize';
 import { JsonMap } from '../utils/json';
 import { DoubleInvokeError } from '../errors/DoubleInvokeError';
 import { NotFoundError } from '../errors/NotFoundError';
-import { debounce, debouncer } from '../utils/timer';
+import { debouncer } from '../utils/timer';
 import { Repos } from './index';
 import { Pubsub, PubsubSubcription } from '../modules/pubsub';
 import { AccessDeniedError } from '../errors/AccessDeniedError';
@@ -352,66 +352,90 @@ export interface OnlineEventInternal {
 
 class OnlineEngine {
     private xPubSub = new Pubsub<OnlineEventInternal>();
+    private pubSubGlobal = new Pubsub<OnlineEventInternal>();
     private cache = new Map<number, number[]>();
     private onlines = new Map<number, { online: boolean, timer?: Timer }>();
 
     constructor() {
         setInterval(() => this.cache.clear(), 1000 * 30);
+
+        this.pubSubGlobal.subscribe('ONLINE', async (ev) => {
+            if (ev.online) {
+                let prev = this.onlines.get(ev.userId);
+
+                let isChanged = !prev || !prev.online;
+
+                if (prev && prev.timer) {
+                    clearTimeout(prev.timer);
+                }
+                let timer = setTimeout(async () => {
+                    await this.xPubSub.publish(
+                        'ONLINE_' + ev.userId,
+                        {
+                            userId: ev.userId,
+                            timeout: 0,
+                            online: false
+                        }
+                    );
+                    this.onlines.set(ev.userId, { online: false });
+
+                }, ev.timeout);
+                this.onlines.set(ev.userId, { online: true, timer });
+
+                if (isChanged) {
+                    await this.xPubSub.publish(
+                        'ONLINE_' + ev.userId,
+                        {
+                            userId: ev.userId,
+                            timeout: ev.timeout,
+                            online: true
+                        }
+                    );
+                }
+            } else {
+                let prev = this.onlines.get(ev.userId);
+
+                let isChanged = prev && prev.online;
+
+                if (prev && prev.timer) {
+                    clearTimeout(prev.timer);
+                }
+                this.onlines.set(ev.userId, { online: false });
+
+                if (isChanged) {
+                    await this.xPubSub.publish(
+                        'ONLINE_' + ev.userId,
+                        {
+                            userId: ev.userId,
+                            timeout: 0,
+                            online: false
+                        }
+                    );
+                }
+            }
+        });
     }
 
     async setOnline(uid: number, timeout: number) {
-        let prev = this.onlines.get(uid);
-
-        let isChanged = !prev || !prev.online;
-
-        if (prev && prev.timer) {
-            clearTimeout(prev.timer);
-        }
-        let timer = setTimeout(async () => {
-            this.onlines.set(uid, { online: false });
-            await this.xPubSub.publish(
-                'ONLINE_' + uid,
-                {
-                    userId: uid,
-                    timeout: 0,
-                    online: false
-                }
-            );
-        }, timeout);
-        this.onlines.set(uid, { online: true, timer });
-
-        if (isChanged) {
-            await this.xPubSub.publish(
-                'ONLINE_' + uid,
-                {
-                    userId: uid,
-                    timeout,
-                    online: true
-                }
-            );
-        }
+        await this.pubSubGlobal.publish(
+            'ONLINE',
+            {
+                userId: uid,
+                timeout,
+                online: true
+            }
+        );
     }
 
     async setOffline(uid: number) {
-        let prev = this.onlines.get(uid);
-
-        let isChanged = prev && prev.online;
-
-        if (prev && prev.timer) {
-            clearTimeout(prev.timer);
-        }
-        this.onlines.set(uid, { online: false });
-
-        if (isChanged) {
-            await this.xPubSub.publish(
-                'ONLINE_' + uid,
-                {
-                    userId: uid,
-                    timeout: 0,
-                    online: false
-                }
-            );
-        }
+        await this.pubSubGlobal.publish(
+            'ONLINE',
+            {
+                userId: uid,
+                timeout: 0,
+                online: false
+            }
+        );
     }
 
     public async getXIterator(uid: number, conversations: number[]) {
@@ -435,8 +459,20 @@ class OnlineEngine {
             };
         };
 
+        // Send initial state
         for (let member of members) {
-            subscriptions.push(await this.xPubSub.xSubscribe('ONLINE_' + member,(ev: OnlineEventInternal) => {
+            if (this.onlines.get(member)) {
+                let online = this.onlines.get(member)!;
+                sub.pushEvent(genEvent({
+                    userId: member,
+                    timeout: online.online ? 5000 : 0,
+                    online: online.online
+                }));
+            }
+        }
+
+        for (let member of members) {
+            subscriptions.push(await this.xPubSub.xSubscribe('ONLINE_' + member, (ev: OnlineEventInternal) => {
                 sub.pushEvent(genEvent(ev));
             }));
         }
