@@ -239,7 +239,8 @@ export const Resolver = {
                     lastSeen: {
                         $gt: Date.now()
                     }
-                }
+                },
+                order: [['id', 'DESC']]
             });
 
             return onlineUsers;
