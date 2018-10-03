@@ -71,7 +71,8 @@ function parseIp(ip: string): number|null {
     // ::ffff:127.0.0.1
     if (ip.startsWith('::ffff:')) {
         ip = ip.replace('::ffff:', '');
-    } else {
+    }
+    if (!/^(\d{1,3}).(\d{1,3}).(\d{1,3}).(\d{1,3})$/.test(ip)) {
         // ipV6 not supported yet
         return null;
     }
