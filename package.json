@@ -136,11 +136,12 @@
     "web-push": "^3.3.2"
   },
   "scripts": {
+    "geoIP": "yarn cpx \"./src/utils/geoIp/*.json\" ./build/utils/geoIp/",
     "assets": "yarn cpx \"./src/assets/**/*\" ./build/assets/",
     "assets:watch": "yarn cpx \"./src/assets/**/*\" ./build/assets/ --watch",
     "schema": "yarn cpx \"./src/**/*.graphql\" ./build/",
     "schema:watch": "yarn cpx \"./src/**/*.graphql\" ./build/ --watch",
-    "build": "yarn schema && yarn assets && ./node_modules/.bin/tsc -p tsconfig.json",
+    "build": "yarn schema && yarn assets && yarn geoIP && ./node_modules/.bin/tsc -p tsconfig.json",
     "build:watch": "./node_modules/.bin/tsc -w -p tsconfig.json",
     "start:watch": "nodemon build/index.js",
     "start:watch:inspect": "nodemon --inspect build/index.js",

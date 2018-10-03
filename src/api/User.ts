@@ -392,6 +392,15 @@ export const Resolver = {
             if (args.timeout > 5000) {
                 throw Error('Invalid input');
             }
+
+            let profile = await DB.UserProfile.findOne({ where: { userId: context.uid }});
+
+            if (profile) {
+                profile.extras!.lastIP = context.ip;
+                (profile as any).changed('extras', true);
+                await profile.save();
+            }
+
             await Repos.Users.markUserOnline(context.uid, args.timeout, context.tid!!, args.platform);
             await Repos.Chats.onlineEngine.setOnline(context.uid, args.timeout);
             return 'ok';

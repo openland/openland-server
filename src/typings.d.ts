@@ -23,3 +23,8 @@ declare module 'telesignsdk' {
         constructor(customerId: string, apiKey: string, restEndpoint: string, timeout?: number)
     }
 }
+
+declare module '*/geo_ip_v4.json' {
+    const value: [[number, number, string, string]];
+    export default value;
+}

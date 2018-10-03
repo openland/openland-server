@@ -5,4 +5,5 @@ export interface UserExtras {
     role?: string | null;
     primaryOrganizationId?: string | null;
     primaryOrganization?: number | null;
+    lastIP?: string | null;
 }

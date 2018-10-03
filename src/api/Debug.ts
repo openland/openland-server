@@ -1,5 +1,5 @@
 import { withAny, withPermissionOptional, withUser } from './utils/Resolvers';
-import { DB } from '../tables';
+import { DB, User } from '../tables';
 import { normalizeCapitalized } from '../modules/Normalizer';
 import { IDs } from './utils/IDs';
 import { delay } from '../utils/timer';
@@ -8,6 +8,7 @@ import { NotificationsBot } from '../services/NotificationsBot';
 import { Services } from '../services';
 import { UserError } from '../errors/UserError';
 import { fn, col } from 'sequelize';
+import { geoIP, GeoIPResponse } from '../utils/geoIp/geoIP';
 
 export const Resolver = {
     MessagesLeaderboardItem: {
@@ -18,6 +19,24 @@ export const Resolver = {
     MessagesSentEntry: {
         count: (src: any) => src.dataValues.count,
         date: (src: any) => src.dataValues.date,
+    },
+
+    GeoIPLocation: {
+        locationCode: (src: GeoIPResponse) => src.location_code,
+        locationName: (src: GeoIPResponse) => src.location_name
+    },
+
+    OnlineUser: {
+        user: (src: User) => src,
+        location: async (src: User) => {
+            let profile = await DB.UserProfile.findOne({ where: { userId: src.id }});
+
+            if (!profile || !profile.extras!.lastIP) {
+                return null;
+            }
+
+            return geoIP(profile.extras!.lastIP!);
+        }
     },
 
     Query: {
@@ -212,6 +231,17 @@ export const Resolver = {
             return 'ok';
         }),
 
+        superOnlineUsers: withAny<{ phone: string, text: string }>(async args => {
+            let onlineUsers = await DB.User.findAll({
+                where: {
+                    lastSeen: {
+                        $gt: Date.now()
+                    }
+                }
+            });
+
+            return onlineUsers;
+        }),
         // debugTest: (src: any, args: any) => {
         //     console.log(args);
         //     return 1;
