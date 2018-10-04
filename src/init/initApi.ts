@@ -105,8 +105,8 @@ export async function initApi(isTest: boolean) {
             let botId = IDs.User.parse('vmM5pE5lQ4udYLr6AOLBhdQDJK');
             let data = req.body;
 
-            if (data.result === 'passed' && data.event === 'deploy') {
-                let text = `${data.commit.author_name} deployed - ${data.commit.message} to ${data.project_name}`;
+            if (data.result === 'passed') {
+                let text = `${data.commit.author_name} ${data.event === 'deploy' ? 'deployed' : 'build'} :tada: - ${data.commit.message} to ${data.project_name}`;
 
                 await Repos.Chats.sendMessage(tx, chatId, botId, { message: text });
             }
