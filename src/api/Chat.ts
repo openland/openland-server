@@ -3,7 +3,15 @@ import { IDs, IdsFactory } from './utils/IDs';
 import { Conversation } from '../tables/Conversation';
 import { DB, User } from '../tables';
 import { withPermission, withAny, withUser, resolveUser, withAccount } from './utils/Resolvers';
-import { validate, stringNotEmpty, enumString, optional, defined, mustBeArray } from '../modules/NewInputValidator';
+import {
+    validate,
+    stringNotEmpty,
+    enumString,
+    optional,
+    defined,
+    mustBeArray,
+    isNumber
+} from '../modules/NewInputValidator';
 import { ConversationEvent } from '../tables/ConversationEvent';
 import { CallContext } from './utils/CallContext';
 import { Repos } from '../repositories';
@@ -1265,6 +1273,14 @@ export const Resolver = {
             });
         }),
         alphaSendIntro: withUser<{ conversationId: string, userId: number, about: string, message?: string | null, file?: string | null, repeatKey?: string | null }>(async (args, uid) => {
+            await validate(
+                {
+                    about: defined(stringNotEmpty(`About can't be empty!`)),
+                    userId: defined(isNumber('Select user'))
+                },
+                args
+            );
+
             let conversationId = IDs.Conversation.parse(args.conversationId);
 
             let fileMetadata: JsonMap | null;

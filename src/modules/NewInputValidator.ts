@@ -174,6 +174,16 @@ export function numberInRange(from: number, to: number) {
     };
 }
 
+export function isNumber(message?: string) {
+    return (value: ValidationPrimitive) => {
+        if (typeof value !== 'number') {
+            return message ? message : 'not number';
+        }
+
+        return true;
+    };
+}
+
 export function enumString(strings: string[], message?: string) {
     return (value: ValidationPrimitive, key: string) => {
         if (typeof value !== 'string') {
