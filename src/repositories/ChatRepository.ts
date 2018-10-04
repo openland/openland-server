@@ -438,12 +438,14 @@ class OnlineEngine {
         );
     }
 
-    public async getXIterator(uid: number, conversations: number[]) {
+    public async getXIterator(uid: number, conversations?: number[], users?: number[]) {
 
-        let members: number[] = [];
+        let members: number[] = users || [];
 
-        for (let chat of conversations) {
-            members.push(...await this.getChatMembers(chat));
+        if (conversations) {
+            for (let chat of conversations) {
+                members.push(...await this.getChatMembers(chat));
+            }
         }
 
         members = Array.from(new Set(members)); // remove duplicates

@@ -2247,6 +2247,18 @@ export const Resolver = {
 
                 return Repos.Chats.onlineEngine.getXIterator(context.uid, conversationIds);
             }
+        },
+        alphaSubscribeOnline: {
+            resolve: async (msg: any) => {
+                return msg;
+            },
+            subscribe: async function (_: any, args: { users: number[] }, context: CallContext) {
+                if (!context.uid) {
+                    throw Error('Not logged in');
+                }
+
+                return Repos.Chats.onlineEngine.getXIterator(context.uid, undefined, args.users);
+            }
         }
     }
 };

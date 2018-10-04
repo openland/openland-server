@@ -405,4 +405,5 @@ extend type Subscription {
     alphaSubscribeTypings: TypingEvent!
     alphaSubscribeChatTypings(conversationId: ID!): TypingEvent!
     alphaSubscribeChatOnline(conversations: [ID!]!): OnlineEvent!
+    alphaSubscribeOnline(users: [ID!]! @userID): OnlineEvent!
 }
