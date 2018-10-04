@@ -1,27 +1,89 @@
 import geoIpv4 from './geo_ip_v4.json';
+import request from 'request';
+import { CacheRepository } from '../../repositories/CacheRepository';
+import countries from './countries.json';
 
 // [fromIp, toIp, location_code, location_name]
 export type GeoIPRecord = [number, number, string, string];
 
 export type GeoIPResponse = {
     location_code: string,
-    location_name: string
+    location_name: string,
+    coordinates: { long: number, lat: number } | null
 };
 
-export function geoIP(ip: string): GeoIPResponse {
+export async function geoIP(ip: string): Promise<GeoIPResponse> {
+    return externalGeoIP(ip);
+}
+
+//
+// ipstack
+//
+
+const IPStackCache = new CacheRepository<any>('ipstack');
+
+async function fetchIPStack(ip: string): Promise<any> {
+    let cached = await IPStackCache.read(ip);
+
+    if (cached) {
+        return cached;
+    }
+
+    let data = await ipStackCall(ip);
+
+    await IPStackCache.write(ip, data);
+
+    return data;
+}
+
+async function ipStackCall(ip: string) {
+    return new Promise<any>((resolve, reject) => {
+        request({
+            method: 'GET',
+            url: 'https://ipstack.com/ipstack_api.php?ip=' + ip,
+        }, (error, response, body) => {
+            if (!error && response.statusCode === 200) {
+                resolve(JSON.parse(body));
+            } else {
+                reject(new Error('ipstack error'));
+            }
+        });
+    });
+}
+
+async function externalGeoIP(ip: string): Promise<GeoIPResponse> {
+    let data = await fetchIPStack(ip);
+
+    return {
+        location_code: data.country_code,
+        location_name: data.country_name,
+        coordinates: {
+            lat: data.latitude,
+            long: data.longitude
+        }
+    };
+}
+
+//
+// Internal
+//
+
+export async function internalGeoIP(ip: string): Promise<GeoIPResponse> {
     let parsedIp = parseIp(ip);
 
     if (parsedIp === 2130706433) {
         return {
             location_code: 'Localhost',
-            location_name: 'Localhost'
+            location_name: 'Localhost',
+            coordinates: null
         };
     }
 
     if (!parsedIp) {
         return {
             location_code: 'Unknown',
-            location_name: 'Unknown'
+            location_name: 'Unknown',
+            coordinates: null
         };
     }
 
@@ -44,6 +106,7 @@ function doGeoIP(ip: number, from?: number, to?: number): GeoIPResponse {
         return {
             location_code: data[2],
             location_name: data[3],
+            coordinates: countries[data[2]] || null
         };
     }
     if (status === 1) {
