@@ -24,10 +24,18 @@ const sendError = (response: express.Response, code: number) => {
 const TEST_EMAIL_REGEX = /^test(\d{4})@openland.com$/;
 
 const isTestEmail = (email: string) => {
+    if (email === 'appstore@apple.com') {
+        return true;
+    }
+
     return TEST_EMAIL_REGEX.test(email);
 };
 
 const testEmailCode = (email: string) => {
+    if (email === 'appstore@apple.com') {
+        return '11111';
+    }
+
     let [, num] = TEST_EMAIL_REGEX.exec(email)!;
 
     return num[num.length - 1].repeat(5);
