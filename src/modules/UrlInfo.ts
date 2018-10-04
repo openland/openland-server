@@ -22,6 +22,18 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
         }
     });
 
+    if (res.status !== 200) {
+        return {
+            url,
+            title: null,
+            subtitle: null,
+            description: null,
+            imageURL: null,
+            photo: null,
+            hostname: null,
+        };
+    }
+
     let text = await res.text();
     let doc = cheerio.load(text);
 
