@@ -473,6 +473,16 @@ export const Resolver = {
         counter: (src: { uid: number, conversationId: number }) => src.uid
     },
 
+    ConversationEventBatch: {
+        __resolveType() {
+            return 'ConversationEventSimpleBatch';
+        }
+    },
+
+    ConversationEventSimpleBatch: {
+        events: (src: [ConversationEvent]) => src
+    },
+
     UserEvent: {
         __resolveType(obj: ConversationUserEvents) {
             if (obj.eventType === 'new_message') {
@@ -1995,6 +2005,63 @@ export const Resolver = {
         }),
     },
     Subscription: {
+        conversationUpdates: {
+            resolve: async (msg: any) => {
+                return msg;
+            },
+            subscribe: async function (_: any, args: { conversationId: string, fromSeq?: number }, context: CallContext) {
+                let conversationId = IDs.Conversation.parse(args.conversationId);
+                if (!context.uid) {
+                    throw Error('Not logged in');
+                }
+                let conversation = (await DB.Conversation.findById(conversationId))!;
+                if (conversation.type === 'group' || conversation.type === 'channel') {
+                    let member = await DB.ConversationGroupMembers.find({
+                        where: {
+                            userId: context.uid,
+                            status: 'member'
+                        }
+                    });
+                    if (!member) {
+                        throw new AccessDeniedError();
+                    }
+                }
+
+                let ended = false;
+                return {
+                    ...async function* func() {
+                        let lastKnownSeq = args.fromSeq;
+                        while (!ended) {
+                            if (lastKnownSeq !== undefined) {
+                                let events = await DB.ConversationEvent.findAll({
+                                    where: {
+                                        conversationId: conversationId,
+                                        seq: {
+                                            $gt: lastKnownSeq
+                                        }
+                                    },
+                                    order: ['seq']
+                                });
+                                if (events.length > 0) {
+                                    yield events;
+                                }
+                                if (events.length > 0) {
+                                    lastKnownSeq = events[events.length - 1].seq;
+                                }
+                            }
+                            let res = await new Promise<number>((resolve) => Repos.Chats.reader.loadNext(conversationId, lastKnownSeq ? lastKnownSeq : null, (arg) => resolve(arg)));
+                            if (!lastKnownSeq) {
+                                lastKnownSeq = res - 1;
+                            }
+                        }
+                    }(),
+                    return: async () => {
+                        ended = true;
+                        return 'ok';
+                    }
+                };
+            }
+        },
         alphaChatSubscribe: {
             resolve: async (msg: any) => {
                 return msg;

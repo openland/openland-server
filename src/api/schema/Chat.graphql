@@ -141,6 +141,12 @@ type FileMetadata {
 # Conversation Events
 #
 
+type ConversationEventSimpleBatch {
+    events: [ConversationEvent!]!
+}
+
+union ConversationEventBatch = ConversationEventSimpleBatch
+
 interface ConversationEvent {
     seq: Int!
 }
@@ -390,6 +396,8 @@ extend type Mutation {
 }
 
 extend type Subscription {
+    conversationUpdates(conversationId: ID!, fromSeq: Int): ConversationEventBatch!
+
     alphaChatSubscribe(conversationId: ID!, fromSeq: Int): ConversationEvent!
     alphaNotificationCounterSubscribe: NotificationCounter!
     alphaSubscribeEvents(fromSeq: Int): UserEvent!
