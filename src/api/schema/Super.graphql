@@ -199,10 +199,17 @@ type OnlineUser {
     location: GeoIPLocation
 }
 
+type BotInfo {
+    bot: User!
+    token: String!
+}
+
 extend type Query {
     statsChats(fromDate: String!, toDate: String!): ChatStats! @withPermissions(permission: ["super-admin", "software-developer"]) @withAuth
     messagesSentStats(fromDate: String!, toDate: String!, trunc: String, excudeTeam: Boolean): [MessagesSentEntry!]! @withPermissions(permission: ["super-admin", "software-developer"]) @withAuth
     superOnlineUsers: [OnlineUser!]! @withPermissions(permission: ["super-admin", "software-developer"]) @withAuth
+
+    alphaMyBots: [BotInfo!]!  @withPermissions(permission: ["super-admin", "software-developer"]) @withAuth
 }
 
 #
@@ -215,4 +222,6 @@ extend type Mutation {
     debugSendEmail(email: String!, text: String!): String!
 
     debugTestNotification: String
+
+    alphaCreateBot(input: CreateProfileInput): String! @withPermissions(permission: ["super-admin", "software-developer"]) @withAuth
 }

@@ -2,6 +2,7 @@ import * as sequelize from 'sequelize';
 import { OrganizationTable } from './Organization';
 import { Profile } from '../handlers/Profile';
 import { connection } from '../modules/sequelizeConnector';
+import { JsonMap } from '../utils/json';
 
 export interface UserAttributes {
     id?: number;
@@ -12,6 +13,7 @@ export interface UserAttributes {
     status?: 'PENDING' | 'ACTIVATED' | 'SUSPENDED';
     profile?: Profile;
     invitedBy?: number;
+    extras?: JsonMap;
 }
 
 export interface User extends sequelize.Instance<UserAttributes>, UserAttributes {
@@ -33,7 +35,12 @@ export const UserTable = connection.define<User, UserAttributes>('user', {
         defaultValue: 'PENDING',
         allowNull: false
     },
-    invitedBy: { type: sequelize.INTEGER, allowNull: true, references: { model: 'users' } }
+    invitedBy: { type: sequelize.INTEGER, allowNull: true, references: { model: 'users' } },
+    extras: {
+        type: sequelize.JSON,
+        allowNull: false,
+        defaultValue: {}
+    },
 });
 
 UserTable.belongsTo(OrganizationTable, { as: 'organization' });

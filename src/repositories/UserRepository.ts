@@ -66,7 +66,7 @@ export class UserRepository {
         website?: string | null,
         about?: string | null,
         location?: string | null
-    }, tx: Transaction) {
+    }, tx: Transaction, isBot: boolean = false) {
         let user = await DB.User.findById(uid, { transaction: tx });
         if (!user) {
             throw Error('Unable to find user');
@@ -97,7 +97,7 @@ export class UserRepository {
             location: Sanitizer.sanitizeString(input.location)
         }, { transaction: tx });
 
-        if (user.status === 'ACTIVATED') {
+        if (!isBot && user.status === 'ACTIVATED') {
             await Repos.Chats.addToInitialChannel(user.id!!, tx);
         }
 

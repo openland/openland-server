@@ -2,6 +2,7 @@ import { DB, DB_SILENT } from '../tables';
 import { randomBytes } from 'crypto';
 import * as base64 from '../utils/base64';
 import DataLoader from 'dataloader';
+import { Transaction } from 'sequelize';
 
 export class TokenRepository {
 
@@ -31,11 +32,11 @@ export class TokenRepository {
         return res;
     });
 
-    async createToken(uid: number) {
+    async createToken(uid: number, tx?: Transaction) {
         let res = await DB.UserToken.create({
             userId: uid,
             tokenSalt: base64.encodeBuffer(randomBytes(64))
-        });
+        }, { transaction: tx });
         return res.tokenSalt!!;
     }
 

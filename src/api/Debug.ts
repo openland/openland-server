@@ -10,6 +10,7 @@ import { UserError } from '../errors/UserError';
 import { fn, col } from 'sequelize';
 import { geoIP, GeoIPResponse } from '../utils/geoIp/geoIP';
 import { Repos } from '../repositories';
+import { ImageRef } from '../repositories/Media';
 
 export const Resolver = {
     MessagesLeaderboardItem: {
@@ -36,6 +37,13 @@ export const Resolver = {
                 return null;
             }
             return geoIP(ip);
+        }
+    },
+
+    BotInfo: {
+        bot: (src: User) => src,
+        token: async (src: User) => {
+            return (await DB.UserToken.findOne({ where: {userId: src.id! }}))!.tokenSalt;
         }
     },
 
@@ -247,6 +255,17 @@ export const Resolver = {
         //     console.log(args);
         //     return 1;
         // }
+
+        alphaMyBots: withUser(async (args, uid) => {
+            return DB.User.findAll({
+                where: {
+                    isBot: true,
+                    extras: {
+                        botOwner: uid
+                    }
+                }
+            });
+        })
     },
     Mutation: {
         debugSendWelcomeEmail: withUser(async (args, uid) => {
@@ -269,7 +288,35 @@ export const Resolver = {
             await NotificationsBot.sendNotification(ctx.uid, { message: 'test notification' });
 
             return 'ok';
-        })
+        }),
+
+        alphaCreateBot: withUser<{
+            input: {
+                firstName: string,
+                lastName?: string | null,
+                photoRef?: ImageRef | null,
+                phone?: string | null,
+                email?: string | null,
+                website?: string | null,
+                about?: string | null,
+                location?: string | null
+            }
+        }>(async (args, uid) => {
+            return DB.txLight(async (tx) => {
+                let user = await DB.User.create({
+                    authId: 'bot|u-' + uid,
+                    email: '',
+                    status: 'ACTIVATED',
+                    isBot: true,
+                    extras: {
+                        botOwner: uid
+                    }
+                }, { transaction: tx });
+                await Repos.Users.createUser(user.id!, args.input, tx, true);
+                return await Repos.Tokens.createToken(user.id!, tx);
+            });
+        }),
+
     },
     Subscription: {
         lifecheck: {
