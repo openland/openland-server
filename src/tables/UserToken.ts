@@ -8,6 +8,7 @@ export interface UserTokenAttributes {
     userId?: number | null;
     user?: User | null;
     tokenSalt?: string;
+    lastIp?: string;
 }
 
 export interface UserToken extends sequelize.Instance<UserTokenAttributes>, UserTokenAttributes {
@@ -16,6 +17,7 @@ export interface UserToken extends sequelize.Instance<UserTokenAttributes>, User
 export const UserTokenTable = connection.define<UserToken, UserTokenAttributes>('user_token', {
     id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
     tokenSalt: { type: sequelize.STRING, allowNull: false, unique: true },
+    lastIp: { type: sequelize.STRING, allowNull: true },
 });
 
 UserTokenTable.belongsTo(UserTable, { foreignKey: { allowNull: false } });

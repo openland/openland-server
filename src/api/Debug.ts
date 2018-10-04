@@ -9,6 +9,7 @@ import { Services } from '../services';
 import { UserError } from '../errors/UserError';
 import { fn, col } from 'sequelize';
 import { geoIP, GeoIPResponse } from '../utils/geoIp/geoIP';
+import { Repos } from '../repositories';
 
 export const Resolver = {
     MessagesLeaderboardItem: {
@@ -30,13 +31,11 @@ export const Resolver = {
     OnlineUser: {
         user: (src: User) => src,
         location: async (src: User) => {
-            let profile = await DB.UserProfile.findOne({ where: { userId: src.id }});
-
-            if (!profile || !profile.extras!.lastIP) {
+            let ip = await Repos.Users.getUserLastIp(src.id!);
+            if (!ip) {
                 return null;
             }
-
-            return geoIP(profile.extras!.lastIP!);
+            return geoIP(ip);
         }
     },
 

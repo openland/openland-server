@@ -55,12 +55,12 @@ async function externalGeoIP(ip: string): Promise<GeoIPResponse> {
     let data = await fetchIPStack(ip);
 
     return {
-        location_code: data.country_code,
-        location_name: data.country_name,
-        coordinates: {
+        location_code: data.country_code || 'Unknown',
+        location_name: data.country_name || 'Unknown',
+        coordinates: data.latitude ?  {
             lat: data.latitude,
             long: data.longitude
-        }
+        } : null
     };
 }
 

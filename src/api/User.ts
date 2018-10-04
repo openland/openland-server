@@ -141,14 +141,7 @@ export const Resolver = {
         phones: async (src: User) => {
             return Repos.Phones.getUserPhones(src.id!);
         },
-        lastIP: async (src: User) => {
-            let profile = await DB.UserProfile.findOne({ where: { userId: src.id }});
-            if (!profile) {
-                return null;
-            }
-
-            return profile.extras!.lastIP;
-        }
+        lastIP: async (src: User) => Repos.Users.getUserLastIp(src.id!)
     },
     Profile: {
         id: (src: UserProfile) => IDs.Profile.serialize(src.id!!),
@@ -401,13 +394,9 @@ export const Resolver = {
                 throw Error('Invalid input');
             }
 
-            let profile = await DB.UserProfile.findOne({ where: { userId: context.uid }});
-
-            if (profile) {
-                profile.extras!.lastIP = context.ip;
-                (profile as any).changed('extras', true);
-                await profile.save();
-            }
+            let token = await DB.UserToken.findById(context.tid);
+            token!.lastIp = context.ip;
+            await token!.save();
 
             await Repos.Users.markUserOnline(context.uid, args.timeout, context.tid!!, args.platform);
             await Repos.Chats.onlineEngine.setOnline(context.uid, args.timeout);
