@@ -16,7 +16,9 @@ import { Emails } from '../services/Emails';
 import { randomInviteKey } from '../utils/random';
 import { NotFoundError } from '../errors/NotFoundError';
 import { ChannelInvite } from '../tables/ChannelInvite';
-import { buildBaseImageUrl } from '../repositories/Media';
+import { buildBaseImageUrl, ImageRef } from '../repositories/Media';
+import { Sanitizer } from '../modules/Sanitizer';
+import { Services } from '../services';
 
 interface AlphaChannelsParams {
     orgId: string;
@@ -122,20 +124,28 @@ export const Resolver = {
     },
 
     Mutation: {
-        alphaChannelCreate: withAccount<{ title: string, message: string, description?: string, oid?: string }>(async (args, uid, oid) => {
+        alphaChannelCreate: withAccount<{ title: string, message?: string, photoRef?: ImageRef, description?: string, oid?: string }>(async (args, uid, oid) => {
             oid = args.oid ? IDs.Organization.parse(args.oid) : oid;
             await validate({
                 title: defined(stringNotEmpty('Title cant be empty'))
             }, args);
 
+            let imageRef = Sanitizer.sanitizeImageRef(args.photoRef);
+
+            if (imageRef) {
+                await Services.UploadCare.saveFile(imageRef.uuid);
+            }
+
             return await DB.txStable(async (tx) => {
+
                 let chat = await DB.Conversation.create({
                     title: args.title.trim(),
                     type: 'channel',
                     extras: {
                         description: args.description || '',
                         creatorOrgId: oid,
-                        creatorId: uid
+                        creatorId: uid,
+                        ...(imageRef ? { extras: { picture: imageRef } } as any : {}),
                     }
                 }, { transaction: tx });
 
@@ -156,8 +166,11 @@ export const Resolver = {
                     userId: uid
                 }, { transaction: tx });
 
-                await Repos.Chats.sendMessage(tx, chat.id, uid, { message: args.message });
-
+                if (args.message) {
+                    await Repos.Chats.sendMessage(tx, chat.id, uid, { message: args.message });
+                } else {
+                    await Repos.Chats.sendMessage(tx, chat.id, uid, { message: 'Channel created', isService: true });
+                }
                 return chat;
             });
         }),
