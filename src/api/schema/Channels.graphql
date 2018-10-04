@@ -79,7 +79,7 @@ input ChannelInviteRequest {
 }
 
 extend type Mutation {
-    alphaChannelCreate(title: String!, message: String!, description: String, oid: ID): Conversation!
+    alphaChannelCreate(title: String!, photoRef: ImageRefInput, message: String, description: String, oid: ID): Conversation!
 
     # approves join request if there was one
     # creates invite if there was no request
