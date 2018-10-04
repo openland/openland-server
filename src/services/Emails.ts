@@ -14,6 +14,7 @@ const TEMPLATE_INVITE = '024815a8-5602-4412-83f4-4be505c2026a';
 const TEMPLATE_MEMBER_JOINED = 'c76321cb-5560-4311-bdbf-e0fe337fa2cf';
 const TEMPLATE_INVITE_ORGANIZATION = '8130da76-fa72-45a5-982c-f79f50fa396c';
 const TEMPLATE_UNREAD_MESSAGES = '02787351-db1c-49b5-afbf-3d63a3b7fd76';
+const TEMPLATE_SIGNUP_CODE = '69496416-42cc-441d-912f-a918b968e34a';
 
 const loadUserState = async (uid: number, etx?: Transaction) => {
     return DB.tx(async (tx) => {
@@ -359,4 +360,15 @@ export const Emails = {
             }
         }, tx);
     },
+
+    async sendActivationCodeEmail(email: string, code: string, tx?: Transaction) {
+        await EmailWorker.pushWork({
+            subject: `Activation code: ` + code,
+            templateId: TEMPLATE_SIGNUP_CODE,
+            to: email,
+            args: {
+                code
+            }
+        }, tx);
+    }
 };

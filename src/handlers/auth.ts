@@ -1,5 +1,5 @@
 import express from 'express';
-import { randomString } from '../utils/random';
+import { randomNumbersString } from '../utils/random';
 import { Emails } from '../services/Emails';
 import { DB } from '../tables';
 import * as base64 from '../utils/base64';
@@ -93,13 +93,13 @@ export async function sendCode(req: express.Request, response: express.Response)
             return;
         }
 
-        let code = randomString(5);
+        let code = randomNumbersString(5);
 
         if (email) {
             let isTest = isTestEmail(email);
 
             if (!isTest) {
-                await Emails.sendDebugEmail(email, 'Your code: ' + code);
+                await Emails.sendActivationCodeEmail(email, code, tx);
             } else {
                 code = testEmailCode(email);
             }

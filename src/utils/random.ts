@@ -26,3 +26,15 @@ export function randomInviteKey() {
 export function randomString(len: number) {
     return randomGlobalInviteKey(len);
 }
+
+export function randomNumbersString(len: number) {
+    let length = len;
+    let alphabet = '0123456789';
+    let key = '';
+
+    for (let i = 0; i < length; i++) {
+        key += alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+    }
+
+    return key;
+}
