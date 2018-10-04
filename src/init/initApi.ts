@@ -17,6 +17,8 @@ import { ApolloEngine } from 'apollo-engine';
 import { delay } from '../utils/timer';
 import { DB } from '../tables';
 import { withAudit } from '../handlers/auth';
+import { Repos } from '../repositories';
+import { IDs } from '../api/utils/IDs';
 
 export async function initApi(isTest: boolean) {
 
@@ -96,6 +98,20 @@ export async function initApi(isTest: boolean) {
     app.post('/auth/sendCode', bodyParser.json(), withAudit(Auth.sendCode));
     app.post('/auth/checkCode', bodyParser.json(), withAudit(Auth.checkCode));
     app.post('/auth/getAccessToken', bodyParser.json(), withAudit(Auth.getAccessToken));
+
+    app.post('/semaphorebot', bodyParser.json(), (async (req, res) => {
+        await DB.txLight(async tx => {
+            let chatId = IDs.Conversation.parse('Jlb4AOJBWEc5MvaQWkjLhlALo0');
+            let botId = IDs.User.parse('vmM5pE5lQ4udYLr6AOLBhdQDJK');
+            let data = req.body;
+
+            if (data.result === 'passed' && data.event === 'deploy') {
+                let text = `${data.commit.author_name} deployed - ${data.commit.message} to ${data.project_name}`;
+
+                await Repos.Chats.sendMessage(tx, chatId, botId, { message: text });
+            }
+        });
+    }));
 
     // Starting Api
     if (dport > 0) {
