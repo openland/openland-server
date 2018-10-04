@@ -1372,6 +1372,8 @@ export const Resolver = {
 
                 if (args.message) {
                     await Repos.Chats.sendMessage(tx, conv.id, uid, { message: args.message });
+                } else {
+                    await Repos.Chats.sendMessage(tx, conv.id, uid, { message: 'Group created', isService: true });
                 }
                 return conv;
             });
