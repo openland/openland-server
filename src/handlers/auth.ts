@@ -211,10 +211,10 @@ export async function getAccessToken(req: express.Request, response: express.Res
         }
 
         if (authSession.extras!.email) {
-            let existing = await DB.User.findOne({ where: { email: authSession.extras!.email as any }, transaction: tx });
+            let existing = await DB.User.findOne({ where: { email: authSession.extras!.email as any }, transaction: tx, lock: tx.LOCK.UPDATE });
 
             if (existing) {
-                let token = await Repos.Tokens.createToken(existing.id!);
+                let token = await Repos.Tokens.createToken(existing.id!, tx);
                 response.json({ ok: true, accessToken: token });
                 await authSession.destroy();
                 return;
@@ -223,16 +223,16 @@ export async function getAccessToken(req: express.Request, response: express.Res
                     authId: 'email|' + authSession.extras!.email,
                     email: '',
                 }, { transaction: tx });
-                let token = await Repos.Tokens.createToken(user.id!);
+                let token = await Repos.Tokens.createToken(user.id!, tx);
                 response.json({ ok: true, accessToken: token });
                 await authSession.destroy();
                 return;
             }
         } else if (authSession.extras!.phone) {
-            let existing = await DB.Phone.findOne({ where: { phone: authSession.extras!.phone as any }, transaction: tx });
+            let existing = await DB.Phone.findOne({ where: { phone: authSession.extras!.phone as any }, transaction: tx, lock: tx.LOCK.UPDATE });
 
             if (existing) {
-                let token = await Repos.Tokens.createToken(existing.userId!);
+                let token = await Repos.Tokens.createToken(existing.userId!, tx);
                 response.json({ ok: true, accessToken: token });
                 await authSession.destroy();
                 return;
@@ -246,7 +246,7 @@ export async function getAccessToken(req: express.Request, response: express.Res
                     status: 'VERIFIED',
                     userId: user.id
                 }, {transaction: tx});
-                let token = await Repos.Tokens.createToken(user.id!);
+                let token = await Repos.Tokens.createToken(user.id!, tx);
                 response.json({ ok: true, accessToken: token });
                 await authSession.destroy();
                 return;
