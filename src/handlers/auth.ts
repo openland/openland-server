@@ -211,8 +211,8 @@ export async function getAccessToken(req: express.Request, response: express.Res
         }
 
         if (authSession.extras!.email) {
-            let existing = await DB.User.findOne({ where: { email: authSession.extras!.email as any }, transaction: tx, lock: tx.LOCK.UPDATE });
-
+            let existing = await DB.User.findOne({ where: { authId: 'email|' + authSession.extras!.email as any }, transaction: tx, lock: tx.LOCK.UPDATE });
+            
             if (existing) {
                 let token = await Repos.Tokens.createToken(existing.id!, tx);
                 response.json({ ok: true, accessToken: token });
