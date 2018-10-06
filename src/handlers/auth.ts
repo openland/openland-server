@@ -78,7 +78,7 @@ export async function sendCode(req: express.Request, response: express.Response)
         let authSession: AuthSession;
 
         if (session) {
-            let existing = await DB.AuthSession.findOne({where: {sessionSalt: session}, transaction: tx});
+            let existing = await DB.AuthSession.findOne({ where: { sessionSalt: session }, transaction: tx });
 
             // No session found
             if (!existing) {
@@ -112,12 +112,12 @@ export async function sendCode(req: express.Request, response: express.Response)
                     extras: {
                         email
                     }
-                }, {transaction: tx});
+                }, { transaction: tx });
             } else {
-                await authSession!.update({code});
+                await authSession!.update({ code });
             }
 
-            response.json({ok: true, session: authSession!.sessionSalt});
+            response.json({ ok: true, session: authSession!.sessionSalt });
         } else if (phone) {
             if (!Repos.Phones.checkPhone(phone)) {
                 sendError(response, 0);
@@ -140,12 +140,12 @@ export async function sendCode(req: express.Request, response: express.Response)
                     extras: {
                         phone
                     }
-                }, {transaction: tx});
+                }, { transaction: tx });
             } else {
-                await authSession!.update({code});
+                await authSession!.update({ code });
             }
 
-            response.json({ok: true, session: authSession!.sessionSalt});
+            response.json({ ok: true, session: authSession!.sessionSalt });
         }
     });
 }
@@ -162,7 +162,7 @@ export async function checkCode(req: express.Request, response: express.Response
             return;
         }
 
-        let authSession = await DB.AuthSession.findOne({where: {sessionSalt: session}, transaction: tx});
+        let authSession = await DB.AuthSession.findOne({ where: { sessionSalt: session }, transaction: tx });
 
         // No session found
         if (!authSession) {
@@ -186,7 +186,7 @@ export async function checkCode(req: express.Request, response: express.Response
         (authSession as any).changed('extras', true);
         await authSession.save();
 
-        response.json({ok: true, authToken: authSession.extras!.authToken});
+        response.json({ ok: true, authToken: authSession.extras!.authToken });
     });
 }
 
@@ -211,8 +211,22 @@ export async function getAccessToken(req: express.Request, response: express.Res
         }
 
         if (authSession.extras!.email) {
-            let existing = await DB.User.findOne({ where: { authId: 'email|' + authSession.extras!.email as any }, transaction: tx, lock: tx.LOCK.UPDATE });
-            
+            let sequelize = DB.connection;
+
+            let existing = await DB.User.findOne({
+                where: [
+                    sequelize.or(
+                        {
+                            authId: 'email|' + authSession.extras!.email as any
+                        },
+                        {
+                            email: authSession.extras!.email as any
+                        }
+                    )],
+                transaction: tx,
+                lock: tx.LOCK.UPDATE
+            });
+
             if (existing) {
                 let token = await Repos.Tokens.createToken(existing.id!, tx);
                 response.json({ ok: true, accessToken: token });
@@ -221,7 +235,7 @@ export async function getAccessToken(req: express.Request, response: express.Res
             } else {
                 let user = await DB.User.create({
                     authId: 'email|' + authSession.extras!.email,
-                    email: '',
+                    email: authSession.extras!.email as string,
                 }, { transaction: tx });
                 let token = await Repos.Tokens.createToken(user.id!, tx);
                 response.json({ ok: true, accessToken: token });
@@ -240,12 +254,12 @@ export async function getAccessToken(req: express.Request, response: express.Res
                 let user = await DB.User.create({
                     authId: 'phone|' + authSession.extras!.phone,
                     email: '',
-                }, {transaction: tx});
+                }, { transaction: tx });
                 await DB.Phone.create({
                     phone: authSession.extras!.phone as any,
                     status: 'VERIFIED',
                     userId: user.id
-                }, {transaction: tx});
+                }, { transaction: tx });
                 let token = await Repos.Tokens.createToken(user.id!, tx);
                 response.json({ ok: true, accessToken: token });
                 await authSession.destroy();
