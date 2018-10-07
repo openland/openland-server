@@ -8,6 +8,7 @@ import { startPushNotificationWorker } from './PushNotificationWorker';
 import { createWallPostsWorker } from './WallPostsWorker';
 import { createConversationMessagesWorker } from './ConversationMessagesWorker';
 import { serverRoleEnabled } from '../utils/serverRoles';
+import { startCallReaperWorker } from './CallReaper';
 
 export const SampleWorker = createSampleWorker();
 export const FoldeExportWorker = createExportWorker();
@@ -18,6 +19,7 @@ export const ConversationMessagesWorker = createConversationMessagesWorker();
 
 export async function initWorkers() {
     startScheduller();
+    startCallReaperWorker();
     if (serverRoleEnabled('email_notifications')) {
         startEmailNotificationWorker();
     }

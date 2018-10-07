@@ -39,4 +39,5 @@ export const IDs = {
     UserEvent: IdsFactory.createId('UserEvent'),
     Settings: IdsFactory.createId('Settings'),
     WallEntity: IdsFactory.createId('WallEntity'),
+    PrivateCall: IdsFactory.createId('PrivateCall'),
 };

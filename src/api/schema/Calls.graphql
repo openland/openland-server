@@ -1,0 +1,18 @@
+interface Call {
+    id: ID!
+}
+type PrivateCall implements Call {
+    id: ID!
+    caller: User!
+    callee: User!
+}
+
+extend type Subscription {
+    incomingCallsSubscription: Call!
+}
+
+extend type Mutation {
+    callStartPrivate(uid: ID!, timeout: Int!): Call!
+    callKeepAlive(id: ID!, timeout: Int!): Boolean!
+    callStop(id: ID!): Boolean!
+}
