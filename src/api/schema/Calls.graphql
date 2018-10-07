@@ -12,7 +12,7 @@ extend type Subscription {
 }
 
 extend type Mutation {
-    callStartPrivate(uid: ID!, timeout: Int!): Call!
+    callStartPrivate(uid: ID!, timeout: Int!): PrivateCall!
     callKeepAlive(id: ID!, timeout: Int!): Boolean!
     callStop(id: ID!): Boolean!
 }
