@@ -2,6 +2,8 @@ import fetch from 'node-fetch';
 import cheerio from 'cheerio';
 import { ImageRef } from '../repositories/Media';
 import * as URL from 'url';
+import { Services } from '../services';
+import { UploadCareFileInfo } from '../services/UploadCare';
 
 export interface URLInfo {
     url: string;
@@ -9,6 +11,7 @@ export interface URLInfo {
     subtitle: string|null;
     description: string|null;
     imageURL: string|null;
+    imageInfo: UploadCareFileInfo|null;
     photo: ImageRef|null;
     hostname: string|null;
 }
@@ -29,6 +32,7 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
             subtitle: null,
             description: null,
             imageURL: null,
+            imageInfo: null,
             photo: null,
             hostname: null,
         };
@@ -58,13 +62,27 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
 
     let {hostname} = URL.parse(url);
 
+    let imageInfo: UploadCareFileInfo|null = null;
+    let imageRef: ImageRef|null = null;
+
+    if (imageURL) {
+        try {
+            let {file} = await Services.UploadCare.uploadFromUrl(imageURL);
+            imageRef = { uuid: file };
+            imageInfo = await Services.UploadCare.fetchFileInfo(file);
+        } catch (e) {
+            console.warn('Cant fetch image ' + imageURL);
+        }
+    }
+
     return {
         url,
         title,
         subtitle: null,
         description,
         imageURL,
-        photo: null,
+        imageInfo,
+        photo: imageRef,
         hostname: hostname || null,
     };
 }

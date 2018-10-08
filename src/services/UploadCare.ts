@@ -1,4 +1,14 @@
 import request from 'request';
+import * as Path from 'path';
+import { tmpdir } from 'os';
+import { randomString } from '../utils/random';
+import FormData from 'form-data';
+import { createReadStream, unlink, writeFile } from 'fs';
+import fetch from 'node-fetch';
+import { promisify } from 'util';
+
+const writeFileAsync = promisify(writeFile);
+const unlinkFile = promisify(unlink);
 
 export interface UploadCareFileInfo {
     isImage: boolean;
@@ -12,6 +22,7 @@ export interface UploadCareFileInfo {
 }
 
 export class UploadCare {
+    static UPLOAD_CARE_PUB_KEY = 'b70227616b5eac21ba88';
     static UPLOAD_CARE_AUTH = 'Uploadcare.Simple b70227616b5eac21ba88:65d4918fb06d4fe0bec8';
 
     async call(path: string, method: string = 'GET'): Promise<any> {
@@ -88,5 +99,30 @@ export class UploadCare {
         });
 
         return `data:image/jpeg;base64,${res.toString('base64')}`;
+    }
+
+    async upload(imgData: Buffer): Promise<{ file: string }> {
+        let tmpPath = Path.join(tmpdir(), `${randomString(7)}.dat`);
+        await writeFileAsync(tmpPath, imgData);
+
+        let form = new FormData();
+        form.append('UPLOADCARE_STORE', '1');
+        form.append('UPLOADCARE_PUB_KEY', UploadCare.UPLOAD_CARE_PUB_KEY);
+        form.append('file', createReadStream(tmpPath));
+
+        let res = await fetch(
+            'https://upload.uploadcare.com/base/',
+            { method: 'POST', body:  form }
+        );
+
+        await unlinkFile(tmpPath);
+
+        return res.json();
+    }
+
+    async uploadFromUrl(url: string) {
+        let data = await (await fetch(url)).buffer();
+
+        return this.upload(data);
     }
 }

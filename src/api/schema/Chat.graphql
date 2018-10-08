@@ -97,6 +97,7 @@ type UrlAugmentation {
     subtitle: String
     description: String
     photo: ImageRef
+    imageInfo: FileMetadata
     imageURL: String
     hostname: String
     type: String

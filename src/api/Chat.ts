@@ -339,6 +339,7 @@ export const Resolver = {
         subtitle: (src: URLAugmentation) => src.subtitle,
         description: (src: URLAugmentation) => src.description,
         imageURL: (src: URLAugmentation) => src.imageURL,
+        imageInfo: (src: URLAugmentation) => src.imageInfo,
         photo: (src: URLAugmentation) => src.photo,
         hostname: (src: URLAugmentation) => src.hostname,
         type: (src: URLAugmentation) => src.type,
@@ -1316,6 +1317,7 @@ export const Resolver = {
                         subtitle: 'intro',
                         description: args.about,
                         imageURL: null,
+                        imageInfo: null,
                         photo: profile!.picture,
                         hostname: 'openland.com',
                     }

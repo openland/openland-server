@@ -4,6 +4,7 @@ import { IDs } from '../api/utils/IDs';
 import { DB } from '../tables';
 import * as URL from 'url';
 import { ImageRef } from '../repositories/Media';
+import { UploadCareFileInfo } from './UploadCare';
 
 export interface URLAugmentation {
     url: string;
@@ -11,6 +12,7 @@ export interface URLAugmentation {
     subtitle: string|null;
     description: string|null;
     imageURL: string|null;
+    imageInfo: UploadCareFileInfo|null;
     photo: ImageRef|null;
     hostname: string|null;
     type: 'org' | 'listing' | 'user' | 'url' | 'none' | 'channel' | 'intro';
@@ -84,6 +86,7 @@ export default class UrlInfoService {
                 subtitle: null,
                 description: null,
                 imageURL: null,
+                imageInfo: null,
                 photo: null,
                 hostname: null,
                 type: 'none'
@@ -111,6 +114,7 @@ export default class UrlInfoService {
             subtitle: listing!.name || null,
             description: listing!.extras!.summary || null,
             imageURL: null,
+            imageInfo: null,
             photo: listing!.extras!.photo || null,
             hostname: hostname || null,
             type: 'listing',
@@ -132,6 +136,7 @@ export default class UrlInfoService {
             subtitle: user!.about || null,
             description: user!.about || null,
             imageURL: null,
+            imageInfo: null,
             photo: user!.picture,
             hostname: hostname || null,
             type: 'user',
@@ -153,6 +158,7 @@ export default class UrlInfoService {
             subtitle: (org!.extras && org!.extras!.about) || null,
             description: (org!.extras && org!.extras!.about) || null,
             imageURL: null,
+            imageInfo: null,
             photo: org!.photo || null,
             hostname: hostname || null,
             type: 'org',
@@ -178,6 +184,7 @@ export default class UrlInfoService {
             subtitle: channel!.title || null,
             description: channel!.title || null,
             imageURL: null,
+            imageInfo: null,
             photo: channel!.extras!.picture as any || null,
             hostname: hostname || null,
             type: 'channel',
