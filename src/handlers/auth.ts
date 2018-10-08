@@ -96,6 +96,7 @@ export async function sendCode(req: express.Request, response: express.Response)
         let code = randomNumbersString(5);
 
         if (email) {
+            email = (email as string).toLowerCase();
             let isTest = isTestEmail(email);
 
             if (!isTest) {
