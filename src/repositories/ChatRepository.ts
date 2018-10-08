@@ -268,8 +268,6 @@ class TypingManager {
 
     private cache = new Map<number, number[]>();
 
-    private typingState = new Map<number, boolean>();
-
     private xPubSub = new Pubsub<TypingEvent>();
 
     constructor() {
@@ -278,8 +276,6 @@ class TypingManager {
 
     public async setTyping(uid: number, conversationId: number, type: string) {
         this.debounce(conversationId, async () => {
-            this.typingState.set(uid, true);
-            setTimeout(() => this.typingState.delete(uid), this.TIMEOUT);
             let members = await this.getChatMembers(conversationId);
 
             for (let member of members) {
@@ -295,10 +291,6 @@ class TypingManager {
     }
 
     public async cancelTyping(uid: number, conversationId: number, members: number[]) {
-        if (!this.typingState.has(uid)) {
-            return;
-        }
-
         for (let member of members) {
             this.xPubSub.publish(`TYPING_${member}`, {
                 forUserId: member,
