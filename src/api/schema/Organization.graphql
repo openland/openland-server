@@ -378,8 +378,8 @@ extend type Query {
         after: String,
         page: Int
     ): OrganizationsConnection!
-    alphaOrganizationPublicInvite: Invite
-    alphaOrganizationPublicInviteForOrganizations: Invite
+    alphaOrganizationPublicInvite(organizationId: ID): Invite
+    alphaOrganizationPublicInviteForOrganizations(organizationId: ID): Invite
     alphaTopCategories: [String!]!
 }
 
