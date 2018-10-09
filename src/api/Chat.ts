@@ -690,6 +690,7 @@ export const Resolver = {
                             status: 'member'
                         }
                     });
+
                     if (!member) {
                         throw new AccessDeniedError();
                     }
@@ -1941,21 +1942,14 @@ export const Resolver = {
                     where: {
                         conversationId,
                         userId: uid
-                    }
+                    },
+                    transaction: tx
                 });
 
                 if (!member) {
                     throw new Error('No such member');
                 }
-
-                await DB.ConversationGroupMembers.destroy({
-                    where: {
-                        conversationId,
-                        userId: uid
-                    }
-                });
-
-                let profile = await DB.UserProfile.find({ where: { userId: uid } });
+                let profile = await DB.UserProfile.find({ where: { userId: uid }, transaction: tx });
 
                 await Repos.Chats.sendMessage(
                     tx,
@@ -1983,7 +1977,12 @@ export const Resolver = {
                     tx
                 );
 
-                let membersCount = await Repos.Chats.membersCountInConversation(conversationId);
+                let membersCount = await DB.ConversationGroupMembers.count({
+                    where: {
+                        conversationId: conversationId,
+                    },
+                    transaction: tx
+                });
 
                 await Repos.Chats.addUserEventsInConversation(
                     conversationId,
@@ -1995,6 +1994,22 @@ export const Resolver = {
                     },
                     tx
                 );
+
+                await DB.ConversationGroupMembers.destroy({
+                    where: {
+                        conversationId,
+                        userId: uid
+                    },
+                    transaction: tx
+                });
+
+                await DB.ConversationUserState.destroy({
+                    where: {
+                        conversationId,
+                        userId: uid
+                    },
+                    transaction: tx
+                });
 
                 return {
                     chat,
