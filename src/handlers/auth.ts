@@ -15,6 +15,10 @@ const ERROR_TEXT = {
     2: 'Session not found',
     3: 'Code expired',
     4: 'Wrong code',
+    5: 'No email or phone passed',
+    6: 'No session passed',
+    7: 'No code passed',
+    8: 'No authToken passed'
 };
 
 const sendError = (response: express.Response, code: number) => {
@@ -89,7 +93,7 @@ export async function sendCode(req: express.Request, response: express.Response)
         }
 
         if (!email && !phone) {
-            sendError(response, 0);
+            sendError(response, 5);
             return;
         }
 
@@ -158,8 +162,12 @@ export async function checkCode(req: express.Request, response: express.Response
             code
         } = req.body;
 
-        if (!session && !code) {
-            sendError(response, 0);
+        if (!session) {
+            sendError(response, 6);
+            return;
+        }
+        if (!code) {
+            sendError(response, 7);
             return;
         }
 
@@ -198,8 +206,12 @@ export async function getAccessToken(req: express.Request, response: express.Res
             authToken
         } = req.body;
 
-        if (!session && !authToken) {
-            sendError(response, 0);
+        if (!session) {
+            sendError(response, 6);
+            return;
+        }
+        if (!authToken) {
+            sendError(response, 8);
             return;
         }
 
