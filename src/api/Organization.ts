@@ -491,21 +491,23 @@ export const Resolver = {
             return await builder.findElastic(hits);
         }),
 
-        alphaOrganizationPublicInvite: withAccount<{ oid?: string }>(async (args, uid, orgId) => {
+        alphaOrganizationPublicInvite: withAccount<{ organizationId?: string }>(async (args, uid, organizationId) => {
+            organizationId = args.organizationId ? IDs.Organization.parse(args.organizationId) : organizationId;
             return await DB.tx(async (tx) => {
-                let res = await Repos.Invites.getPublicInvite(orgId, tx);
+                let res = await Repos.Invites.getPublicInvite(organizationId, tx);
                 if (!res) {
-                    res = await Repos.Invites.createPublicInvite(orgId, undefined, tx);
+                    res = await Repos.Invites.createPublicInvite(organizationId, undefined, tx);
                 }
                 return res;
             });
 
         }),
-        alphaOrganizationPublicInviteForOrganizations: withAccount<{ oid?: string }>(async (args, uid, orgId) => {
+        alphaOrganizationPublicInviteForOrganizations: withAccount<{ organizationId?: string }>(async (args, uid, organizationId) => {
+            organizationId = args.organizationId ? IDs.Organization.parse(args.organizationId) : organizationId;
             return await DB.tx(async (tx) => {
-                let res = await Repos.Invites.getPublicInviteForOrganizations(orgId, tx);
+                let res = await Repos.Invites.getPublicInviteForOrganizations(organizationId, tx);
                 if (!res) {
-                    res = await Repos.Invites.createPublicInviteForOrganizations(orgId, undefined, tx);
+                    res = await Repos.Invites.createPublicInviteForOrganizations(organizationId, undefined, tx);
                 }
                 return res;
 
