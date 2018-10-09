@@ -134,7 +134,7 @@ export const Resolver = {
             } else if (src.organization2Id === context.oid || (src.organization2 && src.organization2.id === context.oid)) {
                 return (src.organization1 || await src.getOrganization1())!!;
             }
-            return undefined;
+            return src.organization1 || await src.getOrganization1();
         },
         settings: (src: Conversation, _: any, context: CallContext) => Repos.Chats.getConversationSettings(context.uid!!, src.id),
     },
