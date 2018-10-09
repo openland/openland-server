@@ -63,25 +63,25 @@ export class OrganizationRepository {
         await Repos.Super.addToOrganization(organization.id!!, uid, tx);
         await Hooks.onOrganizstionCreated(uid, organization.id!!, tx);
 
-        let channel = await DB.Conversation.create({
-            title: input.name,
-            type: 'channel',
-            extras: {
-                description: '',
-                creatorOrgId: organization.id!,
-                isRoot: true
-            }
-        }, { transaction: tx });
-
-        await DB.ConversationGroupMembers.create({
-            conversationId: channel.id,
-            invitedById: uid,
-            role: 'creator',
-            status: 'member',
-            userId: uid
-        }, { transaction: tx });
-
-        await Repos.Chats.sendMessage(tx, channel.id, uid, { message: 'Channel created', isService: true });
+        // let channel = await DB.Conversation.create({
+        //     title: input.name,
+        //     type: 'channel',
+        //     extras: {
+        //         description: '',
+        //         creatorOrgId: organization.id!,
+        //         isRoot: true
+        //     }
+        // }, { transaction: tx });
+        //
+        // await DB.ConversationGroupMembers.create({
+        //     conversationId: channel.id,
+        //     invitedById: uid,
+        //     role: 'creator',
+        //     status: 'member',
+        //     userId: uid
+        // }, { transaction: tx });
+        //
+        // await Repos.Chats.sendMessage(tx, channel.id, uid, { message: 'Channel created', isService: true });
 
         return organization;
     }
