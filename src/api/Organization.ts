@@ -1255,8 +1255,8 @@ export const Resolver = {
             });
         }),
 
-        alphaOrganizationRemoveMember: withAccount<{ memberId: string, organiztionId: string }>(async (args, uid, oid) => {
-            oid = args.organiztionId ? IDs.Organization.parse(args.organiztionId) : oid;
+        alphaOrganizationRemoveMember: withAccount<{ memberId: string, organizationId: string }>(async (args, uid, oid) => {
+            oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
             return await DB.txStable(async (tx) => {
                 let isOwner = await Repos.Organizations.isOwnerOfOrganization(oid, uid);
 
@@ -1321,8 +1321,8 @@ export const Resolver = {
             });
         }),
 
-        alphaOrganizationChangeMemberRole: withAccount<{ memberId: string, newRole: 'OWNER' | 'MEMBER', organiztionId: string }>(async (args, uid, oid) => {
-            oid = args.organiztionId ? IDs.Organization.parse(args.organiztionId) : oid;
+        alphaOrganizationChangeMemberRole: withAccount<{ memberId: string, newRole: 'OWNER' | 'MEMBER', organizationId: string }>(async (args, uid, oid) => {
+            oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
 
             return await DB.tx(async (tx) => {
                 let isOwner = await Repos.Organizations.isOwnerOfOrganization(oid, uid);
@@ -1385,8 +1385,8 @@ export const Resolver = {
                 return 'ok';
             });
         }),
-        alphaOrganizationInviteMembers: withAccount<{ inviteRequests: { email: string, emailText?: string, firstName?: string, lastName?: string, role: 'OWNER' | 'MEMBER' }[], organiztionId?: string }>(async (args, uid, oid) => {
-            oid = args.organiztionId ? IDs.Organization.parse(args.organiztionId) : oid;
+        alphaOrganizationInviteMembers: withAccount<{ inviteRequests: { email: string, emailText?: string, firstName?: string, lastName?: string, role: 'OWNER' | 'MEMBER' }[], organizationId?: string }>(async (args, uid, oid) => {
+            oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
             await validate(
                 {
                     inviteRequests: [
@@ -1428,9 +1428,9 @@ export const Resolver = {
                 return 'ok';
             });
         }),
-        alphaOrganizationCreatePublicInvite: withAccount<{ expirationDays?: number, organiztionId?: string }>(async (args, uid, oid) => {
+        alphaOrganizationCreatePublicInvite: withAccount<{ expirationDays?: number, organizationId?: string }>(async (args, uid, oid) => {
             return DB.tx(async (tx) => {
-                oid = args.organiztionId ? IDs.Organization.parse(args.organiztionId) : oid;
+                oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
                 let isOwner = await Repos.Organizations.isOwnerOfOrganization(oid, uid, tx);
 
                 if (!isOwner) {
@@ -1440,8 +1440,8 @@ export const Resolver = {
                 return await Repos.Invites.createPublicInvite(oid, args.expirationDays, tx);
             });
         }),
-        alphaOrganizationDeletePublicInvite: withAccount<{ organiztionId?: string }>(async (args, uid, oid) => {
-            oid = args.organiztionId ? IDs.Organization.parse(args.organiztionId) : oid;
+        alphaOrganizationDeletePublicInvite: withAccount<{ organizationId?: string }>(async (args, uid, oid) => {
+            oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
             return DB.tx(async (tx) => {
                 let isOwner = await Repos.Organizations.isOwnerOfOrganization(oid, uid, tx);
 
@@ -1454,8 +1454,8 @@ export const Resolver = {
                 return 'ok';
             });
         }),
-        alphaOrganizationInviteOrganization: withAccount<{ inviteRequests: { email: string, emailText?: string, firstName?: string, lastName?: string }[], organiztionId?: string }>(async (args, uid, oid) => {
-            oid = args.organiztionId ? IDs.Organization.parse(args.organiztionId) : oid;
+        alphaOrganizationInviteOrganization: withAccount<{ inviteRequests: { email: string, emailText?: string, firstName?: string, lastName?: string }[], organizationId?: string }>(async (args, uid, oid) => {
+            oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
             await validate(
                 {
                     inviteRequests: [
@@ -1492,8 +1492,8 @@ export const Resolver = {
             });
         }),
 
-        alphaOrganizationCreatePublicInviteForOrganizations: withAccount<{ expirationDays?: number, organiztionId?: string }>(async (args, uid, oid) => {
-            oid = args.organiztionId ? IDs.Organization.parse(args.organiztionId) : oid;
+        alphaOrganizationCreatePublicInviteForOrganizations: withAccount<{ expirationDays?: number, organizationId?: string }>(async (args, uid, oid) => {
+            oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
             return await DB.tx(async (tx) => {
                 let isOwner = await Repos.Organizations.isOwnerOfOrganization(oid, uid, tx);
 
@@ -1505,8 +1505,8 @@ export const Resolver = {
             });
         }),
 
-        alphaOrganizationDeletePublicInviteForOrganizations: withAccount<{ expirationDays: number, organiztionId?: string }>(async (args, uid, oid) => {
-            oid = args.organiztionId ? IDs.Organization.parse(args.organiztionId) : oid;
+        alphaOrganizationDeletePublicInviteForOrganizations: withAccount<{ expirationDays: number, organizationId?: string }>(async (args, uid, oid) => {
+            oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
             return DB.tx(async (tx) => {
                 let isOwner = await Repos.Organizations.isOwnerOfOrganization(oid, uid, tx);
 
