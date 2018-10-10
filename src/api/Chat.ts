@@ -397,7 +397,8 @@ export const Resolver = {
         reactions: (src: ConversationMessage) => src.extras.reactions || [],
         replyMessages: async (src: ConversationMessage) => {
             return src.extras.replyMessages ? (src.extras.replyMessages as number[]).map(id => DB.ConversationMessage.findById(id)) : null;
-        }
+        },
+        plainText: async (src: ConversationMessage) => src.extras && src.extras.plainText
     },
     InviteServiceMetadata: {
         users: (src: any) => src.userIds.map((id: number) => DB.User.findById(id)),

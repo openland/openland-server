@@ -572,6 +572,23 @@ export class ChatsRepository {
         }, exTx);
     }
 
+    async messageToText(message: Message) {
+        let parts: string[] = [];
+
+        if (message.message) {
+            parts.push(message.message);
+        }
+        if (message.file) {
+            if (message.fileMetadata && message.fileMetadata.isImage) {
+                parts.push('<image>');
+            } else {
+                parts.push('<file>');
+            }
+        }
+
+        return parts.join('\n');
+    }
+
     async sendMessage(tx: Transaction, conversationId: number, uid: number, message: Message): Promise<{ conversationEvent: ConversationEvent, userEvent: ConversationUserEvents }> {
         let perf = new Perf('sendMessage');
 
@@ -647,7 +664,8 @@ export class ChatsRepository {
                 serviceMetadata: message.serviceMetadata || {},
                 ...message.urlAugmentation ? { urlAugmentation: message.urlAugmentation as any } : {},
                 ...message.replyMessages ? { replyMessages: message.replyMessages } : {},
-                filePreview: message.filePreview || null
+                filePreview: message.filePreview || null,
+                plainText: await this.messageToText(message)
             }
         }, { transaction: tx });
         let res = await DB.ConversationEvent.create({
@@ -832,6 +850,9 @@ export class ChatsRepository {
             (message as any).changed('extras', true);
             message.extras.edited = true;
         }
+
+        (message as any).changed('extras', true);
+        message.extras.plainText = await this.messageToText(newMessage);
 
         await message.save({ transaction: tx });
 

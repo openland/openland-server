@@ -126,6 +126,7 @@ type ConversationMessage {
     edited: Boolean!
     reactions: [MessageReaction!]!
     replyMessages: [ConversationMessage!]
+    plainText: String
 }
 
 type FileMetadata {
