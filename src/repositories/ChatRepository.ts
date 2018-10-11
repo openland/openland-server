@@ -19,6 +19,7 @@ import { Perf } from '../utils/perf';
 import { Conversation } from '../tables/Conversation';
 import { URLAugmentation } from '../services/UrlInfoService';
 import Timer = NodeJS.Timer;
+import { sendCounterPush } from '../workers/PushWorker';
 
 export type ChatEventType =
     'new_message' |
@@ -794,6 +795,8 @@ export class ChatsRepository {
                         repeatKey: message.repeatKey ? message.repeatKey : null
                     }
                 }, { transaction: tx });
+
+                await sendCounterPush(uid, conversationId, userUnread, tx);
 
                 if (m === uid) {
                     userEvent = _userEvent;
