@@ -188,7 +188,8 @@ export function startPushNotificationWorker() {
                     mobile: sendMobile,
                     desktop: sendDesktop,
                     mobileAlert: settings.mobileAlert,
-                    mobileIncludeText: settings.mobileIncludeText
+                    mobileIncludeText: settings.mobileIncludeText,
+                    silent: null
                 };
 
                 console.log(logPrefix, 'new_push', JSON.stringify(push));

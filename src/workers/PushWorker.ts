@@ -10,8 +10,22 @@ import { Texts } from '../texts';
 
 let providers = new Map<boolean, Map<string, APN.Provider>>();
 
+type Push = {
+    uid: number;
+    title: string;
+    body: string;
+    picture: string | null;
+    counter: number;
+    conversationId: number;
+    mobile: boolean;
+    desktop: boolean;
+    mobileAlert: boolean;
+    mobileIncludeText: boolean;
+    silent: boolean | null;
+};
+
 export function createPushWorker() {
-    let queue = new WorkQueue<{ uid: number, title: string, body: string, picture: string | null, counter: number, conversationId: number, mobile: boolean, desktop: boolean, mobileAlert: boolean, mobileIncludeText: boolean }, { result: string }>('push_sender');
+    let queue = new WorkQueue<Push, { result: string }>('push_sender');
     if (AppConfiuguration.webPush || AppConfiuguration.apple || AppConfiuguration.google) {
         console.log('Starting push worker');
 
@@ -85,27 +99,41 @@ export function createPushWorker() {
                                     production: !isSandbox
                                 }));
                             }
-                            var not = new APN.Notification();
-                            if (args.mobileAlert === true) {
-                                not.sound = 'default';
+
+                            if (args.silent) {
+                                let not = new APN.Notification();
+                                not.contentAvailable = true;
+                                not.badge = args.counter;
+                                not.payload = JSON.stringify({
+                                    ['conversationId']: IDs.Conversation.serialize(args.conversationId),
+                                    ['id']: doSimpleHash(IDs.Conversation.serialize(args.conversationId)).toString(),
+                                });
+                                not.topic = bundleId;
+                                let res = await (provs.get(team.teamId)!!).send(not, token);
+                                console.log('ios_service_push %d', args.uid, JSON.stringify(res));
+                            } else {
+                                let not = new APN.Notification();
+                                if (args.mobileAlert === true) {
+                                    not.sound = 'default';
+                                }
+                                not.expiry = Math.floor(Date.now() / 1000) + 3600;
+                                not.alert = {
+                                    title: args.title,
+                                    body: mobileBody
+                                };
+                                not.badge = args.counter;
+                                // not.collapseId = IDs.Conversation.serialize(args.conversationId);
+                                not.payload = JSON.stringify({
+                                    ['conversationId']: IDs.Conversation.serialize(args.conversationId),
+                                    ['title']: args.title,
+                                    ['message']: mobileBody,
+                                    ['id']: doSimpleHash(IDs.Conversation.serialize(args.conversationId)).toString(),
+                                    ...(args.picture ? { ['picture']: args.picture! } : {}),
+                                });
+                                not.topic = bundleId;
+                                let res = await (provs.get(team.teamId)!!).send(not, token);
+                                console.log('ios_push %d', args.uid, JSON.stringify(res));
                             }
-                            not.expiry = Math.floor(Date.now() / 1000) + 3600;
-                            not.alert = {
-                                title: args.title,
-                                body: mobileBody
-                            };
-                            not.badge = args.counter;
-                            // not.collapseId = IDs.Conversation.serialize(args.conversationId);
-                            not.payload = JSON.stringify({
-                                ['conversationId']: IDs.Conversation.serialize(args.conversationId),
-                                ['title']: args.title,
-                                ['message']: mobileBody,
-                                ['id']: doSimpleHash(IDs.Conversation.serialize(args.conversationId)).toString(),
-                                ...(args.picture ? { ['picture']: args.picture! } : {}),
-                            });
-                            not.topic = bundleId;
-                            let res = await (provs.get(team.teamId)!!).send(not, token);
-                            console.log('ios_push %d', args.uid, JSON.stringify(res));
                         } else {
                             console.warn('Unable to match bundle id ' + bundleId);
                             console.warn(AppConfiuguration.apple);

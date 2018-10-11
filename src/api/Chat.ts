@@ -30,6 +30,7 @@ import { NotFoundError } from '../errors/NotFoundError';
 import { UserProfile } from '../tables/UserProfile';
 import { Sanitizer } from '../modules/Sanitizer';
 import { URLAugmentation } from '../services/UrlInfoService';
+import { PushWorker } from '../workers';
 
 export const Resolver = {
     Conversation: {
@@ -1225,8 +1226,23 @@ export const Resolver = {
                             unreadGlobal: existingGlobal.unread
                         }
                     }, { transaction: tx });
+
+                    await PushWorker.pushWork({
+                        uid: uid,
+                        counter: existingGlobal.unread,
+                        conversationId: conversationId,
+                        mobile: true,
+                        desktop: false,
+                        picture: null,
+                        silent: true,
+                        title: '',
+                        body: '',
+                        mobileAlert: false,
+                        mobileIncludeText: false
+                    }, tx);
                 }
             });
+
             return {
                 uid: uid,
                 conversationId: conversationId
