@@ -57,6 +57,7 @@ export interface Message {
     serviceMetadata?: any & { type: ServiceMessageMetadataType };
     urlAugmentation?: URLAugmentation;
     replyMessages?: number[] | null;
+    mentions?: number[] | null;
 }
 
 export interface Settings {
@@ -666,7 +667,8 @@ export class ChatsRepository {
                 ...message.urlAugmentation ? { urlAugmentation: message.urlAugmentation as any } : {},
                 ...message.replyMessages ? { replyMessages: message.replyMessages } : {},
                 filePreview: message.filePreview || null,
-                plainText: await this.messageToText(message)
+                plainText: await this.messageToText(message),
+                ...message.mentions ? { mentions: message.mentions } : {}
             }
         }, { transaction: tx });
         let res = await DB.ConversationEvent.create({
@@ -851,6 +853,10 @@ export class ChatsRepository {
         if (newMessage.urlAugmentation) {
             (message as any).changed('extras', true);
             message.extras.urlAugmentation = newMessage.urlAugmentation as any;
+        }
+        if (newMessage.mentions) {
+            (message as any).changed('extras', true);
+            message.extras.mentions = newMessage.mentions;
         }
 
         if (markAsEdited) {

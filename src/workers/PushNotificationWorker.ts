@@ -124,6 +124,8 @@ export function startPushNotificationWorker() {
                     continue;
                 }
 
+                let userMentioned = message.extras && message.extras.mentions && (message.extras.mentions as number[]).indexOf(u.userId) > -1;
+
                 let sendDesktop = settings.desktopNotifications !== 'none';
                 let sendMobile = settings.mobileNotifications !== 'none';
 
@@ -141,12 +143,17 @@ export function startPushNotificationWorker() {
 
                 let conversationSettings = await Repos.Chats.getConversationSettings(u.userId, conversation.id);
 
-                if (conversationSettings.mute) {
+                if (conversationSettings.mute && !userMentioned) {
                     continue;
                 }
 
                 if (conversationSettings.mobileNotifications === 'none') {
                     sendMobile = false;
+                }
+
+                if (userMentioned) {
+                    sendMobile = true;
+                    sendDesktop = true;
                 }
 
                 if (!sendMobile && !sendDesktop) {

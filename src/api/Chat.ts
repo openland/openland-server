@@ -394,12 +394,13 @@ export const Resolver = {
             return null;
         },
         urlAugmentation: (src: ConversationMessage) => src.extras && src.extras.urlAugmentation,
-        edited: (src: ConversationMessage) => src.extras && src.extras.edited,
+        edited: (src: ConversationMessage) => (src.extras && src.extras.edited) || false,
         reactions: (src: ConversationMessage) => src.extras.reactions || [],
         replyMessages: async (src: ConversationMessage) => {
             return src.extras.replyMessages ? (src.extras.replyMessages as number[]).map(id => DB.ConversationMessage.findById(id)) : null;
         },
-        plainText: async (src: ConversationMessage) => src.extras && src.extras.plainText
+        plainText: async (src: ConversationMessage) => src.extras && src.extras.plainText,
+        mentions: async (src: ConversationMessage) => src.extras && src.extras.mentions ? (src.extras.mentions as number[]).map(id => DB.User.findById(id)) : null
     },
     InviteServiceMetadata: {
         users: (src: any) => src.userIds.map((id: number) => DB.User.findById(id)),
@@ -1252,7 +1253,7 @@ export const Resolver = {
             });
             return 'ok';
         }),
-        alphaSendMessage: withUser<{ conversationId: string, message?: string | null, file?: string | null, repeatKey?: string | null, replyMessages?: number[] | null }>(async (args, uid) => {
+        alphaSendMessage: withUser<{ conversationId: string, message?: string | null, file?: string | null, repeatKey?: string | null, replyMessages?: number[] | null, mentions?: number[] | null }>(async (args, uid) => {
             // validate({ message: stringNotEmpty() }, args);
             let conversationId = IDs.Conversation.parse(args.conversationId);
 
@@ -1275,7 +1276,8 @@ export const Resolver = {
                     fileMetadata,
                     repeatKey: args.repeatKey,
                     filePreview,
-                    replyMessages: args.replyMessages
+                    replyMessages: args.replyMessages,
+                    mentions: args.mentions
                 })).conversationEvent;
             });
         }),
@@ -1381,7 +1383,7 @@ export const Resolver = {
                 }, true);
             });
         }),
-        alphaEditMessage: withUser<{ messageId: string, message?: string | null, file?: string | null, replyMessages?: number[] | null }>(async (args, uid) => {
+        alphaEditMessage: withUser<{ messageId: string, message?: string | null, file?: string | null, replyMessages?: number[] | null, mentions?: number[] | null }>(async (args, uid) => {
             let fileMetadata: JsonMap | null;
             let filePreview: string | null;
 
@@ -1406,7 +1408,8 @@ export const Resolver = {
                         file: args.file,
                         fileMetadata,
                         filePreview,
-                        replyMessages: args.replyMessages
+                        replyMessages: args.replyMessages,
+                        mentions: args.mentions
                     },
                     true
                 );
