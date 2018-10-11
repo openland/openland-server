@@ -242,6 +242,8 @@ export class UserRepository {
                     platform: platform || null
                 }, { transaction: tx, logging: DB_SILENT });
             }
+        });
+        await DB.txStableSilent(async (tx) => {
             let user = await DB.User.findById(uid, { transaction: tx, lock: tx.LOCK.UPDATE, logging: DB_SILENT });
             if (user) {
                 if (user.lastSeen === null || user.lastSeen!!.getTime() < expires.getTime()) {
