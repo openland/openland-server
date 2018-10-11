@@ -796,7 +796,7 @@ export class ChatsRepository {
                     }
                 }, { transaction: tx });
 
-                await sendCounterPush(uid, conversationId, userUnread, tx);
+                await sendCounterPush(m, conversationId, userUnread, tx);
 
                 if (m === uid) {
                     userEvent = _userEvent;
