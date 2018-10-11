@@ -101,7 +101,7 @@ export async function initApi(isTest: boolean) {
 
     app.post('/semaphorebot', bodyParser.json(), (async (req, res) => {
         await DB.txLight(async tx => {
-            let chatId = IDs.Conversation.parse('Jlb4AOJBWEc5MvaQWkjLhlALo0');
+            let chatId = IDs.Conversation.parse('zoqLwdzr6VHelWZOR6JatW4aak');
             let botId = IDs.User.parse('vmM5pE5lQ4udYLr6AOLBhdQDJK');
             let data = req.body;
 
