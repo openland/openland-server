@@ -848,6 +848,10 @@ export class ChatsRepository {
             (message as any).changed('extras', true);
             message.extras.replyMessages = newMessage.replyMessages;
         }
+        if (newMessage.urlAugmentation) {
+            (message as any).changed('extras', true);
+            message.extras.urlAugmentation = newMessage.urlAugmentation as any;
+        }
 
         if (markAsEdited) {
             (message as any).changed('extras', true);
