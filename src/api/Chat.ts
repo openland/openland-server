@@ -1761,6 +1761,8 @@ export const Resolver = {
                     throw new Error('No such member');
                 }
 
+                let isSuperAdmin = (await Repos.Permissions.superRole(uid)) === 'super-admin';
+
                 let curMember = await DB.ConversationGroupMembers.findOne({
                     where: {
                         conversationId,
@@ -1768,11 +1770,11 @@ export const Resolver = {
                     }
                 });
 
-                if (!curMember) {
+                if (!curMember && !isSuperAdmin) {
                     throw new AccessDeniedError();
                 }
 
-                let canKick = curMember.role === 'admin' || curMember.role === 'creator' || member.invitedById === uid;
+                let canKick = isSuperAdmin || curMember!.role === 'admin' || curMember!.role === 'creator' || member.invitedById === uid;
 
                 if (!canKick) {
                     throw new AccessDeniedError();
