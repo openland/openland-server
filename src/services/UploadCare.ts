@@ -6,6 +6,7 @@ import FormData from 'form-data';
 import { createReadStream, unlink, writeFile } from 'fs';
 import fetch from 'node-fetch';
 import { promisify } from 'util';
+import { extname } from "path";
 
 const writeFileAsync = promisify(writeFile);
 const unlinkFile = promisify(unlink);
@@ -101,8 +102,9 @@ export class UploadCare {
         return `data:image/jpeg;base64,${res.toString('base64')}`;
     }
 
-    async upload(imgData: Buffer): Promise<{ file: string }> {
-        let tmpPath = Path.join(tmpdir(), `${randomString(7)}.dat`);
+    async upload(imgData: Buffer, ext?: string): Promise<{ file: string }> {
+
+        let tmpPath = Path.join(tmpdir(), `${randomString(7)}${ext ? ext : '.dat'}`);
         await writeFileAsync(tmpPath, imgData);
 
         let form = new FormData();
@@ -123,6 +125,6 @@ export class UploadCare {
     async uploadFromUrl(url: string) {
         let data = await (await fetch(url)).buffer();
 
-        return this.upload(data);
+        return this.upload(data, (extname(url).length > 0) ? extname(url) : undefined);
     }
 }

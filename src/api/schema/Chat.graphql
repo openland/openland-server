@@ -99,6 +99,8 @@ type UrlAugmentation {
     photo: ImageRef
     imageInfo: FileMetadata
     imageURL: String
+    iconRef: ImageRef
+    iconInfo: FileMetadata
     hostname: String
     type: String
     extra: UrlAugmentationExtra

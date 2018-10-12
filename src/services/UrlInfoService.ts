@@ -14,6 +14,8 @@ export interface URLAugmentation {
     imageURL: string|null;
     imageInfo: UploadCareFileInfo|null;
     photo: ImageRef|null;
+    iconRef: ImageRef|null;
+    iconInfo: UploadCareFileInfo|null;
     hostname: string|null;
     type: 'org' | 'listing' | 'user' | 'url' | 'none' | 'channel' | 'intro';
     extra?: any;
@@ -89,6 +91,8 @@ export default class UrlInfoService {
                 imageInfo: null,
                 photo: null,
                 hostname: null,
+                iconRef: null,
+                iconInfo: null,
                 type: 'none'
             };
         }
@@ -118,7 +122,9 @@ export default class UrlInfoService {
             photo: listing!.extras!.photo || null,
             hostname: hostname || null,
             type: 'listing',
-            extra: listing!.id
+            extra: listing!.id,
+            iconRef: null,
+            iconInfo: null,
         };
     }
 
@@ -140,7 +146,9 @@ export default class UrlInfoService {
             photo: user!.picture,
             hostname: hostname || null,
             type: 'user',
-            extra: userId
+            extra: userId,
+            iconRef: null,
+            iconInfo: null,
         };
     }
 
@@ -162,7 +170,9 @@ export default class UrlInfoService {
             photo: org!.photo || null,
             hostname: hostname || null,
             type: 'org',
-            extra: orgId
+            extra: orgId,
+            iconRef: null,
+            iconInfo: null,
         };
     }
 
@@ -188,7 +198,9 @@ export default class UrlInfoService {
             photo: channel!.extras!.picture as any || null,
             hostname: hostname || null,
             type: 'channel',
-            extra: channelId
+            extra: channelId,
+            iconRef: null,
+            iconInfo: null,
         };
     }
 }

@@ -14,6 +14,8 @@ export interface URLInfo {
     imageInfo: UploadCareFileInfo|null;
     photo: ImageRef|null;
     hostname: string|null;
+    iconRef: ImageRef|null;
+    iconInfo: UploadCareFileInfo|null;
 }
 
 export async function fetchURLInfo(url: string): Promise<URLInfo> {
@@ -35,6 +37,8 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
             imageInfo: null,
             photo: null,
             hostname: null,
+            iconRef: null,
+            iconInfo: null
         };
     }
 
@@ -60,7 +64,7 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
         getMeta(doc, 'twitter:image') ||
         null;
 
-    let {hostname} = URL.parse(url);
+    let {hostname, protocol} = URL.parse(url);
 
     let imageInfo: UploadCareFileInfo|null = null;
     let imageRef: ImageRef|null = null;
@@ -75,6 +79,24 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
         }
     }
 
+    let iconUrl =
+        getLink(doc, 'shortcut icon') ||
+        getLink(doc, 'icon') ||
+        '/favicon.ico';
+
+    iconUrl = protocol! + '//' + hostname + iconUrl;
+
+    let iconInfo: UploadCareFileInfo|null = null;
+    let iconRef: ImageRef|null = null;
+
+    try {
+        let {file} = await Services.UploadCare.uploadFromUrl(iconUrl);
+        iconRef = { uuid: file };
+        iconInfo = await Services.UploadCare.fetchFileInfo(file);
+    } catch (e) {
+        console.warn('Cant fetch image ' + imageURL);
+    }
+
     return {
         url,
         title,
@@ -84,8 +106,15 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
         imageInfo,
         photo: imageRef,
         hostname: hostname || null,
+        iconRef,
+        iconInfo
     };
 }
+
+(async () => {
+    console.log(await fetchURLInfo('http://google.com'));
+
+})();
 
 function getMeta(doc: CheerioStatic, metaName: string): string|null {
     let data = doc(`meta[property="${metaName}"]`);
@@ -106,4 +135,10 @@ function getHTMLTitle(doc: CheerioStatic): string|null {
     }
 
     return null;
+}
+
+function getLink(doc: CheerioStatic, rel: string): string|null {
+    let data = doc(`link[rel="${rel}"]`);
+
+    return data[0] ? data[0].attribs.href : null;
 }

@@ -342,6 +342,8 @@ export const Resolver = {
         imageURL: (src: URLAugmentation) => src.imageURL,
         imageInfo: (src: URLAugmentation) => src.imageInfo,
         photo: (src: URLAugmentation) => src.photo,
+        iconRef: (src: URLAugmentation) => src.iconRef,
+        iconInfo: (src: URLAugmentation) => src.iconInfo,
         hostname: (src: URLAugmentation) => src.hostname,
         type: (src: URLAugmentation) => src.type,
         extra: async (src: URLAugmentation) => {
@@ -361,6 +363,7 @@ export const Resolver = {
 
             return null;
         },
+
     },
     ConversationMessage: {
         id: (src: ConversationMessage) => IDs.ConversationMessage.serialize(src.id),
@@ -1328,6 +1331,8 @@ export const Resolver = {
                         imageInfo: null,
                         photo: profile!.picture,
                         hostname: 'openland.com',
+                        iconRef: null,
+                        iconInfo: null,
                     }
                 })).conversationEvent;
             });
@@ -1379,6 +1384,8 @@ export const Resolver = {
                         imageInfo: null,
                         photo: profile!.picture,
                         hostname: 'openland.com',
+                        iconRef: null,
+                        iconInfo: null,
                     }
                 }, true);
             });
