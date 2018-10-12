@@ -1307,8 +1307,8 @@ export class ChatsRepository {
     }
 
     async addToInitialChannel(uid: number, tx: Transaction) {
-        let channelId = IDs.Conversation.parse('EQvPJ1LaODSWXZ3xJ0P5CybWBL');
-        await Repos.Chats.addToChannel(tx, channelId, uid);
+        // let channelId = IDs.Conversation.parse('EQvPJ1LaODSWXZ3xJ0P5CybWBL');
+        // await Repos.Chats.addToChannel(tx, channelId, uid);
     }
 
     async addToChannel(tx: Transaction, channelId: number, uid: number) {
