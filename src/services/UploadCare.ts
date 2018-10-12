@@ -6,7 +6,7 @@ import FormData from 'form-data';
 import { createReadStream, unlink, writeFile } from 'fs';
 import fetch from 'node-fetch';
 import { promisify } from 'util';
-import { extname } from "path";
+import { extname } from 'path';
 
 const writeFileAsync = promisify(writeFile);
 const unlinkFile = promisify(unlink);
