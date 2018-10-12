@@ -1415,6 +1415,19 @@ export const Resolver = {
                 );
             });
         }),
+        alphaDeleteMessageUrlAugmentation: withUser<{ messageId: number }>(async (args, uid) => {
+            return await DB.txStable(async (tx) => {
+                return await Repos.Chats.editMessage(
+                    tx,
+                    args.messageId,
+                    uid,
+                    {
+                        urlAugmentation: null
+                    },
+                    true
+                );
+            });
+        }),
         alphaDeleteMessage: withUser<{ messageId: string }>(async (args, uid) => {
             let messageId = IDs.ConversationMessage.parse(args.messageId);
 

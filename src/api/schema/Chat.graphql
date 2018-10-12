@@ -355,6 +355,7 @@ extend type Mutation {
     alphaEditMessage(messageId: ID!, message: String, file: String, replyMessages: [ID!] @messageID, mentions: [ID!] @userID): ConversationEventEditMessage!
     alphaSendIntro(conversationId: ID!, userId: ID @userID, about: String, message: String, file: String, repeatKey: String): ConversationEventMessage!
     alphaEditIntro(messageId: ID!, userId: ID @userID, about: String, message: String, file: String): ConversationEventMessage!
+    alphaDeleteMessageUrlAugmentation(messageId: ID! @messageID): ConversationEventMessage!
     alphaDeleteMessage(messageId: ID!): ConversationEventDelete!
     alphaReadChat(conversationId: ID!, messageId: ID!): ChatReadResult!
     alphaGlobalRead(toSeq: Int): String!

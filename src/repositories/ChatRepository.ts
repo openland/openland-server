@@ -55,7 +55,7 @@ export interface Message {
     isService?: boolean | null;
     repeatKey?: string | null;
     serviceMetadata?: any & { type: ServiceMessageMetadataType };
-    urlAugmentation?: URLAugmentation;
+    urlAugmentation?: URLAugmentation | null;
     replyMessages?: number[] | null;
     mentions?: number[] | null;
 }
@@ -834,7 +834,9 @@ export class ChatsRepository {
             throw new AccessDeniedError();
         }
 
-        message.message = newMessage.message;
+        if (newMessage.message) {
+            message.message = newMessage.message;
+        }
         if (newMessage.file) {
             message.fileId = newMessage.file;
         }
@@ -850,7 +852,7 @@ export class ChatsRepository {
             (message as any).changed('extras', true);
             message.extras.replyMessages = newMessage.replyMessages;
         }
-        if (newMessage.urlAugmentation) {
+        if (newMessage.urlAugmentation || newMessage.urlAugmentation === null) {
             (message as any).changed('extras', true);
             message.extras.urlAugmentation = newMessage.urlAugmentation as any;
         }
@@ -866,6 +868,8 @@ export class ChatsRepository {
 
         (message as any).changed('extras', true);
         message.extras.plainText = await this.messageToText(newMessage);
+
+        console.log(message.extras);
 
         await message.save({ transaction: tx });
 

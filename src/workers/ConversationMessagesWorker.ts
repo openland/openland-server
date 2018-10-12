@@ -18,6 +18,11 @@ export function createConversationMessagesWorker() {
             return { result: 'ok' };
         }
 
+        // augmentation was deleted
+        if (message.extras.urlAugmentation === null) {
+            return { result: 'ok' };
+        }
+
         let urls = linkifyInstance.match(message.message);
 
         if (!urls) {
