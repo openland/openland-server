@@ -84,7 +84,9 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
         getLink(doc, 'icon') ||
         '/favicon.ico';
 
-    iconUrl = protocol! + '//' + hostname + iconUrl;
+    if (!URL.parse(iconUrl).hostname) {
+        iconUrl = protocol! + '//' + hostname + iconUrl;
+    }
 
     let iconInfo: UploadCareFileInfo|null = null;
     let iconRef: ImageRef|null = null;
@@ -110,11 +112,6 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
         iconInfo
     };
 }
-
-(async () => {
-    console.log(await fetchURLInfo('http://google.com'));
-
-})();
 
 function getMeta(doc: CheerioStatic, metaName: string): string|null {
     let data = doc(`meta[property="${metaName}"]`);
