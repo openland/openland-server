@@ -9,4 +9,5 @@ coverage
 .DS_Store
 .data
 server/.gradle
-server/.idea
+server/out
+workspace.xml
