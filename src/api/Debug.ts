@@ -48,6 +48,7 @@ export const Resolver = {
     },
 
     Query: {
+        ping: () => 'pong',
         debugReaderStates: withPermissionOptional(['software-developer'], async () => {
             let readers = (await DB.ReaderState.findAll());
             return readers.map((v) => ({

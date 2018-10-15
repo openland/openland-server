@@ -13,4 +13,6 @@ type Query {
     users(query:String!): [User!]!
 
     user(id: ID!): User!
+
+    ping: String!
 }
