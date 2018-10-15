@@ -63,6 +63,8 @@ type GroupConversation implements Conversation {
     description: String!
     longDescription: String!
     pinnedMessage: ConversationMessage
+
+    membersOnline: Int!
 }
 
 #

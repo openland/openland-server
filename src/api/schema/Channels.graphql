@@ -24,6 +24,8 @@ type ChannelConversation implements Conversation {
     socialImage: String
     socialImageRef: ImageRef
     pinnedMessage: ConversationMessage
+
+    membersOnline: Int!
 }
 
 enum ChannelMembershipStatus {

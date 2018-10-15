@@ -312,7 +312,27 @@ export const Resolver = {
         photoRef: (src: Conversation) => src.extras && src.extras.picture,
         description: (src: Conversation) => src.extras.description || '',
         longDescription: (src: Conversation) => src.extras.longDescription || '',
-        pinnedMessage: (src: Conversation) => src.extras && src.extras.pinnedMessage ? DB.ConversationMessage.findById(src.extras.pinnedMessage as any) : null
+        pinnedMessage: (src: Conversation) => src.extras && src.extras.pinnedMessage ? DB.ConversationMessage.findById(src.extras.pinnedMessage as any) : null,
+        membersOnline: async (src: Conversation) => {
+            let res = await DB.ConversationGroupMembers.findAll({
+                where: {
+                    conversationId: src.id
+                },
+                order: ['userId']
+            });
+            let users = await Promise.all(res.map((v) => DB.User.findById(v.userId)));
+
+            let now = Date.now();
+            let online = users.map(user => {
+                if (user!.lastSeen) {
+                    return user!.lastSeen!.getTime() > now;
+                } else {
+                    return false;
+                }
+            });
+
+            return online.filter(o => o === true).length;
+        }
     },
 
     MessageReaction: {
