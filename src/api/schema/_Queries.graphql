@@ -10,5 +10,7 @@ type Query {
     myProfile: Profile
     myProfilePrefill: ProfilePrefill
 
+    users(query:String!): [User!]!
+
     user(id: ID!): User!
 }

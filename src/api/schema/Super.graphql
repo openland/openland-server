@@ -64,6 +64,35 @@ extend type Query {
     superAdmins: [SuperAdmin!]!
 }
 
+scalar OrganizationID
+scalar OrganizationAccountID
+scalar OrganizationListingID
+scalar InviteID
+scalar InviteInfoID
+scalar StateID
+scalar CountyID
+scalar CityID
+scalar UserID
+scalar ProfileID
+scalar DealID
+scalar BlockID
+scalar SuperAccountID
+scalar SuperCityID
+scalar FeatureFlagID
+scalar OpportunitiesID
+scalar DebugReaderID
+scalar FolderID
+scalar FolderItemID
+scalar TaskID
+scalar ConversationID
+scalar ConversationSettingsID
+scalar ConversationMessageID
+scalar NotificationCounterID
+scalar UserEventID
+scalar SettingsID
+scalar WallEntityID
+
+
 #
 # City Configurations
 #
