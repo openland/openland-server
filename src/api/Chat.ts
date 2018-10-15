@@ -2100,13 +2100,13 @@ export const Resolver = {
         }),
 
         alphaChatSetReaction: withAccount<{ messageId: number, reaction: string }>(async (args, uid) => {
-            return DB.tx(async (tx) => {
+            return DB.txLight(async (tx) => {
                 await Repos.Chats.setReaction(tx, args.messageId, uid, args.reaction);
                 return 'ok';
             });
         }),
         alphaChatUnsetReaction: withAccount<{ messageId: number, reaction: string }>(async (args, uid) => {
-            return DB.tx(async (tx) => {
+            return DB.txLight(async (tx) => {
                 await Repos.Chats.setReaction(tx, args.messageId, uid, args.reaction, true);
                 return 'ok';
             });
