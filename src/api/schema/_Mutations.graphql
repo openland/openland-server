@@ -3,37 +3,6 @@ enum Platform {
 }
 
 type Mutation {
-    updatePermits(state: String!, county: String!, city: String!, sourceDate: String!, permits: [PermitInfo]!): String!
-    importParcels(state: String!, county: String!, city: String!, parcels: [ParcelInput!]!): String!
-    importBlocks(state: String!, county: String!, city: String!, blocks: [BlockInput!]!): String!
-        
-    likeParcel(id: ID!): Parcel!
-    unlikeParcel(id: ID!): Parcel!
-
-    parcelAlterMetadata(id: ID!, data: ParcelMetadataInput!): Parcel!
-
-    dealAdd(input: DealInput!): Deal!
-    dealRemove(id: ID!): String!
-    dealAlter(id: ID!, input: DealInput!): Deal!
-
-    aphaAddOpportunity(parcelId: ID!): Opportunity
-    alphaAddOpportunitiesFromSearch(state: String!, county: String!, city: String!, query: String): Int!
-    alphaApprove(opportunityId: ID!, state: OpportunityState!): String!
-    alphaSnooze(opportunityId: ID!, state: OpportunityState!): String!
-    alphaReject(opportunityId: ID!, state: OpportunityState!): String!
-    alphaReset(opportunityId: ID!, state: OpportunityState!): String!
-
-    alphaSetNote(parcelId: ID!, notes: String!): Parcel!
-
-    alphaCreateFolder(name: String!, initialParcels: [ID!]): Folder!
-    alphaAlterFolder(folderId: ID!, name: String!): Folder!
-    alphaDeleteFolder(folderId: ID!): String!
-    alphaParcelAddToFolder(folderId: ID!, parcelId: ID!): Parcel!
-    alphaAddToFolderFromSearch(folderId: ID!, state: String!, county: String!, city: String!, query: String): Int!
-    alphaCreateFolderFromSearch(name: String!, state: String!, county: String!, city: String!, query: String): Folder!
-    alphaParcelSetFolder(parcelId: ID!, folderId: ID): Parcel!
-    alphaExportFolder(folderId: ID!): Task!
-    
     superMultiplyValue(value: Int!): Task!
     
     alphaCreateInvite: Invite!
