@@ -2,7 +2,6 @@ import { merge } from 'lodash';
 import { makeExecutableSchema } from 'graphql-tools';
 import * as User from './User';
 import * as Basics from './_Basics';
-import * as Search from './Search';
 import * as Permissions from './Permissions';
 import * as Account from './Account';
 import * as fs from 'fs';
@@ -32,7 +31,6 @@ export const Schema = makeExecutableSchema({
         Basics.Resolvers,
         Account.Resolver,
         User.Resolver,
-        Search.Resolvers,
         Permissions.Resolvers,
         Debug.Resolver,
         Organization.Resolver,
