@@ -1,5 +1,8 @@
 package com.openland.server
 
+import akka.actor.ActorSystem
+
 fun main(args: Array<String>) {
-    println("Hello world!")
+    val system = ActorSystem.create()
+    println("Server started")
 }
