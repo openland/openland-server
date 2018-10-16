@@ -15,7 +15,6 @@ ADD yarn.lock /app/
 ADD tsconfig.json /app/
 ADD tslint.json /app/
 COPY src/ /app/src/
-COPY node_modules/ /app/node_modules/
 
 RUN yarn install && yarn build && yarn lint
 
