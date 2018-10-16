@@ -11,7 +11,10 @@ RUN apt-get update && dpkg -i foundationdb-clients_5.2.5-1_amd64.deb foundationd
 
 WORKDIR /app
 ADD package.json /app/
+ADD yarn.lock /app/
+COPY src/ /app/src/
 COPY node_modules/ /app/node_modules/
+
 RUN yarn install && yarn build && yarn lint
 
 EXPOSE 9000
