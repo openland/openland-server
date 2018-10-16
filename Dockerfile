@@ -7,10 +7,9 @@ ENTRYPOINT ["/tini", "--"]
 
 WORKDIR /
 ADD https://www.foundationdb.org/downloads/5.2.5/ubuntu/installers/foundationdb-clients_5.2.5-1_amd64.deb ./foundationdb-clients_5.2.5-1_amd64.deb
-RUN apt install ./foundationdb-clients_5.2.5-1_amd64.deb
+RUN apt-get update && apt install ./foundationdb-clients_5.2.5-1_amd64.deb && apt-get install libpq-dev python && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-RUN apt-get update && apt-get install libpq-dev python && rm -rf /var/lib/apt/lists/*
 ADD package.json /app/
 COPY node_modules/ /app/node_modules/
 RUN yarn install
