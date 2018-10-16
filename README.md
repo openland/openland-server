@@ -5,8 +5,7 @@
 3) Install Java
 4) Install Elasticsearch: `brew install elasticsearch`
 5) Install Kibana: `brew install kibana`
-6) Install Minio: `brew install minio/stable/minio`
-   - Change Port: `/usr/local/Cellar/minio/{version}/Library/homebrew.mxcl.minio.plist` from `:9000` to `:9900`
+6) Install FoundationDB: https://apple.github.io/foundationdb/downloads.html
 7) Install yarn (+ node): `brew install yarn`
 8) Install dependencies `yarn install`
 9) Run Services: 
