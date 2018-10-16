@@ -1,6 +1,7 @@
 import { Repos } from '../repositories';
 import { IDs } from '../api/utils/IDs';
 import { CallContext } from '../api/utils/CallContext';
+import { DB } from '../tables';
 
 export async function fetchWebSocketParameters(args: any, websocket: any) {
     let res: any = {};
@@ -29,6 +30,14 @@ export async function fetchWebSocketParameters(args: any, websocket: any) {
                     } catch (e) {
                         console.debug(e);
                     }
+                }
+            } else {
+                // Default behaviour: pick the default one
+                if (accounts.length >= 1) {
+                    res.oid = accounts[0];
+
+                    let profile = await DB.UserProfile.find({ where: { userId: res.uid } });
+                    res.oid = (profile && profile.primaryOrganization) || res.oid;
                 }
             }
         }
