@@ -10,6 +10,13 @@ if (process.env.NODE_ENV !== 'development') {
     Raven.config('https://8fd3799350f74171b901606ddda8d91d@sentry.io/1236375').install();
 }
 
+if (process.env.NODE_ENV !== 'development') {
+    require('honeycomb-beeline')({
+        writeKey: 'c68b018d01f9ca0a8a52239acea0ebb8',
+        dataset: 'node-js'
+    });
+}
+
 import { initApi } from './init/initApi';
 import { initWorkers } from './workers';
 import { initDatabase } from './init/initDatabase';
