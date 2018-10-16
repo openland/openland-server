@@ -12,10 +12,10 @@ RUN apt-get update && dpkg -i foundationdb-clients_5.2.5-1_amd64.deb foundationd
 WORKDIR /app
 ADD package.json /app/
 COPY node_modules/ /app/node_modules/
-RUN yarn install
+RUN yarn install && yarn build && yarn lint
 
-COPY build/ /app/
 EXPOSE 9000
+WORKDIR /app/build
 ENV NODE_ENV=production
 ENV BLUEBIRD_LONG_STACK_TRACES=0
 CMD [ "node", "index.js" ]
