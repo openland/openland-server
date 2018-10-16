@@ -38,6 +38,7 @@ export class UploadCare {
                 if (!error && response.statusCode === 200) {
                     resolve(JSON.parse(body));
                 } else {
+                    console.warn(error);
                     reject(new Error('File error'));
                     // reject(error);
                 }
@@ -94,6 +95,7 @@ export class UploadCare {
                 if (!error && response.statusCode === 200) {
                     resolve(body);
                 } else {
+                    console.warn(error);
                     reject(new Error('File error'));
                 }
             });
@@ -114,7 +116,7 @@ export class UploadCare {
 
         let res = await fetch(
             'https://upload.uploadcare.com/base/',
-            { method: 'POST', body:  form }
+            { method: 'POST', body: form }
         );
 
         await unlinkFile(tmpPath);
