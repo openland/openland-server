@@ -1,6 +1,6 @@
 import { exponentialBackoffDelay } from './exponentialBackoffDelay';
 
-const RATE_LIMIT_ENABLED = true;
+const RATE_LIMIT_ENABLED = false;
 
 class RateLimit {
     private data = new Map<string, number>();
