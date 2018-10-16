@@ -11,6 +11,7 @@ import { fn, col } from 'sequelize';
 import { geoIP, GeoIPResponse } from '../utils/geoIp/geoIP';
 import { Repos } from '../repositories';
 import { ImageRef } from '../repositories/Media';
+import { FDB } from '../sources/FDB';
 
 export const Resolver = {
     MessagesLeaderboardItem: {
@@ -269,6 +270,12 @@ export const Resolver = {
         })
     },
     Mutation: {
+        debugFoundation: async () => {
+            let res = await FDB.SampeCounter.get();
+            res++;
+            FDB.SampeCounter.set(res);
+            return res;
+        },
         debugSendWelcomeEmail: withUser(async (args, uid) => {
             await Emails.sendWelcomeEmail(uid);
             return 'ok';

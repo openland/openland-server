@@ -224,4 +224,6 @@ extend type Mutation {
     alphaCreateBot(input: CreateProfileInput): String! @withPermissions(permission: ["super-admin", "software-developer"]) @withAuth
 
     alphaResetUrlInfoCache: String! @withPermissions(permission: ["super-admin", "software-developer"]) @withAuth
+
+    debugFoundation: Int!
 }
