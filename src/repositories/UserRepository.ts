@@ -226,7 +226,7 @@ export class UserRepository {
                 where: { userId: uid, tokenId: tokenId },
                 transaction: tx,
                 lock: tx.LOCK.UPDATE,
-                logging: DB_SILENT
+                logging: DB_SILENT,
             });
             if (existing) {
                 existing.lastSeen = now;
@@ -239,7 +239,7 @@ export class UserRepository {
                     tokenId: tokenId,
                     lastSeen: now,
                     lastSeenTimeout: expires,
-                    platform: platform || null
+                    platform: platform || null,
                 }, { transaction: tx, logging: DB_SILENT });
             }
         });
@@ -263,6 +263,42 @@ export class UserRepository {
                 },
                 transaction: tx,
             });
+        });
+    }
+
+    async markUserActive(uid: number, timeout: number, tokenId: number, platform?: string) {
+        let now = new Date();
+        let expires = new Date(now.getTime() + timeout);
+        await DB.txStableSilent(async (tx) => {
+            let existing = await DB.UserPresence.find({
+                where: { userId: uid, tokenId: tokenId },
+                transaction: tx,
+                lock: tx.LOCK.UPDATE,
+                logging: DB_SILENT
+            });
+            if (existing) {
+                existing.lastActive = now;
+                existing.lastActiveTimeout = expires;
+                existing.platform = platform || null;
+                await existing.save({ transaction: tx, logging: DB_SILENT });
+            } else {
+                await DB.UserPresence.create({
+                    userId: uid,
+                    tokenId: tokenId,
+                    lastActive: now,
+                    lastActiveTimeout: expires,
+                    platform: platform || null,
+                }, { transaction: tx, logging: DB_SILENT });
+            }
+        });
+        await DB.txStableSilent(async (tx) => {
+            let user = await DB.User.findById(uid, { transaction: tx, lock: tx.LOCK.UPDATE, logging: DB_SILENT });
+            if (user) {
+                if (user.lastActive === null || user.lastActive!!.getTime() < expires.getTime()) {
+                    user.lastActive = expires;
+                    await user.save({ transaction: tx, logging: DB_SILENT });
+                }
+            }
         });
     }
 
@@ -295,6 +331,24 @@ export class UserRepository {
                     return 'online';
                 } else {
                     return user.lastSeen.getTime();
+                }
+            } else {
+                return 'never_online';
+            }
+        }
+    }
+
+    async getUserLastActiveExtended(uid: number, tx?: Transaction) {
+        let user = await DB.User.findById(uid, { logging: DB_SILENT });
+        let now = Date.now();
+        if (!user || user.status !== 'ACTIVATED') {
+            return 'never_online';
+        } else {
+            if (user.lastActive) {
+                if (user.lastActive.getTime() > now) {
+                    return 'online';
+                } else {
+                    return user.lastActive.getTime();
                 }
             } else {
                 return 'never_online';

@@ -31,7 +31,7 @@ export function startPushNotificationWorker() {
 
             let logPrefix = 'push_worker ' + u.userId;
 
-            let lastSeen = await Repos.Users.getUserLastSeenExtended(u.userId, tx);
+            let lastSeen = await Repos.Users.getUserLastActiveExtended(u.userId, tx);
 
             // Ignore never-online users
             if (lastSeen === 'never_online') {

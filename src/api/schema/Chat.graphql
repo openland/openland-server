@@ -144,6 +144,17 @@ type FileMetadata {
     imageFormat: String
 }
 
+type StickerPack {
+    name: String!
+    stickers: [Sticker!]
+}
+
+type Sticker {
+    aliases: [String!]!
+    uuid: String!
+    meta: FileMetadata!
+}
+
 #
 # Conversation Events
 #

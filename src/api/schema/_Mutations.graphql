@@ -16,6 +16,7 @@ type Mutation {
 
     alphaReportOnline(timeout: Int!, platform: Platform): String!
     alphaReportOffline(platform: Platform): String! @withAuth
+    alphaReportActive(timeout: Int!, platform: Platform): String!
 
     alphaCreateUserProfileAndOrganization(user: CreateProfileInput!, organization: CreateOrganizationInput!): AlphaSignupData!
 }

@@ -10,6 +10,7 @@ export interface UserAttributes {
     email?: string;
     isBot?: boolean;
     lastSeen?: Date | null;
+    lastActive?: Date | null;
     status?: 'PENDING' | 'ACTIVATED' | 'SUSPENDED';
     profile?: Profile;
     invitedBy?: number;
@@ -26,6 +27,7 @@ export const UserTable = connection.define<User, UserAttributes>('user', {
     email: { type: sequelize.STRING, allowNull: false },
     isBot: { type: sequelize.BOOLEAN, allowNull: true, defaultValue: false },
     lastSeen: { type: sequelize.DATE, allowNull: true },
+    lastActive: { type: sequelize.DATE, allowNull: true },
     status: {
         type: sequelize.ENUM(
             'PENDING',
