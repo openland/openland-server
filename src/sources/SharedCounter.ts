@@ -1,18 +1,15 @@
-import * as fdb from 'foundationdb';
-import { FDBConnection } from './init';
+import { getFTransaction } from './FTransaction';
 
 export class SharedCounter {
 
     readonly name: string;
-    private readonly db: fdb.Database<fdb.TupleItem[], any>;
 
     constructor(name: string) {
         this.name = name;
-        this.db = FDBConnection.at(['counters']);
     }
 
     get = async () => {
-        let r = (await this.db.get([this.name]));
+        let r = (await getFTransaction().get(['counters', this.name]));
         if (r) {
             return r.value;
         } else {
@@ -21,6 +18,6 @@ export class SharedCounter {
     }
 
     set = async (v: number) => {
-        await this.db.set([this.name], { value: v });
+        await getFTransaction().set(['counters', this.name], { value: v });
     }
 }

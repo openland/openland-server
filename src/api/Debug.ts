@@ -12,6 +12,7 @@ import { geoIP, GeoIPResponse } from '../utils/geoIp/geoIP';
 import { Repos } from '../repositories';
 import { ImageRef } from '../repositories/Media';
 import { FDB } from '../sources/FDB';
+import { inTx } from '../sources/FTransaction';
 
 export const Resolver = {
     MessagesLeaderboardItem: {
@@ -44,7 +45,7 @@ export const Resolver = {
     BotInfo: {
         bot: (src: User) => src,
         token: async (src: User) => {
-            return (await DB.UserToken.findOne({ where: {userId: src.id! }}))!.tokenSalt;
+            return (await DB.UserToken.findOne({ where: { userId: src.id! } }))!.tokenSalt;
         }
     },
 
@@ -191,7 +192,7 @@ export const Resolver = {
             }
             try {
                 let sequelize = DB.connection;
-             
+
                 // removing openland stuff from stats
                 let userIds: number[] = [];
                 if (args.excudeTeam !== false) {
@@ -271,10 +272,12 @@ export const Resolver = {
     },
     Mutation: {
         debugFoundation: async () => {
-            let res = await FDB.SampeCounter.get();
-            res++;
-            FDB.SampeCounter.set(res);
-            return res;
+            return inTx(async () => {
+                let res = await FDB.SampeCounter.get();
+                res++;
+                FDB.SampeCounter.set(res);
+                return res;
+            });
         },
         debugSendWelcomeEmail: withUser(async (args, uid) => {
             await Emails.sendWelcomeEmail(uid);
