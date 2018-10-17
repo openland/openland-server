@@ -13,17 +13,17 @@ module.exports = {
     ],
     moduleDirectories: [
         'node_modules',
-        'src'
+        'packages'
     ],
     testRegex: '.*\\.spec\\.(ts)x?$',
     testPathIgnorePatterns: ['/node_modules/'],
     coverageDirectory: 'coverage',
     mapCoverage: true,
     collectCoverageFrom: [
-        'src/**/*.{ts,tsx,js,jsx}',
-        '!src/**/*.d.ts',
-        '!src/tables/migrations/*.ts',
-        '!src/tables/data/*.ts',
-        '!src/tests/**/*',
+        'packages/**/*.{ts,tsx,js,jsx}',
+        '!packages/**/*.d.ts',
+        '!packages/tables/migrations/*.ts',
+        '!packages/tables/data/*.ts',
+        '!packages/tests/**/*',
     ]
 };

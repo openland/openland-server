@@ -51,7 +51,7 @@ if (process.argv.indexOf('--rebuild-test') >= 0) {
 } else {
     async function initServer() {
         try {
-            require('./sources/init');
+            require('./sources/modules/init');
             await initDatabase(false, false);
             await initFiles();
             if (serverRoleEnabled('indexing')) {

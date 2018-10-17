@@ -14,12 +14,12 @@ ADD package.json /app/
 ADD yarn.lock /app/
 ADD tsconfig.json /app/
 ADD tslint.json /app/
-COPY src/ /app/src/
+COPY packages/ /app/packages/
 
 RUN yarn install && yarn build && yarn lint
 
 EXPOSE 9000
-WORKDIR /app/build
+WORKDIR /app/packages
 ENV NODE_ENV=production
 ENV BLUEBIRD_LONG_STACK_TRACES=0
-CMD [ "node", "index.js" ]
+CMD [ "node", "openland-server/index.js" ]
