@@ -19,7 +19,7 @@ COPY packages/ /app/packages/
 RUN yarn install && yarn build && yarn lint
 
 EXPOSE 9000
-WORKDIR /app/packages
+WORKDIR /app/build
 ENV NODE_ENV=production
 ENV BLUEBIRD_LONG_STACK_TRACES=0
 CMD [ "node", "openland-server/index.js" ]
