@@ -1,0 +1,16 @@
+import { declareSchema, entity, field, primaryKey } from '../foundation-schema-gen';
+
+export const Schema = declareSchema(() => {
+    entity('Online', () => {
+        primaryKey('uid', 'number');
+        field('lastSeen', 'number');
+    });
+
+    entity('Presence', () => {
+        primaryKey('uid', 'number');
+        primaryKey('tid', 'string');
+        field('lastSeen', 'number');
+        field('lastSeenTimeout', 'number');
+        field('platform', 'string');
+    });
+});

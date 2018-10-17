@@ -68,6 +68,7 @@
     "body-parser": "^1.17.2",
     "box-node-sdk": "^1.20.0",
     "buffer": "^5.0.6",
+    "change-case": "^3.0.2",
     "cheerio": "^1.0.0-rc.2",
     "compose-middleware": "^4.0.0",
     "compression": "^1.7.1",
@@ -163,7 +164,8 @@
     "test:prepare": ". ./scripts/set_testing_config.sh && DATABASE_LOGGING=true node ./build/index.js --rebuild-test",
     "test:integration": "yarn test:jest",
     "test:rebuild": "yarn test:start && yarn test:prepare && yarn test:stop",
-    "schema:publish": "apollo schema:publish --key=\"service:openland-production:qrYALC8Flb8hv-SGm4grug\" --endpoint=\"https://api.openland.com/api\""
+    "schema:publish": "apollo schema:publish --key=\"service:openland-production:qrYALC8Flb8hv-SGm4grug\" --endpoint=\"https://api.openland.com/api\"",
+    "model": "./node_modules/.bin/ts-node packages/foundation-schema/index.ts"
   },
   "devDependencies": {}
 }
