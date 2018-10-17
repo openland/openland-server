@@ -110,3 +110,14 @@ export class CounterFactory extends FEntityFactory<Counter> {
         return new Counter(context, namespace, id, value);
     }
 }
+
+export class AllEntities {
+    Online: OnlineFactory;
+    Presence: PresenceFactory;
+    Counter: CounterFactory;
+
+    constructor(connection: FConnection) {
+        this.Online = new OnlineFactory(connection);
+        this.Presence = new PresenceFactory(connection);
+        this.Counter = new CounterFactory(connection);
+    }}

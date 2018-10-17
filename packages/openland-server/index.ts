@@ -1,5 +1,6 @@
+require('module-alias/register');
+
 // AsyncIterator polyfil
-require('tls').DEFAULT_ECDH_CURVE = 'auto';
 import { serverRoleEnabled } from './utils/serverRoles';
 
 if (Symbol.asyncIterator === undefined) {

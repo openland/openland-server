@@ -1,5 +1,6 @@
 import * as fdb from 'foundationdb';
 import { FContext, FGlobalContext } from './FContext';
+
 export class FConnection {
     readonly fdb: fdb.Database<fdb.TupleItem[], any>;
     private readonly globalContext: FContext;

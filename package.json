@@ -104,6 +104,7 @@
     "lodash": "^4.17.4",
     "mapbox": "^1.0.0-beta9",
     "minio": "^5.0.2",
+    "module-alias": "^2.1.0",
     "morgan": "^1.9.0",
     "ngeohash": "^0.6.0",
     "node-fetch": "^1.7.1",
@@ -167,5 +168,8 @@
     "schema:publish": "apollo schema:publish --key=\"service:openland-production:qrYALC8Flb8hv-SGm4grug\" --endpoint=\"https://api.openland.com/api\"",
     "model": "./node_modules/.bin/ts-node packages/foundation-schema/index.ts"
   },
-  "devDependencies": {}
+  "devDependencies": {},
+  "_moduleAliases": {
+    "foundation-orm": "build/foundation-orm"
+  }
 }

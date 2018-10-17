@@ -11,8 +11,7 @@ import { fn, col } from 'sequelize';
 import { geoIP, GeoIPResponse } from '../utils/geoIp/geoIP';
 import { Repos } from '../repositories';
 import { ImageRef } from '../repositories/Media';
-import { FDB } from '../sources/FDB';
-import { inTx } from '../sources/modules/FTransaction';
+import { FDB2 } from '../sources/FDB';
 
 export const Resolver = {
     MessagesLeaderboardItem: {
@@ -272,12 +271,13 @@ export const Resolver = {
     },
     Mutation: {
         debugFoundation: async () => {
-            return inTx(async () => {
-                let res = await FDB.SampeCounter.get();
-                res++;
-                FDB.SampeCounter.set(res);
-                return res;
-            });
+            return (await FDB2.Counter.findById('sample'))!.value;
+            // return inTx(async () => {
+            //     let res = await FDB.SampeCounter.get();
+            //     res++;
+            //     FDB.SampeCounter.set(res);
+            //     return res;
+            // });
         },
         debugSendWelcomeEmail: withUser(async (args, uid) => {
             await Emails.sendWelcomeEmail(uid);
