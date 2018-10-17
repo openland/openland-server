@@ -32,7 +32,7 @@ export const getFTransaction = () => {
 
 export function inTx<T>(callback: () => Promise<T>): Promise<T> {
     let id = async_hooks.executionAsyncId();
-    let ex = getFTransaction();
+    let ex = transactions.get(id);
     if (ex) {
         return callback();
     }
