@@ -1,12 +1,12 @@
 import { SFoundation } from './SFoundation';
 
 export class SEntityInstance<T> {
-    readonly id: string | number;
+    readonly id: (string | number)[];
     private _value: T;
     private _dirty = false;
     private _foundation: SFoundation<T>;
 
-    constructor(id: string | number, value: T, foundation: SFoundation<T>) {
+    constructor(id: (string | number)[], value: T, foundation: SFoundation<T>) {
         this.id = id;
         this._value = value;
         this._foundation = foundation;
@@ -37,7 +37,7 @@ export class SEntity<T> {
         this.foundation = new SFoundation(namespace);
     }
 
-    getById = async (id: string | number) => {
+    getById = async (...id: (string | number)[]) => {
         let res = await this.foundation.get(id);
         if (res !== null) {
             return new SEntityInstance<T>(id, res, this.foundation);
@@ -46,7 +46,7 @@ export class SEntity<T> {
         }
     }
 
-    createOrUpdate = async (id: string | number, value: T) => {
+    createOrUpdate = async (value: T, ...id: (string | number)[]) => {
         await this.foundation.set(value, id);
         return new SEntityInstance<T>(id, value, this.foundation);
     }

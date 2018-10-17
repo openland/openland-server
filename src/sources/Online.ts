@@ -1,5 +1,5 @@
 import { inTx } from './modules/FTransaction';
-import { SFoundation } from './modules/SFoundation';
+import { SEntity } from './modules/SEntity';
 
 export interface OnlineRecord {
     lastSeen: number;
@@ -8,31 +8,31 @@ export interface OnlineRecord {
 }
 
 export class Online {
-    private presense = new SFoundation<{ lastSeen: number, lastSeenTimeout: number, platform: string }>('presence');
-    private online = new SFoundation<{ lastSeen: number }>('online');
+    private presense = new SEntity<{ lastSeen: number, lastSeenTimeout: number, platform: string }>('presence');
+    private online = new SEntity<{ lastSeen: number }>('online');
 
     async setOnline(uid: number, tid: number, timeout: number, platform: string) {
         return await inTx(async () => {
             let expires = Date.now() + timeout;
-            await this.presense.set({ lastSeen: Date.now(), lastSeenTimeout: timeout, platform }, uid, tid);
+            await this.presense.createOrUpdate({ lastSeen: Date.now(), lastSeenTimeout: timeout, platform }, uid, tid);
 
-            let online = await this.online.get(uid);
+            let online = await this.online.getById(uid);
 
-            if (!online || online.lastSeen < expires) {
-                await this.online.set({ lastSeen: expires }, uid);
+            if (!online || online.value.lastSeen < expires) {
+                await this.online.createOrUpdate({ lastSeen: expires }, uid);
             }
         });
     }
 
     async getLastSeen(uid: number) {
         return await inTx(async () => {
-            let res = await this.online.get(uid);
+            let res = await this.online.getById(uid);
 
             if (res) {
-                if (res.lastSeen > Date.now()) {
+                if (res.value.lastSeen > Date.now()) {
                     return 'online';
                 } else {
-                    return res.lastSeen;
+                    return res.value.lastSeen;
                 }
             } else {
                 return 'never_online';
