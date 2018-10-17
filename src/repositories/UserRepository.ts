@@ -8,6 +8,7 @@ import { SuperBus } from '../modules/SuperBus';
 import { validate, stringNotEmpty } from '../modules/NewInputValidator';
 import { Sanitizer } from '../modules/Sanitizer';
 import { Repos } from '.';
+import { FDB } from '../sources/FDB';
 
 export interface Settings {
     emailFrequency: '1hour' | '15min' | 'never' | '24hour' | '1week';
@@ -357,17 +358,19 @@ export class UserRepository {
     }
 
     async isUserOnline(uid: number): Promise<boolean> {
-        let user = await DB.User.findById(uid, { logging: DB_SILENT });
-        let now = Date.now();
-        if (!user || user.status !== 'ACTIVATED') {
-            return false;
-        } else {
-            if (user.lastSeen) {
-                return user.lastSeen.getTime() > now;
-            } else {
-                return false;
-            }
-        }
+        // let user = await DB.User.findById(uid, { logging: DB_SILENT });
+        // let now = Date.now();
+        // if (!user || user.status !== 'ACTIVATED') {
+        //     return false;
+        // } else {
+        //     if (user.lastSeen) {
+        //         return user.lastSeen.getTime() > now;
+        //     } else {
+        //         return false;
+        //     }
+        // }
+
+        return await FDB.Online.getLastSeen(uid) === 'online';
     }
 
     getUserSettingsFromInstance(instance: UserSettings) {
