@@ -13,4 +13,9 @@ export const Schema = declareSchema(() => {
         field('lastSeenTimeout', 'number');
         field('platform', 'string');
     });
+
+    entity('Counter', () => {
+        primaryKey('name', 'string');
+        field('value', 'number');
+    });
 });

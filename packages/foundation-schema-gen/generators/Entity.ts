@@ -12,7 +12,7 @@ export function generateEntity(entity: EntityModel): string {
     res += '}\n\n';
 
     // Entity
-    res += 'export class ' + entityClass + ' extends SEntity {\n';
+    res += 'export class ' + entityClass + ' extends FEntity {\n';
 
     // res += '    static namespace = new SNamespace(\'' + entityKey + '\');\n';
     // res += '    static findById(' + entity.keys.map((v) => v.name + ': ' + v.type).join(', ') + ') {\n';
@@ -37,9 +37,9 @@ export function generateEntity(entity: EntityModel): string {
     res += '}\n\n';
 
     // Factory
-    res += 'export class ' + entityClass + 'Factory extends SEntityFactory<' + entityClass + '> {\n';
-    res += '    constructor(connection: SConnection) {\n';
-    res += '        super(connection, new SNamespace(\'' + entityKey + '\'));\n';
+    res += 'export class ' + entityClass + 'Factory extends FEntityFactory<' + entityClass + '> {\n';
+    res += '    constructor(connection: FConnection) {\n';
+    res += '        super(connection, new FNamespace(\'' + entityKey + '\'));\n';
     res += '    }\n';
     // protected _createEntity(context: SContext, namespace: SNamespace, id: (string | number)[], value: any) {
     //     return new Online(context, namespace, id, value);
@@ -47,7 +47,7 @@ export function generateEntity(entity: EntityModel): string {
     res += '    async findById(' + entity.keys.map((v) => v.name + ': ' + v.type).join(', ') + ') {\n';
     res += '        return await this._findById([' + entity.keys.map((v) => v.name).join(', ') + ']);\n';
     res += '    }\n';
-    res += '    protected _createEntity(context: SContext, namespace: SNamespace, id: (string | number)[], value: any) {\n';
+    res += '    protected _createEntity(context: FContext, namespace: FNamespace, id: (string | number)[], value: any) {\n';
     res += '        return new ' + entityClass + '(context, namespace, id, value);\n';
     res += '    }\n';
     res += '}';

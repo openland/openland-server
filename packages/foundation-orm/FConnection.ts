@@ -1,12 +1,12 @@
 import * as fdb from 'foundationdb';
-import { SContext, SGlobalContext } from './SContext';
-export class SConnection {
+import { FContext, FGlobalContext } from './FContext';
+export class FConnection {
     readonly fdb: fdb.Database<fdb.TupleItem[], any>;
-    private readonly globalContext: SContext;
+    private readonly globalContext: FContext;
 
     constructor(connection: fdb.Database<fdb.TupleItem[], any>) {
         this.fdb = connection;
-        this.globalContext = new SGlobalContext(this);
+        this.globalContext = new FGlobalContext(this);
     }
 
     get currentContext() {

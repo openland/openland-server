@@ -1,14 +1,14 @@
-import { SNamespace } from './SNamespace';
-import { SContext } from './SContext';
+import { FNamespace } from './FNamespace';
+import { FContext } from './FContext';
 
-export class SEntity {
-    protected _namespace: SNamespace;
+export class FEntity {
+    protected _namespace: FNamespace;
     protected _id: (string | number)[];
     protected _value: any;
     readonly isReadOnly: boolean;
-    readonly context: SContext;
+    readonly context: FContext;
 
-    constructor(context: SContext, namespace: SNamespace, id: (string | number)[], value: any) {
+    constructor(context: FContext, namespace: FNamespace, id: (string | number)[], value: any) {
         this._namespace = namespace;
         this._id = id;
         this._value = value;
