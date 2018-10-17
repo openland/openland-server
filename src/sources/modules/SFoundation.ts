@@ -9,7 +9,7 @@ export class SFoundation<T> {
     }
 
     get = async (...key: TupleItem[]) => {
-        return (await getFTransaction().get([this.namespace, ...key])) as T;
+        return (await getFTransaction().get([this.namespace, ...key])) as T | null;
     }
 
     set = async (value: T, ...key: TupleItem[]) => {
