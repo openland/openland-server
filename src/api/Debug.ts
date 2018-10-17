@@ -12,7 +12,7 @@ import { geoIP, GeoIPResponse } from '../utils/geoIp/geoIP';
 import { Repos } from '../repositories';
 import { ImageRef } from '../repositories/Media';
 import { FDB } from '../sources/FDB';
-import { inTx } from '../sources/FTransaction';
+import { inTx } from '../sources/modules/FTransaction';
 
 export const Resolver = {
     MessagesLeaderboardItem: {

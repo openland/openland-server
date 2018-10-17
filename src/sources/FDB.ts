@@ -1,4 +1,4 @@
-import { SharedCounter } from './SharedCounter';
+import { SharedCounter } from './modules/SharedCounter';
 import { Online } from './Online';
 
 export const FDB = {
