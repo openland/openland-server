@@ -403,7 +403,7 @@ export const Resolver = {
             // await Repos.Users.markUserOnline(context.uid, args.timeout, context.tid!!, args.platform);
             await FDB.Online.setOnline(context.uid, context.tid!, args.timeout, args.platform || 'unknown');
             // await Repos.Users.markUserActive(context.uid, args.timeout, context.tid!!, args.platform);
-            // await Repos.Chats.onlineEngine.setOnline(context.uid, args.timeout);
+            await Repos.Chats.onlineEngine.setOnline(context.uid, args.timeout);
             return 'ok';
         },
         alphaReportOffline: withAny<{ platform?: string }>(async (args, ctx) => {
