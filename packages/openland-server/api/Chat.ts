@@ -2057,7 +2057,7 @@ export const Resolver = {
                     conversationId,
                     uid,
                     {
-                        message: `${profile!.firstName} leaved chat`,
+                        message: `${profile!.firstName} has left the chat`,
                         isService: true,
                         isMuted: true,
                         serviceMetadata: {
