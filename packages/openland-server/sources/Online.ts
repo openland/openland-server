@@ -31,3 +31,19 @@ export class Online {
         }
     }
 }
+
+(async () => {
+
+    async function watch() {
+        let w = await FDB.Presence.watch(31, 806);
+
+        console.log(w.value);
+        w.promise.then(r => {
+            console.log('change', r);
+            watch();
+        });
+    }
+
+    watch();
+
+})();

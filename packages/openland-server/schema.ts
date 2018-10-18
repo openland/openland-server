@@ -81,6 +81,9 @@ export class PresenceFactory extends FEntityFactory<Presence, PresenceShape> {
     async findById(uid: number, tid: number) {
         return await this._findById([uid, tid]);
     }
+    async watch(uid: number, tid: number) {
+        return this.connection.fdb.getAndWatch([...this.namespace.namespace, uid, tid]);
+    }
     createOrUpdate(uid: number, tid: number, shape: PresenceShape) {
         return this._create([uid, tid], shape);
     }

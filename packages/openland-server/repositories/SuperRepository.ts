@@ -53,7 +53,7 @@ export class SuperRepository {
 
                 for (let m of members) {
                     m.user.status = 'ACTIVATED';
-                    m.user.save({ transaction: tx });
+                    await m.user.save({ transaction: tx });
 
                     await Repos.Chats.addToInitialChannel(m.user.id!, tx);
                 }
