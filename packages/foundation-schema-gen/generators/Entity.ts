@@ -1,5 +1,16 @@
-import { EntityModel } from '../Model';
+import { EntityModel, EntityField } from '../Model';
 import * as Case from 'change-case';
+
+function resolveFieldType(field: EntityField) {
+    let type: string = field.type;
+    if (field.type === 'enum') {
+        type = field.enumValues.map((v) => '\'' + v + '\'').join(' | ');
+    }
+    if (field.type === 'json') {
+        type = 'any';
+    }
+    return type;
+}
 
 export function generateEntity(entity: EntityModel): string {
     let entityKey = Case.camelCase(entity.name);
@@ -7,7 +18,7 @@ export function generateEntity(entity: EntityModel): string {
     let res = '';
     res += 'export interface ' + entityClass + 'Shape {\n';
     for (let k of entity.fields) {
-        res += '    ' + k.name + ': ' + k.type + ';\n';
+        res += '    ' + k.name + (k.isNullable ? '?' : '') + ': ' + resolveFieldType(k) + ';\n';
     }
     res += '}\n\n';
 
@@ -24,16 +35,28 @@ export function generateEntity(entity: EntityModel): string {
 
     // Fields
     for (let k of entity.fields) {
-        res += '    get ' + k.name + '() {\n';
-        res += '        return this._value.' + k.name + ';\n';
+        let type: string = resolveFieldType(k);
+        if (k.isNullable) {
+            type = type + ' | null';
+        }
+
+        res += '    get ' + k.name + '(): ' + type + ' {\n';
+        if (k.isNullable) {
+            res += '        let res = this._value.' + k.name + ';\n';
+            res += '        if (res) { return res; }\n';
+            res += '        return null;\n';
+        } else {
+            res += '        return this._value.' + k.name + ';\n';
+        }
         res += '    }\n';
-        res += '    set ' + k.name + '(value: ' + k.type + ') {\n';
+        res += '    set ' + k.name + '(value: ' + type + ') {\n';
         res += '        this._checkIsWritable();\n';
         res += '        if (value === this._value.' + k.name + ') { return; }\n';
         res += '        this._value.' + k.name + ' = value;\n';
         res += '        this.markDirty();\n';
         res += '    }\n';
     }
+
     res += '}\n\n';
 
     // Factory

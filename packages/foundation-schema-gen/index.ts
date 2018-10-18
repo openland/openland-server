@@ -21,8 +21,12 @@ export function entity(name: string, schema: () => void) {
     currentEntity = null;
 }
 
-export function field(name: string, type: 'number' | 'string' | 'boolean') {
-    currentEntity!!.addField(name, type);
+export function field(name: string, type: 'number' | 'string' | 'boolean' | 'json') {
+    return currentEntity!!.addField(name, type, []);
+}
+
+export function enumField(name: string, values: string[]) {
+    currentEntity!!.addField(name, 'enum', values);
 }
 
 export function primaryKey(name: string, type: 'number' | 'string') {

@@ -10,7 +10,7 @@ export interface OnlineShape {
 
 export class Online extends FEntity {
     get uid() { return this._value.uid; }
-    get lastSeen() {
+    get lastSeen(): number {
         return this._value.lastSeen;
     }
     set lastSeen(value: number) {
@@ -44,7 +44,7 @@ export interface PresenceShape {
 export class Presence extends FEntity {
     get uid() { return this._value.uid; }
     get tid() { return this._value.tid; }
-    get lastSeen() {
+    get lastSeen(): number {
         return this._value.lastSeen;
     }
     set lastSeen(value: number) {
@@ -53,7 +53,7 @@ export class Presence extends FEntity {
         this._value.lastSeen = value;
         this.markDirty();
     }
-    get lastSeenTimeout() {
+    get lastSeenTimeout(): number {
         return this._value.lastSeenTimeout;
     }
     set lastSeenTimeout(value: number) {
@@ -62,7 +62,7 @@ export class Presence extends FEntity {
         this._value.lastSeenTimeout = value;
         this.markDirty();
     }
-    get platform() {
+    get platform(): string {
         return this._value.platform;
     }
     set platform(value: string) {
@@ -93,7 +93,7 @@ export interface CounterShape {
 
 export class Counter extends FEntity {
     get name() { return this._value.name; }
-    get value() {
+    get value(): number {
         return this._value.value;
     }
     set value(value: number) {
@@ -125,7 +125,7 @@ export interface UserTokenShape {
 
 export class UserToken extends FEntity {
     get uuid() { return this._value.uuid; }
-    get uid() {
+    get uid(): number {
         return this._value.uid;
     }
     set uid(value: number) {
@@ -134,7 +134,7 @@ export class UserToken extends FEntity {
         this._value.uid = value;
         this.markDirty();
     }
-    get lastIp() {
+    get lastIp(): string {
         return this._value.lastIp;
     }
     set lastIp(value: string) {
@@ -166,7 +166,7 @@ export interface ServiceCacheShape {
 export class ServiceCache extends FEntity {
     get service() { return this._value.service; }
     get key() { return this._value.key; }
-    get value() {
+    get value(): string {
         return this._value.value;
     }
     set value(value: string) {
@@ -200,7 +200,7 @@ export interface LockShape {
 
 export class Lock extends FEntity {
     get key() { return this._value.key; }
-    get seed() {
+    get seed(): string {
         return this._value.seed;
     }
     set seed(value: string) {
@@ -209,7 +209,7 @@ export class Lock extends FEntity {
         this._value.seed = value;
         this.markDirty();
     }
-    get timeout() {
+    get timeout(): number {
         return this._value.timeout;
     }
     set timeout(value: number) {
@@ -218,7 +218,7 @@ export class Lock extends FEntity {
         this._value.timeout = value;
         this.markDirty();
     }
-    get version() {
+    get version(): number {
         return this._value.version;
     }
     set version(value: number) {
@@ -227,7 +227,7 @@ export class Lock extends FEntity {
         this._value.version = value;
         this.markDirty();
     }
-    get minVersion() {
+    get minVersion(): number {
         return this._value.minVersion;
     }
     set minVersion(value: number) {
@@ -252,6 +252,108 @@ export class LockFactory extends FEntityFactory<Lock, LockShape> {
         return new Lock(this.connection, this.namespace, id, value, this.options);
     }
 }
+export interface TaskShape {
+    arguments: any;
+    result?: any;
+    taskStatus: 'pending' | 'executing' | 'failing' | 'failed' | 'completed';
+    taskFailureCount?: number;
+    taskFailureTime?: number;
+    taskLockSeed?: string;
+    taskLockTimeout?: number;
+}
+
+export class Task extends FEntity {
+    get taskType() { return this._value.taskType; }
+    get uid() { return this._value.uid; }
+    get arguments(): any {
+        return this._value.arguments;
+    }
+    set arguments(value: any) {
+        this._checkIsWritable();
+        if (value === this._value.arguments) { return; }
+        this._value.arguments = value;
+        this.markDirty();
+    }
+    get result(): any | null {
+        let res = this._value.result;
+        if (res) { return res; }
+        return null;
+    }
+    set result(value: any | null) {
+        this._checkIsWritable();
+        if (value === this._value.result) { return; }
+        this._value.result = value;
+        this.markDirty();
+    }
+    get taskStatus(): 'pending' | 'executing' | 'failing' | 'failed' | 'completed' {
+        return this._value.taskStatus;
+    }
+    set taskStatus(value: 'pending' | 'executing' | 'failing' | 'failed' | 'completed') {
+        this._checkIsWritable();
+        if (value === this._value.taskStatus) { return; }
+        this._value.taskStatus = value;
+        this.markDirty();
+    }
+    get taskFailureCount(): number | null {
+        let res = this._value.taskFailureCount;
+        if (res) { return res; }
+        return null;
+    }
+    set taskFailureCount(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.taskFailureCount) { return; }
+        this._value.taskFailureCount = value;
+        this.markDirty();
+    }
+    get taskFailureTime(): number | null {
+        let res = this._value.taskFailureTime;
+        if (res) { return res; }
+        return null;
+    }
+    set taskFailureTime(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.taskFailureTime) { return; }
+        this._value.taskFailureTime = value;
+        this.markDirty();
+    }
+    get taskLockSeed(): string | null {
+        let res = this._value.taskLockSeed;
+        if (res) { return res; }
+        return null;
+    }
+    set taskLockSeed(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.taskLockSeed) { return; }
+        this._value.taskLockSeed = value;
+        this.markDirty();
+    }
+    get taskLockTimeout(): number | null {
+        let res = this._value.taskLockTimeout;
+        if (res) { return res; }
+        return null;
+    }
+    set taskLockTimeout(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.taskLockTimeout) { return; }
+        this._value.taskLockTimeout = value;
+        this.markDirty();
+    }
+}
+
+export class TaskFactory extends FEntityFactory<Task, TaskShape> {
+    constructor(connection: FConnection) {
+        super(connection, new FNamespace('entity', 'task'), { enableVersioning: true, enableTimestamps: true });
+    }
+    async findById(taskType: string, uid: string) {
+        return await this._findById([taskType, uid]);
+    }
+    createOrUpdate(taskType: string, uid: string, shape: TaskShape) {
+        return this._create([taskType, uid], shape);
+    }
+    protected _createEntity(id: (string | number)[], value: any) {
+        return new Task(this.connection, this.namespace, id, value, this.options);
+    }
+}
 
 export class AllEntities {
     Online: OnlineFactory;
@@ -260,6 +362,7 @@ export class AllEntities {
     UserToken: UserTokenFactory;
     ServiceCache: ServiceCacheFactory;
     Lock: LockFactory;
+    Task: TaskFactory;
 
     constructor(connection: FConnection) {
         this.Online = new OnlineFactory(connection);
@@ -268,5 +371,6 @@ export class AllEntities {
         this.UserToken = new UserTokenFactory(connection);
         this.ServiceCache = new ServiceCacheFactory(connection);
         this.Lock = new LockFactory(connection);
+        this.Task = new TaskFactory(connection);
     }
 }
