@@ -49,6 +49,8 @@ export class SuperRepository {
                     }],
                     transaction: tx
                 });
+                console.log('activateOrganization', members.map(m => m.id));
+
                 for (let m of members) {
                     m.user.status = 'ACTIVATED';
                     m.user.save({ transaction: tx });
