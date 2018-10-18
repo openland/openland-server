@@ -53,7 +53,7 @@ export const DB = {
     Account: AccountTable,
     AccountMember: AccountMemberTable,
     ReaderState: ReaderStateTable,
-    // Lock: LockTable,
+    Lock: LockTable,
     SuperAdmin: SuperAdminTable,
     UserToken: UserTokenTable,
     Organization: OrganizationTable,
