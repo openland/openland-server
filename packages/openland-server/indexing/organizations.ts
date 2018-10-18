@@ -45,18 +45,6 @@ export function createOrganizationIndexer(client: ES.Client) {
         let featured = !!(item.extras && item.extras.featured);
         let isCommunity = !!(item.extras && item.extras.isCommunity);
 
-        let posts = await DB.WallPost.findAll({
-            where: {
-                orgId: item.id
-            }
-        });
-
-        let tags: string[][] = posts.map(p => p.extras!.tags as string[] || []);
-
-        let flatTags = tags.reduce((a, b) => {
-            return a.concat(b);
-        }, []);
-
         return {
             id: item.id!!,
             doc: {
@@ -67,7 +55,6 @@ export function createOrganizationIndexer(client: ES.Client) {
                 published: published,
                 featured: featured,
                 isCommunity: isCommunity,
-                tags: flatTags,
                 createdAt: (item as any).createdAt,
                 updatedAt: (item as any).updatedAt,
             }

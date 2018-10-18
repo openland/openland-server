@@ -92,26 +92,6 @@ scalar UserEventID
 scalar SettingsID
 scalar WallEntityID
 
-
-#
-# City Configurations
-#
-
-type SuperCity {
-    id: ID!
-    key: String!
-    name: String!
-    enabled: Boolean!
-    blockSource: String
-    blockSourceLayer: String
-    parcelSource: String
-    parcelSourceLayer: String
-}
-
-extend type Query {
-    superCities: [SuperCity!]!
-}
-
 #
 # Feature Flags
 #
