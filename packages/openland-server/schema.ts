@@ -159,17 +159,51 @@ export class UserTokenFactory extends FEntityFactory<UserToken, UserTokenShape> 
         return new UserToken(this.connection, this.namespace, id, value);
     }
 }
+export interface ServiceCacheShape {
+    value: string;
+}
+
+export class ServiceCache extends FEntity {
+    get service() { return this._value.service; }
+    get key() { return this._value.key; }
+    get value() {
+        return this._value.value;
+    }
+    set value(value: string) {
+        this._checkIsWritable();
+        if (value ===  this._value.value) { return; }
+        this._value.value = value;
+        this.markDirty();
+    }
+}
+
+export class ServiceCacheFactory extends FEntityFactory<ServiceCache, ServiceCacheShape> {
+    constructor(connection: FConnection) {
+        super(connection, new FNamespace('entity', 'serviceCache'));
+    }
+    async findById(service: string, key: string) {
+        return await this._findById([service, key]);
+    }
+    createOrUpdate(service: string, key: string, shape: ServiceCacheShape) {
+        return this._create([service, key], shape);
+    }
+    protected _createEntity(id: (string | number)[], value: any) {
+        return new ServiceCache(this.connection, this.namespace, id, value);
+    }
+}
 
 export class AllEntities {
     Online: OnlineFactory;
     Presence: PresenceFactory;
     Counter: CounterFactory;
     UserToken: UserTokenFactory;
+    ServiceCache: ServiceCacheFactory;
 
     constructor(connection: FConnection) {
         this.Online = new OnlineFactory(connection);
         this.Presence = new PresenceFactory(connection);
         this.Counter = new CounterFactory(connection);
         this.UserToken = new UserTokenFactory(connection);
+        this.ServiceCache = new ServiceCacheFactory(connection);
     }
 }

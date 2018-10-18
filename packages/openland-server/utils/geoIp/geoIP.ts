@@ -1,7 +1,7 @@
 import geoIpv4 from './geo_ip_v4.json';
 import request from 'request';
-import { CacheRepository } from '../../repositories/CacheRepository';
 import countries from './countries.json';
+import { CacheRepository } from 'openland-repositories/CacheRepository.js';
 
 // [fromIp, toIp, location_code, location_name]
 export type GeoIPRecord = [number, number, string, string];

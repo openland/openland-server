@@ -14,12 +14,12 @@ import { Pubsub, PubsubSubcription } from '../modules/pubsub';
 import { AccessDeniedError } from '../errors/AccessDeniedError';
 import { ConversationMessagesWorker } from '../workers';
 import { IDs } from '../api/utils/IDs';
-import { CacheRepository } from './CacheRepository';
 import { Perf } from '../utils/perf';
 import { Conversation } from '../tables/Conversation';
 import { URLAugmentation } from '../services/UrlInfoService';
 import Timer = NodeJS.Timer;
 import { sendCounterPush } from '../workers/PushWorker';
+import { CacheRepository } from 'openland-repositories/CacheRepository';
 
 export type ChatEventType =
     'new_message' |
@@ -1429,7 +1429,7 @@ export class ChatsRepository {
     }
 
     async deleteDraftMessage(uid: number, conversationId: number) {
-        return this.draftsCache.delete(`${uid}_${conversationId}`);
+        return this.draftsCache.write(`${uid}_${conversationId}`, { message: '' });
     }
 
     async checkAccessToChat(uid: number, conversation: Conversation, tx: Transaction) {
@@ -1450,7 +1450,7 @@ export class ChatsRepository {
         }
     }
 
-    async pinMessage(tx: Transaction, uid: number, conversationId: number, messageId: number|undefined) {
+    async pinMessage(tx: Transaction, uid: number, conversationId: number, messageId: number | undefined) {
         let conv = await DB.Conversation.findById(conversationId, {
             lock: tx.LOCK.UPDATE,
             transaction: tx

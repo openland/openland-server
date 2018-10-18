@@ -8,7 +8,6 @@ export const tokenExport = () => {
     reader.processor(async (data) => {
         await inTx(async () => {
             for (let t of data) {
-                console.log('token');
                 FDB.UserToken.createOrUpdate(t.tokenSalt!, { uid: t.userId!, lastIp: t.lastIp ? t.lastIp : '' });
             }
         });

@@ -1,4 +1,36 @@
 import { generate } from '../foundation-schema-gen/generate';
-import { Schema } from './Schema';
+import { declareSchema, entity, field, primaryKey } from '../foundation-schema-gen';
+
+const Schema = declareSchema(() => {
+    entity('Online', () => {
+        primaryKey('uid', 'number');
+        field('lastSeen', 'number');
+    });
+
+    entity('Presence', () => {
+        primaryKey('uid', 'number');
+        primaryKey('tid', 'number');
+        field('lastSeen', 'number');
+        field('lastSeenTimeout', 'number');
+        field('platform', 'string');
+    });
+
+    entity('Counter', () => {
+        primaryKey('name', 'string');
+        field('value', 'number');
+    });
+
+    entity('UserToken', () => {
+        primaryKey('uuid', 'string');
+        field('uid', 'number');
+        field('lastIp', 'string');
+    });
+
+    entity('ServiceCache', () => {
+        primaryKey('service', 'string');
+        primaryKey('key', 'string');
+        field('value', 'string');
+    });
+});
 
 generate(Schema, __dirname + '/../openland-server/schema.ts');

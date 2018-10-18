@@ -1,10 +1,10 @@
-import { CacheRepository } from '../repositories/CacheRepository';
 import { fetchURLInfo } from '../modules/UrlInfo';
 import { IDs } from '../api/utils/IDs';
 import { DB } from '../tables';
 import * as URL from 'url';
 import { ImageRef } from '../repositories/Media';
 import { UploadCareFileInfo } from './UploadCare';
+import { CacheRepository } from 'openland-repositories/CacheRepository';
 
 export interface URLAugmentation {
     url: string;
