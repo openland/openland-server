@@ -59,6 +59,7 @@ export class FTransaction implements FContext {
     }
 
     markDirty(entity: FEntity, callback: (connection: FConnection) => void) {
+        this._prepare(entity.connection);
         let key = [...entity.namespace.namespace, ...entity.rawId].join('.');
         this._pending.set(key, callback);
     }

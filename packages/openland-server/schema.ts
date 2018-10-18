@@ -3,7 +3,6 @@ import { FEntity } from 'foundation-orm/FEntity';
 import { FNamespace } from 'foundation-orm/FNamespace';
 import { FEntityFactory } from 'foundation-orm/FEntityFactory';
 import { FConnection } from 'foundation-orm/FConnection';
-import { FContext } from 'foundation-orm/FContext';
 
 export interface OnlineShape {
     lastSeen: number;
@@ -32,8 +31,8 @@ export class OnlineFactory extends FEntityFactory<Online, OnlineShape> {
     createOrUpdate(uid: number, shape: OnlineShape) {
         return this._create([uid], shape);
     }
-    protected _createEntity(context: FContext, namespace: FNamespace, id: (string | number)[], value: any) {
-        return new Online(context, namespace, id, value);
+    protected _createEntity(id: (string | number)[], value: any) {
+        return new Online(this.connection, this.namespace, id, value);
     }
 }
 export interface PresenceShape {
@@ -81,14 +80,11 @@ export class PresenceFactory extends FEntityFactory<Presence, PresenceShape> {
     async findById(uid: number, tid: number) {
         return await this._findById([uid, tid]);
     }
-    async watch(uid: number, tid: number) {
-        return this.connection.fdb.getAndWatch([...this.namespace.namespace, uid, tid]);
-    }
     createOrUpdate(uid: number, tid: number, shape: PresenceShape) {
         return this._create([uid, tid], shape);
     }
-    protected _createEntity(context: FContext, namespace: FNamespace, id: (string | number)[], value: any) {
-        return new Presence(context, namespace, id, value);
+    protected _createEntity(id: (string | number)[], value: any) {
+        return new Presence(this.connection, this.namespace, id, value);
     }
 }
 export interface CounterShape {
@@ -118,8 +114,49 @@ export class CounterFactory extends FEntityFactory<Counter, CounterShape> {
     createOrUpdate(name: string, shape: CounterShape) {
         return this._create([name], shape);
     }
-    protected _createEntity(context: FContext, namespace: FNamespace, id: (string | number)[], value: any) {
-        return new Counter(context, namespace, id, value);
+    protected _createEntity(id: (string | number)[], value: any) {
+        return new Counter(this.connection, this.namespace, id, value);
+    }
+}
+export interface UserTokenShape {
+    uid: number;
+    lastIp: string;
+}
+
+export class UserToken extends FEntity {
+    get uuid() { return this._value.uuid; }
+    get uid() {
+        return this._value.uid;
+    }
+    set uid(value: number) {
+        this._checkIsWritable();
+        if (value ===  this._value.uid) { return; }
+        this._value.uid = value;
+        this.markDirty();
+    }
+    get lastIp() {
+        return this._value.lastIp;
+    }
+    set lastIp(value: string) {
+        this._checkIsWritable();
+        if (value ===  this._value.lastIp) { return; }
+        this._value.lastIp = value;
+        this.markDirty();
+    }
+}
+
+export class UserTokenFactory extends FEntityFactory<UserToken, UserTokenShape> {
+    constructor(connection: FConnection) {
+        super(connection, new FNamespace('entity', 'userToken'));
+    }
+    async findById(uuid: string) {
+        return await this._findById([uuid]);
+    }
+    createOrUpdate(uuid: string, shape: UserTokenShape) {
+        return this._create([uuid], shape);
+    }
+    protected _createEntity(id: (string | number)[], value: any) {
+        return new UserToken(this.connection, this.namespace, id, value);
     }
 }
 
@@ -127,10 +164,12 @@ export class AllEntities {
     Online: OnlineFactory;
     Presence: PresenceFactory;
     Counter: CounterFactory;
+    UserToken: UserTokenFactory;
 
     constructor(connection: FConnection) {
         this.Online = new OnlineFactory(connection);
         this.Presence = new PresenceFactory(connection);
         this.Counter = new CounterFactory(connection);
+        this.UserToken = new UserTokenFactory(connection);
     }
 }

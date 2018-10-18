@@ -1,7 +1,6 @@
 import { FNamespace } from './FNamespace';
 import { FConnection } from './FConnection';
 import { FEntity } from './FEntity';
-import { FContext } from './FContext';
 
 export abstract class FEntityFactory<T extends FEntity, S> {
     readonly namespace: FNamespace;
@@ -12,18 +11,18 @@ export abstract class FEntityFactory<T extends FEntity, S> {
         this.connection = connection;
     }
 
-    protected abstract _createEntity(context: FContext, namespace: FNamespace, id: (string | number)[], value: any): T;
+    protected abstract _createEntity(id: (string | number)[], value: any): T;
 
     protected async _findById(key: (string | number)[]) {
         let res = await this.namespace.get(this.connection, ...key);
         if (res) {
-            return this._createEntity(this.connection.currentContext, this.namespace, key, res);
+            return this._createEntity(key, res);
         }
         return null;
     }
 
     protected _create(key: (string | number)[], value: any) {
-        let res = this._createEntity(this.connection.currentContext, this.namespace, key, value);
+        let res = this._createEntity(key, value);
         res.markDirty();
         return res;
     }

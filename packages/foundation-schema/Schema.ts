@@ -18,4 +18,10 @@ export const Schema = declareSchema(() => {
         primaryKey('name', 'string');
         field('value', 'number');
     });
+
+    entity('UserToken', () => {
+        primaryKey('uuid', 'string');
+        field('uid', 'number');
+        field('lastIp', 'string');
+    });
 });

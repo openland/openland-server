@@ -50,8 +50,8 @@ export function generateEntity(entity: EntityModel): string {
     res += '    createOrUpdate(' + entity.keys.map((v) => v.name + ': ' + v.type).join(', ') + ', shape: ' + entityClass + 'Shape) {\n';
     res += '        return this._create([' + entity.keys.map((v) => v.name).join(', ') + '], shape);\n';
     res += '    }\n';
-    res += '    protected _createEntity(context: FContext, namespace: FNamespace, id: (string | number)[], value: any) {\n';
-    res += '        return new ' + entityClass + '(context, namespace, id, value);\n';
+    res += '    protected _createEntity(id: (string | number)[], value: any) {\n';
+    res += '        return new ' + entityClass + '(this.connection, this.namespace, id, value);\n';
     res += '    }\n';
     res += '}';
 

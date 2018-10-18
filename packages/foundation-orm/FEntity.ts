@@ -5,16 +5,18 @@ import { FConnection } from './FConnection';
 export class FEntity {
     readonly namespace: FNamespace;
     readonly rawId: (string | number)[];
+    readonly connection: FConnection;
     protected _value: any;
     readonly isReadOnly: boolean;
     readonly context: FContext;
 
-    constructor(context: FContext, namespace: FNamespace, id: (string | number)[], value: any) {
+    constructor(connection: FConnection, namespace: FNamespace, id: (string | number)[], value: any) {
         this.namespace = namespace;
         this.rawId = id;
         this._value = value;
-        this.context = context;
-        this.isReadOnly = context.isReadOnly;
+        this.connection = connection;
+        this.context = connection.currentContext;
+        this.isReadOnly = connection.currentContext.isReadOnly;
     }
 
     protected _checkIsWritable() {
