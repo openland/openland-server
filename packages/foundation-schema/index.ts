@@ -1,5 +1,5 @@
 import { generate } from '../foundation-schema-gen/generate';
-import { declareSchema, entity, field, primaryKey } from '../foundation-schema-gen';
+import { declareSchema, entity, field, primaryKey, enableTimestamps, enableVersioning } from '../foundation-schema-gen';
 
 const Schema = declareSchema(() => {
     entity('Online', () => {
@@ -24,6 +24,8 @@ const Schema = declareSchema(() => {
         primaryKey('uuid', 'string');
         field('uid', 'number');
         field('lastIp', 'string');
+        enableTimestamps();
+        enableVersioning();
     });
 
     entity('ServiceCache', () => {

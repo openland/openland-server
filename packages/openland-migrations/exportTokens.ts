@@ -4,7 +4,7 @@ import { inTx } from 'foundation-orm/inTx';
 import { FDB } from 'openland-server/sources/FDB';
 
 export const tokenExport = () => {
-    let reader = new UpdateReader('token_export', 5, DB.UserToken);
+    let reader = new UpdateReader('token_export', 8, DB.UserToken);
     reader.processor(async (data) => {
         await inTx(async () => {
             for (let t of data) {

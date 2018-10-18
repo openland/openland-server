@@ -28,3 +28,11 @@ export function field(name: string, type: 'number' | 'string' | 'boolean') {
 export function primaryKey(name: string, type: 'number' | 'string') {
     currentEntity!!.addKey(name, type);
 }
+
+export function enableTimestamps() {
+    currentEntity!!.enableTimestamps = true;
+}
+
+export function enableVersioning() {
+    currentEntity!!.enableVersioning = true;
+}

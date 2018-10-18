@@ -12,6 +12,8 @@ export class EntityModel {
     readonly name: string;
     keys: EntityField[] = [];
     fields: EntityField[] = [];
+    enableVersioning: boolean = false;
+    enableTimestamps: boolean = false;
     constructor(name: string) {
         this.name = name;
     }

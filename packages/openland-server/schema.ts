@@ -15,7 +15,7 @@ export class Online extends FEntity {
     }
     set lastSeen(value: number) {
         this._checkIsWritable();
-        if (value ===  this._value.lastSeen) { return; }
+        if (value === this._value.lastSeen) { return; }
         this._value.lastSeen = value;
         this.markDirty();
     }
@@ -23,7 +23,7 @@ export class Online extends FEntity {
 
 export class OnlineFactory extends FEntityFactory<Online, OnlineShape> {
     constructor(connection: FConnection) {
-        super(connection, new FNamespace('entity', 'online'));
+        super(connection, new FNamespace('entity', 'online'), { enableVersioning: false, enableTimestamps: false });
     }
     async findById(uid: number) {
         return await this._findById([uid]);
@@ -32,7 +32,7 @@ export class OnlineFactory extends FEntityFactory<Online, OnlineShape> {
         return this._create([uid], shape);
     }
     protected _createEntity(id: (string | number)[], value: any) {
-        return new Online(this.connection, this.namespace, id, value);
+        return new Online(this.connection, this.namespace, id, value, this.options);
     }
 }
 export interface PresenceShape {
@@ -49,7 +49,7 @@ export class Presence extends FEntity {
     }
     set lastSeen(value: number) {
         this._checkIsWritable();
-        if (value ===  this._value.lastSeen) { return; }
+        if (value === this._value.lastSeen) { return; }
         this._value.lastSeen = value;
         this.markDirty();
     }
@@ -58,7 +58,7 @@ export class Presence extends FEntity {
     }
     set lastSeenTimeout(value: number) {
         this._checkIsWritable();
-        if (value ===  this._value.lastSeenTimeout) { return; }
+        if (value === this._value.lastSeenTimeout) { return; }
         this._value.lastSeenTimeout = value;
         this.markDirty();
     }
@@ -67,7 +67,7 @@ export class Presence extends FEntity {
     }
     set platform(value: string) {
         this._checkIsWritable();
-        if (value ===  this._value.platform) { return; }
+        if (value === this._value.platform) { return; }
         this._value.platform = value;
         this.markDirty();
     }
@@ -75,7 +75,7 @@ export class Presence extends FEntity {
 
 export class PresenceFactory extends FEntityFactory<Presence, PresenceShape> {
     constructor(connection: FConnection) {
-        super(connection, new FNamespace('entity', 'presence'));
+        super(connection, new FNamespace('entity', 'presence'), { enableVersioning: false, enableTimestamps: false });
     }
     async findById(uid: number, tid: number) {
         return await this._findById([uid, tid]);
@@ -84,7 +84,7 @@ export class PresenceFactory extends FEntityFactory<Presence, PresenceShape> {
         return this._create([uid, tid], shape);
     }
     protected _createEntity(id: (string | number)[], value: any) {
-        return new Presence(this.connection, this.namespace, id, value);
+        return new Presence(this.connection, this.namespace, id, value, this.options);
     }
 }
 export interface CounterShape {
@@ -98,7 +98,7 @@ export class Counter extends FEntity {
     }
     set value(value: number) {
         this._checkIsWritable();
-        if (value ===  this._value.value) { return; }
+        if (value === this._value.value) { return; }
         this._value.value = value;
         this.markDirty();
     }
@@ -106,7 +106,7 @@ export class Counter extends FEntity {
 
 export class CounterFactory extends FEntityFactory<Counter, CounterShape> {
     constructor(connection: FConnection) {
-        super(connection, new FNamespace('entity', 'counter'));
+        super(connection, new FNamespace('entity', 'counter'), { enableVersioning: false, enableTimestamps: false });
     }
     async findById(name: string) {
         return await this._findById([name]);
@@ -115,7 +115,7 @@ export class CounterFactory extends FEntityFactory<Counter, CounterShape> {
         return this._create([name], shape);
     }
     protected _createEntity(id: (string | number)[], value: any) {
-        return new Counter(this.connection, this.namespace, id, value);
+        return new Counter(this.connection, this.namespace, id, value, this.options);
     }
 }
 export interface UserTokenShape {
@@ -130,7 +130,7 @@ export class UserToken extends FEntity {
     }
     set uid(value: number) {
         this._checkIsWritable();
-        if (value ===  this._value.uid) { return; }
+        if (value === this._value.uid) { return; }
         this._value.uid = value;
         this.markDirty();
     }
@@ -139,7 +139,7 @@ export class UserToken extends FEntity {
     }
     set lastIp(value: string) {
         this._checkIsWritable();
-        if (value ===  this._value.lastIp) { return; }
+        if (value === this._value.lastIp) { return; }
         this._value.lastIp = value;
         this.markDirty();
     }
@@ -147,7 +147,7 @@ export class UserToken extends FEntity {
 
 export class UserTokenFactory extends FEntityFactory<UserToken, UserTokenShape> {
     constructor(connection: FConnection) {
-        super(connection, new FNamespace('entity', 'userToken'));
+        super(connection, new FNamespace('entity', 'userToken'), { enableVersioning: true, enableTimestamps: true });
     }
     async findById(uuid: string) {
         return await this._findById([uuid]);
@@ -156,7 +156,7 @@ export class UserTokenFactory extends FEntityFactory<UserToken, UserTokenShape> 
         return this._create([uuid], shape);
     }
     protected _createEntity(id: (string | number)[], value: any) {
-        return new UserToken(this.connection, this.namespace, id, value);
+        return new UserToken(this.connection, this.namespace, id, value, this.options);
     }
 }
 export interface ServiceCacheShape {
@@ -171,7 +171,7 @@ export class ServiceCache extends FEntity {
     }
     set value(value: string) {
         this._checkIsWritable();
-        if (value ===  this._value.value) { return; }
+        if (value === this._value.value) { return; }
         this._value.value = value;
         this.markDirty();
     }
@@ -179,7 +179,7 @@ export class ServiceCache extends FEntity {
 
 export class ServiceCacheFactory extends FEntityFactory<ServiceCache, ServiceCacheShape> {
     constructor(connection: FConnection) {
-        super(connection, new FNamespace('entity', 'serviceCache'));
+        super(connection, new FNamespace('entity', 'serviceCache'), { enableVersioning: false, enableTimestamps: false });
     }
     async findById(service: string, key: string) {
         return await this._findById([service, key]);
@@ -188,7 +188,7 @@ export class ServiceCacheFactory extends FEntityFactory<ServiceCache, ServiceCac
         return this._create([service, key], shape);
     }
     protected _createEntity(id: (string | number)[], value: any) {
-        return new ServiceCache(this.connection, this.namespace, id, value);
+        return new ServiceCache(this.connection, this.namespace, id, value, this.options);
     }
 }
 export interface LockShape {
@@ -205,7 +205,7 @@ export class Lock extends FEntity {
     }
     set seed(value: string) {
         this._checkIsWritable();
-        if (value ===  this._value.seed) { return; }
+        if (value === this._value.seed) { return; }
         this._value.seed = value;
         this.markDirty();
     }
@@ -214,7 +214,7 @@ export class Lock extends FEntity {
     }
     set timeout(value: number) {
         this._checkIsWritable();
-        if (value ===  this._value.timeout) { return; }
+        if (value === this._value.timeout) { return; }
         this._value.timeout = value;
         this.markDirty();
     }
@@ -223,7 +223,7 @@ export class Lock extends FEntity {
     }
     set version(value: number) {
         this._checkIsWritable();
-        if (value ===  this._value.version) { return; }
+        if (value === this._value.version) { return; }
         this._value.version = value;
         this.markDirty();
     }
@@ -232,7 +232,7 @@ export class Lock extends FEntity {
     }
     set minVersion(value: number) {
         this._checkIsWritable();
-        if (value ===  this._value.minVersion) { return; }
+        if (value === this._value.minVersion) { return; }
         this._value.minVersion = value;
         this.markDirty();
     }
@@ -240,7 +240,7 @@ export class Lock extends FEntity {
 
 export class LockFactory extends FEntityFactory<Lock, LockShape> {
     constructor(connection: FConnection) {
-        super(connection, new FNamespace('entity', 'lock'));
+        super(connection, new FNamespace('entity', 'lock'), { enableVersioning: false, enableTimestamps: false });
     }
     async findById(key: string) {
         return await this._findById([key]);
@@ -249,7 +249,7 @@ export class LockFactory extends FEntityFactory<Lock, LockShape> {
         return this._create([key], shape);
     }
     protected _createEntity(id: (string | number)[], value: any) {
-        return new Lock(this.connection, this.namespace, id, value);
+        return new Lock(this.connection, this.namespace, id, value, this.options);
     }
 }
 

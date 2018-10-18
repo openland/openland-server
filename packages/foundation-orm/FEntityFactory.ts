@@ -1,14 +1,16 @@
 import { FNamespace } from './FNamespace';
 import { FConnection } from './FConnection';
-import { FEntity } from './FEntity';
+import { FEntity, FEntityOptions } from './FEntity';
 
 export abstract class FEntityFactory<T extends FEntity, S> {
     readonly namespace: FNamespace;
     readonly connection: FConnection;
+    readonly options: FEntityOptions;
 
-    constructor(connection: FConnection, namespace: FNamespace) {
+    constructor(connection: FConnection, namespace: FNamespace, options: FEntityOptions) {
         this.namespace = namespace;
         this.connection = connection;
+        this.options = options;
     }
 
     protected abstract _createEntity(id: (string | number)[], value: any): T;
