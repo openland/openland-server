@@ -101,11 +101,13 @@ export class FTransaction implements FContext {
         }
 
         this.connection = connection;
-        this.txPromise = connection.fdb.doTransaction((tx) => {
-            this.tx = tx;
-            return new Promise((resolver) => {
-                this.resolver = resolver;
+        if (!this.txPromise) {
+            this.txPromise = connection.fdb.doTransaction((tx) => {
+                this.tx = tx;
+                return new Promise((resolver) => {
+                    this.resolver = resolver;
+                });
             });
-        });
+        }
     }
 }
