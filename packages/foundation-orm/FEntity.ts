@@ -27,6 +27,7 @@ export class FEntity {
 
     markDirty() {
         this.context.markDirty(this, (connection: FConnection) => {
+            console.log('FEntity updated', { entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: this._value });
             this.namespace.set(connection, this._value, ...this.rawId);
         });
     }

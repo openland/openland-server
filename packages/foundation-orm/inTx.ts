@@ -1,4 +1,5 @@
 import { FTransaction } from './FTransaction';
+import { FDBError } from 'foundationdb';
 
 export async function inTx<T>(callback: () => Promise<T>): Promise<T> {
     let ex = FTransaction.currentTransaction;
@@ -8,12 +9,22 @@ export async function inTx<T>(callback: () => Promise<T>): Promise<T> {
 
     let tx = new FTransaction();
     FTransaction.currentTransaction = tx;
+    // Implementation is copied from database.js from foundationdb library.
     try {
-        let res = await callback();
-        await tx.flush();
-        return res;
+        do {
+            try {
+                const result = await callback();
+                await tx.flush();
+                return result;
+            } catch (err) {
+                if (err instanceof FDBError) {
+                    await tx.tx!.rawOnError(err.code);
+                } else {
+                    throw err;
+                }
+            }
+        } while (true);
     } finally {
         FTransaction.currentTransaction = null;
-        await tx.abort();
     }
 }

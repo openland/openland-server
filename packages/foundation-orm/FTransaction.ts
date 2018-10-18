@@ -42,11 +42,9 @@ export class FTransaction implements FContext {
     }
 
     readonly isReadOnly: boolean = false;
+    tx: Transaction<TupleItem[], any> | null = null;
     private isCompleted = false;
     private connection: FConnection | null = null;
-    private tx: Transaction<TupleItem[], any> | null = null;
-    private resolver: ((value: {}) => void) | null = null;
-    private txPromise: Promise<{}> | null = null;
     private _pending = new Map<string, (connection: FConnection) => void>();
 
     async get(connection: FConnection, ...key: (string | number)[]) {
@@ -72,15 +70,14 @@ export class FTransaction implements FContext {
         if (!this.connection) {
             return;
         }
-        this.resolver!({});
-        await this.txPromise!;
+
+        await this.tx!!.rawCancel();
     }
 
     async flush() {
         if (this.isCompleted) {
             return;
         }
-        this.isCompleted = true;
         if (!this.connection) {
             return;
         }
@@ -90,9 +87,9 @@ export class FTransaction implements FContext {
             p(this.connection!);
         }
 
-        this.resolver!({});
         let t = currentTime();
-        await this.txPromise!;
+        await this.tx!!.rawCommit();
+        this.isCompleted = true;
         console.log('Transaction commit time: ' + (currentTime() - t) + ' ms');
     }
 
@@ -100,15 +97,11 @@ export class FTransaction implements FContext {
         if (this.connection && this.connection !== connection) {
             throw Error('Unable to use two different connections in the same transaction');
         }
+        if (this.connection) {
+            return;
+        }
 
         this.connection = connection;
-        if (!this.txPromise) {
-            this.txPromise = connection.fdb.doTransaction((tx) => {
-                this.tx = tx;
-                return new Promise((resolver) => {
-                    this.resolver = resolver;
-                });
-            });
-        }
+        this.tx = connection.fdb.rawCreateTransaction();
     }
 }
