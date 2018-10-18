@@ -171,6 +171,7 @@
   "devDependencies": {},
   "_moduleAliases": {
     "foundation-orm": "build/foundation-orm",
-    "openland-server": "build/openland-server"
+    "openland-server": "build/openland-server",
+    "openland-migrations": "build/openland-migrations"
   }
 }

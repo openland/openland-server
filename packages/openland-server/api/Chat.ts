@@ -2,7 +2,7 @@ import { ConversationMessage } from '../tables/ConversationMessage';
 import { IDs, IdsFactory } from './utils/IDs';
 import { Conversation } from '../tables/Conversation';
 import { DB, User } from '../tables';
-import { withPermission, withAny, withUser, resolveUser, withAccount } from './utils/Resolvers';
+import { withPermission, withUser, resolveUser, withAccount } from './utils/Resolvers';
 import {
     validate,
     stringNotEmpty,
@@ -632,16 +632,6 @@ export const Resolver = {
     },
 
     Query: {
-        alphaFilePreviewLink: withAny<{ uuid: string }>(async (args) => {
-            let res = await Services.BoxPreview.uploadToBox(args.uuid);
-            if (!res.fileExists) {
-                throw new NotFoundError();
-            }
-            if (!res.boxAllowed) {
-                throw new UserError('Preview are available only for files less than 15 mb');
-            }
-            return await Services.BoxPreview.generatePreviewId(res.boxId!!);
-        }),
         alphaNotificationCounter: withUser((args, uid) => uid),
         alphaChats: withUser<{ first: number, after?: string | null, seq?: number }>(async (args, uid) => {
             return await DB.tx(async (tx) => {

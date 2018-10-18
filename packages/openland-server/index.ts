@@ -26,6 +26,7 @@ import { initElastic } from './init/initElastic';
 import { initFiles } from './init/initFiles';
 import initTestDatabase from './tests/data';
 import './init/initConfig';
+import { performMigrations } from 'openland-migrations';
 
 if (process.argv.indexOf('--rebuild-test') >= 0) {
     console.warn('Building test environment');
@@ -59,6 +60,7 @@ if (process.argv.indexOf('--rebuild-test') >= 0) {
                 await initElastic();
             }
             await initWorkers();
+            performMigrations();
             if (serverRoleEnabled('api')) {
                 await initApi(false);
             }
