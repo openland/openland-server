@@ -8,10 +8,10 @@ export class FNamespace {
     }
 
     get = async (connection: FConnection, ...key: (string | number)[]) => {
-        return connection.currentContext.get(connection, ...key);
+        return connection.currentContext.get(connection, ...this.namespace, ...key);
     }
 
     set = async (connection: FConnection, value: any, ...key: (string | number)[]) => {
-        return connection.currentContext.set(connection, [this.namespace, ...key], value);
+        return connection.currentContext.set(connection, value, ...this.namespace, ...key);
     }
 }

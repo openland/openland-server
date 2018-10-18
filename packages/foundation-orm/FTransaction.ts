@@ -47,7 +47,7 @@ export class FTransaction implements FContext {
     private tx: Transaction<TupleItem[], any> | null = null;
     private resolver: ((value: {}) => void) | null = null;
     private txPromise: Promise<{}> | null = null;
-    private _pending: (() => void)[] = [];
+    private _pending = new Map<string, (connection: FConnection) => void>();
 
     async get(connection: FConnection, ...key: (string | number)[]) {
         this._prepare(connection);
@@ -58,10 +58,9 @@ export class FTransaction implements FContext {
         this.tx!.set(key, value);
     }
 
-    markDirty(entity: FEntity, value: any) {
-        this._pending.push(() => {
-            this.tx!.set(entity.rawId, value);
-        });
+    markDirty(entity: FEntity, callback: (connection: FConnection) => void) {
+        let key = [...entity.namespace.namespace, ...entity.rawId].join('.');
+        this._pending.set(key, callback);
     }
 
     async abort() {
@@ -86,8 +85,8 @@ export class FTransaction implements FContext {
         }
 
         // Do not need to parallel things since client will batch everything for us
-        for (let p of this._pending) {
-            await p();
+        for (let p of this._pending.values()) {
+            p(this.connection!);
         }
 
         this.resolver!({});
