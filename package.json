@@ -173,6 +173,6 @@
     "foundation-orm": "build/foundation-orm",
     "openland-server": "build/openland-server",
     "openland-migrations": "build/openland-migrations",
-    "openland-respositories": "build/openland-respositories"
+    "openland-repositories": "build/openland-repositories"
   }
 }

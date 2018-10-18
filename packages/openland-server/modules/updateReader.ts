@@ -2,10 +2,10 @@ import { DB, DB_SILENT } from '../tables';
 import sequelize from 'sequelize';
 import { IncludeOptions, Transaction } from 'sequelize';
 import { delay, forever, currentTime, printElapsed, delayBreakable } from '../utils/timer';
-import { tryLock } from './locking';
 import * as ES from 'elasticsearch';
 import { Pubsub } from './pubsub';
 import { addAfterChangedCommitHook } from '../utils/sequelizeHooks';
+import { LockRepository } from 'openland-repositories/LockRepository';
 
 let pubsub = new Pubsub<{ key: string, offset: string, secondary: number }>();
 
@@ -288,7 +288,7 @@ async function updateReader<TInstance, TAttributes>(
             // Prerequisites
             //
 
-            if (!(await tryLock(tx, 'reader_' + name, version))) {
+            if (!(await LockRepository.tryLock('reader_' + name, version))) {
                 shouldInit = true;
                 return false;
             }

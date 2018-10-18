@@ -2,11 +2,11 @@ import { LockState, LockProvider, DynamicLock } from './dynamicLocking';
 import { delay, forever, delayBreakable } from '../utils/timer';
 import { DB, DB_SILENT } from '../tables';
 import { JsonMap } from '../utils/json';
-import { tryLock } from './locking';
 import sequelize, { Transaction } from 'sequelize';
 import { exponentialBackoffDelay } from '../utils/exponentialBackoffDelay';
 import { Pubsub } from './pubsub';
 import UUID from 'uuid/v4';
+import { LockRepository } from 'openland-repositories/LockRepository';
 
 class TaskLocker implements LockProvider {
 
@@ -59,7 +59,7 @@ export function startScheduller() {
         let res = await DB.connection.transaction({ logging: DB_SILENT as any }, async (tx) => {
 
             // Prerequisites
-            if (!(await tryLock(tx, 'work_scheduler', 1))) {
+            if (!(await LockRepository.tryLock('work_scheduler', 1))) {
                 return false;
             }
 

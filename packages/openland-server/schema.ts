@@ -191,6 +191,67 @@ export class ServiceCacheFactory extends FEntityFactory<ServiceCache, ServiceCac
         return new ServiceCache(this.connection, this.namespace, id, value);
     }
 }
+export interface LockShape {
+    seed: string;
+    timeout: number;
+    version: number;
+    minVersion: number;
+}
+
+export class Lock extends FEntity {
+    get key() { return this._value.key; }
+    get seed() {
+        return this._value.seed;
+    }
+    set seed(value: string) {
+        this._checkIsWritable();
+        if (value ===  this._value.seed) { return; }
+        this._value.seed = value;
+        this.markDirty();
+    }
+    get timeout() {
+        return this._value.timeout;
+    }
+    set timeout(value: number) {
+        this._checkIsWritable();
+        if (value ===  this._value.timeout) { return; }
+        this._value.timeout = value;
+        this.markDirty();
+    }
+    get version() {
+        return this._value.version;
+    }
+    set version(value: number) {
+        this._checkIsWritable();
+        if (value ===  this._value.version) { return; }
+        this._value.version = value;
+        this.markDirty();
+    }
+    get minVersion() {
+        return this._value.minVersion;
+    }
+    set minVersion(value: number) {
+        this._checkIsWritable();
+        if (value ===  this._value.minVersion) { return; }
+        this._value.minVersion = value;
+        this.markDirty();
+    }
+}
+
+export class LockFactory extends FEntityFactory<Lock, LockShape> {
+    constructor(connection: FConnection) {
+        super(connection, new FNamespace('entity', 'lock'));
+    }
+    async findById(key: string) {
+        return await this._findById([key]);
+    }
+    createOrUpdate(key: string, shape: LockShape) {
+        return this._create([key], shape);
+    }
+    protected _createEntity(id: (string | number)[], value: any) {
+        return new Lock(this.connection, this.namespace, id, value);
+    }
+}
 
 export class AllEntities {
     Online: OnlineFactory;
@@ -198,6 +259,7 @@ export class AllEntities {
     Counter: CounterFactory;
     UserToken: UserTokenFactory;
     ServiceCache: ServiceCacheFactory;
+    Lock: LockFactory;
 
     constructor(connection: FConnection) {
         this.Online = new OnlineFactory(connection);
@@ -205,5 +267,6 @@ export class AllEntities {
         this.Counter = new CounterFactory(connection);
         this.UserToken = new UserTokenFactory(connection);
         this.ServiceCache = new ServiceCacheFactory(connection);
+        this.Lock = new LockFactory(connection);
     }
 }

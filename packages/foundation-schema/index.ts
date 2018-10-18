@@ -31,6 +31,14 @@ const Schema = declareSchema(() => {
         primaryKey('key', 'string');
         field('value', 'string');
     });
+
+    entity('Lock', () => {
+        primaryKey('key', 'string');
+        field('seed', 'string');
+        field('timeout', 'number');
+        field('version', 'number');
+        field('minVersion', 'number');
+    });
 });
 
 generate(Schema, __dirname + '/../openland-server/schema.ts');
