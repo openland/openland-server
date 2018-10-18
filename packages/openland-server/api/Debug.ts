@@ -339,11 +339,11 @@ export const Resolver = {
         }),
 
         alphaResetUrlInfoCache: async () => {
-            await DB.ServicesCache.destroy({
-                where: {
-                    service: 'url_info'
-                }
-            });
+            // await DB.ServicesCache.destroy({
+            //     where: {
+            //         service: 'url_info'
+            //     }
+            // });
             return 'ok';
         }
 

@@ -16,7 +16,6 @@ import { SuperAdminTable } from './SuperAdmin';
 import { UserTokenTable } from './UserToken';
 import { OrganizationTable } from './Organization';
 import { FeatureFlagTable } from './FeatureFlag';
-import { ServicesCacheTable } from './ServicesCache';
 import { TaskTable } from './Task';
 import { UserProfileTable } from './UserProfile';
 import { UserProfilePrefillTable } from './UserProfilePrefill';
@@ -54,13 +53,12 @@ export const DB = {
     Account: AccountTable,
     AccountMember: AccountMemberTable,
     ReaderState: ReaderStateTable,
-    Lock: LockTable,
+    // Lock: LockTable,
     SuperAdmin: SuperAdminTable,
     UserToken: UserTokenTable,
     Organization: OrganizationTable,
     OrganizationConnect: OrganizationConnectTable,
     FeatureFlag: FeatureFlagTable,
-    ServicesCache: ServicesCacheTable,
     Task: TaskTable,
     UserProfile: UserProfileTable,
     UserProfilePrefill: UserProfilePrefillTable,
