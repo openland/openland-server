@@ -179,6 +179,7 @@
     "openland-module-workers": "build/openland-module-workers",
     "openland-module-db": "build/openland-module-db",
     "openland-module-presences": "build/openland-module-presences",
+    "openland-module-email": "build/openland-module-email",
     "openland-utils": "build/openland-utils"
   }
 }

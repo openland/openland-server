@@ -1,7 +1,7 @@
-import { staticWorker } from '../modules/staticWorker';
-import { DB, DB_SILENT } from '../tables';
-import { Repos } from '../repositories';
-import { Emails } from '../services/Emails';
+import { staticWorker } from '../../openland-server/modules/staticWorker';
+import { DB, DB_SILENT } from '../../openland-server/tables';
+import { Repos } from '../../openland-server/repositories';
+import { Emails } from '../../openland-server/services/Emails';
 
 export function startEmailNotificationWorker() {
     staticWorker({ name: 'email_notifications', delay: 15000 }, async (tx) => {

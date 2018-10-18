@@ -1,9 +1,9 @@
 import { Transaction } from 'sequelize';
-import { EmailWorker } from '../workers';
 import { DB } from '../tables';
 import { Repos } from '../repositories';
 import { OrganizationInvite } from '../tables/OrganizationInvite';
 import { ChannelInvite } from '../tables/ChannelInvite';
+import { Modules } from 'openland-modules/Modules';
 
 const TEMPLATE_WELCOME = 'c6a056a3-9d56-4b2e-8d50-7748dd28a1fb';
 const TEMPLATE_ACTIVATEED = 'e5b1d39d-35e9-4eba-ac4a-e0676b055346';
@@ -56,7 +56,7 @@ export const Emails = {
     async sendWelcomeEmail(uid: number, etx?: Transaction) {
         return await DB.tx(async (tx) => {
             let user = await loadUserState(uid, tx);
-            await EmailWorker.pushWork({
+            await Modules.Email.Worker.pushWork({
                 subject: 'Welcome to Openland!',
                 templateId: TEMPLATE_WELCOME,
                 to: user.email,
@@ -67,7 +67,7 @@ export const Emails = {
     async sendUnreadMesages(uid: number, count: number, etx?: Transaction) {
         return await DB.tx(async (tx) => {
             let user = await loadUserState(uid, tx);
-            await EmailWorker.pushWork({
+            await Modules.Email.Worker.pushWork({
                 subject: 'You’ve got new messages\n',
                 templateId: TEMPLATE_UNREAD_MESSAGES,
                 to: user.email,
@@ -92,7 +92,7 @@ export const Emails = {
             });
             for (let m of members) {
                 let user = await loadUserState(m.userId);
-                await EmailWorker.pushWork({
+                await Modules.Email.Worker.pushWork({
                     subject: 'Organization account activated',
                     templateId: TEMPLATE_ACTIVATEED,
                     to: user.email,
@@ -118,7 +118,7 @@ export const Emails = {
             });
             for (let m of members) {
                 let user = await loadUserState(m.userId);
-                await EmailWorker.pushWork({
+                await Modules.Email.Worker.pushWork({
                     subject: 'Organization account deactivated',
                     templateId: TEMPLATE_DEACTIVATED,
                     to: user.email,
@@ -140,7 +140,7 @@ export const Emails = {
 
             let user = await loadUserState(uid);
 
-            await EmailWorker.pushWork({
+            await Modules.Email.Worker.pushWork({
                 subject: `You were removed from ${org.name!}`,
                 templateId: TEMPLATE_MEMBER_REMOVED,
                 to: user.email,
@@ -169,7 +169,7 @@ export const Emails = {
 
             let user = await loadUserState(uid);
 
-            await EmailWorker.pushWork({
+            await Modules.Email.Worker.pushWork({
                 subject: `Your role at ${org.name!}} was updated`,
                 templateId: TEMPLATE_MEMBERSHIP_LEVEL_CHANGED,
                 to: user.email,
@@ -208,7 +208,7 @@ export const Emails = {
 
         let domain = process.env.APP_ENVIRONMENT === 'production' ? 'https://app.openland.com/join/' : 'http://localhost:3000/join/';
 
-        await EmailWorker.pushWork({
+        await Modules.Email.Worker.pushWork({
             subject: `Join ${org.name!} at Openland`,
             templateId: TEMPLATE_INVITE,
             to: invite.forEmail,
@@ -250,7 +250,7 @@ export const Emails = {
 
         let domain = process.env.APP_ENVIRONMENT === 'production' ? 'https://app.openland.com/invite/' : 'http://localhost:3000/invite/';
 
-        await EmailWorker.pushWork({
+        await Modules.Email.Worker.pushWork({
             subject: 'Invitation for Openland',
             templateId: TEMPLATE_INVITE_ORGANIZATION,
             to: invite.forEmail,
@@ -288,7 +288,7 @@ export const Emails = {
             for (let member of organizationMembers) {
                 let user = await loadUserState(member.userId);
 
-                await EmailWorker.pushWork({
+                await Modules.Email.Worker.pushWork({
                     subject: 'Invitation accepted',
                     templateId: TEMPLATE_MEMBER_JOINED,
                     to: user.email,
@@ -306,7 +306,7 @@ export const Emails = {
     },
 
     async sendDebugEmail(email: string, text: string) {
-        await EmailWorker.pushWork({
+        await Modules.Email.Worker.pushWork({
             subject: 'Debug email',
             templateId: TEMPLATE_INVITE,
             to: email,
@@ -345,7 +345,7 @@ export const Emails = {
 
         let domain = process.env.APP_ENVIRONMENT === 'production' ? 'https://app.openland.com/joinChannel/' : 'http://localhost:3000/joinChannel/';
 
-        await EmailWorker.pushWork({
+        await Modules.Email.Worker.pushWork({
             subject: `Join ${channel.title!} at Openland`,
             templateId: TEMPLATE_INVITE,
             to: invite.forEmail,
@@ -362,7 +362,7 @@ export const Emails = {
     },
 
     async sendActivationCodeEmail(email: string, code: string, tx?: Transaction) {
-        await EmailWorker.pushWork({
+        await Modules.Email.Worker.pushWork({
             subject: `Activation code: ` + code,
             templateId: TEMPLATE_SIGNUP_CODE,
             to: email,

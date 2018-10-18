@@ -1,6 +1,6 @@
-import { WorkQueue } from '../../openland-module-workers/workerQueue';
 import SendGrid from '@sendgrid/mail';
-import { SENDGRID_KEY } from '../utils/keys';
+import { WorkQueue } from 'openland-module-workers/workerQueue';
+import { SENDGRID_KEY } from 'openland-server/utils/keys';
 
 let devTeamEmails = [
     'korshakov.stepan@gmail.com',
