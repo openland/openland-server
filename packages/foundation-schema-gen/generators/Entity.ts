@@ -39,7 +39,7 @@ export function generateEntity(entity: EntityModel): string {
     // Factory
     res += 'export class ' + entityClass + 'Factory extends FEntityFactory<' + entityClass + ', ' + entityClass + 'Shape> {\n';
     res += '    constructor(connection: FConnection) {\n';
-    res += '        super(connection, new FNamespace(\'' + entityKey + '\'));\n';
+    res += '        super(connection, new FNamespace(\'entity\', \'' + entityKey + '\'));\n';
     res += '    }\n';
     // protected _createEntity(context: SContext, namespace: SNamespace, id: (string | number)[], value: any) {
     //     return new Online(context, namespace, id, value);

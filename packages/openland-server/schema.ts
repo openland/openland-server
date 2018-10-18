@@ -24,7 +24,7 @@ export class Online extends FEntity {
 
 export class OnlineFactory extends FEntityFactory<Online, OnlineShape> {
     constructor(connection: FConnection) {
-        super(connection, new FNamespace('online'));
+        super(connection, new FNamespace('entity', 'online'));
     }
     async findById(uid: number) {
         return await this._findById([uid]);
@@ -76,10 +76,13 @@ export class Presence extends FEntity {
 
 export class PresenceFactory extends FEntityFactory<Presence, PresenceShape> {
     constructor(connection: FConnection) {
-        super(connection, new FNamespace('presence'));
+        super(connection, new FNamespace('entity', 'presence'));
     }
     async findById(uid: number, tid: number) {
         return await this._findById([uid, tid]);
+    }
+    async watch(uid: number, tid: number) {
+        return this.connection.fdb.getAndWatch([...this.namespace.namespace, uid, tid]);
     }
     createOrUpdate(uid: number, tid: number, shape: PresenceShape) {
         return this._create([uid, tid], shape);
@@ -107,7 +110,7 @@ export class Counter extends FEntity {
 
 export class CounterFactory extends FEntityFactory<Counter, CounterShape> {
     constructor(connection: FConnection) {
-        super(connection, new FNamespace('counter'));
+        super(connection, new FNamespace('entity', 'counter'));
     }
     async findById(name: string) {
         return await this._findById([name]);
@@ -129,4 +132,5 @@ export class AllEntities {
         this.Online = new OnlineFactory(connection);
         this.Presence = new PresenceFactory(connection);
         this.Counter = new CounterFactory(connection);
-    }}
+    }
+}

@@ -143,7 +143,8 @@ export const Resolver = {
             return Repos.Phones.getUserPhones(src.id!);
         },
         lastIP: async (src: User) => Repos.Users.getUserLastIp(src.id!),
-        alphaConversationSettings: async (src: User, _: any, context: CallContext) => await Repos.Chats.getConversationSettings(context.uid!!, (await Repos.Chats.loadPrivateChat(context.uid!!, src.id!)).id)
+        alphaConversationSettings: async (src: User, _: any, context: CallContext) => await Repos.Chats.getConversationSettings(context.uid!!, (await Repos.Chats.loadPrivateChat(context.uid!!, src.id!)).id),
+        status: async (src: User) => src.status
     },
     Profile: {
         id: (src: UserProfile) => IDs.Profile.serialize(src.id!!),

@@ -11,7 +11,7 @@ export function generateAllEntities(entity: EntityModel[]) {
     for (let e of entity) {
         res += '        this.' + e.name + ' = new ' + e.name + 'Factory(connection);\n';
     }
-    res += '    }';
+    res += '    }\n';
     res += '}\n';
     return res;
 }
