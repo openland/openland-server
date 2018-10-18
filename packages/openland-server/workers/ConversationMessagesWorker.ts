@@ -18,8 +18,8 @@ export function createConversationMessagesWorker() {
             return { result: 'ok' };
         }
 
-        // augmentation was deleted
-        if (message.extras.urlAugmentation === null) {
+        // augmentation exists or was deleted
+        if (message.extras.urlAugmentation || message.extras.urlAugmentation === null) {
             return { result: 'ok' };
         }
 
