@@ -43,7 +43,6 @@ import { ShortNameTable } from './ShortName';
 import { PhoneTable } from './Phone';
 import { AuthSessionTable } from './AuthSession';
 import { AuthAuditTable } from './AuthAudit';
-import { PrivateCallTable } from './PrivateCall';
 
 const SILENT_TX_ACTUALLY_SILENT = true;
 export const DB_SILENT = !SILENT_TX_ACTUALLY_SILENT;
@@ -84,7 +83,6 @@ export const DB = {
     Phone: PhoneTable,
     AuthSession: AuthSessionTable,
     AuthAudit: AuthAuditTable,
-    PrivateCall: PrivateCallTable,
 
     tx: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>, existingTx?: sequelize.Transaction): Promise<A> {
         if (existingTx) {

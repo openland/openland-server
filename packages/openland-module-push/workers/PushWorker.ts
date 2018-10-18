@@ -5,7 +5,7 @@ import { AppConfiuguration } from 'openland-server/init/initConfig';
 import APN from 'apn';
 import * as Friebase from 'firebase-admin';
 import { IDs } from 'openland-server/api/utils/IDs';
-import { doSimpleHash } from 'openland-server/utils/hash';
+import { doSimpleHash } from './hash';
 import { Texts } from 'openland-server/texts';
 
 let providers = new Map<boolean, Map<string, APN.Provider>>();

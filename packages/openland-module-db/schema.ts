@@ -179,7 +179,7 @@ export class ServiceCache extends FEntity {
 
 export class ServiceCacheFactory extends FEntityFactory<ServiceCache, ServiceCacheShape> {
     constructor(connection: FConnection) {
-        super(connection, new FNamespace('entity', 'serviceCache'), { enableVersioning: false, enableTimestamps: false });
+        super(connection, new FNamespace('entity', 'serviceCache'), { enableVersioning: true, enableTimestamps: true });
     }
     async findById(service: string, key: string) {
         return await this._findById([service, key]);

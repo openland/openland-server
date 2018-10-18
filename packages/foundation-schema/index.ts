@@ -45,4 +45,4 @@ const Schema = declareSchema(() => {
     });
 });
 
-generate(Schema, __dirname + '/../openland-server/schema.ts');
+generate(Schema, __dirname + '/../openland-module-db/schema.ts');

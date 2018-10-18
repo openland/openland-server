@@ -6,7 +6,6 @@ import { IDs } from './utils/IDs';
 import { DB } from '../tables';
 import { SuperAdmin } from '../tables/SuperAdmin';
 import { FeatureFlag } from '../tables/FeatureFlag';
-import { SampleWorker } from '../workers';
 import { Task } from '../tables/Task';
 import { UserError } from '../errors/UserError';
 import { ErrorText } from '../errors/ErrorText';
@@ -195,7 +194,7 @@ export const Resolvers = {
             return 'ok';
         }),
         superMultiplyValue: withPermission<{ value: number }>(['super-admin', 'software-developer'], async (args) => {
-            return SampleWorker.pushWork({ someArgument: args.value });
+            return null;
         }),
         superAccountChannelMemberAdd: withPermission<{ id: string, userId: string }>('super-admin', async (args) => {
             return await DB.txStable(async (tx) => {

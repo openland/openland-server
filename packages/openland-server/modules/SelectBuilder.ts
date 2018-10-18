@@ -1,5 +1,4 @@
 import { DB } from '../tables';
-import { sumRaw, countRaw, textLikeFieldsText, percentileRaw, histogramCountRaw, histogramSumRaw } from '../utils/db_utils';
 import sequelize from 'sequelize';
 import { SearchResponse } from 'elasticsearch';
 import { UserError } from '../errors/UserError';
@@ -182,9 +181,6 @@ export class SelectBuilder<TInstance, TAttributes> {
             }
         });
         let conditions = [...this.conditions, ...eqConditions];
-        if (this.filterText != null) {
-            conditions.push(textLikeFieldsText(this.filterText.trim(), this.textFilterFields));
-        }
         if (conditions.length === 0) {
             return null;
         } else if (conditions.length === 1) {
@@ -309,16 +305,12 @@ export class SelectBuilder<TInstance, TAttributes> {
             res = res.splice(offset, this.limitValue);
         }
         let count: number;
-        if (!whereRaw) {
-            count = await this.count();
-        } else {
-            count = (await this.table.findAndCount({
-                where: [sequelize.and(...whereArray)],
-                include: include,
-                transaction: this.tx ? this.tx : undefined
-            })).count;
 
-        }
+        count = (await this.table.findAndCount({
+            where: [sequelize.and(...whereArray)],
+            include: include,
+            transaction: this.tx ? this.tx : undefined
+        })).count;
 
         return {
             edges: res.map((p, i) => {
@@ -337,26 +329,6 @@ export class SelectBuilder<TInstance, TAttributes> {
                 openEnded: false
             },
         };
-    }
-
-    async sum(field: string) {
-        return sumRaw(this.table.getTableName() as string, field, this.buildWhere());
-    }
-
-    async count() {
-        return countRaw(this.table.getTableName() as string, this.buildWhere());
-    }
-
-    async percentile(percentiles: [number], by: string) {
-        return percentileRaw(this.table.getTableName() as string, percentiles, by, this.buildWhere());
-    }
-
-    async histogramCount(by: string) {
-        return histogramCountRaw(this.table.getTableName() as string, by, this.buildWhere());
-    }
-
-    async histogramSum(field: string, by: string) {
-        return histogramSumRaw(this.table.getTableName() as string, by, field, this.buildWhere());
     }
 
     private clone() {
