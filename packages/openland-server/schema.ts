@@ -129,4 +129,5 @@ export class AllEntities {
         this.Online = new OnlineFactory(connection);
         this.Presence = new PresenceFactory(connection);
         this.Counter = new CounterFactory(connection);
-    }}
+    }
+}
