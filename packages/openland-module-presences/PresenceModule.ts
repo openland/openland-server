@@ -1,7 +1,12 @@
 import { inTx } from 'foundation-orm/inTx';
 import { FDB } from 'openland-module-db/FDB';
 
-export class Online {
+export class PresenceModule {
+    
+    start = () => {
+        // Nothing to do
+    }
+
     async setOnline(uid: number, tid: number, timeout: number, platform: string) {
         return await inTx(async () => {
             let expires = Date.now() + timeout;

@@ -178,6 +178,7 @@
     "openland-module-push": "build/openland-module-push",
     "openland-module-workers": "build/openland-module-workers",
     "openland-module-db": "build/openland-module-db",
+    "openland-module-presences": "build/openland-module-presences",
     "openland-utils": "build/openland-utils"
   }
 }

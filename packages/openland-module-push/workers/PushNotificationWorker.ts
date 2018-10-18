@@ -3,8 +3,8 @@ import { DB, DB_SILENT } from 'openland-server/tables';
 import { Repos } from 'openland-server/repositories';
 import { buildBaseImageUrl } from 'openland-server/repositories/Media';
 import { Texts } from 'openland-server/texts';
-import { Sources } from 'openland-server/sources/Sources';
 import { PushModule } from '../PushModule';
+import { Modules } from 'openland-modules/Modules';
 
 const Delays = {
     'none': 10 * 1000,
@@ -33,7 +33,7 @@ export function startPushNotificationWorker(module: PushModule) {
             let logPrefix = 'push_worker ' + u.userId;
 
             // TODO: Implement lastActive on FDB
-            let lastSeen = await Sources.Online.getLastSeen(u.userId); // await Repos.Users.getUserLastActiveExtended(u.userId, tx);
+            let lastSeen = await Modules.Presence.getLastSeen(u.userId); // await Repos.Users.getUserLastActiveExtended(u.userId, tx);
 
             // Ignore never-online users
             if (lastSeen === 'never_online') {

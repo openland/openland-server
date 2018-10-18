@@ -15,7 +15,7 @@ import { AccessDeniedError } from '../errors/AccessDeniedError';
 import { QueryParser } from '../modules/QueryParser';
 import { ElasticClient } from '../indexing';
 import { SelectBuilder } from '../modules/SelectBuilder';
-import { Sources } from 'openland-server/sources/Sources';
+import { Modules } from 'openland-modules/Modules';
 
 function userLoader(context: CallContext) {
     if (!context.cache.has('__profile_loader')) {
@@ -100,7 +100,7 @@ export const Resolver = {
         isYou: (src: User, args: {}, context: CallContext) => src.id === context.uid,
         alphaPrimaryOrganization: withProfile(async (src, profile) => await DB.Organization.findById((profile && profile.primaryOrganization) || (await Repos.Users.fetchUserAccounts(src.id!))[0])),
         online: async (src: User) => await Repos.Users.isUserOnline(src.id!),
-        lastSeen: async (src: User) => Sources.Online.getLastSeen(src.id!), // await Repos.Users.getUserLastSeen(src.id!),
+        lastSeen: async (src: User) => Modules.Presence.getLastSeen(src.id!), // await Repos.Users.getUserLastSeen(src.id!),
         createdChannels: async (src: User) => {
             return DB.Conversation.findAll({
                 where: {
@@ -402,7 +402,7 @@ export const Resolver = {
             await token!.save();
 
             // await Repos.Users.markUserOnline(context.uid, args.timeout, context.tid!!, args.platform);
-            await Sources.Online.setOnline(context.uid, context.tid!, args.timeout, args.platform || 'unknown');
+            await Modules.Presence.setOnline(context.uid, context.tid!, args.timeout, args.platform || 'unknown');
             // await Repos.Users.markUserActive(context.uid, args.timeout, context.tid!!, args.platform);
             await Repos.Chats.onlineEngine.setOnline(context.uid, args.timeout);
             return 'ok';

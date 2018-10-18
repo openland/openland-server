@@ -8,7 +8,7 @@ import { SuperBus } from '../modules/SuperBus';
 import { validate, stringNotEmpty } from '../modules/NewInputValidator';
 import { Sanitizer } from '../modules/Sanitizer';
 import { Repos } from '.';
-import { Sources } from 'openland-server/sources/Sources';
+import { Modules } from 'openland-modules/Modules';
 
 export interface Settings {
     emailFrequency: '1hour' | '15min' | 'never' | '24hour' | '1week';
@@ -370,7 +370,7 @@ export class UserRepository {
         //     }
         // }
 
-        return await Sources.Online.getLastSeen(uid) === 'online';
+        return await Modules.Presence.getLastSeen(uid) === 'online';
     }
 
     getUserSettingsFromInstance(instance: UserSettings) {
