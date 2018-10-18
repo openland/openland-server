@@ -1,5 +1,5 @@
-import { inTx } from './modules/FTransaction';
-import { SEntity } from './modules/SEntity';
+import { FDB } from './FDB';
+import { inTx } from 'foundation-orm/inTx';
 
 export interface OnlineRecord {
     lastSeen: number;
@@ -8,31 +8,30 @@ export interface OnlineRecord {
 }
 
 export class Online {
-    private presense = new SEntity<{ lastSeen: number, lastSeenTimeout: number, platform: string }>('presence');
-    private online = new SEntity<{ lastSeen: number }>('online');
-
     async setOnline(uid: number, tid: number, timeout: number, platform: string) {
         return await inTx(async () => {
             let expires = Date.now() + timeout;
-            await this.presense.createOrUpdate({ lastSeen: Date.now(), lastSeenTimeout: timeout, platform }, uid, tid);
+            FDB.Presence.createOrUpdate(uid, tid, { lastSeen: Date.now(), lastSeenTimeout: timeout, platform });
 
-            let online = await this.online.getById(uid);
+            let online = await FDB.Online.findById(uid);
 
-            if (!online || online.value.lastSeen < expires) {
-                await this.online.createOrUpdate({ lastSeen: expires }, uid);
+            if (!online) {
+                FDB.Online.createOrUpdate(uid, { lastSeen: expires });
+            } else if (online.lastSeen < expires) {
+                online.lastSeen = expires;
             }
         });
     }
 
     async getLastSeen(uid: number) {
         return await inTx(async () => {
-            let res = await this.online.getById(uid);
+            let res = await FDB.Online.findById(uid);
 
             if (res) {
-                if (res.value.lastSeen > Date.now()) {
+                if (res.lastSeen > Date.now()) {
                     return 'online';
                 } else {
-                    return res.value.lastSeen;
+                    return res.lastSeen;
                 }
             } else {
                 return 'never_online';

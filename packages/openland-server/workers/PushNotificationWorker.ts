@@ -4,7 +4,7 @@ import { PushWorker } from '.';
 import { Repos } from '../repositories';
 import { buildBaseImageUrl } from '../repositories/Media';
 import { Texts } from '../texts';
-import { FDB } from '../sources/FDB';
+import { Sources } from 'openland-server/sources/Sources';
 
 const Delays = {
     'none': 10 * 1000,
@@ -33,7 +33,7 @@ export function startPushNotificationWorker() {
             let logPrefix = 'push_worker ' + u.userId;
 
             // TODO: Implement lastActive on FDB
-            let lastSeen = await FDB.Online.getLastSeen(u.userId); // await Repos.Users.getUserLastActiveExtended(u.userId, tx);
+            let lastSeen = await Sources.Online.getLastSeen(u.userId); // await Repos.Users.getUserLastActiveExtended(u.userId, tx);
 
             // Ignore never-online users
             if (lastSeen === 'never_online') {

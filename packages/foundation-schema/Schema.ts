@@ -8,7 +8,7 @@ export const Schema = declareSchema(() => {
 
     entity('Presence', () => {
         primaryKey('uid', 'number');
-        primaryKey('tid', 'string');
+        primaryKey('tid', 'number');
         field('lastSeen', 'number');
         field('lastSeenTimeout', 'number');
         field('platform', 'string');

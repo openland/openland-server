@@ -78,10 +78,10 @@ export class PresenceFactory extends FEntityFactory<Presence, PresenceShape> {
     constructor(connection: FConnection) {
         super(connection, new FNamespace('presence'));
     }
-    async findById(uid: number, tid: string) {
+    async findById(uid: number, tid: number) {
         return await this._findById([uid, tid]);
     }
-    createOrUpdate(uid: number, tid: string, shape: PresenceShape) {
+    createOrUpdate(uid: number, tid: number, shape: PresenceShape) {
         return this._create([uid, tid], shape);
     }
     protected _createEntity(context: FContext, namespace: FNamespace, id: (string | number)[], value: any) {

@@ -11,7 +11,7 @@ import { fn, col } from 'sequelize';
 import { geoIP, GeoIPResponse } from '../utils/geoIp/geoIP';
 import { Repos } from '../repositories';
 import { ImageRef } from '../repositories/Media';
-import { FDB2 } from '../sources/FDB';
+import { FDB } from '../sources/FDB';
 import { inTx } from 'foundation-orm/inTx';
 
 export const Resolver = {
@@ -273,11 +273,11 @@ export const Resolver = {
     Mutation: {
         debugFoundation: async () => {
             return inTx(async () => {
-                let counter = await FDB2.Counter.findById('sample');
+                let counter = await FDB.Counter.findById('sample');
                 if (counter) {
                     return counter.value++;
                 } else {
-                    FDB2.Counter.createOrUpdate('sample', { value: 0 });
+                    FDB.Counter.createOrUpdate('sample', { value: 0 });
                     return 0;
                 }
             });
