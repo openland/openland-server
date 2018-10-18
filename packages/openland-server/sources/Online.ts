@@ -24,18 +24,16 @@ export class Online {
     }
 
     async getLastSeen(uid: number) {
-        return await inTx(async () => {
-            let res = await FDB.Online.findById(uid);
+        let res = await FDB.Online.findById(uid);
 
-            if (res) {
-                if (res.lastSeen > Date.now()) {
-                    return 'online';
-                } else {
-                    return res.lastSeen;
-                }
+        if (res) {
+            if (res.lastSeen > Date.now()) {
+                return 'online';
             } else {
-                return 'never_online';
+                return res.lastSeen;
             }
-        });
+        } else {
+            return 'never_online';
+        }
     }
 }
