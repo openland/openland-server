@@ -9,7 +9,7 @@ class LockRepositoryImpl {
         return inTx(async () => {
             let existing = await FDB.Lock.findById(key);
             let now = Date.now();
-            let currentTimeout = now + 10 * 1000;
+            let currentTimeout = now + 30 * 1000;
             if (existing !== null) {
                 // If current version is less than current required minimum
                 if (existing.minVersion > version) {
