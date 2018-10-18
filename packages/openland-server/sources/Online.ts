@@ -1,12 +1,6 @@
 import { FDB } from './FDB';
 import { inTx } from 'foundation-orm/inTx';
 
-export interface OnlineRecord {
-    lastSeen: number;
-    lastSeenTimeout: number;
-    platform: string;
-}
-
 export class Online {
     async setOnline(uid: number, tid: number, timeout: number, platform: string) {
         return await inTx(async () => {
