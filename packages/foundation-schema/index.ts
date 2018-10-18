@@ -32,6 +32,8 @@ const Schema = declareSchema(() => {
         primaryKey('service', 'string');
         primaryKey('key', 'string');
         field('value', 'string');
+        enableTimestamps();
+        enableVersioning();
     });
 
     entity('Lock', () => {
