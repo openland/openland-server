@@ -12,6 +12,7 @@ import { geoIP, GeoIPResponse } from '../utils/geoIp/geoIP';
 import { Repos } from '../repositories';
 import { ImageRef } from '../repositories/Media';
 import { FDB2 } from '../sources/FDB';
+import { inTx } from 'foundation-orm/inTx';
 
 export const Resolver = {
     MessagesLeaderboardItem: {
@@ -271,7 +272,16 @@ export const Resolver = {
     },
     Mutation: {
         debugFoundation: async () => {
-            return (await FDB2.Counter.findById('sample'))!.value;
+            return inTx(async () => {
+                let counter = await FDB2.Counter.findById('sample');
+                if (counter) {
+                    return counter.value++;
+                } else {
+                    FDB2.Counter.createOrUpdate('sample', { value: 0 });
+                    return 0;
+                }
+            });
+            // return (await FDB2.Counter.findById('sample'))!.value;
             // return inTx(async () => {
             //     let res = await FDB.SampeCounter.get();
             //     res++;

@@ -31,13 +31,13 @@ export function generateEntity(entity: EntityModel): string {
         res += '        this._checkIsWritable();\n';
         res += '        if (value ===  this._value.' + k.name + ') { return; }\n';
         res += '        this._value.' + k.name + ' = value;\n';
-        res += '        this._markDirty();\n';
+        res += '        this.markDirty();\n';
         res += '    }\n';
     }
     res += '}\n\n';
 
     // Factory
-    res += 'export class ' + entityClass + 'Factory extends FEntityFactory<' + entityClass + '> {\n';
+    res += 'export class ' + entityClass + 'Factory extends FEntityFactory<' + entityClass + ', ' + entityClass + 'Shape> {\n';
     res += '    constructor(connection: FConnection) {\n';
     res += '        super(connection, new FNamespace(\'' + entityKey + '\'));\n';
     res += '    }\n';
@@ -46,6 +46,9 @@ export function generateEntity(entity: EntityModel): string {
     // }
     res += '    async findById(' + entity.keys.map((v) => v.name + ': ' + v.type).join(', ') + ') {\n';
     res += '        return await this._findById([' + entity.keys.map((v) => v.name).join(', ') + ']);\n';
+    res += '    }\n';
+    res += '    createOrUpdate(' + entity.keys.map((v) => v.name + ': ' + v.type).join(', ') + ', shape: ' + entityClass + 'Shape) {\n';
+    res += '        return this._create([' + entity.keys.map((v) => v.name).join(', ') + '], shape);\n';
     res += '    }\n';
     res += '    protected _createEntity(context: FContext, namespace: FNamespace, id: (string | number)[], value: any) {\n';
     res += '        return new ' + entityClass + '(context, namespace, id, value);\n';

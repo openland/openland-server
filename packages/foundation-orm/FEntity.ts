@@ -3,14 +3,14 @@ import { FContext } from './FContext';
 
 export class FEntity {
     protected _namespace: FNamespace;
-    protected _id: (string | number)[];
+    readonly rawId: (string | number)[];
     protected _value: any;
     readonly isReadOnly: boolean;
     readonly context: FContext;
 
     constructor(context: FContext, namespace: FNamespace, id: (string | number)[], value: any) {
         this._namespace = namespace;
-        this._id = id;
+        this.rawId = id;
         this._value = value;
         this.context = context;
         this.isReadOnly = context.isReadOnly;
@@ -22,7 +22,7 @@ export class FEntity {
         }
     }
 
-    protected _markDirty() {
+    markDirty() {
         this.context.markDirty(this, this._value);
     }
 }

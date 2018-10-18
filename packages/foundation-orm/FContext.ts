@@ -2,19 +2,20 @@ import { FEntity } from './FEntity';
 import { FConnection } from './FConnection';
 
 export interface FContext {
-    readonly connection: FConnection;
     readonly isReadOnly: boolean;
     markDirty(entity: FEntity, value: any): void;
+    get(connection: FConnection, ...key: (string | number)[]): Promise<any | null>;
+    set(connection: FConnection, value: any, ...key: (string | number)[]): Promise<void>;
 }
 
 export class FGlobalContext implements FContext {
-    readonly connection: FConnection;
     readonly isReadOnly: boolean = true;
-
-    constructor(connection: FConnection) {
-        this.connection = connection;
+    get(connection: FConnection, ...key: (string | number)[]) {
+        return connection.fdb.get(key);
     }
-
+    set(connection: FConnection, value: any, ...key: (string | number)[]) {
+        return connection.fdb.set(key, value);
+    }
     markDirty(entity: FEntity, value: any) {
         throw Error('Trying to write to read-only context');
     }

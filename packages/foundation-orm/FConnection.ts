@@ -1,5 +1,6 @@
 import * as fdb from 'foundationdb';
 import { FContext, FGlobalContext } from './FContext';
+import { FTransaction } from './FTransaction';
 
 export class FConnection {
     readonly fdb: fdb.Database<fdb.TupleItem[], any>;
@@ -7,10 +8,14 @@ export class FConnection {
 
     constructor(connection: fdb.Database<fdb.TupleItem[], any>) {
         this.fdb = connection;
-        this.globalContext = new FGlobalContext(this);
+        this.globalContext = new FGlobalContext();
     }
 
-    get currentContext() {
+    get currentContext(): FContext {
+        let tx = FTransaction.currentTransaction;
+        if (tx) {
+            return tx;
+        }
         return this.globalContext;
     }
 }

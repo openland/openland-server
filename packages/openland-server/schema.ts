@@ -18,16 +18,19 @@ export class Online extends FEntity {
         this._checkIsWritable();
         if (value ===  this._value.lastSeen) { return; }
         this._value.lastSeen = value;
-        this._markDirty();
+        this.markDirty();
     }
 }
 
-export class OnlineFactory extends FEntityFactory<Online> {
+export class OnlineFactory extends FEntityFactory<Online, OnlineShape> {
     constructor(connection: FConnection) {
         super(connection, new FNamespace('online'));
     }
     async findById(uid: number) {
         return await this._findById([uid]);
+    }
+    createOrUpdate(uid: number, shape: OnlineShape) {
+        return this._create([uid], shape);
     }
     protected _createEntity(context: FContext, namespace: FNamespace, id: (string | number)[], value: any) {
         return new Online(context, namespace, id, value);
@@ -49,7 +52,7 @@ export class Presence extends FEntity {
         this._checkIsWritable();
         if (value ===  this._value.lastSeen) { return; }
         this._value.lastSeen = value;
-        this._markDirty();
+        this.markDirty();
     }
     get lastSeenTimeout() {
         return this._value.lastSeenTimeout;
@@ -58,7 +61,7 @@ export class Presence extends FEntity {
         this._checkIsWritable();
         if (value ===  this._value.lastSeenTimeout) { return; }
         this._value.lastSeenTimeout = value;
-        this._markDirty();
+        this.markDirty();
     }
     get platform() {
         return this._value.platform;
@@ -67,16 +70,19 @@ export class Presence extends FEntity {
         this._checkIsWritable();
         if (value ===  this._value.platform) { return; }
         this._value.platform = value;
-        this._markDirty();
+        this.markDirty();
     }
 }
 
-export class PresenceFactory extends FEntityFactory<Presence> {
+export class PresenceFactory extends FEntityFactory<Presence, PresenceShape> {
     constructor(connection: FConnection) {
         super(connection, new FNamespace('presence'));
     }
     async findById(uid: number, tid: string) {
         return await this._findById([uid, tid]);
+    }
+    createOrUpdate(uid: number, tid: string, shape: PresenceShape) {
+        return this._create([uid, tid], shape);
     }
     protected _createEntity(context: FContext, namespace: FNamespace, id: (string | number)[], value: any) {
         return new Presence(context, namespace, id, value);
@@ -95,16 +101,19 @@ export class Counter extends FEntity {
         this._checkIsWritable();
         if (value ===  this._value.value) { return; }
         this._value.value = value;
-        this._markDirty();
+        this.markDirty();
     }
 }
 
-export class CounterFactory extends FEntityFactory<Counter> {
+export class CounterFactory extends FEntityFactory<Counter, CounterShape> {
     constructor(connection: FConnection) {
         super(connection, new FNamespace('counter'));
     }
     async findById(name: string) {
         return await this._findById([name]);
+    }
+    createOrUpdate(name: string, shape: CounterShape) {
+        return this._create([name], shape);
     }
     protected _createEntity(context: FContext, namespace: FNamespace, id: (string | number)[], value: any) {
         return new Counter(context, namespace, id, value);
