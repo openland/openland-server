@@ -1,4 +1,4 @@
-import { WorkQueue } from '../modules/workerQueue';
+import { WorkQueue } from '../../openland-module-workers/workerQueue';
 import SendGrid from '@sendgrid/mail';
 import { SENDGRID_KEY } from '../utils/keys';
 

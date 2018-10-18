@@ -1,10 +1,10 @@
-import { LockState, LockProvider, DynamicLock } from './dynamicLocking';
-import { delay, forever, delayBreakable } from '../utils/timer';
-import { DB, DB_SILENT } from '../tables';
-import { JsonMap } from '../utils/json';
+import { LockState, LockProvider, DynamicLock } from 'openland-server/modules/dynamicLocking';
+import { delay, forever, delayBreakable } from 'openland-server/utils/timer';
+import { DB, DB_SILENT } from 'openland-server/tables';
+import { JsonMap } from 'openland-server/utils/json';
 import sequelize, { Transaction } from 'sequelize';
-import { exponentialBackoffDelay } from '../utils/exponentialBackoffDelay';
-import { Pubsub } from './pubsub';
+import { exponentialBackoffDelay } from 'openland-server/utils/exponentialBackoffDelay';
+import { Pubsub } from 'openland-server/modules/pubsub';
 import UUID from 'uuid/v4';
 import { LockRepository } from 'openland-repositories/LockRepository';
 

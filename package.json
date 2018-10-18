@@ -173,6 +173,11 @@
     "foundation-orm": "build/foundation-orm",
     "openland-server": "build/openland-server",
     "openland-migrations": "build/openland-migrations",
-    "openland-repositories": "build/openland-repositories"
+    "openland-repositories": "build/openland-repositories",
+    "openland-modules": "build/openland-modules",
+    "openland-module-push": "build/openland-module-push",
+    "openland-module-workers": "build/openland-module-workers",
+    "openland-module-db": "build/openland-module-db",
+    "openland-utils": "build/openland-utils"
   }
 }

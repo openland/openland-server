@@ -69,6 +69,21 @@
     "paths": {
       "foundation-orm": [
         "foundation-orm"
+      ],
+      "openland-utils": [
+        "openland-utils"
+      ],
+      "openland-server": [
+        "openland-server"
+      ],
+      "openland-modules": [
+        "openland-modules"
+      ],
+      "openland-module-push": [
+        "openland-module-push"
+      ],
+      "openland-module-workers": [
+        "openland-module-workers"
       ]
     }
   },

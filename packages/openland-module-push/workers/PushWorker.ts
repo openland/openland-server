@@ -1,14 +1,12 @@
-import { WorkQueue } from '../modules/workerQueue';
-import { DB } from '../tables';
+import { WorkQueue } from 'openland-module-workers/workerQueue';
+import { DB } from 'openland-server/tables';
 import WebPush from 'web-push';
-import { AppConfiuguration } from '../init/initConfig';
+import { AppConfiuguration } from 'openland-server/init/initConfig';
 import APN from 'apn';
 import * as Friebase from 'firebase-admin';
-import { IDs } from '../api/utils/IDs';
-import { doSimpleHash } from '../utils/hash';
-import { Texts } from '../texts';
-import { Transaction } from 'sequelize';
-import { PushWorker } from './index';
+import { IDs } from 'openland-server/api/utils/IDs';
+import { doSimpleHash } from 'openland-server/utils/hash';
+import { Texts } from 'openland-server/texts';
 
 let providers = new Map<boolean, Map<string, APN.Provider>>();
 
@@ -25,22 +23,6 @@ type Push = {
     mobileIncludeText: boolean;
     silent: boolean | null;
 };
-
-export function sendCounterPush(uid: number, conversationId: number, counter: number, tx: Transaction) {
-    return PushWorker.pushWork({
-        uid: uid,
-        counter: counter,
-        conversationId: conversationId,
-        mobile: true,
-        desktop: false,
-        picture: null,
-        silent: true,
-        title: '',
-        body: '',
-        mobileAlert: false,
-        mobileIncludeText: false
-    }, tx);
-}
 
 export function createPushWorker() {
     let queue = new WorkQueue<Push, { result: string }>('push_sender');

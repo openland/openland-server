@@ -1,6 +1,6 @@
 import * as Crypto from 'crypto';
 import { inTx } from 'foundation-orm/inTx';
-import { FDB } from 'openland-server/sources/FDB';
+import { FDB } from 'openland-module-db/FDB';
 
 class LockRepositoryImpl {
     private lockSeed = Crypto.randomBytes(32).toString('hex');

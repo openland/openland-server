@@ -1,7 +1,7 @@
 require('module-alias/register');
 
 // AsyncIterator polyfil
-import { serverRoleEnabled } from './utils/serverRoles';
+import { serverRoleEnabled } from '../openland-utils/serverRoleEnabled';
 
 if (Symbol.asyncIterator === undefined) {
     ((Symbol as any).asyncIterator) = Symbol.for('asyncIterator');
@@ -27,6 +27,7 @@ import { initFiles } from './init/initFiles';
 import initTestDatabase from './tests/data';
 import './init/initConfig';
 import { performMigrations } from 'openland-migrations';
+import { Modules } from '../openland-modules/Modules';
 
 if (process.argv.indexOf('--rebuild-test') >= 0) {
     console.warn('Building test environment');
@@ -53,13 +54,14 @@ if (process.argv.indexOf('--rebuild-test') >= 0) {
 } else {
     async function initServer() {
         try {
-            require('./sources/modules/init');
             await initDatabase(false, false);
+            Modules.start();
             await initFiles();
             if (serverRoleEnabled('indexing')) {
                 await initElastic();
             }
             await initWorkers();
+            
             performMigrations();
             if (serverRoleEnabled('api')) {
                 await initApi(false);

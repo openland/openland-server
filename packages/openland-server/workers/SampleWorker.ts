@@ -1,4 +1,4 @@
-import { WorkQueue } from '../modules/workerQueue';
+import { WorkQueue } from '../../openland-module-workers/workerQueue';
 import { delay } from '../utils/timer';
 
 export function createSampleWorker() {

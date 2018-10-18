@@ -11,8 +11,8 @@ import { fn, col } from 'sequelize';
 import { geoIP, GeoIPResponse } from '../utils/geoIp/geoIP';
 import { Repos } from '../repositories';
 import { ImageRef } from '../repositories/Media';
-import { FDB } from '../sources/FDB';
 import { inTx } from 'foundation-orm/inTx';
+import { FDB } from 'openland-module-db/FDB';
 
 export const Resolver = {
     MessagesLeaderboardItem: {

@@ -1,5 +1,7 @@
 import * as fdb from 'foundationdb';
 import * as fs from 'fs';
+import { AllEntities } from './schema';
+import { FConnection } from 'foundation-orm/FConnection';
 
 fdb.setAPIVersion(510);
 
@@ -11,6 +13,8 @@ if (process.env.FOUNDATION_DB) {
     db = fdb.openSync();
 }
 
-export const FDBConnection =
+const FDBConnection =
     db.withKeyEncoding(fdb.encoders.tuple)
         .withValueEncoding(fdb.encoders.json);
+
+export const FDB = new AllEntities(new FConnection(FDBConnection));

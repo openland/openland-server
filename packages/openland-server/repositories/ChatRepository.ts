@@ -18,8 +18,8 @@ import { Perf } from '../utils/perf';
 import { Conversation } from '../tables/Conversation';
 import { URLAugmentation } from '../services/UrlInfoService';
 import Timer = NodeJS.Timer;
-import { sendCounterPush } from '../workers/PushWorker';
 import { CacheRepository } from 'openland-repositories/CacheRepository';
+import { Modules } from 'openland-modules/Modules';
 
 export type ChatEventType =
     'new_message' |
@@ -798,7 +798,7 @@ export class ChatsRepository {
                     }
                 }, { transaction: tx });
 
-                await sendCounterPush(m, conversationId, userUnread, tx);
+                 await Modules.Push.sendCounterPush(m, conversationId, userUnread, tx);
 
                 if (m === uid) {
                     userEvent = _userEvent;

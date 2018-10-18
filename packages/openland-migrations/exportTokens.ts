@@ -1,7 +1,7 @@
 import { UpdateReader } from 'openland-server/modules/updateReader';
 import { DB } from 'openland-server/tables';
 import { inTx } from 'foundation-orm/inTx';
-import { FDB } from 'openland-server/sources/FDB';
+import { FDB } from 'openland-module-db/FDB';
 
 export const tokenExport = () => {
     let reader = new UpdateReader('token_export', 8, DB.UserToken);

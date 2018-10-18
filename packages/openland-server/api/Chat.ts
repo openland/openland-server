@@ -30,7 +30,7 @@ import { NotFoundError } from '../errors/NotFoundError';
 import { UserProfile } from '../tables/UserProfile';
 import { Sanitizer } from '../modules/Sanitizer';
 import { URLAugmentation } from '../services/UrlInfoService';
-import { sendCounterPush } from '../workers/PushWorker';
+import { Modules } from 'openland-modules/Modules';
 
 export const Resolver = {
     Conversation: {
@@ -1241,7 +1241,7 @@ export const Resolver = {
                         }
                     }, { transaction: tx });
 
-                    await sendCounterPush(uid, conversationId, existingGlobal.unread, tx);
+                    await Modules.Push.sendCounterPush(uid, conversationId, existingGlobal.unread, tx);
                 }
             });
 

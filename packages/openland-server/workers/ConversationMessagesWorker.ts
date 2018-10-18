@@ -1,4 +1,4 @@
-import { WorkQueue } from '../modules/workerQueue';
+import { WorkQueue } from '../../openland-module-workers/workerQueue';
 import { DB } from '../tables';
 import linkify from 'linkify-it';
 import tlds from 'tlds';

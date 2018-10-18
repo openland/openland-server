@@ -1,5 +1,5 @@
-import { FDB } from './FDB';
 import { inTx } from 'foundation-orm/inTx';
+import { FDB } from 'openland-module-db/FDB';
 
 export class Online {
     async setOnline(uid: number, tid: number, timeout: number, platform: string) {

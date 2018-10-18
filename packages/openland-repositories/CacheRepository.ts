@@ -1,5 +1,5 @@
-import { FDB } from 'openland-server/sources/FDB';
 import { inTx } from 'foundation-orm/inTx';
+import { FDB } from 'openland-module-db/FDB';
 
 export class CacheRepository<T> {
 
