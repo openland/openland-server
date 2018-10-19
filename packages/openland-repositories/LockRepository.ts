@@ -30,7 +30,7 @@ class LockRepositoryImpl {
                     return false;
                 }
             } else {
-                FDB.Lock.createOrUpdate(key, { version: version, minVersion: version, seed: this.lockSeed, timeout: currentTimeout });
+                await FDB.Lock.create(key, { version: version, minVersion: version, seed: this.lockSeed, timeout: currentTimeout });
                 return true;
             }
         });

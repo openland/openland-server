@@ -13,19 +13,21 @@ export abstract class FEntityFactory<T extends FEntity, S> {
         this.options = options;
     }
 
-    protected abstract _createEntity(id: (string | number)[], value: any): T;
+    protected abstract _createEntity(id: (string | number)[], value: any, isNew: boolean): T;
 
     protected async _findById(key: (string | number)[]) {
         let res = await this.namespace.get(this.connection, ...key);
         if (res) {
-            return this._createEntity(key, res);
+            return this._createEntity(key, res, false);
         }
         return null;
     }
 
-    protected _create(key: (string | number)[], value: any) {
-        let res = this._createEntity(key, value);
-        res.markDirty();
+    protected async _create(key: (string | number)[], value: any) {
+        if (this._findById(key)) {
+            throw Error('Trying to create existing object');
+        }
+        let res = this._createEntity(key, value, true);
         return res;
     }
 }

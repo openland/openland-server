@@ -8,7 +8,9 @@ export const tokenExport = () => {
     reader.processor(async (data) => {
         await inTx(async () => {
             for (let t of data) {
-                FDB.UserToken.createOrUpdate(t.tokenSalt!, { uid: t.userId!, lastIp: t.lastIp ? t.lastIp : '' });
+                if (!await FDB.UserToken.findById(t.tokenSalt!)) {
+                    await FDB.UserToken.create(t.tokenSalt!, { uid: t.userId!, lastIp: t.lastIp ? t.lastIp : '' });
+                }
             }
         });
     });

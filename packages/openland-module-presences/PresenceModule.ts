@@ -2,7 +2,7 @@ import { inTx } from 'foundation-orm/inTx';
 import { FDB } from 'openland-module-db/FDB';
 
 export class PresenceModule {
-    
+
     start = () => {
         // Nothing to do
     }
@@ -10,12 +10,19 @@ export class PresenceModule {
     async setOnline(uid: number, tid: number, timeout: number, platform: string) {
         return await inTx(async () => {
             let expires = Date.now() + timeout;
-            FDB.Presence.createOrUpdate(uid, tid, { lastSeen: Date.now(), lastSeenTimeout: timeout, platform });
+            let ex = await FDB.Presence.findById(uid, tid);
+            if (ex) {
+                ex.lastSeen = Date.now();
+                ex.lastSeenTimeout = timeout;
+                ex.platform = platform;
+            } else {
+                await FDB.Presence.create(uid, tid, { lastSeen: Date.now(), lastSeenTimeout: timeout, platform });
+            }
 
             let online = await FDB.Online.findById(uid);
 
             if (!online) {
-                FDB.Online.createOrUpdate(uid, { lastSeen: expires });
+                await FDB.Online.create(uid, { lastSeen: expires });
             } else if (online.lastSeen < expires) {
                 online.lastSeen = expires;
             }

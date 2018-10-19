@@ -19,7 +19,10 @@ export class CacheRepository<T> {
 
     async write(key: string, value: T) {
         await inTx(async () => {
-            FDB.ServiceCache.createOrUpdate(this.service, key, { value: JSON.stringify(value) });
+            let ex = await FDB.ServiceCache.findById(this.service, key);
+            if (!ex) {
+                await FDB.ServiceCache.create(this.service, key, { value: JSON.stringify(value) });
+            }
         });
     }
 }

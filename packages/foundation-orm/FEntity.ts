@@ -15,8 +15,10 @@ export class FEntity {
     readonly isReadOnly: boolean;
     readonly context: FContext;
     private options: FEntityOptions;
+    private isDirty: boolean = false;
+    private isNew: boolean;
 
-    constructor(connection: FConnection, namespace: FNamespace, id: (string | number)[], value: any, options: FEntityOptions) {
+    constructor(connection: FConnection, namespace: FNamespace, id: (string | number)[], value: any, options: FEntityOptions, isNew: boolean) {
         this.namespace = namespace;
         this.rawId = id;
         this._value = value;
@@ -24,6 +26,10 @@ export class FEntity {
         this.context = connection.currentContext;
         this.isReadOnly = connection.currentContext.isReadOnly;
         this.options = options;
+        this.isNew = isNew;
+        if (this.isNew) {
+            this.markDirty();
+        }
     }
 
     get entityVersion(): number {
@@ -57,22 +63,25 @@ export class FEntity {
     }
 
     markDirty() {
-        this.context.markDirty(this, (connection: FConnection) => {
-            let value = {
-                ...this._value
-            };
-            if (this.options.enableVersioning) {
-                value._version = this.entityVersion + 1;
-            }
-            if (this.options.enableTimestamps) {
-                let now = Date.now();
-                if (!value._createdAt) {
-                    value._createdAt = now;
+        if (!this.isDirty) {
+            this.isDirty = true;
+            this.context.markDirty(this, (connection: FConnection) => {
+                let value = {
+                    ...this._value
+                };
+                if (this.options.enableVersioning) {
+                    value._version = this.entityVersion + 1;
                 }
-                value._updatedAt = now;
-            }
-            console.log('FEntity updated', { entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: value });
-            this.namespace.set(connection, value, ...this.rawId);
-        });
+                if (this.options.enableTimestamps) {
+                    let now = Date.now();
+                    if (!value._createdAt) {
+                        value._createdAt = now;
+                    }
+                    value._updatedAt = now;
+                }
+                console.log('FEntity updated', { entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: value });
+                this.namespace.set(connection, value, ...this.rawId);
+            });
+        }
     }
 }

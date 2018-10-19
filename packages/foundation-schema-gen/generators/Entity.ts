@@ -53,7 +53,6 @@ export function generateEntity(entity: EntityModel): string {
         res += '        this._checkIsWritable();\n';
         res += '        if (value === this._value.' + k.name + ') { return; }\n';
         res += '        this._value.' + k.name + ' = value;\n';
-        res += '        this.markDirty();\n';
         res += '    }\n';
     }
 
@@ -70,11 +69,11 @@ export function generateEntity(entity: EntityModel): string {
     res += '    async findById(' + entity.keys.map((v) => v.name + ': ' + v.type).join(', ') + ') {\n';
     res += '        return await this._findById([' + entity.keys.map((v) => v.name).join(', ') + ']);\n';
     res += '    }\n';
-    res += '    createOrUpdate(' + entity.keys.map((v) => v.name + ': ' + v.type).join(', ') + ', shape: ' + entityClass + 'Shape) {\n';
-    res += '        return this._create([' + entity.keys.map((v) => v.name).join(', ') + '], shape);\n';
+    res += '    async create(' + entity.keys.map((v) => v.name + ': ' + v.type).join(', ') + ', shape: ' + entityClass + 'Shape) {\n';
+    res += '        return await this._create([' + entity.keys.map((v) => v.name).join(', ') + '], shape);\n';
     res += '    }\n';
-    res += '    protected _createEntity(id: (string | number)[], value: any) {\n';
-    res += '        return new ' + entityClass + '(this.connection, this.namespace, id, value, this.options);\n';
+    res += '    protected _createEntity(id: (string | number)[], value: any, isNew: boolean) {\n';
+    res += '        return new ' + entityClass + '(this.connection, this.namespace, id, value, this.options, isNew);\n';
     res += '    }\n';
     res += '}';
 

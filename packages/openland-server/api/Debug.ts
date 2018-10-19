@@ -277,7 +277,7 @@ export const Resolver = {
                 if (counter) {
                     return counter.value++;
                 } else {
-                    FDB.Counter.createOrUpdate('sample', { value: 0 });
+                    await FDB.Counter.create('sample', { value: 0 });
                     return 0;
                 }
             });

@@ -17,7 +17,6 @@ export class Online extends FEntity {
         this._checkIsWritable();
         if (value === this._value.lastSeen) { return; }
         this._value.lastSeen = value;
-        this.markDirty();
     }
 }
 
@@ -28,11 +27,11 @@ export class OnlineFactory extends FEntityFactory<Online, OnlineShape> {
     async findById(uid: number) {
         return await this._findById([uid]);
     }
-    createOrUpdate(uid: number, shape: OnlineShape) {
-        return this._create([uid], shape);
+    async create(uid: number, shape: OnlineShape) {
+        return await this._create([uid], shape);
     }
-    protected _createEntity(id: (string | number)[], value: any) {
-        return new Online(this.connection, this.namespace, id, value, this.options);
+    protected _createEntity(id: (string | number)[], value: any, isNew: boolean) {
+        return new Online(this.connection, this.namespace, id, value, this.options, isNew);
     }
 }
 export interface PresenceShape {
@@ -51,7 +50,6 @@ export class Presence extends FEntity {
         this._checkIsWritable();
         if (value === this._value.lastSeen) { return; }
         this._value.lastSeen = value;
-        this.markDirty();
     }
     get lastSeenTimeout(): number {
         return this._value.lastSeenTimeout;
@@ -60,7 +58,6 @@ export class Presence extends FEntity {
         this._checkIsWritable();
         if (value === this._value.lastSeenTimeout) { return; }
         this._value.lastSeenTimeout = value;
-        this.markDirty();
     }
     get platform(): string {
         return this._value.platform;
@@ -69,7 +66,6 @@ export class Presence extends FEntity {
         this._checkIsWritable();
         if (value === this._value.platform) { return; }
         this._value.platform = value;
-        this.markDirty();
     }
 }
 
@@ -80,11 +76,11 @@ export class PresenceFactory extends FEntityFactory<Presence, PresenceShape> {
     async findById(uid: number, tid: number) {
         return await this._findById([uid, tid]);
     }
-    createOrUpdate(uid: number, tid: number, shape: PresenceShape) {
-        return this._create([uid, tid], shape);
+    async create(uid: number, tid: number, shape: PresenceShape) {
+        return await this._create([uid, tid], shape);
     }
-    protected _createEntity(id: (string | number)[], value: any) {
-        return new Presence(this.connection, this.namespace, id, value, this.options);
+    protected _createEntity(id: (string | number)[], value: any, isNew: boolean) {
+        return new Presence(this.connection, this.namespace, id, value, this.options, isNew);
     }
 }
 export interface CounterShape {
@@ -100,7 +96,6 @@ export class Counter extends FEntity {
         this._checkIsWritable();
         if (value === this._value.value) { return; }
         this._value.value = value;
-        this.markDirty();
     }
 }
 
@@ -111,11 +106,11 @@ export class CounterFactory extends FEntityFactory<Counter, CounterShape> {
     async findById(name: string) {
         return await this._findById([name]);
     }
-    createOrUpdate(name: string, shape: CounterShape) {
-        return this._create([name], shape);
+    async create(name: string, shape: CounterShape) {
+        return await this._create([name], shape);
     }
-    protected _createEntity(id: (string | number)[], value: any) {
-        return new Counter(this.connection, this.namespace, id, value, this.options);
+    protected _createEntity(id: (string | number)[], value: any, isNew: boolean) {
+        return new Counter(this.connection, this.namespace, id, value, this.options, isNew);
     }
 }
 export interface UserTokenShape {
@@ -132,7 +127,6 @@ export class UserToken extends FEntity {
         this._checkIsWritable();
         if (value === this._value.uid) { return; }
         this._value.uid = value;
-        this.markDirty();
     }
     get lastIp(): string {
         return this._value.lastIp;
@@ -141,7 +135,6 @@ export class UserToken extends FEntity {
         this._checkIsWritable();
         if (value === this._value.lastIp) { return; }
         this._value.lastIp = value;
-        this.markDirty();
     }
 }
 
@@ -152,11 +145,11 @@ export class UserTokenFactory extends FEntityFactory<UserToken, UserTokenShape> 
     async findById(uuid: string) {
         return await this._findById([uuid]);
     }
-    createOrUpdate(uuid: string, shape: UserTokenShape) {
-        return this._create([uuid], shape);
+    async create(uuid: string, shape: UserTokenShape) {
+        return await this._create([uuid], shape);
     }
-    protected _createEntity(id: (string | number)[], value: any) {
-        return new UserToken(this.connection, this.namespace, id, value, this.options);
+    protected _createEntity(id: (string | number)[], value: any, isNew: boolean) {
+        return new UserToken(this.connection, this.namespace, id, value, this.options, isNew);
     }
 }
 export interface ServiceCacheShape {
@@ -173,7 +166,6 @@ export class ServiceCache extends FEntity {
         this._checkIsWritable();
         if (value === this._value.value) { return; }
         this._value.value = value;
-        this.markDirty();
     }
 }
 
@@ -184,11 +176,11 @@ export class ServiceCacheFactory extends FEntityFactory<ServiceCache, ServiceCac
     async findById(service: string, key: string) {
         return await this._findById([service, key]);
     }
-    createOrUpdate(service: string, key: string, shape: ServiceCacheShape) {
-        return this._create([service, key], shape);
+    async create(service: string, key: string, shape: ServiceCacheShape) {
+        return await this._create([service, key], shape);
     }
-    protected _createEntity(id: (string | number)[], value: any) {
-        return new ServiceCache(this.connection, this.namespace, id, value, this.options);
+    protected _createEntity(id: (string | number)[], value: any, isNew: boolean) {
+        return new ServiceCache(this.connection, this.namespace, id, value, this.options, isNew);
     }
 }
 export interface LockShape {
@@ -207,7 +199,6 @@ export class Lock extends FEntity {
         this._checkIsWritable();
         if (value === this._value.seed) { return; }
         this._value.seed = value;
-        this.markDirty();
     }
     get timeout(): number {
         return this._value.timeout;
@@ -216,7 +207,6 @@ export class Lock extends FEntity {
         this._checkIsWritable();
         if (value === this._value.timeout) { return; }
         this._value.timeout = value;
-        this.markDirty();
     }
     get version(): number {
         return this._value.version;
@@ -225,7 +215,6 @@ export class Lock extends FEntity {
         this._checkIsWritable();
         if (value === this._value.version) { return; }
         this._value.version = value;
-        this.markDirty();
     }
     get minVersion(): number {
         return this._value.minVersion;
@@ -234,7 +223,6 @@ export class Lock extends FEntity {
         this._checkIsWritable();
         if (value === this._value.minVersion) { return; }
         this._value.minVersion = value;
-        this.markDirty();
     }
 }
 
@@ -245,11 +233,11 @@ export class LockFactory extends FEntityFactory<Lock, LockShape> {
     async findById(key: string) {
         return await this._findById([key]);
     }
-    createOrUpdate(key: string, shape: LockShape) {
-        return this._create([key], shape);
+    async create(key: string, shape: LockShape) {
+        return await this._create([key], shape);
     }
-    protected _createEntity(id: (string | number)[], value: any) {
-        return new Lock(this.connection, this.namespace, id, value, this.options);
+    protected _createEntity(id: (string | number)[], value: any, isNew: boolean) {
+        return new Lock(this.connection, this.namespace, id, value, this.options, isNew);
     }
 }
 export interface TaskShape {
@@ -272,7 +260,6 @@ export class Task extends FEntity {
         this._checkIsWritable();
         if (value === this._value.arguments) { return; }
         this._value.arguments = value;
-        this.markDirty();
     }
     get result(): any | null {
         let res = this._value.result;
@@ -283,7 +270,6 @@ export class Task extends FEntity {
         this._checkIsWritable();
         if (value === this._value.result) { return; }
         this._value.result = value;
-        this.markDirty();
     }
     get taskStatus(): 'pending' | 'executing' | 'failing' | 'failed' | 'completed' {
         return this._value.taskStatus;
@@ -292,7 +278,6 @@ export class Task extends FEntity {
         this._checkIsWritable();
         if (value === this._value.taskStatus) { return; }
         this._value.taskStatus = value;
-        this.markDirty();
     }
     get taskFailureCount(): number | null {
         let res = this._value.taskFailureCount;
@@ -303,7 +288,6 @@ export class Task extends FEntity {
         this._checkIsWritable();
         if (value === this._value.taskFailureCount) { return; }
         this._value.taskFailureCount = value;
-        this.markDirty();
     }
     get taskFailureTime(): number | null {
         let res = this._value.taskFailureTime;
@@ -314,7 +298,6 @@ export class Task extends FEntity {
         this._checkIsWritable();
         if (value === this._value.taskFailureTime) { return; }
         this._value.taskFailureTime = value;
-        this.markDirty();
     }
     get taskLockSeed(): string | null {
         let res = this._value.taskLockSeed;
@@ -325,7 +308,6 @@ export class Task extends FEntity {
         this._checkIsWritable();
         if (value === this._value.taskLockSeed) { return; }
         this._value.taskLockSeed = value;
-        this.markDirty();
     }
     get taskLockTimeout(): number | null {
         let res = this._value.taskLockTimeout;
@@ -336,7 +318,6 @@ export class Task extends FEntity {
         this._checkIsWritable();
         if (value === this._value.taskLockTimeout) { return; }
         this._value.taskLockTimeout = value;
-        this.markDirty();
     }
 }
 
@@ -347,11 +328,11 @@ export class TaskFactory extends FEntityFactory<Task, TaskShape> {
     async findById(taskType: string, uid: string) {
         return await this._findById([taskType, uid]);
     }
-    createOrUpdate(taskType: string, uid: string, shape: TaskShape) {
-        return this._create([taskType, uid], shape);
+    async create(taskType: string, uid: string, shape: TaskShape) {
+        return await this._create([taskType, uid], shape);
     }
-    protected _createEntity(id: (string | number)[], value: any) {
-        return new Task(this.connection, this.namespace, id, value, this.options);
+    protected _createEntity(id: (string | number)[], value: any, isNew: boolean) {
+        return new Task(this.connection, this.namespace, id, value, this.options, isNew);
     }
 }
 
