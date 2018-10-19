@@ -34,6 +34,9 @@ export class OnlineFactory extends FEntityFactory<Online, OnlineShape> {
     protected _createEntity(id: (string | number)[], value: any, isNew: boolean) {
         return new Online(this.connection, this.namespace, id, value, this.options, isNew);
     }
+    watch(uid: number, cb: () => void) {
+        return this._watch([uid], cb);
+    }
 }
 export interface PresenceShape {
     lastSeen: number;
@@ -86,6 +89,9 @@ export class PresenceFactory extends FEntityFactory<Presence, PresenceShape> {
     protected _createEntity(id: (string | number)[], value: any, isNew: boolean) {
         return new Presence(this.connection, this.namespace, id, value, this.options, isNew);
     }
+    watch(uid: number, tid: number, cb: () => void) {
+        return this._watch([uid, tid], cb);
+    }
 }
 export interface CounterShape {
     value: number;
@@ -116,6 +122,9 @@ export class CounterFactory extends FEntityFactory<Counter, CounterShape> {
     }
     protected _createEntity(id: (string | number)[], value: any, isNew: boolean) {
         return new Counter(this.connection, this.namespace, id, value, this.options, isNew);
+    }
+    watch(name: string, cb: () => void) {
+        return this._watch([name], cb);
     }
 }
 export interface UserTokenShape {
@@ -158,6 +167,9 @@ export class UserTokenFactory extends FEntityFactory<UserToken, UserTokenShape> 
     protected _createEntity(id: (string | number)[], value: any, isNew: boolean) {
         return new UserToken(this.connection, this.namespace, id, value, this.options, isNew);
     }
+    watch(uuid: string, cb: () => void) {
+        return this._watch([uuid], cb);
+    }
 }
 export interface ServiceCacheShape {
     value: string;
@@ -189,6 +201,9 @@ export class ServiceCacheFactory extends FEntityFactory<ServiceCache, ServiceCac
     }
     protected _createEntity(id: (string | number)[], value: any, isNew: boolean) {
         return new ServiceCache(this.connection, this.namespace, id, value, this.options, isNew);
+    }
+    watch(service: string, key: string, cb: () => void) {
+        return this._watch([service, key], cb);
     }
 }
 export interface LockShape {
@@ -250,6 +265,9 @@ export class LockFactory extends FEntityFactory<Lock, LockShape> {
     }
     protected _createEntity(id: (string | number)[], value: any, isNew: boolean) {
         return new Lock(this.connection, this.namespace, id, value, this.options, isNew);
+    }
+    watch(key: string, cb: () => void) {
+        return this._watch([key], cb);
     }
 }
 export interface TaskShape {
@@ -352,6 +370,9 @@ export class TaskFactory extends FEntityFactory<Task, TaskShape> {
     }
     protected _createEntity(id: (string | number)[], value: any, isNew: boolean) {
         return new Task(this.connection, this.namespace, id, value, this.options, isNew);
+    }
+    watch(taskType: string, uid: string, cb: () => void) {
+        return this._watch([taskType, uid], cb);
     }
 }
 

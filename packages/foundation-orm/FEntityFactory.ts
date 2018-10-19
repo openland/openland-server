@@ -33,7 +33,7 @@ export abstract class FEntityFactory<T extends FEntity, S> {
         return this._createEntity(key, value, true);
     }
 
-    public watch(key: (string | number)[], cb: () => void) {
+    protected _watch(key: (string | number)[], cb: () => void) {
         let fullKey = [...this.namespace.namespace, ...key];
 
         return this.watcher.watch(fullKey, cb);

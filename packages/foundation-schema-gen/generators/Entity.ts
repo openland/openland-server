@@ -76,6 +76,9 @@ export function generateEntity(entity: EntityModel): string {
     res += '    protected _createEntity(id: (string | number)[], value: any, isNew: boolean) {\n';
     res += '        return new ' + entityClass + '(this.connection, this.namespace, id, value, this.options, isNew);\n';
     res += '    }\n';
+    res += '    watch(' + entity.keys.map((v) => v.name + ': ' + v.type).join(', ') + ', cb: () => void) {\n';
+    res += '        return this._watch([' + entity.keys.map((v) => v.name).join(', ') + '], cb);\n';
+    res += '    }\n';
     res += '}';
 
     return res;
