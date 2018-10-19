@@ -53,6 +53,7 @@ export function generateEntity(entity: EntityModel): string {
         res += '        this._checkIsWritable();\n';
         res += '        if (value === this._value.' + k.name + ') { return; }\n';
         res += '        this._value.' + k.name + ' = value;\n';
+        res += '        this.markDirty();\n';
         res += '    }\n';
     }
 

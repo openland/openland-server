@@ -17,6 +17,7 @@ export class Online extends FEntity {
         this._checkIsWritable();
         if (value === this._value.lastSeen) { return; }
         this._value.lastSeen = value;
+        this.markDirty();
     }
 }
 
@@ -50,6 +51,7 @@ export class Presence extends FEntity {
         this._checkIsWritable();
         if (value === this._value.lastSeen) { return; }
         this._value.lastSeen = value;
+        this.markDirty();
     }
     get lastSeenTimeout(): number {
         return this._value.lastSeenTimeout;
@@ -58,6 +60,7 @@ export class Presence extends FEntity {
         this._checkIsWritable();
         if (value === this._value.lastSeenTimeout) { return; }
         this._value.lastSeenTimeout = value;
+        this.markDirty();
     }
     get platform(): string {
         return this._value.platform;
@@ -66,6 +69,7 @@ export class Presence extends FEntity {
         this._checkIsWritable();
         if (value === this._value.platform) { return; }
         this._value.platform = value;
+        this.markDirty();
     }
 }
 
@@ -96,6 +100,7 @@ export class Counter extends FEntity {
         this._checkIsWritable();
         if (value === this._value.value) { return; }
         this._value.value = value;
+        this.markDirty();
     }
 }
 
@@ -127,6 +132,7 @@ export class UserToken extends FEntity {
         this._checkIsWritable();
         if (value === this._value.uid) { return; }
         this._value.uid = value;
+        this.markDirty();
     }
     get lastIp(): string {
         return this._value.lastIp;
@@ -135,6 +141,7 @@ export class UserToken extends FEntity {
         this._checkIsWritable();
         if (value === this._value.lastIp) { return; }
         this._value.lastIp = value;
+        this.markDirty();
     }
 }
 
@@ -166,6 +173,7 @@ export class ServiceCache extends FEntity {
         this._checkIsWritable();
         if (value === this._value.value) { return; }
         this._value.value = value;
+        this.markDirty();
     }
 }
 
@@ -199,6 +207,7 @@ export class Lock extends FEntity {
         this._checkIsWritable();
         if (value === this._value.seed) { return; }
         this._value.seed = value;
+        this.markDirty();
     }
     get timeout(): number {
         return this._value.timeout;
@@ -207,6 +216,7 @@ export class Lock extends FEntity {
         this._checkIsWritable();
         if (value === this._value.timeout) { return; }
         this._value.timeout = value;
+        this.markDirty();
     }
     get version(): number {
         return this._value.version;
@@ -215,6 +225,7 @@ export class Lock extends FEntity {
         this._checkIsWritable();
         if (value === this._value.version) { return; }
         this._value.version = value;
+        this.markDirty();
     }
     get minVersion(): number {
         return this._value.minVersion;
@@ -223,6 +234,7 @@ export class Lock extends FEntity {
         this._checkIsWritable();
         if (value === this._value.minVersion) { return; }
         this._value.minVersion = value;
+        this.markDirty();
     }
 }
 
@@ -260,6 +272,7 @@ export class Task extends FEntity {
         this._checkIsWritable();
         if (value === this._value.arguments) { return; }
         this._value.arguments = value;
+        this.markDirty();
     }
     get result(): any | null {
         let res = this._value.result;
@@ -270,6 +283,7 @@ export class Task extends FEntity {
         this._checkIsWritable();
         if (value === this._value.result) { return; }
         this._value.result = value;
+        this.markDirty();
     }
     get taskStatus(): 'pending' | 'executing' | 'failing' | 'failed' | 'completed' {
         return this._value.taskStatus;
@@ -278,6 +292,7 @@ export class Task extends FEntity {
         this._checkIsWritable();
         if (value === this._value.taskStatus) { return; }
         this._value.taskStatus = value;
+        this.markDirty();
     }
     get taskFailureCount(): number | null {
         let res = this._value.taskFailureCount;
@@ -288,6 +303,7 @@ export class Task extends FEntity {
         this._checkIsWritable();
         if (value === this._value.taskFailureCount) { return; }
         this._value.taskFailureCount = value;
+        this.markDirty();
     }
     get taskFailureTime(): number | null {
         let res = this._value.taskFailureTime;
@@ -298,6 +314,7 @@ export class Task extends FEntity {
         this._checkIsWritable();
         if (value === this._value.taskFailureTime) { return; }
         this._value.taskFailureTime = value;
+        this.markDirty();
     }
     get taskLockSeed(): string | null {
         let res = this._value.taskLockSeed;
@@ -308,6 +325,7 @@ export class Task extends FEntity {
         this._checkIsWritable();
         if (value === this._value.taskLockSeed) { return; }
         this._value.taskLockSeed = value;
+        this.markDirty();
     }
     get taskLockTimeout(): number | null {
         let res = this._value.taskLockTimeout;
@@ -318,6 +336,7 @@ export class Task extends FEntity {
         this._checkIsWritable();
         if (value === this._value.taskLockTimeout) { return; }
         this._value.taskLockTimeout = value;
+        this.markDirty();
     }
 }
 
