@@ -166,7 +166,7 @@
     "test:integration": "yarn test:jest",
     "test:rebuild": "yarn test:start && yarn test:prepare && yarn test:stop",
     "schema:publish": "apollo schema:publish --key=\"service:openland-production:qrYALC8Flb8hv-SGm4grug\" --endpoint=\"https://api.openland.com/api\"",
-    "model": "./node_modules/.bin/ts-node packages/foundation-schema/index.ts"
+    "model": "./node_modules/.bin/ts-node packages/openland-module-db/schemaDeclaration.ts"
   },
   "devDependencies": {},
   "_moduleAliases": {
