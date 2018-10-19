@@ -1,5 +1,5 @@
 import { generate } from '../../foundation-orm-gen/generate';
-import { declareSchema, entity, field, primaryKey, enableVersioning, enableTimestamps } from '../../foundation-orm-gen';
+import { declareSchema, entity, field, primaryKey, enableVersioning, enableTimestamps, uniqueIndex } from '../../foundation-orm-gen';
 
 const Schema = declareSchema(() => {
     entity('SimpleEntity', () => {
@@ -15,6 +15,12 @@ const Schema = declareSchema(() => {
         primaryKey('id', 'number');
         field('data', 'string');
         enableTimestamps();
+    });
+    entity('IndexedEntity', () => {
+        primaryKey('id', 'number');
+        field('data1', 'string');
+        field('data2', 'string');
+        uniqueIndex('default', ['data1', 'data2', 'id']);
     });
 });
 

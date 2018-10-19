@@ -12,6 +12,28 @@ function resolveFieldType(field: EntityField) {
     return type;
 }
 
+function resolveIndexField(entity: EntityModel, name: string) {
+    for (let e of entity.fields) {
+        if (e.name === name) {
+            return e;
+        }
+    }
+    for (let k of entity.keys) {
+        if (k.name === name) {
+            return k;
+        }
+    }
+    if (entity.enableTimestamps) {
+        if (name === 'createdAt') {
+            return new EntityField(name, 'number', []);
+        }
+        if (name === 'updatedAt') {
+            return new EntityField(name, 'number', []);
+        }
+    }
+    throw Error('Unable to find field ' + name);
+}
+
 export function generateEntity(entity: EntityModel): string {
     let entityKey = Case.camelCase(entity.name);
     let entityClass = Case.pascalCase(entity.name);
@@ -62,7 +84,11 @@ export function generateEntity(entity: EntityModel): string {
     // Factory
     res += 'export class ' + entityClass + 'Factory extends FEntityFactory<' + entityClass + '> {\n';
     res += '    constructor(connection: FConnection) {\n';
-    res += '        super(connection, new FNamespace(\'entity\', \'' + entityKey + '\'), { enableVersioning: ' + entity.enableVersioning + ', enableTimestamps: ' + entity.enableTimestamps + ' });\n';
+    res += '        super(connection,\n';
+    res += '            new FNamespace(\'entity\', \'' + entityKey + '\'),\n';
+    res += '            { enableVersioning: ' + entity.enableVersioning + ', enableTimestamps: ' + entity.enableTimestamps + ' },\n';
+    res += '            [' + entity.indexes.map((v) => 'new FEntityIndex(\'' + v.name + '\', [' + v.fields.map((v2) => '\'' + v2 + '\'').join(', ') + '])').join(', ') + ']\n';
+    res += '        );\n';
     res += '    }\n';
     // protected _createEntity(context: SContext, namespace: SNamespace, id: (string | number)[], value: any) {
     //     return new Online(context, namespace, id, value);
@@ -73,11 +99,18 @@ export function generateEntity(entity: EntityModel): string {
     res += '    async create(' + entity.keys.map((v) => v.name + ': ' + v.type).join(', ') + ', shape: ' + entityClass + 'Shape) {\n';
     res += '        return await this._create([' + entity.keys.map((v) => v.name).join(', ') + '], { ' + entity.keys.map((v) => v.name).join(', ') + ', ...shape });\n';
     res += '    }\n';
-    res += '    protected _createEntity(id: (string | number)[], value: any, isNew: boolean) {\n';
-    res += '        return new ' + entityClass + '(this.connection, this.namespace, id, value, this.options, isNew);\n';
-    res += '    }\n';
     res += '    watch(' + entity.keys.map((v) => v.name + ': ' + v.type).join(', ') + ', cb: () => void) {\n';
     res += '        return this._watch([' + entity.keys.map((v) => v.name).join(', ') + '], cb);\n';
+    res += '    }\n';
+
+    for (let i of entity.indexes) {
+        res += '    async findFrom' + Case.pascalCase(i.name) + '(' + i.fields.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v))).join(', ') + ') {\n';
+        res += '        return await this._findById([' + ['\'__indexes\'', '\'' + i.name + '\'', ...i.fields].join(', ') + ']);\n';
+        res += '    }\n';
+    }
+
+    res += '    protected _createEntity(value: any, isNew: boolean) {\n';
+    res += '        return new ' + entityClass + '(this.connection, this.namespace, [' + entity.keys.map((v) => 'value.' + v.name).join(', ') + '], value, this.options, isNew, this.indexes);\n';
     res += '    }\n';
     res += '}';
 

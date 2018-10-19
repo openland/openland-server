@@ -7,6 +7,7 @@ export interface FContext {
     markDirty(entity: FEntity, callback: (connection: FConnection) => Promise<void>): void;
     get(connection: FConnection, ...key: (string | number)[]): Promise<any | null>;
     set(connection: FConnection, value: any, ...key: (string | number)[]): Promise<void>;
+    delete(connection: FConnection, ...key: (string | number)[]): Promise<void>;
 }
 
 export class FGlobalContext implements FContext {
@@ -17,6 +18,9 @@ export class FGlobalContext implements FContext {
     }
     set(connection: FConnection, value: any, ...key: (string | number)[]) {
         return connection.fdb.set(key, value);
+    }
+    delete(connection: FConnection, ...key: (string | number)[]) {
+        return connection.fdb.clear(key);
     }
     markDirty(entity: FEntity, callback: (connection: FConnection) => void) {
         throw Error('Trying to write to read-only context');

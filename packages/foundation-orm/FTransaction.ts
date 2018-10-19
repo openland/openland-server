@@ -59,6 +59,11 @@ export class FTransaction implements FContext {
         this._prepare(connection);
         this.tx!.set(key, value);
     }
+    
+    async delete(connection: FConnection, ...key: (string | number)[]) {
+        this._prepare(connection);
+        this.tx!.clear(key);
+    }
 
     markDirty(entity: FEntity, callback: (connection: FConnection) => Promise<void>) {
         this._prepare(entity.connection);

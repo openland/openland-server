@@ -14,4 +14,8 @@ export class FNamespace {
     set = async (connection: FConnection, value: any, ...key: (string | number)[]) => {
         return connection.currentContext.set(connection, value, ...this.namespace, ...key);
     }
+
+    delete = async (connection: FConnection, ...key: (string | number)[]) => {
+        return connection.currentContext.delete(connection, ...this.namespace, ...key);
+    }
 }

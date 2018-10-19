@@ -33,7 +33,7 @@ export function primaryKey(name: string, type: 'number' | 'string') {
     currentEntity!!.addKey(name, type);
 }
 
-export function index(name: string, fields: string[]) {
+export function uniqueIndex(name: string, fields: string[]) {
     currentEntity!!.addIndex(name, fields);
 }
 

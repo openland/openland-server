@@ -2,26 +2,29 @@ import { FNamespace } from './FNamespace';
 import { FConnection } from './FConnection';
 import { FEntity, FEntityOptions } from './FEntity';
 import { FWatch } from './FWatch';
+import { FEntityIndex } from './FEntityIndex';
 
 export abstract class FEntityFactory<T extends FEntity> {
     readonly namespace: FNamespace;
     readonly connection: FConnection;
     readonly options: FEntityOptions;
+    readonly indexes: FEntityIndex[];
     private watcher: FWatch;
 
-    constructor(connection: FConnection, namespace: FNamespace, options: FEntityOptions) {
+    constructor(connection: FConnection, namespace: FNamespace, options: FEntityOptions, indexes: FEntityIndex[]) {
         this.namespace = namespace;
         this.connection = connection;
         this.options = options;
+        this.indexes = indexes;
         this.watcher = new FWatch(connection);
     }
 
-    protected abstract _createEntity(id: (string | number)[], value: any, isNew: boolean): T;
+    protected abstract _createEntity(value: any, isNew: boolean): T;
 
     protected async _findById(key: (string | number)[]) {
         let res = await this.namespace.get(this.connection, ...key);
         if (res) {
-            return this._createEntity(key, res, false);
+            return this._createEntity(res, false);
         }
         return null;
     }
@@ -30,7 +33,7 @@ export abstract class FEntityFactory<T extends FEntity> {
         if (await this._findById(key)) {
             throw Error('Object already exists');
         }
-        return this._createEntity(key, value, true);
+        return this._createEntity(value, true);
     }
 
     protected _watch(key: (string | number)[], cb: () => void) {

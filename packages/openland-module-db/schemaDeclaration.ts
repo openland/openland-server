@@ -1,5 +1,5 @@
 import { generate } from '../foundation-orm-gen/generate';
-import { declareSchema, entity, field, primaryKey, enableTimestamps, enableVersioning, enumField, index } from '../foundation-orm-gen';
+import { declareSchema, entity, field, primaryKey, enableTimestamps, enableVersioning, enumField, uniqueIndex } from '../foundation-orm-gen';
 
 const Schema = declareSchema(() => {
     entity('Online', () => {
@@ -57,7 +57,7 @@ const Schema = declareSchema(() => {
         field('taskLockSeed', 'string').nullable();
         field('taskLockTimeout', 'number').nullable();
 
-        index('queue', ['taskType', 'taskStatus', '_createdAt', 'uid']);
+        uniqueIndex('queue', ['taskType', 'taskStatus', 'createdAt', 'uid']);
 
         enableTimestamps();
         enableVersioning();

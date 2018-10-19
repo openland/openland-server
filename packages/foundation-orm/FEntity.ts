@@ -1,6 +1,7 @@
 import { FNamespace } from './FNamespace';
 import { FContext } from './FContext';
 import { FConnection } from './FConnection';
+import { FEntityIndex } from './FEntityIndex';
 
 export interface FEntityOptions {
     enableVersioning: boolean;
@@ -14,13 +15,14 @@ export class FEntity {
     readonly isReadOnly: boolean;
     readonly context: FContext;
 
-    protected _valueInitial: any;
+    protected readonly _valueInitial: any;
     protected _value: any;
-    private options: FEntityOptions;
+    private readonly indexes: FEntityIndex[];
+    private readonly options: FEntityOptions;
     private isDirty: boolean = false;
     private isNew: boolean;
 
-    constructor(connection: FConnection, namespace: FNamespace, id: (string | number)[], value: any, options: FEntityOptions, isNew: boolean) {
+    constructor(connection: FConnection, namespace: FNamespace, id: (string | number)[], value: any, options: FEntityOptions, isNew: boolean, indexes: FEntityIndex[]) {
         this.namespace = namespace;
         this.rawId = id;
         this.connection = connection;
@@ -28,6 +30,7 @@ export class FEntity {
         this.isReadOnly = connection.currentContext.isReadOnly;
         this.options = options;
         this.isNew = isNew;
+        this.indexes = indexes;
 
         let v = { ...value };
         if (this.isNew) {
@@ -41,7 +44,7 @@ export class FEntity {
             this.markDirty();
         }
         this._value = v;
-        this._valueInitial = v;
+        this._valueInitial = { ...v };
     }
 
     get versionCode(): number {
@@ -94,8 +97,30 @@ export class FEntity {
                     }
                     value.updatedAt = now;
                 }
-                // console.log('FEntity updated', { entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: value });
                 await this.namespace.set(connection, value, ...this.rawId);
+                if (this.isNew) {
+                    console.log('FEntity created', { entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: value });
+                    for (let index of this.indexes) {
+                        let key = index.fields.map((v) => value[v]);
+                        if (await this.namespace.get(connection, '__indexes', index.name, ...key)) {
+                            throw Error('Unique index constraint failed');
+                        }
+                        await this.namespace.set(connection, value, '__indexes', index.name, ...key);
+                    }
+                } else {
+                    console.log('FEntity updated', { entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: value });
+                    for (let index of this.indexes) {
+                        let key = index.fields.map((v) => value[v]);
+                        let oldkey = index.fields.map((v) => this._valueInitial[v]);
+                        if (key.join('===') !== oldkey.join('===')) {
+                            await this.namespace.delete(connection, '__indexes', index.name, ...oldkey);
+                            if (await this.namespace.get(connection, '__indexes', index.name, ...key)) {
+                                throw Error('Unique index constraint failed');
+                            }
+                            await this.namespace.set(connection, value, '__indexes', index.name, ...key);
+                        }
+                    }
+                }
             });
         }
     }
