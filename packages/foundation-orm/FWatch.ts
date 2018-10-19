@@ -19,6 +19,7 @@ export class FWatch {
             this.subscriptions.get(keyStr)!.push(cb);
         } else {
             this.subscriptions.set(keyStr, [cb]);
+            // tslint:disable-next-line:no-floating-promises
             this.startWatch(key);
         }
 
@@ -43,6 +44,7 @@ export class FWatch {
     private async startWatch(key: Key) {
         let subscription = await this.connection.fdb.getAndWatch(key);
 
+        // tslint:disable-next-line:no-floating-promises
         subscription.promise.then(() => {
             let keyStr = key.join('.');
             let subs = this.subscriptions.get(keyStr);
@@ -53,6 +55,7 @@ export class FWatch {
             } else {
                 // we need to copy subs here because original array changes while iteration causes some bugs
                 [...subs].forEach(s => s());
+                // tslint:disable-next-line:no-floating-promises
                 this.startWatch(key);
             }
         });

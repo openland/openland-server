@@ -1,4 +1,5 @@
 import { validate, stringNotEmpty, mustBeArray, mustBeOptionalArray } from './NewInputValidator';
+// tslint:disable:no-floating-promises
 
 describe('New Input Validator', () => {
     it('should validate strings', async () => {

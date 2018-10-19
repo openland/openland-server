@@ -3,7 +3,7 @@ import { FConnection } from './FConnection';
 
 export interface FContext {
     readonly isReadOnly: boolean;
-    markDirty(entity: FEntity, callback: (connection: FConnection) => void): void;
+    markDirty(entity: FEntity, callback: (connection: FConnection) => Promise<void>): void;
     get(connection: FConnection, ...key: (string | number)[]): Promise<any | null>;
     set(connection: FConnection, value: any, ...key: (string | number)[]): Promise<void>;
 }

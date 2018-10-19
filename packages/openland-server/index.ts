@@ -45,4 +45,5 @@ async function initServer() {
     }
 }
 
+// tslint:disable-next-line:no-floating-promises
 initServer();

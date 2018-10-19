@@ -25,6 +25,7 @@ export async function cachedInt(key: string, calc: () => Promise<number>): Promi
             return res;
         }
         let r = await calc();
+        // tslint:disable-next-line:no-floating-promises
         Redis.redisClient()!!.setex(key, 600, r.toString()).then((v) => clientLoader.clear(v));
         return r;
     } else {
@@ -43,6 +44,7 @@ export async function cachedObject<T>(key: string, calc: () => Promise<T>): Prom
             }
         }
         let r = await calc();
+        // tslint:disable-next-line:no-floating-promises
         Redis.redisClient()!!.setex(key, 600, JSON.stringify(r)).then((v) => clientLoader.clear(v));
         return r;
     } else {

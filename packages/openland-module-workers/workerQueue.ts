@@ -161,11 +161,13 @@ export class WorkQueue<ARGS extends JsonMap, RES extends JsonMap> {
         }, { transaction: tx }));
         if (tx) {
             (tx as any).afterCommit(() => {
+                // tslint:disable-next-line:no-floating-promises
                 pubsub.publish(this.pubSubTopic, {
                     taskId: res.id
                 });
             });
         } else {
+            // tslint:disable-next-line:no-floating-promises
             pubsub.publish(this.pubSubTopic, {
                 taskId: res.id
             });
@@ -177,6 +179,7 @@ export class WorkQueue<ARGS extends JsonMap, RES extends JsonMap> {
     addWorker = (handler: (item: ARGS, state: LockState, uid: string) => RES | Promise<RES>) => {
         let maxKnownWorkId = 0;
         let waiter: (() => void) | null = null;
+        // tslint:disable-next-line:no-floating-promises
         pubsub.subscribe(this.pubSubTopic, (data) => {
             if (waiter) {
                 if (maxKnownWorkId < data.taskId) {
