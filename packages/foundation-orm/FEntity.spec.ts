@@ -25,9 +25,9 @@ describe('FEntity', () => {
         });
         expect(res.data).toEqual('hello world');
         expect(res.id).toEqual(0);
-        expect(res.entityVersion).toEqual(0);
-        expect(res.entityCreatedAt).toEqual(0);
-        expect(res.entityUpdatedAt).toEqual(0);
+        expect(res.versionCode).toEqual(0);
+        expect(res.createdAt).toEqual(0);
+        expect(res.updatedAt).toEqual(0);
     });
     it('should crash on create if exists', async () => {
         // First create
@@ -102,7 +102,7 @@ describe('FEntity Versioned', () => {
     it('should create with version number eq to one', async () => {
         await inTx(async () => { await testEntities.VersionedEntity.create(0, { data: 'hello world' }); });
         let res = (await testEntities.VersionedEntity.findById(0))!;
-        expect(res.entityVersion).toEqual(1);
+        expect(res.versionCode).toEqual(1);
     });
 
     it('should update version number by one', async () => {
@@ -112,13 +112,13 @@ describe('FEntity Versioned', () => {
             ex.data = 'bye world';
         });
         let res = (await testEntities.VersionedEntity.findById(1))!;
-        expect(res.entityVersion).toEqual(2);
+        expect(res.versionCode).toEqual(2);
     });
 
     it('should create with version number eq to one', async () => {
         await inTx(async () => { await testEntities.VersionedEntity.create(2, { data: 'hello world' }); });
         let res = (await testEntities.VersionedEntity.findById(2))!;
-        expect(res.entityVersion).toEqual(1);
+        expect(res.versionCode).toEqual(1);
     });
 });
 
@@ -140,17 +140,17 @@ describe('FEntity Timestamped', () => {
         let start = Date.now();
         let res1 = await inTx(async () => { return await testEntities.TimestampedEntity.create(0, { data: 'hello world' }); });
         let end = Date.now();
-        expect(res1.entityCreatedAt).toEqual(res1.entityUpdatedAt);
-        expect(res1.entityCreatedAt).toBeGreaterThanOrEqual(start);
-        expect(res1.entityCreatedAt).toBeLessThanOrEqual(end);
-        expect(res1.entityUpdatedAt).toBeGreaterThanOrEqual(start);
-        expect(res1.entityUpdatedAt).toBeLessThanOrEqual(end);
+        expect(res1.createdAt).toEqual(res1.updatedAt);
+        expect(res1.createdAt).toBeGreaterThanOrEqual(start);
+        expect(res1.createdAt).toBeLessThanOrEqual(end);
+        expect(res1.updatedAt).toBeGreaterThanOrEqual(start);
+        expect(res1.updatedAt).toBeLessThanOrEqual(end);
         let res = (await testEntities.TimestampedEntity.findById(0))!;
-        expect(res.entityCreatedAt).toEqual(res.entityUpdatedAt);
-        expect(res.entityCreatedAt).toBeGreaterThanOrEqual(start);
-        expect(res.entityCreatedAt).toBeLessThanOrEqual(end);
-        expect(res.entityUpdatedAt).toBeGreaterThanOrEqual(start);
-        expect(res.entityUpdatedAt).toBeLessThanOrEqual(end);
+        expect(res.createdAt).toEqual(res.updatedAt);
+        expect(res.createdAt).toBeGreaterThanOrEqual(start);
+        expect(res.updatedAt).toBeLessThanOrEqual(end);
+        expect(res.updatedAt).toBeGreaterThanOrEqual(start);
+        expect(res.updatedAt).toBeLessThanOrEqual(end);
     });
 
     it('should update with correct timestamps', async () => {
@@ -162,8 +162,8 @@ describe('FEntity Timestamped', () => {
         });
         let end = Date.now();
         let res = (await testEntities.TimestampedEntity.findById(1))!;
-        expect(res.entityCreatedAt).toBeLessThanOrEqual(res.entityUpdatedAt);
-        expect(res.entityUpdatedAt).toBeGreaterThanOrEqual(start);
-        expect(res.entityUpdatedAt).toBeLessThanOrEqual(end);
+        expect(res.createdAt).toBeLessThanOrEqual(res.updatedAt);
+        expect(res.updatedAt).toBeGreaterThanOrEqual(start);
+        expect(res.updatedAt).toBeLessThanOrEqual(end);
     });
 });

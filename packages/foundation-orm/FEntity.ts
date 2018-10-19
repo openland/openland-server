@@ -11,9 +11,11 @@ export class FEntity {
     readonly namespace: FNamespace;
     readonly rawId: (string | number)[];
     readonly connection: FConnection;
-    protected _value: any;
     readonly isReadOnly: boolean;
     readonly context: FContext;
+
+    protected _valueInitial: any;
+    protected _value: any;
     private options: FEntityOptions;
     private isDirty: boolean = false;
     private isNew: boolean;
@@ -21,18 +23,28 @@ export class FEntity {
     constructor(connection: FConnection, namespace: FNamespace, id: (string | number)[], value: any, options: FEntityOptions, isNew: boolean) {
         this.namespace = namespace;
         this.rawId = id;
-        this._value = value;
         this.connection = connection;
         this.context = connection.currentContext;
         this.isReadOnly = connection.currentContext.isReadOnly;
         this.options = options;
         this.isNew = isNew;
+
+        let v = { ...value };
+        if (this.isNew) {
+            let now = Date.now();
+            if (!v.createdAt) {
+                v.createdAt = now;
+            }
+            v.updatedAt = now;
+        }
         if (this.isNew) {
             this.markDirty();
         }
+        this._value = v;
+        this._valueInitial = v;
     }
 
-    get entityVersion(): number {
+    get versionCode(): number {
         if (this.options.enableVersioning) {
             return this._value._version ? this._value._version as number : 0;
         } else {
@@ -40,17 +52,17 @@ export class FEntity {
         }
     }
 
-    get entityCreatedAt(): number {
+    get createdAt(): number {
         if (this.options.enableTimestamps) {
-            return this._value._createdAt ? this._value._createdAt as number : 0;
+            return this._value.createdAt ? this._value.createdAt as number : 0;
         } else {
             return 0;
         }
     }
 
-    get entityUpdatedAt(): number {
+    get updatedAt(): number {
         if (this.options.enableTimestamps) {
-            return this._value._updatedAt ? this._value._updatedAt as number : 0;
+            return this._value.updatedAt ? this._value.updatedAt as number : 0;
         } else {
             return 0;
         }
@@ -73,14 +85,14 @@ export class FEntity {
                     ...this._value
                 };
                 if (this.options.enableVersioning) {
-                    value._version = this.entityVersion + 1;
+                    value._version = this.versionCode + 1;
                 }
-                if (this.options.enableTimestamps) {
+                if (this.options.enableTimestamps && !this.isNew) {
                     let now = Date.now();
-                    if (!value._createdAt) {
-                        value._createdAt = now;
+                    if (!value.createdAt) {
+                        value.createdAt = now;
                     }
-                    value._updatedAt = now;
+                    value.updatedAt = now;
                 }
                 // console.log('FEntity updated', { entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: value });
                 await this.namespace.set(connection, value, ...this.rawId);
