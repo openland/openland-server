@@ -43,9 +43,13 @@ export class FTransaction implements FContext {
 
     readonly isReadOnly: boolean = false;
     tx: Transaction<TupleItem[], any> | null = null;
-    private isCompleted = false;
+    private _isCompleted = false;
     private connection: FConnection | null = null;
     private _pending = new Map<string, (connection: FConnection) => Promise<void>>();
+
+    get isCompleted() {
+        return this._isCompleted;
+    }
 
     async get(connection: FConnection, ...key: (string | number)[]) {
         this._prepare(connection);
@@ -63,10 +67,10 @@ export class FTransaction implements FContext {
     }
 
     async abort() {
-        if (this.isCompleted) {
+        if (this._isCompleted) {
             return;
         }
-        this.isCompleted = true;
+        this._isCompleted = true;
         if (!this.connection) {
             return;
         }
@@ -75,7 +79,7 @@ export class FTransaction implements FContext {
     }
 
     async flush() {
-        if (this.isCompleted) {
+        if (this._isCompleted) {
             return;
         }
         if (!this.connection) {
@@ -89,7 +93,7 @@ export class FTransaction implements FContext {
 
         // let t = currentTime();
         await this.tx!!.rawCommit();
-        this.isCompleted = true;
+        this._isCompleted = true;
         // console.log('Transaction commit time: ' + (currentTime() - t) + ' ms');
     }
 

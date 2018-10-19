@@ -60,6 +60,9 @@ export class FEntity {
         if (this.isReadOnly) {
             throw Error('Entity is not writable. Did you wrapped everything in transaction?');
         }
+        if (this.context.isCompleted) {
+            throw Error('You can\'t update entity when transaction is in completed state.');
+        }
     }
 
     markDirty() {

@@ -3,6 +3,7 @@ import { FConnection } from './FConnection';
 
 export interface FContext {
     readonly isReadOnly: boolean;
+    readonly isCompleted: boolean;
     markDirty(entity: FEntity, callback: (connection: FConnection) => Promise<void>): void;
     get(connection: FConnection, ...key: (string | number)[]): Promise<any | null>;
     set(connection: FConnection, value: any, ...key: (string | number)[]): Promise<void>;
@@ -10,6 +11,7 @@ export interface FContext {
 
 export class FGlobalContext implements FContext {
     readonly isReadOnly: boolean = true;
+    readonly isCompleted: boolean = false;
     get(connection: FConnection, ...key: (string | number)[]) {
         return connection.fdb.get(key);
     }

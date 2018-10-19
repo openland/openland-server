@@ -49,4 +49,34 @@ describe('FEntity', () => {
         });
         expect(res!.data).toEqual('bye world');
     });
+
+    it('Should update values when read outside transaction', async () => {
+        await inTx(async () => {
+            await testEntities.SimpleEntity.create(6, { data: 'hello world' });
+        });
+        await inTx(async () => {
+            let entity = await testEntities.SimpleEntity.findById(6);
+            entity!.data = 'bye world';
+        });
+        let res = await testEntities.SimpleEntity.findById(6);
+        expect(res!.data).toEqual('bye world');
+    });
+
+    it('Should crash when trying to change read-only instance', async () => {
+        await inTx(async () => { await testEntities.SimpleEntity.create(4, { data: 'hello world' }); });
+        let res = (await testEntities.SimpleEntity.findById(4))!;
+        expect(() => { res.data = 'bye world'; }).toThrowError();
+    });
+
+    it('Should crash when trying to change instance after transaction completed', async () => {
+        await inTx(async () => { await testEntities.SimpleEntity.create(5, { data: 'hello world' }); });
+        let res = await inTx(async () => { return (await testEntities.SimpleEntity.findById(5))!; });
+        expect(() => { res.data = 'bye world'; }).toThrowError();
+    });
+
+    it('Should be able to read values from entity even when transaction is completed', async () => {
+        await inTx(async () => { await testEntities.SimpleEntity.create(7, { data: 'hello world' }); });
+        let res = await inTx(async () => { return (await testEntities.SimpleEntity.findById(7))!; });
+        expect(res.data).toEqual('hello world');
+    });
 });
