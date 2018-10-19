@@ -230,12 +230,14 @@ export async function getAccessToken(req: express.Request, response: express.Res
                 where: [
                     sequelize.or(
                         {
-                            authId: 'email|' + authSession.extras!.email as any
+                            email: authSession.extras!.email as any
                         },
                         {
-                            email: authSession.extras!.email as any
+                            authId: 'email|' + authSession.extras!.email as any
                         }
+
                     )],
+                order: [['createdAt', 'ASC']],
                 transaction: tx,
                 lock: tx.LOCK.UPDATE
             });

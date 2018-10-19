@@ -99,11 +99,20 @@ export const Authenticator = async function (req: express.Request, response: exp
 
             let isNewAccount = false;
 
+            let sequelize = DB.connection;
             // Account
             let user = await DB.User.find({
-                where: {
-                    authId: userKey
-                },
+                where: [
+                    sequelize.or(
+                        {
+                            email: profile.email.toLowerCase()
+                        },
+                        {
+                            authId: userKey
+                        }
+
+                    )],
+                order: [['createdAt', 'ASC']],
                 transaction: tx
             });
             if (user === null) {
