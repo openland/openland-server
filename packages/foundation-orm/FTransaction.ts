@@ -3,7 +3,7 @@ import { FContext } from './FContext';
 import { FConnection } from './FConnection';
 import { FEntity } from './FEntity';
 import { Transaction, TupleItem } from 'foundationdb';
-import { currentTime } from 'openland-server/utils/timer';
+// import { currentTime } from 'openland-server/utils/timer';
 
 var transactions = new Map<number, FTransaction>();
 
@@ -87,10 +87,10 @@ export class FTransaction implements FContext {
             p(this.connection!);
         }
 
-        let t = currentTime();
+        // let t = currentTime();
         await this.tx!!.rawCommit();
         this.isCompleted = true;
-        console.log('Transaction commit time: ' + (currentTime() - t) + ' ms');
+        // console.log('Transaction commit time: ' + (currentTime() - t) + ' ms');
     }
 
     private _prepare(connection: FConnection) {

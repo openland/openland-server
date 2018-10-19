@@ -79,7 +79,7 @@ export class FEntity {
                     }
                     value._updatedAt = now;
                 }
-                console.log('FEntity updated', { entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: value });
+                // console.log('FEntity updated', { entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: value });
                 this.namespace.set(connection, value, ...this.rawId);
             });
         }

@@ -1,16 +1,19 @@
 import { FNamespace } from './FNamespace';
 import { FConnection } from './FConnection';
 import { FEntity, FEntityOptions } from './FEntity';
+import { FWatch } from './FWatch';
 
 export abstract class FEntityFactory<T extends FEntity, S> {
     readonly namespace: FNamespace;
     readonly connection: FConnection;
     readonly options: FEntityOptions;
+    private watcher: FWatch;
 
     constructor(connection: FConnection, namespace: FNamespace, options: FEntityOptions) {
         this.namespace = namespace;
         this.connection = connection;
         this.options = options;
+        this.watcher = new FWatch(connection);
     }
 
     protected abstract _createEntity(id: (string | number)[], value: any, isNew: boolean): T;
@@ -28,5 +31,11 @@ export abstract class FEntityFactory<T extends FEntity, S> {
             throw Error('Trying to create existing object');
         }
         return this._createEntity(key, value, true);
+    }
+
+    public watch(key: (string | number)[], cb: () => void) {
+        let fullKey = [...this.namespace.namespace, ...key];
+
+        return this.watcher.watch(fullKey, cb);
     }
 }
