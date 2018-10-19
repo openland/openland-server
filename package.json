@@ -158,7 +158,7 @@
     "promote": "kubectl set image deployment/statecraft-server statecraft-server=`kubectl get deployment statecraft-server-staging -o=jsonpath='{$.spec.template.spec.containers[1:2].image}'` && kubectl rollout status deployments statecraft-server",
     "lint": "NODE_ENV=production ./node_modules/.bin/tslint --project . --config ./tslint.json",
     "test:watch": ". ./scripts/set_testing_config.sh && node ./node_modules/jest/bin/jest.js --watch --verbose",
-    "test": ". ./scripts/set_testing_config.sh && node --no-deprecation ./node_modules/jest/bin/jest.js --forceExit --runInBand",
+    "test": ". ./scripts/set_testing_config.sh && node --no-deprecation ./node_modules/jest/bin/jest.js --forceExit",
     "test:clean": "./scripts/testing_clean.sh",
     "test:start": "./scripts/testing_start.sh",
     "test:stop": "./scripts/testing_stop.sh",

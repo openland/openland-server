@@ -36,4 +36,17 @@ describe('FEntity', () => {
         });
         expect(res).rejects.toThrowError('Object already exists');
     });
+    it('Should update values', async () => {
+        await inTx(async () => {
+            await testEntities.SimpleEntity.create(3, { data: 'hello world' });
+        });
+        await inTx(async () => {
+            let entity = await testEntities.SimpleEntity.findById(3);
+            entity!.data = 'bye world';
+        });
+        let res = await inTx(async () => {
+            return await testEntities.SimpleEntity.findById(3);
+        });
+        expect(res!.data).toEqual('bye world');
+    });
 });
