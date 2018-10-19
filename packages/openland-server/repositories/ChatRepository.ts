@@ -811,7 +811,7 @@ export class ChatsRepository {
         await ConversationMessagesWorker.pushWork({ messageId: msg.id }, tx);
         perf.end('ConversationMessagesWorker');
 
-        await this.deleteDraftMessage(uid, conversationId);
+        // await this.deleteDraftMessage(uid, conversationId);
 
         perf.end('sendMessage');
 
