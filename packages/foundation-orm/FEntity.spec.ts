@@ -25,7 +25,7 @@ describe('FEntity', () => {
         expect(res.data).toEqual('hello world');
         expect(res.id).toEqual(0);
     });
-    it('Should crash if exists', async () => {
+    it('Should crash on create if exists', async () => {
         // First create
         await inTx(async () => {
             await testEntities.SimpleEntity.create(2, { data: 'hello world' });

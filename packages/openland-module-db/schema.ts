@@ -21,7 +21,7 @@ export class Online extends FEntity {
     }
 }
 
-export class OnlineFactory extends FEntityFactory<Online, OnlineShape> {
+export class OnlineFactory extends FEntityFactory<Online> {
     constructor(connection: FConnection) {
         super(connection, new FNamespace('entity', 'online'), { enableVersioning: false, enableTimestamps: false });
     }
@@ -29,7 +29,7 @@ export class OnlineFactory extends FEntityFactory<Online, OnlineShape> {
         return await this._findById([uid]);
     }
     async create(uid: number, shape: OnlineShape) {
-        return await this._create([uid], shape);
+        return await this._create([uid], { uid, ...shape });
     }
     protected _createEntity(id: (string | number)[], value: any, isNew: boolean) {
         return new Online(this.connection, this.namespace, id, value, this.options, isNew);
@@ -76,7 +76,7 @@ export class Presence extends FEntity {
     }
 }
 
-export class PresenceFactory extends FEntityFactory<Presence, PresenceShape> {
+export class PresenceFactory extends FEntityFactory<Presence> {
     constructor(connection: FConnection) {
         super(connection, new FNamespace('entity', 'presence'), { enableVersioning: false, enableTimestamps: false });
     }
@@ -84,7 +84,7 @@ export class PresenceFactory extends FEntityFactory<Presence, PresenceShape> {
         return await this._findById([uid, tid]);
     }
     async create(uid: number, tid: number, shape: PresenceShape) {
-        return await this._create([uid, tid], shape);
+        return await this._create([uid, tid], { uid, tid, ...shape });
     }
     protected _createEntity(id: (string | number)[], value: any, isNew: boolean) {
         return new Presence(this.connection, this.namespace, id, value, this.options, isNew);
@@ -110,7 +110,7 @@ export class Counter extends FEntity {
     }
 }
 
-export class CounterFactory extends FEntityFactory<Counter, CounterShape> {
+export class CounterFactory extends FEntityFactory<Counter> {
     constructor(connection: FConnection) {
         super(connection, new FNamespace('entity', 'counter'), { enableVersioning: false, enableTimestamps: false });
     }
@@ -118,7 +118,7 @@ export class CounterFactory extends FEntityFactory<Counter, CounterShape> {
         return await this._findById([name]);
     }
     async create(name: string, shape: CounterShape) {
-        return await this._create([name], shape);
+        return await this._create([name], { name, ...shape });
     }
     protected _createEntity(id: (string | number)[], value: any, isNew: boolean) {
         return new Counter(this.connection, this.namespace, id, value, this.options, isNew);
@@ -154,7 +154,7 @@ export class UserToken extends FEntity {
     }
 }
 
-export class UserTokenFactory extends FEntityFactory<UserToken, UserTokenShape> {
+export class UserTokenFactory extends FEntityFactory<UserToken> {
     constructor(connection: FConnection) {
         super(connection, new FNamespace('entity', 'userToken'), { enableVersioning: true, enableTimestamps: true });
     }
@@ -162,7 +162,7 @@ export class UserTokenFactory extends FEntityFactory<UserToken, UserTokenShape> 
         return await this._findById([uuid]);
     }
     async create(uuid: string, shape: UserTokenShape) {
-        return await this._create([uuid], shape);
+        return await this._create([uuid], { uuid, ...shape });
     }
     protected _createEntity(id: (string | number)[], value: any, isNew: boolean) {
         return new UserToken(this.connection, this.namespace, id, value, this.options, isNew);
@@ -189,7 +189,7 @@ export class ServiceCache extends FEntity {
     }
 }
 
-export class ServiceCacheFactory extends FEntityFactory<ServiceCache, ServiceCacheShape> {
+export class ServiceCacheFactory extends FEntityFactory<ServiceCache> {
     constructor(connection: FConnection) {
         super(connection, new FNamespace('entity', 'serviceCache'), { enableVersioning: true, enableTimestamps: true });
     }
@@ -197,7 +197,7 @@ export class ServiceCacheFactory extends FEntityFactory<ServiceCache, ServiceCac
         return await this._findById([service, key]);
     }
     async create(service: string, key: string, shape: ServiceCacheShape) {
-        return await this._create([service, key], shape);
+        return await this._create([service, key], { service, key, ...shape });
     }
     protected _createEntity(id: (string | number)[], value: any, isNew: boolean) {
         return new ServiceCache(this.connection, this.namespace, id, value, this.options, isNew);
@@ -253,7 +253,7 @@ export class Lock extends FEntity {
     }
 }
 
-export class LockFactory extends FEntityFactory<Lock, LockShape> {
+export class LockFactory extends FEntityFactory<Lock> {
     constructor(connection: FConnection) {
         super(connection, new FNamespace('entity', 'lock'), { enableVersioning: false, enableTimestamps: false });
     }
@@ -261,7 +261,7 @@ export class LockFactory extends FEntityFactory<Lock, LockShape> {
         return await this._findById([key]);
     }
     async create(key: string, shape: LockShape) {
-        return await this._create([key], shape);
+        return await this._create([key], { key, ...shape });
     }
     protected _createEntity(id: (string | number)[], value: any, isNew: boolean) {
         return new Lock(this.connection, this.namespace, id, value, this.options, isNew);
@@ -358,7 +358,7 @@ export class Task extends FEntity {
     }
 }
 
-export class TaskFactory extends FEntityFactory<Task, TaskShape> {
+export class TaskFactory extends FEntityFactory<Task> {
     constructor(connection: FConnection) {
         super(connection, new FNamespace('entity', 'task'), { enableVersioning: true, enableTimestamps: true });
     }
@@ -366,7 +366,7 @@ export class TaskFactory extends FEntityFactory<Task, TaskShape> {
         return await this._findById([taskType, uid]);
     }
     async create(taskType: string, uid: string, shape: TaskShape) {
-        return await this._create([taskType, uid], shape);
+        return await this._create([taskType, uid], { taskType, uid, ...shape });
     }
     protected _createEntity(id: (string | number)[], value: any, isNew: boolean) {
         return new Task(this.connection, this.namespace, id, value, this.options, isNew);

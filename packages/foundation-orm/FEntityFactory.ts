@@ -3,7 +3,7 @@ import { FConnection } from './FConnection';
 import { FEntity, FEntityOptions } from './FEntity';
 import { FWatch } from './FWatch';
 
-export abstract class FEntityFactory<T extends FEntity, S> {
+export abstract class FEntityFactory<T extends FEntity> {
     readonly namespace: FNamespace;
     readonly connection: FConnection;
     readonly options: FEntityOptions;

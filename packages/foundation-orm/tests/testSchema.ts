@@ -21,7 +21,7 @@ export class SimpleEntity extends FEntity {
     }
 }
 
-export class SimpleEntityFactory extends FEntityFactory<SimpleEntity, SimpleEntityShape> {
+export class SimpleEntityFactory extends FEntityFactory<SimpleEntity> {
     constructor(connection: FConnection) {
         super(connection, new FNamespace('entity', 'simpleEntity'), { enableVersioning: false, enableTimestamps: false });
     }
@@ -29,7 +29,7 @@ export class SimpleEntityFactory extends FEntityFactory<SimpleEntity, SimpleEnti
         return await this._findById([id]);
     }
     async create(id: number, shape: SimpleEntityShape) {
-        return await this._create([id], shape);
+        return await this._create([id], { id, ...shape });
     }
     protected _createEntity(id: (string | number)[], value: any, isNew: boolean) {
         return new SimpleEntity(this.connection, this.namespace, id, value, this.options, isNew);

@@ -60,7 +60,7 @@ export function generateEntity(entity: EntityModel): string {
     res += '}\n\n';
 
     // Factory
-    res += 'export class ' + entityClass + 'Factory extends FEntityFactory<' + entityClass + ', ' + entityClass + 'Shape> {\n';
+    res += 'export class ' + entityClass + 'Factory extends FEntityFactory<' + entityClass + '> {\n';
     res += '    constructor(connection: FConnection) {\n';
     res += '        super(connection, new FNamespace(\'entity\', \'' + entityKey + '\'), { enableVersioning: ' + entity.enableVersioning + ', enableTimestamps: ' + entity.enableTimestamps + ' });\n';
     res += '    }\n';
@@ -71,7 +71,7 @@ export function generateEntity(entity: EntityModel): string {
     res += '        return await this._findById([' + entity.keys.map((v) => v.name).join(', ') + ']);\n';
     res += '    }\n';
     res += '    async create(' + entity.keys.map((v) => v.name + ': ' + v.type).join(', ') + ', shape: ' + entityClass + 'Shape) {\n';
-    res += '        return await this._create([' + entity.keys.map((v) => v.name).join(', ') + '], shape);\n';
+    res += '        return await this._create([' + entity.keys.map((v) => v.name).join(', ') + '], { ' + entity.keys.map((v) => v.name).join(', ') + ', ...shape });\n';
     res += '    }\n';
     res += '    protected _createEntity(id: (string | number)[], value: any, isNew: boolean) {\n';
     res += '        return new ' + entityClass + '(this.connection, this.namespace, id, value, this.options, isNew);\n';
