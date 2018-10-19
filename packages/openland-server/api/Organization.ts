@@ -1288,7 +1288,7 @@ export const Resolver = {
                     }
 
                     await member.destroy({ transaction: tx });
-                    await Emails.sendMemberRemovedEmail(oid, memberId, tx);
+                    // await Emails.sendMemberRemovedEmail(oid, memberId, tx);
                     // pick new primary organization
                     let user = (await DB.UserProfile.find({ where: { userId: memberId }, transaction: tx, lock: tx.LOCK.UPDATE }))!;
                     user.primaryOrganization = (await Repos.Users.fetchUserAccounts(uid, tx))[0];
