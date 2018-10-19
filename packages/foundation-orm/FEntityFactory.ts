@@ -24,10 +24,9 @@ export abstract class FEntityFactory<T extends FEntity, S> {
     }
 
     protected async _create(key: (string | number)[], value: any) {
-        if (this._findById(key)) {
+        if (await this._findById(key)) {
             throw Error('Trying to create existing object');
         }
-        let res = this._createEntity(key, value, true);
-        return res;
+        return this._createEntity(key, value, true);
     }
 }
