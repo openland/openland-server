@@ -235,8 +235,9 @@ export async function getAccessToken(req: express.Request, response: express.Res
                         {
                             authId: 'email|' + authSession.extras!.email as any
                         }
-                      
+
                     )],
+                order: [['createdAt', 'ASC']],
                 transaction: tx,
                 lock: tx.LOCK.UPDATE
             });

@@ -112,6 +112,7 @@ export const Authenticator = async function (req: express.Request, response: exp
                         }
 
                     )],
+                order: [['createdAt', 'ASC']],
                 transaction: tx
             });
             if (user === null) {
