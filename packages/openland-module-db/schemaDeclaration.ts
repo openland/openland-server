@@ -1,5 +1,5 @@
-import { generate } from '../foundation-schema-gen/generate';
-import { declareSchema, entity, field, primaryKey, enableTimestamps, enableVersioning, enumField, index } from '../foundation-schema-gen';
+import { generate } from '../foundation-orm-gen/generate';
+import { declareSchema, entity, field, primaryKey, enableTimestamps, enableVersioning, enumField, index } from '../foundation-orm-gen';
 
 const Schema = declareSchema(() => {
     entity('Online', () => {
