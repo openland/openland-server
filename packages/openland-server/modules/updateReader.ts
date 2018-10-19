@@ -67,6 +67,7 @@ export async function writeReaderOffset(tx: sequelize.Transaction, key: string, 
         }
         await res.save({ transaction: tx, logging: DB_SILENT });
         (tx as any).afterCommit(() => {
+            // tslint:disable-next-line:no-floating-promises
             pubsub.publish('reader_' + key, { key, offset: offset.offset.toUTCString(), secondary: offset.secondary });
         });
     } else {
@@ -78,6 +79,7 @@ export async function writeReaderOffset(tx: sequelize.Transaction, key: string, 
             version: version,
         }, { transaction: tx, logging: DB_SILENT });
         (tx as any).afterCommit(() => {
+            // tslint:disable-next-line:no-floating-promises
             pubsub.publish('reader_' + key, { key, offset: offset.offset.toUTCString(), secondary: offset.secondary });
         });
     }
@@ -107,6 +109,7 @@ export class UpdateReader<TInstance, TAttributes> {
         //
 
         addAfterChangedCommitHook(model, (record: TInstance) => {
+            // tslint:disable-next-line:no-floating-promises
             pubsub.publish('invalidate_' + this.name, {
                 key: 'reader_' + this.name,
                 offset: (record as any).updatedAt as string,
@@ -248,6 +251,7 @@ export class UpdateReader<TInstance, TAttributes> {
             throw new Error('Processor should be set!');
         }
 
+        // tslint:disable-next-line:no-floating-promises
         updateReader(this.name, this.version, this.model, this.includeVal, this.delay, (data, tx) => this.processorFunc!!(data, tx, false), this.initFunc);
     }
 }
@@ -266,6 +270,7 @@ async function updateReader<TInstance, TAttributes>(
     let lastOffset: Date | null = null;
     let lastSecondary: number | null = null;
     let waiter: (() => void) | null = null;
+    // tslint:disable-next-line:no-floating-promises
     pubsub.subscribe('invalidate_' + name, (data) => {
         if (waiter) {
             if (lastOffset !== null && lastSecondary !== null) {

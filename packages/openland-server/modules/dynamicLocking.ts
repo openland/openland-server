@@ -61,6 +61,7 @@ export class DynamicLock {
             isRunning = true;
 
             // Starting refresher
+            // tslint:disable-next-line:no-floating-promises
             refresher();
 
             // Doing work

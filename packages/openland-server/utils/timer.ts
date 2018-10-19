@@ -93,10 +93,13 @@ export async function retry<T>(callback: () => Promise<T>): Promise<T> {
     }
 }
 
-export async function forever(callback: () => Promise<void>) {
-    while (true) {
-        await backoff(callback);
-    }
+export function forever(callback: () => Promise<void>) {
+    // tslint:disable-next-line:no-floating-promises
+    (async () => {
+        while (true) {
+            await backoff(callback);
+        }
+    })();
 }
 
 export function currentTime(): number {
@@ -130,7 +133,7 @@ export class AsyncLock {
         await new Promise<boolean>(resolve => this.promiseResolverQueue.push(resolve));
     }
 
-    private async unlock() {
+    private unlock() {
         this.permits += 1;
         if (this.permits > 1 && this.promiseResolverQueue.length > 0) {
             throw new Error('this.permits should never be > 0 when there is someone waiting.');

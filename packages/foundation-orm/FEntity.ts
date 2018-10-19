@@ -65,7 +65,7 @@ export class FEntity {
     markDirty() {
         if (!this.isDirty) {
             this.isDirty = true;
-            this.context.markDirty(this, (connection: FConnection) => {
+            this.context.markDirty(this, async (connection: FConnection) => {
                 let value = {
                     ...this._value
                 };
@@ -80,7 +80,7 @@ export class FEntity {
                     value._updatedAt = now;
                 }
                 // console.log('FEntity updated', { entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: value });
-                this.namespace.set(connection, value, ...this.rawId);
+                await this.namespace.set(connection, value, ...this.rawId);
             });
         }
     }

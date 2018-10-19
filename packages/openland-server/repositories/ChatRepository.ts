@@ -283,6 +283,7 @@ class TypingManager {
             let members = await this.getChatMembers(conversationId);
 
             for (let member of members) {
+                // tslint:disable-next-line:no-floating-promises
                 this.xPubSub.publish(`TYPING_${member}`, {
                     forUserId: member,
                     userId: uid,
@@ -296,6 +297,7 @@ class TypingManager {
 
     public async cancelTyping(uid: number, conversationId: number, members: number[]) {
         for (let member of members) {
+            // tslint:disable-next-line:no-floating-promises
             this.xPubSub.publish(`TYPING_${member}`, {
                 forUserId: member,
                 userId: uid,
@@ -355,6 +357,7 @@ export class OnlineEngine {
     constructor() {
         setInterval(() => this.cache.clear(), 1000 * 30);
 
+        // tslint:disable-next-line:no-floating-promises
         this.pubSubGlobal.subscribe('ONLINE', async (ev) => {
             if (ev.online) {
                 let prev = this.onlines.get(ev.userId);
@@ -513,7 +516,9 @@ export class OnlineEngineNew {
         if (this.fdbSubscriptions.has(uid)) {
             return;
         } else {
+            // tslint:disable-next-line:no-floating-promises
             let sub = FDB.Online.watch(uid, () => {
+                // tslint:disable-next-line:no-floating-promises
                 this.handleOnlineChange(uid);
             });
             this.fdbSubscriptions.set(uid, sub);

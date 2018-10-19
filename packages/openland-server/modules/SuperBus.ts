@@ -48,13 +48,15 @@ export class SuperBus<T, TInstance, TAttributes> {
             throw Error('Event Handler not set!');
         }
         this._isStarted = true;
+        // tslint:disable-next-line:no-floating-promises
         this.bus.subscribe(this.name, (event) => {
             this._eventHandler!!(event);
         });
         addAfterChangedCommitHook(this.model, (instance) => {
-            console.warn('updated');
+            // tslint:disable-next-line:no-floating-promises
             this.bus.publish(this.name, this._eventBuilder!!(instance));
         });
+        // tslint:disable-next-line:no-floating-promises
         this.startReader();
     }
 
@@ -68,6 +70,7 @@ export class SuperBus<T, TInstance, TAttributes> {
             offset = { id: (firstEvent as any).id, date: (firstEvent as any).updatedAt };
         }
         let breaker: (() => void) | null = null;
+        // tslint:disable-next-line:no-floating-promises
         this.bus.subscribe(this.name, () => {
             if (breaker) {
                 breaker();
