@@ -21,6 +21,7 @@ import Timer = NodeJS.Timer;
 import { CacheRepository } from 'openland-repositories/CacheRepository';
 import { Modules } from 'openland-modules/Modules';
 import { FDB } from '../../openland-module-db/FDB';
+import { SimpleSub } from '../modules/SimpleSub';
 
 export type ChatEventType =
     'new_message' |
@@ -494,7 +495,7 @@ export class OnlineEngineNew {
     private cache = new Map<number, number[]>();
     private onlines = new Map<number, { online: boolean, timer?: Timer }>();
     private fdbSubscriptions = new Map<number, { cancel: () => void }>();
-    private localSubs = new Map<number, ((ev: OnlineEventInternal) => void)[]>();
+    private localSub = new SimpleSub<number, OnlineEventInternal>();
 
     constructor() {
         setInterval(() => this.cache.clear(), 1000 * 30);
@@ -557,28 +558,12 @@ export class OnlineEngineNew {
         for (let member of members) {
             await this.fSubscribe(member);
 
-            this.localSubscribe(member, ev => {
+            subscriptions.push(this.localSub.subscribe(member, ev => {
                 sub.pushEvent(genEvent(ev));
-            });
+            }));
         }
 
         return sub.getIterator();
-    }
-
-    private localEmit(userId: number, ev: OnlineEventInternal) {
-        let subs = this.localSubs.get(userId);
-
-        if (subs) {
-            subs.forEach(s => s(ev));
-        }
-    }
-
-    private localSubscribe(userId: number, cb: (ev: OnlineEventInternal) => void) {
-       if (this.localSubs.has(userId)) {
-           this.localSubs.get(userId)!.push(cb);
-       } else {
-           this.localSubs.set(userId, [cb]);
-       }
     }
 
     private async handleOnlineChange(userId: number) {
@@ -603,7 +588,7 @@ export class OnlineEngineNew {
                 clearTimeout(prev.timer);
             }
             let timer = setTimeout(async () => {
-                this.localEmit(userId, {
+                this.localSub.emit(userId, {
                     userId: userId,
                     timeout: timeout,
                     online: false
@@ -614,7 +599,7 @@ export class OnlineEngineNew {
             this.onlines.set(userId, { online: true, timer });
 
             if (isChanged) {
-                this.localEmit(userId, {
+                this.localSub.emit(userId, {
                     userId: userId,
                     timeout: timeout,
                     online: true
@@ -631,7 +616,7 @@ export class OnlineEngineNew {
             this.onlines.set(userId, { online: false });
 
             if (isChanged) {
-                this.localEmit(userId, {
+                this.localSub.emit(userId, {
                     userId: userId,
                     timeout: timeout,
                     online: false
@@ -663,7 +648,7 @@ export class ChatsRepository {
     userSuperbus: SuperBus<{ userId: number, seq: number }, ConversationUserEvents, Partial<ConversationUserEventsAttributes>>;
 
     draftsCache = new CacheRepository<{ message: string }>('message_draft');
-    onlineEngine = new OnlineEngine();
+    onlineEngine = new OnlineEngineNew();
 
     constructor() {
         this.reader = new ChatsEventReader();
