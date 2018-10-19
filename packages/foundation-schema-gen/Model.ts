@@ -17,10 +17,20 @@ export class EntityField {
     }
 }
 
+export class EntityIndex {
+    fields: string[];
+    name: string;
+    constructor(name: string, fields: string[]) {
+        this.name = name;
+        this.fields = fields;
+    }
+}
+
 export class EntityModel {
     readonly name: string;
     keys: EntityField[] = [];
     fields: EntityField[] = [];
+    indexes: EntityIndex[] = [];
     enableVersioning: boolean = false;
     enableTimestamps: boolean = false;
     constructor(name: string) {
@@ -31,6 +41,10 @@ export class EntityModel {
         let res = new EntityField(name, type, enumValues);
         this.fields.push(res);
         return res;
+    }
+
+    addIndex(name: string, fields: string[]) {
+        this.indexes.push(new EntityIndex(name, fields));
     }
 
     addKey(name: string, type: 'string' | 'number' | 'boolean') {

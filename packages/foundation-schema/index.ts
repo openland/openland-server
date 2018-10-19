@@ -1,5 +1,5 @@
 import { generate } from '../foundation-schema-gen/generate';
-import { declareSchema, entity, field, primaryKey, enableTimestamps, enableVersioning, enumField } from '../foundation-schema-gen';
+import { declareSchema, entity, field, primaryKey, enableTimestamps, enableVersioning, enumField, index } from '../foundation-schema-gen';
 
 const Schema = declareSchema(() => {
     entity('Online', () => {
@@ -47,7 +47,7 @@ const Schema = declareSchema(() => {
     entity('Task', () => {
         primaryKey('taskType', 'string');
         primaryKey('uid', 'string');
-        
+
         field('arguments', 'json');
         field('result', 'json').nullable();
         enumField('taskStatus', ['pending', 'executing', 'failing', 'failed', 'completed']);
@@ -56,6 +56,8 @@ const Schema = declareSchema(() => {
         field('taskFailureTime', 'number').nullable();
         field('taskLockSeed', 'string').nullable();
         field('taskLockTimeout', 'number').nullable();
+
+        index('queue', ['taskType', 'taskStatus', '_createdAt', 'uid']);
 
         enableTimestamps();
         enableVersioning();
