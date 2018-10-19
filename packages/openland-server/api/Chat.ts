@@ -1843,7 +1843,7 @@ export const Resolver = {
                     'kick_member',
                     {
                         userId: userId,
-                        kickedBy: uid
+                        kickedById: uid
                     },
                     tx
                 );
@@ -2063,7 +2063,7 @@ export const Resolver = {
                     'kick_member',
                     {
                         userId: uid,
-                        kickedBy: uid
+                        kickedById: uid
                     },
                     tx
                 );
