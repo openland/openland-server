@@ -493,6 +493,8 @@ export class OnlineEngine {
 export class OnlineEngineNew {
     private cache = new Map<number, number[]>();
     private onlines = new Map<number, { online: boolean, timer?: Timer }>();
+    private fdbSubscriptions = new Map<number, { cancel: () => void }>();
+    private localSubs = new Map<number, ((ev: OnlineEventInternal) => void)[]>();
 
     constructor() {
         setInterval(() => this.cache.clear(), 1000 * 30);
@@ -504,6 +506,17 @@ export class OnlineEngineNew {
 
     async setOffline(uid: number) {
         // console.log('setOffline');
+    }
+
+    async fSubscribe(uid: number) {
+        if (this.fdbSubscriptions.has(uid)) {
+            return;
+        } else {
+            let sub = FDB.Online.watch(uid, () => {
+                this.handleOnlineChange(uid);
+            });
+            this.fdbSubscriptions.set(uid, sub);
+        }
     }
 
     public async getXIterator(uid: number, conversations?: number[], users?: number[]) {
@@ -542,68 +555,89 @@ export class OnlineEngineNew {
         }
 
         for (let member of members) {
-            subscriptions.push(FDB.Online.watch(member, async () => {
-                let onlineValue = await FDB.Online.findById(member);
+            await this.fSubscribe(member);
 
-                let timeout = 0;
-                let isOnline = false;
-
-                if (onlineValue) {
-                    if (onlineValue.lastSeen > Date.now()) {
-                        isOnline = true;
-                        timeout = onlineValue.lastSeen - Date.now();
-                    }
-                }
-                let userId = member;
-
-                if (isOnline) {
-                    let prev = this.onlines.get(userId);
-
-                    let isChanged = !prev || !prev.online;
-
-                    if (prev && prev.timer) {
-                        clearTimeout(prev.timer);
-                    }
-                    let timer = setTimeout(async () => {
-                        sub.pushEvent(genEvent({
-                            userId: userId,
-                            timeout: timeout,
-                            online: false
-                        }));
-                        this.onlines.set(userId, { online: false });
-
-                    }, timeout);
-                    this.onlines.set(userId, { online: true, timer });
-
-                    if (isChanged) {
-                        sub.pushEvent(genEvent({
-                            userId: userId,
-                            timeout: timeout,
-                            online: true
-                        }));
-                    }
-                } else {
-                    let prev = this.onlines.get(userId);
-
-                    let isChanged = prev && prev.online;
-
-                    if (prev && prev.timer) {
-                        clearTimeout(prev.timer);
-                    }
-                    this.onlines.set(userId, { online: false });
-
-                    if (isChanged) {
-                        sub.pushEvent(genEvent({
-                            userId: userId,
-                            timeout: timeout,
-                            online: false
-                        }));
-                    }
-                }
-            }));
+            this.localSubscribe(member, ev => {
+                sub.pushEvent(genEvent(ev));
+            });
         }
 
         return sub.getIterator();
+    }
+
+    private localEmit(userId: number, ev: OnlineEventInternal) {
+        let subs = this.localSubs.get(userId);
+
+        if (subs) {
+            subs.forEach(s => s(ev));
+        }
+    }
+
+    private localSubscribe(userId: number, cb: (ev: OnlineEventInternal) => void) {
+       if (this.localSubs.has(userId)) {
+           this.localSubs.get(userId)!.push(cb);
+       } else {
+           this.localSubs.set(userId, [cb]);
+       }
+    }
+
+    private async handleOnlineChange(userId: number) {
+        let onlineValue = await FDB.Online.findById(userId);
+
+        let timeout = 0;
+        let isOnline = false;
+
+        if (onlineValue) {
+            if (onlineValue.lastSeen > Date.now()) {
+                isOnline = true;
+                timeout = onlineValue.lastSeen - Date.now();
+            }
+        }
+
+        if (isOnline) {
+            let prev = this.onlines.get(userId);
+
+            let isChanged = !prev || !prev.online;
+
+            if (prev && prev.timer) {
+                clearTimeout(prev.timer);
+            }
+            let timer = setTimeout(async () => {
+                this.localEmit(userId, {
+                    userId: userId,
+                    timeout: timeout,
+                    online: false
+                });
+                this.onlines.set(userId, { online: false });
+
+            }, timeout);
+            this.onlines.set(userId, { online: true, timer });
+
+            if (isChanged) {
+                this.localEmit(userId, {
+                    userId: userId,
+                    timeout: timeout,
+                    online: true
+                });
+            }
+        } else {
+            let prev = this.onlines.get(userId);
+
+            let isChanged = prev && prev.online;
+
+            if (prev && prev.timer) {
+                clearTimeout(prev.timer);
+            }
+            this.onlines.set(userId, { online: false });
+
+            if (isChanged) {
+                this.localEmit(userId, {
+                    userId: userId,
+                    timeout: timeout,
+                    online: false
+                });
+            }
+        }
     }
 
     private async getChatMembers(chatId: number): Promise<number[]> {
@@ -629,7 +663,7 @@ export class ChatsRepository {
     userSuperbus: SuperBus<{ userId: number, seq: number }, ConversationUserEvents, Partial<ConversationUserEventsAttributes>>;
 
     draftsCache = new CacheRepository<{ message: string }>('message_draft');
-    onlineEngine = new OnlineEngineNew();
+    onlineEngine = new OnlineEngine();
 
     constructor() {
         this.reader = new ChatsEventReader();
