@@ -38,11 +38,83 @@ export class SimpleEntityFactory extends FEntityFactory<SimpleEntity> {
         return this._watch([id], cb);
     }
 }
+export interface VersionedEntityShape {
+    data: string;
+}
+
+export class VersionedEntity extends FEntity {
+    get id() { return this._value.id; }
+    get data(): string {
+        return this._value.data;
+    }
+    set data(value: string) {
+        this._checkIsWritable();
+        if (value === this._value.data) { return; }
+        this._value.data = value;
+        this.markDirty();
+    }
+}
+
+export class VersionedEntityFactory extends FEntityFactory<VersionedEntity> {
+    constructor(connection: FConnection) {
+        super(connection, new FNamespace('entity', 'versionedEntity'), { enableVersioning: true, enableTimestamps: false });
+    }
+    async findById(id: number) {
+        return await this._findById([id]);
+    }
+    async create(id: number, shape: VersionedEntityShape) {
+        return await this._create([id], { id, ...shape });
+    }
+    protected _createEntity(id: (string | number)[], value: any, isNew: boolean) {
+        return new VersionedEntity(this.connection, this.namespace, id, value, this.options, isNew);
+    }
+    watch(id: number, cb: () => void) {
+        return this._watch([id], cb);
+    }
+}
+export interface TimestampedEntityShape {
+    data: string;
+}
+
+export class TimestampedEntity extends FEntity {
+    get id() { return this._value.id; }
+    get data(): string {
+        return this._value.data;
+    }
+    set data(value: string) {
+        this._checkIsWritable();
+        if (value === this._value.data) { return; }
+        this._value.data = value;
+        this.markDirty();
+    }
+}
+
+export class TimestampedEntityFactory extends FEntityFactory<TimestampedEntity> {
+    constructor(connection: FConnection) {
+        super(connection, new FNamespace('entity', 'timestampedEntity'), { enableVersioning: false, enableTimestamps: true });
+    }
+    async findById(id: number) {
+        return await this._findById([id]);
+    }
+    async create(id: number, shape: TimestampedEntityShape) {
+        return await this._create([id], { id, ...shape });
+    }
+    protected _createEntity(id: (string | number)[], value: any, isNew: boolean) {
+        return new TimestampedEntity(this.connection, this.namespace, id, value, this.options, isNew);
+    }
+    watch(id: number, cb: () => void) {
+        return this._watch([id], cb);
+    }
+}
 
 export class AllEntities {
     SimpleEntity: SimpleEntityFactory;
+    VersionedEntity: VersionedEntityFactory;
+    TimestampedEntity: TimestampedEntityFactory;
 
     constructor(connection: FConnection) {
         this.SimpleEntity = new SimpleEntityFactory(connection);
+        this.VersionedEntity = new VersionedEntityFactory(connection);
+        this.TimestampedEntity = new TimestampedEntityFactory(connection);
     }
 }
