@@ -1,3 +1,4 @@
+// tslint:disable:no-floating-promises
 import * as fdb from 'foundationdb';
 import { AllEntities } from './tests/testSchema';
 import { FConnection } from './FConnection';
