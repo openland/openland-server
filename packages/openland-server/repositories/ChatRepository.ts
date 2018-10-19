@@ -595,7 +595,7 @@ export class OnlineEngineNew {
             let timer = setTimeout(async () => {
                 this.localSub.emit(userId, {
                     userId: userId,
-                    timeout: timeout,
+                    timeout: 0,
                     online: false
                 });
                 this.onlines.set(userId, { online: false });
