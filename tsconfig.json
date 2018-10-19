@@ -70,6 +70,9 @@
       "foundation-orm": [
         "foundation-orm"
       ],
+      "foundation-orm-gen": [
+        "foundation-orm-gen"
+      ],
       "openland-utils": [
         "openland-utils"
       ],

@@ -28,7 +28,7 @@ export abstract class FEntityFactory<T extends FEntity, S> {
 
     protected async _create(key: (string | number)[], value: any) {
         if (await this._findById(key)) {
-            throw Error('Trying to create existing object');
+            throw Error('Object already exists');
         }
         return this._createEntity(key, value, true);
     }
