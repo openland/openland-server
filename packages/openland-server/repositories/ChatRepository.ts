@@ -20,6 +20,7 @@ import { URLAugmentation } from '../services/UrlInfoService';
 import Timer = NodeJS.Timer;
 import { CacheRepository } from 'openland-repositories/CacheRepository';
 import { Modules } from 'openland-modules/Modules';
+import { FDB } from '../../openland-module-db/FDB';
 
 export type ChatEventType =
     'new_message' |
@@ -344,7 +345,7 @@ export interface OnlineEventInternal {
     online: boolean;
 }
 
-class OnlineEngine {
+export class OnlineEngine {
     private xPubSub = new Pubsub<OnlineEventInternal>(false);
     private pubSubGlobal = new Pubsub<OnlineEventInternal>();
     private cache = new Map<number, number[]>();
@@ -489,6 +490,135 @@ class OnlineEngine {
     }
 }
 
+export class OnlineEngineNew {
+    private cache = new Map<number, number[]>();
+    private onlines = new Map<number, { online: boolean, timer?: Timer }>();
+
+    constructor() {
+        setInterval(() => this.cache.clear(), 1000 * 30);
+    }
+
+    async setOnline(uid: number, timeout: number) {
+        // console.log('setOnline');
+    }
+
+    async setOffline(uid: number) {
+        // console.log('setOffline');
+    }
+
+    public async getXIterator(uid: number, conversations?: number[], users?: number[]) {
+
+        let members: number[] = users || [];
+
+        if (conversations) {
+            for (let chat of conversations) {
+                members.push(...await this.getChatMembers(chat));
+            }
+        }
+
+        members = Array.from(new Set(members)); // remove duplicates
+
+        let subscriptions: { cancel: () => void }[] = [];
+        let sub = new SubscriptionEngine(() => subscriptions.forEach(s => s.cancel()));
+
+        let genEvent = (ev: OnlineEventInternal) => {
+            return {
+                type: ev.online ? 'online' : 'offline',
+                timeout: ev!.timeout,
+                userId: ev!.userId,
+            };
+        };
+
+        // Send initial state
+        for (let member of members) {
+            if (this.onlines.get(member)) {
+                let online = this.onlines.get(member)!;
+                sub.pushEvent(genEvent({
+                    userId: member,
+                    timeout: online.online ? 5000 : 0,
+                    online: online.online
+                }));
+            }
+        }
+
+        for (let member of members) {
+            subscriptions.push(FDB.Online.watch(member, async () => {
+                let onlineValue = await FDB.Online.findById(member);
+
+                let timeout = 0;
+                let isOnline = false;
+
+                if (onlineValue) {
+                    if (onlineValue.lastSeen > Date.now()) {
+                        isOnline = true;
+                        timeout = onlineValue.lastSeen - Date.now();
+                    }
+                }
+                let userId = member;
+
+                if (isOnline) {
+                    let prev = this.onlines.get(userId);
+
+                    let isChanged = !prev || !prev.online;
+
+                    if (prev && prev.timer) {
+                        clearTimeout(prev.timer);
+                    }
+                    let timer = setTimeout(async () => {
+                        sub.pushEvent(genEvent({
+                            userId: userId,
+                            timeout: timeout,
+                            online: false
+                        }));
+                        this.onlines.set(userId, { online: false });
+
+                    }, timeout);
+                    this.onlines.set(userId, { online: true, timer });
+
+                    if (isChanged) {
+                        sub.pushEvent(genEvent({
+                            userId: userId,
+                            timeout: timeout,
+                            online: true
+                        }));
+                    }
+                } else {
+                    let prev = this.onlines.get(userId);
+
+                    let isChanged = prev && prev.online;
+
+                    if (prev && prev.timer) {
+                        clearTimeout(prev.timer);
+                    }
+                    this.onlines.set(userId, { online: false });
+
+                    if (isChanged) {
+                        sub.pushEvent(genEvent({
+                            userId: userId,
+                            timeout: timeout,
+                            online: false
+                        }));
+                    }
+                }
+            }));
+        }
+
+        return sub.getIterator();
+    }
+
+    private async getChatMembers(chatId: number): Promise<number[]> {
+        if (this.cache.has(chatId)) {
+            return this.cache.get(chatId)!;
+        } else {
+            let members = await Repos.Chats.getConversationMembers(chatId);
+
+            this.cache.set(chatId, members);
+
+            return members;
+        }
+    }
+}
+
 export class ChatsRepository {
     typingManager = new TypingManager();
     reader: ChatsEventReader;
@@ -499,7 +629,7 @@ export class ChatsRepository {
     userSuperbus: SuperBus<{ userId: number, seq: number }, ConversationUserEvents, Partial<ConversationUserEventsAttributes>>;
 
     draftsCache = new CacheRepository<{ message: string }>('message_draft');
-    onlineEngine = new OnlineEngine();
+    onlineEngine = new OnlineEngineNew();
 
     constructor() {
         this.reader = new ChatsEventReader();
