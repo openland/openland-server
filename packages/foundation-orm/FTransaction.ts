@@ -1,31 +1,15 @@
-import * as async_hooks from 'async_hooks';
 import { FContext } from './FContext';
 import { FConnection } from './FConnection';
 import { FEntity } from './FEntity';
 import { Transaction, TupleItem } from 'foundationdb';
-// import { currentTime } from 'openland-server/utils/timer';
-
-var transactions = new Map<number, FTransaction>();
-
-const asyncHook = async_hooks.createHook({
-    init: (asyncId, type, triggerAsyncId, resource) => {
-        let tx = transactions.get(triggerAsyncId);
-        if (tx) {
-            transactions.set(asyncId, tx);
-        }
-    },
-    destroy: (asyncId) => {
-        transactions.delete(asyncId);
-    }
-});
-
-asyncHook.enable();
+import { SafeContext } from 'openland-utils/safeContext';
 
 export class FTransaction implements FContext {
 
+    private static context = new SafeContext<FTransaction>();
+
     static get currentTransaction(): FTransaction | null {
-        let id = async_hooks.executionAsyncId();
-        let tx = transactions.get(id);
+        let tx = this.context.value;
         if (tx) {
             return tx;
         }
@@ -33,11 +17,10 @@ export class FTransaction implements FContext {
     }
 
     static set currentTransaction(tx: FTransaction | null) {
-        let id = async_hooks.executionAsyncId();
         if (tx) {
-            transactions.set(id, tx);
+            this.context.value = tx;
         } else {
-            transactions.delete(id);
+            this.context.value = undefined;
         }
     }
 
@@ -64,7 +47,7 @@ export class FTransaction implements FContext {
         this._prepare(connection);
         this.tx!.set(key, value);
     }
-    
+
     async delete(connection: FConnection, ...key: (string | number)[]) {
         this._prepare(connection);
         this.tx!.clear(key);

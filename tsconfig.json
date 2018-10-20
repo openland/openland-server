@@ -92,6 +92,7 @@
   },
   "include": [
     "packages/**/*.ts",
+    "packages/**/*.d.ts",
     "packages/**/*.json"
   ]
 }

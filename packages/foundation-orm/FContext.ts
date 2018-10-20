@@ -22,6 +22,7 @@ export class FGlobalContext implements FContext {
         return res.map((v) => v[1]);
     }
     set(connection: FConnection, value: any, ...key: (string | number)[]) {
+        console.warn('Set outside of transaction!');
         return connection.fdb.set(key, value);
     }
     delete(connection: FConnection, ...key: (string | number)[]) {
