@@ -2,7 +2,7 @@ import { FContext } from './FContext';
 import { FConnection } from './FConnection';
 import { FEntity } from './FEntity';
 import { Transaction, TupleItem } from 'foundationdb';
-import { SafeContext } from 'openland-utils/safeContext';
+import { SafeContext } from 'openland-utils/SafeContext';
 import { currentTime } from 'openland-server/utils/timer';
 
 export class FTransaction implements FContext {
