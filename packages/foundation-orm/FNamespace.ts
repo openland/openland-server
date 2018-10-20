@@ -12,6 +12,12 @@ export class FNamespace {
     }
 
     range = async (connection: FConnection, limit: number, ...key: (string | number)[]) => {
+        if (limit < 0) {
+            throw Error('Limit should be greater than zero');
+        }
+        if (limit > 1000) {
+            throw Error('Limit should be less than 100');
+        }
         return connection.currentContext.range(connection, limit, ...this.namespace, ...key);
     }
 
