@@ -34,7 +34,11 @@ export function primaryKey(name: string, type: 'number' | 'string') {
 }
 
 export function uniqueIndex(name: string, fields: string[]) {
-    currentEntity!!.addIndex(name, fields);
+    currentEntity!!.addIndex(name, fields, true);
+}
+
+export function rangeIndex(name: string, fields: string[]) {
+    currentEntity!!.addIndex(name, fields, false);
 }
 
 export function enableTimestamps() {

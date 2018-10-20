@@ -388,7 +388,7 @@ export class TaskFactory extends FEntityFactory<Task> {
         super(connection,
             new FNamespace('entity', 'task'),
             { enableVersioning: true, enableTimestamps: true },
-            [new FEntityIndex('queue', ['taskType', 'taskStatus', 'createdAt', 'uid'])]
+            [new FEntityIndex('queue', ['taskType', 'taskStatus', 'createdAt', 'uid'], true)]
         );
     }
     async findById(taskType: string, uid: string) {

@@ -151,7 +151,7 @@ export class IndexedEntityFactory extends FEntityFactory<IndexedEntity> {
         super(connection,
             new FNamespace('entity', 'indexedEntity'),
             { enableVersioning: false, enableTimestamps: false },
-            [new FEntityIndex('default', ['data1', 'data2', 'id'])]
+            [new FEntityIndex('default', ['data1', 'data2', 'id'], true)]
         );
     }
     async findById(id: number) {
@@ -170,17 +170,70 @@ export class IndexedEntityFactory extends FEntityFactory<IndexedEntity> {
         return new IndexedEntity(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
     }
 }
+export interface IndexedRangeEntityShape {
+    data1: string;
+    data2: string;
+}
+
+export class IndexedRangeEntity extends FEntity {
+    get id() { return this._value.id; }
+    get data1(): string {
+        return this._value.data1;
+    }
+    set data1(value: string) {
+        this._checkIsWritable();
+        if (value === this._value.data1) { return; }
+        this._value.data1 = value;
+        this.markDirty();
+    }
+    get data2(): string {
+        return this._value.data2;
+    }
+    set data2(value: string) {
+        this._checkIsWritable();
+        if (value === this._value.data2) { return; }
+        this._value.data2 = value;
+        this.markDirty();
+    }
+}
+
+export class IndexedRangeEntityFactory extends FEntityFactory<IndexedRangeEntity> {
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'indexedRangeEntity'),
+            { enableVersioning: false, enableTimestamps: false },
+            [new FEntityIndex('default', ['data1', 'data2'], false)]
+        );
+    }
+    async findById(id: number) {
+        return await this._findById([id]);
+    }
+    async create(id: number, shape: IndexedRangeEntityShape) {
+        return await this._create([id], { id, ...shape });
+    }
+    watch(id: number, cb: () => void) {
+        return this._watch([id], cb);
+    }
+    async rangeFromDefault(data1: string, limit: number) {
+        return await this._findRange(['__indexes', 'default', data1], limit);
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new IndexedRangeEntity(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
+    }
+}
 
 export class AllEntities {
     SimpleEntity: SimpleEntityFactory;
     VersionedEntity: VersionedEntityFactory;
     TimestampedEntity: TimestampedEntityFactory;
     IndexedEntity: IndexedEntityFactory;
+    IndexedRangeEntity: IndexedRangeEntityFactory;
 
     constructor(connection: FConnection) {
         this.SimpleEntity = new SimpleEntityFactory(connection);
         this.VersionedEntity = new VersionedEntityFactory(connection);
         this.TimestampedEntity = new TimestampedEntityFactory(connection);
         this.IndexedEntity = new IndexedEntityFactory(connection);
+        this.IndexedRangeEntity = new IndexedRangeEntityFactory(connection);
     }
 }

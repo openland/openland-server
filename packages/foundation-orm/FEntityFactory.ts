@@ -29,6 +29,11 @@ export abstract class FEntityFactory<T extends FEntity> {
         return null;
     }
 
+    protected async _findRange(key: (string | number)[], limit: number) {
+        let res = await this.namespace.range(this.connection, limit, ...key);
+        return res.map((v) => this._createEntity(v, false));
+    }
+
     protected async _create(key: (string | number)[], value: any) {
         if (await this._findById(key)) {
             throw Error('Object already exists');

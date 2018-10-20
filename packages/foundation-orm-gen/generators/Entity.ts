@@ -87,7 +87,7 @@ export function generateEntity(entity: EntityModel): string {
     res += '        super(connection,\n';
     res += '            new FNamespace(\'entity\', \'' + entityKey + '\'),\n';
     res += '            { enableVersioning: ' + entity.enableVersioning + ', enableTimestamps: ' + entity.enableTimestamps + ' },\n';
-    res += '            [' + entity.indexes.map((v) => 'new FEntityIndex(\'' + v.name + '\', [' + v.fields.map((v2) => '\'' + v2 + '\'').join(', ') + '])').join(', ') + ']\n';
+    res += '            [' + entity.indexes.map((v) => 'new FEntityIndex(\'' + v.name + '\', [' + v.fields.map((v2) => '\'' + v2 + '\'').join(', ') + '], ' + v.unique + ')').join(', ') + ']\n';
     res += '        );\n';
     res += '    }\n';
     // protected _createEntity(context: SContext, namespace: SNamespace, id: (string | number)[], value: any) {
@@ -104,9 +104,17 @@ export function generateEntity(entity: EntityModel): string {
     res += '    }\n';
 
     for (let i of entity.indexes) {
-        res += '    async findFrom' + Case.pascalCase(i.name) + '(' + i.fields.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v))).join(', ') + ') {\n';
-        res += '        return await this._findById([' + ['\'__indexes\'', '\'' + i.name + '\'', ...i.fields].join(', ') + ']);\n';
-        res += '    }\n';
+        if (i.unique) {
+            res += '    async findFrom' + Case.pascalCase(i.name) + '(' + i.fields.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v))).join(', ') + ') {\n';
+            res += '        return await this._findById([' + ['\'__indexes\'', '\'' + i.name + '\'', ...i.fields].join(', ') + ']);\n';
+            res += '    }\n';
+        } else {
+            let fs = i.fields;
+            fs.splice(-1);
+            res += '    async rangeFrom' + Case.pascalCase(i.name) + '(' + fs.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v))).join(', ') + ', limit: number) {\n';
+            res += '        return await this._findRange([' + ['\'__indexes\'', '\'' + i.name + '\'', ...fs].join(', ') + '], limit);\n';
+            res += '    }\n';
+        }
     }
 
     res += '    protected _createEntity(value: any, isNew: boolean) {\n';

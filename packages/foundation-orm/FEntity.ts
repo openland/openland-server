@@ -102,10 +102,14 @@ export class FEntity {
                     console.log('FEntity created', { entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: value });
                     for (let index of this.indexes) {
                         let key = index.fields.map((v) => value[v]);
-                        if (await this.namespace.get(connection, '__indexes', index.name, ...key)) {
-                            throw Error('Unique index constraint failed');
+                        if (index.unique) {
+                            if (await this.namespace.get(connection, '__indexes', index.name, ...key)) {
+                                throw Error('Unique index constraint failed');
+                            }
+                            await this.namespace.set(connection, value, '__indexes', index.name, ...key);
+                        } else {
+                            await this.namespace.set(connection, value, '__indexes', index.name, ...key, ...this.rawId);
                         }
-                        await this.namespace.set(connection, value, '__indexes', index.name, ...key);
                     }
                 } else {
                     console.log('FEntity updated', { entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: value });
@@ -113,11 +117,17 @@ export class FEntity {
                         let key = index.fields.map((v) => value[v]);
                         let oldkey = index.fields.map((v) => this._valueInitial[v]);
                         if (key.join('===') !== oldkey.join('===')) {
-                            await this.namespace.delete(connection, '__indexes', index.name, ...oldkey);
-                            if (await this.namespace.get(connection, '__indexes', index.name, ...key)) {
-                                throw Error('Unique index constraint failed');
+                            if (index.unique) {
+                                await this.namespace.delete(connection, '__indexes', index.name, ...oldkey);
+                                if (await this.namespace.get(connection, '__indexes', index.name, ...key)) {
+                                    throw Error('Unique index constraint failed');
+                                }
+                                await this.namespace.set(connection, value, '__indexes', index.name, ...key);
+                            } else {
+                                console.log('change index');
+                                await this.namespace.delete(connection, '__indexes', index.name, ...oldkey, ...this.rawId);
+                                await this.namespace.set(connection, value, '__indexes', index.name, ...key, ...this.rawId);
                             }
-                            await this.namespace.set(connection, value, '__indexes', index.name, ...key);
                         }
                     }
                 }

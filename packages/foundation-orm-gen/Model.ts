@@ -18,11 +18,13 @@ export class EntityField {
 }
 
 export class EntityIndex {
-    fields: string[];
-    name: string;
-    constructor(name: string, fields: string[]) {
+    readonly fields: string[];
+    readonly name: string;
+    readonly unique: boolean;
+    constructor(name: string, fields: string[], unique: boolean) {
         this.name = name;
         this.fields = fields;
+        this.unique = unique;
     }
 }
 
@@ -43,8 +45,8 @@ export class EntityModel {
         return res;
     }
 
-    addIndex(name: string, fields: string[]) {
-        this.indexes.push(new EntityIndex(name, fields));
+    addIndex(name: string, fields: string[], unique: boolean) {
+        this.indexes.push(new EntityIndex(name, fields, unique));
     }
 
     addKey(name: string, type: 'string' | 'number' | 'boolean') {
