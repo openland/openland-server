@@ -1,44 +1,84 @@
-// import cls from 'cls-hooked'; 
 import async_hooks from 'async_hooks';
+const ENABLE_DEBUG = false;
+
+let contexts: any[] = [];
+let debug: string[] = [];
+async_hooks.createHook({
+    init: (asyncId, type, triggerAsyncId, resource) => {
+        if (ENABLE_DEBUG) {
+            debug.push(`INIT ${asyncId} ${type} ${triggerAsyncId} ${async_hooks.executionAsyncId()}`);
+        }
+
+        let currentId = async_hooks.executionAsyncId();
+
+        // JS based callback/promise
+        if (currentId !== 0) {
+            for (let ctxId in contexts) {
+                let ctx = contexts[ctxId];
+                let value = ctx[currentId];
+                if (value) {
+                    if (ENABLE_DEBUG) {
+                        debug.push(`CONTEXT FOUND ${ctxId}.${currentId}`);
+                    }
+                    ctx[asyncId] = value;
+                }
+            }
+            return;
+        }
+    },
+    after: (asyncId) => {
+        for (let ctx of contexts) {
+            let value = ctx[asyncId];
+            if (value) {
+                delete ctx[asyncId];
+            }
+        }
+    }
+}).enable();
+
+export function logContext(point: string) {
+    debug.push(`CHECKPOINT: ${point} ${async_hooks.executionAsyncId()}`);
+}
+
+export function exportContextDebug() {
+    let d = debug;
+    debug = [];
+    console.log(d.join('\n'));
+}
 
 export class SafeContext<T> {
-    private contexts = new Map<number, T>();
-    private currentUid = async_hooks.executionAsyncId();
-    // private context: cls.Namespace;
-    constructor(name: string) {
-        // this.context = cls.createNamespace(name);
-        async_hooks.createHook({
-            init: (asyncId, type, triggerAsyncId, resource) => {
-                let tx = this.contexts.get(triggerAsyncId) || this.contexts.get(this.currentUid);
-                if (tx) {
-                    this.contexts.set(asyncId, tx);
-                }
-            },
-            before: (asyncId) => {
-                this.currentUid = async_hooks.executionAsyncId();
-            },
-            after: (asyncId) => {
-                this.contexts.delete(asyncId);
-            }
-        }).enable();
+    private static nextId = 0;
+    private readonly id = SafeContext.nextId++;
+
+    constructor() {
+        contexts.push({});
     }
 
-    runAsync<P>(callback: () => Promise<P>): Promise<P> {
-        return callback();
-        // return this.context.runPromise(callback);
+    async withContext<P>(value: T | undefined, callback: () => Promise<P>): Promise<P> {
+        let sourceAsyncId = async_hooks.executionAsyncId();
+        let current = contexts[this.id][sourceAsyncId];
+        if (value) {
+            contexts[this.id][sourceAsyncId] = value;
+        } else {
+            delete contexts[this.id][sourceAsyncId];
+        }
+        let res: Promise<P>;
+        try {
+            res = callback();
+        } finally {
+            if (current) {
+                contexts[this.id][sourceAsyncId] = current;
+            } else {
+                delete contexts[this.id][sourceAsyncId];
+            }
+        }
+        return await res;
     }
 
     get value(): T | undefined {
-        return this.contexts.get(this.currentUid);
-        // return this.context.get('value');
-    }
-
-    set value(value: T | undefined) {
-        if (value) {
-            this.contexts.set(this.currentUid, value);
-        } else {
-            this.contexts.delete(this.currentUid);
+        if (ENABLE_DEBUG) {
+            debug.push(`read: ${async_hooks.executionAsyncId()}`);
         }
-        // this.context.set('value', value);
+        return contexts[this.id][async_hooks.executionAsyncId()];
     }
 }

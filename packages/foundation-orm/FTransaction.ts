@@ -7,7 +7,7 @@ import { currentTime } from 'openland-server/utils/timer';
 
 export class FTransaction implements FContext {
 
-    static readonly context = new SafeContext<FTransaction>('fdbtx');
+    static readonly context = new SafeContext<FTransaction>();
     private static nextId = 1;
 
     readonly isReadOnly: boolean = false;
@@ -22,25 +22,17 @@ export class FTransaction implements FContext {
     }
 
     async range(connection: FConnection, limit: number, ...key: (string | number)[]) {
-        let ex = FTransaction.context.value;
         this._prepare(connection);
-        let res = (await this.tx!.getRangeAll(key, undefined, { limit })).map((v) => v[1]);
-        FTransaction.context.value = ex;
-        return res;
+        return (await this.tx!.getRangeAll(key, undefined, { limit })).map((v) => v[1]);
     }
 
     async get(connection: FConnection, ...key: (string | number)[]) {
-        let ex = FTransaction.context.value;
         this._prepare(connection);
-        let res = await this.tx!.get(key);
-        FTransaction.context.value = ex;
-        return res;
+        return await this.tx!.get(key);
     }
     async set(connection: FConnection, value: any, ...key: (string | number)[]) {
-        let ex = FTransaction.context.value;
         this._prepare(connection);
         this.tx!.set(key, value);
-        FTransaction.context.value = ex;
     }
 
     async delete(connection: FConnection, ...key: (string | number)[]) {
