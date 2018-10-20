@@ -4,6 +4,9 @@ import { FEntity } from './FEntity';
 import { Transaction, TupleItem } from 'foundationdb';
 import { SafeContext } from 'openland-utils/SafeContext';
 import { currentTime } from 'openland-server/utils/timer';
+import { createLogger } from 'openland-log/createLogger';
+
+const log = createLogger('tx');
 
 export class FTransaction implements FContext {
 
@@ -67,14 +70,15 @@ export class FTransaction implements FContext {
         }
 
         // Do not need to parallel things since client will batch everything for us
+        let t = currentTime();
         for (let p of this._pending.values()) {
             await p(this.connection!);
         }
-
-        let t = currentTime();
+        log.log('flush time: ' + (currentTime() - t) + ' ms');
+        t = currentTime();
         await this.tx!!.rawCommit();
         this._isCompleted = true;
-        console.log('[' + this.id + '] Transaction commit time: ' + (currentTime() - t) + ' ms');
+        log.log('commit time: ' + (currentTime() - t) + ' ms');
     }
 
     private _prepare(connection: FConnection) {

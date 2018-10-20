@@ -6,6 +6,8 @@ import * as ES from 'elasticsearch';
 import { Pubsub } from './pubsub';
 import { addAfterChangedCommitHook } from '../utils/sequelizeHooks';
 import { LockRepository } from 'openland-repositories/LockRepository';
+import { withLogDisabled } from 'openland-log/withLogDisabled';
+import { withLogContext } from 'openland-log/withLogContext';
 
 let pubsub = new Pubsub<{ key: string, offset: string, secondary: number }>();
 
@@ -284,108 +286,112 @@ async function updateReader<TInstance, TAttributes>(
         }
     });
     let shouldInit = true;
+
     await forever(async () => {
         let res = await DB.connection.transaction({ logging: DB_SILENT as any }, async (tx) => {
+            await withLogDisabled(async () => {
+                await withLogContext('reader', async () => {
+                    let start = currentTime();
 
-            let start = currentTime();
+                    //
+                    // Prerequisites
+                    //
 
-            //
-            // Prerequisites
-            //
-
-            if (!(await LockRepository.tryLock('reader_' + name, version))) {
-                shouldInit = true;
-                return false;
-            }
-
-            // start = printElapsed(`[${name}]Locked`, start);
-
-            //
-            // Invoke Init
-            //
-
-            if (shouldInit) {
-                if (initFunc) {
-                    if (await initFunc(tx)) {
-                        console.warn('Reset offset ' + name);
-                        await resetReaderOffset(tx, name);
+                    if (!(await LockRepository.tryLock('reader_' + name, version))) {
+                        shouldInit = true;
+                        return false;
                     }
-                }
-                shouldInit = false;
-            }
 
-            let offset = await readReaderOffset(tx, name, version);
+                    // start = printElapsed(`[${name}]Locked`, start);
 
-            // start = printElapsed(`[${name}]Started`, start);
-            //
-            // Data Loading
-            //
+                    //
+                    // Invoke Init
+                    //
 
-            let data: TInstance[];
-            let dateCol: string = '"' + modelName + '"."updatedAt"';
-            // let columns = ['updatedAt', 'createdAt'];
+                    if (shouldInit) {
+                        if (initFunc) {
+                            if (await initFunc(tx)) {
+                                console.warn('Reset offset ' + name);
+                                await resetReaderOffset(tx, name);
+                            }
+                        }
+                        shouldInit = false;
+                    }
 
-            //
-            // WARNING
-            // Do not change order of arguments in GREATEST since it is not gonna work otherwise
-            //
+                    let offset = await readReaderOffset(tx, name, version);
 
-            if (isParanoid) {
-                dateCol = `GREATEST("${modelName}"."updatedAt", "${modelName}"."createdAt", "${modelName}"."deletedAt")`;
-                // columns = ['updatedAt', 'createdAt', 'deletedAt'];
-            } else {
-                dateCol = `GREATEST("${modelName}"."updatedAt", "${modelName}"."createdAt")`;
-            }
-            // let dateCol = `GREATEST(${columns.map((v) => '"' + modelName + '"."' + v + '"').join()})`;
-            let where = (offset
-                ? sequelize.literal(`(${dateCol} >= '${offset.offset.toISOString()}') AND ((${dateCol} > '${offset.offset.toISOString()}') OR("${modelName}"."id" > ${offset.secondary}))`) as any
-                : {});
-            data = (await model.findAll({
-                where: where,
-                order: [[sequelize.literal(dateCol) as any, 'ASC'], ['id', 'ASC']],
-                limit: 1000,
-                transaction: tx,
-                include: include,
-                logging: DB_SILENT,
-                paranoid: false
-            }));
-            // start = printElapsed(`[${name}]Checked`, start);
-            if (data.length <= 0) {
-                // start = printElapsed(`[${name}] Checked`, start);
-                if (offset) {
-                    lastOffset = offset.offset;
-                    lastSecondary = offset.secondary;
-                } else {
-                    lastOffset = null;
-                    lastSecondary = null;
-                }
-                return false;
-            }
-            let remaining = Math.max((await model.count({
-                where: where,
-                transaction: tx,
-                logging: DB_SILENT
-            })) - 1000, 0);
+                    // start = printElapsed(`[${name}]Started`, start);
+                    //
+                    // Data Loading
+                    //
 
-            start = printElapsed(`[${name}]Prepared`, start);
+                    let data: TInstance[];
+                    let dateCol: string = '"' + modelName + '"."updatedAt"';
+                    // let columns = ['updatedAt', 'createdAt'];
 
-            console.warn(`[${name}]Importing ${data.length} elements`);
+                    //
+                    // WARNING
+                    // Do not change order of arguments in GREATEST since it is not gonna work otherwise
+                    //
 
-            //
-            // Processing
-            //
+                    if (isParanoid) {
+                        dateCol = `GREATEST("${modelName}"."updatedAt", "${modelName}"."createdAt", "${modelName}"."deletedAt")`;
+                        // columns = ['updatedAt', 'createdAt', 'deletedAt'];
+                    } else {
+                        dateCol = `GREATEST("${modelName}"."updatedAt", "${modelName}"."createdAt")`;
+                    }
+                    // let dateCol = `GREATEST(${columns.map((v) => '"' + modelName + '"."' + v + '"').join()})`;
+                    let where = (offset
+                        ? sequelize.literal(`(${dateCol} >= '${offset.offset.toISOString()}') AND ((${dateCol} > '${offset.offset.toISOString()}') OR("${modelName}"."id" > ${offset.secondary}))`) as any
+                        : {});
+                    data = (await model.findAll({
+                        where: where,
+                        order: [[sequelize.literal(dateCol) as any, 'ASC'], ['id', 'ASC']],
+                        limit: 1000,
+                        transaction: tx,
+                        include: include,
+                        logging: DB_SILENT,
+                        paranoid: false
+                    }));
+                    // start = printElapsed(`[${name}]Checked`, start);
+                    if (data.length <= 0) {
+                        // start = printElapsed(`[${name}] Checked`, start);
+                        if (offset) {
+                            lastOffset = offset.offset;
+                            lastSecondary = offset.secondary;
+                        } else {
+                            lastOffset = null;
+                            lastSecondary = null;
+                        }
+                        return false;
+                    }
+                    let remaining = Math.max((await model.count({
+                        where: where,
+                        transaction: tx,
+                        logging: DB_SILENT
+                    })) - 1000, 0);
 
-            let processed = processor(data, tx);
-            let commit = writeReaderOffset(tx, name, {
-                offset: ((data[data.length - 1] as any).deletedAt || (data[data.length - 1] as any).updatedAt) as Date,
-                secondary: (data[data.length - 1] as any).id
-            }, remaining, version);
-            await commit;
-            await processed;
+                    start = printElapsed(`[${name}]Prepared`, start);
 
-            start = printElapsed(`[${name}]Completed ${data.length} elements, remaining ${remaining} `, start);
+                    console.warn(`[${name}]Importing ${data.length} elements`);
 
-            return true;
+                    //
+                    // Processing
+                    //
+
+                    let processed = processor(data, tx);
+                    let commit = writeReaderOffset(tx, name, {
+                        offset: ((data[data.length - 1] as any).deletedAt || (data[data.length - 1] as any).updatedAt) as Date,
+                        secondary: (data[data.length - 1] as any).id
+                    }, remaining, version);
+                    await commit;
+                    await processed;
+
+                    start = printElapsed(`[${name}]Completed ${data.length} elements, remaining ${remaining} `, start);
+
+                    return true;
+                });
+            });
         });
         if (res) {
             await delay(100);

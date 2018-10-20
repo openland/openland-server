@@ -324,7 +324,12 @@ export class Task extends FEntity {
     }
     set result(value: any | null) {
         this._checkIsWritable();
-        if (value === this._value.result) { return; }
+        if (value === this._value.result) {
+            console.log('result not changed');
+            console.log(value);
+            console.log(this._value.result);
+            return;
+        }
         this._value.result = value;
         this.markDirty();
     }
@@ -388,7 +393,7 @@ export class TaskFactory extends FEntityFactory<Task> {
         super(connection,
             new FNamespace('entity', 'task'),
             { enableVersioning: true, enableTimestamps: true },
-            [new FEntityIndex('queue', ['taskType', 'taskStatus', 'createdAt', 'uid'], true)]
+            [new FEntityIndex('queue', ['taskType', 'taskStatus', 'createdAt'], false), new FEntityIndex('globalQueue', ['taskStatus', 'createdAt'], false)]
         );
     }
     async findById(taskType: string, uid: string) {
@@ -400,8 +405,11 @@ export class TaskFactory extends FEntityFactory<Task> {
     watch(taskType: string, uid: string, cb: () => void) {
         return this._watch([taskType, uid], cb);
     }
-    async findFromQueue(taskType: string, taskStatus: 'pending' | 'executing' | 'failing' | 'failed' | 'completed', createdAt: number, uid: string) {
-        return await this._findById(['__indexes', 'queue', taskType, taskStatus, createdAt, uid]);
+    async rangeFromQueue(taskType: string, taskStatus: 'pending' | 'executing' | 'failing' | 'failed' | 'completed', limit: number) {
+        return await this._findRange(['__indexes', 'queue', taskType, taskStatus], limit);
+    }
+    async rangeFromGlobalQueue(taskStatus: 'pending' | 'executing' | 'failing' | 'failed' | 'completed', limit: number) {
+        return await this._findRange(['__indexes', 'globalQueue', taskStatus], limit);
     }
     protected _createEntity(value: any, isNew: boolean) {
         return new Task(this.connection, this.namespace, [value.taskType, value.uid], value, this.options, isNew, this.indexes);

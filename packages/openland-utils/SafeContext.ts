@@ -54,7 +54,7 @@ export class SafeContext<T> {
         contexts.push({});
     }
 
-    async withContext<P>(value: T | undefined, callback: () => Promise<P>): Promise<P> {
+    withContext<P>(value: T | undefined, callback: () => P): P {
         let sourceAsyncId = async_hooks.executionAsyncId();
         let current = contexts[this.id][sourceAsyncId];
         if (value) {
@@ -62,7 +62,7 @@ export class SafeContext<T> {
         } else {
             delete contexts[this.id][sourceAsyncId];
         }
-        let res: Promise<P>;
+        let res: P;
         try {
             res = callback();
         } finally {
@@ -72,7 +72,7 @@ export class SafeContext<T> {
                 delete contexts[this.id][sourceAsyncId];
             }
         }
-        return await res;
+        return res;
     }
 
     get value(): T | undefined {

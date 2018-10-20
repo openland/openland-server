@@ -1,4 +1,3 @@
-import { WorkQueue } from 'openland-module-workers/workerQueue';
 import { DB } from 'openland-server/tables';
 import WebPush from 'web-push';
 import { AppConfiuguration } from 'openland-server/init/initConfig';
@@ -7,6 +6,7 @@ import * as Friebase from 'firebase-admin';
 import { IDs } from 'openland-server/api/utils/IDs';
 import { doSimpleHash } from './hash';
 import { Texts } from 'openland-server/texts';
+import { LegacyWorkQueue } from 'openland-module-workers/legacy/LegacyWorkerQueue';
 
 let providers = new Map<boolean, Map<string, APN.Provider>>();
 
@@ -25,7 +25,7 @@ type Push = {
 };
 
 export function createPushWorker() {
-    let queue = new WorkQueue<Push, { result: string }>('push_sender');
+    let queue = new LegacyWorkQueue<Push, { result: string }>('push_sender');
     if (AppConfiuguration.webPush || AppConfiuguration.apple || AppConfiuguration.google) {
         console.log('Starting push worker');
 

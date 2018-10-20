@@ -2,11 +2,14 @@ import { FNamespace } from './FNamespace';
 import { FContext } from './FContext';
 import { FConnection } from './FConnection';
 import { FEntityIndex } from './FEntityIndex';
+import { createLogger } from 'openland-log/createLogger';
 
 export interface FEntityOptions {
     enableVersioning: boolean;
     enableTimestamps: boolean;
 }
+
+const log = createLogger('FEntity');
 
 export class FEntity {
     readonly namespace: FNamespace;
@@ -103,7 +106,7 @@ export class FEntity {
                 }
                 await this.namespace.set(connection, value, ...this.rawId);
                 if (this.isNew) {
-                    console.log('FEntity created', { entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: value });
+                    log.log('created', { entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: value });
                     for (let index of this.indexes) {
                         let key = index.fields.map((v) => value[v]);
                         if (index.unique) {
@@ -116,7 +119,7 @@ export class FEntity {
                         }
                     }
                 } else {
-                    console.log('FEntity updated', { entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: value });
+                    log.log('updated', { entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: value });
                     for (let index of this.indexes) {
                         let key = index.fields.map((v) => value[v]);
                         let oldkey = index.fields.map((v) => this._valueInitial[v]);

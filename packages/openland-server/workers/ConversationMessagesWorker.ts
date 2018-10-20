@@ -1,16 +1,17 @@
-import { WorkQueue } from '../../openland-module-workers/workerQueue';
+
 import { DB } from '../tables';
 import linkify from 'linkify-it';
 import tlds from 'tlds';
 import { Services } from '../services';
 import { Repos } from '../repositories';
+import { LegacyWorkQueue } from 'openland-module-workers/legacy/LegacyWorkerQueue';
 
 const linkifyInstance = linkify()
     .tlds(tlds)
     .tlds('onion', true);
 
 export function createConversationMessagesWorker() {
-    let queue = new WorkQueue<{ messageId: number }, { result: string }>('conversation_message_task');
+    let queue = new LegacyWorkQueue<{ messageId: number }, { result: string }>('conversation_message_task');
     queue.addWorker(async (item) => {
         let message = await DB.ConversationMessage.findById(item.messageId);
 

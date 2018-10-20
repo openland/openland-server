@@ -11,8 +11,7 @@ import { fn, col } from 'sequelize';
 import { geoIP, GeoIPResponse } from '../utils/geoIp/geoIP';
 import { Repos } from '../repositories';
 import { ImageRef } from '../repositories/Media';
-import { inTx } from 'foundation-orm/inTx';
-import { FDB } from 'openland-module-db/FDB';
+import { Modules } from 'openland-modules/Modules';
 
 export const Resolver = {
     MessagesLeaderboardItem: {
@@ -272,15 +271,17 @@ export const Resolver = {
     },
     Mutation: {
         debugFoundation: async () => {
-            return inTx(async () => {
-                let counter = await FDB.Counter.findById('sample');
-                if (counter) {
-                    return counter.value++;
-                } else {
-                    await FDB.Counter.create('sample', { value: 0 });
-                    return 0;
-                }
-            });
+            await Modules.Workers.TestWorker.pushWork({ value: 0 });
+            // return inTx(async () => {
+            //     let counter = await FDB.Counter.findById('sample');
+            //     if (counter) {
+            //         return counter.value++;
+            //     } else {
+            //         await FDB.Counter.create('sample', { value: 0 });
+            //         return 0;
+            //     }
+            // });
+            return 0;
             // return (await FDB2.Counter.findById('sample'))!.value;
             // return inTx(async () => {
             //     let res = await FDB.SampeCounter.get();

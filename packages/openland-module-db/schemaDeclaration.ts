@@ -58,6 +58,7 @@ const Schema = declareSchema(() => {
         field('taskLockTimeout', 'number').nullable();
 
         rangeIndex('queue', ['taskType', 'taskStatus', 'createdAt']);
+        rangeIndex('globalQueue', ['taskStatus', 'createdAt']);
 
         enableTimestamps();
         enableVersioning();
