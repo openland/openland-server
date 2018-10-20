@@ -32,6 +32,10 @@ export class FEntity {
         this.isNew = isNew;
         this.indexes = indexes;
 
+        if (this.isNew && this.isReadOnly) {
+            throw Error('Internal inconsistency');
+        }
+
         let v = { ...value };
         if (this.isNew) {
             let now = Date.now();
@@ -124,7 +128,6 @@ export class FEntity {
                                 }
                                 await this.namespace.set(connection, value, '__indexes', index.name, ...key);
                             } else {
-                                console.log('change index');
                                 await this.namespace.delete(connection, '__indexes', index.name, ...oldkey, ...this.rawId);
                                 await this.namespace.set(connection, value, '__indexes', index.name, ...key, ...this.rawId);
                             }

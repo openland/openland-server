@@ -12,7 +12,7 @@ export class FConnection {
     }
 
     get currentContext(): FContext {
-        let tx = FTransaction.currentTransaction;
+        let tx = FTransaction.context.value;
         if (tx) {
             return tx;
         }

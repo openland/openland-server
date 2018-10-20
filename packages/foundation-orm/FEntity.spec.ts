@@ -40,6 +40,7 @@ describe('FEntity', () => {
         });
         expect(res).rejects.toThrowError('Object already exists');
     });
+
     it('should update values', async () => {
         await inTx(async () => {
             await testEntities.SimpleEntity.create(3, { data: 'hello world' });
@@ -239,11 +240,13 @@ describe('FEntity with range index', () => {
         expect(res3[0].data2).toEqual('world');
     });
     it('should update indexes', async () => {
+        console.warn('start');
         await inTx(async () => { return await testEntities.IndexedRangeEntity.create(1, { data1: 'hello2', data2: 'world' }); });
         await inTx(async () => {
             let res = (await testEntities.IndexedRangeEntity.rangeFromDefault('hello2', 1))!;
             res[0].data1 = 'bye2';
         });
+        console.warn('end');
 
         let res2 = (await testEntities.IndexedRangeEntity.rangeFromDefault('hello2', 1));
         expect(res2.length).toEqual(0);

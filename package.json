@@ -6,7 +6,7 @@
   "author": "Steve Kite <korshakov.stepan@gmail.com>",
   "license": "MIT",
   "engines": {
-    "node": ">=v10.12.0"
+    "node": ">=v8.12.0 <9.0.0"
   },
   "dependencies": {
     "@google-cloud/storage": "^1.7.0",
@@ -71,6 +71,7 @@
     "buffer": "^5.0.6",
     "change-case": "^3.0.2",
     "cheerio": "^1.0.0-rc.2",
+    "cls-hooked": "^4.2.2",
     "compose-middleware": "^4.0.0",
     "compression": "^1.7.1",
     "concurrently": "^3.5.0",
