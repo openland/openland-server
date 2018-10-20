@@ -184,9 +184,5 @@
     "openland-module-presences": "build/openland-module-presences",
     "openland-module-email": "build/openland-module-email",
     "openland-utils": "build/openland-utils"
-  },
-  "resolutions": {
-    "jest/jest-cli/jest-haste-map/sane/fsevents": "1.2.4",
-    "cpx/chokidar/fsevents": "1.2.4"
   }
 }
