@@ -1,4 +1,4 @@
-import { SafeContext } from './safeContext';
+import { SafeContext } from './SafeContext';
 
 describe('SafeContext', () => {
     it('should work', async () => {
