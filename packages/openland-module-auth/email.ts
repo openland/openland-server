@@ -1,13 +1,13 @@
 import express from 'express';
-import { randomNumbersString } from '../utils/random';
-import { Emails } from '../services/Emails';
-import { DB } from '../tables';
-import * as base64 from '../utils/base64';
+import { randomNumbersString } from '../openland-server/utils/random';
+import { Emails } from '../openland-server/services/Emails';
+import { DB } from '../openland-server/tables';
+import * as base64 from '../openland-server/utils/base64';
 import { randomBytes } from 'crypto';
-import { Repos } from '../repositories';
-import { AuthSession } from '../tables/AuthSession';
-import { getTestPhoneCode, isTestPhone } from '../repositories/PhoneRepository';
-import { Services } from '../services';
+import { Repos } from '../openland-server/repositories';
+import { AuthSession } from '../openland-server/tables/AuthSession';
+import { getTestPhoneCode, isTestPhone } from '../openland-server/repositories/PhoneRepository';
+import { Services } from '../openland-server/services';
 import { Modules } from 'openland-modules/Modules';
 
 const ERROR_TEXT = {
