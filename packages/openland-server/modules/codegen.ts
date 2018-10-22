@@ -4,121 +4,34 @@ import {
     parse, TypeNode
 } from 'graphql';
 import { DocumentNode, EnumTypeDefinitionNode } from 'graphql/language/ast';
-
-let schemeAst = parse(`
-type PageInfo {
-    hasNextPage: Boolean!
-    hasPreviousPage: Boolean!
-    itemsCount: Int!
-    pagesCount: Int!
-    currentPage: Int!
-    openEnded: Boolean!
-}
-
-type Likes {
-    liked: Boolean!
-    count: Int
-}
-
-type Chart {
-    labels: [String!]!
-    datasets: [ChartDataSet!]!
-}
-  
-type ChartDataSet {
-    label: String!
-    values: [Float!]!
-}
-
-type Picture {
-    src: String
-    url: String!
-    retina: String!
-}
-
-type SearchResult {
-    query: String!
-}
-
-type SearchHighlight {
-    key: String!
-    match: String!
-}
-
-type MapPoint {
-    ref: String
-    count: Int
-    lat: Float!
-    lon: Float!
-}
-
-input MapPointInput {
-    ref: String
-    count: Int
-    lat: Float!
-    lon: Float!
-}
-
-enum MapSearchZoom {
-    LOW
-    MEDIUM
-    HIGH
-}
-
-enum TaskStatus {
-    IN_PROGRESS
-    FAILED
-    COMPLETED
-}
-
-type Task {
-    id: ID!
-    status: TaskStatus!
-    result: String
-}
-
-input ImageCropInput {
-    x: Int!
-    y: Int!
-    w: Int!
-    h: Int!
-}
-
-type ImageCrop {
-    x: Int!
-    y: Int!
-    w: Int!
-    h: Int!
-}
-
-type ImageRef {
-    uuid: String!
-    crop: ImageCrop
-}
-
-input ImageRefInput {
-    uuid: String!
-    crop: ImageCropInput
-}
-
-type Range {
-    from: Int
-    to: Int
-}
-
-input RangeInput {
-    from: Int
-    to: Int
-}
-`
-);
+import * as fs from 'fs';
 
 const GLOBAL_PREFIX = 'GQL';
+const PRIMITIVE_TYPES: any = {
+    String: 'string',
+    Float: 'number',
+    Int: 'number',
+    ID: 'number',
+    Boolean: 'boolean'
+};
+
+let schema = fs
+    .readdirSync(__dirname + '/../api/schema/')
+    .filter((v) => v.endsWith('.graphql'))
+    .map((f) => fs.readFileSync(__dirname + '/../api/schema/' + f, 'utf-8'))
+    .sort()
+    .join('\n');
+
+let schemeAst = parse(schema);
+
+fs.writeFileSync(__dirname + '/test.ts', gen(schemeAst));
 
 type GenericTypeNode = InterfaceTypeDefinitionNode | ObjectTypeDefinitionNode;
 
 function gen(ast: DocumentNode): string {
     let out = ``;
+
+    out += `export type Nullable<T> = undefined | null | T;\n`;
 
     for (let definition of ast.definitions) {
         if (definition.kind === 'InterfaceTypeDefinition') {
@@ -246,14 +159,6 @@ function genExtension(type: ObjectTypeExtensionNode): string {
     return out;
 }
 
-const PRIMITIVE_TYPES: any = {
-    String: 'string',
-    Float: 'number',
-    Int: 'number',
-    ID: 'number',
-    Boolean: 'boolean'
-};
-
 function renderType(type: TypeNode, nullable: boolean = true): string {
     switch (type.kind) {
         case 'NamedType':
@@ -286,12 +191,3 @@ function genTab(n: number): string {
 function capitalize(str: string): string {
     return str.charAt(0).toUpperCase() + str.slice(1);
 }
-
-// type Nullable<T> = undefined | null | T;
-
-//
-// interface Test {
-//     lol: Nullable<Nullable<number>;
-// }
-
-console.log(gen(schemeAst));

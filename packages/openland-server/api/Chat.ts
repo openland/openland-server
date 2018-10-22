@@ -2353,7 +2353,7 @@ export const Resolver = {
                     throw Error('Not logged in');
                 }
 
-                return Repos.Chats.onlineEngine.getXIterator(context.uid, conversationIds);
+                return Modules.Presence.engine.getXIterator(context.uid, conversationIds);
             }
         },
         alphaSubscribeOnline: {
@@ -2365,7 +2365,7 @@ export const Resolver = {
                     throw Error('Not logged in');
                 }
 
-                return Repos.Chats.onlineEngine.getXIterator(context.uid, undefined, args.users);
+                return Modules.Presence.engine.getXIterator(context.uid, undefined, args.users);
             }
         }
     }

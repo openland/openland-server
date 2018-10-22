@@ -1,7 +1,9 @@
 import { inTx } from 'foundation-orm/inTx';
 import { FDB } from 'openland-module-db/FDB';
+import { OnlineEngine } from './OnlineEngine';
 
 export class PresenceModule {
+    readonly engine = new OnlineEngine();
 
     start = () => {
         // Nothing to do
