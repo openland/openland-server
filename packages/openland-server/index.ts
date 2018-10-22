@@ -25,7 +25,6 @@ import { initElastic } from './init/initElastic';
 import './init/initConfig';
 import { performMigrations } from 'openland-migrations';
 import { Modules } from '../openland-modules/Modules';
-import './modules/codegen';
 
 async function initServer() {
     try {
