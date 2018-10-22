@@ -1,8 +1,8 @@
 import { inTx } from 'foundation-orm/inTx';
 import { FDB } from 'openland-module-db/FDB';
-import { SimpleSub } from '../openland-server/modules/SimpleSub';
 import Timer = NodeJS.Timer;
 import { createIterator } from '../openland-server/utils/asyncIterator';
+import { Pubsub } from '../openland-server/modules/pubsub';
 
 export interface OnlineEvent {
     userId: number;
@@ -13,7 +13,8 @@ export interface OnlineEvent {
 export class PresenceModule {
     private onlines = new Map<number, { online: boolean, timer?: Timer }>();
     private fdbSubscriptions = new Map<number, { cancel: () => void }>();
-    private localSub = new SimpleSub<number, OnlineEvent>();
+    // private localSub = new SimpleSub<number, OnlineEvent>();
+    private localSub = new Pubsub<OnlineEvent>(false);
 
     start = () => {
         // Nothing to do
@@ -59,8 +60,8 @@ export class PresenceModule {
 
         users = Array.from(new Set(users)); // remove duplicates
 
-        let subscriptions: { cancel: () => void }[] = [];
-        let iterator = createIterator<OnlineEvent>(() => subscriptions.forEach(s => s.cancel()));
+        let subscriptions: { unsubscribe: () => void }[] = [];
+        let iterator = createIterator<OnlineEvent>(() => subscriptions.forEach(s => s.unsubscribe()));
 
         // Send initial state
         for (let userId of users) {
@@ -77,9 +78,9 @@ export class PresenceModule {
         for (let userId of users) {
             await this.subscribeOnlineChange(userId);
 
-            subscriptions.push(this.localSub.subscribe(userId, ev => {
+            subscriptions.push((await this.localSub.xSubscribe(userId.toString(10), ev => {
                 iterator.push(ev);
-            }));
+            })));
         }
 
         return iterator;
@@ -106,7 +107,7 @@ export class PresenceModule {
 
         if (online) {
             let timer = setTimeout(async () => {
-                this.localSub.emit(userId, { userId, timeout: 0, online: false });
+                await this.localSub.publish(userId.toString(10), { userId, timeout: 0, online: false });
                 this.onlines.set(userId, { online: false });
             }, timeout);
             this.onlines.set(userId, { online, timer });
@@ -116,7 +117,7 @@ export class PresenceModule {
         }
 
         if (isChanged) {
-            this.localSub.emit(userId, { userId, timeout, online });
+            await this.localSub.publish(userId.toString(10), { userId, timeout, online });
         }
     }
 
