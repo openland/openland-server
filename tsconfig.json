@@ -87,9 +87,6 @@
       ],
       "openland-module-workers": [
         "openland-module-workers"
-      ],
-      "openland-utils": [
-        "openland-utils"
       ]
     }
   },
