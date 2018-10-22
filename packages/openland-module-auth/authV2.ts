@@ -2,10 +2,10 @@ import fetch from 'node-fetch';
 import jwt from 'express-jwt';
 import * as jwksRsa from 'jwks-rsa';
 import * as express from 'express';
-import { DB } from '../tables';
+import { DB } from '../openland-server/tables';
 import { Profile } from './Profile';
-import { fetchKeyFromRequest } from '../utils/fetchKeyFromRequest';
-import { Emails } from '../services/Emails';
+import { fetchKeyFromRequest } from '../openland-utils/fetchKeyFromRequest';
+import { Emails } from '../openland-server/services/Emails';
 import { Modules } from 'openland-modules/Modules';
 
 //
@@ -59,7 +59,6 @@ export const TokenChecker = async function (req: express.Request, response: expr
 
 export const Authenticator = async function (req: express.Request, response: express.Response) {
     try {
-        console.warn('auth1');
         //
         // Fetching Profile Info
         //

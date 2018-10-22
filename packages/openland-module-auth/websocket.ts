@@ -1,7 +1,7 @@
-import { Repos } from '../repositories';
-import { IDs } from '../api/utils/IDs';
-import { CallContext } from '../api/utils/CallContext';
-import { DB } from '../tables';
+import { Repos } from '../openland-server/repositories';
+import { IDs } from '../openland-server/api/utils/IDs';
+import { CallContext } from '../openland-server/api/utils/CallContext';
+import { DB } from '../openland-server/tables';
 import { Modules } from 'openland-modules/Modules';
 
 export async function fetchWebSocketParameters(args: any, websocket: any) {
