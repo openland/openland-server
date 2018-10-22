@@ -3,11 +3,7 @@ import { FContext, FGlobalContext } from './FContext';
 import { FTransaction } from './FTransaction';
 import * as fs from 'fs';
 
-try {
-    fdb.setAPIVersion(510);
-} catch (e) {
-    // WTF?! Ignore it for now
-}
+fdb.setAPIVersion(510);
 
 export class FConnection {
     readonly fdb: fdb.Database<fdb.TupleItem[], any>;
