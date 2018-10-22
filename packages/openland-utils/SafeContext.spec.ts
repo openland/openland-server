@@ -1,7 +1,7 @@
 // tslint:disable:no-floating-promises
-import * as fdb from 'foundationdb';
 import { SafeContext, exportContextDebug } from './SafeContext';
 import sequelize from 'sequelize';
+import { FConnection } from 'foundation-orm/FConnection';
 
 describe('SafeContext', () => {
     afterAll(() => {
@@ -22,11 +22,8 @@ describe('SafeContext', () => {
         expect(context.value).toEqual(undefined);
     });
     it('should work with foundationdb', async () => {
-        fdb.setAPIVersion(510);
-        let db = fdb.openSync()
-            .at('_tests_context')
-            .withKeyEncoding(fdb.encoders.tuple)
-            .withValueEncoding(fdb.encoders.json);
+        let db = FConnection.create()
+            .at(['_tests_contexts']);
         await db.clearRange([]);
 
         let context = new SafeContext<string>();

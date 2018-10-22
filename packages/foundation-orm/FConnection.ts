@@ -1,10 +1,25 @@
 import * as fdb from 'foundationdb';
 import { FContext, FGlobalContext } from './FContext';
 import { FTransaction } from './FTransaction';
+import * as fs from 'fs';
+
+fdb.setAPIVersion(510);
 
 export class FConnection {
     readonly fdb: fdb.Database<fdb.TupleItem[], any>;
     private readonly globalContext: FContext;
+
+    static create() {
+        let db: fdb.Database;
+        if (process.env.FOUNDATION_DB) {
+            fs.writeFileSync('foundation.clusterfile', process.env.FOUNDATION_DB);
+            db = fdb.openSync('foundation.clusterfile');
+        } else {
+            db = fdb.openSync();
+        }
+        return db.withKeyEncoding(fdb.encoders.tuple)
+            .withValueEncoding(fdb.encoders.json);
+    }
 
     constructor(connection: fdb.Database<fdb.TupleItem[], any>) {
         this.fdb = connection;

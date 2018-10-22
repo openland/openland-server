@@ -4,18 +4,14 @@ import { AllEntities } from './tests/testSchema';
 import { FConnection } from './FConnection';
 import { inTx } from './inTx';
 
-fdb.setAPIVersion(510);
-
 describe('FEntity', () => {
 
     // Database Init
     let db: fdb.Database<fdb.TupleItem[], any>;
     let testEntities: AllEntities;
     beforeAll(async () => {
-        db = fdb.openSync()
-            .at('_tests_1')
-            .withKeyEncoding(fdb.encoders.tuple)
-            .withValueEncoding(fdb.encoders.json);
+        db = FConnection.create()
+            .at(['_tests_1']);
         await db.clearRange([]);
         testEntities = new AllEntities(new FConnection(db));
     });
@@ -92,10 +88,8 @@ describe('FEntity Versioned', () => {
     let db: fdb.Database<fdb.TupleItem[], any>;
     let testEntities: AllEntities;
     beforeAll(async () => {
-        db = fdb.openSync()
-            .at('_tests_2')
-            .withKeyEncoding(fdb.encoders.tuple)
-            .withValueEncoding(fdb.encoders.json);
+        db = FConnection.create()
+            .at(['_tests_2']);
         await db.clearRange([]);
         testEntities = new AllEntities(new FConnection(db));
     });
@@ -128,10 +122,8 @@ describe('FEntity Timestamped', () => {
     let db: fdb.Database<fdb.TupleItem[], any>;
     let testEntities: AllEntities;
     beforeAll(async () => {
-        db = fdb.openSync()
-            .at('_tests_3')
-            .withKeyEncoding(fdb.encoders.tuple)
-            .withValueEncoding(fdb.encoders.json);
+        db = FConnection.create()
+            .at(['_tests_3']);
         await db.clearRange([]);
         testEntities = new AllEntities(new FConnection(db));
     });
@@ -173,10 +165,8 @@ describe('FEntity with unique index', () => {
     let db: fdb.Database<fdb.TupleItem[], any>;
     let testEntities: AllEntities;
     beforeAll(async () => {
-        db = fdb.openSync()
-            .at('_tests_4')
-            .withKeyEncoding(fdb.encoders.tuple)
-            .withValueEncoding(fdb.encoders.json);
+        db = FConnection.create()
+            .at(['_tests_4']);
         await db.clearRange([]);
         testEntities = new AllEntities(new FConnection(db));
     });
@@ -212,10 +202,8 @@ describe('FEntity with range index', () => {
     let db: fdb.Database<fdb.TupleItem[], any>;
     let testEntities: AllEntities;
     beforeAll(async () => {
-        db = fdb.openSync()
-            .at('_tests_4')
-            .withKeyEncoding(fdb.encoders.tuple)
-            .withValueEncoding(fdb.encoders.json);
+        db = FConnection.create()
+            .at(['_tests_5']);
         await db.clearRange([]);
         testEntities = new AllEntities(new FConnection(db));
     });
