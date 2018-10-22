@@ -4,13 +4,14 @@ import { AllEntities } from './tests/testSchema';
 import { FConnection } from './FConnection';
 import { inTx } from './inTx';
 
+fdb.setAPIVersion(510);
+
 describe('FEntity', () => {
 
     // Database Init
     let db: fdb.Database<fdb.TupleItem[], any>;
     let testEntities: AllEntities;
     beforeAll(async () => {
-        fdb.setAPIVersion(510);
         db = fdb.openSync()
             .at('_tests_1')
             .withKeyEncoding(fdb.encoders.tuple)
@@ -91,7 +92,6 @@ describe('FEntity Versioned', () => {
     let db: fdb.Database<fdb.TupleItem[], any>;
     let testEntities: AllEntities;
     beforeAll(async () => {
-        fdb.setAPIVersion(510);
         db = fdb.openSync()
             .at('_tests_2')
             .withKeyEncoding(fdb.encoders.tuple)
@@ -128,7 +128,6 @@ describe('FEntity Timestamped', () => {
     let db: fdb.Database<fdb.TupleItem[], any>;
     let testEntities: AllEntities;
     beforeAll(async () => {
-        fdb.setAPIVersion(510);
         db = fdb.openSync()
             .at('_tests_3')
             .withKeyEncoding(fdb.encoders.tuple)
@@ -174,7 +173,6 @@ describe('FEntity with unique index', () => {
     let db: fdb.Database<fdb.TupleItem[], any>;
     let testEntities: AllEntities;
     beforeAll(async () => {
-        fdb.setAPIVersion(510);
         db = fdb.openSync()
             .at('_tests_4')
             .withKeyEncoding(fdb.encoders.tuple)
@@ -214,7 +212,6 @@ describe('FEntity with range index', () => {
     let db: fdb.Database<fdb.TupleItem[], any>;
     let testEntities: AllEntities;
     beforeAll(async () => {
-        fdb.setAPIVersion(510);
         db = fdb.openSync()
             .at('_tests_4')
             .withKeyEncoding(fdb.encoders.tuple)

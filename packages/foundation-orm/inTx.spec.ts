@@ -3,11 +3,12 @@ import * as fdb from 'foundationdb';
 import { inTx } from './inTx';
 import { FTransaction } from './FTransaction';
 
+fdb.setAPIVersion(510);
+
 describe('inTx', () => {
     // Database Init
     let db: fdb.Database<fdb.TupleItem[], any>;
     beforeAll(async () => {
-        fdb.setAPIVersion(510);
         db = fdb.openSync()
             .at('_tests_intx')
             .withKeyEncoding(fdb.encoders.tuple)
