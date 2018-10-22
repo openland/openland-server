@@ -2,15 +2,14 @@
 import * as fdb from 'foundationdb';
 import { inTx } from './inTx';
 import { FTransaction } from './FTransaction';
+import { FConnection } from './FConnection';
 
 describe('inTx', () => {
     // Database Init
     let db: fdb.Database<fdb.TupleItem[], any>;
     beforeAll(async () => {
-        db = fdb.openSync()
-            .at('_tests_intx')
-            .withKeyEncoding(fdb.encoders.tuple)
-            .withValueEncoding(fdb.encoders.json);
+        db = FConnection.create()
+            .at(['_tests_tx']);
         await db.clearRange([]);
     });
 
