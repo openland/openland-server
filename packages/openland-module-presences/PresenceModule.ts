@@ -2,7 +2,7 @@ import { inTx } from 'foundation-orm/inTx';
 import { FDB } from 'openland-module-db/FDB';
 import Timer = NodeJS.Timer;
 import { createIterator } from '../openland-server/utils/asyncIterator';
-import { Pubsub } from '../openland-server/modules/pubsub';
+import { Pubsub, PubsubSubcription } from '../openland-server/modules/pubsub';
 
 export interface OnlineEvent {
     userId: number;
@@ -60,8 +60,8 @@ export class PresenceModule {
 
         users = Array.from(new Set(users)); // remove duplicates
 
-        let subscriptions: { unsubscribe: () => void }[] = [];
-        let iterator = createIterator<OnlineEvent>(() => subscriptions.forEach(s => s.unsubscribe()));
+        let subscriptions: PubsubSubcription[] = [];
+        let iterator = createIterator<OnlineEvent>(() => subscriptions.forEach(s => s.cancel()));
 
         // Send initial state
         for (let userId of users) {
@@ -78,7 +78,7 @@ export class PresenceModule {
         for (let userId of users) {
             await this.subscribeOnlineChange(userId);
 
-            subscriptions.push((await this.localSub.xSubscribe(userId.toString(10), ev => {
+            subscriptions.push((await this.localSub.subscribe(userId.toString(10), ev => {
                 iterator.push(ev);
             })));
         }

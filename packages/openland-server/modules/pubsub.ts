@@ -1,6 +1,6 @@
 import * as Redis from './redis/redis';
 
-export type PubsubSubcription = { unsubscribe(): void };
+export type PubsubSubcription = { cancel(): void };
 
 export class Pubsub<T> {
 
@@ -45,7 +45,7 @@ export class Pubsub<T> {
             setTimeout(() => {
                 let subscribers = this.subscribers.get(topic);
                 if (subscribers) {
-                    for (let r of subscribers) {
+                    for (let r of [...subscribers]) {
                         r.listener(data);
                     }
                 }
@@ -53,7 +53,7 @@ export class Pubsub<T> {
         }
     }
 
-    async subscribe(topic: string, receiver: (data: T) => void) {
+    async subscribe(topic: string, receiver: (data: T) => void): Promise<PubsubSubcription> {
         if (!this.subscribedTopics.has(topic)) {
             this.subscribedTopics.add(topic);
             if (this.subscriberClient) {
@@ -64,15 +64,21 @@ export class Pubsub<T> {
             this.subscribers.set(topic, []);
         }
         this.subscribers.get(topic)!!.push({ listener: receiver });
-    }
-
-    async xSubscribe(topic: string, receiver: (data: T) => void): Promise<PubsubSubcription> {
-        await this.subscribe(topic, receiver);
 
         return {
-            unsubscribe: () => {
-                let filteredSubscribers = this.subscribers.get(topic)!.filter(s => s.listener !== receiver);
-                this.subscribers.set(topic, filteredSubscribers);
+            cancel: () => {
+                if (!this.subscribers.get(topic)) {
+                    throw new Error('Pubsub inconsistency');
+                } else {
+                    let subs = this.subscribers.get(topic)!;
+                    let index = subs.findIndex(s => s.listener === receiver);
+
+                    if (index === -1) {
+                        throw new Error('Pubsub double unwatch');
+                    } else {
+                        subs.splice(index, 1);
+                    }
+                }
             }
         };
     }

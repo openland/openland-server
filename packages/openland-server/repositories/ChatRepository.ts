@@ -254,9 +254,9 @@ class TypingManager {
 
         let sub: PubsubSubcription | undefined;
 
-        let iterator = createIterator<TypingEvent>(() => sub ? sub.unsubscribe() : {});
+        let iterator = createIterator<TypingEvent>(() => sub ? sub.cancel() : {});
 
-        sub = await this.xPubSub.xSubscribe(`TYPING_${uid}`, ev => {
+        sub = await this.xPubSub.subscribe(`TYPING_${uid}`, ev => {
             if (conversationId && ev.conversationId !== conversationId) {
                 return;
             }
