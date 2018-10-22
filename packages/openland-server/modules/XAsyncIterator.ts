@@ -6,7 +6,7 @@ export class XAsyncIterator<T> {
     constructor(
         onExit: () => void
     ) {
-        this.onExit = onExit
+        this.onExit = onExit;
     }
 
     pushEvent(event: T) {
