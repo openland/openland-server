@@ -2360,7 +2360,7 @@ export const Resolver = {
                     uids.push(...await Repos.Chats.getConversationMembers(chatId))
                 }
 
-                return Modules.Presence.engine.createPresenceIterator(context.uid, uids);
+                return Modules.Presence.createPresenceIterator(context.uid, uids);
             }
         },
         alphaSubscribeOnline: {
@@ -2372,7 +2372,7 @@ export const Resolver = {
                     throw Error('Not logged in');
                 }
 
-                return Modules.Presence.engine.createPresenceIterator(context.uid!, args.users);
+                return Modules.Presence.createPresenceIterator(context.uid!, args.users);
             }
         }
     }
