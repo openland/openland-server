@@ -15,19 +15,6 @@ export class OnlineEngine {
         setInterval(() => this.cache.clear(), 1000 * 30);
     }
 
-    async fSubscribe(uid: number) {
-        if (this.fdbSubscriptions.has(uid)) {
-            return;
-        } else {
-            // tslint:disable-next-line:no-floating-promises
-            let sub = FDB.Online.watch(uid, () => {
-                // tslint:disable-next-line:no-floating-promises
-                this.handleOnlineChange(uid);
-            });
-            this.fdbSubscriptions.set(uid, sub);
-        }
-    }
-
     public async getXIterator(uid: number, conversations?: number[], users?: number[]) {
 
         let members: number[] = users || [];
@@ -64,10 +51,7 @@ export class OnlineEngine {
         }
 
         for (let member of members) {
-            FDB.Online.watch(uid, () => {
-                // tslint:disable-next-line:no-floating-promises
-                this.handleOnlineChange(uid);
-            });
+            await this.fSubscribe(member);
 
             subscriptions.push(this.localSub.subscribe(member, ev => {
                 sub.pushEvent(genEvent(ev));
@@ -145,6 +129,19 @@ export class OnlineEngine {
             this.cache.set(chatId, members);
 
             return members;
+        }
+    }
+
+    private async fSubscribe(uid: number) {
+        if (this.fdbSubscriptions.has(uid)) {
+            return;
+        } else {
+            // tslint:disable-next-line:no-floating-promises
+            let sub = FDB.Online.watch(uid, () => {
+                // tslint:disable-next-line:no-floating-promises
+                this.handleOnlineChange(uid);
+            });
+            this.fdbSubscriptions.set(uid, sub);
         }
     }
 }
