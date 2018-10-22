@@ -5,13 +5,11 @@ export { User } from './User';
 export { Account } from './Account';
 export { AccountMember } from './Account';
 export { ReaderState } from './ReaderState';
-export { Lock } from './Lock';
 
 import { UserTable } from './User';
 import { AccountTable } from './Account';
 import { AccountMemberTable } from './Account';
 import { ReaderStateTable } from './ReaderState';
-import { LockTable } from './Lock';
 import { SuperAdminTable } from './SuperAdmin';
 import { UserTokenTable } from './UserToken';
 import { OrganizationTable } from './Organization';
@@ -31,7 +29,6 @@ import { ConversationsUserGlobalTable } from './ConversationsUserGlobal';
 import { ConversationUserEventsTable } from './ConversationUserEvents';
 import { retry } from '../utils/timer';
 import { ConversationGroupMembersTable } from './ConversationGroupMembers';
-import { UserPresenceTable } from './UserPresence';
 import { UserPushRegistrationTable } from './UserPushRegistration';
 import { UserSettingsTable } from './UserSettings';
 import { HitsTable } from './Hit';
@@ -51,7 +48,6 @@ export const DB = {
     Account: AccountTable,
     AccountMember: AccountMemberTable,
     ReaderState: ReaderStateTable,
-    Lock: LockTable,
     SuperAdmin: SuperAdminTable,
     UserToken: UserTokenTable,
     Organization: OrganizationTable,
@@ -70,7 +66,6 @@ export const DB = {
     ConversationUserEvents: ConversationUserEventsTable,
     ConversationGroupMembers: ConversationGroupMembersTable,
     ConversationBlocked: ConversationBlockedTable,
-    UserPresence: UserPresenceTable,
     UserPushRegistration: UserPushRegistrationTable,
     UserSettings: UserSettingsTable,
     Hit: HitsTable,

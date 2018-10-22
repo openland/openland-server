@@ -140,13 +140,23 @@ export class CounterFactory extends FEntityFactory<Counter> {
         return new Counter(this.connection, this.namespace, [value.name], value, this.options, isNew, this.indexes);
     }
 }
-export interface UserTokenShape {
+export interface AuthTokenShape {
+    salt: string;
     uid: number;
     lastIp: string;
 }
 
-export class UserToken extends FEntity {
+export class AuthToken extends FEntity {
     get uuid() { return this._value.uuid; }
+    get salt(): string {
+        return this._value.salt;
+    }
+    set salt(value: string) {
+        this._checkIsWritable();
+        if (value === this._value.salt) { return; }
+        this._value.salt = value;
+        this.markDirty();
+    }
     get uid(): number {
         return this._value.uid;
     }
@@ -167,25 +177,28 @@ export class UserToken extends FEntity {
     }
 }
 
-export class UserTokenFactory extends FEntityFactory<UserToken> {
+export class AuthTokenFactory extends FEntityFactory<AuthToken> {
     constructor(connection: FConnection) {
         super(connection,
-            new FNamespace('entity', 'userToken'),
+            new FNamespace('entity', 'authToken'),
             { enableVersioning: true, enableTimestamps: true },
-            []
+            [new FEntityIndex('salt', ['salt'], true)]
         );
     }
     async findById(uuid: string) {
         return await this._findById([uuid]);
     }
-    async create(uuid: string, shape: UserTokenShape) {
+    async create(uuid: string, shape: AuthTokenShape) {
         return await this._create([uuid], { uuid, ...shape });
     }
     watch(uuid: string, cb: () => void) {
         return this._watch([uuid], cb);
     }
+    async findFromSalt(salt: string) {
+        return await this._findById(['__indexes', 'salt', salt]);
+    }
     protected _createEntity(value: any, isNew: boolean) {
-        return new UserToken(this.connection, this.namespace, [value.uuid], value, this.options, isNew, this.indexes);
+        return new AuthToken(this.connection, this.namespace, [value.uuid], value, this.options, isNew, this.indexes);
     }
 }
 export interface ServiceCacheShape {
@@ -430,7 +443,7 @@ export class AllEntities {
     Online: OnlineFactory;
     Presence: PresenceFactory;
     Counter: CounterFactory;
-    UserToken: UserTokenFactory;
+    AuthToken: AuthTokenFactory;
     ServiceCache: ServiceCacheFactory;
     Lock: LockFactory;
     Task: TaskFactory;
@@ -439,7 +452,7 @@ export class AllEntities {
         this.Online = new OnlineFactory(connection);
         this.Presence = new PresenceFactory(connection);
         this.Counter = new CounterFactory(connection);
-        this.UserToken = new UserTokenFactory(connection);
+        this.AuthToken = new AuthTokenFactory(connection);
         this.ServiceCache = new ServiceCacheFactory(connection);
         this.Lock = new LockFactory(connection);
         this.Task = new TaskFactory(connection);

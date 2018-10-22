@@ -1,5 +1,5 @@
 import { generate } from '../foundation-orm-gen/generate';
-import { declareSchema, entity, field, primaryKey, enableTimestamps, enableVersioning, enumField, rangeIndex } from '../foundation-orm-gen';
+import { declareSchema, entity, field, primaryKey, enableTimestamps, enableVersioning, enumField, rangeIndex, uniqueIndex } from '../foundation-orm-gen';
 
 const Schema = declareSchema(() => {
     entity('Online', () => {
@@ -20,10 +20,12 @@ const Schema = declareSchema(() => {
         field('value', 'number');
     });
 
-    entity('UserToken', () => {
+    entity('AuthToken', () => {
         primaryKey('uuid', 'string');
+        field('salt', 'string');
         field('uid', 'number');
         field('lastIp', 'string');
+        uniqueIndex('salt', ['salt']);
         enableTimestamps();
         enableVersioning();
     });
