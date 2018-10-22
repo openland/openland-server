@@ -1,11 +1,12 @@
 export class XAsyncIterator<T> {
     private events: T[] = [];
     private resolvers: any[] = [];
+    private onExit: () => void;
 
     constructor(
-        private onExit: () => void
+        onExit: () => void
     ) {
-
+        this.onExit = onExit
     }
 
     pushEvent(event: T) {
