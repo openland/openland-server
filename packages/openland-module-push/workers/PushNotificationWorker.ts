@@ -1,4 +1,4 @@
-import { staticWorker } from 'openland-server/modules/staticWorker';
+import { staticWorker } from 'openland-module-workers/staticWorker';
 import { DB, DB_SILENT } from 'openland-server/tables';
 import { Repos } from 'openland-server/repositories';
 import { buildBaseImageUrl } from 'openland-server/repositories/Media';

@@ -74,11 +74,15 @@ export class FTransaction implements FContext {
         for (let p of this._pending.values()) {
             await p(this.connection!);
         }
+        // if (this._hadMutations) {
         log.log('flush time: ' + (currentTime() - t) + ' ms');
+        // }
         t = currentTime();
         await this.tx!!.rawCommit();
         this._isCompleted = true;
+        // if (this._hadMutations) {
         log.log('commit time: ' + (currentTime() - t) + ' ms');
+        // }
     }
 
     private _prepare(connection: FConnection) {
@@ -89,6 +93,7 @@ export class FTransaction implements FContext {
             return;
         }
 
+        log.log('started');
         this.connection = connection;
         this.tx = connection.fdb.rawCreateTransaction();
     }
