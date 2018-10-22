@@ -31,6 +31,7 @@ import { UserProfile } from '../tables/UserProfile';
 import { Sanitizer } from '../modules/Sanitizer';
 import { URLAugmentation } from '../services/UrlInfoService';
 import { Modules } from 'openland-modules/Modules';
+import { OnlineEvent } from '../../openland-module-presences/OnlineEngine';
 
 export const Resolver = {
     Conversation: {
@@ -616,9 +617,9 @@ export const Resolver = {
         user: (src: TypingEvent) => DB.User.findById(src.userId),
     },
     OnlineEvent: {
-        type: (src: any) => src.type,
-        user: (src: any) => DB.User.findById(src.userId),
-        timeout: (src: any) => src.timeout,
+        type: (src: OnlineEvent) => src.online ? 'online' : 'offline',
+        user: (src: OnlineEvent) => DB.User.findById(src.userId),
+        timeout: (src: OnlineEvent) => src.timeout,
     },
 
     GroupConversationMember: {
@@ -2353,7 +2354,13 @@ export const Resolver = {
                     throw Error('Not logged in');
                 }
 
-                return Modules.Presence.engine.getXIterator(context.uid, conversationIds);
+                let uids: number[] = [];
+
+                for (let chatId of conversationIds) {
+                    uids.push(...await Repos.Chats.getConversationMembers(chatId))
+                }
+
+                return Modules.Presence.engine.createPresenceIterator(context.uid, uids);
             }
         },
         alphaSubscribeOnline: {
@@ -2365,7 +2372,7 @@ export const Resolver = {
                     throw Error('Not logged in');
                 }
 
-                return Modules.Presence.engine.getXIterator(context.uid, undefined, args.users);
+                return Modules.Presence.engine.createPresenceIterator(context.uid!, args.users);
             }
         }
     }

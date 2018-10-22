@@ -261,7 +261,7 @@ class TypingManager {
                 return;
             }
 
-            subEng.pushEvent(ev);
+            subEng.push(ev);
         });
 
         return subEng.getIterator();
