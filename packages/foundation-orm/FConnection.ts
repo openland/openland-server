@@ -10,13 +10,14 @@ export class FConnection {
     static create() {
         let db: fdb.Database;
 
-        // Work-around for Jest. Jest starts everything in separate processes and
-        // setAPIVersion is a native funcition and we can't check if we already set value
-        try {
-            fdb.setAPIVersion(510);
-        } catch (e) {
-            // Ignore
-        }
+        // // Work-around for Jest. Jest starts everything in separate processes and
+        // // setAPIVersion is a native funcition and we can't check if we already set value
+        // try {
+        //     fdb.setAPIVersion(510);
+        // } catch (e) {
+        //     // Ignore
+        // }
+        fdb.setAPIVersion(510);
         if (process.env.FOUNDATION_DB) {
             fs.writeFileSync('foundation.clusterfile', process.env.FOUNDATION_DB);
             db = fdb.openSync('foundation.clusterfile');
