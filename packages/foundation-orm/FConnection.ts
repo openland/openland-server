@@ -3,14 +3,20 @@ import { FContext, FGlobalContext } from './FContext';
 import { FTransaction } from './FTransaction';
 import * as fs from 'fs';
 
-fdb.setAPIVersion(510);
-
 export class FConnection {
     readonly fdb: fdb.Database<fdb.TupleItem[], any>;
     private readonly globalContext: FContext;
 
     static create() {
         let db: fdb.Database;
+
+        // Work-around for Jest. Jest starts everything in separate processes and
+        // setAPIVersion is a native funcition and we can't check if we already set value
+        try {
+            fdb.setAPIVersion(510);
+        } catch (e) {
+            // Ignore
+        }
         if (process.env.FOUNDATION_DB) {
             fs.writeFileSync('foundation.clusterfile', process.env.FOUNDATION_DB);
             db = fdb.openSync('foundation.clusterfile');
