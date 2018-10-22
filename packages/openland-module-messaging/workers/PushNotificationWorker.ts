@@ -3,7 +3,6 @@ import { DB, DB_SILENT } from 'openland-server/tables';
 import { Repos } from 'openland-server/repositories';
 import { buildBaseImageUrl } from 'openland-server/repositories/Media';
 import { Texts } from 'openland-server/texts';
-import { PushModule } from '../PushModule';
 import { Modules } from 'openland-modules/Modules';
 
 const Delays = {
@@ -12,7 +11,7 @@ const Delays = {
     '15min': 15 * 60 * 1000
 };
 
-export function startPushNotificationWorker(module: PushModule) {
+export function startPushNotificationWorker() {
 
     staticWorker({ name: 'push_notifications', delay: 3000 }, async (tx) => {
         let unreadUsers = await DB.ConversationsUserGlobal.findAll({
@@ -202,7 +201,7 @@ export function startPushNotificationWorker(module: PushModule) {
                 };
 
                 console.log(logPrefix, 'new_push', JSON.stringify(push));
-                await module.worker.pushWork(push);
+                await Modules.Push.worker.pushWork(push);
             }
 
             // Save state

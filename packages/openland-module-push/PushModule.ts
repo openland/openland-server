@@ -1,14 +1,10 @@
-import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
-import { startPushNotificationWorker } from './workers/PushNotificationWorker';
 import { createPushWorker } from './workers/PushWorker';
 
 export class PushModule {
     readonly worker = createPushWorker();
 
     start = () => {
-        if (serverRoleEnabled('push_notifications')) {
-            startPushNotificationWorker(this);
-        }
+        // Nothing to do
     }
 
     sendCounterPush(uid: number, conversationId: number, counter: number) {

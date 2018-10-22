@@ -3,9 +3,7 @@ export class XAsyncIterator<T> {
     private resolvers: any[] = [];
     private onExit: () => void;
 
-    constructor(
-        onExit: () => void
-    ) {
+    constructor(onExit: () => void) {
         this.onExit = onExit;
     }
 

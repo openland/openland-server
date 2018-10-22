@@ -4,9 +4,18 @@ import { AppConfiuguration } from 'openland-server/init/initConfig';
 import APN from 'apn';
 import * as Friebase from 'firebase-admin';
 import { IDs } from 'openland-server/api/utils/IDs';
-import { doSimpleHash } from './hash';
 import { Texts } from 'openland-server/texts';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
+
+export function doSimpleHash(key: string): number {
+    var h = 0, l = key.length, i = 0;
+    if (l > 0) {
+        while (i < l) {
+            h = (h << 5) - h + key.charCodeAt(i++) | 0;
+        }
+    }
+    return Math.abs(h);
+}
 
 let providers = new Map<boolean, Map<string, APN.Provider>>();
 
