@@ -87,6 +87,9 @@
       ],
       "openland-module-workers": [
         "openland-module-workers"
+      ],
+      "openland-module-messaging": [
+        "openland-module-messaging"
       ]
     }
   },

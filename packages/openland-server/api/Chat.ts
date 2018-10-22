@@ -1241,7 +1241,7 @@ export const Resolver = {
                         }
                     }, { transaction: tx });
 
-                    await Modules.Push.sendCounterPush(uid, conversationId, existingGlobal.unread, tx);
+                    await Modules.Push.sendCounterPush(uid, conversationId, existingGlobal.unread);
                 }
             });
 

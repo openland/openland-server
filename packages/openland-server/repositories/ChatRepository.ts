@@ -12,7 +12,6 @@ import { debouncer } from '../utils/timer';
 import { Repos } from './index';
 import { Pubsub, PubsubSubcription } from '../modules/pubsub';
 import { AccessDeniedError } from '../errors/AccessDeniedError';
-import { ConversationMessagesWorker } from '../workers';
 import { IDs } from '../api/utils/IDs';
 import { Perf } from '../utils/perf';
 import { Conversation } from '../tables/Conversation';
@@ -952,7 +951,7 @@ export class ChatsRepository {
                     }
                 }, { transaction: tx });
 
-                 await Modules.Push.sendCounterPush(m, conversationId, userUnread, tx);
+                 await Modules.Push.sendCounterPush(m, conversationId, userUnread);
 
                 if (m === uid) {
                     userEvent = _userEvent;
@@ -962,7 +961,7 @@ export class ChatsRepository {
         }
 
         perf.start('ConversationMessagesWorker');
-        await ConversationMessagesWorker.pushWork({ messageId: msg.id }, tx);
+        await Modules.Messaging.AugmentationWorker.pushWork({ messageId: msg.id });
         perf.end('ConversationMessagesWorker');
 
         await this.deleteDraftMessage(uid, conversationId);
@@ -1027,7 +1026,7 @@ export class ChatsRepository {
 
         await message.save({ transaction: tx });
 
-        await ConversationMessagesWorker.pushWork({ messageId: message.id }, tx);
+        await Modules.Messaging.AugmentationWorker.pushWork({ messageId: message.id });
 
         await Repos.Chats.addUserEventsInConversation(
             message.conversationId,

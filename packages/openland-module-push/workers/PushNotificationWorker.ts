@@ -202,7 +202,7 @@ export function startPushNotificationWorker(module: PushModule) {
                 };
 
                 console.log(logPrefix, 'new_push', JSON.stringify(push));
-                await module.worker.pushWork(push, tx);
+                await module.worker.pushWork(push);
             }
 
             // Save state

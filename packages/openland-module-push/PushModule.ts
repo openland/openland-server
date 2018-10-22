@@ -1,6 +1,5 @@
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { startPushNotificationWorker } from './workers/PushNotificationWorker';
-import { Transaction } from 'sequelize';
 import { createPushWorker } from './workers/PushWorker';
 
 export class PushModule {
@@ -12,7 +11,7 @@ export class PushModule {
         }
     }
 
-    sendCounterPush(uid: number, conversationId: number, counter: number, tx: Transaction) {
+    sendCounterPush(uid: number, conversationId: number, counter: number) {
         return this.worker.pushWork({
             uid: uid,
             counter: counter,
@@ -25,7 +24,7 @@ export class PushModule {
             body: '',
             mobileAlert: false,
             mobileIncludeText: false
-        }, tx);
+        });
     }
     
 }
