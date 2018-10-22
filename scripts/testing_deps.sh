@@ -6,3 +6,4 @@ sudo dpkg -i foundationdb-clients_5.2.5-1_amd64.deb foundationdb-clients_5.2.5-1
 sudo dpkg -i foundationdb-server_5.2.5-1_amd64.deb foundationdb-server_5.2.5-1_amd64.deb
 sudo apt-get update
 sudo apt -y --fix-broken install
+sudo service foundationdb start
