@@ -1,6 +1,6 @@
 import SendGrid from '@sendgrid/mail';
 import { SENDGRID_KEY } from 'openland-server/utils/keys';
-import { LegacyWorkQueue } from 'openland-module-workers/legacy/LegacyWorkerQueue';
+import { ModernWorkQueue } from 'openland-module-workers/modern/ModernWorkQueue';
 
 let devTeamEmails = [
     'korshakov.stepan@gmail.com',
@@ -16,10 +16,10 @@ let devTeamEmails = [
 ];
 
 export function createEmailWorker() {
-    let queue = new LegacyWorkQueue<{ templateId: string, to: string, subject: string, args: { [key: string]: string; } }, { result: string }>('emailSender');
+    let queue = new ModernWorkQueue<{ templateId: string, to: string, subject: string, args: { [key: string]: string; } }, { result: string }>('emailSender');
     SendGrid.setApiKey(SENDGRID_KEY);
     let isTesting = process.env.TESTING === 'true';
-    queue.addWorker(async (args, lock, uid) => {
+    queue.addWorker(async (args, uid) => {
         if (!isTesting) {
             // Filter for non-production envrionments
             if (process.env.APP_ENVIRONMENT !== 'production') {

@@ -54,29 +54,25 @@ const loadUserState = async (uid: number, etx?: Transaction) => {
 
 export const Emails = {
     async sendWelcomeEmail(uid: number, etx?: Transaction) {
-        return await DB.tx(async (tx) => {
-            let user = await loadUserState(uid, tx);
-            await Modules.Email.Worker.pushWork({
-                subject: 'Welcome to Openland!',
-                templateId: TEMPLATE_WELCOME,
-                to: user.email,
-                args: user.args
-            }, tx);
-        }, etx);
+        let user = await loadUserState(uid, etx);
+        await Modules.Email.Worker.pushWork({
+            subject: 'Welcome to Openland!',
+            templateId: TEMPLATE_WELCOME,
+            to: user.email,
+            args: user.args
+        });
     },
     async sendUnreadMesages(uid: number, count: number, etx?: Transaction) {
-        return await DB.tx(async (tx) => {
-            let user = await loadUserState(uid, tx);
-            await Modules.Email.Worker.pushWork({
-                subject: 'You’ve got new messages\n',
-                templateId: TEMPLATE_UNREAD_MESSAGES,
-                to: user.email,
-                args: {
-                    messageCount: `${count} new message${count > 1 ? 's' : ''}`,
-                    ...user.args
-                }
-            }, tx);
-        }, etx);
+        let user = await loadUserState(uid, etx);
+        await Modules.Email.Worker.pushWork({
+            subject: 'You’ve got new messages\n',
+            templateId: TEMPLATE_UNREAD_MESSAGES,
+            to: user.email,
+            args: {
+                messageCount: `${count} new message${count > 1 ? 's' : ''}`,
+                ...user.args
+            }
+        });
     },
     async sendAccountActivatedEmail(oid: number, etx?: Transaction) {
         await DB.tx(async (tx) => {
@@ -100,7 +96,7 @@ export const Emails = {
                         'organizationName': org.name!!,
                         ...(user.args)
                     }
-                }, tx);
+                });
             }
         }, etx);
     },
@@ -126,7 +122,7 @@ export const Emails = {
                         'organizationName': org.name!!,
                         ...(user.args)
                     }
-                }, tx);
+                });
             }
         }, etx);
     },
@@ -148,7 +144,7 @@ export const Emails = {
                     'organizationName': org.name!!,
                     ...(user.args)
                 }
-            }, tx);
+            });
         });
     },
 
@@ -178,7 +174,7 @@ export const Emails = {
                     organizationName: org.name!,
                     ...(user.args)
                 }
-            }, tx);
+            });
         });
     },
 
@@ -221,7 +217,7 @@ export const Emails = {
                 organizationName: org.name!!,
                 ...userWelcome
             }
-        }, tx);
+        });
     },
 
     async sendOrganizationInviteEmail(oid: number, invite: OrganizationInvite, tx: Transaction) {
@@ -262,7 +258,7 @@ export const Emails = {
                 'organizationName': org.name!!,
                 ...userWelcome
             }
-        }, tx);
+        });
     },
 
     async sendMemberJoinedEmails(oid: number, memberId: number, etx?: Transaction) {
@@ -300,7 +296,7 @@ export const Emails = {
                         'organizationName': org.name!!,
                         ...(user.args)
                     }
-                }, tx);
+                });
             }
         });
     },
@@ -358,7 +354,7 @@ export const Emails = {
                 organizationName: channel.title!!,
                 ...userWelcome
             }
-        }, tx);
+        });
     },
 
     async sendActivationCodeEmail(email: string, code: string, tx?: Transaction) {
@@ -369,6 +365,6 @@ export const Emails = {
             args: {
                 code
             }
-        }, tx);
+        });
     }
 };
