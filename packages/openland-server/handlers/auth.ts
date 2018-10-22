@@ -8,6 +8,7 @@ import { Repos } from '../repositories';
 import { AuthSession } from '../tables/AuthSession';
 import { getTestPhoneCode, isTestPhone } from '../repositories/PhoneRepository';
 import { Services } from '../services';
+import { Modules } from 'openland-modules/Modules';
 
 const ERROR_TEXT = {
     0: 'Wrong arguments passed',
@@ -243,7 +244,7 @@ export async function getAccessToken(req: express.Request, response: express.Res
             });
 
             if (existing) {
-                let token = await Repos.Tokens.createToken(existing.id!, tx);
+                let token = await Modules.Auth.createToken(existing.id!);
                 response.json({ ok: true, accessToken: token });
                 await authSession.destroy();
                 return;
@@ -252,7 +253,7 @@ export async function getAccessToken(req: express.Request, response: express.Res
                     authId: 'email|' + authSession.extras!.email,
                     email: authSession.extras!.email as string,
                 }, { transaction: tx });
-                let token = await Repos.Tokens.createToken(user.id!, tx);
+                let token = await Modules.Auth.createToken(user.id!);
                 response.json({ ok: true, accessToken: token });
                 await authSession.destroy();
                 return;
@@ -261,7 +262,7 @@ export async function getAccessToken(req: express.Request, response: express.Res
             let existing = await DB.Phone.findOne({ where: { phone: authSession.extras!.phone as any }, transaction: tx, lock: tx.LOCK.UPDATE });
 
             if (existing) {
-                let token = await Repos.Tokens.createToken(existing.userId!, tx);
+                let token = await Modules.Auth.createToken(existing.userId!);
                 response.json({ ok: true, accessToken: token });
                 await authSession.destroy();
                 return;
@@ -275,7 +276,7 @@ export async function getAccessToken(req: express.Request, response: express.Res
                     status: 'VERIFIED',
                     userId: user.id
                 }, { transaction: tx });
-                let token = await Repos.Tokens.createToken(user.id!, tx);
+                let token = await Modules.Auth.createToken(user.id!);
                 response.json({ ok: true, accessToken: token });
                 await authSession.destroy();
                 return;

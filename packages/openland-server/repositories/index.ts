@@ -1,5 +1,4 @@
 import { PermissionRepository } from './PermissionRepository';
-import { TokenRepository } from './TokenRepository';
 import { UserRepository } from './UserRepository';
 import { SuperRepository } from './SuperRepository';
 import { OrganizationRepository } from './OrganizationRepository';
@@ -9,7 +8,6 @@ import { PhoneRepository } from './PhoneRepository';
 
 export const Repos = {
     Permissions: new PermissionRepository(),
-    Tokens: new TokenRepository(),
     Users: new UserRepository(),
     Super: new SuperRepository(),
     Organizations: new OrganizationRepository(),

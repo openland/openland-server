@@ -2,15 +2,16 @@ import { Repos } from '../repositories';
 import { IDs } from '../api/utils/IDs';
 import { CallContext } from '../api/utils/CallContext';
 import { DB } from '../tables';
+import { Modules } from 'openland-modules/Modules';
 
 export async function fetchWebSocketParameters(args: any, websocket: any) {
     let res: any = {};
     if ('x-openland-token' in args) {
         let token = args['x-openland-token'] as string;
-        let uid = await Repos.Tokens.fetchUserByToken(token);
+        let uid = await Modules.Auth.findToken(token);
         if (uid !== null) {
             res.uid = uid.uid;
-            res.tid = uid.tid;
+            res.tid = uid.uuid;
             let accounts = await Repos.Users.fetchUserAccounts(res.uid);
             if (accounts.length === 1) {
                 res.oid = accounts[0];

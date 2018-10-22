@@ -32,12 +32,12 @@ export const Resolvers = {
                         return 'ok';
                     }
                 } else {
-                    await DB.UserPushRegistration.create({
-                        userId: context.uid,
-                        tokenId: context.tid,
-                        pushEndpoint: args.endpoint,
-                        pushType: 'web-push'
-                    });
+                    // await DB.UserPushRegistration.create({
+                    //     userId: context.uid,
+                    //     tokenId: context.tid,
+                    //     pushEndpoint: args.endpoint,
+                    //     pushType: 'web-push'
+                    // });
                     return 'ok';
                 }
             });
@@ -83,12 +83,12 @@ export const Resolvers = {
                         return 'ok';
                     }
                 } else {
-                    await DB.UserPushRegistration.create({
-                        userId: context.uid,
-                        tokenId: context.tid,
-                        pushEndpoint: args.endpoint,
-                        pushType: type as any
-                    }, { transaction: tx });
+                    // await DB.UserPushRegistration.create({
+                    //     userId: context.uid,
+                    //     tokenId: context.tid,
+                    //     pushEndpoint: args.endpoint,
+                    //     pushType: type as any
+                    // }, { transaction: tx });
                     return 'ok';
                 }
 

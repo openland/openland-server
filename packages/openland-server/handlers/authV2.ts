@@ -4,9 +4,9 @@ import * as jwksRsa from 'jwks-rsa';
 import * as express from 'express';
 import { DB } from '../tables';
 import { Profile } from './Profile';
-import { Repos } from '../repositories';
 import { fetchKeyFromRequest } from '../utils/fetchKeyFromRequest';
 import { Emails } from '../services/Emails';
+import { Modules } from 'openland-modules/Modules';
 
 //
 // Main JWT verifier
@@ -40,9 +40,9 @@ export const TokenChecker = async function (req: express.Request, response: expr
     try {
         let accessToken = fetchKeyFromRequest(req, 'x-openland-token');
         if (accessToken) {
-            let uid = await Repos.Tokens.fetchUserByToken(accessToken as string);
+            let uid = await Modules.Auth.findToken(accessToken as string);
             if (uid !== null) {
-                req.user = { uid: uid.uid, tid: uid.tid, tuid: uid };
+                req.user = { uid: uid.uid, tid: uid.uid };
             }
         }
     } catch (e) {
@@ -142,7 +142,7 @@ export const Authenticator = async function (req: express.Request, response: exp
         // Create New Token
         //
 
-        let token = await Repos.Tokens.createToken(uid);
+        let token = await Modules.Auth.createToken(uid);
 
         response.json({ ok: true, token: token });
     } catch (e) {

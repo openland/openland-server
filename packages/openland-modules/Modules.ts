@@ -4,8 +4,10 @@ import { DBModule } from 'openland-module-db/DBModule';
 import { PresenceModule } from 'openland-module-presences/PresenceModule';
 import { EmailModule } from 'openland-module-email/EmailModule';
 import { MessagingModule } from 'openland-module-messaging/MessagingModule';
+import { AuthModule } from 'openland-module-auth/AuthModule';
 
 class ModulesImpl {
+    readonly Auth = new AuthModule();
     readonly DB = new DBModule();
     readonly Workers = new WorkerModule();
     readonly Push = new PushModule();

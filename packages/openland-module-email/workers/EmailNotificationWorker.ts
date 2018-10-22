@@ -2,6 +2,7 @@ import { staticWorker } from 'openland-module-workers/staticWorker';
 import { DB, DB_SILENT } from '../../openland-server/tables';
 import { Repos } from '../../openland-server/repositories';
 import { Emails } from '../../openland-server/services/Emails';
+import { Modules } from 'openland-modules/Modules';
 
 export function startEmailNotificationWorker() {
     staticWorker({ name: 'email_notifications', delay: 15000 }, async (tx) => {
@@ -15,7 +16,7 @@ export function startEmailNotificationWorker() {
         let now = Date.now();
 
         for (let u of unreadUsers) {
-            let lastSeen = await Repos.Users.getUserLastSeen(u.userId, tx);
+            let lastSeen = await Modules.Presence.getLastSeen(u.userId);
             let tag = 'email_notifications ' + u.userId;
 
             // Ignore online or never-online users

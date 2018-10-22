@@ -402,14 +402,14 @@ export const Resolver = {
             await token!.save();
 
             // await Repos.Users.markUserOnline(context.uid, args.timeout, context.tid!!, args.platform);
-            await Modules.Presence.setOnline(context.uid, context.tuid!, args.timeout, args.platform || 'unknown');
+            await Modules.Presence.setOnline(context.uid, context.tid!, args.timeout, args.platform || 'unknown');
             // await Repos.Users.markUserActive(context.uid, args.timeout, context.tid!!, args.platform);
             await Repos.Chats.onlineEngine.setOnline(context.uid, args.timeout);
             return 'ok';
         },
         alphaReportOffline: withAny<{ platform?: string }>(async (args, ctx) => {
-            await Repos.Users.markUserOffline(ctx.uid!, ctx.tid!!, args.platform);
-            await Repos.Chats.onlineEngine.setOffline(ctx.uid!);
+            // await Repos.Users.markUserOffline(ctx.uid!, ctx.tid!!, args.platform);
+            // await Repos.Chats.onlineEngine.setOffline(ctx.uid!);
             return 'ok';
         }),
         alphaReportActive: async (_: any, args: { timeout: number, platform?: string }, context: CallContext) => {
@@ -427,7 +427,7 @@ export const Resolver = {
             token!.lastIp = context.ip;
             await token!.save();
 
-            await Repos.Users.markUserActive(context.uid, args.timeout, context.tid!!, args.platform);
+            // await Repos.Users.markUserActive(context.uid, args.timeout, context.tid!!, args.platform);
             return 'ok';
         },
         updateSettings: withUser<{ settings: { emailFrequency?: string | null, desktopNotifications?: string | null, mobileNotifications?: string | null, mobileAlert?: boolean | null, mobileIncludeText?: boolean | null, notificationsDelay?: boolean | null } }>(async (args, uid) => {

@@ -2,7 +2,7 @@ import { randomString } from '../utils/random';
 import { Services } from '../services';
 import { DB } from '../tables';
 import { UserError } from '../errors/UserError';
-import { Repos } from './index';
+import { Modules } from 'openland-modules/Modules';
 
 const PHONE_CODE_TTL = 1000 * 60;
 const PHONE_CODE_LEN = 5;
@@ -104,7 +104,7 @@ export class PhoneRepository {
             let existing = await DB.Phone.findOne({ where: { phone }, transaction: tx });
 
             if (existing) {
-                return await Repos.Tokens.createToken(existing.userId!);
+                return await Modules.Auth.createToken(existing.userId!);
             }
 
             let user = await DB.User.create({
@@ -118,7 +118,7 @@ export class PhoneRepository {
                 userId: user.id
             }, { transaction: tx });
 
-            return await Repos.Tokens.createToken(user.id!);
+            return await Modules.Auth.createToken(user.id!);
         });
     }
 

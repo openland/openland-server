@@ -335,7 +335,7 @@ export const Resolver = {
                     }
                 }, { transaction: tx });
                 await Repos.Users.createUser(user.id!, args.input, tx, true);
-                return await Repos.Tokens.createToken(user.id!, tx);
+                return await Modules.Auth.createToken(user.id!);
             });
         }),
 
