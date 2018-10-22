@@ -1,8 +1,8 @@
 // tslint:disable:no-floating-promises
 import * as fdb from 'foundationdb';
-import { inTx } from './inTx';
-import { FTransaction } from './FTransaction';
-import { FConnection } from './FConnection';
+import { inTx } from '../inTx';
+import { FTransaction } from '../FTransaction';
+import { FConnection } from '../FConnection';
 
 describe('inTx', () => {
     // Database Init
