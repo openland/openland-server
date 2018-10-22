@@ -221,6 +221,57 @@ export class IndexedRangeEntityFactory extends FEntityFactory<IndexedRangeEntity
         return new IndexedRangeEntity(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
     }
 }
+export interface IndexedPartialEntityShape {
+    data1: string;
+    data2: string;
+}
+
+export class IndexedPartialEntity extends FEntity {
+    get id() { return this._value.id; }
+    get data1(): string {
+        return this._value.data1;
+    }
+    set data1(value: string) {
+        this._checkIsWritable();
+        if (value === this._value.data1) { return; }
+        this._value.data1 = value;
+        this.markDirty();
+    }
+    get data2(): string {
+        return this._value.data2;
+    }
+    set data2(value: string) {
+        this._checkIsWritable();
+        if (value === this._value.data2) { return; }
+        this._value.data2 = value;
+        this.markDirty();
+    }
+}
+
+export class IndexedPartialEntityFactory extends FEntityFactory<IndexedPartialEntity> {
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'indexedPartialEntity'),
+            { enableVersioning: false, enableTimestamps: false },
+            [new FEntityIndex('default', ['data1', 'data2', 'id'], true, (src) => src.data1 === 'hello')]
+        );
+    }
+    async findById(id: number) {
+        return await this._findById([id]);
+    }
+    async create(id: number, shape: IndexedPartialEntityShape) {
+        return await this._create([id], { id, ...shape });
+    }
+    watch(id: number, cb: () => void) {
+        return this._watch([id], cb);
+    }
+    async findFromDefault(data1: string, data2: string, id: number) {
+        return await this._findById(['__indexes', 'default', data1, data2, id]);
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new IndexedPartialEntity(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
+    }
+}
 
 export class AllEntities {
     SimpleEntity: SimpleEntityFactory;
@@ -228,6 +279,7 @@ export class AllEntities {
     TimestampedEntity: TimestampedEntityFactory;
     IndexedEntity: IndexedEntityFactory;
     IndexedRangeEntity: IndexedRangeEntityFactory;
+    IndexedPartialEntity: IndexedPartialEntityFactory;
 
     constructor(connection: FConnection) {
         this.SimpleEntity = new SimpleEntityFactory(connection);
@@ -235,5 +287,6 @@ export class AllEntities {
         this.TimestampedEntity = new TimestampedEntityFactory(connection);
         this.IndexedEntity = new IndexedEntityFactory(connection);
         this.IndexedRangeEntity = new IndexedRangeEntityFactory(connection);
+        this.IndexedPartialEntity = new IndexedPartialEntityFactory(connection);
     }
 }

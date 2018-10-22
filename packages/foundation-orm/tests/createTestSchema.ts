@@ -28,6 +28,13 @@ const Schema = declareSchema(() => {
         field('data2', 'string');
         rangeIndex('default', ['data1', 'data2']);
     });
+
+    entity('IndexedPartialEntity', () => {
+        primaryKey('id', 'number');
+        field('data1', 'string');
+        field('data2', 'string');
+        uniqueIndex('default', ['data1', 'data2', 'id']).withCondition((src) => src.data1 === 'hello');
+    });
 });
 
 generate(Schema, __dirname + '/testSchema.ts');

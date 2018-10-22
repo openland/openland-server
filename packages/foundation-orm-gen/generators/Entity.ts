@@ -1,4 +1,4 @@
-import { EntityModel, EntityField } from '../Model';
+import { EntityModel, EntityField, EntityIndex } from '../Model';
 import * as Case from 'change-case';
 
 function resolveFieldType(field: EntityField) {
@@ -82,12 +82,20 @@ export function generateEntity(entity: EntityModel): string {
     res += '}\n\n';
 
     // Factory
+    function buildIndex(index: EntityIndex) {
+        let condition = '';
+        if (index.condition) {
+            let body = index.condition.toString();
+            condition = ', ' + body;
+        }
+        return 'new FEntityIndex(\'' + index.name + '\', [' + index.fields.map((v2) => '\'' + v2 + '\'').join(', ') + '], ' + index.unique + condition + ')';
+    }
     res += 'export class ' + entityClass + 'Factory extends FEntityFactory<' + entityClass + '> {\n';
     res += '    constructor(connection: FConnection) {\n';
     res += '        super(connection,\n';
     res += '            new FNamespace(\'entity\', \'' + entityKey + '\'),\n';
     res += '            { enableVersioning: ' + entity.enableVersioning + ', enableTimestamps: ' + entity.enableTimestamps + ' },\n';
-    res += '            [' + entity.indexes.map((v) => 'new FEntityIndex(\'' + v.name + '\', [' + v.fields.map((v2) => '\'' + v2 + '\'').join(', ') + '], ' + v.unique + ')').join(', ') + ']\n';
+    res += '            [' + entity.indexes.map(buildIndex).join(', ') + ']\n';
     res += '        );\n';
     res += '    }\n';
     // protected _createEntity(context: SContext, namespace: SNamespace, id: (string | number)[], value: any) {

@@ -21,10 +21,16 @@ export class EntityIndex {
     readonly fields: string[];
     readonly name: string;
     readonly unique: boolean;
+    condition?: (src: any) => boolean;
     constructor(name: string, fields: string[], unique: boolean) {
         this.name = name;
         this.fields = fields;
         this.unique = unique;
+    }
+
+    withCondition(handler: (src: any) => boolean) {
+        this.condition = handler;
+        return this;
     }
 }
 
@@ -46,11 +52,15 @@ export class EntityModel {
     }
 
     addIndex(name: string, fields: string[], unique: boolean) {
-        this.indexes.push(new EntityIndex(name, fields, unique));
+        let res = new EntityIndex(name, fields, unique);
+        this.indexes.push(res);
+        return res;
     }
 
     addKey(name: string, type: 'string' | 'number' | 'boolean') {
-        this.keys.push(new EntityField(name, type, []));
+        let res = new EntityField(name, type, []);
+        this.keys.push(res);
+        return res;
     }
 }
 
