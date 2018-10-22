@@ -143,7 +143,7 @@ export const Authenticator = async function (req: express.Request, response: exp
 
         let token = await Modules.Auth.createToken(uid);
 
-        response.json({ ok: true, token: token });
+        response.json({ ok: true, token: token.salt });
     } catch (e) {
         console.warn(e);
         response.status(500).send({ error: 'Internal server error' });
