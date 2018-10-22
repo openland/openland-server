@@ -303,6 +303,7 @@ export interface TaskShape {
     taskFailureTime?: number;
     taskLockSeed?: string;
     taskLockTimeout?: number;
+    taskFailureMessage?: string;
 }
 
 export class Task extends FEntity {
@@ -324,12 +325,7 @@ export class Task extends FEntity {
     }
     set result(value: any | null) {
         this._checkIsWritable();
-        if (value === this._value.result) {
-            console.log('result not changed');
-            console.log(value);
-            console.log(this._value.result);
-            return;
-        }
+        if (value === this._value.result) { return; }
         this._value.result = value;
         this.markDirty();
     }
@@ -386,6 +382,17 @@ export class Task extends FEntity {
         this._value.taskLockTimeout = value;
         this.markDirty();
     }
+    get taskFailureMessage(): string | null {
+        let res = this._value.taskFailureMessage;
+        if (res) { return res; }
+        return null;
+    }
+    set taskFailureMessage(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.taskFailureMessage) { return; }
+        this._value.taskFailureMessage = value;
+        this.markDirty();
+    }
 }
 
 export class TaskFactory extends FEntityFactory<Task> {
@@ -393,7 +400,7 @@ export class TaskFactory extends FEntityFactory<Task> {
         super(connection,
             new FNamespace('entity', 'task'),
             { enableVersioning: true, enableTimestamps: true },
-            [new FEntityIndex('queue', ['taskType', 'taskStatus', 'createdAt'], false), new FEntityIndex('globalQueue', ['taskStatus', 'createdAt'], false)]
+            [new FEntityIndex('pending', ['taskType', 'createdAt'], false, (src) => src.taskStatus === 'pending'), new FEntityIndex('executing', ['taskLockTimeout'], false, (src) => src.taskStatus === 'executing'), new FEntityIndex('failing', ['taskFailureTime'], false, (src) => src.taskStatus === 'failing')]
         );
     }
     async findById(taskType: string, uid: string) {
@@ -405,11 +412,14 @@ export class TaskFactory extends FEntityFactory<Task> {
     watch(taskType: string, uid: string, cb: () => void) {
         return this._watch([taskType, uid], cb);
     }
-    async rangeFromQueue(taskType: string, taskStatus: 'pending' | 'executing' | 'failing' | 'failed' | 'completed', limit: number) {
-        return await this._findRange(['__indexes', 'queue', taskType, taskStatus], limit);
+    async rangeFromPending(taskType: string, limit: number) {
+        return await this._findRange(['__indexes', 'pending', taskType], limit);
     }
-    async rangeFromGlobalQueue(taskStatus: 'pending' | 'executing' | 'failing' | 'failed' | 'completed', limit: number) {
-        return await this._findRange(['__indexes', 'globalQueue', taskStatus], limit);
+    async rangeFromExecuting(limit: number) {
+        return await this._findRange(['__indexes', 'executing'], limit);
+    }
+    async rangeFromFailing(limit: number) {
+        return await this._findRange(['__indexes', 'failing'], limit);
     }
     protected _createEntity(value: any, isNew: boolean) {
         return new Task(this.connection, this.namespace, [value.taskType, value.uid], value, this.options, isNew, this.indexes);

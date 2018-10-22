@@ -5,6 +5,7 @@ import { forever, delay } from 'openland-server/utils/timer';
 import { uuid } from 'openland-utils/uuid';
 import { withLogContext } from 'openland-log/withLogContext';
 import { createLogger } from 'openland-log/createLogger';
+import { exponentialBackoffDelay } from 'openland-server/utils/exponentialBackoffDelay';
 
 export class ModernWorkQueue<ARGS extends JsonMap, RES extends JsonMap> {
     private taskType: string;
@@ -31,10 +32,10 @@ export class ModernWorkQueue<ARGS extends JsonMap, RES extends JsonMap> {
         const lockSeed = uuid();
         const log = createLogger('handler');
 
-        withLogContext(['worker', this.taskType], () => {
-            forever(async () => {
+        forever(async () => {
+            await withLogContext(['worker', this.taskType], async () => {
                 let task = await inTx(async () => {
-                    let pend = await FDB.Task.rangeFromQueue(this.taskType, 'pending', 1);
+                    let pend = await FDB.Task.rangeFromPending(this.taskType, 1);
                     if (pend.length === 0) {
                         return null;
                     }
@@ -51,6 +52,29 @@ export class ModernWorkQueue<ARGS extends JsonMap, RES extends JsonMap> {
                         res = await handler(task.arguments, task.uid);
                     } catch (e) {
                         console.warn(e);
+                        await inTx(async () => {
+                            let res2 = await FDB.Task.findById(task!!.taskType, task!!.uid);
+                            if (res2) {
+                                if (res2.taskLockSeed === lockSeed && res2.taskStatus === 'executing') {
+                                    res2.taskStatus = 'failing';
+                                    res2.taskFailureMessage = e.message ? e.message : null;
+                                    if (res2.taskFailureCount === null) {
+                                        res2.taskFailureCount = 1;
+                                    } else {
+                                        if (res2.taskFailureCount === 4) {
+                                            res2.taskFailureCount = 5;
+                                            res2.taskStatus = 'failed';
+                                        } else {
+                                            res2.taskFailureCount++;
+                                            res2.taskFailureTime = Date.now() + exponentialBackoffDelay(res2.taskFailureCount!, 1000, 10000, 5);
+                                        }
+                                    }
+
+                                    return true;
+                                }
+                            }
+                            return false;
+                        });
                         await delay(1000);
                         return;
                     }

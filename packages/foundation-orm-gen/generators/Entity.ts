@@ -119,7 +119,7 @@ export function generateEntity(entity: EntityModel): string {
         } else {
             let fs = i.fields;
             fs.splice(-1);
-            res += '    async rangeFrom' + Case.pascalCase(i.name) + '(' + fs.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v))).join(', ') + ', limit: number) {\n';
+            res += '    async rangeFrom' + Case.pascalCase(i.name) + '(' + [...fs.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v))), 'limit: number'].join(', ') + ') {\n';
             res += '        return await this._findRange([' + ['\'__indexes\'', '\'' + i.name + '\'', ...fs].join(', ') + '], limit);\n';
             res += '    }\n';
         }
