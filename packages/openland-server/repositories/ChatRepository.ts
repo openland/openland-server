@@ -280,12 +280,6 @@ class TypingManager {
     }
 }
 
-export interface OnlineEventInternal {
-    userId: number;
-    timeout: number;
-    online: boolean;
-}
-
 export class ChatsRepository {
     typingManager = new TypingManager();
     reader: ChatsEventReader;
