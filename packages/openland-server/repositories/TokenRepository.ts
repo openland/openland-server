@@ -6,7 +6,7 @@ import { Transaction } from 'sequelize';
 
 export class TokenRepository {
 
-    private loader = new DataLoader<string, { uid: number, tid: number } | null>(async (tokens) => {
+    private loader = new DataLoader<string, { uid: number, tid: number, tuid: string } | null>(async (tokens) => {
         let foundTokens = await DB.UserToken.findAll({
             where: {
                 tokenSalt: {
@@ -15,12 +15,12 @@ export class TokenRepository {
             },
             logging: DB_SILENT
         });
-        let res: ({ uid: number, tid: number } | null)[] = [];
+        let res: ({ uid: number, tid: number, tuid: string } | null)[] = [];
         for (let i of tokens) {
             let found = false;
             for (let f of foundTokens) {
                 if (i === f.tokenSalt) {
-                    res.push({ uid: f.userId!!, tid: f.id!! });
+                    res.push({ uid: f.userId!!, tid: f.id!!, tuid: f.uuid!! });
                     found = true;
                     break;
                 }

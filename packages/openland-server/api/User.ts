@@ -402,7 +402,7 @@ export const Resolver = {
             await token!.save();
 
             // await Repos.Users.markUserOnline(context.uid, args.timeout, context.tid!!, args.platform);
-            await Modules.Presence.setOnline(context.uid, context.tid!, args.timeout, args.platform || 'unknown');
+            await Modules.Presence.setOnline(context.uid, context.tuid!, args.timeout, args.platform || 'unknown');
             // await Repos.Users.markUserActive(context.uid, args.timeout, context.tid!!, args.platform);
             await Repos.Chats.onlineEngine.setOnline(context.uid, args.timeout);
             return 'ok';

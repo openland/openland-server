@@ -89,13 +89,13 @@ export class PresenceFactory extends FEntityFactory<Presence> {
             []
         );
     }
-    async findById(uid: number, tid: number) {
+    async findById(uid: number, tid: string) {
         return await this._findById([uid, tid]);
     }
-    async create(uid: number, tid: number, shape: PresenceShape) {
+    async create(uid: number, tid: string, shape: PresenceShape) {
         return await this._create([uid, tid], { uid, tid, ...shape });
     }
-    watch(uid: number, tid: number, cb: () => void) {
+    watch(uid: number, tid: string, cb: () => void) {
         return this._watch([uid, tid], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {

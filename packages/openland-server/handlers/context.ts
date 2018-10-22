@@ -14,6 +14,7 @@ async function context(src: express.Request): Promise<CallContext> {
         } else if (typeof src.user.uid === 'number' && typeof src.user.tid === 'number') {
             res.uid = src.user.uid;
             res.tid = src.user.tid;
+            res.tuid = src.user!.tuid;
         }
     }
 

@@ -42,7 +42,7 @@ export const TokenChecker = async function (req: express.Request, response: expr
         if (accessToken) {
             let uid = await Repos.Tokens.fetchUserByToken(accessToken as string);
             if (uid !== null) {
-                req.user = { uid: uid.uid, tid: uid.tid };
+                req.user = { uid: uid.uid, tid: uid.tid, tuid: uid };
             }
         }
     } catch (e) {

@@ -1,5 +1,6 @@
 export class CallContext {
     tid?: number;
+    tuid?: string;
     uid?: number;
     oid?: number;
     poid?: number;

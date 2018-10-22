@@ -6,7 +6,6 @@ import { IDs } from './utils/IDs';
 import { DB } from '../tables';
 import { SuperAdmin } from '../tables/SuperAdmin';
 import { FeatureFlag } from '../tables/FeatureFlag';
-import { Task } from '../tables/Task';
 import { UserError } from '../errors/UserError';
 import { ErrorText } from '../errors/ErrorText';
 
@@ -36,21 +35,21 @@ export const Resolvers = {
         },
         email: (src: SuperAdmin) => src.user ? src.user.email : null,
     },
-    Task: {
-        id: (src: Task) => IDs.Task.serialize(src.id),
-        status: (src: Task) => {
-            if (src.taskStatus === 'completed') {
-                return 'COMPLETED';
-            } else if (src.taskStatus === 'failed') {
-                return 'FAILED';
-            } else {
-                return 'IN_PROGRESS';
-            }
-        },
-        result: (src: Task) => {
-            return src.result && JSON.stringify(src.result);
-        }
-    },
+    // Task: {
+    //     id: (src: Task) => IDs.Task.serialize(src.id),
+    //     status: (src: Task) => {
+    //         if (src.taskStatus === 'completed') {
+    //             return 'COMPLETED';
+    //         } else if (src.taskStatus === 'failed') {
+    //             return 'FAILED';
+    //         } else {
+    //             return 'IN_PROGRESS';
+    //         }
+    //     },
+    //     result: (src: Task) => {
+    //         return src.result && JSON.stringify(src.result);
+    //     }
+    // },
     FeatureFlag: {
         id: (src: FeatureFlag) => IDs.FeatureFlag.serialize(src.id!!),
         title: (src: FeatureFlag) => src.title,
@@ -117,7 +116,7 @@ export const Resolvers = {
             return Repos.Permissions.resolveFeatureFlags();
         }),
         alphaRefreshTask: withAny<{ id: string }>((args) => {
-            return DB.Task.findById(IDs.Task.parse(args.id));
+            return null;
         })
     },
     Mutation: {

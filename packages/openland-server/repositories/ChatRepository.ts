@@ -560,8 +560,11 @@ export class OnlineEngineNew {
         }
 
         for (let member of members) {
-            await this.fSubscribe(member);
-
+            FDB.Online.watch(uid, () => {
+                // tslint:disable-next-line:no-floating-promises
+                this.handleOnlineChange(uid);
+            });
+            
             subscriptions.push(this.localSub.subscribe(member, ev => {
                 sub.pushEvent(genEvent(ev));
             }));

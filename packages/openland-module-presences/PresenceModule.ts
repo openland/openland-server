@@ -7,7 +7,7 @@ export class PresenceModule {
         // Nothing to do
     }
 
-    async setOnline(uid: number, tid: number, timeout: number, platform: string) {
+    async setOnline(uid: number, tid: string, timeout: number, platform: string) {
         return await inTx(async () => {
             let expires = Date.now() + timeout;
             let ex = await FDB.Presence.findById(uid, tid);

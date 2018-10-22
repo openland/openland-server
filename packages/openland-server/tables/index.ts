@@ -16,7 +16,6 @@ import { SuperAdminTable } from './SuperAdmin';
 import { UserTokenTable } from './UserToken';
 import { OrganizationTable } from './Organization';
 import { FeatureFlagTable } from './FeatureFlag';
-import { TaskTable } from './Task';
 import { UserProfileTable } from './UserProfile';
 import { UserProfilePrefillTable } from './UserProfilePrefill';
 import { OrganizationMemberTable } from './OrganizationMember';
@@ -58,7 +57,6 @@ export const DB = {
     Organization: OrganizationTable,
     OrganizationConnect: OrganizationConnectTable,
     FeatureFlag: FeatureFlagTable,
-    Task: TaskTable,
     UserProfile: UserProfileTable,
     UserProfilePrefill: UserProfilePrefillTable,
     OrganizationMember: OrganizationMemberTable,

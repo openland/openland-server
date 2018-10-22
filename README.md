@@ -20,8 +20,9 @@
      - secretKey: 6yElhMkUjDYB8Y+gTE9hBJXUY+otqDp5zRnl0zYm
  - restart: `sudo brew services restart minio`
  - create bucket `files` at http://127.0.0.1:9900/
-9) Run server `yarn dev`
-10) go get some coffee
+11) Enable UUID support in postgres: `CREATE EXTENSION "uuid-ossp";`
+12) Run server `yarn dev`
+13) go get some coffee
 
 # Running Integration Tests
 
