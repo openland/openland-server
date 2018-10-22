@@ -5,7 +5,6 @@ import { DB } from '../tables';
 
 async function context(src: express.Request): Promise<CallContext> {
     let res = new CallContext();
-    console.log('CONTEXT', src.user);
     //
     // Loading UID
     //
