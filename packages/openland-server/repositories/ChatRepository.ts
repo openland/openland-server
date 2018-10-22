@@ -18,7 +18,7 @@ import { Conversation } from '../tables/Conversation';
 import { URLAugmentation } from '../services/UrlInfoService';
 import { CacheRepository } from 'openland-repositories/CacheRepository';
 import { Modules } from 'openland-modules/Modules';
-import { XAsyncIterator } from '../modules/XAsyncIterator';
+import { createIterator } from '../utils/asyncIterator';
 
 export type ChatEventType =
     'new_message' |
@@ -254,17 +254,17 @@ class TypingManager {
 
         let sub: PubsubSubcription | undefined;
 
-        let subEng = new XAsyncIterator<TypingEvent>(() => sub ? sub.unsubscribe() : {});
+        let iterator = createIterator<TypingEvent>(() => sub ? sub.unsubscribe() : {});
 
         sub = await this.xPubSub.xSubscribe(`TYPING_${uid}`, ev => {
             if (conversationId && ev.conversationId !== conversationId) {
                 return;
             }
 
-            subEng.push(ev);
+            iterator.push(ev);
         });
 
-        return subEng.getIterator();
+        return iterator;
     }
 
     private async getChatMembers(chatId: number): Promise<number[]> {
