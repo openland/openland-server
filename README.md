@@ -23,7 +23,7 @@
 9) Run server `yarn dev`
 10) go get some coffee
 
-# Running Tests
+# Running Integration Tests
 
 1) Install Docker
 2) Prepare production build: `yarn build`
@@ -31,3 +31,9 @@
 4) Prepare testing infrastructure: `yarn test:prepare`
 5) Run tests: `yarn test`, `yarn test:watch`
 6) Stop infrastructure: `yarn test:stop`
+
+# Running Unit Tests
+1) Create Test Database. In `psql`:
+   - `CREATE DATABASE openland_tests`
+   - `CREATE USER test WITH ENCRYPTED PASSWORD 'test'`
+   - `GRANT ALL PRIVILEGES ON DATABASE openland_tests TO test`

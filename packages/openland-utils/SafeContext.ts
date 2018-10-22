@@ -2,6 +2,7 @@ import async_hooks from 'async_hooks';
 const ENABLE_DEBUG = false;
 
 let contexts: any[] = [];
+let paths: any = {};
 let debug: string[] = [];
 async_hooks.createHook({
     init: (asyncId, type, triggerAsyncId, resource) => {
@@ -13,6 +14,13 @@ async_hooks.createHook({
 
         // JS based callback/promise
         if (currentId !== 0) {
+            if (ENABLE_DEBUG) {
+                if (paths[currentId]) {
+                    paths[asyncId] = [...paths[currentId], asyncId];
+                } else {
+                    paths[asyncId] = [asyncId];
+                }
+            }
             for (let ctxId in contexts) {
                 let ctx = contexts[ctxId];
                 let value = ctx[currentId];
@@ -25,19 +33,11 @@ async_hooks.createHook({
             }
             return;
         }
-    },
-    after: (asyncId) => {
-        for (let ctx of contexts) {
-            let value = ctx[asyncId];
-            if (value) {
-                delete ctx[asyncId];
-            }
-        }
     }
 }).enable();
 
 export function logContext(point: string) {
-    debug.push(`CHECKPOINT: ${point} ${async_hooks.executionAsyncId()}`);
+    debug.push(`CHECKPOINT: ${point} ${async_hooks.executionAsyncId()} | ${paths[async_hooks.executionAsyncId()]}`);
 }
 
 export function exportContextDebug() {
