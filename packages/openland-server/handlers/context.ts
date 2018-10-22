@@ -5,6 +5,7 @@ import { DB } from '../tables';
 
 async function context(src: express.Request): Promise<CallContext> {
     let res = new CallContext();
+    console.log('CONTEXT', src.user);
     //
     // Loading UID
     //
@@ -13,7 +14,7 @@ async function context(src: express.Request): Promise<CallContext> {
             res.uid = await Repos.Users.fetchUserByAuthId(src.user.sub);
         } else if (typeof src.user.uid === 'number' && typeof src.user.tid === 'number') {
             res.uid = src.user.uid;
-            res.tid = src.user.tuid;
+            res.tid = src.user.tid;
         }
     }
 
