@@ -397,9 +397,10 @@ export const Resolver = {
                 throw Error('Invalid input');
             }
 
-            let token = await DB.UserToken.findById(context.tid);
-            token!.lastIp = context.ip;
-            await token!.save();
+            // FIXME
+            // let token = await DB.UserToken.findById(context.tid);
+            // token!.lastIp = context.ip;
+            // await token!.save();
 
             // await Repos.Users.markUserOnline(context.uid, args.timeout, context.tid!!, args.platform);
             await Modules.Presence.setOnline(context.uid, context.tid!, args.timeout, args.platform || 'unknown');
@@ -422,9 +423,10 @@ export const Resolver = {
                 throw Error('Invalid input');
             }
 
-            let token = await DB.UserToken.findById(context.tid);
-            token!.lastIp = context.ip;
-            await token!.save();
+            // FIXME
+            // let token = await DB.UserToken.findById(context.tid);
+            // token!.lastIp = context.ip;
+            // await token!.save();
 
             // await Repos.Users.markUserActive(context.uid, args.timeout, context.tid!!, args.platform);
             return 'ok';
