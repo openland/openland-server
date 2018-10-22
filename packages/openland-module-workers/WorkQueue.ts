@@ -7,7 +7,7 @@ import { withLogContext } from 'openland-log/withLogContext';
 import { createLogger } from 'openland-log/createLogger';
 import { exponentialBackoffDelay } from 'openland-server/utils/exponentialBackoffDelay';
 
-export class ModernWorkQueue<ARGS extends JsonMap, RES extends JsonMap> {
+export class WorkQueue<ARGS extends JsonMap, RES extends JsonMap> {
     private taskType: string;
     // private pubSubTopic: string;
 

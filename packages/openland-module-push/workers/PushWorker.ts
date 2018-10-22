@@ -6,7 +6,7 @@ import * as Friebase from 'firebase-admin';
 import { IDs } from 'openland-server/api/utils/IDs';
 import { doSimpleHash } from './hash';
 import { Texts } from 'openland-server/texts';
-import { ModernWorkQueue } from 'openland-module-workers/modern/ModernWorkQueue';
+import { WorkQueue } from 'openland-module-workers/WorkQueue';
 
 let providers = new Map<boolean, Map<string, APN.Provider>>();
 
@@ -25,7 +25,7 @@ type Push = {
 };
 
 export function createPushWorker() {
-    let queue = new ModernWorkQueue<Push, { result: string }>('push_sender');
+    let queue = new WorkQueue<Push, { result: string }>('push_sender');
     if (AppConfiuguration.webPush || AppConfiuguration.apple || AppConfiuguration.google) {
         console.log('Starting push worker');
 

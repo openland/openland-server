@@ -1,15 +1,13 @@
-import { startLegacyScheduller } from './legacy/LegacyScheduller';
-import { ModernScheduller } from './modern/ModernScheduller';
-import { ModernWorkQueue } from './modern/ModernWorkQueue';
+import { ModernScheduller } from './src/TaskScheduler';
+import { WorkQueue } from './WorkQueue';
 import { delay } from 'openland-server/utils/timer';
 
 export class WorkerModule {
-    readonly scheduler = new ModernScheduller();
 
-    readonly TestWorker = new ModernWorkQueue<{ value: number }, { value: number }>('sample');
+    readonly TestWorker = new WorkQueue<{ value: number }, { value: number }>('sample');
+    private readonly scheduler = new ModernScheduller();
 
     start = () => {
-        startLegacyScheduller();
         this.scheduler.start();
 
         this.TestWorker.addWorker(async (args) => {

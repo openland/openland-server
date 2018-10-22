@@ -1,4 +1,4 @@
-import { createAugmentationWorker } from './AugmentationWorker';
+import { createAugmentationWorker } from './workers/AugmentationWorker';
 
 export class MessagingModule {
     AugmentationWorker = createAugmentationWorker();

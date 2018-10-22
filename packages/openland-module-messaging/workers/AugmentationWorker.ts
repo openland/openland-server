@@ -1,17 +1,17 @@
 
-import { DB } from '../openland-server/tables';
+import { DB } from '../../openland-server/tables';
 import linkify from 'linkify-it';
 import tlds from 'tlds';
-import { Services } from '../openland-server/services';
-import { Repos } from '../openland-server/repositories';
-import { ModernWorkQueue } from 'openland-module-workers/modern/ModernWorkQueue';
+import { Services } from '../../openland-server/services';
+import { Repos } from '../../openland-server/repositories';
+import { WorkQueue } from 'openland-module-workers/WorkQueue';
 
 const linkifyInstance = linkify()
     .tlds(tlds)
     .tlds('onion', true);
 
 export function createAugmentationWorker() {
-    let queue = new ModernWorkQueue<{ messageId: number }, { result: string }>('conversation_message_task');
+    let queue = new WorkQueue<{ messageId: number }, { result: string }>('conversation_message_task');
     queue.addWorker(async (item) => {
         let message = await DB.ConversationMessage.findById(item.messageId);
 
