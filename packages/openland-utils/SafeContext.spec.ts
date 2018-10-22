@@ -46,7 +46,7 @@ describe('SafeContext', () => {
     });
 
     it('should work with sequelize', async () => {
-        let db = new sequelize('openland_tests', 'test', 'test', {
+        let db = new sequelize('openland_tests', process.env.DATABASE_POSTGRESQL_USERNAME || 'test', process.env.DATABASE_POSTGRESQL_PASSWORD || 'test', {
             host: 'localhost',
             port: 5432,
             dialect: 'postgres',
