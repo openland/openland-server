@@ -31,7 +31,7 @@ import { UserProfile } from '../tables/UserProfile';
 import { Sanitizer } from '../modules/Sanitizer';
 import { URLAugmentation } from '../services/UrlInfoService';
 import { Modules } from 'openland-modules/Modules';
-import { OnlineEvent } from '../../openland-module-presences/OnlineEngine';
+import { OnlineEvent } from '../../openland-module-presences/PresenceModule';
 
 export const Resolver = {
     Conversation: {
@@ -2360,7 +2360,7 @@ export const Resolver = {
                     uids.push(...await Repos.Chats.getConversationMembers(chatId))
                 }
 
-                return Modules.Presence.createPresenceIterator(context.uid, uids);
+                return Modules.Presence.createPresenceStream(context.uid, uids);
             }
         },
         alphaSubscribeOnline: {
@@ -2372,7 +2372,7 @@ export const Resolver = {
                     throw Error('Not logged in');
                 }
 
-                return Modules.Presence.createPresenceIterator(context.uid!, args.users);
+                return Modules.Presence.createPresenceStream(context.uid!, args.users);
             }
         }
     }

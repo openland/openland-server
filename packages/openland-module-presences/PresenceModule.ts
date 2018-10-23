@@ -13,14 +13,13 @@ export interface OnlineEvent {
 export class PresenceModule {
     private onlines = new Map<number, { online: boolean, timer?: Timer }>();
     private fdbSubscriptions = new Map<number, { cancel: () => void }>();
-    // private localSub = new SimpleSub<number, OnlineEvent>();
     private localSub = new Pubsub<OnlineEvent>(false);
 
     start = () => {
         // Nothing to do
     }
 
-    async setOnline(uid: number, tid: string, timeout: number, platform: string) {
+    public async setOnline(uid: number, tid: string, timeout: number, platform: string) {
         return await inTx(async () => {
             let expires = Date.now() + timeout;
             let ex = await FDB.Presence.findById(uid, tid);
@@ -42,7 +41,7 @@ export class PresenceModule {
         });
     }
 
-    async getLastSeen(uid: number) {
+    public async getLastSeen(uid: number): Promise<'online' | 'never_online' | number> {
         let res = await FDB.Online.findById(uid);
 
         if (res) {
@@ -56,7 +55,7 @@ export class PresenceModule {
         }
     }
 
-    public async createPresenceIterator(uid: number, users: number[]) {
+    public async createPresenceStream(uid: number, users: number[]): Promise<AsyncIterable<OnlineEvent>> {
 
         users = Array.from(new Set(users)); // remove duplicates
 
@@ -78,9 +77,7 @@ export class PresenceModule {
         for (let userId of users) {
             await this.subscribeOnlineChange(userId);
 
-            subscriptions.push((await this.localSub.subscribe(userId.toString(10), ev => {
-                iterator.push(ev);
-            })));
+            subscriptions.push(await this.localSub.subscribe(userId.toString(10), iterator.push));
         }
 
         return iterator;
