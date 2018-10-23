@@ -2357,7 +2357,7 @@ export const Resolver = {
                 let uids: number[] = [];
 
                 for (let chatId of conversationIds) {
-                    uids.push(...await Repos.Chats.getConversationMembers(chatId))
+                    uids.push(...await Repos.Chats.getConversationMembers(chatId));
                 }
 
                 return Modules.Presence.createPresenceStream(context.uid, uids);

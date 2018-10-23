@@ -7,26 +7,26 @@ import { delay } from '../openland-server/utils/timer';
 describe('PresenceModule', () => {
     // Database Init
     let db: fdb.Database<fdb.TupleItem[], any>;
-    let fdb: AllEntities;
+    let FDB: AllEntities;
     let Presence: PresenceModule;
 
     beforeAll(async () => {
         db = FConnection.create()
             .at(['_tests_presence']);
         await db.clearRange([]);
-        fdb = new AllEntities(new FConnection(db));
+        FDB = new AllEntities(new FConnection(db));
 
         Presence = new PresenceModule();
-        Presence.start(fdb);
+        Presence.start(FDB);
     });
 
     it('should setOnline', async () => {
         await Presence.setOnline(9, '1', 5000, 'test');
-        let p = await fdb.Presence.findById(9, '1');
+        let p = await FDB.Presence.findById(9, '1');
         expect(p).not.toBeNull();
         expect(p!.lastSeenTimeout).toEqual(5000);
         expect(p!.platform).toEqual('test');
-        let online = await fdb.Online.findById(9);
+        let online = await FDB.Online.findById(9);
         expect(online).not.toBeNull();
         expect(online!.uid).toEqual(9);
         expect(online!.lastSeen).toBeGreaterThan(Date.now());
@@ -49,6 +49,7 @@ describe('PresenceModule', () => {
 
     it('should return events', async () => {
         let stream = await Presence.createPresenceStream(0, [1, 2, 3, 4, 5]);
+        // tslint:disable-next-line:no-floating-promises
         (async () => {
             await Presence.setOnline(1, '1', 100, 'test');
             await Presence.setOnline(2, '1', 100, 'test');

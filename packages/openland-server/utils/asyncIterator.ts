@@ -7,7 +7,7 @@ export function createIterator<T>(onExit: () => void): AsyncIterable<T> & { push
             if (events.length > 0) {
                 let val = events.shift();
 
-                resolve({ value: val!, done: false})
+                resolve({ value: val!, done: false});
             } else {
                 resolvers.push(resolve);
             }
