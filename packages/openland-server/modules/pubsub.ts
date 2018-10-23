@@ -1,17 +1,19 @@
 import * as Redis from './redis/redis';
+import { IHandyRedis } from 'handy-redis';
 
 export type PubsubSubcription = { cancel(): void };
 
 export class Pubsub<T> {
 
-    private client = Redis.redisClient();
-    private subscriberClient = Redis.redisClient();
+    private client: IHandyRedis | null = null;
+    private subscriberClient: IHandyRedis | null = null;
     private subscribers = new Map<string, Array<{ listener: (data: T) => void }>>();
     private subscribedTopics = new Set<string>();
 
     constructor(useRedis: boolean = true) {
-        if (!useRedis) {
-            this.client = null;
+        if (useRedis) {
+            this.client = Redis.redisClient();
+            this.subscriberClient = Redis.redisClient();
         }
         if (this.subscriberClient) {
             this.subscriberClient.redis.on('message', (topic: string, message) => {

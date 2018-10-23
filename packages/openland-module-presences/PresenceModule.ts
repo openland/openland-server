@@ -3,6 +3,7 @@ import { FDB } from 'openland-module-db/FDB';
 import Timer = NodeJS.Timer;
 import { createIterator } from '../openland-server/utils/asyncIterator';
 import { Pubsub, PubsubSubcription } from '../openland-server/modules/pubsub';
+import { AllEntities } from '../openland-module-db/schema';
 
 export interface OnlineEvent {
     userId: number;
@@ -14,27 +15,31 @@ export class PresenceModule {
     private onlines = new Map<number, { online: boolean, timer?: Timer }>();
     private fdbSubscriptions = new Map<number, { cancel: () => void }>();
     private localSub = new Pubsub<OnlineEvent>(false);
+    private FDB: AllEntities = FDB;
 
-    start = () => {
+    start = (fdb?: AllEntities) => {
         // Nothing to do
+        if (fdb) {
+            this.FDB = fdb;
+        }
     }
 
     public async setOnline(uid: number, tid: string, timeout: number, platform: string) {
         return await inTx(async () => {
             let expires = Date.now() + timeout;
-            let ex = await FDB.Presence.findById(uid, tid);
+            let ex = await this.FDB.Presence.findById(uid, tid);
             if (ex) {
                 ex.lastSeen = Date.now();
                 ex.lastSeenTimeout = timeout;
                 ex.platform = platform;
             } else {
-                await FDB.Presence.create(uid, tid, { lastSeen: Date.now(), lastSeenTimeout: timeout, platform });
+                await this.FDB.Presence.create(uid, tid, { lastSeen: Date.now(), lastSeenTimeout: timeout, platform });
             }
 
-            let online = await FDB.Online.findById(uid);
+            let online = await this.FDB.Online.findById(uid);
 
             if (!online) {
-                await FDB.Online.create(uid, { lastSeen: expires });
+                await this.FDB.Online.create(uid, { lastSeen: expires });
             } else if (online.lastSeen < expires) {
                 online.lastSeen = expires;
             }
@@ -42,7 +47,7 @@ export class PresenceModule {
     }
 
     public async getLastSeen(uid: number): Promise<'online' | 'never_online' | number> {
-        let res = await FDB.Online.findById(uid);
+        let res = await this.FDB.Online.findById(uid);
 
         if (res) {
             if (res.lastSeen > Date.now()) {
@@ -84,7 +89,7 @@ export class PresenceModule {
     }
 
     private async handleOnlineChange(userId: number) {
-        let onlineValue = await FDB.Online.findById(userId);
+        let onlineValue = await this.FDB.Online.findById(userId);
 
         let timeout = 0;
         let online = false;
@@ -123,7 +128,8 @@ export class PresenceModule {
             return;
         } else {
             // tslint:disable-next-line:no-floating-promises
-            let sub = FDB.Online.watch(uid, () => {
+            let sub = this.FDB.Online.watch(uid, () => {
+                console.log('subscribeOnlineChange', uid);
                 // tslint:disable-next-line:no-floating-promises
                 this.handleOnlineChange(uid);
             });
