@@ -5,6 +5,7 @@ import { ErrorText } from '../../errors/ErrorText';
 import { UserError } from '../../errors/UserError';
 import { DB } from '../../tables';
 import { SecID } from '../../../openland-security/SecID';
+import { GraphQLField, GraphQLFieldResolver, GraphQLObjectType, GraphQLSchema } from 'graphql';
 
 async function fetchPermissions(context: CallContext) {
     if (context.cache.has('permissions')) {
@@ -145,4 +146,37 @@ export function resolveUser<T extends { userId: number }>() {
     return function (src: T) {
         return DB.User.findById(src.userId);
     };
+}
+
+type FieldHandler = (field: GraphQLField<any, any>, originalResolver: GraphQLFieldResolver<any, any, any>, root: any, args: any, context: any, info: any) => any;
+export function wrapAllResolvers(schema: GraphQLSchema, f: FieldHandler) {
+    let types = schema.getTypeMap();
+
+    for (let typeName in types) {
+        if (!Object.hasOwnProperty.call(types, typeName)) {
+            continue;
+        }
+
+        let type = types[typeName];
+
+        if (type instanceof GraphQLObjectType) {
+            let fields = type.getFields();
+
+            for (let fieldName in fields) {
+                if (!Object.hasOwnProperty.call(fields, fieldName)) {
+                    continue;
+                }
+
+                let field = fields[fieldName];
+
+                let fieldResolve = field.resolve;
+                if (field.resolve) {
+                    field.resolve = async (root: any, args: any, context: CallContext, info: any) => {
+                        return f(field, fieldResolve!, root, args, context, info);
+                    }
+                }
+            }
+        }
+    }
+    return schema;
 }
