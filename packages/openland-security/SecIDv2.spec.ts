@@ -1,5 +1,6 @@
 import { SecIDv2Factory } from './SecIDV2';
 import { RandomIDFactory } from './RandomIDFactory';
+// import Hashids from 'hashids';
 
 describe('SecIDv2', () => {
     it('should encrypt and decrypt', () => {
@@ -8,7 +9,9 @@ describe('SecIDv2', () => {
         let s = factory.createId('Sample');
         let id = random.next();
         let encId = s.serialize(id);
-        console.log(encId);
+        // let hid = new Hashids('123');
+        // console.log(encId);
+        // console.log(hid.encodeHex(encId));
         let unencId = s.parse(encId);
         expect(unencId).toBe(id);
     });
