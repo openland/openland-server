@@ -16,7 +16,7 @@ import * as Phone from './Phone';
 import * as Developer from './Developer';
 
 import { Directives, IDScalars } from './directives';
-import { GraphQLField, GraphQLFieldResolver} from 'graphql';
+import { GraphQLField, GraphQLFieldResolver } from 'graphql';
 import { wrapAllResolvers } from './utils/Resolvers';
 
 let schema = fs
@@ -55,6 +55,6 @@ export const Schema = wrapAllResolvers(
         context: any,
         info: any
     ) => {
-        return originalResolver(root, args, context, info)
+        return originalResolver(root, args, context, info);
     }
 );
