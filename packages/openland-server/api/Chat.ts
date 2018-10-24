@@ -57,7 +57,7 @@ export const Resolver = {
         title: (src: Conversation) => src.title,
         photos: (src: Conversation) => [],
         unreadCount: async (src: Conversation, _: any, context: CallContext) => {
-            let state = await DB.ConversationUserState.find({ where: { conversationId: src.id, userId: context.uid!! } });
+            let state = await DB.ConversationUserState.find({where: {conversationId: src.id, userId: context.uid!!}});
             if (state) {
                 return state.unread;
             } else {
@@ -117,7 +117,7 @@ export const Resolver = {
             }
         },
         unreadCount: async (src: Conversation, _: any, context: CallContext) => {
-            let state = await DB.ConversationUserState.find({ where: { conversationId: src.id, userId: context.uid!! } });
+            let state = await DB.ConversationUserState.find({where: {conversationId: src.id, userId: context.uid!!}});
             if (state) {
                 return state.unread;
             } else {
@@ -191,7 +191,7 @@ export const Resolver = {
             }
         },
         unreadCount: async (src: Conversation, _: any, context: CallContext) => {
-            let state = await DB.ConversationUserState.find({ where: { conversationId: src.id, userId: context.uid!! } });
+            let state = await DB.ConversationUserState.find({where: {conversationId: src.id, userId: context.uid!!}});
             if (state) {
                 return state.unread;
             } else {
@@ -241,7 +241,7 @@ export const Resolver = {
             });
             let name: string[] = [];
             for (let r of res) {
-                let p = (await DB.UserProfile.find({ where: { userId: r.userId } }))!!;
+                let p = (await DB.UserProfile.find({where: {userId: r.userId}}))!!;
                 name.push([p.firstName, p.lastName].filter((v) => !!v).join(' '));
             }
             return name.join(', ');
@@ -279,7 +279,7 @@ export const Resolver = {
             return res.map((v) => DB.User.findById(v.userId));
         },
         unreadCount: async (src: Conversation, _: any, context: CallContext) => {
-            let state = await DB.ConversationUserState.find({ where: { conversationId: src.id, userId: context.uid!! } });
+            let state = await DB.ConversationUserState.find({where: {conversationId: src.id, userId: context.uid!!}});
             if (state) {
                 return state.unread;
             } else {
@@ -478,10 +478,10 @@ export const Resolver = {
         seq: (src: ConversationEvent) => src.seq
     },
     ConversationEventMessage: {
-        message: (src: ConversationEvent) => DB.ConversationMessage.findById(src.event.messageId as number, { paranoid: false })
+        message: (src: ConversationEvent) => DB.ConversationMessage.findById(src.event.messageId as number, {paranoid: false})
     },
     ConversationEventEditMessage: {
-        message: (src: ConversationEvent) => DB.ConversationMessage.findById(src.event.messageId as number, { paranoid: false })
+        message: (src: ConversationEvent) => DB.ConversationMessage.findById(src.event.messageId as number, {paranoid: false})
     },
     ConversationEventDelete: {
         messageId: (src: ConversationEvent) => IDs.ConversationMessage.serialize(src.event.messageId as number)
@@ -544,10 +544,10 @@ export const Resolver = {
         unread: (src: ConversationUserEvents) => src.event.unread,
         globalUnread: (src: ConversationUserEvents) => src.event.unreadGlobal,
         conversationId: (src: ConversationUserEvents) => IDs.Conversation.serialize(src.event.conversationId as any),
-        message: (src: ConversationUserEvents) => DB.ConversationMessage.findById(src.event.messageId as any, { paranoid: false }),
+        message: (src: ConversationUserEvents) => DB.ConversationMessage.findById(src.event.messageId as any, {paranoid: false}),
         conversation: (src: ConversationUserEvents) => DB.Conversation.findById(src.event.conversationId as any),
         isOut: (src: ConversationUserEvents, args: any, context: CallContext) => src.event.senderId === context.uid,
-        repeatKey: (src: ConversationUserEvents, args: any, context: CallContext) => src.event.senderId === context.uid ? DB.ConversationMessage.findById(src.event.messageId as any, { paranoid: false }).then((v) => v && v.repeatToken) : null
+        repeatKey: (src: ConversationUserEvents, args: any, context: CallContext) => src.event.senderId === context.uid ? DB.ConversationMessage.findById(src.event.messageId as any, {paranoid: false}).then((v) => v && v.repeatToken) : null
     },
     UserEventRead: {
         seq: (src: ConversationUserEvents) => src.seq,
@@ -565,11 +565,11 @@ export const Resolver = {
     },
     UserEventEditMessage: {
         seq: (src: ConversationUserEvents) => src.seq,
-        message: (src: ConversationUserEvents) => DB.ConversationMessage.findById(src.event.messageId as any, { paranoid: false })
+        message: (src: ConversationUserEvents) => DB.ConversationMessage.findById(src.event.messageId as any, {paranoid: false})
     },
     UserEventDeleteMessage: {
         seq: (src: ConversationUserEvents) => src.seq,
-        message: (src: ConversationUserEvents) => DB.ConversationMessage.findById(src.event.messageId as any, { paranoid: false })
+        message: (src: ConversationUserEvents) => DB.ConversationMessage.findById(src.event.messageId as any, {paranoid: false})
     },
     UserEventConversationUpdate: {
         seq: (src: ConversationUserEvents) => src.seq,
@@ -598,7 +598,7 @@ export const Resolver = {
         },
         unreadCount: async (src: number | { uid: number, counter: number }) => {
             if (typeof src === 'number') {
-                let global = await DB.ConversationsUserGlobal.find({ where: { userId: src } });
+                let global = await DB.ConversationsUserGlobal.find({where: {userId: src}});
                 if (global) {
                     return global.unread;
                 } else {
@@ -628,15 +628,15 @@ export const Resolver = {
     },
 
     ConversationBlockedUser: {
-        user: (src: ConversationBlocked) => DB.User.findOne({ where: { id: src.user } }),
-        blockedBy: (src: ConversationBlocked) => DB.User.findOne({ where: { id: src.blockedBy } }),
+        user: (src: ConversationBlocked) => DB.User.findOne({where: {id: src.user}}),
+        blockedBy: (src: ConversationBlocked) => DB.User.findOne({where: {id: src.blockedBy}}),
     },
 
     Query: {
         alphaNotificationCounter: withUser((args, uid) => uid),
         alphaChats: withUser<{ first: number, after?: string | null, seq?: number }>(async (args, uid) => {
             return await DB.tx(async (tx) => {
-                let global = await DB.ConversationsUserGlobal.find({ where: { userId: uid }, transaction: tx });
+                let global = await DB.ConversationsUserGlobal.find({where: {userId: uid}, transaction: tx});
                 let seq = global ? global.seq : 0;
                 if (args.seq !== undefined && args.seq !== null && args.seq !== seq) {
                     throw new Error('Inconsistent request');
@@ -667,7 +667,7 @@ export const Resolver = {
         }),
         alphaChat: withAccount<{ conversationId?: string, shortName?: string }>(async (args, uid, oid) => {
             if (args.shortName) {
-                let shortName = await DB.ShortName.findOne({ where: { name: args.shortName } });
+                let shortName = await DB.ShortName.findOne({where: {name: args.shortName}});
                 if (!shortName) {
                     throw new NotFoundError();
                 }
@@ -715,11 +715,11 @@ export const Resolver = {
 
                 let beforeMessage: ConversationMessage | null = null;
                 if (args.before) {
-                    beforeMessage = await DB.ConversationMessage.findOne({ where: { id: IDs.ConversationMessage.parse(args.before) } });
+                    beforeMessage = await DB.ConversationMessage.findOne({where: {id: IDs.ConversationMessage.parse(args.before)}});
                 }
                 let afterMessage: ConversationMessage | null = null;
                 if (args.after) {
-                    afterMessage = await DB.ConversationMessage.findOne({ where: { id: IDs.ConversationMessage.parse(args.after) } });
+                    afterMessage = await DB.ConversationMessage.findOne({where: {id: IDs.ConversationMessage.parse(args.after)}});
                 }
                 let seq = (conversation)!!.seq;
                 return {
@@ -727,7 +727,7 @@ export const Resolver = {
                     messages: await (DB.ConversationMessage.findAll({
                         where: {
                             conversationId: conversationId,
-                            ...((beforeMessage || afterMessage) ? { id: beforeMessage ? { $lt: beforeMessage.id } : { $gt: afterMessage!!.id } } : {}),
+                            ...((beforeMessage || afterMessage) ? {id: beforeMessage ? {$lt: beforeMessage.id} : {$gt: afterMessage!!.id}} : {}),
                         },
                         limit: args.first,
                         order: [['id', 'DESC']],
@@ -756,7 +756,7 @@ export const Resolver = {
             let sequelize = DB.connection;
             let orgsIds = await Repos.Users.fetchUserAccounts(uid);
             if (orgsIds.length > 0) {
-                let members = await DB.OrganizationMember.findAll({ where: { orgId: { $in: orgsIds } } });
+                let members = await DB.OrganizationMember.findAll({where: {orgId: {$in: orgsIds}}});
                 let membersIds = members.map(m => m.userId);
                 let membersProfiles = await DB.UserProfile.findAll({
                     where:
@@ -805,7 +805,7 @@ export const Resolver = {
                 });
 
                 // move primary org users to top
-                let primaryOrgMembers = (await DB.OrganizationMember.findAll({ where: { orgId: oid } })).map(m => m.userId);
+                let primaryOrgMembers = (await DB.OrganizationMember.findAll({where: {orgId: oid}})).map(m => m.userId);
                 sameOrgUsers = sameOrgUsers.sort(u => primaryOrgMembers.indexOf(u.id!) > -1 ? -1 : 1).filter((o, i) => i < limit);
             }
 
@@ -905,7 +905,7 @@ export const Resolver = {
         alphaChatTextSearch: withAccount<{ query: string }>(async (args, uid, oid) => {
 
             // GROUPS / CHANNELS has titles we can search 
-            let searchableConversations = (await DB.ConversationUserState.findAll({ where: { userId: uid } })).map(s => s.conversationId);
+            let searchableConversations = (await DB.ConversationUserState.findAll({where: {userId: uid}})).map(s => s.conversationId);
             let sequelize = DB.connection;
             let groupsChannels = await DB.Conversation.findAll({
                 where: {
@@ -1075,7 +1075,10 @@ export const Resolver = {
             );
             let messages = new Map<number, ConversationMessage | null>();
             for (let c of res) {
-                messages.set(c.id, await DB.ConversationMessage.find({ where: { conversationId: c.id }, order: [['id', 'DESC']] }));
+                messages.set(c.id, await DB.ConversationMessage.find({
+                    where: {conversationId: c.id},
+                    order: [['id', 'DESC']]
+                }));
             }
             res = res.filter(c => messages.get(c.id))
                 .sort((a, b) => {
@@ -1103,7 +1106,7 @@ export const Resolver = {
             return await DB.ConversationBlocked.findAll({
                 where: {
                     conversation: conversationId,
-                    ...(conversationId ? {} : { blockedBy: uid })
+                    ...(conversationId ? {} : {blockedBy: uid})
                 }
             });
         }),
@@ -1121,7 +1124,7 @@ export const Resolver = {
     },
     Mutation: {
         superCreateChat: withPermission<{ title: string }>('software-developer', async (args) => {
-            await validate({ title: stringNotEmpty() }, args);
+            await validate({title: stringNotEmpty()}, args);
             return DB.Conversation.create({
                 title: args.title
             });
@@ -1184,7 +1187,7 @@ export const Resolver = {
                             existing.readDate = messageId;
                             totalUnread = remaining;
                         }
-                        await existing.save({ transaction: tx });
+                        await existing.save({transaction: tx});
                     }
                 } else {
                     let remaining = await DB.ConversationMessage.count({
@@ -1205,7 +1208,7 @@ export const Resolver = {
                             conversationId: conversationId,
                             readDate: messageId,
                             unread: remaining
-                        }, { transaction: tx });
+                        }, {transaction: tx});
                         delta = remaining;
                         if (!existingGlobal) {
                             throw Error('Internal inconsistency');
@@ -1225,7 +1228,7 @@ export const Resolver = {
                     existingGlobal.unread = unread;
                     existingGlobal.seq++;
                     existingGlobal.hasUnnoticedUnread = false;
-                    await existingGlobal.save({ transaction: tx });
+                    await existingGlobal.save({transaction: tx});
 
                     //
                     // Write Event
@@ -1240,7 +1243,7 @@ export const Resolver = {
                             unread: totalUnread,
                             unreadGlobal: existingGlobal.unread
                         }
-                    }, { transaction: tx });
+                    }, {transaction: tx});
 
                     await Modules.Push.sendCounterPush(uid, conversationId, existingGlobal.unread);
                 }
@@ -1262,7 +1265,7 @@ export const Resolver = {
                 });
                 if (global && (global.readSeq === null || global.readSeq < args.toSeq) && args.toSeq <= global.seq) {
                     global.readSeq = args.toSeq;
-                    await global.save({ transaction: tx });
+                    await global.save({transaction: tx});
                 }
             });
             return 'ok';
@@ -1319,7 +1322,7 @@ export const Resolver = {
             }
 
             return await DB.txLight(async (tx) => {
-                let profile = await DB.UserProfile.findOne({ where: { userId: args.userId } });
+                let profile = await DB.UserProfile.findOne({where: {userId: args.userId}});
 
                 if (!profile) {
                     throw new NotFoundError();
@@ -1372,7 +1375,7 @@ export const Resolver = {
             }
 
             return await DB.txLight(async (tx) => {
-                let profile = await DB.UserProfile.findOne({ where: { userId: args.userId } });
+                let profile = await DB.UserProfile.findOne({where: {userId: args.userId}});
 
                 if (!profile) {
                     throw new NotFoundError();
@@ -1455,7 +1458,7 @@ export const Resolver = {
         }),
         alphaSetTyping: withUser<{ conversationId: string, type: string }>(async (args, uid) => {
 
-            await validate({ type: optional(enumString(['text', 'photo'])) }, args);
+            await validate({type: optional(enumString(['text', 'photo']))}, args);
 
             let conversationId = IDs.Conversation.parse(args.conversationId);
 
@@ -1477,8 +1480,8 @@ export const Resolver = {
                 let conv = await DB.Conversation.create({
                     title: title,
                     type: 'group',
-                    ...(imageRef ? { extras: { picture: imageRef } } as any : {}),
-                }, { transaction: tx });
+                    ...(imageRef ? {extras: {picture: imageRef}} as any : {}),
+                }, {transaction: tx});
                 let members = [uid, ...args.members.map((v) => IDs.User.parse(v))];
                 for (let m of members) {
                     await DB.ConversationGroupMembers.create({
@@ -1486,13 +1489,13 @@ export const Resolver = {
                         invitedById: uid,
                         userId: m,
                         role: m === uid ? 'creator' : 'member'
-                    }, { transaction: tx });
+                    }, {transaction: tx});
                 }
 
                 if (args.message) {
-                    await Repos.Chats.sendMessage(tx, conv.id, uid, { message: args.message });
+                    await Repos.Chats.sendMessage(tx, conv.id, uid, {message: args.message});
                 } else {
-                    await Repos.Chats.sendMessage(tx, conv.id, uid, { message: 'Group created', isService: true });
+                    await Repos.Chats.sendMessage(tx, conv.id, uid, {message: 'Group created', isService: true});
                 }
                 return conv;
             });
@@ -1508,7 +1511,7 @@ export const Resolver = {
             let conversationId = IDs.Conversation.parse(args.conversationId);
 
             return await DB.txStable(async (tx) => {
-                let chat = await DB.Conversation.findById(conversationId, { transaction: tx });
+                let chat = await DB.Conversation.findById(conversationId, {transaction: tx});
 
                 if (!chat) {
                     throw new Error('Chat not found');
@@ -1591,10 +1594,10 @@ export const Resolver = {
                         tx
                     );
 
-                    await chat.save({ transaction: tx });
+                    await chat.save({transaction: tx});
                 }
 
-                await chat.reload({ transaction: tx });
+                await chat.reload({transaction: tx});
 
                 return {
                     chat,
@@ -1604,11 +1607,11 @@ export const Resolver = {
         }),
         alphaChatChangeGroupTitle: withUser<{ conversationId: string, title: string }>(async (args, uid) => {
             return DB.tx(async (tx) => {
-                await validate({ title: defined(stringNotEmpty()) }, args);
+                await validate({title: defined(stringNotEmpty())}, args);
 
                 let conversationId = IDs.Conversation.parse(args.conversationId);
 
-                let chat = await DB.Conversation.findById(conversationId, { transaction: tx });
+                let chat = await DB.Conversation.findById(conversationId, {transaction: tx});
 
                 if (!chat || (chat.type !== 'group' && chat.type !== 'channel')) {
                     throw new Error('Chat not found');
@@ -1616,7 +1619,7 @@ export const Resolver = {
 
                 await chat.update({
                     title: args.title
-                }, { transaction: tx });
+                }, {transaction: tx});
 
                 let titleChatEvent = await Repos.Chats.addChatEvent(
                     conversationId,
@@ -1670,7 +1673,7 @@ export const Resolver = {
 
                 let conversationId = IDs.Conversation.parse(args.conversationId);
 
-                let chat = await DB.Conversation.findById(conversationId, { transaction: tx });
+                let chat = await DB.Conversation.findById(conversationId, {transaction: tx});
 
                 if (!chat || (chat.type !== 'group' && chat.type !== 'channel')) {
                     throw new Error('Chat not found');
@@ -1707,7 +1710,7 @@ export const Resolver = {
                             invitedById: uid,
                             userId: userId,
                             role: invite.role
-                        }, { transaction: tx });
+                        }, {transaction: tx});
                     } catch (e) {
                         throw new Error('User already invited');
                     }
@@ -1716,7 +1719,7 @@ export const Resolver = {
                 let users: UserProfile[] = [];
 
                 for (let invite of args.invites) {
-                    users.push((await DB.UserProfile.find({ where: { userId: IDs.User.parse(invite.userId) } }))!);
+                    users.push((await DB.UserProfile.find({where: {userId: IDs.User.parse(invite.userId)}}))!);
                 }
 
                 let {
@@ -1775,7 +1778,7 @@ export const Resolver = {
                 let conversationId = IDs.Conversation.parse(args.conversationId);
                 let userId = IDs.User.parse(args.userId);
 
-                let chat = await DB.Conversation.findById(conversationId, { transaction: tx });
+                let chat = await DB.Conversation.findById(conversationId, {transaction: tx});
 
                 if (!chat || (chat.type !== 'group' && chat.type !== 'channel')) {
                     throw new Error('Chat not found');
@@ -1818,7 +1821,7 @@ export const Resolver = {
                     }
                 });
 
-                let profile = await DB.UserProfile.find({ where: { userId: member.userId } });
+                let profile = await DB.UserProfile.find({where: {userId: member.userId}});
 
                 let {
                     conversationEvent,
@@ -1862,6 +1865,39 @@ export const Resolver = {
                     tx
                 );
 
+                let existing = await DB.ConversationUserState.findOne({
+                    where: {
+                        conversationId,
+                        userId
+                    },
+                    transaction: tx
+                });
+                let existingGlobal = await DB.ConversationsUserGlobal.find({
+                    where: {
+                        userId
+                    },
+                    transaction: tx,
+                    lock: tx.LOCK.UPDATE
+                });
+
+                if (!existing || !existingGlobal) {
+                    throw Error('Internal inconsistency');
+                }
+
+                existingGlobal.unread = existingGlobal.unread - existing.unread;
+                await existingGlobal.save({ transaction: tx });
+                await existing.destroy({ transaction: tx });
+                await DB.ConversationUserEvents.create({
+                    seq: existingGlobal.seq,
+                    userId,
+                    eventType: 'conversation_read',
+                    event: {
+                        conversationId,
+                        unread: 0,
+                        unreadGlobal: existingGlobal.unread
+                    }
+                }, { transaction: tx });
+
                 return {
                     chat,
                     chatEventMessage: conversationEvent,
@@ -1880,7 +1916,7 @@ export const Resolver = {
                 let conversationId = IDs.Conversation.parse(args.conversationId);
                 let userId = IDs.User.parse(args.userId);
 
-                let chat = await DB.Conversation.findById(conversationId, { transaction: tx });
+                let chat = await DB.Conversation.findById(conversationId, {transaction: tx});
 
                 if (!chat || (chat.type !== 'group' && chat.type !== 'channel')) {
                     throw new Error('Chat not found');
@@ -1915,7 +1951,7 @@ export const Resolver = {
                     throw new AccessDeniedError();
                 }
 
-                await member.update({ role: args.newRole }, { transaction: tx });
+                await member.update({role: args.newRole}, {transaction: tx});
 
                 let chatEvent = await Repos.Chats.addChatEvent(
                     conversationId,
@@ -1936,7 +1972,7 @@ export const Resolver = {
         alphaChatCopyGroup: withUser<{ conversationId: string, extraMembers: string[], title?: string, message: string }>(async (args, uid) => {
             return DB.tx(async (tx) => {
                 let conversationId = IDs.Conversation.parse(args.conversationId);
-                let chat = await DB.Conversation.findById(conversationId, { transaction: tx });
+                let chat = await DB.Conversation.findById(conversationId, {transaction: tx});
 
                 if (!chat || (chat.type !== 'group' && chat.type !== 'channel')) {
                     throw new Error('Chat not found');
@@ -1946,7 +1982,7 @@ export const Resolver = {
                 let conv = await DB.Conversation.create({
                     title,
                     type: 'group'
-                }, { transaction: tx });
+                }, {transaction: tx});
 
                 let members = Array.from(new Set([
                     ...await Repos.Chats.getConversationMembers(conversationId),
@@ -1959,12 +1995,12 @@ export const Resolver = {
                         invitedById: uid,
                         userId: member,
                         role: member === uid ? 'creator' : 'member'
-                    }, { transaction: tx });
+                    }, {transaction: tx});
                 }
                 let {
                     conversationEvent,
                     userEvent
-                } = await Repos.Chats.sendMessage(tx, conv.id, uid, { message: args.message });
+                } = await Repos.Chats.sendMessage(tx, conv.id, uid, {message: args.message});
 
                 return {
                     chat,
@@ -1986,7 +2022,7 @@ export const Resolver = {
                 where: {
                     user: IDs.User.parse(args.userId),
                     conversation: conversationId,
-                    ...(conversationId ? {} : { blockedBy: uid })
+                    ...(conversationId ? {} : {blockedBy: uid})
                 }
             });
             if (blocked) {
@@ -2005,7 +2041,12 @@ export const Resolver = {
                     settings.mute = args.settings.mute;
                 }
 
-                await DB.ConversationUserState.update({ notificationsSettings: { ...settings } }, { where: { userId: uid, conversationId: cid }, transaction: tx });
+                await DB.ConversationUserState.update({notificationsSettings: {...settings}}, {
+                    where: {
+                        userId: uid,
+                        conversationId: cid
+                    }, transaction: tx
+                });
                 return settings;
             });
         }),
@@ -2024,7 +2065,7 @@ export const Resolver = {
             return DB.tx(async (tx) => {
                 let conversationId = IDs.Conversation.parse(args.conversationId);
 
-                let chat = await DB.Conversation.findById(conversationId, { transaction: tx });
+                let chat = await DB.Conversation.findById(conversationId, {transaction: tx});
 
                 if (!chat || (chat.type !== 'group' && chat.type !== 'channel')) {
                     throw new Error('Chat not found');
@@ -2041,7 +2082,7 @@ export const Resolver = {
                 if (!member) {
                     throw new Error('No such member');
                 }
-                let profile = await DB.UserProfile.find({ where: { userId: uid }, transaction: tx });
+                let profile = await DB.UserProfile.find({where: {userId: uid}, transaction: tx});
 
                 await Repos.Chats.sendMessage(
                     tx,
@@ -2095,13 +2136,38 @@ export const Resolver = {
                     transaction: tx
                 });
 
-                await DB.ConversationUserState.destroy({
+                let existing = await DB.ConversationUserState.findOne({
                     where: {
                         conversationId,
                         userId: uid
                     },
                     transaction: tx
                 });
+                let existingGlobal = await DB.ConversationsUserGlobal.find({
+                    where: {
+                        userId: uid
+                    },
+                    transaction: tx,
+                    lock: tx.LOCK.UPDATE
+                });
+
+                if (!existing || !existingGlobal) {
+                    throw Error('Internal inconsistency');
+                }
+
+                existingGlobal.unread = existingGlobal.unread - existing.unread;
+                await existingGlobal.save({ transaction: tx });
+                await existing.destroy({ transaction: tx });
+                await DB.ConversationUserEvents.create({
+                    seq: existingGlobal.seq,
+                    userId: uid,
+                    eventType: 'conversation_read',
+                    event: {
+                        conversationId,
+                        unread: 0,
+                        unreadGlobal: existingGlobal.unread
+                    }
+                }, { transaction: tx });
 
                 return {
                     chat,
@@ -2255,7 +2321,7 @@ export const Resolver = {
                 let ended = false;
                 return {
                     ...async function* func() {
-                        let state = await DB.ConversationsUserGlobal.find({ where: { userId: context.uid!! } });
+                        let state = await DB.ConversationsUserGlobal.find({where: {userId: context.uid!!}});
                         if (state) {
                             yield {
                                 counter: state.unread,
