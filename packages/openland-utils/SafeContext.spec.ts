@@ -1,12 +1,12 @@
 // tslint:disable:no-floating-promises
-import { SafeContext, exportContextDebug } from './SafeContext';
+import { SafeContext } from './SafeContext';
 import sequelize from 'sequelize';
 import { FConnection } from 'foundation-orm/FConnection';
 
 describe('SafeContext', () => {
-    afterAll(() => {
-        exportContextDebug();
-    });
+    // afterAll(() => {
+    //     exportContextDebug();
+    // });
     it('should work', async () => {
         let context = new SafeContext<string>();
         await context.withContext('hello', async () => {
@@ -15,7 +15,7 @@ describe('SafeContext', () => {
             expect(context.value).toEqual('hello');
             await (async () => {
                 expect(context.value).toEqual('hello');
-                console.log('test output');
+                await null;
                 expect(context.value).toEqual('hello');
             })();
         });

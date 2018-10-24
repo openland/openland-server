@@ -3,11 +3,13 @@ import { FContext, FGlobalContext } from './FContext';
 import { FTransaction } from './FTransaction';
 import * as fs from 'fs';
 import { FNodeRegistrator } from './utils/FNodeRegistrator';
+import { RandomIDFactory } from 'openland-security/RandomIDFactory';
 
 export class FConnection {
     readonly fdb: fdb.Database<fdb.TupleItem[], any>;
     private readonly globalContext: FContext;
     private readonly nodeRegistrator: FNodeRegistrator;
+    private randomFactory: RandomIDFactory | null = null;
 
     static create() {
         let db: fdb.Database;
@@ -34,8 +36,10 @@ export class FConnection {
 
     async nextRandomId(): Promise<string> {
         let nid = await this.nodeId;
-        let timestamp = Date.now() - 1288834974657;
-        return timestamp + '-' + nid + '-';
+        if (this.randomFactory === null) {
+            this.randomFactory = new RandomIDFactory(nid);
+        }
+        return this.randomFactory.next();
     }
 
     get currentContext(): FContext {
