@@ -28,6 +28,7 @@ type User {
     lastIP: String @withPermissions(permission: ["super-admin", "software-developer"]) @withAuth
     alphaConversationSettings: ConversationSettings!
     status: String @withPermissions(permission: ["super-admin", "software-developer"]) @withAuth
+    alphaLocations: [String!]
 }
 
 input UpdateProfileInput {

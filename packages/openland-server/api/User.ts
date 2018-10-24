@@ -144,7 +144,8 @@ export const Resolver = {
         },
         lastIP: async (src: User) => Repos.Users.getUserLastIp(src.id!),
         alphaConversationSettings: async (src: User, _: any, context: CallContext) => await Repos.Chats.getConversationSettings(context.uid!!, (await Repos.Chats.loadPrivateChat(context.uid!!, src.id!)).id),
-        status: async (src: User) => src.status
+        status: async (src: User) => src.status,
+        alphaLocations: withProfile((src, profile) => profile && profile.extras && profile.extras.locations)
     },
     Profile: {
         id: (src: UserProfile) => IDs.Profile.serialize(src.id!!),
