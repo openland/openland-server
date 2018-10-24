@@ -1,4 +1,4 @@
-import { SecIDv2Factory } from './SecIDV2';
+import { SecIDv2Factory } from './SecIDv2';
 import { RandomIDFactory } from './RandomIDFactory';
 // import Hashids from 'hashids';
 
