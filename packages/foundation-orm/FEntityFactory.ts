@@ -34,6 +34,11 @@ export abstract class FEntityFactory<T extends FEntity> {
         return res.map((v) => this._createEntity(v, false));
     }
 
+    protected async _findAll(key: (string | number)[]) {
+        let res = await this.namespace.rangeAll(this.connection, ...key);
+        return res.map((v) => this._createEntity(v, false));
+    }
+
     protected async _create(key: (string | number)[], value: any) {
         if (await this._findById(key)) {
             throw Error('Object already exists');

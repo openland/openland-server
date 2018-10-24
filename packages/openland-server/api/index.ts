@@ -18,6 +18,7 @@ import * as Developer from './Developer';
 import { Directives, IDScalars } from './directives';
 import { GraphQLField, GraphQLFieldResolver } from 'graphql';
 import { wrapAllResolvers } from './utils/Resolvers';
+import { withLogContext } from 'openland-log/withLogContext';
 
 let schema = fs
     .readdirSync(__dirname + '/schema/')
@@ -55,6 +56,6 @@ export const Schema = wrapAllResolvers(
         context: any,
         info: any
     ) => {
-        return originalResolver(root, args, context, info);
+        return withLogContext(field.name, () => originalResolver(root, args, context, info));
     }
 );

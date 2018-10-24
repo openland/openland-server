@@ -87,93 +87,115 @@ export class FEntity {
         }
     }
 
+    flush() {
+        this._doFlush();
+    }
+
     markDirty() {
         if (!this.isDirty) {
             this.isDirty = true;
             this.context.markDirty(this, async (connection: FConnection) => {
-                let value = {
-                    ...this._value
-                };
-                if (this.options.enableVersioning) {
-                    value._version = this.versionCode + 1;
+                await this._doFlush();
+            });
+        }
+    }
+
+    private async _doFlush() {
+        if (!this.isDirty) {
+            return;
+        }
+        this.isDirty = false;
+        let value = {
+            ...this._value
+        };
+        if (this.options.enableVersioning) {
+            value._version = this.versionCode + 1;
+        }
+        if (this.options.enableTimestamps && !this.isNew) {
+            let now = Date.now();
+            if (!value.createdAt) {
+                value.createdAt = now;
+            }
+            value.updatedAt = now;
+        }
+        await this.namespace.set(this.connection, value, ...this.rawId);
+        if (this.isNew) {
+            log.log('created', { entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: value });
+            for (let index of this.indexes) {
+                // Check index condition if applicable
+                if (index.condition && !index.condition(value)) {
+                    continue;
                 }
-                if (this.options.enableTimestamps && !this.isNew) {
-                    let now = Date.now();
-                    if (!value.createdAt) {
-                        value.createdAt = now;
+                let key = index.fields.map((v) => value[v]);
+                if (index.unique) {
+                    if (await this.namespace.get(this.connection, '__indexes', index.name, ...key)) {
+                        throw Error('Unique index constraint failed');
                     }
-                    value.updatedAt = now;
+                    await this.namespace.set(this.connection, value, '__indexes', index.name, ...key);
+                } else {
+                    await this.namespace.set(this.connection, value, '__indexes', index.name, ...key, ...this.rawId);
                 }
-                await this.namespace.set(connection, value, ...this.rawId);
-                if (this.isNew) {
-                    log.log('created', { entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: value });
-                    for (let index of this.indexes) {
-                        // Check index condition if applicable
-                        if (index.condition && !index.condition(value)) {
-                            continue;
-                        }
-                        let key = index.fields.map((v) => value[v]);
-                        if (index.unique) {
-                            if (await this.namespace.get(connection, '__indexes', index.name, ...key)) {
-                                throw Error('Unique index constraint failed');
-                            }
-                            await this.namespace.set(connection, value, '__indexes', index.name, ...key);
+            }
+        } else {
+            log.log('updated', { entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: value });
+            for (let index of this.indexes) {
+                let key = index.fields.map((v) => value[v]);
+                let oldkey = index.fields.map((v) => this._valueInitial[v]);
+                var needToDeleteOld = false;
+                var needToCreateNew = false;
+                var needToUpdateNew = false;
+
+                // Check index condition if applicable
+                if (index.condition) {
+                    let newCond = index.condition(value);
+                    let oldCond = index.condition(this._valueInitial);
+                    if (newCond !== oldCond) {
+                        if (newCond) {
+                            needToCreateNew = true;
                         } else {
-                            await this.namespace.set(connection, value, '__indexes', index.name, ...key, ...this.rawId);
+                            needToDeleteOld = true;
+                        }
+                    } else if (newCond) {
+                        if (key.join('===') !== oldkey.join('===')) {
+                            needToCreateNew = true;
+                            needToDeleteOld = true;
+                        } else {
+                            needToUpdateNew = true;
                         }
                     }
                 } else {
-                    log.log('updated', { entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: value });
-                    for (let index of this.indexes) {
-                        let key = index.fields.map((v) => value[v]);
-                        let oldkey = index.fields.map((v) => this._valueInitial[v]);
-                        var needToDeleteOld = false;
-                        var needToCreateNew = false;
-
-                        // Check index condition if applicable
-                        if (index.condition) {
-                            let newCond = index.condition(value);
-                            let oldCond = index.condition(this._valueInitial);
-                            if (newCond !== oldCond) {
-                                if (newCond) {
-                                    needToCreateNew = true;
-                                } else {
-                                    needToDeleteOld = true;
-                                }
-                            } else if (newCond) {
-                                if (key.join('===') !== oldkey.join('===')) {
-                                    needToCreateNew = true;
-                                    needToDeleteOld = true;
-                                }
-                            }
-                        } else {
-                            if (key.join('===') !== oldkey.join('===')) {
-                                needToCreateNew = true;
-                                needToDeleteOld = true;
-                            }
-                        }
-
-                        if (index.unique) {
-                            if (needToDeleteOld) {
-                                await this.namespace.delete(connection, '__indexes', index.name, ...oldkey);
-                            }
-                            if (needToCreateNew) {
-                                if (await this.namespace.get(connection, '__indexes', index.name, ...key)) {
-                                    throw Error('Unique index constraint failed');
-                                }
-                                await this.namespace.set(connection, value, '__indexes', index.name, ...key);
-                            }
-                        } else {
-                            if (needToDeleteOld) {
-                                await this.namespace.delete(connection, '__indexes', index.name, ...oldkey, ...this.rawId);
-                            }
-                            if (needToCreateNew) {
-                                await this.namespace.set(connection, value, '__indexes', index.name, ...key, ...this.rawId);
-                            }
-                        }
+                    if (key.join('===') !== oldkey.join('===')) {
+                        needToCreateNew = true;
+                        needToDeleteOld = true;
+                    } else {
+                        needToUpdateNew = true;
                     }
                 }
-            });
+
+                if (index.unique) {
+                    if (needToDeleteOld) {
+                        await this.namespace.delete(this.connection, '__indexes', index.name, ...oldkey);
+                    }
+                    if (needToCreateNew) {
+                        if (await this.namespace.get(this.connection, '__indexes', index.name, ...key)) {
+                            throw Error('Unique index constraint failed');
+                        }
+                    }
+                    if (needToCreateNew || needToUpdateNew) {
+                        await this.namespace.set(this.connection, value, '__indexes', index.name, ...key);
+                    }
+                } else {
+                    if (needToDeleteOld) {
+                        await this.namespace.delete(this.connection, '__indexes', index.name, ...oldkey, ...this.rawId);
+                    }
+                    if (needToCreateNew) {
+                        await this.namespace.set(this.connection, value, '__indexes', index.name, ...key, ...this.rawId);
+                    }
+                    if (needToCreateNew || needToUpdateNew) {
+                        await this.namespace.set(this.connection, value, '__indexes', index.name, ...key, ...this.rawId);
+                    }
+                }
+            }
         }
     }
 }

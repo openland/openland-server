@@ -7,6 +7,7 @@ export interface FContext {
     markDirty(entity: FEntity, callback: (connection: FConnection) => Promise<void>): void;
     get(connection: FConnection, ...key: (string | number)[]): Promise<any | null>;
     range(connection: FConnection, limit: number, ...key: (string | number)[]): Promise<any[]>;
+    rangeAll(connection: FConnection, ...key: (string | number)[]): Promise<any[]>;
     set(connection: FConnection, value: any, ...key: (string | number)[]): Promise<void>;
     delete(connection: FConnection, ...key: (string | number)[]): Promise<void>;
 }
@@ -19,6 +20,10 @@ export class FGlobalContext implements FContext {
     }
     async range(connection: FConnection, limit: number, ...key: (string | number)[]) {
         let res = await connection.fdb.getRangeAll(key, undefined, { limit });
+        return res.map((v) => v[1]);
+    }
+    async rangeAll(connection: FConnection, ...key: (string | number)[]) {
+        let res = await connection.fdb.getRangeAll(key, undefined);
         return res.map((v) => v[1]);
     }
     set(connection: FConnection, value: any, ...key: (string | number)[]) {

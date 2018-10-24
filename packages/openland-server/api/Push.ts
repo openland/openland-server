@@ -91,7 +91,6 @@ export const Resolvers = {
                     // }, { transaction: tx });
                     return 'ok';
                 }
-
             });
         }
     }

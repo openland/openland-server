@@ -19,7 +19,7 @@ describe('Partial Index', () => {
 
     it('should create indexes if condition true', async () => {
         await withLogDisabled(async () => {
-            let res1 = await inTx(async () => { return await testEntities.IndexedPartialEntity.create(0, { data1: 'hello', data2: 'world' }); });
+            let res1 = await inTx(async () => { return await testEntities.IndexedPartialEntity.create(0, { data1: 'hello', data2: 'world', data3: '' }); });
             expect(res1.data1).toEqual('hello');
             expect(res1.data2).toEqual('world');
             let res2 = (await testEntities.IndexedPartialEntity.findFromDefault('hello', 'world', 0))!;
@@ -40,7 +40,7 @@ describe('Partial Index', () => {
 
     it('should not create indexes if condition false', async () => {
         await withLogDisabled(async () => {
-            let res1 = await inTx(async () => { return await testEntities.IndexedPartialEntity.create(1, { data1: 'hello2', data2: 'world' }); });
+            let res1 = await inTx(async () => { return await testEntities.IndexedPartialEntity.create(1, { data1: 'hello2', data2: 'world', data3: '' }); });
             expect(res1.data1).toEqual('hello2');
             expect(res1.data2).toEqual('world');
             let res2 = (await testEntities.IndexedPartialEntity.findFromDefault('hello2', 'world', 1))!;
@@ -53,7 +53,7 @@ describe('Partial Index', () => {
 
     it('should create indexes if condition was changed from false to true', async () => {
         await withLogDisabled(async () => {
-            let res1 = await inTx(async () => { return await testEntities.IndexedPartialEntity.create(3, { data1: 'hello2', data2: 'world' }); });
+            let res1 = await inTx(async () => { return await testEntities.IndexedPartialEntity.create(3, { data1: 'hello2', data2: 'world', data3: '' }); });
             expect(res1.data1).toEqual('hello2');
             expect(res1.data2).toEqual('world');
 
@@ -88,7 +88,7 @@ describe('Partial Index', () => {
 
     it('should delete indexes if condition was changed from true to false', async () => {
         await withLogDisabled(async () => {
-            let res1 = await inTx(async () => { return await testEntities.IndexedPartialEntity.create(4, { data1: 'hello', data2: 'world' }); });
+            let res1 = await inTx(async () => { return await testEntities.IndexedPartialEntity.create(4, { data1: 'hello', data2: 'world', data3: '' }); });
             expect(res1.data1).toEqual('hello');
             expect(res1.data2).toEqual('world');
 

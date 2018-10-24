@@ -70,6 +70,46 @@ const Schema = declareSchema(() => {
         enableTimestamps();
         enableVersioning();
     });
+
+    entity('PushFirebase', () => {
+        primaryKey('id', 'string');
+        field('uid', 'number');
+        field('tid', 'string');
+        field('token', 'string');
+        field('packageId', 'string');
+        field('sandbox', 'boolean');
+        field('enabled', 'boolean');
+        rangeIndex('user', ['uid', 'id']);
+        uniqueIndex('token', ['token']).withCondition(src => src.enabled);
+        enableTimestamps();
+        enableVersioning();
+    });
+
+    entity('PushApple', () => {
+        primaryKey('id', 'string');
+        field('uid', 'number');
+        field('tid', 'string');
+        field('token', 'string');
+        field('bundleId', 'string');
+        field('sandbox', 'boolean');
+        field('enabled', 'boolean');
+        rangeIndex('user', ['uid', 'id']);
+        uniqueIndex('token', ['token']).withCondition(src => src.enabled);
+        enableTimestamps();
+        enableVersioning();
+    });
+
+    entity('PushWeb', () => {
+        primaryKey('id', 'string');
+        field('uid', 'number');
+        field('tid', 'string');
+        field('endpoint', 'string');
+        field('enabled', 'boolean');
+        rangeIndex('user', ['uid', 'id']);
+        uniqueIndex('endpoint', ['endpoint']).withCondition(src => src.enabled);
+        enableTimestamps();
+        enableVersioning();
+    });
 });
 
 generate(Schema, __dirname + '/../openland-module-db/schema.ts');

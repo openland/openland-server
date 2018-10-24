@@ -29,6 +29,11 @@ export class FTransaction implements FContext {
         return (await this.tx!.getRangeAll(key, undefined, { limit })).map((v) => v[1]);
     }
 
+    async rangeAll(connection: FConnection, ...key: (string | number)[]) {
+        this._prepare(connection);
+        return (await this.tx!.getRangeAll(key, undefined)).map((v) => v[1]);
+    }
+
     async get(connection: FConnection, ...key: (string | number)[]) {
         this._prepare(connection);
         return await this.tx!.get(key);

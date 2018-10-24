@@ -20,12 +20,14 @@ const Schema = declareSchema(() => {
         primaryKey('id', 'number');
         field('data1', 'string');
         field('data2', 'string');
+        field('data3', 'string');
         uniqueIndex('default', ['data1', 'data2', 'id']);
     });
     entity('IndexedRangeEntity', () => {
         primaryKey('id', 'number');
         field('data1', 'string');
         field('data2', 'string');
+        field('data3', 'string');
         rangeIndex('default', ['data1', 'data2']);
     });
 
@@ -33,6 +35,7 @@ const Schema = declareSchema(() => {
         primaryKey('id', 'number');
         field('data1', 'string');
         field('data2', 'string');
+        field('data3', 'string');
         uniqueIndex('default', ['data1', 'data2', 'id']).withCondition((src) => src.data1 === 'hello');
     });
 });

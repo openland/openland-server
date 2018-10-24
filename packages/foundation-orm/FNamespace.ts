@@ -21,6 +21,10 @@ export class FNamespace {
         return connection.currentContext.range(connection, limit, ...this.namespace, ...key);
     }
 
+    rangeAll = async (connection: FConnection, ...key: (string | number)[]) => {
+        return connection.currentContext.rangeAll(connection, ...this.namespace, ...key);
+    }
+
     set = async (connection: FConnection, value: any, ...key: (string | number)[]) => {
         return connection.currentContext.set(connection, value, ...this.namespace, ...key);
     }

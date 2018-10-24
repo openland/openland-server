@@ -10,6 +10,8 @@ export class FConnection {
     private readonly globalContext: FContext;
     private readonly nodeRegistrator: FNodeRegistrator;
     private randomFactory: RandomIDFactory | null = null;
+    private test?: boolean;
+    private testNextId = 0;
 
     static create() {
         let db: fdb.Database;
@@ -24,22 +26,26 @@ export class FConnection {
             .withValueEncoding(fdb.encoders.json);
     }
 
-    constructor(connection: fdb.Database<fdb.TupleItem[], any>) {
+    constructor(connection: fdb.Database<fdb.TupleItem[], any>, test?: boolean) {
         this.fdb = connection;
         this.globalContext = new FGlobalContext();
         this.nodeRegistrator = new FNodeRegistrator(this);
+        this.test = test;
     }
 
-    get nodeId(): Promise<number> {
+    get nodeId() {
         return this.nodeRegistrator.getNodeId();
     }
 
     async nextRandomId(): Promise<string> {
+        if (this.test) {
+            return (++this.testNextId).toString();
+        }
         let nid = await this.nodeId;
         if (this.randomFactory === null) {
             this.randomFactory = new RandomIDFactory(nid);
         }
-        return this.randomFactory.next();
+        return await this.randomFactory.next();
     }
 
     get currentContext(): FContext {
