@@ -14,7 +14,7 @@ import { ErrorText } from '../../errors/ErrorText';
 import { AccessDeniedError } from '../../errors/AccessDeniedError';
 import { GraphQLFieldResolver, GraphQLInputType, GraphQLOutputType } from 'graphql/type/definition';
 import { withPermission } from '../utils/Resolvers';
-import { SecID } from '../../modules/SecID';
+import { SecID } from '../../../openland-security/SecID';
 import { ValueNode } from 'graphql/language/ast';
 import { IDs } from '../utils/IDs';
 

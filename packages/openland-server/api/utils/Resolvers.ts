@@ -4,7 +4,7 @@ import { AccessDeniedError } from '../../errors/AccessDeniedError';
 import { ErrorText } from '../../errors/ErrorText';
 import { UserError } from '../../errors/UserError';
 import { DB } from '../../tables';
-import { SecID } from '../../modules/SecID';
+import { SecID } from '../../../openland-security/SecID';
 
 async function fetchPermissions(context: CallContext) {
     if (context.cache.has('permissions')) {
