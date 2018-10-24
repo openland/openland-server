@@ -1,5 +1,6 @@
 import Crypto from 'crypto';
 import { IDMailformedError } from 'openland-server/errors/IDMailformedError';
+import Hashids from 'hashids';
 
 // Randomly generated string for using as salt for type name hashing
 const typeKeySalt = '2773246209f10fc3381f5ca55c67dac5486e27ff1ce3f698b1859008fe0053e3';
@@ -7,11 +8,15 @@ const typeKeySalt = '2773246209f10fc3381f5ca55c67dac5486e27ff1ce3f698b1859008fe0
 const encryptionKeySalt = 'a638abdfb70e39476858543b3216b23ca5d1ac773eaf797a130639a76081c3aa';
 // Randomly generated string for using as salt for encryption iv derivation
 const encryptionIvSalt = '4c66c9e004fb48caaa38aa72dc749f946d0ccfe4edf8f993776388b6349a2895';
+// Randomly generated string for using as salt for hashds salt derivation
+const hashidsSalt = '11705939e5cad46fa04a6fc838a3fa25c0f50439c946101199b8506ff73a2ebe';
 
 // Contant for current version of an ID
 const CURRENT_VERSION = 2;
 
 function encrypt(value: string, typeId: number, encryptionKey: Buffer, encryptionIv: Buffer) {
+
+    // TODO: Check if value is a hex!
     // Preflight check
     // if (value < 0) {
     //     throw new IDMailformedError('Ids can\'t be negative!');
@@ -71,20 +76,22 @@ export class SecIDv2 {
     public readonly typeId: number;
     private readonly encryptionKey: Buffer;
     private readonly encryptionIv: Buffer;
+    private readonly hashids: Hashids;
 
-    constructor(typeName: string, typeId: number, encryptionKey: Buffer, encryptionIv: Buffer) {
+    constructor(typeName: string, typeId: number, encryptionKey: Buffer, encryptionIv: Buffer, hashids: Hashids) {
         this.typeName = typeName;
         this.typeId = typeId;
         this.encryptionKey = encryptionKey;
         this.encryptionIv = encryptionIv;
+        this.hashids = hashids;
     }
 
     serialize(value: string) {
-        return encrypt(value, this.typeId, this.encryptionKey, this.encryptionIv).toString('hex');
+        return this.hashids.encodeHex(encrypt(value, this.typeId, this.encryptionKey, this.encryptionIv).toString('hex'));
     }
 
     parse(value: string) {
-        return decrypt(value, this.typeId, this.encryptionKey, this.encryptionIv).id;
+        return decrypt(this.hashids.decodeHex(value), this.typeId, this.encryptionKey, this.encryptionIv).id;
     }
 }
 
@@ -94,11 +101,13 @@ export class SecIDv2Factory {
     private readonly encryptionIv: Buffer;
     private knownTypes = new Set<number>();
     private knownSecIDS = new Map<number, SecIDv2>();
+    private readonly hashids: Hashids;
 
     constructor(secret: string) {
         this.typeSalt = Crypto.pbkdf2Sync(secret, typeKeySalt, 100000, 32, 'sha512').toString('hex');
         this.encryptionKey = Crypto.pbkdf2Sync(secret, encryptionKeySalt, 100000, 16, 'sha512');
         this.encryptionIv = Crypto.pbkdf2Sync(secret, encryptionIvSalt, 100000, 16, 'sha512');
+        this.hashids = new Hashids(Crypto.pbkdf2Sync(secret, hashidsSalt, 100000, 32, 'sha512').toString('hex'));
     }
 
     createId(type: string) {
@@ -123,7 +132,7 @@ export class SecIDv2Factory {
         this.knownTypes.add(typeId);
 
         // Build SecID instance
-        let id = new SecIDv2(type, typeId, this.encryptionKey, this.encryptionIv);
+        let id = new SecIDv2(type, typeId, this.encryptionKey, this.encryptionIv, this.hashids);
         this.knownSecIDS.set(typeId, id);
         return id;
     }
