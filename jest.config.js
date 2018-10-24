@@ -53,5 +53,7 @@ module.exports = {
         'openland-utils': '<rootDir>/packages/openland-utils',
         'openland-log/(.*)': '<rootDir>/packages/openland-log/$1',
         'openland-log': '<rootDir>/packages/openland-log',
+        'openland-security/(.*)': '<rootDir>/packages/openland-security/$1',
+        'openland-security': '<rootDir>/packages/openland-security',
     }
 };

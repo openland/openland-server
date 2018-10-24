@@ -1,7 +1,7 @@
 import Crypto from 'crypto';
 import Hashids from 'hashids';
-import { decodeBuffer, encodeBuffer } from '../utils/base64';
-import { IDMailformedError } from '../errors/IDMailformedError';
+import { decodeBuffer, encodeBuffer } from '../openland-server/utils/base64';
+import { IDMailformedError } from '../openland-server/errors/IDMailformedError';
 
 // Randomly generated string for using as salt for type name hashing
 const typeKeySalt = '2773246209f10fc3381f5ca55c67dac5486e27ff1ce3f698b1859008fe0053e3';

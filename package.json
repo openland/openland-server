@@ -188,6 +188,7 @@
     "openland-utils": "build/openland-utils",
     "openland-log": "build/openland-log",
     "openland-module-messaging": "build/openland-module-messaging",
-    "openland-module-auth": "build/openland-module-auth"
+    "openland-module-auth": "build/openland-module-auth",
+    "openland-security": "build/openland-security"
   }
 }
