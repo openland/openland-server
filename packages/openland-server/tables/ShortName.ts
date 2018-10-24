@@ -12,8 +12,8 @@ export interface ShortName extends sequelize.Instance<ShortNameAttributes>, Shor
 }
 
 export const ShortNameTable = connection.define<ShortName, ShortNameAttributes>('short_name', {
-    id: {type: sequelize.INTEGER, primaryKey: true, autoIncrement: true},
-    name: {type: sequelize.STRING, allowNull: false, unique: true},
-    type: {type: sequelize.STRING, allowNull: false},
-    ownerId: {type: sequelize.INTEGER, allowNull: false},
+    id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
+    name: { type: sequelize.STRING, allowNull: false, unique: true },
+    type: { type: sequelize.STRING, allowNull: false },
+    ownerId: { type: sequelize.INTEGER, allowNull: false },
 });
