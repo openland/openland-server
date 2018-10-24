@@ -129,7 +129,6 @@ export class PresenceModule {
         } else {
             // tslint:disable-next-line:no-floating-promises
             let sub = this.FDB.Online.watch(uid, () => {
-                console.log('subscribeOnlineChange', uid);
                 // tslint:disable-next-line:no-floating-promises
                 this.handleOnlineChange(uid);
             });

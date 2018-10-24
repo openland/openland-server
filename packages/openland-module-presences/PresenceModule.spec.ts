@@ -62,7 +62,6 @@ describe('PresenceModule', () => {
         let evs: any[] = [];
 
         for await (let event of stream) {
-            console.log('event', event);
             if (!onlineState[event.userId]) {
                 expect(event.online).toEqual(true);
                 expect(event.timeout).toBeLessThanOrEqual(100);
