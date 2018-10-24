@@ -78,5 +78,5 @@ describe('SecID Module', () => {
         let factory = new SecIDFactory('Shared Secret', 'hex');
         let type1 = factory.createId('type1');
         expect(() => type1.serialize(2147483648)).toThrow();
-});
+    });
 });
