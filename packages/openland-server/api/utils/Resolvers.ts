@@ -173,7 +173,7 @@ export function wrapAllResolvers(schema: GraphQLSchema, f: FieldHandler) {
                 if (field.resolve) {
                     field.resolve = async (root: any, args: any, context: CallContext, info: any) => {
                         return f(field, fieldResolve!, root, args, context, info);
-                    }
+                    };
                 }
             }
         }
