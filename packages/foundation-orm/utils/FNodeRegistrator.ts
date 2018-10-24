@@ -34,6 +34,7 @@ export class FNodeRegistrator {
                         });
                         if (res) {
                             // Start Refresh Loop
+                            // tslint:disable:no-floating-promises
                             (async () => {
                                 while (true) {
                                     let updated = await this.connection.fdb.doTransaction(async (tn) => {
