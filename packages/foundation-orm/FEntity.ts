@@ -120,7 +120,7 @@ export class FEntity {
         }
         await this.namespace.set(this.connection, value, ...this.rawId);
         if (this.isNew) {
-            log.log('created', { entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: JSON.stringify(value) });
+            log.debug('created', { entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: JSON.stringify(value) });
             for (let index of this.indexes) {
                 // Check index condition if applicable
                 if (index.condition && !index.condition(value)) {
@@ -137,7 +137,7 @@ export class FEntity {
                 }
             }
         } else {
-            log.log('updated', { entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: JSON.stringify(value) });
+            log.debug('updated', { entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: JSON.stringify(value) });
             for (let index of this.indexes) {
                 let key = index.fields.map((v) => value[v]);
                 let oldkey = index.fields.map((v) => this._valueInitial[v]);

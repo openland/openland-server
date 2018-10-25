@@ -80,13 +80,13 @@ export class FTransaction implements FContext {
             await p(this.connection!);
         }
         // if (this._hadMutations) {
-        log.log('flush time: ' + (currentTime() - t) + ' ms');
+        log.debug('flush time: ' + (currentTime() - t) + ' ms');
         // }
         t = currentTime();
         await this.tx!!.rawCommit();
         this._isCompleted = true;
         // if (this._hadMutations) {
-        log.log('commit time: ' + (currentTime() - t) + ' ms');
+        log.debug('commit time: ' + (currentTime() - t) + ' ms');
         // }
     }
 
@@ -98,7 +98,7 @@ export class FTransaction implements FContext {
             return;
         }
 
-        log.log('started');
+        log.debug('started');
         this.connection = connection;
         this.tx = connection.fdb.rawCreateTransaction();
     }

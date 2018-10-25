@@ -46,7 +46,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                     return res;
                 });
                 if (task) {
-                    log.log('Task found');
+                    log.log('Task ' + task.uid + ' found');
                     let res: RES;
                     try {
                         res = await handler(task.arguments, task.uid);
@@ -79,7 +79,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                         return;
                     }
 
-                    log.log('Task completed', JSON.stringify(res));
+                    log.log('Task ' + task.uid + ' completed', JSON.stringify(res));
 
                     // Commiting
                     let commited = await inTx(async () => {
@@ -101,7 +101,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                         await delay(5000);
                     }
                 } else {
-                    log.log('Task not found');
+                    log.debug('Task not found');
                     await delay(1000);
                 }
             });

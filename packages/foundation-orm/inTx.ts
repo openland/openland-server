@@ -21,7 +21,7 @@ export async function inTx<T>(callback: () => Promise<T>): Promise<T> {
                 } catch (err) {
                     if (err instanceof FDBError) {
                         await tx.tx!.rawOnError(err.code);
-                        log.log('retry with code ' + err.code);
+                        log.debug('retry with code ' + err.code);
                     } else {
                         throw err;
                     }
