@@ -40,7 +40,7 @@ export function generateEntity(entity: EntityModel): string {
     let res = '';
     res += 'export interface ' + entityClass + 'Shape {\n';
     for (let k of entity.fields) {
-        res += '    ' + k.name + (k.isNullable ? '?' : '') + ': ' + resolveFieldType(k) + ';\n';
+        res += '    ' + k.name + (k.isNullable ? '?' : '') + ': ' + resolveFieldType(k) + (k.isNullable ? '| null' : '') + ';\n';
     }
     res += '}\n\n';
 
@@ -116,7 +116,7 @@ export function generateEntity(entity: EntityModel): string {
             res += '    async findFrom' + Case.pascalCase(i.name) + '(' + i.fields.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v))).join(', ') + ') {\n';
             res += '        return await this._findById([' + ['\'__indexes\'', '\'' + i.name + '\'', ...i.fields].join(', ') + ']);\n';
             res += '    }\n';
-        } 
+        }
         if (!i.unique || i.range) {
             let fs = i.fields;
             fs.splice(-1);

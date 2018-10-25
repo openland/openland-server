@@ -120,6 +120,39 @@ const Schema = declareSchema(() => {
         enableVersioning();
     });
 
+    // id: number;
+    // firstName: string;
+    // lastName: string | null;
+    // phone?: string | null;
+    // about?: string | null;
+    // website?: string | null;
+    // location?: string | null;
+    // email?: string | null;
+    // picture: ImageRef | null;
+    // userId?: number | null;
+    // user?: User | null;
+    // extras?: UserExtras;
+    // primaryOrganization?: number;
+
+    entity('UserProfile', () => {
+        primaryKey('id', 'number');
+        field('firstName', 'string');
+        field('lastName', 'string').nullable();
+        field('phone', 'string').nullable();
+        field('about', 'string').nullable();
+        field('website', 'string').nullable();
+        field('location', 'string').nullable();
+        field('email', 'string').nullable();
+        field('picture', 'json').nullable();
+        field('linkedin', 'string').nullable();
+        field('twitter', 'string').nullable();
+        field('locations', 'json').nullable();
+        field('primaryOrganization', 'number').nullable();
+        field('role', 'string').nullable();
+        enableTimestamps();
+        enableVersioning();
+    });
+
     entity('FeatureFlag', () => {
         primaryKey('key', 'string');
         field('title', 'string');

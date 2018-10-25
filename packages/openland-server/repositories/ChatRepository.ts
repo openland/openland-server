@@ -1102,7 +1102,7 @@ export class ChatsRepository {
     }
 
     async addToChannel(tx: Transaction, channelId: number, uid: number) {
-        let profile = await DB.UserProfile.find({ where: { userId: uid }, transaction: tx });
+        let profile = await Modules.Users.profileById(uid);
         // no profile - user not signed up
         if (!profile) {
             return;
@@ -1165,11 +1165,7 @@ export class ChatsRepository {
             } else {
                 throw Error('Inconsistent Private Conversation resolver');
             }
-            let profile = (await DB.UserProfile.find({
-                where: {
-                    userId: _uid
-                }
-            }))!!;
+            let profile = (await Modules.Users.profileById(_uid))!;
             return [profile.firstName, profile.lastName].filter((v) => !!v).join(' ');
         } else if (conv.type === 'shared') {
             if (conv.organization1Id === oid || (conv.organization1 && conv.organization1.id === oid)) {
@@ -1199,7 +1195,7 @@ export class ChatsRepository {
             });
             let name: string[] = [];
             for (let r of res) {
-                let p = (await DB.UserProfile.find({ where: { userId: r.userId } }))!!;
+                let p = (await Modules.Users.profileById(r.userId))!!;
                 name.push([p.firstName, p.lastName].filter((v) => !!v).join(' '));
             }
             return name.join(', ');

@@ -311,13 +311,13 @@ export class LockFactory extends FEntityFactory<Lock> {
 }
 export interface TaskShape {
     arguments: any;
-    result?: any;
+    result?: any| null;
     taskStatus: 'pending' | 'executing' | 'failing' | 'failed' | 'completed';
-    taskFailureCount?: number;
-    taskFailureTime?: number;
-    taskLockSeed?: string;
-    taskLockTimeout?: number;
-    taskFailureMessage?: string;
+    taskFailureCount?: number| null;
+    taskFailureTime?: number| null;
+    taskLockSeed?: string| null;
+    taskLockTimeout?: number| null;
+    taskFailureMessage?: string| null;
 }
 
 export class Task extends FEntity {
@@ -720,9 +720,9 @@ export class PushWebFactory extends FEntityFactory<PushWeb> {
     }
 }
 export interface UserProfilePrefilShape {
-    firstName?: string;
-    lastName?: string;
-    picture?: string;
+    firstName?: string| null;
+    lastName?: string| null;
+    picture?: string| null;
 }
 
 export class UserProfilePrefil extends FEntity {
@@ -781,6 +781,188 @@ export class UserProfilePrefilFactory extends FEntityFactory<UserProfilePrefil> 
     }
     protected _createEntity(value: any, isNew: boolean) {
         return new UserProfilePrefil(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
+    }
+}
+export interface UserProfileShape {
+    firstName: string;
+    lastName?: string| null;
+    phone?: string| null;
+    about?: string| null;
+    website?: string| null;
+    location?: string| null;
+    email?: string| null;
+    picture?: any| null;
+    linkedin?: string| null;
+    twitter?: string| null;
+    locations?: any| null;
+    primaryOrganization?: number| null;
+    role?: string| null;
+}
+
+export class UserProfile extends FEntity {
+    get id() { return this._value.id; }
+    get firstName(): string {
+        return this._value.firstName;
+    }
+    set firstName(value: string) {
+        this._checkIsWritable();
+        if (value === this._value.firstName) { return; }
+        this._value.firstName = value;
+        this.markDirty();
+    }
+    get lastName(): string | null {
+        let res = this._value.lastName;
+        if (res) { return res; }
+        return null;
+    }
+    set lastName(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.lastName) { return; }
+        this._value.lastName = value;
+        this.markDirty();
+    }
+    get phone(): string | null {
+        let res = this._value.phone;
+        if (res) { return res; }
+        return null;
+    }
+    set phone(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.phone) { return; }
+        this._value.phone = value;
+        this.markDirty();
+    }
+    get about(): string | null {
+        let res = this._value.about;
+        if (res) { return res; }
+        return null;
+    }
+    set about(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.about) { return; }
+        this._value.about = value;
+        this.markDirty();
+    }
+    get website(): string | null {
+        let res = this._value.website;
+        if (res) { return res; }
+        return null;
+    }
+    set website(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.website) { return; }
+        this._value.website = value;
+        this.markDirty();
+    }
+    get location(): string | null {
+        let res = this._value.location;
+        if (res) { return res; }
+        return null;
+    }
+    set location(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.location) { return; }
+        this._value.location = value;
+        this.markDirty();
+    }
+    get email(): string | null {
+        let res = this._value.email;
+        if (res) { return res; }
+        return null;
+    }
+    set email(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.email) { return; }
+        this._value.email = value;
+        this.markDirty();
+    }
+    get picture(): any | null {
+        let res = this._value.picture;
+        if (res) { return res; }
+        return null;
+    }
+    set picture(value: any | null) {
+        this._checkIsWritable();
+        if (value === this._value.picture) { return; }
+        this._value.picture = value;
+        this.markDirty();
+    }
+    get linkedin(): string | null {
+        let res = this._value.linkedin;
+        if (res) { return res; }
+        return null;
+    }
+    set linkedin(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.linkedin) { return; }
+        this._value.linkedin = value;
+        this.markDirty();
+    }
+    get twitter(): string | null {
+        let res = this._value.twitter;
+        if (res) { return res; }
+        return null;
+    }
+    set twitter(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.twitter) { return; }
+        this._value.twitter = value;
+        this.markDirty();
+    }
+    get locations(): any | null {
+        let res = this._value.locations;
+        if (res) { return res; }
+        return null;
+    }
+    set locations(value: any | null) {
+        this._checkIsWritable();
+        if (value === this._value.locations) { return; }
+        this._value.locations = value;
+        this.markDirty();
+    }
+    get primaryOrganization(): number | null {
+        let res = this._value.primaryOrganization;
+        if (res) { return res; }
+        return null;
+    }
+    set primaryOrganization(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.primaryOrganization) { return; }
+        this._value.primaryOrganization = value;
+        this.markDirty();
+    }
+    get role(): string | null {
+        let res = this._value.role;
+        if (res) { return res; }
+        return null;
+    }
+    set role(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.role) { return; }
+        this._value.role = value;
+        this.markDirty();
+    }
+}
+
+export class UserProfileFactory extends FEntityFactory<UserProfile> {
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'userProfile'),
+            { enableVersioning: true, enableTimestamps: true },
+            []
+        );
+    }
+    async findById(id: number) {
+        return await this._findById([id]);
+    }
+    async create(id: number, shape: UserProfileShape) {
+        return await this._create([id], { id, ...shape });
+    }
+    watch(id: number, cb: () => void) {
+        return this._watch([id], cb);
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new UserProfile(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
     }
 }
 export interface FeatureFlagShape {
@@ -901,6 +1083,7 @@ export class AllEntities extends FDBInstance {
     PushApple: PushAppleFactory;
     PushWeb: PushWebFactory;
     UserProfilePrefil: UserProfilePrefilFactory;
+    UserProfile: UserProfileFactory;
     FeatureFlag: FeatureFlagFactory;
     OrganizationFeatures: OrganizationFeaturesFactory;
 
@@ -917,6 +1100,7 @@ export class AllEntities extends FDBInstance {
         this.PushApple = new PushAppleFactory(connection);
         this.PushWeb = new PushWebFactory(connection);
         this.UserProfilePrefil = new UserProfilePrefilFactory(connection);
+        this.UserProfile = new UserProfileFactory(connection);
         this.FeatureFlag = new FeatureFlagFactory(connection);
         this.OrganizationFeatures = new OrganizationFeaturesFactory(connection);
     }

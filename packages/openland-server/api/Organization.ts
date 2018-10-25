@@ -22,6 +22,8 @@ import {
 import { AccessDeniedError } from '../errors/AccessDeniedError';
 import { Emails } from '../services/Emails';
 import { Services } from '../services';
+import { Modules } from 'openland-modules/Modules';
+import { inTx } from 'foundation-orm/inTx';
 
 let isFollowed = async (initiatorOrgId: number, targetOrgId: number) => {
     let connection = await DB.OrganizationConnect.find({
@@ -149,7 +151,7 @@ export const Resolver = {
         location: (src: Organization) => src.extras && src.extras.location,
         contacts: (src: Organization) => src.extras ? src.extras.contacts || [] : [],
 
-        alphaContacts: async (src: Organization) => (await Repos.Organizations.getOrganizationContacts(src.id!!)).map(async (m) => await DB.UserProfile.findOne({ where: { userId: m.userId } })).filter(p => p),
+        alphaContacts: async (src: Organization) => (await Repos.Organizations.getOrganizationContacts(src.id!!)).map(async (m) => await Modules.Users.profileById(m.userId)).filter(p => p),
         alphaOrganizationMembers: async (src: Organization) => await Repos.Organizations.getOrganizationJoinedMembers(src.id!!),
         alphaPublished: (src: Organization) => !src.extras || src.extras.published !== false,
         alphaEditorial: (src: Organization) => !!(src.extras && src.extras.editorial),
@@ -835,10 +837,10 @@ export const Resolver = {
                     await member.destroy({ transaction: tx });
                     // await Emails.sendMemberRemovedEmail(oid, memberId, tx);
                     // pick new primary organization
-                    let user = (await DB.UserProfile.find({ where: { userId: memberId }, transaction: tx, lock: tx.LOCK.UPDATE }))!;
-                    user.primaryOrganization = (await Repos.Users.fetchUserAccounts(uid, tx))[0];
-                    await user.save({ transaction: tx });
-
+                    await inTx(async () => {
+                        let user = (await Modules.Users.profileById(memberId))!;
+                        user.primaryOrganization = (await Repos.Users.fetchUserAccounts(uid, tx))[0];
+                    });
                 } else if (idType.type.typeName === 'Invite') {
                     let inviteId = IDs.Invite.parse(args.memberId);
 

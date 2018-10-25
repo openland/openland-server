@@ -9,6 +9,8 @@ import { buildBaseImageUrl, ImageRef } from '../repositories/Media';
 import { NotFoundError } from '../errors/NotFoundError';
 import { ErrorText } from '../errors/ErrorText';
 import { Hooks } from '../repositories/Hooks';
+import { Modules } from 'openland-modules/Modules';
+import { inTx } from 'foundation-orm/inTx';
 
 export const Resolver = {
     Invite: {
@@ -90,7 +92,7 @@ export const Resolver = {
             let isLoggedIn = true; // Checked in previous steps
 
             // Stage 1: Create Profile
-            let profile = (await DB.UserProfile.find({ where: { userId: context.uid } }));
+            let profile = (await Modules.Users.profileById(context.uid!));
             let isProfileCreated = !!profile;
 
             // Stage 2: Pick organization or create a new one (if there are no exists)
@@ -173,11 +175,12 @@ export const Resolver = {
                 }
 
                 // make organization primary if none
-                let userProfile = await DB.UserProfile.find({ where: { userId: uid }, transaction: tx, lock: tx.LOCK.UPDATE });
-                if (userProfile && !userProfile.primaryOrganization) {
-                    userProfile.primaryOrganization = invite.orgId;
-                    userProfile.save({ transaction: tx });
-                }
+                await inTx(async () => {
+                    let profile = (await Modules.Users.profileById(uid));
+                    if (profile && !profile.primaryOrganization) {
+                        profile.primaryOrganization = invite!!.orgId;
+                    }
+                });
 
                 // User set invitedBy if none
                 if (invite.creatorId) {

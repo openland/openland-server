@@ -1,7 +1,6 @@
 import { Repos } from '../openland-server/repositories';
 import { IDs } from '../openland-server/api/utils/IDs';
 import { CallContext } from '../openland-server/api/utils/CallContext';
-import { DB } from '../openland-server/tables';
 import { Modules } from 'openland-modules/Modules';
 
 export async function fetchWebSocketParameters(args: any, websocket: any) {
@@ -37,7 +36,7 @@ export async function fetchWebSocketParameters(args: any, websocket: any) {
                 if (accounts.length >= 1) {
                     res.oid = accounts[0];
 
-                    let profile = await DB.UserProfile.find({ where: { userId: res.uid } });
+                    let profile = await Modules.Users.profileById(res.uid);
                     res.oid = (profile && profile.primaryOrganization) || res.oid;
                 }
             }

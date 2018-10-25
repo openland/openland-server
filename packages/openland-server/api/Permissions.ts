@@ -77,41 +77,42 @@ export const Resolvers = {
             return Repos.Super.fetchById(args.viaOrgId ? IDs.Organization.parse(args.id) : IDs.SuperAccount.parse(args.id));
         }),
         users: withPermission<{ query: string }>('super-admin', async (args) => {
-            let sequelize = DB.connection;
-            let usersProfiles = await DB.UserProfile.findAll({
-                where:
-                    [
-                        sequelize.or(
-                            sequelize.where(sequelize.fn('concat', sequelize.col('firstName'), ' ', sequelize.col('lastName')), {
-                                $ilike: '%' + args.query.toLowerCase() + '%'
-                            }),
-                            {
-                                firstName: {
-                                    $ilike: args.query.toLowerCase() + '%'
-                                }
-                            },
-                            {
-                                lastName: {
-                                    $ilike: args.query.toLowerCase() + '%'
-                                }
-                            },
-                            {
-                                email: {
-                                    $ilike: '%' + args.query.toLowerCase() + '%'
-                                }
-                            }
-                        ),
-                    ],
-            });
-            let userIds = usersProfiles.map(u => u.userId!!);
-            return await DB.User.findAll({
-                where: {
-                    id: {
-                        $in: userIds
-                    }
-                },
-                limit: 10
-            });
+            // let sequelize = DB.connection;
+            // let usersProfiles = await DB.UserProfile.findAll({
+            //     where:
+            //         [
+            //             sequelize.or(
+            //                 sequelize.where(sequelize.fn('concat', sequelize.col('firstName'), ' ', sequelize.col('lastName')), {
+            //                     $ilike: '%' + args.query.toLowerCase() + '%'
+            //                 }),
+            //                 {
+            //                     firstName: {
+            //                         $ilike: args.query.toLowerCase() + '%'
+            //                     }
+            //                 },
+            //                 {
+            //                     lastName: {
+            //                         $ilike: args.query.toLowerCase() + '%'
+            //                     }
+            //                 },
+            //                 {
+            //                     email: {
+            //                         $ilike: '%' + args.query.toLowerCase() + '%'
+            //                     }
+            //                 }
+            //             ),
+            //         ],
+            // });
+            // let userIds = usersProfiles.map(u => u.userId!!);
+            // return await DB.User.findAll({
+            //     where: {
+            //         id: {
+            //             $in: userIds
+            //         }
+            //     },
+            //     limit: 10
+            // });
+            throw new UserError('Not supported yet');
         }),
         featureFlags: withPermission(['super-admin', 'software-developer'], () => {
             return Modules.Features.repo.findAllFeatures();

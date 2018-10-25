@@ -1,11 +1,55 @@
 import { AllEntities } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
+import { ImageRef } from 'openland-server/repositories/Media';
+import { validate, stringNotEmpty } from 'openland-server/modules/NewInputValidator';
+import { Sanitizer } from 'openland-server/modules/Sanitizer';
+import { User } from 'openland-server/tables';
 
 export class UserRepository {
     private entities: AllEntities;
 
     constructor(entities: AllEntities) {
         this.entities = entities;
+    }
+
+    async findUserProfile(uid: number) {
+        return this.entities.UserProfile.findById(uid);
+    }
+
+    async createUserProfile(user: User, input: {
+        firstName: string,
+        lastName?: string | null,
+        photoRef?: ImageRef | null,
+        phone?: string | null,
+        email?: string | null,
+        website?: string | null,
+        about?: string | null,
+        location?: string | null
+    }) {
+        return await inTx(async () => {
+            let existing = await this.entities.UserProfile.findById(user.id!);
+            if (existing) {
+                return existing;
+            }
+
+            await validate(
+                stringNotEmpty('First name can\'t be empty!'),
+                input.firstName,
+                'input.firstName'
+            );
+
+            // Create pfofile
+            return await this.entities.UserProfile.create(user.id!, {
+                firstName: Sanitizer.sanitizeString(input.firstName)!,
+                lastName: Sanitizer.sanitizeString(input.lastName),
+                picture: Sanitizer.sanitizeImageRef(input.photoRef),
+                phone: Sanitizer.sanitizeString(input.phone),
+                email: Sanitizer.sanitizeString(input.email) || user.email,
+                website: Sanitizer.sanitizeString(input.website),
+                about: Sanitizer.sanitizeString(input.about),
+                location: Sanitizer.sanitizeString(input.location)
+            });
+        });
     }
 
     async findProfilePrefill(uid: number) {

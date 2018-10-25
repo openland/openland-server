@@ -27,11 +27,11 @@ import { ConversationBlocked } from '../tables/ConversationBlocked';
 import { Services } from '../services';
 import { UserError } from '../errors/UserError';
 import { NotFoundError } from '../errors/NotFoundError';
-import { UserProfile } from '../tables/UserProfile';
 import { Sanitizer } from '../modules/Sanitizer';
 import { URLAugmentation } from '../services/UrlInfoService';
 import { Modules } from 'openland-modules/Modules';
 import { OnlineEvent } from '../../openland-module-presences/PresenceModule';
+import { UserProfile } from 'openland-module-db/schema';
 
 export const Resolver = {
     Conversation: {
@@ -162,11 +162,7 @@ export const Resolver = {
             } else {
                 throw Error('Inconsistent Private Conversation resolver');
             }
-            let profile = (await DB.UserProfile.find({
-                where: {
-                    userId: uid
-                }
-            }))!!;
+            let profile = (await Modules.Users.profileById(uid))!;
             return [profile.firstName, profile.lastName].filter((v) => !!v).join(' ');
         },
         photos: async (src: Conversation, _: any, context: CallContext) => {
@@ -178,11 +174,7 @@ export const Resolver = {
             } else {
                 throw Error('Inconsistent Private Conversation resolver');
             }
-            let profile = (await DB.UserProfile.find({
-                where: {
-                    userId: uid
-                }
-            }))!!;
+            let profile = (await Modules.Users.profileById(uid))!;
 
             if (profile.picture) {
                 return [buildBaseImageUrl(profile.picture)];
@@ -241,7 +233,7 @@ export const Resolver = {
             });
             let name: string[] = [];
             for (let r of res) {
-                let p = (await DB.UserProfile.find({ where: { userId: r.userId } }))!!;
+                let p = (await Modules.Users.profileById(r.userId))!;
                 name.push([p.firstName, p.lastName].filter((v) => !!v).join(' '));
             }
             return name.join(', ');
@@ -1318,7 +1310,7 @@ export const Resolver = {
             }
 
             return await DB.txLight(async (tx) => {
-                let profile = await DB.UserProfile.findOne({ where: { userId: args.userId } });
+                let profile = (await Modules.Users.profileById(args.userId))!;
 
                 if (!profile) {
                     throw new NotFoundError();
@@ -1371,7 +1363,7 @@ export const Resolver = {
             }
 
             return await DB.txLight(async (tx) => {
-                let profile = await DB.UserProfile.findOne({ where: { userId: args.userId } });
+                let profile = (await Modules.Users.profileById(uid))!;
 
                 if (!profile) {
                     throw new NotFoundError();
@@ -1715,7 +1707,7 @@ export const Resolver = {
                 let users: UserProfile[] = [];
 
                 for (let invite of args.invites) {
-                    users.push((await DB.UserProfile.find({ where: { userId: IDs.User.parse(invite.userId) } }))!);
+                    users.push((await Modules.Users.profileById(IDs.User.parse(invite.userId)))!);
                 }
 
                 let {
@@ -1817,7 +1809,7 @@ export const Resolver = {
                     }
                 });
 
-                let profile = await DB.UserProfile.find({ where: { userId: member.userId } });
+                let profile = await Modules.Users.profileById(member.userId);
 
                 let {
                     conversationEvent,
@@ -2078,7 +2070,7 @@ export const Resolver = {
                 if (!member) {
                     throw new Error('No such member');
                 }
-                let profile = await DB.UserProfile.find({ where: { userId: uid }, transaction: tx });
+                let profile =  await Modules.Users.profileById(uid);
 
                 await Repos.Chats.sendMessage(
                     tx,

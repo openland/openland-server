@@ -19,6 +19,7 @@ import { ChannelInvite } from '../tables/ChannelInvite';
 import { buildBaseImageUrl, ImageRef } from '../repositories/Media';
 import { Sanitizer } from '../modules/Sanitizer';
 import { Services } from '../services';
+import { Modules } from 'openland-modules/Modules';
 
 interface AlphaChannelsParams {
     orgId: string;
@@ -251,7 +252,7 @@ export const Resolver = {
                     } else if (member.status === 'requested') {
                         await member.update({ status: 'member' }, { transaction: tx });
 
-                        let name = (await DB.UserProfile.find({ where: { userId: userId } }))!.firstName;
+                        let name = (await Modules.Users.profileById(userId))!.firstName;
 
                         await Repos.Chats.sendMessage(
                             tx,
@@ -332,7 +333,7 @@ export const Resolver = {
                     } else if (member.status === 'invited') {
                         await member.update({ status: 'member' }, { transaction: tx });
 
-                        let name = (await DB.UserProfile.find({ where: { userId: uid } }))!.firstName;
+                        let name = (await Modules.Users.profileById(uid))!.firstName;
 
                         await Repos.Chats.sendMessage(
                             tx,
@@ -364,7 +365,7 @@ export const Resolver = {
                         );
                     }
                 } else if (orgMember) {
-                    let name = (await DB.UserProfile.find({ where: { userId: uid } }))!.firstName;
+                    let name = (await Modules.Users.profileById(uid))!.firstName;
                     await DB.ConversationGroupMembers.create({
                         conversationId: channelId,
                         invitedById: uid,
@@ -585,7 +586,7 @@ export const Resolver = {
                         userId: uid
                     }, { transaction: tx });
 
-                    let name = (await DB.UserProfile.find({ where: { userId: uid }, transaction: tx }))!.firstName;
+                    let name = (await Modules.Users.profileById(uid!))!.firstName;
 
                     await Repos.Chats.sendMessage(
                         tx,

@@ -112,11 +112,11 @@ export function startPushNotificationWorker() {
                 if (!message) {
                     continue;
                 }
-                let sender = await DB.UserProfile.find({ where: { userId: senderId }, transaction: tx });
+                let sender = await Modules.Users.profileById(senderId);
                 if (!sender) {
                     continue;
                 }
-                let receiver = await DB.UserProfile.find({ where: { userId: u.userId }, transaction: tx });
+                let receiver = await Modules.Users.profileById(u.userId);
                 if (!receiver) {
                     continue;
                 }
@@ -162,6 +162,9 @@ export function startPushNotificationWorker() {
                 }
 
                 let receiverPrimaryOrg = receiver.primaryOrganization;
+                if (!receiverPrimaryOrg) {
+                    continue;
+                }
                 let chatTitle = await Repos.Chats.getConversationTitle(conversation.id, receiverPrimaryOrg, u.userId);
 
                 hasMessage = true;

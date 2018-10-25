@@ -5,6 +5,8 @@ import { NotFoundError } from '../errors/NotFoundError';
 import { UserError } from '../errors/UserError';
 import { ErrorText } from '../errors/ErrorText';
 import { Emails } from '../services/Emails';
+import { inTx } from 'foundation-orm/inTx';
+import { Modules } from 'openland-modules/Modules';
 
 export class SuperRepository {
     async fetchAllOrganizations() {
@@ -95,11 +97,12 @@ export class SuperRepository {
             isOwner: true
         }, { transaction: tx });
 
-        let user = await DB.UserProfile.find({ where: { userId: uid }, transaction: tx, lock: tx.LOCK.UPDATE });
-        if (user && !user.primaryOrganization) {
-            user.primaryOrganization = organizationId;
-            user.save({ transaction: tx });
-        }
+        await inTx(async () => {
+            let profile = await Modules.Users.profileById(uid);
+            if (profile && !profile.primaryOrganization) {
+                profile.primaryOrganization = organizationId;
+            }
+        });
 
         return this.fetchById(organizationId, tx);
     }
@@ -115,9 +118,10 @@ export class SuperRepository {
                 await existing.destroy({ transaction: tx });
 
                 // pick new primary organization
-                let user = (await DB.UserProfile.find({ where: { userId: uid }, transaction: tx, lock: tx.LOCK.UPDATE }))!;
-                user.primaryOrganization = (await Repos.Users.fetchUserAccounts(uid, tx))[0];
-                await user.save({ transaction: tx });
+                await inTx(async () => {
+                    let profile = await Modules.Users.profileById(uid);
+                    profile!.primaryOrganization = (await Repos.Users.fetchUserAccounts(uid, tx))[0];
+                });
             }
         });
         return this.fetchById(organizationId);

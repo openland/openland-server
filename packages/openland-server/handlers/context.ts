@@ -1,7 +1,7 @@
 import * as express from 'express';
 import { CallContext } from '../api/utils/CallContext';
 import { Repos } from '../repositories';
-import { DB } from '../tables';
+import { Modules } from 'openland-modules/Modules';
 
 async function context(src: express.Request): Promise<CallContext> {
     let res = new CallContext();
@@ -29,7 +29,7 @@ async function context(src: express.Request): Promise<CallContext> {
         if (accounts.length >= 1) {
             res.oid = accounts[0];
 
-            let profile = await DB.UserProfile.find({ where: { userId: res.uid } });
+            let profile = await Modules.Users.profileById(res.uid);
             res.oid = (profile && profile.primaryOrganization) || res.oid;
         }
 

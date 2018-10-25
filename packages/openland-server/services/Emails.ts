@@ -22,12 +22,7 @@ const loadUserState = async (uid: number, etx?: Transaction) => {
         if (!user) {
             throw Error('Internal inconsistency');
         }
-        let profile = await DB.UserProfile.find({
-            where: {
-                userId: uid
-            },
-            transaction: tx
-        });
+        let profile = await Modules.Users.profileById(uid);
         if (profile) {
             return {
                 email: user.email!!,
@@ -191,12 +186,7 @@ export const Emails = {
             'userLastName': invite.memberLastName || ''
         };
 
-        let profile = await DB.UserProfile.find({
-            where: {
-                userId: invite.creatorId
-            },
-            transaction: tx
-        });
+        let profile = await Modules.Users.profileById(invite.creatorId);
 
         if (!profile) {
             throw Error('Internal inconsistency');
@@ -233,12 +223,7 @@ export const Emails = {
             'userLastName': invite.memberLastName || ''
         };
 
-        let profile = await DB.UserProfile.find({
-            where: {
-                userId: invite.creatorId
-            },
-            transaction: tx
-        });
+        let profile = await Modules.Users.profileById(invite.creatorId);
 
         if (!profile) {
             throw Error('Internal inconsistency');
@@ -268,12 +253,7 @@ export const Emails = {
                 throw Error('Unable to find organization');
             }
 
-            let memberProfile = await DB.UserProfile.find({
-                where: {
-                    userId: memberId
-                },
-                transaction: tx
-            });
+            let memberProfile = await Modules.Users.profileById(memberId);
 
             if (!memberProfile) {
                 throw Error('Internal inconsistency');
@@ -328,12 +308,7 @@ export const Emails = {
             'userLastName': invite.memberLastName || ''
         };
 
-        let profile = await DB.UserProfile.find({
-            where: {
-                userId: invite.creatorId
-            },
-            transaction: tx
-        });
+        let profile = await Modules.Users.profileById(invite.creatorId);
 
         if (!profile) {
             throw Error('Internal inconsistency');

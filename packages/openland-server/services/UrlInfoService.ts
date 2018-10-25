@@ -5,18 +5,19 @@ import * as URL from 'url';
 import { ImageRef } from '../repositories/Media';
 import { UploadCareFileInfo } from './UploadCare';
 import { CacheRepository } from 'openland-repositories/CacheRepository';
+import { Modules } from 'openland-modules/Modules';
 
 export interface URLAugmentation {
     url: string;
-    title: string|null;
-    subtitle: string|null;
-    description: string|null;
-    imageURL: string|null;
-    imageInfo: UploadCareFileInfo|null;
-    photo: ImageRef|null;
-    iconRef: ImageRef|null;
-    iconInfo: UploadCareFileInfo|null;
-    hostname: string|null;
+    title: string | null;
+    subtitle: string | null;
+    description: string | null;
+    imageURL: string | null;
+    imageInfo: UploadCareFileInfo | null;
+    photo: ImageRef | null;
+    iconRef: ImageRef | null;
+    iconInfo: UploadCareFileInfo | null;
+    hostname: string | null;
     type: 'org' | 'listing' | 'user' | 'url' | 'none' | 'channel' | 'intro';
     extra?: any;
 }
@@ -88,14 +89,14 @@ export default class UrlInfoService {
             };
         }
     }
-    
+
     private async parseUserUrl(url: string): Promise<URLAugmentation> {
         let [, , _userId] = this.userRegexp.exec(url)!;
-        let {hostname} = URL.parse(url);
+        let { hostname } = URL.parse(url);
 
         let userId = IDs.User.parse(_userId);
 
-        let user = await DB.UserProfile.find({ where: {userId }});
+        let user = await Modules.Users.profileById(userId);
 
         return {
             url,
@@ -115,7 +116,7 @@ export default class UrlInfoService {
 
     private async parseOrgUrl(url: string): Promise<URLAugmentation> {
         let [, , , _orgId] = this.orgRegexp.exec(url)!;
-        let {hostname} = URL.parse(url);
+        let { hostname } = URL.parse(url);
 
         let orgId = IDs.Organization.parse(_orgId);
 
@@ -137,9 +138,9 @@ export default class UrlInfoService {
         };
     }
 
-    private async parseChannelUrl(url: string): Promise<URLAugmentation|null> {
+    private async parseChannelUrl(url: string): Promise<URLAugmentation | null> {
         let [, , _channelId] = this.channelRegexp.exec(url)!;
-        let {hostname} = URL.parse(url);
+        let { hostname } = URL.parse(url);
 
         let channelId = IDs.Conversation.parse(_channelId);
 

@@ -1,7 +1,6 @@
 import { DB, User } from '../tables';
 import { CallContext } from './utils/CallContext';
 import { IDs } from './utils/IDs';
-import { UserProfile } from '../tables/UserProfile';
 import DataLoader from 'dataloader';
 import { buildBaseImageUrl, ImageRef } from '../repositories/Media';
 import { withUser, withAny } from './utils/Resolvers';
@@ -9,31 +8,28 @@ import { Sanitizer } from '../modules/Sanitizer';
 import { validate, stringNotEmpty } from '../modules/NewInputValidator';
 import { Repos } from '../repositories';
 import { UserSettings } from '../tables/UserSettings';
-import { UserExtras } from '../repositories/UserExtras';
 import { Services } from '../services';
 import { AccessDeniedError } from '../errors/AccessDeniedError';
 import { QueryParser } from '../modules/QueryParser';
 import { ElasticClient } from '../indexing';
 import { SelectBuilder } from '../modules/SelectBuilder';
 import { Modules } from 'openland-modules/Modules';
+import { UserProfile } from 'openland-module-db/schema';
+import { UserError } from 'openland-server/errors/UserError';
+import { inTx } from 'foundation-orm/inTx';
 
 function userLoader(context: CallContext) {
     if (!context.cache.has('__profile_loader')) {
         context.cache.set('__profile_loader', new DataLoader<number, UserProfile | null>(async (ids) => {
-            let foundTokens = await DB.UserProfile.findAll({
-                where: {
-                    userId: {
-                        $in: ids
-                    }
-                }
-            });
+            let foundTokens = ids.map((v) => Modules.Users.profileById(v));
 
             let res: (UserProfile | null)[] = [];
             for (let i of ids) {
                 let found = false;
                 for (let f of foundTokens) {
-                    if (i === f.userId) {
-                        res.push(f);
+                    let f2 = (await f)!;
+                    if (i === f2.id) {
+                        res.push(f2);
                         found = true;
                         break;
                     }
@@ -90,9 +86,9 @@ export const Resolver = {
         phone: withProfile((src, profile) => profile ? profile.phone : null),
         about: withProfile((src, profile) => profile ? profile.about : null),
         website: withProfile((src, profile) => profile ? profile.website : null),
-        alphaRole: withProfile((src, profile) => profile && profile.extras && profile.extras.role),
-        alphaLinkedin: withProfile((src, profile) => profile && profile.extras && profile.extras.linkedin),
-        alphaTwitter: withProfile((src, profile) => profile && profile.extras && profile.extras.twitter),
+        alphaRole: withProfile((src, profile) => profile && profile.role),
+        alphaLinkedin: withProfile((src, profile) => profile && profile.linkedin),
+        alphaTwitter: withProfile((src, profile) => profile && profile.twitter),
         location: withProfile((src, profile) => profile ? profile.location : null),
 
         isCreated: withProfile((src, profile) => !!profile),
@@ -145,7 +141,7 @@ export const Resolver = {
         lastIP: async (src: User) => Repos.Users.getUserLastIp(src.id!),
         alphaConversationSettings: async (src: User, _: any, context: CallContext) => await Repos.Chats.getConversationSettings(context.uid!!, (await Repos.Chats.loadPrivateChat(context.uid!!, src.id!)).id),
         status: async (src: User) => src.status,
-        alphaLocations: withProfile((src, profile) => profile && profile.extras && profile.extras.locations)
+        alphaLocations: withProfile((src, profile) => profile && profile.locations)
     },
     Profile: {
         id: (src: UserProfile) => IDs.Profile.serialize(src.id!!),
@@ -157,14 +153,14 @@ export const Resolver = {
         website: (src: UserProfile) => src.website,
         about: (src: UserProfile) => src.about,
         location: (src: UserProfile) => src.location,
-        alphaRole: (src: UserProfile) => src.extras && src.extras.role,
-        alphaLocations: (src: UserProfile) => src.extras && src.extras.locations,
-        alphaLinkedin: (src: UserProfile) => src.extras && src.extras.linkedin,
-        alphaTwitter: (src: UserProfile) => src.extras && src.extras.twitter,
-        alphaPrimaryOrganizationId: (src: UserProfile) => src.extras && src.extras.primaryOrganizationId,
-        alphaPrimaryOrganization: async (src: UserProfile) => await DB.Organization.findById(src.primaryOrganization || (await Repos.Users.fetchUserAccounts(src.userId!))[0]),
-        alphaJoinedAt: (src: UserProfile) => (src as any).createdAt,
-        alphaInvitedBy: async (src: UserProfile) => await Repos.Users.getUserInvitedBy(src.userId!!),
+        alphaRole: (src: UserProfile) => src.role,
+        alphaLocations: (src: UserProfile) => src.locations,
+        alphaLinkedin: (src: UserProfile) => src.linkedin,
+        alphaTwitter: (src: UserProfile) => src.twitter,
+        alphaPrimaryOrganizationId: (src: UserProfile) => src.primaryOrganization ? IDs.Organization.serialize(src.primaryOrganization) : null,
+        alphaPrimaryOrganization: async (src: UserProfile) => await DB.Organization.findById(src.primaryOrganization || (await Repos.Users.fetchUserAccounts(src.id))[0]),
+        alphaJoinedAt: (src: UserProfile) => src.createdAt,
+        alphaInvitedBy: async (src: UserProfile) => await Repos.Users.getUserInvitedBy(src.id),
     },
     Settings: {
         id: (src: UserSettings) => IDs.Settings.serialize(src.id),
@@ -193,11 +189,7 @@ export const Resolver = {
             if (context.uid == null) {
                 return null;
             }
-            return DB.UserProfile.find({
-                where: {
-                    userId: context.uid
-                }
-            });
+            return Modules.Users.profileById(context.uid);
         },
         myProfilePrefill: async function (_: any, args: {}, context: CallContext) {
             if (!context.uid) {
@@ -317,75 +309,72 @@ export const Resolver = {
                 if (!user) {
                     throw Error('Unable to find user');
                 }
-                let profile = await DB.UserProfile.find({ where: { userId: uid }, transaction: tx, lock: tx.LOCK.UPDATE });
-                if (!profile) {
-                    throw Error('Unable to find profile');
-                }
-                if (args.input.firstName !== undefined) {
-                    await validate(
-                        stringNotEmpty('First name can\'t be empty!'),
-                        args.input.firstName,
-                        'input.firstName'
-                    );
-                    profile.firstName = Sanitizer.sanitizeString(args.input.firstName)!;
-                }
-                if (args.input.lastName !== undefined) {
-                    profile.lastName = Sanitizer.sanitizeString(args.input.lastName);
-                }
-                if (args.input.location !== undefined) {
-                    profile.location = Sanitizer.sanitizeString(args.input.location);
-                }
-                if (args.input.website !== undefined) {
-                    profile.website = Sanitizer.sanitizeString(args.input.website);
-                }
-                if (args.input.about !== undefined) {
-                    profile.about = Sanitizer.sanitizeString(args.input.about);
-                }
-                if (args.input.photoRef !== undefined) {
-                    if (args.input.photoRef !== null) {
-                        await Services.UploadCare.saveFile(args.input.photoRef.uuid);
+                await inTx(async () => {
+                    let profile = await Modules.Users.profileById(uid);
+                    if (!profile) {
+                        throw Error('Unable to find profile');
                     }
-                    profile.picture = Sanitizer.sanitizeImageRef(args.input.photoRef);
-                }
-                if (args.input.phone !== undefined) {
-                    profile.phone = Sanitizer.sanitizeString(args.input.phone);
-                }
-                if (args.input.email !== undefined) {
-                    profile.email = Sanitizer.sanitizeString(args.input.email);
-                }
-
-                let extras: UserExtras = profile.extras || {};
-
-                if (args.input.alphaLocations !== undefined) {
-                    extras.locations = Sanitizer.sanitizeAny(args.input.alphaLocations);
-                }
-
-                if (args.input.alphaLinkedin !== undefined) {
-                    extras.linkedin = Sanitizer.sanitizeString(args.input.alphaLinkedin);
-                }
-
-                if (args.input.alphaTwitter !== undefined) {
-                    extras.twitter = Sanitizer.sanitizeString(args.input.alphaTwitter);
-                }
-
-                if (args.input.alphaRole !== undefined) {
-                    extras.role = Sanitizer.sanitizeString(args.input.alphaRole);
-                }
-
-                if (args.input.alphaPrimaryOrganizationId !== undefined) {
-                    profile.primaryOrganization = IDs.Organization.parse(args.input.alphaPrimaryOrganizationId);
-                }
-
-                profile.extras = extras;
-
-                await profile.save({ transaction: tx });
+                    if (args.input.firstName !== undefined) {
+                        await validate(
+                            stringNotEmpty('First name can\'t be empty!'),
+                            args.input.firstName,
+                            'input.firstName'
+                        );
+                        profile.firstName = Sanitizer.sanitizeString(args.input.firstName)!;
+                    }
+                    if (args.input.lastName !== undefined) {
+                        profile.lastName = Sanitizer.sanitizeString(args.input.lastName);
+                    }
+                    if (args.input.location !== undefined) {
+                        profile.location = Sanitizer.sanitizeString(args.input.location);
+                    }
+                    if (args.input.website !== undefined) {
+                        profile.website = Sanitizer.sanitizeString(args.input.website);
+                    }
+                    if (args.input.about !== undefined) {
+                        profile.about = Sanitizer.sanitizeString(args.input.about);
+                    }
+                    if (args.input.photoRef !== undefined) {
+                        if (args.input.photoRef !== null) {
+                            await Services.UploadCare.saveFile(args.input.photoRef.uuid);
+                        }
+                        profile.picture = Sanitizer.sanitizeImageRef(args.input.photoRef);
+                    }
+                    if (args.input.phone !== undefined) {
+                        profile.phone = Sanitizer.sanitizeString(args.input.phone);
+                    }
+                    if (args.input.email !== undefined) {
+                        profile.email = Sanitizer.sanitizeString(args.input.email);
+                    }
+    
+                    if (args.input.alphaLocations !== undefined) {
+                        profile.locations = Sanitizer.sanitizeAny(args.input.alphaLocations);
+                    }
+    
+                    if (args.input.alphaLinkedin !== undefined) {
+                        profile.linkedin = Sanitizer.sanitizeString(args.input.alphaLinkedin);
+                    }
+    
+                    if (args.input.alphaTwitter !== undefined) {
+                        profile.twitter = Sanitizer.sanitizeString(args.input.alphaTwitter);
+                    }
+    
+                    if (args.input.alphaRole !== undefined) {
+                        profile.role = Sanitizer.sanitizeString(args.input.alphaRole);
+                    }
+    
+                    if (args.input.alphaPrimaryOrganizationId !== undefined) {
+                        profile.primaryOrganization = IDs.Organization.parse(args.input.alphaPrimaryOrganizationId);
+                    }
+                });
                 return user;
             });
         }),
         alphaDeleteProfile: withUser<{}>(async (args, uid) => {
-            await DB.UserProfile.destroy({ where: { id: uid } });
+            // await DB.UserProfile.destroy({ where: { id: uid } });
 
-            return 'ok';
+            // return 'ok';
+            throw new UserError('This feature is unusupported');
         }),
         alphaReportOnline: async (_: any, args: { timeout: number, platform?: string }, context: CallContext) => {
             if (!context.uid) {

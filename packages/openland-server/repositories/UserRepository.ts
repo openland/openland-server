@@ -5,8 +5,6 @@ import { ImageRef } from './Media';
 import { Transaction } from 'sequelize';
 import { UserSettings, UserSettingsAttributes } from '../tables/UserSettings';
 import { SuperBus } from '../modules/SuperBus';
-import { validate, stringNotEmpty } from '../modules/NewInputValidator';
-import { Sanitizer } from '../modules/Sanitizer';
 import { Repos } from '.';
 import { Modules } from 'openland-modules/Modules';
 
@@ -73,30 +71,7 @@ export class UserRepository {
             throw Error('Unable to find user');
         }
 
-        // Do not create profile if already exists
-        let existing = await DB.UserProfile.find({ where: { userId: uid }, transaction: tx, lock: tx.LOCK.UPDATE });
-        if (existing) {
-            return existing;
-        }
-
-        await validate(
-            stringNotEmpty('First name can\'t be empty!'),
-            input.firstName,
-            'input.firstName'
-        );
-
-        // Create pfofile
-        await DB.UserProfile.create({
-            userId: uid,
-            firstName: Sanitizer.sanitizeString(input.firstName)!,
-            lastName: Sanitizer.sanitizeString(input.lastName),
-            picture: Sanitizer.sanitizeImageRef(input.photoRef),
-            phone: Sanitizer.sanitizeString(input.phone),
-            email: Sanitizer.sanitizeString(input.email) || user.email,
-            website: Sanitizer.sanitizeString(input.website),
-            about: Sanitizer.sanitizeString(input.about),
-            location: Sanitizer.sanitizeString(input.location)
-        }, { transaction: tx });
+        await Modules.Users.createUserProfile(user, input);
 
         if (!isBot && user.status === 'ACTIVATED') {
             await Repos.Chats.addToInitialChannel(user.id!!, tx);
@@ -182,32 +157,6 @@ export class UserRepository {
         })).map((v) => v.orgId);
     }
 
-    async saveProfile(uid: number, firstName: string, lastName: string | null, photo?: ImageRef | null, phone?: string | null) {
-        return await DB.tx(async (tx) => {
-            let existing = await DB.UserProfile.find({ where: { userId: uid }, transaction: tx });
-            if (!existing) {
-                return await DB.UserProfile.create({
-                    userId: uid,
-                    firstName: firstName,
-                    lastName: lastName,
-                    picture: photo,
-                    phone: phone
-                }, { transaction: tx });
-            } else {
-                existing.firstName = firstName;
-                existing.lastName = lastName;
-                if (photo !== undefined) {
-                    existing.picture = photo;
-                }
-                if (phone !== undefined) {
-                    existing.phone = phone;
-                }
-                await existing.save({ transaction: tx });
-                return existing;
-            }
-        });
-    }
-
     async isMemberOfOrganization(uid: number, orgId: number): Promise<boolean> {
         let isMember = await DB.OrganizationMember.findOne({
             where: {
@@ -219,121 +168,7 @@ export class UserRepository {
         return !!isMember;
     }
 
-    // async markUserOffline(uid: number, tokenId: number, platform?: string) {
-    //     await DB.txStableSilent(async (tx) => {
-    //         await DB.UserPresence.destroy({
-    //             where: {
-    //                 userId: uid,
-    //                 tokenId: tokenId
-    //             },
-    //             transaction: tx,
-    //         });
-    //     });
-    // }
-
-    // async markUserActive(uid: number, timeout: number, tokenId: number, platform?: string) {
-    //     let now = new Date();
-    //     let expires = new Date(now.getTime() + timeout);
-    //     await DB.txStableSilent(async (tx) => {
-    //         let existing = await DB.UserPresence.find({
-    //             where: { userId: uid, tokenId: tokenId },
-    //             transaction: tx,
-    //             lock: tx.LOCK.UPDATE,
-    //             logging: DB_SILENT
-    //         });
-    //         if (existing) {
-    //             existing.lastActive = now;
-    //             existing.lastActiveTimeout = expires;
-    //             existing.platform = platform || null;
-    //             await existing.save({ transaction: tx, logging: DB_SILENT });
-    //         } else {
-    //             await DB.UserPresence.create({
-    //                 userId: uid,
-    //                 tokenId: tokenId,
-    //                 lastActive: now,
-    //                 lastActiveTimeout: expires,
-    //                 platform: platform || null,
-    //             }, { transaction: tx, logging: DB_SILENT });
-    //         }
-    //     });
-    //     await DB.txStableSilent(async (tx) => {
-    //         let user = await DB.User.findById(uid, { transaction: tx, lock: tx.LOCK.UPDATE, logging: DB_SILENT });
-    //         if (user) {
-    //             if (user.lastActive === null || user.lastActive!!.getTime() < expires.getTime()) {
-    //                 user.lastActive = expires;
-    //                 await user.save({ transaction: tx, logging: DB_SILENT });
-    //             }
-    //         }
-    //     });
-    // }
-
-    // async getUserLastSeen(uid: number, tx?: Transaction) {
-    //     let user = await DB.User.findById(uid, { logging: DB_SILENT });
-    //     let now = Date.now();
-    //     if (!user || user.status !== 'ACTIVATED') {
-    //         return null;
-    //     } else {
-    //         if (user.lastSeen) {
-    //             if (user.lastSeen.getTime() > now) {
-    //                 return null;
-    //             } else {
-    //                 return user.lastSeen.getTime();
-    //             }
-    //         } else {
-    //             return null;
-    //         }
-    //     }
-    // }
-
-    // async getUserLastSeenExtended(uid: number, tx?: Transaction) {
-    //     let user = await DB.User.findById(uid, { logging: DB_SILENT });
-    //     let now = Date.now();
-    //     if (!user || user.status !== 'ACTIVATED') {
-    //         return 'never_online';
-    //     } else {
-    //         if (user.lastSeen) {
-    //             if (user.lastSeen.getTime() > now) {
-    //                 return 'online';
-    //             } else {
-    //                 return user.lastSeen.getTime();
-    //             }
-    //         } else {
-    //             return 'never_online';
-    //         }
-    //     }
-    // }
-
-    // async getUserLastActiveExtended(uid: number, tx?: Transaction) {
-    //     let user = await DB.User.findById(uid, { logging: DB_SILENT });
-    //     let now = Date.now();
-    //     if (!user || user.status !== 'ACTIVATED') {
-    //         return 'never_online';
-    //     } else {
-    //         if (user.lastActive) {
-    //             if (user.lastActive.getTime() > now) {
-    //                 return 'online';
-    //             } else {
-    //                 return user.lastActive.getTime();
-    //             }
-    //         } else {
-    //             return 'never_online';
-    //         }
-    //     }
-    // }
-
     async isUserOnline(uid: number): Promise<boolean> {
-        // let user = await DB.User.findById(uid, { logging: DB_SILENT });
-        // let now = Date.now();
-        // if (!user || user.status !== 'ACTIVATED') {
-        //     return false;
-        // } else {
-        //     if (user.lastSeen) {
-        //         return user.lastSeen.getTime() > now;
-        //     } else {
-        //         return false;
-        //     }
-        // }
-
         return await Modules.Presence.getLastSeen(uid) === 'online';
     }
 
@@ -411,7 +246,7 @@ export class UserRepository {
     }
 
     async getUserLastIp(uid: number) {
-        
+
         // let lastActiveToken = await DB.UserToken.findAll({
         //     where: {
         //         userId: uid
