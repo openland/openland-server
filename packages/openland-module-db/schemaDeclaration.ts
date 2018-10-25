@@ -116,6 +116,8 @@ const Schema = declareSchema(() => {
         field('firstName', 'string').nullable();
         field('lastName', 'string').nullable();
         field('picture', 'string').nullable();
+        enableTimestamps();
+        enableVersioning();
     });
 });
 
