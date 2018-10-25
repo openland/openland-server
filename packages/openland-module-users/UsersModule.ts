@@ -3,12 +3,14 @@ import { FDB } from 'openland-module-db/FDB';
 import { UserRepository } from './repositories/UsersRepository';
 import { ImageRef } from 'openland-server/repositories/Media';
 import { User } from 'openland-server/tables';
+import { startMigration } from './Migration';
 export class UsersModule {
 
     private readonly repo = new UserRepository(FDB);
 
     start = () => {
         // Nothing to do
+        startMigration();
     }
 
     async createUserProfile(user: User, input: {
