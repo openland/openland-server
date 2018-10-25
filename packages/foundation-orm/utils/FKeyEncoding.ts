@@ -1,15 +1,17 @@
 import { encoders } from 'foundationdb';
+import { createLogger } from 'openland-log/createLogger';
 
 const byteFF = Buffer.alloc(1);
 byteFF.writeUInt8(0xff, 0);
 const byteZero = Buffer.alloc(1);
 byteZero.writeUInt8(0, 0);
+const log = createLogger('key-encoding');
 export const FKeyEncoding = {
     encodeKey: (key: (string | boolean | number)[]) => {
         try {
             return encoders.tuple.pack(key) as Buffer;
         } catch (e) {
-            console.warn('Unable to encode key', key, e);
+            log.warn('Unable to encode key', key, e);
             throw e;
         }
     },

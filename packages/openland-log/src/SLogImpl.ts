@@ -23,4 +23,11 @@ export class SLogImpl implements SLog {
         let context = SLogContext.value ? SLogContext.value.path : [];
         console.debug(...context, this.name, message, ...optionalParams);
     }
+    warn = (message?: any, ...optionalParams: any[]) => {
+        if (SLogContext.value && SLogContext.value.disabled) {
+            return;
+        }
+        let context = SLogContext.value ? SLogContext.value.path : [];
+        console.warn(...context, this.name, message, ...optionalParams);
+    }
 }
