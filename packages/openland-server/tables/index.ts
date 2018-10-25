@@ -2,13 +2,9 @@ import { connection } from '../modules/sequelizeConnector';
 import * as sequelize from 'sequelize';
 
 export { User } from './User';
-export { Account } from './Account';
-export { AccountMember } from './Account';
 export { ReaderState } from './ReaderState';
 
 import { UserTable } from './User';
-import { AccountTable } from './Account';
-import { AccountMemberTable } from './Account';
 import { ReaderStateTable } from './ReaderState';
 import { SuperAdminTable } from './SuperAdmin';
 import { OrganizationTable } from './Organization';
@@ -43,8 +39,6 @@ export const DB_SILENT = !SILENT_TX_ACTUALLY_SILENT;
 
 export const DB = {
     User: UserTable,
-    Account: AccountTable,
-    AccountMember: AccountMemberTable,
     ReaderState: ReaderStateTable,
     SuperAdmin: SuperAdminTable,
     Organization: OrganizationTable,
