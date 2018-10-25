@@ -90,6 +90,9 @@
       ],
       "openland-module-messaging": [
         "openland-module-messaging"
+      ],
+      "openland-module-users": [
+        "openland-module-users"
       ]
     }
   },

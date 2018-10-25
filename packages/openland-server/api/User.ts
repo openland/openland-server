@@ -203,7 +203,7 @@ export const Resolver = {
             if (!context.uid) {
                 return {};
             }
-            let prefill = await DB.UserProfilePrefill.find({ where: { userId: context.uid } });
+            let prefill = await Modules.Users.findProfilePrefill(context.uid);
             if (prefill) {
                 return {
                     firstName: prefill.firstName,

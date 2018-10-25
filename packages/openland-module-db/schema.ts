@@ -719,6 +719,70 @@ export class PushWebFactory extends FEntityFactory<PushWeb> {
         return new PushWeb(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
     }
 }
+export interface UserProfilePrefilShape {
+    firstName?: string;
+    lastName?: string;
+    picture?: string;
+}
+
+export class UserProfilePrefil extends FEntity {
+    get id() { return this._value.id; }
+    get firstName(): string | null {
+        let res = this._value.firstName;
+        if (res) { return res; }
+        return null;
+    }
+    set firstName(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.firstName) { return; }
+        this._value.firstName = value;
+        this.markDirty();
+    }
+    get lastName(): string | null {
+        let res = this._value.lastName;
+        if (res) { return res; }
+        return null;
+    }
+    set lastName(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.lastName) { return; }
+        this._value.lastName = value;
+        this.markDirty();
+    }
+    get picture(): string | null {
+        let res = this._value.picture;
+        if (res) { return res; }
+        return null;
+    }
+    set picture(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.picture) { return; }
+        this._value.picture = value;
+        this.markDirty();
+    }
+}
+
+export class UserProfilePrefilFactory extends FEntityFactory<UserProfilePrefil> {
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'userProfilePrefil'),
+            { enableVersioning: false, enableTimestamps: false },
+            []
+        );
+    }
+    async findById(id: number) {
+        return await this._findById([id]);
+    }
+    async create(id: number, shape: UserProfilePrefilShape) {
+        return await this._create([id], { id, ...shape });
+    }
+    watch(id: number, cb: () => void) {
+        return this._watch([id], cb);
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new UserProfilePrefil(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
+    }
+}
 
 export class AllEntities extends FDBInstance {
     Online: OnlineFactory;
@@ -731,6 +795,7 @@ export class AllEntities extends FDBInstance {
     PushFirebase: PushFirebaseFactory;
     PushApple: PushAppleFactory;
     PushWeb: PushWebFactory;
+    UserProfilePrefil: UserProfilePrefilFactory;
 
     constructor(connection: FConnection) {
         super(connection);
@@ -744,5 +809,6 @@ export class AllEntities extends FDBInstance {
         this.PushFirebase = new PushFirebaseFactory(connection);
         this.PushApple = new PushAppleFactory(connection);
         this.PushWeb = new PushWebFactory(connection);
+        this.UserProfilePrefil = new UserProfilePrefilFactory(connection);
     }
 }

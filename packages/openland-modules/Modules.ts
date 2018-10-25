@@ -5,6 +5,7 @@ import { PresenceModule } from 'openland-module-presences/PresenceModule';
 import { EmailModule } from 'openland-module-email/EmailModule';
 import { MessagingModule } from 'openland-module-messaging/MessagingModule';
 import { AuthModule } from 'openland-module-auth/AuthModule';
+import { UsersModule } from 'openland-module-users/UsersModule';
 
 class ModulesImpl {
     readonly Auth = new AuthModule();
@@ -14,6 +15,7 @@ class ModulesImpl {
     readonly Presence = new PresenceModule();
     readonly Email = new EmailModule();
     readonly Messaging = new MessagingModule();
+    readonly Users = new UsersModule();
 
     start = () => {
         this.DB.start();
@@ -21,6 +23,7 @@ class ModulesImpl {
         this.Push.start();
         this.Presence.start();
         this.Email.start();
+        this.Users.start();
         this.Messaging.start();
     }
 }

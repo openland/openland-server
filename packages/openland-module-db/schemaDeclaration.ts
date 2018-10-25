@@ -110,6 +110,13 @@ const Schema = declareSchema(() => {
         enableTimestamps();
         enableVersioning();
     });
+
+    entity('UserProfilePrefil', () => {
+        primaryKey('id', 'number');
+        field('firstName', 'string').nullable();
+        field('lastName', 'string').nullable();
+        field('picture', 'string').nullable();
+    });
 });
 
 generate(Schema, __dirname + '/../openland-module-db/schema.ts');

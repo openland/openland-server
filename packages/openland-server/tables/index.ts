@@ -10,7 +10,6 @@ import { SuperAdminTable } from './SuperAdmin';
 import { OrganizationTable } from './Organization';
 import { FeatureFlagTable } from './FeatureFlag';
 import { UserProfileTable } from './UserProfile';
-import { UserProfilePrefillTable } from './UserProfilePrefill';
 import { OrganizationMemberTable } from './OrganizationMember';
 import { OrganizationInviteTable } from './OrganizationInvite';
 import { OrganizationConnectTable } from './OrganizationConnect';
@@ -45,7 +44,6 @@ export const DB = {
     OrganizationConnect: OrganizationConnectTable,
     FeatureFlag: FeatureFlagTable,
     UserProfile: UserProfileTable,
-    UserProfilePrefill: UserProfilePrefillTable,
     OrganizationMember: OrganizationMemberTable,
     OrganizationInvite: OrganizationInviteTable,
     OrganizationListing: OrganizationListingTable,

@@ -120,15 +120,11 @@ export const Authenticator = async function (req: express.Request, response: exp
             }
 
             // Prefill
-            let prefill = await DB.UserProfilePrefill.find({ where: { userId: user.id!! }, transaction: tx });
-            if (!prefill) {
-                await DB.UserProfilePrefill.create({
-                    userId: user.id!!,
-                    firstName: firstName,
-                    lastName: lastName,
-                    picture: profile.picture
-                }, { transaction: tx });
-            }
+            await Modules.Users.saveProfilePrefill(user.id!, {
+                firstName: firstName ? firstName : undefined,
+                lastName: lastName ? lastName : undefined,
+                picture: profile.picture
+            });
 
             if (isNewAccount) {
                 await Emails.sendWelcomeEmail(user.id!, tx);
