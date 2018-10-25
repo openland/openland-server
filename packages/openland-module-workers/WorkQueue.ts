@@ -79,7 +79,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                         return;
                     }
 
-                    log.log('Task completed');
+                    log.log('Task completed', JSON.stringify(res));
 
                     // Commiting
                     let commited = await inTx(async () => {
