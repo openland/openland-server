@@ -150,12 +150,12 @@ export const Resolvers = {
         }),
         superAccountFeatureAdd: withPermission<{ id: string, featureId: string }>(['super-admin', 'software-developer'], async (args) => {
             let org = await Repos.Super.fetchById(IDs.SuperAccount.parse(args.id));
-            Modules.Features.repo.enableFeatureForOrganization(org.id!, args.featureId);
+            await Modules.Features.repo.enableFeatureForOrganization(org.id!, args.featureId);
             return org;
         }),
         superAccountFeatureRemove: withPermission<{ id: string, featureId: string }>(['super-admin', 'software-developer'], async (args) => {
             let org = await Repos.Super.fetchById(IDs.SuperAccount.parse(args.id));
-            Modules.Features.repo.disableFeatureForOrganization(org.id!, args.featureId);
+            await Modules.Features.repo.disableFeatureForOrganization(org.id!, args.featureId);
             return org;
         }),
         superAdminAdd: withPermission<{ userId: string, role: 'SUPER_ADMIN' | 'SOFTWARE_DEVELOPER' | 'EDITOR' }>('super-admin', async (args) => {
