@@ -16,6 +16,10 @@ export class FNamespace {
         return connection.currentContext.range(connection, [...this.namespace, ...key], options);
     }
 
+    rangeAfter = async (connection: FConnection, key: (string | number)[], after: (string | number)[], options?: RangeOptions) => {
+        return connection.currentContext.rangeAfter(connection, [...this.namespace, ...key], [...after], options);
+    }
+
     set = async (connection: FConnection, key: (string | number)[], value: any) => {
         return connection.currentContext.set(connection, [...this.namespace, ...key], value);
     }

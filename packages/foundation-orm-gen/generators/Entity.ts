@@ -127,6 +127,10 @@ export function generateEntity(entity: EntityModel): string {
             res += '    async allFrom' + Case.pascalCase(i.name) + '(' + [...fs.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v)))].join(', ') + ') {\n';
             res += '        return await this._findAll([' + ['\'__indexes\'', '\'' + i.name + '\'', ...fs].join(', ') + ']);\n';
             res += '    }\n';
+
+            res += '    async afterFrom' + Case.pascalCase(i.name) + '(limit: number, after?: string) {\n';
+            res += '        return await this._findRangeAfter([' + ['\'__indexes\'', '\'' + i.name + '\''].join(', ') + '], after, limit); \n';
+            res += '    }\n';
         }
     }
 

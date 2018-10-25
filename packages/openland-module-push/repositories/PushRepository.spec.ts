@@ -4,15 +4,17 @@ import { FConnection } from 'foundation-orm/FConnection';
 import { AllEntities } from 'openland-module-db/schema';
 import { PushRepository } from './PushRepository';
 import { withLogDisabled } from 'openland-log/withLogDisabled';
+import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
+import { NativeValue } from 'foundationdb/dist/lib/native';
 
 describe('PushRepository', () => {
     // Database Init
-    let db: fdb.Database<fdb.TupleItem[], any>;
+    let db: fdb.Database<NativeValue, any>;
     let entities: AllEntities;
     beforeAll(async () => {
         db = FConnection.create()
-            .at(['_tests_push_repo']);
-        await db.clearRange([]);
+            .at(FKeyEncoding.encodeKey(['_tests_push']));
+        await db.clearRange(FKeyEncoding.encodeKey([]));
         entities = new AllEntities(new FConnection(db));
     });
 

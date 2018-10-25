@@ -4,17 +4,20 @@ import { FConnection } from '../FConnection';
 import { inTx } from '../inTx';
 import { delay } from '../../openland-server/utils/timer';
 import { withLogDisabled } from 'openland-log/withLogDisabled';
+import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
+import { NativeValue } from 'foundationdb/dist/lib/native';
 
 describe('FWatch', () => {
+   
     // Database Init
-    let db: fdb.Database<fdb.TupleItem[], any>;
-    let testEntities: AllEntities;
-    beforeAll(async () => {
-        db = FConnection.create()
-            .at(['_tests_watch']);
-        await db.clearRange([]);
-        testEntities = new AllEntities(new FConnection(db));
-    });
+   let db: fdb.Database<NativeValue, any>;
+   let testEntities: AllEntities;
+   beforeAll(async () => {
+       db = FConnection.create()
+           .at(FKeyEncoding.encodeKey(['_tests_watch']));
+       await db.clearRange(FKeyEncoding.encodeKey([]));
+       testEntities = new AllEntities(new FConnection(db));
+   });
 
     it('should call callback on entity change', async () => {
         await withLogDisabled(async () => {

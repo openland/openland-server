@@ -4,17 +4,19 @@ import { AllEntities } from '../openland-module-db/schema';
 import { PresenceModule } from './PresenceModule';
 import { delay } from '../openland-server/utils/timer';
 import { withLogDisabled } from 'openland-log/withLogDisabled';
+import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
+import { NativeValue } from 'foundationdb/dist/lib/native';
 
 describe('PresenceModule', () => {
     // Database Init
-    let db: fdb.Database<fdb.TupleItem[], any>;
+    let db: fdb.Database<NativeValue, any>;
     let FDB: AllEntities;
     let Presence: PresenceModule;
 
     beforeAll(async () => {
         db = FConnection.create()
-            .at(['_tests_presence']);
-        await db.clearRange([]);
+            .at(FKeyEncoding.encodeKey(['_tests_presence']));
+        await db.clearRange(FKeyEncoding.encodeKey([]));
         FDB = new AllEntities(new FConnection(db));
 
         Presence = new PresenceModule();

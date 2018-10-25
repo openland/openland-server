@@ -432,17 +432,26 @@ export class TaskFactory extends FEntityFactory<Task> {
     async allFromPending(taskType: string) {
         return await this._findAll(['__indexes', 'pending', taskType]);
     }
+    async afterFromPending(limit: number, after?: string) {
+        return await this._findRangeAfter(['__indexes', 'pending'], after, limit); 
+    }
     async rangeFromExecuting(limit: number) {
         return await this._findRange(['__indexes', 'executing'], limit);
     }
     async allFromExecuting() {
         return await this._findAll(['__indexes', 'executing']);
     }
+    async afterFromExecuting(limit: number, after?: string) {
+        return await this._findRangeAfter(['__indexes', 'executing'], after, limit); 
+    }
     async rangeFromFailing(limit: number) {
         return await this._findRange(['__indexes', 'failing'], limit);
     }
     async allFromFailing() {
         return await this._findAll(['__indexes', 'failing']);
+    }
+    async afterFromFailing(limit: number, after?: string) {
+        return await this._findRangeAfter(['__indexes', 'failing'], after, limit); 
     }
     protected _createEntity(value: any, isNew: boolean) {
         return new Task(this.connection, this.namespace, [value.taskType, value.uid], value, this.options, isNew, this.indexes);
@@ -537,6 +546,9 @@ export class PushFirebaseFactory extends FEntityFactory<PushFirebase> {
     }
     async allFromUser(uid: number) {
         return await this._findAll(['__indexes', 'user', uid]);
+    }
+    async afterFromUser(limit: number, after?: string) {
+        return await this._findRangeAfter(['__indexes', 'user'], after, limit); 
     }
     async findFromToken(token: string) {
         return await this._findById(['__indexes', 'token', token]);
@@ -635,6 +647,9 @@ export class PushAppleFactory extends FEntityFactory<PushApple> {
     async allFromUser(uid: number) {
         return await this._findAll(['__indexes', 'user', uid]);
     }
+    async afterFromUser(limit: number, after?: string) {
+        return await this._findRangeAfter(['__indexes', 'user'], after, limit); 
+    }
     async findFromToken(token: string) {
         return await this._findById(['__indexes', 'token', token]);
     }
@@ -711,6 +726,9 @@ export class PushWebFactory extends FEntityFactory<PushWeb> {
     }
     async allFromUser(uid: number) {
         return await this._findAll(['__indexes', 'user', uid]);
+    }
+    async afterFromUser(limit: number, after?: string) {
+        return await this._findRangeAfter(['__indexes', 'user'], after, limit); 
     }
     async findFromEndpoint(endpoint: string) {
         return await this._findById(['__indexes', 'endpoint', endpoint]);
@@ -967,6 +985,9 @@ export class UserProfileFactory extends FEntityFactory<UserProfile> {
     async allFromByUpdatedAt() {
         return await this._findAll(['__indexes', 'byUpdatedAt']);
     }
+    async afterFromByUpdatedAt(limit: number, after?: string) {
+        return await this._findRangeAfter(['__indexes', 'byUpdatedAt'], after, limit); 
+    }
     protected _createEntity(value: any, isNew: boolean) {
         return new UserProfile(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
     }
@@ -1071,6 +1092,9 @@ export class OrganizationFeaturesFactory extends FEntityFactory<OrganizationFeat
     }
     async allFromOrganization(organizationId: number) {
         return await this._findAll(['__indexes', 'organization', organizationId]);
+    }
+    async afterFromOrganization(limit: number, after?: string) {
+        return await this._findRangeAfter(['__indexes', 'organization'], after, limit); 
     }
     protected _createEntity(value: any, isNew: boolean) {
         return new OrganizationFeatures(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);

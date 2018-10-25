@@ -3,6 +3,8 @@ import { FConnection } from './FConnection';
 import { FEntity, FEntityOptions } from './FEntity';
 import { FWatch } from './FWatch';
 import { FEntityIndex } from './FEntityIndex';
+import { FStreamItem } from './FStreamItem';
+import { FKeyEncoding } from './utils/FKeyEncoding';
 
 export abstract class FEntityFactory<T extends FEntity> {
     readonly namespace: FNamespace;
@@ -39,14 +41,19 @@ export abstract class FEntityFactory<T extends FEntity> {
         return res.map((v) => this._createEntity(v, false));
     }
 
-    protected async _findRangeAfter(key: (string | number)[], limit: number) {
-        let res = await this.namespace.range(this.connection, key, { limit });
-        return res.map((v) => this._createEntity(v, false));
+    protected async _findRangeAfter(subspace: (string | number)[], after?: string, limit?: number) {
+        if (after) {
+            let res = await this.namespace.rangeAfter(this.connection, subspace, FKeyEncoding.decodeFromString(after)as any, { limit });
+            return res.map((v) => ({ value: this._createEntity(v.item, false), cursor: FKeyEncoding.encodeKeyToString(v.key) } as FStreamItem<T>));
+        } else {
+            let res = await this.namespace.range(this.connection, subspace, { limit });
+            return res.map((v) => ({ value: this._createEntity(v.item, false), cursor: FKeyEncoding.encodeKeyToString(v.key) } as FStreamItem<T>));
+        }
     }
 
     protected async _findAll(key: (string | number)[]) {
         let res = await this.namespace.range(this.connection, key);
-        return res.map((v) => this._createEntity(v, false));
+        return res.map((v) => this._createEntity(v.item, false));
     }
 
     protected async _create(key: (string | number)[], value: any) {

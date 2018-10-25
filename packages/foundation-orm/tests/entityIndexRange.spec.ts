@@ -4,15 +4,18 @@ import { AllEntities } from './testSchema';
 import { FConnection } from '../FConnection';
 import { inTx } from '../inTx';
 import { withLogDisabled } from 'openland-log/withLogDisabled';
+import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
+import { NativeValue } from 'foundationdb/dist/lib/native';
 
 describe('FEntity with range index', () => {
+    
     // Database Init
-    let db: fdb.Database<fdb.TupleItem[], any>;
+    let db: fdb.Database<NativeValue, any>;
     let testEntities: AllEntities;
     beforeAll(async () => {
         db = FConnection.create()
-            .at(['_tests_5']);
-        await db.clearRange([]);
+            .at(FKeyEncoding.encodeKey(['_tests_range']));
+        await db.clearRange(FKeyEncoding.encodeKey([]));
         testEntities = new AllEntities(new FConnection(db));
     });
 

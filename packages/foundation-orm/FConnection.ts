@@ -4,9 +4,10 @@ import { FTransaction } from './FTransaction';
 import * as fs from 'fs';
 import { FNodeRegistrator } from './utils/FNodeRegistrator';
 import { RandomIDFactory } from 'openland-security/RandomIDFactory';
+import { NativeValue } from 'foundationdb/dist/lib/native';
 
 export class FConnection {
-    readonly fdb: fdb.Database<fdb.TupleItem[], any>;
+    readonly fdb: fdb.Database<NativeValue, any>;
     private readonly globalContext: FContext;
     private readonly nodeRegistrator: FNodeRegistrator;
     private randomFactory: RandomIDFactory | null = null;
@@ -22,11 +23,10 @@ export class FConnection {
         } else {
             db = fdb.openSync();
         }
-        return db.withKeyEncoding(fdb.encoders.tuple)
-            .withValueEncoding(fdb.encoders.json);
+        return db.withValueEncoding(fdb.encoders.json) as fdb.Database<NativeValue, any>;
     }
 
-    constructor(connection: fdb.Database<fdb.TupleItem[], any>, test?: boolean) {
+    constructor(connection: fdb.Database<NativeValue, any>, test?: boolean) {
         this.fdb = connection;
         this.globalContext = new FGlobalContext();
         this.nodeRegistrator = new FNodeRegistrator(this);

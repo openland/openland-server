@@ -2,14 +2,17 @@
 import * as fdb from 'foundationdb';
 import { FConnection } from '../FConnection';
 import { withLogDisabled } from 'openland-log/withLogDisabled';
+import { NativeValue } from 'foundationdb/dist/lib/native';
+import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 
 describe('Random', () => {
+    
     // Database Init
-    let db: fdb.Database<fdb.TupleItem[], any>;
+    let db: fdb.Database<NativeValue, any>;
     beforeAll(async () => {
         db = FConnection.create()
-            .at(['_tests_random']);
-        await db.clearRange([]);
+            .at(FKeyEncoding.encodeKey(['_tests_random']));
+        await db.clearRange(FKeyEncoding.encodeKey([]));
     });
 
     it('should pick node id successfully', async () => {

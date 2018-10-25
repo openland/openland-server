@@ -1,4 +1,5 @@
 import { FConnection } from './FConnection';
+import { FKeyEncoding } from './utils/FKeyEncoding';
 
 type Key = (string | number)[];
 type ChangeCallback = () => void;
@@ -42,7 +43,7 @@ export class FWatch {
     }
 
     private async startWatch(key: Key) {
-        let subscription = await this.connection.fdb.getAndWatch(key);
+        let subscription = await this.connection.fdb.getAndWatch(FKeyEncoding.encodeKey(key));
 
         let res = await subscription.promise;
 

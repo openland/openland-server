@@ -2,6 +2,7 @@
 import { SafeContext } from './SafeContext';
 import sequelize from 'sequelize';
 import { FConnection } from 'foundation-orm/FConnection';
+import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 
 describe('SafeContext', () => {
     // afterAll(() => {
@@ -23,18 +24,18 @@ describe('SafeContext', () => {
     });
     it('should work with foundationdb', async () => {
         let db = FConnection.create()
-            .at(['_tests_contexts']);
-        await db.clearRange([]);
+            .at(FKeyEncoding.encodeKey(['_tests_context']));
+        await db.clearRange(FKeyEncoding.encodeKey([]));
 
         let context = new SafeContext<string>();
         await context.withContext('hello', async () => {
             expect(context.value).toEqual('hello');
-            await db.set(['test-key'], 'hello');
+            await db.set(FKeyEncoding.encodeKey(['test-key']), 'hello');
             await db.doTransaction(async (tn) => {
                 expect(context.value).toEqual('hello');
-                await db.get(['test-key']);
+                await db.get(FKeyEncoding.encodeKey(['test-key']));
                 expect(context.value).toEqual('hello');
-                await db.set(['test-key'], 'hello2');
+                await db.set(FKeyEncoding.encodeKey(['test-key']), 'hello2');
                 expect(context.value).toEqual('hello');
             });
             expect(context.value).toEqual('hello');

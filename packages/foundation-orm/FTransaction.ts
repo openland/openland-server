@@ -1,11 +1,13 @@
 import { FContext } from './FContext';
 import { FConnection } from './FConnection';
 import { FEntity } from './FEntity';
-import { Transaction, TupleItem } from 'foundationdb';
+import { Transaction } from 'foundationdb';
 import { SafeContext } from 'openland-utils/SafeContext';
 import { currentTime } from 'openland-server/utils/timer';
 import { createLogger } from 'openland-log/createLogger';
 import { RangeOptions } from 'foundationdb/dist/lib/transaction';
+import { NativeValue } from 'foundationdb/dist/lib/native';
+import { FKeyEncoding } from './utils/FKeyEncoding';
 
 const log = createLogger('tx');
 
@@ -16,7 +18,7 @@ export class FTransaction implements FContext {
 
     readonly isReadOnly: boolean = false;
     readonly id = FTransaction.nextId++;
-    tx: Transaction<TupleItem[], any> | null = null;
+    tx: Transaction<NativeValue, any> | null = null;
     private _isCompleted = false;
     private connection: FConnection | null = null;
     private _pending = new Map<string, (connection: FConnection) => Promise<void>>();
@@ -27,21 +29,29 @@ export class FTransaction implements FContext {
 
     async range(connection: FConnection, key: (string | number)[], options?: RangeOptions) {
         this._prepare(connection);
-        return (await this.tx!.getRangeAll(key, undefined, options)).map((v) => v[1]);
+        let res = (await this.tx!.getRangeAll(FKeyEncoding.encodeKey(key), undefined, options));
+        return res.map((v) => ({ item: v[1] as any, key: FKeyEncoding.decodeKey(v[0]) }));
+    }
+
+    async rangeAfter(connection: FConnection, prefix: (string | number)[], afterKey: (string | number)[], options?: RangeOptions) {
+        this._prepare(connection);
+        let end = FKeyEncoding.lastKeyInSubspace(prefix);
+        let res = await this.tx!.getRangeAll(FKeyEncoding.encodeKey(afterKey), end, options);
+        return res.map((v) => ({ item: v[1] as any, key: FKeyEncoding.decodeKey(v[0]) }));
     }
 
     async get(connection: FConnection, key: (string | number)[]) {
         this._prepare(connection);
-        return await this.tx!.get(key);
+        return await this.tx!.get(FKeyEncoding.encodeKey(key));
     }
     async set(connection: FConnection, key: (string | number)[], value: any) {
         this._prepare(connection);
-        this.tx!.set(key, value);
+        this.tx!.set(FKeyEncoding.encodeKey(key), value);
     }
 
     async delete(connection: FConnection, key: (string | number)[]) {
         this._prepare(connection);
-        this.tx!.clear(key);
+        this.tx!.clear(FKeyEncoding.encodeKey(key));
     }
 
     markDirty(entity: FEntity, callback: (connection: FConnection) => Promise<void>) {

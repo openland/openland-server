@@ -3,6 +3,7 @@ import { randomKey } from 'openland-server/utils/random';
 import { delay } from 'openland-server/utils/timer';
 import { withLogContext } from 'openland-log/withLogContext';
 import { createLogger } from 'openland-log/createLogger';
+import { FKeyEncoding } from './FKeyEncoding';
 
 export class FNodeRegistrator {
     private readonly connection: FConnection;
@@ -24,9 +25,9 @@ export class FNodeRegistrator {
                         let now = Date.now();
                         this.log.log('Check if ' + candidate + ' is available');
                         let res = await this.connection.fdb.doTransaction(async (tn) => {
-                            let existing = await tn.get(['__system', '__nodeid', candidate]);
+                            let existing = await tn.get(FKeyEncoding.encodeKey(['__system', '__nodeid', candidate]));
                             if (!existing || ((existing.timeout as number) < now)) {
-                                tn.set(['__system', '__nodeid', candidate], { timeout: now + 60000, seed: seed });
+                                tn.set(FKeyEncoding.encodeKey(['__system', '__nodeid', candidate]), { timeout: now + 60000, seed: seed });
                                 return true;
                             } else {
                                 return false;
@@ -38,9 +39,9 @@ export class FNodeRegistrator {
                             (async () => {
                                 while (true) {
                                     let updated = await this.connection.fdb.doTransaction(async (tn) => {
-                                        let existing = await tn.get(['__system', '__nodeid', candidate]);
+                                        let existing = await tn.get(FKeyEncoding.encodeKey(['__system', '__nodeid', candidate]));
                                         if (existing && existing.seed === seed) {
-                                            tn.set(['__system', '__nodeid', candidate], { timeout: Date.now() + 60000, seed: seed });
+                                            tn.set(FKeyEncoding.encodeKey(['__system', '__nodeid', candidate]), { timeout: Date.now() + 60000, seed: seed });
                                             return true;
                                         } else {
                                             return false;
