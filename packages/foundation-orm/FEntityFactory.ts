@@ -39,7 +39,7 @@ export abstract class FEntityFactory<T extends FEntity> {
 
     protected async _findRange(key: (string | number)[], limit: number, reverse?: boolean) {
         let res = await this.namespace.range(this.connection, key, { limit, reverse });
-        return res.map((v) => this._createEntity(v, false));
+        return res.map((v) => this._createEntity(v.item, false));
     }
 
     protected async _findRangeAfter(subspace: (string | number)[], after?: string, limit?: number) {

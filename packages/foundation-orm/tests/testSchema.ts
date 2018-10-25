@@ -11,7 +11,7 @@ export interface SimpleEntityShape {
 }
 
 export class SimpleEntity extends FEntity {
-    get id() { return this._value.id; }
+    get id(): number { return this._value.id; }
     get data(): string {
         return this._value.data;
     }
@@ -49,7 +49,7 @@ export interface VersionedEntityShape {
 }
 
 export class VersionedEntity extends FEntity {
-    get id() { return this._value.id; }
+    get id(): number { return this._value.id; }
     get data(): string {
         return this._value.data;
     }
@@ -87,7 +87,7 @@ export interface TimestampedEntityShape {
 }
 
 export class TimestampedEntity extends FEntity {
-    get id() { return this._value.id; }
+    get id(): number { return this._value.id; }
     get data(): string {
         return this._value.data;
     }
@@ -127,7 +127,7 @@ export interface IndexedEntityShape {
 }
 
 export class IndexedEntity extends FEntity {
-    get id() { return this._value.id; }
+    get id(): number { return this._value.id; }
     get data1(): string {
         return this._value.data1;
     }
@@ -188,7 +188,7 @@ export interface IndexedRangeEntityShape {
 }
 
 export class IndexedRangeEntity extends FEntity {
-    get id() { return this._value.id; }
+    get id(): number { return this._value.id; }
     get data1(): string {
         return this._value.data1;
     }
@@ -241,6 +241,9 @@ export class IndexedRangeEntityFactory extends FEntityFactory<IndexedRangeEntity
     async allFromDefault(data1: string) {
         return await this._findAll(['__indexes', 'default', data1]);
     }
+    createDefaultStream(limit: number, after?: string) {
+        return this._createStream(['__indexes', 'default'], limit, after); 
+    }
     protected _createEntity(value: any, isNew: boolean) {
         return new IndexedRangeEntity(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
     }
@@ -252,7 +255,7 @@ export interface IndexedPartialEntityShape {
 }
 
 export class IndexedPartialEntity extends FEntity {
-    get id() { return this._value.id; }
+    get id(): number { return this._value.id; }
     get data1(): string {
         return this._value.data1;
     }

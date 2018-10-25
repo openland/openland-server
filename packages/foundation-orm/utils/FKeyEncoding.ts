@@ -6,7 +6,12 @@ const byteZero = Buffer.alloc(1);
 byteZero.writeUInt8(0, 0);
 export const FKeyEncoding = {
     encodeKey: (key: (string | boolean | number)[]) => {
-        return encoders.tuple.pack(key) as Buffer;
+        try {
+            return encoders.tuple.pack(key) as Buffer;
+        } catch (e) {
+            console.warn('Unable to encode key', key, e);
+            throw e;
+        }
     },
     encodeKeyToString: (key: (string | boolean | number)[]) => {
         return (encoders.tuple.pack(key) as Buffer).toString('hex');
