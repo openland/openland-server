@@ -23,7 +23,6 @@ import { initApi } from './init/initApi';
 import { initDatabase } from './init/initDatabase';
 import { initElastic } from './init/initElastic';
 import './init/initConfig';
-import { performMigrations } from 'openland-migrations';
 import { Modules } from '../openland-modules/Modules';
 
 async function initServer() {
@@ -34,7 +33,6 @@ async function initServer() {
             await initElastic();
         }
 
-        performMigrations();
         if (serverRoleEnabled('api')) {
             await initApi(false);
         }

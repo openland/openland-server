@@ -411,18 +411,20 @@ export class UserRepository {
     }
 
     async getUserLastIp(uid: number) {
-        let lastActiveToken = await DB.UserToken.findAll({
-            where: {
-                userId: uid
-            },
-            order: [['updatedAt', 'DESC']],
-            limit: 1
-        });
+        
+        // let lastActiveToken = await DB.UserToken.findAll({
+        //     where: {
+        //         userId: uid
+        //     },
+        //     order: [['updatedAt', 'DESC']],
+        //     limit: 1
+        // });
 
-        if (!lastActiveToken[0]) {
-            return null;
-        }
+        // if (!lastActiveToken[0]) {
+        //     return null;
+        // }
 
-        return lastActiveToken[0].lastIp || null;
+        // return lastActiveToken[0].lastIp || null;
+        return null;
     }
 }

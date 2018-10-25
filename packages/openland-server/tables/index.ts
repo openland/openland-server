@@ -11,7 +11,6 @@ import { AccountTable } from './Account';
 import { AccountMemberTable } from './Account';
 import { ReaderStateTable } from './ReaderState';
 import { SuperAdminTable } from './SuperAdmin';
-import { UserTokenTable } from './UserToken';
 import { OrganizationTable } from './Organization';
 import { FeatureFlagTable } from './FeatureFlag';
 import { UserProfileTable } from './UserProfile';
@@ -29,7 +28,6 @@ import { ConversationsUserGlobalTable } from './ConversationsUserGlobal';
 import { ConversationUserEventsTable } from './ConversationUserEvents';
 import { retry } from '../utils/timer';
 import { ConversationGroupMembersTable } from './ConversationGroupMembers';
-import { UserPushRegistrationTable } from './UserPushRegistration';
 import { UserSettingsTable } from './UserSettings';
 import { HitsTable } from './Hit';
 import { ConversationChannelMembersTable } from './ConversationChannelMembers';
@@ -49,7 +47,6 @@ export const DB = {
     AccountMember: AccountMemberTable,
     ReaderState: ReaderStateTable,
     SuperAdmin: SuperAdminTable,
-    UserToken: UserTokenTable,
     Organization: OrganizationTable,
     OrganizationConnect: OrganizationConnectTable,
     FeatureFlag: FeatureFlagTable,
@@ -66,7 +63,6 @@ export const DB = {
     ConversationUserEvents: ConversationUserEventsTable,
     ConversationGroupMembers: ConversationGroupMembersTable,
     ConversationBlocked: ConversationBlockedTable,
-    UserPushRegistration: UserPushRegistrationTable,
     UserSettings: UserSettingsTable,
     Hit: HitsTable,
     ConversationChannelMembers: ConversationChannelMembersTable,

@@ -44,7 +44,8 @@ export const Resolver = {
     BotInfo: {
         bot: (src: User) => src,
         token: async (src: User) => {
-            return (await DB.UserToken.findOne({ where: { userId: src.id! } }))!.tokenSalt;
+            // return (await FDB.AuthToken.fin DB.UserToken.findOne({ where: { userId: src.id! } }))!.tokenSalt;
+            return '';
         }
     },
 
