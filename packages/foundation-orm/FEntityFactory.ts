@@ -5,6 +5,7 @@ import { FWatch } from './FWatch';
 import { FEntityIndex } from './FEntityIndex';
 import { FStreamItem } from './FStreamItem';
 import { FKeyEncoding } from './utils/FKeyEncoding';
+import { FStream } from './FStream';
 
 export abstract class FEntityFactory<T extends FEntity> {
     readonly namespace: FNamespace;
@@ -43,12 +44,16 @@ export abstract class FEntityFactory<T extends FEntity> {
 
     protected async _findRangeAfter(subspace: (string | number)[], after?: string, limit?: number) {
         if (after) {
-            let res = await this.namespace.rangeAfter(this.connection, subspace, FKeyEncoding.decodeFromString(after)as any, { limit });
+            let res = await this.namespace.rangeAfter(this.connection, subspace, FKeyEncoding.decodeFromString(after) as any, { limit });
             return res.map((v) => ({ value: this._createEntity(v.item, false), cursor: FKeyEncoding.encodeKeyToString(v.key) } as FStreamItem<T>));
         } else {
             let res = await this.namespace.range(this.connection, subspace, { limit });
             return res.map((v) => ({ value: this._createEntity(v.item, false), cursor: FKeyEncoding.encodeKeyToString(v.key) } as FStreamItem<T>));
         }
+    }
+
+    protected _createStream(subspace: (string | number)[], limit: number, after?: string): FStream<T> {
+        return new FStream(this.connection, subspace, limit, (s) => this._createEntity(s, false), after);
     }
 
     protected async _findAll(key: (string | number)[]) {

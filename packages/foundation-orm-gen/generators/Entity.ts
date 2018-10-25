@@ -52,7 +52,8 @@ export function generateEntity(entity: EntityModel): string {
     // res += '    }\n';
     // Keys
     for (let k of entity.keys) {
-        res += '    get ' + k.name + '() { return this._value.' + k.name + '; }\n';
+        let type: string = resolveFieldType(k);
+        res += '    get ' + k.name + '(): ' + type + ' { return this._value.' + k.name + '; }\n';
     }
 
     // Fields
@@ -128,8 +129,8 @@ export function generateEntity(entity: EntityModel): string {
             res += '        return await this._findAll([' + ['\'__indexes\'', '\'' + i.name + '\'', ...fs].join(', ') + ']);\n';
             res += '    }\n';
 
-            res += '    async afterFrom' + Case.pascalCase(i.name) + '(limit: number, after?: string) {\n';
-            res += '        return await this._findRangeAfter([' + ['\'__indexes\'', '\'' + i.name + '\''].join(', ') + '], after, limit); \n';
+            res += '    create' + Case.pascalCase(i.name) + 'Stream(limit: number, after?: string) {\n';
+            res += '        return this._createStream([' + ['\'__indexes\'', '\'' + i.name + '\''].join(', ') + '], limit, after); \n';
             res += '    }\n';
         }
     }

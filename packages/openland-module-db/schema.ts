@@ -11,7 +11,7 @@ export interface OnlineShape {
 }
 
 export class Online extends FEntity {
-    get uid() { return this._value.uid; }
+    get uid(): number { return this._value.uid; }
     get lastSeen(): number {
         return this._value.lastSeen;
     }
@@ -51,8 +51,8 @@ export interface PresenceShape {
 }
 
 export class Presence extends FEntity {
-    get uid() { return this._value.uid; }
-    get tid() { return this._value.tid; }
+    get uid(): number { return this._value.uid; }
+    get tid(): string { return this._value.tid; }
     get lastSeen(): number {
         return this._value.lastSeen;
     }
@@ -108,7 +108,7 @@ export interface CounterShape {
 }
 
 export class Counter extends FEntity {
-    get name() { return this._value.name; }
+    get name(): string { return this._value.name; }
     get value(): number {
         return this._value.value;
     }
@@ -148,7 +148,7 @@ export interface AuthTokenShape {
 }
 
 export class AuthToken extends FEntity {
-    get uuid() { return this._value.uuid; }
+    get uuid(): string { return this._value.uuid; }
     get salt(): string {
         return this._value.salt;
     }
@@ -207,8 +207,8 @@ export interface ServiceCacheShape {
 }
 
 export class ServiceCache extends FEntity {
-    get service() { return this._value.service; }
-    get key() { return this._value.key; }
+    get service(): string { return this._value.service; }
+    get key(): string { return this._value.key; }
     get value(): string {
         return this._value.value;
     }
@@ -249,7 +249,7 @@ export interface LockShape {
 }
 
 export class Lock extends FEntity {
-    get key() { return this._value.key; }
+    get key(): string { return this._value.key; }
     get seed(): string {
         return this._value.seed;
     }
@@ -321,8 +321,8 @@ export interface TaskShape {
 }
 
 export class Task extends FEntity {
-    get taskType() { return this._value.taskType; }
-    get uid() { return this._value.uid; }
+    get taskType(): string { return this._value.taskType; }
+    get uid(): string { return this._value.uid; }
     get arguments(): any {
         return this._value.arguments;
     }
@@ -432,8 +432,8 @@ export class TaskFactory extends FEntityFactory<Task> {
     async allFromPending(taskType: string) {
         return await this._findAll(['__indexes', 'pending', taskType]);
     }
-    async afterFromPending(limit: number, after?: string) {
-        return await this._findRangeAfter(['__indexes', 'pending'], after, limit); 
+    createPendingStream(limit: number, after?: string) {
+        return this._createStream(['__indexes', 'pending'], limit, after); 
     }
     async rangeFromExecuting(limit: number) {
         return await this._findRange(['__indexes', 'executing'], limit);
@@ -441,8 +441,8 @@ export class TaskFactory extends FEntityFactory<Task> {
     async allFromExecuting() {
         return await this._findAll(['__indexes', 'executing']);
     }
-    async afterFromExecuting(limit: number, after?: string) {
-        return await this._findRangeAfter(['__indexes', 'executing'], after, limit); 
+    createExecutingStream(limit: number, after?: string) {
+        return this._createStream(['__indexes', 'executing'], limit, after); 
     }
     async rangeFromFailing(limit: number) {
         return await this._findRange(['__indexes', 'failing'], limit);
@@ -450,8 +450,8 @@ export class TaskFactory extends FEntityFactory<Task> {
     async allFromFailing() {
         return await this._findAll(['__indexes', 'failing']);
     }
-    async afterFromFailing(limit: number, after?: string) {
-        return await this._findRangeAfter(['__indexes', 'failing'], after, limit); 
+    createFailingStream(limit: number, after?: string) {
+        return this._createStream(['__indexes', 'failing'], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
         return new Task(this.connection, this.namespace, [value.taskType, value.uid], value, this.options, isNew, this.indexes);
@@ -467,7 +467,7 @@ export interface PushFirebaseShape {
 }
 
 export class PushFirebase extends FEntity {
-    get id() { return this._value.id; }
+    get id(): string { return this._value.id; }
     get uid(): number {
         return this._value.uid;
     }
@@ -547,8 +547,8 @@ export class PushFirebaseFactory extends FEntityFactory<PushFirebase> {
     async allFromUser(uid: number) {
         return await this._findAll(['__indexes', 'user', uid]);
     }
-    async afterFromUser(limit: number, after?: string) {
-        return await this._findRangeAfter(['__indexes', 'user'], after, limit); 
+    createUserStream(limit: number, after?: string) {
+        return this._createStream(['__indexes', 'user'], limit, after); 
     }
     async findFromToken(token: string) {
         return await this._findById(['__indexes', 'token', token]);
@@ -567,7 +567,7 @@ export interface PushAppleShape {
 }
 
 export class PushApple extends FEntity {
-    get id() { return this._value.id; }
+    get id(): string { return this._value.id; }
     get uid(): number {
         return this._value.uid;
     }
@@ -647,8 +647,8 @@ export class PushAppleFactory extends FEntityFactory<PushApple> {
     async allFromUser(uid: number) {
         return await this._findAll(['__indexes', 'user', uid]);
     }
-    async afterFromUser(limit: number, after?: string) {
-        return await this._findRangeAfter(['__indexes', 'user'], after, limit); 
+    createUserStream(limit: number, after?: string) {
+        return this._createStream(['__indexes', 'user'], limit, after); 
     }
     async findFromToken(token: string) {
         return await this._findById(['__indexes', 'token', token]);
@@ -665,7 +665,7 @@ export interface PushWebShape {
 }
 
 export class PushWeb extends FEntity {
-    get id() { return this._value.id; }
+    get id(): string { return this._value.id; }
     get uid(): number {
         return this._value.uid;
     }
@@ -727,8 +727,8 @@ export class PushWebFactory extends FEntityFactory<PushWeb> {
     async allFromUser(uid: number) {
         return await this._findAll(['__indexes', 'user', uid]);
     }
-    async afterFromUser(limit: number, after?: string) {
-        return await this._findRangeAfter(['__indexes', 'user'], after, limit); 
+    createUserStream(limit: number, after?: string) {
+        return this._createStream(['__indexes', 'user'], limit, after); 
     }
     async findFromEndpoint(endpoint: string) {
         return await this._findById(['__indexes', 'endpoint', endpoint]);
@@ -744,7 +744,7 @@ export interface UserProfilePrefilShape {
 }
 
 export class UserProfilePrefil extends FEntity {
-    get id() { return this._value.id; }
+    get id(): number { return this._value.id; }
     get firstName(): string | null {
         let res = this._value.firstName;
         if (res) { return res; }
@@ -818,7 +818,7 @@ export interface UserProfileShape {
 }
 
 export class UserProfile extends FEntity {
-    get id() { return this._value.id; }
+    get id(): number { return this._value.id; }
     get firstName(): string {
         return this._value.firstName;
     }
@@ -985,8 +985,8 @@ export class UserProfileFactory extends FEntityFactory<UserProfile> {
     async allFromByUpdatedAt() {
         return await this._findAll(['__indexes', 'byUpdatedAt']);
     }
-    async afterFromByUpdatedAt(limit: number, after?: string) {
-        return await this._findRangeAfter(['__indexes', 'byUpdatedAt'], after, limit); 
+    createByUpdatedAtStream(limit: number, after?: string) {
+        return this._createStream(['__indexes', 'byUpdatedAt'], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
         return new UserProfile(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
@@ -997,7 +997,7 @@ export interface FeatureFlagShape {
 }
 
 export class FeatureFlag extends FEntity {
-    get key() { return this._value.key; }
+    get key(): string { return this._value.key; }
     get title(): string {
         return this._value.title;
     }
@@ -1037,7 +1037,7 @@ export interface OrganizationFeaturesShape {
 }
 
 export class OrganizationFeatures extends FEntity {
-    get id() { return this._value.id; }
+    get id(): string { return this._value.id; }
     get featureKey(): string {
         return this._value.featureKey;
     }
@@ -1093,11 +1093,49 @@ export class OrganizationFeaturesFactory extends FEntityFactory<OrganizationFeat
     async allFromOrganization(organizationId: number) {
         return await this._findAll(['__indexes', 'organization', organizationId]);
     }
-    async afterFromOrganization(limit: number, after?: string) {
-        return await this._findRangeAfter(['__indexes', 'organization'], after, limit); 
+    createOrganizationStream(limit: number, after?: string) {
+        return this._createStream(['__indexes', 'organization'], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
         return new OrganizationFeatures(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
+    }
+}
+export interface ReaderStateShape {
+    cursor: string;
+}
+
+export class ReaderState extends FEntity {
+    get id(): string { return this._value.id; }
+    get cursor(): string {
+        return this._value.cursor;
+    }
+    set cursor(value: string) {
+        this._checkIsWritable();
+        if (value === this._value.cursor) { return; }
+        this._value.cursor = value;
+        this.markDirty();
+    }
+}
+
+export class ReaderStateFactory extends FEntityFactory<ReaderState> {
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'readerState'),
+            { enableVersioning: true, enableTimestamps: false },
+            []
+        );
+    }
+    async findById(id: string) {
+        return await this._findById([id]);
+    }
+    async create(id: string, shape: ReaderStateShape) {
+        return await this._create([id], { id, ...shape });
+    }
+    watch(id: string, cb: () => void) {
+        return this._watch([id], cb);
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new ReaderState(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
     }
 }
 
@@ -1116,6 +1154,7 @@ export class AllEntities extends FDBInstance {
     UserProfile: UserProfileFactory;
     FeatureFlag: FeatureFlagFactory;
     OrganizationFeatures: OrganizationFeaturesFactory;
+    ReaderState: ReaderStateFactory;
 
     constructor(connection: FConnection) {
         super(connection);
@@ -1133,5 +1172,6 @@ export class AllEntities extends FDBInstance {
         this.UserProfile = new UserProfileFactory(connection);
         this.FeatureFlag = new FeatureFlagFactory(connection);
         this.OrganizationFeatures = new OrganizationFeaturesFactory(connection);
+        this.ReaderState = new ReaderStateFactory(connection);
     }
 }

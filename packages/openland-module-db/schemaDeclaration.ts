@@ -168,6 +168,12 @@ const Schema = declareSchema(() => {
         field('enabled', 'boolean');
         uniqueIndex('organization', ['organizationId', 'featureKey']).withRange();
     });
+
+    entity('ReaderState', () => {
+        primaryKey('id', 'string');
+        field('cursor', 'string');
+        enableVersioning();
+    });
 });
 
 generate(Schema, __dirname + '/../openland-module-db/schema.ts');
