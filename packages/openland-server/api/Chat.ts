@@ -741,49 +741,25 @@ export const Resolver = {
 
             let sameOrgUsers: User[] = [];
             let membersUserIds: number[] = [];
-            let sequelize = DB.connection;
             let orgsIds = await Repos.Users.fetchUserAccounts(uid);
             if (orgsIds.length > 0) {
                 let members = await DB.OrganizationMember.findAll({ where: { orgId: { $in: orgsIds } } });
-                let membersIds = members.map(m => m.userId);
-                let membersProfiles = await DB.UserProfile.findAll({
-                    where:
-                        [
-                            sequelize.and(
-                                {
-                                    userId: {
-                                        $in: membersIds
-                                    }
-                                },
-                                {
-                                    userId: {
-                                        $not: uid
-                                    }
-                                },
-                                sequelize.or(
-                                    sequelize.where(sequelize.fn('concat', sequelize.col('firstName'), ' ', sequelize.col('lastName')), {
-                                        $ilike: args.query.toLowerCase() + '%'
-                                    }),
-                                    {
-                                        firstName: {
-                                            $ilike: args.query.toLowerCase() + '%'
-                                        }
-                                    },
-                                    {
-                                        lastName: {
-                                            $ilike: args.query.toLowerCase() + '%'
-                                        }
-                                    },
-                                    {
-                                        email: {
-                                            $ilike: args.query.toLowerCase() + '%'
-                                        }
-                                    }
-                                ),
-                            )
-                        ],
-                });
-                membersUserIds = membersProfiles.map(m => m.userId!!);
+                let membersIds = members.filter((v) => v.userId !== uid);
+                let profiles: UserProfile[] = [];
+                for (let m of membersIds) {
+                    let p = await Modules.Users.profileById(m.userId);
+                    if (p) {
+                        profiles.push(p);
+                    }
+                }
+
+                profiles = profiles.filter((p) =>
+                    (p.email && p.email.toLocaleLowerCase().startsWith(args.query.toLowerCase()))
+                    || (p.lastName && p.lastName.toLocaleLowerCase().startsWith(args.query.toLowerCase()))
+                    || (p.firstName && p.firstName.toLocaleLowerCase().startsWith(args.query.toLowerCase()))
+                );
+
+                membersUserIds = profiles.map(m => m.id);
                 sameOrgUsers = await DB.User.findAll({
                     where: {
                         id: {
@@ -797,55 +773,55 @@ export const Resolver = {
                 sameOrgUsers = sameOrgUsers.sort(u => primaryOrgMembers.indexOf(u.id!) > -1 ? -1 : 1).filter((o, i) => i < limit);
             }
 
-            let usersProfiles = await DB.UserProfile.findAll({
-                where:
-                    [
-                        sequelize.and(
-                            {
-                                userId: {
-                                    $notIn: [uid, ...membersUserIds]
-                                }
-                            },
-                            sequelize.or(
-                                sequelize.where(sequelize.fn('concat', sequelize.col('firstName'), ' ', sequelize.col('lastName')), {
-                                    $ilike: args.query.toLowerCase() + '%'
-                                }),
-                                {
-                                    firstName: {
-                                        $ilike: args.query.toLowerCase() + '%'
-                                    }
-                                },
-                                {
-                                    lastName: {
-                                        $ilike: args.query.toLowerCase() + '%'
-                                    }
-                                },
-                                {
-                                    email: {
-                                        $ilike: args.query.toLowerCase() + '%'
-                                    }
-                                }
-                            ),
-                        )
-                    ],
-            });
-            let usersIds = usersProfiles.map(m => m.userId!!);
-            let users = await DB.User.findAll({
-                where: [
-                    sequelize.and(
-                        {
-                            id: {
-                                $in: usersIds
-                            }
-                        },
-                        {
-                            status: 'ACTIVATED'
-                        }
-                    )
-                ],
-                limit: limit
-            });
-            return [...sameOrgUsers, ...users, ...orgs].filter((o, i) => i < limit);
+            // let usersProfiles = await DB.UserProfile.findAll({
+            //     where:
+            //         [
+            //             sequelize.and(
+            //                 {
+            //                     userId: {
+            //                         $notIn: [uid, ...membersUserIds]
+            //                     }
+            //                 },
+            //                 sequelize.or(
+            //                     sequelize.where(sequelize.fn('concat', sequelize.col('firstName'), ' ', sequelize.col('lastName')), {
+            //                         $ilike: args.query.toLowerCase() + '%'
+            //                     }),
+            //                     {
+            //                         firstName: {
+            //                             $ilike: args.query.toLowerCase() + '%'
+            //                         }
+            //                     },
+            //                     {
+            //                         lastName: {
+            //                             $ilike: args.query.toLowerCase() + '%'
+            //                         }
+            //                     },
+            //                     {
+            //                         email: {
+            //                             $ilike: args.query.toLowerCase() + '%'
+            //                         }
+            //                     }
+            //                 ),
+            //             )
+            //         ],
+            // });
+            // let usersIds = usersProfiles.map(m => m.userId!!);
+            // let users = await DB.User.findAll({
+            //     where: [
+            //         sequelize.and(
+            //             {
+            //                 id: {
+            //                     $in: usersIds
+            //                 }
+            //             },
+            //             {
+            //                 status: 'ACTIVATED'
+            //             }
+            //         )
+            //     ],
+            //     limit: limit
+            // });
+            return [...sameOrgUsers, ...orgs].filter((o, i) => i < limit);
         }),
         alphaChatSearch: withUser<{ members: string[] }>(async (args, uid) => {
             let members = [...args.members.map((v) => IDs.User.parse(v)), uid];
@@ -894,7 +870,7 @@ export const Resolver = {
 
             // GROUPS / CHANNELS has titles we can search 
             let searchableConversations = (await DB.ConversationUserState.findAll({ where: { userId: uid } })).map(s => s.conversationId);
-            let sequelize = DB.connection;
+            // let sequelize = DB.connection;
             let groupsChannels = await DB.Conversation.findAll({
                 where: {
                     type: {
@@ -910,63 +886,63 @@ export const Resolver = {
             });
 
             // PERSONAL - search users first, then matching conversations with current user
-            let usersProfiles = await DB.UserProfile.findAll({
-                where:
-                    [
-                        sequelize.and(
-                            {
-                                userId: {
-                                    $not: uid
-                                }
-                            },
-                            sequelize.or(
-                                sequelize.where(sequelize.fn('concat', sequelize.col('firstName'), ' ', sequelize.col('lastName')), {
-                                    $ilike: '%' + args.query.toLowerCase() + '%'
-                                }),
-                                {
-                                    firstName: {
-                                        $ilike: args.query.toLowerCase() + '%'
-                                    }
-                                },
-                                {
-                                    lastName: {
-                                        $ilike: args.query.toLowerCase() + '%'
-                                    }
-                                },
-                                {
-                                    email: {
-                                        $ilike: '%' + args.query.toLowerCase() + '%'
-                                    }
-                                }
-                            ),
-                        )
-                    ],
-            });
-            let userIds = usersProfiles.map(u => u.userId!!);
+            // let usersProfiles = await DB.UserProfile.findAll({
+            //     where:
+            //         [
+            //             sequelize.and(
+            //                 {
+            //                     userId: {
+            //                         $not: uid
+            //                     }
+            //                 },
+            //                 sequelize.or(
+            //                     sequelize.where(sequelize.fn('concat', sequelize.col('firstName'), ' ', sequelize.col('lastName')), {
+            //                         $ilike: '%' + args.query.toLowerCase() + '%'
+            //                     }),
+            //                     {
+            //                         firstName: {
+            //                             $ilike: args.query.toLowerCase() + '%'
+            //                         }
+            //                     },
+            //                     {
+            //                         lastName: {
+            //                             $ilike: args.query.toLowerCase() + '%'
+            //                         }
+            //                     },
+            //                     {
+            //                         email: {
+            //                             $ilike: '%' + args.query.toLowerCase() + '%'
+            //                         }
+            //                     }
+            //                 ),
+            //             )
+            //         ],
+            // });
+            // let userIds = usersProfiles.map(u => u.userId!!);
 
-            let personal = await DB.Conversation.findAll({
-                where: [
-                    sequelize.and(
-                        {
-                            type: 'private'
-                        },
-                        sequelize.or(
-                            {
-                                member1Id: uid,
-                                member2Id: {
-                                    $in: userIds
-                                }
-                            },
-                            {
-                                member2Id: uid,
-                                member1Id: {
-                                    $in: userIds
-                                }
-                            }
-                        )
-                    )
-                ]
-            });
+            // let personal = await DB.Conversation.findAll({
+            //     where: [
+            //         sequelize.and(
+            //             {
+            //                 type: 'private'
+            //             },
+            //             sequelize.or(
+            //                 {
+            //                     member1Id: uid,
+            //                     member2Id: {
+            //                         $in: userIds
+            //                     }
+            //                 },
+            //                 {
+            //                     member2Id: uid,
+            //                     member1Id: {
+            //                         $in: userIds
+            //                     }
+            //                 }
+            //             )
+            //         )
+            //     ]
+            // });
 
             // SHARED search org1 matching name, org2 current and vice versa
             let orgs1 = await DB.Conversation.findAll({
@@ -1051,7 +1027,7 @@ export const Resolver = {
                 ]
             });
 
-            let res = [...personal, ...groupsChannels, ...orgs1, ...orgs2, ...orgsInner];
+            let res = [...groupsChannels, ...orgs1, ...orgs2, ...orgsInner];
             res = res.reduce(
                 (p, x) => {
                     if (!p.find(c => c.id === x.id)) {
@@ -2070,7 +2046,7 @@ export const Resolver = {
                 if (!member) {
                     throw new Error('No such member');
                 }
-                let profile =  await Modules.Users.profileById(uid);
+                let profile = await Modules.Users.profileById(uid);
 
                 await Repos.Chats.sendMessage(
                     tx,
