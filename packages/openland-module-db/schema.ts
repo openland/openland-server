@@ -766,7 +766,7 @@ export class UserProfilePrefilFactory extends FEntityFactory<UserProfilePrefil> 
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'userProfilePrefil'),
-            { enableVersioning: false, enableTimestamps: false },
+            { enableVersioning: true, enableTimestamps: true },
             []
         );
     }
@@ -783,6 +783,111 @@ export class UserProfilePrefilFactory extends FEntityFactory<UserProfilePrefil> 
         return new UserProfilePrefil(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
     }
 }
+export interface FeatureFlagShape {
+    title: string;
+}
+
+export class FeatureFlag extends FEntity {
+    get key() { return this._value.key; }
+    get title(): string {
+        return this._value.title;
+    }
+    set title(value: string) {
+        this._checkIsWritable();
+        if (value === this._value.title) { return; }
+        this._value.title = value;
+        this.markDirty();
+    }
+}
+
+export class FeatureFlagFactory extends FEntityFactory<FeatureFlag> {
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'featureFlag'),
+            { enableVersioning: true, enableTimestamps: true },
+            []
+        );
+    }
+    async findById(key: string) {
+        return await this._findById([key]);
+    }
+    async create(key: string, shape: FeatureFlagShape) {
+        return await this._create([key], { key, ...shape });
+    }
+    watch(key: string, cb: () => void) {
+        return this._watch([key], cb);
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new FeatureFlag(this.connection, this.namespace, [value.key], value, this.options, isNew, this.indexes);
+    }
+}
+export interface OrganizationFeaturesShape {
+    featureKey: string;
+    organizationId: number;
+    enabled: boolean;
+}
+
+export class OrganizationFeatures extends FEntity {
+    get id() { return this._value.id; }
+    get featureKey(): string {
+        return this._value.featureKey;
+    }
+    set featureKey(value: string) {
+        this._checkIsWritable();
+        if (value === this._value.featureKey) { return; }
+        this._value.featureKey = value;
+        this.markDirty();
+    }
+    get organizationId(): number {
+        return this._value.organizationId;
+    }
+    set organizationId(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.organizationId) { return; }
+        this._value.organizationId = value;
+        this.markDirty();
+    }
+    get enabled(): boolean {
+        return this._value.enabled;
+    }
+    set enabled(value: boolean) {
+        this._checkIsWritable();
+        if (value === this._value.enabled) { return; }
+        this._value.enabled = value;
+        this.markDirty();
+    }
+}
+
+export class OrganizationFeaturesFactory extends FEntityFactory<OrganizationFeatures> {
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'organizationFeatures'),
+            { enableVersioning: false, enableTimestamps: false },
+            [new FEntityIndex('organization', ['organizationId', 'featureKey'], true)]
+        );
+    }
+    async findById(id: string) {
+        return await this._findById([id]);
+    }
+    async create(id: string, shape: OrganizationFeaturesShape) {
+        return await this._create([id], { id, ...shape });
+    }
+    watch(id: string, cb: () => void) {
+        return this._watch([id], cb);
+    }
+    async findFromOrganization(organizationId: number, featureKey: string) {
+        return await this._findById(['__indexes', 'organization', organizationId, featureKey]);
+    }
+    async rangeFromOrganization(organizationId: number, limit: number) {
+        return await this._findRange(['__indexes', 'organization', organizationId], limit);
+    }
+    async allFromOrganization(organizationId: number) {
+        return await this._findAll(['__indexes', 'organization', organizationId]);
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new OrganizationFeatures(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
+    }
+}
 
 export class AllEntities extends FDBInstance {
     Online: OnlineFactory;
@@ -796,6 +901,8 @@ export class AllEntities extends FDBInstance {
     PushApple: PushAppleFactory;
     PushWeb: PushWebFactory;
     UserProfilePrefil: UserProfilePrefilFactory;
+    FeatureFlag: FeatureFlagFactory;
+    OrganizationFeatures: OrganizationFeaturesFactory;
 
     constructor(connection: FConnection) {
         super(connection);
@@ -810,5 +917,7 @@ export class AllEntities extends FDBInstance {
         this.PushApple = new PushAppleFactory(connection);
         this.PushWeb = new PushWebFactory(connection);
         this.UserProfilePrefil = new UserProfilePrefilFactory(connection);
+        this.FeatureFlag = new FeatureFlagFactory(connection);
+        this.OrganizationFeatures = new OrganizationFeaturesFactory(connection);
     }
 }

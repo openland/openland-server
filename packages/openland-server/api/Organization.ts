@@ -6,13 +6,12 @@ import { withUser, withAccount, withAny, withPermission } from './utils/Resolver
 import { Repos } from '../repositories';
 import { ImageRef } from '../repositories/Media';
 import { CallContext } from './utils/CallContext';
-import { OrganizationExtras, ContactPerson, Range, ListingExtras, DummyPost } from '../repositories/OrganizationExtras';
+import { OrganizationExtras, ContactPerson, Range, DummyPost } from '../repositories/OrganizationExtras';
 import { UserError } from '../errors/UserError';
 import { ErrorText } from '../errors/ErrorText';
 import { NotFoundError } from '../errors/NotFoundError';
 import { Sanitizer } from '../modules/Sanitizer';
 import { InvalidInputError } from '../errors/InvalidInputError';
-import { OrganizationListing } from '../tables/OrganizationListing';
 import { ElasticClient } from '../indexing';
 import { buildElasticQuery, QueryParser } from '../modules/QueryParser';
 import { SelectBuilder } from '../modules/SelectBuilder';
@@ -34,14 +33,6 @@ let isFollowed = async (initiatorOrgId: number, targetOrgId: number) => {
 
     return !!(connection && connection.followStatus === 'FOLLOWING');
 };
-
-interface AlphaOrganizationListingsParams {
-    orgId: string;
-    query?: string;
-    first: number;
-    after?: string;
-    page?: number;
-}
 
 interface AlphaOrganizationsParams {
     query?: string;
@@ -76,10 +67,6 @@ export const Resolver = {
         alphaLocations: (src: Organization) => src.extras && src.extras.locations,
         alphaInterests: (src: Organization) => src.extras && src.extras.interests,
         alphaDummyPosts: (src: Organization) => src.extras && src.extras.dummyPosts,
-
-        alphaListingDevelopmentOportunities: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id, type: 'development_opportunity' }, order: [['updatedAt', 'DESC']] }),
-        alphaListingAcquisitionRequests: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id, type: 'acquisition_request' }, order: [['updatedAt', 'DESC']] }),
-        alphaListingsAll: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id }, order: [['updatedAt', 'DESC']] }),
 
         // depricated
         alphaPotentialSites: (src: Organization) => src.extras && src.extras.potentialSites,
@@ -133,41 +120,6 @@ export const Resolver = {
         }
     },
 
-    AlphaOrganizationListing: {
-        // common
-        id: (src: OrganizationListing) => IDs.OrganizationListing.serialize(src.id!!),
-        name: (src: OrganizationListing) => src.name,
-        type: (src: OrganizationListing) => src.type,
-        summary: (src: OrganizationListing) => src.extras && src.extras.summary,
-        specialAttributes: (src: OrganizationListing) => src.extras && src.extras.specialAttributes,
-        status: (src: OrganizationListing) => src.extras && src.extras.status,
-        updatedAt: (src: OrganizationListing) => (src as any).updatedAt,
-        photo: (src: OrganizationListing) => src.extras && src.extras.photo,
-
-        // DO
-        location: (src: OrganizationListing) => src.extras && src.extras.location,
-        locationTitle: (src: OrganizationListing) => src.extras && src.extras.locationTitle,
-        availability: (src: OrganizationListing) => src.extras && src.extras.availability,
-        area: (src: OrganizationListing) => src.extras && src.extras.area,
-        price: (src: OrganizationListing) => src.extras && src.extras.price,
-        dealType: (src: OrganizationListing) => src.extras && src.extras.dealType,
-        shapeAndForm: (src: OrganizationListing) => src.extras && src.extras.shapeAndForm,
-        currentUse: (src: OrganizationListing) => src.extras && src.extras.currentUse,
-        goodFitFor: (src: OrganizationListing) => src.extras && src.extras.goodFitFor,
-        additionalLinks: (src: OrganizationListing) => src.extras && src.extras.additionalLinks,
-        // AR
-        shortDescription: (src: OrganizationListing) => src.extras && src.extras.shortDescription,
-        areaRange: (src: OrganizationListing) => src.extras && src.extras.areaRange,
-        geographies: (src: OrganizationListing) => src.extras && src.extras.geographies,
-        landUse: (src: OrganizationListing) => src.extras && src.extras.landUse,
-        unitCapacity: (src: OrganizationListing) => src.extras && src.extras.unitCapacity,
-    },
-
-    AlphaOrganizationListingLink: {
-        text: (src: { text: string, url: string }) => src.text,
-        url: (src: { text: string, url: string }) => src.url,
-    },
-
     OrganizationContact: {
         name: (src: ContactPerson) => src.name,
         photo: (src: ContactPerson) => src.photoRef ? buildBaseImageUrl(src.photoRef) : null,
@@ -216,10 +168,6 @@ export const Resolver = {
                 return false;
             }
         },
-
-        alphaListingDevelopmentOportunities: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id, type: 'development_opportunity' }, order: [['updatedAt', 'DESC']] }),
-        alphaListingAcquisitionRequests: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id, type: 'acquisition_request' }, order: [['updatedAt', 'DESC']] }),
-        alphaListingsAll: (src: Organization) => DB.OrganizationListing.findAll({ where: { orgId: src.id }, order: [['updatedAt', 'DESC']] }),
 
         // depricated
         alphaPotentialSites: (src: Organization) => src.extras && src.extras.potentialSites,
@@ -322,36 +270,6 @@ export const Resolver = {
                 throw new NotFoundError('Unable to find organization');
             }
             return res;
-        }),
-        alphaOrganizationListings: withAny<AlphaOrganizationListingsParams>(async args => {
-            let clauses: any[] = [
-                { term: { orgId: IDs.Organization.parse(args.orgId) } }
-            ];
-
-            if (args.query) {
-                let parser = new QueryParser();
-                parser.registerText('name', 'name');
-                let parsed = parser.parseQuery(args.query);
-                let elasticQuery = buildElasticQuery(parsed);
-                clauses.push(elasticQuery);
-            }
-
-            let hits = await ElasticClient.search({
-                index: 'organization_listings',
-                type: 'organization_listing',
-                size: args.first,
-                from: args.after ? parseInt(args.after, 10) : (args.page ? ((args.page - 1) * args.first) : 0),
-                body: {
-                    query: { bool: { must: clauses } }
-                }
-            });
-
-            let builder = new SelectBuilder(DB.OrganizationListing)
-                .after(args.after)
-                .page(args.page)
-                .limit(args.first);
-
-            return await builder.findElastic(hits);
         }),
 
         alphaOrganizationMembers: withAccount<{ orgId: string }>(async (args, uid, orgId) => {
@@ -879,379 +797,6 @@ export const Resolver = {
                     }, { transaction: tx });
                 }
                 return await DB.Organization.findById(orgId, { transaction: tx });
-            });
-        }),
-        alphaOrganizationCreateListing: withAccount<{
-
-            type: 'development_opportunity' | 'acquisition_request' | 'common';
-
-            input: {
-                // common
-                name: string;
-                summary?: string | null;
-                specialAttributes?: string[] | null;
-                status?: 'open' | null;
-                photo?: ImageRef | null
-
-                channels?: string[];
-
-                // DO
-                location?: { lon: number, lat: number, ref?: string, count?: number };
-                locationTitle?: string;
-                availability?: string | null;
-                area?: number | null;
-                price?: number | null;
-                dealType?: string[] | null;
-                shapeAndForm?: string[] | null;
-                currentUse?: string[] | null;
-                goodFitFor?: string[] | null;
-                additionalLinks?: { text: string, url: string }[] | null;
-
-                // AR
-                shortDescription?: string | null;
-                areaRange?: Range | null;
-                geographies?: string[] | null;
-                landUse?: string[] | null;
-                unitCapacity?: string[] | null;
-            }
-        }>(async (args, uid, oid) => {
-            return await DB.txStable(async (tx) => {
-                let member = await DB.OrganizationMember.find({
-                    where: {
-                        orgId: oid,
-                        userId: uid,
-                    },
-                    transaction: tx
-                });
-                if (member === null || !member.isOwner) {
-                    throw new UserError(ErrorText.permissionOnlyOwner);
-                }
-
-                await validate(
-                    {
-                        type: defined(enumString(['development_opportunity', 'acquisition_request', 'common'])),
-                        input: {
-                            name: defined(stringNotEmpty(`Name can't be empty!`)),
-                            status: optional(enumString(['open'])),
-                            additionalLinks: [
-                                ,
-                                {
-                                    text: stringNotEmpty(`Text can't be empty!`),
-                                    url: stringNotEmpty(`Url can't be empty!`)
-                                }
-                            ]
-                        }
-                    },
-                    args
-                );
-
-                // common
-                let extras = {} as ListingExtras;
-                if (args.input.summary !== undefined) {
-                    extras.summary = Sanitizer.sanitizeString(args.input.summary);
-                }
-
-                if (args.input.specialAttributes !== undefined) {
-                    extras.specialAttributes = Sanitizer.sanitizeAny(args.input.specialAttributes);
-                }
-
-                if (args.input.photo !== undefined) {
-                    if (args.input.photo !== null) {
-                        await Services.UploadCare.saveFile(args.input.photo.uuid);
-                    }
-                    extras.photo = Sanitizer.sanitizeImageRef(args.input.photo);
-                }
-
-                // DO
-                if (args.input.location !== undefined) {
-                    extras.location = Sanitizer.sanitizeAny(args.input.location)!;
-                }
-
-                // extras.locationTitle = Sanitizer.sanitizeString(args.input.locationTitle)!;
-                // if (args.type === 'development_opportunity' && !extras.locationTitle) {
-                //     extrasValidateError.push({ key: 'input.locationTitle', message: 'Full address can\'t be empty' });
-                // }
-                if (args.input.locationTitle !== undefined) {
-                    extras.locationTitle = Sanitizer.sanitizeAny(args.input.locationTitle)!;
-                }
-
-                if (args.input.availability !== undefined) {
-                    extras.availability = Sanitizer.sanitizeString(args.input.availability);
-                }
-
-                if (args.input.area !== undefined) {
-                    extras.area = Sanitizer.sanitizeNumber(args.input.area);
-                }
-
-                if (args.input.price !== undefined) {
-                    extras.price = Sanitizer.sanitizeNumber(args.input.price);
-                }
-
-                if (args.input.dealType !== undefined) {
-                    extras.dealType = Sanitizer.sanitizeAny(args.input.dealType);
-                }
-
-                if (args.input.shapeAndForm !== undefined) {
-                    extras.shapeAndForm = Sanitizer.sanitizeAny(args.input.shapeAndForm);
-                }
-
-                if (args.input.currentUse !== undefined) {
-                    extras.currentUse = Sanitizer.sanitizeAny(args.input.currentUse);
-                }
-
-                if (args.input.goodFitFor !== undefined) {
-                    extras.goodFitFor = Sanitizer.sanitizeAny(args.input.goodFitFor);
-                }
-
-                // AR 
-                if (args.input.shortDescription !== undefined) {
-                    extras.shortDescription = Sanitizer.sanitizeString(args.input.shortDescription);
-                }
-
-                if (args.input.areaRange !== undefined) {
-                    extras.areaRange = Sanitizer.sanitizeAny(args.input.areaRange);
-                }
-
-                if (args.input.landUse !== undefined) {
-                    extras.landUse = Sanitizer.sanitizeAny(args.input.landUse);
-                }
-
-                if (args.input.geographies !== undefined) {
-                    extras.geographies = Sanitizer.sanitizeAny(args.input.geographies);
-                }
-
-                if (args.input.unitCapacity !== undefined) {
-                    extras.unitCapacity = Sanitizer.sanitizeAny(args.input.unitCapacity);
-                }
-
-                let res = await DB.OrganizationListing.create({
-                    name: args.input.name,
-                    type: args.type,
-                    extras: extras,
-                    userId: uid,
-                    orgId: oid,
-                }, { transaction: tx });
-
-                let listingUrl = 'https://app.openland.com/o/' + IDs.Organization.serialize(oid) + '/listings#' + IDs.OrganizationListing.serialize(res.id!!);
-                if (args.input.channels) {
-                    let org = (await DB.Organization.find({ where: { id: oid }, transaction: tx }))!!.name!!;
-                    for (let c of args.input.channels) {
-                        await Repos.Chats.sendMessage(tx, IDs.Conversation.parse(c), uid, {
-                            message: listingUrl,
-                            urlAugmentation: {
-                                url: listingUrl,
-                                title: org,
-                                date: (res as any).createdAt,
-                                subtitle: args.input.name,
-                                description: args.input.summary,
-                                photo: args.input.photo
-                            } as any
-                        });
-                    }
-                }
-
-                return res;
-
-            });
-
-        }),
-        alphaOrganizationEditListing: withAccount<{
-            id: string;
-
-            input: {
-                // common
-                name?: string;
-                summary?: string | null;
-                specialAttributes?: string[] | null;
-                status?: 'open' | null;
-                photo?: ImageRef | null
-
-                // DO
-                location?: { lon: number, lat: number, ref?: string, count?: number };
-                locationTitle?: string;
-                availability?: string | null;
-                area?: number | null;
-                price?: number | null;
-                dealType?: string[] | null;
-                shapeAndForm?: string[] | null;
-                currentUse?: string[] | null;
-                goodFitFor?: string[] | null;
-                additionalLinks?: { text: string, url: string }[] | null;
-
-                // AR
-                shortDescription?: string | null;
-                areaRange?: Range | null;
-                geographies?: string[] | null;
-                landUse?: string[] | null;
-                unitCapacity?: string[] | null;
-            }
-        }>(async (args, uid, oid) => {
-            return await DB.tx(async (tx) => {
-                let member = await DB.OrganizationMember.find({
-                    where: {
-                        orgId: oid,
-                        userId: uid,
-                    },
-                    transaction: tx,
-                });
-                if (member === null || !member.isOwner) {
-                    throw new UserError(ErrorText.permissionOnlyOwner);
-                }
-
-                let existing = await DB.OrganizationListing.find({ where: { id: IDs.OrganizationListing.parse(args.id), orgId: oid }, transaction: tx, lock: tx.LOCK.UPDATE });
-                if (!existing) {
-                    throw new UserError(ErrorText.unableToFindListing);
-                }
-
-                let extrasValidateError: { key: string, message: string }[] = [];
-
-                await validate(
-                    {
-                        input: {
-                            name: defined(stringNotEmpty(`Name cant't be empty`)),
-                            status: optional(enumString(['open'])),
-                            additionalLinks: [
-                                ,
-                                {
-                                    text: stringNotEmpty(`Text can't be empty!`),
-                                    url: stringNotEmpty(`Url can't be empty!`)
-                                }
-                            ]
-                        }
-                    },
-                    args
-                );
-
-                // basic
-                if (args.input.name !== undefined) {
-                    existing.name = args.input.name;
-                }
-
-                // common
-                let extras = existing.extras!;
-                if (args.input.summary !== undefined) {
-                    extras.summary = Sanitizer.sanitizeString(args.input.summary);
-                }
-
-                if (args.input.specialAttributes !== undefined) {
-                    extras.specialAttributes = Sanitizer.sanitizeAny(args.input.specialAttributes);
-                }
-
-                if (args.input.status !== undefined) {
-                    extras.status = Sanitizer.sanitizeString(args.input.status) as ('open' | null);
-                }
-
-                if (args.input.photo !== undefined) {
-                    if (args.input.photo !== null) {
-                        await Services.UploadCare.saveFile(args.input.photo.uuid);
-                    }
-                    extras.photo = Sanitizer.sanitizeImageRef(args.input.photo);
-                }
-
-                // DO
-                if (args.input.location !== undefined) {
-                    extras.location = Sanitizer.sanitizeAny(args.input.location)!;
-                }
-
-                // if (args.input.locationTitle !== undefined) {
-                //     extras.locationTitle = Sanitizer.sanitizeString(args.input.locationTitle)!;
-                //     if (existing.type === 'development_opportunity' && !extras.locationTitle) {
-                //         extras.locationTitle = Sanitizer.sanitizeString(args.input.locationTitle);
-                //         extrasValidateError.push({ key: 'input.locationTitle', message: 'Full address can\'t be empty' });
-                //     }
-                // }
-                if (args.input.locationTitle !== undefined) {
-                    extras.locationTitle = Sanitizer.sanitizeAny(args.input.locationTitle)!;
-                }
-
-                if (args.input.availability !== undefined) {
-                    extras.availability = Sanitizer.sanitizeString(args.input.availability);
-                }
-
-                if (args.input.area !== undefined) {
-                    extras.area = Sanitizer.sanitizeNumber(args.input.area);
-                }
-
-                if (args.input.price !== undefined) {
-                    extras.price = Sanitizer.sanitizeNumber(args.input.price);
-                }
-
-                if (args.input.dealType !== undefined) {
-                    extras.dealType = Sanitizer.sanitizeAny(args.input.dealType);
-                }
-
-                if (args.input.shapeAndForm !== undefined) {
-                    extras.shapeAndForm = Sanitizer.sanitizeAny(args.input.shapeAndForm);
-                }
-
-                if (args.input.currentUse !== undefined) {
-                    extras.currentUse = Sanitizer.sanitizeAny(args.input.currentUse);
-                }
-
-                if (args.input.goodFitFor !== undefined) {
-                    extras.goodFitFor = Sanitizer.sanitizeAny(args.input.goodFitFor);
-                }
-
-                if (args.input.additionalLinks !== undefined) {
-                    extras.additionalLinks = Sanitizer.sanitizeAny(args.input.additionalLinks);
-                }
-
-                // AR 
-                if (args.input.shortDescription !== undefined) {
-                    extras.shortDescription = Sanitizer.sanitizeString(args.input.shortDescription);
-                }
-
-                if (args.input.areaRange !== undefined) {
-                    extras.areaRange = Sanitizer.sanitizeAny(args.input.areaRange);
-                }
-
-                if (args.input.landUse !== undefined) {
-                    extras.landUse = Sanitizer.sanitizeAny(args.input.landUse);
-                }
-
-                if (args.input.geographies !== undefined) {
-                    extras.geographies = Sanitizer.sanitizeAny(args.input.geographies);
-                }
-
-                if (args.input.unitCapacity !== undefined) {
-                    extras.unitCapacity = Sanitizer.sanitizeAny(args.input.unitCapacity);
-                }
-
-                existing.extras = extras;
-
-                if (extrasValidateError.length > 0) {
-                    throw new InvalidInputError(extrasValidateError);
-                }
-
-                await existing.save({ transaction: tx });
-                return existing;
-            });
-
-        }),
-        alphaOrganizationDeleteListing: withAccount<{ id: string }>(async (args, uid, oid) => {
-            return await DB.tx(async (tx) => {
-                let member = await DB.OrganizationMember.find({
-                    where: {
-                        orgId: oid,
-                        userId: uid,
-                    },
-                    transaction: tx,
-                });
-                if (member === null || !member.isOwner) {
-                    throw new UserError(ErrorText.permissionOnlyOwner);
-                }
-
-                let listing = await DB.OrganizationListing.find({
-                    where: { orgId: oid, id: IDs.OrganizationListing.parse(args.id) },
-                    lock: tx.LOCK.UPDATE,
-                    transaction: tx
-                });
-
-                if (!listing) {
-                    throw new NotFoundError(ErrorText.unableToFindListing);
-                }
-                await listing.destroy({ transaction: tx });
-                return 'ok';
             });
         }),
 

@@ -5,9 +5,10 @@ import { Organization } from '../tables/Organization';
 import { IDs } from './utils/IDs';
 import { DB } from '../tables';
 import { SuperAdmin } from '../tables/SuperAdmin';
-import { FeatureFlag } from '../tables/FeatureFlag';
 import { UserError } from '../errors/UserError';
 import { ErrorText } from '../errors/ErrorText';
+import { Modules } from 'openland-modules/Modules';
+import { FeatureFlag } from 'openland-module-db/schema';
 
 export const Resolvers = {
     SuperAccount: {
@@ -51,7 +52,7 @@ export const Resolvers = {
     //     }
     // },
     FeatureFlag: {
-        id: (src: FeatureFlag) => IDs.FeatureFlag.serialize(src.id!!),
+        id: (src: FeatureFlag) => src.key /* TODO: FIXME */,
         title: (src: FeatureFlag) => src.title,
         key: (src: FeatureFlag) => src.key
     },
@@ -113,7 +114,7 @@ export const Resolvers = {
             });
         }),
         featureFlags: withPermission(['super-admin', 'software-developer'], () => {
-            return Repos.Permissions.resolveFeatureFlags();
+            return Modules.Features.repo.findAllFeatures();
         }),
         alphaRefreshTask: withAny<{ id: string }>((args) => {
             return null;
@@ -145,16 +146,16 @@ export const Resolvers = {
             return Repos.Super.removeFromOrganization(IDs.SuperAccount.parse(args.id), IDs.User.parse(args.userId));
         }),
         featureFlagAdd: withPermission<{ key: string, title: string }>(['super-admin', 'software-developer'], async (args) => {
-            return Repos.Permissions.createFeatureFlag(args.key, args.title);
+            return Modules.Features.repo.createFeatureFlag(args.key, args.title);
         }),
         superAccountFeatureAdd: withPermission<{ id: string, featureId: string }>(['super-admin', 'software-developer'], async (args) => {
             let org = await Repos.Super.fetchById(IDs.SuperAccount.parse(args.id));
-            await (org as any).addFeatureFlag(IDs.FeatureFlag.parse(args.featureId));
+            Modules.Features.repo.enableFeatureForOrganization(org.id!, args.featureId);
             return org;
         }),
         superAccountFeatureRemove: withPermission<{ id: string, featureId: string }>(['super-admin', 'software-developer'], async (args) => {
             let org = await Repos.Super.fetchById(IDs.SuperAccount.parse(args.id));
-            await (org as any).removeFeatureFlag(IDs.FeatureFlag.parse(args.featureId));
+            Modules.Features.repo.disableFeatureForOrganization(org.id!, args.featureId);
             return org;
         }),
         superAdminAdd: withPermission<{ userId: string, role: 'SUPER_ADMIN' | 'SOFTWARE_DEVELOPER' | 'EDITOR' }>('super-admin', async (args) => {

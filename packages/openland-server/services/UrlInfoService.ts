@@ -22,7 +22,6 @@ export interface URLAugmentation {
 }
 
 export default class UrlInfoService {
-    private listingRegexp = /^(http:\/\/localhost:3000|https:\/\/app.openland.com)\/o\/(.*)\/listings\#(.*)/;
     private userRegexp = /^(http:\/\/localhost:3000|https:\/\/app.openland.com)\/mail\/u\/(.*)/;
     private orgRegexp = /^(http:\/\/localhost:3000|https:\/\/app.openland.com)\/(directory\/)?o\/(.*)/;
     private channelRegexp = /^(http:\/\/localhost:3000|https:\/\/app.openland.com)\/mail\/(.*)/;
@@ -33,14 +32,6 @@ export default class UrlInfoService {
 
         if (existing) {
             return existing;
-        }
-
-        if (this.isListingUrl(url)) {
-            let info = await this.parseListingUrl(url);
-
-            await this.cache.write(url, info);
-
-            return info;
         }
 
         if (this.userRegexp.test(url)) {
@@ -97,37 +88,7 @@ export default class UrlInfoService {
             };
         }
     }
-
-    private isListingUrl(url: string): boolean {
-        return this.listingRegexp.test(url);
-    }
-
-    private async parseListingUrl(url: string): Promise<URLAugmentation> {
-        let [, , _orgId, _listingId] = this.listingRegexp.exec(url)!;
-        let {hostname} = URL.parse(url);
-
-        let orgId = IDs.Organization.parse(_orgId);
-        let listingId = IDs.OrganizationListing.parse(_listingId);
-
-        let org = await DB.Organization.findById(orgId);
-        let listing = await DB.OrganizationListing.findById(listingId);
-
-        return {
-            url,
-            title: org!.name || null,
-            subtitle: listing!.name || null,
-            description: listing!.extras!.summary || null,
-            imageURL: null,
-            imageInfo: null,
-            photo: listing!.extras!.photo || null,
-            hostname: hostname || null,
-            type: 'listing',
-            extra: listing!.id,
-            iconRef: null,
-            iconInfo: null,
-        };
-    }
-
+    
     private async parseUserUrl(url: string): Promise<URLAugmentation> {
         let [, , _userId] = this.userRegexp.exec(url)!;
         let {hostname} = URL.parse(url);

@@ -19,6 +19,11 @@ export abstract class FEntityFactory<T extends FEntity> {
         this.watcher = new FWatch(connection);
     }
 
+    async findAll() {
+        let res = await this.namespace.rangeAll(this.connection);
+        return res.map((v) => this._createEntity(v, false));
+    }
+
     protected abstract _createEntity(value: any, isNew: boolean): T;
 
     protected async _findById(key: (string | number)[]) {

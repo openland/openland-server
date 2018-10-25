@@ -21,11 +21,17 @@ export class EntityIndex {
     readonly fields: string[];
     readonly name: string;
     readonly unique: boolean;
+    range: boolean = false;
     condition?: (src: any) => boolean;
     constructor(name: string, fields: string[], unique: boolean) {
         this.name = name;
         this.fields = fields;
         this.unique = unique;
+    }
+
+    withRange() {
+        this.range = true;
+        return this;
     }
 
     withCondition(handler: (src: any) => boolean) {

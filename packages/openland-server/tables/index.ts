@@ -8,12 +8,10 @@ import { UserTable } from './User';
 import { ReaderStateTable } from './ReaderState';
 import { SuperAdminTable } from './SuperAdmin';
 import { OrganizationTable } from './Organization';
-import { FeatureFlagTable } from './FeatureFlag';
 import { UserProfileTable } from './UserProfile';
 import { OrganizationMemberTable } from './OrganizationMember';
 import { OrganizationInviteTable } from './OrganizationInvite';
 import { OrganizationConnectTable } from './OrganizationConnect';
-import { OrganizationListingTable } from './OrganizationListing';
 import { ConversationTable } from './Conversation';
 import { ConversationMessageTable } from './ConversationMessage';
 import { ConversationEventTable } from './ConversationEvent';
@@ -42,11 +40,9 @@ export const DB = {
     SuperAdmin: SuperAdminTable,
     Organization: OrganizationTable,
     OrganizationConnect: OrganizationConnectTable,
-    FeatureFlag: FeatureFlagTable,
     UserProfile: UserProfileTable,
     OrganizationMember: OrganizationMemberTable,
     OrganizationInvite: OrganizationInviteTable,
-    OrganizationListing: OrganizationListingTable,
     Conversation: ConversationTable,
     ConversationMessage: ConversationMessageTable,
     ConversationEvent: ConversationEventTable,

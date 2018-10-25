@@ -116,7 +116,8 @@ export function generateEntity(entity: EntityModel): string {
             res += '    async findFrom' + Case.pascalCase(i.name) + '(' + i.fields.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v))).join(', ') + ') {\n';
             res += '        return await this._findById([' + ['\'__indexes\'', '\'' + i.name + '\'', ...i.fields].join(', ') + ']);\n';
             res += '    }\n';
-        } else {
+        } 
+        if (!i.unique || i.range) {
             let fs = i.fields;
             fs.splice(-1);
             res += '    async rangeFrom' + Case.pascalCase(i.name) + '(' + [...fs.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v))), 'limit: number'].join(', ') + ') {\n';

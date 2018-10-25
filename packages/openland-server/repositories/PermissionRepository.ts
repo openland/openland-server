@@ -1,13 +1,9 @@
 import { DB } from '../tables';
-import { FeatureFlag } from '../tables/FeatureFlag';
 import { NotFoundError } from '../errors/NotFoundError';
 import { ErrorText } from '../errors/ErrorText';
 import { IDs } from '../api/utils/IDs';
 import { OrganizationMember } from '../tables/OrganizationMember';
-
-export interface AreaPermissions {
-    isOwner: boolean;
-}
+import { Modules } from 'openland-modules/Modules';
 
 export class PermissionRepository {
 
@@ -17,14 +13,6 @@ export class PermissionRepository {
                 { model: DB.User }
             ]
         }));
-    }
-
-    async resolveFeatureFlags() {
-        return DB.FeatureFlag.findAll();
-    }
-
-    async createFeatureFlag(key: string, title: string) {
-        return DB.FeatureFlag.create({ key: key, title: title });
     }
 
     async resolvePermissions(args: { uid: number | null | undefined, oid: number | null | undefined }) {
@@ -79,9 +67,9 @@ export class PermissionRepository {
             //
             let org = await DB.Organization.findById(args.oid);
             if (org) {
-                let features = ((await (org as any).getFeatureFlags()) as [FeatureFlag]);
+                let features = await Modules.Features.repo.findOrganizationFeatures(org.id!);
                 for (let f of features) {
-                    permissions.add('feature-' + f.key);
+                    permissions.add('feature-' + f.featureKey);
                 }
             }
         }
@@ -120,25 +108,4 @@ export class PermissionRepository {
             return false;
         }
     }
-
-    // async resolveAreaPermissions(areaId: number, userId: number | null | undefined): Promise<AreaPermissions> {
-    //     if (userId !== undefined && userId !== null) {
-    //         let member = await DB.AccountMember.findOne({
-    //             where: {
-    //                 accountId: areaId,
-    //                 userId: userId
-    //             }
-    //         });
-
-    //         if (member) {
-    //             return {
-    //                 isOwner: member.owner!!
-    //             };
-    //         }
-    //     }
-
-    //     return {
-    //         isOwner: false
-    //     };
-    // }
 }

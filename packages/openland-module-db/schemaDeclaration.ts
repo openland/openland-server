@@ -119,6 +119,21 @@ const Schema = declareSchema(() => {
         enableTimestamps();
         enableVersioning();
     });
+
+    entity('FeatureFlag', () => {
+        primaryKey('key', 'string');
+        field('title', 'string');
+        enableTimestamps();
+        enableVersioning();
+    });
+
+    entity('OrganizationFeatures', () => {
+        primaryKey('id', 'string');
+        field('featureKey', 'string');
+        field('organizationId', 'number');
+        field('enabled', 'boolean');
+        uniqueIndex('organization', ['organizationId', 'featureKey']).withRange();
+    });
 });
 
 generate(Schema, __dirname + '/../openland-module-db/schema.ts');
