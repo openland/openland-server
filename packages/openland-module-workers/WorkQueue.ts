@@ -60,6 +60,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                                     res2.taskFailureMessage = e.message ? e.message : null;
                                     if (res2.taskFailureCount === null) {
                                         res2.taskFailureCount = 1;
+                                        res2.taskFailureTime = Date.now() + exponentialBackoffDelay(res2.taskFailureCount!, 1000, 10000, 5);
                                     } else {
                                         if (res2.taskFailureCount === 4) {
                                             res2.taskFailureCount = 5;
