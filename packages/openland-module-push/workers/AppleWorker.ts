@@ -12,7 +12,7 @@ export function createAppleWorker(repo: PushRepository) {
     if (AppConfiuguration.apple) {
         queue.addWorker(async (task) => {
             let token = (await repo.getAppleToken(task.tokenId))!;
-            if (token.enabled) {
+            if (!token.enabled) {
                 return { result: 'skipped' };
             }
 

@@ -25,7 +25,7 @@ export function createAndroidWorker(repo: PushRepository) {
         }
         queue.addWorker(async (task) => {
             let token = (await repo.getAndroidToken(task.tokenId))!;
-            if (token.enabled) {
+            if (!token.enabled) {
                 return { result: 'skipped' };
             }
             let firebase = firbaseApps[token.packageId];

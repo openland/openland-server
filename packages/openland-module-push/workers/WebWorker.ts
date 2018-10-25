@@ -9,7 +9,7 @@ export function createWebWorker(repo: PushRepository) {
     if (AppConfiuguration.webPush) {
         queue.addWorker(async (task) => {
             let token = (await repo.getWebToken(task.tokenId))!;
-            if (token.enabled) {
+            if (!token.enabled) {
                 return { result: 'skipped' };
             }
 
