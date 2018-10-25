@@ -1,7 +1,7 @@
 import sequelize from 'sequelize';
 import '../utils/sequelize_afterCommit';
 import * as cls from 'continuation-local-storage';
-import umzug from 'umzug';
+// import umzug from 'umzug';
 
 var namespace = cls.createNamespace('tx-namespace');
 (<any>sequelize).useCLS(namespace);
@@ -52,22 +52,22 @@ if (process.env.DATABASE_URL !== undefined) {
 
 require('../tables');
 
-let migrator = new umzug({
-    storage: 'sequelize',
-    storageOptions: {
-        sequelize: connection
-    },
-    migrations: {
-        params: [connection.getQueryInterface(), sequelize],
-        path: __dirname + '/../tables/migrations'
-    }
-});
+// let migrator = new umzug({
+//     storage: 'sequelize',
+//     storageOptions: {
+//         sequelize: connection
+//     },
+//     migrations: {
+//         params: [connection.getQueryInterface(), sequelize],
+//         path: __dirname + '/../tables/migrations'
+//     }
+// });
 
 export async function migrate() {
-    await migrator.up();
+    // await migrator.up();
 }
 
 export async function reset() {
-    let args = { to: 0 };
-    await migrator.down(<any>args);
+    // let args = { to: 0 };
+    // await migrator.down(<any>args);
 }
