@@ -87,8 +87,8 @@ export class FEntity {
         }
     }
 
-    flush() {
-        this._doFlush();
+    async flush() {
+        await this._doFlush();
     }
 
     markDirty() {

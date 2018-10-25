@@ -1,6 +1,6 @@
 import { CallContext } from './utils/CallContext';
-import { DB } from '../tables';
 import { AppConfiuguration } from '../init/initConfig';
+import { Modules } from 'openland-modules/Modules';
 
 export const Resolvers = {
     Query: {
@@ -13,85 +13,28 @@ export const Resolvers = {
             if (!context.uid || !context.tid) {
                 throw Error('Unable to register push for non-registered user');
             }
-            return DB.txStable(async (tx) => {
-                let existing = await DB.UserPushRegistration.find({
-                    where: {
-                        userId: context.uid!!,
-                        tokenId: context.tid!!,
-                        pushType: 'web-push'
-                    },
-                    transaction: tx,
-                    lock: tx.LOCK.UPDATE
-                });
-                if (existing) {
-                    if (existing.pushEndpoint === args.endpoint) {
-                        return 'ok';
-                    } else {
-                        existing.pushEndpoint = args.endpoint;
-                        await existing.save({ transaction: tx });
-                        return 'ok';
-                    }
-                } else {
-                    // await DB.UserPushRegistration.create({
-                    //     userId: context.uid,
-                    //     tokenId: context.tid,
-                    //     pushEndpoint: args.endpoint,
-                    //     pushType: 'web-push'
-                    // });
-                    return 'ok';
-                }
-            });
+            await Modules.Push.registerPushWeb(context.uid!, context.tid!, args.endpoint);
+            return 'ok';
         },
         registerPush: async (_: any, args: { endpoint: string, type: 'WEB_PUSH' | 'IOS' | 'ANDROID' }, context: CallContext) => {
             if (!context.uid || !context.tid) {
                 throw Error('Unable to register push for non-registered user');
             }
-            let type = 'web-push';
             if (args.type === 'IOS') {
-                type = 'ios';
-            } else if (args.type === 'ANDROID') {
-                type = 'android';
+                let parsed = JSON.parse(args.endpoint);
+                await Modules.Push.registerPushApple(context.uid!, context.tid!, parsed.endpoint, parsed.bundleId, parsed.sandbox);
+                return 'ok';
             }
-            return DB.txStable(async (tx) => {
-                // clean up after login in different acc on same device
-                await DB.UserPushRegistration.destroy({
-                    where: {
-                        pushEndpoint: args.endpoint,
-                        tokenId: {
-                            $not: context.tid!!
-                        }
-                    },
-                    transaction: tx,
-                });
-
-                let existing = await DB.UserPushRegistration.find({
-                    where: {
-                        userId: context.uid!!,
-                        tokenId: context.tid!!,
-                        pushType: type
-                    },
-                    transaction: tx,
-                    lock: tx.LOCK.UPDATE
-                });
-
-                if (existing) {
-                    if (existing.pushEndpoint === args.endpoint) {
-                        return 'ok';
-                    } else {
-                        existing.pushEndpoint = args.endpoint;
-                        await existing.save({ transaction: tx });
-                        return 'ok';
-                    }
-                } else {
-                    // await DB.UserPushRegistration.create({
-                    //     userId: context.uid,
-                    //     tokenId: context.tid,
-                    //     pushEndpoint: args.endpoint,
-                    //     pushType: type as any
-                    // }, { transaction: tx });
-                    return 'ok';
-                }
-            });
+            if (args.type === 'ANDROID') {
+                let parsed = JSON.parse(args.endpoint);
+                await Modules.Push.registerPushAndroid(context.uid!, context.tid!, parsed.endpoint, parsed.bundleId, parsed.sandbox);
+                return 'ok';
+            }
+            if (args.type === 'WEB_PUSH') {
+                await Modules.Push.registerPushWeb(context.uid!, context.tid!, args.endpoint);
+                return 'ok';
+            }
+            throw Error('Unknown type: ' + args.type);
         }
     }
 };

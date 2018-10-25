@@ -2,10 +2,16 @@ import { createPushWorker } from './workers/PushWorker';
 import { FDB } from 'openland-module-db/FDB';
 import { startImporterWorker } from './workers/ImporterWorker';
 import { PushRepository } from './repositories/PushRepository';
+import { createAppleWorker } from './workers/AppleWorker';
+import { createAndroidWorker } from './workers/AndroidWorker';
+import { createWebWorker } from './workers/WebWorker';
 
 export class PushModule {
-    readonly worker = createPushWorker();
     readonly repository = new PushRepository(FDB);
+    readonly appleWorker = createAppleWorker(this.repository);
+    readonly androidWorker = createAndroidWorker(this.repository);
+    readonly webWorker = createWebWorker(this.repository);
+    readonly worker = createPushWorker(this.repository);
 
     start = () => {
         startImporterWorker(this);

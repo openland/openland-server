@@ -1,0 +1,43 @@
+export type Push = {
+    uid: number;
+    title: string;
+    body: string;
+    picture: string | null;
+    counter: number;
+    conversationId: number;
+    mobile: boolean;
+    desktop: boolean;
+    mobileAlert: boolean;
+    mobileIncludeText: boolean;
+    silent: boolean | null;
+};
+
+export type ApplePushTask = {
+    tokenId: string;
+    badge?: number;
+    expirity?: number;
+    sound?: string;
+    contentAvailable?: boolean;
+    payload?: any;
+    alert?: { title: string, body: string };
+};
+
+export type FirebasePushTask = {
+    tokenId: string;
+    collapseKey: string;
+    notification?: {
+        title: string;
+        body: string;
+        sound: string;
+        tag: string;
+    }
+    data?: { [key: string]: string };
+};
+
+export type WebPushTask = {
+    tokenId: string;
+    title: string;
+    body: string;
+    picture?: string;
+    extras?: any;
+};

@@ -8,6 +8,18 @@ export class PushRepository {
         this.entites = entites;
     }
 
+    async getAndroidToken(id: string) {
+        return await this.entites.PushFirebase.findById(id);
+    }
+
+    async getAppleToken(id: string) {
+        return await this.entites.PushApple.findById(id);
+    }
+
+    async getWebToken(id: string) {
+        return await this.entites.PushWeb.findById(id);
+    }
+
     async getUserWebPushTokens(uid: number) {
         return (await this.entites.PushWeb.allFromUser(uid)).filter((v) => v.enabled);
     }
