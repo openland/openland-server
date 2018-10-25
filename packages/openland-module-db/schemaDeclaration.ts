@@ -149,6 +149,7 @@ const Schema = declareSchema(() => {
         field('locations', 'json').nullable();
         field('primaryOrganization', 'number').nullable();
         field('role', 'string').nullable();
+        rangeIndex('byUpdatedAt', ['updatedAt']);
         enableTimestamps();
         enableVersioning();
     });

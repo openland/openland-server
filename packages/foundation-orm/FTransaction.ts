@@ -5,6 +5,7 @@ import { Transaction, TupleItem } from 'foundationdb';
 import { SafeContext } from 'openland-utils/SafeContext';
 import { currentTime } from 'openland-server/utils/timer';
 import { createLogger } from 'openland-log/createLogger';
+import { RangeOptions } from 'foundationdb/dist/lib/transaction';
 
 const log = createLogger('tx');
 
@@ -24,26 +25,21 @@ export class FTransaction implements FContext {
         return this._isCompleted;
     }
 
-    async range(connection: FConnection, limit: number, ...key: (string | number)[]) {
+    async range(connection: FConnection, key: (string | number)[], options?: RangeOptions) {
         this._prepare(connection);
-        return (await this.tx!.getRangeAll(key, undefined, { limit })).map((v) => v[1]);
+        return (await this.tx!.getRangeAll(key, undefined, options)).map((v) => v[1]);
     }
 
-    async rangeAll(connection: FConnection, ...key: (string | number)[]) {
-        this._prepare(connection);
-        return (await this.tx!.getRangeAll(key, undefined)).map((v) => v[1]);
-    }
-
-    async get(connection: FConnection, ...key: (string | number)[]) {
+    async get(connection: FConnection, key: (string | number)[]) {
         this._prepare(connection);
         return await this.tx!.get(key);
     }
-    async set(connection: FConnection, value: any, ...key: (string | number)[]) {
+    async set(connection: FConnection, key: (string | number)[], value: any) {
         this._prepare(connection);
         this.tx!.set(key, value);
     }
 
-    async delete(connection: FConnection, ...key: (string | number)[]) {
+    async delete(connection: FConnection, key: (string | number)[]) {
         this._prepare(connection);
         this.tx!.clear(key);
     }

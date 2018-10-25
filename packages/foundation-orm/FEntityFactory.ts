@@ -20,27 +20,32 @@ export abstract class FEntityFactory<T extends FEntity> {
     }
 
     async findAll() {
-        let res = await this.namespace.rangeAll(this.connection);
+        let res = await this.namespace.range(this.connection, []);
         return res.map((v) => this._createEntity(v, false));
     }
 
     protected abstract _createEntity(value: any, isNew: boolean): T;
 
     protected async _findById(key: (string | number)[]) {
-        let res = await this.namespace.get(this.connection, ...key);
+        let res = await this.namespace.get(this.connection, key);
         if (res) {
             return this._createEntity(res, false);
         }
         return null;
     }
 
-    protected async _findRange(key: (string | number)[], limit: number) {
-        let res = await this.namespace.range(this.connection, limit, ...key);
+    protected async _findRange(key: (string | number)[], limit: number, reverse?: boolean) {
+        let res = await this.namespace.range(this.connection, key, { limit, reverse });
+        return res.map((v) => this._createEntity(v, false));
+    }
+
+    protected async _findRangeAfter(key: (string | number)[], limit: number) {
+        let res = await this.namespace.range(this.connection, key, { limit });
         return res.map((v) => this._createEntity(v, false));
     }
 
     protected async _findAll(key: (string | number)[]) {
-        let res = await this.namespace.rangeAll(this.connection, ...key);
+        let res = await this.namespace.range(this.connection, key);
         return res.map((v) => this._createEntity(v, false));
     }
 

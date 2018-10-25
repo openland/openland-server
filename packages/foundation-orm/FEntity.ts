@@ -118,7 +118,7 @@ export class FEntity {
             }
             value.updatedAt = now;
         }
-        await this.namespace.set(this.connection, value, ...this.rawId);
+        await this.namespace.set(this.connection, this.rawId, value);
         if (this.isNew) {
             log.debug('created', { entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: JSON.stringify(value) });
             for (let index of this.indexes) {
@@ -128,12 +128,12 @@ export class FEntity {
                 }
                 let key = index.fields.map((v) => value[v]);
                 if (index.unique) {
-                    if (await this.namespace.get(this.connection, '__indexes', index.name, ...key)) {
+                    if (await this.namespace.get(this.connection, ['__indexes', index.name, ...key])) {
                         throw Error('Unique index constraint failed');
                     }
-                    await this.namespace.set(this.connection, value, '__indexes', index.name, ...key);
+                    await this.namespace.set(this.connection, ['__indexes', index.name, ...key], value);
                 } else {
-                    await this.namespace.set(this.connection, value, '__indexes', index.name, ...key, ...this.rawId);
+                    await this.namespace.set(this.connection, ['__indexes', index.name, ...key, ...this.rawId], value);
                 }
             }
         } else {
@@ -174,25 +174,25 @@ export class FEntity {
 
                 if (index.unique) {
                     if (needToDeleteOld) {
-                        await this.namespace.delete(this.connection, '__indexes', index.name, ...oldkey);
+                        await this.namespace.delete(this.connection, ['__indexes', index.name, ...oldkey]);
                     }
                     if (needToCreateNew) {
-                        if (await this.namespace.get(this.connection, '__indexes', index.name, ...key)) {
+                        if (await this.namespace.get(this.connection, ['__indexes', index.name, ...key])) {
                             throw Error('Unique index constraint failed');
                         }
                     }
                     if (needToCreateNew || needToUpdateNew) {
-                        await this.namespace.set(this.connection, value, '__indexes', index.name, ...key);
+                        await this.namespace.set(this.connection, ['__indexes', index.name, ...key], value);
                     }
                 } else {
                     if (needToDeleteOld) {
-                        await this.namespace.delete(this.connection, '__indexes', index.name, ...oldkey, ...this.rawId);
+                        await this.namespace.delete(this.connection, ['__indexes', index.name, ...oldkey, ...this.rawId]);
                     }
                     if (needToCreateNew) {
-                        await this.namespace.set(this.connection, value, '__indexes', index.name, ...key, ...this.rawId);
+                        await this.namespace.set(this.connection, ['__indexes', index.name, ...key, ...this.rawId], value);
                     }
                     if (needToCreateNew || needToUpdateNew) {
-                        await this.namespace.set(this.connection, value, '__indexes', index.name, ...key, ...this.rawId);
+                        await this.namespace.set(this.connection, ['__indexes', index.name, ...key, ...this.rawId], value);
                     }
                 }
             }

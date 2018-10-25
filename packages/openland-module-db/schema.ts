@@ -949,7 +949,7 @@ export class UserProfileFactory extends FEntityFactory<UserProfile> {
         super(connection,
             new FNamespace('entity', 'userProfile'),
             { enableVersioning: true, enableTimestamps: true },
-            []
+            [new FEntityIndex('byUpdatedAt', ['updatedAt'], false)]
         );
     }
     async findById(id: number) {
@@ -960,6 +960,12 @@ export class UserProfileFactory extends FEntityFactory<UserProfile> {
     }
     watch(id: number, cb: () => void) {
         return this._watch([id], cb);
+    }
+    async rangeFromByUpdatedAt(limit: number) {
+        return await this._findRange(['__indexes', 'byUpdatedAt'], limit);
+    }
+    async allFromByUpdatedAt() {
+        return await this._findAll(['__indexes', 'byUpdatedAt']);
     }
     protected _createEntity(value: any, isNew: boolean) {
         return new UserProfile(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
