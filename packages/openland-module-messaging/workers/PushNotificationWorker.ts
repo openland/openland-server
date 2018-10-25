@@ -13,210 +13,212 @@ const Delays = {
 
 export function startPushNotificationWorker() {
 
-    staticWorker({ name: 'push_notifications', delay: 3000 }, async (tx) => {
-        let unreadUsers = await DB.ConversationsUserGlobal.findAll({
-            where: {
-                unread: { $gt: 0 },
-            },
-            transaction: tx,
-            logging: DB_SILENT
-        });
-
-        for (let u of unreadUsers) {
-
-            // Loading user's settings
-            let settings = await Repos.Users.getUserSettings(u.userId);
-
-            let now = Date.now();
-
-            let logPrefix = 'push_worker ' + u.userId;
-
-            // TODO: Implement lastActive on FDB
-            let lastSeen = await Modules.Presence.getLastSeen(u.userId); // await Repos.Users.getUserLastActiveExtended(u.userId, tx);
-
-            // Ignore never-online users
-            if (lastSeen === 'never_online') {
-                continue;
-            }
-
-            // Pause notifications only if delay was set
-            // if (settings.notificationsDelay !== 'none') {
-            // Ignore online
-            if (lastSeen === 'online') {
-                continue;
-            }
-
-            // Pause notifications till 1 minute passes from last active timeout
-            if (lastSeen > (now - Delays[settings.notificationsDelay])) {
-                continue;
-            }
-            // }
-
-            // Ignore read updates
-            if (u.readSeq === u.seq) {
-                continue;
-            }
-
-            // Ignore never opened apps
-            if (u.readSeq === null) {
-                continue;
-            }
-
-            // Ignore user's with disabled notifications
-            if (settings.mobileNotifications === 'none' && settings.desktopNotifications === 'none') {
-                continue;
-            }
-
-            let notificationsState = await DB.ConversationsUserGlobalNotifications.find({
+    staticWorker({ name: 'push_notifications', delay: 3000 }, async () => {
+        return await DB.connection.transaction({ logging: DB_SILENT as any }, async (tx) => {
+            let unreadUsers = await DB.ConversationsUserGlobal.findAll({
                 where: {
-                    userId: u.userId,
-                },
-                transaction: tx,
-                lock: tx.LOCK.UPDATE,
-                logging: DB_SILENT,
-            });
-
-            if (!notificationsState) {
-                notificationsState = await DB.ConversationsUserGlobalNotifications.create({ userId: u.userId }, { transaction: tx });
-            }
-
-            // Ignore already processed updates
-            if (notificationsState.lastPushSeq >= u.seq) {
-                continue;
-            }
-
-            // Scanning updates
-            let remainingUpdates = await DB.ConversationUserEvents.findAll({
-                where: {
-                    userId: u.userId,
-                    seq: {
-                        $gt: Math.max(Math.max(notificationsState.lastPushSeq, u.lastPushSeq), u.readSeq)
-                    }
+                    unread: { $gt: 0 },
                 },
                 transaction: tx,
                 logging: DB_SILENT
             });
 
-            // Handling unread messages
-            let messages = remainingUpdates.filter((v) => v.eventType === 'new_message');
-            let hasMessage = false;
-            for (let m of messages) {
-                let messageId = m.event.messageId as number;
-                let senderId = m.event.senderId as number;
-                let unreadCount = m.event.unreadGlobal as number;
-                // Ignore current user
-                if (senderId === u.userId) {
-                    continue;
-                }
-                let message = await DB.ConversationMessage.findById(messageId, { transaction: tx });
-                if (!message) {
-                    continue;
-                }
-                let sender = await Modules.Users.profileById(senderId);
-                if (!sender) {
-                    continue;
-                }
-                let receiver = await Modules.Users.profileById(u.userId);
-                if (!receiver) {
-                    continue;
-                }
-                let conversation = await DB.Conversation.findById(message.conversationId, { transaction: tx });
-                if (!conversation) {
+            for (let u of unreadUsers) {
+
+                // Loading user's settings
+                let settings = await Repos.Users.getUserSettings(u.userId);
+
+                let now = Date.now();
+
+                let logPrefix = 'push_worker ' + u.userId;
+
+                // TODO: Implement lastActive on FDB
+                let lastSeen = await Modules.Presence.getLastSeen(u.userId); // await Repos.Users.getUserLastActiveExtended(u.userId, tx);
+
+                // Ignore never-online users
+                if (lastSeen === 'never_online') {
                     continue;
                 }
 
-                let userMentioned = message.extras && message.extras.mentions && (message.extras.mentions as number[]).indexOf(u.userId) > -1;
+                // Pause notifications only if delay was set
+                // if (settings.notificationsDelay !== 'none') {
+                // Ignore online
+                if (lastSeen === 'online') {
+                    continue;
+                }
 
-                let sendDesktop = settings.desktopNotifications !== 'none';
-                let sendMobile = settings.mobileNotifications !== 'none';
+                // Pause notifications till 1 minute passes from last active timeout
+                if (lastSeen > (now - Delays[settings.notificationsDelay])) {
+                    continue;
+                }
+                // }
 
-                // Filter non-private if only direct messages enabled
-                if (settings.desktopNotifications === 'direct') {
-                    if (conversation.type !== 'private') {
-                        sendDesktop = false;
+                // Ignore read updates
+                if (u.readSeq === u.seq) {
+                    continue;
+                }
+
+                // Ignore never opened apps
+                if (u.readSeq === null) {
+                    continue;
+                }
+
+                // Ignore user's with disabled notifications
+                if (settings.mobileNotifications === 'none' && settings.desktopNotifications === 'none') {
+                    continue;
+                }
+
+                let notificationsState = await DB.ConversationsUserGlobalNotifications.find({
+                    where: {
+                        userId: u.userId,
+                    },
+                    transaction: tx,
+                    lock: tx.LOCK.UPDATE,
+                    logging: DB_SILENT,
+                });
+
+                if (!notificationsState) {
+                    notificationsState = await DB.ConversationsUserGlobalNotifications.create({ userId: u.userId }, { transaction: tx });
+                }
+
+                // Ignore already processed updates
+                if (notificationsState.lastPushSeq >= u.seq) {
+                    continue;
+                }
+
+                // Scanning updates
+                let remainingUpdates = await DB.ConversationUserEvents.findAll({
+                    where: {
+                        userId: u.userId,
+                        seq: {
+                            $gt: Math.max(Math.max(notificationsState.lastPushSeq, u.lastPushSeq), u.readSeq)
+                        }
+                    },
+                    transaction: tx,
+                    logging: DB_SILENT
+                });
+
+                // Handling unread messages
+                let messages = remainingUpdates.filter((v) => v.eventType === 'new_message');
+                let hasMessage = false;
+                for (let m of messages) {
+                    let messageId = m.event.messageId as number;
+                    let senderId = m.event.senderId as number;
+                    let unreadCount = m.event.unreadGlobal as number;
+                    // Ignore current user
+                    if (senderId === u.userId) {
+                        continue;
                     }
-                }
-                if (settings.mobileNotifications === 'direct') {
-                    if (conversation.type !== 'private') {
+                    let message = await DB.ConversationMessage.findById(messageId, { transaction: tx });
+                    if (!message) {
+                        continue;
+                    }
+                    let sender = await Modules.Users.profileById(senderId);
+                    if (!sender) {
+                        continue;
+                    }
+                    let receiver = await Modules.Users.profileById(u.userId);
+                    if (!receiver) {
+                        continue;
+                    }
+                    let conversation = await DB.Conversation.findById(message.conversationId, { transaction: tx });
+                    if (!conversation) {
+                        continue;
+                    }
+
+                    let userMentioned = message.extras && message.extras.mentions && (message.extras.mentions as number[]).indexOf(u.userId) > -1;
+
+                    let sendDesktop = settings.desktopNotifications !== 'none';
+                    let sendMobile = settings.mobileNotifications !== 'none';
+
+                    // Filter non-private if only direct messages enabled
+                    if (settings.desktopNotifications === 'direct') {
+                        if (conversation.type !== 'private') {
+                            sendDesktop = false;
+                        }
+                    }
+                    if (settings.mobileNotifications === 'direct') {
+                        if (conversation.type !== 'private') {
+                            sendMobile = false;
+                        }
+                    }
+
+                    let conversationSettings = await Repos.Chats.getConversationSettings(u.userId, conversation.id);
+
+                    if (conversationSettings.mute && !userMentioned) {
+                        continue;
+                    }
+
+                    if (conversationSettings.mobileNotifications === 'none') {
                         sendMobile = false;
                     }
+
+                    if (userMentioned) {
+                        sendMobile = true;
+                        sendDesktop = true;
+                    }
+
+                    if (!sendMobile && !sendDesktop) {
+                        continue;
+                    }
+
+                    let receiverPrimaryOrg = receiver.primaryOrganization;
+                    if (!receiverPrimaryOrg) {
+                        continue;
+                    }
+                    let chatTitle = await Repos.Chats.getConversationTitle(conversation.id, receiverPrimaryOrg, u.userId);
+
+                    hasMessage = true;
+                    let senderName = [sender.firstName, sender.lastName].filter((v) => !!v).join(' ');
+
+                    let pushTitle = Texts.Notifications.GROUP_PUSH_TITLE({ senderName, chatTitle });
+
+                    if (conversation.type === 'private') {
+                        pushTitle = chatTitle;
+                    }
+
+                    if (message.isService) {
+                        pushTitle = chatTitle;
+                    }
+
+                    let pushBody = '';
+
+                    if (message.message) {
+                        pushBody += message.message;
+                    }
+                    if (message.fileMetadata) {
+                        pushBody += message.fileMetadata.isImage === true ? Texts.Notifications.IMAGE_ATTACH : Texts.Notifications.FILE_ATTACH;
+                    }
+
+                    let push = {
+                        uid: u.userId,
+                        title: pushTitle,
+                        body: pushBody,
+                        picture: sender.picture ? buildBaseImageUrl(sender.picture!!) : null,
+                        counter: unreadCount,
+                        conversationId: conversation.id,
+                        mobile: sendMobile,
+                        desktop: sendDesktop,
+                        mobileAlert: settings.mobileAlert,
+                        mobileIncludeText: settings.mobileIncludeText,
+                        silent: null
+                    };
+
+                    console.log(logPrefix, 'new_push', JSON.stringify(push));
+                    await Modules.Push.worker.pushWork(push);
                 }
 
-                let conversationSettings = await Repos.Chats.getConversationSettings(u.userId, conversation.id);
-
-                if (conversationSettings.mute && !userMentioned) {
-                    continue;
+                // Save state
+                if (hasMessage) {
+                    notificationsState.lastPushNotification = new Date();
                 }
 
-                if (conversationSettings.mobileNotifications === 'none') {
-                    sendMobile = false;
-                }
+                notificationsState.lastPushSeq = u.seq;
+                await notificationsState.save({ transaction: tx });
 
-                if (userMentioned) {
-                    sendMobile = true;
-                    sendDesktop = true;
-                }
-
-                if (!sendMobile && !sendDesktop) {
-                    continue;
-                }
-
-                let receiverPrimaryOrg = receiver.primaryOrganization;
-                if (!receiverPrimaryOrg) {
-                    continue;
-                }
-                let chatTitle = await Repos.Chats.getConversationTitle(conversation.id, receiverPrimaryOrg, u.userId);
-
-                hasMessage = true;
-                let senderName = [sender.firstName, sender.lastName].filter((v) => !!v).join(' ');
-
-                let pushTitle = Texts.Notifications.GROUP_PUSH_TITLE({ senderName, chatTitle });
-
-                if (conversation.type === 'private') {
-                    pushTitle = chatTitle;
-                }
-
-                if (message.isService) {
-                    pushTitle = chatTitle;
-                }
-
-                let pushBody = '';
-
-                if (message.message) {
-                    pushBody += message.message;
-                }
-                if (message.fileMetadata) {
-                    pushBody += message.fileMetadata.isImage === true ? Texts.Notifications.IMAGE_ATTACH : Texts.Notifications.FILE_ATTACH;
-                }
-
-                let push = {
-                    uid: u.userId,
-                    title: pushTitle,
-                    body: pushBody,
-                    picture: sender.picture ? buildBaseImageUrl(sender.picture!!) : null,
-                    counter: unreadCount,
-                    conversationId: conversation.id,
-                    mobile: sendMobile,
-                    desktop: sendDesktop,
-                    mobileAlert: settings.mobileAlert,
-                    mobileIncludeText: settings.mobileIncludeText,
-                    silent: null
-                };
-
-                console.log(logPrefix, 'new_push', JSON.stringify(push));
-                await Modules.Push.worker.pushWork(push);
             }
 
-            // Save state
-            if (hasMessage) {
-                notificationsState.lastPushNotification = new Date();
-            }
-
-            notificationsState.lastPushSeq = u.seq;
-            await notificationsState.save({ transaction: tx });
-
-        }
-
-        return false;
+            return false;
+        });
     });
 }
