@@ -16,9 +16,6 @@ import * as Phone from './Phone';
 import * as Developer from './Developer';
 
 import { Directives, IDScalars } from './directives';
-import { GraphQLField, GraphQLFieldResolver } from 'graphql';
-import { wrapAllResolvers } from './utils/Resolvers';
-import { withLogContext } from 'openland-log/withLogContext';
 
 let schema = fs
     .readdirSync(__dirname + '/schema/')
@@ -27,35 +24,23 @@ let schema = fs
     .sort()
     .join('\n');
 
-export const Schema = wrapAllResolvers(
-    makeExecutableSchema({
-        typeDefs: schema,
-        resolvers: merge(
-            Basics.Resolvers,
-            Account.Resolver,
-            User.Resolver,
-            Permissions.Resolvers,
-            Debug.Resolver,
-            Organization.Resolver,
-            Chat.Resolver,
-            Push.Resolvers,
-            Hits.Resolver,
-            Channels.Resolver,
-            ShortName.Resolvers,
-            Phone.Resolvers,
-            IDScalars,
-            Developer.Resolver
-        ),
-        schemaDirectives: Directives
-    }),
-    (
-        field: GraphQLField<any, any>,
-        originalResolver: GraphQLFieldResolver<any, any, any>,
-        root: any,
-        args: any,
-        context: any,
-        info: any
-    ) => {
-        return withLogContext(field.name, () => originalResolver(root, args, context, info));
-    }
-);
+export const Schema = makeExecutableSchema({
+    typeDefs: schema,
+    resolvers: merge(
+        Basics.Resolvers,
+        Account.Resolver,
+        User.Resolver,
+        Permissions.Resolvers,
+        Debug.Resolver,
+        Organization.Resolver,
+        Chat.Resolver,
+        Push.Resolvers,
+        Hits.Resolver,
+        Channels.Resolver,
+        ShortName.Resolvers,
+        Phone.Resolvers,
+        IDScalars,
+        Developer.Resolver
+    ),
+    schemaDirectives: Directives
+});
