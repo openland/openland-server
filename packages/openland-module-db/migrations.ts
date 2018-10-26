@@ -25,6 +25,12 @@ migrations.push({
         await FDoctor.doctorEntityIds(FDB.Online);
     }
 });
+// migrations.push({
+//     key: '3-fixBrokenIdsInOnlines',
+//     migration: async () => {
+//         await FDoctor.doctorEntityIds(FDB.Online);
+//     }
+// });
 
 export function startMigrationsWorker() {
     staticWorker({ name: 'foundation-migrator' }, async () => {
