@@ -135,9 +135,7 @@ export const Resolver = {
 
             return null;
         },
-        phones: async (src: User) => {
-            return Repos.Phones.getUserPhones(src.id!);
-        },
+        phones: async (src: User) => [],
         lastIP: async (src: User) => Repos.Users.getUserLastIp(src.id!),
         alphaConversationSettings: async (src: User, _: any, context: CallContext) => await Repos.Chats.getConversationSettings(context.uid!!, (await Repos.Chats.loadPrivateChat(context.uid!!, src.id!)).id),
         status: async (src: User) => src.status,

@@ -11,7 +11,6 @@ import * as Chat from './Chat';
 import * as Push from './Push';
 import * as Channels from './Channels';
 import * as ShortName from './ShortName';
-import * as Phone from './Phone';
 import * as Developer from './Developer';
 
 import { Directives, IDScalars } from './directives';
@@ -36,7 +35,6 @@ export const Schema = makeExecutableSchema({
         Push.Resolvers,
         Channels.Resolver,
         ShortName.Resolvers,
-        Phone.Resolvers,
         IDScalars,
         Developer.Resolver
     ),

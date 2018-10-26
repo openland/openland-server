@@ -4,10 +4,9 @@ import { withPermission, withAny } from './utils/Resolvers';
 import { Organization } from '../tables/Organization';
 import { IDs } from './utils/IDs';
 import { DB } from '../tables';
-import { SuperAdmin } from '../tables/SuperAdmin';
 import { UserError } from '../errors/UserError';
 import { Modules } from 'openland-modules/Modules';
-import { FeatureFlag } from 'openland-module-db/schema';
+import { FeatureFlag, SuperAdmin } from 'openland-module-db/schema';
 
 export const Resolvers = {
     SuperAccount: {
@@ -23,7 +22,7 @@ export const Resolvers = {
         createdBy: async (src: Organization) => await DB.User.findOne({ where: { id: src.createdBy } }),
     },
     SuperAdmin: {
-        user: (src: SuperAdmin) => src.user,
+        user: (src: SuperAdmin) => DB.User.findById(src.id),
         role: (src: SuperAdmin) => {
             if (src.role === 'software-developer') {
                 return 'SOFTWARE_DEVELOPER';
@@ -33,7 +32,7 @@ export const Resolvers = {
                 return 'SUPER_ADMIN';
             }
         },
-        email: (src: SuperAdmin) => src.user ? src.user.email : null,
+        email: async (src: SuperAdmin) => (await DB.User.findById(src.id))!.email,
     },
     // Task: {
     //     id: (src: Task) => IDs.Task.serialize(src.id),

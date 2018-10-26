@@ -4,10 +4,7 @@ import { Emails } from '../openland-server/services/Emails';
 import { DB } from '../openland-server/tables';
 import * as base64 from '../openland-server/utils/base64';
 import { randomBytes } from 'crypto';
-import { Repos } from '../openland-server/repositories';
 import { AuthSession } from '../openland-server/tables/AuthSession';
-import { getTestPhoneCode, isTestPhone } from '../openland-server/repositories/PhoneRepository';
-import { Services } from '../openland-server/services';
 import { Modules } from 'openland-modules/Modules';
 
 const ERROR_TEXT = {
@@ -53,7 +50,7 @@ export function withAudit(handler: (req: express.Request, response: express.Resp
         // let data: Buffer;
 
         (response.end as any) = (chunk: any, ...rest: any[]) => {
-           //  data = chunk;
+            //  data = chunk;
             oldEnd.call(response, chunk, ...rest);
         };
 
@@ -116,34 +113,6 @@ export async function sendCode(req: express.Request, response: express.Response)
                     codeExpires: new Date(Date.now() + 1000 * 60 * 5), // 5 minutes
                     extras: {
                         email
-                    }
-                }, { transaction: tx });
-            } else {
-                await authSession!.update({ code });
-            }
-
-            response.json({ ok: true, session: authSession!.sessionSalt });
-        } else if (phone) {
-            if (!Repos.Phones.checkPhone(phone)) {
-                sendError(response, 0);
-                return;
-            }
-
-            let isTest = isTestPhone(phone);
-
-            if (!isTest) {
-                await Services.TeleSign.sendSMS(phone, 'Your code: ' + code);
-            } else {
-                code = getTestPhoneCode(phone);
-            }
-
-            if (!authSession!) {
-                authSession = await DB.AuthSession.create({
-                    sessionSalt: base64.encodeBuffer(randomBytes(64)),
-                    code,
-                    codeExpires: new Date(Date.now() + 1000 * 60 * 5), // 5 minutes
-                    extras: {
-                        phone
                     }
                 }, { transaction: tx });
             } else {
@@ -251,29 +220,6 @@ export async function getAccessToken(req: express.Request, response: express.Res
                 let user = await DB.User.create({
                     authId: 'email|' + authSession.extras!.email,
                     email: authSession.extras!.email as string,
-                }, { transaction: tx });
-                let token = await Modules.Auth.createToken(user.id!);
-                response.json({ ok: true, accessToken: token });
-                await authSession.destroy();
-                return;
-            }
-        } else if (authSession.extras!.phone) {
-            let existing = await DB.Phone.findOne({ where: { phone: authSession.extras!.phone as any }, transaction: tx, lock: tx.LOCK.UPDATE });
-
-            if (existing) {
-                let token = await Modules.Auth.createToken(existing.userId!);
-                response.json({ ok: true, accessToken: token });
-                await authSession.destroy();
-                return;
-            } else {
-                let user = await DB.User.create({
-                    authId: 'phone|' + authSession.extras!.phone,
-                    email: '',
-                }, { transaction: tx });
-                await DB.Phone.create({
-                    phone: authSession.extras!.phone as any,
-                    status: 'VERIFIED',
-                    userId: user.id
                 }, { transaction: tx });
                 let token = await Modules.Auth.createToken(user.id!);
                 response.json({ ok: true, accessToken: token });

@@ -1,7 +1,5 @@
 import { SuperRepository } from './repositories/SuperRepository';
 import { FDB } from 'openland-module-db/FDB';
-import { UpdateReader } from 'openland-server/modules/updateReader';
-import { DB } from 'openland-server/tables';
 
 export class SuperModule {
     readonly repo = new SuperRepository(FDB);
@@ -23,12 +21,6 @@ export class SuperModule {
     }
 
     start = () => {
-        let reader = new UpdateReader('super-admin-exporter', 1, DB.SuperAdmin);
-        reader.processor(async (items) => {
-            for (let i = 0; i < items.length; i++) {
-                await this.repo.makeSuperAdmin(items[i].userId!, items[i].role || 'super-admin');
-            }
-        });
-        reader.start();
+        // Nothing to do
     }
 }

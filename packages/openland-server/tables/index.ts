@@ -6,7 +6,6 @@ export { ReaderState } from './ReaderState';
 
 import { UserTable } from './User';
 import { ReaderStateTable } from './ReaderState';
-import { SuperAdminTable } from './SuperAdmin';
 import { OrganizationTable } from './Organization';
 import { OrganizationMemberTable } from './OrganizationMember';
 import { OrganizationInviteTable } from './OrganizationInvite';
@@ -25,7 +24,6 @@ import { ConversationChannelMembersTable } from './ConversationChannelMembers';
 import { ChannelInviteTable } from './ChannelInvite';
 import { ConversationsUserGlobalNotificationsTable } from './ConversationsUserGlobalNotifications';
 import { ShortNameTable } from './ShortName';
-import { PhoneTable } from './Phone';
 import { AuthSessionTable } from './AuthSession';
 
 const SILENT_TX_ACTUALLY_SILENT = true;
@@ -34,7 +32,6 @@ export const DB_SILENT = !SILENT_TX_ACTUALLY_SILENT;
 export const DB = {
     User: UserTable,
     ReaderState: ReaderStateTable,
-    SuperAdmin: SuperAdminTable,
     Organization: OrganizationTable,
     OrganizationConnect: OrganizationConnectTable,
     OrganizationMember: OrganizationMemberTable,
@@ -52,7 +49,6 @@ export const DB = {
     ChannelInvite: ChannelInviteTable,
     ConversationsUserGlobalNotifications: ConversationsUserGlobalNotificationsTable,
     ShortName: ShortNameTable,
-    Phone: PhoneTable,
     AuthSession: AuthSessionTable,
 
     tx: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>, existingTx?: sequelize.Transaction): Promise<A> {
