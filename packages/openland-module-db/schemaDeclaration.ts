@@ -219,23 +219,28 @@ const Schema = declareSchema(() => {
         enableTimestamps();
     });
 
-    // entity('ConversationEvent', () => {
-    //     primaryKey('conversationId', 'number');
-    //     primaryKey('seq', 'number');
-    //     field('userId', 'number').nullable();
-    //     field('kickedIds', 'json').nullable();
-    //     field('addedIds', 'json').nullable();
-    //     field('title', 'string').nullable();
-    //     field('photo', 'string').nullable();
-    //     field('messageId', 'number').nullable();
-    //     enumField('kind', ['create_message', 'update_message', 'delete_message', 'group_update', 'add_members', 'remove_members']);
-    //     enableVersioning();
-    //     enableTimestamps();
-    // });
+    entity('ConversationSeq', () => {
+        primaryKey('cid', 'string');
+        field('seq', 'number');
+    });
+
+    entity('ConversationEvent', () => {
+        primaryKey('cid', 'string');
+        primaryKey('seq', 'number');
+        field('userId', 'number').nullable();
+        field('kickedIds', 'json').nullable();
+        field('addedIds', 'json').nullable();
+        field('title', 'string').nullable();
+        field('photo', 'string').nullable();
+        field('messageId', 'string').nullable();
+        enumField('kind', ['create_message', 'update_message', 'delete_message', 'group_update', 'add_members', 'remove_members']);
+        enableVersioning();
+        enableTimestamps();
+    });
 
     entity('Message', () => {
-        primaryKey('id', 'number');
-        field('cid', 'number');
+        primaryKey('id', 'string');
+        field('cid', 'string');
         field('uid', 'number');
         field('repeatToken', 'string').nullable();
 
