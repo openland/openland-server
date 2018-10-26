@@ -411,7 +411,6 @@ export const Resolver = {
             return 'ok';
         },
         updateSettings: withUser<{ settings: { emailFrequency?: string | null, desktopNotifications?: string | null, mobileNotifications?: string | null, mobileAlert?: boolean | null, mobileIncludeText?: boolean | null, notificationsDelay?: boolean | null } }>(async (args, uid) => {
-
             return await inTx(async () => {
                 let settings = await Modules.Users.getUserSettings(uid);
                 if (args.settings.emailFrequency) {
@@ -432,6 +431,7 @@ export const Resolver = {
                 if (args.settings.notificationsDelay !== null) {
                     settings.notificationsDelay = args.settings.notificationsDelay as any;
                 }
+                return settings;
             });
         })
     },
