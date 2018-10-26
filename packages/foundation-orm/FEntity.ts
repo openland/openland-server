@@ -36,7 +36,7 @@ export class FEntity {
         this.indexes = indexes;
 
         if (this.isNew && this.isReadOnly) {
-            throw Error('Internal inconsistency');
+            throw Error('Unable to create new entity outside transaction!');
         }
 
         let v = { ...value };

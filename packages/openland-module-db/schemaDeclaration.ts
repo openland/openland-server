@@ -224,20 +224,6 @@ const Schema = declareSchema(() => {
         field('seq', 'number');
     });
 
-    entity('ConversationEvent', () => {
-        primaryKey('cid', 'string');
-        primaryKey('seq', 'number');
-        field('userId', 'number').nullable();
-        field('kickedIds', 'json').nullable();
-        field('addedIds', 'json').nullable();
-        field('title', 'string').nullable();
-        field('photo', 'string').nullable();
-        field('messageId', 'string').nullable();
-        enumField('kind', ['create_message', 'update_message', 'delete_message', 'group_update', 'add_members', 'remove_members']);
-        enableVersioning();
-        enableTimestamps();
-    });
-
     entity('Message', () => {
         primaryKey('id', 'string');
         field('cid', 'string');
@@ -254,7 +240,53 @@ const Schema = declareSchema(() => {
 
         field('isMuted', 'boolean');
         field('isService', 'boolean');
-        rangeIndex('chat', ['cid', 'id']);
+        field('deleted', 'boolean');
+        rangeIndex('chat', ['cid', 'id']).withCondition((src) => !src.deleted);
+    });
+
+    entity('ConversationEvent', () => {
+        primaryKey('cid', 'string');
+        primaryKey('seq', 'number');
+        field('userId', 'number').nullable();
+        field('kickedIds', 'json').nullable();
+        field('addedIds', 'json').nullable();
+        field('title', 'string').nullable();
+        field('photo', 'string').nullable();
+        field('messageId', 'string').nullable();
+        enumField('kind', ['create_message', 'update_message', 'delete_message', 'group_update', 'add_members', 'remove_members']);
+        enableVersioning();
+        enableTimestamps();
+    });
+
+    entity('UserConversationEvent', () => {
+        primaryKey('cid', 'string');
+        primaryKey('seq', 'number');
+        enableVersioning();
+        enableTimestamps();
+    });
+
+    entity('UserMessagingState', () => {
+        primaryKey('uid', 'number');
+        field('unread', 'number');
+        field('seq', 'number');
+        enableVersioning();
+        enableTimestamps();
+    });
+
+    entity('UserMessagingEvent', () => {
+        primaryKey('uid', 'number');
+        primaryKey('seq', 'number');
+        field('allUnread', 'number');
+        field('convUnread', 'number');
+        field('userId', 'number').nullable();
+        field('kickedIds', 'json').nullable();
+        field('addedIds', 'json').nullable();
+        field('title', 'string').nullable();
+        field('photo', 'string').nullable();
+        field('messageId', 'string').nullable();
+        enumField('kind', ['create_message', 'update_message', 'delete_message', 'group_update', 'add_members', 'remove_members']);
+        enableVersioning();
+        enableTimestamps();
     });
 });
 

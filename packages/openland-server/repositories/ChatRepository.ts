@@ -553,16 +553,14 @@ export class ChatsRepository {
                         await DB.ConversationsUserGlobal.create({
                             userId: m,
                             unread: 1,
-                            seq: 1,
-                            hasUnnoticedUnread: true,
+                            seq: 1
                         }, { transaction: tx });
                     } else {
                         userUnread = 0;
                         await DB.ConversationsUserGlobal.create({
                             userId: m,
                             unread: 0,
-                            seq: 1,
-                            hasUnnoticedUnread: false,
+                            seq: 1
                         }, { transaction: tx });
                     }
                 }

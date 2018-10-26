@@ -1528,120 +1528,6 @@ export class ConversationSeqFactory extends FEntityFactory<ConversationSeq> {
         return new ConversationSeq(this.connection, this.namespace, [value.cid], value, this.options, isNew, this.indexes);
     }
 }
-export interface ConversationEventShape {
-    userId?: number| null;
-    kickedIds?: any| null;
-    addedIds?: any| null;
-    title?: string| null;
-    photo?: string| null;
-    messageId?: string| null;
-    kind: 'create_message' | 'update_message' | 'delete_message' | 'group_update' | 'add_members' | 'remove_members';
-}
-
-export class ConversationEvent extends FEntity {
-    get cid(): string { return this._value.cid; }
-    get seq(): number { return this._value.seq; }
-    get userId(): number | null {
-        let res = this._value.userId;
-        if (res) { return res; }
-        return null;
-    }
-    set userId(value: number | null) {
-        this._checkIsWritable();
-        if (value === this._value.userId) { return; }
-        this._value.userId = value;
-        this.markDirty();
-    }
-    get kickedIds(): any | null {
-        let res = this._value.kickedIds;
-        if (res) { return res; }
-        return null;
-    }
-    set kickedIds(value: any | null) {
-        this._checkIsWritable();
-        if (value === this._value.kickedIds) { return; }
-        this._value.kickedIds = value;
-        this.markDirty();
-    }
-    get addedIds(): any | null {
-        let res = this._value.addedIds;
-        if (res) { return res; }
-        return null;
-    }
-    set addedIds(value: any | null) {
-        this._checkIsWritable();
-        if (value === this._value.addedIds) { return; }
-        this._value.addedIds = value;
-        this.markDirty();
-    }
-    get title(): string | null {
-        let res = this._value.title;
-        if (res) { return res; }
-        return null;
-    }
-    set title(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.title) { return; }
-        this._value.title = value;
-        this.markDirty();
-    }
-    get photo(): string | null {
-        let res = this._value.photo;
-        if (res) { return res; }
-        return null;
-    }
-    set photo(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.photo) { return; }
-        this._value.photo = value;
-        this.markDirty();
-    }
-    get messageId(): string | null {
-        let res = this._value.messageId;
-        if (res) { return res; }
-        return null;
-    }
-    set messageId(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.messageId) { return; }
-        this._value.messageId = value;
-        this.markDirty();
-    }
-    get kind(): 'create_message' | 'update_message' | 'delete_message' | 'group_update' | 'add_members' | 'remove_members' {
-        return this._value.kind;
-    }
-    set kind(value: 'create_message' | 'update_message' | 'delete_message' | 'group_update' | 'add_members' | 'remove_members') {
-        this._checkIsWritable();
-        if (value === this._value.kind) { return; }
-        this._value.kind = value;
-        this.markDirty();
-    }
-}
-
-export class ConversationEventFactory extends FEntityFactory<ConversationEvent> {
-    constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace('entity', 'conversationEvent'),
-            { enableVersioning: true, enableTimestamps: true },
-            []
-        );
-    }
-    extractId(rawId: any[]) {
-        return { 'cid': rawId[0], 'seq': rawId[1] };
-    }
-    async findById(cid: string, seq: number) {
-        return await this._findById([cid, seq]);
-    }
-    async create(cid: string, seq: number, shape: ConversationEventShape) {
-        return await this._create([cid, seq], { cid, seq, ...shape });
-    }
-    watch(cid: string, seq: number, cb: () => void) {
-        return this._watch([cid, seq], cb);
-    }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new ConversationEvent(this.connection, this.namespace, [value.cid, value.seq], value, this.options, isNew, this.indexes);
-    }
-}
 export interface MessageShape {
     cid: string;
     uid: number;
@@ -1655,6 +1541,7 @@ export interface MessageShape {
     augmentation?: any| null;
     isMuted: boolean;
     isService: boolean;
+    deleted: boolean;
 }
 
 export class Message extends FEntity {
@@ -1783,6 +1670,15 @@ export class Message extends FEntity {
         this._value.isService = value;
         this.markDirty();
     }
+    get deleted(): boolean {
+        return this._value.deleted;
+    }
+    set deleted(value: boolean) {
+        this._checkIsWritable();
+        if (value === this._value.deleted) { return; }
+        this._value.deleted = value;
+        this.markDirty();
+    }
 }
 
 export class MessageFactory extends FEntityFactory<Message> {
@@ -1790,7 +1686,7 @@ export class MessageFactory extends FEntityFactory<Message> {
         super(connection,
             new FNamespace('entity', 'message'),
             { enableVersioning: false, enableTimestamps: false },
-            [new FEntityIndex('chat', ['cid', 'id'], false)]
+            [new FEntityIndex('chat', ['cid', 'id'], false, (src) => !src.deleted)]
         );
     }
     extractId(rawId: any[]) {
@@ -1818,6 +1714,337 @@ export class MessageFactory extends FEntityFactory<Message> {
         return new Message(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
     }
 }
+export interface ConversationEventShape {
+    userId?: number| null;
+    kickedIds?: any| null;
+    addedIds?: any| null;
+    title?: string| null;
+    photo?: string| null;
+    messageId?: string| null;
+    kind: 'create_message' | 'update_message' | 'delete_message' | 'group_update' | 'add_members' | 'remove_members';
+}
+
+export class ConversationEvent extends FEntity {
+    get cid(): string { return this._value.cid; }
+    get seq(): number { return this._value.seq; }
+    get userId(): number | null {
+        let res = this._value.userId;
+        if (res) { return res; }
+        return null;
+    }
+    set userId(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.userId) { return; }
+        this._value.userId = value;
+        this.markDirty();
+    }
+    get kickedIds(): any | null {
+        let res = this._value.kickedIds;
+        if (res) { return res; }
+        return null;
+    }
+    set kickedIds(value: any | null) {
+        this._checkIsWritable();
+        if (value === this._value.kickedIds) { return; }
+        this._value.kickedIds = value;
+        this.markDirty();
+    }
+    get addedIds(): any | null {
+        let res = this._value.addedIds;
+        if (res) { return res; }
+        return null;
+    }
+    set addedIds(value: any | null) {
+        this._checkIsWritable();
+        if (value === this._value.addedIds) { return; }
+        this._value.addedIds = value;
+        this.markDirty();
+    }
+    get title(): string | null {
+        let res = this._value.title;
+        if (res) { return res; }
+        return null;
+    }
+    set title(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.title) { return; }
+        this._value.title = value;
+        this.markDirty();
+    }
+    get photo(): string | null {
+        let res = this._value.photo;
+        if (res) { return res; }
+        return null;
+    }
+    set photo(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.photo) { return; }
+        this._value.photo = value;
+        this.markDirty();
+    }
+    get messageId(): string | null {
+        let res = this._value.messageId;
+        if (res) { return res; }
+        return null;
+    }
+    set messageId(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.messageId) { return; }
+        this._value.messageId = value;
+        this.markDirty();
+    }
+    get kind(): 'create_message' | 'update_message' | 'delete_message' | 'group_update' | 'add_members' | 'remove_members' {
+        return this._value.kind;
+    }
+    set kind(value: 'create_message' | 'update_message' | 'delete_message' | 'group_update' | 'add_members' | 'remove_members') {
+        this._checkIsWritable();
+        if (value === this._value.kind) { return; }
+        this._value.kind = value;
+        this.markDirty();
+    }
+}
+
+export class ConversationEventFactory extends FEntityFactory<ConversationEvent> {
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'conversationEvent'),
+            { enableVersioning: true, enableTimestamps: true },
+            []
+        );
+    }
+    extractId(rawId: any[]) {
+        return { 'cid': rawId[0], 'seq': rawId[1] };
+    }
+    async findById(cid: string, seq: number) {
+        return await this._findById([cid, seq]);
+    }
+    async create(cid: string, seq: number, shape: ConversationEventShape) {
+        return await this._create([cid, seq], { cid, seq, ...shape });
+    }
+    watch(cid: string, seq: number, cb: () => void) {
+        return this._watch([cid, seq], cb);
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new ConversationEvent(this.connection, this.namespace, [value.cid, value.seq], value, this.options, isNew, this.indexes);
+    }
+}
+export interface UserConversationEventShape {
+}
+
+export class UserConversationEvent extends FEntity {
+    get cid(): string { return this._value.cid; }
+    get seq(): number { return this._value.seq; }
+}
+
+export class UserConversationEventFactory extends FEntityFactory<UserConversationEvent> {
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'userConversationEvent'),
+            { enableVersioning: true, enableTimestamps: true },
+            []
+        );
+    }
+    extractId(rawId: any[]) {
+        return { 'cid': rawId[0], 'seq': rawId[1] };
+    }
+    async findById(cid: string, seq: number) {
+        return await this._findById([cid, seq]);
+    }
+    async create(cid: string, seq: number, shape: UserConversationEventShape) {
+        return await this._create([cid, seq], { cid, seq, ...shape });
+    }
+    watch(cid: string, seq: number, cb: () => void) {
+        return this._watch([cid, seq], cb);
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new UserConversationEvent(this.connection, this.namespace, [value.cid, value.seq], value, this.options, isNew, this.indexes);
+    }
+}
+export interface UserMessagingStateShape {
+    unread: number;
+    seq: number;
+}
+
+export class UserMessagingState extends FEntity {
+    get uid(): number { return this._value.uid; }
+    get unread(): number {
+        return this._value.unread;
+    }
+    set unread(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.unread) { return; }
+        this._value.unread = value;
+        this.markDirty();
+    }
+    get seq(): number {
+        return this._value.seq;
+    }
+    set seq(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.seq) { return; }
+        this._value.seq = value;
+        this.markDirty();
+    }
+}
+
+export class UserMessagingStateFactory extends FEntityFactory<UserMessagingState> {
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'userMessagingState'),
+            { enableVersioning: true, enableTimestamps: true },
+            []
+        );
+    }
+    extractId(rawId: any[]) {
+        return { 'uid': rawId[0] };
+    }
+    async findById(uid: number) {
+        return await this._findById([uid]);
+    }
+    async create(uid: number, shape: UserMessagingStateShape) {
+        return await this._create([uid], { uid, ...shape });
+    }
+    watch(uid: number, cb: () => void) {
+        return this._watch([uid], cb);
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new UserMessagingState(this.connection, this.namespace, [value.uid], value, this.options, isNew, this.indexes);
+    }
+}
+export interface UserMessagingEventShape {
+    allUnread: number;
+    convUnread: number;
+    userId?: number| null;
+    kickedIds?: any| null;
+    addedIds?: any| null;
+    title?: string| null;
+    photo?: string| null;
+    messageId?: string| null;
+    kind: 'create_message' | 'update_message' | 'delete_message' | 'group_update' | 'add_members' | 'remove_members';
+}
+
+export class UserMessagingEvent extends FEntity {
+    get uid(): number { return this._value.uid; }
+    get seq(): number { return this._value.seq; }
+    get allUnread(): number {
+        return this._value.allUnread;
+    }
+    set allUnread(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.allUnread) { return; }
+        this._value.allUnread = value;
+        this.markDirty();
+    }
+    get convUnread(): number {
+        return this._value.convUnread;
+    }
+    set convUnread(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.convUnread) { return; }
+        this._value.convUnread = value;
+        this.markDirty();
+    }
+    get userId(): number | null {
+        let res = this._value.userId;
+        if (res) { return res; }
+        return null;
+    }
+    set userId(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.userId) { return; }
+        this._value.userId = value;
+        this.markDirty();
+    }
+    get kickedIds(): any | null {
+        let res = this._value.kickedIds;
+        if (res) { return res; }
+        return null;
+    }
+    set kickedIds(value: any | null) {
+        this._checkIsWritable();
+        if (value === this._value.kickedIds) { return; }
+        this._value.kickedIds = value;
+        this.markDirty();
+    }
+    get addedIds(): any | null {
+        let res = this._value.addedIds;
+        if (res) { return res; }
+        return null;
+    }
+    set addedIds(value: any | null) {
+        this._checkIsWritable();
+        if (value === this._value.addedIds) { return; }
+        this._value.addedIds = value;
+        this.markDirty();
+    }
+    get title(): string | null {
+        let res = this._value.title;
+        if (res) { return res; }
+        return null;
+    }
+    set title(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.title) { return; }
+        this._value.title = value;
+        this.markDirty();
+    }
+    get photo(): string | null {
+        let res = this._value.photo;
+        if (res) { return res; }
+        return null;
+    }
+    set photo(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.photo) { return; }
+        this._value.photo = value;
+        this.markDirty();
+    }
+    get messageId(): string | null {
+        let res = this._value.messageId;
+        if (res) { return res; }
+        return null;
+    }
+    set messageId(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.messageId) { return; }
+        this._value.messageId = value;
+        this.markDirty();
+    }
+    get kind(): 'create_message' | 'update_message' | 'delete_message' | 'group_update' | 'add_members' | 'remove_members' {
+        return this._value.kind;
+    }
+    set kind(value: 'create_message' | 'update_message' | 'delete_message' | 'group_update' | 'add_members' | 'remove_members') {
+        this._checkIsWritable();
+        if (value === this._value.kind) { return; }
+        this._value.kind = value;
+        this.markDirty();
+    }
+}
+
+export class UserMessagingEventFactory extends FEntityFactory<UserMessagingEvent> {
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'userMessagingEvent'),
+            { enableVersioning: true, enableTimestamps: true },
+            []
+        );
+    }
+    extractId(rawId: any[]) {
+        return { 'uid': rawId[0], 'seq': rawId[1] };
+    }
+    async findById(uid: number, seq: number) {
+        return await this._findById([uid, seq]);
+    }
+    async create(uid: number, seq: number, shape: UserMessagingEventShape) {
+        return await this._create([uid, seq], { uid, seq, ...shape });
+    }
+    watch(uid: number, seq: number, cb: () => void) {
+        return this._watch([uid, seq], cb);
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new UserMessagingEvent(this.connection, this.namespace, [value.uid, value.seq], value, this.options, isNew, this.indexes);
+    }
+}
 
 export class AllEntities extends FDBInstance {
     Online: OnlineFactory;
@@ -1840,8 +2067,11 @@ export class AllEntities extends FDBInstance {
     ShortnameReservation: ShortnameReservationFactory;
     AuthCodeSession: AuthCodeSessionFactory;
     ConversationSeq: ConversationSeqFactory;
-    ConversationEvent: ConversationEventFactory;
     Message: MessageFactory;
+    ConversationEvent: ConversationEventFactory;
+    UserConversationEvent: UserConversationEventFactory;
+    UserMessagingState: UserMessagingStateFactory;
+    UserMessagingEvent: UserMessagingEventFactory;
 
     constructor(connection: FConnection) {
         super(connection);
@@ -1865,7 +2095,10 @@ export class AllEntities extends FDBInstance {
         this.ShortnameReservation = new ShortnameReservationFactory(connection);
         this.AuthCodeSession = new AuthCodeSessionFactory(connection);
         this.ConversationSeq = new ConversationSeqFactory(connection);
-        this.ConversationEvent = new ConversationEventFactory(connection);
         this.Message = new MessageFactory(connection);
+        this.ConversationEvent = new ConversationEventFactory(connection);
+        this.UserConversationEvent = new UserConversationEventFactory(connection);
+        this.UserMessagingState = new UserMessagingStateFactory(connection);
+        this.UserMessagingEvent = new UserMessagingEventFactory(connection);
     }
 }
