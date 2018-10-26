@@ -3,6 +3,7 @@ import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { startEmailNotificationWorker } from './workers/EmailNotificationWorker';
 import { startPushNotificationWorker } from './workers/PushNotificationWorker';
 import { createDeliveryWorker } from './workers/DeliveryWorker';
+import { createImmigrationWorker } from './workers/ImmigrationWorker';
 
 export class MessagingModule {
     AugmentationWorker = createAugmentationWorker();
@@ -15,5 +16,6 @@ export class MessagingModule {
             startPushNotificationWorker();
         }
         createDeliveryWorker();
+        createImmigrationWorker();
     }
 }

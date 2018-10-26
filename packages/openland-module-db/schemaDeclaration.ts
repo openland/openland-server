@@ -204,6 +204,8 @@ const Schema = declareSchema(() => {
         field('enabled', 'boolean');
         uniqueIndex('user', ['ownerId']).withCondition((src) => src.ownerType === 'user' && src.enabled);
         uniqueIndex('org', ['ownerId']).withCondition((src) => src.ownerType === 'org' && src.enabled);
+        enableVersioning();
+        enableTimestamps();
     });
 
     entity('AuthCodeSession', () => {
@@ -213,6 +215,41 @@ const Schema = declareSchema(() => {
         field('email', 'string');
         field('tokenId', 'string').nullable();
         field('enabled', 'boolean');
+        enableVersioning();
+        enableTimestamps();
+    });
+
+    // entity('ConversationEvent', () => {
+    //     primaryKey('conversationId', 'number');
+    //     primaryKey('seq', 'number');
+    //     field('userId', 'number').nullable();
+    //     field('kickedIds', 'json').nullable();
+    //     field('addedIds', 'json').nullable();
+    //     field('title', 'string').nullable();
+    //     field('photo', 'string').nullable();
+    //     field('messageId', 'number').nullable();
+    //     enumField('kind', ['create_message', 'update_message', 'delete_message', 'group_update', 'add_members', 'remove_members']);
+    //     enableVersioning();
+    //     enableTimestamps();
+    // });
+
+    entity('Message', () => {
+        primaryKey('id', 'number');
+        field('cid', 'number');
+        field('uid', 'number');
+        field('repeatToken', 'string').nullable();
+
+        field('text', 'string').nullable();
+        field('fileId', 'string').nullable();
+        field('fileMetadata', 'json').nullable();
+        field('filePreview', 'string').nullable();
+        field('mentions', 'json').nullable();
+        field('replyMessages', 'json').nullable();
+        field('augmentation', 'json').nullable();
+
+        field('isMuted', 'boolean');
+        field('isService', 'boolean');
+        rangeIndex('chat', ['cid', 'id']);
     });
 });
 

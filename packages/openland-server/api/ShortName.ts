@@ -46,32 +46,28 @@ export const Resolvers = {
     },
     Mutation: {
         alphaSetUserShortName: withAccount<{ shortname: string }>(async (args, uid, orgId) => {
-            return await DB.tx(async (tx) => {
-                testShortName(args.shortname);
+            testShortName(args.shortname);
 
-                await Modules.Shortnames.setShortnameToUser(args.shortname, uid);
+            await Modules.Shortnames.setShortnameToUser(args.shortname, uid);
 
-                return 'ok';
-            });
+            return 'ok';
         }),
         alphaSetOrgShortName: withAccount<{ shortname: string, id: number }>(async (args, uid, orgId) => {
-            return await DB.tx(async (tx) => {
-                testShortName(args.shortname);
+            testShortName(args.shortname);
 
-                let member = await DB.OrganizationMember.find({
-                    where: {
-                        orgId: args.id,
-                        userId: uid,
-                    }
-                });
-                if (member === null || !member.isOwner) {
-                    throw new UserError(ErrorText.permissionOnlyOwner);
+            let member = await DB.OrganizationMember.find({
+                where: {
+                    orgId: args.id,
+                    userId: uid,
                 }
-
-                await Modules.Shortnames.setShortnameToOrganization(args.shortname, args.id);
-
-                return 'ok';
             });
+            if (member === null || !member.isOwner) {
+                throw new UserError(ErrorText.permissionOnlyOwner);
+            }
+
+            await Modules.Shortnames.setShortnameToOrganization(args.shortname, args.id);
+
+            return 'ok';
         }),
     },
 

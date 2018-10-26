@@ -28,12 +28,12 @@ export const Resolvers = {
                 pushLog.log('Received push token: ' + JSON.stringify(args.endpoint));
                 if (args.type === 'IOS') {
                     let parsed = JSON.parse(args.endpoint);
-                    await Modules.Push.registerPushApple(context.uid!, context.tid!, parsed.endpoint, parsed.bundleId, parsed.sandbox);
+                    await Modules.Push.registerPushApple(context.uid!, context.tid!, parsed.token, parsed.bundleId, parsed.sandbox);
                     return 'ok';
                 }
                 if (args.type === 'ANDROID') {
                     let parsed = JSON.parse(args.endpoint);
-                    await Modules.Push.registerPushAndroid(context.uid!, context.tid!, parsed.endpoint, parsed.bundleId, parsed.sandbox);
+                    await Modules.Push.registerPushAndroid(context.uid!, context.tid!, parsed.token, parsed.bundleId, parsed.sandbox);
                     return 'ok';
                 }
                 if (args.type === 'WEB_PUSH') {
