@@ -13,12 +13,16 @@ export function createWebWorker(repo: PushRepository) {
                 return { result: 'skipped' };
             }
 
-            await WebPush.sendNotification(JSON.parse(token.endpoint), JSON.stringify({
-                title: task.title,
-                body: task.body,
-                picture: task.picture,
-                ...task.extras
-            }));
+            try {
+                await WebPush.sendNotification(JSON.parse(token.endpoint), JSON.stringify({
+                    title: task.title,
+                    body: task.body,
+                    picture: task.picture,
+                    ...task.extras
+                }));
+            } catch (e) {
+                return { result: 'failed' };
+            }
             return { result: 'ok' };
         });
     }
