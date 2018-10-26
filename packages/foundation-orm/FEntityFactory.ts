@@ -27,7 +27,7 @@ export abstract class FEntityFactory<T extends FEntity> {
 
     async findAll() {
         let res = await this.namespace.range(this.connection, []);
-        return res.map((v) => this.doCreateEntity(v, false));
+        return res.map((v) => this.doCreateEntity(v.item, false));
     }
 
     protected abstract _createEntity(value: any, isNew: boolean): T;
