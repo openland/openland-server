@@ -1404,6 +1404,89 @@ export class ShortnameReservationFactory extends FEntityFactory<ShortnameReserva
         return new ShortnameReservation(this.connection, this.namespace, [value.shortname], value, this.options, isNew, this.indexes);
     }
 }
+export interface AuthCodeSessionShape {
+    code: string;
+    expires: number;
+    email: string;
+    tokenId?: string| null;
+    enabled: boolean;
+}
+
+export class AuthCodeSession extends FEntity {
+    get uid(): string { return this._value.uid; }
+    get code(): string {
+        return this._value.code;
+    }
+    set code(value: string) {
+        this._checkIsWritable();
+        if (value === this._value.code) { return; }
+        this._value.code = value;
+        this.markDirty();
+    }
+    get expires(): number {
+        return this._value.expires;
+    }
+    set expires(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.expires) { return; }
+        this._value.expires = value;
+        this.markDirty();
+    }
+    get email(): string {
+        return this._value.email;
+    }
+    set email(value: string) {
+        this._checkIsWritable();
+        if (value === this._value.email) { return; }
+        this._value.email = value;
+        this.markDirty();
+    }
+    get tokenId(): string | null {
+        let res = this._value.tokenId;
+        if (res) { return res; }
+        return null;
+    }
+    set tokenId(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.tokenId) { return; }
+        this._value.tokenId = value;
+        this.markDirty();
+    }
+    get enabled(): boolean {
+        return this._value.enabled;
+    }
+    set enabled(value: boolean) {
+        this._checkIsWritable();
+        if (value === this._value.enabled) { return; }
+        this._value.enabled = value;
+        this.markDirty();
+    }
+}
+
+export class AuthCodeSessionFactory extends FEntityFactory<AuthCodeSession> {
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'authCodeSession'),
+            { enableVersioning: false, enableTimestamps: false },
+            []
+        );
+    }
+    extractId(rawId: any[]) {
+        return { 'uid': rawId[0] };
+    }
+    async findById(uid: string) {
+        return await this._findById([uid]);
+    }
+    async create(uid: string, shape: AuthCodeSessionShape) {
+        return await this._create([uid], { uid, ...shape });
+    }
+    watch(uid: string, cb: () => void) {
+        return this._watch([uid], cb);
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new AuthCodeSession(this.connection, this.namespace, [value.uid], value, this.options, isNew, this.indexes);
+    }
+}
 
 export class AllEntities extends FDBInstance {
     Online: OnlineFactory;
@@ -1424,6 +1507,7 @@ export class AllEntities extends FDBInstance {
     SuperAdmin: SuperAdminFactory;
     UserSettings: UserSettingsFactory;
     ShortnameReservation: ShortnameReservationFactory;
+    AuthCodeSession: AuthCodeSessionFactory;
 
     constructor(connection: FConnection) {
         super(connection);
@@ -1445,5 +1529,6 @@ export class AllEntities extends FDBInstance {
         this.SuperAdmin = new SuperAdminFactory(connection);
         this.UserSettings = new UserSettingsFactory(connection);
         this.ShortnameReservation = new ShortnameReservationFactory(connection);
+        this.AuthCodeSession = new AuthCodeSessionFactory(connection);
     }
 }

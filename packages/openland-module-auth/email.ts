@@ -4,8 +4,9 @@ import { Emails } from '../openland-server/services/Emails';
 import { DB } from '../openland-server/tables';
 import * as base64 from '../openland-server/utils/base64';
 import { randomBytes } from 'crypto';
-import { AuthSession } from '../openland-server/tables/AuthSession';
 import { Modules } from 'openland-modules/Modules';
+import { inTx } from 'foundation-orm/inTx';
+import { AuthCodeSession } from 'openland-module-db/schema';
 
 const ERROR_TEXT = {
     0: 'Wrong arguments passed',
@@ -67,31 +68,26 @@ export function withAudit(handler: (req: express.Request, response: express.Resp
 }
 
 export async function sendCode(req: express.Request, response: express.Response) {
-    return await DB.txLight(async (tx) => {
-        let {
-            email,
-            phone,
-            session
-        } = req.body;
+    let {
+        email,
+        phone,
+        session
+    } = req.body;
 
-        console.log('auth_sendCode', JSON.stringify(req.body));
-
-        let authSession: AuthSession;
-
+    let res = await inTx(async () => {
+        let authSession: AuthCodeSession | undefined;
         if (session) {
-            let existing = await DB.AuthSession.findOne({ where: { sessionSalt: session }, transaction: tx });
-
-            // No session found
+            let existing = await Modules.Auth.repo.findSession(session);
             if (!existing) {
                 sendError(response, 2);
-                return;
+                return undefined;
             }
             authSession = existing;
         }
 
         if (!email && !phone) {
             sendError(response, 5);
-            return;
+            return undefined;
         }
 
         let code = randomNumbersString(5);
@@ -101,46 +97,103 @@ export async function sendCode(req: express.Request, response: express.Response)
             let isTest = isTestEmail(email);
 
             if (!isTest) {
-                await Emails.sendActivationCodeEmail(email, code, tx);
+                await Emails.sendActivationCodeEmail(email, code);
             } else {
                 code = testEmailCode(email);
             }
 
-            if (!authSession!) {
-                authSession = await DB.AuthSession.create({
-                    sessionSalt: base64.encodeBuffer(randomBytes(64)),
-                    code,
-                    codeExpires: new Date(Date.now() + 1000 * 60 * 5), // 5 minutes
-                    extras: {
-                        email
-                    }
-                }, { transaction: tx });
+            if (!authSession) {
+                authSession = await Modules.Auth.repo.createSession(email, code);
             } else {
-                await authSession!.update({ code });
+                authSession.code = code;
             }
-
-            response.json({ ok: true, session: authSession!.sessionSalt });
+            return authSession;
+        } else {
+            sendError(response, 5);
         }
+        return undefined;
     });
+
+    if (res) {
+        response.json({ ok: true, session: res!.uid });
+    } else {
+        sendError(response, 5);
+    }
+    // return await DB.txLight(async (tx) => {
+    //     let {
+    //         email,
+    //         phone,
+    //         session
+    //     } = req.body;
+
+    //     console.log('auth_sendCode', JSON.stringify(req.body));
+
+    //     let authSession: AuthSession;
+
+    //     if (session) {
+    //         let existing = await DB.AuthSession.findOne({ where: { sessionSalt: session }, transaction: tx });
+
+    //         // No session found
+    //         if (!existing) {
+    //             sendError(response, 2);
+    //             return;
+    //         }
+    //         authSession = existing;
+    //     }
+
+    //     if (!email && !phone) {
+    //         sendError(response, 5);
+    //         return;
+    //     }
+
+    //     let code = randomNumbersString(5);
+
+    //     if (email) {
+    //         email = (email as string).toLowerCase();
+    //         let isTest = isTestEmail(email);
+
+    //         if (!isTest) {
+    //             await Emails.sendActivationCodeEmail(email, code, tx);
+    //         } else {
+    //             code = testEmailCode(email);
+    //         }
+
+    //         if (!authSession!) {
+    //             authSession = await DB.AuthSession.create({
+    //                 sessionSalt: base64.encodeBuffer(randomBytes(64)),
+    //                 code,
+    //                 codeExpires: new Date(Date.now() + 1000 * 60 * 5), // 5 minutes
+    //                 extras: {
+    //                     email
+    //                 }
+    //             }, { transaction: tx });
+    //         } else {
+    //             await authSession!.update({ code });
+    //         }
+
+    //         response.json({ ok: true, session: authSession!.sessionSalt });
+    //     }
+    // });
 }
 
 export async function checkCode(req: express.Request, response: express.Response) {
-    return await DB.txLight(async (tx) => {
-        let {
-            session,
-            code
-        } = req.body;
 
-        if (!session) {
-            sendError(response, 6);
-            return;
-        }
-        if (!code) {
-            sendError(response, 7);
-            return;
-        }
+    let {
+        session,
+        code
+    } = req.body;
 
-        let authSession = await DB.AuthSession.findOne({ where: { sessionSalt: session }, transaction: tx });
+    if (!session) {
+        sendError(response, 6);
+        return;
+    }
+    if (!code) {
+        sendError(response, 7);
+        return;
+    }
+
+    let res = await inTx(async () => {
+        let authSession = await Modules.Auth.repo.findSession(session);
 
         // No session found
         if (!authSession) {
@@ -149,7 +202,7 @@ export async function checkCode(req: express.Request, response: express.Response
         }
 
         // Code expired
-        if (new Date() > authSession.codeExpires!) {
+        if (Date.now() > authSession.expires) {
             sendError(response, 3);
             return;
         }
@@ -160,12 +213,12 @@ export async function checkCode(req: express.Request, response: express.Response
             return;
         }
 
-        authSession.extras!.authToken = base64.encodeBuffer(randomBytes(64));
-        (authSession as any).changed('extras', true);
-        await authSession.save();
+        authSession.tokenId = base64.encodeBuffer(randomBytes(64));
 
-        response.json({ ok: true, authToken: authSession.extras!.authToken });
+        return authSession;
     });
+
+    response.json({ ok: true, authToken: res!.tokenId });
 }
 
 export async function getAccessToken(req: express.Request, response: express.Response) {
@@ -184,50 +237,52 @@ export async function getAccessToken(req: express.Request, response: express.Res
             return;
         }
 
-        let authSession = await DB.AuthSession.findOne({ where: { sessionSalt: session, extras: { authToken } }, transaction: tx });
+        await inTx(async () => {
+            let authSession = await Modules.Auth.repo.findSession(session);
 
-        // No session found
-        if (!authSession) {
-            sendError(response, 2);
-            return;
-        }
-
-        if (authSession.extras!.email) {
-            let sequelize = DB.connection;
-
-            let existing = await DB.User.findOne({
-                where: [
-                    sequelize.or(
-                        {
-                            email: authSession.extras!.email as any
-                        },
-                        {
-                            authId: 'email|' + authSession.extras!.email as any
-                        }
-
-                    )],
-                order: [['createdAt', 'ASC']],
-                transaction: tx,
-                lock: tx.LOCK.UPDATE
-            });
-
-            if (existing) {
-                let token = await Modules.Auth.createToken(existing.id!);
-                response.json({ ok: true, accessToken: token });
-                await authSession.destroy();
-                return;
-            } else {
-                let user = await DB.User.create({
-                    authId: 'email|' + authSession.extras!.email,
-                    email: authSession.extras!.email as string,
-                }, { transaction: tx });
-                let token = await Modules.Auth.createToken(user.id!);
-                response.json({ ok: true, accessToken: token });
-                await authSession.destroy();
+            // No session found
+            if (!authSession) {
+                sendError(response, 2);
                 return;
             }
-        } else {
-            sendError(response, 1);
-        }
+
+            if (authSession.email) {
+                let sequelize = DB.connection;
+
+                let existing = await DB.User.findOne({
+                    where: [
+                        sequelize.or(
+                            {
+                                email: authSession.email as any
+                            },
+                            {
+                                authId: 'email|' + authSession.email as any
+                            }
+
+                        )],
+                    order: [['createdAt', 'ASC']],
+                    transaction: tx,
+                    lock: tx.LOCK.UPDATE
+                });
+
+                if (existing) {
+                    let token = await Modules.Auth.createToken(existing.id!);
+                    response.json({ ok: true, accessToken: token });
+                    authSession.enabled = false;
+                    return;
+                } else {
+                    let user = await DB.User.create({
+                        authId: 'email|' + authSession.email,
+                        email: authSession.email as string,
+                    }, { transaction: tx });
+                    let token = await Modules.Auth.createToken(user.id!);
+                    response.json({ ok: true, accessToken: token });
+                    authSession.enabled = false;
+                    return;
+                }
+            } else {
+                sendError(response, 1);
+            }
+        });
     });
 }

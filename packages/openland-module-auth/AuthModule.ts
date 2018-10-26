@@ -5,8 +5,11 @@ import { FDB } from 'openland-module-db/FDB';
 import { inTx } from 'foundation-orm/inTx';
 import { uuid } from 'openland-utils/uuid';
 import { randomBytes } from 'crypto';
+import { AuthCodeRepository } from './repositories/AuthCodeRepository';
 
 export class AuthModule {
+    readonly repo = new AuthCodeRepository(FDB);
+    
     private loader = new DataLoader<string, AuthToken | null>(async (tokens) => {
         let res: (AuthToken | null)[] = [];
         for (let i of tokens) {

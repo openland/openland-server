@@ -332,7 +332,7 @@ export const Emails = {
         });
     },
 
-    async sendActivationCodeEmail(email: string, code: string, tx?: Transaction) {
+    async sendActivationCodeEmail(email: string, code: string) {
         await Modules.Email.Worker.pushWork({
             subject: `Activation code: ` + code,
             templateId: TEMPLATE_SIGNUP_CODE,

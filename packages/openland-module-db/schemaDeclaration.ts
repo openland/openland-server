@@ -205,6 +205,15 @@ const Schema = declareSchema(() => {
         uniqueIndex('user', ['ownerId']).withCondition((src) => src.ownerType === 'user' && src.enabled);
         uniqueIndex('org', ['ownerId']).withCondition((src) => src.ownerType === 'org' && src.enabled);
     });
+
+    entity('AuthCodeSession', () => {
+        primaryKey('uid', 'string');
+        field('code', 'string');
+        field('expires', 'number');
+        field('email', 'string');
+        field('tokenId', 'string').nullable();
+        field('enabled', 'boolean');
+    });
 });
 
 generate(Schema, __dirname + '/../openland-module-db/schema.ts');
