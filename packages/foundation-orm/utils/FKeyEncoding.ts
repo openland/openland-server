@@ -18,6 +18,15 @@ export const FKeyEncoding = {
     encodeKeyToString: (key: (string | boolean | number)[]) => {
         return (encoders.tuple.pack(key) as Buffer).toString('hex');
     },
+    encodeKeyForCli: (key: (string | boolean | number)[]) => {
+        let bytes = encoders.tuple.pack(key) as Buffer;
+        let converted = bytes.toString('hex');
+        let res = '';
+        for (let i = 0; i < bytes.length; i++) {
+            res += '\\x' + converted[i * 2] + converted[i * 2 + 1];
+        }
+        return res;
+    },
     decodeKey: (key: Buffer) => {
         return encoders.tuple.unpack(key);
     },
