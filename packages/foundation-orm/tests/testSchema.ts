@@ -31,6 +31,9 @@ export class SimpleEntityFactory extends FEntityFactory<SimpleEntity> {
             []
         );
     }
+    extractId(rawId: any[]) {
+        return { 'id': rawId[0] };
+    }
     async findById(id: number) {
         return await this._findById([id]);
     }
@@ -69,6 +72,9 @@ export class VersionedEntityFactory extends FEntityFactory<VersionedEntity> {
             []
         );
     }
+    extractId(rawId: any[]) {
+        return { 'id': rawId[0] };
+    }
     async findById(id: number) {
         return await this._findById([id]);
     }
@@ -106,6 +112,9 @@ export class TimestampedEntityFactory extends FEntityFactory<TimestampedEntity> 
             { enableVersioning: false, enableTimestamps: true },
             []
         );
+    }
+    extractId(rawId: any[]) {
+        return { 'id': rawId[0] };
     }
     async findById(id: number) {
         return await this._findById([id]);
@@ -164,6 +173,9 @@ export class IndexedEntityFactory extends FEntityFactory<IndexedEntity> {
             { enableVersioning: false, enableTimestamps: false },
             [new FEntityIndex('default', ['data1', 'data2', 'id'], true)]
         );
+    }
+    extractId(rawId: any[]) {
+        return { 'id': rawId[0] };
     }
     async findById(id: number) {
         return await this._findById([id]);
@@ -225,6 +237,9 @@ export class IndexedRangeEntityFactory extends FEntityFactory<IndexedRangeEntity
             { enableVersioning: false, enableTimestamps: false },
             [new FEntityIndex('default', ['data1', 'data2'], false)]
         );
+    }
+    extractId(rawId: any[]) {
+        return { 'id': rawId[0] };
     }
     async findById(id: number) {
         return await this._findById([id]);
@@ -292,6 +307,9 @@ export class IndexedPartialEntityFactory extends FEntityFactory<IndexedPartialEn
             { enableVersioning: false, enableTimestamps: false },
             [new FEntityIndex('default', ['data1', 'data2', 'id'], true, (src) => src.data1 === 'hello')]
         );
+    }
+    extractId(rawId: any[]) {
+        return { 'id': rawId[0] };
     }
     async findById(id: number) {
         return await this._findById([id]);

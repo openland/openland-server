@@ -99,6 +99,11 @@ export function generateEntity(entity: EntityModel): string {
     res += '            [' + entity.indexes.map(buildIndex).join(', ') + ']\n';
     res += '        );\n';
     res += '    }\n';
+
+    res += '    extractId(rawId: any[]) {\n';
+    res += '        return { ' + entity.keys.map((v, i) => '\'' + v.name + '\': rawId[' + i + ']').join(', ') + ' };\n';
+    res += '    }\n';
+
     // protected _createEntity(context: SContext, namespace: SNamespace, id: (string | number)[], value: any) {
     //     return new Online(context, namespace, id, value);
     // }

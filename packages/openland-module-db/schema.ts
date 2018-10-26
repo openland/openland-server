@@ -31,6 +31,9 @@ export class OnlineFactory extends FEntityFactory<Online> {
             []
         );
     }
+    extractId(rawId: any[]) {
+        return { 'uid': rawId[0] };
+    }
     async findById(uid: number) {
         return await this._findById([uid]);
     }
@@ -90,6 +93,9 @@ export class PresenceFactory extends FEntityFactory<Presence> {
             []
         );
     }
+    extractId(rawId: any[]) {
+        return { 'uid': rawId[0], 'tid': rawId[1] };
+    }
     async findById(uid: number, tid: string) {
         return await this._findById([uid, tid]);
     }
@@ -127,6 +133,9 @@ export class CounterFactory extends FEntityFactory<Counter> {
             { enableVersioning: false, enableTimestamps: false },
             []
         );
+    }
+    extractId(rawId: any[]) {
+        return { 'name': rawId[0] };
     }
     async findById(name: string) {
         return await this._findById([name]);
@@ -186,6 +195,9 @@ export class AuthTokenFactory extends FEntityFactory<AuthToken> {
             [new FEntityIndex('salt', ['salt'], true)]
         );
     }
+    extractId(rawId: any[]) {
+        return { 'uuid': rawId[0] };
+    }
     async findById(uuid: string) {
         return await this._findById([uuid]);
     }
@@ -227,6 +239,9 @@ export class ServiceCacheFactory extends FEntityFactory<ServiceCache> {
             { enableVersioning: true, enableTimestamps: true },
             []
         );
+    }
+    extractId(rawId: any[]) {
+        return { 'service': rawId[0], 'key': rawId[1] };
     }
     async findById(service: string, key: string) {
         return await this._findById([service, key]);
@@ -295,6 +310,9 @@ export class LockFactory extends FEntityFactory<Lock> {
             { enableVersioning: false, enableTimestamps: false },
             []
         );
+    }
+    extractId(rawId: any[]) {
+        return { 'key': rawId[0] };
     }
     async findById(key: string) {
         return await this._findById([key]);
@@ -417,6 +435,9 @@ export class TaskFactory extends FEntityFactory<Task> {
             [new FEntityIndex('pending', ['taskType', 'createdAt'], false, (src) => src.taskStatus === 'pending'), new FEntityIndex('executing', ['taskLockTimeout'], false, (src) => src.taskStatus === 'executing'), new FEntityIndex('failing', ['taskFailureTime'], false, (src) => src.taskStatus === 'failing')]
         );
     }
+    extractId(rawId: any[]) {
+        return { 'taskType': rawId[0], 'uid': rawId[1] };
+    }
     async findById(taskType: string, uid: string) {
         return await this._findById([taskType, uid]);
     }
@@ -532,6 +553,9 @@ export class PushFirebaseFactory extends FEntityFactory<PushFirebase> {
             [new FEntityIndex('user', ['uid', 'id'], false), new FEntityIndex('token', ['token'], true, src => src.enabled)]
         );
     }
+    extractId(rawId: any[]) {
+        return { 'id': rawId[0] };
+    }
     async findById(id: string) {
         return await this._findById([id]);
     }
@@ -632,6 +656,9 @@ export class PushAppleFactory extends FEntityFactory<PushApple> {
             [new FEntityIndex('user', ['uid', 'id'], false), new FEntityIndex('token', ['token'], true, src => src.enabled)]
         );
     }
+    extractId(rawId: any[]) {
+        return { 'id': rawId[0] };
+    }
     async findById(id: string) {
         return await this._findById([id]);
     }
@@ -712,6 +739,9 @@ export class PushWebFactory extends FEntityFactory<PushWeb> {
             [new FEntityIndex('user', ['uid', 'id'], false), new FEntityIndex('endpoint', ['endpoint'], true, src => src.enabled)]
         );
     }
+    extractId(rawId: any[]) {
+        return { 'id': rawId[0] };
+    }
     async findById(id: string) {
         return await this._findById([id]);
     }
@@ -787,6 +817,9 @@ export class UserProfilePrefilFactory extends FEntityFactory<UserProfilePrefil> 
             { enableVersioning: true, enableTimestamps: true },
             []
         );
+    }
+    extractId(rawId: any[]) {
+        return { 'id': rawId[0] };
     }
     async findById(id: number) {
         return await this._findById([id]);
@@ -970,6 +1003,9 @@ export class UserProfileFactory extends FEntityFactory<UserProfile> {
             [new FEntityIndex('byUpdatedAt', ['updatedAt'], false)]
         );
     }
+    extractId(rawId: any[]) {
+        return { 'id': rawId[0] };
+    }
     async findById(id: number) {
         return await this._findById([id]);
     }
@@ -1016,6 +1052,9 @@ export class FeatureFlagFactory extends FEntityFactory<FeatureFlag> {
             { enableVersioning: true, enableTimestamps: true },
             []
         );
+    }
+    extractId(rawId: any[]) {
+        return { 'key': rawId[0] };
     }
     async findById(key: string) {
         return await this._findById([key]);
@@ -1075,6 +1114,9 @@ export class OrganizationFeaturesFactory extends FEntityFactory<OrganizationFeat
             [new FEntityIndex('organization', ['organizationId', 'featureKey'], true)]
         );
     }
+    extractId(rawId: any[]) {
+        return { 'id': rawId[0] };
+    }
     async findById(id: string) {
         return await this._findById([id]);
     }
@@ -1124,6 +1166,9 @@ export class ReaderStateFactory extends FEntityFactory<ReaderState> {
             { enableVersioning: true, enableTimestamps: false },
             []
         );
+    }
+    extractId(rawId: any[]) {
+        return { 'id': rawId[0] };
     }
     async findById(id: string) {
         return await this._findById([id]);

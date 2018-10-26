@@ -2,6 +2,7 @@ import { staticWorker } from 'openland-module-workers/staticWorker';
 import { performMigrations, FMigration } from 'foundation-orm/FMigrator';
 import { FDB } from './FDB';
 import { inTx } from 'foundation-orm/inTx';
+import { FDoctor } from 'foundation-orm/FDoctor';
 // import { FStreamItem } from 'foundation-orm/FStreamItem';
 // import { UserProfile } from './schema';
 // import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
@@ -16,6 +17,12 @@ migrations.push({
                 e.markDirty();
             }
         });
+    }
+});
+migrations.push({
+    key: '3-fixBrokenIdsInOnlines',
+    migration: async () => {
+        await FDoctor.doctorEntityIds(FDB.Online);
     }
 });
 

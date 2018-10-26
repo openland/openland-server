@@ -30,6 +30,13 @@ export abstract class FEntityFactory<T extends FEntity> {
         return res.map((v) => this.doCreateEntity(v.item, false));
     }
 
+    async findAllWithIds() {
+        let res = await this.namespace.range(this.connection, []);
+        return res.map((v) => ({ item: this.doCreateEntity(v.item, false), key: v.key }));
+    }
+
+    abstract extractId(rawId: any[]): any;
+
     protected abstract _createEntity(value: any, isNew: boolean): T;
 
     protected async _findById(key: (string | number)[]) {
