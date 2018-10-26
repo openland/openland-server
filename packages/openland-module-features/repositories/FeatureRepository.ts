@@ -43,6 +43,10 @@ export class FeatureRepository {
         return (await this.entities.OrganizationFeatures.allFromOrganization(oid)).filter((v) => v.enabled);
     }
 
+    async findOrganizationFeatureFlags(oid: number) {
+        return (await this.findOrganizationFeatures(oid)).map(async orgFeature => await this.entities.FeatureFlag.findById(orgFeature.featureKey));
+    }
+
     async createFeatureFlag(key: string, title: string) {
         return await inTx(async () => await this.entities.FeatureFlag.create(key, { title }));
     }
