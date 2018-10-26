@@ -1110,7 +1110,7 @@ export class OrganizationFeaturesFactory extends FEntityFactory<OrganizationFeat
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'organizationFeatures'),
-            { enableVersioning: false, enableTimestamps: false },
+            { enableVersioning: true, enableTimestamps: true },
             [new FEntityIndex('organization', ['organizationId', 'featureKey'], true)]
         );
     }
@@ -1175,7 +1175,7 @@ export class ReaderStateFactory extends FEntityFactory<ReaderState> {
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'readerState'),
-            { enableVersioning: true, enableTimestamps: false },
+            { enableVersioning: true, enableTimestamps: true },
             []
         );
     }
@@ -1195,6 +1195,148 @@ export class ReaderStateFactory extends FEntityFactory<ReaderState> {
         return new ReaderState(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
     }
 }
+export interface SuperAdminShape {
+    role: string;
+    enabled: boolean;
+}
+
+export class SuperAdmin extends FEntity {
+    get id(): number { return this._value.id; }
+    get role(): string {
+        return this._value.role;
+    }
+    set role(value: string) {
+        this._checkIsWritable();
+        if (value === this._value.role) { return; }
+        this._value.role = value;
+        this.markDirty();
+    }
+    get enabled(): boolean {
+        return this._value.enabled;
+    }
+    set enabled(value: boolean) {
+        this._checkIsWritable();
+        if (value === this._value.enabled) { return; }
+        this._value.enabled = value;
+        this.markDirty();
+    }
+}
+
+export class SuperAdminFactory extends FEntityFactory<SuperAdmin> {
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'superAdmin'),
+            { enableVersioning: false, enableTimestamps: false },
+            []
+        );
+    }
+    extractId(rawId: any[]) {
+        return { 'id': rawId[0] };
+    }
+    async findById(id: number) {
+        return await this._findById([id]);
+    }
+    async create(id: number, shape: SuperAdminShape) {
+        return await this._create([id], { id, ...shape });
+    }
+    watch(id: number, cb: () => void) {
+        return this._watch([id], cb);
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new SuperAdmin(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
+    }
+}
+export interface UserSettingsShape {
+    emailFrequency: '1hour' | '15min' | 'never' | '24hour' | '1week';
+    desktopNotifications: 'all' | 'direct' | 'none';
+    mobileNotifications: 'all' | 'direct' | 'none';
+    mobileAlert: boolean;
+    mobileIncludeText: boolean;
+    notificationsDelay: 'none' | '1min' | '15min';
+}
+
+export class UserSettings extends FEntity {
+    get id(): number { return this._value.id; }
+    get emailFrequency(): '1hour' | '15min' | 'never' | '24hour' | '1week' {
+        return this._value.emailFrequency;
+    }
+    set emailFrequency(value: '1hour' | '15min' | 'never' | '24hour' | '1week') {
+        this._checkIsWritable();
+        if (value === this._value.emailFrequency) { return; }
+        this._value.emailFrequency = value;
+        this.markDirty();
+    }
+    get desktopNotifications(): 'all' | 'direct' | 'none' {
+        return this._value.desktopNotifications;
+    }
+    set desktopNotifications(value: 'all' | 'direct' | 'none') {
+        this._checkIsWritable();
+        if (value === this._value.desktopNotifications) { return; }
+        this._value.desktopNotifications = value;
+        this.markDirty();
+    }
+    get mobileNotifications(): 'all' | 'direct' | 'none' {
+        return this._value.mobileNotifications;
+    }
+    set mobileNotifications(value: 'all' | 'direct' | 'none') {
+        this._checkIsWritable();
+        if (value === this._value.mobileNotifications) { return; }
+        this._value.mobileNotifications = value;
+        this.markDirty();
+    }
+    get mobileAlert(): boolean {
+        return this._value.mobileAlert;
+    }
+    set mobileAlert(value: boolean) {
+        this._checkIsWritable();
+        if (value === this._value.mobileAlert) { return; }
+        this._value.mobileAlert = value;
+        this.markDirty();
+    }
+    get mobileIncludeText(): boolean {
+        return this._value.mobileIncludeText;
+    }
+    set mobileIncludeText(value: boolean) {
+        this._checkIsWritable();
+        if (value === this._value.mobileIncludeText) { return; }
+        this._value.mobileIncludeText = value;
+        this.markDirty();
+    }
+    get notificationsDelay(): 'none' | '1min' | '15min' {
+        return this._value.notificationsDelay;
+    }
+    set notificationsDelay(value: 'none' | '1min' | '15min') {
+        this._checkIsWritable();
+        if (value === this._value.notificationsDelay) { return; }
+        this._value.notificationsDelay = value;
+        this.markDirty();
+    }
+}
+
+export class UserSettingsFactory extends FEntityFactory<UserSettings> {
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'userSettings'),
+            { enableVersioning: true, enableTimestamps: true },
+            []
+        );
+    }
+    extractId(rawId: any[]) {
+        return { 'id': rawId[0] };
+    }
+    async findById(id: number) {
+        return await this._findById([id]);
+    }
+    async create(id: number, shape: UserSettingsShape) {
+        return await this._create([id], { id, ...shape });
+    }
+    watch(id: number, cb: () => void) {
+        return this._watch([id], cb);
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new UserSettings(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
+    }
+}
 
 export class AllEntities extends FDBInstance {
     Online: OnlineFactory;
@@ -1212,6 +1354,8 @@ export class AllEntities extends FDBInstance {
     FeatureFlag: FeatureFlagFactory;
     OrganizationFeatures: OrganizationFeaturesFactory;
     ReaderState: ReaderStateFactory;
+    SuperAdmin: SuperAdminFactory;
+    UserSettings: UserSettingsFactory;
 
     constructor(connection: FConnection) {
         super(connection);
@@ -1230,5 +1374,7 @@ export class AllEntities extends FDBInstance {
         this.FeatureFlag = new FeatureFlagFactory(connection);
         this.OrganizationFeatures = new OrganizationFeaturesFactory(connection);
         this.ReaderState = new ReaderStateFactory(connection);
+        this.SuperAdmin = new SuperAdminFactory(connection);
+        this.UserSettings = new UserSettingsFactory(connection);
     }
 }

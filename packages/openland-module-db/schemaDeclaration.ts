@@ -167,6 +167,8 @@ const Schema = declareSchema(() => {
         field('organizationId', 'number');
         field('enabled', 'boolean');
         uniqueIndex('organization', ['organizationId', 'featureKey']).withRange();
+        enableTimestamps();
+        enableVersioning();
     });
 
     entity('ReaderState', () => {
@@ -174,6 +176,25 @@ const Schema = declareSchema(() => {
         field('cursor', 'string');
         field('version', 'number').nullable();
         enableVersioning();
+        enableTimestamps();
+    });
+
+    entity('SuperAdmin', () => {
+        primaryKey('id', 'number');
+        field('role', 'string');
+        field('enabled', 'boolean');
+    });
+
+    entity('UserSettings', () => {
+        primaryKey('id', 'number');
+        enumField('emailFrequency', ['1hour', '15min', 'never', '24hour', '1week']);
+        enumField('desktopNotifications', ['all', 'direct', 'none']);
+        enumField('mobileNotifications', ['all', 'direct', 'none']);
+        field('mobileAlert', 'boolean');
+        field('mobileIncludeText', 'boolean');
+        enumField('notificationsDelay', ['none', '1min', '15min']);
+        enableVersioning();
+        enableTimestamps();
     });
 });
 

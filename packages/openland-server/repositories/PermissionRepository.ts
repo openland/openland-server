@@ -7,14 +7,6 @@ import { Modules } from 'openland-modules/Modules';
 
 export class PermissionRepository {
 
-    async fetchSuperAdmins() {
-        return (await DB.SuperAdmin.findAll({
-            include: [
-                { model: DB.User }
-            ]
-        }));
-    }
-
     async resolvePermissions(args: { uid: number | null | undefined, oid: number | null | undefined }) {
         let permissions = new Set<string>();
 
@@ -95,13 +87,9 @@ export class PermissionRepository {
 
     async superRole(userId: number | null | undefined): Promise<string | false> {
         if (userId !== undefined && userId !== null) {
-            let roles = await DB.SuperAdmin.findOne({ where: { userId: userId } });
-            if (roles !== null) {
-                if (roles.role === null) {
-                    return 'super-admin';
-                } else {
-                    return roles.role!!;
-                }
+            let role = await Modules.Super.findSuperRole(userId);
+            if (role !== null) {
+                return role;
             }
             return false;
         } else {

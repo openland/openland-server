@@ -6,7 +6,6 @@ import { IDs } from './utils/IDs';
 import { DB } from '../tables';
 import { SuperAdmin } from '../tables/SuperAdmin';
 import { UserError } from '../errors/UserError';
-import { ErrorText } from '../errors/ErrorText';
 import { Modules } from 'openland-modules/Modules';
 import { FeatureFlag } from 'openland-module-db/schema';
 
@@ -68,7 +67,7 @@ export const Resolvers = {
             };
         },
         superAdmins: withPermission('super-admin', () => {
-            return Repos.Permissions.fetchSuperAdmins();
+            return Modules.Super.findAllSuperAdmins();
         }),
         superAccounts: withPermission('super-admin', () => {
             return Repos.Super.fetchAllOrganizations();
@@ -167,31 +166,12 @@ export const Resolvers = {
             } else if (args.role === 'SOFTWARE_DEVELOPER') {
                 role = 'software-developer';
             }
-
-            let existing = await DB.SuperAdmin.findOne({
-                where: {
-                    userId: uid
-                }
-            });
-            if (existing !== null) {
-                if (existing.role !== role) {
-                    existing.role = role;
-                    await existing.save();
-                }
-                return 'ok';
-            }
-            await DB.SuperAdmin.create({
-                userId: uid,
-                role: role
-            });
+            await Modules.Super.makeSuperAdmin(uid, role);
             return 'ok';
         }),
         superAdminRemove: withPermission<{ userId: string }>('super-admin', async (args) => {
             let uid = IDs.User.parse(args.userId);
-            if (await DB.SuperAdmin.count() <= 1) {
-                throw new UserError(ErrorText.unableToRemoveLastSuperAdmin);
-            }
-            await DB.SuperAdmin.destroy({ where: { userId: uid } });
+            await Modules.Super.makeNormalUser(uid);
             return 'ok';
         }),
         superMultiplyValue: withPermission<{ value: number }>(['super-admin', 'software-developer'], async (args) => {

@@ -6,7 +6,6 @@ import { JsonMap } from '../utils/json';
 export interface UserSettingsAttributes {
     id: number;
     userId: number;
-    conversationId?: number | null;
     settings: JsonMap;
 }
 
@@ -17,7 +16,6 @@ export interface UserSettings extends sequelize.Instance<Partial<UserSettingsAtt
 export const UserSettingsTable = connection.define<UserSettings, Partial<UserSettingsAttributes>>('user_settings', {
     id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
     settings: { type: sequelize.JSON, allowNull: false, defaultValue: {} },
-    conversationId: { type: sequelize.INTEGER, allowNull: true },
 });
 
 UserSettingsTable.belongsTo(UserTable, { as: 'user' });

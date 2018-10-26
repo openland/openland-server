@@ -6,6 +6,7 @@ import { ImageRef } from './Media';
 import { Sanitizer } from '../modules/Sanitizer';
 import { Repos } from '.';
 import { Hooks } from './Hooks';
+import { Modules } from 'openland-modules/Modules';
 
 export class OrganizationRepository {
 
@@ -41,12 +42,7 @@ export class OrganizationRepository {
             status = 'ACTIVATED';
         }
 
-        let isEditor = await DB.SuperAdmin.findOne({
-            where: {
-                userId: uid,
-                role: 'editor'
-            }
-        });
+        let isEditor = (await Modules.Super.findSuperRole(uid)) === 'editor';
 
         let organization = await DB.Organization.create({
             name: Sanitizer.sanitizeString(input.name)!,
