@@ -2,10 +2,18 @@ import { FEntityFactory } from './FEntityFactory';
 import { inTx } from './inTx';
 import { FEntity } from './FEntity';
 import { createLogger } from 'openland-log/createLogger';
+import { FConnection } from './FConnection';
+import { FKeyEncoding } from './utils/FKeyEncoding';
 
 const log = createLogger('doctor');
 
 export const FDoctor = {
+
+    async dropEntities(connection: FConnection, name: string) {
+        await connection.fdb.doTransaction(async (tn) => {
+            tn.clearRangeStartsWith(FKeyEncoding.encodeKey(['entity', name]));
+        });
+    },
 
     async customDoctor<T extends FEntity>(entity: FEntityFactory<T>, handle: (value: any) => any | null) {
         await inTx(async () => {

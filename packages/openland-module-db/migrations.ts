@@ -32,6 +32,12 @@ migrations.push({
         await FDoctor.doctorEntityIds(FDB.Online);
     }
 });
+migrations.push({
+    key: '4-dropOnlines',
+    migration: async () => {
+        await FDoctor.dropEntities(FDB.connection, 'online');
+    }
+});
 
 export function startMigrationsWorker() {
     staticWorker({ name: 'foundation-migrator' }, async () => {
