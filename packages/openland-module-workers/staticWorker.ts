@@ -4,7 +4,7 @@ import { withLogContext } from 'openland-log/withLogContext';
 
 export function staticWorker(config: { name: string, version?: number, delay?: number }, worker: () => Promise<boolean>) {
     forever(async () => {
-        let res = await withLogContext('static-worker', async () => {
+        let res = await withLogContext(['static-worker', config.name], async () => {
             // Locking
             if (!(await LockRepository.tryLock('worker_' + config.name, config.version))) {
                 return false;
