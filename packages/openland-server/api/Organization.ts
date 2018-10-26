@@ -25,17 +25,6 @@ import { Services } from '../services';
 import { Modules } from 'openland-modules/Modules';
 import { inTx } from 'foundation-orm/inTx';
 
-let isFollowed = async (initiatorOrgId: number, targetOrgId: number) => {
-    let connection = await DB.OrganizationConnect.find({
-        where: {
-            initiatorOrgId: initiatorOrgId,
-            targetOrgId: targetOrgId
-        }
-    });
-
-    return !!(connection && connection.followStatus === 'FOLLOWING');
-};
-
 interface AlphaOrganizationsParams {
     query?: string;
     prefix?: string;
@@ -164,11 +153,7 @@ export const Resolver = {
         alphaDummyPosts: (src: Organization) => src.extras && src.extras.dummyPosts,
 
         alphaFollowed: async (src: Organization, args: {}, context: CallContext) => {
-            if (context.oid) {
-                return await isFollowed(context.oid, src.id!!);
-            } else {
-                return false;
-            }
+            return false;
         },
 
         // depricated
@@ -210,10 +195,10 @@ export const Resolver = {
             });
         },
         shortname: async (src: Organization) => {
-            let shortName = await DB.ShortName.findOne({ where: { type: 'org', ownerId: src.id } });
+            let shortName = await Modules.Shortnames.findOrganizationShortname(src.id!);
 
             if (shortName) {
-                return shortName.name;
+                return shortName.shortname;
             }
 
             return null;
@@ -774,32 +759,33 @@ export const Resolver = {
             });
         }),
         alphaFollowOrganization: withAccount<{ id: string, follow: boolean }>(async (args, uid, oid) => {
-            let orgId = IDs.Organization.parse(args.id);
-            if (orgId === oid) {
-                throw new UserError('Unable to follow your own organization');
-            }
-            return await DB.tx(async (tx) => {
-                let existing = await DB.OrganizationConnect.find({
-                    where: {
-                        initiatorOrgId: oid,
-                        targetOrgId: orgId
-                    },
-                    transaction: tx,
-                    lock: tx.LOCK.UPDATE
-                });
-                let newStatus: 'FOLLOWING' | 'NOT_FOLLOWING' = args.follow ? 'FOLLOWING' : 'NOT_FOLLOWING';
-                if (existing) {
-                    existing.followStatus = newStatus;
-                    await existing.save({ transaction: tx });
-                } else {
-                    await DB.OrganizationConnect.create({
-                        initiatorOrgId: oid,
-                        targetOrgId: orgId,
-                        followStatus: newStatus,
-                    }, { transaction: tx });
-                }
-                return await DB.Organization.findById(orgId, { transaction: tx });
-            });
+            // let orgId = IDs.Organization.parse(args.id);
+            // if (orgId === oid) {
+            //     throw new UserError('Unable to follow your own organization');
+            // }
+            // return await DB.tx(async (tx) => {
+            //     let existing = await DB.OrganizationConnect.find({
+            //         where: {
+            //             initiatorOrgId: oid,
+            //             targetOrgId: orgId
+            //         },
+            //         transaction: tx,
+            //         lock: tx.LOCK.UPDATE
+            //     });
+            //     let newStatus: 'FOLLOWING' | 'NOT_FOLLOWING' = args.follow ? 'FOLLOWING' : 'NOT_FOLLOWING';
+            //     if (existing) {
+            //         existing.followStatus = newStatus;
+            //         await existing.save({ transaction: tx });
+            //     } else {
+            //         await DB.OrganizationConnect.create({
+            //             initiatorOrgId: oid,
+            //             targetOrgId: orgId,
+            //             followStatus: newStatus,
+            //         }, { transaction: tx });
+            //     }
+            //     return await DB.Organization.findById(orgId, { transaction: tx });
+            // });
+            throw Error('Follow is not supported');
         }),
 
         alphaOrganizationRemoveMember: withAccount<{ memberId: string, organizationId: string }>(async (args, uid, oid) => {

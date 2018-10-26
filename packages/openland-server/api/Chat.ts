@@ -655,14 +655,14 @@ export const Resolver = {
         }),
         alphaChat: withAccount<{ conversationId?: string, shortName?: string }>(async (args, uid, oid) => {
             if (args.shortName) {
-                let shortName = await DB.ShortName.findOne({ where: { name: args.shortName } });
+                let shortName = await Modules.Shortnames.findShortname(args.shortName);
                 if (!shortName) {
                     throw new NotFoundError();
                 }
 
-                if (shortName.type === 'user') {
+                if (shortName.ownerType === 'user') {
                     return Repos.Chats.loadPrivateChat(shortName.ownerId!, uid);
-                } else if (shortName.type === 'org') {
+                } else if (shortName.ownerType === 'org') {
                     return Repos.Chats.loadOrganizationalChat(oid, shortName.ownerId!);
                 } else {
                     throw new NotFoundError();

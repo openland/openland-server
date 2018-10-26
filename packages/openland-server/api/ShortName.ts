@@ -2,6 +2,7 @@ import { DB } from '../tables';
 import { withAccount } from './utils/Resolvers';
 import { UserError } from '../errors/UserError';
 import { ErrorText } from '../errors/ErrorText';
+import { Modules } from 'openland-modules/Modules';
 
 function testShortName(name: string) {
     if (!/^\w*$/.test(name)) {
@@ -28,19 +29,15 @@ export const Resolvers = {
 
     Query: {
         alphaResolveShortName: withAccount<{ shortname: string }>(async (args, uid, orgId) => {
-            let shortname = await DB.ShortName.findOne({
-                where: {
-                    name: args.shortname
-                }
-            });
+            let shortname = await Modules.Shortnames.findShortname(args.shortname);
 
             if (!shortname) {
                 return null;
             }
 
-            if (shortname.type === 'user') {
+            if (shortname.ownerType === 'user') {
                 return await DB.User.findById(shortname.ownerId);
-            } else if (shortname.type === 'org') {
+            } else if (shortname.ownerType === 'org') {
                 return await DB.Organization.findById(shortname.ownerId);
             }
 
@@ -52,19 +49,7 @@ export const Resolvers = {
             return await DB.tx(async (tx) => {
                 testShortName(args.shortname);
 
-                let existing = await DB.ShortName.findOne({ where: { name: args.shortname }, transaction: tx});
-
-                if (existing && existing.ownerId !== uid) {
-                    throw new UserError('Shortname already used');
-                }
-
-                await DB.ShortName.destroy({ where: { ownerId: uid }, transaction: tx});
-
-                await DB.ShortName.create({
-                    name: args.shortname,
-                    ownerId: uid,
-                    type: 'user'
-                }, { transaction: tx });
+                await Modules.Shortnames.setShortnameToUser(args.shortname, uid);
 
                 return 'ok';
             });
@@ -83,19 +68,7 @@ export const Resolvers = {
                     throw new UserError(ErrorText.permissionOnlyOwner);
                 }
 
-                let existing = await DB.ShortName.findOne({ where: { name: args.shortname }, transaction: tx});
-
-                if (existing && existing.ownerId !== args.id) {
-                    throw new UserError('Shortname already used');
-                }
-
-                await DB.ShortName.destroy({ where: { ownerId: args.id }, transaction: tx});
-
-                await DB.ShortName.create({
-                    name: args.shortname,
-                    ownerId: args.id,
-                    type: 'org'
-                }, { transaction: tx });
+                await Modules.Shortnames.setShortnameToOrganization(args.shortname, args.id);
 
                 return 'ok';
             });

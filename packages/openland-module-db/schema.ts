@@ -1340,7 +1340,7 @@ export class UserSettingsFactory extends FEntityFactory<UserSettings> {
 export interface ShortnameReservationShape {
     ownerType: 'org' | 'user';
     ownerId: number;
-    acquired: boolean;
+    enabled: boolean;
 }
 
 export class ShortnameReservation extends FEntity {
@@ -1363,13 +1363,13 @@ export class ShortnameReservation extends FEntity {
         this._value.ownerId = value;
         this.markDirty();
     }
-    get acquired(): boolean {
-        return this._value.acquired;
+    get enabled(): boolean {
+        return this._value.enabled;
     }
-    set acquired(value: boolean) {
+    set enabled(value: boolean) {
         this._checkIsWritable();
-        if (value === this._value.acquired) { return; }
-        this._value.acquired = value;
+        if (value === this._value.enabled) { return; }
+        this._value.enabled = value;
         this.markDirty();
     }
 }
@@ -1379,7 +1379,7 @@ export class ShortnameReservationFactory extends FEntityFactory<ShortnameReserva
         super(connection,
             new FNamespace('entity', 'shortnameReservation'),
             { enableVersioning: false, enableTimestamps: false },
-            []
+            [new FEntityIndex('user', ['ownerId'], true, (src) => src.ownerType === 'user' && src.enabled), new FEntityIndex('org', ['ownerId'], true, (src) => src.ownerType === 'org' && src.enabled)]
         );
     }
     extractId(rawId: any[]) {
@@ -1393,6 +1393,12 @@ export class ShortnameReservationFactory extends FEntityFactory<ShortnameReserva
     }
     watch(shortname: string, cb: () => void) {
         return this._watch([shortname], cb);
+    }
+    async findFromUser(ownerId: number) {
+        return await this._findById(['__indexes', 'user', ownerId]);
+    }
+    async findFromOrg(ownerId: number) {
+        return await this._findById(['__indexes', 'org', ownerId]);
     }
     protected _createEntity(value: any, isNew: boolean) {
         return new ShortnameReservation(this.connection, this.namespace, [value.shortname], value, this.options, isNew, this.indexes);

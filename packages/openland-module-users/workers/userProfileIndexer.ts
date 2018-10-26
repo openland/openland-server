@@ -1,6 +1,6 @@
 import { FDB } from 'openland-module-db/FDB';
 import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexer';
-import { DB } from 'openland-server/tables';
+import { Modules } from 'openland-modules/Modules';
 
 export function userProfileIndexer() {
     declareSearchIndexer('user-profile-index', 4, 'user_profile', FDB.UserProfile.createByUpdatedAtStream(50))
@@ -31,12 +31,12 @@ export function userProfileIndexer() {
             },
         })
         .start(async (item) => {
-            let shortName = await DB.ShortName.findOne({ where: { type: 'user', ownerId: item.id } });
+            let shortName = await Modules.Shortnames.findUserShortname(item.id);
 
             let searchData: (string | undefined | null)[] = [];
             searchData.push(item.firstName);
             searchData.push(item.lastName);
-            searchData.push(shortName ? shortName.name : undefined);
+            searchData.push(shortName ? shortName.shortname : undefined);
             searchData.push(item.email);
 
             return {
@@ -45,7 +45,7 @@ export function userProfileIndexer() {
                     firstName: item.firstName,
                     lastName: item.lastName,
                     name: (item.firstName || '') + (item.lastName || ''),
-                    shortName: shortName ? shortName.name : undefined,
+                    shortName: shortName ? shortName.shortname : undefined,
                     userId: item.id,
                     search: searchData.join(' '),
                     createdAt: (item as any).createdAt,

@@ -201,7 +201,9 @@ const Schema = declareSchema(() => {
         primaryKey('shortname', 'string');
         enumField('ownerType', ['org', 'user']);
         field('ownerId', 'number');
-        field('acquired', 'boolean');
+        field('enabled', 'boolean');
+        uniqueIndex('user', ['ownerId']).withCondition((src) => src.ownerType === 'user' && src.enabled);
+        uniqueIndex('org', ['ownerId']).withCondition((src) => src.ownerType === 'org' && src.enabled);
     });
 });
 

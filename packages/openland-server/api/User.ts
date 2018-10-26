@@ -127,12 +127,10 @@ export const Resolver = {
             });
         },
         shortname: async (src: User) => {
-            let shortName = await DB.ShortName.findOne({ where: { type: 'user', ownerId: src.id } });
-
-            if (shortName) {
-                return shortName.name;
+            let shortname = await Modules.Shortnames.findUserShortname(src.id!);
+            if (shortname) {
+                return shortname.shortname;
             }
-
             return null;
         },
         phones: async (src: User) => [],
