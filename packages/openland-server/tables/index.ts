@@ -21,14 +21,12 @@ import { ConversationUserEventsTable } from './ConversationUserEvents';
 import { retry } from '../utils/timer';
 import { ConversationGroupMembersTable } from './ConversationGroupMembers';
 import { UserSettingsTable } from './UserSettings';
-import { HitsTable } from './Hit';
 import { ConversationChannelMembersTable } from './ConversationChannelMembers';
 import { ChannelInviteTable } from './ChannelInvite';
 import { ConversationsUserGlobalNotificationsTable } from './ConversationsUserGlobalNotifications';
 import { ShortNameTable } from './ShortName';
 import { PhoneTable } from './Phone';
 import { AuthSessionTable } from './AuthSession';
-import { AuthAuditTable } from './AuthAudit';
 
 const SILENT_TX_ACTUALLY_SILENT = true;
 export const DB_SILENT = !SILENT_TX_ACTUALLY_SILENT;
@@ -50,14 +48,12 @@ export const DB = {
     ConversationGroupMembers: ConversationGroupMembersTable,
     ConversationBlocked: ConversationBlockedTable,
     UserSettings: UserSettingsTable,
-    Hit: HitsTable,
     ConversationChannelMembers: ConversationChannelMembersTable,
     ChannelInvite: ChannelInviteTable,
     ConversationsUserGlobalNotifications: ConversationsUserGlobalNotificationsTable,
     ShortName: ShortNameTable,
     Phone: PhoneTable,
     AuthSession: AuthSessionTable,
-    AuthAudit: AuthAuditTable,
 
     tx: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>, existingTx?: sequelize.Transaction): Promise<A> {
         if (existingTx) {

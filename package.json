@@ -192,6 +192,7 @@
     "openland-security": "build/openland-security",
     "openland-module-users": "build/openland-module-users",
     "openland-module-features": "build/openland-module-features",
-    "openland-module-search": "build/openland-module-search"
+    "openland-module-search": "build/openland-module-search",
+    "openland-module-super": "build/openland-module-super"
   }
 }

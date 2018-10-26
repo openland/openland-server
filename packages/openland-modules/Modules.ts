@@ -8,6 +8,7 @@ import { AuthModule } from 'openland-module-auth/AuthModule';
 import { UsersModule } from 'openland-module-users/UsersModule';
 import { FeaturesModule } from 'openland-module-features/FeaturesModule';
 import { SearchModule } from 'openland-module-search/SearchModule';
+import { SuperModule } from 'openland-module-super/SuperModule';
 
 class ModulesImpl {
     readonly Auth = new AuthModule();
@@ -20,6 +21,7 @@ class ModulesImpl {
     readonly Users = new UsersModule();
     readonly Features = new FeaturesModule();
     readonly Search = new SearchModule();
+    readonly Super = new SuperModule();
 
     start = () => {
         this.DB.start();
@@ -31,6 +33,7 @@ class ModulesImpl {
         this.Messaging.start();
         this.Features.start();
         this.Search.start();
+        this.Super.start();
     }
 }
 
