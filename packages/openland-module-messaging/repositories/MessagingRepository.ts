@@ -112,7 +112,7 @@ export class MessagingRepository {
                     messageId: event.messageId
                 });
             } else if (event.kind === 'delete_message') {
-                
+
                 // 1. Create Event
                 let seq = await this.fetchUserNextSeq(uid);
                 let unread = await this.fetchUserUnread(uid);
@@ -132,10 +132,10 @@ export class MessagingRepository {
             let existing = await this.entities.ConversationSeq.findById(cid);
             let seq = 1;
             if (!existing) {
-                (await this.entities.ConversationSeq.create(cid, { seq: 1 })).flush();
+                await (await this.entities.ConversationSeq.create(cid, { seq: 1 })).flush();
             } else {
                 seq = ++existing.seq;
-                existing.flush();
+                await existing.flush();
             }
             return seq;
         });
@@ -151,13 +151,13 @@ export class MessagingRepository {
                 if (delta < 0) {
                     throw Error('Internal inconsistency');
                 }
-                (await this.entities.UserMessagingState.create(uid, { unread: delta, seq: 1 })).flush();
+                await (await this.entities.UserMessagingState.create(uid, { unread: delta, seq: 1 })).flush();
             } else {
                 if (existing.unread + delta < 0) {
                     throw Error('Internal inconsistency');
                 }
                 existing.unread += delta;
-                existing.flush();
+                await existing.flush();
             }
         });
     }
@@ -166,11 +166,11 @@ export class MessagingRepository {
         return await inTx(async () => {
             let existing = await this.entities.UserMessagingState.findById(uid);
             if (!existing) {
-                (await this.entities.UserMessagingState.create(uid, { unread: 0, seq: 1 })).flush();
+                await (await this.entities.UserMessagingState.create(uid, { unread: 0, seq: 1 })).flush();
                 return 1;
             } else {
                 let res = ++existing.seq;
-                existing.flush();
+                await existing.flush();
                 return res;
             }
         });
@@ -180,7 +180,7 @@ export class MessagingRepository {
         return await inTx(async () => {
             let existing = await this.entities.UserMessagingState.findById(uid);
             if (!existing) {
-                (await this.entities.UserMessagingState.create(uid, { unread: 0, seq: 0 })).flush();
+                await (await this.entities.UserMessagingState.create(uid, { unread: 0, seq: 0 })).flush();
                 return 0;
             } else {
                 return existing.unread;
