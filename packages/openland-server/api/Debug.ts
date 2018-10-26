@@ -115,16 +115,16 @@ export const Resolver = {
                 paranoid: false
             } as any);
 
-            let usersMutedEmail = await DB.UserSettings.count({
-                where: {
-                    settings: {
-                        emailFrequency: 'never'
-                    },
-                    userId: {
-                        $notIn: userIds
-                    }
-                }
-            });
+            // let usersMutedEmail = await DB.UserSettings.count({
+            //     where: {
+            //         settings: {
+            //             emailFrequency: 'never'
+            //         },
+            //         userId: {
+            //             $notIn: userIds
+            //         }
+            //     }
+            // });
 
             let messagesLeaderboard = await DB.ConversationMessage.findAll({
                 limit: 20,
@@ -156,7 +156,7 @@ export const Resolver = {
             return {
                 messagesSent: messages,
                 usersActive: activeUsers,
-                usersMutedEmail,
+                usersMutedEmail: 0,
                 messagesLeaderboard,
                 usersMutedOpenlandBeta
             };
@@ -242,18 +242,18 @@ export const Resolver = {
             return 'ok';
         }),
 
-        superOnlineUsers: withAny<{ phone: string, text: string }>(async args => {
-            let onlineUsers = await DB.User.findAll({
-                where: {
-                    lastSeen: {
-                        $gt: Date.now()
-                    }
-                },
-                order: [['id', 'DESC']]
-            });
+        // superOnlineUsers: withAny<{ phone: string, text: string }>(async args => {
+        //     let onlineUsers = await DB.User.findAll({
+        //         where: {
+        //             lastSeen: {
+        //                 $gt: Date.now()
+        //             }
+        //         },
+        //         order: [['id', 'DESC']]
+        //     });
 
-            return onlineUsers;
-        }),
+        //     return onlineUsers;
+        // }),
         // debugTest: (src: any, args: any) => {
         //     console.log(args);
         //     return 1;

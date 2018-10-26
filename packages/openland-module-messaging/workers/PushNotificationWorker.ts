@@ -26,7 +26,7 @@ export function startPushNotificationWorker() {
             for (let u of unreadUsers) {
 
                 // Loading user's settings
-                let settings = await Repos.Users.getUserSettings(u.userId);
+                let settings = await Modules.Users.getUserSettings(u.userId);
 
                 let now = Date.now();
 

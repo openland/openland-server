@@ -7,14 +7,13 @@ import { withUser, withAny } from './utils/Resolvers';
 import { Sanitizer } from '../modules/Sanitizer';
 import { validate, stringNotEmpty } from '../modules/NewInputValidator';
 import { Repos } from '../repositories';
-import { UserSettings } from '../tables/UserSettings';
 import { Services } from '../services';
 import { AccessDeniedError } from '../errors/AccessDeniedError';
 import { QueryParser } from '../modules/QueryParser';
 import { ElasticClient } from '../indexing';
 import { SelectBuilder } from '../modules/SelectBuilder';
 import { Modules } from 'openland-modules/Modules';
-import { UserProfile } from 'openland-module-db/schema';
+import { UserProfile, UserSettings } from 'openland-module-db/schema';
 import { UserError } from 'openland-server/errors/UserError';
 import { inTx } from 'foundation-orm/inTx';
 
@@ -160,13 +159,13 @@ export const Resolver = {
     },
     Settings: {
         id: (src: UserSettings) => IDs.Settings.serialize(src.id),
-        primaryEmail: async (src: UserSettings) => (await DB.User.findById(src.userId))!!.email,
-        emailFrequency: (src: UserSettings) => Repos.Users.getUserSettingsFromInstance(src).emailFrequency,
-        desktopNotifications: (src: UserSettings) => Repos.Users.getUserSettingsFromInstance(src).desktopNotifications,
-        mobileNotifications: (src: UserSettings) => Repos.Users.getUserSettingsFromInstance(src).mobileNotifications,
-        mobileAlert: (src: UserSettings) => Repos.Users.getUserSettingsFromInstance(src).mobileAlert,
-        mobileIncludeText: (src: UserSettings) => Repos.Users.getUserSettingsFromInstance(src).mobileIncludeText,
-        notificationsDelay: (src: UserSettings) => Repos.Users.getUserSettingsFromInstance(src).notificationsDelay,
+        primaryEmail: async (src: UserSettings) => (await DB.User.findById(src.id))!!.email,
+        emailFrequency: (src: UserSettings) => src.emailFrequency,
+        desktopNotifications: (src: UserSettings) => src.desktopNotifications,
+        mobileNotifications: (src: UserSettings) => src.mobileNotifications,
+        mobileAlert: (src: UserSettings) => src.mobileAlert,
+        mobileIncludeText: (src: UserSettings) => src.mobileIncludeText,
+        notificationsDelay: (src: UserSettings) => src.notificationsDelay,
     },
     Query: {
         me: async function (_obj: any, _params: {}, context: CallContext) {
@@ -203,13 +202,7 @@ export const Resolver = {
             }
         },
         settings: withUser(async (args, uid) => {
-            return await DB.tx(async (tx) => {
-                let instance = await DB.UserSettings.find({ where: { userId: uid }, transaction: tx, lock: 'UPDATE' });
-                if (!instance) {
-                    instance = await DB.UserSettings.create({ userId: uid }, { transaction: tx });
-                }
-                return instance;
-            });
+            return Modules.Users.getUserSettings(uid);
         }),
         user: withAny<{ id: string }>((args) => {
             return DB.User.findById(IDs.User.parse(args.id));
@@ -418,55 +411,27 @@ export const Resolver = {
             return 'ok';
         },
         updateSettings: withUser<{ settings: { emailFrequency?: string | null, desktopNotifications?: string | null, mobileNotifications?: string | null, mobileAlert?: boolean | null, mobileIncludeText?: boolean | null, notificationsDelay?: boolean | null } }>(async (args, uid) => {
-            return await DB.tx(async (tx) => {
-                let settings = await DB.UserSettings.find({ where: { userId: uid }, transaction: tx, lock: 'UPDATE' });
-                if (!settings) {
-                    settings = await DB.UserSettings.create({ userId: uid }, { transaction: tx });
-                }
+
+            return await inTx(async () => {
+                let settings = await Modules.Users.getUserSettings(uid);
                 if (args.settings.emailFrequency) {
-                    settings.settings = {
-                        ...settings.settings,
-                        emailFrequency: args.settings.emailFrequency
-                    };
+                    settings.emailFrequency = args.settings.emailFrequency as any;
                 }
                 if (args.settings.desktopNotifications) {
-                    settings.settings = {
-                        ...settings.settings,
-                        desktopNotifications: args.settings.desktopNotifications
-                    };
+                    settings.desktopNotifications = args.settings.desktopNotifications as any;
                 }
                 if (args.settings.mobileNotifications) {
-                    settings.settings = {
-                        ...settings.settings,
-                        mobileNotifications: args.settings.mobileNotifications
-                    };
+                    settings.mobileNotifications = args.settings.mobileNotifications as any;
                 }
                 if (args.settings.mobileAlert !== null) {
-                    settings.settings = {
-                        ...settings.settings,
-                        mobileAlert: args.settings.mobileAlert as boolean
-                    };
-                }
-                if (args.settings.mobileAlert !== null) {
-                    settings.settings = {
-                        ...settings.settings,
-                        mobileAlert: args.settings.mobileAlert as boolean
-                    };
+                    settings.mobileAlert = args.settings.mobileAlert as any;
                 }
                 if (args.settings.mobileIncludeText !== null) {
-                    settings.settings = {
-                        ...settings.settings,
-                        mobileIncludeText: args.settings.mobileIncludeText as boolean
-                    };
+                    settings.mobileIncludeText = args.settings.mobileIncludeText as any;
                 }
-                if (args.settings.notificationsDelay) {
-                    settings.settings = {
-                        ...settings.settings,
-                        notificationsDelay: args.settings.notificationsDelay
-                    };
+                if (args.settings.notificationsDelay !== null) {
+                    settings.notificationsDelay = args.settings.notificationsDelay as any;
                 }
-                await settings.save({ transaction: tx });
-                return settings;
             });
         })
     },
@@ -480,15 +445,9 @@ export const Resolver = {
                 return {
                     ...(async function* func() {
                         while (!ended) {
-                            let settings = await DB.tx(async (tx) => {
-                                let st = await DB.UserSettings.find({ where: { userId: context.uid }, transaction: tx, lock: 'UPDATE' });
-                                if (!st) {
-                                    st = await DB.UserSettings.create({ userId: context.uid }, { transaction: tx });
-                                }
-                                return st;
-                            });
+                            let settings = await Modules.Users.getUserSettings(context.uid!!);
                             yield settings;
-                            await Repos.Users.settingsReader.loadNext(context.uid!!);
+                            await Modules.Users.waitForNextSettings(context.uid!);
                         }
                     })(),
                     return: async () => {

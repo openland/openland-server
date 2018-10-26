@@ -1,6 +1,5 @@
 import * as sequelize from 'sequelize';
 import { OrganizationTable } from './Organization';
-import { Profile } from '../handlers/Profile';
 import { connection } from '../modules/sequelizeConnector';
 import { JsonMap } from '../utils/json';
 
@@ -9,10 +8,7 @@ export interface UserAttributes {
     authId?: string;
     email?: string;
     isBot?: boolean;
-    lastSeen?: Date | null;
-    lastActive?: Date | null;
     status?: 'PENDING' | 'ACTIVATED' | 'SUSPENDED';
-    profile?: Profile;
     invitedBy?: number;
     extras?: JsonMap;
 }

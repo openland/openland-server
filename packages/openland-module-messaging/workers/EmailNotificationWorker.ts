@@ -46,7 +46,7 @@ export function startEmailNotificationWorker() {
                     continue;
                 }
 
-                let settings = await Repos.Users.getUserSettings(u.userId);
+                let settings = await Modules.Users.getUserSettings(u.userId);
                 if (settings.emailFrequency !== 'never') {
 
                     // Read email timeouts

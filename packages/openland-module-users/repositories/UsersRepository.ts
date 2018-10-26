@@ -12,6 +12,10 @@ export class UserRepository {
         this.entities = entities;
     }
 
+    /*
+     * Profile
+     */
+
     async findUserProfile(uid: number) {
         return this.entities.UserProfile.findById(uid);
     }
@@ -51,6 +55,39 @@ export class UserRepository {
             });
         });
     }
+
+    /*
+     * User Settings
+     */
+
+    async getUserSettings(uid: number) {
+        return await inTx(async () => {
+            let settings = await this.entities.UserSettings.findById(uid);
+            if (!settings) {
+                settings = await this.entities.UserSettings.create(uid, {
+                    emailFrequency: '1hour',
+                    desktopNotifications: 'all',
+                    mobileNotifications: 'all',
+                    mobileAlert: true,
+                    mobileIncludeText: true,
+                    notificationsDelay: 'none'
+                });
+            }
+            return settings;
+        });
+    }
+
+    async waitForNextSettings(uid: number) {
+        await new Promise<number>((resolver) =>
+            this.entities.UserSettings.watch(uid, () => {
+                resolver();
+            })
+        );
+    }
+
+    /*
+     * Profile Prefill
+     */
 
     async findProfilePrefill(uid: number) {
         return this.entities.UserProfilePrefil.findById(uid);
