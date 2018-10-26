@@ -1,6 +1,6 @@
 import { DB } from '../tables';
 import { SuperBus } from '../modules/SuperBus';
-import { ConversationEvent } from '../tables/ConversationEvent';
+import { ConversationEvent, ConversationEventAttributes } from '../tables/ConversationEvent';
 import { ConversationUserGlobal } from '../tables/ConversationsUserGlobal';
 import { ConversationMessageAttributes } from '../tables/ConversationMessage';
 import { ConversationUserEvents, ConversationUserEventsAttributes } from '../tables/ConversationUserEvents';
@@ -287,6 +287,7 @@ export class ChatsRepository {
     userReader: UserEventsReader;
     countersSuperbus: SuperBus<{ userId: number, counter: number, date: number }, ConversationUserGlobal, Partial<ConversationMessageAttributes>>;
     userSuperbus: SuperBus<{ userId: number, seq: number }, ConversationUserEvents, Partial<ConversationUserEventsAttributes>>;
+    eventsSuperbus: SuperBus<{ chatId: number, seq: number }, ConversationEvent, Partial<ConversationEventAttributes>>;
 
     draftsCache = new CacheRepository<{ message: string }>('message_draft');
 
@@ -294,6 +295,11 @@ export class ChatsRepository {
         this.reader = new ChatsEventReader();
         this.counterReader = new ChatCounterListener();
         this.userReader = new UserEventsReader();
+
+        this.eventsSuperbus = new SuperBus('chat_events_all', DB.ConversationEvent, 'conversation_events');
+        this.eventsSuperbus.eventBuilder((v) => ({ chatId: v.conversationId, seq: v.seq }));
+        this.eventsSuperbus.eventHandler((v) => this.reader.onMessage(v.chatId, v.seq));
+        this.eventsSuperbus.start();
 
         this.countersSuperbus = new SuperBus('notification_counters', DB.ConversationsUserGlobal, 'conversation_user_global');
         this.countersSuperbus.eventBuilder((v) => ({ userId: v.userId, counter: v.unread, date: v.updatedAt.getTime() }));
