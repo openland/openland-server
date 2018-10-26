@@ -26,7 +26,7 @@ export class SuperModule {
         let reader = new UpdateReader('super-admin-exporter', 1, DB.SuperAdmin);
         reader.processor(async (items) => {
             for (let i = 0; i < items.length; i++) {
-                this.repo.makeSuperAdmin(items[i].userId!, items[i].role || 'super-admin');
+                await this.repo.makeSuperAdmin(items[i].userId!, items[i].role || 'super-admin');
             }
         });
         reader.start();

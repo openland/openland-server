@@ -29,7 +29,7 @@ export class SuperRepository {
                 existing.enabled = true;
                 existing.role = role;
             } else {
-                this.entities.SuperAdmin.create(uid, { role, enabled: true });
+                await this.entities.SuperAdmin.create(uid, { role, enabled: true });
             }
         });
     }
