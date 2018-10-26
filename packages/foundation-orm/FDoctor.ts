@@ -1,7 +1,7 @@
 import { FEntityFactory } from './FEntityFactory';
 import { inTx } from './inTx';
 import { FEntity } from './FEntity';
-import { createLogger } from 'openland-log/createLogger';
+// import { createLogger } from 'openland-log/createLogger';
 import { FConnection } from './FConnection';
 import { FKeyEncoding } from './utils/FKeyEncoding';
 
