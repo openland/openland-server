@@ -257,7 +257,7 @@ export class IndexedRangeEntityFactory extends FEntityFactory<IndexedRangeEntity
         return await this._findAll(['__indexes', 'default', data1]);
     }
     createDefaultStream(limit: number, after?: string) {
-        return this._createStream(['__indexes', 'default'], limit, after); 
+        return this._createStream(['entity', 'indexedRangeEntity', '__indexes', 'default'], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
         return new IndexedRangeEntity(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);

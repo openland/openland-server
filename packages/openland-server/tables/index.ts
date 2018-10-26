@@ -8,7 +8,6 @@ import { UserTable } from './User';
 import { ReaderStateTable } from './ReaderState';
 import { SuperAdminTable } from './SuperAdmin';
 import { OrganizationTable } from './Organization';
-import { UserProfileTable } from './UserProfile';
 import { OrganizationMemberTable } from './OrganizationMember';
 import { OrganizationInviteTable } from './OrganizationInvite';
 import { OrganizationConnectTable } from './OrganizationConnect';
@@ -40,7 +39,6 @@ export const DB = {
     SuperAdmin: SuperAdminTable,
     Organization: OrganizationTable,
     OrganizationConnect: OrganizationConnectTable,
-    UserProfile: UserProfileTable,
     OrganizationMember: OrganizationMemberTable,
     OrganizationInvite: OrganizationInviteTable,
     Conversation: ConversationTable,

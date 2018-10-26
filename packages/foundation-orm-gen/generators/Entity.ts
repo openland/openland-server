@@ -135,7 +135,7 @@ export function generateEntity(entity: EntityModel): string {
             res += '    }\n';
 
             res += '    create' + Case.pascalCase(i.name) + 'Stream(limit: number, after?: string) {\n';
-            res += '        return this._createStream([' + ['\'__indexes\'', '\'' + i.name + '\''].join(', ') + '], limit, after); \n';
+            res += '        return this._createStream([' + ['\'entity\'', '\'' + entityKey + '\'', '\'__indexes\'', '\'' + i.name + '\''].join(', ') + '], limit, after); \n';
             res += '    }\n';
         }
     }

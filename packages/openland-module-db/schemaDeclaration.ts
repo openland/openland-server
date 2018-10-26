@@ -172,6 +172,7 @@ const Schema = declareSchema(() => {
     entity('ReaderState', () => {
         primaryKey('id', 'string');
         field('cursor', 'string');
+        field('version', 'number').nullable();
         enableVersioning();
     });
 });

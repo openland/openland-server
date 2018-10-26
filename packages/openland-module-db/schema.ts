@@ -454,7 +454,7 @@ export class TaskFactory extends FEntityFactory<Task> {
         return await this._findAll(['__indexes', 'pending', taskType]);
     }
     createPendingStream(limit: number, after?: string) {
-        return this._createStream(['__indexes', 'pending'], limit, after); 
+        return this._createStream(['entity', 'task', '__indexes', 'pending'], limit, after); 
     }
     async rangeFromExecuting(limit: number) {
         return await this._findRange(['__indexes', 'executing'], limit);
@@ -463,7 +463,7 @@ export class TaskFactory extends FEntityFactory<Task> {
         return await this._findAll(['__indexes', 'executing']);
     }
     createExecutingStream(limit: number, after?: string) {
-        return this._createStream(['__indexes', 'executing'], limit, after); 
+        return this._createStream(['entity', 'task', '__indexes', 'executing'], limit, after); 
     }
     async rangeFromFailing(limit: number) {
         return await this._findRange(['__indexes', 'failing'], limit);
@@ -472,7 +472,7 @@ export class TaskFactory extends FEntityFactory<Task> {
         return await this._findAll(['__indexes', 'failing']);
     }
     createFailingStream(limit: number, after?: string) {
-        return this._createStream(['__indexes', 'failing'], limit, after); 
+        return this._createStream(['entity', 'task', '__indexes', 'failing'], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
         return new Task(this.connection, this.namespace, [value.taskType, value.uid], value, this.options, isNew, this.indexes);
@@ -572,7 +572,7 @@ export class PushFirebaseFactory extends FEntityFactory<PushFirebase> {
         return await this._findAll(['__indexes', 'user', uid]);
     }
     createUserStream(limit: number, after?: string) {
-        return this._createStream(['__indexes', 'user'], limit, after); 
+        return this._createStream(['entity', 'pushFirebase', '__indexes', 'user'], limit, after); 
     }
     async findFromToken(token: string) {
         return await this._findById(['__indexes', 'token', token]);
@@ -675,7 +675,7 @@ export class PushAppleFactory extends FEntityFactory<PushApple> {
         return await this._findAll(['__indexes', 'user', uid]);
     }
     createUserStream(limit: number, after?: string) {
-        return this._createStream(['__indexes', 'user'], limit, after); 
+        return this._createStream(['entity', 'pushApple', '__indexes', 'user'], limit, after); 
     }
     async findFromToken(token: string) {
         return await this._findById(['__indexes', 'token', token]);
@@ -758,7 +758,7 @@ export class PushWebFactory extends FEntityFactory<PushWeb> {
         return await this._findAll(['__indexes', 'user', uid]);
     }
     createUserStream(limit: number, after?: string) {
-        return this._createStream(['__indexes', 'user'], limit, after); 
+        return this._createStream(['entity', 'pushWeb', '__indexes', 'user'], limit, after); 
     }
     async findFromEndpoint(endpoint: string) {
         return await this._findById(['__indexes', 'endpoint', endpoint]);
@@ -1022,7 +1022,7 @@ export class UserProfileFactory extends FEntityFactory<UserProfile> {
         return await this._findAll(['__indexes', 'byUpdatedAt']);
     }
     createByUpdatedAtStream(limit: number, after?: string) {
-        return this._createStream(['__indexes', 'byUpdatedAt'], limit, after); 
+        return this._createStream(['entity', 'userProfile', '__indexes', 'byUpdatedAt'], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
         return new UserProfile(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
@@ -1136,7 +1136,7 @@ export class OrganizationFeaturesFactory extends FEntityFactory<OrganizationFeat
         return await this._findAll(['__indexes', 'organization', organizationId]);
     }
     createOrganizationStream(limit: number, after?: string) {
-        return this._createStream(['__indexes', 'organization'], limit, after); 
+        return this._createStream(['entity', 'organizationFeatures', '__indexes', 'organization'], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
         return new OrganizationFeatures(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
@@ -1144,6 +1144,7 @@ export class OrganizationFeaturesFactory extends FEntityFactory<OrganizationFeat
 }
 export interface ReaderStateShape {
     cursor: string;
+    version?: number| null;
 }
 
 export class ReaderState extends FEntity {
@@ -1155,6 +1156,17 @@ export class ReaderState extends FEntity {
         this._checkIsWritable();
         if (value === this._value.cursor) { return; }
         this._value.cursor = value;
+        this.markDirty();
+    }
+    get version(): number | null {
+        let res = this._value.version;
+        if (res) { return res; }
+        return null;
+    }
+    set version(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.version) { return; }
+        this._value.version = value;
         this.markDirty();
     }
 }
