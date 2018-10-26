@@ -196,6 +196,13 @@ const Schema = declareSchema(() => {
         enableVersioning();
         enableTimestamps();
     });
+
+    entity('ShortnameReservation', () => {
+        primaryKey('shortname', 'string');
+        enumField('ownerType', ['org', 'user']);
+        field('ownerId', 'number');
+        field('acquired', 'boolean');
+    });
 });
 
 generate(Schema, __dirname + '/../openland-module-db/schema.ts');

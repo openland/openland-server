@@ -14,7 +14,7 @@ export interface AuthSession extends sequelize.Instance<AuthSessionAttributes>, 
 }
 
 export const AuthSessionTable = connection.define<AuthSession, AuthSessionAttributes>('auth_sessions', {
-    id: {type: sequelize.INTEGER, primaryKey: true, autoIncrement: true},
+    id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
     sessionSalt: { type: sequelize.STRING, allowNull: false, unique: true },
     code: { type: sequelize.STRING, allowNull: false },
     codeExpires: { type: sequelize.DATE, allowNull: false },

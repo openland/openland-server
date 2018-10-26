@@ -9,6 +9,7 @@ import { UsersModule } from 'openland-module-users/UsersModule';
 import { FeaturesModule } from 'openland-module-features/FeaturesModule';
 import { SearchModule } from 'openland-module-search/SearchModule';
 import { SuperModule } from 'openland-module-super/SuperModule';
+import { ShortnameModule } from 'openland-module-shortname/ShortnameModule';
 
 class ModulesImpl {
     readonly Auth = new AuthModule();
@@ -22,6 +23,7 @@ class ModulesImpl {
     readonly Features = new FeaturesModule();
     readonly Search = new SearchModule();
     readonly Super = new SuperModule();
+    readonly Shortnames = new ShortnameModule();
 
     start = () => {
         this.DB.start();
@@ -34,6 +36,7 @@ class ModulesImpl {
         this.Features.start();
         this.Search.start();
         this.Super.start();
+        this.Shortnames.start();
     }
 }
 

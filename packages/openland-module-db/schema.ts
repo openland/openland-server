@@ -1337,6 +1337,67 @@ export class UserSettingsFactory extends FEntityFactory<UserSettings> {
         return new UserSettings(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
     }
 }
+export interface ShortnameReservationShape {
+    ownerType: 'org' | 'user';
+    ownerId: number;
+    acquired: boolean;
+}
+
+export class ShortnameReservation extends FEntity {
+    get shortname(): string { return this._value.shortname; }
+    get ownerType(): 'org' | 'user' {
+        return this._value.ownerType;
+    }
+    set ownerType(value: 'org' | 'user') {
+        this._checkIsWritable();
+        if (value === this._value.ownerType) { return; }
+        this._value.ownerType = value;
+        this.markDirty();
+    }
+    get ownerId(): number {
+        return this._value.ownerId;
+    }
+    set ownerId(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.ownerId) { return; }
+        this._value.ownerId = value;
+        this.markDirty();
+    }
+    get acquired(): boolean {
+        return this._value.acquired;
+    }
+    set acquired(value: boolean) {
+        this._checkIsWritable();
+        if (value === this._value.acquired) { return; }
+        this._value.acquired = value;
+        this.markDirty();
+    }
+}
+
+export class ShortnameReservationFactory extends FEntityFactory<ShortnameReservation> {
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'shortnameReservation'),
+            { enableVersioning: false, enableTimestamps: false },
+            []
+        );
+    }
+    extractId(rawId: any[]) {
+        return { 'shortname': rawId[0] };
+    }
+    async findById(shortname: string) {
+        return await this._findById([shortname]);
+    }
+    async create(shortname: string, shape: ShortnameReservationShape) {
+        return await this._create([shortname], { shortname, ...shape });
+    }
+    watch(shortname: string, cb: () => void) {
+        return this._watch([shortname], cb);
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new ShortnameReservation(this.connection, this.namespace, [value.shortname], value, this.options, isNew, this.indexes);
+    }
+}
 
 export class AllEntities extends FDBInstance {
     Online: OnlineFactory;
@@ -1356,6 +1417,7 @@ export class AllEntities extends FDBInstance {
     ReaderState: ReaderStateFactory;
     SuperAdmin: SuperAdminFactory;
     UserSettings: UserSettingsFactory;
+    ShortnameReservation: ShortnameReservationFactory;
 
     constructor(connection: FConnection) {
         super(connection);
@@ -1376,5 +1438,6 @@ export class AllEntities extends FDBInstance {
         this.ReaderState = new ReaderStateFactory(connection);
         this.SuperAdmin = new SuperAdminFactory(connection);
         this.UserSettings = new UserSettingsFactory(connection);
+        this.ShortnameReservation = new ShortnameReservationFactory(connection);
     }
 }
