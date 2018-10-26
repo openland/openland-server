@@ -14,7 +14,7 @@ export class MessagingRepository {
 
             // 1. Create Message
             let mid = await this.entities.connection.nextRandomId();
-            this.entities.Message.create(mid, {
+            await this.entities.Message.create(mid, {
                 cid,
                 uid,
                 ...message
