@@ -11,6 +11,7 @@ var migrations: FMigration[] = [];
 migrations.push({
     key: '2-addStreamingIndex',
     migration: async () => {
+        await FDoctor.doctorEntityIds(FDB.UserProfile);
         await inTx(async () => {
             let ex = await FDB.UserProfile.findAll();
             for (let e of ex) {
