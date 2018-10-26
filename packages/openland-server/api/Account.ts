@@ -92,7 +92,7 @@ export const Resolver = {
             let isLoggedIn = true; // Checked in previous steps
 
             // Stage 1: Create Profile
-            let profile = (await Modules.Users.profileById(context.uid!));
+            let profile = context.uid ? (await Modules.Users.profileById(context.uid)) : null;
             let isProfileCreated = !!profile;
 
             // Stage 2: Pick organization or create a new one (if there are no exists)
