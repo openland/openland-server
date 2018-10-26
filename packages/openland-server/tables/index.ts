@@ -18,7 +18,6 @@ import { ConversationsUserGlobalTable } from './ConversationsUserGlobal';
 import { ConversationUserEventsTable } from './ConversationUserEvents';
 import { retry } from '../utils/timer';
 import { ConversationGroupMembersTable } from './ConversationGroupMembers';
-import { UserSettingsTable } from './UserSettings';
 import { ConversationChannelMembersTable } from './ConversationChannelMembers';
 import { ChannelInviteTable } from './ChannelInvite';
 import { ConversationsUserGlobalNotificationsTable } from './ConversationsUserGlobalNotifications';
@@ -32,18 +31,23 @@ export const DB = {
     Organization: OrganizationTable,
     OrganizationMember: OrganizationMemberTable,
     OrganizationInvite: OrganizationInviteTable,
+    
     Conversation: ConversationTable,
     ConversationMessage: ConversationMessageTable,
+
     ConversationEvent: ConversationEventTable,
-    ConversationUserState: ConversationUserStateTable,
-    ConversationsUserGlobal: ConversationsUserGlobalTable,
+
     ConversationUserEvents: ConversationUserEventsTable,
+    ConversationUserState: ConversationUserStateTable,
+
+    ConversationsUserGlobal: ConversationsUserGlobalTable,
+    ConversationsUserGlobalNotifications: ConversationsUserGlobalNotificationsTable,
+
     ConversationGroupMembers: ConversationGroupMembersTable,
     ConversationBlocked: ConversationBlockedTable,
-    UserSettings: UserSettingsTable,
     ConversationChannelMembers: ConversationChannelMembersTable,
+    
     ChannelInvite: ChannelInviteTable,
-    ConversationsUserGlobalNotifications: ConversationsUserGlobalNotificationsTable,
 
     tx: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>, existingTx?: sequelize.Transaction): Promise<A> {
         if (existingTx) {
