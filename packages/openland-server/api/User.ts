@@ -27,8 +27,8 @@ function userLoader(context: CallContext) {
             for (let i of ids) {
                 let found = false;
                 for (let f of foundTokens) {
-                    let f2 = (await f)!;
-                    if (i === f2.id) {
+                    let f2 = (await f);
+                    if (f2 && i === f2.id) {
                         res.push(f2);
                         found = true;
                         break;
@@ -346,23 +346,23 @@ export const Resolver = {
                     if (args.input.email !== undefined) {
                         profile.email = Sanitizer.sanitizeString(args.input.email);
                     }
-    
+
                     if (args.input.alphaLocations !== undefined) {
                         profile.locations = Sanitizer.sanitizeAny(args.input.alphaLocations);
                     }
-    
+
                     if (args.input.alphaLinkedin !== undefined) {
                         profile.linkedin = Sanitizer.sanitizeString(args.input.alphaLinkedin);
                     }
-    
+
                     if (args.input.alphaTwitter !== undefined) {
                         profile.twitter = Sanitizer.sanitizeString(args.input.alphaTwitter);
                     }
-    
+
                     if (args.input.alphaRole !== undefined) {
                         profile.role = Sanitizer.sanitizeString(args.input.alphaRole);
                     }
-    
+
                     if (args.input.alphaPrimaryOrganizationId !== undefined) {
                         profile.primaryOrganization = IDs.Organization.parse(args.input.alphaPrimaryOrganizationId);
                     }
