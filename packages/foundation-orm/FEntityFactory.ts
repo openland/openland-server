@@ -6,6 +6,9 @@ import { FEntityIndex } from './FEntityIndex';
 import { FStreamItem } from './FStreamItem';
 import { FKeyEncoding } from './utils/FKeyEncoding';
 import { FStream } from './FStream';
+import { createLogger } from 'openland-log/createLogger';
+
+const log = createLogger('entity-factory');
 
 export abstract class FEntityFactory<T extends FEntity> {
     readonly namespace: FNamespace;
@@ -24,7 +27,7 @@ export abstract class FEntityFactory<T extends FEntity> {
 
     async findAll() {
         let res = await this.namespace.range(this.connection, []);
-        return res.map((v) => this._createEntity(v, false));
+        return res.map((v) => this.doCreateEntity(v, false));
     }
 
     protected abstract _createEntity(value: any, isNew: boolean): T;
@@ -32,45 +35,54 @@ export abstract class FEntityFactory<T extends FEntity> {
     protected async _findById(key: (string | number)[]) {
         let res = await this.namespace.get(this.connection, key);
         if (res) {
-            return this._createEntity(res, false);
+            return this.doCreateEntity(res, false);
         }
         return null;
     }
 
     protected async _findRange(key: (string | number)[], limit: number, reverse?: boolean) {
         let res = await this.namespace.range(this.connection, key, { limit, reverse });
-        return res.map((v) => this._createEntity(v.item, false));
+        return res.map((v) => this.doCreateEntity(v.item, false));
     }
 
     protected async _findRangeAfter(subspace: (string | number)[], after?: string, limit?: number) {
         if (after) {
             let res = await this.namespace.rangeAfter(this.connection, subspace, FKeyEncoding.decodeFromString(after) as any, { limit });
-            return res.map((v) => ({ value: this._createEntity(v.item, false), cursor: FKeyEncoding.encodeKeyToString(v.key) } as FStreamItem<T>));
+            return res.map((v) => ({ value: this.doCreateEntity(v.item, false), cursor: FKeyEncoding.encodeKeyToString(v.key) } as FStreamItem<T>));
         } else {
             let res = await this.namespace.range(this.connection, subspace, { limit });
-            return res.map((v) => ({ value: this._createEntity(v.item, false), cursor: FKeyEncoding.encodeKeyToString(v.key) } as FStreamItem<T>));
+            return res.map((v) => ({ value: this.doCreateEntity(v.item, false), cursor: FKeyEncoding.encodeKeyToString(v.key) } as FStreamItem<T>));
         }
     }
 
     protected _createStream(subspace: (string | number)[], limit: number, after?: string): FStream<T> {
-        return new FStream(this.connection, subspace, limit, (s) => this._createEntity(s, false), after);
+        return new FStream(this.connection, subspace, limit, (s) => this.doCreateEntity(s, false), after);
     }
 
     protected async _findAll(key: (string | number)[]) {
         let res = await this.namespace.range(this.connection, key);
-        return res.map((v) => this._createEntity(v.item, false));
+        return res.map((v) => this.doCreateEntity(v.item, false));
     }
 
     protected async _create(key: (string | number)[], value: any) {
         if (await this._findById(key)) {
             throw Error('Object already exists');
         }
-        return this._createEntity(value, true);
+        return this.doCreateEntity(value, true);
     }
 
     protected _watch(key: (string | number)[], cb: () => void) {
         let fullKey = [...this.namespace.namespace, ...key];
 
         return this.watcher.watch(fullKey, cb);
+    }
+
+    private doCreateEntity(value: any, isNew: boolean): T {
+        try {
+            return this._createEntity(value, isNew);
+        } catch (e) {
+            log.warn('Unable to create entity from ', JSON.stringify(value), e);
+            throw e;
+        }
     }
 }
