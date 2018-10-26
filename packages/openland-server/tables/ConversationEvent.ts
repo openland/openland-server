@@ -17,7 +17,7 @@ export interface ConversationEvent extends sequelize.Instance<Partial<Conversati
     deletedAt: Date | null;
 }
 
-export const ConversationEventTable = connection.define<ConversationEvent, Partial<ConversationEventAttributes>>('conversation_events', {
+export const ConversationEventTable = connection.define<ConversationEvent, Partial<ConversationEventAttributes>>('conversation_event', {
     id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
     eventType: { type: sequelize.STRING, allowNull: false },
     event: { type: sequelize.JSON, allowNull: false },

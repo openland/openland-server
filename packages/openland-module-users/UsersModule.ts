@@ -13,6 +13,10 @@ export class UsersModule {
         userProfileIndexer();
     }
 
+    async profileById(uid: number) {
+        return this.repo.findUserProfile(uid);
+    }
+
     async createUserProfile(user: User, input: {
         firstName: string,
         lastName?: string | null,
@@ -26,14 +30,6 @@ export class UsersModule {
         return await this.repo.createUserProfile(user, input);
     }
 
-    async getUserSettings(uid: number) {
-        return await this.repo.getUserSettings(uid);
-    }
-
-    async waitForNextSettings(uid: number) {
-        await this.repo.waitForNextSettings(uid);
-    }
-
     async findProfilePrefill(uid: number) {
         return this.repo.findProfilePrefill(uid);
     }
@@ -42,7 +38,11 @@ export class UsersModule {
         return this.repo.saveProfilePrefill(uid, prefill);
     }
 
-    async profileById(uid: number) {
-        return this.repo.findUserProfile(uid);
+    async getUserSettings(uid: number) {
+        return await this.repo.getUserSettings(uid);
+    }
+
+    async waitForNextSettings(uid: number) {
+        await this.repo.waitForNextSettings(uid);
     }
 }
