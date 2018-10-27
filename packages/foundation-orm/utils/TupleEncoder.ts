@@ -47,7 +47,7 @@ export function encode(into: BufferBuilder, item: FKeyItem) {
         }
         into.appendByte(0);
     } else if (typeof item === 'number') {
-        if (Number.isSafeInteger(item) && !Object.is(item, -0) && item >= 0) {
+        if (Number.isSafeInteger(item) && !Object.is(item, -0) && item > 0) {
             let byteLen = numByteLen(item);
             into.need(1 + byteLen);
 
@@ -67,7 +67,7 @@ export function encode(into: BufferBuilder, item: FKeyItem) {
             throw Error('Key encoder doesn\'t support non-integer or negative numbers');
         }
     } else if (item instanceof Decimal) {
-        if (!item.isInteger() || item.lessThanOrEqualTo(0)) {
+        if (!item.isInteger() || item.lessThan(0)) {
             throw Error('Key encoder doesn\'t support non-integer or negative numbers');
         }
         let hex = item.toHex().substring(2);
