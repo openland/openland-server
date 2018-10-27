@@ -38,11 +38,11 @@ export const DB = {
     ConversationBlocked: ConversationBlockedTable,
     ConversationChannelMembers: ConversationChannelMembersTable,
     ChannelInvite: ChannelInviteTable,
-    ConversationEvent: ConversationEventTable,
 
+    ConversationEvent: ConversationEventTable,
     ConversationUserEvents: ConversationUserEventsTable,
     ConversationUserState: ConversationUserStateTable,
-
+    
     ConversationsUserGlobal: ConversationsUserGlobalTable,
     ConversationsUserGlobalNotifications: ConversationsUserGlobalNotificationsTable,
 

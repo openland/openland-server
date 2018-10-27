@@ -44,5 +44,5 @@ export function startSettingsMigrator() {
             });
         }
     });
-    q1.start();
+    q2.start();
 }
