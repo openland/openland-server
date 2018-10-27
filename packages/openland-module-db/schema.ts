@@ -1924,6 +1924,97 @@ export class UserMessagingStateFactory extends FEntityFactory<UserMessagingState
         return new UserMessagingState(this.connection, this.namespace, [value.uid], value, this.options, isNew, this.indexes);
     }
 }
+export interface UserNotificationsStateShape {
+    readSeq?: number| null;
+    lastEmailNotification?: number| null;
+    lastPushNotification?: number| null;
+    lastEmailSeq?: number| null;
+    lastPushSeq?: number| null;
+}
+
+export class UserNotificationsState extends FEntity {
+    get uid(): number { return this._value.uid; }
+    get readSeq(): number | null {
+        let res = this._value.readSeq;
+        if (res) { return res; }
+        return null;
+    }
+    set readSeq(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.readSeq) { return; }
+        this._value.readSeq = value;
+        this.markDirty();
+    }
+    get lastEmailNotification(): number | null {
+        let res = this._value.lastEmailNotification;
+        if (res) { return res; }
+        return null;
+    }
+    set lastEmailNotification(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.lastEmailNotification) { return; }
+        this._value.lastEmailNotification = value;
+        this.markDirty();
+    }
+    get lastPushNotification(): number | null {
+        let res = this._value.lastPushNotification;
+        if (res) { return res; }
+        return null;
+    }
+    set lastPushNotification(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.lastPushNotification) { return; }
+        this._value.lastPushNotification = value;
+        this.markDirty();
+    }
+    get lastEmailSeq(): number | null {
+        let res = this._value.lastEmailSeq;
+        if (res) { return res; }
+        return null;
+    }
+    set lastEmailSeq(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.lastEmailSeq) { return; }
+        this._value.lastEmailSeq = value;
+        this.markDirty();
+    }
+    get lastPushSeq(): number | null {
+        let res = this._value.lastPushSeq;
+        if (res) { return res; }
+        return null;
+    }
+    set lastPushSeq(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.lastPushSeq) { return; }
+        this._value.lastPushSeq = value;
+        this.markDirty();
+    }
+}
+
+export class UserNotificationsStateFactory extends FEntityFactory<UserNotificationsState> {
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'userNotificationsState'),
+            { enableVersioning: true, enableTimestamps: true },
+            []
+        );
+    }
+    extractId(rawId: any[]) {
+        return { 'uid': rawId[0] };
+    }
+    async findById(uid: number) {
+        return await this._findById([uid]);
+    }
+    async create(uid: number, shape: UserNotificationsStateShape) {
+        return await this._create([uid], { uid, ...shape });
+    }
+    watch(uid: number, cb: () => void) {
+        return this._watch([uid], cb);
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new UserNotificationsState(this.connection, this.namespace, [value.uid], value, this.options, isNew, this.indexes);
+    }
+}
 export interface UserMessagingEventShape {
     allUnread: number;
     convUnread: number;
@@ -2084,6 +2175,7 @@ export class AllEntities extends FDBInstance {
     Message: MessageFactory;
     ConversationEvent: ConversationEventFactory;
     UserMessagingState: UserMessagingStateFactory;
+    UserNotificationsState: UserNotificationsStateFactory;
     UserMessagingEvent: UserMessagingEventFactory;
 
     constructor(connection: FConnection) {
@@ -2112,6 +2204,7 @@ export class AllEntities extends FDBInstance {
         this.Message = new MessageFactory(connection);
         this.ConversationEvent = new ConversationEventFactory(connection);
         this.UserMessagingState = new UserMessagingStateFactory(connection);
+        this.UserNotificationsState = new UserNotificationsStateFactory(connection);
         this.UserMessagingEvent = new UserMessagingEventFactory(connection);
     }
 }

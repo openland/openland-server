@@ -34,7 +34,10 @@ export const DB = {
     
     Conversation: ConversationTable,
     ConversationMessage: ConversationMessageTable,
-
+    ConversationGroupMembers: ConversationGroupMembersTable,
+    ConversationBlocked: ConversationBlockedTable,
+    ConversationChannelMembers: ConversationChannelMembersTable,
+    ChannelInvite: ChannelInviteTable,
     ConversationEvent: ConversationEventTable,
 
     ConversationUserEvents: ConversationUserEventsTable,
@@ -42,12 +45,6 @@ export const DB = {
 
     ConversationsUserGlobal: ConversationsUserGlobalTable,
     ConversationsUserGlobalNotifications: ConversationsUserGlobalNotificationsTable,
-
-    ConversationGroupMembers: ConversationGroupMembersTable,
-    ConversationBlocked: ConversationBlockedTable,
-    ConversationChannelMembers: ConversationChannelMembersTable,
-    
-    ChannelInvite: ChannelInviteTable,
 
     tx: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>, existingTx?: sequelize.Transaction): Promise<A> {
         if (existingTx) {

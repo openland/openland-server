@@ -273,6 +273,17 @@ const Schema = declareSchema(() => {
         enableTimestamps();
     });
 
+    entity('UserNotificationsState', () => {
+        primaryKey('uid', 'number');
+        field('readSeq', 'number').nullable();
+        field('lastEmailNotification', 'number').nullable();
+        field('lastPushNotification', 'number').nullable();
+        field('lastEmailSeq', 'number').nullable();
+        field('lastPushSeq', 'number').nullable();
+        enableVersioning();
+        enableTimestamps();
+    });
+
     entity('UserMessagingEvent', () => {
         primaryKey('uid', 'number');
         primaryKey('seq', 'number');
