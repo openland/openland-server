@@ -40,6 +40,7 @@ export const FKeyEncoding = {
         } catch (e) {
             log.warn('Unable to encode key with new encoder!!', key, e);
         }
+        return res;
     },
     decodeFromString: (key: string) => {
         return encoders.tuple.unpack(Buffer.from(key, 'hex'));
