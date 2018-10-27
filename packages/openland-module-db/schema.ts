@@ -1487,6 +1487,51 @@ export class AuthCodeSessionFactory extends FEntityFactory<AuthCodeSession> {
         return new AuthCodeSession(this.connection, this.namespace, [value.uid], value, this.options, isNew, this.indexes);
     }
 }
+export interface ConversationMemberShape {
+    enabled: boolean;
+}
+
+export class ConversationMember extends FEntity {
+    get cid(): string { return this._value.cid; }
+    get uid(): number { return this._value.uid; }
+    get enabled(): boolean {
+        return this._value.enabled;
+    }
+    set enabled(value: boolean) {
+        this._checkIsWritable();
+        if (value === this._value.enabled) { return; }
+        this._value.enabled = value;
+        this.markDirty();
+    }
+}
+
+export class ConversationMemberFactory extends FEntityFactory<ConversationMember> {
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'conversationMember'),
+            { enableVersioning: false, enableTimestamps: false },
+            [new FEntityIndex('conversationMembers', ['cid', 'uid'], true, (src) => src.enabled)]
+        );
+    }
+    extractId(rawId: any[]) {
+        return { 'cid': rawId[0], 'uid': rawId[1] };
+    }
+    async findById(cid: string, uid: number) {
+        return await this._findById([cid, uid]);
+    }
+    async create(cid: string, uid: number, shape: ConversationMemberShape) {
+        return await this._create([cid, uid], { cid, uid, ...shape });
+    }
+    watch(cid: string, uid: number, cb: () => void) {
+        return this._watch([cid, uid], cb);
+    }
+    async findFromConversationMembers(cid: string, uid: number) {
+        return await this._findById(['__indexes', 'conversationMembers', cid, uid]);
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new ConversationMember(this.connection, this.namespace, [value.cid, value.uid], value, this.options, isNew, this.indexes);
+    }
+}
 export interface ConversationSeqShape {
     seq: number;
 }
@@ -1685,7 +1730,7 @@ export class MessageFactory extends FEntityFactory<Message> {
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'message'),
-            { enableVersioning: false, enableTimestamps: false },
+            { enableVersioning: true, enableTimestamps: true },
             [new FEntityIndex('chat', ['cid', 'id'], false, (src) => !src.deleted)]
         );
     }
@@ -1828,54 +1873,13 @@ export class ConversationEventFactory extends FEntityFactory<ConversationEvent> 
         return new ConversationEvent(this.connection, this.namespace, [value.cid, value.seq], value, this.options, isNew, this.indexes);
     }
 }
-export interface UserConversationEventShape {
-}
-
-export class UserConversationEvent extends FEntity {
-    get cid(): string { return this._value.cid; }
-    get seq(): number { return this._value.seq; }
-}
-
-export class UserConversationEventFactory extends FEntityFactory<UserConversationEvent> {
-    constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace('entity', 'userConversationEvent'),
-            { enableVersioning: true, enableTimestamps: true },
-            []
-        );
-    }
-    extractId(rawId: any[]) {
-        return { 'cid': rawId[0], 'seq': rawId[1] };
-    }
-    async findById(cid: string, seq: number) {
-        return await this._findById([cid, seq]);
-    }
-    async create(cid: string, seq: number, shape: UserConversationEventShape) {
-        return await this._create([cid, seq], { cid, seq, ...shape });
-    }
-    watch(cid: string, seq: number, cb: () => void) {
-        return this._watch([cid, seq], cb);
-    }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new UserConversationEvent(this.connection, this.namespace, [value.cid, value.seq], value, this.options, isNew, this.indexes);
-    }
-}
 export interface UserMessagingStateShape {
-    unread: number;
     seq: number;
+    unread: number;
 }
 
 export class UserMessagingState extends FEntity {
     get uid(): number { return this._value.uid; }
-    get unread(): number {
-        return this._value.unread;
-    }
-    set unread(value: number) {
-        this._checkIsWritable();
-        if (value === this._value.unread) { return; }
-        this._value.unread = value;
-        this.markDirty();
-    }
     get seq(): number {
         return this._value.seq;
     }
@@ -1883,6 +1887,15 @@ export class UserMessagingState extends FEntity {
         this._checkIsWritable();
         if (value === this._value.seq) { return; }
         this._value.seq = value;
+        this.markDirty();
+    }
+    get unread(): number {
+        return this._value.unread;
+    }
+    set unread(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.unread) { return; }
+        this._value.unread = value;
         this.markDirty();
     }
 }
@@ -2066,10 +2079,10 @@ export class AllEntities extends FDBInstance {
     UserSettings: UserSettingsFactory;
     ShortnameReservation: ShortnameReservationFactory;
     AuthCodeSession: AuthCodeSessionFactory;
+    ConversationMember: ConversationMemberFactory;
     ConversationSeq: ConversationSeqFactory;
     Message: MessageFactory;
     ConversationEvent: ConversationEventFactory;
-    UserConversationEvent: UserConversationEventFactory;
     UserMessagingState: UserMessagingStateFactory;
     UserMessagingEvent: UserMessagingEventFactory;
 
@@ -2094,10 +2107,10 @@ export class AllEntities extends FDBInstance {
         this.UserSettings = new UserSettingsFactory(connection);
         this.ShortnameReservation = new ShortnameReservationFactory(connection);
         this.AuthCodeSession = new AuthCodeSessionFactory(connection);
+        this.ConversationMember = new ConversationMemberFactory(connection);
         this.ConversationSeq = new ConversationSeqFactory(connection);
         this.Message = new MessageFactory(connection);
         this.ConversationEvent = new ConversationEventFactory(connection);
-        this.UserConversationEvent = new UserConversationEventFactory(connection);
         this.UserMessagingState = new UserMessagingStateFactory(connection);
         this.UserMessagingEvent = new UserMessagingEventFactory(connection);
     }

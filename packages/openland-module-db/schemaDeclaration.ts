@@ -120,20 +120,6 @@ const Schema = declareSchema(() => {
         enableVersioning();
     });
 
-    // id: number;
-    // firstName: string;
-    // lastName: string | null;
-    // phone?: string | null;
-    // about?: string | null;
-    // website?: string | null;
-    // location?: string | null;
-    // email?: string | null;
-    // picture: ImageRef | null;
-    // userId?: number | null;
-    // user?: User | null;
-    // extras?: UserExtras;
-    // primaryOrganization?: number;
-
     entity('UserProfile', () => {
         primaryKey('id', 'number');
         field('firstName', 'string');
@@ -219,10 +205,25 @@ const Schema = declareSchema(() => {
         enableTimestamps();
     });
 
+    //
+    // Conversation
+    //
+
+    entity('ConversationMember', () => {
+        primaryKey('cid', 'string');
+        primaryKey('uid', 'number');
+        field('enabled', 'boolean');
+        uniqueIndex('conversationMembers', ['cid', 'uid']).withCondition((src) => src.enabled);
+    });
+
     entity('ConversationSeq', () => {
         primaryKey('cid', 'string');
         field('seq', 'number');
     });
+
+    //
+    // Conversation State
+    //
 
     entity('Message', () => {
         primaryKey('id', 'string');
@@ -242,6 +243,8 @@ const Schema = declareSchema(() => {
         field('isService', 'boolean');
         field('deleted', 'boolean');
         rangeIndex('chat', ['cid', 'id']).withCondition((src) => !src.deleted);
+        enableVersioning();
+        enableTimestamps();
     });
 
     entity('ConversationEvent', () => {
@@ -258,17 +261,14 @@ const Schema = declareSchema(() => {
         enableTimestamps();
     });
 
-    entity('UserConversationEvent', () => {
-        primaryKey('cid', 'string');
-        primaryKey('seq', 'number');
-        enableVersioning();
-        enableTimestamps();
-    });
+    //
+    // User Messaging state
+    //
 
     entity('UserMessagingState', () => {
         primaryKey('uid', 'number');
-        field('unread', 'number');
         field('seq', 'number');
+        field('unread', 'number');
         enableVersioning();
         enableTimestamps();
     });

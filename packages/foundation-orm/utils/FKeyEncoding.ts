@@ -1,5 +1,6 @@
 import { encoders } from 'foundationdb';
 import { createLogger } from 'openland-log/createLogger';
+import { pack } from './TupleEncoder';
 
 const byteFF = Buffer.alloc(1);
 byteFF.writeUInt8(0xff, 0);
@@ -8,6 +9,11 @@ byteZero.writeUInt8(0, 0);
 const log = createLogger('key-encoding');
 export const FKeyEncoding = {
     encodeKey: (key: (string | boolean | number)[]) => {
+        try {
+            pack(key);
+        } catch (e) {
+            log.warn('Unable to encode key with new encoder!!', key, e);
+        }
         try {
             return encoders.tuple.pack(key) as Buffer;
         } catch (e) {
@@ -28,7 +34,12 @@ export const FKeyEncoding = {
         return res;
     },
     decodeKey: (key: Buffer) => {
-        return encoders.tuple.unpack(key);
+        let res = encoders.tuple.unpack(key);
+        try {
+            pack(res as any);
+        } catch (e) {
+            log.warn('Unable to encode key with new encoder!!', key, e);
+        }
     },
     decodeFromString: (key: string) => {
         return encoders.tuple.unpack(Buffer.from(key, 'hex'));
