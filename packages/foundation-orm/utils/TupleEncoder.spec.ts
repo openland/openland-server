@@ -19,6 +19,7 @@ describe('TupleEncoder', () => {
             let packed = fdb.encoders.tuple.pack([key]) as Buffer;
             expect(encoded.toString('hex')).toEqual(packed.toString('hex'));
         }
+        testInput(0);
         testInput('hello');
         testInput(123);
         testInput(123123123);
