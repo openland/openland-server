@@ -13,6 +13,7 @@ enum Code {
     True = 0x27,
     String = 2,
     IntZero = 0x14,
+    Double = 0x21,
     UUID = 0x30,
 }
 
@@ -23,6 +24,17 @@ const numByteLen = (num: number) => {
         max *= 256;
     }
     throw Error('Number too big for encoding');
+};
+
+const adjustFloat = (data: Buffer, isEncode: boolean) => {
+    if ((isEncode && (data[0] & 0x80) === 0x80) || (!isEncode && (data[0] & 0x80) === 0x00)) {
+        for (var i = 0; i < data.length; i++) {
+            data[i] = ~data[i];
+        }
+    } else {
+        data[0] ^= 0x80;
+    }
+    return data;
 };
 
 export function encode(into: BufferBuilder, item: FKeyItem) {
@@ -47,7 +59,11 @@ export function encode(into: BufferBuilder, item: FKeyItem) {
         }
         into.appendByte(0);
     } else if (typeof item === 'number') {
-        if (Number.isSafeInteger(item) && !Object.is(item, -0) && item >= 0) {
+        if (Number.isSafeInteger(item) && !Object.is(item, -0)) {
+            if (item < 0) {
+                throw Error('Key encoder doesn\'t support negative integers, got: ' + item);
+            }
+
             let byteLen = numByteLen(item);
             into.need(1 + byteLen);
 
@@ -64,7 +80,15 @@ export function encode(into: BufferBuilder, item: FKeyItem) {
                 into.appendByte(lowBits >>> (8 * (byteLen - 1)));
             }
         } else {
-            throw Error('Key encoder doesn\'t support non-integer or negative numbers, got: ' + item);
+
+            // Double precision float.
+            into.appendByte(Code.Double);
+
+            // We need to look at the representation bytes - which needs a temporary buffer.
+            const bytes = Buffer.allocUnsafe(8);
+            bytes.writeDoubleBE(item, 0);
+            adjustFloat(bytes, true);
+            into.appendBuffer(bytes);
         }
     } else if (item instanceof Decimal) {
         if (!item.isInteger() || item.lessThan(0)) {

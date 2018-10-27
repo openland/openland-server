@@ -23,6 +23,9 @@ describe('TupleEncoder', () => {
         testInput('hello');
         testInput(123);
         testInput(123123123);
+        testInput(0.3);
+        testInput(-0);
+        testInput(-0.42);
         testDecimalInput(123);
         testDecimalInput(44412);
     });
