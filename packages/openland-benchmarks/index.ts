@@ -1,3 +1,4 @@
+// tslint:disable:no-floating-promises
 import * as fdb from 'foundationdb';
 
 fdb.setAPIVersion(510);
