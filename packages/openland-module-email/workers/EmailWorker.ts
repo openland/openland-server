@@ -1,6 +1,7 @@
 import SendGrid from '@sendgrid/mail';
 import { SENDGRID_KEY } from 'openland-server/utils/keys';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
+import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent';
 
 let devTeamEmails = [
     'korshakov.stepan@gmail.com',
@@ -14,6 +15,9 @@ let devTeamEmails = [
     'steve+kite@openland.com',
     'steve+k@openland.com'
 ];
+
+const emailSent = createHyperlogger<{ to: string, templateId: string }>('email_sent');
+const emailFailed = createHyperlogger<{ to: string, templateId: string }>('email_failed');
 
 export function createEmailWorker() {
     let queue = new WorkQueue<{ templateId: string, to: string, subject: string, args: { [key: string]: string; } }, { result: string }>('emailSender');
@@ -29,15 +33,20 @@ export function createEmailWorker() {
                     };
                 }
             }
-            console.warn('Sending email task #' + uid);
 
-            await SendGrid.send({
-                to: args.to,
-                from: { name: 'Openland', email: 'support@openland.com' },
-                templateId: args.templateId,
-                substitutions: args.args,
-                subject: args.subject
-            });
+            try {
+                await SendGrid.send({
+                    to: args.to,
+                    from: { name: 'Openland', email: 'support@openland.com' },
+                    templateId: args.templateId,
+                    substitutions: args.args,
+                    subject: args.subject
+                });
+            } catch (e) {
+                await emailFailed.event({ templateId: args.templateId, to: args.to });
+                throw e;
+            }
+            await emailSent.event({ templateId: args.templateId, to: args.to });
         }
         return {
             result: 'ok'

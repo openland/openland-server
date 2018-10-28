@@ -199,6 +199,7 @@
     "openland-module-features": "build/openland-module-features",
     "openland-module-search": "build/openland-module-search",
     "openland-module-super": "build/openland-module-super",
-    "openland-module-shortname": "build/openland-module-shortname"
+    "openland-module-shortname": "build/openland-module-shortname",
+    "openland-module-hyperlog": "build/openland-module-hyperlog"
   }
 }

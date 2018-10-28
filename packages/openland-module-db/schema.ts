@@ -485,6 +485,7 @@ export interface PushFirebaseShape {
     packageId: string;
     sandbox: boolean;
     enabled: boolean;
+    failures?: number| null;
 }
 
 export class PushFirebase extends FEntity {
@@ -543,6 +544,17 @@ export class PushFirebase extends FEntity {
         this._value.enabled = value;
         this.markDirty();
     }
+    get failures(): number | null {
+        let res = this._value.failures;
+        if (res) { return res; }
+        return null;
+    }
+    set failures(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.failures) { return; }
+        this._value.failures = value;
+        this.markDirty();
+    }
 }
 
 export class PushFirebaseFactory extends FEntityFactory<PushFirebase> {
@@ -588,6 +600,7 @@ export interface PushAppleShape {
     bundleId: string;
     sandbox: boolean;
     enabled: boolean;
+    failures?: number| null;
 }
 
 export class PushApple extends FEntity {
@@ -646,6 +659,17 @@ export class PushApple extends FEntity {
         this._value.enabled = value;
         this.markDirty();
     }
+    get failures(): number | null {
+        let res = this._value.failures;
+        if (res) { return res; }
+        return null;
+    }
+    set failures(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.failures) { return; }
+        this._value.failures = value;
+        this.markDirty();
+    }
 }
 
 export class PushAppleFactory extends FEntityFactory<PushApple> {
@@ -689,6 +713,7 @@ export interface PushWebShape {
     tid: string;
     endpoint: string;
     enabled: boolean;
+    failures?: number| null;
 }
 
 export class PushWeb extends FEntity {
@@ -727,6 +752,17 @@ export class PushWeb extends FEntity {
         this._checkIsWritable();
         if (value === this._value.enabled) { return; }
         this._value.enabled = value;
+        this.markDirty();
+    }
+    get failures(): number | null {
+        let res = this._value.failures;
+        if (res) { return res; }
+        return null;
+    }
+    set failures(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.failures) { return; }
+        this._value.failures = value;
         this.markDirty();
     }
 }
@@ -2149,6 +2185,76 @@ export class UserMessagingEventFactory extends FEntityFactory<UserMessagingEvent
         return new UserMessagingEvent(this.connection, this.namespace, [value.uid, value.seq], value, this.options, isNew, this.indexes);
     }
 }
+export interface HyperLogShape {
+    type: string;
+    date: number;
+    body: any;
+}
+
+export class HyperLog extends FEntity {
+    get id(): string { return this._value.id; }
+    get type(): string {
+        return this._value.type;
+    }
+    set type(value: string) {
+        this._checkIsWritable();
+        if (value === this._value.type) { return; }
+        this._value.type = value;
+        this.markDirty();
+    }
+    get date(): number {
+        return this._value.date;
+    }
+    set date(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.date) { return; }
+        this._value.date = value;
+        this.markDirty();
+    }
+    get body(): any {
+        return this._value.body;
+    }
+    set body(value: any) {
+        this._checkIsWritable();
+        if (value === this._value.body) { return; }
+        this._value.body = value;
+        this.markDirty();
+    }
+}
+
+export class HyperLogFactory extends FEntityFactory<HyperLog> {
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'hyperLog'),
+            { enableVersioning: false, enableTimestamps: true },
+            [new FEntityIndex('created', ['createdAt'], false)]
+        );
+    }
+    extractId(rawId: any[]) {
+        return { 'id': rawId[0] };
+    }
+    async findById(id: string) {
+        return await this._findById([id]);
+    }
+    async create(id: string, shape: HyperLogShape) {
+        return await this._create([id], { id, ...shape });
+    }
+    watch(id: string, cb: () => void) {
+        return this._watch([id], cb);
+    }
+    async rangeFromCreated(limit: number) {
+        return await this._findRange(['__indexes', 'created'], limit);
+    }
+    async allFromCreated() {
+        return await this._findAll(['__indexes', 'created']);
+    }
+    createCreatedStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'hyperLog', '__indexes', 'created'], limit, after); 
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new HyperLog(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
+    }
+}
 
 export class AllEntities extends FDBInstance {
     Online: OnlineFactory;
@@ -2177,6 +2283,7 @@ export class AllEntities extends FDBInstance {
     UserMessagingState: UserMessagingStateFactory;
     UserNotificationsState: UserNotificationsStateFactory;
     UserMessagingEvent: UserMessagingEventFactory;
+    HyperLog: HyperLogFactory;
 
     constructor(connection: FConnection) {
         super(connection);
@@ -2206,5 +2313,6 @@ export class AllEntities extends FDBInstance {
         this.UserMessagingState = new UserMessagingStateFactory(connection);
         this.UserNotificationsState = new UserNotificationsStateFactory(connection);
         this.UserMessagingEvent = new UserMessagingEventFactory(connection);
+        this.HyperLog = new HyperLogFactory(connection);
     }
 }

@@ -79,6 +79,7 @@ const Schema = declareSchema(() => {
         field('packageId', 'string');
         field('sandbox', 'boolean');
         field('enabled', 'boolean');
+        field('failures', 'number').nullable();
         rangeIndex('user', ['uid', 'id']);
         uniqueIndex('token', ['token']).withCondition(src => src.enabled);
         enableTimestamps();
@@ -93,6 +94,7 @@ const Schema = declareSchema(() => {
         field('bundleId', 'string');
         field('sandbox', 'boolean');
         field('enabled', 'boolean');
+        field('failures', 'number').nullable();
         rangeIndex('user', ['uid', 'id']);
         uniqueIndex('token', ['token']).withCondition(src => src.enabled);
         enableTimestamps();
@@ -105,6 +107,7 @@ const Schema = declareSchema(() => {
         field('tid', 'string');
         field('endpoint', 'string');
         field('enabled', 'boolean');
+        field('failures', 'number').nullable();
         rangeIndex('user', ['uid', 'id']);
         uniqueIndex('endpoint', ['endpoint']).withCondition(src => src.enabled);
         enableTimestamps();
@@ -297,6 +300,15 @@ const Schema = declareSchema(() => {
         field('messageId', 'string').nullable();
         enumField('kind', ['create_message', 'update_message', 'delete_message', 'group_update', 'add_members', 'remove_members']);
         enableVersioning();
+        enableTimestamps();
+    });
+
+    entity('HyperLog', () => {
+        primaryKey('id', 'string');
+        field('type', 'string');
+        field('date', 'number');
+        field('body', 'json');
+        rangeIndex('created', ['createdAt']);
         enableTimestamps();
     });
 });
