@@ -7,11 +7,6 @@ export interface ConversationUserGlobalAttributes {
     userId: number;
     unread: number;
     seq: number;
-    readSeq: number | null;
-    lastEmailNotification: Date | null;
-    lastPushNotification: Date | null;
-    lastEmailSeq: number;
-    lastPushSeq: number;
 }
 
 export interface ConversationUserGlobal extends sequelize.Instance<Partial<ConversationUserGlobalAttributes>>, ConversationUserGlobalAttributes {

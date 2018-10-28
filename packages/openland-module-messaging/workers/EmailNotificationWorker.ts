@@ -3,21 +3,20 @@ import { DB, DB_SILENT } from '../../openland-server/tables';
 import { Repos } from '../../openland-server/repositories';
 import { Emails } from '../../openland-server/services/Emails';
 import { Modules } from 'openland-modules/Modules';
+import { inTx } from 'foundation-orm/inTx';
 
 export function startEmailNotificationWorker() {
     staticWorker({ name: 'email_notifications', delay: 15000 }, async () => {
-        return await DB.connection.transaction({ logging: DB_SILENT as any }, async (tx) => {
-
+        return await inTx(async () => {
             let unreadUsers = await DB.ConversationsUserGlobal.findAll({
                 where: {
                     unread: { $gt: 0 }
                 },
-                transaction: tx,
-                lock: tx.LOCK.UPDATE
             });
             let now = Date.now();
 
             for (let u of unreadUsers) {
+                let state = await Modules.Messaging.repo.getUserMessagingState(u.userId);
                 let lastSeen = await Modules.Presence.getLastSeen(u.userId);
                 let tag = 'email_notifications ' + u.userId;
 
@@ -32,17 +31,17 @@ export function startEmailNotificationWorker() {
                 }
 
                 // Ignore never opened apps
-                if (u.readSeq === null) {
+                if (state.readSeq === null) {
                     continue;
                 }
 
                 // Ignore read updates
-                if (u.readSeq === u.seq) {
+                if (state.readSeq === u.seq) {
                     continue;
                 }
 
                 // Ignore already processed updates
-                if (u.lastEmailSeq === u.seq) {
+                if (state.lastEmailSeq === u.seq) {
                     continue;
                 }
 
@@ -63,7 +62,7 @@ export function startEmailNotificationWorker() {
                     }
 
                     // Do not send emails more than one in an hour
-                    if (u.lastEmailNotification !== null && u.lastEmailNotification.getTime() > now - delta) {
+                    if (state.lastEmailNotification !== null && state.lastEmailNotification > now - delta) {
                         continue;
                     }
 
@@ -72,10 +71,9 @@ export function startEmailNotificationWorker() {
                         where: {
                             userId: u.userId,
                             seq: {
-                                $gt: Math.max(u.lastEmailSeq, u.readSeq)
+                                $gt: Math.max(state.lastEmailSeq ? state.lastEmailSeq : 0, state.readSeq)
                             }
                         },
-                        transaction: tx,
                         logging: DB_SILENT
                     });
                     let messages = remainingUpdates
@@ -84,7 +82,7 @@ export function startEmailNotificationWorker() {
 
                     let hasNonMuted = false;
                     for (let m of messages) {
-                        let message = await DB.ConversationMessage.findById(m.event.messageId as number, { transaction: tx });
+                        let message = await DB.ConversationMessage.findById(m.event.messageId as number);
                         if (!message) {
                             continue;
                         }
@@ -109,14 +107,13 @@ export function startEmailNotificationWorker() {
                     // Send email notification if there are some
                     if (hasNonMuted) {
                         console.log(tag, 'new_email_notification');
-                        await Emails.sendUnreadMesages(u.userId, u.unread, tx);
-                        u.lastEmailNotification = new Date();
+                        await Emails.sendUnreadMesages(u.userId, u.unread);
+                        state.lastEmailNotification = Date.now();
                     }
                 }
 
                 // Save state
-                u.lastEmailSeq = u.seq;
-                await u.save({ transaction: tx });
+                state.lastEmailSeq = u.seq;
             }
             return false;
         });

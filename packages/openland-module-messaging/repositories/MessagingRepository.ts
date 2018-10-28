@@ -187,4 +187,17 @@ export class MessagingRepository {
             }
         });
     }
+
+    async getUserMessagingState(uid: number) {
+        return await inTx(async () => {
+            let existing = await this.entities.UserNotificationsState.findById(uid);
+            if (!existing) {
+                let created = await this.entities.UserNotificationsState.create(uid, {});
+                await created.flush();
+                return created;
+            } else {
+                return existing;
+            }
+        });
+    }
 }

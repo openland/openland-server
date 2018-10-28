@@ -5,7 +5,6 @@ import { startPushNotificationWorker } from './workers/PushNotificationWorker';
 import { createDeliveryWorker } from './workers/DeliveryWorker';
 import { MessagingRepository } from './repositories/MessagingRepository';
 import { FDB } from 'openland-module-db/FDB';
-import { startSettingsMigrator } from './workers/MigrateSettings';
 
 export interface MessageInput {
     repeatToken?: string| null;
@@ -32,6 +31,5 @@ export class MessagingModule {
             startPushNotificationWorker();
         }
         createDeliveryWorker();
-        startSettingsMigrator();
     }
 }

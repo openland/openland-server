@@ -20,7 +20,6 @@ import { retry } from '../utils/timer';
 import { ConversationGroupMembersTable } from './ConversationGroupMembers';
 import { ConversationChannelMembersTable } from './ConversationChannelMembers';
 import { ChannelInviteTable } from './ChannelInvite';
-import { ConversationsUserGlobalNotificationsTable } from './ConversationsUserGlobalNotifications';
 
 const SILENT_TX_ACTUALLY_SILENT = true;
 export const DB_SILENT = !SILENT_TX_ACTUALLY_SILENT;
@@ -42,9 +41,8 @@ export const DB = {
     ConversationEvent: ConversationEventTable,
     ConversationUserEvents: ConversationUserEventsTable,
     ConversationUserState: ConversationUserStateTable,
-    
+
     ConversationsUserGlobal: ConversationsUserGlobalTable,
-    ConversationsUserGlobalNotifications: ConversationsUserGlobalNotificationsTable,
 
     tx: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>, existingTx?: sequelize.Transaction): Promise<A> {
         if (existingTx) {

@@ -4,6 +4,7 @@ import { Repos } from 'openland-server/repositories';
 import { buildBaseImageUrl } from 'openland-server/repositories/Media';
 import { Texts } from 'openland-server/texts';
 import { Modules } from 'openland-modules/Modules';
+import { withLogContext } from 'openland-log/withLogContext';
 
 const Delays = {
     'none': 10 * 1000,
@@ -14,76 +15,62 @@ const Delays = {
 export function startPushNotificationWorker() {
 
     staticWorker({ name: 'push_notifications', delay: 3000 }, async () => {
-        return await DB.connection.transaction({ logging: DB_SILENT as any }, async (tx) => {
-            let unreadUsers = await DB.ConversationsUserGlobal.findAll({
-                where: {
-                    unread: { $gt: 0 },
-                },
-                transaction: tx,
-                logging: DB_SILENT
-            });
 
-            for (let u of unreadUsers) {
+        let unreadUsers = await DB.ConversationsUserGlobal.findAll({
+            where: {
+                unread: { $gt: 0 },
+            },
+            logging: DB_SILENT
+        });
 
-                // Loading user's settings
+        for (let u of unreadUsers) {
+            await withLogContext(['user', '' + u.userId], async () => {
+                // Loading user's settings and state
                 let settings = await Modules.Users.getUserSettings(u.userId);
+                let state = await Modules.Messaging.repo.getUserMessagingState(u.userId);
 
                 let now = Date.now();
 
                 let logPrefix = 'push_worker ' + u.userId;
 
-                // TODO: Implement lastActive on FDB
-                let lastSeen = await Modules.Presence.getLastSeen(u.userId); // await Repos.Users.getUserLastActiveExtended(u.userId, tx);
+                let lastSeen = await Modules.Presence.getLastSeen(u.userId);
 
                 // Ignore never-online users
                 if (lastSeen === 'never_online') {
-                    continue;
+                    return;
                 }
 
                 // Pause notifications only if delay was set
                 // if (settings.notificationsDelay !== 'none') {
                 // Ignore online
                 if (lastSeen === 'online') {
-                    continue;
+                    return;
                 }
 
                 // Pause notifications till 1 minute passes from last active timeout
                 if (lastSeen > (now - Delays[settings.notificationsDelay])) {
-                    continue;
+                    return;
                 }
                 // }
 
                 // Ignore read updates
-                if (u.readSeq === u.seq) {
-                    continue;
+                if (state.readSeq === u.seq) {
+                    return;
                 }
 
                 // Ignore never opened apps
-                if (u.readSeq === null) {
-                    continue;
+                if (state.readSeq === null) {
+                    return;
                 }
 
                 // Ignore user's with disabled notifications
                 if (settings.mobileNotifications === 'none' && settings.desktopNotifications === 'none') {
-                    continue;
-                }
-
-                let notificationsState = await DB.ConversationsUserGlobalNotifications.find({
-                    where: {
-                        userId: u.userId,
-                    },
-                    transaction: tx,
-                    lock: tx.LOCK.UPDATE,
-                    logging: DB_SILENT,
-                });
-
-                if (!notificationsState) {
-                    notificationsState = await DB.ConversationsUserGlobalNotifications.create({ userId: u.userId }, { transaction: tx });
+                    return;
                 }
 
                 // Ignore already processed updates
-                if (notificationsState.lastPushSeq >= u.seq) {
-                    continue;
+                if (state.lastPushSeq !== null && state.lastPushSeq >= u.seq) {
+                    return;
                 }
 
                 // Scanning updates
@@ -91,10 +78,9 @@ export function startPushNotificationWorker() {
                     where: {
                         userId: u.userId,
                         seq: {
-                            $gt: Math.max(Math.max(notificationsState.lastPushSeq, u.lastPushSeq), u.readSeq)
+                            $gt: Math.max(state.lastPushSeq ? state.lastPushSeq : 0, state.readSeq)
                         }
                     },
-                    transaction: tx,
                     logging: DB_SILENT
                 });
 
@@ -109,7 +95,7 @@ export function startPushNotificationWorker() {
                     if (senderId === u.userId) {
                         continue;
                     }
-                    let message = await DB.ConversationMessage.findById(messageId, { transaction: tx });
+                    let message = await DB.ConversationMessage.findById(messageId);
                     if (!message) {
                         continue;
                     }
@@ -121,7 +107,7 @@ export function startPushNotificationWorker() {
                     if (!receiver) {
                         continue;
                     }
-                    let conversation = await DB.Conversation.findById(message.conversationId, { transaction: tx });
+                    let conversation = await DB.Conversation.findById(message.conversationId);
                     if (!conversation) {
                         continue;
                     }
@@ -210,15 +196,13 @@ export function startPushNotificationWorker() {
 
                 // Save state
                 if (hasMessage) {
-                    notificationsState.lastPushNotification = new Date();
+                    state.lastPushNotification = Date.now();
                 }
 
-                notificationsState.lastPushSeq = u.seq;
-                await notificationsState.save({ transaction: tx });
+                state.lastPushSeq = u.seq;
+            });
+        }
 
-            }
-
-            return false;
-        });
+        return false;
     });
 }

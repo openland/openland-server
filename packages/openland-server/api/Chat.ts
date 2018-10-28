@@ -32,6 +32,7 @@ import { URLAugmentation } from '../services/UrlInfoService';
 import { Modules } from 'openland-modules/Modules';
 import { OnlineEvent } from '../../openland-module-presences/PresenceModule';
 import { UserProfile } from 'openland-module-db/schema';
+import { inTx } from 'foundation-orm/inTx';
 
 export const Resolver = {
     Conversation: {
@@ -1219,18 +1220,9 @@ export const Resolver = {
             };
         }),
         alphaGlobalRead: withUser<{ toSeq: number }>(async (args, uid) => {
-            await DB.txStable(async (tx) => {
-                let global = await DB.ConversationsUserGlobal.find({
-                    where: {
-                        userId: uid
-                    },
-                    transaction: tx,
-                    lock: tx.LOCK.UPDATE
-                });
-                if (global && (global.readSeq === null || global.readSeq < args.toSeq) && args.toSeq <= global.seq) {
-                    global.readSeq = args.toSeq;
-                    await global.save({ transaction: tx });
-                }
+            await inTx(async () => {
+                let state = await Modules.Messaging.repo.getUserMessagingState(uid);
+                state.readSeq = args.toSeq;
             });
             return 'ok';
         }),
