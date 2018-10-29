@@ -22,7 +22,6 @@ import { IDs } from '../api/utils/IDs';
 import { withLogContext } from 'openland-log/withLogContext';
 import { withTracing } from 'openland-log/withTracing';
 import { gqlTracer } from 'openland-server/utils/gqlTracer';
-import { field } from 'foundation-orm-gen';
 
 export async function initApi(isTest: boolean) {
 
