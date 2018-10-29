@@ -41,6 +41,7 @@ export function startPushNotificationWorker() {
 
                     // Ignore never-online users
                     if (lastSeen === 'never_online') {
+                        state.lastPushSeq = u.seq;
                         return;
                     }
 
@@ -69,6 +70,7 @@ export function startPushNotificationWorker() {
 
                     // Ignore user's with disabled notifications
                     if (settings.mobileNotifications === 'none' && settings.desktopNotifications === 'none') {
+                        state.lastPushSeq = u.seq;
                         return;
                     }
 
