@@ -1,4 +1,4 @@
-import { randomBytes } from "crypto";
+import { randomBytes } from 'crypto';
 
 function unescape(str: string) {
     return (str + '==='.slice((str.length + 3) % 4))
