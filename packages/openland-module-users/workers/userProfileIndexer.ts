@@ -3,8 +3,11 @@ import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexe
 import { Modules } from 'openland-modules/Modules';
 
 export function userProfileIndexer() {
-    declareSearchIndexer('user-profile-index', 4, 'user_profile', FDB.UserProfile.createByUpdatedAtStream(50))
+    declareSearchIndexer('user-profile-index', 5, 'user_profile', FDB.UserProfile.createByUpdatedAtStream(50))
         .withProperties({
+            primaryOrganization: {
+                type: 'keyword'
+            },
             firstName: {
                 type: 'text'
             },
@@ -42,6 +45,7 @@ export function userProfileIndexer() {
             return {
                 id: item.id!!,
                 doc: {
+                    primaryOrganization: item.primaryOrganization,
                     firstName: item.firstName,
                     lastName: item.lastName,
                     name: (item.firstName || '') + (item.lastName || ''),
