@@ -35,7 +35,7 @@ const tracer = createTracer('push');
 export function createPushWorker(repo: PushRepository) {
     let queue = new WorkQueue<Push, { result: string }>('push_sender');
     queue.addWorker(async (args) => {
-        return await withTracing(tracer, 'task', async () => {
+        return await withTracing(tracer, 'SORT #' + args.uid, async () => {
             //
             // Web Push
             //
