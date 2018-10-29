@@ -16,7 +16,7 @@ import { IDs } from '../api/utils/IDs';
 import { Perf } from '../utils/perf';
 import { Conversation } from '../tables/Conversation';
 import { URLAugmentation } from '../services/UrlInfoService';
-import { CacheRepository } from 'openland-repositories/CacheRepository';
+import { CacheRepository } from 'openland-module-cache/CacheRepository';
 import { Modules } from 'openland-modules/Modules';
 import { createIterator } from '../utils/asyncIterator';
 

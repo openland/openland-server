@@ -5,7 +5,7 @@ import { delay, forever, currentTime, printElapsed, delayBreakable } from '../ut
 import * as ES from 'elasticsearch';
 import { Pubsub } from './pubsub';
 import { addAfterChangedCommitHook } from '../utils/sequelizeHooks';
-import { LockRepository } from 'openland-repositories/LockRepository';
+import { LockRepository } from 'openland-module-sync/LockRepository';
 import { withLogDisabled } from 'openland-log/withLogDisabled';
 import { withLogContext } from 'openland-log/withLogContext';
 

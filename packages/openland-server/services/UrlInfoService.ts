@@ -4,7 +4,7 @@ import { DB } from '../tables';
 import * as URL from 'url';
 import { ImageRef } from '../repositories/Media';
 import { UploadCareFileInfo } from './UploadCare';
-import { CacheRepository } from 'openland-repositories/CacheRepository';
+import { CacheRepository } from 'openland-module-cache/CacheRepository';
 import { Modules } from 'openland-modules/Modules';
 
 export interface URLAugmentation {
