@@ -16,6 +16,9 @@ import { Conversation } from '../tables/Conversation';
 import { URLAugmentation } from '../services/UrlInfoService';
 import { CacheRepository } from 'openland-module-cache/CacheRepository';
 import { Modules } from 'openland-modules/Modules';
+import { createLogger } from 'openland-log/createLogger';
+
+const log = createLogger('messaging-legacy');
 
 export type ChatEventType =
     'new_message' |
@@ -294,6 +297,7 @@ export class ChatsRepository {
 
     async sendMessage(tx: Transaction, conversationId: number, uid: number, message: Message): Promise<{ conversationEvent: ConversationEvent, userEvent: ConversationUserEvents }> {
         let perf = new Perf('sendMessage');
+        let start = Date.now();
 
         perf.start('sendMessage');
 
@@ -516,6 +520,8 @@ export class ChatsRepository {
         perf.end('sendMessage');
 
         perf.print();
+
+        log.log('message sent in ' + (Date.now() - start) + ' ms');
 
         return {
             conversationEvent: res,

@@ -33,6 +33,7 @@ import { OnlineEvent } from '../../openland-module-presences/PresenceModule';
 import { UserProfile } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
 import { TypingEvent } from 'openland-module-typings/TypingEvent';
+import { withLogContext } from 'openland-log/withLogContext';
 
 export const Resolver = {
     Conversation: {
@@ -1119,30 +1120,32 @@ export const Resolver = {
         }),
         alphaSendMessage: withUser<{ conversationId: string, message?: string | null, file?: string | null, repeatKey?: string | null, replyMessages?: number[] | null, mentions?: number[] | null }>(async (args, uid) => {
             // validate({ message: stringNotEmpty() }, args);
-            let conversationId = IDs.Conversation.parse(args.conversationId);
+            return await withLogContext('send-message', async () => {
+                let conversationId = IDs.Conversation.parse(args.conversationId);
 
-            let fileMetadata: JsonMap | null;
-            let filePreview: string | null;
+                let fileMetadata: JsonMap | null;
+                let filePreview: string | null;
 
-            if (args.file) {
-                let fileInfo = await Services.UploadCare.saveFile(args.file);
-                fileMetadata = fileInfo as any;
+                if (args.file) {
+                    let fileInfo = await Services.UploadCare.saveFile(args.file);
+                    fileMetadata = fileInfo as any;
 
-                if (fileInfo.isImage) {
-                    filePreview = await Services.UploadCare.fetchLowResPreview(args.file);
+                    if (fileInfo.isImage) {
+                        filePreview = await Services.UploadCare.fetchLowResPreview(args.file);
+                    }
                 }
-            }
 
-            return await DB.txLight(async (tx) => {
-                return (await Repos.Chats.sendMessage(tx, conversationId, uid!, {
-                    message: args.message,
-                    file: args.file,
-                    fileMetadata,
-                    repeatKey: args.repeatKey,
-                    filePreview,
-                    replyMessages: args.replyMessages,
-                    mentions: args.mentions
-                })).conversationEvent;
+                return await DB.txLight(async (tx) => {
+                    return (await Repos.Chats.sendMessage(tx, conversationId, uid!, {
+                        message: args.message,
+                        file: args.file,
+                        fileMetadata,
+                        repeatKey: args.repeatKey,
+                        filePreview,
+                        replyMessages: args.replyMessages,
+                        mentions: args.mentions
+                    })).conversationEvent;
+                });
             });
         }),
         alphaSendIntro: withUser<{ conversationId: string, userId: number, about: string, message?: string | null, file?: string | null, repeatKey?: string | null }>(async (args, uid) => {
