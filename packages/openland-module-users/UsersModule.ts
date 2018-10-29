@@ -5,6 +5,7 @@ import { ImageRef } from 'openland-server/repositories/Media';
 import { User } from 'openland-server/tables';
 import { userProfileIndexer } from './workers/userProfileIndexer';
 import { UserSearch } from './search/UserSearch';
+import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 
 export class UsersModule {
 
@@ -12,7 +13,9 @@ export class UsersModule {
     private readonly search = new UserSearch();
 
     start = () => {
-        userProfileIndexer();
+        if (serverRoleEnabled('workers')) {
+            userProfileIndexer();
+        }
     }
 
     async profileById(uid: number) {

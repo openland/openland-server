@@ -29,7 +29,7 @@ async function initServer() {
     try {
         await initDatabase(false, false);
         Modules.start();
-        if (serverRoleEnabled('indexing')) {
+        if (serverRoleEnabled('workers')) {
             await initElastic();
         }
 
