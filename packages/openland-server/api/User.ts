@@ -93,7 +93,7 @@ export const Resolver = {
         isCreated: withProfile((src, profile) => !!profile),
         isBot: (src: User) => src.isBot || false,
         isYou: (src: User, args: {}, context: CallContext) => src.id === context.uid,
-        alphaPrimaryOrganization: withProfile(async (src, profile, context) => Repos.Organizations.organizationLoader(context).load((profile && profile.primaryOrganization) || (await Repos.Users.fetchUserAccounts(src.id!))[0])),
+        alphaPrimaryOrganization: withProfile(async (src, profile, context) => Repos.Users.loadPrimatyOrganization(context, profile, src)),
         online: async (src: User) => await Repos.Users.isUserOnline(src.id!),
         lastSeen: async (src: User) => Modules.Presence.getLastSeen(src.id!), // await Repos.Users.getUserLastSeen(src.id!),
         createdChannels: async (src: User) => {
