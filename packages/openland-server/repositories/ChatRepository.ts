@@ -8,9 +8,7 @@ import { Transaction } from 'sequelize';
 import { JsonMap } from '../utils/json';
 import { DoubleInvokeError } from '../errors/DoubleInvokeError';
 import { NotFoundError } from '../errors/NotFoundError';
-import { debouncer } from '../utils/timer';
 import { Repos } from './index';
-import { Pubsub, PubsubSubcription } from '../modules/pubsub';
 import { AccessDeniedError } from '../errors/AccessDeniedError';
 import { IDs } from '../api/utils/IDs';
 import { Perf } from '../utils/perf';
@@ -18,7 +16,6 @@ import { Conversation } from '../tables/Conversation';
 import { URLAugmentation } from '../services/UrlInfoService';
 import { CacheRepository } from 'openland-module-cache/CacheRepository';
 import { Modules } from 'openland-modules/Modules';
-import { createIterator } from '../utils/asyncIterator';
 
 export type ChatEventType =
     'new_message' |
@@ -195,93 +192,7 @@ class UserEventsReader {
     }
 }
 
-export interface TypingEvent {
-    forUserId: number;
-    userId: number;
-    conversationId: number;
-    type: string;
-    cancel: boolean;
-}
-
-class TypingManager {
-    public TIMEOUT = 2000;
-
-    private debounce = debouncer(this.TIMEOUT);
-
-    private cache = new Map<number, number[]>();
-
-    private xPubSub = new Pubsub<TypingEvent>();
-
-    constructor() {
-        setInterval(() => this.cache.clear(), 1000 * 30);
-    }
-
-    public async setTyping(uid: number, conversationId: number, type: string) {
-        this.debounce(conversationId, async () => {
-            let members = await this.getChatMembers(conversationId);
-
-            for (let member of members) {
-                // tslint:disable-next-line:no-floating-promises
-                this.xPubSub.publish(`TYPING_${member}`, {
-                    forUserId: member,
-                    userId: uid,
-                    conversationId: conversationId,
-                    type,
-                    cancel: false
-                });
-            }
-        });
-    }
-
-    public async cancelTyping(uid: number, conversationId: number, members: number[]) {
-        for (let member of members) {
-            // tslint:disable-next-line:no-floating-promises
-            this.xPubSub.publish(`TYPING_${member}`, {
-                forUserId: member,
-                userId: uid,
-                conversationId: conversationId,
-                type: 'cancel',
-                cancel: true
-            });
-        }
-    }
-
-    public resetCache(charId: number) {
-        this.cache.delete(charId);
-    }
-
-    public async getXIterator(uid: number, conversationId?: number) {
-
-        let sub: PubsubSubcription | undefined;
-
-        let iterator = createIterator<TypingEvent>(() => sub ? sub.cancel() : {});
-
-        sub = await this.xPubSub.subscribe(`TYPING_${uid}`, ev => {
-            if (conversationId && ev.conversationId !== conversationId) {
-                return;
-            }
-
-            iterator.push(ev);
-        });
-
-        return iterator;
-    }
-
-    private async getChatMembers(chatId: number): Promise<number[]> {
-        if (this.cache.has(chatId)) {
-            return this.cache.get(chatId)!;
-        } else {
-            let members = await Repos.Chats.getConversationMembers(chatId);
-
-            this.cache.set(chatId, members);
-
-            return members;
-        }
-    }
-}
-
 export class ChatsRepository {
-    typingManager = new TypingManager();
     reader: ChatsEventReader;
     counterReader: ChatCounterListener;
     userReader: UserEventsReader;
@@ -479,8 +390,6 @@ export class ChatsRepository {
         let members = await this.getConversationMembersFast(conversationId, conv, tx);
         perf.end('getConversationMembers');
 
-        await this.typingManager.cancelTyping(uid, conversationId, members);
-
         let userEvent: ConversationUserEvents;
 
         if (members.length > 0) {
@@ -595,10 +504,13 @@ export class ChatsRepository {
             perf.end('membersEvents');
         }
 
-        perf.start('ConversationMessagesWorker');
+        // Notify augmentation worker
         await Modules.Messaging.AugmentationWorker.pushWork({ messageId: msg.id });
-        perf.end('ConversationMessagesWorker');
 
+        // Cancel Typings
+        await Modules.Typings.cancelTyping(uid, conversationId, members);
+
+        // Clear Draft
         await Modules.Drafts.clearDraft(uid, conversationId);
 
         perf.end('sendMessage');

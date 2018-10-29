@@ -203,6 +203,7 @@
     "openland-module-hyperlog": "build/openland-module-hyperlog",
     "openland-module-cache": "build/openland-module-cache",
     "openland-module-sync": "build/openland-module-sync",
-    "openland-module-drafts": "build/openland-module-drafts"
+    "openland-module-drafts": "build/openland-module-drafts",
+    "openland-module-typings": "build/openland-module-typings"
   }
 }

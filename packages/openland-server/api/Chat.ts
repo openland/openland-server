@@ -20,7 +20,6 @@ import { JsonMap } from '../utils/json';
 import { IDMailformedError } from '../errors/IDMailformedError';
 import { ImageRef, buildBaseImageUrl, imageRefEquals } from '../repositories/Media';
 import { Organization } from '../tables/Organization';
-import { TypingEvent } from '../repositories/ChatRepository';
 import { ConversationGroupMember } from '../tables/ConversationGroupMembers';
 import { AccessDeniedError } from '../errors/AccessDeniedError';
 import { ConversationBlocked } from '../tables/ConversationBlocked';
@@ -33,6 +32,7 @@ import { Modules } from 'openland-modules/Modules';
 import { OnlineEvent } from '../../openland-module-presences/PresenceModule';
 import { UserProfile } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
+import { TypingEvent } from 'openland-module-typings/TypingEvent';
 
 export const Resolver = {
     Conversation: {
@@ -1410,13 +1410,9 @@ export const Resolver = {
             });
         }),
         alphaSetTyping: withUser<{ conversationId: string, type: string }>(async (args, uid) => {
-
             await validate({ type: optional(enumString(['text', 'photo'])) }, args);
-
             let conversationId = IDs.Conversation.parse(args.conversationId);
-
-            await Repos.Chats.typingManager.setTyping(uid, conversationId, args.type || 'text');
-
+            await Modules.Typings.setTyping(uid, conversationId, args.type || 'text');
             return 'ok';
         }),
 
@@ -2356,7 +2352,7 @@ export const Resolver = {
                     throw Error('Not logged in');
                 }
 
-                return Repos.Chats.typingManager.getXIterator(context.uid);
+                return Modules.Typings.createTypingStream(context.uid);
             }
         },
         alphaSubscribeChatTypings: {
@@ -2370,7 +2366,7 @@ export const Resolver = {
                     throw Error('Not logged in');
                 }
 
-                return Repos.Chats.typingManager.getXIterator(context.uid, conversationId);
+                return Modules.Typings.createTypingStream(context.uid, conversationId);
             }
         },
         alphaSubscribeChatOnline: {
