@@ -112,10 +112,14 @@ export async function initApi(isTest: boolean) {
         function createWebSocketServer(server: HttpServer) {
             new SubscriptionServer({
                 schema: Schema,
-                execute: (schema: GraphQLSchema, document: DocumentNode, rootValue?: any, contextValue?: any, variableValues?: {
+                execute: async (schema: GraphQLSchema, document: DocumentNode, rootValue?: any, contextValue?: any, variableValues?: {
                     [key: string]: any;
                 }, operationName?: string, fieldResolver?: GraphQLFieldResolver<any, any>) => {
-                    return withLogContext('gql', () => withTracing(gqlTracer, 'query', () => execute(schema, document, rootValue, contextValue, variableValues, operationName, fieldResolver)));
+                    return await withLogContext('ws', async () => {
+                        return await withTracing(gqlTracer, 'ws', async () => {
+                            return await execute(schema, document, rootValue, contextValue, variableValues, operationName, fieldResolver);
+                        });
+                    });
                 },
                 subscribe,
                 keepAlive: 10000,
