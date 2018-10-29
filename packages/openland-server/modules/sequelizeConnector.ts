@@ -1,6 +1,7 @@
 import sequelize from 'sequelize';
 import '../utils/sequelize_afterCommit';
 import * as cls from 'continuation-local-storage';
+import { createLogger } from 'openland-log/createLogger';
 // import umzug from 'umzug';
 
 var namespace = cls.createNamespace('tx-namespace');
@@ -10,12 +11,14 @@ export var connection: sequelize.Sequelize;
 
 const USE_NATIVE_DRIVER = true;
 
+const logger = createLogger('sequelize');
+
 if (process.env.DATABASE_URL !== undefined) {
     connection = new sequelize(process.env.DATABASE_URL!, {
         dialect: 'postgres',
         native: USE_NATIVE_DRIVER,
         benchmark: process.env.DATABASE_LOGGING !== 'false',
-        logging: process.env.DATABASE_LOGGING !== 'false',
+        logging: logger.debug,
         dialectOptions: {
             ssl: true
         },
@@ -29,7 +32,7 @@ if (process.env.DATABASE_URL !== undefined) {
         dialect: 'postgres',
         native: USE_NATIVE_DRIVER,
         benchmark: process.env.DATABASE_LOGGING !== 'false',
-        logging: process.env.DATABASE_LOGGING !== 'false',
+        logging: logger.debug,
         pool: {
             max: 20,
             acquire: 10000
@@ -42,7 +45,7 @@ if (process.env.DATABASE_URL !== undefined) {
         dialect: 'postgres',
         native: USE_NATIVE_DRIVER,
         benchmark: process.env.DATABASE_LOGGING !== 'false',
-        logging: process.env.DATABASE_LOGGING !== 'false',
+        logging: logger.debug,
         pool: {
             max: 20,
             acquire: 10000

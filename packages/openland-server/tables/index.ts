@@ -21,7 +21,7 @@ import { ConversationGroupMembersTable } from './ConversationGroupMembers';
 import { ConversationChannelMembersTable } from './ConversationChannelMembers';
 import { ChannelInviteTable } from './ChannelInvite';
 
-const SILENT_TX_ACTUALLY_SILENT = true;
+const SILENT_TX_ACTUALLY_SILENT = false;
 export const DB_SILENT = !SILENT_TX_ACTUALLY_SILENT;
 
 export const DB = {
