@@ -1,5 +1,4 @@
 import express from 'express';
-import { DB } from '../tables';
 
 export async function initHealthcheck() {
     let port = process.env.PORT;
