@@ -15,7 +15,10 @@ export class UserSearch {
                                 { match_phrase_prefix: { firstName: { query: query } } },
                                 { match_phrase_prefix: { lastName: { query: query } } },
                                 { match: { email: { query: query } } },
-                            ]
+                            ],
+                            must_not: options && options.uid ? [
+                                { match: { _id: options.uid } }
+                            ] : []
                         }
                     }
                 }
