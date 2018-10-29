@@ -815,7 +815,7 @@ export const Resolver = {
             });
 
             // PERSONAL - search users first, then matching conversations with current user
-            let userIds = Modules.Users.searchForUsers(args.query, { uid, limit: 50 });
+            let userIds = await Modules.Users.searchForUsers(args.query, { uid, limit: 50 });
 
             let personal = await DB.Conversation.findAll({
                 where: [
