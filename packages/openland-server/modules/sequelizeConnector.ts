@@ -18,7 +18,7 @@ if (process.env.DATABASE_URL !== undefined) {
         dialect: 'postgres',
         native: USE_NATIVE_DRIVER,
         benchmark: process.env.DATABASE_LOGGING !== 'false',
-        logging: logger.debug,
+        logging: (msg: any) => logger.debug(msg),
         dialectOptions: {
             ssl: true
         },
@@ -32,7 +32,7 @@ if (process.env.DATABASE_URL !== undefined) {
         dialect: 'postgres',
         native: USE_NATIVE_DRIVER,
         benchmark: process.env.DATABASE_LOGGING !== 'false',
-        logging: logger.debug,
+        logging: (msg: any) => logger.debug(msg),
         pool: {
             max: 20,
             acquire: 10000
@@ -45,7 +45,7 @@ if (process.env.DATABASE_URL !== undefined) {
         dialect: 'postgres',
         native: USE_NATIVE_DRIVER,
         benchmark: process.env.DATABASE_LOGGING !== 'false',
-        logging: logger.debug,
+        logging: (msg: any) => logger.debug(msg),
         pool: {
             max: 20,
             acquire: 10000
