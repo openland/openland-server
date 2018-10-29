@@ -14,17 +14,7 @@ export async function initHealthcheck() {
 
     // To avoid logging on this route
     app.get('/', (req, res) => res.send('Welcome to Openland API!'));
-    app.get('/status', async (req, res) => {
-        try {
-            let org = await DB.Organization.findById(1);
-            console.log('db check', org ? org.id : null);
-            res.send('Welcome to Openland API!');
-        } catch (e) {
-            console.log('db error');
-            console.log(e);
-            res.status(500).send(':(');
-        }
-    });
+    app.get('/status', (req, res) => res.send('Welcome to Openland API!'));
 
     if (dport > 0) {
         console.info('Binding to port ' + dport);
