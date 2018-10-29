@@ -7,6 +7,9 @@ import { Sanitizer } from '../modules/Sanitizer';
 import { Repos } from '.';
 import { Hooks } from './Hooks';
 import { Modules } from 'openland-modules/Modules';
+import { CallContext } from 'openland-server/api/utils/CallContext';
+import DataLoader from 'dataloader';
+import { Organization } from 'openland-server/tables/Organization';
 
 export class OrganizationRepository {
 
@@ -185,5 +188,37 @@ export class OrganizationRepository {
         });
 
         return !!member;
+    }
+
+    organizationLoader(context: CallContext) {
+        if (!context.cache.has('__organization_loader')) {
+            context.cache.set('__organization_loader', new DataLoader<number, Organization | null>(async (ids) => {
+                let foundTokens = await DB.Organization.findAll({
+                    where: {
+                        id: {
+                            $in: ids
+                        }
+                    }
+                });
+
+                let res: (Organization | null)[] = [];
+                for (let i of ids) {
+                    let found = false;
+                    for (let f of foundTokens) {
+                        if (i === f.id) {
+                            res.push(f);
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        res.push(null);
+                    }
+                }
+                return res;
+            }));
+        }
+        let loader = context.cache.get('__organization_loader') as DataLoader<number, Organization | null>;
+        return loader;
     }
 }

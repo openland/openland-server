@@ -44,11 +44,11 @@ function userLoader(context: CallContext) {
     return loader;
 }
 
-function withProfile(handler: (user: User, profile: UserProfile | null) => any) {
+function withProfile(handler: (user: User, profile: UserProfile | null, context: CallContext) => any) {
     return async (src: User, _params: {}, context: CallContext) => {
         let loader = userLoader(context);
         let profile = await loader.load(src.id!!);
-        return handler(src, profile);
+        return handler(src, profile, context);
     };
 }
 
@@ -93,7 +93,7 @@ export const Resolver = {
         isCreated: withProfile((src, profile) => !!profile),
         isBot: (src: User) => src.isBot || false,
         isYou: (src: User, args: {}, context: CallContext) => src.id === context.uid,
-        alphaPrimaryOrganization: withProfile(async (src, profile) => await DB.Organization.findById((profile && profile.primaryOrganization) || (await Repos.Users.fetchUserAccounts(src.id!))[0])),
+        alphaPrimaryOrganization: withProfile(async (src, profile, context) => Repos.Organizations.organizationLoader(context).load((profile && profile.primaryOrganization) || (await Repos.Users.fetchUserAccounts(src.id!))[0])),
         online: async (src: User) => await Repos.Users.isUserOnline(src.id!),
         lastSeen: async (src: User) => Modules.Presence.getLastSeen(src.id!), // await Repos.Users.getUserLastSeen(src.id!),
         createdChannels: async (src: User) => {
