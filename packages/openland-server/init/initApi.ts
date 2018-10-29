@@ -8,7 +8,7 @@ import * as Auth from '../../openland-module-auth/email';
 import { schemaHandler } from '../handlers/schema';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { Schema } from '../api';
-import { execute, subscribe } from 'graphql';
+import { execute, subscribe, GraphQLSchema, DocumentNode, GraphQLFieldResolver } from 'graphql';
 import { fetchWebSocketParameters, buildWebSocketContext } from '../../openland-module-auth/websocket';
 import { errorHandler } from '../errors';
 import { Rate } from '../utils/rateLimit';
@@ -19,6 +19,10 @@ import { DB } from '../tables';
 import { withAudit } from '../../openland-module-auth/email';
 import { Repos } from '../repositories';
 import { IDs } from '../api/utils/IDs';
+import { withLogContext } from 'openland-log/withLogContext';
+import { withTracing } from 'openland-log/withTracing';
+import { gqlTracer } from 'openland-server/utils/gqlTracer';
+import { field } from 'foundation-orm-gen';
 
 export async function initApi(isTest: boolean) {
 
@@ -53,7 +57,7 @@ export async function initApi(isTest: boolean) {
     // To avoid logging on this route
     app.get('/', (req, res) => res.send('Welcome to Openland API!'));
     app.get('/status', async (req, res) => {
-        try  {
+        try {
             let org = await DB.Organization.findById(1);
             console.log('db check', org ? org.id : null);
             res.send('Welcome to Openland API!');
@@ -64,7 +68,7 @@ export async function initApi(isTest: boolean) {
         }
     });
     app.get('/status', async (req, res) => {
-        try  {
+        try {
             let org = await DB.Organization.findById(1);
             console.log('db check', org ? org.id : null);
             res.send('Welcome to Openland API!');
@@ -129,7 +133,11 @@ export async function initApi(isTest: boolean) {
         function createWebSocketServer(server: HttpServer) {
             new SubscriptionServer({
                 schema: Schema,
-                execute,
+                execute: (schema: GraphQLSchema, document: DocumentNode, rootValue?: any, contextValue?: any, variableValues?: {
+                    [key: string]: any;
+                }, operationName?: string, fieldResolver?: GraphQLFieldResolver<any, any>) => {
+                    return withLogContext('gql', () => withTracing(gqlTracer, 'query', () => execute(schema, document, rootValue, contextValue, variableValues, operationName, fieldResolver)));
+                },
                 subscribe,
                 keepAlive: 10000,
                 onConnect: async (args: any, webSocket: any) => {
