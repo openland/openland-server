@@ -1,7 +1,10 @@
 import { declareHyperlogIndexer } from './workers/declareHyperlogIndexer';
+import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 
 export class HyperlogModule {
     start = () => {
-        declareHyperlogIndexer();
+        if (serverRoleEnabled('workers')) {
+            declareHyperlogIndexer();
+        }
     }
 }

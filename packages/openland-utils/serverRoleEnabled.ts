@@ -1,10 +1,8 @@
-type ServerRole = 'api' | 'indexing' | 'push_notifications' | 'email_notifications';
+type ServerRole = 'api' | 'workers';
 
 const SUPPORTED_ROLES = [
     'api',
-    'indexing',
-    'push_notifications',
-    'email_notifications'
+    'workers',
 ];
 
 const DEFAULT_SERVER_ROLES = SUPPORTED_ROLES;

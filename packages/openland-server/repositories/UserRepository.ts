@@ -5,6 +5,7 @@ import { ImageRef } from './Media';
 import { Transaction } from 'sequelize';
 import { Repos } from '.';
 import { Modules } from 'openland-modules/Modules';
+import { UserProfile } from 'openland-module-db/schema';
 
 export class UserRepository {
     private readonly userCache = new Map<string, number | undefined>();
@@ -108,6 +109,11 @@ export class UserRepository {
             },
             transaction: tx
         })).map((v) => v.orgId);
+    }
+
+    async loadPrimatyOrganization(context: CallContext, profile: UserProfile | null, src: User) {
+        let orgId = (profile && profile.primaryOrganization) || (await Repos.Users.fetchUserAccounts(src.id!))[0];
+        return orgId ? Repos.Organizations.organizationLoader(context).load(orgId) : undefined;
     }
 
     async isMemberOfOrganization(uid: number, orgId: number): Promise<boolean> {

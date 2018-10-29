@@ -17,8 +17,8 @@ import { Directives, IDScalars } from './directives';
 import { GraphQLField, GraphQLFieldResolver } from 'graphql';
 import { wrapAllResolvers } from './utils/Resolvers';
 import { withLogContext } from '../../openland-log/withLogContext';
-import { createTracer } from 'openland-log/createTracer';
-import { withTracing } from 'openland-log/withTracing';
+import { trace } from 'openland-log/trace';
+import { gqlTracer } from 'openland-server/utils/gqlTracer';
 
 let schema = fs
     .readdirSync(__dirname + '/schema/')
@@ -26,8 +26,6 @@ let schema = fs
     .map((f) => fs.readFileSync(__dirname + '/schema/' + f, 'utf-8'))
     .sort()
     .join('\n');
-
-const tracer = createTracer('gql');
 
 export const Schema = wrapAllResolvers(
     makeExecutableSchema({
@@ -56,6 +54,6 @@ export const Schema = wrapAllResolvers(
         context: any,
         info: any
     ) => {
-        return withTracing(tracer, field.name, () => withLogContext(field.name, () => originalResolver(root, args, context, info)));
+        return trace(gqlTracer, field.name, () => withLogContext(field.name, () => originalResolver(root, args, context, info)));
     }
 );

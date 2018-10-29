@@ -3,6 +3,7 @@ import { performMigrations, FMigration } from 'foundation-orm/FMigrator';
 import { FDB } from './FDB';
 import { inTx } from 'foundation-orm/inTx';
 import { FDoctor } from 'foundation-orm/FDoctor';
+import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 // import { FStreamItem } from 'foundation-orm/FStreamItem';
 // import { UserProfile } from './schema';
 // import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
@@ -40,10 +41,12 @@ migrations.push({
 });
 
 export function startMigrationsWorker() {
-    staticWorker({ name: 'foundation-migrator' }, async () => {
-        await performMigrations(FDB.connection, migrations);
-        return false;
-    });
+    if (serverRoleEnabled('workers')) {
+        staticWorker({ name: 'foundation-migrator' }, async () => {
+            await performMigrations(FDB.connection, migrations);
+            return false;
+        });
+    }
     // (async () => {
     //     console.log((await FDB.connection.fdb.getRangeAll(FKeyEncoding.encodeKey(['entity', 'userProfile', '__indexes', 'byUpdatedAt']), undefined)).length);
     //     let cursor: string | undefined = undefined;

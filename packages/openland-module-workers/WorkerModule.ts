@@ -1,6 +1,7 @@
 import { ModernScheduller } from './src/TaskScheduler';
 import { WorkQueue } from './WorkQueue';
 import { delay } from 'openland-server/utils/timer';
+import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 
 export class WorkerModule {
 
@@ -10,9 +11,11 @@ export class WorkerModule {
     start = () => {
         this.scheduler.start();
 
-        this.TestWorker.addWorker(async (args) => {
-            await delay(1000);
-            return { value: args.value * 2 };
-        });
+        if (serverRoleEnabled('workers')) {
+            this.TestWorker.addWorker(async (args) => {
+                await delay(1000);
+                return { value: args.value * 2 };
+            });
+        }
     }
 }

@@ -3,6 +3,7 @@ import { Pubsub } from './pubsub';
 import { addAfterChangedCommitHook } from '../utils/sequelizeHooks';
 import { backoff, forever, delayBreakable } from '../utils/timer';
 import { DB_SILENT } from '../tables';
+import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 
 /**
  * SuperBus is reliable EventBus that guaranteed to deliver all updates from the table
@@ -56,8 +57,11 @@ export class SuperBus<T, TInstance, TAttributes> {
             // tslint:disable-next-line:no-floating-promises
             this.bus.publish(this.name, this._eventBuilder!!(instance));
         });
-        // tslint:disable-next-line:no-floating-promises
-        this.startReader();
+
+        if (serverRoleEnabled('workers')) {
+            // tslint:disable-next-line:no-floating-promises
+            this.startReader();
+        }
     }
 
     private async startReader() {

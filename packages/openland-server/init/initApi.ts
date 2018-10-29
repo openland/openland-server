@@ -8,7 +8,7 @@ import * as Auth from '../../openland-module-auth/email';
 import { schemaHandler } from '../handlers/schema';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { Schema } from '../api';
-import { execute, subscribe } from 'graphql';
+import { execute, subscribe, GraphQLSchema, DocumentNode, GraphQLFieldResolver } from 'graphql';
 import { fetchWebSocketParameters, buildWebSocketContext } from '../../openland-module-auth/websocket';
 import { errorHandler } from '../errors';
 import { Rate } from '../utils/rateLimit';
@@ -19,6 +19,9 @@ import { DB } from '../tables';
 import { withAudit } from '../../openland-module-auth/email';
 import { Repos } from '../repositories';
 import { IDs } from '../api/utils/IDs';
+import { withLogContext } from 'openland-log/withLogContext';
+import { withTracing } from 'openland-log/withTracing';
+import { gqlTracer } from 'openland-server/utils/gqlTracer';
 
 export async function initApi(isTest: boolean) {
 
@@ -50,38 +53,18 @@ export async function initApi(isTest: boolean) {
 
     app.enable('trust proxy');
 
-    // To avoid logging on this route
-    app.get('/', (req, res) => res.send('Welcome to Openland API!'));
-    app.get('/status', async (req, res) => {
-        try  {
-            let org = await DB.Organization.findById(1);
-            console.log('db check', org ? org.id : null);
-            res.send('Welcome to Openland API!');
-        } catch (e) {
-            console.log('db error');
-            console.log(e);
-            res.status(500).send(':(');
-        }
-    });
-    app.get('/status', async (req, res) => {
-        try  {
-            let org = await DB.Organization.findById(1);
-            console.log('db check', org ? org.id : null);
-            res.send('Welcome to Openland API!');
-        } catch (e) {
-            console.log('db error');
-            console.log(e);
-            res.status(500).send(':(');
-        }
-    });
-    app.get('/favicon.ico', (req, res) => res.send(404));
-
     // Basic Configuration
     if (!isTest) {
         app.use(cors());
         app.use(morgan('tiny'));
         app.use(compression());
     }
+
+    // To avoid logging on this route
+    app.get('/', (req, res) => res.send('Welcome to Openland API!'));
+    app.get('/status', (req, res) => res.send('Welcome to Openland API!'));
+    app.get('/favicon.ico', (req, res) => res.send(404));
+    app.get('/robots.txt', (req, res) => res.send(404));
 
     //
     // API
@@ -129,7 +112,15 @@ export async function initApi(isTest: boolean) {
         function createWebSocketServer(server: HttpServer) {
             new SubscriptionServer({
                 schema: Schema,
-                execute,
+                execute: async (schema: GraphQLSchema, document: DocumentNode, rootValue?: any, contextValue?: any, variableValues?: {
+                    [key: string]: any;
+                }, operationName?: string, fieldResolver?: GraphQLFieldResolver<any, any>) => {
+                    return await withLogContext('ws', async () => {
+                        return await withTracing(gqlTracer, 'ws', async () => {
+                            return await execute(schema, document, rootValue, contextValue, variableValues, operationName, fieldResolver);
+                        });
+                    });
+                },
                 subscribe,
                 keepAlive: 10000,
                 onConnect: async (args: any, webSocket: any) => {

@@ -23,10 +23,10 @@ export class MessagingModule {
     readonly repo = new MessagingRepository(FDB);
     
     start = () => {
-        if (serverRoleEnabled('email_notifications')) {
+        if (serverRoleEnabled('workers')) {
             startEmailNotificationWorker();
         }
-        if (serverRoleEnabled('push_notifications')) {
+        if (serverRoleEnabled('workers')) {
             startPushNotificationWorker();
         }
     }
