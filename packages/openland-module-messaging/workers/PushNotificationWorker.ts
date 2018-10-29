@@ -19,16 +19,17 @@ const log = createLogger('push');
 export function startPushNotificationWorker() {
 
     staticWorker({ name: 'push_notifications', delay: 3000 }, async () => {
-        return await inTx(async () => {
-            let unreadUsers = await DB.ConversationsUserGlobal.findAll({
-                where: {
-                    unread: { $gt: 0 },
-                },
-                logging: DB_SILENT
-            });
 
-            log.debug('unread users: ' + unreadUsers.length);
-            for (let u of unreadUsers) {
+        let unreadUsers = await DB.ConversationsUserGlobal.findAll({
+            where: {
+                unread: { $gt: 0 },
+            },
+            logging: DB_SILENT
+        });
+
+        log.debug('unread users: ' + unreadUsers.length);
+        for (let u of unreadUsers) {
+            await inTx(async () => {
                 await withLogContext(['user', '' + u.userId], async () => {
                     // Loading user's settings and state
                     let settings = await Modules.Users.getUserSettings(u.userId);
@@ -206,9 +207,8 @@ export function startPushNotificationWorker() {
 
                     state.lastPushSeq = u.seq;
                 });
-            }
-
-            return false;
-        });
+            });
+        }
+        return false;
     });
 }
