@@ -17,7 +17,7 @@ import { URLAugmentation } from '../services/UrlInfoService';
 import { CacheRepository } from 'openland-module-cache/CacheRepository';
 import { Modules } from 'openland-modules/Modules';
 import { createLogger } from 'openland-log/createLogger';
-import { withTracing } from 'openland-log/withTrace';
+import { withTracing } from 'openland-log/withTracing';
 
 const log = createLogger('messaging-legacy');
 
@@ -511,14 +511,16 @@ export class ChatsRepository {
                 perf.end('membersEvents');
             }
 
-            // Notify augmentation worker
-            await Modules.Messaging.AugmentationWorker.pushWork({ messageId: msg.id });
+            await withTracing('foundation', async () => {
+                // Notify augmentation worker
+                await Modules.Messaging.AugmentationWorker.pushWork({ messageId: msg.id });
 
-            // Cancel Typings
-            await Modules.Typings.cancelTyping(uid, conversationId, members);
+                // Cancel Typings
+                await Modules.Typings.cancelTyping(uid, conversationId, members);
 
-            // Clear Draft
-            await Modules.Drafts.clearDraft(uid, conversationId);
+                // Clear Draft
+                await Modules.Drafts.clearDraft(uid, conversationId);
+            });
 
             perf.end('sendMessage');
 
