@@ -727,103 +727,18 @@ export const Resolver = {
             });
         }),
         alphaChatsSearchForCompose: withAccount<{ query: string, organizations: boolean, limit?: number }>(async (args, uid, oid) => {
-            let limit = args.limit || 10;
-            let orgs = args.organizations ? await DB.Organization.findAll({
-                where: {
-                    name: {
-                        $ilike: args.query.toLowerCase() + '%'
-                    },
-                    id: {
-                        $not: oid
-                    },
-                    status: 'ACTIVATED'
-                },
-                limit: limit
-            }) : [];
 
-            let sameOrgUsers: User[] = [];
-            let membersUserIds: number[] = [];
-            let orgsIds = await Repos.Users.fetchUserAccounts(uid);
-            if (orgsIds.length > 0) {
-                let members = await DB.OrganizationMember.findAll({ where: { orgId: { $in: orgsIds } } });
-                let membersIds = members.filter((v) => v.userId !== uid);
-                let profiles: UserProfile[] = [];
-                for (let m of membersIds) {
-                    let p = await Modules.Users.profileById(m.userId);
-                    if (p) {
-                        profiles.push(p);
-                    }
-                }
+            // Do search
+            let uids = await Modules.Users.searchForUsers(args.query, {
+                uid,
+                limit: args.limit || 10
+            });
 
-                profiles = profiles.filter((p) =>
-                    (p.email && p.email.toLocaleLowerCase().startsWith(args.query.toLowerCase()))
-                    || (p.lastName && p.lastName.toLocaleLowerCase().startsWith(args.query.toLowerCase()))
-                    || (p.firstName && p.firstName.toLocaleLowerCase().startsWith(args.query.toLowerCase()))
-                );
-
-                membersUserIds = profiles.map(m => m.id);
-                sameOrgUsers = await DB.User.findAll({
-                    where: {
-                        id: {
-                            $in: membersUserIds
-                        }
-                    },
-                });
-
-                // move primary org users to top
-                let primaryOrgMembers = (await DB.OrganizationMember.findAll({ where: { orgId: oid } })).map(m => m.userId);
-                sameOrgUsers = sameOrgUsers.sort(u => primaryOrgMembers.indexOf(u.id!) > -1 ? -1 : 1).filter((o, i) => i < limit);
-            }
-
-            // let usersProfiles = await DB.UserProfile.findAll({
-            //     where:
-            //         [
-            //             sequelize.and(
-            //                 {
-            //                     userId: {
-            //                         $notIn: [uid, ...membersUserIds]
-            //                     }
-            //                 },
-            //                 sequelize.or(
-            //                     sequelize.where(sequelize.fn('concat', sequelize.col('firstName'), ' ', sequelize.col('lastName')), {
-            //                         $ilike: args.query.toLowerCase() + '%'
-            //                     }),
-            //                     {
-            //                         firstName: {
-            //                             $ilike: args.query.toLowerCase() + '%'
-            //                         }
-            //                     },
-            //                     {
-            //                         lastName: {
-            //                             $ilike: args.query.toLowerCase() + '%'
-            //                         }
-            //                     },
-            //                     {
-            //                         email: {
-            //                             $ilike: args.query.toLowerCase() + '%'
-            //                         }
-            //                     }
-            //                 ),
-            //             )
-            //         ],
-            // });
-            // let usersIds = usersProfiles.map(m => m.userId!!);
-            // let users = await DB.User.findAll({
-            //     where: [
-            //         sequelize.and(
-            //             {
-            //                 id: {
-            //                     $in: usersIds
-            //                 }
-            //             },
-            //             {
-            //                 status: 'ACTIVATED'
-            //             }
-            //         )
-            //     ],
-            //     limit: limit
-            // });
-            return [...sameOrgUsers, ...orgs].filter((o, i) => i < limit);
+            // Fetch profiles
+            let users = await DB.User.findAll({
+                where: [DB.connection.and({ id: { $in: uids } }, { status: 'ACTIVATED' })]
+            });
+            return users;
         }),
         alphaChatSearch: withUser<{ members: string[] }>(async (args, uid) => {
             let members = [...args.members.map((v) => IDs.User.parse(v)), uid];

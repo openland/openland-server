@@ -2,7 +2,6 @@ import { createAugmentationWorker } from './workers/AugmentationWorker';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { startEmailNotificationWorker } from './workers/EmailNotificationWorker';
 import { startPushNotificationWorker } from './workers/PushNotificationWorker';
-import { createDeliveryWorker } from './workers/DeliveryWorker';
 import { MessagingRepository } from './repositories/MessagingRepository';
 import { FDB } from 'openland-module-db/FDB';
 
@@ -30,6 +29,5 @@ export class MessagingModule {
         if (serverRoleEnabled('push_notifications')) {
             startPushNotificationWorker();
         }
-        createDeliveryWorker();
     }
 }

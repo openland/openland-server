@@ -4,10 +4,12 @@ import { UserRepository } from './repositories/UsersRepository';
 import { ImageRef } from 'openland-server/repositories/Media';
 import { User } from 'openland-server/tables';
 import { userProfileIndexer } from './workers/userProfileIndexer';
+import { UserSearch } from './search/UserSearch';
 
 export class UsersModule {
 
     private readonly repo = new UserRepository(FDB);
+    private readonly search = new UserSearch();
 
     start = () => {
         userProfileIndexer();
@@ -44,5 +46,9 @@ export class UsersModule {
 
     async waitForNextSettings(uid: number) {
         await this.repo.waitForNextSettings(uid);
+    }
+
+    async searchForUsers(query: string, options?: { uid?: number, limit?: number }) {
+        return await this.search.searchForUsers(query, options);
     }
 }

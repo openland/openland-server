@@ -3,6 +3,7 @@ import { SLog } from '../SLog';
 
 export class SLogImpl implements SLog {
     private readonly name: String;
+    private readonly production = process.env.NODE_ENV === 'production';
 
     constructor(name: String) {
         this.name = name;
@@ -17,11 +18,13 @@ export class SLogImpl implements SLog {
     }
 
     debug = (message?: any, ...optionalParams: any[]) => {
-        if (SLogContext.value && SLogContext.value.disabled) {
-            return;
+        if (this.production) {
+            if (SLogContext.value && SLogContext.value.disabled) {
+                return;
+            }
+            let context = SLogContext.value ? SLogContext.value.path : [];
+            console.debug(...context, this.name, message, ...optionalParams);
         }
-        let context = SLogContext.value ? SLogContext.value.path : [];
-        console.debug(...context, this.name, message, ...optionalParams);
     }
     warn = (message?: any, ...optionalParams: any[]) => {
         if (SLogContext.value && SLogContext.value.disabled) {
