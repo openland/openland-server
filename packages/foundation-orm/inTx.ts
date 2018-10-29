@@ -14,23 +14,21 @@ export async function inTx<T>(callback: () => Promise<T>): Promise<T> {
     let tx = new FTransaction();
     return await FTransaction.context.withContext(tx, async () => {
         return withLogContext(['transaction', tx.id.toString()], async () => {
-            return await trace(tracer, 'tx', async () => {
-                // Implementation is copied from database.js from foundationdb library.
-                do {
-                    try {
-                        const result = await callback();
-                        await tx.flush();
-                        return result;
-                    } catch (err) {
-                        if (err instanceof FDBError) {
-                            await tx.tx!.rawOnError(err.code);
-                            log.debug('retry with code ' + err.code);
-                        } else {
-                            throw err;
-                        }
+            // Implementation is copied from database.js from foundationdb library.
+            do {
+                try {
+                    const result = await trace(tracer, 'tx', async () => { return await callback(); });
+                    await tx.flush();
+                    return result;
+                } catch (err) {
+                    if (err instanceof FDBError) {
+                        await tx.tx!.rawOnError(err.code);
+                        log.debug('retry with code ' + err.code);
+                    } else {
+                        throw err;
                     }
-                } while (true);
-            });
+                }
+            } while (true);
         });
     });
 }
