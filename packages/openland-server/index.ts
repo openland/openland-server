@@ -24,6 +24,7 @@ import { initDatabase } from './init/initDatabase';
 import { initElastic } from './init/initElastic';
 import './init/initConfig';
 import { Modules } from '../openland-modules/Modules';
+import { initHealthcheck } from './init/initHealthcheck';
 
 async function initServer() {
     try {
@@ -35,6 +36,8 @@ async function initServer() {
 
         if (serverRoleEnabled('api')) {
             await initApi(false);
+        } else {
+            await initHealthcheck();
         }
     } catch (e) {
         console.error('Unable to init server');
