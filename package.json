@@ -99,6 +99,7 @@
     "hashids": "1.1.4",
     "honeycomb-beeline": "^1.1.2",
     "isomorphic-fetch": "^2.2.1",
+    "jaeger-client": "^3.13.0",
     "jest": "^22.3.0",
     "json-stable-stringify": "^1.0.1",
     "jwks-rsa": "^1.2.0",
