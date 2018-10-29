@@ -18,8 +18,10 @@ import { CacheRepository } from 'openland-module-cache/CacheRepository';
 import { Modules } from 'openland-modules/Modules';
 import { createLogger } from 'openland-log/createLogger';
 import { withTracing } from 'openland-log/withTracing';
+import { createTracer } from 'openland-log/createTracer';
 
 const log = createLogger('messaging-legacy');
+const tracer = createTracer('messaging-legacy');
 
 export type ChatEventType =
     'new_message' |
@@ -297,7 +299,7 @@ export class ChatsRepository {
     }
 
     async sendMessage(tx: Transaction, conversationId: number, uid: number, message: Message): Promise<{ conversationEvent: ConversationEvent, userEvent: ConversationUserEvents }> {
-        return await withTracing('send_message', async () => {
+        return await withTracing(tracer, 'send_message', async () => {
 
             let perf = new Perf('sendMessage');
             let start = Date.now();
@@ -511,7 +513,7 @@ export class ChatsRepository {
                 perf.end('membersEvents');
             }
 
-            await withTracing('foundation', async () => {
+            await withTracing(tracer, 'foundation', async () => {
                 // Notify augmentation worker
                 await Modules.Messaging.AugmentationWorker.pushWork({ messageId: msg.id });
 

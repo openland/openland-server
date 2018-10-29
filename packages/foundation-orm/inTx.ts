@@ -3,6 +3,7 @@ import { FDBError } from 'foundationdb';
 import { withLogContext } from 'openland-log/withLogContext';
 import { createLogger } from 'openland-log/createLogger';
 import { trace } from 'openland-log/trace';
+import { tracer } from './utils/tracer';
 const log = createLogger('tx');
 export async function inTx<T>(callback: () => Promise<T>): Promise<T> {
     let ex = FTransaction.context.value;
@@ -13,7 +14,7 @@ export async function inTx<T>(callback: () => Promise<T>): Promise<T> {
     let tx = new FTransaction();
     return await FTransaction.context.withContext(tx, async () => {
         return withLogContext(['transaction', tx.id.toString()], async () => {
-            return await trace('tx', async () => {
+            return await trace(tracer, 'tx', async () => {
                 // Implementation is copied from database.js from foundationdb library.
                 do {
                     try {
