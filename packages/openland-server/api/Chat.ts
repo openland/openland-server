@@ -734,11 +734,22 @@ export const Resolver = {
                 limit: args.limit || 10
             });
 
+            if (uids.length === 0) {
+                return [];
+            }
+
             // Fetch profiles
             let users = await DB.User.findAll({
                 where: [DB.connection.and({ id: { $in: uids } }, { status: 'ACTIVATED' })]
             });
-            return users;
+            let restored: any[] = [];
+            for (let u of uids) {
+                let existing = users.find((v) => v.id === u);
+                if (existing) {
+                    restored.push(existing);
+                }
+            }
+            return restored;
         }),
         alphaChatSearch: withUser<{ members: string[] }>(async (args, uid) => {
             let members = [...args.members.map((v) => IDs.User.parse(v)), uid];
