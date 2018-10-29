@@ -2255,6 +2255,48 @@ export class HyperLogFactory extends FEntityFactory<HyperLog> {
         return new HyperLog(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
     }
 }
+export interface MessageDraftShape {
+    contents: string;
+}
+
+export class MessageDraft extends FEntity {
+    get uid(): number { return this._value.uid; }
+    get cid(): number { return this._value.cid; }
+    get contents(): string {
+        return this._value.contents;
+    }
+    set contents(value: string) {
+        this._checkIsWritable();
+        if (value === this._value.contents) { return; }
+        this._value.contents = value;
+        this.markDirty();
+    }
+}
+
+export class MessageDraftFactory extends FEntityFactory<MessageDraft> {
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'messageDraft'),
+            { enableVersioning: true, enableTimestamps: true },
+            []
+        );
+    }
+    extractId(rawId: any[]) {
+        return { 'uid': rawId[0], 'cid': rawId[1] };
+    }
+    async findById(uid: number, cid: number) {
+        return await this._findById([uid, cid]);
+    }
+    async create(uid: number, cid: number, shape: MessageDraftShape) {
+        return await this._create([uid, cid], { uid, cid, ...shape });
+    }
+    watch(uid: number, cid: number, cb: () => void) {
+        return this._watch([uid, cid], cb);
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new MessageDraft(this.connection, this.namespace, [value.uid, value.cid], value, this.options, isNew, this.indexes);
+    }
+}
 
 export class AllEntities extends FDBInstance {
     Online: OnlineFactory;
@@ -2284,6 +2326,7 @@ export class AllEntities extends FDBInstance {
     UserNotificationsState: UserNotificationsStateFactory;
     UserMessagingEvent: UserMessagingEventFactory;
     HyperLog: HyperLogFactory;
+    MessageDraft: MessageDraftFactory;
 
     constructor(connection: FConnection) {
         super(connection);
@@ -2314,5 +2357,6 @@ export class AllEntities extends FDBInstance {
         this.UserNotificationsState = new UserNotificationsStateFactory(connection);
         this.UserMessagingEvent = new UserMessagingEventFactory(connection);
         this.HyperLog = new HyperLogFactory(connection);
+        this.MessageDraft = new MessageDraftFactory(connection);
     }
 }

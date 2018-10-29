@@ -353,6 +353,8 @@ extend type Query {
     alphaChatTextSearch(query: String!): [Conversation!]!
 
     alphaDraftMessage(conversationId: ID!): String
+
+    conversationDraft(conversationId: ID!): String
 }
 
 input UpdateGroupInput {
@@ -374,6 +376,7 @@ extend type Mutation {
     alphaReadChat(conversationId: ID!, messageId: ID!): ChatReadResult!
     alphaGlobalRead(toSeq: Int): String!
     alphaSaveDraftMessage(conversationId: ID!, message: String): String!
+    conversationDraftUpdate(conversationId: ID!, message: String): String!
 
     alphaSetTyping(conversationId: ID!, type: String): String!
 

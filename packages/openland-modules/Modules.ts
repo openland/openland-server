@@ -11,6 +11,7 @@ import { SearchModule } from 'openland-module-search/SearchModule';
 import { SuperModule } from 'openland-module-super/SuperModule';
 import { ShortnameModule } from 'openland-module-shortname/ShortnameModule';
 import { HyperlogModule } from 'openland-module-hyperlog/HyperlogModule';
+import { DraftsModule } from 'openland-module-drafts/DraftsModule';
 
 class ModulesImpl {
     readonly Auth = new AuthModule();
@@ -26,6 +27,7 @@ class ModulesImpl {
     readonly Super = new SuperModule();
     readonly Shortnames = new ShortnameModule();
     readonly Hyperlog = new HyperlogModule();
+    readonly Drafts = new DraftsModule();
 
     start = () => {
         this.DB.start();
@@ -40,6 +42,7 @@ class ModulesImpl {
         this.Super.start();
         this.Shortnames.start();
         this.Hyperlog.start();
+        this.Drafts.start();
     }
 }
 

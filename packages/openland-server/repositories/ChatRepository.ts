@@ -586,7 +586,7 @@ export class ChatsRepository {
                     }
                 }, { transaction: tx });
 
-                 await Modules.Push.sendCounterPush(m, conversationId, userUnread);
+                await Modules.Push.sendCounterPush(m, conversationId, userUnread);
 
                 if (m === uid) {
                     userEvent = _userEvent;
@@ -599,7 +599,7 @@ export class ChatsRepository {
         await Modules.Messaging.AugmentationWorker.pushWork({ messageId: msg.id });
         perf.end('ConversationMessagesWorker');
 
-        await this.deleteDraftMessage(uid, conversationId);
+        await Modules.Drafts.clearDraft(uid, conversationId);
 
         perf.end('sendMessage');
 
@@ -1202,18 +1202,6 @@ export class ChatsRepository {
         }
 
         throw new Error('Unknown chat type');
-    }
-
-    async getDraftMessage(uid: number, conversationId: number) {
-        return this.draftsCache.read(`${uid}_${conversationId}`);
-    }
-
-    async saveDraftMessage(uid: number, conversationId: number, message: string) {
-        return this.draftsCache.write(`${uid}_${conversationId}`, { message });
-    }
-
-    async deleteDraftMessage(uid: number, conversationId: number) {
-        return this.draftsCache.write(`${uid}_${conversationId}`, { message: '' });
     }
 
     async checkAccessToChat(uid: number, conversation: Conversation, tx: Transaction) {

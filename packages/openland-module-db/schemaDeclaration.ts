@@ -311,6 +311,14 @@ const Schema = declareSchema(() => {
         rangeIndex('created', ['createdAt']);
         enableTimestamps();
     });
+
+    entity('MessageDraft', () => {
+        primaryKey('uid', 'number');
+        primaryKey('cid', 'number');
+        field('contents', 'string');
+        enableVersioning();
+        enableTimestamps();
+    });
 });
 
 generate(Schema, __dirname + '/../openland-module-db/schema.ts');
