@@ -1,5 +1,6 @@
 import { Modules } from 'openland-modules/Modules';
 import { FDB } from 'openland-module-db/FDB';
+import { Repos } from 'openland-server/repositories';
 
 export class UserSearch {
     async searchForUsers(query: string, options?: { uid?: number, limit?: number }) {
@@ -21,14 +22,32 @@ export class UserSearch {
 
             if (options && options.uid) {
                 let profile = await FDB.UserProfile.findById(options.uid);
+                let organizations = await Repos.Users.fetchUserAccounts(options.uid);
+                let functions: any[] = [];
+
+                // Huge boost if primary organization same
                 if (profile && profile.primaryOrganization) {
+                    functions.push({
+                        filter: { match: { primaryOrganization: profile.primaryOrganization } },
+                        weight: 8
+                    });
+                }
+
+                // Boost if have common organizations (more common organizations - more boost)
+                if (organizations.length > 0) {
+                    for (let o of organizations) {
+                        functions.push({
+                            filter: { match: { organizations: o } },
+                            weight: 2
+                        });
+                    }
+                }
+                
+                if (functions.length > 0) {
                     mainQuery = {
                         function_score: {
                             query: mainQuery,
-                            functions: [{
-                                filter: { match: { primaryOrganization: profile.primaryOrganization } },
-                                weight: 2
-                            }],
+                            functions: functions,
                             boost_mode: 'multiply'
                         }
                     };
