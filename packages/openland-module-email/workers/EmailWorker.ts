@@ -2,6 +2,7 @@ import SendGrid from '@sendgrid/mail';
 import { SENDGRID_KEY } from 'openland-server/utils/keys';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent';
+import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 
 let devTeamEmails = [
     'korshakov.stepan@gmail.com',
@@ -23,34 +24,36 @@ export function createEmailWorker() {
     let queue = new WorkQueue<{ templateId: string, to: string, subject: string, args: { [key: string]: string; } }, { result: string }>('emailSender');
     SendGrid.setApiKey(SENDGRID_KEY);
     let isTesting = process.env.TESTING === 'true';
-    queue.addWorker(async (args, uid) => {
-        if (!isTesting) {
-            // Filter for non-production envrionments
-            if (process.env.APP_ENVIRONMENT !== 'production') {
-                if (devTeamEmails.indexOf(args.to.toLowerCase()) < 0) {
-                    return {
-                        result: 'ok'
-                    };
+    if (serverRoleEnabled('workers')) {
+        queue.addWorker(async (args, uid) => {
+            if (!isTesting) {
+                // Filter for non-production envrionments
+                if (process.env.APP_ENVIRONMENT !== 'production') {
+                    if (devTeamEmails.indexOf(args.to.toLowerCase()) < 0) {
+                        return {
+                            result: 'ok'
+                        };
+                    }
                 }
-            }
 
-            try {
-                await SendGrid.send({
-                    to: args.to,
-                    from: { name: 'Openland', email: 'support@openland.com' },
-                    templateId: args.templateId,
-                    substitutions: args.args,
-                    subject: args.subject
-                });
-            } catch (e) {
-                await emailFailed.event({ templateId: args.templateId, to: args.to });
-                throw e;
+                try {
+                    await SendGrid.send({
+                        to: args.to,
+                        from: { name: 'Openland', email: 'support@openland.com' },
+                        templateId: args.templateId,
+                        substitutions: args.args,
+                        subject: args.subject
+                    });
+                } catch (e) {
+                    await emailFailed.event({ templateId: args.templateId, to: args.to });
+                    throw e;
+                }
+                await emailSent.event({ templateId: args.templateId, to: args.to });
             }
-            await emailSent.event({ templateId: args.templateId, to: args.to });
-        }
-        return {
-            result: 'ok'
-        };
-    });
+            return {
+                result: 'ok'
+            };
+        });
+    }
     return queue;
 }
