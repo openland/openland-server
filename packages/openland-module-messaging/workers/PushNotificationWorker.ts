@@ -6,12 +6,15 @@ import { Texts } from 'openland-server/texts';
 import { Modules } from 'openland-modules/Modules';
 import { withLogContext } from 'openland-log/withLogContext';
 import { inTx } from 'foundation-orm/inTx';
+import { createLogger } from 'openland-log/createLogger';
 
 const Delays = {
     'none': 10 * 1000,
     '1min': 60 * 1000,
     '15min': 15 * 60 * 1000
 };
+
+const log = createLogger('push');
 
 export function startPushNotificationWorker() {
 
@@ -24,6 +27,7 @@ export function startPushNotificationWorker() {
                 logging: DB_SILENT
             });
 
+            log.debug('unread users: ' + unreadUsers.length);
             for (let u of unreadUsers) {
                 await withLogContext(['user', '' + u.userId], async () => {
                     // Loading user's settings and state
@@ -31,8 +35,6 @@ export function startPushNotificationWorker() {
                     let state = await Modules.Messaging.repo.getUserMessagingState(u.userId);
 
                     let now = Date.now();
-
-                    let logPrefix = 'push_worker ' + u.userId;
 
                     let lastSeen = await Modules.Presence.getLastSeen(u.userId);
 
@@ -191,7 +193,7 @@ export function startPushNotificationWorker() {
                             silent: null
                         };
 
-                        console.log(logPrefix, 'new_push', JSON.stringify(push));
+                        log.debug('new_push', JSON.stringify(push));
                         await Modules.Push.worker.pushWork(push);
                     }
 
@@ -199,6 +201,8 @@ export function startPushNotificationWorker() {
                     if (hasMessage) {
                         state.lastPushNotification = Date.now();
                     }
+
+                    log.debug('updated ' + state.lastPushSeq + '->' + u.seq);
 
                     state.lastPushSeq = u.seq;
                 });
