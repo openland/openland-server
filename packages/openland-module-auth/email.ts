@@ -7,21 +7,27 @@ import { randomBytes } from 'crypto';
 import { Modules } from 'openland-modules/Modules';
 import { inTx } from 'foundation-orm/inTx';
 import { AuthCodeSession } from 'openland-module-db/schema';
+import { calculateBase64len } from '../openland-server/utils/base64';
 
-const ERROR_TEXT = {
-    0: 'Wrong arguments passed',
-    1: 'Server error',
-    2: 'Session not found',
-    3: 'Code expired',
-    4: 'Wrong code',
-    5: 'No email or phone passed',
-    6: 'No session passed',
-    7: 'No code passed',
-    8: 'No authToken passed'
+const Errors = {
+    wrong_arg: { code: 0, text: 'Wrong arguments passed' },
+    server_error: { code: 1, text: 'Server error' },
+    session_not_found: { code: 2, text: 'Session not found' },
+    code_expired: { code: 3, text: 'Code expired' },
+    wrong_code: { code: 4, text: 'Wrong code' },
+    no_email_or_phone: { code: 5, text: 'No email or phone passed' },
+    no_session: { code: 6, text: 'No session passed' },
+    no_code: { code: 7, text: 'No code passed' },
+    no_auth_token: { code: 8, text: 'No authToken passed' },
+    invalid_email: { code: 9, text: 'Invalid email' },
+    invalid_auth_token: { code: 10, text: 'Invalid auth token' },
+    session_expired: { code: 11, text: 'Session expired' },
 };
 
-const sendError = (response: express.Response, code: number) => {
-    response.json({ ok: false, errorCode: code, errorText: (ERROR_TEXT as any)[code] });
+const CODE_LEN = 5;
+
+const sendError = (response: express.Response, error: { code: number, text: string }) => {
+    response.json({ ok: false, errorCode: error.code, errorText: error.text });
 };
 
 const TEST_EMAIL_REGEX = /^test(\d{4})@openland.com$/;
@@ -43,6 +49,14 @@ const testEmailCode = (email: string) => {
 
     return num[num.length - 1].repeat(5);
 };
+
+const checkEmail = (email: any) => typeof email === 'string' &&  email.length <= 254; // according to rfc
+
+const checkSession = (session: any) => typeof session === 'string' && session.length === calculateBase64len(64);
+
+const checkAuthToken = (session: any) => typeof session === 'string' && session.length === calculateBase64len(64);
+
+const validateCode = (code: any) => typeof code === 'string' && code.length === CODE_LEN;
 
 export function withAudit(handler: (req: express.Request, response: express.Response) => void) {
     return async (req: express.Request, response: express.Response) => {
@@ -74,25 +88,34 @@ export async function sendCode(req: express.Request, response: express.Response)
         session
     } = req.body;
 
-    let res = await inTx(async () => {
+    await inTx(async () => {
         let authSession: AuthCodeSession | undefined;
         if (session) {
+            if (!checkSession(session)) {
+                sendError(response, Errors.session_not_found);
+                return;
+            }
+
             let existing = await Modules.Auth.repo.findSession(session);
             if (!existing) {
-                sendError(response, 2);
-                return undefined;
+                sendError(response, Errors.session_not_found);
+                return;
             }
             authSession = existing;
         }
 
         if (!email && !phone) {
-            sendError(response, 5);
-            return undefined;
+            sendError(response, Errors.no_email_or_phone);
+            return;
         }
 
-        let code = randomNumbersString(5);
+        let code = randomNumbersString(CODE_LEN);
 
         if (email) {
+            if (!checkEmail(email)) {
+                sendError(response, Errors.invalid_email);
+            }
+
             email = (email as string).toLowerCase();
             let isTest = isTestEmail(email);
 
@@ -107,88 +130,34 @@ export async function sendCode(req: express.Request, response: express.Response)
             } else {
                 authSession.code = code;
             }
-            return authSession;
+
+            response.json({ ok: true, session: authSession!.uid });
+            return;
         } else {
-            sendError(response, 5);
+            sendError(response, Errors.server_error);
         }
-        return undefined;
     });
-
-    if (res) {
-        response.json({ ok: true, session: res!.uid });
-    } else {
-        sendError(response, 5);
-    }
-    // return await DB.txLight(async (tx) => {
-    //     let {
-    //         email,
-    //         phone,
-    //         session
-    //     } = req.body;
-
-    //     console.log('auth_sendCode', JSON.stringify(req.body));
-
-    //     let authSession: AuthSession;
-
-    //     if (session) {
-    //         let existing = await DB.AuthSession.findOne({ where: { sessionSalt: session }, transaction: tx });
-
-    //         // No session found
-    //         if (!existing) {
-    //             sendError(response, 2);
-    //             return;
-    //         }
-    //         authSession = existing;
-    //     }
-
-    //     if (!email && !phone) {
-    //         sendError(response, 5);
-    //         return;
-    //     }
-
-    //     let code = randomNumbersString(5);
-
-    //     if (email) {
-    //         email = (email as string).toLowerCase();
-    //         let isTest = isTestEmail(email);
-
-    //         if (!isTest) {
-    //             await Emails.sendActivationCodeEmail(email, code, tx);
-    //         } else {
-    //             code = testEmailCode(email);
-    //         }
-
-    //         if (!authSession!) {
-    //             authSession = await DB.AuthSession.create({
-    //                 sessionSalt: base64.encodeBuffer(randomBytes(64)),
-    //                 code,
-    //                 codeExpires: new Date(Date.now() + 1000 * 60 * 5), // 5 minutes
-    //                 extras: {
-    //                     email
-    //                 }
-    //             }, { transaction: tx });
-    //         } else {
-    //             await authSession!.update({ code });
-    //         }
-
-    //         response.json({ ok: true, session: authSession!.sessionSalt });
-    //     }
-    // });
 }
 
 export async function checkCode(req: express.Request, response: express.Response) {
-
     let {
         session,
         code
     } = req.body;
 
     if (!session) {
-        sendError(response, 6);
+        sendError(response, Errors.no_session);
+        return;
+    } else if (!checkSession(session)) {
+        sendError(response, Errors.session_not_found);
         return;
     }
+
     if (!code) {
-        sendError(response, 7);
+        sendError(response, Errors.no_code);
+        return;
+    } else if (!validateCode(code)) {
+        sendError(response, Errors.wrong_code);
         return;
     }
 
@@ -197,19 +166,19 @@ export async function checkCode(req: express.Request, response: express.Response
 
         // No session found
         if (!authSession) {
-            sendError(response, 2);
+            sendError(response, Errors.session_not_found);
             return;
         }
 
         // Code expired
         if (Date.now() > authSession.expires) {
-            sendError(response, 3);
+            sendError(response, Errors.code_expired);
             return;
         }
 
         // Wrong code
         if (authSession.code! !== code) {
-            sendError(response, 4);
+            sendError(response, Errors.wrong_code);
             return;
         }
 
@@ -229,11 +198,18 @@ export async function getAccessToken(req: express.Request, response: express.Res
         } = req.body;
 
         if (!session) {
-            sendError(response, 6);
+            sendError(response, Errors.no_session);
+            return;
+        } else if (!checkSession(session)) {
+            sendError(response, Errors.no_session);
             return;
         }
+
         if (!authToken) {
-            sendError(response, 8);
+            sendError(response, Errors.no_auth_token);
+            return;
+        } else if (!checkAuthToken(authToken)) {
+            sendError(response, Errors.invalid_auth_token);
             return;
         }
 
@@ -242,7 +218,17 @@ export async function getAccessToken(req: express.Request, response: express.Res
 
             // No session found
             if (!authSession) {
-                sendError(response, 2);
+                sendError(response, Errors.session_not_found);
+                return;
+            }
+
+            if (!authSession.enabled) {
+                sendError(response, Errors.session_expired);
+            }
+
+            // Wrong auth token
+            if (authSession.tokenId !== authToken) {
+                sendError(response, Errors.invalid_auth_token);
                 return;
             }
 
@@ -267,7 +253,7 @@ export async function getAccessToken(req: express.Request, response: express.Res
 
                 if (existing) {
                     let token = await Modules.Auth.createToken(existing.id!);
-                    response.json({ ok: true, accessToken: token });
+                    response.json({ ok: true, accessToken: token.salt });
                     authSession.enabled = false;
                     return;
                 } else {
@@ -281,7 +267,7 @@ export async function getAccessToken(req: express.Request, response: express.Res
                     return;
                 }
             } else {
-                sendError(response, 1);
+                sendError(response, Errors.server_error);
             }
         });
     });
