@@ -46,7 +46,7 @@ export const Schema = wrapAllResolvers(
         ),
         schemaDirectives: Directives
     }),
-    (
+    async (
         field: GraphQLField<any, any>,
         originalResolver: GraphQLFieldResolver<any, any, any>,
         root: any,
@@ -54,6 +54,6 @@ export const Schema = wrapAllResolvers(
         context: any,
         info: any
     ) => {
-        return trace(gqlTracer, field.name, () => withLogContext(field.name, () => originalResolver(root, args, context, info)));
+        return await trace(gqlTracer, field.name, async () => await withLogContext(field.name, async () => await originalResolver(root, args, context, info)));
     }
 );
