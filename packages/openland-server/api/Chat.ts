@@ -798,7 +798,7 @@ export const Resolver = {
 
             // GROUPS / CHANNELS has titles we can search 
             let searchableConversations = (await DB.ConversationUserState.findAll({ where: { userId: uid } })).map(s => s.conversationId);
-            // let sequelize = DB.connection;
+            let sequelize = DB.connection;
             let groupsChannels = await DB.Conversation.findAll({
                 where: {
                     type: {
@@ -814,63 +814,31 @@ export const Resolver = {
             });
 
             // PERSONAL - search users first, then matching conversations with current user
-            // let usersProfiles = await DB.UserProfile.findAll({
-            //     where:
-            //         [
-            //             sequelize.and(
-            //                 {
-            //                     userId: {
-            //                         $not: uid
-            //                     }
-            //                 },
-            //                 sequelize.or(
-            //                     sequelize.where(sequelize.fn('concat', sequelize.col('firstName'), ' ', sequelize.col('lastName')), {
-            //                         $ilike: '%' + args.query.toLowerCase() + '%'
-            //                     }),
-            //                     {
-            //                         firstName: {
-            //                             $ilike: args.query.toLowerCase() + '%'
-            //                         }
-            //                     },
-            //                     {
-            //                         lastName: {
-            //                             $ilike: args.query.toLowerCase() + '%'
-            //                         }
-            //                     },
-            //                     {
-            //                         email: {
-            //                             $ilike: '%' + args.query.toLowerCase() + '%'
-            //                         }
-            //                     }
-            //                 ),
-            //             )
-            //         ],
-            // });
-            // let userIds = usersProfiles.map(u => u.userId!!);
+            let userIds = Modules.Users.searchForUsers(args.query, { uid, limit: 50 });
 
-            // let personal = await DB.Conversation.findAll({
-            //     where: [
-            //         sequelize.and(
-            //             {
-            //                 type: 'private'
-            //             },
-            //             sequelize.or(
-            //                 {
-            //                     member1Id: uid,
-            //                     member2Id: {
-            //                         $in: userIds
-            //                     }
-            //                 },
-            //                 {
-            //                     member2Id: uid,
-            //                     member1Id: {
-            //                         $in: userIds
-            //                     }
-            //                 }
-            //             )
-            //         )
-            //     ]
-            // });
+            let personal = await DB.Conversation.findAll({
+                where: [
+                    sequelize.and(
+                        {
+                            type: 'private'
+                        },
+                        sequelize.or(
+                            {
+                                member1Id: uid,
+                                member2Id: {
+                                    $in: userIds
+                                }
+                            },
+                            {
+                                member2Id: uid,
+                                member1Id: {
+                                    $in: userIds
+                                }
+                            }
+                        )
+                    )
+                ]
+            });
 
             // SHARED search org1 matching name, org2 current and vice versa
             let orgs1 = await DB.Conversation.findAll({
@@ -955,7 +923,7 @@ export const Resolver = {
                 ]
             });
 
-            let res = [...groupsChannels, ...orgs1, ...orgs2, ...orgsInner];
+            let res = [...personal, ...groupsChannels, ...orgs1, ...orgs2, ...orgsInner];
             res = res.reduce(
                 (p, x) => {
                     if (!p.find(c => c.id === x.id)) {
