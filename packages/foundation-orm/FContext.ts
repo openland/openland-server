@@ -3,6 +3,7 @@ import { FEntity } from './FEntity';
 import { FConnection } from './FConnection';
 import { RangeOptions } from 'foundationdb/dist/lib/transaction';
 import { FKeyEncoding } from './utils/FKeyEncoding';
+import { trace } from 'openland-log/trace';
 
 export interface FContext {
     readonly isReadOnly: boolean;
@@ -18,26 +19,36 @@ export interface FContext {
 export class FGlobalContext implements FContext {
     readonly isReadOnly: boolean = true;
     readonly isCompleted: boolean = false;
-    get(connection: FConnection, key: (string | number)[]) {
-        return connection.fdb.get(FKeyEncoding.encodeKey(key));
+    async get(connection: FConnection, key: (string | number)[]) {
+        return await trace('get', async () => {
+            return await connection.fdb.get(FKeyEncoding.encodeKey(key));
+        });
     }
     async range(connection: FConnection, key: (string | number)[], options?: RangeOptions) {
-        let res = await connection.fdb.getRangeAll(FKeyEncoding.encodeKey(key), undefined, options);
-        return res.map((v) => ({ item: v[1] as any, key: FKeyEncoding.decodeKey(v[0]) }));
+        return await trace('range', async () => {
+            let res = await connection.fdb.getRangeAll(FKeyEncoding.encodeKey(key), undefined, options);
+            return res.map((v) => ({ item: v[1] as any, key: FKeyEncoding.decodeKey(v[0]) }));
+        });
     }
     async rangeAfter(connection: FConnection, prefix: (string | number)[], afterKey: (string | number)[], options?: RangeOptions) {
-        let start = keySelector.firstGreaterThan(FKeyEncoding.encodeKey(afterKey));
-        let end = FKeyEncoding.lastKeyInSubspace(prefix);
-        let res = await connection.fdb.getRangeAll(start, end, options);
-        return res.map((v) => ({ item: v[1] as any, key: FKeyEncoding.decodeKey(v[0]) }));
+        return await trace('rangeAfter', async () => {
+            let start = keySelector.firstGreaterThan(FKeyEncoding.encodeKey(afterKey));
+            let end = FKeyEncoding.lastKeyInSubspace(prefix);
+            let res = await connection.fdb.getRangeAll(start, end, options);
+            return res.map((v) => ({ item: v[1] as any, key: FKeyEncoding.decodeKey(v[0]) }));
+        });
     }
 
-    set(connection: FConnection, key: (string | number)[], value: any) {
+    async set(connection: FConnection, key: (string | number)[], value: any) {
         console.warn('Set outside of transaction!');
-        return connection.fdb.set(FKeyEncoding.encodeKey(key), value);
+        return await trace('set', async () => {
+            return await connection.fdb.set(FKeyEncoding.encodeKey(key), value);
+        });
     }
-    delete(connection: FConnection, key: (string | number)[]) {
-        return connection.fdb.clear(FKeyEncoding.encodeKey(key));
+    async delete(connection: FConnection, key: (string | number)[]) {
+        return await trace('delete', async () => {
+            return await connection.fdb.clear(FKeyEncoding.encodeKey(key));
+        });
     }
     markDirty(entity: FEntity, callback: (connection: FConnection) => void) {
         throw Error('Trying to write to read-only context');
