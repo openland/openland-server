@@ -2,6 +2,7 @@ type Query {
 
     alphaInvites: [Invite!]
     alphaInviteInfo(key: String!): InviteInfo
+    alphaGlobalInvite: String!
     alphaGlobalInviteInfo(key: String!): GlobalInviteInfo
     alphaInvitesHistory: [InviteHistotyInfo!]
 
