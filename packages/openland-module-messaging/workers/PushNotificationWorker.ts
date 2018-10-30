@@ -191,8 +191,8 @@ export function startPushNotificationWorker() {
                             conversationId: conversation.id,
                             mobile: sendMobile,
                             desktop: sendDesktop,
-                            mobileAlert: settings.mobileAlert,
-                            mobileIncludeText: settings.mobileIncludeText,
+                            mobileAlert: (settings.mobileAlert !== undefined && settings.mobileAlert !== null) ? settings.mobileAlert : true,
+                            mobileIncludeText: ( settings.mobileIncludeText !== undefined &&  settings.mobileIncludeText !== null) ?  settings.mobileIncludeText : true,
                             silent: null
                         };
 

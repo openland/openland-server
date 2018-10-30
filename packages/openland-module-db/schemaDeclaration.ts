@@ -179,8 +179,8 @@ const Schema = declareSchema(() => {
         enumField('emailFrequency', ['1hour', '15min', 'never', '24hour', '1week']);
         enumField('desktopNotifications', ['all', 'direct', 'none']);
         enumField('mobileNotifications', ['all', 'direct', 'none']);
-        field('mobileAlert', 'boolean');
-        field('mobileIncludeText', 'boolean');
+        field('mobileAlert', 'boolean').nullable();
+        field('mobileIncludeText', 'boolean').nullable();
         enumField('notificationsDelay', ['none', '1min', '15min']);
         enableVersioning();
         enableTimestamps();

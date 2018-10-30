@@ -1496,8 +1496,8 @@ export interface UserSettingsShape {
     emailFrequency: '1hour' | '15min' | 'never' | '24hour' | '1week';
     desktopNotifications: 'all' | 'direct' | 'none';
     mobileNotifications: 'all' | 'direct' | 'none';
-    mobileAlert: boolean;
-    mobileIncludeText: boolean;
+    mobileAlert?: boolean| null;
+    mobileIncludeText?: boolean| null;
     notificationsDelay: 'none' | '1min' | '15min';
 }
 
@@ -1530,19 +1530,23 @@ export class UserSettings extends FEntity {
         this._value.mobileNotifications = value;
         this.markDirty();
     }
-    get mobileAlert(): boolean {
-        return this._value.mobileAlert;
+    get mobileAlert(): boolean | null {
+        let res = this._value.mobileAlert;
+        if (res) { return res; }
+        return null;
     }
-    set mobileAlert(value: boolean) {
+    set mobileAlert(value: boolean | null) {
         this._checkIsWritable();
         if (value === this._value.mobileAlert) { return; }
         this._value.mobileAlert = value;
         this.markDirty();
     }
-    get mobileIncludeText(): boolean {
-        return this._value.mobileIncludeText;
+    get mobileIncludeText(): boolean | null {
+        let res = this._value.mobileIncludeText;
+        if (res) { return res; }
+        return null;
     }
-    set mobileIncludeText(value: boolean) {
+    set mobileIncludeText(value: boolean | null) {
         this._checkIsWritable();
         if (value === this._value.mobileIncludeText) { return; }
         this._value.mobileIncludeText = value;
@@ -1569,9 +1573,7 @@ export class UserSettingsFactory extends FEntityFactory<UserSettings> {
         validators.isEnum('desktopNotifications', src.desktopNotifications, ['all', 'direct', 'none']);
         validators.notNull('mobileNotifications', src.mobileNotifications);
         validators.isEnum('mobileNotifications', src.mobileNotifications, ['all', 'direct', 'none']);
-        validators.notNull('mobileAlert', src.mobileAlert);
         validators.isBoolean('mobileAlert', src.mobileAlert);
-        validators.notNull('mobileIncludeText', src.mobileIncludeText);
         validators.isBoolean('mobileIncludeText', src.mobileIncludeText);
         validators.notNull('notificationsDelay', src.notificationsDelay);
         validators.isEnum('notificationsDelay', src.notificationsDelay, ['none', '1min', '15min']);
