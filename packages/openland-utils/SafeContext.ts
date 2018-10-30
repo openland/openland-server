@@ -5,6 +5,17 @@ function hrtime() {
     const t = process.hrtime();
     return t[0] * 1000000 + t[1] / 1000;
 }
+const asyncHooksRegEx = /\((internal\/)?async_hooks\.js:/;
+
+function cleanStack(stack: any) {
+    const frames = stack.split('\n');
+    // this part is opinionated, but it's here to avoid confusing people with internals
+    let i = frames.length - 1;
+    while (i && !asyncHooksRegEx.test(frames[i])) {
+        i--;
+    }
+    return frames.slice(i + 1, stack.length - 1);
+}
 
 let contexts: any[] = [];
 let paths: any = {};
@@ -17,6 +28,10 @@ async_hooks.createHook({
         }
 
         let currentId = async_hooks.executionAsyncId();
+
+        const e = {};
+        Error.captureStackTrace(e);
+        contexts[-1][asyncId] = { stack: (e as any).stack };
 
         // JS based callback/promise
         if (currentId !== 0) {
@@ -41,14 +56,16 @@ async_hooks.createHook({
         }
     },
     before: (asyncId) => {
-        contexts[-1][asyncId] = hrtime();
+        if (contexts[-1][asyncId]) {
+            contexts[-1][asyncId].t0 = hrtime();
+        }
     },
     after: (asyncId) => {
         let ex = contexts[-1][asyncId];
-        if (ex) {
-            let delta = (hrtime() - ex) / 1000;
+        if (ex && ex.t0) {
+            let delta = (hrtime() - ex.t0) / 1000;
             if (delta > 20) {
-                setImmediate(() => console.warn('Event loop blocked for ' + delta + ' ms'));
+                setImmediate(() => console.warn('Event loop blocked for ' + delta + ' ms at ' + cleanStack(ex.stack)));
             }
         }
     }
