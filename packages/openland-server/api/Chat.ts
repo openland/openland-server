@@ -639,7 +639,7 @@ export const Resolver = {
                 return {
                     conversations: conversations.items.map((v) => DB.Conversation.findById(v.cid)),
                     seq: seq,
-                    next: conversations.items.length > args.first ? conversations.cursor : null,
+                    next: conversations.cursor,
                     counter: uid
                 };
             });

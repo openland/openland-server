@@ -54,21 +54,25 @@ export abstract class FEntityFactory<T extends FEntity> {
 
     protected async _findRangeWithCursor(key: (string | number)[], limit: number, after?: string, reverse?: boolean) {
         if (after) {
-            let res = await this.namespace.rangeAfter(this.connection, key, FKeyEncoding.decodeFromString(after) as any, { limit, reverse });
+            let res = await this.namespace.rangeAfter(this.connection, key, FKeyEncoding.decodeFromString(after) as any, { limit: limit + 1, reverse });
             let d: T[] = [];
             let cursor: string | undefined;
-            for (let r of res) {
-                d.push(this._createEntity(r.item, false));
-                cursor = FKeyEncoding.encodeKeyToString(r.key);
+            for (let i = 0; i < Math.min(limit, res.length); i++) {
+                d.push(this._createEntity(res[i].item, false));
+            }
+            if (res.length > limit) {
+                cursor = FKeyEncoding.encodeKeyToString(res[res.length - 1].key);
             }
             return { items: d, cursor };
         } else {
-            let res = await this.namespace.range(this.connection, key, { limit, reverse });
+            let res = await this.namespace.range(this.connection, key, { limit: limit + 1, reverse });
             let d: T[] = [];
             let cursor: string | undefined;
-            for (let r of res) {
-                d.push(this._createEntity(r.item, false));
-                cursor = FKeyEncoding.encodeKeyToString(r.key);
+            for (let i = 0; i < Math.min(limit, res.length); i++) {
+                d.push(this._createEntity(res[i].item, false));
+            }
+            if (res.length > limit) {
+                cursor = FKeyEncoding.encodeKeyToString(res[res.length - 1].key);
             }
             return { items: d, cursor };
         }
