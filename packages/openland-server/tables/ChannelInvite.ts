@@ -20,7 +20,7 @@ export interface ChannelInvite extends sequelize.Instance<Partial<ChannelInviteA
 
 }
 
-export const ChannelInviteTable = connection.define<ChannelInvite, Partial<ChannelInviteAttributes>>('channel_invites', {
+export const ChannelInviteTable = connection.define<ChannelInvite, Partial<ChannelInviteAttributes>>('channel_invite', {
     id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
     uuid: { type: sequelize.STRING(256), allowNull: false, unique: true },
     creatorId: { type: sequelize.INTEGER, allowNull: true, references: { model: 'users' } },
