@@ -1,8 +1,8 @@
 require('module-alias/register');
 
-require('blocked-at')((time: number, stack: string) => {
-    console.log(`Blocked for ${time} ms, operation started here:`, stack);
-});
+// require('blocked-at')((time: number, stack: string) => {
+//     console.log(`Blocked for ${time} ms, operation started here:`, stack);
+// });
 
 // AsyncIterator polyfil
 import { serverRoleEnabled } from '../openland-utils/serverRoleEnabled';
