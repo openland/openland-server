@@ -20,9 +20,12 @@ import { createLogger } from 'openland-log/createLogger';
 import { withTracing } from 'openland-log/withTracing';
 import { createTracer } from 'openland-log/createTracer';
 import { inTx } from 'foundation-orm/inTx';
+import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent';
 
 const log = createLogger('messaging-legacy');
 const tracer = createTracer('messaging-legacy');
+const messageSent = createHyperlogger<{ cid: number }>('message_sent');
+const messageReceived = createHyperlogger<{ cid: number }>('message_received');
 
 export type ChatEventType =
     'new_message' |
@@ -340,6 +343,8 @@ export class ChatsRepository {
                 }
                 perf.end('conv');
 
+                await messageSent.event({ cid: conversationId });
+
                 //
                 // Check access
                 //
@@ -510,6 +515,8 @@ export class ChatsRepository {
                         if (m === uid) {
                             userEvent = _userEvent;
                         }
+
+                        await messageReceived.event({ cid: conversationId });
                     }
                     perf.end('membersEvents');
                 }
