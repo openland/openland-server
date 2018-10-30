@@ -35,7 +35,9 @@ shimmer.wrap((Sequelize as any).Sequelize.prototype, 'query', (original) => {
     return function (this: any, sql: any, options: any) {
         let parent = STraceContext.value;
         if (parent && parent.currentSpan) {
-            const span = tracer.startSpan('SQL ' + options.type, parent.currentSpan);
+            const span = tracer.startSpan('SQL ' + options.type, parent.currentSpan, {
+                'db.statement': sql
+            });
             return original.apply(this, arguments).then(
                 (res: any) => {
                     span.finish();

@@ -1,9 +1,15 @@
 import async_hooks from 'async_hooks';
 const ENABLE_DEBUG = false;
 
+function hrtime() {
+    const t = process.hrtime();
+    return t[0] * 1000000 + t[1] / 1000;
+}
+
 let contexts: any[] = [];
 let paths: any = {};
 let debug: string[] = [];
+contexts[-1] = {};
 async_hooks.createHook({
     init: (asyncId, type, triggerAsyncId, resource) => {
         if (ENABLE_DEBUG) {
@@ -32,6 +38,18 @@ async_hooks.createHook({
                 }
             }
             return;
+        }
+    },
+    before: (asyncId) => {
+        contexts[-1][asyncId] = hrtime();
+    },
+    after: (asyncId) => {
+        let ex = contexts[-1][asyncId];
+        if (ex) {
+            let delta = (hrtime() - ex) / 1000;
+            if (delta > 20) {
+                setImmediate(() => console.warn('Event loop blocked for ' + delta + ' ms'));
+            }
         }
     }
 }).enable();

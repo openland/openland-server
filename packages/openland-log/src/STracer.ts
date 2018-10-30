@@ -3,7 +3,7 @@ export interface SSpan {
 }
 
 export interface STracer {
-    startSpan(name: string, parent?: SSpan): SSpan;
+    startSpan(name: string, parent?: SSpan, args?: any): SSpan;
 }
 
 export class NoOpSpan implements SSpan {
@@ -13,7 +13,7 @@ export class NoOpSpan implements SSpan {
 }
 
 export class NoOpTracer implements STracer {
-    startSpan(name: string, parent?: SSpan) {
+    startSpan(name: string, parent?: SSpan, args?: any) {
         return new NoOpSpan();
     }
 }
@@ -22,9 +22,9 @@ export class OpenSpan implements SSpan {
     readonly instance: any;
     private readonly tracer: any;
 
-    constructor(src: any, name: string, parent?: SSpan) {
+    constructor(src: any, name: string, parent?: SSpan, args?: any) {
         this.tracer = src;
-        this.instance = this.tracer.startSpan(name, { childOf: parent ? (parent as any).instance : undefined });
+        this.instance = this.tracer.startSpan(name, { ...args, childOf: parent ? (parent as any).instance : undefined });
     }
 
     finish() {
