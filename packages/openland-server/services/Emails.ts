@@ -2,7 +2,6 @@ import { Transaction } from 'sequelize';
 import { DB } from '../tables';
 import { Repos } from '../repositories';
 import { OrganizationInvite } from '../tables/OrganizationInvite';
-import { ChannelInvite } from '../tables/ChannelInvite';
 import { Modules } from 'openland-modules/Modules';
 
 const TEMPLATE_WELCOME = 'c6a056a3-9d56-4b2e-8d50-7748dd28a1fb';
@@ -291,43 +290,6 @@ export const Emails = {
                 inviteLink: 'http://test.com/',
                 'organizationName': 'Debug',
                 'userWelcome': 'hello'
-            }
-        });
-    },
-
-    async sendChannelInviteEmail(channelId: number, invite: ChannelInvite, tx: Transaction) {
-        let channel = await DB.Conversation.findById(channelId, { transaction: tx });
-        if (!channel) {
-            throw Error('Unable to find channel');
-        }
-
-        let userWelcome = {
-            'userWelcome': invite.memberFirstName ? 'Hi, ' + invite.memberFirstName : 'Hi',
-            'userName': [invite.memberFirstName, invite.memberLastName].filter((v) => v).join(' '),
-            'userFirstName': invite.memberFirstName || '',
-            'userLastName': invite.memberLastName || ''
-        };
-
-        let profile = await Modules.Users.profileById(invite.creatorId);
-
-        if (!profile) {
-            throw Error('Internal inconsistency');
-        }
-
-        let domain = process.env.APP_ENVIRONMENT === 'production' ? 'https://app.openland.com/joinChannel/' : 'http://localhost:3000/joinChannel/';
-
-        await Modules.Email.Worker.pushWork({
-            subject: `Join ${channel.title!} at Openland`,
-            templateId: TEMPLATE_INVITE,
-            to: invite.forEmail,
-            args: {
-                firstName: profile.firstName || '',
-                lastName: profile.lastName || '',
-                customText: invite.emailText || '',
-                inviteLink: domain + invite.uuid,
-                link: domain + invite.uuid,
-                organizationName: channel.title!!,
-                ...userWelcome
             }
         });
     },
