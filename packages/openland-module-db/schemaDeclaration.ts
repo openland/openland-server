@@ -9,7 +9,7 @@ const Schema = declareSchema(() => {
 
     entity('Presence', () => {
         primaryKey('uid', 'number');
-        primaryKey('tid', 'string');
+        primaryKey('tid', 'number');
         field('lastSeen', 'number');
         field('lastSeenTimeout', 'number');
         field('platform', 'string');
@@ -74,7 +74,7 @@ const Schema = declareSchema(() => {
     entity('PushFirebase', () => {
         primaryKey('id', 'string');
         field('uid', 'number');
-        field('tid', 'string');
+        field('tid', 'number');
         field('token', 'string');
         field('packageId', 'string');
         field('sandbox', 'boolean');
@@ -89,7 +89,7 @@ const Schema = declareSchema(() => {
     entity('PushApple', () => {
         primaryKey('id', 'string');
         field('uid', 'number');
-        field('tid', 'string');
+        field('tid', 'number');
         field('token', 'string');
         field('bundleId', 'string');
         field('sandbox', 'boolean');
@@ -104,7 +104,7 @@ const Schema = declareSchema(() => {
     entity('PushWeb', () => {
         primaryKey('id', 'string');
         field('uid', 'number');
-        field('tid', 'string');
+        field('tid', 'number');
         field('endpoint', 'string');
         field('enabled', 'boolean');
         field('failures', 'number').nullable();

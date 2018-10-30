@@ -63,7 +63,7 @@ export interface PresenceShape {
 
 export class Presence extends FEntity {
     get uid(): number { return this._value.uid; }
-    get tid(): string { return this._value.tid; }
+    get tid(): number { return this._value.tid; }
     get lastSeen(): number {
         return this._value.lastSeen;
     }
@@ -98,7 +98,7 @@ export class PresenceFactory extends FEntityFactory<Presence> {
         validators.notNull('uid', src.uid);
         validators.isNumber('uid', src.uid);
         validators.notNull('tid', src.tid);
-        validators.isString('tid', src.tid);
+        validators.isNumber('tid', src.tid);
         validators.notNull('lastSeen', src.lastSeen);
         validators.isNumber('lastSeen', src.lastSeen);
         validators.notNull('lastSeenTimeout', src.lastSeenTimeout);
@@ -117,13 +117,13 @@ export class PresenceFactory extends FEntityFactory<Presence> {
     extractId(rawId: any[]) {
         return { 'uid': rawId[0], 'tid': rawId[1] };
     }
-    async findById(uid: number, tid: string) {
+    async findById(uid: number, tid: number) {
         return await this._findById([uid, tid]);
     }
-    async create(uid: number, tid: string, shape: PresenceShape) {
+    async create(uid: number, tid: number, shape: PresenceShape) {
         return await this._create([uid, tid], { uid, tid, ...shape });
     }
-    watch(uid: number, tid: string, cb: () => void) {
+    watch(uid: number, tid: number, cb: () => void) {
         return this._watch([uid, tid], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
@@ -565,7 +565,7 @@ export class TaskFactory extends FEntityFactory<Task> {
 }
 export interface PushFirebaseShape {
     uid: number;
-    tid: string;
+    tid: number;
     token: string;
     packageId: string;
     sandbox: boolean;
@@ -584,10 +584,10 @@ export class PushFirebase extends FEntity {
         this._value.uid = value;
         this.markDirty();
     }
-    get tid(): string {
+    get tid(): number {
         return this._value.tid;
     }
-    set tid(value: string) {
+    set tid(value: number) {
         this._checkIsWritable();
         if (value === this._value.tid) { return; }
         this._value.tid = value;
@@ -649,7 +649,7 @@ export class PushFirebaseFactory extends FEntityFactory<PushFirebase> {
         validators.notNull('uid', src.uid);
         validators.isNumber('uid', src.uid);
         validators.notNull('tid', src.tid);
-        validators.isString('tid', src.tid);
+        validators.isNumber('tid', src.tid);
         validators.notNull('token', src.token);
         validators.isString('token', src.token);
         validators.notNull('packageId', src.packageId);
@@ -701,7 +701,7 @@ export class PushFirebaseFactory extends FEntityFactory<PushFirebase> {
 }
 export interface PushAppleShape {
     uid: number;
-    tid: string;
+    tid: number;
     token: string;
     bundleId: string;
     sandbox: boolean;
@@ -720,10 +720,10 @@ export class PushApple extends FEntity {
         this._value.uid = value;
         this.markDirty();
     }
-    get tid(): string {
+    get tid(): number {
         return this._value.tid;
     }
-    set tid(value: string) {
+    set tid(value: number) {
         this._checkIsWritable();
         if (value === this._value.tid) { return; }
         this._value.tid = value;
@@ -785,7 +785,7 @@ export class PushAppleFactory extends FEntityFactory<PushApple> {
         validators.notNull('uid', src.uid);
         validators.isNumber('uid', src.uid);
         validators.notNull('tid', src.tid);
-        validators.isString('tid', src.tid);
+        validators.isNumber('tid', src.tid);
         validators.notNull('token', src.token);
         validators.isString('token', src.token);
         validators.notNull('bundleId', src.bundleId);
@@ -837,7 +837,7 @@ export class PushAppleFactory extends FEntityFactory<PushApple> {
 }
 export interface PushWebShape {
     uid: number;
-    tid: string;
+    tid: number;
     endpoint: string;
     enabled: boolean;
     failures?: number| null;
@@ -854,10 +854,10 @@ export class PushWeb extends FEntity {
         this._value.uid = value;
         this.markDirty();
     }
-    get tid(): string {
+    get tid(): number {
         return this._value.tid;
     }
-    set tid(value: string) {
+    set tid(value: number) {
         this._checkIsWritable();
         if (value === this._value.tid) { return; }
         this._value.tid = value;
@@ -901,7 +901,7 @@ export class PushWebFactory extends FEntityFactory<PushWeb> {
         validators.notNull('uid', src.uid);
         validators.isNumber('uid', src.uid);
         validators.notNull('tid', src.tid);
-        validators.isString('tid', src.tid);
+        validators.isNumber('tid', src.tid);
         validators.notNull('endpoint', src.endpoint);
         validators.isString('endpoint', src.endpoint);
         validators.notNull('enabled', src.enabled);
