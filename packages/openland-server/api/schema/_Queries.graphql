@@ -2,8 +2,8 @@ type Query {
 
     alphaInvites: [Invite!]
     alphaInviteInfo(key: String!): InviteInfo
-    alphaGlobalInvite: String!
-    alphaGlobalInviteInfo(key: String!): GlobalInviteInfo
+    alphaAppInvite: String!
+    alphaAppInviteInfo(key: String!): AppInviteInfo
     alphaInvitesHistory: [InviteHistotyInfo!]
 
     alphaRefreshTask(id: ID!): Task!

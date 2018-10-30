@@ -45,16 +45,17 @@ export const Resolver = {
                 forName: invite.memberFirstName,
             };
         }),
-        alphaGlobalInviteInfo: withAny<{ key: string }>(async (args, context: CallContext) => {
-            let inviteOwner = await Modules.Invites.repo.getLinkOwner(args.key);
-            if (!inviteOwner) {
+        alphaAppInviteInfo: withAny<{ key: string }>(async (args, context: CallContext) => {
+            let invite = await Modules.Invites.repo.getInvteLinkData(args.key);
+            if (!invite) {
                 throw new NotFoundError(ErrorText.unableToFindInvite);
             }
+            let inviter = await DB.User.findById(invite.uid);
             return {
-                creator: inviteOwner,
+                inviter: inviter,
             };
         }),
-        alphaGlobalInvite: withUser(async (args, uid) => {
+        alphaAppInvite: withUser(async (args, uid) => {
             return await Modules.Invites.repo.getInviteLinkKey(uid);
         }),
         alphaInvitesHistory: withUser(async (args, uid) => {
@@ -241,11 +242,11 @@ export const Resolver = {
 
             return await DB.txStable(async (tx) => {
 
-                let inviteOwner = await Modules.Invites.repo.getLinkOwner(args.key);
-                if (inviteOwner) {
+                let inviteData = await Modules.Invites.repo.getInvteLinkData(args.key);
+                if (inviteData) {
                     let user = (await DB.User.findById(uid, { transaction: tx, lock: tx.LOCK.UPDATE }))!;
                     // activate user, set invited by
-                    user.invitedBy = inviteOwner.id;
+                    user.invitedBy = inviteData.uid;
                     user.status = 'ACTIVATED';
                     await user.save({ transaction: tx });
                     await Repos.Chats.addToInitialChannel(user.id!, tx);
