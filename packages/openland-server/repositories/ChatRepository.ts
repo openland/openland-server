@@ -407,6 +407,8 @@ export class ChatsRepository {
 
                 let userEvent: ConversationUserEvents;
 
+                let pending: any[] = [];
+
                 if (members.length > 0) {
                     perf.start('currentStates');
                     let currentStates = await DB.ConversationUserState.findAll({
@@ -446,25 +448,25 @@ export class ChatsRepository {
                             if (existing) {
                                 existing.unread++;
                                 userChatUnread = existing.unread;
-                                await existing.save({ transaction: tx });
+                                pending.push(existing.save({ transaction: tx }));
                             } else {
                                 userChatUnread = 1;
-                                await DB.ConversationUserState.create({
+                                pending.push(DB.ConversationUserState.create({
                                     conversationId: conversationId,
                                     userId: m,
                                     unread: 1
-                                }, { transaction: tx });
+                                }, { transaction: tx }));
                             }
                         } else {
                             if (existing) {
                                 (existing as any).changed('updatedAt', true);
-                                await existing.save({ transaction: tx });
+                                pending.push(existing.save({ transaction: tx }));
                             } else {
-                                await DB.ConversationUserState.create({
+                                pending.push(DB.ConversationUserState.create({
                                     conversationId: conversationId,
                                     userId: m,
                                     unread: 0
-                                }, { transaction: tx });
+                                }, { transaction: tx }));
                             }
                         }
 
@@ -476,27 +478,27 @@ export class ChatsRepository {
                             existingGlobal.seq++;
                             userSeq = existingGlobal.seq;
                             userUnread = existingGlobal.unread;
-                            await existingGlobal.save({ transaction: tx });
+                            pending.push(existingGlobal.save({ transaction: tx }));
                         } else {
                             if (m !== uid) {
                                 userUnread = 1;
-                                await DB.ConversationsUserGlobal.create({
+                                pending.push(DB.ConversationsUserGlobal.create({
                                     userId: m,
                                     unread: 1,
                                     seq: 1
-                                }, { transaction: tx });
+                                }, { transaction: tx }));
                             } else {
                                 userUnread = 0;
-                                await DB.ConversationsUserGlobal.create({
+                                pending.push(DB.ConversationsUserGlobal.create({
                                     userId: m,
                                     unread: 0,
                                     seq: 1
-                                }, { transaction: tx });
+                                }, { transaction: tx }));
                             }
                         }
 
                         // Write User Event
-                        let _userEvent = await DB.ConversationUserEvents.create({
+                        let _userEvent = DB.ConversationUserEvents.create({
                             userId: m,
                             seq: userSeq,
                             eventType: 'new_message',
@@ -510,13 +512,15 @@ export class ChatsRepository {
                             }
                         }, { transaction: tx });
 
-                        await Modules.Push.sendCounterPush(m, conversationId, userUnread);
+                        pending.push(Modules.Push.sendCounterPush(m, conversationId, userUnread));
 
                         if (m === uid) {
-                            userEvent = _userEvent;
+                            userEvent = await _userEvent;
+                        } else {
+                            pending.push(userEvent);
                         }
 
-                        await messageReceived.event({ cid: conversationId });
+                        pending.push(messageReceived.event({ cid: conversationId }));
                     }
                     perf.end('membersEvents');
                 }
@@ -531,6 +535,11 @@ export class ChatsRepository {
                     // Clear Draft
                     await Modules.Drafts.clearDraft(uid, conversationId);
                 });
+
+                // Wait for remaining
+                for (let p of pending) {
+                    await p;
+                }
 
                 perf.end('sendMessage');
 

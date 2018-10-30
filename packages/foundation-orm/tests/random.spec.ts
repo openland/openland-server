@@ -18,7 +18,7 @@ describe('Random', () => {
     it('should pick node id successfully', async () => {
         await withLogDisabled(async () => {
             let connections: FConnection[] = [];
-            for (let i = 0; i < 512; i++) {
+            for (let i = 0; i < 32; i++) {
                 connections.push(new FConnection(db));
             }
             let ids: Promise<number>[] = [];
