@@ -16,8 +16,8 @@ export const validators = {
         }
     },
     isString: (name: string, value: any) => {
-        if ((value !== undefined && value !== null) && typeof value !== 'string') {
-            throw new FDBValidationError('\'' + name + '\' must be a string, got: ' + value);
+        if ((value !== undefined && value !== null) && typeof value !== 'string' && typeof value !== 'number') {
+            throw new FDBValidationError('\'' + name + '\' must be a string or a number, got: ' + value);
         }
     },
     isBoolean: (name: string, value: any) => {
