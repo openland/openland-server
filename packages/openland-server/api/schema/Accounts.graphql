@@ -21,6 +21,10 @@ type InviteInfo {
     forName: String
 }
 
+type GlobalInviteInfo {
+    creator: User!
+}
+
 type InviteHistotyInfo{
     acceptedBy: User
     forEmail: String!

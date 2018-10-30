@@ -45,6 +45,18 @@ export const Resolver = {
                 forName: invite.memberFirstName,
             };
         }),
+        alphaGlobalInviteInfo: withAny<{ key: string }>(async (args, context: CallContext) => {
+            let inviteOwner = await Modules.Invites.repo.getLinkOwner(args.key);
+            if (!inviteOwner) {
+                throw new NotFoundError(ErrorText.unableToFindInvite);
+            }
+            return {
+                creator: inviteOwner,
+            };
+        }),
+        alphaGlobalInvite: withUser(async (args, uid) => {
+            return await Modules.Invites.repo.getInviteLinkKey(uid);
+        }),
         alphaInvitesHistory: withUser(async (args, uid) => {
             let invites = await DB.OrganizationInvite.findAll({ where: { creatorId: uid, isOneTime: true }, order: [['createdAt', 'DESC']] });
             return invites.map(async (invite) => {
@@ -226,7 +238,35 @@ export const Resolver = {
             if (uid === undefined) {
                 return;
             }
+
             return await DB.txStable(async (tx) => {
+
+                let inviteOwner = await Modules.Invites.repo.getLinkOwner(args.key);
+                if (inviteOwner) {
+                    let user = (await DB.User.findById(uid, { transaction: tx, lock: tx.LOCK.UPDATE }))!;
+                    // activate user, set invited by
+                    user.invitedBy = inviteOwner.id;
+                    user.status = 'ACTIVATED';
+                    await user.save({ transaction: tx });
+                    await Repos.Chats.addToInitialChannel(user.id!, tx);
+
+                    // activate user org if have one
+                    let org = context.oid ? (await DB.Organization.findById(context.oid, { transaction: tx, lock: tx.LOCK.UPDATE })) : undefined;
+                    if (org) {
+                        org.status = 'ACTIVATED';
+                        await org.save({ transaction: tx });
+                    }
+
+                    return 'ok';
+                } else {
+                    // todo: enable after drop depricated
+                    // throw new NotFoundError(ErrorText.unableToFindInvite);
+                }
+
+                //
+                // DEPRICATED
+                // 
+
                 let invite = await DB.OrganizationInvite.find({
                     where: {
                         uuid: args.key,
