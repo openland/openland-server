@@ -4,6 +4,9 @@ import Timer = NodeJS.Timer;
 import { createIterator } from '../openland-server/utils/asyncIterator';
 import { Pubsub, PubsubSubcription } from '../openland-server/modules/pubsub';
 import { AllEntities } from '../openland-module-db/schema';
+import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent';
+
+const presenceEvent = createHyperlogger<{ uid: number, online: boolean }>('presence');
 
 export interface OnlineEvent {
     userId: number;
@@ -43,6 +46,8 @@ export class PresenceModule {
             } else if (online.lastSeen < expires) {
                 online.lastSeen = expires;
             }
+
+            await presenceEvent.event({ uid, online: true });
         });
     }
 
