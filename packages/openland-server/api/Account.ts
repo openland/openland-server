@@ -48,7 +48,7 @@ export const Resolver = {
         alphaAppInviteInfo: withAny<{ key: string }>(async (args, context: CallContext) => {
             let invite = await Modules.Invites.repo.getInvteLinkData(args.key);
             if (!invite) {
-                throw new NotFoundError(ErrorText.unableToFindInvite);
+                return null;
             }
             let inviter = await DB.User.findById(invite.uid);
             return {
