@@ -53,7 +53,7 @@ export function startPushNotificationWorker() {
                     }
 
                     // Pause notifications till 1 minute passes from last active timeout
-                    if (lastSeen > (now - Delays[settings.notificationsDelay])) {
+                    if (lastSeen > (now - Delays[settings.notificationsDelay || 'none'])) {
                         return;
                     }
                     // }

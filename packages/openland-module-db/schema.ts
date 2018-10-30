@@ -1498,7 +1498,7 @@ export interface UserSettingsShape {
     mobileNotifications: 'all' | 'direct' | 'none';
     mobileAlert?: boolean| null;
     mobileIncludeText?: boolean| null;
-    notificationsDelay: 'none' | '1min' | '15min';
+    notificationsDelay?: 'none' | '1min' | '15min'| null;
 }
 
 export class UserSettings extends FEntity {
@@ -1552,10 +1552,12 @@ export class UserSettings extends FEntity {
         this._value.mobileIncludeText = value;
         this.markDirty();
     }
-    get notificationsDelay(): 'none' | '1min' | '15min' {
-        return this._value.notificationsDelay;
+    get notificationsDelay(): 'none' | '1min' | '15min' | null {
+        let res = this._value.notificationsDelay;
+        if (res) { return res; }
+        return null;
     }
-    set notificationsDelay(value: 'none' | '1min' | '15min') {
+    set notificationsDelay(value: 'none' | '1min' | '15min' | null) {
         this._checkIsWritable();
         if (value === this._value.notificationsDelay) { return; }
         this._value.notificationsDelay = value;
@@ -1575,7 +1577,6 @@ export class UserSettingsFactory extends FEntityFactory<UserSettings> {
         validators.isEnum('mobileNotifications', src.mobileNotifications, ['all', 'direct', 'none']);
         validators.isBoolean('mobileAlert', src.mobileAlert);
         validators.isBoolean('mobileIncludeText', src.mobileIncludeText);
-        validators.notNull('notificationsDelay', src.notificationsDelay);
         validators.isEnum('notificationsDelay', src.notificationsDelay, ['none', '1min', '15min']);
     }
 

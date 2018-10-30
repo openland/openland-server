@@ -26,7 +26,7 @@ export function field(name: string, type: 'number' | 'string' | 'boolean' | 'jso
 }
 
 export function enumField(name: string, values: string[]) {
-    currentEntity!!.addField(name, 'enum', values);
+    return currentEntity!!.addField(name, 'enum', values);
 }
 
 export function primaryKey(name: string, type: 'number' | 'string') {
