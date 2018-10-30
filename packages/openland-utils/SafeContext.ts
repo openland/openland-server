@@ -53,6 +53,9 @@ async_hooks.createHook({
             return;
         }
     },
+    destroy: (asyncId) => {
+        delete contexts[asyncId];
+    }
     // before: (asyncId) => {
     //     contexts[-1][asyncId] = hrtime();
     // },
