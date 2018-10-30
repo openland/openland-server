@@ -158,6 +158,10 @@ export function generateEntity(entity: EntityModel): string {
             res += '        return await this._findRange([' + ['\'__indexes\'', '\'' + i.name + '\'', ...fs].join(', ') + '], limit, reversed);\n';
             res += '    }\n';
 
+            res += '    async rangeFrom' + Case.pascalCase(i.name) + 'WithCursor(' + [...fs.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v))), 'limit: number', 'after?: string', 'reversed?: boolean'].join(', ') + ') {\n';
+            res += '        return await this._findRangeWithCursor([' + ['\'__indexes\'', '\'' + i.name + '\'', ...fs].join(', ') + '], limit, after, reversed);\n';
+            res += '    }\n';
+
             res += '    async allFrom' + Case.pascalCase(i.name) + '(' + [...fs.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v)))].join(', ') + ') {\n';
             res += '        return await this._findAll([' + ['\'__indexes\'', '\'' + i.name + '\'', ...fs].join(', ') + ']);\n';
             res += '    }\n';

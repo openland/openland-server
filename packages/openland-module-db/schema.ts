@@ -526,6 +526,9 @@ export class TaskFactory extends FEntityFactory<Task> {
     async rangeFromPending(taskType: string, limit: number, reversed?: boolean) {
         return await this._findRange(['__indexes', 'pending', taskType], limit, reversed);
     }
+    async rangeFromPendingWithCursor(taskType: string, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'pending', taskType], limit, after, reversed);
+    }
     async allFromPending(taskType: string) {
         return await this._findAll(['__indexes', 'pending', taskType]);
     }
@@ -535,6 +538,9 @@ export class TaskFactory extends FEntityFactory<Task> {
     async rangeFromExecuting(limit: number, reversed?: boolean) {
         return await this._findRange(['__indexes', 'executing'], limit, reversed);
     }
+    async rangeFromExecutingWithCursor(limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'executing'], limit, after, reversed);
+    }
     async allFromExecuting() {
         return await this._findAll(['__indexes', 'executing']);
     }
@@ -543,6 +549,9 @@ export class TaskFactory extends FEntityFactory<Task> {
     }
     async rangeFromFailing(limit: number, reversed?: boolean) {
         return await this._findRange(['__indexes', 'failing'], limit, reversed);
+    }
+    async rangeFromFailingWithCursor(limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'failing'], limit, after, reversed);
     }
     async allFromFailing() {
         return await this._findAll(['__indexes', 'failing']);
@@ -673,6 +682,9 @@ export class PushFirebaseFactory extends FEntityFactory<PushFirebase> {
     }
     async rangeFromUser(uid: number, limit: number, reversed?: boolean) {
         return await this._findRange(['__indexes', 'user', uid], limit, reversed);
+    }
+    async rangeFromUserWithCursor(uid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'user', uid], limit, after, reversed);
     }
     async allFromUser(uid: number) {
         return await this._findAll(['__indexes', 'user', uid]);
@@ -807,6 +819,9 @@ export class PushAppleFactory extends FEntityFactory<PushApple> {
     async rangeFromUser(uid: number, limit: number, reversed?: boolean) {
         return await this._findRange(['__indexes', 'user', uid], limit, reversed);
     }
+    async rangeFromUserWithCursor(uid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'user', uid], limit, after, reversed);
+    }
     async allFromUser(uid: number) {
         return await this._findAll(['__indexes', 'user', uid]);
     }
@@ -915,6 +930,9 @@ export class PushWebFactory extends FEntityFactory<PushWeb> {
     }
     async rangeFromUser(uid: number, limit: number, reversed?: boolean) {
         return await this._findRange(['__indexes', 'user', uid], limit, reversed);
+    }
+    async rangeFromUserWithCursor(uid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'user', uid], limit, after, reversed);
     }
     async allFromUser(uid: number) {
         return await this._findAll(['__indexes', 'user', uid]);
@@ -1205,6 +1223,9 @@ export class UserProfileFactory extends FEntityFactory<UserProfile> {
     async rangeFromByUpdatedAt(limit: number, reversed?: boolean) {
         return await this._findRange(['__indexes', 'byUpdatedAt'], limit, reversed);
     }
+    async rangeFromByUpdatedAtWithCursor(limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'byUpdatedAt'], limit, after, reversed);
+    }
     async allFromByUpdatedAt() {
         return await this._findAll(['__indexes', 'byUpdatedAt']);
     }
@@ -1336,6 +1357,9 @@ export class OrganizationFeaturesFactory extends FEntityFactory<OrganizationFeat
     }
     async rangeFromOrganization(organizationId: number, limit: number, reversed?: boolean) {
         return await this._findRange(['__indexes', 'organization', organizationId], limit, reversed);
+    }
+    async rangeFromOrganizationWithCursor(organizationId: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'organization', organizationId], limit, after, reversed);
     }
     async allFromOrganization(organizationId: number) {
         return await this._findAll(['__indexes', 'organization', organizationId]);
@@ -2048,6 +2072,9 @@ export class MessageFactory extends FEntityFactory<Message> {
     async rangeFromChat(cid: string, limit: number, reversed?: boolean) {
         return await this._findRange(['__indexes', 'chat', cid], limit, reversed);
     }
+    async rangeFromChatWithCursor(cid: string, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'chat', cid], limit, after, reversed);
+    }
     async allFromChat(cid: string) {
         return await this._findAll(['__indexes', 'chat', cid]);
     }
@@ -2260,6 +2287,9 @@ export class UserDialogFactory extends FEntityFactory<UserDialog> {
     }
     async rangeFromUser(uid: number, limit: number, reversed?: boolean) {
         return await this._findRange(['__indexes', 'user', uid], limit, reversed);
+    }
+    async rangeFromUserWithCursor(uid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'user', uid], limit, after, reversed);
     }
     async allFromUser(uid: number) {
         return await this._findAll(['__indexes', 'user', uid]);
@@ -2653,6 +2683,9 @@ export class HyperLogFactory extends FEntityFactory<HyperLog> {
     async rangeFromCreated(limit: number, reversed?: boolean) {
         return await this._findRange(['__indexes', 'created'], limit, reversed);
     }
+    async rangeFromCreatedWithCursor(limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'created'], limit, after, reversed);
+    }
     async allFromCreated() {
         return await this._findAll(['__indexes', 'created']);
     }
@@ -2849,6 +2882,9 @@ export class ChannelInvitationFactory extends FEntityFactory<ChannelInvitation> 
     async rangeFromChannel(createdAt: number, limit: number, reversed?: boolean) {
         return await this._findRange(['__indexes', 'channel', createdAt], limit, reversed);
     }
+    async rangeFromChannelWithCursor(createdAt: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'channel', createdAt], limit, after, reversed);
+    }
     async allFromChannel(createdAt: number) {
         return await this._findAll(['__indexes', 'channel', createdAt]);
     }
@@ -2929,6 +2965,9 @@ export class ChannelLinkFactory extends FEntityFactory<ChannelLink> {
     }
     async rangeFromChannel(createdAt: number, limit: number, reversed?: boolean) {
         return await this._findRange(['__indexes', 'channel', createdAt], limit, reversed);
+    }
+    async rangeFromChannelWithCursor(createdAt: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'channel', createdAt], limit, after, reversed);
     }
     async allFromChannel(createdAt: number) {
         return await this._findAll(['__indexes', 'channel', createdAt]);

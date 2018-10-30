@@ -52,6 +52,28 @@ export abstract class FEntityFactory<T extends FEntity> {
         return res.map((v) => this.doCreateEntity(v.item, false));
     }
 
+    protected async _findRangeWithCursor(key: (string | number)[], limit: number, after?: string, reverse?: boolean) {
+        if (after) {
+            let res = await this.namespace.rangeAfter(this.connection, key, FKeyEncoding.decodeFromString(after) as any, { limit, reverse });
+            let d: T[] = [];
+            let cursor: string | undefined;
+            for (let r of res) {
+                d.push(this._createEntity(r.item, false));
+                cursor = FKeyEncoding.encodeKeyToString(r.key);
+            }
+            return { items: d, cursor };
+        } else {
+            let res = await this.namespace.range(this.connection, key, { limit, reverse });
+            let d: T[] = [];
+            let cursor: string | undefined;
+            for (let r of res) {
+                d.push(this._createEntity(r.item, false));
+                cursor = FKeyEncoding.encodeKeyToString(r.key);
+            }
+            return { items: d, cursor };
+        }
+    }
+
     protected async _findRangeAfter(subspace: (string | number)[], after?: string, limit?: number) {
         if (after) {
             let res = await this.namespace.rangeAfter(this.connection, subspace, FKeyEncoding.decodeFromString(after) as any, { limit });

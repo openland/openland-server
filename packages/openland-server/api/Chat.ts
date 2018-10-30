@@ -34,6 +34,7 @@ import { UserProfile } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
 import { TypingEvent } from 'openland-module-typings/TypingEvent';
 import { withLogContext } from 'openland-log/withLogContext';
+import { FDB } from 'openland-module-db/FDB';
 
 export const Resolver = {
     Conversation: {
@@ -59,7 +60,7 @@ export const Resolver = {
         title: (src: Conversation) => src.title,
         photos: (src: Conversation) => [],
         unreadCount: async (src: Conversation, _: any, context: CallContext) => {
-            let state = await DB.ConversationUserState.find({ where: { conversationId: src.id, userId: context.uid!! } });
+            let state = await FDB.UserDialog.findById(context.uid!!, src.id);
             if (state) {
                 return state.unread;
             } else {
@@ -119,7 +120,7 @@ export const Resolver = {
             }
         },
         unreadCount: async (src: Conversation, _: any, context: CallContext) => {
-            let state = await DB.ConversationUserState.find({ where: { conversationId: src.id, userId: context.uid!! } });
+            let state = await FDB.UserDialog.findById(context.uid!!, src.id);
             if (state) {
                 return state.unread;
             } else {
@@ -185,7 +186,7 @@ export const Resolver = {
             }
         },
         unreadCount: async (src: Conversation, _: any, context: CallContext) => {
-            let state = await DB.ConversationUserState.find({ where: { conversationId: src.id, userId: context.uid!! } });
+            let state = await FDB.UserDialog.findById(context.uid!!, src.id);
             if (state) {
                 return state.unread;
             } else {
@@ -273,7 +274,7 @@ export const Resolver = {
             return res.map((v) => DB.User.findById(v.userId));
         },
         unreadCount: async (src: Conversation, _: any, context: CallContext) => {
-            let state = await DB.ConversationUserState.find({ where: { conversationId: src.id, userId: context.uid!! } });
+            let state = await FDB.UserDialog.findById(context.uid!!, src.id);
             if (state) {
                 return state.unread;
             } else {
@@ -632,26 +633,13 @@ export const Resolver = {
                 if (args.seq !== undefined && args.seq !== null && args.seq !== seq) {
                     throw new Error('Inconsistent request');
                 }
-                let conversations = await DB.ConversationUserState.findAll({
-                    where: {
-                        userId: uid,
-                        ...args.after ? {
-                            updatedAt: {
-                                $lte: args.after
-                            }
-                        } : {},
-                    },
-                    order: [['updatedAt', 'DESC']],
-                    limit: args.first + 1,
-                    include: [{
-                        model: DB.Conversation,
-                        as: 'conversation'
-                    }]
-                });
+                let conversations =
+                    await FDB.UserDialog
+                        .rangeFromUserWithCursor(uid, args.first, args.after ? args.after : undefined, true);
                 return {
-                    conversations: conversations.map((v) => v.conversation!!).filter((c, i) => i < args.first),
+                    conversations: conversations.items.map((v) => DB.Conversation.findById(v.cid)),
                     seq: seq,
-                    next: conversations.length > args.first ? conversations[args.first - 1].updatedAt : null,
+                    next: conversations.items.length > args.first ? conversations.cursor : null,
                     counter: uid
                 };
             });
@@ -1822,7 +1810,7 @@ export const Resolver = {
                         role: member === uid ? 'creator' : 'member'
                     }, { transaction: tx });
                 }
-                
+
                 await Repos.Chats.sendMessage(tx, conv.id, uid, { message: args.message });
 
                 return {
