@@ -105,7 +105,6 @@ class ChatsEventReader {
     }
 
     private notify = (chatId: number, seq: number) => {
-        console.warn('[' + chatId + ']: ' + seq);
         if (this.pending.has(chatId)) {
             let callbacks = this.pending.get(chatId)!!;
             if (callbacks.length > 0) {

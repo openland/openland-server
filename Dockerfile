@@ -24,4 +24,4 @@ EXPOSE 9000
 WORKDIR /app/build
 ENV NODE_ENV=production
 ENV BLUEBIRD_LONG_STACK_TRACES=0
-CMD [ "node", "--trace_gc", "--max_old_space_size=1024", "openland-server/index.js" ]
+CMD [ "node", "--trace_gc", "--max_old_space_size=1024", "--nouse-idle-notification", "openland-server/index.js" ]

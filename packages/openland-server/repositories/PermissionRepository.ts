@@ -10,7 +10,6 @@ export class PermissionRepository {
     async resolvePermissions(args: { uid: number | null | undefined, oid: number | null | undefined }) {
         let permissions = new Set<string>();
 
-        console.log(args);
         //
         // User Based Permissions
         //
@@ -21,10 +20,8 @@ export class PermissionRepository {
             }
             permissions.add('viewer');
 
-            console.log(1111, args.uid);
             // Super Role
             let superRole = await this.superRole(args.uid);
-            console.log(superRole);
             if (superRole !== false) {
                 permissions.add(superRole);
                 if (superRole === 'super-admin') {

@@ -1,10 +1,10 @@
 import async_hooks from 'async_hooks';
 const ENABLE_DEBUG = false;
 
-function hrtime() {
-    const t = process.hrtime();
-    return t[0] * 1000000 + t[1] / 1000;
-}
+// function hrtime() {
+//     const t = process.hrtime();
+//     return t[0] * 1000000 + t[1] / 1000;
+// }
 // const asyncHooksRegEx = /\((internal\/)?async_hooks\.js:/;
 
 // function cleanStack(stack: any) {
@@ -29,7 +29,7 @@ async_hooks.createHook({
 
         let currentId = async_hooks.executionAsyncId();
 
-        contexts[-1][asyncId] = {};
+        // contexts[-1][asyncId] = {};
 
         // JS based callback/promise
         if (currentId !== 0) {
@@ -53,18 +53,18 @@ async_hooks.createHook({
             return;
         }
     },
-    before: (asyncId) => {
-        contexts[-1][asyncId] = hrtime();
-    },
-    after: (asyncId) => {
-        let ex = contexts[-1][asyncId];
-        if (ex) {
-            let delta = (hrtime() - ex) / 1000;
-            if (delta > 20) {
-                setImmediate(() => console.warn('Event loop blocked for ' + delta + ' ms'));
-            }
-        }
-    }
+    // before: (asyncId) => {
+    //     contexts[-1][asyncId] = hrtime();
+    // },
+    // after: (asyncId) => {
+    //     let ex = contexts[-1][asyncId];
+    //     if (ex) {
+    //         let delta = (hrtime() - ex) / 1000;
+    //         if (delta > 20) {
+    //             setImmediate(() => console.warn('Event loop blocked for ' + delta + ' ms'));
+    //         }
+    //     }
+    // }
 }).enable();
 
 export function logContext(point: string) {
