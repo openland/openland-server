@@ -8,6 +8,7 @@ import { ChannelRepository } from './repositories/ChannelRepository';
 import { inTx } from 'foundation-orm/inTx';
 import { ChannelInviteEmails } from './emails/ChannelInviteEmails';
 import { createDeliveryWorker } from './workers/DeliveryWorker';
+import { startDialogStatsExporting } from './Migrator';
 
 export interface MessageInput {
     repeatToken?: string | null;
@@ -35,6 +36,7 @@ export class MessagingModule {
         if (serverRoleEnabled('workers')) {
             startPushNotificationWorker();
         }
+        startDialogStatsExporting();
     }
 
     async resolveInvite(id: string) {

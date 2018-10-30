@@ -268,6 +268,17 @@ const Schema = declareSchema(() => {
     // User Messaging state
     //
 
+    entity('UserDialog', () => {
+        primaryKey('uid', 'number');
+        primaryKey('cid', 'number');
+        field('unread', 'number');
+        field('readMessageId', 'number').nullable();
+        field('date', 'number').nullable();
+        rangeIndex('user', ['uid', 'date']).withCondition((src) => !!src.date);
+        enableTimestamps();
+        enableVersioning();
+    });
+
     entity('UserMessagingState', () => {
         primaryKey('uid', 'number');
         field('seq', 'number');

@@ -523,8 +523,8 @@ export class TaskFactory extends FEntityFactory<Task> {
     watch(taskType: string, uid: string, cb: () => void) {
         return this._watch([taskType, uid], cb);
     }
-    async rangeFromPending(taskType: string, limit: number) {
-        return await this._findRange(['__indexes', 'pending', taskType], limit);
+    async rangeFromPending(taskType: string, limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'pending', taskType], limit, reversed);
     }
     async allFromPending(taskType: string) {
         return await this._findAll(['__indexes', 'pending', taskType]);
@@ -532,8 +532,8 @@ export class TaskFactory extends FEntityFactory<Task> {
     createPendingStream(limit: number, after?: string) {
         return this._createStream(['entity', 'task', '__indexes', 'pending'], limit, after); 
     }
-    async rangeFromExecuting(limit: number) {
-        return await this._findRange(['__indexes', 'executing'], limit);
+    async rangeFromExecuting(limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'executing'], limit, reversed);
     }
     async allFromExecuting() {
         return await this._findAll(['__indexes', 'executing']);
@@ -541,8 +541,8 @@ export class TaskFactory extends FEntityFactory<Task> {
     createExecutingStream(limit: number, after?: string) {
         return this._createStream(['entity', 'task', '__indexes', 'executing'], limit, after); 
     }
-    async rangeFromFailing(limit: number) {
-        return await this._findRange(['__indexes', 'failing'], limit);
+    async rangeFromFailing(limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'failing'], limit, reversed);
     }
     async allFromFailing() {
         return await this._findAll(['__indexes', 'failing']);
@@ -671,8 +671,8 @@ export class PushFirebaseFactory extends FEntityFactory<PushFirebase> {
     watch(id: string, cb: () => void) {
         return this._watch([id], cb);
     }
-    async rangeFromUser(uid: number, limit: number) {
-        return await this._findRange(['__indexes', 'user', uid], limit);
+    async rangeFromUser(uid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'user', uid], limit, reversed);
     }
     async allFromUser(uid: number) {
         return await this._findAll(['__indexes', 'user', uid]);
@@ -804,8 +804,8 @@ export class PushAppleFactory extends FEntityFactory<PushApple> {
     watch(id: string, cb: () => void) {
         return this._watch([id], cb);
     }
-    async rangeFromUser(uid: number, limit: number) {
-        return await this._findRange(['__indexes', 'user', uid], limit);
+    async rangeFromUser(uid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'user', uid], limit, reversed);
     }
     async allFromUser(uid: number) {
         return await this._findAll(['__indexes', 'user', uid]);
@@ -913,8 +913,8 @@ export class PushWebFactory extends FEntityFactory<PushWeb> {
     watch(id: string, cb: () => void) {
         return this._watch([id], cb);
     }
-    async rangeFromUser(uid: number, limit: number) {
-        return await this._findRange(['__indexes', 'user', uid], limit);
+    async rangeFromUser(uid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'user', uid], limit, reversed);
     }
     async allFromUser(uid: number) {
         return await this._findAll(['__indexes', 'user', uid]);
@@ -1202,8 +1202,8 @@ export class UserProfileFactory extends FEntityFactory<UserProfile> {
     watch(id: number, cb: () => void) {
         return this._watch([id], cb);
     }
-    async rangeFromByUpdatedAt(limit: number) {
-        return await this._findRange(['__indexes', 'byUpdatedAt'], limit);
+    async rangeFromByUpdatedAt(limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'byUpdatedAt'], limit, reversed);
     }
     async allFromByUpdatedAt() {
         return await this._findAll(['__indexes', 'byUpdatedAt']);
@@ -1334,8 +1334,8 @@ export class OrganizationFeaturesFactory extends FEntityFactory<OrganizationFeat
     async findFromOrganization(organizationId: number, featureKey: string) {
         return await this._findById(['__indexes', 'organization', organizationId, featureKey]);
     }
-    async rangeFromOrganization(organizationId: number, limit: number) {
-        return await this._findRange(['__indexes', 'organization', organizationId], limit);
+    async rangeFromOrganization(organizationId: number, limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'organization', organizationId], limit, reversed);
     }
     async allFromOrganization(organizationId: number) {
         return await this._findAll(['__indexes', 'organization', organizationId]);
@@ -2045,8 +2045,8 @@ export class MessageFactory extends FEntityFactory<Message> {
     watch(id: string, cb: () => void) {
         return this._watch([id], cb);
     }
-    async rangeFromChat(cid: string, limit: number) {
-        return await this._findRange(['__indexes', 'chat', cid], limit);
+    async rangeFromChat(cid: string, limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'chat', cid], limit, reversed);
     }
     async allFromChat(cid: string) {
         return await this._findAll(['__indexes', 'chat', cid]);
@@ -2183,6 +2183,92 @@ export class ConversationEventFactory extends FEntityFactory<ConversationEvent> 
     }
     protected _createEntity(value: any, isNew: boolean) {
         return new ConversationEvent(this.connection, this.namespace, [value.cid, value.seq], value, this.options, isNew, this.indexes);
+    }
+}
+export interface UserDialogShape {
+    unread: number;
+    readMessageId?: number| null;
+    date?: number| null;
+}
+
+export class UserDialog extends FEntity {
+    get uid(): number { return this._value.uid; }
+    get cid(): number { return this._value.cid; }
+    get unread(): number {
+        return this._value.unread;
+    }
+    set unread(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.unread) { return; }
+        this._value.unread = value;
+        this.markDirty();
+    }
+    get readMessageId(): number | null {
+        let res = this._value.readMessageId;
+        if (res) { return res; }
+        return null;
+    }
+    set readMessageId(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.readMessageId) { return; }
+        this._value.readMessageId = value;
+        this.markDirty();
+    }
+    get date(): number | null {
+        let res = this._value.date;
+        if (res) { return res; }
+        return null;
+    }
+    set date(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.date) { return; }
+        this._value.date = value;
+        this.markDirty();
+    }
+}
+
+export class UserDialogFactory extends FEntityFactory<UserDialog> {
+    private static validate(src: any) {
+        validators.notNull('uid', src.uid);
+        validators.isNumber('uid', src.uid);
+        validators.notNull('cid', src.cid);
+        validators.isNumber('cid', src.cid);
+        validators.notNull('unread', src.unread);
+        validators.isNumber('unread', src.unread);
+        validators.isNumber('readMessageId', src.readMessageId);
+        validators.isNumber('date', src.date);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'userDialog'),
+            { enableVersioning: true, enableTimestamps: true, validator: UserDialogFactory.validate },
+            [new FEntityIndex('user', ['uid', 'date'], false, (src) => !!src.date)]
+        );
+    }
+    extractId(rawId: any[]) {
+        return { 'uid': rawId[0], 'cid': rawId[1] };
+    }
+    async findById(uid: number, cid: number) {
+        return await this._findById([uid, cid]);
+    }
+    async create(uid: number, cid: number, shape: UserDialogShape) {
+        return await this._create([uid, cid], { uid, cid, ...shape });
+    }
+    watch(uid: number, cid: number, cb: () => void) {
+        return this._watch([uid, cid], cb);
+    }
+    async rangeFromUser(uid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'user', uid], limit, reversed);
+    }
+    async allFromUser(uid: number) {
+        return await this._findAll(['__indexes', 'user', uid]);
+    }
+    createUserStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'userDialog', '__indexes', 'user'], limit, after); 
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new UserDialog(this.connection, this.namespace, [value.uid, value.cid], value, this.options, isNew, this.indexes);
     }
 }
 export interface UserMessagingStateShape {
@@ -2564,8 +2650,8 @@ export class HyperLogFactory extends FEntityFactory<HyperLog> {
     watch(id: string, cb: () => void) {
         return this._watch([id], cb);
     }
-    async rangeFromCreated(limit: number) {
-        return await this._findRange(['__indexes', 'created'], limit);
+    async rangeFromCreated(limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'created'], limit, reversed);
     }
     async allFromCreated() {
         return await this._findAll(['__indexes', 'created']);
@@ -2760,8 +2846,8 @@ export class ChannelInvitationFactory extends FEntityFactory<ChannelInvitation> 
     watch(id: string, cb: () => void) {
         return this._watch([id], cb);
     }
-    async rangeFromChannel(createdAt: number, limit: number) {
-        return await this._findRange(['__indexes', 'channel', createdAt], limit);
+    async rangeFromChannel(createdAt: number, limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'channel', createdAt], limit, reversed);
     }
     async allFromChannel(createdAt: number) {
         return await this._findAll(['__indexes', 'channel', createdAt]);
@@ -2841,8 +2927,8 @@ export class ChannelLinkFactory extends FEntityFactory<ChannelLink> {
     watch(id: string, cb: () => void) {
         return this._watch([id], cb);
     }
-    async rangeFromChannel(createdAt: number, limit: number) {
-        return await this._findRange(['__indexes', 'channel', createdAt], limit);
+    async rangeFromChannel(createdAt: number, limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'channel', createdAt], limit, reversed);
     }
     async allFromChannel(createdAt: number) {
         return await this._findAll(['__indexes', 'channel', createdAt]);
@@ -2930,6 +3016,7 @@ export class AllEntities extends FDBInstance {
     ConversationSeq: ConversationSeqFactory;
     Message: MessageFactory;
     ConversationEvent: ConversationEventFactory;
+    UserDialog: UserDialogFactory;
     UserMessagingState: UserMessagingStateFactory;
     UserNotificationsState: UserNotificationsStateFactory;
     UserMessagingEvent: UserMessagingEventFactory;
@@ -2964,6 +3051,7 @@ export class AllEntities extends FDBInstance {
         this.ConversationSeq = new ConversationSeqFactory(connection);
         this.Message = new MessageFactory(connection);
         this.ConversationEvent = new ConversationEventFactory(connection);
+        this.UserDialog = new UserDialogFactory(connection);
         this.UserMessagingState = new UserMessagingStateFactory(connection);
         this.UserNotificationsState = new UserNotificationsStateFactory(connection);
         this.UserMessagingEvent = new UserMessagingEventFactory(connection);
