@@ -86,6 +86,7 @@ export abstract class FEntityFactory<T extends FEntity> {
 
     private doCreateEntity(value: any, isNew: boolean): T {
         try {
+            this.options.validator(value);
             return this._createEntity(value, isNew);
         } catch (e) {
             log.warn('Unable to create entity from ', JSON.stringify(value), e);

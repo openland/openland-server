@@ -5,6 +5,7 @@ import { FEntityIndex } from 'foundation-orm/FEntityIndex';
 import { FNamespace } from 'foundation-orm/FNamespace';
 import { FEntityFactory } from 'foundation-orm/FEntityFactory';
 import { FConnection } from 'foundation-orm/FConnection';
+import { validators } from 'foundation-orm/utils/validators';
 
 export interface SimpleEntityShape {
     data: string;
@@ -24,10 +25,17 @@ export class SimpleEntity extends FEntity {
 }
 
 export class SimpleEntityFactory extends FEntityFactory<SimpleEntity> {
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isNumber('id', src.id);
+        validators.notNull('data', src.data);
+        validators.isString('data', src.data);
+    }
+
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'simpleEntity'),
-            { enableVersioning: false, enableTimestamps: false },
+            { enableVersioning: false, enableTimestamps: false, validator: SimpleEntityFactory.validate },
             []
         );
     }
@@ -65,10 +73,17 @@ export class VersionedEntity extends FEntity {
 }
 
 export class VersionedEntityFactory extends FEntityFactory<VersionedEntity> {
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isNumber('id', src.id);
+        validators.notNull('data', src.data);
+        validators.isString('data', src.data);
+    }
+
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'versionedEntity'),
-            { enableVersioning: true, enableTimestamps: false },
+            { enableVersioning: true, enableTimestamps: false, validator: VersionedEntityFactory.validate },
             []
         );
     }
@@ -106,10 +121,17 @@ export class TimestampedEntity extends FEntity {
 }
 
 export class TimestampedEntityFactory extends FEntityFactory<TimestampedEntity> {
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isNumber('id', src.id);
+        validators.notNull('data', src.data);
+        validators.isString('data', src.data);
+    }
+
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'timestampedEntity'),
-            { enableVersioning: false, enableTimestamps: true },
+            { enableVersioning: false, enableTimestamps: true, validator: TimestampedEntityFactory.validate },
             []
         );
     }
@@ -167,10 +189,21 @@ export class IndexedEntity extends FEntity {
 }
 
 export class IndexedEntityFactory extends FEntityFactory<IndexedEntity> {
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isNumber('id', src.id);
+        validators.notNull('data1', src.data1);
+        validators.isString('data1', src.data1);
+        validators.notNull('data2', src.data2);
+        validators.isString('data2', src.data2);
+        validators.notNull('data3', src.data3);
+        validators.isString('data3', src.data3);
+    }
+
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'indexedEntity'),
-            { enableVersioning: false, enableTimestamps: false },
+            { enableVersioning: false, enableTimestamps: false, validator: IndexedEntityFactory.validate },
             [new FEntityIndex('default', ['data1', 'data2', 'id'], true)]
         );
     }
@@ -231,10 +264,21 @@ export class IndexedRangeEntity extends FEntity {
 }
 
 export class IndexedRangeEntityFactory extends FEntityFactory<IndexedRangeEntity> {
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isNumber('id', src.id);
+        validators.notNull('data1', src.data1);
+        validators.isString('data1', src.data1);
+        validators.notNull('data2', src.data2);
+        validators.isString('data2', src.data2);
+        validators.notNull('data3', src.data3);
+        validators.isString('data3', src.data3);
+    }
+
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'indexedRangeEntity'),
-            { enableVersioning: false, enableTimestamps: false },
+            { enableVersioning: false, enableTimestamps: false, validator: IndexedRangeEntityFactory.validate },
             [new FEntityIndex('default', ['data1', 'data2'], false)]
         );
     }
@@ -301,10 +345,21 @@ export class IndexedPartialEntity extends FEntity {
 }
 
 export class IndexedPartialEntityFactory extends FEntityFactory<IndexedPartialEntity> {
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isNumber('id', src.id);
+        validators.notNull('data1', src.data1);
+        validators.isString('data1', src.data1);
+        validators.notNull('data2', src.data2);
+        validators.isString('data2', src.data2);
+        validators.notNull('data3', src.data3);
+        validators.isString('data3', src.data3);
+    }
+
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'indexedPartialEntity'),
-            { enableVersioning: false, enableTimestamps: false },
+            { enableVersioning: false, enableTimestamps: false, validator: IndexedPartialEntityFactory.validate },
             [new FEntityIndex('default', ['data1', 'data2', 'id'], true, (src) => src.data1 === 'hello')]
         );
     }

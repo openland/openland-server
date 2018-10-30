@@ -7,6 +7,7 @@ import { createLogger } from 'openland-log/createLogger';
 export interface FEntityOptions {
     enableVersioning: boolean;
     enableTimestamps: boolean;
+    validator: (value: any) => void;
 }
 
 const log = createLogger('FEntity');
@@ -119,7 +120,14 @@ export class FEntity {
                 }
                 value.updatedAt = now;
             }
+
+            // Validate
+            this.options.validator(value);
+
+            // Write to the store
             await this.namespace.set(this.connection, this.rawId, value);
+
+            // Create or Update indexes
             if (this.isNew) {
                 log.debug('created', JSON.stringify({ entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: value }));
                 for (let index of this.indexes) {

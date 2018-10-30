@@ -92,10 +92,38 @@ export function generateEntity(entity: EntityModel): string {
         return 'new FEntityIndex(\'' + index.name + '\', [' + index.fields.map((v2) => '\'' + v2 + '\'').join(', ') + '], ' + index.unique + condition + ')';
     }
     res += 'export class ' + entityClass + 'Factory extends FEntityFactory<' + entityClass + '> {\n';
+    res += '    private static validate(src: any) {\n';
+    for (let k of entity.keys) {
+        res += '        validators.notNull(\'' + k.name + '\', src.' + k.name + ');\n';
+        if (k.type === 'string') {
+            res += '        validators.isString(\'' + k.name + '\', src.' + k.name + ');\n';
+        } else if (k.type === 'number') {
+            res += '        validators.isNumber(\'' + k.name + '\', src.' + k.name + ');\n';
+        } else {
+            throw Error('Unsupported key type');
+        }
+    }
+    for (let k of entity.fields) {
+        if (!k.isNullable) {
+            res += '        validators.notNull(\'' + k.name + '\', src.' + k.name + ');\n';
+        }
+        if (k.type === 'string') {
+            res += '        validators.isString(\'' + k.name + '\', src.' + k.name + ');\n';
+        } else if (k.type === 'number') {
+            res += '        validators.isNumber(\'' + k.name + '\', src.' + k.name + ');\n';
+        } else if (k.type === 'boolean') {
+            res += '        validators.isBoolean(\'' + k.name + '\', src.' + k.name + ');\n';
+        } else if (k.type === 'json') {
+            // Nothing to validate
+        } else if (k.type === 'enum') {
+            res += '        validators.isEnum(\'' + k.name + '\', src.' + k.name + ', [' + k.enumValues.map((v) => `'${v}'`).join(', ') + ']);\n';
+        }
+    }
+    res += '    }\n\n';
     res += '    constructor(connection: FConnection) {\n';
     res += '        super(connection,\n';
     res += '            new FNamespace(\'entity\', \'' + entityKey + '\'),\n';
-    res += '            { enableVersioning: ' + entity.enableVersioning + ', enableTimestamps: ' + entity.enableTimestamps + ' },\n';
+    res += '            { enableVersioning: ' + entity.enableVersioning + ', enableTimestamps: ' + entity.enableTimestamps + ', validator: ' + entityClass + 'Factory.validate },\n';
     res += '            [' + entity.indexes.map(buildIndex).join(', ') + ']\n';
     res += '        );\n';
     res += '    }\n';

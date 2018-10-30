@@ -11,6 +11,7 @@ export function generate(model: SchemaModel, path: string) {
     res += 'import { FNamespace } from \'foundation-orm/FNamespace\';\n';
     res += 'import { FEntityFactory } from \'foundation-orm/FEntityFactory\';\n';
     res += 'import { FConnection } from \'foundation-orm/FConnection\';\n';
+    res += 'import { validators } from \'foundation-orm/utils/validators\';\n';
     res += '\n';
     for (let e of model.entities) {
         res += generateEntity(e);

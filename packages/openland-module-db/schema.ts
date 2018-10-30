@@ -5,6 +5,7 @@ import { FEntityIndex } from 'foundation-orm/FEntityIndex';
 import { FNamespace } from 'foundation-orm/FNamespace';
 import { FEntityFactory } from 'foundation-orm/FEntityFactory';
 import { FConnection } from 'foundation-orm/FConnection';
+import { validators } from 'foundation-orm/utils/validators';
 
 export interface OnlineShape {
     lastSeen: number;
@@ -24,10 +25,17 @@ export class Online extends FEntity {
 }
 
 export class OnlineFactory extends FEntityFactory<Online> {
+    private static validate(src: any) {
+        validators.notNull('uid', src.uid);
+        validators.isNumber('uid', src.uid);
+        validators.notNull('lastSeen', src.lastSeen);
+        validators.isNumber('lastSeen', src.lastSeen);
+    }
+
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'online'),
-            { enableVersioning: false, enableTimestamps: false },
+            { enableVersioning: false, enableTimestamps: false, validator: OnlineFactory.validate },
             []
         );
     }
@@ -86,10 +94,23 @@ export class Presence extends FEntity {
 }
 
 export class PresenceFactory extends FEntityFactory<Presence> {
+    private static validate(src: any) {
+        validators.notNull('uid', src.uid);
+        validators.isNumber('uid', src.uid);
+        validators.notNull('tid', src.tid);
+        validators.isString('tid', src.tid);
+        validators.notNull('lastSeen', src.lastSeen);
+        validators.isNumber('lastSeen', src.lastSeen);
+        validators.notNull('lastSeenTimeout', src.lastSeenTimeout);
+        validators.isNumber('lastSeenTimeout', src.lastSeenTimeout);
+        validators.notNull('platform', src.platform);
+        validators.isString('platform', src.platform);
+    }
+
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'presence'),
-            { enableVersioning: false, enableTimestamps: false },
+            { enableVersioning: false, enableTimestamps: false, validator: PresenceFactory.validate },
             []
         );
     }
@@ -127,10 +148,17 @@ export class Counter extends FEntity {
 }
 
 export class CounterFactory extends FEntityFactory<Counter> {
+    private static validate(src: any) {
+        validators.notNull('name', src.name);
+        validators.isString('name', src.name);
+        validators.notNull('value', src.value);
+        validators.isNumber('value', src.value);
+    }
+
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'counter'),
-            { enableVersioning: false, enableTimestamps: false },
+            { enableVersioning: false, enableTimestamps: false, validator: CounterFactory.validate },
             []
         );
     }
@@ -188,10 +216,21 @@ export class AuthToken extends FEntity {
 }
 
 export class AuthTokenFactory extends FEntityFactory<AuthToken> {
+    private static validate(src: any) {
+        validators.notNull('uuid', src.uuid);
+        validators.isString('uuid', src.uuid);
+        validators.notNull('salt', src.salt);
+        validators.isString('salt', src.salt);
+        validators.notNull('uid', src.uid);
+        validators.isNumber('uid', src.uid);
+        validators.notNull('lastIp', src.lastIp);
+        validators.isString('lastIp', src.lastIp);
+    }
+
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'authToken'),
-            { enableVersioning: true, enableTimestamps: true },
+            { enableVersioning: true, enableTimestamps: true, validator: AuthTokenFactory.validate },
             [new FEntityIndex('salt', ['salt'], true)]
         );
     }
@@ -233,10 +272,19 @@ export class ServiceCache extends FEntity {
 }
 
 export class ServiceCacheFactory extends FEntityFactory<ServiceCache> {
+    private static validate(src: any) {
+        validators.notNull('service', src.service);
+        validators.isString('service', src.service);
+        validators.notNull('key', src.key);
+        validators.isString('key', src.key);
+        validators.notNull('value', src.value);
+        validators.isString('value', src.value);
+    }
+
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'serviceCache'),
-            { enableVersioning: true, enableTimestamps: true },
+            { enableVersioning: true, enableTimestamps: true, validator: ServiceCacheFactory.validate },
             []
         );
     }
@@ -304,10 +352,23 @@ export class Lock extends FEntity {
 }
 
 export class LockFactory extends FEntityFactory<Lock> {
+    private static validate(src: any) {
+        validators.notNull('key', src.key);
+        validators.isString('key', src.key);
+        validators.notNull('seed', src.seed);
+        validators.isString('seed', src.seed);
+        validators.notNull('timeout', src.timeout);
+        validators.isNumber('timeout', src.timeout);
+        validators.notNull('version', src.version);
+        validators.isNumber('version', src.version);
+        validators.notNull('minVersion', src.minVersion);
+        validators.isNumber('minVersion', src.minVersion);
+    }
+
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'lock'),
-            { enableVersioning: false, enableTimestamps: false },
+            { enableVersioning: false, enableTimestamps: false, validator: LockFactory.validate },
             []
         );
     }
@@ -428,10 +489,25 @@ export class Task extends FEntity {
 }
 
 export class TaskFactory extends FEntityFactory<Task> {
+    private static validate(src: any) {
+        validators.notNull('taskType', src.taskType);
+        validators.isString('taskType', src.taskType);
+        validators.notNull('uid', src.uid);
+        validators.isString('uid', src.uid);
+        validators.notNull('arguments', src.arguments);
+        validators.notNull('taskStatus', src.taskStatus);
+        validators.isEnum('taskStatus', src.taskStatus, ['pending', 'executing', 'failing', 'failed', 'completed']);
+        validators.isNumber('taskFailureCount', src.taskFailureCount);
+        validators.isNumber('taskFailureTime', src.taskFailureTime);
+        validators.isString('taskLockSeed', src.taskLockSeed);
+        validators.isNumber('taskLockTimeout', src.taskLockTimeout);
+        validators.isString('taskFailureMessage', src.taskFailureMessage);
+    }
+
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'task'),
-            { enableVersioning: true, enableTimestamps: true },
+            { enableVersioning: true, enableTimestamps: true, validator: TaskFactory.validate },
             [new FEntityIndex('pending', ['taskType', 'createdAt'], false, (src) => src.taskStatus === 'pending'), new FEntityIndex('executing', ['taskLockTimeout'], false, (src) => src.taskStatus === 'executing'), new FEntityIndex('failing', ['taskFailureTime'], false, (src) => src.taskStatus === 'failing')]
         );
     }
@@ -558,10 +634,28 @@ export class PushFirebase extends FEntity {
 }
 
 export class PushFirebaseFactory extends FEntityFactory<PushFirebase> {
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isString('id', src.id);
+        validators.notNull('uid', src.uid);
+        validators.isNumber('uid', src.uid);
+        validators.notNull('tid', src.tid);
+        validators.isString('tid', src.tid);
+        validators.notNull('token', src.token);
+        validators.isString('token', src.token);
+        validators.notNull('packageId', src.packageId);
+        validators.isString('packageId', src.packageId);
+        validators.notNull('sandbox', src.sandbox);
+        validators.isBoolean('sandbox', src.sandbox);
+        validators.notNull('enabled', src.enabled);
+        validators.isBoolean('enabled', src.enabled);
+        validators.isNumber('failures', src.failures);
+    }
+
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'pushFirebase'),
-            { enableVersioning: true, enableTimestamps: true },
+            { enableVersioning: true, enableTimestamps: true, validator: PushFirebaseFactory.validate },
             [new FEntityIndex('user', ['uid', 'id'], false), new FEntityIndex('token', ['token'], true, src => src.enabled)]
         );
     }
@@ -673,10 +767,28 @@ export class PushApple extends FEntity {
 }
 
 export class PushAppleFactory extends FEntityFactory<PushApple> {
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isString('id', src.id);
+        validators.notNull('uid', src.uid);
+        validators.isNumber('uid', src.uid);
+        validators.notNull('tid', src.tid);
+        validators.isString('tid', src.tid);
+        validators.notNull('token', src.token);
+        validators.isString('token', src.token);
+        validators.notNull('bundleId', src.bundleId);
+        validators.isString('bundleId', src.bundleId);
+        validators.notNull('sandbox', src.sandbox);
+        validators.isBoolean('sandbox', src.sandbox);
+        validators.notNull('enabled', src.enabled);
+        validators.isBoolean('enabled', src.enabled);
+        validators.isNumber('failures', src.failures);
+    }
+
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'pushApple'),
-            { enableVersioning: true, enableTimestamps: true },
+            { enableVersioning: true, enableTimestamps: true, validator: PushAppleFactory.validate },
             [new FEntityIndex('user', ['uid', 'id'], false), new FEntityIndex('token', ['token'], true, src => src.enabled)]
         );
     }
@@ -768,10 +880,24 @@ export class PushWeb extends FEntity {
 }
 
 export class PushWebFactory extends FEntityFactory<PushWeb> {
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isString('id', src.id);
+        validators.notNull('uid', src.uid);
+        validators.isNumber('uid', src.uid);
+        validators.notNull('tid', src.tid);
+        validators.isString('tid', src.tid);
+        validators.notNull('endpoint', src.endpoint);
+        validators.isString('endpoint', src.endpoint);
+        validators.notNull('enabled', src.enabled);
+        validators.isBoolean('enabled', src.enabled);
+        validators.isNumber('failures', src.failures);
+    }
+
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'pushWeb'),
-            { enableVersioning: true, enableTimestamps: true },
+            { enableVersioning: true, enableTimestamps: true, validator: PushWebFactory.validate },
             [new FEntityIndex('user', ['uid', 'id'], false), new FEntityIndex('endpoint', ['endpoint'], true, src => src.enabled)]
         );
     }
@@ -847,10 +973,18 @@ export class UserProfilePrefil extends FEntity {
 }
 
 export class UserProfilePrefilFactory extends FEntityFactory<UserProfilePrefil> {
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isNumber('id', src.id);
+        validators.isString('firstName', src.firstName);
+        validators.isString('lastName', src.lastName);
+        validators.isString('picture', src.picture);
+    }
+
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'userProfilePrefil'),
-            { enableVersioning: true, enableTimestamps: true },
+            { enableVersioning: true, enableTimestamps: true, validator: UserProfilePrefilFactory.validate },
             []
         );
     }
@@ -1032,10 +1166,27 @@ export class UserProfile extends FEntity {
 }
 
 export class UserProfileFactory extends FEntityFactory<UserProfile> {
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isNumber('id', src.id);
+        validators.notNull('firstName', src.firstName);
+        validators.isString('firstName', src.firstName);
+        validators.isString('lastName', src.lastName);
+        validators.isString('phone', src.phone);
+        validators.isString('about', src.about);
+        validators.isString('website', src.website);
+        validators.isString('location', src.location);
+        validators.isString('email', src.email);
+        validators.isString('linkedin', src.linkedin);
+        validators.isString('twitter', src.twitter);
+        validators.isNumber('primaryOrganization', src.primaryOrganization);
+        validators.isString('role', src.role);
+    }
+
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'userProfile'),
-            { enableVersioning: true, enableTimestamps: true },
+            { enableVersioning: true, enableTimestamps: true, validator: UserProfileFactory.validate },
             [new FEntityIndex('byUpdatedAt', ['updatedAt'], false)]
         );
     }
@@ -1082,10 +1233,17 @@ export class FeatureFlag extends FEntity {
 }
 
 export class FeatureFlagFactory extends FEntityFactory<FeatureFlag> {
+    private static validate(src: any) {
+        validators.notNull('key', src.key);
+        validators.isString('key', src.key);
+        validators.notNull('title', src.title);
+        validators.isString('title', src.title);
+    }
+
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'featureFlag'),
-            { enableVersioning: true, enableTimestamps: true },
+            { enableVersioning: true, enableTimestamps: true, validator: FeatureFlagFactory.validate },
             []
         );
     }
@@ -1143,10 +1301,21 @@ export class OrganizationFeatures extends FEntity {
 }
 
 export class OrganizationFeaturesFactory extends FEntityFactory<OrganizationFeatures> {
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isString('id', src.id);
+        validators.notNull('featureKey', src.featureKey);
+        validators.isString('featureKey', src.featureKey);
+        validators.notNull('organizationId', src.organizationId);
+        validators.isNumber('organizationId', src.organizationId);
+        validators.notNull('enabled', src.enabled);
+        validators.isBoolean('enabled', src.enabled);
+    }
+
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'organizationFeatures'),
-            { enableVersioning: true, enableTimestamps: true },
+            { enableVersioning: true, enableTimestamps: true, validator: OrganizationFeaturesFactory.validate },
             [new FEntityIndex('organization', ['organizationId', 'featureKey'], true)]
         );
     }
@@ -1208,10 +1377,18 @@ export class ReaderState extends FEntity {
 }
 
 export class ReaderStateFactory extends FEntityFactory<ReaderState> {
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isString('id', src.id);
+        validators.notNull('cursor', src.cursor);
+        validators.isString('cursor', src.cursor);
+        validators.isNumber('version', src.version);
+    }
+
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'readerState'),
-            { enableVersioning: true, enableTimestamps: true },
+            { enableVersioning: true, enableTimestamps: true, validator: ReaderStateFactory.validate },
             []
         );
     }
@@ -1259,10 +1436,19 @@ export class SuperAdmin extends FEntity {
 }
 
 export class SuperAdminFactory extends FEntityFactory<SuperAdmin> {
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isNumber('id', src.id);
+        validators.notNull('role', src.role);
+        validators.isString('role', src.role);
+        validators.notNull('enabled', src.enabled);
+        validators.isBoolean('enabled', src.enabled);
+    }
+
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'superAdmin'),
-            { enableVersioning: false, enableTimestamps: false },
+            { enableVersioning: false, enableTimestamps: false, validator: SuperAdminFactory.validate },
             []
         );
     }
@@ -1350,10 +1536,27 @@ export class UserSettings extends FEntity {
 }
 
 export class UserSettingsFactory extends FEntityFactory<UserSettings> {
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isNumber('id', src.id);
+        validators.notNull('emailFrequency', src.emailFrequency);
+        validators.isEnum('emailFrequency', src.emailFrequency, ['1hour', '15min', 'never', '24hour', '1week']);
+        validators.notNull('desktopNotifications', src.desktopNotifications);
+        validators.isEnum('desktopNotifications', src.desktopNotifications, ['all', 'direct', 'none']);
+        validators.notNull('mobileNotifications', src.mobileNotifications);
+        validators.isEnum('mobileNotifications', src.mobileNotifications, ['all', 'direct', 'none']);
+        validators.notNull('mobileAlert', src.mobileAlert);
+        validators.isBoolean('mobileAlert', src.mobileAlert);
+        validators.notNull('mobileIncludeText', src.mobileIncludeText);
+        validators.isBoolean('mobileIncludeText', src.mobileIncludeText);
+        validators.notNull('notificationsDelay', src.notificationsDelay);
+        validators.isEnum('notificationsDelay', src.notificationsDelay, ['none', '1min', '15min']);
+    }
+
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'userSettings'),
-            { enableVersioning: true, enableTimestamps: true },
+            { enableVersioning: true, enableTimestamps: true, validator: UserSettingsFactory.validate },
             []
         );
     }
@@ -1411,10 +1614,21 @@ export class ShortnameReservation extends FEntity {
 }
 
 export class ShortnameReservationFactory extends FEntityFactory<ShortnameReservation> {
+    private static validate(src: any) {
+        validators.notNull('shortname', src.shortname);
+        validators.isString('shortname', src.shortname);
+        validators.notNull('ownerType', src.ownerType);
+        validators.isEnum('ownerType', src.ownerType, ['org', 'user']);
+        validators.notNull('ownerId', src.ownerId);
+        validators.isNumber('ownerId', src.ownerId);
+        validators.notNull('enabled', src.enabled);
+        validators.isBoolean('enabled', src.enabled);
+    }
+
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'shortnameReservation'),
-            { enableVersioning: true, enableTimestamps: true },
+            { enableVersioning: true, enableTimestamps: true, validator: ShortnameReservationFactory.validate },
             [new FEntityIndex('user', ['ownerId'], true, (src) => src.ownerType === 'user' && src.enabled), new FEntityIndex('org', ['ownerId'], true, (src) => src.ownerType === 'org' && src.enabled)]
         );
     }
@@ -1500,10 +1714,24 @@ export class AuthCodeSession extends FEntity {
 }
 
 export class AuthCodeSessionFactory extends FEntityFactory<AuthCodeSession> {
+    private static validate(src: any) {
+        validators.notNull('uid', src.uid);
+        validators.isString('uid', src.uid);
+        validators.notNull('code', src.code);
+        validators.isString('code', src.code);
+        validators.notNull('expires', src.expires);
+        validators.isNumber('expires', src.expires);
+        validators.notNull('email', src.email);
+        validators.isString('email', src.email);
+        validators.isString('tokenId', src.tokenId);
+        validators.notNull('enabled', src.enabled);
+        validators.isBoolean('enabled', src.enabled);
+    }
+
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'authCodeSession'),
-            { enableVersioning: true, enableTimestamps: true },
+            { enableVersioning: true, enableTimestamps: true, validator: AuthCodeSessionFactory.validate },
             []
         );
     }
@@ -1542,10 +1770,19 @@ export class ConversationMember extends FEntity {
 }
 
 export class ConversationMemberFactory extends FEntityFactory<ConversationMember> {
+    private static validate(src: any) {
+        validators.notNull('cid', src.cid);
+        validators.isString('cid', src.cid);
+        validators.notNull('uid', src.uid);
+        validators.isNumber('uid', src.uid);
+        validators.notNull('enabled', src.enabled);
+        validators.isBoolean('enabled', src.enabled);
+    }
+
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'conversationMember'),
-            { enableVersioning: false, enableTimestamps: false },
+            { enableVersioning: false, enableTimestamps: false, validator: ConversationMemberFactory.validate },
             [new FEntityIndex('conversationMembers', ['cid', 'uid'], true, (src) => src.enabled)]
         );
     }
@@ -1586,10 +1823,17 @@ export class ConversationSeq extends FEntity {
 }
 
 export class ConversationSeqFactory extends FEntityFactory<ConversationSeq> {
+    private static validate(src: any) {
+        validators.notNull('cid', src.cid);
+        validators.isString('cid', src.cid);
+        validators.notNull('seq', src.seq);
+        validators.isNumber('seq', src.seq);
+    }
+
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'conversationSeq'),
-            { enableVersioning: false, enableTimestamps: false },
+            { enableVersioning: false, enableTimestamps: false, validator: ConversationSeqFactory.validate },
             []
         );
     }
@@ -1763,10 +2007,29 @@ export class Message extends FEntity {
 }
 
 export class MessageFactory extends FEntityFactory<Message> {
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isString('id', src.id);
+        validators.notNull('cid', src.cid);
+        validators.isString('cid', src.cid);
+        validators.notNull('uid', src.uid);
+        validators.isNumber('uid', src.uid);
+        validators.isString('repeatToken', src.repeatToken);
+        validators.isString('text', src.text);
+        validators.isString('fileId', src.fileId);
+        validators.isString('filePreview', src.filePreview);
+        validators.notNull('isMuted', src.isMuted);
+        validators.isBoolean('isMuted', src.isMuted);
+        validators.notNull('isService', src.isService);
+        validators.isBoolean('isService', src.isService);
+        validators.notNull('deleted', src.deleted);
+        validators.isBoolean('deleted', src.deleted);
+    }
+
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'message'),
-            { enableVersioning: true, enableTimestamps: true },
+            { enableVersioning: true, enableTimestamps: true, validator: MessageFactory.validate },
             [new FEntityIndex('chat', ['cid', 'id'], false, (src) => !src.deleted)]
         );
     }
@@ -1886,10 +2149,23 @@ export class ConversationEvent extends FEntity {
 }
 
 export class ConversationEventFactory extends FEntityFactory<ConversationEvent> {
+    private static validate(src: any) {
+        validators.notNull('cid', src.cid);
+        validators.isString('cid', src.cid);
+        validators.notNull('seq', src.seq);
+        validators.isNumber('seq', src.seq);
+        validators.isNumber('userId', src.userId);
+        validators.isString('title', src.title);
+        validators.isString('photo', src.photo);
+        validators.isString('messageId', src.messageId);
+        validators.notNull('kind', src.kind);
+        validators.isEnum('kind', src.kind, ['create_message', 'update_message', 'delete_message', 'group_update', 'add_members', 'remove_members']);
+    }
+
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'conversationEvent'),
-            { enableVersioning: true, enableTimestamps: true },
+            { enableVersioning: true, enableTimestamps: true, validator: ConversationEventFactory.validate },
             []
         );
     }
@@ -1937,10 +2213,19 @@ export class UserMessagingState extends FEntity {
 }
 
 export class UserMessagingStateFactory extends FEntityFactory<UserMessagingState> {
+    private static validate(src: any) {
+        validators.notNull('uid', src.uid);
+        validators.isNumber('uid', src.uid);
+        validators.notNull('seq', src.seq);
+        validators.isNumber('seq', src.seq);
+        validators.notNull('unread', src.unread);
+        validators.isNumber('unread', src.unread);
+    }
+
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'userMessagingState'),
-            { enableVersioning: true, enableTimestamps: true },
+            { enableVersioning: true, enableTimestamps: true, validator: UserMessagingStateFactory.validate },
             []
         );
     }
@@ -2028,10 +2313,20 @@ export class UserNotificationsState extends FEntity {
 }
 
 export class UserNotificationsStateFactory extends FEntityFactory<UserNotificationsState> {
+    private static validate(src: any) {
+        validators.notNull('uid', src.uid);
+        validators.isNumber('uid', src.uid);
+        validators.isNumber('readSeq', src.readSeq);
+        validators.isNumber('lastEmailNotification', src.lastEmailNotification);
+        validators.isNumber('lastPushNotification', src.lastPushNotification);
+        validators.isNumber('lastEmailSeq', src.lastEmailSeq);
+        validators.isNumber('lastPushSeq', src.lastPushSeq);
+    }
+
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'userNotificationsState'),
-            { enableVersioning: true, enableTimestamps: true },
+            { enableVersioning: true, enableTimestamps: true, validator: UserNotificationsStateFactory.validate },
             []
         );
     }
@@ -2162,10 +2457,27 @@ export class UserMessagingEvent extends FEntity {
 }
 
 export class UserMessagingEventFactory extends FEntityFactory<UserMessagingEvent> {
+    private static validate(src: any) {
+        validators.notNull('uid', src.uid);
+        validators.isNumber('uid', src.uid);
+        validators.notNull('seq', src.seq);
+        validators.isNumber('seq', src.seq);
+        validators.notNull('allUnread', src.allUnread);
+        validators.isNumber('allUnread', src.allUnread);
+        validators.notNull('convUnread', src.convUnread);
+        validators.isNumber('convUnread', src.convUnread);
+        validators.isNumber('userId', src.userId);
+        validators.isString('title', src.title);
+        validators.isString('photo', src.photo);
+        validators.isString('messageId', src.messageId);
+        validators.notNull('kind', src.kind);
+        validators.isEnum('kind', src.kind, ['create_message', 'update_message', 'delete_message', 'group_update', 'add_members', 'remove_members']);
+    }
+
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'userMessagingEvent'),
-            { enableVersioning: true, enableTimestamps: true },
+            { enableVersioning: true, enableTimestamps: true, validator: UserMessagingEventFactory.validate },
             []
         );
     }
@@ -2223,10 +2535,20 @@ export class HyperLog extends FEntity {
 }
 
 export class HyperLogFactory extends FEntityFactory<HyperLog> {
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isString('id', src.id);
+        validators.notNull('type', src.type);
+        validators.isString('type', src.type);
+        validators.notNull('date', src.date);
+        validators.isNumber('date', src.date);
+        validators.notNull('body', src.body);
+    }
+
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'hyperLog'),
-            { enableVersioning: false, enableTimestamps: true },
+            { enableVersioning: false, enableTimestamps: true, validator: HyperLogFactory.validate },
             [new FEntityIndex('created', ['createdAt'], false)]
         );
     }
@@ -2274,10 +2596,19 @@ export class MessageDraft extends FEntity {
 }
 
 export class MessageDraftFactory extends FEntityFactory<MessageDraft> {
+    private static validate(src: any) {
+        validators.notNull('uid', src.uid);
+        validators.isNumber('uid', src.uid);
+        validators.notNull('cid', src.cid);
+        validators.isNumber('cid', src.cid);
+        validators.notNull('contents', src.contents);
+        validators.isString('contents', src.contents);
+    }
+
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'messageDraft'),
-            { enableVersioning: true, enableTimestamps: true },
+            { enableVersioning: true, enableTimestamps: true, validator: MessageDraftFactory.validate },
             []
         );
     }
@@ -2393,10 +2724,27 @@ export class ChannelInvitation extends FEntity {
 }
 
 export class ChannelInvitationFactory extends FEntityFactory<ChannelInvitation> {
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isString('id', src.id);
+        validators.notNull('creatorId', src.creatorId);
+        validators.isNumber('creatorId', src.creatorId);
+        validators.notNull('channelId', src.channelId);
+        validators.isNumber('channelId', src.channelId);
+        validators.notNull('email', src.email);
+        validators.isString('email', src.email);
+        validators.isString('firstName', src.firstName);
+        validators.isString('lastName', src.lastName);
+        validators.isString('text', src.text);
+        validators.isNumber('acceptedById', src.acceptedById);
+        validators.notNull('enabled', src.enabled);
+        validators.isBoolean('enabled', src.enabled);
+    }
+
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'channelInvitation'),
-            { enableVersioning: true, enableTimestamps: true },
+            { enableVersioning: true, enableTimestamps: true, validator: ChannelInvitationFactory.validate },
             [new FEntityIndex('channel', ['createdAt', 'channelId'], false)]
         );
     }
@@ -2463,10 +2811,21 @@ export class ChannelLink extends FEntity {
 }
 
 export class ChannelLinkFactory extends FEntityFactory<ChannelLink> {
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isString('id', src.id);
+        validators.notNull('creatorId', src.creatorId);
+        validators.isNumber('creatorId', src.creatorId);
+        validators.notNull('channelId', src.channelId);
+        validators.isNumber('channelId', src.channelId);
+        validators.notNull('enabled', src.enabled);
+        validators.isBoolean('enabled', src.enabled);
+    }
+
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'channelLink'),
-            { enableVersioning: true, enableTimestamps: true },
+            { enableVersioning: true, enableTimestamps: true, validator: ChannelLinkFactory.validate },
             [new FEntityIndex('channel', ['createdAt', 'channelId'], false)]
         );
     }
@@ -2513,10 +2872,17 @@ export class AppInviteLink extends FEntity {
 }
 
 export class AppInviteLinkFactory extends FEntityFactory<AppInviteLink> {
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isString('id', src.id);
+        validators.notNull('uid', src.uid);
+        validators.isNumber('uid', src.uid);
+    }
+
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'appInviteLink'),
-            { enableVersioning: true, enableTimestamps: true },
+            { enableVersioning: true, enableTimestamps: true, validator: AppInviteLinkFactory.validate },
             [new FEntityIndex('user', ['uid'], true)]
         );
     }
