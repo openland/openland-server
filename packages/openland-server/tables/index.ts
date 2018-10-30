@@ -30,7 +30,7 @@ export const DB = {
     Organization: OrganizationTable,
     OrganizationMember: OrganizationMemberTable,
     OrganizationInvite: OrganizationInviteTable,
-    
+
     Conversation: ConversationTable,
     ConversationMessage: ConversationMessageTable,
     ConversationGroupMembers: ConversationGroupMembersTable,
@@ -48,16 +48,16 @@ export const DB = {
         if (existingTx) {
             return handler(existingTx);
         }
-        return await connection.transaction({ isolationLevel: 'SERIALIZABLE' }, (tx2: sequelize.Transaction) => handler(tx2));
+        return await connection.transaction({ isolationLevel: 'SERIALIZABLE' }, async (tx2: sequelize.Transaction) => await handler(tx2));
     },
     txLight: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>): Promise<A> {
-        return await connection.transaction((tx2: sequelize.Transaction) => handler(tx2));
+        return await connection.transaction(async (tx2: sequelize.Transaction) => await handler(tx2));
     },
     txStable: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>, existingTx?: sequelize.Transaction): Promise<A> {
         if (existingTx) {
             return handler(existingTx);
         }
-        return retry(async () => await connection.transaction((tx2: sequelize.Transaction) => handler(tx2)));
+        return retry(async () => await connection.transaction(async (tx2: sequelize.Transaction) => await handler(tx2)));
     },
     txStableSilent: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>): Promise<A> {
         if (SILENT_TX_ACTUALLY_SILENT) {
@@ -67,7 +67,7 @@ export const DB = {
                 }
             }, (tx2: sequelize.Transaction) => handler(tx2)));
         } else {
-            return retry(async () => await connection.transaction({}, (tx2: sequelize.Transaction) => handler(tx2)));
+            return retry(async () => await connection.transaction({}, async (tx2: sequelize.Transaction) => await handler(tx2)));
         }
     },
     txSilent: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>): Promise<A> {
@@ -76,11 +76,11 @@ export const DB = {
                 isolationLevel: 'SERIALIZABLE', logging: () => {
                     //
                 }
-            }, (tx2: sequelize.Transaction) => handler(tx2));
+            }, async (tx2: sequelize.Transaction) => await handler(tx2));
         } else {
             return await connection.transaction({
                 isolationLevel: 'SERIALIZABLE'
-            }, (tx2: sequelize.Transaction) => handler(tx2));
+            }, async (tx2: sequelize.Transaction) => await handler(tx2));
         }
     },
     connection: connection
