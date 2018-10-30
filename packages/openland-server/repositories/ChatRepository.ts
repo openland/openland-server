@@ -11,21 +11,20 @@ import { NotFoundError } from '../errors/NotFoundError';
 import { Repos } from './index';
 import { AccessDeniedError } from '../errors/AccessDeniedError';
 import { IDs } from '../api/utils/IDs';
-import { Perf } from '../utils/perf';
 import { Conversation } from '../tables/Conversation';
 import { URLAugmentation } from '../services/UrlInfoService';
 import { CacheRepository } from 'openland-module-cache/CacheRepository';
 import { Modules } from 'openland-modules/Modules';
-import { createLogger } from 'openland-log/createLogger';
+// import { createLogger } from 'openland-log/createLogger';
 import { withTracing } from 'openland-log/withTracing';
 import { createTracer } from 'openland-log/createTracer';
 import { inTx } from 'foundation-orm/inTx';
-import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent';
+// import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent';
 
-const log = createLogger('messaging-legacy');
+// const log = createLogger('messaging-legacy');
 const tracer = createTracer('messaging-legacy');
-const messageSent = createHyperlogger<{ cid: number }>('message_sent');
-const messageReceived = createHyperlogger<{ cid: number }>('message_received');
+// const messageSent = createHyperlogger<{ cid: number }>('message_sent');
+// const messageReceived = createHyperlogger<{ cid: number }>('message_received');
 
 export type ChatEventType =
     'new_message' |
@@ -302,14 +301,9 @@ export class ChatsRepository {
         return parts.join('\n');
     }
 
-    async sendMessage(tx: Transaction, conversationId: number, uid: number, message: Message): Promise<{ conversationEvent: ConversationEvent, userEvent: ConversationUserEvents }> {
+    async sendMessage(tx: Transaction, conversationId: number, uid: number, message: Message): Promise<ConversationEvent> {
         return await withTracing(tracer, 'send_message', async () => {
             return await inTx(async () => {
-                let perf = new Perf('sendMessage');
-                let start = Date.now();
-
-                perf.start('sendMessage');
-
                 if (message.message === 'fuck') {
                     throw Error('');
                 }
@@ -317,7 +311,6 @@ export class ChatsRepository {
                 //
                 // Handle retry
                 //
-                perf.start('Handle retry');
                 if (message.repeatKey) {
                     if (await DB.ConversationMessage.find({
                         where: {
@@ -331,9 +324,7 @@ export class ChatsRepository {
                         throw new DoubleInvokeError();
                     }
                 }
-                perf.end('Handle retry');
 
-                perf.start('conv');
                 let conv = await DB.Conversation.findById(conversationId, {
                     lock: tx.LOCK.UPDATE,
                     transaction: tx
@@ -341,34 +332,27 @@ export class ChatsRepository {
                 if (!conv) {
                     throw new NotFoundError('Conversation not found');
                 }
-                perf.end('conv');
 
-                await messageSent.event({ cid: conversationId });
+                // await messageSent.event({ cid: conversationId });
 
                 //
                 // Check access
                 //
-                perf.start('Check access');
                 await this.checkAccessToChat(uid, conv, tx);
-                perf.end('Check access');
 
                 //
                 // Increment sequence number
                 //
 
-                perf.start('Increment sequence number');
                 let seq = conv.seq + 1;
                 // conv.seq = seq;
                 // await conv.save({ transaction: tx });
-
                 await conv.increment('seq', { transaction: tx });
-                perf.end('Increment sequence number');
 
                 // 
                 // Persist Messages
                 //
 
-                perf.start('Persist Messages');
                 let msg = await DB.ConversationMessage.create({
                     message: message.message,
                     fileId: message.file,
@@ -395,162 +379,12 @@ export class ChatsRepository {
                     },
                     seq: seq
                 }, { transaction: tx });
-                perf.end('Persist Messages');
-                //
-                // Unread Counters
-                //
 
-                perf.start('getConversationMembers');
-                // let members = await this.getConversationMembers(conversationId, tx);
-                let members = await this.getConversationMembersFast(conversationId, conv, tx);
-                perf.end('getConversationMembers');
+                await Modules.Drafts.clearDraft(uid, conversationId);
 
-                let userEvent: ConversationUserEvents;
+                await Modules.Messaging.DeliveryWorker.pushWork({ messageId: msg.id });
 
-                let pending: any[] = [];
-
-                if (members.length > 0) {
-                    perf.start('currentStates');
-                    let currentStates = await DB.ConversationUserState.findAll({
-                        where: {
-                            conversationId: conversationId,
-                            userId: {
-                                $in: members
-                            }
-                        },
-                        transaction: tx,
-                        lock: tx.LOCK.UPDATE
-                    });
-                    perf.end('currentStates');
-                    perf.start('currentGlobals');
-                    let currentGlobals = await DB.ConversationsUserGlobal.findAll({
-                        where: {
-                            userId: {
-                                $in: members
-                            }
-                        },
-                        transaction: tx,
-                        lock: tx.LOCK.UPDATE
-                    });
-                    perf.end('currentGlobals');
-                    perf.start('membersEvents');
-                    for (let m of members) {
-                        let existing = currentStates.find((v) => v.userId === m);
-                        let existingGlobal = currentGlobals.find((v) => v.userId === m);
-                        let userSeq = 1;
-                        let userUnread = 0;
-                        let userChatUnread = 0;
-
-                        // let muted = (await this.getConversationSettings(m, conversationId)).mute;
-
-                        // Write user's chat state
-                        if (m !== uid) {
-                            if (existing) {
-                                existing.unread++;
-                                userChatUnread = existing.unread;
-                                pending.push(existing.save({ transaction: tx }));
-                            } else {
-                                userChatUnread = 1;
-                                pending.push(DB.ConversationUserState.create({
-                                    conversationId: conversationId,
-                                    userId: m,
-                                    unread: 1
-                                }, { transaction: tx }));
-                            }
-                        } else {
-                            if (existing) {
-                                (existing as any).changed('updatedAt', true);
-                                pending.push(existing.save({ transaction: tx }));
-                            } else {
-                                pending.push(DB.ConversationUserState.create({
-                                    conversationId: conversationId,
-                                    userId: m,
-                                    unread: 0
-                                }, { transaction: tx }));
-                            }
-                        }
-
-                        // Update or Create global state
-                        if (existingGlobal) {
-                            if (m !== uid) {
-                                existingGlobal.unread++;
-                            }
-                            existingGlobal.seq++;
-                            userSeq = existingGlobal.seq;
-                            userUnread = existingGlobal.unread;
-                            pending.push(existingGlobal.save({ transaction: tx }));
-                        } else {
-                            if (m !== uid) {
-                                userUnread = 1;
-                                pending.push(DB.ConversationsUserGlobal.create({
-                                    userId: m,
-                                    unread: 1,
-                                    seq: 1
-                                }, { transaction: tx }));
-                            } else {
-                                userUnread = 0;
-                                pending.push(DB.ConversationsUserGlobal.create({
-                                    userId: m,
-                                    unread: 0,
-                                    seq: 1
-                                }, { transaction: tx }));
-                            }
-                        }
-
-                        // Write User Event
-                        let _userEvent = DB.ConversationUserEvents.create({
-                            userId: m,
-                            seq: userSeq,
-                            eventType: 'new_message',
-                            event: {
-                                conversationId: conversationId,
-                                messageId: msg.id,
-                                unreadGlobal: userUnread,
-                                unread: userChatUnread,
-                                senderId: uid,
-                                repeatKey: message.repeatKey ? message.repeatKey : null
-                            }
-                        }, { transaction: tx });
-
-                        pending.push(Modules.Push.sendCounterPush(m, conversationId, userUnread));
-
-                        if (m === uid) {
-                            userEvent = await _userEvent;
-                        } else {
-                            pending.push(userEvent);
-                        }
-
-                        pending.push(messageReceived.event({ cid: conversationId }));
-                    }
-                    perf.end('membersEvents');
-                }
-
-                await withTracing(tracer, 'foundation', async () => {
-                    // Notify augmentation worker
-                    await Modules.Messaging.AugmentationWorker.pushWork({ messageId: msg.id });
-
-                    // Cancel Typings
-                    await Modules.Typings.cancelTyping(uid, conversationId, members);
-
-                    // Clear Draft
-                    await Modules.Drafts.clearDraft(uid, conversationId);
-                });
-
-                // Wait for remaining
-                for (let p of pending) {
-                    await p;
-                }
-
-                perf.end('sendMessage');
-
-                perf.print();
-
-                log.log('message sent in ' + (Date.now() - start) + ' ms');
-
-                return {
-                    conversationEvent: res,
-                    userEvent: userEvent!
-                };
+                return res;
             });
         });
     }

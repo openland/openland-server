@@ -1144,7 +1144,7 @@ export const Resolver = {
                         filePreview,
                         replyMessages: args.replyMessages,
                         mentions: args.mentions
-                    })).conversationEvent;
+                    }));
                 });
             });
         }),
@@ -1198,7 +1198,7 @@ export const Resolver = {
                         iconRef: null,
                         iconInfo: null,
                     }
-                })).conversationEvent;
+                }));
             });
         }),
         alphaEditIntro: withUser<{ messageId: string, userId: number, about: string, message?: string | null, file?: string | null, repeatKey?: string | null }>(async (args, uid) => {
@@ -1467,7 +1467,7 @@ export const Resolver = {
                     title: args.title
                 }, { transaction: tx });
 
-                let titleChatEvent = await Repos.Chats.addChatEvent(
+                await Repos.Chats.addChatEvent(
                     conversationId,
                     'title_change',
                     {
@@ -1476,7 +1476,7 @@ export const Resolver = {
                     tx
                 );
 
-                let titleUserEvent = await Repos.Chats.addUserEventsInConversation(
+                await Repos.Chats.addUserEventsInConversation(
                     conversationId,
                     uid,
                     'title_change',
@@ -1486,10 +1486,7 @@ export const Resolver = {
                     tx
                 );
 
-                let {
-                    conversationEvent,
-                    userEvent
-                } = await Repos.Chats.sendMessage(tx, conversationId, uid, {
+                await Repos.Chats.sendMessage(tx, conversationId, uid, {
                     message: `New chat title: ${args.title}`,
                     isService: true,
                     isMuted: true,
@@ -1500,11 +1497,7 @@ export const Resolver = {
                 });
 
                 return {
-                    chat,
-                    chatEventMessage: conversationEvent,
-                    userEventMessage: userEvent,
-                    chatEvent: titleChatEvent,
-                    userEvent: titleUserEvent
+                    chat
                 };
             });
         }),
@@ -1568,10 +1561,7 @@ export const Resolver = {
                     users.push((await Modules.Users.profileById(IDs.User.parse(invite.userId)))!);
                 }
 
-                let {
-                    conversationEvent,
-                    userEvent
-                } = await Repos.Chats.sendMessage(
+                await Repos.Chats.sendMessage(
                     tx,
                     conversationId,
                     uid,
@@ -1587,7 +1577,7 @@ export const Resolver = {
                     }
                 );
 
-                let chatEvent = await Repos.Chats.addChatEvent(
+                await Repos.Chats.addChatEvent(
                     conversationId,
                     'new_members',
                     {
@@ -1599,7 +1589,7 @@ export const Resolver = {
 
                 let membersCount = await Repos.Chats.membersCountInConversation(conversationId);
 
-                let inviteUserEvent = await Repos.Chats.addUserEventsInConversation(
+                await Repos.Chats.addUserEventsInConversation(
                     conversationId,
                     uid,
                     'new_members_count',
@@ -1611,11 +1601,7 @@ export const Resolver = {
                 );
 
                 return {
-                    chat,
-                    chatEventMessage: conversationEvent,
-                    userEventMessage: userEvent,
-                    chatEvent,
-                    userEvent: inviteUserEvent
+                    chat
                 };
             });
         }),
@@ -1669,10 +1655,7 @@ export const Resolver = {
 
                 let profile = await Modules.Users.profileById(member.userId);
 
-                let {
-                    conversationEvent,
-                    userEvent
-                } = await Repos.Chats.sendMessage(
+                await Repos.Chats.sendMessage(
                     tx,
                     conversationId,
                     uid,
@@ -1688,7 +1671,7 @@ export const Resolver = {
                     }
                 );
 
-                let chatEvent = await Repos.Chats.addChatEvent(
+                await Repos.Chats.addChatEvent(
                     conversationId,
                     'kick_member',
                     {
@@ -1700,7 +1683,7 @@ export const Resolver = {
 
                 let membersCount = await Repos.Chats.membersCountInConversation(conversationId);
 
-                let inviteUserEvent = await Repos.Chats.addUserEventsInConversation(
+                await Repos.Chats.addUserEventsInConversation(
                     conversationId,
                     uid,
                     'new_members_count',
@@ -1745,11 +1728,7 @@ export const Resolver = {
                 }, { transaction: tx });
 
                 return {
-                    chat,
-                    chatEventMessage: conversationEvent,
-                    userEventMessage: userEvent,
-                    chatEvent,
-                    userEvent: inviteUserEvent
+                    chat
                 };
             });
         }),
@@ -1843,15 +1822,11 @@ export const Resolver = {
                         role: member === uid ? 'creator' : 'member'
                     }, { transaction: tx });
                 }
-                let {
-                    conversationEvent,
-                    userEvent
-                } = await Repos.Chats.sendMessage(tx, conv.id, uid, { message: args.message });
+                
+                await Repos.Chats.sendMessage(tx, conv.id, uid, { message: args.message });
 
                 return {
-                    chat,
-                    chatEventMessage: conversationEvent,
-                    userEventMessage: userEvent,
+                    chat
                 };
             });
         }),

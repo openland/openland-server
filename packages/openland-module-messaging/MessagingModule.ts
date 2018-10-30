@@ -7,6 +7,7 @@ import { FDB } from 'openland-module-db/FDB';
 import { ChannelRepository } from './repositories/ChannelRepository';
 import { inTx } from 'foundation-orm/inTx';
 import { ChannelInviteEmails } from './emails/ChannelInviteEmails';
+import { createDeliveryWorker } from './workers/DeliveryWorker';
 
 export interface MessageInput {
     repeatToken?: string | null;
@@ -23,6 +24,7 @@ export interface MessageInput {
 
 export class MessagingModule {
     readonly AugmentationWorker = createAugmentationWorker();
+    readonly DeliveryWorker = createDeliveryWorker();
     readonly repo = new MessagingRepository(FDB);
     private readonly channels = new ChannelRepository(FDB);
 
