@@ -5,7 +5,6 @@ import { startPushNotificationWorker } from './workers/PushNotificationWorker';
 import { MessagingRepository } from './repositories/MessagingRepository';
 import { FDB } from 'openland-module-db/FDB';
 import { ChannelRepository } from './repositories/ChannelRepository';
-import { startMigrator } from './Migrator';
 import { inTx } from 'foundation-orm/inTx';
 import { ChannelInviteEmails } from './emails/ChannelInviteEmails';
 
@@ -34,7 +33,6 @@ export class MessagingModule {
         if (serverRoleEnabled('workers')) {
             startPushNotificationWorker();
         }
-        startMigrator();
     }
 
     async resolveInvite(id: string) {
