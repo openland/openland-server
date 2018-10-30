@@ -47,6 +47,8 @@ module.exports = {
         'openland-module-push': '<rootDir>/packages/openland-module-push',
         'openland-module-workers/(.*)': '<rootDir>/packages/openland-module-workers/$1',
         'openland-module-workers': '<rootDir>/packages/openland-module-workers',
+        'openland-module-orgs/(.*)': '<rootDir>/packages/openland-module-orgs/$1',
+        'openland-module-orgs': '<rootDir>/packages/openland-module-orgs',
         'openland-repositories/(.*)': '<rootDir>/packages/openland-repositories/$1',
         'openland-repositories': '<rootDir>/packages/openland-repositories',
         'openland-utils/(.*)': '<rootDir>/packages/openland-utils/$1',

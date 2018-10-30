@@ -205,6 +205,7 @@
     "openland-module-cache": "build/openland-module-cache",
     "openland-module-sync": "build/openland-module-sync",
     "openland-module-drafts": "build/openland-module-drafts",
-    "openland-module-typings": "build/openland-module-typings"
+    "openland-module-typings": "build/openland-module-typings",
+    "openland-module-orgs": "build/openland-module-orgs"
   }
 }
