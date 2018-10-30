@@ -449,7 +449,7 @@ export const Resolver = {
 
             await inTx(async () => {
                 for (let inviteRequest of args.inviteRequests) {
-                    await Modules.Messaging.channels.createChannelInvite(channelId, uid,
+                    await Modules.Messaging.createChannelInvite(channelId, uid,
                         inviteRequest.email, inviteRequest.emailText, inviteRequest.firstName, inviteRequest.lastName);
                 }
             });
@@ -458,7 +458,7 @@ export const Resolver = {
         }),
         alphaChannelRenewInviteLink: withUser<{ channelId: string }>(async (args, uid) => {
             let channelId = IDs.Conversation.parse(args.channelId);
-            return await Modules.Messaging.channels.refreshChannelInviteLink(channelId, uid);
+            return await Modules.Messaging.refreshChannelInviteLink(channelId, uid);
         }),
         alphaChannelJoinInvite: withAny<{ invite: string }>(async (args, context) => {
             let uid = context.uid;
@@ -467,7 +467,7 @@ export const Resolver = {
             }
             return await DB.txStable(async (tx) => {
                 return await inTx(async () => {
-                    let invite = await Modules.Messaging.channels.resolveInvite(args.invite);
+                    let invite = await Modules.Messaging.resolveInvite(args.invite);
 
                     if (!invite) {
                         throw new NotFoundError(ErrorText.unableToFindInvite);
@@ -670,11 +670,11 @@ export const Resolver = {
             return await builder.findElastic(hits);
         }),
         alphaChannelInviteInfo: withAny<{ uuid: string }>(async (args, context: CallContext) => {
-            return await Modules.Messaging.channels.resolveInvite(args.uuid);
+            return await Modules.Messaging.resolveInvite(args.uuid);
         }),
         alphaChannelInviteLink: withUser<{ channelId: string }>(async (args, uid) => {
             let channelId = IDs.Conversation.parse(args.channelId);
-            return await Modules.Messaging.channels.createChannelInviteLink(channelId, uid);
+            return await Modules.Messaging.createChannelInviteLink(channelId, uid);
         })
     }
 };
