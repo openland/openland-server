@@ -2495,6 +2495,50 @@ export class ChannelLinkFactory extends FEntityFactory<ChannelLink> {
         return new ChannelLink(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
     }
 }
+export interface AppInviteLinkShape {
+    uid: number;
+}
+
+export class AppInviteLink extends FEntity {
+    get id(): string { return this._value.id; }
+    get uid(): number {
+        return this._value.uid;
+    }
+    set uid(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.uid) { return; }
+        this._value.uid = value;
+        this.markDirty();
+    }
+}
+
+export class AppInviteLinkFactory extends FEntityFactory<AppInviteLink> {
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'appInviteLink'),
+            { enableVersioning: true, enableTimestamps: true },
+            [new FEntityIndex('user', ['uid'], true)]
+        );
+    }
+    extractId(rawId: any[]) {
+        return { 'id': rawId[0] };
+    }
+    async findById(id: string) {
+        return await this._findById([id]);
+    }
+    async create(id: string, shape: AppInviteLinkShape) {
+        return await this._create([id], { id, ...shape });
+    }
+    watch(id: string, cb: () => void) {
+        return this._watch([id], cb);
+    }
+    async findFromUser(uid: number) {
+        return await this._findById(['__indexes', 'user', uid]);
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new AppInviteLink(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
+    }
+}
 
 export class AllEntities extends FDBInstance {
     Online: OnlineFactory;
@@ -2527,6 +2571,7 @@ export class AllEntities extends FDBInstance {
     MessageDraft: MessageDraftFactory;
     ChannelInvitation: ChannelInvitationFactory;
     ChannelLink: ChannelLinkFactory;
+    AppInviteLink: AppInviteLinkFactory;
 
     constructor(connection: FConnection) {
         super(connection);
@@ -2560,5 +2605,6 @@ export class AllEntities extends FDBInstance {
         this.MessageDraft = new MessageDraftFactory(connection);
         this.ChannelInvitation = new ChannelInvitationFactory(connection);
         this.ChannelLink = new ChannelLinkFactory(connection);
+        this.AppInviteLink = new AppInviteLinkFactory(connection);
     }
 }

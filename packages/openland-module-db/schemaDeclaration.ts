@@ -344,6 +344,14 @@ const Schema = declareSchema(() => {
         enableVersioning();
         enableTimestamps();
     });
+
+    entity('AppInviteLink', () => {
+        primaryKey('id', 'string');
+        field('uid', 'number');
+        uniqueIndex('user', ['uid']);
+        enableVersioning();
+        enableTimestamps();
+    });
 });
 
 generate(Schema, __dirname + '/../openland-module-db/schema.ts');
