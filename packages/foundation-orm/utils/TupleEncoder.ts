@@ -14,7 +14,6 @@ enum Code {
     String = 2,
     IntZero = 0x14,
     Double = 0x21,
-    UUID = 0x30,
 }
 
 const numByteLen = (num: number) => {

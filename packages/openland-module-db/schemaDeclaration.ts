@@ -319,6 +319,31 @@ const Schema = declareSchema(() => {
         enableVersioning();
         enableTimestamps();
     });
+
+    entity('ChannelInvitation', () => {
+        primaryKey('id', 'string');
+        field('creatorId', 'number');
+        field('channelId', 'number');
+        field('email', 'string');
+        field('firstName', 'string').nullable();
+        field('lastName', 'string').nullable();
+        field('text', 'string').nullable();
+        field('acceptedById', 'number').nullable();
+        field('enabled', 'boolean');
+        rangeIndex('channel', ['createdAt', 'channelId']);
+        enableVersioning();
+        enableTimestamps();
+    });
+
+    entity('ChannelLink', () => {
+        primaryKey('id', 'string');
+        field('creatorId', 'number');
+        field('channelId', 'number');
+        field('enabled', 'boolean');
+        rangeIndex('channel', ['createdAt', 'channelId']);
+        enableVersioning();
+        enableTimestamps();
+    });
 });
 
 generate(Schema, __dirname + '/../openland-module-db/schema.ts');

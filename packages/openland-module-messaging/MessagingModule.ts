@@ -4,6 +4,8 @@ import { startEmailNotificationWorker } from './workers/EmailNotificationWorker'
 import { startPushNotificationWorker } from './workers/PushNotificationWorker';
 import { MessagingRepository } from './repositories/MessagingRepository';
 import { FDB } from 'openland-module-db/FDB';
+import { ChannelRepository } from './repositories/ChannelRepository';
+import { startMigrator } from './Migrator';
 
 export interface MessageInput {
     repeatToken?: string| null;
@@ -21,6 +23,7 @@ export interface MessageInput {
 export class MessagingModule {
     readonly AugmentationWorker = createAugmentationWorker();
     readonly repo = new MessagingRepository(FDB);
+    readonly channels = new ChannelRepository(FDB);
     
     start = () => {
         if (serverRoleEnabled('workers')) {
@@ -29,5 +32,6 @@ export class MessagingModule {
         if (serverRoleEnabled('workers')) {
             startPushNotificationWorker();
         }
+        startMigrator();
     }
 }

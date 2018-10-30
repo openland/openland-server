@@ -2297,6 +2297,204 @@ export class MessageDraftFactory extends FEntityFactory<MessageDraft> {
         return new MessageDraft(this.connection, this.namespace, [value.uid, value.cid], value, this.options, isNew, this.indexes);
     }
 }
+export interface ChannelInvitationShape {
+    creatorId: number;
+    channelId: number;
+    email: string;
+    firstName?: string| null;
+    lastName?: string| null;
+    text?: string| null;
+    acceptedById?: number| null;
+    enabled: boolean;
+}
+
+export class ChannelInvitation extends FEntity {
+    get id(): string { return this._value.id; }
+    get creatorId(): number {
+        return this._value.creatorId;
+    }
+    set creatorId(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.creatorId) { return; }
+        this._value.creatorId = value;
+        this.markDirty();
+    }
+    get channelId(): number {
+        return this._value.channelId;
+    }
+    set channelId(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.channelId) { return; }
+        this._value.channelId = value;
+        this.markDirty();
+    }
+    get email(): string {
+        return this._value.email;
+    }
+    set email(value: string) {
+        this._checkIsWritable();
+        if (value === this._value.email) { return; }
+        this._value.email = value;
+        this.markDirty();
+    }
+    get firstName(): string | null {
+        let res = this._value.firstName;
+        if (res) { return res; }
+        return null;
+    }
+    set firstName(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.firstName) { return; }
+        this._value.firstName = value;
+        this.markDirty();
+    }
+    get lastName(): string | null {
+        let res = this._value.lastName;
+        if (res) { return res; }
+        return null;
+    }
+    set lastName(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.lastName) { return; }
+        this._value.lastName = value;
+        this.markDirty();
+    }
+    get text(): string | null {
+        let res = this._value.text;
+        if (res) { return res; }
+        return null;
+    }
+    set text(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.text) { return; }
+        this._value.text = value;
+        this.markDirty();
+    }
+    get acceptedById(): number | null {
+        let res = this._value.acceptedById;
+        if (res) { return res; }
+        return null;
+    }
+    set acceptedById(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.acceptedById) { return; }
+        this._value.acceptedById = value;
+        this.markDirty();
+    }
+    get enabled(): boolean {
+        return this._value.enabled;
+    }
+    set enabled(value: boolean) {
+        this._checkIsWritable();
+        if (value === this._value.enabled) { return; }
+        this._value.enabled = value;
+        this.markDirty();
+    }
+}
+
+export class ChannelInvitationFactory extends FEntityFactory<ChannelInvitation> {
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'channelInvitation'),
+            { enableVersioning: true, enableTimestamps: true },
+            [new FEntityIndex('channel', ['createdAt', 'channelId'], false)]
+        );
+    }
+    extractId(rawId: any[]) {
+        return { 'id': rawId[0] };
+    }
+    async findById(id: string) {
+        return await this._findById([id]);
+    }
+    async create(id: string, shape: ChannelInvitationShape) {
+        return await this._create([id], { id, ...shape });
+    }
+    watch(id: string, cb: () => void) {
+        return this._watch([id], cb);
+    }
+    async rangeFromChannel(createdAt: number, limit: number) {
+        return await this._findRange(['__indexes', 'channel', createdAt], limit);
+    }
+    async allFromChannel(createdAt: number) {
+        return await this._findAll(['__indexes', 'channel', createdAt]);
+    }
+    createChannelStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'channelInvitation', '__indexes', 'channel'], limit, after); 
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new ChannelInvitation(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
+    }
+}
+export interface ChannelLinkShape {
+    creatorId: number;
+    channelId: number;
+    enabled: boolean;
+}
+
+export class ChannelLink extends FEntity {
+    get id(): string { return this._value.id; }
+    get creatorId(): number {
+        return this._value.creatorId;
+    }
+    set creatorId(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.creatorId) { return; }
+        this._value.creatorId = value;
+        this.markDirty();
+    }
+    get channelId(): number {
+        return this._value.channelId;
+    }
+    set channelId(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.channelId) { return; }
+        this._value.channelId = value;
+        this.markDirty();
+    }
+    get enabled(): boolean {
+        return this._value.enabled;
+    }
+    set enabled(value: boolean) {
+        this._checkIsWritable();
+        if (value === this._value.enabled) { return; }
+        this._value.enabled = value;
+        this.markDirty();
+    }
+}
+
+export class ChannelLinkFactory extends FEntityFactory<ChannelLink> {
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'channelLink'),
+            { enableVersioning: true, enableTimestamps: true },
+            [new FEntityIndex('channel', ['createdAt', 'channelId'], false)]
+        );
+    }
+    extractId(rawId: any[]) {
+        return { 'id': rawId[0] };
+    }
+    async findById(id: string) {
+        return await this._findById([id]);
+    }
+    async create(id: string, shape: ChannelLinkShape) {
+        return await this._create([id], { id, ...shape });
+    }
+    watch(id: string, cb: () => void) {
+        return this._watch([id], cb);
+    }
+    async rangeFromChannel(createdAt: number, limit: number) {
+        return await this._findRange(['__indexes', 'channel', createdAt], limit);
+    }
+    async allFromChannel(createdAt: number) {
+        return await this._findAll(['__indexes', 'channel', createdAt]);
+    }
+    createChannelStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'channelLink', '__indexes', 'channel'], limit, after); 
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new ChannelLink(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
+    }
+}
 
 export class AllEntities extends FDBInstance {
     Online: OnlineFactory;
@@ -2327,6 +2525,8 @@ export class AllEntities extends FDBInstance {
     UserMessagingEvent: UserMessagingEventFactory;
     HyperLog: HyperLogFactory;
     MessageDraft: MessageDraftFactory;
+    ChannelInvitation: ChannelInvitationFactory;
+    ChannelLink: ChannelLinkFactory;
 
     constructor(connection: FConnection) {
         super(connection);
@@ -2358,5 +2558,7 @@ export class AllEntities extends FDBInstance {
         this.UserMessagingEvent = new UserMessagingEventFactory(connection);
         this.HyperLog = new HyperLogFactory(connection);
         this.MessageDraft = new MessageDraftFactory(connection);
+        this.ChannelInvitation = new ChannelInvitationFactory(connection);
+        this.ChannelLink = new ChannelLinkFactory(connection);
     }
 }
