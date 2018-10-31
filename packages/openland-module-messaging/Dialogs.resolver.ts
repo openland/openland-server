@@ -20,14 +20,6 @@ export default {
         }),
     },
     Subscription: {
-        dialogUpdates: {
-            resolve: async (msg: any) => {
-                return msg;
-            },
-            subscribe: async function (_: any, args: { fromSeq?: number }, context: CallContext) {
-                //
-            }
-        },
         alphaSubscribeEvents: {
             resolve: async (msg: any) => {
                 return msg;
