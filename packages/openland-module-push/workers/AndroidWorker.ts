@@ -32,16 +32,24 @@ export function createAndroidWorker(repo: PushRepository) {
                 }
                 let firebase = firbaseApps[token.packageId];
                 if (firebase) {
-                    let res = await firebase.messaging().send({
-                        android: {
-                            collapseKey: task.collapseKey,
-                            notification: task.notification,
-                            data: task.data
-                        },
-                        token: token.token
-                    });
-                    log.log('android_push', token.uid, res);
-                    return { result: 'ok' };
+                    try {
+                        let res = await firebase.messaging().send({
+                            android: {
+                                collapseKey: task.collapseKey,
+                                notification: task.notification,
+                                data: task.data
+                            },
+                            token: token.token
+                        });
+                        log.log('android_push', token.uid, res);
+                        if (res.includes('messaging/invalid-registration-token') || res.includes('messaging/registration-token-not-registered')) {
+                            token.enabled = false;
+                        }
+                        return { result: 'ok' };
+                    } catch (e) {
+                        log.log('android_push failed', token.uid);
+                        return { result: 'failed' };
+                    }
                 } else {
                     throw Error('');
                 }
