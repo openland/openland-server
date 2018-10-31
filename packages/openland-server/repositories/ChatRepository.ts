@@ -1,8 +1,6 @@
 import { DB } from '../tables';
 import { SuperBus } from '../modules/SuperBus';
 import { ConversationEvent, ConversationEventAttributes } from '../tables/ConversationEvent';
-import { ConversationUserGlobal } from '../tables/ConversationsUserGlobal';
-import { ConversationMessageAttributes } from '../tables/ConversationMessage';
 import { ConversationUserEvents, ConversationUserEventsAttributes } from '../tables/ConversationUserEvents';
 import { Transaction } from 'sequelize';
 import { JsonMap } from '../utils/json';
@@ -117,42 +115,6 @@ class ChatsEventReader {
     }
 }
 
-class ChatCounterListener {
-    private received = new Map<number, { date: number, counter: number }>();
-    private pending = new Map<number, ((counter: number) => void)[]>();
-
-    onMessage(uid: number, date: number, counter: number) {
-        let changed = false;
-        if (this.received.has(uid)) {
-            let existing = this.received.get(uid)!!;
-            if (existing.date < date && existing.counter !== counter) {
-                changed = true;
-                this.received.set(uid, { date: date, counter: counter });
-            }
-        } else {
-            changed = true;
-            this.received.set(uid, { date: date, counter: counter });
-        }
-        if (changed) {
-            let callbacks = this.pending.get(uid);
-            if (callbacks && callbacks.length > 0) {
-                let cb = [...callbacks];
-                this.pending.set(uid, []);
-                for (let c of cb) {
-                    c(counter);
-                }
-            }
-        }
-    }
-
-    loadNext = async (uid: number) => {
-        if (!this.pending.has(uid)) {
-            this.pending.set(uid, []);
-        }
-        return new Promise<number>((resolve) => this.pending.get(uid)!!.push(resolve));
-    }
-}
-
 class UserEventsReader {
     private knownHeads = new Map<number, number>();
     private pending = new Map<number, ((seq: number) => void)[]>();
@@ -201,9 +163,7 @@ class UserEventsReader {
 
 export class ChatsRepository {
     reader: ChatsEventReader;
-    counterReader: ChatCounterListener;
     userReader: UserEventsReader;
-    countersSuperbus: SuperBus<{ userId: number, counter: number, date: number }, ConversationUserGlobal, Partial<ConversationMessageAttributes>>;
     userSuperbus: SuperBus<{ userId: number, seq: number }, ConversationUserEvents, Partial<ConversationUserEventsAttributes>>;
     eventsSuperbus: SuperBus<{ chatId: number, seq: number }, ConversationEvent, Partial<ConversationEventAttributes>>;
 
@@ -211,18 +171,12 @@ export class ChatsRepository {
 
     constructor() {
         this.reader = new ChatsEventReader();
-        this.counterReader = new ChatCounterListener();
         this.userReader = new UserEventsReader();
 
         this.eventsSuperbus = new SuperBus('chat_events_all', DB.ConversationEvent, 'conversation_events');
         this.eventsSuperbus.eventBuilder((v) => ({ chatId: v.conversationId, seq: v.seq }));
         this.eventsSuperbus.eventHandler((v) => this.reader.onMessage(v.chatId, v.seq));
         this.eventsSuperbus.start();
-
-        this.countersSuperbus = new SuperBus('notification_counters', DB.ConversationsUserGlobal, 'conversation_user_global');
-        this.countersSuperbus.eventBuilder((v) => ({ userId: v.userId, counter: v.unread, date: v.updatedAt.getTime() }));
-        this.countersSuperbus.eventHandler((v) => this.counterReader.onMessage(v.userId, v.date, v.counter));
-        this.countersSuperbus.start();
 
         this.userSuperbus = new SuperBus('user_events', DB.ConversationUserEvents, 'conversation_user_event');
         this.userSuperbus.eventBuilder((v) => ({ userId: v.userId, seq: v.seq }));

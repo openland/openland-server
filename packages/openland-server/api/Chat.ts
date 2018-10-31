@@ -2126,39 +2126,6 @@ export const Resolver = {
                 };
             }
         },
-        alphaNotificationCounterSubscribe: {
-            resolve: async (msg: any) => {
-                return msg;
-            },
-            subscribe: async function (_: any, args: any, context: CallContext) {
-                if (!context.uid) {
-                    throw Error('Not logged in');
-                }
-                let ended = false;
-                return {
-                    ...async function* func() {
-                        let state = await DB.ConversationsUserGlobal.find({ where: { userId: context.uid!! } });
-                        if (state) {
-                            yield {
-                                counter: state.unread,
-                                uid: context.uid
-                            };
-                        }
-                        while (!ended) {
-                            let counter = await Repos.Chats.counterReader.loadNext(context.uid!!);
-                            yield {
-                                counter,
-                                uid: context.uid
-                            };
-                        }
-                    }(),
-                    return: async () => {
-                        ended = true;
-                        return 'ok';
-                    }
-                };
-            }
-        },
         alphaSubscribeEvents: {
             resolve: async (msg: any) => {
                 return msg;
