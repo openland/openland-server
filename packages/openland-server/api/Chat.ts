@@ -590,7 +590,7 @@ export const Resolver = {
         },
         unreadCount: async (src: number | { uid: number, counter: number }) => {
             if (typeof src === 'number') {
-                let global = await DB.ConversationsUserGlobal.find({ where: { userId: src } });
+                let global = await FDB.UserMessagingState.findById(src);
                 if (global) {
                     return global.unread;
                 } else {
@@ -633,22 +633,20 @@ export const Resolver = {
     Query: {
         alphaNotificationCounter: withUser((args, uid) => uid),
         alphaChats: withUser<{ first: number, after?: string | null, seq?: number }>(async (args, uid) => {
-            return await DB.tx(async (tx) => {
-                let global = await DB.ConversationsUserGlobal.find({ where: { userId: uid }, transaction: tx });
-                let seq = global ? global.seq : 0;
-                if (args.seq !== undefined && args.seq !== null && args.seq !== seq) {
-                    throw new Error('Inconsistent request');
-                }
-                let conversations =
-                    await FDB.UserDialog
-                        .rangeFromUserWithCursor(uid, args.first, args.after ? args.after : undefined, true);
-                return {
-                    conversations: conversations.items.map((v) => DB.Conversation.findById(v.cid)),
-                    seq: seq,
-                    next: conversations.cursor,
-                    counter: uid
-                };
-            });
+            let global = await FDB.UserMessagingState.findById(uid);
+            let seq = global ? global.seq : 0;
+            if (args.seq !== undefined && args.seq !== null && args.seq !== seq) {
+                throw new Error('Inconsistent request');
+            }
+            let conversations =
+                await FDB.UserDialog
+                    .rangeFromUserWithCursor(uid, args.first, args.after ? args.after : undefined, true);
+            return {
+                conversations: conversations.items.map((v) => DB.Conversation.findById(v.cid)),
+                seq: seq,
+                next: conversations.cursor,
+                counter: uid
+            };
         }),
         alphaChat: withAccount<{ conversationId?: string, shortName?: string }>(async (args, uid, oid) => {
             if (args.shortName) {
