@@ -4,7 +4,6 @@ import * as User from './User';
 import * as Basics from './_Basics';
 import * as Permissions from './Permissions';
 import * as Account from './Account';
-import * as fs from 'fs';
 import * as Debug from './Debug';
 import * as Organization from './Organization';
 import * as Chat from './Chat';
@@ -19,13 +18,9 @@ import { wrapAllResolvers } from './utils/Resolvers';
 import { withLogContext } from '../../openland-log/withLogContext';
 import { trace } from 'openland-log/trace';
 import { gqlTracer } from 'openland-server/utils/gqlTracer';
+import { buildSchema } from 'openland-graphql/buildSchema';
 
-let schema = fs
-    .readdirSync(__dirname + '/schema/')
-    .filter((v) => v.endsWith('.graphql'))
-    .map((f) => fs.readFileSync(__dirname + '/schema/' + f, 'utf-8'))
-    .sort()
-    .join('\n');
+let schema = buildSchema(__dirname + '/../../');
 
 export const Schema = wrapAllResolvers(
     makeExecutableSchema({

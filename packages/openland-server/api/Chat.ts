@@ -635,12 +635,8 @@ export const Resolver = {
         alphaChats: withUser<{ first: number, after?: string | null, seq?: number }>(async (args, uid) => {
             let global = await FDB.UserMessagingState.findById(uid);
             let seq = global ? global.seq : 0;
-            if (args.seq !== undefined && args.seq !== null && args.seq !== seq) {
-                throw new Error('Inconsistent request');
-            }
-            let conversations =
-                await FDB.UserDialog
-                    .rangeFromUserWithCursor(uid, args.first, args.after ? args.after : undefined, true);
+            let conversations = await FDB.UserDialog
+                .rangeFromUserWithCursor(uid, args.first, args.after ? args.after : undefined, true);
             return {
                 conversations: conversations.items.map((v) => DB.Conversation.findById(v.cid)),
                 seq: seq,

@@ -151,8 +151,8 @@
     "geoIP": "yarn cpx \"./packages/openland-server/utils/geoIp/*.json\" ./build/openland-server/utils/geoIp/",
     "assets": "yarn cpx \"./packages/openland-server/assets/**/*\" ./build/openland-server/assets/",
     "assets:watch": "yarn cpx \"./packages/openland-server/assets/**/*\" ./build/openland-server/assets/ --watch",
-    "schema": "yarn cpx \"./packages/openland-server/**/*.graphql\" ./build/openland-server/",
-    "schema:watch": "yarn cpx \"./packages/openland-server/**/*.graphql\" ./build/openland-server/ --watch",
+    "schema": "yarn cpx \"./packages/**/*.graphql\" ./build/",
+    "schema:watch": "yarn cpx \"./packages/**/*.graphql\" ./build/ --watch",
     "build": "yarn schema && yarn assets && yarn geoIP && ./node_modules/.bin/tsc -p tsconfig.json",
     "build:watch": "./node_modules/.bin/tsc -w -p tsconfig.json",
     "start:watch": "nodemon build/openland-server/index.js",
@@ -209,6 +209,7 @@
     "openland-module-typings": "build/openland-module-typings",
     "openland-module-orgs": "build/openland-module-orgs",
     "openland-module-invites": "build/openland-module-invites",
-    "openland-module-pubsub": "build/openland-module-pubsub"
+    "openland-module-pubsub": "build/openland-module-pubsub",
+    "openland-graphql": "build/openland-graphql"
   }
 }
