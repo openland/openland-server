@@ -2,7 +2,6 @@ import { connection } from '../modules/sequelizeConnector';
 import * as sequelize from 'sequelize';
 import { UserTable } from './User';
 import { ConversationTable, Conversation } from './Conversation';
-import { JsonMap } from '../utils/json';
 
 export interface ConversationUserStateAttributes {
     id: number;
@@ -12,7 +11,6 @@ export interface ConversationUserStateAttributes {
     readDate: number;
     active: boolean;
     updatedAt: Date;
-    notificationsSettings: JsonMap;
 }
 
 export interface ConversationUserState extends sequelize.Instance<Partial<ConversationUserStateAttributes>>, ConversationUserStateAttributes {

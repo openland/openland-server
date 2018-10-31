@@ -627,7 +627,7 @@ export const Resolver = {
     ConversationSettings: {
         id: (src: UserDialogSettings) => IDs.ConversationSettings.serialize(src.cid),
         mute: (src: UserDialogSettings) => src.mute,
-        mobileNotifications: (src: UserDialogSettings) => 'ALL'
+        mobileNotifications: (src: UserDialogSettings) => 'all'
     },
 
     Query: {

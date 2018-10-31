@@ -8,7 +8,6 @@ import { ChannelRepository } from './repositories/ChannelRepository';
 import { inTx } from 'foundation-orm/inTx';
 import { ChannelInviteEmails } from './emails/ChannelInviteEmails';
 import { createDeliveryWorker } from './workers/DeliveryWorker';
-import { startDialogStatsExporting } from './Migrator';
 import { DialogsRepository } from './repositories/DialogsRepository';
 
 export interface MessageInput {
@@ -38,7 +37,6 @@ export class MessagingModule {
         if (serverRoleEnabled('workers')) {
             startPushNotificationWorker();
         }
-        startDialogStatsExporting();
     }
 
     async getConversationSettings(uid: number, cid: number) {
