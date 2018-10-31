@@ -1,3 +1,51 @@
+interface DialogUpdateSingle {
+    seq: Int!
+    state: String!
+    update: DialogUpdate!
+}
+
+interface DialogUpdateBatch {
+    updates: [DialogUpdate!]!
+    fromSeq: Int!
+    seq: Int!
+    state: String!
+}
+
+union DialogUpdateContainer = DialogUpdateSingle | DialogUpdateBatch
+
+union DialogUpdate = DialogMessageReceived | DialogMessageUpdated | DialogMessageDeleted | DialogMessageRead | DialogTitleUpdated
+
+type DialogMessageReceived {
+    cid: ID!
+    message: ConversationMessage!
+    unread: Int!
+    globalUnread: Int!
+}
+
+type DialogMessageUpdated {
+    message: ConversationMessage!
+}
+
+type DialogMessageDeleted {
+    message: ConversationMessage!
+}
+
+type DialogMessageRead {
+    cid: ID!
+    unread: Int!
+    globalUnread: Int!
+}
+
+type DialogTitleUpdated {
+    cid: ID!
+    title: String!
+}
+
+type DialogPhotoUpdated {
+    cid: ID!
+    photoRef: ImageRef
+}
+
 extend type Subscription {
-    dialogUpdates: Int
+    dialogsUpdates(fromState: String): DialogUpdateContainer!
 }
