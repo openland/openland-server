@@ -5,8 +5,12 @@ import { createLogger } from 'openland-log/createLogger';
 import * as Friebase from 'firebase-admin';
 import { PushRepository } from 'openland-module-push/repositories/PushRepository';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
+import { handleFail } from './handleFail';
+import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
 
-let log = createLogger('firebase');
+const log = createLogger('firebase');
+const pushSent = createHyperlogger<{ uid: number, tokenId: string }>('push_firebase_sent');
+const pushFail = createHyperlogger<{ uid: number, tokenId: string, failures: number, error: string, disabled: boolean }>('push_firebase_failed');
 
 export function createAndroidWorker(repo: PushRepository) {
     let queue = new WorkQueue<FirebasePushTask, { result: string }>('push_sender_firebase');
@@ -43,7 +47,10 @@ export function createAndroidWorker(repo: PushRepository) {
                         });
                         log.log('android_push', token.uid, res);
                         if (res.includes('messaging/invalid-registration-token') || res.includes('messaging/registration-token-not-registered')) {
-                            token.enabled = false;
+                            await handleFail(token);
+                            await pushFail.event({ uid: token.uid, tokenId: token.id, failures: token.failures!, error: res, disabled: !token.enabled });
+                        } else {
+                            await pushSent.event({ uid: token.uid, tokenId: token.id });
                         }
                         return { result: 'ok' };
                     } catch (e) {

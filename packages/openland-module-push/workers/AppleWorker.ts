@@ -5,9 +5,14 @@ import { AppConfiuguration } from 'openland-server/init/initConfig';
 import { createLogger } from 'openland-log/createLogger';
 import { PushRepository } from 'openland-module-push/repositories/PushRepository';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
+import { handleFail } from './handleFail';
+import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
 
 let providers = new Map<boolean, Map<string, APN.Provider>>();
-let log = createLogger('apns');
+const log = createLogger('apns');
+const pushSent = createHyperlogger<{ uid: number, tokenId: string }>('push_apns_sent');
+const pushFail = createHyperlogger<{ uid: number, tokenId: string, failures: number, reason: string, disabled: boolean }>('push_apns_failed');
+
 export function createAppleWorker(repo: PushRepository) {
     let queue = new WorkQueue<ApplePushTask, { result: string }>('push_sender_apns');
     if (AppConfiuguration.apple) {
@@ -62,8 +67,11 @@ export function createAppleWorker(repo: PushRepository) {
                             let reason = res.failed[0].response && res.failed[0].response!.reason;
 
                             if (reason === 'BadDeviceToken' || reason === 'Unregistered') {
-                                token.enabled = false;
+                                await handleFail(token);
+                                await pushFail.event({ uid: token.uid, tokenId: token.id, failures: token.failures!, reason, disabled: !token.enabled });
                             }
+                        } else {
+                            await pushSent.event({ uid: token.uid, tokenId: token.id });
                         }
 
                         return { result: 'ok' };

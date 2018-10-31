@@ -571,6 +571,9 @@ export interface PushFirebaseShape {
     sandbox: boolean;
     enabled: boolean;
     failures?: number| null;
+    failedFirstAt?: number| null;
+    failedLastAt?: number| null;
+    disabledAt?: number| null;
 }
 
 export class PushFirebase extends FEntity {
@@ -640,6 +643,39 @@ export class PushFirebase extends FEntity {
         this._value.failures = value;
         this.markDirty();
     }
+    get failedFirstAt(): number | null {
+        let res = this._value.failedFirstAt;
+        if (res) { return res; }
+        return null;
+    }
+    set failedFirstAt(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.failedFirstAt) { return; }
+        this._value.failedFirstAt = value;
+        this.markDirty();
+    }
+    get failedLastAt(): number | null {
+        let res = this._value.failedLastAt;
+        if (res) { return res; }
+        return null;
+    }
+    set failedLastAt(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.failedLastAt) { return; }
+        this._value.failedLastAt = value;
+        this.markDirty();
+    }
+    get disabledAt(): number | null {
+        let res = this._value.disabledAt;
+        if (res) { return res; }
+        return null;
+    }
+    set disabledAt(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.disabledAt) { return; }
+        this._value.disabledAt = value;
+        this.markDirty();
+    }
 }
 
 export class PushFirebaseFactory extends FEntityFactory<PushFirebase> {
@@ -659,6 +695,9 @@ export class PushFirebaseFactory extends FEntityFactory<PushFirebase> {
         validators.notNull('enabled', src.enabled);
         validators.isBoolean('enabled', src.enabled);
         validators.isNumber('failures', src.failures);
+        validators.isNumber('failedFirstAt', src.failedFirstAt);
+        validators.isNumber('failedLastAt', src.failedLastAt);
+        validators.isNumber('disabledAt', src.disabledAt);
     }
 
     constructor(connection: FConnection) {
@@ -707,6 +746,9 @@ export interface PushAppleShape {
     sandbox: boolean;
     enabled: boolean;
     failures?: number| null;
+    failedFirstAt?: number| null;
+    failedLastAt?: number| null;
+    disabledAt?: number| null;
 }
 
 export class PushApple extends FEntity {
@@ -776,6 +818,39 @@ export class PushApple extends FEntity {
         this._value.failures = value;
         this.markDirty();
     }
+    get failedFirstAt(): number | null {
+        let res = this._value.failedFirstAt;
+        if (res) { return res; }
+        return null;
+    }
+    set failedFirstAt(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.failedFirstAt) { return; }
+        this._value.failedFirstAt = value;
+        this.markDirty();
+    }
+    get failedLastAt(): number | null {
+        let res = this._value.failedLastAt;
+        if (res) { return res; }
+        return null;
+    }
+    set failedLastAt(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.failedLastAt) { return; }
+        this._value.failedLastAt = value;
+        this.markDirty();
+    }
+    get disabledAt(): number | null {
+        let res = this._value.disabledAt;
+        if (res) { return res; }
+        return null;
+    }
+    set disabledAt(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.disabledAt) { return; }
+        this._value.disabledAt = value;
+        this.markDirty();
+    }
 }
 
 export class PushAppleFactory extends FEntityFactory<PushApple> {
@@ -795,6 +870,9 @@ export class PushAppleFactory extends FEntityFactory<PushApple> {
         validators.notNull('enabled', src.enabled);
         validators.isBoolean('enabled', src.enabled);
         validators.isNumber('failures', src.failures);
+        validators.isNumber('failedFirstAt', src.failedFirstAt);
+        validators.isNumber('failedLastAt', src.failedLastAt);
+        validators.isNumber('disabledAt', src.disabledAt);
     }
 
     constructor(connection: FConnection) {
@@ -841,6 +919,9 @@ export interface PushWebShape {
     endpoint: string;
     enabled: boolean;
     failures?: number| null;
+    failedFirstAt?: number| null;
+    failedLastAt?: number| null;
+    disabledAt?: number| null;
 }
 
 export class PushWeb extends FEntity {
@@ -892,6 +973,39 @@ export class PushWeb extends FEntity {
         this._value.failures = value;
         this.markDirty();
     }
+    get failedFirstAt(): number | null {
+        let res = this._value.failedFirstAt;
+        if (res) { return res; }
+        return null;
+    }
+    set failedFirstAt(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.failedFirstAt) { return; }
+        this._value.failedFirstAt = value;
+        this.markDirty();
+    }
+    get failedLastAt(): number | null {
+        let res = this._value.failedLastAt;
+        if (res) { return res; }
+        return null;
+    }
+    set failedLastAt(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.failedLastAt) { return; }
+        this._value.failedLastAt = value;
+        this.markDirty();
+    }
+    get disabledAt(): number | null {
+        let res = this._value.disabledAt;
+        if (res) { return res; }
+        return null;
+    }
+    set disabledAt(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.disabledAt) { return; }
+        this._value.disabledAt = value;
+        this.markDirty();
+    }
 }
 
 export class PushWebFactory extends FEntityFactory<PushWeb> {
@@ -907,6 +1021,9 @@ export class PushWebFactory extends FEntityFactory<PushWeb> {
         validators.notNull('enabled', src.enabled);
         validators.isBoolean('enabled', src.enabled);
         validators.isNumber('failures', src.failures);
+        validators.isNumber('failedFirstAt', src.failedFirstAt);
+        validators.isNumber('failedLastAt', src.failedLastAt);
+        validators.isNumber('disabledAt', src.disabledAt);
     }
 
     constructor(connection: FConnection) {
