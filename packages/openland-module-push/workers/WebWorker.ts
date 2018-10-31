@@ -4,7 +4,9 @@ import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { WebPushTask } from './types';
 import { AppConfiuguration } from 'openland-server/init/initConfig';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
+import { createLogger } from '../../openland-log/createLogger';
 
+let log = createLogger('apns');
 export function createWebWorker(repo: PushRepository) {
     let queue = new WorkQueue<WebPushTask, { result: string }>('push_sender_web');
     if (AppConfiuguration.webPush) {
@@ -16,13 +18,15 @@ export function createWebWorker(repo: PushRepository) {
                 }
 
                 try {
-                    await WebPush.sendNotification(JSON.parse(token.endpoint), JSON.stringify({
+                    let res = await WebPush.sendNotification(JSON.parse(token.endpoint), JSON.stringify({
                         title: task.title,
                         body: task.body,
                         picture: task.picture,
                         ...task.extras
                     }));
+                    log.log('web_push %d', token.uid, JSON.stringify({ statusCode: res.statusCode, body: res.body }));
                 } catch (e) {
+                    log.log('web_push failed %d', token.uid);
                     return { result: 'failed' };
                 }
                 return { result: 'ok' };
