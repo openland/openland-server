@@ -135,14 +135,9 @@ export function startPushNotificationWorker() {
                             }
                         }
 
-                        let conversationSettings = await Repos.Chats.getConversationSettings(u.userId, conversation.id);
-
+                        let conversationSettings = await Modules.Messaging.getConversationSettings(u.userId, conversation.id);
                         if (conversationSettings.mute && !userMentioned) {
                             continue;
-                        }
-
-                        if (conversationSettings.mobileNotifications === 'none') {
-                            sendMobile = false;
                         }
 
                         if (userMentioned) {

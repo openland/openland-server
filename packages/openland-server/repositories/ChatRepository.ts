@@ -10,7 +10,6 @@ import { DoubleInvokeError } from '../errors/DoubleInvokeError';
 import { NotFoundError } from '../errors/NotFoundError';
 import { Repos } from './index';
 import { AccessDeniedError } from '../errors/AccessDeniedError';
-import { IDs } from '../api/utils/IDs';
 import { Conversation } from '../tables/Conversation';
 import { URLAugmentation } from '../services/UrlInfoService';
 import { CacheRepository } from 'openland-module-cache/CacheRepository';
@@ -840,24 +839,6 @@ export class ChatsRepository {
                 status: status || 'member'
             }
         });
-    }
-
-    async getConversationSettings(uid: number, cid: number, tx?: Transaction) {
-        let res = await DB.ConversationUserState.find({ where: { userId: uid, conversationId: cid }, transaction: tx });
-        let settings: Settings = {
-            mobileNotifications: 'all',
-            mute: false,
-            id: IDs.ConversationSettings.serialize(cid)
-        };
-        if (res) {
-            if (res.notificationsSettings.mobileNotifications) {
-                settings.mobileNotifications = res.notificationsSettings.mobileNotifications as any;
-            }
-            if (res.notificationsSettings.mute) {
-                settings.mute = res.notificationsSettings.mute as any;
-            }
-        }
-        return settings;
     }
 
     async getConversationSec(conversationId: number, exTx?: Transaction): Promise<number> {

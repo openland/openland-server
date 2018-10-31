@@ -1,6 +1,5 @@
 import { staticWorker } from 'openland-module-workers/staticWorker';
 import { DB, DB_SILENT } from '../../openland-server/tables';
-import { Repos } from '../../openland-server/repositories';
 import { Emails } from '../../openland-server/services/Emails';
 import { Modules } from 'openland-modules/Modules';
 import { inTx } from 'foundation-orm/inTx';
@@ -93,7 +92,7 @@ export function startEmailNotificationWorker() {
                             continue;
                         }
 
-                        let conversationSettings = await Repos.Chats.getConversationSettings(u.userId, conversation.id);
+                        let conversationSettings = await Modules.Messaging.getConversationSettings(u.userId, conversation.id);
 
                         if (conversationSettings.mute) {
                             continue;

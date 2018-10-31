@@ -30,7 +30,7 @@ import { Sanitizer } from '../modules/Sanitizer';
 import { URLAugmentation } from '../services/UrlInfoService';
 import { Modules } from 'openland-modules/Modules';
 import { OnlineEvent } from '../../openland-module-presences/PresenceModule';
-import { UserProfile } from 'openland-module-db/schema';
+import { UserProfile, UserDialogSettings } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
 import { TypingEvent } from 'openland-module-typings/TypingEvent';
 import { withLogContext } from 'openland-log/withLogContext';
@@ -73,7 +73,7 @@ export const Resolver = {
             },
             order: [['id', 'DESC']]
         }),
-        settings: (src: Conversation, _: any, context: CallContext) => Repos.Chats.getConversationSettings(context.uid!!, src.id),
+        settings: (src: Conversation, _: any, context: CallContext) => Modules.Messaging.getConversationSettings(context.uid!!, src.id),
     },
     SharedConversation: {
         id: (src: Conversation) => IDs.Conversation.serialize(src.id),
@@ -141,7 +141,7 @@ export const Resolver = {
             }
             return src.organization1 || await src.getOrganization1();
         },
-        settings: (src: Conversation, _: any, context: CallContext) => Repos.Chats.getConversationSettings(context.uid!!, src.id),
+        settings: (src: Conversation, _: any, context: CallContext) => Modules.Messaging.getConversationSettings(context.uid!!, src.id),
     },
     PrivateConversation: {
         id: (src: Conversation) => IDs.Conversation.serialize(src.id),
@@ -216,7 +216,7 @@ export const Resolver = {
                 conversation: null
             }
         })),
-        settings: (src: Conversation, _: any, context: CallContext) => Repos.Chats.getConversationSettings(context.uid!!, src.id),
+        settings: (src: Conversation, _: any, context: CallContext) => Modules.Messaging.getConversationSettings(context.uid!!, src.id),
     },
     GroupConversation: {
         id: (src: Conversation) => IDs.Conversation.serialize(src.id),
@@ -302,7 +302,7 @@ export const Resolver = {
             });
         },
         membersCount: (src: Conversation) => Repos.Chats.membersCountInConversation(src.id),
-        settings: (src: Conversation, _: any, context: CallContext) => Repos.Chats.getConversationSettings(context.uid!!, src.id),
+        settings: (src: Conversation, _: any, context: CallContext) => Modules.Messaging.getConversationSettings(context.uid!!, src.id),
 
         photo: (src: Conversation) => src.extras && src.extras.picture ? buildBaseImageUrl(src.extras.picture as any) : null,
         photoRef: (src: Conversation) => src.extras && src.extras.picture,
@@ -622,6 +622,12 @@ export const Resolver = {
     ConversationBlockedUser: {
         user: (src: ConversationBlocked) => DB.User.findOne({ where: { id: src.user } }),
         blockedBy: (src: ConversationBlocked) => DB.User.findOne({ where: { id: src.blockedBy } }),
+    },
+
+    ConversationSettings: {
+        id: (src: UserDialogSettings) => IDs.ConversationSettings.serialize(src.cid),
+        mute: (src: UserDialogSettings) => src.mute,
+        mobileNotifications: (src: UserDialogSettings) => 'ALL'
     },
 
     Query: {
@@ -1840,22 +1846,12 @@ export const Resolver = {
             return 'ok';
         }),
         alphaUpdateConversationSettings: withUser<{ settings: { mobileNotifications?: 'all' | 'direct' | 'none' | null, mute?: boolean | null }, conversationId: string }>(async (args, uid) => {
-            return await DB.txStable(async (tx) => {
-                let cid = IDs.Conversation.parse(args.conversationId);
-                let settings = await Repos.Chats.getConversationSettings(uid, cid, tx);
-                if (args.settings.mobileNotifications) {
-                    settings.mobileNotifications = args.settings.mobileNotifications;
-                }
+            let cid = IDs.Conversation.parse(args.conversationId);
+            return await inTx(async () => {
+                let settings = await Modules.Messaging.getConversationSettings(uid, cid);
                 if (args.settings.mute !== undefined && args.settings.mute !== null) {
                     settings.mute = args.settings.mute;
                 }
-
-                await DB.ConversationUserState.update({ notificationsSettings: { ...settings } }, {
-                    where: {
-                        userId: uid,
-                        conversationId: cid
-                    }, transaction: tx
-                });
                 return settings;
             });
         }),
