@@ -15,6 +15,7 @@ import { DraftsModule } from 'openland-module-drafts/DraftsModule';
 import { TypingsModule } from 'openland-module-typings/TypingsModule';
 import { OrgsModule } from 'openland-module-orgs/OrgsModule';
 import { InvitesModule } from 'openland-module-invites/InvitesModule';
+import { PubsubModule } from 'openland-module-pubsub/PubsubModule';
 
 class ModulesImpl {
     readonly Auth = new AuthModule();
@@ -34,6 +35,7 @@ class ModulesImpl {
     readonly Typings = new TypingsModule();
     readonly Orgs = new OrgsModule();
     readonly Invites = new InvitesModule();
+    readonly Pubsub = new PubsubModule();
 
     start = () => {
         this.DB.start();
@@ -52,6 +54,7 @@ class ModulesImpl {
         this.Typings.start();
         this.Orgs.start();
         this.Invites.start();
+        this.Pubsub.start();
     }
 }
 

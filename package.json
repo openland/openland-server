@@ -208,6 +208,7 @@
     "openland-module-drafts": "build/openland-module-drafts",
     "openland-module-typings": "build/openland-module-typings",
     "openland-module-orgs": "build/openland-module-orgs",
-    "openland-module-invites": "build/openland-module-invites"
+    "openland-module-invites": "build/openland-module-invites",
+    "openland-module-pubsub": "build/openland-module-pubsub"
   }
 }
