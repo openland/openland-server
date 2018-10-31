@@ -5,6 +5,7 @@ import { AppConfiuguration } from 'openland-server/init/initConfig';
 import { createLogger } from 'openland-log/createLogger';
 import { PushRepository } from 'openland-module-push/repositories/PushRepository';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
+import { handleFail } from './handleFail';
 
 let providers = new Map<boolean, Map<string, APN.Provider>>();
 let log = createLogger('apns');
@@ -62,7 +63,7 @@ export function createAppleWorker(repo: PushRepository) {
                             let reason = res.failed[0].response && res.failed[0].response!.reason;
 
                             if (reason === 'BadDeviceToken' || reason === 'Unregistered') {
-                                token.enabled = false;
+                                await handleFail(token);
                             }
                         }
 

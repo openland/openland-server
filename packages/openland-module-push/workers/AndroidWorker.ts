@@ -5,6 +5,7 @@ import { createLogger } from 'openland-log/createLogger';
 import * as Friebase from 'firebase-admin';
 import { PushRepository } from 'openland-module-push/repositories/PushRepository';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
+import { handleFail } from './handleFail';
 
 let log = createLogger('firebase');
 
@@ -43,7 +44,7 @@ export function createAndroidWorker(repo: PushRepository) {
                         });
                         log.log('android_push', token.uid, res);
                         if (res.includes('messaging/invalid-registration-token') || res.includes('messaging/registration-token-not-registered')) {
-                            token.enabled = false;
+                            await handleFail(token);
                         }
                         return { result: 'ok' };
                     } catch (e) {

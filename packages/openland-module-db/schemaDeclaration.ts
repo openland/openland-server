@@ -80,6 +80,9 @@ const Schema = declareSchema(() => {
         field('sandbox', 'boolean');
         field('enabled', 'boolean');
         field('failures', 'number').nullable();
+        field('failedFirstAt', 'number').nullable();
+        field('failedLastAt', 'number').nullable();
+        field('disabledAt', 'number').nullable();
         rangeIndex('user', ['uid', 'id']);
         uniqueIndex('token', ['token']).withCondition(src => src.enabled);
         enableTimestamps();
@@ -95,6 +98,9 @@ const Schema = declareSchema(() => {
         field('sandbox', 'boolean');
         field('enabled', 'boolean');
         field('failures', 'number').nullable();
+        field('failedFirstAt', 'number').nullable();
+        field('failedLastAt', 'number').nullable();
+        field('disabledAt', 'number').nullable();
         rangeIndex('user', ['uid', 'id']);
         uniqueIndex('token', ['token']).withCondition(src => src.enabled);
         enableTimestamps();
@@ -108,6 +114,9 @@ const Schema = declareSchema(() => {
         field('endpoint', 'string');
         field('enabled', 'boolean');
         field('failures', 'number').nullable();
+        field('failedFirstAt', 'number').nullable();
+        field('failedLastAt', 'number').nullable();
+        field('disabledAt', 'number').nullable();
         rangeIndex('user', ['uid', 'id']);
         uniqueIndex('endpoint', ['endpoint']).withCondition(src => src.enabled);
         enableTimestamps();
