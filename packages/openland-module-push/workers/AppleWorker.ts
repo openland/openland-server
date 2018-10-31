@@ -76,6 +76,7 @@ export function createAppleWorker(repo: PushRepository) {
 
                         return { result: 'ok' };
                     } catch (e) {
+                        console.log(e);
                         log.log('ios_push failed', token.uid);
                         return { result: 'failed' };
                     }
