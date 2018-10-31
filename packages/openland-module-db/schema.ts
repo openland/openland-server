@@ -2304,6 +2304,57 @@ export class UserDialogFactory extends FEntityFactory<UserDialog> {
         return new UserDialog(this.connection, this.namespace, [value.uid, value.cid], value, this.options, isNew, this.indexes);
     }
 }
+export interface UserDialogSettingsShape {
+    mute: boolean;
+}
+
+export class UserDialogSettings extends FEntity {
+    get uid(): number { return this._value.uid; }
+    get cid(): number { return this._value.cid; }
+    get mute(): boolean {
+        return this._value.mute;
+    }
+    set mute(value: boolean) {
+        this._checkIsWritable();
+        if (value === this._value.mute) { return; }
+        this._value.mute = value;
+        this.markDirty();
+    }
+}
+
+export class UserDialogSettingsFactory extends FEntityFactory<UserDialogSettings> {
+    private static validate(src: any) {
+        validators.notNull('uid', src.uid);
+        validators.isNumber('uid', src.uid);
+        validators.notNull('cid', src.cid);
+        validators.isNumber('cid', src.cid);
+        validators.notNull('mute', src.mute);
+        validators.isBoolean('mute', src.mute);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'userDialogSettings'),
+            { enableVersioning: true, enableTimestamps: true, validator: UserDialogSettingsFactory.validate },
+            []
+        );
+    }
+    extractId(rawId: any[]) {
+        return { 'uid': rawId[0], 'cid': rawId[1] };
+    }
+    async findById(uid: number, cid: number) {
+        return await this._findById([uid, cid]);
+    }
+    async create(uid: number, cid: number, shape: UserDialogSettingsShape) {
+        return await this._create([uid, cid], { uid, cid, ...shape });
+    }
+    watch(uid: number, cid: number, cb: () => void) {
+        return this._watch([uid, cid], cb);
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new UserDialogSettings(this.connection, this.namespace, [value.uid, value.cid], value, this.options, isNew, this.indexes);
+    }
+}
 export interface UserMessagingStateShape {
     seq: number;
     unread: number;
@@ -3059,6 +3110,7 @@ export class AllEntities extends FDBInstance {
     Message: MessageFactory;
     ConversationEvent: ConversationEventFactory;
     UserDialog: UserDialogFactory;
+    UserDialogSettings: UserDialogSettingsFactory;
     UserMessagingState: UserMessagingStateFactory;
     UserNotificationsState: UserNotificationsStateFactory;
     UserMessagingEvent: UserMessagingEventFactory;
@@ -3094,6 +3146,7 @@ export class AllEntities extends FDBInstance {
         this.Message = new MessageFactory(connection);
         this.ConversationEvent = new ConversationEventFactory(connection);
         this.UserDialog = new UserDialogFactory(connection);
+        this.UserDialogSettings = new UserDialogSettingsFactory(connection);
         this.UserMessagingState = new UserMessagingStateFactory(connection);
         this.UserNotificationsState = new UserNotificationsStateFactory(connection);
         this.UserMessagingEvent = new UserMessagingEventFactory(connection);

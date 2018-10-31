@@ -22,7 +22,23 @@ export function startDialogStatsExporting() {
                 }
             });
         }
-        //
     });
     reader.start();
+
+    let reader2 = new UpdateReader('export_dialog_settings', 1, DB.ConversationUserState);
+    reader2.processor(async (items) => {
+        for (let i of items) {
+            await inTx(async () => {
+                let existing = await FDB.UserDialogSettings.findById(i.userId, i.conversationId);
+                if (existing) {
+                    existing.mute = (i.notificationsSettings.mute !== undefined && i.notificationsSettings.mute !== null) ? i.notificationsSettings.mute as any : false;
+                } else {
+                    await FDB.UserDialogSettings.create(i.userId, i.conversationId, {
+                        mute: (i.notificationsSettings.mute !== undefined && i.notificationsSettings.mute !== null) ? i.notificationsSettings.mute as any : false
+                    });
+                }
+            });
+        }
+    });
+    reader2.start();
 }

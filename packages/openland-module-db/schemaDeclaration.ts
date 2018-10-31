@@ -279,6 +279,14 @@ const Schema = declareSchema(() => {
         enableVersioning();
     });
 
+    entity('UserDialogSettings', () => {
+        primaryKey('uid', 'number');
+        primaryKey('cid', 'number');
+        field('mute', 'boolean');
+        enableTimestamps();
+        enableVersioning();
+    });
+
     entity('UserMessagingState', () => {
         primaryKey('uid', 'number');
         field('seq', 'number');

@@ -9,6 +9,7 @@ import { inTx } from 'foundation-orm/inTx';
 import { ChannelInviteEmails } from './emails/ChannelInviteEmails';
 import { createDeliveryWorker } from './workers/DeliveryWorker';
 import { startDialogStatsExporting } from './Migrator';
+import { DialogsRepository } from './repositories/DialogsRepository';
 
 export interface MessageInput {
     repeatToken?: string | null;
@@ -27,6 +28,7 @@ export class MessagingModule {
     readonly AugmentationWorker = createAugmentationWorker();
     readonly DeliveryWorker = createDeliveryWorker();
     readonly repo = new MessagingRepository(FDB);
+    private readonly dialogs = new DialogsRepository(FDB);
     private readonly channels = new ChannelRepository(FDB);
 
     start = () => {
@@ -37,6 +39,10 @@ export class MessagingModule {
             startPushNotificationWorker();
         }
         startDialogStatsExporting();
+    }
+
+    async getConversationSettings(uid: number, cid: number) {
+        return await this.dialogs.getConversationSettings(uid, cid);
     }
 
     async resolveInvite(id: string) {
