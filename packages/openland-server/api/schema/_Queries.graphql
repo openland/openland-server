@@ -2,8 +2,10 @@ type Query {
 
     alphaInvites: [Invite!]
     alphaInviteInfo(key: String!): InviteInfo
-    alphaAppInvite: String!
-    alphaAppInviteInfo(key: String!): AppInviteInfo
+    appInvite: String!
+    appInviteInfo(key: String!): AppInvite
+    alphaAppInvite: String! @deprecated(reason: "renamed to 'appInvite'")
+    alphaAppInviteInfo(key: String!): AppInviteInfo @deprecated(reason: "renamed to 'appInviteInfo'")
     alphaInvitesHistory: [InviteHistotyInfo!]
 
     alphaRefreshTask(id: ID!): Task!

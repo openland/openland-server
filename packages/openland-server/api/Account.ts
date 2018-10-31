@@ -45,6 +45,20 @@ export const Resolver = {
                 forName: invite.memberFirstName,
             };
         }),
+        appInviteInfo: withAny<{ key: string }>(async (args, context: CallContext) => {
+            let invite = await Modules.Invites.repo.getInvteLinkData(args.key);
+            if (!invite) {
+                return null;
+            }
+            let inviter = await DB.User.findById(invite.uid);
+            return {
+                inviter: inviter,
+            };
+        }),
+        appInvite: withUser(async (args, uid) => {
+            return await Modules.Invites.repo.getInviteLinkKey(uid);
+        }),
+        // depricated. todo: delete
         alphaAppInviteInfo: withAny<{ key: string }>(async (args, context: CallContext) => {
             let invite = await Modules.Invites.repo.getInvteLinkData(args.key);
             if (!invite) {
@@ -55,6 +69,7 @@ export const Resolver = {
                 inviter: inviter,
             };
         }),
+        // depricated. todo: delete
         alphaAppInvite: withUser(async (args, uid) => {
             return await Modules.Invites.repo.getInviteLinkKey(uid);
         }),
@@ -234,6 +249,33 @@ export const Resolver = {
                 return IDs.Organization.serialize(invite.orgId);
             });
         }),
+        joinAppInvite: withAny<{ key: string }>(async (args, context) => {
+            let uid = context.uid;
+            if (uid === undefined) {
+                return;
+            }
+            return await DB.txStable(async (tx) => {
+                let inviteData = await Modules.Invites.repo.getInvteLinkData(args.key);
+                if (!inviteData) {
+                    throw new NotFoundError(ErrorText.unableToFindInvite);
+                }
+                let user = (await DB.User.findById(uid, { transaction: tx, lock: tx.LOCK.UPDATE }))!;
+                // activate user, set invited by
+                user.invitedBy = inviteData.uid;
+                user.status = 'ACTIVATED';
+                await user.save({ transaction: tx });
+                await Repos.Chats.addToInitialChannel(user.id!, tx);
+                // activate user org if have one
+                let org = context.oid ? (await DB.Organization.findById(context.oid, { transaction: tx, lock: tx.LOCK.UPDATE })) : undefined;
+                if (org) {
+                    org.status = 'ACTIVATED';
+                    await org.save({ transaction: tx });
+                }
+                return 'ok';
+            });
+        }),
+
+        // depricated. todo: delete
         alphaJoinGlobalInvite: withAny<{ key: string }>(async (args, context) => {
             let uid = context.uid;
             if (uid === undefined) {

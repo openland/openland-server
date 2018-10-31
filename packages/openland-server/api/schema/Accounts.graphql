@@ -21,6 +21,10 @@ type InviteInfo {
     forName: String
 }
 
+type AppInvite {
+    inviter: User!
+}
+
 type AppInviteInfo {
     inviter: User!
 }
