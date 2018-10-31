@@ -48,8 +48,11 @@ export function createAndroidWorker(repo: PushRepository) {
                         });
                         log.log('android_push', token.uid, res);
                         if (res.includes('messaging/invalid-registration-token') || res.includes('messaging/registration-token-not-registered')) {
-                            await inTx(async () => await handleFail(token));
-                            await pushFail.event({ uid: token.uid, tokenId: token.id, failures: token.failures!, error: res, disabled: !token.enabled });
+                            await inTx(async () => {
+                                let t = (await repo.getAndroidToken(task.tokenId))!;
+                                await handleFail(t);
+                                await pushFail.event({ uid: t.uid, tokenId: t.id, failures: t.failures!, error: res, disabled: !t.enabled });
+                            });
                         } else {
                             await pushSent.event({ uid: token.uid, tokenId: token.id });
                         }

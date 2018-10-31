@@ -68,8 +68,11 @@ export function createAppleWorker(repo: PushRepository) {
                             let reason = res.failed[0].response && res.failed[0].response!.reason;
 
                             if (reason === 'BadDeviceToken' || reason === 'Unregistered') {
-                                await inTx(async () => await handleFail(token));
-                                await pushFail.event({ uid: token.uid, tokenId: token.id, failures: token.failures!, reason, disabled: !token.enabled });
+                                await inTx(async () => {
+                                    let t = (await repo.getAppleToken(task.tokenId))!;
+                                    await handleFail(t);
+                                    await pushFail.event({ uid: t.uid, tokenId: t.id, failures: t.failures!, reason: reason!, disabled: !t.enabled });
+                                });
                             }
                         } else {
                             await pushSent.event({ uid: token.uid, tokenId: token.id });
