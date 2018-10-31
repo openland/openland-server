@@ -1,10 +1,10 @@
-interface DialogUpdateSingle {
+type DialogUpdateSingle {
     seq: Int!
     state: String!
     update: DialogUpdate!
 }
 
-interface DialogUpdateBatch {
+type DialogUpdateBatch {
     updates: [DialogUpdate!]!
     fromSeq: Int!
     seq: Int!
