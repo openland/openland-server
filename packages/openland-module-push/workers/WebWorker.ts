@@ -5,8 +5,14 @@ import { WebPushTask } from './types';
 import { AppConfiuguration } from 'openland-server/init/initConfig';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { createLogger } from '../../openland-log/createLogger';
+import { handleFail } from './handleFail';
+import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
+import { inTx } from '../../foundation-orm/inTx';
 
-let log = createLogger('web_push');
+const log = createLogger('web_push');
+const pushSent = createHyperlogger<{ uid: number, tokenId: string }>('push_web_sent');
+const pushFail = createHyperlogger<{ uid: number, tokenId: string, failures: number, statusCode: number, disabled: boolean }>('push_web_failed');
+
 export function createWebWorker(repo: PushRepository) {
     let queue = new WorkQueue<WebPushTask, { result: string }>('push_sender_web');
     if (AppConfiuguration.webPush) {
@@ -24,8 +30,13 @@ export function createWebWorker(repo: PushRepository) {
                         picture: task.picture,
                         ...task.extras
                     }));
+                    await pushSent.event({ uid: token.uid, tokenId: token.id });
                     log.log('web_push', token.uid, JSON.stringify({ statusCode: res.statusCode, body: res.body }));
                 } catch (e) {
+                    if (e.statusCode === 410) {
+                        await inTx(async () => await handleFail(token));
+                        await pushFail.event({ uid: token.uid, tokenId: token.id, failures: token.failures!, statusCode: e.statusCode, disabled: !token.enabled });
+                    }
                     log.log('web_push failed', token.uid, JSON.stringify({ statusCode: e.statusCode, body: e.body }));
                     return { result: 'failed' };
                 }
