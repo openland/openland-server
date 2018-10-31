@@ -24,9 +24,9 @@ export function createWebWorker(repo: PushRepository) {
                         picture: task.picture,
                         ...task.extras
                     }));
-                    log.log('web_push %d', token.uid, JSON.stringify({ statusCode: res.statusCode, body: res.body }));
+                    log.log('web_push', token.uid, JSON.stringify({ statusCode: res.statusCode, body: res.body }));
                 } catch (e) {
-                    log.log('web_push failed %d', token.uid);
+                    log.log('web_push failed', token.uid);
                     return { result: 'failed' };
                 }
                 return { result: 'ok' };

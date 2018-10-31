@@ -40,7 +40,7 @@ export function createAndroidWorker(repo: PushRepository) {
                         },
                         token: token.token
                     });
-                    log.log('android_push %d', token.uid, res);
+                    log.log('android_push', token.uid, res);
                     return { result: 'ok' };
                 } else {
                     throw Error('');

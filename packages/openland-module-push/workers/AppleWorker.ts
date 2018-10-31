@@ -54,9 +54,24 @@ export function createAppleWorker(repo: PushRepository) {
                         not.alert = task.alert;
                     }
 
-                    let res = await (provs.get(team.teamId)!!).send(not, token.token);
-                    log.log('ios_push %d', token.uid, JSON.stringify(res));
-                    return { result: 'ok' };
+                    try {
+                        let res = await (provs.get(team.teamId)!!).send(not, token.token);
+                        log.log('ios_push', token.uid, JSON.stringify(res));
+
+                        if (res.failed.length > 0) {
+                            let reason = res.failed[0].response && res.failed[0].response!.reason;
+
+                            if (reason === 'BadDeviceToken' || reason === 'Unregistered') {
+                                token.enabled = false;
+                            }
+                        }
+
+                        return { result: 'ok' };
+                    } catch (e) {
+                        log.log('ios_push failed', token.uid);
+                        return { result: 'failed' };
+                    }
+
                 } else {
                     throw Error('Unable to find team for bundleId: ' + token.bundleId);
                 }
