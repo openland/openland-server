@@ -19,8 +19,10 @@ import { withLogContext } from '../../openland-log/withLogContext';
 import { trace } from 'openland-log/trace';
 import { gqlTracer } from 'openland-server/utils/gqlTracer';
 import { buildSchema } from 'openland-graphql/buildSchema';
+import { buildResolvers } from 'openland-graphql/buildResolvers';
 
 let schema = buildSchema(__dirname + '/../../');
+let resolvers = buildResolvers(__dirname + '/../../');
 
 export const Schema = wrapAllResolvers(
     makeExecutableSchema({
@@ -37,7 +39,8 @@ export const Schema = wrapAllResolvers(
             Channels.Resolver,
             ShortName.Resolvers,
             IDScalars,
-            Developer.Resolver
+            Developer.Resolver,
+            ...resolvers
         ),
         schemaDirectives: Directives
     }),
