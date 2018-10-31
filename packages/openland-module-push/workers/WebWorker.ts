@@ -6,7 +6,7 @@ import { AppConfiuguration } from 'openland-server/init/initConfig';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { createLogger } from '../../openland-log/createLogger';
 
-let log = createLogger('apns');
+let log = createLogger('web_push');
 export function createWebWorker(repo: PushRepository) {
     let queue = new WorkQueue<WebPushTask, { result: string }>('push_sender_web');
     if (AppConfiuguration.webPush) {
