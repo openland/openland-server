@@ -7,6 +7,7 @@ import { PushRepository } from 'openland-module-push/repositories/PushRepository
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { handleFail } from './handleFail';
 import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
+import { inTx } from '../../foundation-orm/inTx';
 
 let providers = new Map<boolean, Map<string, APN.Provider>>();
 const log = createLogger('apns');
@@ -67,7 +68,7 @@ export function createAppleWorker(repo: PushRepository) {
                             let reason = res.failed[0].response && res.failed[0].response!.reason;
 
                             if (reason === 'BadDeviceToken' || reason === 'Unregistered') {
-                                await handleFail(token);
+                                await inTx(async () => await handleFail(token));
                                 await pushFail.event({ uid: token.uid, tokenId: token.id, failures: token.failures!, reason, disabled: !token.enabled });
                             }
                         } else {

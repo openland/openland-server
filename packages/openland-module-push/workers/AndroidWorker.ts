@@ -7,6 +7,7 @@ import { PushRepository } from 'openland-module-push/repositories/PushRepository
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { handleFail } from './handleFail';
 import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
+import { inTx } from '../../foundation-orm/inTx';
 
 const log = createLogger('firebase');
 const pushSent = createHyperlogger<{ uid: number, tokenId: string }>('push_firebase_sent');
@@ -47,7 +48,7 @@ export function createAndroidWorker(repo: PushRepository) {
                         });
                         log.log('android_push', token.uid, res);
                         if (res.includes('messaging/invalid-registration-token') || res.includes('messaging/registration-token-not-registered')) {
-                            await handleFail(token);
+                            await inTx(async () => await handleFail(token));
                             await pushFail.event({ uid: token.uid, tokenId: token.id, failures: token.failures!, error: res, disabled: !token.enabled });
                         } else {
                             await pushSent.event({ uid: token.uid, tokenId: token.id });

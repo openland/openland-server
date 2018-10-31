@@ -7,6 +7,7 @@ import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { createLogger } from '../../openland-log/createLogger';
 import { handleFail } from './handleFail';
 import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
+import { inTx } from '../../foundation-orm/inTx';
 
 const log = createLogger('web_push');
 const pushSent = createHyperlogger<{ uid: number, tokenId: string }>('push_web_sent');
@@ -33,7 +34,7 @@ export function createWebWorker(repo: PushRepository) {
                     log.log('web_push', token.uid, JSON.stringify({ statusCode: res.statusCode, body: res.body }));
                 } catch (e) {
                     if (e.statusCode === 410) {
-                        await handleFail(token);
+                        await inTx(async () => await handleFail(token));
                         await pushFail.event({ uid: token.uid, tokenId: token.id, failures: token.failures!, statusCode: e.statusCode, disabled: !token.enabled });
                     }
                     log.log('web_push failed', token.uid, JSON.stringify({ statusCode: e.statusCode, body: e.body }));
