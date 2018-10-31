@@ -3,48 +3,45 @@ import { DB, DB_SILENT } from '../../openland-server/tables';
 import { Emails } from '../../openland-server/services/Emails';
 import { Modules } from 'openland-modules/Modules';
 import { inTx } from 'foundation-orm/inTx';
+import { FDB } from 'openland-module-db/FDB';
 
 export function startEmailNotificationWorker() {
     staticWorker({ name: 'email_notifications', delay: 15000 }, async () => {
-        return await inTx(async () => {
-            let unreadUsers = await DB.ConversationsUserGlobal.findAll({
-                where: {
-                    unread: { $gt: 0 }
-                },
-            });
-            let now = Date.now();
-
-            for (let u of unreadUsers) {
-                let state = await Modules.Messaging.repo.getUserMessagingState(u.userId);
-                let lastSeen = await Modules.Presence.getLastSeen(u.userId);
-                let tag = 'email_notifications ' + u.userId;
+        
+        let unreadUsers = await FDB.UserMessagingState.allFromHasUnread();
+        let now = Date.now();
+        for (let u of unreadUsers) {
+            await inTx(async () => {
+                let state = await Modules.Messaging.repo.getUserMessagingState(u.uid);
+                let lastSeen = await Modules.Presence.getLastSeen(u.uid);
+                let tag = 'email_notifications ' + u.uid;
 
                 // Ignore online or never-online users
                 if (lastSeen === null) {
-                    continue;
+                    return;
                 }
 
                 // Ignore recently online users
                 if (lastSeen > now - 5 * 60 * 1000) {
-                    continue;
+                    return;
                 }
 
                 // Ignore never opened apps
                 if (state.readSeq === null) {
-                    continue;
+                    return;
                 }
 
                 // Ignore read updates
                 if (state.readSeq === u.seq) {
-                    continue;
+                    return;
                 }
 
                 // Ignore already processed updates
                 if (state.lastEmailSeq === u.seq) {
-                    continue;
+                    return;
                 }
 
-                let settings = await Modules.Users.getUserSettings(u.userId);
+                let settings = await Modules.Users.getUserSettings(u.uid);
                 if (settings.emailFrequency !== 'never') {
 
                     // Read email timeouts
@@ -62,13 +59,13 @@ export function startEmailNotificationWorker() {
 
                     // Do not send emails more than one in an hour
                     if (state.lastEmailNotification !== null && state.lastEmailNotification > now - delta) {
-                        continue;
+                        return;
                     }
 
                     // Fetch pending updates
                     let remainingUpdates = await DB.ConversationUserEvents.findAll({
                         where: {
-                            userId: u.userId,
+                            userId: u.uid,
                             seq: {
                                 $gt: Math.max(state.lastEmailSeq ? state.lastEmailSeq : 0, state.readSeq)
                             }
@@ -77,7 +74,7 @@ export function startEmailNotificationWorker() {
                     });
                     let messages = remainingUpdates
                         .filter((v) => v.eventType === 'new_message')
-                        .filter((v) => v.event.senderId !== u.userId);
+                        .filter((v) => v.event.senderId !== u.uid);
 
                     let hasNonMuted = false;
                     for (let m of messages) {
@@ -92,7 +89,7 @@ export function startEmailNotificationWorker() {
                             continue;
                         }
 
-                        let conversationSettings = await Modules.Messaging.getConversationSettings(u.userId, conversation.id);
+                        let conversationSettings = await Modules.Messaging.getConversationSettings(u.uid, conversation.id);
 
                         if (conversationSettings.mute) {
                             continue;
@@ -106,15 +103,15 @@ export function startEmailNotificationWorker() {
                     // Send email notification if there are some
                     if (hasNonMuted) {
                         console.log(tag, 'new_email_notification');
-                        await Emails.sendUnreadMesages(u.userId, u.unread);
+                        await Emails.sendUnreadMesages(u.uid, u.unread);
                         state.lastEmailNotification = Date.now();
                     }
                 }
 
                 // Save state
                 state.lastEmailSeq = u.seq;
-            }
-            return false;
-        });
+            });
+        }
+        return false;
     });
 }

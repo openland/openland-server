@@ -291,6 +291,7 @@ const Schema = declareSchema(() => {
         primaryKey('uid', 'number');
         field('seq', 'number');
         field('unread', 'number');
+        rangeIndex('hasUnread', []).withCondition((src) => src.unread && src.unread > 0);
         enableVersioning();
         enableTimestamps();
     });

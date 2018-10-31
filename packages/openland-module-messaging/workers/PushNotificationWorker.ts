@@ -7,6 +7,7 @@ import { Modules } from 'openland-modules/Modules';
 import { withLogContext } from 'openland-log/withLogContext';
 import { inTx } from 'foundation-orm/inTx';
 import { createLogger } from 'openland-log/createLogger';
+import { FDB } from 'openland-module-db/FDB';
 
 const Delays = {
     'none': 10 * 1000,
@@ -20,24 +21,18 @@ export function startPushNotificationWorker() {
 
     staticWorker({ name: 'push_notifications', delay: 3000 }, async () => {
 
-        let unreadUsers = await DB.ConversationsUserGlobal.findAll({
-            where: {
-                unread: { $gt: 0 },
-            },
-            logging: DB_SILENT
-        });
-
+        let unreadUsers = await FDB.UserMessagingState.allFromHasUnread();
         log.debug('unread users: ' + unreadUsers.length);
         for (let u of unreadUsers) {
             await inTx(async () => {
-                await withLogContext(['user', '' + u.userId], async () => {
+                await withLogContext(['user', '' + u.uid], async () => {
                     // Loading user's settings and state
-                    let settings = await Modules.Users.getUserSettings(u.userId);
-                    let state = await Modules.Messaging.repo.getUserMessagingState(u.userId);
+                    let settings = await Modules.Users.getUserSettings(u.uid);
+                    let state = await Modules.Messaging.repo.getUserMessagingState(u.uid);
 
                     let now = Date.now();
 
-                    let lastSeen = await Modules.Presence.getLastSeen(u.userId);
+                    let lastSeen = await Modules.Presence.getLastSeen(u.uid);
 
                     // Ignore never-online users
                     if (lastSeen === 'never_online') {
@@ -82,7 +77,7 @@ export function startPushNotificationWorker() {
                     // Scanning updates
                     let remainingUpdates = await DB.ConversationUserEvents.findAll({
                         where: {
-                            userId: u.userId,
+                            userId: u.uid,
                             seq: {
                                 $gt: Math.max(state.lastPushSeq ? state.lastPushSeq : 0, state.readSeq)
                             }
@@ -98,7 +93,7 @@ export function startPushNotificationWorker() {
                         let senderId = m.event.senderId as number;
                         let unreadCount = m.event.unreadGlobal as number;
                         // Ignore current user
-                        if (senderId === u.userId) {
+                        if (senderId === u.uid) {
                             continue;
                         }
                         let message = await DB.ConversationMessage.findById(messageId);
@@ -109,7 +104,7 @@ export function startPushNotificationWorker() {
                         if (!sender) {
                             continue;
                         }
-                        let receiver = await Modules.Users.profileById(u.userId);
+                        let receiver = await Modules.Users.profileById(u.uid);
                         if (!receiver) {
                             continue;
                         }
@@ -118,7 +113,7 @@ export function startPushNotificationWorker() {
                             continue;
                         }
 
-                        let userMentioned = message.extras && message.extras.mentions && (message.extras.mentions as number[]).indexOf(u.userId) > -1;
+                        let userMentioned = message.extras && message.extras.mentions && (message.extras.mentions as number[]).indexOf(u.uid) > -1;
 
                         let sendDesktop = settings.desktopNotifications !== 'none';
                         let sendMobile = settings.mobileNotifications !== 'none';
@@ -135,7 +130,7 @@ export function startPushNotificationWorker() {
                             }
                         }
 
-                        let conversationSettings = await Modules.Messaging.getConversationSettings(u.userId, conversation.id);
+                        let conversationSettings = await Modules.Messaging.getConversationSettings(u.uid, conversation.id);
                         if (conversationSettings.mute && !userMentioned) {
                             continue;
                         }
@@ -153,7 +148,7 @@ export function startPushNotificationWorker() {
                         if (!receiverPrimaryOrg) {
                             continue;
                         }
-                        let chatTitle = await Repos.Chats.getConversationTitle(conversation.id, receiverPrimaryOrg, u.userId);
+                        let chatTitle = await Repos.Chats.getConversationTitle(conversation.id, receiverPrimaryOrg, u.uid);
 
                         hasMessage = true;
                         let senderName = [sender.firstName, sender.lastName].filter((v) => !!v).join(' ');
@@ -178,7 +173,7 @@ export function startPushNotificationWorker() {
                         }
 
                         let push = {
-                            uid: u.userId,
+                            uid: u.uid,
                             title: pushTitle,
                             body: pushBody,
                             picture: sender.picture ? buildBaseImageUrl(sender.picture!!) : null,

@@ -2396,7 +2396,7 @@ export class UserMessagingStateFactory extends FEntityFactory<UserMessagingState
         super(connection,
             new FNamespace('entity', 'userMessagingState'),
             { enableVersioning: true, enableTimestamps: true, validator: UserMessagingStateFactory.validate },
-            []
+            [new FEntityIndex('hasUnread', [], false, (src) => src.unread && src.unread > 0)]
         );
     }
     extractId(rawId: any[]) {
@@ -2410,6 +2410,18 @@ export class UserMessagingStateFactory extends FEntityFactory<UserMessagingState
     }
     watch(uid: number, cb: () => void) {
         return this._watch([uid], cb);
+    }
+    async rangeFromHasUnread(limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'hasUnread'], limit, reversed);
+    }
+    async rangeFromHasUnreadWithCursor(limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'hasUnread'], limit, after, reversed);
+    }
+    async allFromHasUnread() {
+        return await this._findAll(['__indexes', 'hasUnread']);
+    }
+    createHasUnreadStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'userMessagingState', '__indexes', 'hasUnread'], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
         return new UserMessagingState(this.connection, this.namespace, [value.uid], value, this.options, isNew, this.indexes);
