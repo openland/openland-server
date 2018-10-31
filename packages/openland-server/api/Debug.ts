@@ -141,24 +141,12 @@ export const Resolver = {
                 group: 'userId'
             });
 
-            let usersMutedOpenlandBeta = await DB.ConversationUserState.count({
-                where: {
-                    conversationId: 621,
-                    notificationsSettings: {
-                        mute: true
-                    },
-                    userId: {
-                        $notIn: userIds
-                    }
-                }
-            });
-
             return {
                 messagesSent: messages,
                 usersActive: activeUsers,
                 usersMutedEmail: 0,
                 messagesLeaderboard,
-                usersMutedOpenlandBeta
+                usersMutedOpenlandBeta: 0
             };
         }),
 

@@ -786,7 +786,7 @@ export const Resolver = {
         alphaChatTextSearch: withAccount<{ query: string }>(async (args, uid, oid) => {
 
             // GROUPS / CHANNELS has titles we can search 
-            let searchableConversations = (await DB.ConversationUserState.findAll({ where: { userId: uid } })).map(s => s.conversationId);
+            let searchableConversations = (await FDB.UserDialog.allFromUser(uid)).map((v) => v.cid);
             let sequelize = DB.connection;
             let groupsChannels = await DB.Conversation.findAll({
                 where: {

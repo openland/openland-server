@@ -18,6 +18,7 @@ import { Services } from '../services';
 import { Modules } from 'openland-modules/Modules';
 import { inTx } from 'foundation-orm/inTx';
 import { ChannelInvitation, ChannelLink } from 'openland-module-db/schema';
+import { FDB } from 'openland-module-db/FDB';
 
 interface AlphaChannelsParams {
     orgId: string;
@@ -36,7 +37,7 @@ export const Resolver = {
         photos: () => [],
         members: () => [],
         unreadCount: async (src: Conversation, _: any, context: CallContext) => {
-            let state = await DB.ConversationUserState.find({ where: { conversationId: src.id, userId: context.uid!! } });
+            let state = await FDB.UserDialog.findById(context.uid!!, src.id);
             if (state) {
                 return state.unread;
             } else {
@@ -565,40 +566,6 @@ export const Resolver = {
     },
 
     Query: {
-        alphaChannelsList: withUser<{ first: number, after?: string | null, seq?: number }>(async (args, uid) => {
-            return await DB.tx(async (tx) => {
-                let global = await DB.ConversationsUserGlobal.find({ where: { userId: uid }, transaction: tx });
-                let seq = global ? global.seq : 0;
-                if (args.seq !== undefined && args.seq !== null && args.seq !== seq) {
-                    throw new Error('Inconsistent request');
-                }
-                let conversations = await DB.ConversationUserState.findAll({
-                    where: {
-                        userId: uid,
-                        ...args.after ? {
-                            updatedAt: {
-                                $lte: args.after
-                            }
-                        } : {},
-                    },
-                    order: [['updatedAt', 'DESC']],
-                    limit: args.first + 1,
-                    include: [{
-                        model: DB.Conversation,
-                        as: 'conversation',
-                        where: {
-                            type: 'channel'
-                        }
-                    }]
-                });
-                return {
-                    conversations: conversations.map((v) => v.conversation!!).filter((c, i) => i < args.first),
-                    seq: seq,
-                    next: conversations.length > args.first ? conversations[args.first - 1].updatedAt : null,
-                    counter: uid
-                };
-            });
-        }),
         alphaChannelMembersOrg: withUser<{ channelId: string }>(async (args, uid) => {
             let convId = IDs.Conversation.parse(args.channelId);
 
