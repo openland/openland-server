@@ -33,8 +33,9 @@ export class FGlobalContext implements FContext {
     }
     async rangeAfter(connection: FConnection, prefix: (string | number)[], afterKey: (string | number)[], options?: RangeOptions) {
         return await trace(tracer, 'rangeAfter', async () => {
-            let start = keySelector.firstGreaterThan(FKeyEncoding.encodeKey(afterKey));
-            let end = FKeyEncoding.lastKeyInSubspace(prefix);
+            let reversed = (options && options.reverse) ? true : false;
+            let start = reversed ? FKeyEncoding.firstKeyInSubspace(prefix) : keySelector.firstGreaterThan(FKeyEncoding.encodeKey(afterKey));
+            let end = reversed ? keySelector.lastLessOrEqual(FKeyEncoding.encodeKey(afterKey)) : FKeyEncoding.lastKeyInSubspace(prefix);
             let res = await connection.fdb.getRangeAll(start, end, options);
             return res.map((v) => ({ item: v[1] as any, key: FKeyEncoding.decodeKey(v[0]) }));
         });

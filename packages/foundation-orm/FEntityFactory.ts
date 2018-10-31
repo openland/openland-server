@@ -61,7 +61,7 @@ export abstract class FEntityFactory<T extends FEntity> {
                 d.push(this._createEntity(res[i].item, false));
             }
             if (res.length > limit) {
-                cursor = FKeyEncoding.encodeKeyToString(res[res.length - 1].key);
+                cursor = FKeyEncoding.encodeKeyToString(res[res.length - 2].key);
             }
             return { items: d, cursor };
         } else {
@@ -72,7 +72,7 @@ export abstract class FEntityFactory<T extends FEntity> {
                 d.push(this._createEntity(res[i].item, false));
             }
             if (res.length > limit) {
-                cursor = FKeyEncoding.encodeKeyToString(res[res.length - 1].key);
+                cursor = FKeyEncoding.encodeKeyToString(res[res.length - 2].key);
             }
             return { items: d, cursor };
         }

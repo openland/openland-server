@@ -297,6 +297,9 @@ export class IndexedRangeEntityFactory extends FEntityFactory<IndexedRangeEntity
     async rangeFromDefault(data1: string, limit: number, reversed?: boolean) {
         return await this._findRange(['__indexes', 'default', data1], limit, reversed);
     }
+    async rangeFromDefaultWithCursor(data1: string, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'default', data1], limit, after, reversed);
+    }
     async allFromDefault(data1: string) {
         return await this._findAll(['__indexes', 'default', data1]);
     }
