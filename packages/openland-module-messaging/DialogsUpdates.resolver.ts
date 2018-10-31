@@ -2,6 +2,7 @@ import { CallContext } from 'openland-server/api/utils/CallContext';
 import { ConversationUserEvents } from 'openland-server/tables/ConversationUserEvents';
 import { DB } from 'openland-server/tables';
 import { Repos } from 'openland-server/repositories';
+import { IDs } from 'openland-server/api/utils/IDs';
 
 export default {
     /* 
@@ -37,7 +38,7 @@ export default {
         __resolveType(obj: ConversationUserEvents) {
             if (obj.eventType === 'new_message') {
                 return 'DialogMessageReceived';
-            } else if (obj.eventType === 'DialogMessageUpdated') {
+            } else if (obj.eventType === 'edit_message') {
                 return 'DialogMessageUpdated';
             } else if (obj.eventType === 'delete_message') {
                 return 'DialogMessageDeleted';
@@ -45,30 +46,37 @@ export default {
                 return 'DialogMessageRead';
             } else if (obj.eventType === 'title_change') {
                 return 'DialogTitleUpdated';
-            } else if (obj.eventType === 'chat_update') {
-                return 'DialogPhotoUpdated';
             }
+            // } else if (obj.eventType === 'chat_update') {
+            //     return 'DialogPhotoUpdated';
+            // }
             throw Error('Unknown dialog update type: ' + obj.eventType);
         }
     },
     DialogMessageReceived: {
-
+        cid: (src: ConversationUserEvents) => IDs.Conversation.serialize(src.event.conversationId as any),
+        message: (src: ConversationUserEvents) => DB.ConversationMessage.findById(src.event.messageId as any, { paranoid: false }),
+        unread: (src: ConversationUserEvents) => src.event.unread,
+        globalUnread: (src: ConversationUserEvents) => src.event.unreadGlobal
     },
     DialogMessageUpdated: {
-
+        message: (src: ConversationUserEvents) => DB.ConversationMessage.findById(src.event.messageId as any, { paranoid: false }),
     },
     DialogMessageDeleted: {
-
+        message: (src: ConversationUserEvents) => DB.ConversationMessage.findById(src.event.messageId as any, { paranoid: false }),
     },
     DialogMessageRead: {
-
+        cid: (src: ConversationUserEvents) => IDs.Conversation.serialize(src.event.conversationId as any),
+        unread: (src: ConversationUserEvents) => src.event.unread,
+        globalUnread: (src: ConversationUserEvents) => src.event.unreadGlobal
     },
     DialogTitleUpdated: {
-
+        cid: (src: ConversationUserEvents) => IDs.Conversation.serialize(src.event.conversationId as any),
+        title: (src: ConversationUserEvents) => src.event.title,
     },
-    DialogPhotoUpdated: {
-
-    },
+    // DialogPhotoUpdated: {
+    //     photoRef: async (src: ConversationUserEvents) => (await DB.Conversation.findById(src.event.conversationId as any))!.,
+    // },
 
     /*
      * Subscription
@@ -81,6 +89,24 @@ export default {
             subscribe: async function (_: any, args: { fromState?: string }, context: CallContext) {
                 let ended = false;
                 let startSeq = args.fromState ? parseInt(args.fromState.substr(2), 10) : undefined;
+                function isSupported(type: string) {
+                    if (type === 'new_message') {
+                        return true;
+                    } else if (type === 'edit_message') {
+                        return true;
+                    } else if (type === 'delete_message') {
+                        return true;
+                    } else if (type === 'conversation_read') {
+                        return true;
+                    } else if (type === 'title_change') {
+                        return true;
+                    }
+                    // } else if (type === 'chat_update') {
+                    //     return true;
+                    // }
+
+                    return false;
+                }
                 return {
                     ...(async function* func() {
                         let lastKnownSeq = startSeq;
@@ -95,9 +121,7 @@ export default {
                                     },
                                     order: [['seq', 'asc']]
                                 });
-                                // events.filter((v)=>{
-                                //     v.eventType !== ''
-                                // })
+                                events = events.filter((v) => isSupported(v.eventType));
                                 if (events.length > 1) {
                                     yield events;
                                 } else if (events.length === 1) {
