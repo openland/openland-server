@@ -155,9 +155,124 @@ type Sticker {
     meta: FileMetadata!
 }
 
+#
+# Conversation Events
+#
+
+type ConversationEventSimpleBatch {
+    events: [ConversationEvent!]!
+}
+
+union ConversationEventBatch = ConversationEventSimpleBatch
+
+interface ConversationEvent {
+    seq: Int!
+}
+
+type ConversationEventMessage implements ConversationEvent {
+    seq: Int!
+    message: ConversationMessage!
+}
+
+type ConversationEventEditMessage implements ConversationEvent {
+    seq: Int!
+    message: ConversationMessage!
+}
+
+type ConversationEventDelete implements ConversationEvent {
+    seq: Int!
+    messageId: ID!
+}
+
+type ConversationEventNewMembers implements ConversationEvent {
+    seq: Int!
+    users: [User!]
+    invitedBy: User!
+}
+
+type ConversationEventKick implements ConversationEvent {
+    seq: Int!
+    user: User!
+    kickedBy: User!
+}
+
+type ConversationEventTitle implements ConversationEvent {
+    seq: Int!
+    title: String!
+}
+
+type ConversationEventUpdate implements ConversationEvent {
+    seq: Int!
+    chat: Conversation!
+}
+
+type ConversationEventUpdateRole implements ConversationEvent {
+    seq: Int!
+    user: User!
+    newRole: String!
+}
+
 type ConversationState {
     seq: Int!
     messages: [ConversationMessage!]!
+}
+
+#
+# User Events
+#
+
+interface UserEvent {
+    seq: Int!
+}
+
+type UserEventMessage implements UserEvent {
+    seq: Int!
+    unread: Int!
+    globalUnread: Int!
+    conversationId: ID!
+    message: ConversationMessage!
+    conversation: Conversation!
+    isOut: Boolean!
+    repeatKey: String
+}
+
+type UserEventEditMessage implements UserEvent {
+    seq: Int!
+    message: ConversationMessage!
+}
+
+type UserEventDeleteMessage implements UserEvent {
+    seq: Int!
+    message: ConversationMessage!
+}
+
+type UserEventOwnMessage implements UserEvent {
+    seq: Int!
+    conversationId: ID!
+    message: ConversationMessage!
+}
+
+type UserEventRead implements UserEvent {
+    seq: Int!
+    unread: Int!
+    globalUnread: Int!
+    conversationId: ID!
+}
+
+type UserEventTitleChange implements UserEvent {
+    seq: Int!
+    title: String!
+}
+
+type UserEventNewMembersCount implements UserEvent {
+    seq: Int!
+    conversationId: ID!
+    membersCount: Int!
+}
+
+type UserEventConversationUpdate implements UserEvent {
+    seq: Int!
+    chat: Conversation!
 }
 
 #
@@ -208,6 +323,12 @@ input GroupConversationInvite {
 
 type GroupChatUpdateResponse {
     chat: Conversation!
+
+    chatEventMessage: ConversationEventMessage
+    chatEvent: ConversationEvent
+
+    userEventMessage: UserEventMessage
+    userEvent: UserEvent
 }
 
 type ConversationUpdateResponse {
