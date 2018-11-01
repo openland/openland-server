@@ -7,6 +7,7 @@ import { withLogContext } from 'openland-log/withLogContext';
 import { createLogger } from 'openland-log/createLogger';
 import { exponentialBackoffDelay } from 'openland-server/utils/exponentialBackoffDelay';
 import { EventBus } from 'openland-module-pubsub/EventBus';
+import { FTransaction } from 'foundation-orm/FTransaction';
 
 export class WorkQueue<ARGS, RES extends JsonMap> {
     private taskType: string;
@@ -19,6 +20,9 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
 
     pushWork = async (work: ARGS) => {
         return await inTx(async () => {
+            FTransaction.context!!.value!.afterTransaction(() => {
+                EventBus.publish(this.pubSubTopic, {});
+            });
             return await FDB.Task.create(this.taskType, uuid(), {
                 arguments: work,
                 taskStatus: 'pending',
@@ -26,6 +30,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                 taskLockTimeout: 0,
                 taskLockSeed: ''
             });
+
         });
     }
 
