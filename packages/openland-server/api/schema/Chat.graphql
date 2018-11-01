@@ -418,8 +418,6 @@ extend type Mutation {
 }
 
 extend type Subscription {
-    conversationUpdates(conversationId: ID!, fromSeq: Int): ConversationEventBatch!
-
     alphaChatSubscribe(conversationId: ID!, fromSeq: Int): ConversationEvent!
     alphaNotificationCounterSubscribe: NotificationCounter!
     alphaSubscribeEvents(fromSeq: Int): UserEvent!

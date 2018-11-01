@@ -28,5 +28,6 @@ type ConversationMessageDeleted {
 }
 
 extend type Subscription {
+    conversationUpdates(conversationId: ID!, fromState: String): ConversationUpdateContainer!
     alphaChatSubscribe2(conversationId: ID!, fromState: String): ConversationUpdateContainer!
 }
