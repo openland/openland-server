@@ -1,78 +1,76 @@
 import { CallContext } from 'openland-server/api/utils/CallContext';
-import { ConversationUserEvents } from 'openland-server/tables/ConversationUserEvents';
 import { DB } from 'openland-server/tables';
-import { Repos } from 'openland-server/repositories';
 import { IDs } from 'openland-server/api/utils/IDs';
+import { FDB } from 'openland-module-db/FDB';
+import { FLiveStreamItem } from 'foundation-orm/FLiveStreamItem';
+import { UserDialogEvent } from 'openland-module-db/schema';
 
 export default {
     /* 
      * Dialog Update Containers
      */
     DialogUpdateContainer: {
-        __resolveType(obj: ConversationUserEvents | ConversationUserEvents[]) {
-            if (Array.isArray(obj)) {
-                if (obj.length < 2) {
-                    throw Error('Unable to resolve batch update for less than two updates!');
-                }
-                return 'DialogUpdateBatch';
-            } else {
+        __resolveType(obj: FLiveStreamItem<UserDialogEvent>) {
+            if (obj.items.length === 1) {
                 return 'DialogUpdateSingle';
+            } else {
+                return 'DialogUpdateBatch';
             }
         }
     },
     DialogUpdateBatch: {
-        updates: (src: ConversationUserEvents[]) => src,
-        fromSeq: (src: ConversationUserEvents[]) => src[0].seq,
-        seq: (src: ConversationUserEvents[]) => src[src.length - 1].seq,
-        state: (src: ConversationUserEvents[]) => '00' + src[src.length - 1].seq
+        updates: (src: FLiveStreamItem<UserDialogEvent>) => src.items,
+        fromSeq: (src: FLiveStreamItem<UserDialogEvent>) => src.items[0].seq,
+        seq: (src: FLiveStreamItem<UserDialogEvent>) => src.items[src.items.length - 1].seq,
+        state: (src: FLiveStreamItem<UserDialogEvent>) => src.cursor
     },
     DialogUpdateSingle: {
-        seq: (src: ConversationUserEvents) => src.seq,
-        state: (src: ConversationUserEvents) => '00' + src.seq,
-        update: (src: ConversationUserEvents) => src,
+        seq: (src: FLiveStreamItem<UserDialogEvent>) => src.items[0].seq,
+        state: (src: FLiveStreamItem<UserDialogEvent>) => src.cursor,
+        update: (src: FLiveStreamItem<UserDialogEvent>) => src.items[0],
     },
     /*
      * Dialog Updates
      */
     DialogUpdate: {
-        __resolveType(obj: ConversationUserEvents) {
-            if (obj.eventType === 'new_message') {
+        __resolveType(obj: UserDialogEvent) {
+            if (obj.kind === 'message_received') {
                 return 'DialogMessageReceived';
-            } else if (obj.eventType === 'edit_message') {
+            } else if (obj.kind === 'message_updated') {
                 return 'DialogMessageUpdated';
-            } else if (obj.eventType === 'delete_message') {
+            } else if (obj.kind === 'message_deleted') {
                 return 'DialogMessageDeleted';
-            } else if (obj.eventType === 'conversation_read') {
+            } else if (obj.kind === 'message_read') {
                 return 'DialogMessageRead';
-            } else if (obj.eventType === 'title_change') {
+            } else if (obj.kind === 'title_updated') {
                 return 'DialogTitleUpdated';
             }
             // } else if (obj.eventType === 'chat_update') {
             //     return 'DialogPhotoUpdated';
             // }
-            throw Error('Unknown dialog update type: ' + obj.eventType);
+            throw Error('Unknown dialog update type: ' + obj.kind);
         }
     },
     DialogMessageReceived: {
-        cid: (src: ConversationUserEvents) => IDs.Conversation.serialize(src.event.conversationId as any),
-        message: (src: ConversationUserEvents) => DB.ConversationMessage.findById(src.event.messageId as any, { paranoid: false }),
-        unread: (src: ConversationUserEvents) => src.event.unread,
-        globalUnread: (src: ConversationUserEvents) => src.event.unreadGlobal
+        cid: (src: UserDialogEvent) => IDs.Conversation.serialize(src.cid!),
+        message: (src: UserDialogEvent) => DB.ConversationMessage.findById(src.mid!, { paranoid: false }),
+        unread: (src: UserDialogEvent) => src.unread || 0,
+        globalUnread: (src: UserDialogEvent) => src.allUnread || 0
     },
     DialogMessageUpdated: {
-        message: (src: ConversationUserEvents) => DB.ConversationMessage.findById(src.event.messageId as any, { paranoid: false }),
+        message: (src: UserDialogEvent) => DB.ConversationMessage.findById(src.mid!, { paranoid: false }),
     },
     DialogMessageDeleted: {
-        message: (src: ConversationUserEvents) => DB.ConversationMessage.findById(src.event.messageId as any, { paranoid: false }),
+        message: (src: UserDialogEvent) => DB.ConversationMessage.findById(src.mid!, { paranoid: false }),
     },
     DialogMessageRead: {
-        cid: (src: ConversationUserEvents) => IDs.Conversation.serialize(src.event.conversationId as any),
-        unread: (src: ConversationUserEvents) => src.event.unread,
-        globalUnread: (src: ConversationUserEvents) => src.event.unreadGlobal
+        cid: (src: UserDialogEvent) => IDs.Conversation.serialize(src.cid!),
+        unread: (src: UserDialogEvent) => src.unread || 0,
+        globalUnread: (src: UserDialogEvent) => src.allUnread || 0
     },
     DialogTitleUpdated: {
-        cid: (src: ConversationUserEvents) => IDs.Conversation.serialize(src.event.conversationId as any),
-        title: (src: ConversationUserEvents) => src.event.title,
+        cid: (src: UserDialogEvent) => IDs.Conversation.serialize(src.cid!),
+        title: (src: UserDialogEvent) => src.title,
     },
     // DialogPhotoUpdated: {
     //     photoRef: async (src: ConversationUserEvents) => (await DB.Conversation.findById(src.event.conversationId as any))!.,
@@ -86,62 +84,8 @@ export default {
             resolve: async (msg: any) => {
                 return msg;
             },
-            subscribe: async function (_: any, args: { fromState?: string }, context: CallContext) {
-                let ended = false;
-                let startSeq = args.fromState ? parseInt(args.fromState.substr(2), 10) : undefined;
-                function isSupported(type: string) {
-                    if (type === 'new_message') {
-                        return true;
-                    } else if (type === 'edit_message') {
-                        return true;
-                    } else if (type === 'delete_message') {
-                        return true;
-                    } else if (type === 'conversation_read') {
-                        return true;
-                    } else if (type === 'title_change') {
-                        return true;
-                    }
-                    // } else if (type === 'chat_update') {
-                    //     return true;
-                    // }
-
-                    return false;
-                }
-                return {
-                    ...(async function* func() {
-                        let lastKnownSeq = startSeq;
-                        while (!ended) {
-                            if (lastKnownSeq !== undefined) {
-                                let events = await DB.ConversationUserEvents.findAll({
-                                    where: {
-                                        userId: context.uid,
-                                        seq: {
-                                            $gt: lastKnownSeq
-                                        }
-                                    },
-                                    order: [['seq', 'asc']]
-                                });
-                                events = events.filter((v) => isSupported(v.eventType));
-                                if (events.length > 1) {
-                                    yield events;
-                                } else if (events.length === 1) {
-                                    yield events[0];
-                                }
-                                if (events.length > 0) {
-                                    lastKnownSeq = events[events.length - 1].seq;
-                                }
-                            }
-                            let res = await Repos.Chats.userReader.loadNext(context.uid!!, lastKnownSeq ? lastKnownSeq : null);
-                            if (!lastKnownSeq) {
-                                lastKnownSeq = res - 1;
-                            }
-                        }
-                    })(),
-                    return: async () => {
-                        ended = true;
-                        return 'ok';
-                    }
-                };
+            subscribe: function (_: any, args: { fromState?: string }, context: CallContext) {
+                return FDB.UserDialogEvent.createUserLiveStream(context.uid!, 20, args.fromState);
             }
         },
     }

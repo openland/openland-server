@@ -25,9 +25,18 @@ export class FTransaction implements FContext {
     private _isCompleted = false;
     private connection: FConnection | null = null;
     private _pending = new Map<string, (connection: FConnection) => Promise<void>>();
+    private pendingCallbacks: (() => void)[] = [];
 
     get isCompleted() {
         return this._isCompleted;
+    }
+
+    reset() {
+        this.pendingCallbacks = [];
+    }
+
+    afterTransaction(callback: () => void) {
+        this.pendingCallbacks.push(callback);
     }
 
     async range(connection: FConnection, key: (string | number)[], options?: RangeOptions) {

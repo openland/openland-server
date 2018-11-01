@@ -17,6 +17,7 @@ export async function inTx<T>(callback: () => Promise<T>): Promise<T> {
             // Implementation is copied from database.js from foundationdb library.
             do {
                 try {
+                    tx.reset();
                     const result = await trace(tracer, 'tx', async () => { return await callback(); });
                     await tx.flush();
                     return result;

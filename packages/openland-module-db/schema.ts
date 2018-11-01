@@ -36,7 +36,8 @@ export class OnlineFactory extends FEntityFactory<Online> {
         super(connection,
             new FNamespace('entity', 'online'),
             { enableVersioning: false, enableTimestamps: false, validator: OnlineFactory.validate },
-            []
+            [],
+            'Online'
         );
     }
     extractId(rawId: any[]) {
@@ -52,7 +53,7 @@ export class OnlineFactory extends FEntityFactory<Online> {
         return this._watch([uid], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new Online(this.connection, this.namespace, [value.uid], value, this.options, isNew, this.indexes);
+        return new Online(this.connection, this.namespace, [value.uid], value, this.options, isNew, this.indexes, 'Online');
     }
 }
 export interface PresenceShape {
@@ -111,7 +112,8 @@ export class PresenceFactory extends FEntityFactory<Presence> {
         super(connection,
             new FNamespace('entity', 'presence'),
             { enableVersioning: false, enableTimestamps: false, validator: PresenceFactory.validate },
-            []
+            [],
+            'Presence'
         );
     }
     extractId(rawId: any[]) {
@@ -127,7 +129,7 @@ export class PresenceFactory extends FEntityFactory<Presence> {
         return this._watch([uid, tid], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new Presence(this.connection, this.namespace, [value.uid, value.tid], value, this.options, isNew, this.indexes);
+        return new Presence(this.connection, this.namespace, [value.uid, value.tid], value, this.options, isNew, this.indexes, 'Presence');
     }
 }
 export interface CounterShape {
@@ -159,7 +161,8 @@ export class CounterFactory extends FEntityFactory<Counter> {
         super(connection,
             new FNamespace('entity', 'counter'),
             { enableVersioning: false, enableTimestamps: false, validator: CounterFactory.validate },
-            []
+            [],
+            'Counter'
         );
     }
     extractId(rawId: any[]) {
@@ -175,7 +178,7 @@ export class CounterFactory extends FEntityFactory<Counter> {
         return this._watch([name], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new Counter(this.connection, this.namespace, [value.name], value, this.options, isNew, this.indexes);
+        return new Counter(this.connection, this.namespace, [value.name], value, this.options, isNew, this.indexes, 'Counter');
     }
 }
 export interface AuthTokenShape {
@@ -231,7 +234,8 @@ export class AuthTokenFactory extends FEntityFactory<AuthToken> {
         super(connection,
             new FNamespace('entity', 'authToken'),
             { enableVersioning: true, enableTimestamps: true, validator: AuthTokenFactory.validate },
-            [new FEntityIndex('salt', ['salt'], true)]
+            [new FEntityIndex('salt', ['salt'], true)],
+            'AuthToken'
         );
     }
     extractId(rawId: any[]) {
@@ -250,7 +254,7 @@ export class AuthTokenFactory extends FEntityFactory<AuthToken> {
         return await this._findById(['__indexes', 'salt', salt]);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new AuthToken(this.connection, this.namespace, [value.uuid], value, this.options, isNew, this.indexes);
+        return new AuthToken(this.connection, this.namespace, [value.uuid], value, this.options, isNew, this.indexes, 'AuthToken');
     }
 }
 export interface ServiceCacheShape {
@@ -285,7 +289,8 @@ export class ServiceCacheFactory extends FEntityFactory<ServiceCache> {
         super(connection,
             new FNamespace('entity', 'serviceCache'),
             { enableVersioning: true, enableTimestamps: true, validator: ServiceCacheFactory.validate },
-            []
+            [],
+            'ServiceCache'
         );
     }
     extractId(rawId: any[]) {
@@ -301,7 +306,7 @@ export class ServiceCacheFactory extends FEntityFactory<ServiceCache> {
         return this._watch([service, key], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new ServiceCache(this.connection, this.namespace, [value.service, value.key], value, this.options, isNew, this.indexes);
+        return new ServiceCache(this.connection, this.namespace, [value.service, value.key], value, this.options, isNew, this.indexes, 'ServiceCache');
     }
 }
 export interface LockShape {
@@ -369,7 +374,8 @@ export class LockFactory extends FEntityFactory<Lock> {
         super(connection,
             new FNamespace('entity', 'lock'),
             { enableVersioning: false, enableTimestamps: false, validator: LockFactory.validate },
-            []
+            [],
+            'Lock'
         );
     }
     extractId(rawId: any[]) {
@@ -385,7 +391,7 @@ export class LockFactory extends FEntityFactory<Lock> {
         return this._watch([key], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new Lock(this.connection, this.namespace, [value.key], value, this.options, isNew, this.indexes);
+        return new Lock(this.connection, this.namespace, [value.key], value, this.options, isNew, this.indexes, 'Lock');
     }
 }
 export interface TaskShape {
@@ -508,7 +514,8 @@ export class TaskFactory extends FEntityFactory<Task> {
         super(connection,
             new FNamespace('entity', 'task'),
             { enableVersioning: true, enableTimestamps: true, validator: TaskFactory.validate },
-            [new FEntityIndex('pending', ['taskType', 'createdAt'], false, (src) => src.taskStatus === 'pending'), new FEntityIndex('executing', ['taskLockTimeout'], false, (src) => src.taskStatus === 'executing'), new FEntityIndex('failing', ['taskFailureTime'], false, (src) => src.taskStatus === 'failing')]
+            [new FEntityIndex('pending', ['taskType', 'createdAt'], false, (src) => src.taskStatus === 'pending'), new FEntityIndex('executing', ['taskLockTimeout'], false, (src) => src.taskStatus === 'executing'), new FEntityIndex('failing', ['taskFailureTime'], false, (src) => src.taskStatus === 'failing')],
+            'Task'
         );
     }
     extractId(rawId: any[]) {
@@ -532,8 +539,8 @@ export class TaskFactory extends FEntityFactory<Task> {
     async allFromPending(taskType: string) {
         return await this._findAll(['__indexes', 'pending', taskType]);
     }
-    createPendingStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'task', '__indexes', 'pending'], limit, after); 
+    createPendingStream(taskType: string, limit: number, after?: string) {
+        return this._createStream(['entity', 'task', '__indexes', 'pending', taskType], limit, after); 
     }
     async rangeFromExecuting(limit: number, reversed?: boolean) {
         return await this._findRange(['__indexes', 'executing'], limit, reversed);
@@ -560,7 +567,7 @@ export class TaskFactory extends FEntityFactory<Task> {
         return this._createStream(['entity', 'task', '__indexes', 'failing'], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new Task(this.connection, this.namespace, [value.taskType, value.uid], value, this.options, isNew, this.indexes);
+        return new Task(this.connection, this.namespace, [value.taskType, value.uid], value, this.options, isNew, this.indexes, 'Task');
     }
 }
 export interface PushFirebaseShape {
@@ -704,7 +711,8 @@ export class PushFirebaseFactory extends FEntityFactory<PushFirebase> {
         super(connection,
             new FNamespace('entity', 'pushFirebase'),
             { enableVersioning: true, enableTimestamps: true, validator: PushFirebaseFactory.validate },
-            [new FEntityIndex('user', ['uid', 'id'], false), new FEntityIndex('token', ['token'], true, src => src.enabled)]
+            [new FEntityIndex('user', ['uid', 'id'], false), new FEntityIndex('token', ['token'], true, src => src.enabled)],
+            'PushFirebase'
         );
     }
     extractId(rawId: any[]) {
@@ -728,14 +736,14 @@ export class PushFirebaseFactory extends FEntityFactory<PushFirebase> {
     async allFromUser(uid: number) {
         return await this._findAll(['__indexes', 'user', uid]);
     }
-    createUserStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'pushFirebase', '__indexes', 'user'], limit, after); 
+    createUserStream(uid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'pushFirebase', '__indexes', 'user', uid], limit, after); 
     }
     async findFromToken(token: string) {
         return await this._findById(['__indexes', 'token', token]);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new PushFirebase(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
+        return new PushFirebase(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'PushFirebase');
     }
 }
 export interface PushAppleShape {
@@ -879,7 +887,8 @@ export class PushAppleFactory extends FEntityFactory<PushApple> {
         super(connection,
             new FNamespace('entity', 'pushApple'),
             { enableVersioning: true, enableTimestamps: true, validator: PushAppleFactory.validate },
-            [new FEntityIndex('user', ['uid', 'id'], false), new FEntityIndex('token', ['token'], true, src => src.enabled)]
+            [new FEntityIndex('user', ['uid', 'id'], false), new FEntityIndex('token', ['token'], true, src => src.enabled)],
+            'PushApple'
         );
     }
     extractId(rawId: any[]) {
@@ -903,14 +912,14 @@ export class PushAppleFactory extends FEntityFactory<PushApple> {
     async allFromUser(uid: number) {
         return await this._findAll(['__indexes', 'user', uid]);
     }
-    createUserStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'pushApple', '__indexes', 'user'], limit, after); 
+    createUserStream(uid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'pushApple', '__indexes', 'user', uid], limit, after); 
     }
     async findFromToken(token: string) {
         return await this._findById(['__indexes', 'token', token]);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new PushApple(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
+        return new PushApple(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'PushApple');
     }
 }
 export interface PushWebShape {
@@ -1030,7 +1039,8 @@ export class PushWebFactory extends FEntityFactory<PushWeb> {
         super(connection,
             new FNamespace('entity', 'pushWeb'),
             { enableVersioning: true, enableTimestamps: true, validator: PushWebFactory.validate },
-            [new FEntityIndex('user', ['uid', 'id'], false), new FEntityIndex('endpoint', ['endpoint'], true, src => src.enabled)]
+            [new FEntityIndex('user', ['uid', 'id'], false), new FEntityIndex('endpoint', ['endpoint'], true, src => src.enabled)],
+            'PushWeb'
         );
     }
     extractId(rawId: any[]) {
@@ -1054,14 +1064,14 @@ export class PushWebFactory extends FEntityFactory<PushWeb> {
     async allFromUser(uid: number) {
         return await this._findAll(['__indexes', 'user', uid]);
     }
-    createUserStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'pushWeb', '__indexes', 'user'], limit, after); 
+    createUserStream(uid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'pushWeb', '__indexes', 'user', uid], limit, after); 
     }
     async findFromEndpoint(endpoint: string) {
         return await this._findById(['__indexes', 'endpoint', endpoint]);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new PushWeb(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
+        return new PushWeb(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'PushWeb');
     }
 }
 export interface UserProfilePrefilShape {
@@ -1120,7 +1130,8 @@ export class UserProfilePrefilFactory extends FEntityFactory<UserProfilePrefil> 
         super(connection,
             new FNamespace('entity', 'userProfilePrefil'),
             { enableVersioning: true, enableTimestamps: true, validator: UserProfilePrefilFactory.validate },
-            []
+            [],
+            'UserProfilePrefil'
         );
     }
     extractId(rawId: any[]) {
@@ -1136,7 +1147,7 @@ export class UserProfilePrefilFactory extends FEntityFactory<UserProfilePrefil> 
         return this._watch([id], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new UserProfilePrefil(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
+        return new UserProfilePrefil(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'UserProfilePrefil');
     }
 }
 export interface UserProfileShape {
@@ -1322,7 +1333,8 @@ export class UserProfileFactory extends FEntityFactory<UserProfile> {
         super(connection,
             new FNamespace('entity', 'userProfile'),
             { enableVersioning: true, enableTimestamps: true, validator: UserProfileFactory.validate },
-            [new FEntityIndex('byUpdatedAt', ['updatedAt'], false)]
+            [new FEntityIndex('byUpdatedAt', ['updatedAt'], false)],
+            'UserProfile'
         );
     }
     extractId(rawId: any[]) {
@@ -1350,7 +1362,7 @@ export class UserProfileFactory extends FEntityFactory<UserProfile> {
         return this._createStream(['entity', 'userProfile', '__indexes', 'byUpdatedAt'], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new UserProfile(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
+        return new UserProfile(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'UserProfile');
     }
 }
 export interface FeatureFlagShape {
@@ -1382,7 +1394,8 @@ export class FeatureFlagFactory extends FEntityFactory<FeatureFlag> {
         super(connection,
             new FNamespace('entity', 'featureFlag'),
             { enableVersioning: true, enableTimestamps: true, validator: FeatureFlagFactory.validate },
-            []
+            [],
+            'FeatureFlag'
         );
     }
     extractId(rawId: any[]) {
@@ -1398,7 +1411,7 @@ export class FeatureFlagFactory extends FEntityFactory<FeatureFlag> {
         return this._watch([key], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new FeatureFlag(this.connection, this.namespace, [value.key], value, this.options, isNew, this.indexes);
+        return new FeatureFlag(this.connection, this.namespace, [value.key], value, this.options, isNew, this.indexes, 'FeatureFlag');
     }
 }
 export interface OrganizationFeaturesShape {
@@ -1454,7 +1467,8 @@ export class OrganizationFeaturesFactory extends FEntityFactory<OrganizationFeat
         super(connection,
             new FNamespace('entity', 'organizationFeatures'),
             { enableVersioning: true, enableTimestamps: true, validator: OrganizationFeaturesFactory.validate },
-            [new FEntityIndex('organization', ['organizationId', 'featureKey'], true)]
+            [new FEntityIndex('organization', ['organizationId', 'featureKey'], true)],
+            'OrganizationFeatures'
         );
     }
     extractId(rawId: any[]) {
@@ -1481,11 +1495,11 @@ export class OrganizationFeaturesFactory extends FEntityFactory<OrganizationFeat
     async allFromOrganization(organizationId: number) {
         return await this._findAll(['__indexes', 'organization', organizationId]);
     }
-    createOrganizationStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'organizationFeatures', '__indexes', 'organization'], limit, after); 
+    createOrganizationStream(organizationId: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'organizationFeatures', '__indexes', 'organization', organizationId], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new OrganizationFeatures(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
+        return new OrganizationFeatures(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'OrganizationFeatures');
     }
 }
 export interface ReaderStateShape {
@@ -1530,7 +1544,8 @@ export class ReaderStateFactory extends FEntityFactory<ReaderState> {
         super(connection,
             new FNamespace('entity', 'readerState'),
             { enableVersioning: true, enableTimestamps: true, validator: ReaderStateFactory.validate },
-            []
+            [],
+            'ReaderState'
         );
     }
     extractId(rawId: any[]) {
@@ -1546,7 +1561,7 @@ export class ReaderStateFactory extends FEntityFactory<ReaderState> {
         return this._watch([id], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new ReaderState(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
+        return new ReaderState(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'ReaderState');
     }
 }
 export interface SuperAdminShape {
@@ -1590,7 +1605,8 @@ export class SuperAdminFactory extends FEntityFactory<SuperAdmin> {
         super(connection,
             new FNamespace('entity', 'superAdmin'),
             { enableVersioning: false, enableTimestamps: false, validator: SuperAdminFactory.validate },
-            []
+            [],
+            'SuperAdmin'
         );
     }
     extractId(rawId: any[]) {
@@ -1606,7 +1622,7 @@ export class SuperAdminFactory extends FEntityFactory<SuperAdmin> {
         return this._watch([id], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new SuperAdmin(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
+        return new SuperAdmin(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'SuperAdmin');
     }
 }
 export interface UserSettingsShape {
@@ -1701,7 +1717,8 @@ export class UserSettingsFactory extends FEntityFactory<UserSettings> {
         super(connection,
             new FNamespace('entity', 'userSettings'),
             { enableVersioning: true, enableTimestamps: true, validator: UserSettingsFactory.validate },
-            []
+            [],
+            'UserSettings'
         );
     }
     extractId(rawId: any[]) {
@@ -1717,7 +1734,7 @@ export class UserSettingsFactory extends FEntityFactory<UserSettings> {
         return this._watch([id], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new UserSettings(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
+        return new UserSettings(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'UserSettings');
     }
 }
 export interface ShortnameReservationShape {
@@ -1773,7 +1790,8 @@ export class ShortnameReservationFactory extends FEntityFactory<ShortnameReserva
         super(connection,
             new FNamespace('entity', 'shortnameReservation'),
             { enableVersioning: true, enableTimestamps: true, validator: ShortnameReservationFactory.validate },
-            [new FEntityIndex('user', ['ownerId'], true, (src) => src.ownerType === 'user' && src.enabled), new FEntityIndex('org', ['ownerId'], true, (src) => src.ownerType === 'org' && src.enabled)]
+            [new FEntityIndex('user', ['ownerId'], true, (src) => src.ownerType === 'user' && src.enabled), new FEntityIndex('org', ['ownerId'], true, (src) => src.ownerType === 'org' && src.enabled)],
+            'ShortnameReservation'
         );
     }
     extractId(rawId: any[]) {
@@ -1795,7 +1813,7 @@ export class ShortnameReservationFactory extends FEntityFactory<ShortnameReserva
         return await this._findById(['__indexes', 'org', ownerId]);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new ShortnameReservation(this.connection, this.namespace, [value.shortname], value, this.options, isNew, this.indexes);
+        return new ShortnameReservation(this.connection, this.namespace, [value.shortname], value, this.options, isNew, this.indexes, 'ShortnameReservation');
     }
 }
 export interface AuthCodeSessionShape {
@@ -1876,7 +1894,8 @@ export class AuthCodeSessionFactory extends FEntityFactory<AuthCodeSession> {
         super(connection,
             new FNamespace('entity', 'authCodeSession'),
             { enableVersioning: true, enableTimestamps: true, validator: AuthCodeSessionFactory.validate },
-            []
+            [],
+            'AuthCodeSession'
         );
     }
     extractId(rawId: any[]) {
@@ -1892,7 +1911,7 @@ export class AuthCodeSessionFactory extends FEntityFactory<AuthCodeSession> {
         return this._watch([uid], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new AuthCodeSession(this.connection, this.namespace, [value.uid], value, this.options, isNew, this.indexes);
+        return new AuthCodeSession(this.connection, this.namespace, [value.uid], value, this.options, isNew, this.indexes, 'AuthCodeSession');
     }
 }
 export interface UserDialogShape {
@@ -1953,7 +1972,8 @@ export class UserDialogFactory extends FEntityFactory<UserDialog> {
         super(connection,
             new FNamespace('entity', 'userDialog'),
             { enableVersioning: true, enableTimestamps: true, validator: UserDialogFactory.validate },
-            [new FEntityIndex('user', ['uid', 'date'], false, (src) => !!src.date)]
+            [new FEntityIndex('user', ['uid', 'date'], false, (src) => !!src.date)],
+            'UserDialog'
         );
     }
     extractId(rawId: any[]) {
@@ -1977,11 +1997,11 @@ export class UserDialogFactory extends FEntityFactory<UserDialog> {
     async allFromUser(uid: number) {
         return await this._findAll(['__indexes', 'user', uid]);
     }
-    createUserStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'userDialog', '__indexes', 'user'], limit, after); 
+    createUserStream(uid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'userDialog', '__indexes', 'user', uid], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new UserDialog(this.connection, this.namespace, [value.uid, value.cid], value, this.options, isNew, this.indexes);
+        return new UserDialog(this.connection, this.namespace, [value.uid, value.cid], value, this.options, isNew, this.indexes, 'UserDialog');
     }
 }
 export interface UserDialogSettingsShape {
@@ -2016,7 +2036,8 @@ export class UserDialogSettingsFactory extends FEntityFactory<UserDialogSettings
         super(connection,
             new FNamespace('entity', 'userDialogSettings'),
             { enableVersioning: true, enableTimestamps: true, validator: UserDialogSettingsFactory.validate },
-            []
+            [],
+            'UserDialogSettings'
         );
     }
     extractId(rawId: any[]) {
@@ -2032,7 +2053,7 @@ export class UserDialogSettingsFactory extends FEntityFactory<UserDialogSettings
         return this._watch([uid, cid], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new UserDialogSettings(this.connection, this.namespace, [value.uid, value.cid], value, this.options, isNew, this.indexes);
+        return new UserDialogSettings(this.connection, this.namespace, [value.uid, value.cid], value, this.options, isNew, this.indexes, 'UserDialogSettings');
     }
 }
 export interface UserDialogEventShape {
@@ -2132,7 +2153,8 @@ export class UserDialogEventFactory extends FEntityFactory<UserDialogEvent> {
         super(connection,
             new FNamespace('entity', 'userDialogEvent'),
             { enableVersioning: true, enableTimestamps: true, validator: UserDialogEventFactory.validate },
-            [new FEntityIndex('user', ['uid', 'seq'], false)]
+            [new FEntityIndex('user', ['uid', 'seq'], false)],
+            'UserDialogEvent'
         );
     }
     extractId(rawId: any[]) {
@@ -2156,14 +2178,14 @@ export class UserDialogEventFactory extends FEntityFactory<UserDialogEvent> {
     async allFromUser(uid: number) {
         return await this._findAll(['__indexes', 'user', uid]);
     }
-    createUserStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'userDialogEvent', '__indexes', 'user'], limit, after); 
+    createUserStream(uid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'userDialogEvent', '__indexes', 'user', uid], limit, after); 
     }
-    createUserLiveStream(limit: number, after?: string) {
-        return this._createLiveStream(['entity', 'userDialogEvent', '__indexes', 'user'], limit, after); 
+    createUserLiveStream(uid: number, limit: number, after?: string) {
+        return this._createLiveStream(['entity', 'userDialogEvent', '__indexes', 'user', uid], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new UserDialogEvent(this.connection, this.namespace, [value.uid, value.seq], value, this.options, isNew, this.indexes);
+        return new UserDialogEvent(this.connection, this.namespace, [value.uid, value.seq], value, this.options, isNew, this.indexes, 'UserDialogEvent');
     }
 }
 export interface UserMessagingStateShape {
@@ -2207,7 +2229,8 @@ export class UserMessagingStateFactory extends FEntityFactory<UserMessagingState
         super(connection,
             new FNamespace('entity', 'userMessagingState'),
             { enableVersioning: true, enableTimestamps: true, validator: UserMessagingStateFactory.validate },
-            [new FEntityIndex('hasUnread', [], false, (src) => src.unread && src.unread > 0)]
+            [new FEntityIndex('hasUnread', [], false, (src) => src.unread && src.unread > 0)],
+            'UserMessagingState'
         );
     }
     extractId(rawId: any[]) {
@@ -2235,7 +2258,7 @@ export class UserMessagingStateFactory extends FEntityFactory<UserMessagingState
         return this._createStream(['entity', 'userMessagingState', '__indexes', 'hasUnread'], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new UserMessagingState(this.connection, this.namespace, [value.uid], value, this.options, isNew, this.indexes);
+        return new UserMessagingState(this.connection, this.namespace, [value.uid], value, this.options, isNew, this.indexes, 'UserMessagingState');
     }
 }
 export interface UserNotificationsStateShape {
@@ -2320,7 +2343,8 @@ export class UserNotificationsStateFactory extends FEntityFactory<UserNotificati
         super(connection,
             new FNamespace('entity', 'userNotificationsState'),
             { enableVersioning: true, enableTimestamps: true, validator: UserNotificationsStateFactory.validate },
-            []
+            [],
+            'UserNotificationsState'
         );
     }
     extractId(rawId: any[]) {
@@ -2336,7 +2360,7 @@ export class UserNotificationsStateFactory extends FEntityFactory<UserNotificati
         return this._watch([uid], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new UserNotificationsState(this.connection, this.namespace, [value.uid], value, this.options, isNew, this.indexes);
+        return new UserNotificationsState(this.connection, this.namespace, [value.uid], value, this.options, isNew, this.indexes, 'UserNotificationsState');
     }
 }
 export interface HyperLogShape {
@@ -2391,7 +2415,8 @@ export class HyperLogFactory extends FEntityFactory<HyperLog> {
         super(connection,
             new FNamespace('entity', 'hyperLog'),
             { enableVersioning: false, enableTimestamps: true, validator: HyperLogFactory.validate },
-            [new FEntityIndex('created', ['createdAt'], false)]
+            [new FEntityIndex('created', ['createdAt'], false)],
+            'HyperLog'
         );
     }
     extractId(rawId: any[]) {
@@ -2419,7 +2444,7 @@ export class HyperLogFactory extends FEntityFactory<HyperLog> {
         return this._createStream(['entity', 'hyperLog', '__indexes', 'created'], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new HyperLog(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
+        return new HyperLog(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'HyperLog');
     }
 }
 export interface MessageDraftShape {
@@ -2454,7 +2479,8 @@ export class MessageDraftFactory extends FEntityFactory<MessageDraft> {
         super(connection,
             new FNamespace('entity', 'messageDraft'),
             { enableVersioning: true, enableTimestamps: true, validator: MessageDraftFactory.validate },
-            []
+            [],
+            'MessageDraft'
         );
     }
     extractId(rawId: any[]) {
@@ -2470,7 +2496,7 @@ export class MessageDraftFactory extends FEntityFactory<MessageDraft> {
         return this._watch([uid, cid], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new MessageDraft(this.connection, this.namespace, [value.uid, value.cid], value, this.options, isNew, this.indexes);
+        return new MessageDraft(this.connection, this.namespace, [value.uid, value.cid], value, this.options, isNew, this.indexes, 'MessageDraft');
     }
 }
 export interface ChannelInvitationShape {
@@ -2590,7 +2616,8 @@ export class ChannelInvitationFactory extends FEntityFactory<ChannelInvitation> 
         super(connection,
             new FNamespace('entity', 'channelInvitation'),
             { enableVersioning: true, enableTimestamps: true, validator: ChannelInvitationFactory.validate },
-            [new FEntityIndex('channel', ['createdAt', 'channelId'], false)]
+            [new FEntityIndex('channel', ['createdAt', 'channelId'], false)],
+            'ChannelInvitation'
         );
     }
     extractId(rawId: any[]) {
@@ -2614,11 +2641,11 @@ export class ChannelInvitationFactory extends FEntityFactory<ChannelInvitation> 
     async allFromChannel(createdAt: number) {
         return await this._findAll(['__indexes', 'channel', createdAt]);
     }
-    createChannelStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'channelInvitation', '__indexes', 'channel'], limit, after); 
+    createChannelStream(createdAt: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'channelInvitation', '__indexes', 'channel', createdAt], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new ChannelInvitation(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
+        return new ChannelInvitation(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'ChannelInvitation');
     }
 }
 export interface ChannelLinkShape {
@@ -2674,7 +2701,8 @@ export class ChannelLinkFactory extends FEntityFactory<ChannelLink> {
         super(connection,
             new FNamespace('entity', 'channelLink'),
             { enableVersioning: true, enableTimestamps: true, validator: ChannelLinkFactory.validate },
-            [new FEntityIndex('channel', ['createdAt', 'channelId'], false)]
+            [new FEntityIndex('channel', ['createdAt', 'channelId'], false)],
+            'ChannelLink'
         );
     }
     extractId(rawId: any[]) {
@@ -2698,11 +2726,11 @@ export class ChannelLinkFactory extends FEntityFactory<ChannelLink> {
     async allFromChannel(createdAt: number) {
         return await this._findAll(['__indexes', 'channel', createdAt]);
     }
-    createChannelStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'channelLink', '__indexes', 'channel'], limit, after); 
+    createChannelStream(createdAt: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'channelLink', '__indexes', 'channel', createdAt], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new ChannelLink(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
+        return new ChannelLink(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'ChannelLink');
     }
 }
 export interface AppInviteLinkShape {
@@ -2734,7 +2762,8 @@ export class AppInviteLinkFactory extends FEntityFactory<AppInviteLink> {
         super(connection,
             new FNamespace('entity', 'appInviteLink'),
             { enableVersioning: true, enableTimestamps: true, validator: AppInviteLinkFactory.validate },
-            [new FEntityIndex('user', ['uid'], true)]
+            [new FEntityIndex('user', ['uid'], true)],
+            'AppInviteLink'
         );
     }
     extractId(rawId: any[]) {
@@ -2753,7 +2782,7 @@ export class AppInviteLinkFactory extends FEntityFactory<AppInviteLink> {
         return await this._findById(['__indexes', 'user', uid]);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new AppInviteLink(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
+        return new AppInviteLink(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'AppInviteLink');
     }
 }
 

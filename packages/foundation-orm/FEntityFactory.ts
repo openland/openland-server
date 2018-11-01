@@ -8,6 +8,7 @@ import { FKeyEncoding } from './utils/FKeyEncoding';
 import { FStream } from './FStream';
 import { createLogger } from 'openland-log/createLogger';
 import { FLiveStream } from './FLiveStream';
+import { FLiveStreamItem } from './FLiveStreamItem';
 
 const log = createLogger('entity-factory');
 
@@ -16,13 +17,15 @@ export abstract class FEntityFactory<T extends FEntity> {
     readonly connection: FConnection;
     readonly options: FEntityOptions;
     readonly indexes: FEntityIndex[];
+    readonly name: string;
     private watcher: FWatch;
 
-    constructor(connection: FConnection, namespace: FNamespace, options: FEntityOptions, indexes: FEntityIndex[]) {
+    constructor(connection: FConnection, namespace: FNamespace, options: FEntityOptions, indexes: FEntityIndex[], name: string) {
         this.namespace = namespace;
         this.connection = connection;
         this.options = options;
         this.indexes = indexes;
+        this.name = name;
         this.watcher = new FWatch(connection);
     }
 
@@ -90,10 +93,10 @@ export abstract class FEntityFactory<T extends FEntity> {
     }
 
     protected _createStream(subspace: (string | number)[], limit: number, after?: string): FStream<T> {
-        return new FStream(this.connection, subspace, limit, (s) => this.doCreateEntity(s, false), after);
+        return new FStream(this, subspace, limit, (s) => this.doCreateEntity(s, false), after);
     }
-    protected _createLiveStream(subspace: (string | number)[], limit: number, after?: string): FLiveStream<T> {
-        return new FLiveStream(new FStream(this.connection, subspace, limit, (s) => this.doCreateEntity(s, false), after));
+    protected _createLiveStream(subspace: (string | number)[], limit: number, after?: string): AsyncIterator<FLiveStreamItem<T>> {
+        return new FLiveStream<T>(new FStream(this, subspace, limit, (s) => this.doCreateEntity(s, false), after)).generator();
     }
 
     protected async _findAll(key: (string | number)[]) {

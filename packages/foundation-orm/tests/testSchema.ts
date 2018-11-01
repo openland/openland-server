@@ -36,7 +36,8 @@ export class SimpleEntityFactory extends FEntityFactory<SimpleEntity> {
         super(connection,
             new FNamespace('entity', 'simpleEntity'),
             { enableVersioning: false, enableTimestamps: false, validator: SimpleEntityFactory.validate },
-            []
+            [],
+            'SimpleEntity'
         );
     }
     extractId(rawId: any[]) {
@@ -52,7 +53,7 @@ export class SimpleEntityFactory extends FEntityFactory<SimpleEntity> {
         return this._watch([id], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new SimpleEntity(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
+        return new SimpleEntity(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'SimpleEntity');
     }
 }
 export interface VersionedEntityShape {
@@ -84,7 +85,8 @@ export class VersionedEntityFactory extends FEntityFactory<VersionedEntity> {
         super(connection,
             new FNamespace('entity', 'versionedEntity'),
             { enableVersioning: true, enableTimestamps: false, validator: VersionedEntityFactory.validate },
-            []
+            [],
+            'VersionedEntity'
         );
     }
     extractId(rawId: any[]) {
@@ -100,7 +102,7 @@ export class VersionedEntityFactory extends FEntityFactory<VersionedEntity> {
         return this._watch([id], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new VersionedEntity(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
+        return new VersionedEntity(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'VersionedEntity');
     }
 }
 export interface TimestampedEntityShape {
@@ -132,7 +134,8 @@ export class TimestampedEntityFactory extends FEntityFactory<TimestampedEntity> 
         super(connection,
             new FNamespace('entity', 'timestampedEntity'),
             { enableVersioning: false, enableTimestamps: true, validator: TimestampedEntityFactory.validate },
-            []
+            [],
+            'TimestampedEntity'
         );
     }
     extractId(rawId: any[]) {
@@ -148,7 +151,7 @@ export class TimestampedEntityFactory extends FEntityFactory<TimestampedEntity> 
         return this._watch([id], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new TimestampedEntity(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
+        return new TimestampedEntity(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'TimestampedEntity');
     }
 }
 export interface IndexedEntityShape {
@@ -204,7 +207,8 @@ export class IndexedEntityFactory extends FEntityFactory<IndexedEntity> {
         super(connection,
             new FNamespace('entity', 'indexedEntity'),
             { enableVersioning: false, enableTimestamps: false, validator: IndexedEntityFactory.validate },
-            [new FEntityIndex('default', ['data1', 'data2', 'id'], true)]
+            [new FEntityIndex('default', ['data1', 'data2', 'id'], true)],
+            'IndexedEntity'
         );
     }
     extractId(rawId: any[]) {
@@ -223,7 +227,7 @@ export class IndexedEntityFactory extends FEntityFactory<IndexedEntity> {
         return await this._findById(['__indexes', 'default', data1, data2, id]);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new IndexedEntity(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
+        return new IndexedEntity(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'IndexedEntity');
     }
 }
 export interface IndexedRangeEntityShape {
@@ -279,7 +283,8 @@ export class IndexedRangeEntityFactory extends FEntityFactory<IndexedRangeEntity
         super(connection,
             new FNamespace('entity', 'indexedRangeEntity'),
             { enableVersioning: false, enableTimestamps: false, validator: IndexedRangeEntityFactory.validate },
-            [new FEntityIndex('default', ['data1', 'data2'], false)]
+            [new FEntityIndex('default', ['data1', 'data2'], false)],
+            'IndexedRangeEntity'
         );
     }
     extractId(rawId: any[]) {
@@ -303,11 +308,11 @@ export class IndexedRangeEntityFactory extends FEntityFactory<IndexedRangeEntity
     async allFromDefault(data1: string) {
         return await this._findAll(['__indexes', 'default', data1]);
     }
-    createDefaultStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'indexedRangeEntity', '__indexes', 'default'], limit, after); 
+    createDefaultStream(data1: string, limit: number, after?: string) {
+        return this._createStream(['entity', 'indexedRangeEntity', '__indexes', 'default', data1], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new IndexedRangeEntity(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
+        return new IndexedRangeEntity(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'IndexedRangeEntity');
     }
 }
 export interface IndexedPartialEntityShape {
@@ -363,7 +368,8 @@ export class IndexedPartialEntityFactory extends FEntityFactory<IndexedPartialEn
         super(connection,
             new FNamespace('entity', 'indexedPartialEntity'),
             { enableVersioning: false, enableTimestamps: false, validator: IndexedPartialEntityFactory.validate },
-            [new FEntityIndex('default', ['data1', 'data2', 'id'], true, (src) => src.data1 === 'hello')]
+            [new FEntityIndex('default', ['data1', 'data2', 'id'], true, (src) => src.data1 === 'hello')],
+            'IndexedPartialEntity'
         );
     }
     extractId(rawId: any[]) {
@@ -382,7 +388,7 @@ export class IndexedPartialEntityFactory extends FEntityFactory<IndexedPartialEn
         return await this._findById(['__indexes', 'default', data1, data2, id]);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new IndexedPartialEntity(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
+        return new IndexedPartialEntity(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'IndexedPartialEntity');
     }
 }
 

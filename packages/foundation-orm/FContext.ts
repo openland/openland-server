@@ -15,6 +15,7 @@ export interface FContext {
     rangeAfter(connection: FConnection, prefix: (string | number)[], afterKey: (string | number)[], options?: RangeOptions): Promise<{ item: any, key: any[] }[]>;
     set(connection: FConnection, key: (string | number)[], value: any): Promise<void>;
     delete(connection: FConnection, key: (string | number)[]): Promise<void>;
+    afterTransaction(callback: () => void): void;
 }
 
 export class FGlobalContext implements FContext {
@@ -53,6 +54,9 @@ export class FGlobalContext implements FContext {
         });
     }
     markDirty(entity: FEntity, callback: (connection: FConnection) => void) {
+        throw Error('Trying to write to read-only context');
+    }
+    afterTransaction(callback: () => void) {
         throw Error('Trying to write to read-only context');
     }
 }
