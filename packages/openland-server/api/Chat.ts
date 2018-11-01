@@ -15,7 +15,6 @@ import {
 import { ConversationEvent } from '../tables/ConversationEvent';
 import { CallContext } from './utils/CallContext';
 import { Repos } from '../repositories';
-import { ConversationUserEvents } from '../tables/ConversationUserEvents';
 import { JsonMap } from '../utils/json';
 import { IDMailformedError } from '../errors/IDMailformedError';
 import { ImageRef, buildBaseImageUrl, imageRefEquals } from '../repositories/Media';
@@ -509,63 +508,6 @@ export const Resolver = {
 
     ConversationEventSimpleBatch: {
         events: (src: [ConversationEvent]) => src
-    },
-
-    UserEvent: {
-        __resolveType(obj: ConversationUserEvents) {
-            if (obj.eventType === 'new_message') {
-                return 'UserEventMessage';
-            } else if (obj.eventType === 'conversation_read') {
-                return 'UserEventRead';
-            } else if (obj.eventType === 'title_change') {
-                return 'UserEventTitleChange';
-            } else if (obj.eventType === 'new_members_count') {
-                return 'UserEventNewMembersCount';
-            } else if (obj.eventType === 'edit_message') {
-                return 'UserEventEditMessage';
-            } else if (obj.eventType === 'chat_update') {
-                return 'UserEventConversationUpdate';
-            } else if (obj.eventType === 'delete_message') {
-                return 'UserEventDeleteMessage';
-            }
-            throw Error('Unknown type');
-        }
-    },
-    UserEventMessage: {
-        seq: (src: ConversationUserEvents) => src.seq,
-        unread: (src: ConversationUserEvents) => src.event.unread,
-        globalUnread: (src: ConversationUserEvents) => src.event.unreadGlobal,
-        conversationId: (src: ConversationUserEvents) => IDs.Conversation.serialize(src.event.conversationId as any),
-        message: (src: ConversationUserEvents) => DB.ConversationMessage.findById(src.event.messageId as any, { paranoid: false }),
-        conversation: (src: ConversationUserEvents) => DB.Conversation.findById(src.event.conversationId as any),
-        isOut: (src: ConversationUserEvents, args: any, context: CallContext) => src.event.senderId === context.uid,
-        repeatKey: (src: ConversationUserEvents, args: any, context: CallContext) => src.event.senderId === context.uid ? DB.ConversationMessage.findById(src.event.messageId as any, { paranoid: false }).then((v) => v && v.repeatToken) : null
-    },
-    UserEventRead: {
-        seq: (src: ConversationUserEvents) => src.seq,
-        unread: (src: ConversationUserEvents) => src.event.unread,
-        globalUnread: (src: ConversationUserEvents) => src.event.unreadGlobal,
-        conversationId: (src: ConversationUserEvents) => IDs.Conversation.serialize(src.event.conversationId as any),
-    },
-    UserEventTitleChange: {
-        seq: (src: ConversationUserEvents) => src.seq,
-        title: (src: ConversationUserEvents) => src.event.title,
-    },
-    UserEventNewMembersCount: {
-        conversationId: (src: ConversationUserEvents) => IDs.Conversation.serialize(src.event.conversationId as any),
-        membersCount: (src: ConversationUserEvents) => src.event.membersCount
-    },
-    UserEventEditMessage: {
-        seq: (src: ConversationUserEvents) => src.seq,
-        message: (src: ConversationUserEvents) => DB.ConversationMessage.findById(src.event.messageId as any, { paranoid: false })
-    },
-    UserEventDeleteMessage: {
-        seq: (src: ConversationUserEvents) => src.seq,
-        message: (src: ConversationUserEvents) => DB.ConversationMessage.findById(src.event.messageId as any, { paranoid: false })
-    },
-    UserEventConversationUpdate: {
-        seq: (src: ConversationUserEvents) => src.seq,
-        chat: (src: ConversationUserEvents) => DB.Conversation.findById(src.event.conversationId as any),
     },
 
     ComposeSearchResult: {
