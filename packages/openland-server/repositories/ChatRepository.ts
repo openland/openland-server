@@ -442,7 +442,7 @@ export class ChatsRepository {
             await inTx(async () => {
                 let global = await Modules.Messaging.repo.getUserMessagingState(member);
                 global.seq++;
-                await FDB.UserDialogEvent.create(member, message!.conversationId, {
+                await FDB.UserDialogEvent.create(member, global.seq, {
                     kind: 'message_updated',
                     mid: message!.id
                 });
@@ -489,7 +489,7 @@ export class ChatsRepository {
                         global.unread--;
                         global.seq++;
 
-                        await FDB.UserDialogEvent.create(member, message!.conversationId, {
+                        await FDB.UserDialogEvent.create(member, global.seq, {
                             kind: 'message_read',
                             cid: message!.conversationId,
                             unread: existing.unread,
@@ -499,7 +499,7 @@ export class ChatsRepository {
                 }
 
                 global.seq++;
-                await FDB.UserDialogEvent.create(member, message!.conversationId, {
+                await FDB.UserDialogEvent.create(member, global.seq, {
                     kind: 'message_deleted',
                     mid: message!.id
                 });
