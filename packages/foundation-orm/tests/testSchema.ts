@@ -35,8 +35,9 @@ export class SimpleEntityFactory extends FEntityFactory<SimpleEntity> {
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'simpleEntity'),
-            { enableVersioning: false, enableTimestamps: false, validator: SimpleEntityFactory.validate },
-            []
+            { enableVersioning: false, enableTimestamps: false, validator: SimpleEntityFactory.validate, hasLiveStreams: false },
+            [],
+            'SimpleEntity'
         );
     }
     extractId(rawId: any[]) {
@@ -52,7 +53,7 @@ export class SimpleEntityFactory extends FEntityFactory<SimpleEntity> {
         return this._watch([id], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new SimpleEntity(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
+        return new SimpleEntity(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'SimpleEntity');
     }
 }
 export interface VersionedEntityShape {
@@ -83,8 +84,9 @@ export class VersionedEntityFactory extends FEntityFactory<VersionedEntity> {
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'versionedEntity'),
-            { enableVersioning: true, enableTimestamps: false, validator: VersionedEntityFactory.validate },
-            []
+            { enableVersioning: true, enableTimestamps: false, validator: VersionedEntityFactory.validate, hasLiveStreams: false },
+            [],
+            'VersionedEntity'
         );
     }
     extractId(rawId: any[]) {
@@ -100,7 +102,7 @@ export class VersionedEntityFactory extends FEntityFactory<VersionedEntity> {
         return this._watch([id], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new VersionedEntity(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
+        return new VersionedEntity(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'VersionedEntity');
     }
 }
 export interface TimestampedEntityShape {
@@ -131,8 +133,9 @@ export class TimestampedEntityFactory extends FEntityFactory<TimestampedEntity> 
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'timestampedEntity'),
-            { enableVersioning: false, enableTimestamps: true, validator: TimestampedEntityFactory.validate },
-            []
+            { enableVersioning: false, enableTimestamps: true, validator: TimestampedEntityFactory.validate, hasLiveStreams: false },
+            [],
+            'TimestampedEntity'
         );
     }
     extractId(rawId: any[]) {
@@ -148,7 +151,7 @@ export class TimestampedEntityFactory extends FEntityFactory<TimestampedEntity> 
         return this._watch([id], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new TimestampedEntity(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
+        return new TimestampedEntity(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'TimestampedEntity');
     }
 }
 export interface IndexedEntityShape {
@@ -203,8 +206,9 @@ export class IndexedEntityFactory extends FEntityFactory<IndexedEntity> {
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'indexedEntity'),
-            { enableVersioning: false, enableTimestamps: false, validator: IndexedEntityFactory.validate },
-            [new FEntityIndex('default', ['data1', 'data2', 'id'], true)]
+            { enableVersioning: false, enableTimestamps: false, validator: IndexedEntityFactory.validate, hasLiveStreams: false },
+            [new FEntityIndex('default', ['data1', 'data2', 'id'], true)],
+            'IndexedEntity'
         );
     }
     extractId(rawId: any[]) {
@@ -223,7 +227,7 @@ export class IndexedEntityFactory extends FEntityFactory<IndexedEntity> {
         return await this._findById(['__indexes', 'default', data1, data2, id]);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new IndexedEntity(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
+        return new IndexedEntity(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'IndexedEntity');
     }
 }
 export interface IndexedRangeEntityShape {
@@ -278,8 +282,9 @@ export class IndexedRangeEntityFactory extends FEntityFactory<IndexedRangeEntity
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'indexedRangeEntity'),
-            { enableVersioning: false, enableTimestamps: false, validator: IndexedRangeEntityFactory.validate },
-            [new FEntityIndex('default', ['data1', 'data2'], false)]
+            { enableVersioning: false, enableTimestamps: false, validator: IndexedRangeEntityFactory.validate, hasLiveStreams: false },
+            [new FEntityIndex('default', ['data1', 'data2'], false)],
+            'IndexedRangeEntity'
         );
     }
     extractId(rawId: any[]) {
@@ -294,17 +299,23 @@ export class IndexedRangeEntityFactory extends FEntityFactory<IndexedRangeEntity
     watch(id: number, cb: () => void) {
         return this._watch([id], cb);
     }
+    async allFromDefaultAfter(data1: string, after: string) {
+        return await this._findRangeAllAfter(['__indexes', 'default', data1], after);
+    }
     async rangeFromDefault(data1: string, limit: number, reversed?: boolean) {
         return await this._findRange(['__indexes', 'default', data1], limit, reversed);
+    }
+    async rangeFromDefaultWithCursor(data1: string, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'default', data1], limit, after, reversed);
     }
     async allFromDefault(data1: string) {
         return await this._findAll(['__indexes', 'default', data1]);
     }
-    createDefaultStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'indexedRangeEntity', '__indexes', 'default'], limit, after); 
+    createDefaultStream(data1: string, limit: number, after?: string) {
+        return this._createStream(['entity', 'indexedRangeEntity', '__indexes', 'default', data1], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new IndexedRangeEntity(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
+        return new IndexedRangeEntity(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'IndexedRangeEntity');
     }
 }
 export interface IndexedPartialEntityShape {
@@ -359,8 +370,9 @@ export class IndexedPartialEntityFactory extends FEntityFactory<IndexedPartialEn
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'indexedPartialEntity'),
-            { enableVersioning: false, enableTimestamps: false, validator: IndexedPartialEntityFactory.validate },
-            [new FEntityIndex('default', ['data1', 'data2', 'id'], true, (src) => src.data1 === 'hello')]
+            { enableVersioning: false, enableTimestamps: false, validator: IndexedPartialEntityFactory.validate, hasLiveStreams: false },
+            [new FEntityIndex('default', ['data1', 'data2', 'id'], true, (src) => src.data1 === 'hello')],
+            'IndexedPartialEntity'
         );
     }
     extractId(rawId: any[]) {
@@ -379,7 +391,7 @@ export class IndexedPartialEntityFactory extends FEntityFactory<IndexedPartialEn
         return await this._findById(['__indexes', 'default', data1, data2, id]);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new IndexedPartialEntity(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
+        return new IndexedPartialEntity(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'IndexedPartialEntity');
     }
 }
 

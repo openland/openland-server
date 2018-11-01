@@ -13,9 +13,6 @@ import { ConversationTable } from './Conversation';
 import { ConversationMessageTable } from './ConversationMessage';
 import { ConversationEventTable } from './ConversationEvent';
 import { ConversationBlockedTable } from './ConversationBlocked';
-import { ConversationUserStateTable } from './ConversatonUserState';
-import { ConversationsUserGlobalTable } from './ConversationsUserGlobal';
-import { ConversationUserEventsTable } from './ConversationUserEvents';
 import { retry } from '../utils/timer';
 import { ConversationGroupMembersTable } from './ConversationGroupMembers';
 import { ConversationChannelMembersTable } from './ConversationChannelMembers';
@@ -37,10 +34,6 @@ export const DB = {
     ConversationChannelMembers: ConversationChannelMembersTable,
 
     ConversationEvent: ConversationEventTable,
-
-    ConversationUserEvents: ConversationUserEventsTable,
-    ConversationUserState: ConversationUserStateTable,
-    ConversationsUserGlobal: ConversationsUserGlobalTable,
 
     tx: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>, existingTx?: sequelize.Transaction): Promise<A> {
         if (existingTx) {

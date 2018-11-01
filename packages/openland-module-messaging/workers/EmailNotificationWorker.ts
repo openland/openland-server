@@ -1,5 +1,5 @@
 import { staticWorker } from 'openland-module-workers/staticWorker';
-import { DB, DB_SILENT } from '../../openland-server/tables';
+import { DB } from '../../openland-server/tables';
 import { Emails } from '../../openland-server/services/Emails';
 import { Modules } from 'openland-modules/Modules';
 import { inTx } from 'foundation-orm/inTx';
@@ -7,12 +7,12 @@ import { FDB } from 'openland-module-db/FDB';
 
 export function startEmailNotificationWorker() {
     staticWorker({ name: 'email_notifications', delay: 15000 }, async () => {
-        
+
         let unreadUsers = await FDB.UserMessagingState.allFromHasUnread();
         let now = Date.now();
         for (let u of unreadUsers) {
             await inTx(async () => {
-                let state = await Modules.Messaging.repo.getUserMessagingState(u.uid);
+                let state = await Modules.Messaging.repo.getUserNotificationState(u.uid);
                 let lastSeen = await Modules.Presence.getLastSeen(u.uid);
                 let tag = 'email_notifications ' + u.uid;
 
@@ -63,22 +63,14 @@ export function startEmailNotificationWorker() {
                     }
 
                     // Fetch pending updates
-                    let remainingUpdates = await DB.ConversationUserEvents.findAll({
-                        where: {
-                            userId: u.uid,
-                            seq: {
-                                $gt: Math.max(state.lastEmailSeq ? state.lastEmailSeq : 0, state.readSeq)
-                            }
-                        },
-                        logging: DB_SILENT
-                    });
+                    let remainingUpdates = await FDB.UserDialogEvent.allFromUserAfter(u.uid, Math.max(state.lastEmailSeq ? state.lastEmailSeq : 0, state.readSeq));
                     let messages = remainingUpdates
-                        .filter((v) => v.eventType === 'new_message')
-                        .filter((v) => v.event.senderId !== u.uid);
+                        .filter((v) => v.kind === 'message_received')
+                        .filter((v) => v.uid !== u.uid);
 
                     let hasNonMuted = false;
                     for (let m of messages) {
-                        let message = await DB.ConversationMessage.findById(m.event.messageId as number);
+                        let message = await DB.ConversationMessage.findById(m.mid!);
                         if (!message) {
                             continue;
                         }

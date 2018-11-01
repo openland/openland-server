@@ -1,7 +1,6 @@
 import { DB } from '../tables';
 import { SuperBus } from '../modules/SuperBus';
 import { ConversationEvent, ConversationEventAttributes } from '../tables/ConversationEvent';
-import { ConversationUserEvents, ConversationUserEventsAttributes } from '../tables/ConversationUserEvents';
 import { Transaction } from 'sequelize';
 import { JsonMap } from '../utils/json';
 import { DoubleInvokeError } from '../errors/DoubleInvokeError';
@@ -16,6 +15,10 @@ import { Modules } from 'openland-modules/Modules';
 import { withTracing } from 'openland-log/withTracing';
 import { createTracer } from 'openland-log/createTracer';
 import { inTx } from 'foundation-orm/inTx';
+import { CallContext } from 'openland-server/api/utils/CallContext';
+import DataLoader from 'dataloader';
+import { ConversationMessage } from 'openland-server/tables/ConversationMessage';
+import { FDB } from 'openland-module-db/FDB';
 // import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent';
 
 // const log = createLogger('messaging-legacy');
@@ -164,7 +167,6 @@ class UserEventsReader {
 export class ChatsRepository {
     reader: ChatsEventReader;
     userReader: UserEventsReader;
-    userSuperbus: SuperBus<{ userId: number, seq: number }, ConversationUserEvents, Partial<ConversationUserEventsAttributes>>;
     eventsSuperbus: SuperBus<{ chatId: number, seq: number }, ConversationEvent, Partial<ConversationEventAttributes>>;
 
     draftsCache = new CacheRepository<{ message: string }>('message_draft');
@@ -177,11 +179,6 @@ export class ChatsRepository {
         this.eventsSuperbus.eventBuilder((v) => ({ chatId: v.conversationId, seq: v.seq }));
         this.eventsSuperbus.eventHandler((v) => this.reader.onMessage(v.chatId, v.seq));
         this.eventsSuperbus.start();
-
-        this.userSuperbus = new SuperBus('user_events', DB.ConversationUserEvents, 'conversation_user_event');
-        this.userSuperbus.eventBuilder((v) => ({ userId: v.userId, seq: v.seq }));
-        this.userSuperbus.eventHandler((v) => this.userReader.onMessage(v.userId, v.seq));
-        this.userSuperbus.start();
     }
 
     loadPrivateChat = async (uid1: number, uid2: number) => {
@@ -393,15 +390,17 @@ export class ChatsRepository {
 
         await Modules.Messaging.AugmentationWorker.pushWork({ messageId: message.id });
 
-        await Repos.Chats.addUserEventsInConversation(
-            message.conversationId,
-            uid,
-            'edit_message',
-            {
-                messageId: message.id
-            },
-            tx
-        );
+        let members = await this.getConversationMembers(message.conversationId, tx);
+        for (let member of members) {
+            await inTx(async () => {
+                let global = await Modules.Messaging.repo.getUserMessagingState(member);
+                global.seq++;
+                await FDB.UserDialogEvent.create(member, global.seq, {
+                    kind: 'message_updated',
+                    mid: message!.id
+                });
+            });
+        }
 
         return await Repos.Chats.addChatEvent(
             message.conversationId,
@@ -438,15 +437,17 @@ export class ChatsRepository {
 
         await message.save({ transaction: tx });
 
-        await Repos.Chats.addUserEventsInConversation(
-            message.conversationId,
-            uid,
-            'edit_message',
-            {
-                messageId: message.id
-            },
-            tx
-        );
+        let members = await this.getConversationMembers(message.conversationId, tx);
+        for (let member of members) {
+            await inTx(async () => {
+                let global = await Modules.Messaging.repo.getUserMessagingState(member);
+                global.seq++;
+                await FDB.UserDialogEvent.create(member, global.seq, {
+                    kind: 'message_updated',
+                    mid: message!.id
+                });
+            });
+        }
 
         return await Repos.Chats.addChatEvent(
             message.conversationId,
@@ -478,48 +479,31 @@ export class ChatsRepository {
         let members = await this.getConversationMembers(message.conversationId, tx);
 
         for (let member of members) {
-            if (member === uid) {
-                continue;
-            }
+            await inTx(async () => {
+                let existing = await Modules.Messaging.repo.getUserDialogState(member, message!.conversationId);
+                let global = await Modules.Messaging.repo.getUserMessagingState(member);
 
-            let existing = await DB.ConversationUserState.find({
-                where: {
-                    userId: member,
-                    conversationId: message.conversationId
-                },
-                transaction: tx,
-                lock: tx.LOCK.UPDATE
-            });
-            let existingGlobal = await DB.ConversationsUserGlobal.find({
-                where: {
-                    userId: member
-                },
-                transaction: tx,
-                lock: tx.LOCK.UPDATE
-            });
+                if (member !== uid) {
+                    if (!existing.readMessageId || existing.readMessageId < message!.id) {
+                        existing.unread--;
+                        global.unread--;
+                        global.seq++;
 
-            if (!existing || !existingGlobal) {
-                throw Error('Internal inconsistency');
-            }
-
-            if (existing.readDate < message.id) {
-                existing.unread--;
-                existingGlobal.unread--;
-                existingGlobal.seq++;
-                await existing.save({ transaction: tx });
-                await existingGlobal.save({ transaction: tx });
-
-                await DB.ConversationUserEvents.create({
-                    seq: existingGlobal.seq,
-                    userId: member,
-                    eventType: 'conversation_read',
-                    event: {
-                        conversationId: message.conversationId,
-                        unread: existing.unread,
-                        unreadGlobal: existingGlobal.unread
+                        await FDB.UserDialogEvent.create(member, global.seq, {
+                            kind: 'message_read',
+                            cid: message!.conversationId,
+                            unread: existing.unread,
+                            allUnread: global.unread
+                        });
                     }
-                }, { transaction: tx });
-            }
+                }
+
+                global.seq++;
+                await FDB.UserDialogEvent.create(member, global.seq, {
+                    kind: 'message_deleted',
+                    mid: message!.id
+                });
+            });
         }
 
         //
@@ -527,15 +511,6 @@ export class ChatsRepository {
         //
 
         await message.destroy();
-        await Repos.Chats.addUserEventsInConversation(
-            message.conversationId,
-            uid,
-            'delete_message',
-            {
-                messageId: message.id
-            },
-            tx
-        );
 
         return await Repos.Chats.addChatEvent(
             message.conversationId,
@@ -716,57 +691,6 @@ export class ChatsRepository {
                 event,
                 seq: seq
             }, { transaction: tx });
-        }, exTx);
-    }
-
-    async addUserEvent(userId: number, eventType: UserEventType, event: JsonMap, exTx?: Transaction): Promise<ConversationUserEvents> {
-        return await DB.txStable(async (tx) => {
-            let seq = await this.userEventsSeqInc(userId, exTx);
-
-            return await DB.ConversationUserEvents.create({
-                userId,
-                seq,
-                eventType: eventType,
-                event,
-            }, { transaction: tx });
-        }, exTx);
-    }
-
-    async addUserEventsInConversation(conversationId: number, userId: number, eventType: UserEventType, event: JsonMap, exTx?: Transaction): Promise<ConversationUserEvents> {
-        let members = await this.getConversationMembers(conversationId);
-
-        let userEvent: ConversationUserEvents;
-
-        for (let member of members) {
-            let ev = await this.addUserEvent(member, eventType, event, exTx);
-
-            if (member === userId) {
-                userEvent = ev;
-            }
-        }
-
-        return userEvent!;
-    }
-
-    async userEventsSeqInc(userId: number, exTx?: Transaction): Promise<number> {
-        return await DB.txStable(async (tx) => {
-            let userSeq = 1;
-
-            let currentGlobal = await DB.ConversationsUserGlobal.findOne({
-                where: {
-                    userId
-                },
-                transaction: tx,
-                lock: tx.LOCK.UPDATE
-            });
-
-            if (currentGlobal) {
-                currentGlobal.seq++;
-                userSeq = currentGlobal.seq;
-                await currentGlobal.save({ transaction: tx });
-            }
-
-            return userSeq;
         }, exTx);
     }
 
@@ -954,22 +878,22 @@ export class ChatsRepository {
             (conv as any).changed('extras', true);
             await conv.save({ transaction: tx });
 
-            await Repos.Chats.addChatEvent(
-                conversationId,
-                'chat_update',
-                {},
-                tx
-            );
+            // await Repos.Chats.addChatEvent(
+            //     conversationId,
+            //     'chat_update',
+            //     {},
+            //     tx
+            // );
 
-            await Repos.Chats.addUserEventsInConversation(
-                conversationId,
-                uid,
-                'chat_update',
-                {
-                    conversationId
-                },
-                tx
-            );
+            // await Repos.Chats.addUserEventsInConversation(
+            //     conversationId,
+            //     uid,
+            //     'chat_update',
+            //     {
+            //         conversationId
+            //     },
+            //     tx
+            // );
 
             await conv.reload({ transaction: tx });
         }
@@ -978,5 +902,37 @@ export class ChatsRepository {
             chat: conv,
             curSeq: conv.seq
         };
+    }
+
+    messageLoader(context: CallContext) {
+        if (!context.cache.has('__message_loader')) {
+            context.cache.set('__message_loader', new DataLoader<number, ConversationMessage | null>(async (ids) => {
+                let foundTokens = await DB.ConversationMessage.findAll({
+                    where: {
+                        id: {
+                            $in: ids
+                        }
+                    }
+                });
+
+                let res: (ConversationMessage | null)[] = [];
+                for (let i of ids) {
+                    let found = false;
+                    for (let f of foundTokens) {
+                        if (i === f.id) {
+                            res.push(f);
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        res.push(null);
+                    }
+                }
+                return res;
+            }));
+        }
+        let loader = context.cache.get('__message_loader') as DataLoader<number, ConversationMessage | null>;
+        return loader;
     }
 }

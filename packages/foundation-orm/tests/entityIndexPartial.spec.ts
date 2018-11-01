@@ -6,6 +6,7 @@ import { inTx } from 'foundation-orm/inTx';
 import { withLogDisabled } from 'openland-log/withLogDisabled';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { NativeValue } from 'foundationdb/dist/lib/native';
+import { NoOpBus } from './NoOpBus';
 
 describe('Partial Index', () => {
 
@@ -16,7 +17,7 @@ describe('Partial Index', () => {
         db = FConnection.create()
             .at(FKeyEncoding.encodeKey(['_tests_partial']));
         await db.clearRange(FKeyEncoding.encodeKey([]));
-        testEntities = new AllEntities(new FConnection(db));
+        testEntities = new AllEntities(new FConnection(db, NoOpBus));
     });
 
     it('should create indexes if condition true', async () => {

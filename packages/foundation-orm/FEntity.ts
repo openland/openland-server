@@ -7,6 +7,7 @@ import { createLogger } from 'openland-log/createLogger';
 export interface FEntityOptions {
     enableVersioning: boolean;
     enableTimestamps: boolean;
+    hasLiveStreams: boolean;
     validator: (value: any) => void;
 }
 
@@ -18,6 +19,7 @@ export class FEntity {
     readonly connection: FConnection;
     readonly isReadOnly: boolean;
     readonly context: FContext;
+    readonly name: string;
 
     protected readonly _valueInitial: any;
     protected _value: any;
@@ -26,7 +28,7 @@ export class FEntity {
     private isDirty: boolean = false;
     private isNew: boolean;
 
-    constructor(connection: FConnection, namespace: FNamespace, id: (string | number)[], value: any, options: FEntityOptions, isNew: boolean, indexes: FEntityIndex[]) {
+    constructor(connection: FConnection, namespace: FNamespace, id: (string | number)[], value: any, options: FEntityOptions, isNew: boolean, indexes: FEntityIndex[], name: string) {
         this.namespace = namespace;
         this.rawId = id;
         this.connection = connection;
@@ -35,6 +37,7 @@ export class FEntity {
         this.options = options;
         this.isNew = isNew;
         this.indexes = indexes;
+        this.name = name;
 
         if (this.isNew && this.isReadOnly) {
             throw Error('Unable to create new entity outside transaction!');
@@ -129,6 +132,14 @@ export class FEntity {
 
             // Create or Update indexes
             if (this.isNew) {
+
+                // Notify after successful transaction
+                if (this.options.hasLiveStreams) {
+                    this.context.afterTransaction(() => {
+                        this.connection.pubsub.publish('fdb-entity-created-' + this.name, { entity: this.name });
+                    });
+                }
+
                 log.debug('created', JSON.stringify({ entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: value }));
                 for (let index of this.indexes) {
                     // Check index condition if applicable

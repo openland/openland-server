@@ -123,8 +123,9 @@ export function generateEntity(entity: EntityModel): string {
     res += '    constructor(connection: FConnection) {\n';
     res += '        super(connection,\n';
     res += '            new FNamespace(\'entity\', \'' + entityKey + '\'),\n';
-    res += '            { enableVersioning: ' + entity.enableVersioning + ', enableTimestamps: ' + entity.enableTimestamps + ', validator: ' + entityClass + 'Factory.validate },\n';
-    res += '            [' + entity.indexes.map(buildIndex).join(', ') + ']\n';
+    res += '            { enableVersioning: ' + entity.enableVersioning + ', enableTimestamps: ' + entity.enableTimestamps + ', validator: ' + entityClass + 'Factory.validate, hasLiveStreams: ' + !!entity.indexes.find((v) => v.streaming) + ' },\n';
+    res += '            [' + entity.indexes.map(buildIndex).join(', ') + '],\n';
+    res += '            \'' + entity.name + '\'\n';
     res += '        );\n';
     res += '    }\n';
 
@@ -152,8 +153,14 @@ export function generateEntity(entity: EntityModel): string {
             res += '    }\n';
         }
         if (!i.unique || i.range) {
-            let fs = i.fields;
+            let fs = [...i.fields];
             fs.splice(-1);
+            if (i.fields.length > 1) {
+                res += '    async allFrom' + Case.pascalCase(i.name) + 'After(' + [...fs.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v))), 'after: ' + resolveFieldType(resolveIndexField(entity, i.fields[i.fields.length - 1]))].join(', ') + ') {\n';
+                res += '        return await this._findRangeAllAfter([' + ['\'__indexes\'', '\'' + i.name + '\'', ...fs].join(', ') + '], after);\n';
+                res += '    }\n';
+            }
+
             res += '    async rangeFrom' + Case.pascalCase(i.name) + '(' + [...fs.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v))), 'limit: number', 'reversed?: boolean'].join(', ') + ') {\n';
             res += '        return await this._findRange([' + ['\'__indexes\'', '\'' + i.name + '\'', ...fs].join(', ') + '], limit, reversed);\n';
             res += '    }\n';
@@ -166,14 +173,19 @@ export function generateEntity(entity: EntityModel): string {
             res += '        return await this._findAll([' + ['\'__indexes\'', '\'' + i.name + '\'', ...fs].join(', ') + ']);\n';
             res += '    }\n';
 
-            res += '    create' + Case.pascalCase(i.name) + 'Stream(limit: number, after?: string) {\n';
-            res += '        return this._createStream([' + ['\'entity\'', '\'' + entityKey + '\'', '\'__indexes\'', '\'' + i.name + '\''].join(', ') + '], limit, after); \n';
+            res += '    create' + Case.pascalCase(i.name) + 'Stream(' + [...fs.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v))), 'limit: number', 'after?: string'].join(', ') + ') {\n';
+            res += '        return this._createStream([' + ['\'entity\'', '\'' + entityKey + '\'', '\'__indexes\'', '\'' + i.name + '\'', ...fs].join(', ') + '], limit, after); \n';
             res += '    }\n';
+            if (i.streaming) {
+                res += '    create' + Case.pascalCase(i.name) + 'LiveStream(' + [...fs.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v))), 'limit: number', 'after?: string'].join(', ') + ') {\n';
+                res += '        return this._createLiveStream([' + ['\'entity\'', '\'' + entityKey + '\'', '\'__indexes\'', '\'' + i.name + '\'', ...fs].join(', ') + '], limit, after); \n';
+                res += '    }\n';
+            }
         }
     }
 
     res += '    protected _createEntity(value: any, isNew: boolean) {\n';
-    res += '        return new ' + entityClass + '(this.connection, this.namespace, [' + entity.keys.map((v) => 'value.' + v.name).join(', ') + '], value, this.options, isNew, this.indexes);\n';
+    res += '        return new ' + entityClass + '(this.connection, this.namespace, [' + entity.keys.map((v) => 'value.' + v.name).join(', ') + '], value, this.options, isNew, this.indexes, \'' + entity.name + '\');\n';
     res += '    }\n';
     res += '}';
 

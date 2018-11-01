@@ -1,5 +1,5 @@
 import { staticWorker } from 'openland-module-workers/staticWorker';
-import { DB, DB_SILENT } from 'openland-server/tables';
+import { DB } from 'openland-server/tables';
 import { Repos } from 'openland-server/repositories';
 import { buildBaseImageUrl } from 'openland-server/repositories/Media';
 import { Texts } from 'openland-server/texts';
@@ -28,7 +28,7 @@ export function startPushNotificationWorker() {
                 await withLogContext(['user', '' + u.uid], async () => {
                     // Loading user's settings and state
                     let settings = await Modules.Users.getUserSettings(u.uid);
-                    let state = await Modules.Messaging.repo.getUserMessagingState(u.uid);
+                    let state = await Modules.Messaging.repo.getUserNotificationState(u.uid);
 
                     let now = Date.now();
 
@@ -75,23 +75,17 @@ export function startPushNotificationWorker() {
                     }
 
                     // Scanning updates
-                    let remainingUpdates = await DB.ConversationUserEvents.findAll({
-                        where: {
-                            userId: u.uid,
-                            seq: {
-                                $gt: Math.max(state.lastPushSeq ? state.lastPushSeq : 0, state.readSeq)
-                            }
-                        },
-                        logging: DB_SILENT
-                    });
+                    let remainingUpdates = await FDB.UserDialogEvent.allFromUserAfter(u.uid, Math.max(state.lastEmailSeq ? state.lastEmailSeq : 0, state.readSeq));
+                    let messages = remainingUpdates
+                        .filter((v) => v.kind === 'message_received')
+                        .filter((v) => v.uid !== u.uid);
 
                     // Handling unread messages
-                    let messages = remainingUpdates.filter((v) => v.eventType === 'new_message');
                     let hasMessage = false;
                     for (let m of messages) {
-                        let messageId = m.event.messageId as number;
-                        let senderId = m.event.senderId as number;
-                        let unreadCount = m.event.unreadGlobal as number;
+                        let messageId = m.mid!;
+                        let senderId = m.uid!;
+                        let unreadCount = m.allUnread!;
                         // Ignore current user
                         if (senderId === u.uid) {
                             continue;

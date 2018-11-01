@@ -1,3 +1,4 @@
+import { keySelector } from 'foundationdb';
 import { FContext } from './FContext';
 import { FConnection } from './FConnection';
 import { FEntity } from './FEntity';
@@ -24,9 +25,18 @@ export class FTransaction implements FContext {
     private _isCompleted = false;
     private connection: FConnection | null = null;
     private _pending = new Map<string, (connection: FConnection) => Promise<void>>();
+    private pendingCallbacks: (() => void)[] = [];
 
     get isCompleted() {
         return this._isCompleted;
+    }
+
+    reset() {
+        this.pendingCallbacks = [];
+    }
+
+    afterTransaction(callback: () => void) {
+        this.pendingCallbacks.push(callback);
     }
 
     async range(connection: FConnection, key: (string | number)[], options?: RangeOptions) {
@@ -40,8 +50,10 @@ export class FTransaction implements FContext {
     async rangeAfter(connection: FConnection, prefix: (string | number)[], afterKey: (string | number)[], options?: RangeOptions) {
         this._prepare(connection);
         return await trace(tracer, 'rangeAfter', async () => {
-            let end = FKeyEncoding.lastKeyInSubspace(prefix);
-            let res = await this.tx!.getRangeAll(FKeyEncoding.encodeKey(afterKey), end, options);
+            let reversed = (options && options.reverse) ? true : false;
+            let start = reversed ? FKeyEncoding.firstKeyInSubspace(prefix) : keySelector.firstGreaterThan(FKeyEncoding.encodeKey(afterKey));
+            let end = reversed ? keySelector.lastLessOrEqual(FKeyEncoding.encodeKey(afterKey)) : FKeyEncoding.lastKeyInSubspace(prefix);
+            let res = await this.tx!.getRangeAll(start, end, options);
             return res.map((v) => ({ item: v[1] as any, key: FKeyEncoding.decodeKey(v[0]) }));
         });
     }
@@ -106,6 +118,13 @@ export class FTransaction implements FContext {
         await trace(tracer, 'commit', async () => {
             await this.tx!!.rawCommit();
         });
+        if (this.pendingCallbacks.length > 0) {
+            await trace(tracer, 'hooks', async () => {
+                for (let p of this.pendingCallbacks) {
+                    p();
+                }
+            });
+        }
         this._isCompleted = true;
         // if (this._hadMutations) {
         log.debug('commit time: ' + (currentTime() - t) + ' ms');

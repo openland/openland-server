@@ -20,8 +20,7 @@ import { withAudit } from '../../openland-module-auth/email';
 import { Repos } from '../repositories';
 import { IDs } from '../api/utils/IDs';
 import { withLogContext } from 'openland-log/withLogContext';
-import { withTracing } from 'openland-log/withTracing';
-import { gqlTracer } from 'openland-server/utils/gqlTracer';
+import { withTracingSpan } from 'openland-log/withTracing';
 
 export async function initApi(isTest: boolean) {
 
@@ -115,11 +114,15 @@ export async function initApi(isTest: boolean) {
                 execute: async (schema: GraphQLSchema, document: DocumentNode, rootValue?: any, contextValue?: any, variableValues?: {
                     [key: string]: any;
                 }, operationName?: string, fieldResolver?: GraphQLFieldResolver<any, any>) => {
-                    return await withLogContext('ws', async () => {
-                        return await withTracing(gqlTracer, 'ws', async () => {
-                            return await execute(schema, document, rootValue, contextValue, variableValues, operationName, fieldResolver);
+                    try {
+                        return await withLogContext('ws', async () => {
+                            return await withTracingSpan(contextValue!.span!, async () => {
+                                return await execute(schema, document, rootValue, contextValue, variableValues, operationName, fieldResolver);
+                            });
                         });
-                    });
+                    } finally {
+                        contextValue!.span!.finish();
+                    }
                 },
                 subscribe,
                 keepAlive: 10000,

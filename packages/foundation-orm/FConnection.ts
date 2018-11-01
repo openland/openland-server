@@ -5,9 +5,11 @@ import * as fs from 'fs';
 import { FNodeRegistrator } from './utils/FNodeRegistrator';
 import { RandomIDFactory } from 'openland-security/RandomIDFactory';
 import { NativeValue } from 'foundationdb/dist/lib/native';
+import { FPubsub } from './FPubsub';
 
 export class FConnection {
     readonly fdb: fdb.Database<NativeValue, any>;
+    readonly pubsub: FPubsub;
     private readonly globalContext: FContext;
     private readonly nodeRegistrator: FNodeRegistrator;
     private randomFactory: RandomIDFactory | null = null;
@@ -26,8 +28,9 @@ export class FConnection {
         return db.withValueEncoding(fdb.encoders.json) as fdb.Database<NativeValue, any>;
     }
 
-    constructor(connection: fdb.Database<NativeValue, any>, test?: boolean) {
+    constructor(connection: fdb.Database<NativeValue, any>, pubsub: FPubsub, test?: boolean) {
         this.fdb = connection;
+        this.pubsub = pubsub;
         this.globalContext = new FGlobalContext();
         this.nodeRegistrator = new FNodeRegistrator(this);
         this.test = test;

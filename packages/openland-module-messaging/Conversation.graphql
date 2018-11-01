@@ -1,0 +1,33 @@
+type ConversationUpdateSingle {
+    seq: Int!
+    state: String!
+    update: ConversationUpdate!
+}
+
+type ConversationUpdateBatch {
+    updates: [ConversationUpdate!]!
+    fromSeq: Int!
+    seq: Int!
+    state: String!
+}
+
+union ConversationUpdateContainer = ConversationUpdateSingle | ConversationUpdateBatch
+
+union ConversationUpdate = ConversationMessageReceived | ConversationMessageUpdated | ConversationMessageDeleted 
+
+type ConversationMessageReceived {
+    message: ConversationMessage!
+}
+
+type ConversationMessageUpdated {
+    message: ConversationMessage!
+}
+
+type ConversationMessageDeleted {
+    message: ConversationMessage!
+}
+
+extend type Subscription {
+    conversationUpdates(conversationId: ID!, fromState: String): ConversationUpdateContainer!
+    alphaChatSubscribe2(conversationId: ID!, fromState: String): ConversationUpdateContainer!
+}

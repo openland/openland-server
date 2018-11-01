@@ -15,6 +15,7 @@ export interface FContext {
     rangeAfter(connection: FConnection, prefix: (string | number)[], afterKey: (string | number)[], options?: RangeOptions): Promise<{ item: any, key: any[] }[]>;
     set(connection: FConnection, key: (string | number)[], value: any): Promise<void>;
     delete(connection: FConnection, key: (string | number)[]): Promise<void>;
+    afterTransaction(callback: () => void): void;
 }
 
 export class FGlobalContext implements FContext {
@@ -33,8 +34,9 @@ export class FGlobalContext implements FContext {
     }
     async rangeAfter(connection: FConnection, prefix: (string | number)[], afterKey: (string | number)[], options?: RangeOptions) {
         return await trace(tracer, 'rangeAfter', async () => {
-            let start = keySelector.firstGreaterThan(FKeyEncoding.encodeKey(afterKey));
-            let end = FKeyEncoding.lastKeyInSubspace(prefix);
+            let reversed = (options && options.reverse) ? true : false;
+            let start = reversed ? FKeyEncoding.firstKeyInSubspace(prefix) : keySelector.firstGreaterThan(FKeyEncoding.encodeKey(afterKey));
+            let end = reversed ? keySelector.lastLessOrEqual(FKeyEncoding.encodeKey(afterKey)) : FKeyEncoding.lastKeyInSubspace(prefix);
             let res = await connection.fdb.getRangeAll(start, end, options);
             return res.map((v) => ({ item: v[1] as any, key: FKeyEncoding.decodeKey(v[0]) }));
         });
@@ -52,6 +54,9 @@ export class FGlobalContext implements FContext {
         });
     }
     markDirty(entity: FEntity, callback: (connection: FConnection) => void) {
+        throw Error('Trying to write to read-only context');
+    }
+    afterTransaction(callback: () => void) {
         throw Error('Trying to write to read-only context');
     }
 }
