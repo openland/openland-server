@@ -832,6 +832,7 @@ export const Resolver = {
 
                     await FDB.UserDialogEvent.create(uid, global.seq, {
                         kind: 'message_read',
+                        cid: conversationId,
                         unread: totalUnread,
                         allUnread: global.unread
                     });
