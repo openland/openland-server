@@ -327,6 +327,16 @@ export const Resolver = {
 
             // return online.filter(o => o === true).length;
             return 0;
+        },
+        myRole: async (src: Conversation, _: any, ctx: CallContext) => {
+            let member = await DB.ConversationGroupMembers.findOne({
+                where: {
+                    conversationId: src.id,
+                    userId: ctx.uid
+                }
+            });
+
+            return member && member.role;
         }
     },
 

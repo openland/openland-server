@@ -65,6 +65,7 @@ type GroupConversation implements Conversation {
     pinnedMessage: ConversationMessage
 
     membersOnline: Int!
+    myRole: String
 }
 
 #

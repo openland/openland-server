@@ -26,6 +26,7 @@ type ChannelConversation implements Conversation {
     pinnedMessage: ConversationMessage
 
     membersOnline: Int!
+    myRole: String
 }
 
 enum ChannelMembershipStatus {
