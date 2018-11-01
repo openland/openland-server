@@ -1,0 +1,201 @@
+import { IDs } from 'openland-server/api/utils/IDs';
+import { DB } from 'openland-server/tables';
+import { Repos } from 'openland-server/repositories';
+import { CallContext } from 'openland-server/api/utils/CallContext';
+import { AccessDeniedError } from 'openland-server/errors/AccessDeniedError';
+import { ConversationEvent } from 'openland-module-db/schema';
+import { FDB } from 'openland-module-db/FDB';
+import { FLiveStreamItem } from 'foundation-orm/FLiveStreamItem';
+
+export default {
+    /* 
+     * Conversation Update Containers
+     */
+    ConversationUpdateContainer: {
+        __resolveType(obj: FLiveStreamItem<ConversationEvent>) {
+            if (obj.items.length === 1) {
+                return 'DialogUpdateSingle';
+            } else {
+                return 'DialogUpdateBatch';
+            }
+        }
+    },
+    ConversationUpdateBatch: {
+        updates: (src: FLiveStreamItem<ConversationEvent>) => src.items,
+        fromSeq: (src: FLiveStreamItem<ConversationEvent>) => src.items[0].seq,
+        seq: (src: FLiveStreamItem<ConversationEvent>) => src.items[src.items.length - 1].seq,
+        state: (src: FLiveStreamItem<ConversationEvent>) => src.cursor
+    },
+    ConversationUpdateSingle: {
+        seq: (src: FLiveStreamItem<ConversationEvent>) => src.items[0].seq,
+        state: (src: FLiveStreamItem<ConversationEvent>) => src.cursor,
+        update: (src: FLiveStreamItem<ConversationEvent>) => src.items[0],
+    },
+
+    /*
+     * Conversation Updates
+     */
+    ConversationUpdate: {
+        __resolveType(obj: ConversationEvent) {
+            if (obj.kind === 'message_received') {
+                return 'ConversationMessageReceived';
+            } else if (obj.kind === 'message_updated') {
+                return 'ConversationMessageUpdated';
+            } else if (obj.kind === 'message_deleted') {
+                return 'ConversationMessageDeleted';
+            }
+            throw Error('Unknown conversation update type: ' + obj.kind);
+        }
+    },
+
+    ConversationMessageReceived: {
+        message: (src: ConversationEvent) => DB.ConversationMessage.findById(src.mid!, { paranoid: false })
+    },
+    ConversationMessageUpdated: {
+        message: (src: ConversationEvent) => DB.ConversationMessage.findById(src.mid!, { paranoid: false })
+    },
+    ConversationMessageDeleted: {
+        message: (src: ConversationEvent) => DB.ConversationMessage.findById(src.mid!, { paranoid: false })
+    },
+
+    Subscription: {
+        conversationUpdates: {
+            resolve: async (msg: any) => {
+                return msg;
+            },
+            subscribe: async function (_: any, args: { conversationId: string, fromState?: string }, context: CallContext) {
+                let conversationId = IDs.Conversation.parse(args.conversationId);
+                if (!context.uid) {
+                    throw Error('Not logged in');
+                }
+                let conversation = (await DB.Conversation.findById(conversationId))!;
+                if (conversation.type === 'group' || conversation.type === 'channel') {
+                    let member = await DB.ConversationGroupMembers.find({
+                        where: {
+                            userId: context.uid,
+                            status: 'member'
+                        }
+                    });
+                    if (!member) {
+                        throw new AccessDeniedError();
+                    }
+                }
+
+                return FDB.ConversationEvent.createUserLiveStream(conversationId, 20, args.fromState);
+            }
+        },
+        alphaChatSubscribe2: {
+            resolve: async (msg: any) => {
+                return msg;
+            },
+            subscribe: async function (_: any, args: { conversationId: string, fromState?: string }, context: CallContext) {
+                let conversationId = IDs.Conversation.parse(args.conversationId);
+                if (!context.uid) {
+                    throw Error('Not logged in');
+                }
+                let conversation = (await DB.Conversation.findById(conversationId))!;
+                if (conversation.type === 'group' || conversation.type === 'channel') {
+                    let member = await DB.ConversationGroupMembers.find({
+                        where: {
+                            userId: context.uid,
+                            status: 'member'
+                        }
+                    });
+                    if (!member) {
+                        throw new AccessDeniedError();
+                    }
+                }
+                return FDB.ConversationEvent.createUserLiveStream(conversationId, 20, args.fromState);
+            }
+        },
+        alphaChatSubscribe: {
+            resolve: async (msg: any) => {
+                return msg;
+            },
+            subscribe: async function (_: any, args: { conversationId: string, fromSeq?: number }, context: CallContext) {
+                let conversationId = IDs.Conversation.parse(args.conversationId);
+                if (!context.uid) {
+                    throw Error('Not logged in');
+                }
+                let conversation = (await DB.Conversation.findById(conversationId))!;
+                if (conversation.type === 'group' || conversation.type === 'channel') {
+                    let member = await DB.ConversationGroupMembers.find({
+                        where: {
+                            userId: context.uid,
+                            status: 'member'
+                        }
+                    });
+                    if (!member) {
+                        throw new AccessDeniedError();
+                    }
+                }
+
+                let ended = false;
+                return {
+                    ...async function* func() {
+                        let lastKnownSeq = args.fromSeq;
+                        while (!ended) {
+                            if (lastKnownSeq !== undefined) {
+                                let events = await DB.ConversationEvent.findAll({
+                                    where: {
+                                        conversationId: conversationId,
+                                        seq: {
+                                            $gt: lastKnownSeq
+                                        }
+                                    },
+                                    order: ['seq']
+                                });
+                                for (let r of events) {
+                                    yield r;
+                                }
+                                if (events.length > 0) {
+                                    lastKnownSeq = events[events.length - 1].seq;
+                                }
+                            }
+                            let res = await new Promise<number>((resolve) => Repos.Chats.reader.loadNext(conversationId, lastKnownSeq ? lastKnownSeq : null, (arg) => resolve(arg)));
+                            if (!lastKnownSeq) {
+                                lastKnownSeq = res - 1;
+                            }
+                        }
+                    }(),
+                    return: async () => {
+                        ended = true;
+                        return 'ok';
+                    }
+                };
+            }
+        }
+    },
+    ConversationEvent: {
+        __resolveType(obj: ConversationEvent) {
+            if (obj.kind === 'message_received') {
+                return 'ConversationEventMessage';
+            } else if (obj.kind === 'message_deleted') {
+                return 'ConversationEventDelete';
+            } else if (obj.kind === 'message_updated') {
+                return 'ConversationEventEditMessage';
+            }
+            throw Error('Unknown type');
+        },
+        seq: (src: ConversationEvent) => src.seq
+    },
+    ConversationEventMessage: {
+        message: (src: ConversationEvent) => DB.ConversationMessage.findById(src.mid!, { paranoid: false })
+    },
+    ConversationEventEditMessage: {
+        message: (src: ConversationEvent) => DB.ConversationMessage.findById(src.mid!, { paranoid: false })
+    },
+    ConversationEventDelete: {
+        messageId: (src: ConversationEvent) => IDs.ConversationMessage.serialize(src.mid!)
+    },
+
+    ConversationEventBatch: {
+        __resolveType() {
+            return 'ConversationEventSimpleBatch';
+        }
+    },
+
+    ConversationEventSimpleBatch: {
+        events: (src: [ConversationEvent]) => src
+    },
+};

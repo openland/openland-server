@@ -444,72 +444,10 @@ export const Resolver = {
         photo: (src: any) => src.picture ? buildBaseImageUrl(src.extras.picture as any) : null,
         photoRef: (src: any) => src.picture,
     },
-
-    ConversationEvent: {
-        __resolveType(obj: ConversationEvent) {
-            if (obj.eventType === 'new_message') {
-                return 'ConversationEventMessage';
-            } else if (obj.eventType === 'delete_message') {
-                return 'ConversationEventDelete';
-            } else if (obj.eventType === 'title_change') {
-                return 'ConversationEventTitle';
-            } else if (obj.eventType === 'new_members') {
-                return 'ConversationEventNewMembers';
-            } else if (obj.eventType === 'kick_member') {
-                return 'ConversationEventKick';
-            } else if (obj.eventType === 'update_role') {
-                return 'ConversationEventUpdateRole';
-            } else if (obj.eventType === 'edit_message') {
-                return 'ConversationEventEditMessage';
-            } else if (obj.eventType === 'chat_update') {
-                return 'ConversationEventUpdate';
-            }
-            throw Error('Unknown type');
-        },
-        seq: (src: ConversationEvent) => src.seq
-    },
-    ConversationEventMessage: {
-        message: (src: ConversationEvent) => DB.ConversationMessage.findById(src.event.messageId as number, { paranoid: false })
-    },
-    ConversationEventEditMessage: {
-        message: (src: ConversationEvent) => DB.ConversationMessage.findById(src.event.messageId as number, { paranoid: false })
-    },
-    ConversationEventDelete: {
-        messageId: (src: ConversationEvent) => IDs.ConversationMessage.serialize(src.event.messageId as number)
-    },
-    ConversationEventTitle: {
-        title: (src: ConversationEvent) => src.event.title
-    },
-    ConversationEventNewMembers: {
-        users: (src: ConversationEvent) => (src.event.userIds! as any).map((id: number) => DB.User.findById(id)),
-        invitedBy: (src: any) => DB.User.findById(src.event.invitedById)
-    },
-    ConversationEventKick: {
-        user: (src: ConversationEvent) => DB.User.findById(src.event.userId as any),
-        kickedBy: (src: ConversationEvent) => DB.User.findById(src.event.kickedById as any)
-    },
-    ConversationEventUpdateRole: {
-        user: (src: ConversationEvent) => DB.User.findById(src.event.userId as any),
-        newRole: (src: ConversationEvent) => src.event.newRole
-    },
-    ConversationEventUpdate: {
-        chat: (src: ConversationEvent) => DB.Conversation.findById(src.conversationId)
-    },
     ChatReadResult: {
         conversation: (src: { uid: number, conversationId: number }) => DB.Conversation.findById(src.conversationId),
         counter: (src: { uid: number, conversationId: number }) => src.uid
     },
-
-    ConversationEventBatch: {
-        __resolveType() {
-            return 'ConversationEventSimpleBatch';
-        }
-    },
-
-    ConversationEventSimpleBatch: {
-        events: (src: [ConversationEvent]) => src
-    },
-
     ComposeSearchResult: {
         __resolveType(obj: User | Organization) {
             // WTF, sequelize? Why Model is undefined??
@@ -1719,63 +1657,6 @@ export const Resolver = {
         }),
     },
     Subscription: {
-        alphaChatSubscribe: {
-            resolve: async (msg: any) => {
-                return msg;
-            },
-            subscribe: async function (_: any, args: { conversationId: string, fromSeq?: number }, context: CallContext) {
-                let conversationId = IDs.Conversation.parse(args.conversationId);
-                if (!context.uid) {
-                    throw Error('Not logged in');
-                }
-                let conversation = (await DB.Conversation.findById(conversationId))!;
-                if (conversation.type === 'group' || conversation.type === 'channel') {
-                    let member = await DB.ConversationGroupMembers.find({
-                        where: {
-                            userId: context.uid,
-                            status: 'member'
-                        }
-                    });
-                    if (!member) {
-                        throw new AccessDeniedError();
-                    }
-                }
-
-                let ended = false;
-                return {
-                    ...async function* func() {
-                        let lastKnownSeq = args.fromSeq;
-                        while (!ended) {
-                            if (lastKnownSeq !== undefined) {
-                                let events = await DB.ConversationEvent.findAll({
-                                    where: {
-                                        conversationId: conversationId,
-                                        seq: {
-                                            $gt: lastKnownSeq
-                                        }
-                                    },
-                                    order: ['seq']
-                                });
-                                for (let r of events) {
-                                    yield r;
-                                }
-                                if (events.length > 0) {
-                                    lastKnownSeq = events[events.length - 1].seq;
-                                }
-                            }
-                            let res = await new Promise<number>((resolve) => Repos.Chats.reader.loadNext(conversationId, lastKnownSeq ? lastKnownSeq : null, (arg) => resolve(arg)));
-                            if (!lastKnownSeq) {
-                                lastKnownSeq = res - 1;
-                            }
-                        }
-                    }(),
-                    return: async () => {
-                        ended = true;
-                        return 'ok';
-                    }
-                };
-            }
-        },
         alphaSubscribeTypings: {
             resolve: async (msg: any) => {
                 return msg;
