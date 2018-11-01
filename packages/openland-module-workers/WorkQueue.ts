@@ -118,7 +118,6 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                     });
                     if (commited) {
                         log.log('Commited');
-                        await awaitTask();
                     } else {
                         log.log('Not commited');
                         await awaitTask();

@@ -811,36 +811,23 @@ export const Resolver = {
         alphaReadChat: withUser<{ conversationId: string, messageId: string }>(async (args, uid) => {
             let conversationId = IDs.Conversation.parse(args.conversationId);
             let messageId = IDs.ConversationMessage.parse(args.messageId);
-            await DB.txStable(async (tx) => {
+            await inTx(async () => {
                 let msg = await DB.ConversationMessage.find({
                     where: {
                         id: messageId,
                         conversationId: conversationId
-                    },
-                    transaction: tx
+                    }
                 });
                 if (!msg) {
                     throw Error('Invalid request');
                 }
-                let existing = await DB.ConversationUserState.find({
-                    where: {
-                        userId: uid,
-                        conversationId: conversationId
-                    },
-                    transaction: tx,
-                    lock: tx.LOCK.UPDATE
-                });
-                let existingGlobal = await DB.ConversationsUserGlobal.find({
-                    where: {
-                        userId: uid
-                    },
-                    transaction: tx,
-                    lock: tx.LOCK.UPDATE
-                });
+
+                let existing = await FDB.UserDialog.findById(uid, conversationId);
+                let global = await Modules.Messaging.repo.getUserMessagingState(uid);
                 let delta = 0;
                 let totalUnread = 0;
                 if (existing) {
-                    if (existing.readDate < messageId) {
+                    if (!existing.readMessageId || existing.readMessageId < messageId) {
                         let remaining = await DB.ConversationMessage.count({
                             where: {
                                 conversationId,
@@ -850,23 +837,18 @@ export const Resolver = {
                                 userId: {
                                     $not: uid
                                 }
-                            },
-                            transaction: tx
+                            }
                         });
-                        if (!existingGlobal) {
-                            throw Error('Internal inconsistency');
-                        }
                         if (remaining === 0) {
                             delta = -existing.unread;
                             existing.unread = 0;
-                            existing.readDate = messageId;
+                            existing.readMessageId = messageId;
                         } else {
                             delta = remaining - existing.unread;
                             existing.unread = remaining;
-                            existing.readDate = messageId;
+                            existing.readMessageId = messageId;
                             totalUnread = remaining;
                         }
-                        await existing.save({ transaction: tx });
                     }
                 } else {
                     let remaining = await DB.ConversationMessage.count({
@@ -878,52 +860,44 @@ export const Resolver = {
                             userId: {
                                 $not: uid
                             }
-                        },
-                        transaction: tx
+                        }
                     });
                     if (remaining > 0) {
-                        await DB.ConversationUserState.create({
-                            userId: uid,
-                            conversationId: conversationId,
-                            readDate: messageId,
+                        await FDB.UserDialog.create(uid, conversationId, {
+                            readMessageId: messageId,
                             unread: remaining
-                        }, { transaction: tx });
+                        });
                         delta = remaining;
-                        if (!existingGlobal) {
-                            throw Error('Internal inconsistency');
-                        }
                     }
                 }
-                if (existingGlobal && delta !== 0) {
+
+                if (delta !== 0) {
 
                     //
                     // Update Global State
                     //
 
-                    let unread = existingGlobal.unread + delta;
+                    let unread = global.unread + delta;
                     if (unread < 0) {
                         throw Error('Internal inconsistency');
                     }
-                    existingGlobal.unread = unread;
-                    existingGlobal.seq++;
-                    await existingGlobal.save({ transaction: tx });
+                    global.unread = unread;
+                    global.seq++;
 
                     //
                     // Write Event
                     //
 
-                    await DB.ConversationUserEvents.create({
-                        seq: existingGlobal.seq,
-                        userId: uid,
-                        eventType: 'conversation_read',
-                        event: {
-                            conversationId: conversationId,
-                            unread: totalUnread,
-                            unreadGlobal: existingGlobal.unread
-                        }
-                    }, { transaction: tx });
+                    await FDB.UserDialogEvent.create(uid, global.seq, {
+                        kind: 'message_read',
+                        unread: totalUnread,
+                        allUnread: global.unread
+                    });
 
-                    await Modules.Push.sendCounterPush(uid, conversationId, existingGlobal.unread);
+                    //
+                    // Update counter
+                    //
+                    await Modules.Push.sendCounterPush(uid, conversationId, global.unread);
                 }
             });
 
@@ -934,7 +908,7 @@ export const Resolver = {
         }),
         alphaGlobalRead: withUser<{ toSeq: number }>(async (args, uid) => {
             await inTx(async () => {
-                let state = await Modules.Messaging.repo.getUserMessagingState(uid);
+                let state = await Modules.Messaging.repo.getUserNotificationState(uid);
                 state.readSeq = args.toSeq;
             });
             return 'ok';
@@ -1251,15 +1225,15 @@ export const Resolver = {
                         tx
                     );
 
-                    await Repos.Chats.addUserEventsInConversation(
-                        conversationId,
-                        uid,
-                        'chat_update',
-                        {
-                            conversationId
-                        },
-                        tx
-                    );
+                    // await Repos.Chats.addUserEventsInConversation(
+                    //     conversationId,
+                    //     uid,
+                    //     'chat_update',
+                    //     {
+                    //         conversationId
+                    //     },
+                    //     tx
+                    // );
 
                     await chat.save({ transaction: tx });
                 }
@@ -1297,15 +1271,15 @@ export const Resolver = {
                     tx
                 );
 
-                await Repos.Chats.addUserEventsInConversation(
-                    conversationId,
-                    uid,
-                    'title_change',
-                    {
-                        title: args.title
-                    },
-                    tx
-                );
+                // await Repos.Chats.addUserEventsInConversation(
+                //     conversationId,
+                //     uid,
+                //     'title_change',
+                //     {
+                //         title: args.title
+                //     },
+                //     tx
+                // );
 
                 await Repos.Chats.sendMessage(tx, conversationId, uid, {
                     message: `New chat title: ${args.title}`,
@@ -1408,18 +1382,18 @@ export const Resolver = {
                     tx
                 );
 
-                let membersCount = await Repos.Chats.membersCountInConversation(conversationId);
+                // let membersCount = await Repos.Chats.membersCountInConversation(conversationId);
 
-                await Repos.Chats.addUserEventsInConversation(
-                    conversationId,
-                    uid,
-                    'new_members_count',
-                    {
-                        conversationId,
-                        membersCount: membersCount + args.invites.length
-                    },
-                    tx
-                );
+                // await Repos.Chats.addUserEventsInConversation(
+                //     conversationId,
+                //     uid,
+                //     'new_members_count',
+                //     {
+                //         conversationId,
+                //         membersCount: membersCount + args.invites.length
+                //     },
+                //     tx
+                // );
 
                 return {
                     chat
@@ -1502,51 +1476,33 @@ export const Resolver = {
                     tx
                 );
 
-                let membersCount = await Repos.Chats.membersCountInConversation(conversationId);
+                // let membersCount = await Repos.Chats.membersCountInConversation(conversationId);
 
-                await Repos.Chats.addUserEventsInConversation(
-                    conversationId,
-                    uid,
-                    'new_members_count',
-                    {
-                        conversationId,
-                        membersCount: membersCount
-                    },
-                    tx
-                );
+                // await Repos.Chats.addUserEventsInConversation(
+                //     conversationId,
+                //     uid,
+                //     'new_members_count',
+                //     {
+                //         conversationId,
+                //         membersCount: membersCount
+                //     },
+                //     tx
+                // );
 
-                let existing = await DB.ConversationUserState.findOne({
-                    where: {
-                        conversationId,
-                        userId
-                    },
-                    transaction: tx
-                });
-                let existingGlobal = await DB.ConversationsUserGlobal.find({
-                    where: {
-                        userId
-                    },
-                    transaction: tx,
-                    lock: tx.LOCK.UPDATE
-                });
+                await inTx(async () => {
+                    let mstate = await Modules.Messaging.repo.getUserMessagingState(uid);
+                    let convState = await Modules.Messaging.repo.getUserDialogState(uid, conversationId);
+                    mstate.unread = mstate.unread - convState.unread;
+                    mstate.seq++;
 
-                if (!existing || !existingGlobal) {
-                    throw Error('Internal inconsistency');
-                }
-
-                existingGlobal.unread = existingGlobal.unread - existing.unread;
-                await existingGlobal.save({ transaction: tx });
-                await existing.destroy({ transaction: tx });
-                await DB.ConversationUserEvents.create({
-                    seq: existingGlobal.seq,
-                    userId,
-                    eventType: 'conversation_read',
-                    event: {
-                        conversationId,
+                    FDB.UserDialogEvent.create(uid, mstate.seq, {
+                        kind: 'message_read',
                         unread: 0,
-                        unreadGlobal: existingGlobal.unread
-                    }
-                }, { transaction: tx });
+                        allUnread: mstate.unread
+                    });
+
+                    return mstate;
+                });
 
                 return {
                     chat
@@ -1753,23 +1709,23 @@ export const Resolver = {
                     tx
                 );
 
-                let membersCount = await DB.ConversationGroupMembers.count({
-                    where: {
-                        conversationId: conversationId,
-                    },
-                    transaction: tx
-                });
+                // let membersCount = await DB.ConversationGroupMembers.count({
+                //     where: {
+                //         conversationId: conversationId,
+                //     },
+                //     transaction: tx
+                // });
 
-                await Repos.Chats.addUserEventsInConversation(
-                    conversationId,
-                    uid,
-                    'new_members_count',
-                    {
-                        conversationId,
-                        membersCount: membersCount
-                    },
-                    tx
-                );
+                // await Repos.Chats.addUserEventsInConversation(
+                //     conversationId,
+                //     uid,
+                //     'new_members_count',
+                //     {
+                //         conversationId,
+                //         membersCount: membersCount
+                //     },
+                //     tx
+                // );
 
                 await DB.ConversationGroupMembers.destroy({
                     where: {
@@ -1779,38 +1735,20 @@ export const Resolver = {
                     transaction: tx
                 });
 
-                let existing = await DB.ConversationUserState.findOne({
-                    where: {
-                        conversationId,
-                        userId: uid
-                    },
-                    transaction: tx
-                });
-                let existingGlobal = await DB.ConversationsUserGlobal.find({
-                    where: {
-                        userId: uid
-                    },
-                    transaction: tx,
-                    lock: tx.LOCK.UPDATE
-                });
+                await inTx(async () => {
+                    let mstate = await Modules.Messaging.repo.getUserMessagingState(uid);
+                    let convState = await Modules.Messaging.repo.getUserDialogState(uid, conversationId);
+                    mstate.unread = mstate.unread - convState.unread;
+                    mstate.seq++;
 
-                if (!existing || !existingGlobal) {
-                    throw Error('Internal inconsistency');
-                }
-
-                existingGlobal.unread = existingGlobal.unread - existing.unread;
-                await existingGlobal.save({ transaction: tx });
-                await existing.destroy({ transaction: tx });
-                await DB.ConversationUserEvents.create({
-                    seq: existingGlobal.seq,
-                    userId: uid,
-                    eventType: 'conversation_read',
-                    event: {
-                        conversationId,
+                    FDB.UserDialogEvent.create(uid, mstate.seq, {
+                        kind: 'message_read',
                         unread: 0,
-                        unreadGlobal: existingGlobal.unread
-                    }
-                }, { transaction: tx });
+                        allUnread: mstate.unread
+                    });
+
+                    return mstate;
+                });
 
                 return {
                     chat,

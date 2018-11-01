@@ -270,18 +270,18 @@ export const Resolver = {
                             }
                         );
 
-                        let membersCount = await Repos.Chats.membersCountInConversation(channelId);
+                        // let membersCount = await Repos.Chats.membersCountInConversation(channelId);
 
-                        await Repos.Chats.addUserEventsInConversation(
-                            channelId,
-                            uid,
-                            'new_members_count',
-                            {
-                                conversationId: channelId,
-                                membersCount: membersCount + 1
-                            },
-                            tx
-                        );
+                        // await Repos.Chats.addUserEventsInConversation(
+                        //     channelId,
+                        //     uid,
+                        //     'new_members_count',
+                        //     {
+                        //         conversationId: channelId,
+                        //         membersCount: membersCount + 1
+                        //     },
+                        //     tx
+                        // );
                     }
                 } else {
                     await DB.ConversationGroupMembers.create({
@@ -351,18 +351,18 @@ export const Resolver = {
                             }
                         );
 
-                        let membersCount = await Repos.Chats.membersCountInConversation(channelId);
+                        // let membersCount = await Repos.Chats.membersCountInConversation(channelId);
 
-                        await Repos.Chats.addUserEventsInConversation(
-                            channelId,
-                            uid,
-                            'new_members_count',
-                            {
-                                conversationId: channelId,
-                                membersCount: membersCount + 1
-                            },
-                            tx
-                        );
+                        // await Repos.Chats.addUserEventsInConversation(
+                        //     channelId,
+                        //     uid,
+                        //     'new_members_count',
+                        //     {
+                        //         conversationId: channelId,
+                        //         membersCount: membersCount + 1
+                        //     },
+                        //     tx
+                        // );
                     }
                 } else if (orgMember) {
                     let name = (await Modules.Users.profileById(uid))!.firstName;

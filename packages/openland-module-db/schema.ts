@@ -530,6 +530,9 @@ export class TaskFactory extends FEntityFactory<Task> {
     watch(taskType: string, uid: string, cb: () => void) {
         return this._watch([taskType, uid], cb);
     }
+    async allFromPendingAfter(taskType: string, after: number) {
+        return await this._findRangeAllAfter(['__indexes', 'pending', taskType], after);
+    }
     async rangeFromPending(taskType: string, limit: number, reversed?: boolean) {
         return await this._findRange(['__indexes', 'pending', taskType], limit, reversed);
     }
@@ -727,6 +730,9 @@ export class PushFirebaseFactory extends FEntityFactory<PushFirebase> {
     watch(id: string, cb: () => void) {
         return this._watch([id], cb);
     }
+    async allFromUserAfter(uid: number, after: string) {
+        return await this._findRangeAllAfter(['__indexes', 'user', uid], after);
+    }
     async rangeFromUser(uid: number, limit: number, reversed?: boolean) {
         return await this._findRange(['__indexes', 'user', uid], limit, reversed);
     }
@@ -903,6 +909,9 @@ export class PushAppleFactory extends FEntityFactory<PushApple> {
     watch(id: string, cb: () => void) {
         return this._watch([id], cb);
     }
+    async allFromUserAfter(uid: number, after: string) {
+        return await this._findRangeAllAfter(['__indexes', 'user', uid], after);
+    }
     async rangeFromUser(uid: number, limit: number, reversed?: boolean) {
         return await this._findRange(['__indexes', 'user', uid], limit, reversed);
     }
@@ -1054,6 +1063,9 @@ export class PushWebFactory extends FEntityFactory<PushWeb> {
     }
     watch(id: string, cb: () => void) {
         return this._watch([id], cb);
+    }
+    async allFromUserAfter(uid: number, after: string) {
+        return await this._findRangeAllAfter(['__indexes', 'user', uid], after);
     }
     async rangeFromUser(uid: number, limit: number, reversed?: boolean) {
         return await this._findRange(['__indexes', 'user', uid], limit, reversed);
@@ -1485,6 +1497,9 @@ export class OrganizationFeaturesFactory extends FEntityFactory<OrganizationFeat
     }
     async findFromOrganization(organizationId: number, featureKey: string) {
         return await this._findById(['__indexes', 'organization', organizationId, featureKey]);
+    }
+    async allFromOrganizationAfter(organizationId: number, after: string) {
+        return await this._findRangeAllAfter(['__indexes', 'organization', organizationId], after);
     }
     async rangeFromOrganization(organizationId: number, limit: number, reversed?: boolean) {
         return await this._findRange(['__indexes', 'organization', organizationId], limit, reversed);
@@ -1988,6 +2003,9 @@ export class UserDialogFactory extends FEntityFactory<UserDialog> {
     watch(uid: number, cid: number, cb: () => void) {
         return this._watch([uid, cid], cb);
     }
+    async allFromUserAfter(uid: number, after: number) {
+        return await this._findRangeAllAfter(['__indexes', 'user', uid], after);
+    }
     async rangeFromUser(uid: number, limit: number, reversed?: boolean) {
         return await this._findRange(['__indexes', 'user', uid], limit, reversed);
     }
@@ -2168,6 +2186,9 @@ export class UserDialogEventFactory extends FEntityFactory<UserDialogEvent> {
     }
     watch(uid: number, seq: number, cb: () => void) {
         return this._watch([uid, seq], cb);
+    }
+    async allFromUserAfter(uid: number, after: number) {
+        return await this._findRangeAllAfter(['__indexes', 'user', uid], after);
     }
     async rangeFromUser(uid: number, limit: number, reversed?: boolean) {
         return await this._findRange(['__indexes', 'user', uid], limit, reversed);
@@ -2632,6 +2653,9 @@ export class ChannelInvitationFactory extends FEntityFactory<ChannelInvitation> 
     watch(id: string, cb: () => void) {
         return this._watch([id], cb);
     }
+    async allFromChannelAfter(createdAt: number, after: number) {
+        return await this._findRangeAllAfter(['__indexes', 'channel', createdAt], after);
+    }
     async rangeFromChannel(createdAt: number, limit: number, reversed?: boolean) {
         return await this._findRange(['__indexes', 'channel', createdAt], limit, reversed);
     }
@@ -2716,6 +2740,9 @@ export class ChannelLinkFactory extends FEntityFactory<ChannelLink> {
     }
     watch(id: string, cb: () => void) {
         return this._watch([id], cb);
+    }
+    async allFromChannelAfter(createdAt: number, after: number) {
+        return await this._findRangeAllAfter(['__indexes', 'channel', createdAt], after);
     }
     async rangeFromChannel(createdAt: number, limit: number, reversed?: boolean) {
         return await this._findRange(['__indexes', 'channel', createdAt], limit, reversed);

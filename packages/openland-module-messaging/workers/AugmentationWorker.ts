@@ -6,6 +6,9 @@ import { Services } from '../../openland-server/services';
 import { Repos } from '../../openland-server/repositories';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
+import { inTx } from 'foundation-orm/inTx';
+import { Modules } from 'openland-modules/Modules';
+import { FDB } from 'openland-module-db/FDB';
 
 const linkifyInstance = linkify()
     .tlds(tlds)
@@ -52,15 +55,27 @@ export function createAugmentationWorker() {
                     (message as any).changed('extras', true);
                     await message.save();
 
-                    await Repos.Chats.addUserEventsInConversation(
-                        message.conversationId,
-                        message.userId,
-                        'edit_message',
-                        {
-                            messageId: message.id
-                        },
-                        tx
-                    );
+                    let members = await Repos.Chats.getConversationMembers(message.conversationId, tx);
+
+                    for (let member of members) {
+                        await inTx(async () => {
+                            let global = await Modules.Messaging.repo.getUserMessagingState(member);
+                            global.seq++;
+                            await FDB.UserDialogEvent.create(member, message!.conversationId, {
+                                kind: 'message_updated',
+                                mid: message!.id
+                            });
+                        });
+                    }
+                    // await Repos.Chats.addUserEventsInConversation(
+                    //     message.conversationId,
+                    //     message.userId,
+                    //     'edit_message',
+                    //     {
+                    //         messageId: message.id
+                    //     },
+                    //     tx
+                    // );
 
                     return await Repos.Chats.addChatEvent(
                         message.conversationId,

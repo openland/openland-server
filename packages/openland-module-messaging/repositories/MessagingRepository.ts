@@ -187,11 +187,37 @@ export class MessagingRepository {
         });
     }
 
-    async getUserMessagingState(uid: number) {
+    async getUserNotificationState(uid: number) {
         return await inTx(async () => {
             let existing = await this.entities.UserNotificationsState.findById(uid);
             if (!existing) {
                 let created = await this.entities.UserNotificationsState.create(uid, {});
+                await created.flush();
+                return created;
+            } else {
+                return existing;
+            }
+        });
+    }
+
+    async getUserMessagingState(uid: number) {
+        return await inTx(async () => {
+            let existing = await this.entities.UserMessagingState.findById(uid);
+            if (!existing) {
+                let created = await this.entities.UserMessagingState.create(uid, { seq: 0, unread: 0 });
+                await created.flush();
+                return created;
+            } else {
+                return existing;
+            }
+        });
+    }
+
+    async getUserDialogState(uid: number, cid: number) {
+        return await inTx(async () => {
+            let existing = await this.entities.UserDialog.findById(uid, cid);
+            if (!existing) {
+                let created = await this.entities.UserDialog.create(uid, cid, { unread: 0 });
                 await created.flush();
                 return created;
             } else {
