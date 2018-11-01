@@ -4,9 +4,10 @@ import { FConnection } from '../FConnection';
 import { withLogDisabled } from 'openland-log/withLogDisabled';
 import { NativeValue } from 'foundationdb/dist/lib/native';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
+import { NoOpBus } from './NoOpBus';
 
 describe('Random', () => {
-    
+
     // Database Init
     let db: fdb.Database<NativeValue, any>;
     beforeAll(async () => {
@@ -19,7 +20,7 @@ describe('Random', () => {
         await withLogDisabled(async () => {
             let connections: FConnection[] = [];
             for (let i = 0; i < 32; i++) {
-                connections.push(new FConnection(db));
+                connections.push(new FConnection(db, NoOpBus));
             }
             let ids: Promise<number>[] = [];
             for (let i = 0; i < connections.length; i++) {

@@ -6,9 +6,10 @@ import { inTx } from '../inTx';
 import { withLogDisabled } from 'openland-log/withLogDisabled';
 import { NativeValue } from 'foundationdb/dist/lib/native';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
+import { NoOpBus } from './NoOpBus';
 
 describe('FEntity Versioned', () => {
-    
+
     // Database Init
     let db: fdb.Database<NativeValue, any>;
     let testEntities: AllEntities;
@@ -16,7 +17,7 @@ describe('FEntity Versioned', () => {
         db = FConnection.create()
             .at(FKeyEncoding.encodeKey(['_tests_versioned']));
         await db.clearRange(FKeyEncoding.encodeKey([]));
-        testEntities = new AllEntities(new FConnection(db));
+        testEntities = new AllEntities(new FConnection(db, NoOpBus));
     });
 
     it('should create with version number eq to one', async () => {

@@ -6,6 +6,7 @@ import { PushRepository } from './PushRepository';
 import { withLogDisabled } from 'openland-log/withLogDisabled';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { NativeValue } from 'foundationdb/dist/lib/native';
+import { NoOpBus } from 'foundation-orm/tests/NoOpBus';
 
 describe('PushRepository', () => {
     // Database Init
@@ -15,7 +16,7 @@ describe('PushRepository', () => {
         db = FConnection.create()
             .at(FKeyEncoding.encodeKey(['_tests_push']));
         await db.clearRange(FKeyEncoding.encodeKey([]));
-        entities = new AllEntities(new FConnection(db));
+        entities = new AllEntities(new FConnection(db, NoOpBus));
     });
 
     it('should register web push', async () => {
