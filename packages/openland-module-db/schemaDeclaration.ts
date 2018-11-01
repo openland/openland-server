@@ -255,7 +255,7 @@ const Schema = declareSchema(() => {
     // });
 
     entity('ConversationSeq', () => {
-        primaryKey('cid', 'string');
+        primaryKey('cid', 'number');
         field('seq', 'number');
     });
 

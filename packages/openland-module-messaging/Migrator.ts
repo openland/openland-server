@@ -31,4 +31,19 @@ export function startMigrator() {
         }
     });
     reader.start();
+
+    let reader2 = new UpdateReader('conv-events-seqs', 1, DB.Conversation);
+    reader2.processor(async (items) => {
+        for (let i of items) {
+            await inTx(async () => {
+                let seq = await FDB.ConversationSeq.findById(i.id);
+                if (seq) {
+                    seq.seq = i.seq;
+                } else {
+                    await FDB.ConversationSeq.create(i.id, { seq: i.seq });
+                }
+            });
+        }
+    });
+    reader2.start();
 }

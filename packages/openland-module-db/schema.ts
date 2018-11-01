@@ -1934,7 +1934,7 @@ export interface ConversationSeqShape {
 }
 
 export class ConversationSeq extends FEntity {
-    get cid(): string { return this._value.cid; }
+    get cid(): number { return this._value.cid; }
     get seq(): number {
         return this._value.seq;
     }
@@ -1949,7 +1949,7 @@ export class ConversationSeq extends FEntity {
 export class ConversationSeqFactory extends FEntityFactory<ConversationSeq> {
     private static validate(src: any) {
         validators.notNull('cid', src.cid);
-        validators.isString('cid', src.cid);
+        validators.isNumber('cid', src.cid);
         validators.notNull('seq', src.seq);
         validators.isNumber('seq', src.seq);
     }
@@ -1965,13 +1965,13 @@ export class ConversationSeqFactory extends FEntityFactory<ConversationSeq> {
     extractId(rawId: any[]) {
         return { 'cid': rawId[0] };
     }
-    async findById(cid: string) {
+    async findById(cid: number) {
         return await this._findById([cid]);
     }
-    async create(cid: string, shape: ConversationSeqShape) {
+    async create(cid: number, shape: ConversationSeqShape) {
         return await this._create([cid], { cid, ...shape });
     }
-    watch(cid: string, cb: () => void) {
+    watch(cid: number, cb: () => void) {
         return this._watch([cid], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
