@@ -164,8 +164,8 @@ export const Resolver = {
         emailFrequency: (src: UserSettings) => src.emailFrequency,
         desktopNotifications: (src: UserSettings) => src.desktopNotifications,
         mobileNotifications: (src: UserSettings) => src.mobileNotifications,
-        mobileAlert: (src: UserSettings) => src.mobileAlert,
-        mobileIncludeText: (src: UserSettings) => src.mobileIncludeText,
+        mobileAlert: (src: UserSettings) => src.mobileAlert !== null ? src.mobileAlert : true,
+        mobileIncludeText: (src: UserSettings) => src.mobileIncludeText !== null ? src.mobileIncludeText : true,
         notificationsDelay: (src: UserSettings) => src.notificationsDelay,
     },
     Query: {
