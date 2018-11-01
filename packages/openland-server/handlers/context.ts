@@ -73,6 +73,7 @@ export async function callContextMiddleware(isTest: boolean, req: express.Reques
     };
 
     if (ctx.span) {
+        // tslint:disable-next-line:no-floating-promises
         withTracingSpan(ctx.span, next);
     } else {
         next();
