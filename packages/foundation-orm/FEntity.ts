@@ -134,7 +134,7 @@ export class FEntity {
 
                 // Notify after successful transaction
                 this.context.afterTransaction(() => {
-                    this.connection.pubsub.publish('fdb-entity-created', { entity: this.name });
+                    this.connection.pubsub.publish('fdb-entity-created-' + this.name, { entity: this.name });
                 });
 
                 log.debug('created', JSON.stringify({ entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: value }));

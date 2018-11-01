@@ -13,7 +13,7 @@ export class FLiveStream<T extends FEntity> {
     constructor(stream: FStream<T>) {
         this.baseStream = stream;
 
-        this.subscription = stream.factory.connection.pubsub.subscribe('fdb-entity-created', (data: any) => {
+        this.subscription = stream.factory.connection.pubsub.subscribe('fdb-entity-created-' + this.baseStream.factory.name, (data: any) => {
             console.log('pubsubreceived');
             if (data.entity === stream.factory.name) {
                 if (this.awaiter) {
