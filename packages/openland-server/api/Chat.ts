@@ -1495,7 +1495,7 @@ export const Resolver = {
                     mstate.unread = mstate.unread - convState.unread;
                     mstate.seq++;
 
-                    FDB.UserDialogEvent.create(uid, mstate.seq, {
+                    await FDB.UserDialogEvent.create(uid, mstate.seq, {
                         kind: 'message_read',
                         unread: 0,
                         allUnread: mstate.unread
@@ -1741,7 +1741,7 @@ export const Resolver = {
                     mstate.unread = mstate.unread - convState.unread;
                     mstate.seq++;
 
-                    FDB.UserDialogEvent.create(uid, mstate.seq, {
+                    await FDB.UserDialogEvent.create(uid, mstate.seq, {
                         kind: 'message_read',
                         unread: 0,
                         allUnread: mstate.unread

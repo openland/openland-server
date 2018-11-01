@@ -395,7 +395,7 @@ export class ChatsRepository {
             await inTx(async () => {
                 let global = await Modules.Messaging.repo.getUserMessagingState(member);
                 global.seq++;
-                await FDB.UserDialogEvent.create(member, message!.conversationId, {
+                await FDB.UserDialogEvent.create(member, global.seq, {
                     kind: 'message_updated',
                     mid: message!.id
                 });
