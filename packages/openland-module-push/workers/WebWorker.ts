@@ -5,7 +5,7 @@ import { WebPushTask } from './types';
 import { AppConfiuguration } from 'openland-server/init/initConfig';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { createLogger } from '../../openland-log/createLogger';
-import { handleFail } from './handleFail';
+import { handleFail } from './util/handleFail';
 import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
 import { inTx } from '../../foundation-orm/inTx';
 

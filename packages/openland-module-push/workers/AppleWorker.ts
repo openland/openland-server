@@ -5,7 +5,7 @@ import { AppConfiuguration } from 'openland-server/init/initConfig';
 import { createLogger } from 'openland-log/createLogger';
 import { PushRepository } from 'openland-module-push/repositories/PushRepository';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
-import { handleFail } from './handleFail';
+import { handleFail } from './util/handleFail';
 import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
 import { inTx } from '../../foundation-orm/inTx';
 
