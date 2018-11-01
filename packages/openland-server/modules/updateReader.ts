@@ -269,6 +269,9 @@ async function updateReader<TInstance, TAttributes>(
 
     let isParanoid = (model as any).options.paranoid as boolean;
     let modelName = (model as any).options.name.singular;
+    if (modelName === 'conversation_event') {
+        modelName = 'conversation_events';
+    }
     let lastOffset: Date | null = null;
     let lastSecondary: number | null = null;
     let waiter: (() => void) | null = null;
