@@ -34,6 +34,9 @@ export function createDeliveryWorker() {
                             existing.unread++;
                         }
 
+                        // Update dialog date
+                        existing.date = message.createdAt.getTime();
+
                         // Update global counters
                         if (m !== uid) {
                             existingGlobal.unread++;
