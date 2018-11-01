@@ -878,12 +878,12 @@ export class ChatsRepository {
             (conv as any).changed('extras', true);
             await conv.save({ transaction: tx });
 
-            await Repos.Chats.addChatEvent(
-                conversationId,
-                'chat_update',
-                {},
-                tx
-            );
+            // await Repos.Chats.addChatEvent(
+            //     conversationId,
+            //     'chat_update',
+            //     {},
+            //     tx
+            // );
 
             // await Repos.Chats.addUserEventsInConversation(
             //     conversationId,

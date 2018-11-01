@@ -1929,6 +1929,151 @@ export class AuthCodeSessionFactory extends FEntityFactory<AuthCodeSession> {
         return new AuthCodeSession(this.connection, this.namespace, [value.uid], value, this.options, isNew, this.indexes, 'AuthCodeSession');
     }
 }
+export interface ConversationSeqShape {
+    seq: number;
+}
+
+export class ConversationSeq extends FEntity {
+    get cid(): string { return this._value.cid; }
+    get seq(): number {
+        return this._value.seq;
+    }
+    set seq(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.seq) { return; }
+        this._value.seq = value;
+        this.markDirty();
+    }
+}
+
+export class ConversationSeqFactory extends FEntityFactory<ConversationSeq> {
+    private static validate(src: any) {
+        validators.notNull('cid', src.cid);
+        validators.isString('cid', src.cid);
+        validators.notNull('seq', src.seq);
+        validators.isNumber('seq', src.seq);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'conversationSeq'),
+            { enableVersioning: false, enableTimestamps: false, validator: ConversationSeqFactory.validate, hasLiveStreams: false },
+            [],
+            'ConversationSeq'
+        );
+    }
+    extractId(rawId: any[]) {
+        return { 'cid': rawId[0] };
+    }
+    async findById(cid: string) {
+        return await this._findById([cid]);
+    }
+    async create(cid: string, shape: ConversationSeqShape) {
+        return await this._create([cid], { cid, ...shape });
+    }
+    watch(cid: string, cb: () => void) {
+        return this._watch([cid], cb);
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new ConversationSeq(this.connection, this.namespace, [value.cid], value, this.options, isNew, this.indexes, 'ConversationSeq');
+    }
+}
+export interface ConversationEventShape {
+    uid?: number| null;
+    mid?: number| null;
+    kind: 'message_received' | 'message_updated' | 'message_deleted';
+}
+
+export class ConversationEvent extends FEntity {
+    get cid(): number { return this._value.cid; }
+    get seq(): number { return this._value.seq; }
+    get uid(): number | null {
+        let res = this._value.uid;
+        if (res) { return res; }
+        return null;
+    }
+    set uid(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.uid) { return; }
+        this._value.uid = value;
+        this.markDirty();
+    }
+    get mid(): number | null {
+        let res = this._value.mid;
+        if (res) { return res; }
+        return null;
+    }
+    set mid(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.mid) { return; }
+        this._value.mid = value;
+        this.markDirty();
+    }
+    get kind(): 'message_received' | 'message_updated' | 'message_deleted' {
+        return this._value.kind;
+    }
+    set kind(value: 'message_received' | 'message_updated' | 'message_deleted') {
+        this._checkIsWritable();
+        if (value === this._value.kind) { return; }
+        this._value.kind = value;
+        this.markDirty();
+    }
+}
+
+export class ConversationEventFactory extends FEntityFactory<ConversationEvent> {
+    private static validate(src: any) {
+        validators.notNull('cid', src.cid);
+        validators.isNumber('cid', src.cid);
+        validators.notNull('seq', src.seq);
+        validators.isNumber('seq', src.seq);
+        validators.isNumber('uid', src.uid);
+        validators.isNumber('mid', src.mid);
+        validators.notNull('kind', src.kind);
+        validators.isEnum('kind', src.kind, ['message_received', 'message_updated', 'message_deleted']);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'conversationEvent'),
+            { enableVersioning: true, enableTimestamps: true, validator: ConversationEventFactory.validate, hasLiveStreams: true },
+            [new FEntityIndex('user', ['cid', 'seq'], false)],
+            'ConversationEvent'
+        );
+    }
+    extractId(rawId: any[]) {
+        return { 'cid': rawId[0], 'seq': rawId[1] };
+    }
+    async findById(cid: number, seq: number) {
+        return await this._findById([cid, seq]);
+    }
+    async create(cid: number, seq: number, shape: ConversationEventShape) {
+        return await this._create([cid, seq], { cid, seq, ...shape });
+    }
+    watch(cid: number, seq: number, cb: () => void) {
+        return this._watch([cid, seq], cb);
+    }
+    async allFromUserAfter(cid: number, after: number) {
+        return await this._findRangeAllAfter(['__indexes', 'user', cid], after);
+    }
+    async rangeFromUser(cid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'user', cid], limit, reversed);
+    }
+    async rangeFromUserWithCursor(cid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'user', cid], limit, after, reversed);
+    }
+    async allFromUser(cid: number) {
+        return await this._findAll(['__indexes', 'user', cid]);
+    }
+    createUserStream(cid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'conversationEvent', '__indexes', 'user', cid], limit, after); 
+    }
+    createUserLiveStream(cid: number, limit: number, after?: string) {
+        return this._createLiveStream(['entity', 'conversationEvent', '__indexes', 'user', cid], limit, after); 
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new ConversationEvent(this.connection, this.namespace, [value.cid, value.seq], value, this.options, isNew, this.indexes, 'ConversationEvent');
+    }
+}
 export interface UserDialogShape {
     unread: number;
     readMessageId?: number| null;
@@ -2833,6 +2978,8 @@ export class AllEntities extends FDBInstance {
     UserSettings: UserSettingsFactory;
     ShortnameReservation: ShortnameReservationFactory;
     AuthCodeSession: AuthCodeSessionFactory;
+    ConversationSeq: ConversationSeqFactory;
+    ConversationEvent: ConversationEventFactory;
     UserDialog: UserDialogFactory;
     UserDialogSettings: UserDialogSettingsFactory;
     UserDialogEvent: UserDialogEventFactory;
@@ -2865,6 +3012,8 @@ export class AllEntities extends FDBInstance {
         this.UserSettings = new UserSettingsFactory(connection);
         this.ShortnameReservation = new ShortnameReservationFactory(connection);
         this.AuthCodeSession = new AuthCodeSessionFactory(connection);
+        this.ConversationSeq = new ConversationSeqFactory(connection);
+        this.ConversationEvent = new ConversationEventFactory(connection);
         this.UserDialog = new UserDialogFactory(connection);
         this.UserDialogSettings = new UserDialogSettingsFactory(connection);
         this.UserDialogEvent = new UserDialogEventFactory(connection);

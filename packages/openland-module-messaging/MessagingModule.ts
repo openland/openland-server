@@ -9,6 +9,7 @@ import { inTx } from 'foundation-orm/inTx';
 import { ChannelInviteEmails } from './emails/ChannelInviteEmails';
 import { createDeliveryWorker } from './workers/DeliveryWorker';
 import { DialogsRepository } from './repositories/DialogsRepository';
+import { startMigrator } from './Migrator';
 
 export interface MessageInput {
     repeatToken?: string | null;
@@ -36,6 +37,9 @@ export class MessagingModule {
         }
         if (serverRoleEnabled('workers')) {
             startPushNotificationWorker();
+        }
+        if (serverRoleEnabled('workers')) {
+            startMigrator();
         }
     }
 

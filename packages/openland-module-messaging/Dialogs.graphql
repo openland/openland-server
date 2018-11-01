@@ -49,3 +49,13 @@ type DialogPhotoUpdated {
 extend type Subscription {
     dialogsUpdates(fromState: String): DialogUpdateContainer!
 }
+
+
+type DialogsConnection {
+    conversations: [Conversation!]!
+    next: String
+}
+
+extend type Query {
+    dialogs(first: Int!, after: String): DialogsConnection!
+}

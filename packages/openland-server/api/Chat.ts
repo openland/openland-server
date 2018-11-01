@@ -1161,12 +1161,12 @@ export const Resolver = {
                 }
 
                 if (chatChanged) {
-                    await Repos.Chats.addChatEvent(
-                        conversationId,
-                        'chat_update',
-                        {},
-                        tx
-                    );
+                    // await Repos.Chats.addChatEvent(
+                    //     conversationId,
+                    //     'chat_update',
+                    //     {},
+                    //     tx
+                    // );
 
                     // await Repos.Chats.addUserEventsInConversation(
                     //     conversationId,
@@ -1205,14 +1205,14 @@ export const Resolver = {
                     title: args.title
                 }, { transaction: tx });
 
-                await Repos.Chats.addChatEvent(
-                    conversationId,
-                    'title_change',
-                    {
-                        title: args.title
-                    },
-                    tx
-                );
+                // await Repos.Chats.addChatEvent(
+                //     conversationId,
+                //     'title_change',
+                //     {
+                //         title: args.title
+                //     },
+                //     tx
+                // );
 
                 // await Repos.Chats.addUserEventsInConversation(
                 //     conversationId,
@@ -1315,15 +1315,15 @@ export const Resolver = {
                     }
                 );
 
-                await Repos.Chats.addChatEvent(
-                    conversationId,
-                    'new_members',
-                    {
-                        userIds: args.invites.map(i => IDs.User.parse(i.userId)),
-                        invitedById: uid
-                    },
-                    tx
-                );
+                // await Repos.Chats.addChatEvent(
+                //     conversationId,
+                //     'new_members',
+                //     {
+                //         userIds: args.invites.map(i => IDs.User.parse(i.userId)),
+                //         invitedById: uid
+                //     },
+                //     tx
+                // );
 
                 // let membersCount = await Repos.Chats.membersCountInConversation(conversationId);
 
@@ -1409,15 +1409,15 @@ export const Resolver = {
                     }
                 );
 
-                await Repos.Chats.addChatEvent(
-                    conversationId,
-                    'kick_member',
-                    {
-                        userId: userId,
-                        kickedById: uid
-                    },
-                    tx
-                );
+                // await Repos.Chats.addChatEvent(
+                //     conversationId,
+                //     'kick_member',
+                //     {
+                //         userId: userId,
+                //         kickedById: uid
+                //     },
+                //     tx
+                // );
 
                 // let membersCount = await Repos.Chats.membersCountInConversation(conversationId);
 
@@ -1498,19 +1498,18 @@ export const Resolver = {
 
                 await member.update({ role: args.newRole }, { transaction: tx });
 
-                let chatEvent = await Repos.Chats.addChatEvent(
-                    conversationId,
-                    'update_role',
-                    {
-                        userId: userId,
-                        newRole: args.newRole
-                    },
-                    tx
-                );
+                // let chatEvent = await Repos.Chats.addChatEvent(
+                //     conversationId,
+                //     'update_role',
+                //     {
+                //         userId: userId,
+                //         newRole: args.newRole
+                //     },
+                //     tx
+                // );
 
                 return {
-                    chat,
-                    chatEvent,
+                    chat
                 };
             });
         }),
@@ -1642,15 +1641,15 @@ export const Resolver = {
                     }
                 );
 
-                await Repos.Chats.addChatEvent(
-                    conversationId,
-                    'kick_member',
-                    {
-                        userId: uid,
-                        kickedById: uid
-                    },
-                    tx
-                );
+                // await Repos.Chats.addChatEvent(
+                //     conversationId,
+                //     'kick_member',
+                //     {
+                //         userId: uid,
+                //         kickedById: uid
+                //     },
+                //     tx
+                // );
 
                 // let membersCount = await DB.ConversationGroupMembers.count({
                 //     where: {
