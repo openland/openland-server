@@ -7,6 +7,7 @@ import { createLogger } from 'openland-log/createLogger';
 export interface FEntityOptions {
     enableVersioning: boolean;
     enableTimestamps: boolean;
+    hasLiveStreams: boolean;
     validator: (value: any) => void;
 }
 
@@ -133,9 +134,11 @@ export class FEntity {
             if (this.isNew) {
 
                 // Notify after successful transaction
-                this.context.afterTransaction(() => {
-                    this.connection.pubsub.publish('fdb-entity-created-' + this.name, { entity: this.name });
-                });
+                if (this.options.hasLiveStreams) {
+                    this.context.afterTransaction(() => {
+                        this.connection.pubsub.publish('fdb-entity-created-' + this.name, { entity: this.name });
+                    });
+                }
 
                 log.debug('created', JSON.stringify({ entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: value }));
                 for (let index of this.indexes) {

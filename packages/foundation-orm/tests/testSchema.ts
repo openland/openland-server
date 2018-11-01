@@ -35,7 +35,7 @@ export class SimpleEntityFactory extends FEntityFactory<SimpleEntity> {
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'simpleEntity'),
-            { enableVersioning: false, enableTimestamps: false, validator: SimpleEntityFactory.validate },
+            { enableVersioning: false, enableTimestamps: false, validator: SimpleEntityFactory.validate, hasLiveStreams: false },
             [],
             'SimpleEntity'
         );
@@ -84,7 +84,7 @@ export class VersionedEntityFactory extends FEntityFactory<VersionedEntity> {
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'versionedEntity'),
-            { enableVersioning: true, enableTimestamps: false, validator: VersionedEntityFactory.validate },
+            { enableVersioning: true, enableTimestamps: false, validator: VersionedEntityFactory.validate, hasLiveStreams: false },
             [],
             'VersionedEntity'
         );
@@ -133,7 +133,7 @@ export class TimestampedEntityFactory extends FEntityFactory<TimestampedEntity> 
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'timestampedEntity'),
-            { enableVersioning: false, enableTimestamps: true, validator: TimestampedEntityFactory.validate },
+            { enableVersioning: false, enableTimestamps: true, validator: TimestampedEntityFactory.validate, hasLiveStreams: false },
             [],
             'TimestampedEntity'
         );
@@ -206,7 +206,7 @@ export class IndexedEntityFactory extends FEntityFactory<IndexedEntity> {
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'indexedEntity'),
-            { enableVersioning: false, enableTimestamps: false, validator: IndexedEntityFactory.validate },
+            { enableVersioning: false, enableTimestamps: false, validator: IndexedEntityFactory.validate, hasLiveStreams: false },
             [new FEntityIndex('default', ['data1', 'data2', 'id'], true)],
             'IndexedEntity'
         );
@@ -282,7 +282,7 @@ export class IndexedRangeEntityFactory extends FEntityFactory<IndexedRangeEntity
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'indexedRangeEntity'),
-            { enableVersioning: false, enableTimestamps: false, validator: IndexedRangeEntityFactory.validate },
+            { enableVersioning: false, enableTimestamps: false, validator: IndexedRangeEntityFactory.validate, hasLiveStreams: false },
             [new FEntityIndex('default', ['data1', 'data2'], false)],
             'IndexedRangeEntity'
         );
@@ -367,7 +367,7 @@ export class IndexedPartialEntityFactory extends FEntityFactory<IndexedPartialEn
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'indexedPartialEntity'),
-            { enableVersioning: false, enableTimestamps: false, validator: IndexedPartialEntityFactory.validate },
+            { enableVersioning: false, enableTimestamps: false, validator: IndexedPartialEntityFactory.validate, hasLiveStreams: false },
             [new FEntityIndex('default', ['data1', 'data2', 'id'], true, (src) => src.data1 === 'hello')],
             'IndexedPartialEntity'
         );
