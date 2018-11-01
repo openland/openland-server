@@ -9,8 +9,6 @@ import { inTx } from 'foundation-orm/inTx';
 import { ChannelInviteEmails } from './emails/ChannelInviteEmails';
 import { createDeliveryWorker } from './workers/DeliveryWorker';
 import { DialogsRepository } from './repositories/DialogsRepository';
-import { UpdateReader } from 'openland-server/modules/updateReader';
-import { DB } from 'openland-server/tables';
 
 export interface MessageInput {
     repeatToken?: string | null;
@@ -38,89 +36,6 @@ export class MessagingModule {
         }
         if (serverRoleEnabled('workers')) {
             startPushNotificationWorker();
-        }
-
-        if (serverRoleEnabled('workers')) {
-            let reader = new UpdateReader('export-global-messaging-state', 1, DB.ConversationsUserGlobal);
-            reader.processor(async (items) => {
-                for (let i of items) {
-                    await inTx(async () => {
-                        let state = await FDB.UserMessagingState.findById(i.userId);
-                        if (state) {
-                            state.unread = i.unread;
-                            state.seq = i.seq;
-                        } else {
-                            await FDB.UserMessagingState.create(i.userId, { unread: i.unread, seq: i.seq });
-                        }
-                    });
-                }
-            });
-            reader.start();
-
-            let reader2 = new UpdateReader('export_dialog_states', 1, DB.ConversationUserState);
-            reader2.processor(async (items) => {
-                for (let i of items) {
-                    await inTx(async () => {
-                        let existing = await FDB.UserDialog.findById(i.userId, i.conversationId);
-                        if (existing) {
-                            existing.date = i.updatedAt.getTime();
-                            existing.unread = i.unread;
-                            existing.readMessageId = i.readDate;
-                        } else {
-                            await FDB.UserDialog.create(i.userId, i.conversationId, {
-                                date: i.updatedAt.getTime(),
-                                unread: i.unread,
-                                readMessageId: i.readDate
-                            });
-                        }
-                    });
-                }
-            });
-            reader2.start();
-
-            let reader3 = new UpdateReader('export_dialog_events', 1, DB.ConversationUserEvents);
-            reader3.processor(async (items) => {
-                for (let i of items) {
-                    await inTx(async () => {
-                        let existing = await FDB.UserDialogEvent.findById(i.userId, i.seq);
-                        if (!existing) {
-                            if (i.eventType === 'new_message') {
-                                await FDB.UserDialogEvent.create(i.userId, i.seq, {
-                                    kind: 'message_received',
-                                    cid: i.event.conversationId as number,
-                                    mid: i.event.messageId as number,
-                                    unread: i.event.unread as number,
-                                    allUnread: i.event.unreadGlobal as number
-                                });
-                            } else if (i.eventType === 'edit_message') {
-                                await FDB.UserDialogEvent.create(i.userId, i.seq, {
-                                    kind: 'message_updated',
-                                    mid: i.event.messageId as number
-                                });
-                            } else if (i.eventType === 'delete_message') {
-                                await FDB.UserDialogEvent.create(i.userId, i.seq, {
-                                    kind: 'message_deleted',
-                                    mid: i.event.messageId as number
-                                });
-                            } else if (i.eventType === 'conversation_read') {
-                                await FDB.UserDialogEvent.create(i.userId, i.seq, {
-                                    kind: 'message_read',
-                                    cid: i.event.conversationId as number,
-                                    unread: i.event.unread as number,
-                                    allUnread: i.event.unreadGlobal as number
-                                });
-                            } else if (i.eventType === 'title_change') {
-                                await FDB.UserDialogEvent.create(i.userId, i.seq, {
-                                    kind: 'title_updated',
-                                    cid: i.event.conversationId as number,
-                                    title: i.event.title as string,
-                                });
-                            }
-                        }
-                    });
-                }
-            });
-            reader3.start();
         }
     }
 
