@@ -7,6 +7,7 @@ import { FStreamItem } from './FStreamItem';
 import { FKeyEncoding } from './utils/FKeyEncoding';
 import { FStream } from './FStream';
 import { createLogger } from 'openland-log/createLogger';
+import { FLiveStream } from './FLiveStream';
 
 const log = createLogger('entity-factory');
 
@@ -90,6 +91,9 @@ export abstract class FEntityFactory<T extends FEntity> {
 
     protected _createStream(subspace: (string | number)[], limit: number, after?: string): FStream<T> {
         return new FStream(this.connection, subspace, limit, (s) => this.doCreateEntity(s, false), after);
+    }
+    protected _createLiveStream(subspace: (string | number)[], limit: number, after?: string): FLiveStream<T> {
+        return new FLiveStream(new FStream(this.connection, subspace, limit, (s) => this.doCreateEntity(s, false), after));
     }
 
     protected async _findAll(key: (string | number)[]) {

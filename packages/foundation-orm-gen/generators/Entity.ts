@@ -169,6 +169,11 @@ export function generateEntity(entity: EntityModel): string {
             res += '    create' + Case.pascalCase(i.name) + 'Stream(limit: number, after?: string) {\n';
             res += '        return this._createStream([' + ['\'entity\'', '\'' + entityKey + '\'', '\'__indexes\'', '\'' + i.name + '\''].join(', ') + '], limit, after); \n';
             res += '    }\n';
+            if (i.streaming) {
+                res += '    create' + Case.pascalCase(i.name) + 'LiveStream(limit: number, after?: string) {\n';
+                res += '        return this._createLiveStream([' + ['\'entity\'', '\'' + entityKey + '\'', '\'__indexes\'', '\'' + i.name + '\''].join(', ') + '], limit, after); \n';
+                res += '    }\n';
+            }
         }
     }
 

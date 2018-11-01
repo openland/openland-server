@@ -2159,6 +2159,9 @@ export class UserDialogEventFactory extends FEntityFactory<UserDialogEvent> {
     createUserStream(limit: number, after?: string) {
         return this._createStream(['entity', 'userDialogEvent', '__indexes', 'user'], limit, after); 
     }
+    createUserLiveStream(limit: number, after?: string) {
+        return this._createLiveStream(['entity', 'userDialogEvent', '__indexes', 'user'], limit, after); 
+    }
     protected _createEntity(value: any, isNew: boolean) {
         return new UserDialogEvent(this.connection, this.namespace, [value.uid, value.seq], value, this.options, isNew, this.indexes);
     }

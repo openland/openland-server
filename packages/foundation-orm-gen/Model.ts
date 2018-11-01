@@ -22,6 +22,7 @@ export class EntityIndex {
     readonly name: string;
     readonly unique: boolean;
     range: boolean = false;
+    streaming: boolean = false;
     condition?: (src: any) => boolean;
     constructor(name: string, fields: string[], unique: boolean) {
         this.name = name;
@@ -31,6 +32,11 @@ export class EntityIndex {
 
     withRange() {
         this.range = true;
+        return this;
+    }
+
+    withStreaming() {
+        this.streaming = true;
         return this;
     }
 

@@ -40,12 +40,14 @@ class EventBusImpl implements FPubsub {
     }
 
     publish(topic: string, data: any) {
+        // tslint:disable-next-line:no-floating-promises
         backoff(async () => await this.client.publish(topic, JSON.stringify(data)));
     }
 
     subscribe(topic: string, receiver: (data: any) => void) {
         if (!this.subscribedTopics.has(topic)) {
             this.subscribedTopics.add(topic);
+            // tslint:disable-next-line:no-floating-promises
             backoff(async () => await this.subscriberClient.subscribe([topic]));
         }
         if (!this.subscribers.has(topic)) {
