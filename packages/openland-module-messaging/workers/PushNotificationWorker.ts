@@ -79,7 +79,8 @@ export function startPushNotificationWorker() {
                     }
 
                     // Scanning updates
-                    let afterSec = Math.max(state.lastEmailSeq ? state.lastEmailSeq : 0, state.readSeq);
+                    let afterSec = Math.max(state.lastEmailSeq ? state.lastEmailSeq : 0, state.readSeq, state.lastPushSeq || 0);
+
                     let remainingUpdates = await FDB.UserDialogEvent.allFromUserAfter(u.uid, afterSec);
                     let messages = remainingUpdates
                         .filter((v) => v.kind === 'message_received')
