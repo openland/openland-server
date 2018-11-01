@@ -126,19 +126,19 @@ export class MessagingRepository {
     //     });
     // }
 
-    // async fetchConversationNextSeq(cid: string) {
-    //     return await inTx(async () => {
-    //         let existing = await this.entities.ConversationSeq.findById(cid);
-    //         let seq = 1;
-    //         if (!existing) {
-    //             await (await this.entities.ConversationSeq.create(cid, { seq: 1 })).flush();
-    //         } else {
-    //             seq = ++existing.seq;
-    //             await existing.flush();
-    //         }
-    //         return seq;
-    //     });
-    // }
+    async fetchConversationNextSeq(cid: number) {
+        return await inTx(async () => {
+            let existing = await this.entities.ConversationSeq.findById(cid);
+            let seq = 1;
+            if (!existing) {
+                await (await this.entities.ConversationSeq.create(cid, { seq: 1 })).flush();
+            } else {
+                seq = ++existing.seq;
+                await existing.flush();
+            }
+            return seq;
+        });
+    }
 
     // async updateUserUnreadCounter(uid: number, delta: number) {
     //     if (delta === 0) {

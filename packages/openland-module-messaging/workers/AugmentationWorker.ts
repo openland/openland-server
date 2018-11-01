@@ -57,34 +57,23 @@ export function createAugmentationWorker() {
 
                     let members = await Repos.Chats.getConversationMembers(message.conversationId, tx);
 
-                    for (let member of members) {
-                        await inTx(async () => {
+                    await inTx(async () => {
+                        for (let member of members) {
+
                             let global = await Modules.Messaging.repo.getUserMessagingState(member);
                             global.seq++;
                             await FDB.UserDialogEvent.create(member, global.seq, {
                                 kind: 'message_updated',
                                 mid: message!.id
                             });
-                        });
-                    }
-                    // await Repos.Chats.addUserEventsInConversation(
-                    //     message.conversationId,
-                    //     message.userId,
-                    //     'edit_message',
-                    //     {
-                    //         messageId: message.id
-                    //     },
-                    //     tx
-                    // );
 
-                    return await Repos.Chats.addChatEvent(
-                        message.conversationId,
-                        'edit_message',
-                        {
-                            messageId: message.id
-                        },
-                        tx
-                    );
+                        }
+
+                        let seq = await Modules.Messaging.repo.fetchConversationNextSeq(message!.conversationId);
+                        await FDB.ConversationEvent.create(message!.conversationId, seq, { kind: 'message_updated', mid: message!.id });
+                    });
+
+                    return { result: 'ok' };
                 });
             }
 

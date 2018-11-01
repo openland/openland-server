@@ -74,6 +74,7 @@
     "buffer": "^5.0.6",
     "change-case": "^3.0.2",
     "cheerio": "^1.0.0-rc.2",
+    "cls-bluebird": "^2.1.0",
     "cls-hooked": "^4.2.2",
     "compose-middleware": "^4.0.0",
     "compression": "^1.7.1",
