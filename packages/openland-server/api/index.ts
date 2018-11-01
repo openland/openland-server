@@ -20,6 +20,7 @@ import { trace } from 'openland-log/trace';
 import { gqlTracer } from 'openland-server/utils/gqlTracer';
 import { buildSchema } from 'openland-graphql/buildSchema';
 import { buildResolvers } from 'openland-graphql/buildResolvers';
+import { withTracingSpan } from 'openland-log/withTracing';
 
 let schema = buildSchema(__dirname + '/../../');
 let resolvers = buildResolvers(__dirname + '/../../');
@@ -52,6 +53,12 @@ export const Schema = wrapAllResolvers(
         context: any,
         info: any
     ) => {
-        return await trace(gqlTracer, field.name, async () => await withLogContext(field.name, async () => await originalResolver(root, args, context, info)));
+        return await withTracingSpan(context.span, async () => {
+            return await trace(gqlTracer, field.name, async () => {
+                return await withLogContext(field.name, async () => {
+                    return await originalResolver(root, args, context, info);
+                });
+            });
+        });
     }
 );
