@@ -29,6 +29,7 @@ type User {
     alphaConversationSettings: ConversationSettings!
     status: String @withPermissions(permission: ["super-admin", "software-developer"]) @withAuth
     alphaLocations: [String!]
+    organizations: [Organization!]!
 }
 
 input UpdateProfileInput {
