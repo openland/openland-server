@@ -18,9 +18,7 @@ const Delays = {
 const log = createLogger('push');
 
 export function startPushNotificationWorker() {
-
     staticWorker({ name: 'push_notifications', delay: 3000 }, async () => {
-
         let unreadUsers = await FDB.UserMessagingState.allFromHasUnread();
         log.debug('unread users: ' + unreadUsers.length);
         for (let u of unreadUsers) {
@@ -81,16 +79,21 @@ export function startPushNotificationWorker() {
                     }
 
                     // Scanning updates
-                    let remainingUpdates = await FDB.UserDialogEvent.allFromUserAfter(u.uid, Math.max(state.lastEmailSeq ? state.lastEmailSeq : 0, state.readSeq));
+                    let afterSec = Math.max(state.lastEmailSeq ? state.lastEmailSeq : 0, state.readSeq);
+                    let remainingUpdates = await FDB.UserDialogEvent.allFromUserAfter(u.uid, afterSec);
                     let messages = remainingUpdates
                         .filter((v) => v.kind === 'message_received')
-                        .filter((v) => v.uid !== u.uid);
+                        .filter((v) => v.sid !== u.uid);
 
                     // Handling unread messages
                     let hasMessage = false;
                     for (let m of messages) {
+                        if (m.seq <= afterSec) {
+                            continue;
+                        }
+
                         let messageId = m.mid!;
-                        let senderId = m.uid!;
+                        let senderId = m.sid!;
                         let unreadCount = m.allUnread!;
                         // Ignore current user
                         if (senderId === u.uid) {

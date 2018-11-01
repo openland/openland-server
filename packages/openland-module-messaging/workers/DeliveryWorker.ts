@@ -47,6 +47,7 @@ export function createDeliveryWorker() {
                         await FDB.UserDialogEvent.create(m, existingGlobal.seq, {
                             kind: 'message_received',
                             cid: conversationId,
+                            sid: uid,
                             mid: message.id,
                             allUnread: existingGlobal.unread,
                             unread: existing.unread

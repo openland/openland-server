@@ -132,7 +132,6 @@ export class FEntity {
 
             // Create or Update indexes
             if (this.isNew) {
-
                 // Notify after successful transaction
                 if (this.options.hasLiveStreams) {
                     this.context.afterTransaction(() => {

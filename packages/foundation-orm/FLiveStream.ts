@@ -41,7 +41,7 @@ export class FLiveStream<T extends FEntity> {
                     } else {
                         let w = delayBreakable(1000);
                         t.awaiter = w.resolver;
-                        await w.resolver();
+                        await w.promise;
                         t.awaiter = undefined;
                     }
                 }

@@ -52,7 +52,7 @@ export abstract class FEntityFactory<T extends FEntity> {
     }
 
     protected async _findRangeAllAfter(key: (string | number)[], after: any, reverse?: boolean) {
-        let res = await this.namespace.rangeAfter(this.connection, key, after, { reverse });
+        let res = await this.namespace.rangeAfter(this.connection, key, [after], { reverse });
         return res.map((v) => this.doCreateEntity(v.item, false));
     }
 

@@ -2221,6 +2221,7 @@ export class UserDialogSettingsFactory extends FEntityFactory<UserDialogSettings
 }
 export interface UserDialogEventShape {
     cid?: number| null;
+    sid?: number| null;
     mid?: number| null;
     allUnread?: number| null;
     unread?: number| null;
@@ -2240,6 +2241,17 @@ export class UserDialogEvent extends FEntity {
         this._checkIsWritable();
         if (value === this._value.cid) { return; }
         this._value.cid = value;
+        this.markDirty();
+    }
+    get sid(): number | null {
+        let res = this._value.sid;
+        if (res) { return res; }
+        return null;
+    }
+    set sid(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.sid) { return; }
+        this._value.sid = value;
         this.markDirty();
     }
     get mid(): number | null {
@@ -2304,6 +2316,7 @@ export class UserDialogEventFactory extends FEntityFactory<UserDialogEvent> {
         validators.notNull('seq', src.seq);
         validators.isNumber('seq', src.seq);
         validators.isNumber('cid', src.cid);
+        validators.isNumber('sid', src.sid);
         validators.isNumber('mid', src.mid);
         validators.isNumber('allUnread', src.allUnread);
         validators.isNumber('unread', src.unread);
