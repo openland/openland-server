@@ -118,6 +118,13 @@ export class FTransaction implements FContext {
         await trace(tracer, 'commit', async () => {
             await this.tx!!.rawCommit();
         });
+        if (this.pendingCallbacks.length > 0) {
+            await trace(tracer, 'hooks', async () => {
+                for (let p of this.pendingCallbacks) {
+                    p();
+                }
+            });
+        }
         this._isCompleted = true;
         // if (this._hadMutations) {
         log.debug('commit time: ' + (currentTime() - t) + ' ms');
