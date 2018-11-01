@@ -14,9 +14,9 @@ export default {
     ConversationUpdateContainer: {
         __resolveType(obj: FLiveStreamItem<ConversationEvent>) {
             if (obj.items.length === 1) {
-                return 'DialogUpdateSingle';
+                return 'ConversationUpdateSingle';
             } else {
-                return 'DialogUpdateBatch';
+                return 'ConversationUpdateBatch';
             }
         }
     },
@@ -63,24 +63,8 @@ export default {
             resolve: async (msg: any) => {
                 return msg;
             },
-            subscribe: async function (_: any, args: { conversationId: string, fromState?: string }, context: CallContext) {
+            subscribe: function (_: any, args: { conversationId: string, fromState?: string }, context: CallContext) {
                 let conversationId = IDs.Conversation.parse(args.conversationId);
-                if (!context.uid) {
-                    throw Error('Not logged in');
-                }
-                let conversation = (await DB.Conversation.findById(conversationId))!;
-                if (conversation.type === 'group' || conversation.type === 'channel') {
-                    let member = await DB.ConversationGroupMembers.find({
-                        where: {
-                            userId: context.uid,
-                            status: 'member'
-                        }
-                    });
-                    if (!member) {
-                        throw new AccessDeniedError();
-                    }
-                }
-
                 return FDB.ConversationEvent.createUserLiveStream(conversationId, 20, args.fromState);
             }
         },
