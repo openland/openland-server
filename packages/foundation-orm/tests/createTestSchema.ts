@@ -38,6 +38,12 @@ const Schema = declareSchema(() => {
         field('data3', 'string');
         uniqueIndex('default', ['data1', 'data2', 'id']).withCondition((src) => src.data1 === 'hello');
     });
+
+    entity('IdEntity', () => {
+        primaryKey('id', 'id');
+        field('data', 'string');
+        field('ref', 'id').nullable();
+    });
 });
 
 generate(Schema, __dirname + '/testSchema.ts');

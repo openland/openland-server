@@ -5,34 +5,35 @@ import { RangeOptions } from 'foundationdb/dist/lib/transaction';
 import { FKeyEncoding } from './utils/FKeyEncoding';
 import { trace } from 'openland-log/trace';
 import { tracer } from './utils/tracer';
+import { FKeyType } from './FKeyType';
 
 export interface FContext {
     readonly isReadOnly: boolean;
     readonly isCompleted: boolean;
     markDirty(entity: FEntity, callback: (connection: FConnection) => Promise<void>): void;
-    get(connection: FConnection, key: (string | number)[]): Promise<any | null>;
-    range(connection: FConnection, key: (string | number)[], options?: RangeOptions): Promise<{ item: any, key: any[] }[]>;
-    rangeAfter(connection: FConnection, prefix: (string | number)[], afterKey: (string | number)[], options?: RangeOptions): Promise<{ item: any, key: any[] }[]>;
-    set(connection: FConnection, key: (string | number)[], value: any): Promise<void>;
-    delete(connection: FConnection, key: (string | number)[]): Promise<void>;
+    get(connection: FConnection, key: FKeyType): Promise<any | null>;
+    range(connection: FConnection, key: FKeyType, options?: RangeOptions): Promise<{ item: any, key: any[] }[]>;
+    rangeAfter(connection: FConnection, prefix: FKeyType, afterKey: FKeyType, options?: RangeOptions): Promise<{ item: any, key: any[] }[]>;
+    set(connection: FConnection, key: FKeyType, value: any): Promise<void>;
+    delete(connection: FConnection, key: FKeyType): Promise<void>;
     afterTransaction(callback: () => void): void;
 }
 
 export class FGlobalContext implements FContext {
     readonly isReadOnly: boolean = true;
     readonly isCompleted: boolean = false;
-    async get(connection: FConnection, key: (string | number)[]) {
+    async get(connection: FConnection, key: FKeyType) {
         return await trace(tracer, 'get', async () => {
             return await connection.fdb.get(FKeyEncoding.encodeKey(key));
         });
     }
-    async range(connection: FConnection, key: (string | number)[], options?: RangeOptions) {
+    async range(connection: FConnection, key: FKeyType, options?: RangeOptions) {
         return await trace(tracer, 'range', async () => {
             let res = await connection.fdb.getRangeAll(FKeyEncoding.encodeKey(key), undefined, options);
             return res.map((v) => ({ item: v[1] as any, key: FKeyEncoding.decodeKey(v[0]) }));
         });
     }
-    async rangeAfter(connection: FConnection, prefix: (string | number)[], afterKey: (string | number)[], options?: RangeOptions) {
+    async rangeAfter(connection: FConnection, prefix: FKeyType, afterKey: FKeyType, options?: RangeOptions) {
         return await trace(tracer, 'rangeAfter', async () => {
             let reversed = (options && options.reverse) ? true : false;
             let start = reversed ? FKeyEncoding.firstKeyInSubspace(prefix) : keySelector.firstGreaterThan(FKeyEncoding.encodeKey(afterKey));
@@ -42,13 +43,13 @@ export class FGlobalContext implements FContext {
         });
     }
 
-    async set(connection: FConnection, key: (string | number)[], value: any) {
+    async set(connection: FConnection, key: FKeyType, value: any) {
         console.warn('Set outside of transaction!');
         return await trace(tracer, 'set', async () => {
             return await connection.fdb.set(FKeyEncoding.encodeKey(key), value);
         });
     }
-    async delete(connection: FConnection, key: (string | number)[]) {
+    async delete(connection: FConnection, key: FKeyType) {
         return await trace(tracer, 'delete', async () => {
             return await connection.fdb.clear(FKeyEncoding.encodeKey(key));
         });

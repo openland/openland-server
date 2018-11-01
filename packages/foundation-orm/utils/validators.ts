@@ -1,3 +1,5 @@
+import { ID } from 'openland-utils/ID';
+
 export class FDBValidationError extends Error {
     constructor(message: string) {
         super(message);
@@ -36,6 +38,18 @@ export const validators = {
                 }
             }
             throw new FDBValidationError('\'' + name + '\' string \'' + value + '\' is matched with known enum values');
+        }
+    },
+    isId: (name: string, value: any) => {
+        if ((value !== undefined && value !== null)) {
+            if (typeof value !== 'string' && typeof value !== 'number') {
+                new FDBValidationError('\'' + name + '\': \'' + value + '\' is not an ID');
+            }
+            try {
+                new ID(value);
+            } catch (e) {
+                new FDBValidationError('\'' + name + '\': \'' + value + '\' is not an ID');
+            }
         }
     }
 };

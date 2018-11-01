@@ -1,11 +1,11 @@
 
 export class EntityField {
     readonly name: string;
-    readonly type: 'string' | 'number' | 'boolean' | 'enum' | 'json';
+    readonly type: 'string' | 'number' | 'boolean' | 'enum' | 'json' | 'id';
     readonly enumValues: string[];
     isNullable: boolean = false;
 
-    constructor(name: string, type: 'string' | 'number' | 'boolean' | 'enum' | 'json', enumValues: string[]) {
+    constructor(name: string, type: 'string' | 'number' | 'boolean' | 'enum' | 'json' | 'id', enumValues: string[]) {
         this.name = name;
         this.type = type;
         this.enumValues = enumValues;
@@ -57,7 +57,7 @@ export class EntityModel {
         this.name = name;
     }
 
-    addField(name: string, type: 'string' | 'number' | 'boolean' | 'enum' | 'json', enumValues: string[]) {
+    addField(name: string, type: 'string' | 'number' | 'boolean' | 'enum' | 'json' | 'id', enumValues: string[]) {
         let res = new EntityField(name, type, enumValues);
         this.fields.push(res);
         return res;
@@ -69,7 +69,7 @@ export class EntityModel {
         return res;
     }
 
-    addKey(name: string, type: 'string' | 'number' | 'boolean') {
+    addKey(name: string, type: 'string' | 'number' | 'boolean' | 'id') {
         let res = new EntityField(name, type, []);
         this.keys.push(res);
         return res;

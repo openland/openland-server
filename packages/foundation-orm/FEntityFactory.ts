@@ -9,6 +9,7 @@ import { FStream } from './FStream';
 import { createLogger } from 'openland-log/createLogger';
 import { FLiveStream } from './FLiveStream';
 import { FLiveStreamItem } from './FLiveStreamItem';
+import { FKeyType } from './FKeyType';
 
 const log = createLogger('entity-factory');
 
@@ -43,7 +44,7 @@ export abstract class FEntityFactory<T extends FEntity> {
 
     protected abstract _createEntity(value: any, isNew: boolean): T;
 
-    protected async _findById(key: (string | number)[]) {
+    protected async _findById(key: FKeyType) {
         let res = await this.namespace.get(this.connection, key);
         if (res) {
             return this.doCreateEntity(res, false);
@@ -51,17 +52,17 @@ export abstract class FEntityFactory<T extends FEntity> {
         return null;
     }
 
-    protected async _findRangeAllAfter(key: (string | number)[], after: any, reverse?: boolean) {
+    protected async _findRangeAllAfter(key: FKeyType, after: any, reverse?: boolean) {
         let res = await this.namespace.rangeAfter(this.connection, key, after, { reverse });
         return res.map((v) => this.doCreateEntity(v.item, false));
     }
 
-    protected async _findRange(key: (string | number)[], limit: number, reverse?: boolean) {
+    protected async _findRange(key: FKeyType, limit: number, reverse?: boolean) {
         let res = await this.namespace.range(this.connection, key, { limit, reverse });
         return res.map((v) => this.doCreateEntity(v.item, false));
     }
 
-    protected async _findRangeWithCursor(key: (string | number)[], limit: number, after?: string, reverse?: boolean) {
+    protected async _findRangeWithCursor(key: FKeyType, limit: number, after?: string, reverse?: boolean) {
         if (after) {
             let res = await this.namespace.rangeAfter(this.connection, key, FKeyEncoding.decodeFromString(after) as any, { limit: limit + 1, reverse });
             let d: T[] = [];
@@ -87,7 +88,7 @@ export abstract class FEntityFactory<T extends FEntity> {
         }
     }
 
-    protected async _findRangeAfter(subspace: (string | number)[], after?: string, limit?: number) {
+    protected async _findRangeAfter(subspace: FKeyType, after?: string, limit?: number) {
         if (after) {
             let res = await this.namespace.rangeAfter(this.connection, subspace, FKeyEncoding.decodeFromString(after) as any, { limit });
             return res.map((v) => ({ value: this.doCreateEntity(v.item, false), cursor: FKeyEncoding.encodeKeyToString(v.key) } as FStreamItem<T>));
@@ -97,26 +98,26 @@ export abstract class FEntityFactory<T extends FEntity> {
         }
     }
 
-    protected _createStream(subspace: (string | number)[], limit: number, after?: string): FStream<T> {
+    protected _createStream(subspace: FKeyType, limit: number, after?: string): FStream<T> {
         return new FStream(this, subspace, limit, (s) => this.doCreateEntity(s, false), after);
     }
-    protected _createLiveStream(subspace: (string | number)[], limit: number, after?: string): AsyncIterator<FLiveStreamItem<T>> {
+    protected _createLiveStream(subspace: FKeyType, limit: number, after?: string): AsyncIterator<FLiveStreamItem<T>> {
         return new FLiveStream<T>(new FStream(this, subspace, limit, (s) => this.doCreateEntity(s, false), after)).generator();
     }
 
-    protected async _findAll(key: (string | number)[]) {
+    protected async _findAll(key: FKeyType) {
         let res = await this.namespace.range(this.connection, key);
         return res.map((v) => this.doCreateEntity(v.item, false));
     }
 
-    protected async _create(key: (string | number)[], value: any) {
+    protected async _create(key: FKeyType, value: any) {
         if (await this._findById(key)) {
             throw Error('Object already exists');
         }
         return this.doCreateEntity(value, true);
     }
 
-    protected _watch(key: (string | number)[], cb: () => void) {
+    protected _watch(key: FKeyType, cb: () => void) {
         let fullKey = [...this.namespace.namespace, ...key];
 
         return this.watcher.watch(fullKey, cb);

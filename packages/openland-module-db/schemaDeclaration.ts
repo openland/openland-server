@@ -3,12 +3,12 @@ import { declareSchema, entity, field, primaryKey, enableTimestamps, enableVersi
 
 const Schema = declareSchema(() => {
     entity('Online', () => {
-        primaryKey('uid', 'number');
+        primaryKey('uid', 'id');
         field('lastSeen', 'number');
     });
 
     entity('Presence', () => {
-        primaryKey('uid', 'number');
+        primaryKey('uid', 'id');
         primaryKey('tid', 'string');
         field('lastSeen', 'number');
         field('lastSeenTimeout', 'number');
@@ -23,7 +23,7 @@ const Schema = declareSchema(() => {
     entity('AuthToken', () => {
         primaryKey('uuid', 'string');
         field('salt', 'string');
-        field('uid', 'number');
+        field('uid', 'id');
         field('lastIp', 'string');
         uniqueIndex('salt', ['salt']);
         enableTimestamps();
@@ -73,7 +73,7 @@ const Schema = declareSchema(() => {
 
     entity('PushFirebase', () => {
         primaryKey('id', 'string');
-        field('uid', 'number');
+        field('uid', 'id');
         field('tid', 'string');
         field('token', 'string');
         field('packageId', 'string');
@@ -124,7 +124,7 @@ const Schema = declareSchema(() => {
     });
 
     entity('UserProfilePrefil', () => {
-        primaryKey('id', 'number');
+        primaryKey('id', 'id');
         field('firstName', 'string').nullable();
         field('lastName', 'string').nullable();
         field('picture', 'string').nullable();
@@ -133,7 +133,7 @@ const Schema = declareSchema(() => {
     });
 
     entity('UserProfile', () => {
-        primaryKey('id', 'number');
+        primaryKey('id', 'id');
         field('firstName', 'string');
         field('lastName', 'string').nullable();
         field('phone', 'string').nullable();
@@ -162,7 +162,7 @@ const Schema = declareSchema(() => {
     entity('OrganizationFeatures', () => {
         primaryKey('id', 'string');
         field('featureKey', 'string');
-        field('organizationId', 'number');
+        field('organizationId', 'id');
         field('enabled', 'boolean');
         uniqueIndex('organization', ['organizationId', 'featureKey']).withRange();
         enableTimestamps();
@@ -178,13 +178,13 @@ const Schema = declareSchema(() => {
     });
 
     entity('SuperAdmin', () => {
-        primaryKey('id', 'number');
+        primaryKey('id', 'id');
         field('role', 'string');
         field('enabled', 'boolean');
     });
 
     entity('UserSettings', () => {
-        primaryKey('id', 'number');
+        primaryKey('id', 'id');
         enumField('emailFrequency', ['1hour', '15min', 'never', '24hour', '1week']);
         enumField('desktopNotifications', ['all', 'direct', 'none']);
         enumField('mobileNotifications', ['all', 'direct', 'none']);
@@ -198,7 +198,7 @@ const Schema = declareSchema(() => {
     entity('ShortnameReservation', () => {
         primaryKey('shortname', 'string');
         enumField('ownerType', ['org', 'user']);
-        field('ownerId', 'number');
+        field('ownerId', 'id');
         field('enabled', 'boolean');
         uniqueIndex('user', ['ownerId']).withCondition((src) => src.ownerType === 'user' && src.enabled);
         uniqueIndex('org', ['ownerId']).withCondition((src) => src.ownerType === 'org' && src.enabled);
@@ -255,15 +255,15 @@ const Schema = declareSchema(() => {
     // });
 
     entity('ConversationSeq', () => {
-        primaryKey('cid', 'number');
+        primaryKey('cid', 'id');
         field('seq', 'number');
     });
 
     entity('ConversationEvent', () => {
-        primaryKey('cid', 'number');
+        primaryKey('cid', 'id');
         primaryKey('seq', 'number');
-        field('uid', 'number').nullable();
-        field('mid', 'number').nullable();
+        field('uid', 'id').nullable();
+        field('mid', 'id').nullable();
         enumField('kind', ['message_received', 'message_updated', 'message_deleted']);
         rangeIndex('user', ['cid', 'seq']).withStreaming();
         enableVersioning();
@@ -275,8 +275,8 @@ const Schema = declareSchema(() => {
     //
 
     entity('UserDialog', () => {
-        primaryKey('uid', 'number');
-        primaryKey('cid', 'number');
+        primaryKey('uid', 'id');
+        primaryKey('cid', 'id');
         field('unread', 'number');
         field('readMessageId', 'number').nullable();
         field('date', 'number').nullable();
@@ -286,18 +286,18 @@ const Schema = declareSchema(() => {
     });
 
     entity('UserDialogSettings', () => {
-        primaryKey('uid', 'number');
-        primaryKey('cid', 'number');
+        primaryKey('uid', 'id');
+        primaryKey('cid', 'id');
         field('mute', 'boolean');
         enableTimestamps();
         enableVersioning();
     });
 
     entity('UserDialogEvent', () => {
-        primaryKey('uid', 'number');
-        primaryKey('seq', 'number');
-        field('cid', 'number').nullable();
-        field('mid', 'number').nullable();
+        primaryKey('uid', 'id');
+        primaryKey('seq', 'id');
+        field('cid', 'id').nullable();
+        field('mid', 'id').nullable();
         field('allUnread', 'number').nullable();
         field('unread', 'number').nullable();
         field('title', 'string').nullable();
@@ -308,7 +308,7 @@ const Schema = declareSchema(() => {
     });
 
     entity('UserMessagingState', () => {
-        primaryKey('uid', 'number');
+        primaryKey('uid', 'id');
         field('seq', 'number');
         field('unread', 'number');
         rangeIndex('hasUnread', []).withCondition((src) => src.unread && src.unread > 0);
@@ -317,7 +317,7 @@ const Schema = declareSchema(() => {
     });
 
     entity('UserNotificationsState', () => {
-        primaryKey('uid', 'number');
+        primaryKey('uid', 'id');
         field('readSeq', 'number').nullable();
         field('lastEmailNotification', 'number').nullable();
         field('lastPushNotification', 'number').nullable();
@@ -337,22 +337,22 @@ const Schema = declareSchema(() => {
     });
 
     entity('MessageDraft', () => {
-        primaryKey('uid', 'number');
-        primaryKey('cid', 'number');
+        primaryKey('uid', 'id');
+        primaryKey('cid', 'id');
         field('contents', 'string');
         enableVersioning();
         enableTimestamps();
     });
 
     entity('ChannelInvitation', () => {
-        primaryKey('id', 'string');
-        field('creatorId', 'number');
-        field('channelId', 'number');
+        primaryKey('id', 'id');
+        field('creatorId', 'id');
+        field('channelId', 'id');
         field('email', 'string');
         field('firstName', 'string').nullable();
         field('lastName', 'string').nullable();
         field('text', 'string').nullable();
-        field('acceptedById', 'number').nullable();
+        field('acceptedById', 'id').nullable();
         field('enabled', 'boolean');
         rangeIndex('channel', ['createdAt', 'channelId']);
         enableVersioning();
@@ -361,8 +361,8 @@ const Schema = declareSchema(() => {
 
     entity('ChannelLink', () => {
         primaryKey('id', 'string');
-        field('creatorId', 'number');
-        field('channelId', 'number');
+        field('creatorId', 'id');
+        field('channelId', 'id');
         field('enabled', 'boolean');
         rangeIndex('channel', ['createdAt', 'channelId']);
         enableVersioning();
@@ -371,7 +371,7 @@ const Schema = declareSchema(() => {
 
     entity('AppInviteLink', () => {
         primaryKey('id', 'string');
-        field('uid', 'number');
+        field('uid', 'id');
         uniqueIndex('user', ['uid']);
         enableVersioning();
         enableTimestamps();

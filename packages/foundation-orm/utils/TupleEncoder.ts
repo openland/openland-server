@@ -116,10 +116,89 @@ export function encode(into: BufferBuilder, item: FKeyItem) {
     }
 }
 
+function decodeNumber(buf: Buffer, offset: number, numBytes: number) {
+    numBytes = Math.abs(numBytes);
+
+    let numDec = new Decimal(0);
+    let multDec = new Decimal(1);
+    let num = 0;
+    let mult = 1;
+    for (let i = numBytes - 1; i >= 0; --i) {
+        let b = buf[offset + i];
+        num += b * mult;
+        numDec = numDec.add(multDec.mul(b));
+        mult *= 0x100;
+        multDec = multDec.mul(0x100);
+    }
+
+    if (!Number.isSafeInteger(num)) {
+        return numDec;
+    }
+
+    return num;
+}
+
+export function decode(buf: Buffer, pos: { p: number }) {
+    const code = buf.readUInt8(pos.p++) as Code;
+    let p = pos.p;
+    switch (code) {
+        case Code.Null: return null;
+        case Code.False: return false;
+        case Code.True: return true;
+        case Code.String: {
+            const builder = new BufferBuilder();
+            for (; p < buf.length; p++) {
+                const byte = buf[p];
+                if (byte === 0) {
+                    if (p + 1 >= buf.length || buf[p + 1] !== 0xff) {
+                        break;
+                    } else {
+                        p++; // skip 0xff.
+                    }
+                }
+                builder.appendByte(byte);
+            }
+            pos.p = p + 1; // eat trailing 0
+            return builder.make().toString();
+        }
+        case Code.Double: {
+            const numBuf = Buffer.alloc(8);
+            buf.copy(numBuf, 0, p, p + 8);
+            adjustFloat(numBuf, false);
+            pos.p += 8;
+            return numBuf.readDoubleBE(0);
+        }
+        default: {
+            const byteLen = code - 20; // negative if number is negative.
+            if (byteLen < 0) {
+                throw Error('Negative values are not supported');
+            }
+            const absByteLen = Math.abs(byteLen);
+            if (absByteLen <= 8) {
+                pos.p += absByteLen;
+                return code === Code.IntZero ? 0 : decodeNumber(buf, p, byteLen);
+            } else {
+                throw new TypeError(`Unknown data type in DB: ${buf} at ${pos} code ${code}`);
+            }
+        }
+    }
+}
+
 export function pack(key: FKeyItem[]) {
     let builder = new BufferBuilder();
     for (let i = 0; i < key.length; i++) {
         encode(builder, key[i]);
     }
     return builder.make();
+}
+
+export function unpack(key: Buffer) {
+    const pos = { p: 0 };
+    const arr = [];
+
+    while (pos.p < key.length) {
+        arr.push(decode(key, pos));
+    }
+
+    return arr;
 }

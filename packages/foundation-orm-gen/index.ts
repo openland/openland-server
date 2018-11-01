@@ -21,7 +21,7 @@ export function entity(name: string, schema: () => void) {
     currentEntity = null;
 }
 
-export function field(name: string, type: 'number' | 'string' | 'boolean' | 'json') {
+export function field(name: string, type: 'number' | 'string' | 'boolean' | 'json' | 'id') {
     return currentEntity!!.addField(name, type, []);
 }
 
@@ -29,7 +29,7 @@ export function enumField(name: string, values: string[]) {
     return currentEntity!!.addField(name, 'enum', values);
 }
 
-export function primaryKey(name: string, type: 'number' | 'string') {
+export function primaryKey(name: string, type: 'number' | 'string' | 'id') {
     currentEntity!!.addKey(name, type);
 }
 

@@ -11,6 +11,7 @@ import { NativeValue } from 'foundationdb/dist/lib/native';
 import { FKeyEncoding } from './utils/FKeyEncoding';
 import { trace } from 'openland-log/trace';
 import { tracer } from './utils/tracer';
+import { FKeyType } from './FKeyType';
 
 const log = createLogger('tx');
 
@@ -39,7 +40,7 @@ export class FTransaction implements FContext {
         this.pendingCallbacks.push(callback);
     }
 
-    async range(connection: FConnection, key: (string | number)[], options?: RangeOptions) {
+    async range(connection: FConnection, key: FKeyType, options?: RangeOptions) {
         this._prepare(connection);
         return await trace(tracer, 'range', async () => {
             let res = (await this.tx!.getRangeAll(FKeyEncoding.encodeKey(key), undefined, options));
@@ -47,7 +48,7 @@ export class FTransaction implements FContext {
         });
     }
 
-    async rangeAfter(connection: FConnection, prefix: (string | number)[], afterKey: (string | number)[], options?: RangeOptions) {
+    async rangeAfter(connection: FConnection, prefix: FKeyType, afterKey: FKeyType, options?: RangeOptions) {
         this._prepare(connection);
         return await trace(tracer, 'rangeAfter', async () => {
             let reversed = (options && options.reverse) ? true : false;
@@ -58,20 +59,20 @@ export class FTransaction implements FContext {
         });
     }
 
-    async get(connection: FConnection, key: (string | number)[]) {
+    async get(connection: FConnection, key: FKeyType) {
         this._prepare(connection);
         return await trace(tracer, 'get', async () => {
             return await this.tx!.get(FKeyEncoding.encodeKey(key));
         });
     }
-    async set(connection: FConnection, key: (string | number)[], value: any) {
+    async set(connection: FConnection, key: FKeyType, value: any) {
         this._prepare(connection);
         return await trace(tracer, 'set', async () => {
             this.tx!.set(FKeyEncoding.encodeKey(key), value);
         });
     }
 
-    async delete(connection: FConnection, key: (string | number)[]) {
+    async delete(connection: FConnection, key: FKeyType) {
         this._prepare(connection);
         return await trace(tracer, 'delete', async () => {
             this.tx!.clear(FKeyEncoding.encodeKey(key));
