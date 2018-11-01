@@ -8,7 +8,10 @@ import { createLogger } from 'openland-log/createLogger';
 import { exponentialBackoffDelay } from 'openland-server/utils/exponentialBackoffDelay';
 import { EventBus } from 'openland-module-pubsub/EventBus';
 import { FTransaction } from 'foundation-orm/FTransaction';
+import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent';
 
+const workCompleted = createHyperlogger<{ taskId: string, taskType: string, duration: number }>('task_completed');
+const workScheduled = createHyperlogger<{ taskId: string, taskType: string, duration: number }>('task_scheduled');
 export class WorkQueue<ARGS, RES extends JsonMap> {
     private taskType: string;
     private pubSubTopic: string;
@@ -60,6 +63,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                     res.taskLockSeed = lockSeed;
                     res.taskLockTimeout = Date.now() + 15000;
                     res.taskStatus = 'executing';
+                    await workScheduled.event({ taskId: res.uid, taskType: res.taskType, duration: Date.now() - res.createdAt });
                     return res;
                 });
                 if (task) {
@@ -106,6 +110,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                             if (res2.taskLockSeed === lockSeed && res2.taskStatus === 'executing') {
                                 res2.taskStatus = 'completed';
                                 res2.result = res;
+                                await workCompleted.event({ taskId: res2.uid, taskType: res2.taskType, duration: Date.now() - res2.createdAt });
                                 return true;
                             }
                         }
