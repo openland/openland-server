@@ -11,10 +11,10 @@ import { Schema } from '../api';
 import { execute, subscribe, GraphQLSchema, DocumentNode, GraphQLFieldResolver } from 'graphql';
 import { fetchWebSocketParameters, buildWebSocketContext } from '../../openland-module-auth/websocket';
 import { errorHandler } from '../errors';
-import { Rate } from '../utils/rateLimit';
+// import { Rate } from '../utils/rateLimit';
 import { Server as HttpServer } from 'http';
 import { ApolloEngine } from 'apollo-engine';
-import { delay } from '../utils/timer';
+// import { delay } from '../utils/timer';
 import { DB } from '../tables';
 import { withAudit } from '../../openland-module-auth/email';
 import { Repos } from '../repositories';
@@ -138,26 +138,26 @@ export async function initApi(isTest: boolean) {
                         }
                     }
 
-                    let clientId = '';
+                    // let clientId = '';
 
-                    if (webSocket.__params.uid) {
-                        clientId = 'user_' + webSocket.__params.uid;
-                    } else {
-                        clientId = 'ip_' + webSocket._socket.remoteAddress;
-                    }
+                    // if (webSocket.__params.uid) {
+                    //     clientId = 'user_' + webSocket.__params.uid;
+                    // } else {
+                    //     clientId = 'ip_' + webSocket._socket.remoteAddress;
+                    // }
 
-                    let handleStatus = Rate.WS.canHandle(clientId);
+                    // let handleStatus = Rate.WS.canHandle(clientId);
 
-                    if (!handleStatus.canHandle) {
-                        if (handleStatus.delay) {
-                            Rate.WS.hit(clientId);
-                            await delay(handleStatus.delay);
-                        } else {
-                            throw new Error('Rate limit!');
-                        }
-                    } else {
-                        Rate.WS.hit(clientId);
-                    }
+                    // if (!handleStatus.canHandle) {
+                    //     if (handleStatus.delay) {
+                    //         Rate.WS.hit(clientId);
+                    //         await delay(handleStatus.delay);
+                    //     } else {
+                    //         throw new Error('Rate limit!');
+                    //     }
+                    // } else {
+                    //     Rate.WS.hit(clientId);
+                    // }
 
                     return {
                         ...params,
