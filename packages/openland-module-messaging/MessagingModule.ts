@@ -76,6 +76,50 @@ export class MessagingModule {
             }
         });
         reader2.start();
+
+        let reader3 = new UpdateReader('export_dialog_events', 1, DB.ConversationUserEvents);
+        reader3.processor(async (items) => {
+            for (let i of items) {
+                await inTx(async () => {
+                    let existing = await FDB.UserDialogEvent.findById(i.userId, i.seq);
+                    if (!existing) {
+                        if (i.eventType === 'new_message') {
+                            await FDB.UserDialogEvent.create(i.userId, i.seq, {
+                                kind: 'message_received',
+                                cid: i.event.conversationId as number,
+                                mid: i.event.messageId as number,
+                                unread: i.event.unread as number,
+                                allUnread: i.event.unreadGlobal as number
+                            });
+                        } else if (i.eventType === 'edit_message') {
+                            await FDB.UserDialogEvent.create(i.userId, i.seq, {
+                                kind: 'message_updated',
+                                mid: i.event.messageId as number
+                            });
+                        } else if (i.eventType === 'delete_message') {
+                            await FDB.UserDialogEvent.create(i.userId, i.seq, {
+                                kind: 'message_deleted',
+                                mid: i.event.messageId as number
+                            });
+                        } else if (i.eventType === 'conversation_read') {
+                            await FDB.UserDialogEvent.create(i.userId, i.seq, {
+                                kind: 'message_read',
+                                cid: i.event.conversationId as number,
+                                unread: i.event.unread as number,
+                                allUnread: i.event.unreadGlobal as number
+                            });
+                        } else if (i.eventType === 'title_change') {
+                            await FDB.UserDialogEvent.create(i.userId, i.seq, {
+                                kind: 'title_updated',
+                                cid: i.event.conversationId as number,
+                                title: i.event.title as string,
+                            });
+                        }
+                    }
+                });
+            }
+        });
+        reader3.start();
     }
 
     async getConversationSettings(uid: number, cid: number) {

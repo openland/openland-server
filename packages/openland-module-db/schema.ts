@@ -1895,443 +1895,6 @@ export class AuthCodeSessionFactory extends FEntityFactory<AuthCodeSession> {
         return new AuthCodeSession(this.connection, this.namespace, [value.uid], value, this.options, isNew, this.indexes);
     }
 }
-export interface ConversationMemberShape {
-    enabled: boolean;
-}
-
-export class ConversationMember extends FEntity {
-    get cid(): string { return this._value.cid; }
-    get uid(): number { return this._value.uid; }
-    get enabled(): boolean {
-        return this._value.enabled;
-    }
-    set enabled(value: boolean) {
-        this._checkIsWritable();
-        if (value === this._value.enabled) { return; }
-        this._value.enabled = value;
-        this.markDirty();
-    }
-}
-
-export class ConversationMemberFactory extends FEntityFactory<ConversationMember> {
-    private static validate(src: any) {
-        validators.notNull('cid', src.cid);
-        validators.isString('cid', src.cid);
-        validators.notNull('uid', src.uid);
-        validators.isNumber('uid', src.uid);
-        validators.notNull('enabled', src.enabled);
-        validators.isBoolean('enabled', src.enabled);
-    }
-
-    constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace('entity', 'conversationMember'),
-            { enableVersioning: false, enableTimestamps: false, validator: ConversationMemberFactory.validate },
-            [new FEntityIndex('conversationMembers', ['cid', 'uid'], true, (src) => src.enabled)]
-        );
-    }
-    extractId(rawId: any[]) {
-        return { 'cid': rawId[0], 'uid': rawId[1] };
-    }
-    async findById(cid: string, uid: number) {
-        return await this._findById([cid, uid]);
-    }
-    async create(cid: string, uid: number, shape: ConversationMemberShape) {
-        return await this._create([cid, uid], { cid, uid, ...shape });
-    }
-    watch(cid: string, uid: number, cb: () => void) {
-        return this._watch([cid, uid], cb);
-    }
-    async findFromConversationMembers(cid: string, uid: number) {
-        return await this._findById(['__indexes', 'conversationMembers', cid, uid]);
-    }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new ConversationMember(this.connection, this.namespace, [value.cid, value.uid], value, this.options, isNew, this.indexes);
-    }
-}
-export interface ConversationSeqShape {
-    seq: number;
-}
-
-export class ConversationSeq extends FEntity {
-    get cid(): string { return this._value.cid; }
-    get seq(): number {
-        return this._value.seq;
-    }
-    set seq(value: number) {
-        this._checkIsWritable();
-        if (value === this._value.seq) { return; }
-        this._value.seq = value;
-        this.markDirty();
-    }
-}
-
-export class ConversationSeqFactory extends FEntityFactory<ConversationSeq> {
-    private static validate(src: any) {
-        validators.notNull('cid', src.cid);
-        validators.isString('cid', src.cid);
-        validators.notNull('seq', src.seq);
-        validators.isNumber('seq', src.seq);
-    }
-
-    constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace('entity', 'conversationSeq'),
-            { enableVersioning: false, enableTimestamps: false, validator: ConversationSeqFactory.validate },
-            []
-        );
-    }
-    extractId(rawId: any[]) {
-        return { 'cid': rawId[0] };
-    }
-    async findById(cid: string) {
-        return await this._findById([cid]);
-    }
-    async create(cid: string, shape: ConversationSeqShape) {
-        return await this._create([cid], { cid, ...shape });
-    }
-    watch(cid: string, cb: () => void) {
-        return this._watch([cid], cb);
-    }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new ConversationSeq(this.connection, this.namespace, [value.cid], value, this.options, isNew, this.indexes);
-    }
-}
-export interface MessageShape {
-    cid: string;
-    uid: number;
-    repeatToken?: string| null;
-    text?: string| null;
-    fileId?: string| null;
-    fileMetadata?: any| null;
-    filePreview?: string| null;
-    mentions?: any| null;
-    replyMessages?: any| null;
-    augmentation?: any| null;
-    isMuted: boolean;
-    isService: boolean;
-    deleted: boolean;
-}
-
-export class Message extends FEntity {
-    get id(): string { return this._value.id; }
-    get cid(): string {
-        return this._value.cid;
-    }
-    set cid(value: string) {
-        this._checkIsWritable();
-        if (value === this._value.cid) { return; }
-        this._value.cid = value;
-        this.markDirty();
-    }
-    get uid(): number {
-        return this._value.uid;
-    }
-    set uid(value: number) {
-        this._checkIsWritable();
-        if (value === this._value.uid) { return; }
-        this._value.uid = value;
-        this.markDirty();
-    }
-    get repeatToken(): string | null {
-        let res = this._value.repeatToken;
-        if (res) { return res; }
-        return null;
-    }
-    set repeatToken(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.repeatToken) { return; }
-        this._value.repeatToken = value;
-        this.markDirty();
-    }
-    get text(): string | null {
-        let res = this._value.text;
-        if (res) { return res; }
-        return null;
-    }
-    set text(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.text) { return; }
-        this._value.text = value;
-        this.markDirty();
-    }
-    get fileId(): string | null {
-        let res = this._value.fileId;
-        if (res) { return res; }
-        return null;
-    }
-    set fileId(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.fileId) { return; }
-        this._value.fileId = value;
-        this.markDirty();
-    }
-    get fileMetadata(): any | null {
-        let res = this._value.fileMetadata;
-        if (res) { return res; }
-        return null;
-    }
-    set fileMetadata(value: any | null) {
-        this._checkIsWritable();
-        if (value === this._value.fileMetadata) { return; }
-        this._value.fileMetadata = value;
-        this.markDirty();
-    }
-    get filePreview(): string | null {
-        let res = this._value.filePreview;
-        if (res) { return res; }
-        return null;
-    }
-    set filePreview(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.filePreview) { return; }
-        this._value.filePreview = value;
-        this.markDirty();
-    }
-    get mentions(): any | null {
-        let res = this._value.mentions;
-        if (res) { return res; }
-        return null;
-    }
-    set mentions(value: any | null) {
-        this._checkIsWritable();
-        if (value === this._value.mentions) { return; }
-        this._value.mentions = value;
-        this.markDirty();
-    }
-    get replyMessages(): any | null {
-        let res = this._value.replyMessages;
-        if (res) { return res; }
-        return null;
-    }
-    set replyMessages(value: any | null) {
-        this._checkIsWritable();
-        if (value === this._value.replyMessages) { return; }
-        this._value.replyMessages = value;
-        this.markDirty();
-    }
-    get augmentation(): any | null {
-        let res = this._value.augmentation;
-        if (res) { return res; }
-        return null;
-    }
-    set augmentation(value: any | null) {
-        this._checkIsWritable();
-        if (value === this._value.augmentation) { return; }
-        this._value.augmentation = value;
-        this.markDirty();
-    }
-    get isMuted(): boolean {
-        return this._value.isMuted;
-    }
-    set isMuted(value: boolean) {
-        this._checkIsWritable();
-        if (value === this._value.isMuted) { return; }
-        this._value.isMuted = value;
-        this.markDirty();
-    }
-    get isService(): boolean {
-        return this._value.isService;
-    }
-    set isService(value: boolean) {
-        this._checkIsWritable();
-        if (value === this._value.isService) { return; }
-        this._value.isService = value;
-        this.markDirty();
-    }
-    get deleted(): boolean {
-        return this._value.deleted;
-    }
-    set deleted(value: boolean) {
-        this._checkIsWritable();
-        if (value === this._value.deleted) { return; }
-        this._value.deleted = value;
-        this.markDirty();
-    }
-}
-
-export class MessageFactory extends FEntityFactory<Message> {
-    private static validate(src: any) {
-        validators.notNull('id', src.id);
-        validators.isString('id', src.id);
-        validators.notNull('cid', src.cid);
-        validators.isString('cid', src.cid);
-        validators.notNull('uid', src.uid);
-        validators.isNumber('uid', src.uid);
-        validators.isString('repeatToken', src.repeatToken);
-        validators.isString('text', src.text);
-        validators.isString('fileId', src.fileId);
-        validators.isString('filePreview', src.filePreview);
-        validators.notNull('isMuted', src.isMuted);
-        validators.isBoolean('isMuted', src.isMuted);
-        validators.notNull('isService', src.isService);
-        validators.isBoolean('isService', src.isService);
-        validators.notNull('deleted', src.deleted);
-        validators.isBoolean('deleted', src.deleted);
-    }
-
-    constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace('entity', 'message'),
-            { enableVersioning: true, enableTimestamps: true, validator: MessageFactory.validate },
-            [new FEntityIndex('chat', ['cid', 'id'], false, (src) => !src.deleted)]
-        );
-    }
-    extractId(rawId: any[]) {
-        return { 'id': rawId[0] };
-    }
-    async findById(id: string) {
-        return await this._findById([id]);
-    }
-    async create(id: string, shape: MessageShape) {
-        return await this._create([id], { id, ...shape });
-    }
-    watch(id: string, cb: () => void) {
-        return this._watch([id], cb);
-    }
-    async rangeFromChat(cid: string, limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'chat', cid], limit, reversed);
-    }
-    async rangeFromChatWithCursor(cid: string, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'chat', cid], limit, after, reversed);
-    }
-    async allFromChat(cid: string) {
-        return await this._findAll(['__indexes', 'chat', cid]);
-    }
-    createChatStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'message', '__indexes', 'chat'], limit, after); 
-    }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new Message(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes);
-    }
-}
-export interface ConversationEventShape {
-    userId?: number| null;
-    kickedIds?: any| null;
-    addedIds?: any| null;
-    title?: string| null;
-    photo?: string| null;
-    messageId?: string| null;
-    kind: 'create_message' | 'update_message' | 'delete_message' | 'group_update' | 'add_members' | 'remove_members';
-}
-
-export class ConversationEvent extends FEntity {
-    get cid(): string { return this._value.cid; }
-    get seq(): number { return this._value.seq; }
-    get userId(): number | null {
-        let res = this._value.userId;
-        if (res) { return res; }
-        return null;
-    }
-    set userId(value: number | null) {
-        this._checkIsWritable();
-        if (value === this._value.userId) { return; }
-        this._value.userId = value;
-        this.markDirty();
-    }
-    get kickedIds(): any | null {
-        let res = this._value.kickedIds;
-        if (res) { return res; }
-        return null;
-    }
-    set kickedIds(value: any | null) {
-        this._checkIsWritable();
-        if (value === this._value.kickedIds) { return; }
-        this._value.kickedIds = value;
-        this.markDirty();
-    }
-    get addedIds(): any | null {
-        let res = this._value.addedIds;
-        if (res) { return res; }
-        return null;
-    }
-    set addedIds(value: any | null) {
-        this._checkIsWritable();
-        if (value === this._value.addedIds) { return; }
-        this._value.addedIds = value;
-        this.markDirty();
-    }
-    get title(): string | null {
-        let res = this._value.title;
-        if (res) { return res; }
-        return null;
-    }
-    set title(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.title) { return; }
-        this._value.title = value;
-        this.markDirty();
-    }
-    get photo(): string | null {
-        let res = this._value.photo;
-        if (res) { return res; }
-        return null;
-    }
-    set photo(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.photo) { return; }
-        this._value.photo = value;
-        this.markDirty();
-    }
-    get messageId(): string | null {
-        let res = this._value.messageId;
-        if (res) { return res; }
-        return null;
-    }
-    set messageId(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.messageId) { return; }
-        this._value.messageId = value;
-        this.markDirty();
-    }
-    get kind(): 'create_message' | 'update_message' | 'delete_message' | 'group_update' | 'add_members' | 'remove_members' {
-        return this._value.kind;
-    }
-    set kind(value: 'create_message' | 'update_message' | 'delete_message' | 'group_update' | 'add_members' | 'remove_members') {
-        this._checkIsWritable();
-        if (value === this._value.kind) { return; }
-        this._value.kind = value;
-        this.markDirty();
-    }
-}
-
-export class ConversationEventFactory extends FEntityFactory<ConversationEvent> {
-    private static validate(src: any) {
-        validators.notNull('cid', src.cid);
-        validators.isString('cid', src.cid);
-        validators.notNull('seq', src.seq);
-        validators.isNumber('seq', src.seq);
-        validators.isNumber('userId', src.userId);
-        validators.isString('title', src.title);
-        validators.isString('photo', src.photo);
-        validators.isString('messageId', src.messageId);
-        validators.notNull('kind', src.kind);
-        validators.isEnum('kind', src.kind, ['create_message', 'update_message', 'delete_message', 'group_update', 'add_members', 'remove_members']);
-    }
-
-    constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace('entity', 'conversationEvent'),
-            { enableVersioning: true, enableTimestamps: true, validator: ConversationEventFactory.validate },
-            []
-        );
-    }
-    extractId(rawId: any[]) {
-        return { 'cid': rawId[0], 'seq': rawId[1] };
-    }
-    async findById(cid: string, seq: number) {
-        return await this._findById([cid, seq]);
-    }
-    async create(cid: string, seq: number, shape: ConversationEventShape) {
-        return await this._create([cid, seq], { cid, seq, ...shape });
-    }
-    watch(cid: string, seq: number, cb: () => void) {
-        return this._watch([cid, seq], cb);
-    }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new ConversationEvent(this.connection, this.namespace, [value.cid, value.seq], value, this.options, isNew, this.indexes);
-    }
-}
 export interface UserDialogShape {
     unread: number;
     readMessageId?: number| null;
@@ -2470,6 +2033,134 @@ export class UserDialogSettingsFactory extends FEntityFactory<UserDialogSettings
     }
     protected _createEntity(value: any, isNew: boolean) {
         return new UserDialogSettings(this.connection, this.namespace, [value.uid, value.cid], value, this.options, isNew, this.indexes);
+    }
+}
+export interface UserDialogEventShape {
+    cid?: number| null;
+    mid?: number| null;
+    allUnread?: number| null;
+    unread?: number| null;
+    title?: string| null;
+    kind: 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated';
+}
+
+export class UserDialogEvent extends FEntity {
+    get uid(): number { return this._value.uid; }
+    get seq(): number { return this._value.seq; }
+    get cid(): number | null {
+        let res = this._value.cid;
+        if (res) { return res; }
+        return null;
+    }
+    set cid(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.cid) { return; }
+        this._value.cid = value;
+        this.markDirty();
+    }
+    get mid(): number | null {
+        let res = this._value.mid;
+        if (res) { return res; }
+        return null;
+    }
+    set mid(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.mid) { return; }
+        this._value.mid = value;
+        this.markDirty();
+    }
+    get allUnread(): number | null {
+        let res = this._value.allUnread;
+        if (res) { return res; }
+        return null;
+    }
+    set allUnread(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.allUnread) { return; }
+        this._value.allUnread = value;
+        this.markDirty();
+    }
+    get unread(): number | null {
+        let res = this._value.unread;
+        if (res) { return res; }
+        return null;
+    }
+    set unread(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.unread) { return; }
+        this._value.unread = value;
+        this.markDirty();
+    }
+    get title(): string | null {
+        let res = this._value.title;
+        if (res) { return res; }
+        return null;
+    }
+    set title(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.title) { return; }
+        this._value.title = value;
+        this.markDirty();
+    }
+    get kind(): 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' {
+        return this._value.kind;
+    }
+    set kind(value: 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated') {
+        this._checkIsWritable();
+        if (value === this._value.kind) { return; }
+        this._value.kind = value;
+        this.markDirty();
+    }
+}
+
+export class UserDialogEventFactory extends FEntityFactory<UserDialogEvent> {
+    private static validate(src: any) {
+        validators.notNull('uid', src.uid);
+        validators.isNumber('uid', src.uid);
+        validators.notNull('seq', src.seq);
+        validators.isNumber('seq', src.seq);
+        validators.isNumber('cid', src.cid);
+        validators.isNumber('mid', src.mid);
+        validators.isNumber('allUnread', src.allUnread);
+        validators.isNumber('unread', src.unread);
+        validators.isString('title', src.title);
+        validators.notNull('kind', src.kind);
+        validators.isEnum('kind', src.kind, ['message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated']);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'userDialogEvent'),
+            { enableVersioning: true, enableTimestamps: true, validator: UserDialogEventFactory.validate },
+            [new FEntityIndex('user', ['uid', 'seq'], false)]
+        );
+    }
+    extractId(rawId: any[]) {
+        return { 'uid': rawId[0], 'seq': rawId[1] };
+    }
+    async findById(uid: number, seq: number) {
+        return await this._findById([uid, seq]);
+    }
+    async create(uid: number, seq: number, shape: UserDialogEventShape) {
+        return await this._create([uid, seq], { uid, seq, ...shape });
+    }
+    watch(uid: number, seq: number, cb: () => void) {
+        return this._watch([uid, seq], cb);
+    }
+    async rangeFromUser(uid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'user', uid], limit, reversed);
+    }
+    async rangeFromUserWithCursor(uid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'user', uid], limit, after, reversed);
+    }
+    async allFromUser(uid: number) {
+        return await this._findAll(['__indexes', 'user', uid]);
+    }
+    createUserStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'userDialogEvent', '__indexes', 'user'], limit, after); 
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new UserDialogEvent(this.connection, this.namespace, [value.uid, value.seq], value, this.options, isNew, this.indexes);
     }
 }
 export interface UserMessagingStateShape {
@@ -2643,157 +2334,6 @@ export class UserNotificationsStateFactory extends FEntityFactory<UserNotificati
     }
     protected _createEntity(value: any, isNew: boolean) {
         return new UserNotificationsState(this.connection, this.namespace, [value.uid], value, this.options, isNew, this.indexes);
-    }
-}
-export interface UserMessagingEventShape {
-    allUnread: number;
-    convUnread: number;
-    userId?: number| null;
-    kickedIds?: any| null;
-    addedIds?: any| null;
-    title?: string| null;
-    photo?: string| null;
-    messageId?: string| null;
-    kind: 'create_message' | 'update_message' | 'delete_message' | 'group_update' | 'add_members' | 'remove_members';
-}
-
-export class UserMessagingEvent extends FEntity {
-    get uid(): number { return this._value.uid; }
-    get seq(): number { return this._value.seq; }
-    get allUnread(): number {
-        return this._value.allUnread;
-    }
-    set allUnread(value: number) {
-        this._checkIsWritable();
-        if (value === this._value.allUnread) { return; }
-        this._value.allUnread = value;
-        this.markDirty();
-    }
-    get convUnread(): number {
-        return this._value.convUnread;
-    }
-    set convUnread(value: number) {
-        this._checkIsWritable();
-        if (value === this._value.convUnread) { return; }
-        this._value.convUnread = value;
-        this.markDirty();
-    }
-    get userId(): number | null {
-        let res = this._value.userId;
-        if (res) { return res; }
-        return null;
-    }
-    set userId(value: number | null) {
-        this._checkIsWritable();
-        if (value === this._value.userId) { return; }
-        this._value.userId = value;
-        this.markDirty();
-    }
-    get kickedIds(): any | null {
-        let res = this._value.kickedIds;
-        if (res) { return res; }
-        return null;
-    }
-    set kickedIds(value: any | null) {
-        this._checkIsWritable();
-        if (value === this._value.kickedIds) { return; }
-        this._value.kickedIds = value;
-        this.markDirty();
-    }
-    get addedIds(): any | null {
-        let res = this._value.addedIds;
-        if (res) { return res; }
-        return null;
-    }
-    set addedIds(value: any | null) {
-        this._checkIsWritable();
-        if (value === this._value.addedIds) { return; }
-        this._value.addedIds = value;
-        this.markDirty();
-    }
-    get title(): string | null {
-        let res = this._value.title;
-        if (res) { return res; }
-        return null;
-    }
-    set title(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.title) { return; }
-        this._value.title = value;
-        this.markDirty();
-    }
-    get photo(): string | null {
-        let res = this._value.photo;
-        if (res) { return res; }
-        return null;
-    }
-    set photo(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.photo) { return; }
-        this._value.photo = value;
-        this.markDirty();
-    }
-    get messageId(): string | null {
-        let res = this._value.messageId;
-        if (res) { return res; }
-        return null;
-    }
-    set messageId(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.messageId) { return; }
-        this._value.messageId = value;
-        this.markDirty();
-    }
-    get kind(): 'create_message' | 'update_message' | 'delete_message' | 'group_update' | 'add_members' | 'remove_members' {
-        return this._value.kind;
-    }
-    set kind(value: 'create_message' | 'update_message' | 'delete_message' | 'group_update' | 'add_members' | 'remove_members') {
-        this._checkIsWritable();
-        if (value === this._value.kind) { return; }
-        this._value.kind = value;
-        this.markDirty();
-    }
-}
-
-export class UserMessagingEventFactory extends FEntityFactory<UserMessagingEvent> {
-    private static validate(src: any) {
-        validators.notNull('uid', src.uid);
-        validators.isNumber('uid', src.uid);
-        validators.notNull('seq', src.seq);
-        validators.isNumber('seq', src.seq);
-        validators.notNull('allUnread', src.allUnread);
-        validators.isNumber('allUnread', src.allUnread);
-        validators.notNull('convUnread', src.convUnread);
-        validators.isNumber('convUnread', src.convUnread);
-        validators.isNumber('userId', src.userId);
-        validators.isString('title', src.title);
-        validators.isString('photo', src.photo);
-        validators.isString('messageId', src.messageId);
-        validators.notNull('kind', src.kind);
-        validators.isEnum('kind', src.kind, ['create_message', 'update_message', 'delete_message', 'group_update', 'add_members', 'remove_members']);
-    }
-
-    constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace('entity', 'userMessagingEvent'),
-            { enableVersioning: true, enableTimestamps: true, validator: UserMessagingEventFactory.validate },
-            []
-        );
-    }
-    extractId(rawId: any[]) {
-        return { 'uid': rawId[0], 'seq': rawId[1] };
-    }
-    async findById(uid: number, seq: number) {
-        return await this._findById([uid, seq]);
-    }
-    async create(uid: number, seq: number, shape: UserMessagingEventShape) {
-        return await this._create([uid, seq], { uid, seq, ...shape });
-    }
-    watch(uid: number, seq: number, cb: () => void) {
-        return this._watch([uid, seq], cb);
-    }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new UserMessagingEvent(this.connection, this.namespace, [value.uid, value.seq], value, this.options, isNew, this.indexes);
     }
 }
 export interface HyperLogShape {
@@ -3234,15 +2774,11 @@ export class AllEntities extends FDBInstance {
     UserSettings: UserSettingsFactory;
     ShortnameReservation: ShortnameReservationFactory;
     AuthCodeSession: AuthCodeSessionFactory;
-    ConversationMember: ConversationMemberFactory;
-    ConversationSeq: ConversationSeqFactory;
-    Message: MessageFactory;
-    ConversationEvent: ConversationEventFactory;
     UserDialog: UserDialogFactory;
     UserDialogSettings: UserDialogSettingsFactory;
+    UserDialogEvent: UserDialogEventFactory;
     UserMessagingState: UserMessagingStateFactory;
     UserNotificationsState: UserNotificationsStateFactory;
-    UserMessagingEvent: UserMessagingEventFactory;
     HyperLog: HyperLogFactory;
     MessageDraft: MessageDraftFactory;
     ChannelInvitation: ChannelInvitationFactory;
@@ -3270,15 +2806,11 @@ export class AllEntities extends FDBInstance {
         this.UserSettings = new UserSettingsFactory(connection);
         this.ShortnameReservation = new ShortnameReservationFactory(connection);
         this.AuthCodeSession = new AuthCodeSessionFactory(connection);
-        this.ConversationMember = new ConversationMemberFactory(connection);
-        this.ConversationSeq = new ConversationSeqFactory(connection);
-        this.Message = new MessageFactory(connection);
-        this.ConversationEvent = new ConversationEventFactory(connection);
         this.UserDialog = new UserDialogFactory(connection);
         this.UserDialogSettings = new UserDialogSettingsFactory(connection);
+        this.UserDialogEvent = new UserDialogEventFactory(connection);
         this.UserMessagingState = new UserMessagingStateFactory(connection);
         this.UserNotificationsState = new UserNotificationsStateFactory(connection);
-        this.UserMessagingEvent = new UserMessagingEventFactory(connection);
         this.HyperLog = new HyperLogFactory(connection);
         this.MessageDraft = new MessageDraftFactory(connection);
         this.ChannelInvitation = new ChannelInvitationFactory(connection);

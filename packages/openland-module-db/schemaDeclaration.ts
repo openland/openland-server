@@ -221,57 +221,57 @@ const Schema = declareSchema(() => {
     // Conversation
     //
 
-    entity('ConversationMember', () => {
-        primaryKey('cid', 'string');
-        primaryKey('uid', 'number');
-        field('enabled', 'boolean');
-        uniqueIndex('conversationMembers', ['cid', 'uid']).withCondition((src) => src.enabled);
-    });
+    // entity('ConversationMember', () => {
+    //     primaryKey('cid', 'string');
+    //     primaryKey('uid', 'number');
+    //     field('enabled', 'boolean');
+    //     uniqueIndex('conversationMembers', ['cid', 'uid']).withCondition((src) => src.enabled);
+    // });
 
-    entity('ConversationSeq', () => {
-        primaryKey('cid', 'string');
-        field('seq', 'number');
-    });
+    // entity('ConversationSeq', () => {
+    //     primaryKey('cid', 'string');
+    //     field('seq', 'number');
+    // });
 
     //
     // Conversation State
     //
 
-    entity('Message', () => {
-        primaryKey('id', 'string');
-        field('cid', 'string');
-        field('uid', 'number');
-        field('repeatToken', 'string').nullable();
+    // entity('Message', () => {
+    //     primaryKey('id', 'string');
+    //     field('cid', 'string');
+    //     field('uid', 'number');
+    //     field('repeatToken', 'string').nullable();
 
-        field('text', 'string').nullable();
-        field('fileId', 'string').nullable();
-        field('fileMetadata', 'json').nullable();
-        field('filePreview', 'string').nullable();
-        field('mentions', 'json').nullable();
-        field('replyMessages', 'json').nullable();
-        field('augmentation', 'json').nullable();
+    //     field('text', 'string').nullable();
+    //     field('fileId', 'string').nullable();
+    //     field('fileMetadata', 'json').nullable();
+    //     field('filePreview', 'string').nullable();
+    //     field('mentions', 'json').nullable();
+    //     field('replyMessages', 'json').nullable();
+    //     field('augmentation', 'json').nullable();
 
-        field('isMuted', 'boolean');
-        field('isService', 'boolean');
-        field('deleted', 'boolean');
-        rangeIndex('chat', ['cid', 'id']).withCondition((src) => !src.deleted);
-        enableVersioning();
-        enableTimestamps();
-    });
+    //     field('isMuted', 'boolean');
+    //     field('isService', 'boolean');
+    //     field('deleted', 'boolean');
+    //     rangeIndex('chat', ['cid', 'id']).withCondition((src) => !src.deleted);
+    //     enableVersioning();
+    //     enableTimestamps();
+    // });
 
-    entity('ConversationEvent', () => {
-        primaryKey('cid', 'string');
-        primaryKey('seq', 'number');
-        field('userId', 'number').nullable();
-        field('kickedIds', 'json').nullable();
-        field('addedIds', 'json').nullable();
-        field('title', 'string').nullable();
-        field('photo', 'string').nullable();
-        field('messageId', 'string').nullable();
-        enumField('kind', ['create_message', 'update_message', 'delete_message', 'group_update', 'add_members', 'remove_members']);
-        enableVersioning();
-        enableTimestamps();
-    });
+    // entity('ConversationEvent', () => {
+    //     primaryKey('cid', 'string');
+    //     primaryKey('seq', 'number');
+    //     field('userId', 'number').nullable();
+    //     field('kickedIds', 'json').nullable();
+    //     field('addedIds', 'json').nullable();
+    //     field('title', 'string').nullable();
+    //     field('photo', 'string').nullable();
+    //     field('messageId', 'string').nullable();
+    //     enumField('kind', ['create_message', 'update_message', 'delete_message', 'group_update', 'add_members', 'remove_members']);
+    //     enableVersioning();
+    //     enableTimestamps();
+    // });
 
     //
     // User Messaging state
@@ -296,6 +296,20 @@ const Schema = declareSchema(() => {
         enableVersioning();
     });
 
+    entity('UserDialogEvent', () => {
+        primaryKey('uid', 'number');
+        primaryKey('seq', 'number');
+        field('cid', 'number').nullable();
+        field('mid', 'number').nullable();
+        field('allUnread', 'number').nullable();
+        field('unread', 'number').nullable();
+        field('title', 'string').nullable();
+        enumField('kind', ['message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated']);
+        rangeIndex('user', ['uid', 'seq']);
+        enableVersioning();
+        enableTimestamps();
+    });
+
     entity('UserMessagingState', () => {
         primaryKey('uid', 'number');
         field('seq', 'number');
@@ -312,22 +326,6 @@ const Schema = declareSchema(() => {
         field('lastPushNotification', 'number').nullable();
         field('lastEmailSeq', 'number').nullable();
         field('lastPushSeq', 'number').nullable();
-        enableVersioning();
-        enableTimestamps();
-    });
-
-    entity('UserMessagingEvent', () => {
-        primaryKey('uid', 'number');
-        primaryKey('seq', 'number');
-        field('allUnread', 'number');
-        field('convUnread', 'number');
-        field('userId', 'number').nullable();
-        field('kickedIds', 'json').nullable();
-        field('addedIds', 'json').nullable();
-        field('title', 'string').nullable();
-        field('photo', 'string').nullable();
-        field('messageId', 'string').nullable();
-        enumField('kind', ['create_message', 'update_message', 'delete_message', 'group_update', 'add_members', 'remove_members']);
         enableVersioning();
         enableTimestamps();
     });

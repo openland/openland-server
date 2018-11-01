@@ -16,6 +16,9 @@ import { Modules } from 'openland-modules/Modules';
 import { withTracing } from 'openland-log/withTracing';
 import { createTracer } from 'openland-log/createTracer';
 import { inTx } from 'foundation-orm/inTx';
+import { CallContext } from 'openland-server/api/utils/CallContext';
+import DataLoader from 'dataloader';
+import { ConversationMessage } from 'openland-server/tables/ConversationMessage';
 // import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent';
 
 // const log = createLogger('messaging-legacy');
@@ -978,5 +981,37 @@ export class ChatsRepository {
             chat: conv,
             curSeq: conv.seq
         };
+    }
+
+    messageLoader(context: CallContext) {
+        if (!context.cache.has('__message_loader')) {
+            context.cache.set('__message_loader', new DataLoader<number, ConversationMessage | null>(async (ids) => {
+                let foundTokens = await DB.ConversationMessage.findAll({
+                    where: {
+                        id: {
+                            $in: ids
+                        }
+                    }
+                });
+
+                let res: (ConversationMessage | null)[] = [];
+                for (let i of ids) {
+                    let found = false;
+                    for (let f of foundTokens) {
+                        if (i === f.id) {
+                            res.push(f);
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        res.push(null);
+                    }
+                }
+                return res;
+            }));
+        }
+        let loader = context.cache.get('__message_loader') as DataLoader<number, ConversationMessage | null>;
+        return loader;
     }
 }
