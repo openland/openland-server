@@ -12,7 +12,6 @@ import {
     mustBeArray,
     isNumber
 } from '../modules/NewInputValidator';
-import { ConversationEvent } from '../tables/ConversationEvent';
 import { CallContext } from './utils/CallContext';
 import { Repos } from '../repositories';
 import { JsonMap } from '../utils/json';
