@@ -20,6 +20,7 @@ export interface URLAugmentation {
     hostname: string | null;
     type: 'org' | 'listing' | 'user' | 'url' | 'none' | 'channel' | 'intro';
     extra?: any;
+    deleted?: boolean;
 }
 
 export default class UrlInfoService {

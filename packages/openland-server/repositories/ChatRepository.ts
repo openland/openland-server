@@ -55,7 +55,7 @@ export interface Message {
     isService?: boolean | null;
     repeatKey?: string | null;
     serviceMetadata?: any & { type: ServiceMessageMetadataType };
-    urlAugmentation?: URLAugmentation | null;
+    urlAugmentation?: URLAugmentation | null | false;
     replyMessages?: number[] | null;
     mentions?: number[] | null;
 }

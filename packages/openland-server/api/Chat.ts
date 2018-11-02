@@ -943,7 +943,7 @@ export const Resolver = {
                     args.messageId,
                     uid,
                     {
-                        urlAugmentation: null
+                        urlAugmentation: false
                     },
                     true
                 );
