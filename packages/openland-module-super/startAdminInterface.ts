@@ -30,7 +30,7 @@ export function startAdminInterface() {
             endpointURL: '/api',
             subscriptionsEndpoint: url.format({
                 host: req!!.get('host'),
-                protocol: (req!!.header('x-forwarded-proto') === 'https' || req!!.protocol === 'https') ? 'wss' : 'ws',
+                protocol: req!!.get('host') !== 'localhost' ? 'wss' : 'ws',
                 pathname: '/api'
             })
         })));
