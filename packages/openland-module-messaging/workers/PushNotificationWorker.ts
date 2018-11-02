@@ -148,11 +148,11 @@ export function startPushNotificationWorker() {
                             continue;
                         }
 
-                        let receiverPrimaryOrg = receiver.primaryOrganization;
+                        let receiverPrimaryOrg =  await DB.Organization.findById(receiver.primaryOrganization || (await Repos.Users.fetchUserAccounts(receiver.id))[0]);
                         if (!receiverPrimaryOrg) {
                             continue;
                         }
-                        let chatTitle = await Repos.Chats.getConversationTitle(conversation.id, receiverPrimaryOrg, u.uid);
+                        let chatTitle = await Repos.Chats.getConversationTitle(conversation.id, receiverPrimaryOrg.id, u.uid);
 
                         hasMessage = true;
                         let senderName = [sender.firstName, sender.lastName].filter((v) => !!v).join(' ');
@@ -190,6 +190,7 @@ export function startPushNotificationWorker() {
                             silent: null
                         };
 
+                        console.log('new_push', JSON.stringify(push));
                         log.debug('new_push', JSON.stringify(push));
                         await Modules.Push.worker.pushWork(push);
                     }

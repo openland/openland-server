@@ -463,7 +463,7 @@ export class ChatsRepository {
     }
 
     async membersCountInConversation(conversationId: number, status?: string): Promise<number> {
-        return (await FDB.RoomParticipant.allFromActive(conversationId)).length;
+        return (await FDB.RoomParticipant.allFromActive(conversationId)).filter(m => status === undefined || m.status === status).length;
     }
 
     async getConversationSec(conversationId: number, exTx?: Transaction): Promise<number> {
@@ -502,7 +502,7 @@ export class ChatsRepository {
                     role: 'member',
                     status: 'joined',
                     invitedBy: uid
-                });
+                }).then(async p => await p.flush());
             }
         });
 
