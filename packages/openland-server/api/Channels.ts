@@ -111,7 +111,7 @@ export const Resolver = {
     },
     ChannelMember: {
         role: (src: RoomParticipant) => src.role,
-        status: (src: RoomParticipant) => src.status === 'joined' ? 'member' : 'none',
+        status: (src: RoomParticipant) => src.status === 'joined' ? 'member' : 'left',
         user: (src: RoomParticipant) => DB.User.findById(src.uid)
     },
     ChannelInvite: {
