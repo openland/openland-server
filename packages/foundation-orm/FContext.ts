@@ -34,9 +34,6 @@ export class FGlobalContext implements FContext {
     }
     async rangeAfter(connection: FConnection, prefix: (string | number)[], afterKey: (string | number)[], options?: RangeOptions) {
         return await trace(tracer, 'rangeAfter', async () => {
-            if (afterKey.length < prefix.length) {
-                afterKey = [...prefix, ...afterKey];
-            }
             let reversed = (options && options.reverse) ? true : false;
             let start = reversed ? FKeyEncoding.firstKeyInSubspace(prefix) : keySelector.firstGreaterThan(FKeyEncoding.encodeKey(afterKey));
             let end = reversed ? keySelector.lastLessOrEqual(FKeyEncoding.encodeKey(afterKey)) : FKeyEncoding.lastKeyInSubspace(prefix);
