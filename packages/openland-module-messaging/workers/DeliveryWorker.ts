@@ -8,7 +8,7 @@ import { FDB } from 'openland-module-db/FDB';
 
 export function createDeliveryWorker() {
     let queue = new WorkQueue<{ messageId: number }, { result: string }>('conversation_message_delivery');
-    if (serverRoleEnabled('workers')) {
+    if (serverRoleEnabled('delivery')) {
         queue.addWorker(async (item) => {
             await inTx(async () => {
                 let message = (await FDB.Message.findById(item.messageId))!;

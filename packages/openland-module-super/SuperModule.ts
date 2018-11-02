@@ -1,5 +1,7 @@
 import { SuperRepository } from './repositories/SuperRepository';
 import { FDB } from 'openland-module-db/FDB';
+import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
+import { startAdminInterface } from './startAdminInterface';
 
 export class SuperModule {
     readonly repo = new SuperRepository(FDB);
@@ -21,6 +23,8 @@ export class SuperModule {
     }
 
     start = () => {
-        // Nothing to do
+        if (serverRoleEnabled('admin')) {
+            startAdminInterface();
+        }
     }
 }

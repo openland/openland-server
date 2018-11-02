@@ -1,8 +1,10 @@
-type ServerRole = 'api' | 'workers';
+type ServerRole = 'api' | 'workers' | 'admin' | 'delivery';
 
 const SUPPORTED_ROLES = [
     'api',
     'workers',
+    'admin',
+    'delivery'
 ];
 
 const DEFAULT_SERVER_ROLES = SUPPORTED_ROLES;
