@@ -19,7 +19,6 @@ import { ImageRef, buildBaseImageUrl, imageRefEquals } from '../repositories/Med
 import { Organization } from '../tables/Organization';
 import { ConversationGroupMember } from '../tables/ConversationGroupMembers';
 import { AccessDeniedError } from '../errors/AccessDeniedError';
-import { ConversationBlocked } from '../tables/ConversationBlocked';
 import { Services } from '../services';
 import { UserError } from '../errors/UserError';
 import { NotFoundError } from '../errors/NotFoundError';
@@ -192,12 +191,7 @@ export const Resolver = {
             }
             return DB.User.findById(uid);
         },
-        blocked: async (src: Conversation, _: any, context: CallContext) => !!(await DB.ConversationBlocked.findOne({
-            where: {
-                user: src.member1Id === context.uid ? src.member2Id : src.member1Id,
-                conversation: null
-            }
-        })),
+        blocked: async (src: Conversation, _: any, context: CallContext) => false,
         settings: (src: Conversation, _: any, context: CallContext) => Modules.Messaging.getConversationSettings(context.uid!!, src.id),
     },
     GroupConversation: {
@@ -489,11 +483,6 @@ export const Resolver = {
         user: resolveUser<ConversationGroupMember>()
     },
 
-    ConversationBlockedUser: {
-        user: (src: ConversationBlocked) => DB.User.findOne({ where: { id: src.user } }),
-        blockedBy: (src: ConversationBlocked) => DB.User.findOne({ where: { id: src.blockedBy } }),
-    },
-
     ConversationSettings: {
         id: (src: UserDialogSettings) => IDs.ConversationSettings.serialize(src.cid),
         mute: (src: UserDialogSettings) => src.mute,
@@ -673,14 +662,7 @@ export const Resolver = {
             return members;
         }),
         alphaBlockedList: withUser<{ conversationId?: string }>(async (args, uid) => {
-            let conversationId = args.conversationId ? IDs.Conversation.parse(args.conversationId) : null;
-
-            return await DB.ConversationBlocked.findAll({
-                where: {
-                    conversation: conversationId,
-                    ...(conversationId ? {} : { blockedBy: uid })
-                }
-            });
+            return [];
         }),
         conversationDraft: withUser<{ conversationId: string }>(async (args, uid) => {
             let conversationId = IDs.Conversation.parse(args.conversationId);
@@ -1183,17 +1165,6 @@ export const Resolver = {
                 for (let invite of args.invites) {
                     let userId = IDs.User.parse(invite.userId);
 
-                    let blocked = await DB.ConversationBlocked.findOne({
-                        where: {
-                            user: userId,
-                            conversation: conversationId
-                        }
-                    });
-
-                    if (blocked && !(curMember!.role === 'admin' || curMember!.role === 'creator')) {
-                        throw new Error('Can\'t invite blocked user');
-                    }
-
                     try {
                         await DB.ConversationGroupMembers.create({
                             conversationId: conversationId,
@@ -1462,23 +1433,9 @@ export const Resolver = {
         }),
 
         alphaBlockUser: withUser<{ userId: string }>(async (args, uid) => {
-            return DB.tx(async (tx) => {
-                await Repos.Chats.blockUser(tx, IDs.User.parse(args.userId), uid);
-                return 'ok';
-            });
+            return 'ok';
         }),
         alphaUnblockUser: withUser<{ userId: string, conversationId?: string }>(async (args, uid) => {
-            let conversationId = args.conversationId ? IDs.Conversation.parse(args.conversationId) : null;
-            let blocked = await DB.ConversationBlocked.findOne({
-                where: {
-                    user: IDs.User.parse(args.userId),
-                    conversation: conversationId,
-                    ...(conversationId ? {} : { blockedBy: uid })
-                }
-            });
-            if (blocked) {
-                await blocked.destroy();
-            }
             return 'ok';
         }),
         alphaUpdateConversationSettings: withUser<{ settings: { mobileNotifications?: 'all' | 'direct' | 'none' | null, mute?: boolean | null }, conversationId: string }>(async (args, uid) => {

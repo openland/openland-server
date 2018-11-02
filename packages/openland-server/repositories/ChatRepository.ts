@@ -484,22 +484,6 @@ export class ChatsRepository {
         });
     }
 
-    async blockUser(tx: Transaction, userId: number, blockedBy: number, conversation?: number) {
-        let user = DB.User.findOne({ where: { id: userId } });
-        if (!user) {
-            throw new Error('User not found');
-        }
-        let existing = await DB.ConversationBlocked.findOne({ where: { user: userId, ...(conversation ? { blockedBy: blockedBy } : { conversation: conversation }) }, transaction: tx });
-        if (existing) {
-            return;
-        }
-        await DB.ConversationBlocked.create({
-            user: userId,
-            blockedBy: blockedBy,
-            conversation: conversation
-        }, { transaction: tx });
-    }
-
     async membersCountInConversation(conversationId: number, status?: string): Promise<number> {
         return await DB.ConversationGroupMembers.count({
             where: {
@@ -630,16 +614,6 @@ export class ChatsRepository {
     }
 
     async checkAccessToChat(uid: number, conversation: Conversation) {
-        let blocked;
-        if (conversation.type === 'private') {
-            blocked = await DB.ConversationBlocked.findOne({ where: { user: uid, blockedBy: uid === conversation.member1Id ? conversation.member2Id : conversation.member1Id, conversation: null } });
-        } else {
-            blocked = await DB.ConversationBlocked.findOne({ where: { user: uid, conversation: conversation.id } });
-        }
-        if (blocked) {
-            throw new AccessDeniedError();
-        }
-
         if (conversation.type === 'channel' || conversation.type === 'group') {
             if (!(await DB.ConversationGroupMembers.findOne({ where: { conversationId: conversation.id, userId: uid } }))) {
                 throw new AccessDeniedError();

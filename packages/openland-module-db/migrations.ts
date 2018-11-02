@@ -56,6 +56,16 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '8-fix-counters',
+    migration: async () => {
+        let users = (await DB.User.findAll());
+        for (let u of users) {
+            await Modules.Messaging.fixer.fixForUser(u.id!);
+        }
+    }
+});
+
 export function startMigrationsWorker() {
     if (serverRoleEnabled('workers')) {
         staticWorker({ name: 'foundation-migrator' }, async () => {

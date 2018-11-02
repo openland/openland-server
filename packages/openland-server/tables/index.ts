@@ -10,7 +10,6 @@ import { OrganizationTable } from './Organization';
 import { OrganizationMemberTable } from './OrganizationMember';
 import { OrganizationInviteTable } from './OrganizationInvite';
 import { ConversationTable } from './Conversation';
-import { ConversationBlockedTable } from './ConversationBlocked';
 import { retry } from '../utils/timer';
 import { ConversationGroupMembersTable } from './ConversationGroupMembers';
 
@@ -26,7 +25,6 @@ export const DB = {
 
     Conversation: ConversationTable,
     ConversationGroupMembers: ConversationGroupMembersTable,
-    ConversationBlocked: ConversationBlockedTable,
 
     tx: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>, existingTx?: sequelize.Transaction): Promise<A> {
         if (existingTx) {
