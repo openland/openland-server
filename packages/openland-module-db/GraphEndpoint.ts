@@ -37,4 +37,4 @@ var schema = new GraphQLSchema({
     }),
 });
 
-export const FDBSchema = schema;
+export const FDBGraphqlSchema = schema;
