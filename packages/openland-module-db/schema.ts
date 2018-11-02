@@ -27,7 +27,7 @@ export class Online extends FEntity {
 
 export class OnlineFactory extends FEntityFactory<Online> {
     static schema: FEntitySchema = {
-        name: 'Online'
+        name: 'Online',
         primaryKeys: [{ name: 'uid', type: 'number' }],
         fields: [{ name: 'lastSeen', type: 'number', nullable: false, enumValues: [] }]
     };
@@ -103,7 +103,7 @@ export class Presence extends FEntity {
 
 export class PresenceFactory extends FEntityFactory<Presence> {
     static schema: FEntitySchema = {
-        name: 'Presence'
+        name: 'Presence',
         primaryKeys: [{ name: 'uid', type: 'number' }, { name: 'tid', type: 'string' }],
         fields: [{ name: 'lastSeen', type: 'number', nullable: false, enumValues: [] }, { name: 'lastSeenTimeout', type: 'number', nullable: false, enumValues: [] }, { name: 'platform', type: 'string', nullable: false, enumValues: [] }]
     };
@@ -184,7 +184,7 @@ export class AuthToken extends FEntity {
 
 export class AuthTokenFactory extends FEntityFactory<AuthToken> {
     static schema: FEntitySchema = {
-        name: 'AuthToken'
+        name: 'AuthToken',
         primaryKeys: [{ name: 'uuid', type: 'string' }],
         fields: [{ name: 'salt', type: 'string', nullable: false, enumValues: [] }, { name: 'uid', type: 'number', nullable: false, enumValues: [] }, { name: 'lastIp', type: 'string', nullable: false, enumValues: [] }]
     };
@@ -259,7 +259,7 @@ export class ServiceCache extends FEntity {
 
 export class ServiceCacheFactory extends FEntityFactory<ServiceCache> {
     static schema: FEntitySchema = {
-        name: 'ServiceCache'
+        name: 'ServiceCache',
         primaryKeys: [{ name: 'service', type: 'string' }, { name: 'key', type: 'string' }],
         fields: [{ name: 'value', type: 'string', nullable: false, enumValues: [] }]
     };
@@ -346,7 +346,7 @@ export class Lock extends FEntity {
 
 export class LockFactory extends FEntityFactory<Lock> {
     static schema: FEntitySchema = {
-        name: 'Lock'
+        name: 'Lock',
         primaryKeys: [{ name: 'key', type: 'string' }],
         fields: [{ name: 'seed', type: 'string', nullable: false, enumValues: [] }, { name: 'timeout', type: 'number', nullable: false, enumValues: [] }, { name: 'version', type: 'number', nullable: false, enumValues: [] }, { name: 'minVersion', type: 'number', nullable: false, enumValues: [] }]
     };
@@ -490,7 +490,7 @@ export class Task extends FEntity {
 
 export class TaskFactory extends FEntityFactory<Task> {
     static schema: FEntitySchema = {
-        name: 'Task'
+        name: 'Task',
         primaryKeys: [{ name: 'taskType', type: 'string' }, { name: 'uid', type: 'string' }],
         fields: [{ name: 'arguments', type: 'json', nullable: false, enumValues: [] }, { name: 'result', type: 'json', nullable: true, enumValues: [] }, { name: 'taskStatus', type: 'enum', nullable: false, enumValues: ['pending', 'executing', 'failing', 'failed', 'completed'] }, { name: 'taskFailureCount', type: 'number', nullable: true, enumValues: [] }, { name: 'taskFailureTime', type: 'number', nullable: true, enumValues: [] }, { name: 'taskLockSeed', type: 'string', nullable: true, enumValues: [] }, { name: 'taskLockTimeout', type: 'number', nullable: true, enumValues: [] }, { name: 'taskFailureMessage', type: 'string', nullable: true, enumValues: [] }]
     };
@@ -693,7 +693,7 @@ export class PushFirebase extends FEntity {
 
 export class PushFirebaseFactory extends FEntityFactory<PushFirebase> {
     static schema: FEntitySchema = {
-        name: 'PushFirebase'
+        name: 'PushFirebase',
         primaryKeys: [{ name: 'id', type: 'string' }],
         fields: [{ name: 'uid', type: 'number', nullable: false, enumValues: [] }, { name: 'tid', type: 'string', nullable: false, enumValues: [] }, { name: 'token', type: 'string', nullable: false, enumValues: [] }, { name: 'packageId', type: 'string', nullable: false, enumValues: [] }, { name: 'sandbox', type: 'boolean', nullable: false, enumValues: [] }, { name: 'enabled', type: 'boolean', nullable: false, enumValues: [] }, { name: 'failures', type: 'number', nullable: true, enumValues: [] }, { name: 'failedFirstAt', type: 'number', nullable: true, enumValues: [] }, { name: 'failedLastAt', type: 'number', nullable: true, enumValues: [] }, { name: 'disabledAt', type: 'number', nullable: true, enumValues: [] }]
     };
@@ -893,7 +893,7 @@ export class PushApple extends FEntity {
 
 export class PushAppleFactory extends FEntityFactory<PushApple> {
     static schema: FEntitySchema = {
-        name: 'PushApple'
+        name: 'PushApple',
         primaryKeys: [{ name: 'id', type: 'string' }],
         fields: [{ name: 'uid', type: 'number', nullable: false, enumValues: [] }, { name: 'tid', type: 'string', nullable: false, enumValues: [] }, { name: 'token', type: 'string', nullable: false, enumValues: [] }, { name: 'bundleId', type: 'string', nullable: false, enumValues: [] }, { name: 'sandbox', type: 'boolean', nullable: false, enumValues: [] }, { name: 'enabled', type: 'boolean', nullable: false, enumValues: [] }, { name: 'failures', type: 'number', nullable: true, enumValues: [] }, { name: 'failedFirstAt', type: 'number', nullable: true, enumValues: [] }, { name: 'failedLastAt', type: 'number', nullable: true, enumValues: [] }, { name: 'disabledAt', type: 'number', nullable: true, enumValues: [] }]
     };
@@ -1073,7 +1073,7 @@ export class PushWeb extends FEntity {
 
 export class PushWebFactory extends FEntityFactory<PushWeb> {
     static schema: FEntitySchema = {
-        name: 'PushWeb'
+        name: 'PushWeb',
         primaryKeys: [{ name: 'id', type: 'string' }],
         fields: [{ name: 'uid', type: 'number', nullable: false, enumValues: [] }, { name: 'tid', type: 'string', nullable: false, enumValues: [] }, { name: 'endpoint', type: 'string', nullable: false, enumValues: [] }, { name: 'enabled', type: 'boolean', nullable: false, enumValues: [] }, { name: 'failures', type: 'number', nullable: true, enumValues: [] }, { name: 'failedFirstAt', type: 'number', nullable: true, enumValues: [] }, { name: 'failedLastAt', type: 'number', nullable: true, enumValues: [] }, { name: 'disabledAt', type: 'number', nullable: true, enumValues: [] }]
     };
@@ -1197,7 +1197,7 @@ export class UserProfilePrefil extends FEntity {
 
 export class UserProfilePrefilFactory extends FEntityFactory<UserProfilePrefil> {
     static schema: FEntitySchema = {
-        name: 'UserProfilePrefil'
+        name: 'UserProfilePrefil',
         primaryKeys: [{ name: 'id', type: 'number' }],
         fields: [{ name: 'firstName', type: 'string', nullable: true, enumValues: [] }, { name: 'lastName', type: 'string', nullable: true, enumValues: [] }, { name: 'picture', type: 'string', nullable: true, enumValues: [] }]
     };
@@ -1397,7 +1397,7 @@ export class UserProfile extends FEntity {
 
 export class UserProfileFactory extends FEntityFactory<UserProfile> {
     static schema: FEntitySchema = {
-        name: 'UserProfile'
+        name: 'UserProfile',
         primaryKeys: [{ name: 'id', type: 'number' }],
         fields: [{ name: 'firstName', type: 'string', nullable: false, enumValues: [] }, { name: 'lastName', type: 'string', nullable: true, enumValues: [] }, { name: 'phone', type: 'string', nullable: true, enumValues: [] }, { name: 'about', type: 'string', nullable: true, enumValues: [] }, { name: 'website', type: 'string', nullable: true, enumValues: [] }, { name: 'location', type: 'string', nullable: true, enumValues: [] }, { name: 'email', type: 'string', nullable: true, enumValues: [] }, { name: 'picture', type: 'json', nullable: true, enumValues: [] }, { name: 'linkedin', type: 'string', nullable: true, enumValues: [] }, { name: 'twitter', type: 'string', nullable: true, enumValues: [] }, { name: 'locations', type: 'json', nullable: true, enumValues: [] }, { name: 'primaryOrganization', type: 'number', nullable: true, enumValues: [] }, { name: 'role', type: 'string', nullable: true, enumValues: [] }]
     };
@@ -1474,7 +1474,7 @@ export class FeatureFlag extends FEntity {
 
 export class FeatureFlagFactory extends FEntityFactory<FeatureFlag> {
     static schema: FEntitySchema = {
-        name: 'FeatureFlag'
+        name: 'FeatureFlag',
         primaryKeys: [{ name: 'key', type: 'string' }],
         fields: [{ name: 'title', type: 'string', nullable: false, enumValues: [] }]
     };
@@ -1549,7 +1549,7 @@ export class OrganizationFeatures extends FEntity {
 
 export class OrganizationFeaturesFactory extends FEntityFactory<OrganizationFeatures> {
     static schema: FEntitySchema = {
-        name: 'OrganizationFeatures'
+        name: 'OrganizationFeatures',
         primaryKeys: [{ name: 'id', type: 'string' }],
         fields: [{ name: 'featureKey', type: 'string', nullable: false, enumValues: [] }, { name: 'organizationId', type: 'number', nullable: false, enumValues: [] }, { name: 'enabled', type: 'boolean', nullable: false, enumValues: [] }]
     };
@@ -1641,7 +1641,7 @@ export class ReaderState extends FEntity {
 
 export class ReaderStateFactory extends FEntityFactory<ReaderState> {
     static schema: FEntitySchema = {
-        name: 'ReaderState'
+        name: 'ReaderState',
         primaryKeys: [{ name: 'id', type: 'string' }],
         fields: [{ name: 'cursor', type: 'string', nullable: false, enumValues: [] }, { name: 'version', type: 'number', nullable: true, enumValues: [] }]
     };
@@ -1707,7 +1707,7 @@ export class SuperAdmin extends FEntity {
 
 export class SuperAdminFactory extends FEntityFactory<SuperAdmin> {
     static schema: FEntitySchema = {
-        name: 'SuperAdmin'
+        name: 'SuperAdmin',
         primaryKeys: [{ name: 'id', type: 'number' }],
         fields: [{ name: 'role', type: 'string', nullable: false, enumValues: [] }, { name: 'enabled', type: 'boolean', nullable: false, enumValues: [] }]
     };
@@ -1820,7 +1820,7 @@ export class UserSettings extends FEntity {
 
 export class UserSettingsFactory extends FEntityFactory<UserSettings> {
     static schema: FEntitySchema = {
-        name: 'UserSettings'
+        name: 'UserSettings',
         primaryKeys: [{ name: 'id', type: 'number' }],
         fields: [{ name: 'emailFrequency', type: 'enum', nullable: false, enumValues: ['1hour', '15min', 'never', '24hour', '1week'] }, { name: 'desktopNotifications', type: 'enum', nullable: false, enumValues: ['all', 'direct', 'none'] }, { name: 'mobileNotifications', type: 'enum', nullable: false, enumValues: ['all', 'direct', 'none'] }, { name: 'mobileAlert', type: 'boolean', nullable: true, enumValues: [] }, { name: 'mobileIncludeText', type: 'boolean', nullable: true, enumValues: [] }, { name: 'notificationsDelay', type: 'enum', nullable: true, enumValues: ['none', '1min', '15min'] }]
     };
@@ -1902,7 +1902,7 @@ export class ShortnameReservation extends FEntity {
 
 export class ShortnameReservationFactory extends FEntityFactory<ShortnameReservation> {
     static schema: FEntitySchema = {
-        name: 'ShortnameReservation'
+        name: 'ShortnameReservation',
         primaryKeys: [{ name: 'shortname', type: 'string' }],
         fields: [{ name: 'ownerType', type: 'enum', nullable: false, enumValues: ['org', 'user'] }, { name: 'ownerId', type: 'number', nullable: false, enumValues: [] }, { name: 'enabled', type: 'boolean', nullable: false, enumValues: [] }]
     };
@@ -2033,7 +2033,7 @@ export class AuthCodeSession extends FEntity {
 
 export class AuthCodeSessionFactory extends FEntityFactory<AuthCodeSession> {
     static schema: FEntitySchema = {
-        name: 'AuthCodeSession'
+        name: 'AuthCodeSession',
         primaryKeys: [{ name: 'uid', type: 'string' }],
         fields: [{ name: 'code', type: 'string', nullable: false, enumValues: [] }, { name: 'expires', type: 'number', nullable: false, enumValues: [] }, { name: 'email', type: 'string', nullable: false, enumValues: [] }, { name: 'tokenId', type: 'string', nullable: true, enumValues: [] }, { name: 'enabled', type: 'boolean', nullable: false, enumValues: [] }]
     };
@@ -2153,7 +2153,7 @@ export class Conversation extends FEntity {
 
 export class ConversationFactory extends FEntityFactory<Conversation> {
     static schema: FEntitySchema = {
-        name: 'Conversation'
+        name: 'Conversation',
         primaryKeys: [{ name: 'cid', type: 'number' }],
         fields: [{ name: 'kind', type: 'enum', nullable: false, enumValues: ['private', 'room'] }, { name: 'uid1', type: 'number', nullable: true, enumValues: [] }, { name: 'uid2', type: 'number', nullable: true, enumValues: [] }, { name: 'roomType', type: 'enum', nullable: true, enumValues: ['company', 'public', 'group'] }, { name: 'roomOwner', type: 'number', nullable: true, enumValues: [] }, { name: 'membersCount', type: 'number', nullable: false, enumValues: [] }]
     };
@@ -2295,7 +2295,7 @@ export class RoomProfile extends FEntity {
 
 export class RoomProfileFactory extends FEntityFactory<RoomProfile> {
     static schema: FEntitySchema = {
-        name: 'RoomProfile'
+        name: 'RoomProfile',
         primaryKeys: [{ name: 'cid', type: 'number' }],
         fields: [{ name: 'title', type: 'string', nullable: false, enumValues: [] }, { name: 'image', type: 'json', nullable: false, enumValues: [] }, { name: 'socialImage', type: 'json', nullable: false, enumValues: [] }, { name: 'description', type: 'string', nullable: false, enumValues: [] }, { name: 'longDescription', type: 'string', nullable: false, enumValues: [] }, { name: 'featured', type: 'boolean', nullable: false, enumValues: [] }, { name: 'hidden', type: 'boolean', nullable: false, enumValues: [] }]
     };
@@ -2381,7 +2381,7 @@ export class RoomParticipant extends FEntity {
 
 export class RoomParticipantFactory extends FEntityFactory<RoomParticipant> {
     static schema: FEntitySchema = {
-        name: 'RoomParticipant'
+        name: 'RoomParticipant',
         primaryKeys: [{ name: 'cid', type: 'number' }, { name: 'uid', type: 'number' }],
         fields: [{ name: 'invitedBy', type: 'number', nullable: false, enumValues: [] }, { name: 'role', type: 'enum', nullable: false, enumValues: ['member', 'admin', 'owner'] }, { name: 'status', type: 'enum', nullable: false, enumValues: ['joined', 'requested', 'left', 'kicked'] }]
     };
@@ -2506,7 +2506,7 @@ export class ConversationReceiver extends FEntity {
 
 export class ConversationReceiverFactory extends FEntityFactory<ConversationReceiver> {
     static schema: FEntitySchema = {
-        name: 'ConversationReceiver'
+        name: 'ConversationReceiver',
         primaryKeys: [{ name: 'cid', type: 'number' }, { name: 'uid', type: 'number' }],
         fields: [{ name: 'enabled', type: 'boolean', nullable: false, enumValues: [] }]
     };
@@ -2584,7 +2584,7 @@ export class Sequence extends FEntity {
 
 export class SequenceFactory extends FEntityFactory<Sequence> {
     static schema: FEntitySchema = {
-        name: 'Sequence'
+        name: 'Sequence',
         primaryKeys: [{ name: 'sequence', type: 'string' }],
         fields: [{ name: 'value', type: 'number', nullable: false, enumValues: [] }]
     };
@@ -2813,7 +2813,7 @@ export class Message extends FEntity {
 
 export class MessageFactory extends FEntityFactory<Message> {
     static schema: FEntitySchema = {
-        name: 'Message'
+        name: 'Message',
         primaryKeys: [{ name: 'id', type: 'number' }],
         fields: [{ name: 'cid', type: 'number', nullable: false, enumValues: [] }, { name: 'uid', type: 'number', nullable: false, enumValues: [] }, { name: 'repeatKey', type: 'string', nullable: true, enumValues: [] }, { name: 'text', type: 'string', nullable: true, enumValues: [] }, { name: 'fileId', type: 'string', nullable: true, enumValues: [] }, { name: 'fileMetadata', type: 'json', nullable: true, enumValues: [] }, { name: 'filePreview', type: 'string', nullable: true, enumValues: [] }, { name: 'mentions', type: 'json', nullable: true, enumValues: [] }, { name: 'replyMessages', type: 'json', nullable: true, enumValues: [] }, { name: 'augmentation', type: 'json', nullable: true, enumValues: [] }, { name: 'serviceMetadata', type: 'json', nullable: true, enumValues: [] }, { name: 'reactions', type: 'json', nullable: true, enumValues: [] }, { name: 'edited', type: 'boolean', nullable: true, enumValues: [] }, { name: 'isMuted', type: 'boolean', nullable: false, enumValues: [] }, { name: 'isService', type: 'boolean', nullable: false, enumValues: [] }, { name: 'deleted', type: 'boolean', nullable: true, enumValues: [] }]
     };
@@ -2898,7 +2898,7 @@ export class ConversationSeq extends FEntity {
 
 export class ConversationSeqFactory extends FEntityFactory<ConversationSeq> {
     static schema: FEntitySchema = {
-        name: 'ConversationSeq'
+        name: 'ConversationSeq',
         primaryKeys: [{ name: 'cid', type: 'number' }],
         fields: [{ name: 'seq', type: 'number', nullable: false, enumValues: [] }]
     };
@@ -2978,7 +2978,7 @@ export class ConversationEvent extends FEntity {
 
 export class ConversationEventFactory extends FEntityFactory<ConversationEvent> {
     static schema: FEntitySchema = {
-        name: 'ConversationEvent'
+        name: 'ConversationEvent',
         primaryKeys: [{ name: 'cid', type: 'number' }, { name: 'seq', type: 'number' }],
         fields: [{ name: 'uid', type: 'number', nullable: true, enumValues: [] }, { name: 'mid', type: 'number', nullable: true, enumValues: [] }, { name: 'kind', type: 'enum', nullable: false, enumValues: ['message_received', 'message_updated', 'message_deleted'] }]
     };
@@ -3083,7 +3083,7 @@ export class UserDialog extends FEntity {
 
 export class UserDialogFactory extends FEntityFactory<UserDialog> {
     static schema: FEntitySchema = {
-        name: 'UserDialog'
+        name: 'UserDialog',
         primaryKeys: [{ name: 'uid', type: 'number' }, { name: 'cid', type: 'number' }],
         fields: [{ name: 'unread', type: 'number', nullable: false, enumValues: [] }, { name: 'readMessageId', type: 'number', nullable: true, enumValues: [] }, { name: 'date', type: 'number', nullable: true, enumValues: [] }]
     };
@@ -3161,7 +3161,7 @@ export class UserDialogSettings extends FEntity {
 
 export class UserDialogSettingsFactory extends FEntityFactory<UserDialogSettings> {
     static schema: FEntitySchema = {
-        name: 'UserDialogSettings'
+        name: 'UserDialogSettings',
         primaryKeys: [{ name: 'uid', type: 'number' }, { name: 'cid', type: 'number' }],
         fields: [{ name: 'mute', type: 'boolean', nullable: false, enumValues: [] }]
     };
@@ -3291,7 +3291,7 @@ export class UserDialogEvent extends FEntity {
 
 export class UserDialogEventFactory extends FEntityFactory<UserDialogEvent> {
     static schema: FEntitySchema = {
-        name: 'UserDialogEvent'
+        name: 'UserDialogEvent',
         primaryKeys: [{ name: 'uid', type: 'number' }, { name: 'seq', type: 'number' }],
         fields: [{ name: 'cid', type: 'number', nullable: true, enumValues: [] }, { name: 'sid', type: 'number', nullable: true, enumValues: [] }, { name: 'mid', type: 'number', nullable: true, enumValues: [] }, { name: 'allUnread', type: 'number', nullable: true, enumValues: [] }, { name: 'unread', type: 'number', nullable: true, enumValues: [] }, { name: 'title', type: 'string', nullable: true, enumValues: [] }, { name: 'kind', type: 'enum', nullable: false, enumValues: ['message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated'] }]
     };
@@ -3385,7 +3385,7 @@ export class UserMessagingState extends FEntity {
 
 export class UserMessagingStateFactory extends FEntityFactory<UserMessagingState> {
     static schema: FEntitySchema = {
-        name: 'UserMessagingState'
+        name: 'UserMessagingState',
         primaryKeys: [{ name: 'uid', type: 'number' }],
         fields: [{ name: 'seq', type: 'number', nullable: false, enumValues: [] }, { name: 'unread', type: 'number', nullable: false, enumValues: [] }]
     };
@@ -3504,7 +3504,7 @@ export class UserNotificationsState extends FEntity {
 
 export class UserNotificationsStateFactory extends FEntityFactory<UserNotificationsState> {
     static schema: FEntitySchema = {
-        name: 'UserNotificationsState'
+        name: 'UserNotificationsState',
         primaryKeys: [{ name: 'uid', type: 'number' }],
         fields: [{ name: 'readSeq', type: 'number', nullable: true, enumValues: [] }, { name: 'lastEmailNotification', type: 'number', nullable: true, enumValues: [] }, { name: 'lastPushNotification', type: 'number', nullable: true, enumValues: [] }, { name: 'lastEmailSeq', type: 'number', nullable: true, enumValues: [] }, { name: 'lastPushSeq', type: 'number', nullable: true, enumValues: [] }]
     };
@@ -3582,7 +3582,7 @@ export class HyperLog extends FEntity {
 
 export class HyperLogFactory extends FEntityFactory<HyperLog> {
     static schema: FEntitySchema = {
-        name: 'HyperLog'
+        name: 'HyperLog',
         primaryKeys: [{ name: 'id', type: 'string' }],
         fields: [{ name: 'type', type: 'string', nullable: false, enumValues: [] }, { name: 'date', type: 'number', nullable: false, enumValues: [] }, { name: 'body', type: 'json', nullable: false, enumValues: [] }]
     };
@@ -3653,7 +3653,7 @@ export class MessageDraft extends FEntity {
 
 export class MessageDraftFactory extends FEntityFactory<MessageDraft> {
     static schema: FEntitySchema = {
-        name: 'MessageDraft'
+        name: 'MessageDraft',
         primaryKeys: [{ name: 'uid', type: 'number' }, { name: 'cid', type: 'number' }],
         fields: [{ name: 'contents', type: 'string', nullable: false, enumValues: [] }]
     };
@@ -3788,7 +3788,7 @@ export class ChannelInvitation extends FEntity {
 
 export class ChannelInvitationFactory extends FEntityFactory<ChannelInvitation> {
     static schema: FEntitySchema = {
-        name: 'ChannelInvitation'
+        name: 'ChannelInvitation',
         primaryKeys: [{ name: 'id', type: 'string' }],
         fields: [{ name: 'creatorId', type: 'number', nullable: false, enumValues: [] }, { name: 'channelId', type: 'number', nullable: false, enumValues: [] }, { name: 'email', type: 'string', nullable: false, enumValues: [] }, { name: 'firstName', type: 'string', nullable: true, enumValues: [] }, { name: 'lastName', type: 'string', nullable: true, enumValues: [] }, { name: 'text', type: 'string', nullable: true, enumValues: [] }, { name: 'acceptedById', type: 'number', nullable: true, enumValues: [] }, { name: 'enabled', type: 'boolean', nullable: false, enumValues: [] }]
     };
@@ -3891,7 +3891,7 @@ export class ChannelLink extends FEntity {
 
 export class ChannelLinkFactory extends FEntityFactory<ChannelLink> {
     static schema: FEntitySchema = {
-        name: 'ChannelLink'
+        name: 'ChannelLink',
         primaryKeys: [{ name: 'id', type: 'string' }],
         fields: [{ name: 'creatorId', type: 'number', nullable: false, enumValues: [] }, { name: 'channelId', type: 'number', nullable: false, enumValues: [] }, { name: 'enabled', type: 'boolean', nullable: false, enumValues: [] }]
     };
@@ -3968,7 +3968,7 @@ export class AppInviteLink extends FEntity {
 
 export class AppInviteLinkFactory extends FEntityFactory<AppInviteLink> {
     static schema: FEntitySchema = {
-        name: 'AppInviteLink'
+        name: 'AppInviteLink',
         primaryKeys: [{ name: 'id', type: 'string' }],
         fields: [{ name: 'uid', type: 'number', nullable: false, enumValues: [] }]
     };

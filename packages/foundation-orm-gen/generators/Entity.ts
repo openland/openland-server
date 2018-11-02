@@ -94,7 +94,7 @@ export function generateEntity(entity: EntityModel): string {
     res += 'export class ' + entityClass + 'Factory extends FEntityFactory<' + entityClass + '> {\n';
 
     res += '    static schema: FEntitySchema = {\n';
-    res += '        name: \'' + entity.name + '\'\n';
+    res += '        name: \'' + entity.name + '\',\n';
     res += '        primaryKeys: [' + entity.keys.map((v) => `{ name: '${v.name}', type: '${v.type}' }`).join(', ') + '],\n';
     res += '        fields: [' + entity.fields.map((v) => `{ name: '${v.name}', type: '${v.type}', nullable: ${v.isNullable}, enumValues: [${v.enumValues.map((v2) => `'${v2}'`).join(', ')}] }`).join(', ') + ']\n';
     res += '    };\n\n';

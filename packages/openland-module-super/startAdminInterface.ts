@@ -15,7 +15,7 @@ export async function startAdminInterface() {
     app.use(compression());
 
     // To avoid logging on this route
-    app.get('/', (req, res) => res.send('Welcome to Openland API!'));
+    app.get('/', (req, res) => res.send('Welcome to Closedland API!'));
 
     // Start listening
     app.listen(8319);

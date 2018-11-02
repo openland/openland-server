@@ -41,7 +41,9 @@ async function initServer() {
         if (serverRoleEnabled('api')) {
             await initApi(false);
         } else {
-            await initHealthcheck();
+            if (!serverRoleEnabled('admin')) {
+                await initHealthcheck();
+            }
         }
     } catch (e) {
         console.error('Unable to init server');
