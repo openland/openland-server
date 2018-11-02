@@ -413,7 +413,7 @@ export class Task extends FEntity {
     }
     get result(): any | null {
         let res = this._value.result;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set result(value: any | null) {
@@ -433,7 +433,7 @@ export class Task extends FEntity {
     }
     get taskFailureCount(): number | null {
         let res = this._value.taskFailureCount;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set taskFailureCount(value: number | null) {
@@ -444,7 +444,7 @@ export class Task extends FEntity {
     }
     get taskFailureTime(): number | null {
         let res = this._value.taskFailureTime;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set taskFailureTime(value: number | null) {
@@ -455,7 +455,7 @@ export class Task extends FEntity {
     }
     get taskLockSeed(): string | null {
         let res = this._value.taskLockSeed;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set taskLockSeed(value: string | null) {
@@ -466,7 +466,7 @@ export class Task extends FEntity {
     }
     get taskLockTimeout(): number | null {
         let res = this._value.taskLockTimeout;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set taskLockTimeout(value: number | null) {
@@ -477,7 +477,7 @@ export class Task extends FEntity {
     }
     get taskFailureMessage(): string | null {
         let res = this._value.taskFailureMessage;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set taskFailureMessage(value: string | null) {
@@ -647,7 +647,7 @@ export class PushFirebase extends FEntity {
     }
     get failures(): number | null {
         let res = this._value.failures;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set failures(value: number | null) {
@@ -658,7 +658,7 @@ export class PushFirebase extends FEntity {
     }
     get failedFirstAt(): number | null {
         let res = this._value.failedFirstAt;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set failedFirstAt(value: number | null) {
@@ -669,7 +669,7 @@ export class PushFirebase extends FEntity {
     }
     get failedLastAt(): number | null {
         let res = this._value.failedLastAt;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set failedLastAt(value: number | null) {
@@ -680,7 +680,7 @@ export class PushFirebase extends FEntity {
     }
     get disabledAt(): number | null {
         let res = this._value.disabledAt;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set disabledAt(value: number | null) {
@@ -847,7 +847,7 @@ export class PushApple extends FEntity {
     }
     get failures(): number | null {
         let res = this._value.failures;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set failures(value: number | null) {
@@ -858,7 +858,7 @@ export class PushApple extends FEntity {
     }
     get failedFirstAt(): number | null {
         let res = this._value.failedFirstAt;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set failedFirstAt(value: number | null) {
@@ -869,7 +869,7 @@ export class PushApple extends FEntity {
     }
     get failedLastAt(): number | null {
         let res = this._value.failedLastAt;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set failedLastAt(value: number | null) {
@@ -880,7 +880,7 @@ export class PushApple extends FEntity {
     }
     get disabledAt(): number | null {
         let res = this._value.disabledAt;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set disabledAt(value: number | null) {
@@ -1027,7 +1027,7 @@ export class PushWeb extends FEntity {
     }
     get failures(): number | null {
         let res = this._value.failures;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set failures(value: number | null) {
@@ -1038,7 +1038,7 @@ export class PushWeb extends FEntity {
     }
     get failedFirstAt(): number | null {
         let res = this._value.failedFirstAt;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set failedFirstAt(value: number | null) {
@@ -1049,7 +1049,7 @@ export class PushWeb extends FEntity {
     }
     get failedLastAt(): number | null {
         let res = this._value.failedLastAt;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set failedLastAt(value: number | null) {
@@ -1060,7 +1060,7 @@ export class PushWeb extends FEntity {
     }
     get disabledAt(): number | null {
         let res = this._value.disabledAt;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set disabledAt(value: number | null) {
@@ -1162,7 +1162,7 @@ export class UserProfilePrefil extends FEntity {
     get id(): number { return this._value.id; }
     get firstName(): string | null {
         let res = this._value.firstName;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set firstName(value: string | null) {
@@ -1173,7 +1173,7 @@ export class UserProfilePrefil extends FEntity {
     }
     get lastName(): string | null {
         let res = this._value.lastName;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set lastName(value: string | null) {
@@ -1184,7 +1184,7 @@ export class UserProfilePrefil extends FEntity {
     }
     get picture(): string | null {
         let res = this._value.picture;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set picture(value: string | null) {
@@ -1263,7 +1263,7 @@ export class UserProfile extends FEntity {
     }
     get lastName(): string | null {
         let res = this._value.lastName;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set lastName(value: string | null) {
@@ -1274,7 +1274,7 @@ export class UserProfile extends FEntity {
     }
     get phone(): string | null {
         let res = this._value.phone;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set phone(value: string | null) {
@@ -1285,7 +1285,7 @@ export class UserProfile extends FEntity {
     }
     get about(): string | null {
         let res = this._value.about;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set about(value: string | null) {
@@ -1296,7 +1296,7 @@ export class UserProfile extends FEntity {
     }
     get website(): string | null {
         let res = this._value.website;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set website(value: string | null) {
@@ -1307,7 +1307,7 @@ export class UserProfile extends FEntity {
     }
     get location(): string | null {
         let res = this._value.location;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set location(value: string | null) {
@@ -1318,7 +1318,7 @@ export class UserProfile extends FEntity {
     }
     get email(): string | null {
         let res = this._value.email;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set email(value: string | null) {
@@ -1329,7 +1329,7 @@ export class UserProfile extends FEntity {
     }
     get picture(): any | null {
         let res = this._value.picture;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set picture(value: any | null) {
@@ -1340,7 +1340,7 @@ export class UserProfile extends FEntity {
     }
     get linkedin(): string | null {
         let res = this._value.linkedin;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set linkedin(value: string | null) {
@@ -1351,7 +1351,7 @@ export class UserProfile extends FEntity {
     }
     get twitter(): string | null {
         let res = this._value.twitter;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set twitter(value: string | null) {
@@ -1362,7 +1362,7 @@ export class UserProfile extends FEntity {
     }
     get locations(): any | null {
         let res = this._value.locations;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set locations(value: any | null) {
@@ -1373,7 +1373,7 @@ export class UserProfile extends FEntity {
     }
     get primaryOrganization(): number | null {
         let res = this._value.primaryOrganization;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set primaryOrganization(value: number | null) {
@@ -1384,7 +1384,7 @@ export class UserProfile extends FEntity {
     }
     get role(): string | null {
         let res = this._value.role;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set role(value: string | null) {
@@ -1628,7 +1628,7 @@ export class ReaderState extends FEntity {
     }
     get version(): number | null {
         let res = this._value.version;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set version(value: number | null) {
@@ -1785,7 +1785,7 @@ export class UserSettings extends FEntity {
     }
     get mobileAlert(): boolean | null {
         let res = this._value.mobileAlert;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set mobileAlert(value: boolean | null) {
@@ -1796,7 +1796,7 @@ export class UserSettings extends FEntity {
     }
     get mobileIncludeText(): boolean | null {
         let res = this._value.mobileIncludeText;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set mobileIncludeText(value: boolean | null) {
@@ -1807,7 +1807,7 @@ export class UserSettings extends FEntity {
     }
     get notificationsDelay(): 'none' | '1min' | '15min' | null {
         let res = this._value.notificationsDelay;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set notificationsDelay(value: 'none' | '1min' | '15min' | null) {
@@ -2011,7 +2011,7 @@ export class AuthCodeSession extends FEntity {
     }
     get tokenId(): string | null {
         let res = this._value.tokenId;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set tokenId(value: string | null) {
@@ -2098,7 +2098,7 @@ export class Conversation extends FEntity {
     }
     get uid1(): number | null {
         let res = this._value.uid1;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set uid1(value: number | null) {
@@ -2109,7 +2109,7 @@ export class Conversation extends FEntity {
     }
     get uid2(): number | null {
         let res = this._value.uid2;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set uid2(value: number | null) {
@@ -2120,7 +2120,7 @@ export class Conversation extends FEntity {
     }
     get roomType(): 'company' | 'public' | 'group' | null {
         let res = this._value.roomType;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set roomType(value: 'company' | 'public' | 'group' | null) {
@@ -2131,7 +2131,7 @@ export class Conversation extends FEntity {
     }
     get roomOwner(): number | null {
         let res = this._value.roomOwner;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set roomOwner(value: number | null) {
@@ -2661,7 +2661,7 @@ export class Message extends FEntity {
     }
     get repeatKey(): string | null {
         let res = this._value.repeatKey;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set repeatKey(value: string | null) {
@@ -2672,7 +2672,7 @@ export class Message extends FEntity {
     }
     get text(): string | null {
         let res = this._value.text;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set text(value: string | null) {
@@ -2683,7 +2683,7 @@ export class Message extends FEntity {
     }
     get fileId(): string | null {
         let res = this._value.fileId;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set fileId(value: string | null) {
@@ -2694,7 +2694,7 @@ export class Message extends FEntity {
     }
     get fileMetadata(): any | null {
         let res = this._value.fileMetadata;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set fileMetadata(value: any | null) {
@@ -2705,7 +2705,7 @@ export class Message extends FEntity {
     }
     get filePreview(): string | null {
         let res = this._value.filePreview;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set filePreview(value: string | null) {
@@ -2716,7 +2716,7 @@ export class Message extends FEntity {
     }
     get mentions(): any | null {
         let res = this._value.mentions;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set mentions(value: any | null) {
@@ -2727,7 +2727,7 @@ export class Message extends FEntity {
     }
     get replyMessages(): any | null {
         let res = this._value.replyMessages;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set replyMessages(value: any | null) {
@@ -2738,7 +2738,7 @@ export class Message extends FEntity {
     }
     get augmentation(): any | null {
         let res = this._value.augmentation;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set augmentation(value: any | null) {
@@ -2749,7 +2749,7 @@ export class Message extends FEntity {
     }
     get serviceMetadata(): any | null {
         let res = this._value.serviceMetadata;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set serviceMetadata(value: any | null) {
@@ -2760,7 +2760,7 @@ export class Message extends FEntity {
     }
     get reactions(): any | null {
         let res = this._value.reactions;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set reactions(value: any | null) {
@@ -2771,7 +2771,7 @@ export class Message extends FEntity {
     }
     get edited(): boolean | null {
         let res = this._value.edited;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set edited(value: boolean | null) {
@@ -2800,7 +2800,7 @@ export class Message extends FEntity {
     }
     get deleted(): boolean | null {
         let res = this._value.deleted;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set deleted(value: boolean | null) {
@@ -2945,7 +2945,7 @@ export class ConversationEvent extends FEntity {
     get seq(): number { return this._value.seq; }
     get uid(): number | null {
         let res = this._value.uid;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set uid(value: number | null) {
@@ -2956,7 +2956,7 @@ export class ConversationEvent extends FEntity {
     }
     get mid(): number | null {
         let res = this._value.mid;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set mid(value: number | null) {
@@ -3059,7 +3059,7 @@ export class UserDialog extends FEntity {
     }
     get readMessageId(): number | null {
         let res = this._value.readMessageId;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set readMessageId(value: number | null) {
@@ -3070,7 +3070,7 @@ export class UserDialog extends FEntity {
     }
     get date(): number | null {
         let res = this._value.date;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set date(value: number | null) {
@@ -3214,7 +3214,7 @@ export class UserDialogEvent extends FEntity {
     get seq(): number { return this._value.seq; }
     get cid(): number | null {
         let res = this._value.cid;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set cid(value: number | null) {
@@ -3225,7 +3225,7 @@ export class UserDialogEvent extends FEntity {
     }
     get sid(): number | null {
         let res = this._value.sid;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set sid(value: number | null) {
@@ -3236,7 +3236,7 @@ export class UserDialogEvent extends FEntity {
     }
     get mid(): number | null {
         let res = this._value.mid;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set mid(value: number | null) {
@@ -3247,7 +3247,7 @@ export class UserDialogEvent extends FEntity {
     }
     get allUnread(): number | null {
         let res = this._value.allUnread;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set allUnread(value: number | null) {
@@ -3258,7 +3258,7 @@ export class UserDialogEvent extends FEntity {
     }
     get unread(): number | null {
         let res = this._value.unread;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set unread(value: number | null) {
@@ -3269,7 +3269,7 @@ export class UserDialogEvent extends FEntity {
     }
     get title(): string | null {
         let res = this._value.title;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set title(value: string | null) {
@@ -3447,7 +3447,7 @@ export class UserNotificationsState extends FEntity {
     get uid(): number { return this._value.uid; }
     get readSeq(): number | null {
         let res = this._value.readSeq;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set readSeq(value: number | null) {
@@ -3458,7 +3458,7 @@ export class UserNotificationsState extends FEntity {
     }
     get lastEmailNotification(): number | null {
         let res = this._value.lastEmailNotification;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set lastEmailNotification(value: number | null) {
@@ -3469,7 +3469,7 @@ export class UserNotificationsState extends FEntity {
     }
     get lastPushNotification(): number | null {
         let res = this._value.lastPushNotification;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set lastPushNotification(value: number | null) {
@@ -3480,7 +3480,7 @@ export class UserNotificationsState extends FEntity {
     }
     get lastEmailSeq(): number | null {
         let res = this._value.lastEmailSeq;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set lastEmailSeq(value: number | null) {
@@ -3491,7 +3491,7 @@ export class UserNotificationsState extends FEntity {
     }
     get lastPushSeq(): number | null {
         let res = this._value.lastPushSeq;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set lastPushSeq(value: number | null) {
@@ -3733,7 +3733,7 @@ export class ChannelInvitation extends FEntity {
     }
     get firstName(): string | null {
         let res = this._value.firstName;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set firstName(value: string | null) {
@@ -3744,7 +3744,7 @@ export class ChannelInvitation extends FEntity {
     }
     get lastName(): string | null {
         let res = this._value.lastName;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set lastName(value: string | null) {
@@ -3755,7 +3755,7 @@ export class ChannelInvitation extends FEntity {
     }
     get text(): string | null {
         let res = this._value.text;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set text(value: string | null) {
@@ -3766,7 +3766,7 @@ export class ChannelInvitation extends FEntity {
     }
     get acceptedById(): number | null {
         let res = this._value.acceptedById;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set acceptedById(value: number | null) {

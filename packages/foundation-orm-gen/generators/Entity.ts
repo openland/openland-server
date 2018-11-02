@@ -66,7 +66,7 @@ export function generateEntity(entity: EntityModel): string {
         res += '    get ' + k.name + '(): ' + type + ' {\n';
         if (k.isNullable) {
             res += '        let res = this._value.' + k.name + ';\n';
-            res += '        if (res) { return res; }\n';
+            res += '        if (res !== null && res !== undefined) { return res; }\n';
             res += '        return null;\n';
         } else {
             res += '        return this._value.' + k.name + ';\n';
