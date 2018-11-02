@@ -95,6 +95,7 @@ export function generateEntity(entity: EntityModel): string {
 
     res += '    static schema: FEntitySchema = {\n';
     res += '        name: \'' + entity.name + '\',\n';
+    res += '        editable: ' + entity.editable + ',\n';
     res += '        primaryKeys: [\n';
     for (let k of entity.keys) {
         res += `            { name: '${k.name}', type: '${k.type}' },\n`;

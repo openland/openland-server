@@ -41,6 +41,10 @@ export function rangeIndex(name: string, fields: string[]) {
     return currentEntity!!.addIndex(name, fields, false);
 }
 
+export function allowAdminEdit() {
+    currentEntity!!.editable = true;
+}
+
 export function enableTimestamps() {
     currentEntity!!.enableTimestamps = true;
 }

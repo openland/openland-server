@@ -23,4 +23,5 @@ export interface FEntitySchema {
     primaryKeys: FEntitySchemaKey[];
     fields: FEntitySchemaField[];
     indexes: FEntitySchemaIndex[];
+    editable?: boolean;
 }

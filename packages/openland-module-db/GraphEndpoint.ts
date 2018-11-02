@@ -6,16 +6,19 @@ import {
     GraphQLBoolean,
     GraphQLList,
     GraphQLInt,
-    GraphQLNonNull
+    GraphQLNonNull,
+    GraphQLInputObjectType
 } from 'graphql';
 import * as Case from 'change-case';
 
 import { AllEntities } from './schema';
 import { FDB } from './FDB';
 import { FEntitySchema, FEntitySchemaIndex } from 'foundation-orm/FEntitySchema';
+import { inTx } from 'foundation-orm/inTx';
 
 let entitiesMap: any = {};
 let queries: any = {};
+let mutations: any = {};
 
 function buildType(src: 'string' | 'number' | 'json' | 'boolean' | 'enum') {
     if (src === 'string') {
@@ -77,6 +80,7 @@ function extractArguments(src: any, entiy: FEntitySchema, index: FEntitySchemaIn
 
 for (let e of AllEntities.schema) {
     let fields: any = {};
+    let inputFields: any = {};
     let args: any = {};
     for (let f of e.primaryKeys) {
         fields[f.name] = {
@@ -89,6 +93,9 @@ for (let e of AllEntities.schema) {
     for (let f of e.fields) {
         if (!f.secure) {
             fields[f.name] = {
+                type: buildType(f.type)
+            };
+            inputFields[f.name] = {
                 type: buildType(f.type)
             };
         }
@@ -107,6 +114,11 @@ for (let e of AllEntities.schema) {
         }
     });
     entitiesMap[e.name + 'Connection'] = objConnection;
+    let objInput = new GraphQLInputObjectType({
+        name: e.name + 'InputType',
+        fields: inputFields
+    });
+    entitiesMap[e.name + 'InputType'] = objInput;
 
     // Primary Key query
     queries[Case.camelCase(e.name)] = {
@@ -129,6 +141,7 @@ for (let e of AllEntities.schema) {
         }
     };
 
+    // Indexes
     for (let i of e.indexes) {
         if (i.displayName) {
             if (i.type === 'unique') {
@@ -144,7 +157,7 @@ for (let e of AllEntities.schema) {
             } else if (i.type === 'range') {
                 queries[i.displayName] = {
                     type: objConnection,
-                    args: { 
+                    args: {
                         ...buildArguments(e, i, 1),
                         first: {
                             type: new GraphQLNonNull(GraphQLInt)
@@ -164,12 +177,58 @@ for (let e of AllEntities.schema) {
             }
         }
     }
+
+    // Creation
+    if (e.editable) {
+        mutations[Case.camelCase(e.name) + 'Create'] = {
+            type: obj,
+            args: { ...args, input: { type: objInput } },
+            resolve(_: any, a: any) {
+                let ids: any[] = [];
+                for (let f of e.primaryKeys) {
+                    ids.push(a[f.name]);
+                }
+                return inTx(async () => {
+                    return await (FDB as any)[e.name].create(...ids, a.input);
+                });
+            }
+        };
+
+        mutations[Case.camelCase(e.name) + 'Update'] = {
+            type: obj,
+            args: { ...args, input: { type: objInput } },
+            resolve(_: any, a: any) {
+                let ids: any[] = [];
+                for (let f of e.primaryKeys) {
+                    ids.push(a[f.name]);
+                }
+                return inTx(async () => {
+                    let item = await (FDB as any)[e.name].findById(...ids);
+                    if (!item) {
+                        throw Error('Not found');
+                    }
+
+                    for (let f of e.fields) {
+                        if (a.input[f.name] !== undefined) {
+                            item[f.name] = a.input[f.name];
+                        }
+                    }
+                    
+                    return item;
+                });
+            }
+        };
+    }
 }
 
 var schema = new GraphQLSchema({
     query: new GraphQLObjectType({
         name: 'RootQueryType',
         fields: queries
+    }),
+    mutation: new GraphQLObjectType({
+        name: 'RootMutationType',
+        fields: mutations
     }),
 });
 
