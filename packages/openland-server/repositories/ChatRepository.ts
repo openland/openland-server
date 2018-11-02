@@ -256,7 +256,7 @@ export class ChatsRepository {
                 throw new Error('Message not found');
             }
 
-            let reactions: { reaction: string, userId: number }[] = [...message.reactions] as any || [];
+            let reactions: { reaction: string, userId: number }[] = message.reactions ? [...message.reactions] as any : [];
             if (reactions.find(r => (r.userId === uid) && (r.reaction === reaction))) {
                 if (reset) {
                     reactions = reactions.filter(r => !((r.userId === uid) && (r.reaction === reaction)));
