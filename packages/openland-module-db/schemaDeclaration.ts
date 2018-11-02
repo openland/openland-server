@@ -351,7 +351,6 @@ const Schema = declareSchema(() => {
         primaryKey('uid', 'number');
         primaryKey('seq', 'number');
         field('cid', 'number').nullable();
-        field('sid', 'number').nullable();
         field('mid', 'number').nullable();
         field('allUnread', 'number').nullable();
         field('unread', 'number').nullable();
