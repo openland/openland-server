@@ -57,7 +57,7 @@ export const Resolver = {
                 return null;
             }
 
-            return await FDB.Message.rangeFromChat(src.id, 1, true);
+            return Modules.Messaging.repo.findTopMessage(src.id!);
         },
         membersCount: (src: Conversation) => Repos.Chats.membersCountInConversation(src.id),
         memberRequestsCount: (src: Conversation) => Repos.Chats.membersCountInConversation(src.id, 'requested'),
