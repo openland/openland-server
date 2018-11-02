@@ -493,7 +493,7 @@ export class NullableEntityFactory extends FEntityFactory<NullableEntity> {
     static schema: FEntitySchema = {
         name: 'NullableEntity',
         primaryKeys: [{ name: 'id', type: 'number' }],
-        fields: [{ name: 'flag', type: 'boolean', nullable: true, enumValues: [] }]
+        fields: [{ name: 'flag', type: 'boolean', nullable: true, secure: false, enumValues: [] }]
     };
 
     private static validate(src: any) {
