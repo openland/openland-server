@@ -24,7 +24,7 @@ export function createAugmentationWorker() {
             }
 
             // augmentation exists or was deleted
-            if (message.augmentation || message.augmentation === null) {
+            if (message.augmentation) {
                 return { result: 'ok' };
             }
 
@@ -45,10 +45,6 @@ export function createAugmentationWorker() {
             let urlInfo = await Services.URLInfo.fetchURLInfo(firstUrl.url);
 
             if (urlInfo.title) {
-                if (!message || !message.text) {
-                    return { result: 'ok' };
-                }
-
                 let members = await Repos.Chats.getConversationMembers(message.cid);
 
                 await inTx(async () => {
