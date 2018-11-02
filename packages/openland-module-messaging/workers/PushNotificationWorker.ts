@@ -82,9 +82,7 @@ export function startPushNotificationWorker() {
                     let afterSec = Math.max(state.lastEmailSeq ? state.lastEmailSeq : 0, state.readSeq, state.lastPushSeq || 0);
 
                     let remainingUpdates = await FDB.UserDialogEvent.allFromUserAfter(u.uid, afterSec);
-                    let messages = remainingUpdates
-                        .filter((v) => v.kind === 'message_received')
-                        .filter((v) => v.sid !== u.uid);
+                    let messages = remainingUpdates.filter((v) => v.kind === 'message_received');
 
                     // Handling unread messages
                     let hasMessage = false;
@@ -94,14 +92,15 @@ export function startPushNotificationWorker() {
                         }
 
                         let messageId = m.mid!;
-                        let senderId = m.sid!;
+                        let message = await FDB.Message.findById(messageId);
+                        if (!message) {
+                            continue;
+                        }
+                        let senderId = message.uid!;
+
                         let unreadCount = m.allUnread!;
                         // Ignore current user
                         if (senderId === u.uid) {
-                            continue;
-                        }
-                        let message = await FDB.Message.findById(messageId);
-                        if (!message) {
                             continue;
                         }
                         let sender = await Modules.Users.profileById(senderId);
@@ -173,7 +172,7 @@ export function startPushNotificationWorker() {
                             pushBody += message.text;
                         }
                         if (message.fileMetadata) {
-                            pushBody += message.fileMetadata.isImage === true ? Texts.Notifications.IMAGE_ATTACH : Texts.Notifications.FILE_ATTACH;
+                            pushBody += message.fileMetadata.isImage ? Texts.Notifications.IMAGE_ATTACH : Texts.Notifications.FILE_ATTACH;
                         }
 
                         let push = {
@@ -190,7 +189,6 @@ export function startPushNotificationWorker() {
                             silent: null
                         };
 
-                        console.log('new_push', JSON.stringify(push));
                         log.debug('new_push', JSON.stringify(push));
                         await Modules.Push.worker.pushWork(push);
                     }

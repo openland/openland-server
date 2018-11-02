@@ -3201,7 +3201,6 @@ export class UserDialogSettingsFactory extends FEntityFactory<UserDialogSettings
 }
 export interface UserDialogEventShape {
     cid?: number| null;
-    sid?: number| null;
     mid?: number| null;
     allUnread?: number| null;
     unread?: number| null;
@@ -3221,17 +3220,6 @@ export class UserDialogEvent extends FEntity {
         this._checkIsWritable();
         if (value === this._value.cid) { return; }
         this._value.cid = value;
-        this.markDirty();
-    }
-    get sid(): number | null {
-        let res = this._value.sid;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set sid(value: number | null) {
-        this._checkIsWritable();
-        if (value === this._value.sid) { return; }
-        this._value.sid = value;
         this.markDirty();
     }
     get mid(): number | null {
@@ -3293,7 +3281,7 @@ export class UserDialogEventFactory extends FEntityFactory<UserDialogEvent> {
     static schema: FEntitySchema = {
         name: 'UserDialogEvent',
         primaryKeys: [{ name: 'uid', type: 'number' }, { name: 'seq', type: 'number' }],
-        fields: [{ name: 'cid', type: 'number', nullable: true, secure: false, enumValues: [] }, { name: 'sid', type: 'number', nullable: true, secure: false, enumValues: [] }, { name: 'mid', type: 'number', nullable: true, secure: false, enumValues: [] }, { name: 'allUnread', type: 'number', nullable: true, secure: false, enumValues: [] }, { name: 'unread', type: 'number', nullable: true, secure: false, enumValues: [] }, { name: 'title', type: 'string', nullable: true, secure: false, enumValues: [] }, { name: 'kind', type: 'enum', nullable: false, secure: false, enumValues: ['message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated'] }]
+        fields: [{ name: 'cid', type: 'number', nullable: true, secure: false, enumValues: [] }, { name: 'mid', type: 'number', nullable: true, secure: false, enumValues: [] }, { name: 'allUnread', type: 'number', nullable: true, secure: false, enumValues: [] }, { name: 'unread', type: 'number', nullable: true, secure: false, enumValues: [] }, { name: 'title', type: 'string', nullable: true, secure: false, enumValues: [] }, { name: 'kind', type: 'enum', nullable: false, secure: false, enumValues: ['message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated'] }]
     };
 
     private static validate(src: any) {
@@ -3302,7 +3290,6 @@ export class UserDialogEventFactory extends FEntityFactory<UserDialogEvent> {
         validators.notNull('seq', src.seq);
         validators.isNumber('seq', src.seq);
         validators.isNumber('cid', src.cid);
-        validators.isNumber('sid', src.sid);
         validators.isNumber('mid', src.mid);
         validators.isNumber('allUnread', src.allUnread);
         validators.isNumber('unread', src.unread);
@@ -3655,7 +3642,7 @@ export class MessageDraftFactory extends FEntityFactory<MessageDraft> {
     static schema: FEntitySchema = {
         name: 'MessageDraft',
         primaryKeys: [{ name: 'uid', type: 'number' }, { name: 'cid', type: 'number' }],
-        fields: [{ name: 'contents', type: 'string', nullable: false, secure: false, enumValues: [] }]
+        fields: [{ name: 'contents', type: 'string', nullable: false, secure: true, enumValues: [] }]
     };
 
     private static validate(src: any) {
