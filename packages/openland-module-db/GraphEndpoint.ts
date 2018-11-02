@@ -3,7 +3,8 @@ import {
     GraphQLObjectType,
     GraphQLString,
     GraphQLFloat,
-    GraphQLBoolean
+    GraphQLBoolean,
+    GraphQLList
 } from 'graphql';
 import * as Case from 'change-case';
 
@@ -62,6 +63,12 @@ for (let e of AllEntities.schema) {
                 ids.push(a[f.name]);
             }
             return (FDB as any)[e.name].findById(...ids);
+        }
+    };
+    queries[Case.camelCase(e.name) + 'All'] = {
+        type: new GraphQLList(obj),
+        resolve() {
+            return (FDB as any)[e.name].findAll();
         }
     };
 }
