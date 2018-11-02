@@ -246,6 +246,8 @@ const Schema = declareSchema(() => {
         field('replyMessages', 'json').nullable();
         field('augmentation', 'json').nullable();
         field('serviceMetadata', 'json').nullable();
+        field('reactions', 'json').nullable();
+        field('edited', 'boolean').nullable();
 
         field('isMuted', 'boolean');
         field('isService', 'boolean');

@@ -50,7 +50,7 @@ function encrypt(value: number, typeId: number, encryptionKey: Buffer, encryptio
         throw new IDMailformedError('Ids can\'t be negative!');
     }
     if (!Number.isInteger(value)) {
-        throw new IDMailformedError('Ids can\'t be float numbers!');
+        throw new IDMailformedError('Ids can\'t be float numbers! Got: ' + value);
     }
     if (value > 2147483647) {
         throw new IDMailformedError('Ids can\'t be bigger than 2147483647. Got: ' + value);

@@ -7,7 +7,6 @@ import { Emails } from '../services/Emails';
 import { NotificationsBot } from '../services/NotificationsBot';
 import { Services } from '../services';
 import { UserError } from '../errors/UserError';
-import { fn, col } from 'sequelize';
 import { geoIP, GeoIPResponse } from '../utils/geoIp/geoIP';
 import { Repos } from '../repositories';
 import { ImageRef } from '../repositories/Media';
@@ -87,33 +86,33 @@ export const Resolver = {
             }
 
             // removing openland stuff from stats
-            let userIds = (await DB.OrganizationMember.findAll({
-                where: {
-                    orgId: 1
-                }
-            })).map(m => m.userId);
+            // let userIds = (await DB.OrganizationMember.findAll({
+            //     where: {
+            //         orgId: 1
+            //     }
+            // })).map(m => m.userId);
 
-            let messages = await DB.ConversationMessage.count({
-                where: {
-                    createdAt: { $gte: _fromDate, $lte: _toDate },
-                    userId: {
-                        $notIn: userIds
-                    }
-                },
-                paranoid: false
-            } as any);
+            // let messages = await DB.ConversationMessage.count({
+            //     where: {
+            //         createdAt: { $gte: _fromDate, $lte: _toDate },
+            //         userId: {
+            //             $notIn: userIds
+            //         }
+            //     },
+            //     paranoid: false
+            // } as any);
 
-            let activeUsers = await DB.ConversationMessage.count({
-                distinct: true,
-                where: {
-                    createdAt: { $gte: _fromDate, $lte: _toDate },
-                    userId: {
-                        $notIn: userIds
-                    }
-                },
-                col: 'userId',
-                paranoid: false
-            } as any);
+            // let activeUsers = await DB.ConversationMessage.count({
+            //     distinct: true,
+            //     where: {
+            //         createdAt: { $gte: _fromDate, $lte: _toDate },
+            //         userId: {
+            //             $notIn: userIds
+            //         }
+            //     },
+            //     col: 'userId',
+            //     paranoid: false
+            // } as any);
 
             // let usersMutedEmail = await DB.UserSettings.count({
             //     where: {
@@ -126,92 +125,93 @@ export const Resolver = {
             //     }
             // });
 
-            let messagesLeaderboard = await DB.ConversationMessage.findAll({
-                limit: 20,
-                where: {
-                    userId: {
-                        $notIn: userIds
-                    }
-                },
-                attributes: [
-                    'userId',
-                    [fn('COUNT', col('conversation_message.userId')), 'count']
-                ],
-                order: [['count', 'DESC']],
-                group: 'userId'
-            });
+            // let messagesLeaderboard = await DB.ConversationMessage.findAll({
+            //     limit: 20,
+            //     where: {
+            //         userId: {
+            //             $notIn: userIds
+            //         }
+            //     },
+            //     attributes: [
+            //         'userId',
+            //         [fn('COUNT', col('conversation_message.userId')), 'count']
+            //     ],
+            //     order: [['count', 'DESC']],
+            //     group: 'userId'
+            // });
 
             return {
-                messagesSent: messages,
-                usersActive: activeUsers,
+                messagesSent: 0,
+                usersActive: 0,
                 usersMutedEmail: 0,
-                messagesLeaderboard,
+                messagesLeaderboard: 0,
                 usersMutedOpenlandBeta: 0
             };
         }),
 
         messagesSentStats: withAny<{ fromDate: string, toDate: string, trunc?: string, excudeTeam?: boolean }>(async args => {
-            let { fromDate, toDate } = args;
+            // let { fromDate, toDate } = args;
 
-            let _fromDate = parseInt(fromDate, 10);
-            let _toDate = parseInt(toDate, 10);
+            // let _fromDate = parseInt(fromDate, 10);
+            // let _toDate = parseInt(toDate, 10);
 
-            if (isNaN(_fromDate) || isNaN(_toDate)) {
-                throw new UserError('toDate & fromDate must be numbers');
-            }
+            // if (isNaN(_fromDate) || isNaN(_toDate)) {
+            //     throw new UserError('toDate & fromDate must be numbers');
+            // }
 
-            if (!(toDate > fromDate)) {
-                throw new UserError('toDate must be greater then fromDate');
-            }
+            // if (!(toDate > fromDate)) {
+            //     throw new UserError('toDate must be greater then fromDate');
+            // }
 
-            let trunc = args.trunc || 'day';
-            let truncs = [
-                'second',
-                'minute',
-                'hour',
-                'day',
-                'week',
-                'month',
-                'quarter',
-                'year',
-            ];
-            if (truncs.indexOf(trunc) === -1) {
-                throw new UserError('invalid trunc');
-            }
-            try {
-                let sequelize = DB.connection;
+            // let trunc = args.trunc || 'day';
+            // let truncs = [
+            //     'second',
+            //     'minute',
+            //     'hour',
+            //     'day',
+            //     'week',
+            //     'month',
+            //     'quarter',
+            //     'year',
+            // ];
+            // if (truncs.indexOf(trunc) === -1) {
+            //     throw new UserError('invalid trunc');
+            // }
+            // try {
+            //     let sequelize = DB.connection;
 
-                // removing openland stuff from stats
-                let userIds: number[] = [];
-                if (args.excudeTeam !== false) {
-                    userIds = (await DB.OrganizationMember.findAll({
-                        where: {
-                            orgId: 1
-                        }
-                    })).map(m => m.userId);
-                }
+            //     // removing openland stuff from stats
+            //     let userIds: number[] = [];
+            //     if (args.excudeTeam !== false) {
+            //         userIds = (await DB.OrganizationMember.findAll({
+            //             where: {
+            //                 orgId: 1
+            //             }
+            //         })).map(m => m.userId);
+            //     }
 
-                let data = await DB.ConversationMessage.findAll({
-                    where: {
-                        createdAt: { $gte: _fromDate, $lte: _toDate },
-                        userId: {
-                            $notIn: userIds
-                        }
-                    },
-                    attributes: [
-                        [sequelize.fn('date_trunc', trunc, sequelize.col('createdAt')), 'date'],
-                        [fn('COUNT', col('conversation_message.id')), 'count']
-                    ],
-                    paranoid: false,
-                    group: ['date'],
-                    order: sequelize.literal('date ASC')
-                } as any);
+            //     let data = await DB.ConversationMessage.findAll({
+            //         where: {
+            //             createdAt: { $gte: _fromDate, $lte: _toDate },
+            //             userId: {
+            //                 $notIn: userIds
+            //             }
+            //         },
+            //         attributes: [
+            //             [sequelize.fn('date_trunc', trunc, sequelize.col('createdAt')), 'date'],
+            //             [fn('COUNT', col('conversation_message.id')), 'count']
+            //         ],
+            //         paranoid: false,
+            //         group: ['date'],
+            //         order: sequelize.literal('date ASC')
+            //     } as any);
 
-                return data;
-            } catch (e) {
-                console.warn(e);
-                throw e;
-            }
+            //     return data;
+            // } catch (e) {
+            //     console.warn(e);
+            //     throw e;
+            // }
+            return null;
 
         }),
 

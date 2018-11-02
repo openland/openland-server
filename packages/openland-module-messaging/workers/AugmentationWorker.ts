@@ -1,5 +1,4 @@
 
-import { DB } from '../../openland-server/tables';
 import linkify from 'linkify-it';
 import tlds from 'tlds';
 import { Services } from '../../openland-server/services';
@@ -18,18 +17,18 @@ export function createAugmentationWorker() {
     let queue = new WorkQueue<{ messageId: number }, { result: string }>('conversation_message_task');
     if (serverRoleEnabled('workers')) {
         queue.addWorker(async (item) => {
-            let message = await DB.ConversationMessage.findById(item.messageId);
+            let message = await FDB.Message.findById(item.messageId);
 
-            if (!message || !message.message) {
+            if (!message || !message.text) {
                 return { result: 'ok' };
             }
 
             // augmentation exists or was deleted
-            if (message.extras.urlAugmentation || message.extras.urlAugmentation === null) {
+            if (message.augmentation || message.augmentation === null) {
                 return { result: 'ok' };
             }
 
-            let urls = linkifyInstance.match(message.message);
+            let urls = linkifyInstance.match(message.text);
 
             if (!urls) {
                 return { result: 'ok' };
@@ -46,35 +45,32 @@ export function createAugmentationWorker() {
             let urlInfo = await Services.URLInfo.fetchURLInfo(firstUrl.url);
 
             if (urlInfo.title) {
-                await DB.txStable(async (tx) => {
-                    if (!message || !message.message) {
-                        return { result: 'ok' };
+                if (!message || !message.text) {
+                    return { result: 'ok' };
+                }
+
+                let members = await Repos.Chats.getConversationMembers(message.cid);
+
+                await inTx(async () => {
+                    let message2 = await FDB.Message.findById(item.messageId);
+                    message2!.augmentation = urlInfo as any;
+
+                    for (let member of members) {
+
+                        let global = await Modules.Messaging.repo.getUserMessagingState(member);
+                        global.seq++;
+                        await FDB.UserDialogEvent.create(member, global.seq, {
+                            kind: 'message_updated',
+                            mid: message!.id
+                        });
+
                     }
 
-                    message!.extras.urlAugmentation = urlInfo as any;
-                    (message as any).changed('extras', true);
-                    await message.save();
-
-                    let members = await Repos.Chats.getConversationMembers(message.conversationId, tx);
-
-                    await inTx(async () => {
-                        for (let member of members) {
-
-                            let global = await Modules.Messaging.repo.getUserMessagingState(member);
-                            global.seq++;
-                            await FDB.UserDialogEvent.create(member, global.seq, {
-                                kind: 'message_updated',
-                                mid: message!.id
-                            });
-
-                        }
-
-                        let seq = await Modules.Messaging.repo.fetchConversationNextSeq(message!.conversationId);
-                        await FDB.ConversationEvent.create(message!.conversationId, seq, { kind: 'message_updated', mid: message!.id });
-                    });
-
-                    return { result: 'ok' };
+                    let seq = await Modules.Messaging.repo.fetchConversationNextSeq(message!.cid);
+                    await FDB.ConversationEvent.create(message!.cid, seq, { kind: 'message_updated', mid: message!.id });
                 });
+
+                return { result: 'ok' };
             }
 
             return { result: 'ok' };

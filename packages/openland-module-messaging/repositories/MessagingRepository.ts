@@ -140,6 +140,27 @@ export class MessagingRepository {
         });
     }
 
+    async findTopMessage(cid: number) {
+        let res = await this.entities.Message.rangeFromChat(cid, 1, true);
+        if (res.length === 0) {
+            return null;
+        } else {
+            return res[0];
+        }
+    }
+
+    async fetchNextMessageId() {
+        return await inTx(async () => {
+            let ex = await this.entities.Sequence.findById('message-id');
+            if (ex) {
+                return ++ex.value;
+            } else {
+                await this.entities.Sequence.create('message-id', { value: 1 });
+                return 1;
+            }
+        });
+    }
+
     // async updateUserUnreadCounter(uid: number, delta: number) {
     //     if (delta === 0) {
     //         return;

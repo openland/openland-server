@@ -48,13 +48,13 @@ export default {
     },
 
     ConversationMessageReceived: {
-        message: (src: ConversationEvent) => DB.ConversationMessage.findById(src.mid!, { paranoid: false })
+        message: (src: ConversationEvent) => FDB.Message.findById(src.mid!)
     },
     ConversationMessageUpdated: {
-        message: (src: ConversationEvent) => DB.ConversationMessage.findById(src.mid!, { paranoid: false })
+        message: (src: ConversationEvent) => FDB.Message.findById(src.mid!)
     },
     ConversationMessageDeleted: {
-        message: (src: ConversationEvent) => DB.ConversationMessage.findById(src.mid!, { paranoid: false })
+        message: (src: ConversationEvent) => FDB.Message.findById(src.mid!)
     },
 
     Subscription: {

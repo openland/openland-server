@@ -90,7 +90,7 @@ export async function initApi(isTest: boolean) {
             if (data.result === 'passed') {
                 let text = `${data.commit.author_name} ${data.event === 'deploy' ? 'deployed' : 'build'} :tada: - ${data.commit.message} to ${data.project_name}`;
 
-                await Repos.Chats.sendMessage(tx, chatId, botId, { message: text });
+                await Repos.Chats.sendMessage(chatId, botId, { message: text });
             }
         });
     }));

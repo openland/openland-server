@@ -57,12 +57,7 @@ export const Resolver = {
                 return null;
             }
 
-            return await DB.ConversationMessage.find({
-                where: {
-                    conversationId: src.id,
-                },
-                order: [['id', 'DESC']]
-            });
+            return await FDB.Message.rangeFromChat(src.id, 1, true);
         },
         membersCount: (src: Conversation) => Repos.Chats.membersCountInConversation(src.id),
         memberRequestsCount: (src: Conversation) => Repos.Chats.membersCountInConversation(src.id, 'requested'),
@@ -92,7 +87,7 @@ export const Resolver = {
         photoRef: (src: Conversation) => src.extras && src.extras.picture,
         socialImage: (src: Conversation) => src.extras && src.extras.socialImage ? buildBaseImageUrl(src.extras.socialImage as any) : null,
         socialImageRef: (src: Conversation) => src.extras && src.extras.socialImage,
-        pinnedMessage: (src: Conversation) => src.extras && src.extras.pinnedMessage ? DB.ConversationMessage.findById(src.extras.pinnedMessage as any) : null,
+        pinnedMessage: (src: Conversation) => null,
         membersOnline: async (src: Conversation) => {
             // let res = await DB.ConversationGroupMembers.findAll({
             //     where: {
@@ -198,9 +193,9 @@ export const Resolver = {
                 }, { transaction: tx });
 
                 if (args.message) {
-                    await Repos.Chats.sendMessage(tx, chat.id, uid, { message: args.message });
+                    await Repos.Chats.sendMessage(chat.id, uid, { message: args.message });
                 } else {
-                    await Repos.Chats.sendMessage(tx, chat.id, uid, { message: 'Channel created', isService: true });
+                    await Repos.Chats.sendMessage(chat.id, uid, { message: 'Channel created', isService: true });
                 }
                 return chat;
             });
@@ -265,7 +260,6 @@ export const Resolver = {
                         let name = (await Modules.Users.profileById(userId))!.firstName;
 
                         await Repos.Chats.sendMessage(
-                            tx,
                             channelId,
                             userId,
                             {
@@ -346,7 +340,6 @@ export const Resolver = {
                         let name = (await Modules.Users.profileById(uid))!.firstName;
 
                         await Repos.Chats.sendMessage(
-                            tx,
                             channelId,
                             uid,
                             {
@@ -385,7 +378,6 @@ export const Resolver = {
                     }, { transaction: tx });
 
                     await Repos.Chats.sendMessage(
-                        tx,
                         channelId,
                         uid,
                         {
@@ -545,7 +537,6 @@ export const Resolver = {
                         let name = (await Modules.Users.profileById(uid!))!.firstName;
 
                         await Repos.Chats.sendMessage(
-                            tx,
                             invite.channelId,
                             uid!,
                             {

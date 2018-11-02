@@ -1,7 +1,6 @@
 import { DB } from '../tables';
 import { Transaction } from 'sequelize';
 import { JsonMap } from '../utils/json';
-import { DoubleInvokeError } from '../errors/DoubleInvokeError';
 import { NotFoundError } from '../errors/NotFoundError';
 import { Repos } from './index';
 import { AccessDeniedError } from '../errors/AccessDeniedError';
@@ -13,9 +12,6 @@ import { Modules } from 'openland-modules/Modules';
 import { withTracing } from 'openland-log/withTracing';
 import { createTracer } from 'openland-log/createTracer';
 import { inTx } from 'foundation-orm/inTx';
-import { CallContext } from 'openland-server/api/utils/CallContext';
-import DataLoader from 'dataloader';
-import { ConversationMessage } from 'openland-server/tables/ConversationMessage';
 import { FDB } from 'openland-module-db/FDB';
 import { ConversationEvent } from 'openland-module-db/schema';
 // import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent';
@@ -142,34 +138,14 @@ export class ChatsRepository {
         return parts.join('\n');
     }
 
-    async sendMessage(tx: Transaction, conversationId: number, uid: number, message: Message): Promise<ConversationEvent> {
+    async sendMessage(conversationId: number, uid: number, message: Message): Promise<ConversationEvent> {
         return await withTracing(tracer, 'send_message', async () => {
             return await inTx(async () => {
                 if (message.message === 'fuck') {
                     throw Error('');
                 }
 
-                //
-                // Handle retry
-                //
-                if (message.repeatKey) {
-                    if (await DB.ConversationMessage.find({
-                        where: {
-                            userId: uid,
-                            conversationId: conversationId,
-                            repeatToken: message.repeatKey
-                        },
-                        transaction: tx,
-                        lock: tx.LOCK.UPDATE
-                    })) {
-                        throw new DoubleInvokeError();
-                    }
-                }
-
-                let conv = await DB.Conversation.findById(conversationId, {
-                    lock: tx.LOCK.UPDATE,
-                    transaction: tx
-                });
+                let conv = await DB.Conversation.findById(conversationId);
                 if (!conv) {
                     throw new NotFoundError('Conversation not found');
                 }
@@ -177,101 +153,81 @@ export class ChatsRepository {
                 //
                 // Check access
                 //
-                await this.checkAccessToChat(uid, conv, tx);
+                await this.checkAccessToChat(uid, conv);
 
                 // 
                 // Persist Messages
                 //
-
-                let msg = await DB.ConversationMessage.create({
-                    message: message.message,
-                    fileId: message.file,
-                    fileMetadata: message.fileMetadata,
-                    conversationId: conversationId,
-                    userId: uid,
-                    repeatToken: message.repeatKey,
+                let mid = await Modules.Messaging.repo.fetchNextMessageId();
+                await FDB.Message.create(mid, {
+                    cid: conversationId,
+                    uid: uid,
                     isMuted: message.isMuted || false,
                     isService: message.isService || false,
-                    extras: {
-                        serviceMetadata: message.serviceMetadata || {},
-                        ...message.urlAugmentation ? { urlAugmentation: message.urlAugmentation as any } : {},
-                        ...message.replyMessages ? { replyMessages: message.replyMessages } : {},
-                        filePreview: message.filePreview || null,
-                        plainText: await this.messageToText(message),
-                        ...message.mentions ? { mentions: message.mentions } : {}
-                    }
-                }, { transaction: tx });
-
-                return await inTx(async () => {
-                    let seq = await Modules.Messaging.repo.fetchConversationNextSeq(conversationId);
-                    let res = await FDB.ConversationEvent.create(conversationId, seq, {
-                        kind: 'message_received',
-                        mid: msg.id
-                    });
-                    await Modules.Drafts.clearDraft(uid, conversationId);
-                    await Modules.Messaging.DeliveryWorker.pushWork({ messageId: msg.id });
-                    return res;
+                    fileId: message.file,
+                    fileMetadata: message.fileMetadata,
+                    text: message.message,
+                    serviceMetadata: message.serviceMetadata || null,
+                    augmentation: message.urlAugmentation,
+                    replyMessages: message.replyMessages,
+                    mentions: message.mentions,
+                    repeatKey: message.repeatKey,
+                    deleted: false
                 });
+
+                let seq = await Modules.Messaging.repo.fetchConversationNextSeq(conversationId);
+                let res = await FDB.ConversationEvent.create(conversationId, seq, {
+                    kind: 'message_received',
+                    mid: mid
+                });
+                await Modules.Drafts.clearDraft(uid, conversationId);
+                await Modules.Messaging.DeliveryWorker.pushWork({ messageId: mid });
+                return res;
             });
         });
     }
 
     async editMessage(tx: Transaction, messageId: number, uid: number, newMessage: Message, markAsEdited: boolean): Promise<ConversationEvent> {
-        let message = await DB.ConversationMessage.findById(messageId, { transaction: tx });
-
-        if (!message) {
-            throw new Error('Message not found');
-        }
-
-        if (message.userId !== uid) {
-            throw new AccessDeniedError();
-        }
-
-        if (newMessage.message) {
-            message.message = newMessage.message;
-        }
-        if (newMessage.file) {
-            message.fileId = newMessage.file;
-        }
-        if (newMessage.fileMetadata) {
-            (message as any).changed('fileMetadata', true);
-            message.fileMetadata = newMessage.fileMetadata;
-        }
-        if (newMessage.filePreview) {
-            (message as any).changed('extras', true);
-            message.extras.filePreview = newMessage.filePreview;
-        }
-        if (newMessage.replyMessages) {
-            (message as any).changed('extras', true);
-            message.extras.replyMessages = newMessage.replyMessages;
-        }
-        if (newMessage.urlAugmentation || newMessage.urlAugmentation === null) {
-            (message as any).changed('extras', true);
-            message.extras.urlAugmentation = newMessage.urlAugmentation as any;
-        }
-        if (newMessage.mentions) {
-            (message as any).changed('extras', true);
-            message.extras.mentions = newMessage.mentions;
-        }
-
-        if (markAsEdited) {
-            (message as any).changed('extras', true);
-            message.extras.edited = true;
-        }
-
-        (message as any).changed('extras', true);
-        message.extras.plainText = await this.messageToText(newMessage);
-
-        console.log(message.extras);
-
-        await message.save({ transaction: tx });
-
-        await Modules.Messaging.AugmentationWorker.pushWork({ messageId: message.id });
-
-        let members = await this.getConversationMembers(message.conversationId, tx);
         return await inTx(async () => {
-            for (let member of members) {
+            let message = await FDB.Message.findById(messageId);
 
+            if (!message) {
+                throw new Error('Message not found');
+            }
+
+            if (message.uid !== uid) {
+                throw new AccessDeniedError();
+            }
+
+            if (newMessage.message) {
+                message.text = newMessage.message;
+            }
+            if (newMessage.file) {
+                message.fileId = newMessage.file;
+            }
+            if (newMessage.fileMetadata) {
+                message.fileMetadata = newMessage.fileMetadata;
+            }
+            // if (newMessage.filePreview) {
+            //     (message as any).changed('extras', true);
+            //     message.extras.filePreview = newMessage.filePreview;
+            // }
+            if (newMessage.replyMessages) {
+                message.replyMessages = newMessage.replyMessages;
+            }
+            if (newMessage.urlAugmentation || newMessage.urlAugmentation === null) {
+                message.augmentation = newMessage.urlAugmentation;
+            }
+            if (newMessage.mentions) {
+                message.mentions = newMessage.mentions;
+            }
+
+            if (markAsEdited) {
+                message.edited = true;
+            }
+
+            let members = await this.getConversationMembers(message.cid, tx);
+            for (let member of members) {
                 let global = await Modules.Messaging.repo.getUserMessagingState(member);
                 global.seq++;
                 await FDB.UserDialogEvent.create(member, global.seq, {
@@ -280,43 +236,41 @@ export class ChatsRepository {
                 });
             }
 
-            let seq = await Modules.Messaging.repo.fetchConversationNextSeq(message!.conversationId);
-            return await FDB.ConversationEvent.create(message!.conversationId, seq, {
+            let seq = await Modules.Messaging.repo.fetchConversationNextSeq(message!.cid);
+            let res = await FDB.ConversationEvent.create(message!.cid, seq, {
                 kind: 'message_updated',
                 mid: message!.id
             });
+
+            await Modules.Messaging.AugmentationWorker.pushWork({ messageId: message.id });
+
+            return res;
         });
     }
 
-    async setReaction(tx: Transaction, messageId: number, uid: number, reaction: string, reset: boolean = false) {
-        let message = await DB.ConversationMessage.findById(messageId, { transaction: tx });
-
-        if (!message) {
-            throw new Error('Message not found');
-        }
-
-        let reactions: { reaction: string, userId: number }[] = message.extras.reactions as any || [];
-
-        if (reactions.find(r => (r.userId === uid) && (r.reaction === reaction))) {
-            if (reset) {
-                reactions = reactions.filter(r => !((r.userId === uid) && (r.reaction === reaction)));
-            } else {
-                return;
-
-            }
-        } else {
-            reactions.push({ userId: uid, reaction });
-        }
-
-        message.extras.reactions = reactions;
-        (message as any).changed('extras', true);
-
-        await message.save({ transaction: tx });
-
+    async setReaction(messageId: number, uid: number, reaction: string, reset: boolean = false) {
         return await inTx(async () => {
-            let members = await this.getConversationMembers(message!.conversationId, tx);
-            for (let member of members) {
+            let message = await FDB.Message.findById(messageId);
 
+            if (!message) {
+                throw new Error('Message not found');
+            }
+
+            let reactions: { reaction: string, userId: number }[] = message.reactions as any || [];
+            if (reactions.find(r => (r.userId === uid) && (r.reaction === reaction))) {
+                if (reset) {
+                    reactions = reactions.filter(r => !((r.userId === uid) && (r.reaction === reaction)));
+                } else {
+                    return;
+
+                }
+            } else {
+                reactions.push({ userId: uid, reaction });
+            }
+            message.reactions = reactions;
+
+            let members = await this.getConversationMembers(message!.cid);
+            for (let member of members) {
                 let global = await Modules.Messaging.repo.getUserMessagingState(member);
                 global.seq++;
                 await FDB.UserDialogEvent.create(member, global.seq, {
@@ -325,8 +279,8 @@ export class ChatsRepository {
                 });
             }
 
-            let seq = await Modules.Messaging.repo.fetchConversationNextSeq(message!.conversationId);
-            return await FDB.ConversationEvent.create(message!.conversationId, seq, {
+            let seq = await Modules.Messaging.repo.fetchConversationNextSeq(message!.cid);
+            return await FDB.ConversationEvent.create(message!.cid, seq, {
                 kind: 'message_updated',
                 mid: message!.id
             });
@@ -334,34 +288,33 @@ export class ChatsRepository {
     }
 
     async deleteMessage(tx: Transaction, messageId: number, uid: number): Promise<ConversationEvent> {
-        let message = await DB.ConversationMessage.findById(messageId, { transaction: tx });
-
-        if (!message) {
-            throw new Error('Message not found');
-        }
-
-        if (message.userId !== uid) {
-            if (await Repos.Permissions.superRole(uid) !== 'super-admin') {
-                throw new AccessDeniedError();
-            }
-        }
-
-        //
-        // Delete message
-        //
-
-        await message.destroy();
-
-        //
-        //  Update counters
-        //
-
-        let members = await this.getConversationMembers(message.conversationId, tx);
-
         return await inTx(async () => {
+            let message = await FDB.Message.findById(messageId);
+
+            if (!message) {
+                throw new Error('Message not found');
+            }
+
+            if (message.uid !== uid) {
+                if (await Repos.Permissions.superRole(uid) !== 'super-admin') {
+                    throw new AccessDeniedError();
+                }
+            }
+
+            //
+            // Delete message
+            //
+
+            message.deleted = true;
+
+            //
+            //  Update counters
+            //
+
+            let members = await this.getConversationMembers(message.cid, tx);
             for (let member of members) {
 
-                let existing = await Modules.Messaging.repo.getUserDialogState(member, message!.conversationId);
+                let existing = await Modules.Messaging.repo.getUserDialogState(member, message!.cid);
                 let global = await Modules.Messaging.repo.getUserMessagingState(member);
 
                 if (member !== uid) {
@@ -372,7 +325,7 @@ export class ChatsRepository {
 
                         await FDB.UserDialogEvent.create(member, global.seq, {
                             kind: 'message_read',
-                            cid: message!.conversationId,
+                            cid: message!.cid,
                             unread: existing.unread,
                             allUnread: global.unread
                         });
@@ -386,8 +339,8 @@ export class ChatsRepository {
                 });
             }
 
-            let seq = await Modules.Messaging.repo.fetchConversationNextSeq(message!.conversationId);
-            return await FDB.ConversationEvent.create(message!.conversationId, seq, {
+            let seq = await Modules.Messaging.repo.fetchConversationNextSeq(message!.cid);
+            return await FDB.ConversationEvent.create(message!.cid, seq, {
                 kind: 'message_deleted',
                 mid: message!.id
             });
@@ -516,22 +469,6 @@ export class ChatsRepository {
                         members.push(i.userId);
                     }
                 }
-
-                // let orgs = await DB.ConversationChannelMembers.findAll({
-                //     where: {
-                //         conversationId: conv.id,
-                //         status: 'member'
-                //     },
-                //     transaction: tx
-                // });
-                //
-                // for (let org of orgs) {
-                //     let orgMembers = await Repos.Organizations.getOrganizationMembers(org.orgId);
-                //
-                //     for (let member of orgMembers) {
-                //         members.push(member.userId);
-                //     }
-                // }
             }
 
             return members;
@@ -546,25 +483,6 @@ export class ChatsRepository {
             }
         });
     }
-
-    // async addChatEvent(conversationId: number, eventType: ChatEventType, event: JsonMap, exTx?: Transaction): Promise<ConversationEvent> {
-    //     return await DB.txStable(async (tx) => {
-    //         let conv = await DB.Conversation.findById(conversationId, { lock: tx.LOCK.UPDATE, transaction: tx });
-    //         if (!conv) {
-    //             throw new NotFoundError('Conversation not found');
-    //         }
-    //         let seq = conv.seq + 1;
-    //         conv.seq = seq;
-    //         await conv.save({ transaction: tx });
-
-    //         return await DB.ConversationEvent.create({
-    //             conversationId: conversationId,
-    //             eventType: eventType,
-    //             event,
-    //             seq: seq
-    //         }, { transaction: tx });
-    //     }, exTx);
-    // }
 
     async blockUser(tx: Transaction, userId: number, blockedBy: number, conversation?: number) {
         let user = DB.User.findOne({ where: { id: userId } });
@@ -639,7 +557,6 @@ export class ChatsRepository {
         }
 
         await Repos.Chats.sendMessage(
-            tx,
             channelId,
             uid,
             {
@@ -712,7 +629,7 @@ export class ChatsRepository {
         throw new Error('Unknown chat type');
     }
 
-    async checkAccessToChat(uid: number, conversation: Conversation, tx: Transaction) {
+    async checkAccessToChat(uid: number, conversation: Conversation) {
         let blocked;
         if (conversation.type === 'private') {
             blocked = await DB.ConversationBlocked.findOne({ where: { user: uid, blockedBy: uid === conversation.member1Id ? conversation.member2Id : conversation.member1Id, conversation: null } });
@@ -724,87 +641,9 @@ export class ChatsRepository {
         }
 
         if (conversation.type === 'channel' || conversation.type === 'group') {
-            if (!(await DB.ConversationGroupMembers.findOne({ where: { conversationId: conversation.id, userId: uid }, transaction: tx }))) {
+            if (!(await DB.ConversationGroupMembers.findOne({ where: { conversationId: conversation.id, userId: uid } }))) {
                 throw new AccessDeniedError();
             }
         }
-    }
-
-    async pinMessage(tx: Transaction, uid: number, conversationId: number, messageId: number | undefined) {
-        let conv = await DB.Conversation.findById(conversationId, {
-            lock: tx.LOCK.UPDATE,
-            transaction: tx
-        });
-        if (!conv) {
-            throw new NotFoundError('Conversation not found');
-        }
-        if (conv.type !== 'channel' && conv.type !== 'group') {
-            throw new NotFoundError();
-        }
-        await this.checkAccessToChat(uid, conv, tx);
-
-        let prev = conv.extras && conv.extras.pinnedMessage || undefined;
-
-        if (prev !== messageId) {
-            conv.extras.pinnedMessage = messageId || null;
-            (conv as any).changed('extras', true);
-            await conv.save({ transaction: tx });
-
-            // await Repos.Chats.addChatEvent(
-            //     conversationId,
-            //     'chat_update',
-            //     {},
-            //     tx
-            // );
-
-            // await Repos.Chats.addUserEventsInConversation(
-            //     conversationId,
-            //     uid,
-            //     'chat_update',
-            //     {
-            //         conversationId
-            //     },
-            //     tx
-            // );
-
-            await conv.reload({ transaction: tx });
-        }
-
-        return {
-            chat: conv,
-            curSeq: conv.seq
-        };
-    }
-
-    messageLoader(context: CallContext) {
-        if (!context.cache.has('__message_loader')) {
-            context.cache.set('__message_loader', new DataLoader<number, ConversationMessage | null>(async (ids) => {
-                let foundTokens = await DB.ConversationMessage.findAll({
-                    where: {
-                        id: {
-                            $in: ids
-                        }
-                    }
-                });
-
-                let res: (ConversationMessage | null)[] = [];
-                for (let i of ids) {
-                    let found = false;
-                    for (let f of foundTokens) {
-                        if (i === f.id) {
-                            res.push(f);
-                            found = true;
-                            break;
-                        }
-                    }
-                    if (!found) {
-                        res.push(null);
-                    }
-                }
-                return res;
-            }));
-        }
-        let loader = context.cache.get('__message_loader') as DataLoader<number, ConversationMessage | null>;
-        return loader;
     }
 }

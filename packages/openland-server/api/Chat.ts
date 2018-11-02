@@ -1,4 +1,3 @@
-import { ConversationMessage } from '../tables/ConversationMessage';
 import { IDs, IdsFactory } from './utils/IDs';
 import { Conversation } from '../tables/Conversation';
 import { DB, User } from '../tables';
@@ -28,7 +27,7 @@ import { Sanitizer } from '../modules/Sanitizer';
 import { URLAugmentation } from '../services/UrlInfoService';
 import { Modules } from 'openland-modules/Modules';
 import { OnlineEvent } from '../../openland-module-presences/PresenceModule';
-import { UserProfile, UserDialogSettings } from 'openland-module-db/schema';
+import { UserProfile, UserDialogSettings, Message } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
 import { TypingEvent } from 'openland-module-typings/TypingEvent';
 import { withLogContext } from 'openland-log/withLogContext';
@@ -65,12 +64,7 @@ export const Resolver = {
                 return 0;
             }
         },
-        topMessage: (src: Conversation) => DB.ConversationMessage.find({
-            where: {
-                conversationId: src.id,
-            },
-            order: [['id', 'DESC']]
-        }),
+        topMessage: (src: Conversation) => Modules.Messaging.repo.findTopMessage(src.id!),
         settings: (src: Conversation, _: any, context: CallContext) => Modules.Messaging.getConversationSettings(context.uid!!, src.id),
     },
     SharedConversation: {
@@ -125,12 +119,7 @@ export const Resolver = {
                 return 0;
             }
         },
-        topMessage: (src: Conversation) => DB.ConversationMessage.find({
-            where: {
-                conversationId: src.id,
-            },
-            order: [['id', 'DESC']]
-        }),
+        topMessage: (src: Conversation) => Modules.Messaging.repo.findTopMessage(src.id!),
         organization: async (src: Conversation, _: any, context: CallContext) => {
             if (src.organization1Id === context.oid || (src.organization1 && src.organization1.id === context.oid)) {
                 return (src.organization2 || await src.getOrganization2())!!;
@@ -191,12 +180,7 @@ export const Resolver = {
                 return 0;
             }
         },
-        topMessage: (src: Conversation) => DB.ConversationMessage.find({
-            where: {
-                conversationId: src.id,
-            },
-            order: [['id', 'DESC']]
-        }),
+        topMessage: (src: Conversation) => Modules.Messaging.repo.findTopMessage(src.id!),
         user: async (src: Conversation, _: any, context: CallContext) => {
             let uid;
             if (src.member1Id === context.uid || (src.member1 && src.member1.id === context.uid)) {
@@ -292,12 +276,7 @@ export const Resolver = {
                 return null;
             }
 
-            return await DB.ConversationMessage.find({
-                where: {
-                    conversationId: src.id,
-                },
-                order: [['id', 'DESC']]
-            });
+            return Modules.Messaging.repo.findTopMessage(src.id!);
         },
         membersCount: (src: Conversation) => Repos.Chats.membersCountInConversation(src.id),
         settings: (src: Conversation, _: any, context: CallContext) => Modules.Messaging.getConversationSettings(context.uid!!, src.id),
@@ -306,7 +285,7 @@ export const Resolver = {
         photoRef: (src: Conversation) => src.extras && src.extras.picture,
         description: (src: Conversation) => src.extras.description || '',
         longDescription: (src: Conversation) => src.extras.longDescription || '',
-        pinnedMessage: (src: Conversation) => src.extras && src.extras.pinnedMessage ? DB.ConversationMessage.findById(src.extras.pinnedMessage as any) : null,
+        pinnedMessage: (src: Conversation) => null,
         membersOnline: async (src: Conversation) => {
             // let res = await DB.ConversationGroupMembers.findAll({
             //     where: {
@@ -387,10 +366,13 @@ export const Resolver = {
 
     },
     ConversationMessage: {
-        id: (src: ConversationMessage) => IDs.ConversationMessage.serialize(src.id),
-        message: (src: ConversationMessage) => src.message,
-        file: (src: ConversationMessage) => src.fileId,
-        fileMetadata: (src: ConversationMessage) => {
+        id: (src: Message) => {
+            console.log(src);
+            return IDs.ConversationMessage.serialize(src.id);
+        },
+        message: (src: Message) => src.text,
+        file: (src: Message) => src.fileId,
+        fileMetadata: (src: Message) => {
             if (src.fileId && src.fileMetadata) {
                 return {
                     name: src.fileMetadata.name,
@@ -405,26 +387,26 @@ export const Resolver = {
                 return null;
             }
         },
-        filePreview: (src: ConversationMessage) => src.extras.filePreview || null,
-        sender: (src: ConversationMessage, _: any, context: CallContext) => Repos.Users.userLoader(context).load(src.userId),
-        date: (src: ConversationMessage) => src.createdAt,
-        repeatKey: (src: ConversationMessage, args: any, context: CallContext) => src.userId === context.uid ? src.repeatToken : null,
-        isService: (src: ConversationMessage) => src.isService,
-        serviceMetadata: (src: ConversationMessage) => {
-            if (src.extras && src.extras.serviceMetadata && (src.extras.serviceMetadata as any).type) {
-                return src.extras.serviceMetadata;
+        filePreview: (src: Message) => null,
+        sender: (src: Message, _: any, context: CallContext) => Repos.Users.userLoader(context).load(src.uid),
+        date: (src: Message) => src.createdAt,
+        repeatKey: (src: Message, args: any, context: CallContext) => src.uid === context.uid ? src.repeatKey : null,
+        isService: (src: Message) => src.isService,
+        serviceMetadata: (src: Message) => {
+            if (src.serviceMetadata && (src.serviceMetadata as any).type) {
+                return src.serviceMetadata;
             }
 
             return null;
         },
-        urlAugmentation: (src: ConversationMessage) => src.extras && src.extras.urlAugmentation,
-        edited: (src: ConversationMessage) => (src.extras && src.extras.edited) || false,
-        reactions: (src: ConversationMessage) => src.extras.reactions || [],
-        replyMessages: async (src: ConversationMessage) => {
-            return src.extras.replyMessages ? (src.extras.replyMessages as number[]).map(id => DB.ConversationMessage.findById(id)) : null;
+        urlAugmentation: (src: Message) => src.augmentation,
+        edited: (src: Message) => (src.edited) || false,
+        reactions: (src: Message) => src.reactions || [],
+        replyMessages: async (src: Message) => {
+            return src.replyMessages ? (src.replyMessages as number[]).map(id => FDB.Message.findById(id)) : null;
         },
-        plainText: async (src: ConversationMessage) => src.extras && src.extras.plainText,
-        mentions: async (src: ConversationMessage) => src.extras && src.extras.mentions ? (src.extras.mentions as number[]).map(id => DB.User.findById(id)) : null
+        plainText: async (src: Message) => null,
+        mentions: async (src: Message) => src.mentions ? (src.mentions as number[]).map(id => DB.User.findById(id)) : null
     },
     InviteServiceMetadata: {
         users: (src: any) => src.userIds.map((id: number) => DB.User.findById(id)),
@@ -569,27 +551,39 @@ export const Resolver = {
                     }
                 }
 
-                let beforeMessage: ConversationMessage | null = null;
-                if (args.before) {
-                    beforeMessage = await DB.ConversationMessage.findOne({ where: { id: IDs.ConversationMessage.parse(args.before) } });
-                }
-                let afterMessage: ConversationMessage | null = null;
-                if (args.after) {
-                    afterMessage = await DB.ConversationMessage.findOne({ where: { id: IDs.ConversationMessage.parse(args.after) } });
-                }
+                // let beforeMessage: Message | null = null;
+                // if (args.before) {
+                //     beforeMessage = await FDB.Message.findById(IDs.ConversationMessage.parse(args.before));
+                // }
+                // let afterMessage: Message | null = null;
+                // if (args.after) {
+                //     afterMessage = await FDB.Message.findById(IDs.ConversationMessage.parse(args.after));
+                // }
                 let seq = (conversation)!!.seq;
                 return {
                     seq: seq,
-                    messages: await (DB.ConversationMessage.findAll({
-                        where: {
-                            conversationId: conversationId,
-                            ...((beforeMessage || afterMessage) ? { id: beforeMessage ? { $lt: beforeMessage.id } : { $gt: afterMessage!!.id } } : {}),
-                        },
-                        limit: args.first,
-                        order: [['id', 'DESC']],
-                        transaction: tx
-                    }))
+                    messages: await FDB.Message.rangeFromChat(conversationId, args.first!, true)
                 };
+                // if (beforeMessage) {
+                //     return {
+                //         seq: seq,
+                //         messages: await FDB.Message.rangeFromChat(conversationId, args.first!, true)
+                //     };
+                // } else if (afterMessage) {
+
+                // }
+                // return {
+                //     seq: seq,
+                //     messages: await (DB.ConversationMessage.findAll({
+                //         where: {
+                //             conversationId: conversationId,
+                //             ...((beforeMessage || afterMessage) ? { id: beforeMessage ? { $lt: beforeMessage.id } : { $gt: afterMessage!!.id } } : {}),
+                //         },
+                //         limit: args.first,
+                //         order: [['id', 'DESC']],
+                //         transaction: tx
+                //     }))
+                // };
             });
         }),
         alphaChatsSearchForCompose: withAccount<{ query: string, organizations: boolean, limit?: number }>(async (args, uid, oid) => {
@@ -701,13 +695,8 @@ export const Resolver = {
             let conversationId = IDs.Conversation.parse(args.conversationId);
             let messageId = IDs.ConversationMessage.parse(args.messageId);
             await inTx(async () => {
-                let msg = await DB.ConversationMessage.find({
-                    where: {
-                        id: messageId,
-                        conversationId: conversationId
-                    }
-                });
-                if (!msg) {
+                let msg = await FDB.Message.findById(messageId);
+                if (!msg || msg.cid !== conversationId) {
                     throw Error('Invalid request');
                 }
 
@@ -717,17 +706,7 @@ export const Resolver = {
                 let totalUnread = 0;
                 if (existing) {
                     if (!existing.readMessageId || existing.readMessageId < messageId) {
-                        let remaining = await DB.ConversationMessage.count({
-                            where: {
-                                conversationId,
-                                id: {
-                                    $gt: messageId
-                                },
-                                userId: {
-                                    $not: uid
-                                }
-                            }
-                        });
+                        let remaining = (await FDB.Message.allFromChatAfter(conversationId, messageId)).filter((v) => v.uid !== uid).length;
                         if (remaining === 0) {
                             delta = -existing.unread;
                             existing.unread = 0;
@@ -740,17 +719,7 @@ export const Resolver = {
                         }
                     }
                 } else {
-                    let remaining = await DB.ConversationMessage.count({
-                        where: {
-                            conversationId,
-                            id: {
-                                $gt: messageId
-                            },
-                            userId: {
-                                $not: uid
-                            }
-                        }
-                    });
+                    let remaining = (await FDB.Message.allFromChatAfter(conversationId, messageId)).filter((v) => v.uid !== uid).length;
                     if (remaining > 0) {
                         await FDB.UserDialog.create(uid, conversationId, {
                             readMessageId: messageId,
@@ -821,7 +790,7 @@ export const Resolver = {
                 }
 
                 return await DB.txLight(async (tx) => {
-                    return (await Repos.Chats.sendMessage(tx, conversationId, uid!, {
+                    return (await Repos.Chats.sendMessage(conversationId, uid!, {
                         message: args.message,
                         file: args.file,
                         fileMetadata,
@@ -863,7 +832,7 @@ export const Resolver = {
                     throw new NotFoundError();
                 }
 
-                return (await Repos.Chats.sendMessage(tx, conversationId, uid!, {
+                return (await Repos.Chats.sendMessage(conversationId, uid!, {
                     message: args.message,
                     file: args.file,
                     fileMetadata,
@@ -1024,9 +993,9 @@ export const Resolver = {
                 }
 
                 if (args.message) {
-                    await Repos.Chats.sendMessage(tx, conv.id, uid, { message: args.message });
+                    await Repos.Chats.sendMessage(conv.id, uid, { message: args.message });
                 } else {
-                    await Repos.Chats.sendMessage(tx, conv.id, uid, { message: 'Group created', isService: true });
+                    await Repos.Chats.sendMessage(conv.id, uid, { message: 'Group created', isService: true });
                 }
                 return conv;
             });
@@ -1054,7 +1023,7 @@ export const Resolver = {
                     chatChanged = true;
                     chat.title = args.input.title!.trim();
 
-                    await Repos.Chats.sendMessage(tx, conversationId, uid, {
+                    await Repos.Chats.sendMessage(conversationId, uid, {
                         message: `New chat title: ${args.input.title}`,
                         isService: true,
                         isMuted: true,
@@ -1075,7 +1044,7 @@ export const Resolver = {
                     (chat as any).changed('extras', true);
                     chat.extras.picture = imageRef as any;
 
-                    await Repos.Chats.sendMessage(tx, conversationId, uid, {
+                    await Repos.Chats.sendMessage(conversationId, uid, {
                         message: `New chat photo`,
                         isService: true,
                         isMuted: true,
@@ -1171,7 +1140,7 @@ export const Resolver = {
                 //     tx
                 // );
 
-                await Repos.Chats.sendMessage(tx, conversationId, uid, {
+                await Repos.Chats.sendMessage(conversationId, uid, {
                     message: `New chat title: ${args.title}`,
                     isService: true,
                     isMuted: true,
@@ -1247,7 +1216,6 @@ export const Resolver = {
                 }
 
                 await Repos.Chats.sendMessage(
-                    tx,
                     conversationId,
                     uid,
                     {
@@ -1341,7 +1309,6 @@ export const Resolver = {
                 let profile = await Modules.Users.profileById(member.userId);
 
                 await Repos.Chats.sendMessage(
-                    tx,
                     conversationId,
                     uid,
                     {
@@ -1489,7 +1456,7 @@ export const Resolver = {
                     }, { transaction: tx });
                 }
 
-                await Repos.Chats.sendMessage(tx, conv.id, uid, { message: args.message });
+                await Repos.Chats.sendMessage(conv.id, uid, { message: args.message });
 
                 return {
                     chat
@@ -1573,7 +1540,6 @@ export const Resolver = {
                 let profile = await Modules.Users.profileById(uid);
 
                 await Repos.Chats.sendMessage(
-                    tx,
                     conversationId,
                     uid,
                     {
@@ -1647,22 +1613,12 @@ export const Resolver = {
         }),
 
         alphaChatSetReaction: withAccount<{ messageId: number, reaction: string }>(async (args, uid) => {
-            return DB.txLight(async (tx) => {
-                await Repos.Chats.setReaction(tx, args.messageId, uid, args.reaction);
-                return 'ok';
-            });
+            await Repos.Chats.setReaction(args.messageId, uid, args.reaction);
+            return 'ok';
         }),
         alphaChatUnsetReaction: withAccount<{ messageId: number, reaction: string }>(async (args, uid) => {
-            return DB.txLight(async (tx) => {
-                await Repos.Chats.setReaction(tx, args.messageId, uid, args.reaction, true);
-                return 'ok';
-            });
-        }),
-
-        alphaChatPinMessage: withAccount<{ conversationId: number, messageId?: number }>(async (args, uid) => {
-            return DB.tx(async (tx) => {
-                return await Repos.Chats.pinMessage(tx, uid, args.conversationId, args.messageId);
-            });
+            await Repos.Chats.setReaction(args.messageId, uid, args.reaction, true);
+            return 'ok';
         }),
     },
     Subscription: {

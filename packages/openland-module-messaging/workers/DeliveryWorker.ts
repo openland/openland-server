@@ -11,10 +11,10 @@ export function createDeliveryWorker() {
     if (serverRoleEnabled('workers')) {
         queue.addWorker(async (item) => {
             await inTx(async () => {
-                let message = (await DB.ConversationMessage.findById(item.messageId))!;
-                let conversationId = message.conversationId;
+                let message = (await FDB.Message.findById(item.messageId))!;
+                let conversationId = message.cid;
                 let conv = (await DB.Conversation.findById(conversationId))!;
-                let uid = message.userId;
+                let uid = message.uid;
                 let members = await Repos.Chats.getConversationMembersFast(conversationId, conv);
 
                 // Cancel Typings
@@ -35,7 +35,7 @@ export function createDeliveryWorker() {
                         }
 
                         // Update dialog date
-                        existing.date = message.createdAt.getTime();
+                        existing.date = message.createdAt;
 
                         // Update global counters
                         if (m !== uid) {

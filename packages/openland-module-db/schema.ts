@@ -1941,6 +1941,8 @@ export interface MessageShape {
     replyMessages?: any| null;
     augmentation?: any| null;
     serviceMetadata?: any| null;
+    reactions?: any| null;
+    edited?: boolean| null;
     isMuted: boolean;
     isService: boolean;
     deleted: boolean;
@@ -2065,6 +2067,28 @@ export class Message extends FEntity {
         this._value.serviceMetadata = value;
         this.markDirty();
     }
+    get reactions(): any | null {
+        let res = this._value.reactions;
+        if (res) { return res; }
+        return null;
+    }
+    set reactions(value: any | null) {
+        this._checkIsWritable();
+        if (value === this._value.reactions) { return; }
+        this._value.reactions = value;
+        this.markDirty();
+    }
+    get edited(): boolean | null {
+        let res = this._value.edited;
+        if (res) { return res; }
+        return null;
+    }
+    set edited(value: boolean | null) {
+        this._checkIsWritable();
+        if (value === this._value.edited) { return; }
+        this._value.edited = value;
+        this.markDirty();
+    }
     get isMuted(): boolean {
         return this._value.isMuted;
     }
@@ -2106,6 +2130,7 @@ export class MessageFactory extends FEntityFactory<Message> {
         validators.isString('text', src.text);
         validators.isString('fileId', src.fileId);
         validators.isString('filePreview', src.filePreview);
+        validators.isBoolean('edited', src.edited);
         validators.notNull('isMuted', src.isMuted);
         validators.isBoolean('isMuted', src.isMuted);
         validators.notNull('isService', src.isService);

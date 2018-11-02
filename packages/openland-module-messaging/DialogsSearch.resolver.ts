@@ -2,7 +2,7 @@ import { FDB } from 'openland-module-db/FDB';
 import { withAccount } from 'openland-server/api/utils/Resolvers';
 import { DB } from 'openland-server/tables';
 import { Modules } from 'openland-modules/Modules';
-import { ConversationMessage } from 'openland-server/tables/ConversationMessage';
+import { Message } from 'openland-module-db/schema';
 
 export default {
     Query: {
@@ -145,12 +145,14 @@ export default {
                 },
                 [] as any[]
             );
-            let messages = new Map<number, ConversationMessage | null>();
+            let messages = new Map<number, Message | null>();
             for (let c of res) {
-                messages.set(c.id, await DB.ConversationMessage.find({
-                    where: { conversationId: c.id },
-                    order: [['id', 'DESC']]
-                }));
+                let msg = await FDB.Message.rangeFromChat(c.id, 1, true);
+                if (msg.length === 0) {
+                    messages.set(c.id, null);
+                } else {
+                    messages.set(c.id, msg[0]);
+                }
             }
             res = res.filter(c => messages.get(c.id))
                 .sort((a, b) => {

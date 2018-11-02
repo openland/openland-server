@@ -29,6 +29,8 @@ export function startMigrator() {
                         replyMessages: i.extras.replyMessages ? i.extras.replyMessages : null,
                         mentions: i.extras.mentions ? i.extras.mentions : null,
                         augmentation: i.extras.urlAugmentation || null,
+                        edited: i.extras.edited ? true : false,
+                        reactions: i.extras.reactions ? i.extras.reactions : null,
 
                         // State
                         repeatKey: i.repeatToken,

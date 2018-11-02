@@ -1,5 +1,4 @@
 import { CallContext } from 'openland-server/api/utils/CallContext';
-import { DB } from 'openland-server/tables';
 import { IDs } from 'openland-server/api/utils/IDs';
 import { FDB } from 'openland-module-db/FDB';
 import { FLiveStreamItem } from 'foundation-orm/FLiveStreamItem';
@@ -53,15 +52,15 @@ export default {
     },
     DialogMessageReceived: {
         cid: (src: UserDialogEvent) => IDs.Conversation.serialize(src.cid!),
-        message: (src: UserDialogEvent) => DB.ConversationMessage.findById(src.mid!, { paranoid: false }),
+        message: (src: UserDialogEvent) => FDB.Message.findById(src.mid!),
         unread: (src: UserDialogEvent) => src.unread || 0,
         globalUnread: (src: UserDialogEvent) => src.allUnread || 0
     },
     DialogMessageUpdated: {
-        message: (src: UserDialogEvent) => DB.ConversationMessage.findById(src.mid!, { paranoid: false }),
+        message: (src: UserDialogEvent) => FDB.Message.findById(src.mid!),
     },
     DialogMessageDeleted: {
-        message: (src: UserDialogEvent) => DB.ConversationMessage.findById(src.mid!, { paranoid: false }),
+        message: (src: UserDialogEvent) => FDB.Message.findById(src.mid!),
     },
     DialogMessageRead: {
         cid: (src: UserDialogEvent) => IDs.Conversation.serialize(src.cid!),

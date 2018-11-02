@@ -100,7 +100,7 @@ export function startPushNotificationWorker() {
                         if (senderId === u.uid) {
                             continue;
                         }
-                        let message = await DB.ConversationMessage.findById(messageId);
+                        let message = await FDB.Message.findById(messageId);
                         if (!message) {
                             continue;
                         }
@@ -112,12 +112,12 @@ export function startPushNotificationWorker() {
                         if (!receiver) {
                             continue;
                         }
-                        let conversation = await DB.Conversation.findById(message.conversationId);
+                        let conversation = await DB.Conversation.findById(message.cid);
                         if (!conversation) {
                             continue;
                         }
 
-                        let userMentioned = message.extras && message.extras.mentions && (message.extras.mentions as number[]).indexOf(u.uid) > -1;
+                        let userMentioned = message.mentions && (message.mentions as number[]).indexOf(u.uid) > -1;
 
                         let sendDesktop = settings.desktopNotifications !== 'none';
                         let sendMobile = settings.mobileNotifications !== 'none';
@@ -169,8 +169,8 @@ export function startPushNotificationWorker() {
 
                         let pushBody = '';
 
-                        if (message.message) {
-                            pushBody += message.message;
+                        if (message.text) {
+                            pushBody += message.text;
                         }
                         if (message.fileMetadata) {
                             pushBody += message.fileMetadata.isImage === true ? Texts.Notifications.IMAGE_ATTACH : Texts.Notifications.FILE_ATTACH;

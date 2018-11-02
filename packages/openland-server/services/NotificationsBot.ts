@@ -40,7 +40,7 @@ export const NotificationsBot = {
                 }, { transaction: tx });
             }
 
-            await Repos.Chats.sendMessage(tx, conversation.id, notificationsBot.id!, message);
+            await Repos.Chats.sendMessage(conversation.id, notificationsBot.id!, message);
         });
     }
 };
