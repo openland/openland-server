@@ -4,7 +4,9 @@ import {
     GraphQLString,
     GraphQLFloat,
     GraphQLBoolean,
-    GraphQLList
+    GraphQLList,
+    GraphQLInt,
+    GraphQLNonNull
 } from 'graphql';
 import * as Case from 'change-case';
 
@@ -96,7 +98,15 @@ for (let e of AllEntities.schema) {
         fields: fields
     });
     entitiesMap[e.name] = obj;
-    // entites.push(obj);
+
+    let objConnection = new GraphQLObjectType({
+        name: e.name + 'Connection',
+        fields: {
+            items: { type: new GraphQLList(obj) },
+            cursor: { type: GraphQLString }
+        }
+    });
+    entitiesMap[e.name + 'Connection'] = objConnection;
 
     // Primary Key query
     queries[Case.camelCase(e.name)] = {
@@ -133,13 +143,22 @@ for (let e of AllEntities.schema) {
                 // Nothing To do
             } else if (i.type === 'range') {
                 queries[i.displayName] = {
-                    type: new GraphQLList(obj),
-                    args: buildArguments(e, i, 1),
-                    resolve: async (_: any, arg: any) => {
+                    type: objConnection,
+                    args: { 
+                        ...buildArguments(e, i, 1),
+                        first: {
+                            type: new GraphQLNonNull(GraphQLInt)
+                        },
+                        after: {
+                            type: GraphQLString
+                        },
+                        reversed: {
+                            type: GraphQLBoolean
+                        }
+                    },
+                    resolve: (_: any, arg: any) => {
                         let argm = extractArguments(arg, e, i, 1);
-                        console.log(argm);
-                        let res = await (FDB as any)[e.name]['rangeFrom' + Case.pascalCase(i.name) + 'WithCursor'](...argm, 20);
-                        return res.items;
+                        return (FDB as any)[e.name]['rangeFrom' + Case.pascalCase(i.name) + 'WithCursor'](...argm, arg.first, arg.after, arg.reversed);
                     }
                 };
             }
