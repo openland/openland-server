@@ -15,10 +15,25 @@ import { AllEntities } from './schema';
 import { FDB } from './FDB';
 import { FEntitySchema, FEntitySchemaIndex } from 'foundation-orm/FEntitySchema';
 import { inTx } from 'foundation-orm/inTx';
+import { delay } from 'openland-server/utils/timer';
 
 let entitiesMap: any = {};
 let queries: any = {};
 let mutations: any = {};
+let subscriptions: any = {};
+
+subscriptions.healthCheck = {
+    type: GraphQLString,
+    subscribe: async function* func() {
+        while (true) {
+            yield Date.now();
+            await delay(1000);
+        }
+    },
+    resolve(v: any) {
+        return v;
+    }
+};
 
 function buildType(src: 'string' | 'number' | 'json' | 'boolean' | 'enum') {
     if (src === 'string') {
@@ -133,6 +148,28 @@ for (let e of AllEntities.schema) {
         }
     };
 
+    //
+    // Watch
+    //
+
+    subscriptions[Case.camelCase(e.name)] = {
+        type: obj,
+        args: args,
+        subscribe: async function* func(_: any, a: any) {
+            while (true) {
+                let ids: any[] = [];
+                for (let f of e.primaryKeys) {
+                    ids.push(a[f.name]);
+                }
+                yield (FDB as any)[e.name].findById(...ids);
+                await delay(1000);
+            }
+        },
+        resolve(v: any) {
+            return v;
+        }
+    };
+
     // Load all query
     queries[Case.camelCase(e.name) + 'All'] = {
         type: new GraphQLList(obj),
@@ -213,7 +250,7 @@ for (let e of AllEntities.schema) {
                             item[f.name] = a.input[f.name];
                         }
                     }
-                    
+
                     return item;
                 });
             }
@@ -230,6 +267,10 @@ var schema = new GraphQLSchema({
         name: 'RootMutationType',
         fields: mutations
     }),
+    subscription: new GraphQLObjectType({
+        name: 'RootSubsctiptionType',
+        fields: subscriptions
+    })
 });
 
 export const FDBGraphqlSchema = schema;

@@ -31,7 +31,7 @@ export function startAdminInterface() {
             subscriptionsEndpoint: url.format({
                 host: req!!.get('host'),
                 protocol: (req!!.header('x-forwarded-proto') === 'https' || req!!.protocol === 'https') ? 'wss' : 'ws',
-                pathname: '/graphql'
+                pathname: '/api'
             })
         })));
 
