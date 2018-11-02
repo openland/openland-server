@@ -66,7 +66,7 @@ export const Resolver = {
         description: (src: Conversation) => src.extras.description || '',
         longDescription: (src: Conversation) => src.extras.longDescription || '',
         myStatus: async (src: Conversation, _: any, context: CallContext) => {
-            let member = await Modules.Messaging.room.findMembershipStatus(context.uid!, src.id!);
+            let member = context.uid ? await Modules.Messaging.room.findMembershipStatus(context.uid, src.id!) : undefined;
 
             if (!member) {
                 return 'left';
