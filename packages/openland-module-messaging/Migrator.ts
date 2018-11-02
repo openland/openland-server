@@ -4,7 +4,7 @@ import { FDB } from 'openland-module-db/FDB';
 import { inTx } from 'foundation-orm/inTx';
 
 export function startMigrator() {
-    let reader = new UpdateReader('export-messages', 1, DB.ConversationMessage);
+    let reader = new UpdateReader('export-messages', 2, DB.ConversationMessage);
     reader.processor(async (items) => {
         for (let i of items) {
             await inTx(async () => {
@@ -44,6 +44,8 @@ export function startMigrator() {
                     msg.replyMessages = i.extras.replyMessages ? i.extras.replyMessages : null;
                     msg.mentions = i.extras.mentions ? i.extras.mentions : null;
                     msg.augmentation = i.extras.urlAugmentation ? i.extras.urlAugmentation : null;
+                    msg.reactions = i.extras.reactions ? i.extras.reactions : null,
+                    msg.edited = i.extras.edited ? true : false,
                     msg.deleted = !!i.deletedAt;
                 }
             });
