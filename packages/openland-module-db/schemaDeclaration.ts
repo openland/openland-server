@@ -227,27 +227,33 @@ const Schema = declareSchema(() => {
     // Conversation State
     //
 
-    // entity('Message', () => {
-    //     primaryKey('id', 'string');
-    //     field('cid', 'string');
-    //     field('uid', 'number');
-    //     field('repeatToken', 'string').nullable();
+    entity('Sequence', () => {
+        primaryKey('sequence', 'string');
+        field('value', 'number');
+    });
 
-    //     field('text', 'string').nullable();
-    //     field('fileId', 'string').nullable();
-    //     field('fileMetadata', 'json').nullable();
-    //     field('filePreview', 'string').nullable();
-    //     field('mentions', 'json').nullable();
-    //     field('replyMessages', 'json').nullable();
-    //     field('augmentation', 'json').nullable();
+    entity('Message', () => {
+        primaryKey('id', 'number');
+        field('cid', 'number');
+        field('uid', 'number');
+        field('repeatKey', 'string').nullable();
 
-    //     field('isMuted', 'boolean');
-    //     field('isService', 'boolean');
-    //     field('deleted', 'boolean');
-    //     rangeIndex('chat', ['cid', 'id']).withCondition((src) => !src.deleted);
-    //     enableVersioning();
-    //     enableTimestamps();
-    // });
+        field('text', 'string').nullable();
+        field('fileId', 'string').nullable();
+        field('fileMetadata', 'json').nullable();
+        field('filePreview', 'string').nullable();
+        field('mentions', 'json').nullable();
+        field('replyMessages', 'json').nullable();
+        field('augmentation', 'json').nullable();
+        field('serviceMetadata', 'json').nullable();
+
+        field('isMuted', 'boolean');
+        field('isService', 'boolean');
+        field('deleted', 'boolean');
+        rangeIndex('chat', ['cid', 'id']).withCondition((src) => !src.deleted);
+        enableVersioning();
+        enableTimestamps();
+    });
 
     entity('ConversationSeq', () => {
         primaryKey('cid', 'number');

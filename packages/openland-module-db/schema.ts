@@ -1880,6 +1880,279 @@ export class AuthCodeSessionFactory extends FEntityFactory<AuthCodeSession> {
         return new AuthCodeSession(this.connection, this.namespace, [value.uid], value, this.options, isNew, this.indexes, 'AuthCodeSession');
     }
 }
+export interface SequenceShape {
+    value: number;
+}
+
+export class Sequence extends FEntity {
+    get sequence(): string { return this._value.sequence; }
+    get value(): number {
+        return this._value.value;
+    }
+    set value(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.value) { return; }
+        this._value.value = value;
+        this.markDirty();
+    }
+}
+
+export class SequenceFactory extends FEntityFactory<Sequence> {
+    private static validate(src: any) {
+        validators.notNull('sequence', src.sequence);
+        validators.isString('sequence', src.sequence);
+        validators.notNull('value', src.value);
+        validators.isNumber('value', src.value);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'sequence'),
+            { enableVersioning: false, enableTimestamps: false, validator: SequenceFactory.validate, hasLiveStreams: false },
+            [],
+            'Sequence'
+        );
+    }
+    extractId(rawId: any[]) {
+        return { 'sequence': rawId[0] };
+    }
+    async findById(sequence: string) {
+        return await this._findById([sequence]);
+    }
+    async create(sequence: string, shape: SequenceShape) {
+        return await this._create([sequence], { sequence, ...shape });
+    }
+    watch(sequence: string, cb: () => void) {
+        return this._watch([sequence], cb);
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new Sequence(this.connection, this.namespace, [value.sequence], value, this.options, isNew, this.indexes, 'Sequence');
+    }
+}
+export interface MessageShape {
+    cid: number;
+    uid: number;
+    repeatKey?: string| null;
+    text?: string| null;
+    fileId?: string| null;
+    fileMetadata?: any| null;
+    filePreview?: string| null;
+    mentions?: any| null;
+    replyMessages?: any| null;
+    augmentation?: any| null;
+    serviceMetadata?: any| null;
+    isMuted: boolean;
+    isService: boolean;
+    deleted: boolean;
+}
+
+export class Message extends FEntity {
+    get id(): number { return this._value.id; }
+    get cid(): number {
+        return this._value.cid;
+    }
+    set cid(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.cid) { return; }
+        this._value.cid = value;
+        this.markDirty();
+    }
+    get uid(): number {
+        return this._value.uid;
+    }
+    set uid(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.uid) { return; }
+        this._value.uid = value;
+        this.markDirty();
+    }
+    get repeatKey(): string | null {
+        let res = this._value.repeatKey;
+        if (res) { return res; }
+        return null;
+    }
+    set repeatKey(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.repeatKey) { return; }
+        this._value.repeatKey = value;
+        this.markDirty();
+    }
+    get text(): string | null {
+        let res = this._value.text;
+        if (res) { return res; }
+        return null;
+    }
+    set text(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.text) { return; }
+        this._value.text = value;
+        this.markDirty();
+    }
+    get fileId(): string | null {
+        let res = this._value.fileId;
+        if (res) { return res; }
+        return null;
+    }
+    set fileId(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.fileId) { return; }
+        this._value.fileId = value;
+        this.markDirty();
+    }
+    get fileMetadata(): any | null {
+        let res = this._value.fileMetadata;
+        if (res) { return res; }
+        return null;
+    }
+    set fileMetadata(value: any | null) {
+        this._checkIsWritable();
+        if (value === this._value.fileMetadata) { return; }
+        this._value.fileMetadata = value;
+        this.markDirty();
+    }
+    get filePreview(): string | null {
+        let res = this._value.filePreview;
+        if (res) { return res; }
+        return null;
+    }
+    set filePreview(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.filePreview) { return; }
+        this._value.filePreview = value;
+        this.markDirty();
+    }
+    get mentions(): any | null {
+        let res = this._value.mentions;
+        if (res) { return res; }
+        return null;
+    }
+    set mentions(value: any | null) {
+        this._checkIsWritable();
+        if (value === this._value.mentions) { return; }
+        this._value.mentions = value;
+        this.markDirty();
+    }
+    get replyMessages(): any | null {
+        let res = this._value.replyMessages;
+        if (res) { return res; }
+        return null;
+    }
+    set replyMessages(value: any | null) {
+        this._checkIsWritable();
+        if (value === this._value.replyMessages) { return; }
+        this._value.replyMessages = value;
+        this.markDirty();
+    }
+    get augmentation(): any | null {
+        let res = this._value.augmentation;
+        if (res) { return res; }
+        return null;
+    }
+    set augmentation(value: any | null) {
+        this._checkIsWritable();
+        if (value === this._value.augmentation) { return; }
+        this._value.augmentation = value;
+        this.markDirty();
+    }
+    get serviceMetadata(): any | null {
+        let res = this._value.serviceMetadata;
+        if (res) { return res; }
+        return null;
+    }
+    set serviceMetadata(value: any | null) {
+        this._checkIsWritable();
+        if (value === this._value.serviceMetadata) { return; }
+        this._value.serviceMetadata = value;
+        this.markDirty();
+    }
+    get isMuted(): boolean {
+        return this._value.isMuted;
+    }
+    set isMuted(value: boolean) {
+        this._checkIsWritable();
+        if (value === this._value.isMuted) { return; }
+        this._value.isMuted = value;
+        this.markDirty();
+    }
+    get isService(): boolean {
+        return this._value.isService;
+    }
+    set isService(value: boolean) {
+        this._checkIsWritable();
+        if (value === this._value.isService) { return; }
+        this._value.isService = value;
+        this.markDirty();
+    }
+    get deleted(): boolean {
+        return this._value.deleted;
+    }
+    set deleted(value: boolean) {
+        this._checkIsWritable();
+        if (value === this._value.deleted) { return; }
+        this._value.deleted = value;
+        this.markDirty();
+    }
+}
+
+export class MessageFactory extends FEntityFactory<Message> {
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isNumber('id', src.id);
+        validators.notNull('cid', src.cid);
+        validators.isNumber('cid', src.cid);
+        validators.notNull('uid', src.uid);
+        validators.isNumber('uid', src.uid);
+        validators.isString('repeatKey', src.repeatKey);
+        validators.isString('text', src.text);
+        validators.isString('fileId', src.fileId);
+        validators.isString('filePreview', src.filePreview);
+        validators.notNull('isMuted', src.isMuted);
+        validators.isBoolean('isMuted', src.isMuted);
+        validators.notNull('isService', src.isService);
+        validators.isBoolean('isService', src.isService);
+        validators.notNull('deleted', src.deleted);
+        validators.isBoolean('deleted', src.deleted);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'message'),
+            { enableVersioning: true, enableTimestamps: true, validator: MessageFactory.validate, hasLiveStreams: false },
+            [new FEntityIndex('chat', ['cid', 'id'], false, (src) => !src.deleted)],
+            'Message'
+        );
+    }
+    extractId(rawId: any[]) {
+        return { 'id': rawId[0] };
+    }
+    async findById(id: number) {
+        return await this._findById([id]);
+    }
+    async create(id: number, shape: MessageShape) {
+        return await this._create([id], { id, ...shape });
+    }
+    watch(id: number, cb: () => void) {
+        return this._watch([id], cb);
+    }
+    async allFromChatAfter(cid: number, after: number) {
+        return await this._findRangeAllAfter(['__indexes', 'chat', cid], after);
+    }
+    async rangeFromChat(cid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'chat', cid], limit, reversed);
+    }
+    async rangeFromChatWithCursor(cid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'chat', cid], limit, after, reversed);
+    }
+    async allFromChat(cid: number) {
+        return await this._findAll(['__indexes', 'chat', cid]);
+    }
+    createChatStream(cid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'message', '__indexes', 'chat', cid], limit, after); 
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new Message(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'Message');
+    }
+}
 export interface ConversationSeqShape {
     seq: number;
 }
@@ -2941,6 +3214,8 @@ export class AllEntities extends FDBInstance {
     UserSettings: UserSettingsFactory;
     ShortnameReservation: ShortnameReservationFactory;
     AuthCodeSession: AuthCodeSessionFactory;
+    Sequence: SequenceFactory;
+    Message: MessageFactory;
     ConversationSeq: ConversationSeqFactory;
     ConversationEvent: ConversationEventFactory;
     UserDialog: UserDialogFactory;
@@ -2974,6 +3249,8 @@ export class AllEntities extends FDBInstance {
         this.UserSettings = new UserSettingsFactory(connection);
         this.ShortnameReservation = new ShortnameReservationFactory(connection);
         this.AuthCodeSession = new AuthCodeSessionFactory(connection);
+        this.Sequence = new SequenceFactory(connection);
+        this.Message = new MessageFactory(connection);
         this.ConversationSeq = new ConversationSeqFactory(connection);
         this.ConversationEvent = new ConversationEventFactory(connection);
         this.UserDialog = new UserDialogFactory(connection);
