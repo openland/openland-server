@@ -208,39 +208,8 @@ export const Resolver = {
             return DB.User.findById(IDs.User.parse(args.id));
         }),
         alphaProfiles: withAny<{ query: string, first: number, after: string, page: number, sort?: string }>(async (args) => {
-            let clauses: any[] = [];
-            let sort: any[] | undefined = undefined;
 
-            if (args.query || args.sort) {
-                let parser = new QueryParser();
-                parser.registerText('firstName', 'firstName');
-                parser.registerText('lastName', 'lastName');
-                parser.registerText('shortName', 'shortName');
-                parser.registerText('name', 'name');
-                parser.registerText('createdAt', 'createdAt');
-                parser.registerText('updatedAt', 'updatedAt');
-
-                if (args.query) {
-                    clauses.push({ match_phrase_prefix: { search: args.query } });
-                }
-
-                if (args.sort) {
-                    sort = parser.parseSort(args.sort);
-                }
-            }
-
-            let hits = await ElasticClient.search({
-                index: 'user_profile',
-                type: 'user_profile',
-                size: args.first,
-                from: args.after ? parseInt(args.after, 10) : (args.page ? ((args.page - 1) * args.first) : 0),
-                body: {
-                    sort: sort,
-                    query: { bool: { must: clauses } }
-                }
-            });
-
-            let uids = hits.hits.hits.map(v => parseInt(v._id, 10));
+            let uids = await Modules.Users.searchForUsers(args.query);
 
             if (uids.length === 0) {
                 return [];

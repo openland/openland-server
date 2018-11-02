@@ -16,6 +16,10 @@ export class FixerRepository {
                     let total = Math.max(0, (await this.entities.Message.allFromChatAfter(a.cid, a.readMessageId)).filter((v) => v.uid !== uid).length - 1);
                     totalUnread += total;
                     a.unread = total;
+                } else {
+                    let total = Math.max(0, (await this.entities.Message.allFromChat(a.cid)).filter((v) => v.uid !== uid).length - 1);
+                    totalUnread += total;
+                    a.unread = total;
                 }
             }
             let ex = await this.entities.UserMessagingState.findById(uid);
