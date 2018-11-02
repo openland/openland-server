@@ -66,7 +66,7 @@ export function generateEntity(entity: EntityModel): string {
         res += '    get ' + k.name + '(): ' + type + ' {\n';
         if (k.isNullable) {
             res += '        let res = this._value.' + k.name + ';\n';
-            res += '        if (res) { return res; }\n';
+            res += '        if (res !== null && res !== undefined) { return res; }\n';
             res += '        return null;\n';
         } else {
             res += '        return this._value.' + k.name + ';\n';
@@ -96,7 +96,7 @@ export function generateEntity(entity: EntityModel): string {
     res += '    static schema: FEntitySchema = {\n';
     res += '        name: \'' + entity.name + '\',\n';
     res += '        primaryKeys: [' + entity.keys.map((v) => `{ name: '${v.name}', type: '${v.type}' }`).join(', ') + '],\n';
-    res += '        fields: [' + entity.fields.map((v) => `{ name: '${v.name}', type: '${v.type}', nullable: ${v.isNullable}, enumValues: [${v.enumValues.map((v2) => `'${v2}'`).join(', ')}] }`).join(', ') + ']\n';
+    res += '        fields: [' + entity.fields.map((v) => `{ name: '${v.name}', type: '${v.type}', nullable: ${v.isNullable}, secure: ${v.isSecure}, enumValues: [${v.enumValues.map((v2) => `'${v2}'`).join(', ')}] }`).join(', ') + ']\n';
     res += '    };\n\n';
 
     res += '    private static validate(src: any) {\n';

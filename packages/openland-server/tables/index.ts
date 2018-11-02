@@ -11,7 +11,6 @@ import { OrganizationMemberTable } from './OrganizationMember';
 import { OrganizationInviteTable } from './OrganizationInvite';
 import { ConversationTable } from './Conversation';
 import { retry } from '../utils/timer';
-import { ConversationGroupMembersTable } from './ConversationGroupMembers';
 
 const SILENT_TX_ACTUALLY_SILENT = false;
 export const DB_SILENT = !SILENT_TX_ACTUALLY_SILENT;
@@ -24,7 +23,6 @@ export const DB = {
     OrganizationInvite: OrganizationInviteTable,
 
     Conversation: ConversationTable,
-    ConversationGroupMembers: ConversationGroupMembersTable,
 
     tx: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>, existingTx?: sequelize.Transaction): Promise<A> {
         if (existingTx) {

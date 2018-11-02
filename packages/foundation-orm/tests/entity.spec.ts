@@ -62,6 +62,23 @@ describe('FEntity', () => {
         });
     });
 
+    it('should read nullable falsy fields correctly', async () => {
+        await withLogDisabled(async () => {
+            await inTx(async () => {
+                await testEntities.NullableEntity.create(0, { flag: true });
+                await testEntities.NullableEntity.create(1, { flag: false });
+                await testEntities.NullableEntity.create(2, { flag: null });
+            });
+
+            let { res0, res1, res2 } = await inTx(async () => {
+                return { res0: await testEntities.NullableEntity.findById(0), res1: await testEntities.NullableEntity.findById(1), res2: await testEntities.NullableEntity.findById(2) };
+            });
+            expect(res0!.flag).toEqual(true);
+            expect(res1!.flag).toEqual(false);
+            expect(res2!.flag).toEqual(null);
+        });
+    });
+
     it('should update values when read outside transaction', async () => {
         await withLogDisabled(async () => {
             await inTx(async () => {

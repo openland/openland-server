@@ -29,7 +29,7 @@ export class SimpleEntityFactory extends FEntityFactory<SimpleEntity> {
     static schema: FEntitySchema = {
         name: 'SimpleEntity',
         primaryKeys: [{ name: 'id', type: 'number' }],
-        fields: [{ name: 'data', type: 'string', nullable: false, enumValues: [] }]
+        fields: [{ name: 'data', type: 'string', nullable: false, secure: false, enumValues: [] }]
     };
 
     private static validate(src: any) {
@@ -84,7 +84,7 @@ export class VersionedEntityFactory extends FEntityFactory<VersionedEntity> {
     static schema: FEntitySchema = {
         name: 'VersionedEntity',
         primaryKeys: [{ name: 'id', type: 'number' }],
-        fields: [{ name: 'data', type: 'string', nullable: false, enumValues: [] }]
+        fields: [{ name: 'data', type: 'string', nullable: false, secure: false, enumValues: [] }]
     };
 
     private static validate(src: any) {
@@ -139,7 +139,7 @@ export class TimestampedEntityFactory extends FEntityFactory<TimestampedEntity> 
     static schema: FEntitySchema = {
         name: 'TimestampedEntity',
         primaryKeys: [{ name: 'id', type: 'number' }],
-        fields: [{ name: 'data', type: 'string', nullable: false, enumValues: [] }]
+        fields: [{ name: 'data', type: 'string', nullable: false, secure: false, enumValues: [] }]
     };
 
     private static validate(src: any) {
@@ -214,7 +214,7 @@ export class IndexedEntityFactory extends FEntityFactory<IndexedEntity> {
     static schema: FEntitySchema = {
         name: 'IndexedEntity',
         primaryKeys: [{ name: 'id', type: 'number' }],
-        fields: [{ name: 'data1', type: 'string', nullable: false, enumValues: [] }, { name: 'data2', type: 'string', nullable: false, enumValues: [] }, { name: 'data3', type: 'string', nullable: false, enumValues: [] }]
+        fields: [{ name: 'data1', type: 'string', nullable: false, secure: false, enumValues: [] }, { name: 'data2', type: 'string', nullable: false, secure: false, enumValues: [] }, { name: 'data3', type: 'string', nullable: false, secure: false, enumValues: [] }]
     };
 
     private static validate(src: any) {
@@ -314,7 +314,7 @@ export class IndexedRangeEntityFactory extends FEntityFactory<IndexedRangeEntity
     static schema: FEntitySchema = {
         name: 'IndexedRangeEntity',
         primaryKeys: [{ name: 'id', type: 'number' }],
-        fields: [{ name: 'data1', type: 'string', nullable: false, enumValues: [] }, { name: 'data2', type: 'string', nullable: false, enumValues: [] }, { name: 'data3', type: 'string', nullable: false, enumValues: [] }]
+        fields: [{ name: 'data1', type: 'string', nullable: false, secure: false, enumValues: [] }, { name: 'data2', type: 'string', nullable: false, secure: false, enumValues: [] }, { name: 'data3', type: 'string', nullable: false, secure: false, enumValues: [] }]
     };
 
     private static validate(src: any) {
@@ -411,7 +411,7 @@ export class IndexedPartialEntityFactory extends FEntityFactory<IndexedPartialEn
     static schema: FEntitySchema = {
         name: 'IndexedPartialEntity',
         primaryKeys: [{ name: 'id', type: 'number' }],
-        fields: [{ name: 'data1', type: 'string', nullable: false, enumValues: [] }, { name: 'data2', type: 'string', nullable: false, enumValues: [] }, { name: 'data3', type: 'string', nullable: false, enumValues: [] }]
+        fields: [{ name: 'data1', type: 'string', nullable: false, secure: false, enumValues: [] }, { name: 'data2', type: 'string', nullable: false, secure: false, enumValues: [] }, { name: 'data3', type: 'string', nullable: false, secure: false, enumValues: [] }]
     };
 
     private static validate(src: any) {
@@ -470,6 +470,62 @@ export class IndexedPartialEntityFactory extends FEntityFactory<IndexedPartialEn
         return new IndexedPartialEntity(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'IndexedPartialEntity');
     }
 }
+export interface NullableEntityShape {
+    flag?: boolean| null;
+}
+
+export class NullableEntity extends FEntity {
+    get id(): number { return this._value.id; }
+    get flag(): boolean | null {
+        let res = this._value.flag;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set flag(value: boolean | null) {
+        this._checkIsWritable();
+        if (value === this._value.flag) { return; }
+        this._value.flag = value;
+        this.markDirty();
+    }
+}
+
+export class NullableEntityFactory extends FEntityFactory<NullableEntity> {
+    static schema: FEntitySchema = {
+        name: 'NullableEntity',
+        primaryKeys: [{ name: 'id', type: 'number' }],
+        fields: [{ name: 'flag', type: 'boolean', nullable: true, secure: false, enumValues: [] }]
+    };
+
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isNumber('id', src.id);
+        validators.isBoolean('flag', src.flag);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'nullableEntity'),
+            { enableVersioning: false, enableTimestamps: false, validator: NullableEntityFactory.validate, hasLiveStreams: false },
+            [],
+            'NullableEntity'
+        );
+    }
+    extractId(rawId: any[]) {
+        return { 'id': rawId[0] };
+    }
+    async findById(id: number) {
+        return await this._findById([id]);
+    }
+    async create(id: number, shape: NullableEntityShape) {
+        return await this._create([id], { id, ...shape });
+    }
+    watch(id: number, cb: () => void) {
+        return this._watch([id], cb);
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new NullableEntity(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'NullableEntity');
+    }
+}
 
 export class AllEntities extends FDBInstance {
     static readonly schema: FEntitySchema[] = [
@@ -479,6 +535,7 @@ export class AllEntities extends FDBInstance {
         IndexedEntityFactory.schema,
         IndexedRangeEntityFactory.schema,
         IndexedPartialEntityFactory.schema,
+        NullableEntityFactory.schema,
     ];
     SimpleEntity: SimpleEntityFactory;
     VersionedEntity: VersionedEntityFactory;
@@ -486,6 +543,7 @@ export class AllEntities extends FDBInstance {
     IndexedEntity: IndexedEntityFactory;
     IndexedRangeEntity: IndexedRangeEntityFactory;
     IndexedPartialEntity: IndexedPartialEntityFactory;
+    NullableEntity: NullableEntityFactory;
 
     constructor(connection: FConnection) {
         super(connection);
@@ -495,5 +553,6 @@ export class AllEntities extends FDBInstance {
         this.IndexedEntity = new IndexedEntityFactory(connection);
         this.IndexedRangeEntity = new IndexedRangeEntityFactory(connection);
         this.IndexedPartialEntity = new IndexedPartialEntityFactory(connection);
+        this.NullableEntity = new NullableEntityFactory(connection);
     }
 }

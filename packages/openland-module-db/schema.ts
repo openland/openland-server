@@ -29,7 +29,7 @@ export class OnlineFactory extends FEntityFactory<Online> {
     static schema: FEntitySchema = {
         name: 'Online',
         primaryKeys: [{ name: 'uid', type: 'number' }],
-        fields: [{ name: 'lastSeen', type: 'number', nullable: false, enumValues: [] }]
+        fields: [{ name: 'lastSeen', type: 'number', nullable: false, secure: false, enumValues: [] }]
     };
 
     private static validate(src: any) {
@@ -105,7 +105,7 @@ export class PresenceFactory extends FEntityFactory<Presence> {
     static schema: FEntitySchema = {
         name: 'Presence',
         primaryKeys: [{ name: 'uid', type: 'number' }, { name: 'tid', type: 'string' }],
-        fields: [{ name: 'lastSeen', type: 'number', nullable: false, enumValues: [] }, { name: 'lastSeenTimeout', type: 'number', nullable: false, enumValues: [] }, { name: 'platform', type: 'string', nullable: false, enumValues: [] }]
+        fields: [{ name: 'lastSeen', type: 'number', nullable: false, secure: false, enumValues: [] }, { name: 'lastSeenTimeout', type: 'number', nullable: false, secure: false, enumValues: [] }, { name: 'platform', type: 'string', nullable: false, secure: false, enumValues: [] }]
     };
 
     private static validate(src: any) {
@@ -186,7 +186,7 @@ export class AuthTokenFactory extends FEntityFactory<AuthToken> {
     static schema: FEntitySchema = {
         name: 'AuthToken',
         primaryKeys: [{ name: 'uuid', type: 'string' }],
-        fields: [{ name: 'salt', type: 'string', nullable: false, enumValues: [] }, { name: 'uid', type: 'number', nullable: false, enumValues: [] }, { name: 'lastIp', type: 'string', nullable: false, enumValues: [] }]
+        fields: [{ name: 'salt', type: 'string', nullable: false, secure: false, enumValues: [] }, { name: 'uid', type: 'number', nullable: false, secure: false, enumValues: [] }, { name: 'lastIp', type: 'string', nullable: false, secure: false, enumValues: [] }]
     };
 
     private static validate(src: any) {
@@ -261,7 +261,7 @@ export class ServiceCacheFactory extends FEntityFactory<ServiceCache> {
     static schema: FEntitySchema = {
         name: 'ServiceCache',
         primaryKeys: [{ name: 'service', type: 'string' }, { name: 'key', type: 'string' }],
-        fields: [{ name: 'value', type: 'string', nullable: false, enumValues: [] }]
+        fields: [{ name: 'value', type: 'string', nullable: false, secure: false, enumValues: [] }]
     };
 
     private static validate(src: any) {
@@ -348,7 +348,7 @@ export class LockFactory extends FEntityFactory<Lock> {
     static schema: FEntitySchema = {
         name: 'Lock',
         primaryKeys: [{ name: 'key', type: 'string' }],
-        fields: [{ name: 'seed', type: 'string', nullable: false, enumValues: [] }, { name: 'timeout', type: 'number', nullable: false, enumValues: [] }, { name: 'version', type: 'number', nullable: false, enumValues: [] }, { name: 'minVersion', type: 'number', nullable: false, enumValues: [] }]
+        fields: [{ name: 'seed', type: 'string', nullable: false, secure: false, enumValues: [] }, { name: 'timeout', type: 'number', nullable: false, secure: false, enumValues: [] }, { name: 'version', type: 'number', nullable: false, secure: false, enumValues: [] }, { name: 'minVersion', type: 'number', nullable: false, secure: false, enumValues: [] }]
     };
 
     private static validate(src: any) {
@@ -413,7 +413,7 @@ export class Task extends FEntity {
     }
     get result(): any | null {
         let res = this._value.result;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set result(value: any | null) {
@@ -433,7 +433,7 @@ export class Task extends FEntity {
     }
     get taskFailureCount(): number | null {
         let res = this._value.taskFailureCount;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set taskFailureCount(value: number | null) {
@@ -444,7 +444,7 @@ export class Task extends FEntity {
     }
     get taskFailureTime(): number | null {
         let res = this._value.taskFailureTime;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set taskFailureTime(value: number | null) {
@@ -455,7 +455,7 @@ export class Task extends FEntity {
     }
     get taskLockSeed(): string | null {
         let res = this._value.taskLockSeed;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set taskLockSeed(value: string | null) {
@@ -466,7 +466,7 @@ export class Task extends FEntity {
     }
     get taskLockTimeout(): number | null {
         let res = this._value.taskLockTimeout;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set taskLockTimeout(value: number | null) {
@@ -477,7 +477,7 @@ export class Task extends FEntity {
     }
     get taskFailureMessage(): string | null {
         let res = this._value.taskFailureMessage;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set taskFailureMessage(value: string | null) {
@@ -492,7 +492,7 @@ export class TaskFactory extends FEntityFactory<Task> {
     static schema: FEntitySchema = {
         name: 'Task',
         primaryKeys: [{ name: 'taskType', type: 'string' }, { name: 'uid', type: 'string' }],
-        fields: [{ name: 'arguments', type: 'json', nullable: false, enumValues: [] }, { name: 'result', type: 'json', nullable: true, enumValues: [] }, { name: 'taskStatus', type: 'enum', nullable: false, enumValues: ['pending', 'executing', 'failing', 'failed', 'completed'] }, { name: 'taskFailureCount', type: 'number', nullable: true, enumValues: [] }, { name: 'taskFailureTime', type: 'number', nullable: true, enumValues: [] }, { name: 'taskLockSeed', type: 'string', nullable: true, enumValues: [] }, { name: 'taskLockTimeout', type: 'number', nullable: true, enumValues: [] }, { name: 'taskFailureMessage', type: 'string', nullable: true, enumValues: [] }]
+        fields: [{ name: 'arguments', type: 'json', nullable: false, secure: false, enumValues: [] }, { name: 'result', type: 'json', nullable: true, secure: false, enumValues: [] }, { name: 'taskStatus', type: 'enum', nullable: false, secure: false, enumValues: ['pending', 'executing', 'failing', 'failed', 'completed'] }, { name: 'taskFailureCount', type: 'number', nullable: true, secure: false, enumValues: [] }, { name: 'taskFailureTime', type: 'number', nullable: true, secure: false, enumValues: [] }, { name: 'taskLockSeed', type: 'string', nullable: true, secure: false, enumValues: [] }, { name: 'taskLockTimeout', type: 'number', nullable: true, secure: false, enumValues: [] }, { name: 'taskFailureMessage', type: 'string', nullable: true, secure: false, enumValues: [] }]
     };
 
     private static validate(src: any) {
@@ -647,7 +647,7 @@ export class PushFirebase extends FEntity {
     }
     get failures(): number | null {
         let res = this._value.failures;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set failures(value: number | null) {
@@ -658,7 +658,7 @@ export class PushFirebase extends FEntity {
     }
     get failedFirstAt(): number | null {
         let res = this._value.failedFirstAt;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set failedFirstAt(value: number | null) {
@@ -669,7 +669,7 @@ export class PushFirebase extends FEntity {
     }
     get failedLastAt(): number | null {
         let res = this._value.failedLastAt;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set failedLastAt(value: number | null) {
@@ -680,7 +680,7 @@ export class PushFirebase extends FEntity {
     }
     get disabledAt(): number | null {
         let res = this._value.disabledAt;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set disabledAt(value: number | null) {
@@ -695,7 +695,7 @@ export class PushFirebaseFactory extends FEntityFactory<PushFirebase> {
     static schema: FEntitySchema = {
         name: 'PushFirebase',
         primaryKeys: [{ name: 'id', type: 'string' }],
-        fields: [{ name: 'uid', type: 'number', nullable: false, enumValues: [] }, { name: 'tid', type: 'string', nullable: false, enumValues: [] }, { name: 'token', type: 'string', nullable: false, enumValues: [] }, { name: 'packageId', type: 'string', nullable: false, enumValues: [] }, { name: 'sandbox', type: 'boolean', nullable: false, enumValues: [] }, { name: 'enabled', type: 'boolean', nullable: false, enumValues: [] }, { name: 'failures', type: 'number', nullable: true, enumValues: [] }, { name: 'failedFirstAt', type: 'number', nullable: true, enumValues: [] }, { name: 'failedLastAt', type: 'number', nullable: true, enumValues: [] }, { name: 'disabledAt', type: 'number', nullable: true, enumValues: [] }]
+        fields: [{ name: 'uid', type: 'number', nullable: false, secure: false, enumValues: [] }, { name: 'tid', type: 'string', nullable: false, secure: false, enumValues: [] }, { name: 'token', type: 'string', nullable: false, secure: true, enumValues: [] }, { name: 'packageId', type: 'string', nullable: false, secure: false, enumValues: [] }, { name: 'sandbox', type: 'boolean', nullable: false, secure: false, enumValues: [] }, { name: 'enabled', type: 'boolean', nullable: false, secure: false, enumValues: [] }, { name: 'failures', type: 'number', nullable: true, secure: false, enumValues: [] }, { name: 'failedFirstAt', type: 'number', nullable: true, secure: false, enumValues: [] }, { name: 'failedLastAt', type: 'number', nullable: true, secure: false, enumValues: [] }, { name: 'disabledAt', type: 'number', nullable: true, secure: false, enumValues: [] }]
     };
 
     private static validate(src: any) {
@@ -847,7 +847,7 @@ export class PushApple extends FEntity {
     }
     get failures(): number | null {
         let res = this._value.failures;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set failures(value: number | null) {
@@ -858,7 +858,7 @@ export class PushApple extends FEntity {
     }
     get failedFirstAt(): number | null {
         let res = this._value.failedFirstAt;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set failedFirstAt(value: number | null) {
@@ -869,7 +869,7 @@ export class PushApple extends FEntity {
     }
     get failedLastAt(): number | null {
         let res = this._value.failedLastAt;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set failedLastAt(value: number | null) {
@@ -880,7 +880,7 @@ export class PushApple extends FEntity {
     }
     get disabledAt(): number | null {
         let res = this._value.disabledAt;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set disabledAt(value: number | null) {
@@ -895,7 +895,7 @@ export class PushAppleFactory extends FEntityFactory<PushApple> {
     static schema: FEntitySchema = {
         name: 'PushApple',
         primaryKeys: [{ name: 'id', type: 'string' }],
-        fields: [{ name: 'uid', type: 'number', nullable: false, enumValues: [] }, { name: 'tid', type: 'string', nullable: false, enumValues: [] }, { name: 'token', type: 'string', nullable: false, enumValues: [] }, { name: 'bundleId', type: 'string', nullable: false, enumValues: [] }, { name: 'sandbox', type: 'boolean', nullable: false, enumValues: [] }, { name: 'enabled', type: 'boolean', nullable: false, enumValues: [] }, { name: 'failures', type: 'number', nullable: true, enumValues: [] }, { name: 'failedFirstAt', type: 'number', nullable: true, enumValues: [] }, { name: 'failedLastAt', type: 'number', nullable: true, enumValues: [] }, { name: 'disabledAt', type: 'number', nullable: true, enumValues: [] }]
+        fields: [{ name: 'uid', type: 'number', nullable: false, secure: false, enumValues: [] }, { name: 'tid', type: 'string', nullable: false, secure: false, enumValues: [] }, { name: 'token', type: 'string', nullable: false, secure: true, enumValues: [] }, { name: 'bundleId', type: 'string', nullable: false, secure: false, enumValues: [] }, { name: 'sandbox', type: 'boolean', nullable: false, secure: false, enumValues: [] }, { name: 'enabled', type: 'boolean', nullable: false, secure: false, enumValues: [] }, { name: 'failures', type: 'number', nullable: true, secure: false, enumValues: [] }, { name: 'failedFirstAt', type: 'number', nullable: true, secure: false, enumValues: [] }, { name: 'failedLastAt', type: 'number', nullable: true, secure: false, enumValues: [] }, { name: 'disabledAt', type: 'number', nullable: true, secure: false, enumValues: [] }]
     };
 
     private static validate(src: any) {
@@ -1027,7 +1027,7 @@ export class PushWeb extends FEntity {
     }
     get failures(): number | null {
         let res = this._value.failures;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set failures(value: number | null) {
@@ -1038,7 +1038,7 @@ export class PushWeb extends FEntity {
     }
     get failedFirstAt(): number | null {
         let res = this._value.failedFirstAt;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set failedFirstAt(value: number | null) {
@@ -1049,7 +1049,7 @@ export class PushWeb extends FEntity {
     }
     get failedLastAt(): number | null {
         let res = this._value.failedLastAt;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set failedLastAt(value: number | null) {
@@ -1060,7 +1060,7 @@ export class PushWeb extends FEntity {
     }
     get disabledAt(): number | null {
         let res = this._value.disabledAt;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set disabledAt(value: number | null) {
@@ -1075,7 +1075,7 @@ export class PushWebFactory extends FEntityFactory<PushWeb> {
     static schema: FEntitySchema = {
         name: 'PushWeb',
         primaryKeys: [{ name: 'id', type: 'string' }],
-        fields: [{ name: 'uid', type: 'number', nullable: false, enumValues: [] }, { name: 'tid', type: 'string', nullable: false, enumValues: [] }, { name: 'endpoint', type: 'string', nullable: false, enumValues: [] }, { name: 'enabled', type: 'boolean', nullable: false, enumValues: [] }, { name: 'failures', type: 'number', nullable: true, enumValues: [] }, { name: 'failedFirstAt', type: 'number', nullable: true, enumValues: [] }, { name: 'failedLastAt', type: 'number', nullable: true, enumValues: [] }, { name: 'disabledAt', type: 'number', nullable: true, enumValues: [] }]
+        fields: [{ name: 'uid', type: 'number', nullable: false, secure: false, enumValues: [] }, { name: 'tid', type: 'string', nullable: false, secure: false, enumValues: [] }, { name: 'endpoint', type: 'string', nullable: false, secure: true, enumValues: [] }, { name: 'enabled', type: 'boolean', nullable: false, secure: false, enumValues: [] }, { name: 'failures', type: 'number', nullable: true, secure: false, enumValues: [] }, { name: 'failedFirstAt', type: 'number', nullable: true, secure: false, enumValues: [] }, { name: 'failedLastAt', type: 'number', nullable: true, secure: false, enumValues: [] }, { name: 'disabledAt', type: 'number', nullable: true, secure: false, enumValues: [] }]
     };
 
     private static validate(src: any) {
@@ -1162,7 +1162,7 @@ export class UserProfilePrefil extends FEntity {
     get id(): number { return this._value.id; }
     get firstName(): string | null {
         let res = this._value.firstName;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set firstName(value: string | null) {
@@ -1173,7 +1173,7 @@ export class UserProfilePrefil extends FEntity {
     }
     get lastName(): string | null {
         let res = this._value.lastName;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set lastName(value: string | null) {
@@ -1184,7 +1184,7 @@ export class UserProfilePrefil extends FEntity {
     }
     get picture(): string | null {
         let res = this._value.picture;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set picture(value: string | null) {
@@ -1199,7 +1199,7 @@ export class UserProfilePrefilFactory extends FEntityFactory<UserProfilePrefil> 
     static schema: FEntitySchema = {
         name: 'UserProfilePrefil',
         primaryKeys: [{ name: 'id', type: 'number' }],
-        fields: [{ name: 'firstName', type: 'string', nullable: true, enumValues: [] }, { name: 'lastName', type: 'string', nullable: true, enumValues: [] }, { name: 'picture', type: 'string', nullable: true, enumValues: [] }]
+        fields: [{ name: 'firstName', type: 'string', nullable: true, secure: false, enumValues: [] }, { name: 'lastName', type: 'string', nullable: true, secure: false, enumValues: [] }, { name: 'picture', type: 'string', nullable: true, secure: false, enumValues: [] }]
     };
 
     private static validate(src: any) {
@@ -1263,7 +1263,7 @@ export class UserProfile extends FEntity {
     }
     get lastName(): string | null {
         let res = this._value.lastName;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set lastName(value: string | null) {
@@ -1274,7 +1274,7 @@ export class UserProfile extends FEntity {
     }
     get phone(): string | null {
         let res = this._value.phone;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set phone(value: string | null) {
@@ -1285,7 +1285,7 @@ export class UserProfile extends FEntity {
     }
     get about(): string | null {
         let res = this._value.about;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set about(value: string | null) {
@@ -1296,7 +1296,7 @@ export class UserProfile extends FEntity {
     }
     get website(): string | null {
         let res = this._value.website;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set website(value: string | null) {
@@ -1307,7 +1307,7 @@ export class UserProfile extends FEntity {
     }
     get location(): string | null {
         let res = this._value.location;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set location(value: string | null) {
@@ -1318,7 +1318,7 @@ export class UserProfile extends FEntity {
     }
     get email(): string | null {
         let res = this._value.email;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set email(value: string | null) {
@@ -1329,7 +1329,7 @@ export class UserProfile extends FEntity {
     }
     get picture(): any | null {
         let res = this._value.picture;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set picture(value: any | null) {
@@ -1340,7 +1340,7 @@ export class UserProfile extends FEntity {
     }
     get linkedin(): string | null {
         let res = this._value.linkedin;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set linkedin(value: string | null) {
@@ -1351,7 +1351,7 @@ export class UserProfile extends FEntity {
     }
     get twitter(): string | null {
         let res = this._value.twitter;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set twitter(value: string | null) {
@@ -1362,7 +1362,7 @@ export class UserProfile extends FEntity {
     }
     get locations(): any | null {
         let res = this._value.locations;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set locations(value: any | null) {
@@ -1373,7 +1373,7 @@ export class UserProfile extends FEntity {
     }
     get primaryOrganization(): number | null {
         let res = this._value.primaryOrganization;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set primaryOrganization(value: number | null) {
@@ -1384,7 +1384,7 @@ export class UserProfile extends FEntity {
     }
     get role(): string | null {
         let res = this._value.role;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set role(value: string | null) {
@@ -1399,7 +1399,7 @@ export class UserProfileFactory extends FEntityFactory<UserProfile> {
     static schema: FEntitySchema = {
         name: 'UserProfile',
         primaryKeys: [{ name: 'id', type: 'number' }],
-        fields: [{ name: 'firstName', type: 'string', nullable: false, enumValues: [] }, { name: 'lastName', type: 'string', nullable: true, enumValues: [] }, { name: 'phone', type: 'string', nullable: true, enumValues: [] }, { name: 'about', type: 'string', nullable: true, enumValues: [] }, { name: 'website', type: 'string', nullable: true, enumValues: [] }, { name: 'location', type: 'string', nullable: true, enumValues: [] }, { name: 'email', type: 'string', nullable: true, enumValues: [] }, { name: 'picture', type: 'json', nullable: true, enumValues: [] }, { name: 'linkedin', type: 'string', nullable: true, enumValues: [] }, { name: 'twitter', type: 'string', nullable: true, enumValues: [] }, { name: 'locations', type: 'json', nullable: true, enumValues: [] }, { name: 'primaryOrganization', type: 'number', nullable: true, enumValues: [] }, { name: 'role', type: 'string', nullable: true, enumValues: [] }]
+        fields: [{ name: 'firstName', type: 'string', nullable: false, secure: false, enumValues: [] }, { name: 'lastName', type: 'string', nullable: true, secure: false, enumValues: [] }, { name: 'phone', type: 'string', nullable: true, secure: false, enumValues: [] }, { name: 'about', type: 'string', nullable: true, secure: false, enumValues: [] }, { name: 'website', type: 'string', nullable: true, secure: false, enumValues: [] }, { name: 'location', type: 'string', nullable: true, secure: false, enumValues: [] }, { name: 'email', type: 'string', nullable: true, secure: false, enumValues: [] }, { name: 'picture', type: 'json', nullable: true, secure: false, enumValues: [] }, { name: 'linkedin', type: 'string', nullable: true, secure: false, enumValues: [] }, { name: 'twitter', type: 'string', nullable: true, secure: false, enumValues: [] }, { name: 'locations', type: 'json', nullable: true, secure: false, enumValues: [] }, { name: 'primaryOrganization', type: 'number', nullable: true, secure: false, enumValues: [] }, { name: 'role', type: 'string', nullable: true, secure: false, enumValues: [] }]
     };
 
     private static validate(src: any) {
@@ -1476,7 +1476,7 @@ export class FeatureFlagFactory extends FEntityFactory<FeatureFlag> {
     static schema: FEntitySchema = {
         name: 'FeatureFlag',
         primaryKeys: [{ name: 'key', type: 'string' }],
-        fields: [{ name: 'title', type: 'string', nullable: false, enumValues: [] }]
+        fields: [{ name: 'title', type: 'string', nullable: false, secure: false, enumValues: [] }]
     };
 
     private static validate(src: any) {
@@ -1551,7 +1551,7 @@ export class OrganizationFeaturesFactory extends FEntityFactory<OrganizationFeat
     static schema: FEntitySchema = {
         name: 'OrganizationFeatures',
         primaryKeys: [{ name: 'id', type: 'string' }],
-        fields: [{ name: 'featureKey', type: 'string', nullable: false, enumValues: [] }, { name: 'organizationId', type: 'number', nullable: false, enumValues: [] }, { name: 'enabled', type: 'boolean', nullable: false, enumValues: [] }]
+        fields: [{ name: 'featureKey', type: 'string', nullable: false, secure: false, enumValues: [] }, { name: 'organizationId', type: 'number', nullable: false, secure: false, enumValues: [] }, { name: 'enabled', type: 'boolean', nullable: false, secure: false, enumValues: [] }]
     };
 
     private static validate(src: any) {
@@ -1628,7 +1628,7 @@ export class ReaderState extends FEntity {
     }
     get version(): number | null {
         let res = this._value.version;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set version(value: number | null) {
@@ -1643,7 +1643,7 @@ export class ReaderStateFactory extends FEntityFactory<ReaderState> {
     static schema: FEntitySchema = {
         name: 'ReaderState',
         primaryKeys: [{ name: 'id', type: 'string' }],
-        fields: [{ name: 'cursor', type: 'string', nullable: false, enumValues: [] }, { name: 'version', type: 'number', nullable: true, enumValues: [] }]
+        fields: [{ name: 'cursor', type: 'string', nullable: false, secure: false, enumValues: [] }, { name: 'version', type: 'number', nullable: true, secure: false, enumValues: [] }]
     };
 
     private static validate(src: any) {
@@ -1709,7 +1709,7 @@ export class SuperAdminFactory extends FEntityFactory<SuperAdmin> {
     static schema: FEntitySchema = {
         name: 'SuperAdmin',
         primaryKeys: [{ name: 'id', type: 'number' }],
-        fields: [{ name: 'role', type: 'string', nullable: false, enumValues: [] }, { name: 'enabled', type: 'boolean', nullable: false, enumValues: [] }]
+        fields: [{ name: 'role', type: 'string', nullable: false, secure: false, enumValues: [] }, { name: 'enabled', type: 'boolean', nullable: false, secure: false, enumValues: [] }]
     };
 
     private static validate(src: any) {
@@ -1785,7 +1785,7 @@ export class UserSettings extends FEntity {
     }
     get mobileAlert(): boolean | null {
         let res = this._value.mobileAlert;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set mobileAlert(value: boolean | null) {
@@ -1796,7 +1796,7 @@ export class UserSettings extends FEntity {
     }
     get mobileIncludeText(): boolean | null {
         let res = this._value.mobileIncludeText;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set mobileIncludeText(value: boolean | null) {
@@ -1807,7 +1807,7 @@ export class UserSettings extends FEntity {
     }
     get notificationsDelay(): 'none' | '1min' | '15min' | null {
         let res = this._value.notificationsDelay;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set notificationsDelay(value: 'none' | '1min' | '15min' | null) {
@@ -1822,7 +1822,7 @@ export class UserSettingsFactory extends FEntityFactory<UserSettings> {
     static schema: FEntitySchema = {
         name: 'UserSettings',
         primaryKeys: [{ name: 'id', type: 'number' }],
-        fields: [{ name: 'emailFrequency', type: 'enum', nullable: false, enumValues: ['1hour', '15min', 'never', '24hour', '1week'] }, { name: 'desktopNotifications', type: 'enum', nullable: false, enumValues: ['all', 'direct', 'none'] }, { name: 'mobileNotifications', type: 'enum', nullable: false, enumValues: ['all', 'direct', 'none'] }, { name: 'mobileAlert', type: 'boolean', nullable: true, enumValues: [] }, { name: 'mobileIncludeText', type: 'boolean', nullable: true, enumValues: [] }, { name: 'notificationsDelay', type: 'enum', nullable: true, enumValues: ['none', '1min', '15min'] }]
+        fields: [{ name: 'emailFrequency', type: 'enum', nullable: false, secure: false, enumValues: ['1hour', '15min', 'never', '24hour', '1week'] }, { name: 'desktopNotifications', type: 'enum', nullable: false, secure: false, enumValues: ['all', 'direct', 'none'] }, { name: 'mobileNotifications', type: 'enum', nullable: false, secure: false, enumValues: ['all', 'direct', 'none'] }, { name: 'mobileAlert', type: 'boolean', nullable: true, secure: false, enumValues: [] }, { name: 'mobileIncludeText', type: 'boolean', nullable: true, secure: false, enumValues: [] }, { name: 'notificationsDelay', type: 'enum', nullable: true, secure: false, enumValues: ['none', '1min', '15min'] }]
     };
 
     private static validate(src: any) {
@@ -1904,7 +1904,7 @@ export class ShortnameReservationFactory extends FEntityFactory<ShortnameReserva
     static schema: FEntitySchema = {
         name: 'ShortnameReservation',
         primaryKeys: [{ name: 'shortname', type: 'string' }],
-        fields: [{ name: 'ownerType', type: 'enum', nullable: false, enumValues: ['org', 'user'] }, { name: 'ownerId', type: 'number', nullable: false, enumValues: [] }, { name: 'enabled', type: 'boolean', nullable: false, enumValues: [] }]
+        fields: [{ name: 'ownerType', type: 'enum', nullable: false, secure: false, enumValues: ['org', 'user'] }, { name: 'ownerId', type: 'number', nullable: false, secure: false, enumValues: [] }, { name: 'enabled', type: 'boolean', nullable: false, secure: false, enumValues: [] }]
     };
 
     private static validate(src: any) {
@@ -2011,7 +2011,7 @@ export class AuthCodeSession extends FEntity {
     }
     get tokenId(): string | null {
         let res = this._value.tokenId;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set tokenId(value: string | null) {
@@ -2035,7 +2035,7 @@ export class AuthCodeSessionFactory extends FEntityFactory<AuthCodeSession> {
     static schema: FEntitySchema = {
         name: 'AuthCodeSession',
         primaryKeys: [{ name: 'uid', type: 'string' }],
-        fields: [{ name: 'code', type: 'string', nullable: false, enumValues: [] }, { name: 'expires', type: 'number', nullable: false, enumValues: [] }, { name: 'email', type: 'string', nullable: false, enumValues: [] }, { name: 'tokenId', type: 'string', nullable: true, enumValues: [] }, { name: 'enabled', type: 'boolean', nullable: false, enumValues: [] }]
+        fields: [{ name: 'code', type: 'string', nullable: false, secure: true, enumValues: [] }, { name: 'expires', type: 'number', nullable: false, secure: false, enumValues: [] }, { name: 'email', type: 'string', nullable: false, secure: false, enumValues: [] }, { name: 'tokenId', type: 'string', nullable: true, secure: true, enumValues: [] }, { name: 'enabled', type: 'boolean', nullable: false, secure: false, enumValues: [] }]
     };
 
     private static validate(src: any) {
@@ -2098,7 +2098,7 @@ export class Conversation extends FEntity {
     }
     get uid1(): number | null {
         let res = this._value.uid1;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set uid1(value: number | null) {
@@ -2109,7 +2109,7 @@ export class Conversation extends FEntity {
     }
     get uid2(): number | null {
         let res = this._value.uid2;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set uid2(value: number | null) {
@@ -2120,7 +2120,7 @@ export class Conversation extends FEntity {
     }
     get roomType(): 'company' | 'public' | 'group' | null {
         let res = this._value.roomType;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set roomType(value: 'company' | 'public' | 'group' | null) {
@@ -2131,7 +2131,7 @@ export class Conversation extends FEntity {
     }
     get roomOwner(): number | null {
         let res = this._value.roomOwner;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set roomOwner(value: number | null) {
@@ -2155,7 +2155,7 @@ export class ConversationFactory extends FEntityFactory<Conversation> {
     static schema: FEntitySchema = {
         name: 'Conversation',
         primaryKeys: [{ name: 'cid', type: 'number' }],
-        fields: [{ name: 'kind', type: 'enum', nullable: false, enumValues: ['private', 'room'] }, { name: 'uid1', type: 'number', nullable: true, enumValues: [] }, { name: 'uid2', type: 'number', nullable: true, enumValues: [] }, { name: 'roomType', type: 'enum', nullable: true, enumValues: ['company', 'public', 'group'] }, { name: 'roomOwner', type: 'number', nullable: true, enumValues: [] }, { name: 'membersCount', type: 'number', nullable: false, enumValues: [] }]
+        fields: [{ name: 'kind', type: 'enum', nullable: false, secure: false, enumValues: ['private', 'room'] }, { name: 'uid1', type: 'number', nullable: true, secure: false, enumValues: [] }, { name: 'uid2', type: 'number', nullable: true, secure: false, enumValues: [] }, { name: 'roomType', type: 'enum', nullable: true, secure: false, enumValues: ['company', 'public', 'group'] }, { name: 'roomOwner', type: 'number', nullable: true, secure: false, enumValues: [] }, { name: 'membersCount', type: 'number', nullable: false, secure: false, enumValues: [] }]
     };
 
     private static validate(src: any) {
@@ -2297,7 +2297,7 @@ export class RoomProfileFactory extends FEntityFactory<RoomProfile> {
     static schema: FEntitySchema = {
         name: 'RoomProfile',
         primaryKeys: [{ name: 'cid', type: 'number' }],
-        fields: [{ name: 'title', type: 'string', nullable: false, enumValues: [] }, { name: 'image', type: 'json', nullable: false, enumValues: [] }, { name: 'socialImage', type: 'json', nullable: false, enumValues: [] }, { name: 'description', type: 'string', nullable: false, enumValues: [] }, { name: 'longDescription', type: 'string', nullable: false, enumValues: [] }, { name: 'featured', type: 'boolean', nullable: false, enumValues: [] }, { name: 'hidden', type: 'boolean', nullable: false, enumValues: [] }]
+        fields: [{ name: 'title', type: 'string', nullable: false, secure: false, enumValues: [] }, { name: 'image', type: 'json', nullable: false, secure: false, enumValues: [] }, { name: 'socialImage', type: 'json', nullable: false, secure: false, enumValues: [] }, { name: 'description', type: 'string', nullable: false, secure: false, enumValues: [] }, { name: 'longDescription', type: 'string', nullable: false, secure: false, enumValues: [] }, { name: 'featured', type: 'boolean', nullable: false, secure: false, enumValues: [] }, { name: 'hidden', type: 'boolean', nullable: false, secure: false, enumValues: [] }]
     };
 
     private static validate(src: any) {
@@ -2383,7 +2383,7 @@ export class RoomParticipantFactory extends FEntityFactory<RoomParticipant> {
     static schema: FEntitySchema = {
         name: 'RoomParticipant',
         primaryKeys: [{ name: 'cid', type: 'number' }, { name: 'uid', type: 'number' }],
-        fields: [{ name: 'invitedBy', type: 'number', nullable: false, enumValues: [] }, { name: 'role', type: 'enum', nullable: false, enumValues: ['member', 'admin', 'owner'] }, { name: 'status', type: 'enum', nullable: false, enumValues: ['joined', 'requested', 'left', 'kicked'] }]
+        fields: [{ name: 'invitedBy', type: 'number', nullable: false, secure: false, enumValues: [] }, { name: 'role', type: 'enum', nullable: false, secure: false, enumValues: ['member', 'admin', 'owner'] }, { name: 'status', type: 'enum', nullable: false, secure: false, enumValues: ['joined', 'requested', 'left', 'kicked'] }]
     };
 
     private static validate(src: any) {
@@ -2508,7 +2508,7 @@ export class ConversationReceiverFactory extends FEntityFactory<ConversationRece
     static schema: FEntitySchema = {
         name: 'ConversationReceiver',
         primaryKeys: [{ name: 'cid', type: 'number' }, { name: 'uid', type: 'number' }],
-        fields: [{ name: 'enabled', type: 'boolean', nullable: false, enumValues: [] }]
+        fields: [{ name: 'enabled', type: 'boolean', nullable: false, secure: false, enumValues: [] }]
     };
 
     private static validate(src: any) {
@@ -2586,7 +2586,7 @@ export class SequenceFactory extends FEntityFactory<Sequence> {
     static schema: FEntitySchema = {
         name: 'Sequence',
         primaryKeys: [{ name: 'sequence', type: 'string' }],
-        fields: [{ name: 'value', type: 'number', nullable: false, enumValues: [] }]
+        fields: [{ name: 'value', type: 'number', nullable: false, secure: false, enumValues: [] }]
     };
 
     private static validate(src: any) {
@@ -2661,7 +2661,7 @@ export class Message extends FEntity {
     }
     get repeatKey(): string | null {
         let res = this._value.repeatKey;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set repeatKey(value: string | null) {
@@ -2672,7 +2672,7 @@ export class Message extends FEntity {
     }
     get text(): string | null {
         let res = this._value.text;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set text(value: string | null) {
@@ -2683,7 +2683,7 @@ export class Message extends FEntity {
     }
     get fileId(): string | null {
         let res = this._value.fileId;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set fileId(value: string | null) {
@@ -2694,7 +2694,7 @@ export class Message extends FEntity {
     }
     get fileMetadata(): any | null {
         let res = this._value.fileMetadata;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set fileMetadata(value: any | null) {
@@ -2705,7 +2705,7 @@ export class Message extends FEntity {
     }
     get filePreview(): string | null {
         let res = this._value.filePreview;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set filePreview(value: string | null) {
@@ -2716,7 +2716,7 @@ export class Message extends FEntity {
     }
     get mentions(): any | null {
         let res = this._value.mentions;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set mentions(value: any | null) {
@@ -2727,7 +2727,7 @@ export class Message extends FEntity {
     }
     get replyMessages(): any | null {
         let res = this._value.replyMessages;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set replyMessages(value: any | null) {
@@ -2738,7 +2738,7 @@ export class Message extends FEntity {
     }
     get augmentation(): any | null {
         let res = this._value.augmentation;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set augmentation(value: any | null) {
@@ -2749,7 +2749,7 @@ export class Message extends FEntity {
     }
     get serviceMetadata(): any | null {
         let res = this._value.serviceMetadata;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set serviceMetadata(value: any | null) {
@@ -2760,7 +2760,7 @@ export class Message extends FEntity {
     }
     get reactions(): any | null {
         let res = this._value.reactions;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set reactions(value: any | null) {
@@ -2771,7 +2771,7 @@ export class Message extends FEntity {
     }
     get edited(): boolean | null {
         let res = this._value.edited;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set edited(value: boolean | null) {
@@ -2800,7 +2800,7 @@ export class Message extends FEntity {
     }
     get deleted(): boolean | null {
         let res = this._value.deleted;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set deleted(value: boolean | null) {
@@ -2815,7 +2815,7 @@ export class MessageFactory extends FEntityFactory<Message> {
     static schema: FEntitySchema = {
         name: 'Message',
         primaryKeys: [{ name: 'id', type: 'number' }],
-        fields: [{ name: 'cid', type: 'number', nullable: false, enumValues: [] }, { name: 'uid', type: 'number', nullable: false, enumValues: [] }, { name: 'repeatKey', type: 'string', nullable: true, enumValues: [] }, { name: 'text', type: 'string', nullable: true, enumValues: [] }, { name: 'fileId', type: 'string', nullable: true, enumValues: [] }, { name: 'fileMetadata', type: 'json', nullable: true, enumValues: [] }, { name: 'filePreview', type: 'string', nullable: true, enumValues: [] }, { name: 'mentions', type: 'json', nullable: true, enumValues: [] }, { name: 'replyMessages', type: 'json', nullable: true, enumValues: [] }, { name: 'augmentation', type: 'json', nullable: true, enumValues: [] }, { name: 'serviceMetadata', type: 'json', nullable: true, enumValues: [] }, { name: 'reactions', type: 'json', nullable: true, enumValues: [] }, { name: 'edited', type: 'boolean', nullable: true, enumValues: [] }, { name: 'isMuted', type: 'boolean', nullable: false, enumValues: [] }, { name: 'isService', type: 'boolean', nullable: false, enumValues: [] }, { name: 'deleted', type: 'boolean', nullable: true, enumValues: [] }]
+        fields: [{ name: 'cid', type: 'number', nullable: false, secure: false, enumValues: [] }, { name: 'uid', type: 'number', nullable: false, secure: false, enumValues: [] }, { name: 'repeatKey', type: 'string', nullable: true, secure: false, enumValues: [] }, { name: 'text', type: 'string', nullable: true, secure: true, enumValues: [] }, { name: 'fileId', type: 'string', nullable: true, secure: true, enumValues: [] }, { name: 'fileMetadata', type: 'json', nullable: true, secure: true, enumValues: [] }, { name: 'filePreview', type: 'string', nullable: true, secure: true, enumValues: [] }, { name: 'mentions', type: 'json', nullable: true, secure: false, enumValues: [] }, { name: 'replyMessages', type: 'json', nullable: true, secure: false, enumValues: [] }, { name: 'augmentation', type: 'json', nullable: true, secure: false, enumValues: [] }, { name: 'serviceMetadata', type: 'json', nullable: true, secure: false, enumValues: [] }, { name: 'reactions', type: 'json', nullable: true, secure: true, enumValues: [] }, { name: 'edited', type: 'boolean', nullable: true, secure: false, enumValues: [] }, { name: 'isMuted', type: 'boolean', nullable: false, secure: false, enumValues: [] }, { name: 'isService', type: 'boolean', nullable: false, secure: false, enumValues: [] }, { name: 'deleted', type: 'boolean', nullable: true, secure: false, enumValues: [] }]
     };
 
     private static validate(src: any) {
@@ -2900,7 +2900,7 @@ export class ConversationSeqFactory extends FEntityFactory<ConversationSeq> {
     static schema: FEntitySchema = {
         name: 'ConversationSeq',
         primaryKeys: [{ name: 'cid', type: 'number' }],
-        fields: [{ name: 'seq', type: 'number', nullable: false, enumValues: [] }]
+        fields: [{ name: 'seq', type: 'number', nullable: false, secure: false, enumValues: [] }]
     };
 
     private static validate(src: any) {
@@ -2945,7 +2945,7 @@ export class ConversationEvent extends FEntity {
     get seq(): number { return this._value.seq; }
     get uid(): number | null {
         let res = this._value.uid;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set uid(value: number | null) {
@@ -2956,7 +2956,7 @@ export class ConversationEvent extends FEntity {
     }
     get mid(): number | null {
         let res = this._value.mid;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set mid(value: number | null) {
@@ -2980,7 +2980,7 @@ export class ConversationEventFactory extends FEntityFactory<ConversationEvent> 
     static schema: FEntitySchema = {
         name: 'ConversationEvent',
         primaryKeys: [{ name: 'cid', type: 'number' }, { name: 'seq', type: 'number' }],
-        fields: [{ name: 'uid', type: 'number', nullable: true, enumValues: [] }, { name: 'mid', type: 'number', nullable: true, enumValues: [] }, { name: 'kind', type: 'enum', nullable: false, enumValues: ['message_received', 'message_updated', 'message_deleted'] }]
+        fields: [{ name: 'uid', type: 'number', nullable: true, secure: false, enumValues: [] }, { name: 'mid', type: 'number', nullable: true, secure: false, enumValues: [] }, { name: 'kind', type: 'enum', nullable: false, secure: false, enumValues: ['message_received', 'message_updated', 'message_deleted'] }]
     };
 
     private static validate(src: any) {
@@ -3059,7 +3059,7 @@ export class UserDialog extends FEntity {
     }
     get readMessageId(): number | null {
         let res = this._value.readMessageId;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set readMessageId(value: number | null) {
@@ -3070,7 +3070,7 @@ export class UserDialog extends FEntity {
     }
     get date(): number | null {
         let res = this._value.date;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set date(value: number | null) {
@@ -3085,7 +3085,7 @@ export class UserDialogFactory extends FEntityFactory<UserDialog> {
     static schema: FEntitySchema = {
         name: 'UserDialog',
         primaryKeys: [{ name: 'uid', type: 'number' }, { name: 'cid', type: 'number' }],
-        fields: [{ name: 'unread', type: 'number', nullable: false, enumValues: [] }, { name: 'readMessageId', type: 'number', nullable: true, enumValues: [] }, { name: 'date', type: 'number', nullable: true, enumValues: [] }]
+        fields: [{ name: 'unread', type: 'number', nullable: false, secure: false, enumValues: [] }, { name: 'readMessageId', type: 'number', nullable: true, secure: false, enumValues: [] }, { name: 'date', type: 'number', nullable: true, secure: false, enumValues: [] }]
     };
 
     private static validate(src: any) {
@@ -3163,7 +3163,7 @@ export class UserDialogSettingsFactory extends FEntityFactory<UserDialogSettings
     static schema: FEntitySchema = {
         name: 'UserDialogSettings',
         primaryKeys: [{ name: 'uid', type: 'number' }, { name: 'cid', type: 'number' }],
-        fields: [{ name: 'mute', type: 'boolean', nullable: false, enumValues: [] }]
+        fields: [{ name: 'mute', type: 'boolean', nullable: false, secure: false, enumValues: [] }]
     };
 
     private static validate(src: any) {
@@ -3214,7 +3214,7 @@ export class UserDialogEvent extends FEntity {
     get seq(): number { return this._value.seq; }
     get cid(): number | null {
         let res = this._value.cid;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set cid(value: number | null) {
@@ -3225,7 +3225,7 @@ export class UserDialogEvent extends FEntity {
     }
     get sid(): number | null {
         let res = this._value.sid;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set sid(value: number | null) {
@@ -3236,7 +3236,7 @@ export class UserDialogEvent extends FEntity {
     }
     get mid(): number | null {
         let res = this._value.mid;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set mid(value: number | null) {
@@ -3247,7 +3247,7 @@ export class UserDialogEvent extends FEntity {
     }
     get allUnread(): number | null {
         let res = this._value.allUnread;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set allUnread(value: number | null) {
@@ -3258,7 +3258,7 @@ export class UserDialogEvent extends FEntity {
     }
     get unread(): number | null {
         let res = this._value.unread;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set unread(value: number | null) {
@@ -3269,7 +3269,7 @@ export class UserDialogEvent extends FEntity {
     }
     get title(): string | null {
         let res = this._value.title;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set title(value: string | null) {
@@ -3293,7 +3293,7 @@ export class UserDialogEventFactory extends FEntityFactory<UserDialogEvent> {
     static schema: FEntitySchema = {
         name: 'UserDialogEvent',
         primaryKeys: [{ name: 'uid', type: 'number' }, { name: 'seq', type: 'number' }],
-        fields: [{ name: 'cid', type: 'number', nullable: true, enumValues: [] }, { name: 'sid', type: 'number', nullable: true, enumValues: [] }, { name: 'mid', type: 'number', nullable: true, enumValues: [] }, { name: 'allUnread', type: 'number', nullable: true, enumValues: [] }, { name: 'unread', type: 'number', nullable: true, enumValues: [] }, { name: 'title', type: 'string', nullable: true, enumValues: [] }, { name: 'kind', type: 'enum', nullable: false, enumValues: ['message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated'] }]
+        fields: [{ name: 'cid', type: 'number', nullable: true, secure: false, enumValues: [] }, { name: 'sid', type: 'number', nullable: true, secure: false, enumValues: [] }, { name: 'mid', type: 'number', nullable: true, secure: false, enumValues: [] }, { name: 'allUnread', type: 'number', nullable: true, secure: false, enumValues: [] }, { name: 'unread', type: 'number', nullable: true, secure: false, enumValues: [] }, { name: 'title', type: 'string', nullable: true, secure: false, enumValues: [] }, { name: 'kind', type: 'enum', nullable: false, secure: false, enumValues: ['message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated'] }]
     };
 
     private static validate(src: any) {
@@ -3387,7 +3387,7 @@ export class UserMessagingStateFactory extends FEntityFactory<UserMessagingState
     static schema: FEntitySchema = {
         name: 'UserMessagingState',
         primaryKeys: [{ name: 'uid', type: 'number' }],
-        fields: [{ name: 'seq', type: 'number', nullable: false, enumValues: [] }, { name: 'unread', type: 'number', nullable: false, enumValues: [] }]
+        fields: [{ name: 'seq', type: 'number', nullable: false, secure: false, enumValues: [] }, { name: 'unread', type: 'number', nullable: false, secure: false, enumValues: [] }]
     };
 
     private static validate(src: any) {
@@ -3447,7 +3447,7 @@ export class UserNotificationsState extends FEntity {
     get uid(): number { return this._value.uid; }
     get readSeq(): number | null {
         let res = this._value.readSeq;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set readSeq(value: number | null) {
@@ -3458,7 +3458,7 @@ export class UserNotificationsState extends FEntity {
     }
     get lastEmailNotification(): number | null {
         let res = this._value.lastEmailNotification;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set lastEmailNotification(value: number | null) {
@@ -3469,7 +3469,7 @@ export class UserNotificationsState extends FEntity {
     }
     get lastPushNotification(): number | null {
         let res = this._value.lastPushNotification;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set lastPushNotification(value: number | null) {
@@ -3480,7 +3480,7 @@ export class UserNotificationsState extends FEntity {
     }
     get lastEmailSeq(): number | null {
         let res = this._value.lastEmailSeq;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set lastEmailSeq(value: number | null) {
@@ -3491,7 +3491,7 @@ export class UserNotificationsState extends FEntity {
     }
     get lastPushSeq(): number | null {
         let res = this._value.lastPushSeq;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set lastPushSeq(value: number | null) {
@@ -3506,7 +3506,7 @@ export class UserNotificationsStateFactory extends FEntityFactory<UserNotificati
     static schema: FEntitySchema = {
         name: 'UserNotificationsState',
         primaryKeys: [{ name: 'uid', type: 'number' }],
-        fields: [{ name: 'readSeq', type: 'number', nullable: true, enumValues: [] }, { name: 'lastEmailNotification', type: 'number', nullable: true, enumValues: [] }, { name: 'lastPushNotification', type: 'number', nullable: true, enumValues: [] }, { name: 'lastEmailSeq', type: 'number', nullable: true, enumValues: [] }, { name: 'lastPushSeq', type: 'number', nullable: true, enumValues: [] }]
+        fields: [{ name: 'readSeq', type: 'number', nullable: true, secure: false, enumValues: [] }, { name: 'lastEmailNotification', type: 'number', nullable: true, secure: false, enumValues: [] }, { name: 'lastPushNotification', type: 'number', nullable: true, secure: false, enumValues: [] }, { name: 'lastEmailSeq', type: 'number', nullable: true, secure: false, enumValues: [] }, { name: 'lastPushSeq', type: 'number', nullable: true, secure: false, enumValues: [] }]
     };
 
     private static validate(src: any) {
@@ -3584,7 +3584,7 @@ export class HyperLogFactory extends FEntityFactory<HyperLog> {
     static schema: FEntitySchema = {
         name: 'HyperLog',
         primaryKeys: [{ name: 'id', type: 'string' }],
-        fields: [{ name: 'type', type: 'string', nullable: false, enumValues: [] }, { name: 'date', type: 'number', nullable: false, enumValues: [] }, { name: 'body', type: 'json', nullable: false, enumValues: [] }]
+        fields: [{ name: 'type', type: 'string', nullable: false, secure: false, enumValues: [] }, { name: 'date', type: 'number', nullable: false, secure: false, enumValues: [] }, { name: 'body', type: 'json', nullable: false, secure: false, enumValues: [] }]
     };
 
     private static validate(src: any) {
@@ -3655,7 +3655,7 @@ export class MessageDraftFactory extends FEntityFactory<MessageDraft> {
     static schema: FEntitySchema = {
         name: 'MessageDraft',
         primaryKeys: [{ name: 'uid', type: 'number' }, { name: 'cid', type: 'number' }],
-        fields: [{ name: 'contents', type: 'string', nullable: false, enumValues: [] }]
+        fields: [{ name: 'contents', type: 'string', nullable: false, secure: false, enumValues: [] }]
     };
 
     private static validate(src: any) {
@@ -3733,7 +3733,7 @@ export class ChannelInvitation extends FEntity {
     }
     get firstName(): string | null {
         let res = this._value.firstName;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set firstName(value: string | null) {
@@ -3744,7 +3744,7 @@ export class ChannelInvitation extends FEntity {
     }
     get lastName(): string | null {
         let res = this._value.lastName;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set lastName(value: string | null) {
@@ -3755,7 +3755,7 @@ export class ChannelInvitation extends FEntity {
     }
     get text(): string | null {
         let res = this._value.text;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set text(value: string | null) {
@@ -3766,7 +3766,7 @@ export class ChannelInvitation extends FEntity {
     }
     get acceptedById(): number | null {
         let res = this._value.acceptedById;
-        if (res) { return res; }
+        if (res !== null && res !== undefined) { return res; }
         return null;
     }
     set acceptedById(value: number | null) {
@@ -3790,7 +3790,7 @@ export class ChannelInvitationFactory extends FEntityFactory<ChannelInvitation> 
     static schema: FEntitySchema = {
         name: 'ChannelInvitation',
         primaryKeys: [{ name: 'id', type: 'string' }],
-        fields: [{ name: 'creatorId', type: 'number', nullable: false, enumValues: [] }, { name: 'channelId', type: 'number', nullable: false, enumValues: [] }, { name: 'email', type: 'string', nullable: false, enumValues: [] }, { name: 'firstName', type: 'string', nullable: true, enumValues: [] }, { name: 'lastName', type: 'string', nullable: true, enumValues: [] }, { name: 'text', type: 'string', nullable: true, enumValues: [] }, { name: 'acceptedById', type: 'number', nullable: true, enumValues: [] }, { name: 'enabled', type: 'boolean', nullable: false, enumValues: [] }]
+        fields: [{ name: 'creatorId', type: 'number', nullable: false, secure: false, enumValues: [] }, { name: 'channelId', type: 'number', nullable: false, secure: false, enumValues: [] }, { name: 'email', type: 'string', nullable: false, secure: false, enumValues: [] }, { name: 'firstName', type: 'string', nullable: true, secure: false, enumValues: [] }, { name: 'lastName', type: 'string', nullable: true, secure: false, enumValues: [] }, { name: 'text', type: 'string', nullable: true, secure: false, enumValues: [] }, { name: 'acceptedById', type: 'number', nullable: true, secure: false, enumValues: [] }, { name: 'enabled', type: 'boolean', nullable: false, secure: false, enumValues: [] }]
     };
 
     private static validate(src: any) {
@@ -3893,7 +3893,7 @@ export class ChannelLinkFactory extends FEntityFactory<ChannelLink> {
     static schema: FEntitySchema = {
         name: 'ChannelLink',
         primaryKeys: [{ name: 'id', type: 'string' }],
-        fields: [{ name: 'creatorId', type: 'number', nullable: false, enumValues: [] }, { name: 'channelId', type: 'number', nullable: false, enumValues: [] }, { name: 'enabled', type: 'boolean', nullable: false, enumValues: [] }]
+        fields: [{ name: 'creatorId', type: 'number', nullable: false, secure: false, enumValues: [] }, { name: 'channelId', type: 'number', nullable: false, secure: false, enumValues: [] }, { name: 'enabled', type: 'boolean', nullable: false, secure: false, enumValues: [] }]
     };
 
     private static validate(src: any) {
@@ -3970,7 +3970,7 @@ export class AppInviteLinkFactory extends FEntityFactory<AppInviteLink> {
     static schema: FEntitySchema = {
         name: 'AppInviteLink',
         primaryKeys: [{ name: 'id', type: 'string' }],
-        fields: [{ name: 'uid', type: 'number', nullable: false, enumValues: [] }]
+        fields: [{ name: 'uid', type: 'number', nullable: false, secure: false, enumValues: [] }]
     };
 
     private static validate(src: any) {

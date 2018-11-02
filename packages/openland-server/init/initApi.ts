@@ -114,14 +114,20 @@ export async function initApi(isTest: boolean) {
                 execute: async (schema: GraphQLSchema, document: DocumentNode, rootValue?: any, contextValue?: any, variableValues?: {
                     [key: string]: any;
                 }, operationName?: string, fieldResolver?: GraphQLFieldResolver<any, any>) => {
-                    try {
-                        return await withLogContext('ws', async () => {
-                            return await withTracingSpan(contextValue!.span!, async () => {
-                                return await execute(schema, document, rootValue, contextValue, variableValues, operationName, fieldResolver);
+                    if (contextValue!.span!) {
+                        try {
+                            return await withLogContext('ws', async () => {
+                                return await withTracingSpan(contextValue!.span!, async () => {
+                                    return await execute(schema, document, rootValue, contextValue, variableValues, operationName, fieldResolver);
+                                });
                             });
+                        } finally {
+                            contextValue!.span!.finish();
+                        }
+                    } else {
+                        return await withLogContext('ws', async () => {
+                            return await execute(schema, document, rootValue, contextValue, variableValues, operationName, fieldResolver);
                         });
-                    } finally {
-                        contextValue!.span!.finish();
                     }
                 },
                 subscribe,
