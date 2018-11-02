@@ -5,6 +5,8 @@ import morgan from 'morgan';
 import compression from 'compression';
 
 export function startAdminInterface() {
+    console.log('Starting Admin Interface...');
+    
     const app = express();
 
     app.enable('trust proxy');
