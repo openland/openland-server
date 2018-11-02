@@ -216,12 +216,60 @@ const Schema = declareSchema(() => {
     // Conversation
     //
 
-    // entity('ConversationMember', () => {
-    //     primaryKey('cid', 'string');
-    //     primaryKey('uid', 'number');
-    //     field('enabled', 'boolean');
-    //     uniqueIndex('conversationMembers', ['cid', 'uid']).withCondition((src) => src.enabled);
-    // });
+    entity('Conversation', () => {
+        primaryKey('cid', 'number');
+        enumField('kind', ['private', 'room']);
+
+        // Private
+        field('uid1', 'number').nullable();
+        field('uid2', 'number').nullable();
+        uniqueIndex('primate', ['uid1', 'uid2']).withCondition((src) => src.kind === 'private');
+
+        // Room
+        enumField('roomType', ['company', 'public', 'group']).nullable();
+        field('roomOwner', 'number').nullable();
+        field('membersCount', 'number');
+
+        enableVersioning();
+        enableTimestamps();
+    });
+
+    entity('RoomProfile', () => {
+        primaryKey('cid', 'number');
+        
+        field('title', 'string');
+        field('image', 'json');
+        field('socialImage', 'json');
+        field('description', 'string');
+        field('longDescription', 'string');
+
+        field('featured', 'boolean');
+        field('hidden', 'boolean');
+
+        enableVersioning();
+        enableTimestamps();
+    });
+
+    entity('RoomParticipant', () => {
+        primaryKey('cid', 'number');
+        primaryKey('uid', 'number');
+        field('invitedBy', 'number');
+        enumField('role', ['member', 'admin', 'owner']);
+        enumField('status', ['joined', 'requested', 'left', 'kicked']);
+        uniqueIndex('active', ['cid', 'uid']).withCondition((src) => src.status === 'joined');
+        uniqueIndex('requests', ['cid', 'uid']).withCondition((src) => src.status === 'requested');
+        enableVersioning();
+        enableTimestamps();
+    });
+
+    entity('ConversationReceiver', () => {
+        primaryKey('cid', 'number');
+        primaryKey('uid', 'number');
+        field('enabled', 'boolean');
+        uniqueIndex('conversation', ['cid', 'uid']).withCondition((src) => src.enabled);
+        enableVersioning();
+        enableTimestamps();
+    });
 
     //
     // Conversation State

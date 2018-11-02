@@ -13,7 +13,6 @@ import { ConversationTable } from './Conversation';
 import { ConversationBlockedTable } from './ConversationBlocked';
 import { retry } from '../utils/timer';
 import { ConversationGroupMembersTable } from './ConversationGroupMembers';
-import { ConversationChannelMembersTable } from './ConversationChannelMembers';
 
 const SILENT_TX_ACTUALLY_SILENT = false;
 export const DB_SILENT = !SILENT_TX_ACTUALLY_SILENT;
@@ -28,7 +27,6 @@ export const DB = {
     Conversation: ConversationTable,
     ConversationGroupMembers: ConversationGroupMembersTable,
     ConversationBlocked: ConversationBlockedTable,
-    ConversationChannelMembers: ConversationChannelMembersTable,
 
     tx: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>, existingTx?: sequelize.Transaction): Promise<A> {
         if (existingTx) {

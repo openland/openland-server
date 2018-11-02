@@ -86,18 +86,7 @@ export const Resolver = {
         alphaARLandUse: (src: Organization) => src.extras && src.extras.arLandUse,
 
         alphaJoinedChannels: async (src: Organization) => {
-            let members = await DB.ConversationChannelMembers.findAll({
-                where: {
-                    orgId: src.id,
-                    status: 'member'
-                },
-                include: [{
-                    model: DB.Conversation,
-                    as: 'conversation'
-                }]
-            });
-
-            return members.map(m => m.conversation);
+            return [];
         },
         alphaCreatedChannels: async (src: Organization) => {
             return DB.Conversation.findAll({

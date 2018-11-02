@@ -1895,6 +1895,378 @@ export class AuthCodeSessionFactory extends FEntityFactory<AuthCodeSession> {
         return new AuthCodeSession(this.connection, this.namespace, [value.uid], value, this.options, isNew, this.indexes, 'AuthCodeSession');
     }
 }
+export interface ConversationShape {
+    kind: 'private' | 'room';
+    uid1?: number| null;
+    uid2?: number| null;
+    roomType?: 'company' | 'public' | 'group'| null;
+    roomOwner?: number| null;
+    membersCount: number;
+}
+
+export class Conversation extends FEntity {
+    get cid(): number { return this._value.cid; }
+    get kind(): 'private' | 'room' {
+        return this._value.kind;
+    }
+    set kind(value: 'private' | 'room') {
+        this._checkIsWritable();
+        if (value === this._value.kind) { return; }
+        this._value.kind = value;
+        this.markDirty();
+    }
+    get uid1(): number | null {
+        let res = this._value.uid1;
+        if (res) { return res; }
+        return null;
+    }
+    set uid1(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.uid1) { return; }
+        this._value.uid1 = value;
+        this.markDirty();
+    }
+    get uid2(): number | null {
+        let res = this._value.uid2;
+        if (res) { return res; }
+        return null;
+    }
+    set uid2(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.uid2) { return; }
+        this._value.uid2 = value;
+        this.markDirty();
+    }
+    get roomType(): 'company' | 'public' | 'group' | null {
+        let res = this._value.roomType;
+        if (res) { return res; }
+        return null;
+    }
+    set roomType(value: 'company' | 'public' | 'group' | null) {
+        this._checkIsWritable();
+        if (value === this._value.roomType) { return; }
+        this._value.roomType = value;
+        this.markDirty();
+    }
+    get roomOwner(): number | null {
+        let res = this._value.roomOwner;
+        if (res) { return res; }
+        return null;
+    }
+    set roomOwner(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.roomOwner) { return; }
+        this._value.roomOwner = value;
+        this.markDirty();
+    }
+    get membersCount(): number {
+        return this._value.membersCount;
+    }
+    set membersCount(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.membersCount) { return; }
+        this._value.membersCount = value;
+        this.markDirty();
+    }
+}
+
+export class ConversationFactory extends FEntityFactory<Conversation> {
+    private static validate(src: any) {
+        validators.notNull('cid', src.cid);
+        validators.isNumber('cid', src.cid);
+        validators.notNull('kind', src.kind);
+        validators.isEnum('kind', src.kind, ['private', 'room']);
+        validators.isNumber('uid1', src.uid1);
+        validators.isNumber('uid2', src.uid2);
+        validators.isEnum('roomType', src.roomType, ['company', 'public', 'group']);
+        validators.isNumber('roomOwner', src.roomOwner);
+        validators.notNull('membersCount', src.membersCount);
+        validators.isNumber('membersCount', src.membersCount);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'conversation'),
+            { enableVersioning: true, enableTimestamps: true, validator: ConversationFactory.validate, hasLiveStreams: false },
+            [new FEntityIndex('primate', ['uid1', 'uid2'], true, (src) => src.kind === 'private')],
+            'Conversation'
+        );
+    }
+    extractId(rawId: any[]) {
+        return { 'cid': rawId[0] };
+    }
+    async findById(cid: number) {
+        return await this._findById([cid]);
+    }
+    async create(cid: number, shape: ConversationShape) {
+        return await this._create([cid], { cid, ...shape });
+    }
+    watch(cid: number, cb: () => void) {
+        return this._watch([cid], cb);
+    }
+    async findFromPrimate(uid1: number, uid2: number) {
+        return await this._findById(['__indexes', 'primate', uid1, uid2]);
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new Conversation(this.connection, this.namespace, [value.cid], value, this.options, isNew, this.indexes, 'Conversation');
+    }
+}
+export interface RoomProfileShape {
+    title: string;
+    image: any;
+    socialImage: any;
+    description: string;
+    longDescription: string;
+    featured: boolean;
+    hidden: boolean;
+}
+
+export class RoomProfile extends FEntity {
+    get cid(): number { return this._value.cid; }
+    get title(): string {
+        return this._value.title;
+    }
+    set title(value: string) {
+        this._checkIsWritable();
+        if (value === this._value.title) { return; }
+        this._value.title = value;
+        this.markDirty();
+    }
+    get image(): any {
+        return this._value.image;
+    }
+    set image(value: any) {
+        this._checkIsWritable();
+        if (value === this._value.image) { return; }
+        this._value.image = value;
+        this.markDirty();
+    }
+    get socialImage(): any {
+        return this._value.socialImage;
+    }
+    set socialImage(value: any) {
+        this._checkIsWritable();
+        if (value === this._value.socialImage) { return; }
+        this._value.socialImage = value;
+        this.markDirty();
+    }
+    get description(): string {
+        return this._value.description;
+    }
+    set description(value: string) {
+        this._checkIsWritable();
+        if (value === this._value.description) { return; }
+        this._value.description = value;
+        this.markDirty();
+    }
+    get longDescription(): string {
+        return this._value.longDescription;
+    }
+    set longDescription(value: string) {
+        this._checkIsWritable();
+        if (value === this._value.longDescription) { return; }
+        this._value.longDescription = value;
+        this.markDirty();
+    }
+    get featured(): boolean {
+        return this._value.featured;
+    }
+    set featured(value: boolean) {
+        this._checkIsWritable();
+        if (value === this._value.featured) { return; }
+        this._value.featured = value;
+        this.markDirty();
+    }
+    get hidden(): boolean {
+        return this._value.hidden;
+    }
+    set hidden(value: boolean) {
+        this._checkIsWritable();
+        if (value === this._value.hidden) { return; }
+        this._value.hidden = value;
+        this.markDirty();
+    }
+}
+
+export class RoomProfileFactory extends FEntityFactory<RoomProfile> {
+    private static validate(src: any) {
+        validators.notNull('cid', src.cid);
+        validators.isNumber('cid', src.cid);
+        validators.notNull('title', src.title);
+        validators.isString('title', src.title);
+        validators.notNull('image', src.image);
+        validators.notNull('socialImage', src.socialImage);
+        validators.notNull('description', src.description);
+        validators.isString('description', src.description);
+        validators.notNull('longDescription', src.longDescription);
+        validators.isString('longDescription', src.longDescription);
+        validators.notNull('featured', src.featured);
+        validators.isBoolean('featured', src.featured);
+        validators.notNull('hidden', src.hidden);
+        validators.isBoolean('hidden', src.hidden);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'roomProfile'),
+            { enableVersioning: true, enableTimestamps: true, validator: RoomProfileFactory.validate, hasLiveStreams: false },
+            [],
+            'RoomProfile'
+        );
+    }
+    extractId(rawId: any[]) {
+        return { 'cid': rawId[0] };
+    }
+    async findById(cid: number) {
+        return await this._findById([cid]);
+    }
+    async create(cid: number, shape: RoomProfileShape) {
+        return await this._create([cid], { cid, ...shape });
+    }
+    watch(cid: number, cb: () => void) {
+        return this._watch([cid], cb);
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new RoomProfile(this.connection, this.namespace, [value.cid], value, this.options, isNew, this.indexes, 'RoomProfile');
+    }
+}
+export interface RoomParticipantShape {
+    invitedBy: number;
+    role: 'member' | 'admin' | 'owner';
+    status: 'joined' | 'requested' | 'left' | 'kicked';
+}
+
+export class RoomParticipant extends FEntity {
+    get cid(): number { return this._value.cid; }
+    get uid(): number { return this._value.uid; }
+    get invitedBy(): number {
+        return this._value.invitedBy;
+    }
+    set invitedBy(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.invitedBy) { return; }
+        this._value.invitedBy = value;
+        this.markDirty();
+    }
+    get role(): 'member' | 'admin' | 'owner' {
+        return this._value.role;
+    }
+    set role(value: 'member' | 'admin' | 'owner') {
+        this._checkIsWritable();
+        if (value === this._value.role) { return; }
+        this._value.role = value;
+        this.markDirty();
+    }
+    get status(): 'joined' | 'requested' | 'left' | 'kicked' {
+        return this._value.status;
+    }
+    set status(value: 'joined' | 'requested' | 'left' | 'kicked') {
+        this._checkIsWritable();
+        if (value === this._value.status) { return; }
+        this._value.status = value;
+        this.markDirty();
+    }
+}
+
+export class RoomParticipantFactory extends FEntityFactory<RoomParticipant> {
+    private static validate(src: any) {
+        validators.notNull('cid', src.cid);
+        validators.isNumber('cid', src.cid);
+        validators.notNull('uid', src.uid);
+        validators.isNumber('uid', src.uid);
+        validators.notNull('invitedBy', src.invitedBy);
+        validators.isNumber('invitedBy', src.invitedBy);
+        validators.notNull('role', src.role);
+        validators.isEnum('role', src.role, ['member', 'admin', 'owner']);
+        validators.notNull('status', src.status);
+        validators.isEnum('status', src.status, ['joined', 'requested', 'left', 'kicked']);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'roomParticipant'),
+            { enableVersioning: true, enableTimestamps: true, validator: RoomParticipantFactory.validate, hasLiveStreams: false },
+            [new FEntityIndex('active', ['cid', 'uid'], true, (src) => src.status === 'joined'), new FEntityIndex('requests', ['cid', 'uid'], true, (src) => src.status === 'requested')],
+            'RoomParticipant'
+        );
+    }
+    extractId(rawId: any[]) {
+        return { 'cid': rawId[0], 'uid': rawId[1] };
+    }
+    async findById(cid: number, uid: number) {
+        return await this._findById([cid, uid]);
+    }
+    async create(cid: number, uid: number, shape: RoomParticipantShape) {
+        return await this._create([cid, uid], { cid, uid, ...shape });
+    }
+    watch(cid: number, uid: number, cb: () => void) {
+        return this._watch([cid, uid], cb);
+    }
+    async findFromActive(cid: number, uid: number) {
+        return await this._findById(['__indexes', 'active', cid, uid]);
+    }
+    async findFromRequests(cid: number, uid: number) {
+        return await this._findById(['__indexes', 'requests', cid, uid]);
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new RoomParticipant(this.connection, this.namespace, [value.cid, value.uid], value, this.options, isNew, this.indexes, 'RoomParticipant');
+    }
+}
+export interface ConversationReceiverShape {
+    enabled: boolean;
+}
+
+export class ConversationReceiver extends FEntity {
+    get cid(): number { return this._value.cid; }
+    get uid(): number { return this._value.uid; }
+    get enabled(): boolean {
+        return this._value.enabled;
+    }
+    set enabled(value: boolean) {
+        this._checkIsWritable();
+        if (value === this._value.enabled) { return; }
+        this._value.enabled = value;
+        this.markDirty();
+    }
+}
+
+export class ConversationReceiverFactory extends FEntityFactory<ConversationReceiver> {
+    private static validate(src: any) {
+        validators.notNull('cid', src.cid);
+        validators.isNumber('cid', src.cid);
+        validators.notNull('uid', src.uid);
+        validators.isNumber('uid', src.uid);
+        validators.notNull('enabled', src.enabled);
+        validators.isBoolean('enabled', src.enabled);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'conversationReceiver'),
+            { enableVersioning: true, enableTimestamps: true, validator: ConversationReceiverFactory.validate, hasLiveStreams: false },
+            [new FEntityIndex('conversation', ['cid', 'uid'], true, (src) => src.enabled)],
+            'ConversationReceiver'
+        );
+    }
+    extractId(rawId: any[]) {
+        return { 'cid': rawId[0], 'uid': rawId[1] };
+    }
+    async findById(cid: number, uid: number) {
+        return await this._findById([cid, uid]);
+    }
+    async create(cid: number, uid: number, shape: ConversationReceiverShape) {
+        return await this._create([cid, uid], { cid, uid, ...shape });
+    }
+    watch(cid: number, uid: number, cb: () => void) {
+        return this._watch([cid, uid], cb);
+    }
+    async findFromConversation(cid: number, uid: number) {
+        return await this._findById(['__indexes', 'conversation', cid, uid]);
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new ConversationReceiver(this.connection, this.namespace, [value.cid, value.uid], value, this.options, isNew, this.indexes, 'ConversationReceiver');
+    }
+}
 export interface SequenceShape {
     value: number;
 }
@@ -3273,6 +3645,10 @@ export class AllEntities extends FDBInstance {
     UserSettings: UserSettingsFactory;
     ShortnameReservation: ShortnameReservationFactory;
     AuthCodeSession: AuthCodeSessionFactory;
+    Conversation: ConversationFactory;
+    RoomProfile: RoomProfileFactory;
+    RoomParticipant: RoomParticipantFactory;
+    ConversationReceiver: ConversationReceiverFactory;
     Sequence: SequenceFactory;
     Message: MessageFactory;
     ConversationSeq: ConversationSeqFactory;
@@ -3308,6 +3684,10 @@ export class AllEntities extends FDBInstance {
         this.UserSettings = new UserSettingsFactory(connection);
         this.ShortnameReservation = new ShortnameReservationFactory(connection);
         this.AuthCodeSession = new AuthCodeSessionFactory(connection);
+        this.Conversation = new ConversationFactory(connection);
+        this.RoomProfile = new RoomProfileFactory(connection);
+        this.RoomParticipant = new RoomParticipantFactory(connection);
+        this.ConversationReceiver = new ConversationReceiverFactory(connection);
         this.Sequence = new SequenceFactory(connection);
         this.Message = new MessageFactory(connection);
         this.ConversationSeq = new ConversationSeqFactory(connection);

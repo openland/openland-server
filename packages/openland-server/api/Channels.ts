@@ -4,7 +4,6 @@ import { Repos } from '../repositories';
 import { Conversation } from '../tables/Conversation';
 import { IDs } from './utils/IDs';
 import { CallContext } from './utils/CallContext';
-import { ConversationChannelMember } from '../tables/ConversationChannelMembers';
 import { ElasticClient } from '../indexing';
 import { QueryParser } from '../modules/QueryParser';
 import { SelectBuilder } from '../modules/SelectBuilder';
@@ -120,33 +119,14 @@ export const Resolver = {
             return member && member.role;
         }
     },
-
-    ChannelMemberOrg: {
-        role: (src: ConversationChannelMember) => src.role,
-        status: (src: ConversationChannelMember) => src.status,
-        organization: (src: ConversationChannelMember) => DB.Organization.findById(src.orgId)
-    },
-
     ChannelMember: {
         role: (src: ConversationGroupMember) => src.role,
         status: (src: ConversationGroupMember) => src.status,
         user: (src: ConversationGroupMember) => DB.User.findById(src.userId)
     },
-
-    ChannelOrgInvite: {
-        channel: (src: ConversationChannelMember) => DB.Conversation.findById(src.conversationId),
-        invitedByOrg: (src: ConversationChannelMember) => DB.Organization.findById(src.orgId),
-        invitedByUser: (src: ConversationChannelMember) => DB.User.findById(src.invitedByUser)
-    },
-
     ChannelInvite: {
         channel: (src: ChannelInvitation | ChannelLink) => DB.Conversation.findById(src.channelId),
         invitedByUser: (src: ChannelInvitation | ChannelLink) => DB.User.findById(src.creatorId)
-    },
-
-    ChannelJoinRequestOrg: {
-        user: (src: ConversationChannelMember) => DB.User.findById(src.invitedByUser),
-        organization: (src: ConversationChannelMember) => DB.Organization.findById(src.orgId),
     },
 
     Mutation: {
@@ -570,13 +550,14 @@ export const Resolver = {
 
     Query: {
         alphaChannelMembersOrg: withUser<{ channelId: string }>(async (args, uid) => {
-            let convId = IDs.Conversation.parse(args.channelId);
+            // let convId = IDs.Conversation.parse(args.channelId);
 
-            return await DB.ConversationChannelMembers.findAll({
-                where: {
-                    conversationId: convId
-                }
-            });
+            // return await DB.ConversationChannelMembers.findAll({
+            //     where: {
+            //         conversationId: convId
+            //     }
+            // });
+            return [];
         }),
         alphaChannelMembers: withUser<{ channelId: string }>(async (args, uid) => {
             let convId = IDs.Conversation.parse(args.channelId);
