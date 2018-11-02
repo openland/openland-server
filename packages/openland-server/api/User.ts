@@ -11,7 +11,6 @@ import { Services } from '../services';
 import { AccessDeniedError } from '../errors/AccessDeniedError';
 import { QueryParser } from '../modules/QueryParser';
 import { ElasticClient } from '../indexing';
-import { SelectBuilder } from '../modules/SelectBuilder';
 import { Modules } from 'openland-modules/Modules';
 import { UserProfile, UserSettings } from 'openland-module-db/schema';
 import { UserError } from 'openland-server/errors/UserError';
