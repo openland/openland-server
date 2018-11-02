@@ -11,6 +11,7 @@ export interface FEntitySchemaField {
 }
 
 export interface FEntitySchema {
+    name: string;
     primaryKeys: FEntitySchemaKey[];
     fields: FEntitySchemaField[];
 }
