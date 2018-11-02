@@ -28,8 +28,14 @@ export class SimpleEntity extends FEntity {
 export class SimpleEntityFactory extends FEntityFactory<SimpleEntity> {
     static schema: FEntitySchema = {
         name: 'SimpleEntity',
-        primaryKeys: [{ name: 'id', type: 'number' }],
-        fields: [{ name: 'data', type: 'string', nullable: false, secure: false, enumValues: [] }]
+        primaryKeys: [
+            { name: 'id', type: 'number' },
+        ],
+        fields: [
+            { name: 'data', type: 'string' },
+        ],
+        indexes: [
+        ],
     };
 
     private static validate(src: any) {
@@ -83,8 +89,14 @@ export class VersionedEntity extends FEntity {
 export class VersionedEntityFactory extends FEntityFactory<VersionedEntity> {
     static schema: FEntitySchema = {
         name: 'VersionedEntity',
-        primaryKeys: [{ name: 'id', type: 'number' }],
-        fields: [{ name: 'data', type: 'string', nullable: false, secure: false, enumValues: [] }]
+        primaryKeys: [
+            { name: 'id', type: 'number' },
+        ],
+        fields: [
+            { name: 'data', type: 'string' },
+        ],
+        indexes: [
+        ],
     };
 
     private static validate(src: any) {
@@ -138,8 +150,14 @@ export class TimestampedEntity extends FEntity {
 export class TimestampedEntityFactory extends FEntityFactory<TimestampedEntity> {
     static schema: FEntitySchema = {
         name: 'TimestampedEntity',
-        primaryKeys: [{ name: 'id', type: 'number' }],
-        fields: [{ name: 'data', type: 'string', nullable: false, secure: false, enumValues: [] }]
+        primaryKeys: [
+            { name: 'id', type: 'number' },
+        ],
+        fields: [
+            { name: 'data', type: 'string' },
+        ],
+        indexes: [
+        ],
     };
 
     private static validate(src: any) {
@@ -213,8 +231,17 @@ export class IndexedEntity extends FEntity {
 export class IndexedEntityFactory extends FEntityFactory<IndexedEntity> {
     static schema: FEntitySchema = {
         name: 'IndexedEntity',
-        primaryKeys: [{ name: 'id', type: 'number' }],
-        fields: [{ name: 'data1', type: 'string', nullable: false, secure: false, enumValues: [] }, { name: 'data2', type: 'string', nullable: false, secure: false, enumValues: [] }, { name: 'data3', type: 'string', nullable: false, secure: false, enumValues: [] }]
+        primaryKeys: [
+            { name: 'id', type: 'number' },
+        ],
+        fields: [
+            { name: 'data1', type: 'string' },
+            { name: 'data2', type: 'string' },
+            { name: 'data3', type: 'string' },
+        ],
+        indexes: [
+            { name: 'default', type: 'unique', fields: ['data1', 'data2', 'id'] },
+        ],
     };
 
     private static validate(src: any) {
@@ -313,8 +340,17 @@ export class IndexedRangeEntity extends FEntity {
 export class IndexedRangeEntityFactory extends FEntityFactory<IndexedRangeEntity> {
     static schema: FEntitySchema = {
         name: 'IndexedRangeEntity',
-        primaryKeys: [{ name: 'id', type: 'number' }],
-        fields: [{ name: 'data1', type: 'string', nullable: false, secure: false, enumValues: [] }, { name: 'data2', type: 'string', nullable: false, secure: false, enumValues: [] }, { name: 'data3', type: 'string', nullable: false, secure: false, enumValues: [] }]
+        primaryKeys: [
+            { name: 'id', type: 'number' },
+        ],
+        fields: [
+            { name: 'data1', type: 'string' },
+            { name: 'data2', type: 'string' },
+            { name: 'data3', type: 'string' },
+        ],
+        indexes: [
+            { name: 'default', type: 'unique', fields: ['data1', 'data2'] },
+        ],
     };
 
     private static validate(src: any) {
@@ -410,8 +446,17 @@ export class IndexedPartialEntity extends FEntity {
 export class IndexedPartialEntityFactory extends FEntityFactory<IndexedPartialEntity> {
     static schema: FEntitySchema = {
         name: 'IndexedPartialEntity',
-        primaryKeys: [{ name: 'id', type: 'number' }],
-        fields: [{ name: 'data1', type: 'string', nullable: false, secure: false, enumValues: [] }, { name: 'data2', type: 'string', nullable: false, secure: false, enumValues: [] }, { name: 'data3', type: 'string', nullable: false, secure: false, enumValues: [] }]
+        primaryKeys: [
+            { name: 'id', type: 'number' },
+        ],
+        fields: [
+            { name: 'data1', type: 'string' },
+            { name: 'data2', type: 'string' },
+            { name: 'data3', type: 'string' },
+        ],
+        indexes: [
+            { name: 'default', type: 'unique', fields: ['data1', 'data2', 'id'] },
+        ],
     };
 
     private static validate(src: any) {
@@ -492,8 +537,14 @@ export class NullableEntity extends FEntity {
 export class NullableEntityFactory extends FEntityFactory<NullableEntity> {
     static schema: FEntitySchema = {
         name: 'NullableEntity',
-        primaryKeys: [{ name: 'id', type: 'number' }],
-        fields: [{ name: 'flag', type: 'boolean', nullable: true, secure: false, enumValues: [] }]
+        primaryKeys: [
+            { name: 'id', type: 'number' },
+        ],
+        fields: [
+            { name: 'flag', type: 'boolean' },
+        ],
+        indexes: [
+        ],
     };
 
     private static validate(src: any) {

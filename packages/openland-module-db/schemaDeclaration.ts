@@ -236,7 +236,7 @@ const Schema = declareSchema(() => {
 
     entity('RoomProfile', () => {
         primaryKey('cid', 'number');
-        
+
         field('title', 'string');
         field('image', 'json');
         field('socialImage', 'json');
@@ -332,7 +332,9 @@ const Schema = declareSchema(() => {
         field('unread', 'number');
         field('readMessageId', 'number').nullable();
         field('date', 'number').nullable();
-        rangeIndex('user', ['uid', 'date']).withCondition((src) => !!src.date);
+        rangeIndex('user', ['uid', 'date'])
+            .withCondition((src) => !!src.date)
+            .withDisplayName('dialogsForUser');
         enableTimestamps();
         enableVersioning();
     });

@@ -95,8 +95,34 @@ export function generateEntity(entity: EntityModel): string {
 
     res += '    static schema: FEntitySchema = {\n';
     res += '        name: \'' + entity.name + '\',\n';
-    res += '        primaryKeys: [' + entity.keys.map((v) => `{ name: '${v.name}', type: '${v.type}' }`).join(', ') + '],\n';
-    res += '        fields: [' + entity.fields.map((v) => `{ name: '${v.name}', type: '${v.type}', nullable: ${v.isNullable}, secure: ${v.isSecure}, enumValues: [${v.enumValues.map((v2) => `'${v2}'`).join(', ')}] }`).join(', ') + ']\n';
+    res += '        primaryKeys: [\n';
+    for (let k of entity.keys) {
+        res += `            { name: '${k.name}', type: '${k.type}' },\n`;
+    }
+    res += '        ],\n';
+    res += '        fields: [\n';
+    for (let f of entity.fields) {
+        res += `            { name: '${f.name}', type: '${f.type}'`;
+        if (f.type === 'enum') {
+            res += `, enumValues: [${f.enumValues.map((v2) => `'${v2}'`).join(', ')}]`;
+        }
+        if (f.isSecure) {
+            res += ', secure: true';
+        }
+        res += ' },\n';
+    }
+    res += '        ],\n';
+    res += '        indexes: [\n';
+    for (let i of entity.indexes) {
+        res += `            { name: '${i.name}', type: '${i.unique ? 'unique' : 'range'}'`;
+        res += `, fields: [${i.fields.map((v) => `'${v}'`).join(', ')}]`;
+        if (i.dispName) {
+            res += `, displayName: '${i.dispName}'`;
+        }
+        res += ` },\n`;
+    }
+    res += '        ],\n';
+    // res += '        fields: [' + entity.fields.map((v) => `{ name: '${v.name}', type: '${v.type}', nullable: ${v.isNullable}, secure: ${v.isSecure}, enumValues: [${v.enumValues.map((v2) => `'${v2}'`).join(', ')}] } `).join(', ') + ']\n';
     res += '    };\n\n';
 
     res += '    private static validate(src: any) {\n';
