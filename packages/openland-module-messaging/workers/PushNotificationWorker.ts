@@ -190,6 +190,7 @@ export function startPushNotificationWorker() {
                             silent: null
                         };
 
+                        console.log('new_push', JSON.stringify(push));
                         log.debug('new_push', JSON.stringify(push));
                         await Modules.Push.worker.pushWork(push);
                     }

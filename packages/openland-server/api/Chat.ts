@@ -946,6 +946,15 @@ export const Resolver = {
                     throw new Error('Chat not found');
                 }
 
+                let curMember = await FDB.RoomParticipant.findById(conversationId, uid);
+                let role = await Repos.Permissions.superRole(uid);
+
+                let haveAccess = (curMember && (curMember.role === 'owner' || curMember.role === 'admin')) || role === 'super-admin';
+
+                if (!haveAccess) {
+                    throw new AccessDeniedError();
+                }
+
                 let chatChanged = false;
 
                 if (args.input.title !== undefined && args.input.title !== chat.title) {
