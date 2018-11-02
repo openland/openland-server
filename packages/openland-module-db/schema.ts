@@ -1646,7 +1646,7 @@ export class UserSettings extends FEntity {
     }
     get mobileAlert(): boolean | null {
         let res = this._value.mobileAlert;
-        if (res) { return res; }
+        if (res !== null) { return res; }
         return null;
     }
     set mobileAlert(value: boolean | null) {
@@ -1657,7 +1657,7 @@ export class UserSettings extends FEntity {
     }
     get mobileIncludeText(): boolean | null {
         let res = this._value.mobileIncludeText;
-        if (res) { return res; }
+        if (res !== null) { return res; }
         return null;
     }
     set mobileIncludeText(value: boolean | null) {
