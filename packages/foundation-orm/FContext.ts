@@ -36,7 +36,7 @@ export class FGlobalContext implements FContext {
         return await trace(tracer, 'rangeAfter', async () => {
             let reversed = (options && options.reverse) ? true : false;
             let start = reversed ? FKeyEncoding.firstKeyInSubspace(prefix) : keySelector.firstGreaterThan(FKeyEncoding.encodeKey(afterKey));
-            let end = reversed ? keySelector.lastLessOrEqual(FKeyEncoding.encodeKey(afterKey)) : FKeyEncoding.lastKeyInSubspace(prefix);
+            let end = reversed ? FKeyEncoding.encodeKey(afterKey) : FKeyEncoding.lastKeyInSubspace(prefix);
             let res = await connection.fdb.getRangeAll(start, end, options);
             return res.map((v) => ({ item: v[1] as any, key: FKeyEncoding.decodeKey(v[0]) }));
         });

@@ -106,10 +106,10 @@ export default {
         seq: (src: ConversationEvent) => src.seq
     },
     ConversationEventMessage: {
-        message: (src: ConversationEvent) => DB.ConversationMessage.findById(src.mid!, { paranoid: false })
+        message: (src: ConversationEvent) => FDB.Message.findById(src.mid!)
     },
     ConversationEventEditMessage: {
-        message: (src: ConversationEvent) => DB.ConversationMessage.findById(src.mid!, { paranoid: false })
+        message: (src: ConversationEvent) => FDB.Message.findById(src.mid!)
     },
     ConversationEventDelete: {
         messageId: (src: ConversationEvent) => IDs.ConversationMessage.serialize(src.mid!)

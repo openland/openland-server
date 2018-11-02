@@ -3,7 +3,6 @@ import { FConnection } from './FConnection';
 import { FEntity, FEntityOptions } from './FEntity';
 import { FWatch } from './FWatch';
 import { FEntityIndex } from './FEntityIndex';
-import { FStreamItem } from './FStreamItem';
 import { FKeyEncoding } from './utils/FKeyEncoding';
 import { FStream } from './FStream';
 import { createLogger } from 'openland-log/createLogger';
@@ -87,14 +86,9 @@ export abstract class FEntityFactory<T extends FEntity> {
         }
     }
 
-    protected async _findRangeAfter(subspace: (string | number)[], after?: string, limit?: number) {
-        if (after) {
-            let res = await this.namespace.rangeAfter(this.connection, subspace, FKeyEncoding.decodeFromString(after) as any, { limit });
-            return res.map((v) => ({ value: this.doCreateEntity(v.item, false), cursor: FKeyEncoding.encodeKeyToString(v.key) } as FStreamItem<T>));
-        } else {
-            let res = await this.namespace.range(this.connection, subspace, { limit });
-            return res.map((v) => ({ value: this.doCreateEntity(v.item, false), cursor: FKeyEncoding.encodeKeyToString(v.key) } as FStreamItem<T>));
-        }
+    protected async _findRangeAfter(subspace: (string | number)[], after: any, limit?: number, reverse?: boolean) {
+        let res = await this.namespace.rangeAfter(this.connection, subspace, [...this.namespace.namespace, ...subspace, after], { limit, reverse });
+        return res.map((v) => this.doCreateEntity(v.item, false));
     }
 
     protected _createStream(subspace: (string | number)[], limit: number, after?: string): FStream<T> {

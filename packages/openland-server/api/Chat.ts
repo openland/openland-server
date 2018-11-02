@@ -550,15 +550,23 @@ export const Resolver = {
                     }
                 }
 
-                // let beforeMessage: Message | null = null;
-                // if (args.before) {
-                //     beforeMessage = await FDB.Message.findById(IDs.ConversationMessage.parse(args.before));
-                // }
+                let beforeMessage: Message | null = null;
+                if (args.before) {
+                    beforeMessage = await FDB.Message.findById(IDs.ConversationMessage.parse(args.before));
+                }
                 // let afterMessage: Message | null = null;
                 // if (args.after) {
                 //     afterMessage = await FDB.Message.findById(IDs.ConversationMessage.parse(args.after));
                 // }
                 let seq = (conversation)!!.seq;
+
+                if (beforeMessage) {
+                    return {
+                        seq: seq,
+                        messages: await FDB.Message.rangeFromChatAfter(conversationId, beforeMessage.id, args.first!, true)
+                    };
+                }
+
                 return {
                     seq: seq,
                     messages: await FDB.Message.rangeFromChat(conversationId, args.first!, true)

@@ -159,6 +159,10 @@ export function generateEntity(entity: EntityModel): string {
                 res += '    async allFrom' + Case.pascalCase(i.name) + 'After(' + [...fs.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v))), 'after: ' + resolveFieldType(resolveIndexField(entity, i.fields[i.fields.length - 1]))].join(', ') + ') {\n';
                 res += '        return await this._findRangeAllAfter([' + ['\'__indexes\'', '\'' + i.name + '\'', ...fs].join(', ') + '], after);\n';
                 res += '    }\n';
+
+                res += '    async rangeFrom' + Case.pascalCase(i.name) + 'After(' + [...fs.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v))), 'after: ' + resolveFieldType(resolveIndexField(entity, i.fields[i.fields.length - 1])), 'limit: number', 'reversed?: boolean'].join(', ') + ') {\n';
+                res += '        return await this._findRangeAfter([' + ['\'__indexes\'', '\'' + i.name + '\'', ...fs].join(', ') + '], after, limit, reversed);\n';
+                res += '    }\n';
             }
 
             res += '    async rangeFrom' + Case.pascalCase(i.name) + '(' + [...fs.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v))), 'limit: number', 'reversed?: boolean'].join(', ') + ') {\n';

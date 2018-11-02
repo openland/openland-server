@@ -10,7 +10,6 @@ import { OrganizationTable } from './Organization';
 import { OrganizationMemberTable } from './OrganizationMember';
 import { OrganizationInviteTable } from './OrganizationInvite';
 import { ConversationTable } from './Conversation';
-import { ConversationMessageTable } from './ConversationMessage';
 import { ConversationBlockedTable } from './ConversationBlocked';
 import { retry } from '../utils/timer';
 import { ConversationGroupMembersTable } from './ConversationGroupMembers';
@@ -27,7 +26,6 @@ export const DB = {
     OrganizationInvite: OrganizationInviteTable,
 
     Conversation: ConversationTable,
-    ConversationMessage: ConversationMessageTable,
     ConversationGroupMembers: ConversationGroupMembersTable,
     ConversationBlocked: ConversationBlockedTable,
     ConversationChannelMembers: ConversationChannelMembersTable,

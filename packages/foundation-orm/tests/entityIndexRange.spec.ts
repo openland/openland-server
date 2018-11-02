@@ -60,6 +60,48 @@ describe('FEntity with range index', () => {
     it('paging should work correctly', async () => {
         await withLogDisabled(async () => {
             await inTx(async () => {
+                await testEntities.IndexedRangeEntity.create(24, { data1: 'paging4', data2: '1', data3: '' });
+                await testEntities.IndexedRangeEntity.create(25, { data1: 'paging4', data2: '2', data3: '' });
+                await testEntities.IndexedRangeEntity.create(26, { data1: 'paging4', data2: '3', data3: '' });
+                await testEntities.IndexedRangeEntity.create(27, { data1: 'paging4', data2: '4', data3: '' });
+                await testEntities.IndexedRangeEntity.create(28, { data1: 'paging4', data2: '5', data3: '' });
+                await testEntities.IndexedRangeEntity.create(29, { data1: 'paging4', data2: '6', data3: '' });
+                await testEntities.IndexedRangeEntity.create(30, { data1: 'paging4', data2: '7', data3: '' });
+            });
+        });
+
+        //
+        // Non cursor
+        //
+        
+        let res0 = await testEntities.IndexedRangeEntity.rangeFromDefault('paging4', 2);
+        expect(res0.length).toBe(2);
+        expect(res0[0].id).toBe(24);
+        expect(res0[1].id).toBe(25);
+
+        let res1 = await testEntities.IndexedRangeEntity.rangeFromDefaultAfter('paging4', '3', 2);
+        expect(res1.length).toBe(2);
+        expect(res1[0].id).toBe(26);
+        expect(res1[1].id).toBe(27);
+
+        //
+        // Reversed
+        //
+
+        let res2 = await testEntities.IndexedRangeEntity.rangeFromDefault('paging4', 2, true);
+        expect(res2.length).toBe(2);
+        expect(res2[0].id).toBe(30);
+        expect(res2[1].id).toBe(29);
+
+        let res3 = await testEntities.IndexedRangeEntity.rangeFromDefaultAfter('paging4', '6', 2, true);
+        expect(res3.length).toBe(2);
+        expect(res3[0].id).toBe(28);
+        expect(res3[1].id).toBe(27);
+    });
+
+    it('paging should work correctly', async () => {
+        await withLogDisabled(async () => {
+            await inTx(async () => {
                 await testEntities.IndexedRangeEntity.create(4, { data1: 'paging', data2: '1', data3: '' });
                 await testEntities.IndexedRangeEntity.create(5, { data1: 'paging', data2: '2', data3: '' });
                 await testEntities.IndexedRangeEntity.create(6, { data1: 'paging', data2: '3', data3: '' });
