@@ -69,7 +69,7 @@ export const Resolver = {
             let member = await Modules.Messaging.room.findMembershipStatus(context.uid!, src.id!);
 
             if (!member) {
-                return 'none';
+                return 'left';
             }
 
             return member.status;
