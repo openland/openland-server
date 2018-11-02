@@ -241,14 +241,24 @@ export const Resolver = {
                 }
             });
 
-            hits.hits.hits = hits.hits.hits.map(v => ({ ...v, _id: (v._source as any).userId }));
+            let uids = hits.hits.hits.map(v => parseInt(v._id, 10));
 
-            let builder = new SelectBuilder(DB.User)
-                .after(args.after)
-                .page(args.page)
-                .limit(args.first);
+            if (uids.length === 0) {
+                return [];
+            }
 
-            return await builder.findElastic(hits);
+            // Fetch profiles
+            let users = await DB.User.findAll({
+                where: [DB.connection.and({ id: { $in: uids } }, { status: 'ACTIVATED' })]
+            });
+            let restored: any[] = [];
+            for (let u of uids) {
+                let existing = users.find((v) => v.id === u);
+                if (existing) {
+                    restored.push(existing);
+                }
+            }
+            return restored;
         }),
     },
     Mutation: {
