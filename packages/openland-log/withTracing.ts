@@ -14,11 +14,7 @@ export async function withTracing<T>(tracer: STracer, name: string, func: () => 
 }
 
 export async function withTracingSpan<T>(span: SSpan, func: () => Promise<T> | T) {
-    try {
-        return await STraceContext.withContext({ currentSpan: span }, async () => {
-            return await func();
-        });
-    } finally {
-        span.finish();
-    }
+    return await STraceContext.withContext({ currentSpan: span }, async () => {
+        return await func();
+    });
 }

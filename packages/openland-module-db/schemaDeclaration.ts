@@ -70,7 +70,7 @@ const Schema = declareSchema(() => {
         primaryKey('id', 'string');
         field('uid', 'number');
         field('tid', 'string');
-        field('token', 'string');
+        field('token', 'string').secure();
         field('packageId', 'string');
         field('sandbox', 'boolean');
         field('enabled', 'boolean');
@@ -88,7 +88,7 @@ const Schema = declareSchema(() => {
         primaryKey('id', 'string');
         field('uid', 'number');
         field('tid', 'string');
-        field('token', 'string');
+        field('token', 'string').secure();
         field('bundleId', 'string');
         field('sandbox', 'boolean');
         field('enabled', 'boolean');
@@ -106,7 +106,7 @@ const Schema = declareSchema(() => {
         primaryKey('id', 'string');
         field('uid', 'number');
         field('tid', 'string');
-        field('endpoint', 'string');
+        field('endpoint', 'string').secure();
         field('enabled', 'boolean');
         field('failures', 'number').nullable();
         field('failedFirstAt', 'number').nullable();
@@ -203,10 +203,10 @@ const Schema = declareSchema(() => {
 
     entity('AuthCodeSession', () => {
         primaryKey('uid', 'string');
-        field('code', 'string');
+        field('code', 'string').secure();
         field('expires', 'number');
         field('email', 'string');
-        field('tokenId', 'string').nullable();
+        field('tokenId', 'string').nullable().secure();
         field('enabled', 'boolean');
         enableVersioning();
         enableTimestamps();
@@ -287,15 +287,15 @@ const Schema = declareSchema(() => {
         field('uid', 'number');
         field('repeatKey', 'string').nullable();
 
-        field('text', 'string').nullable();
-        field('fileId', 'string').nullable();
-        field('fileMetadata', 'json').nullable();
-        field('filePreview', 'string').nullable();
+        field('text', 'string').nullable().secure();
+        field('fileId', 'string').nullable().secure();
+        field('fileMetadata', 'json').nullable().secure();
+        field('filePreview', 'string').nullable().secure();
         field('mentions', 'json').nullable();
         field('replyMessages', 'json').nullable();
         field('augmentation', 'json').nullable();
         field('serviceMetadata', 'json').nullable();
-        field('reactions', 'json').nullable();
+        field('reactions', 'json').nullable().secure();
         field('edited', 'boolean').nullable();
 
         field('isMuted', 'boolean');
@@ -392,7 +392,7 @@ const Schema = declareSchema(() => {
     entity('MessageDraft', () => {
         primaryKey('uid', 'number');
         primaryKey('cid', 'number');
-        field('contents', 'string');
+        field('contents', 'string').secure();
         enableVersioning();
         enableTimestamps();
     });

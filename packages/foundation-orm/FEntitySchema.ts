@@ -8,6 +8,7 @@ export interface FEntitySchemaField {
     type: 'string' | 'number' | 'json' | 'boolean' | 'enum';
     nullable: boolean;
     enumValues: string[];
+    secure: boolean;
 }
 
 export interface FEntitySchema {

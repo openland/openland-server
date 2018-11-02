@@ -4,11 +4,17 @@ export class EntityField {
     readonly type: 'string' | 'number' | 'boolean' | 'enum' | 'json';
     readonly enumValues: string[];
     isNullable: boolean = false;
+    isSecure: boolean = false;
 
     constructor(name: string, type: 'string' | 'number' | 'boolean' | 'enum' | 'json', enumValues: string[]) {
         this.name = name;
         this.type = type;
         this.enumValues = enumValues;
+    }
+
+    secure() {
+        this.isSecure = true;
+        return this;
     }
 
     nullable() {

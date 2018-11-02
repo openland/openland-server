@@ -53,12 +53,20 @@ export const Schema = wrapAllResolvers(
         context: any,
         info: any
     ) => {
-        return await withTracingSpan(context.span, async () => {
+        if (context.span) {
+            return await withTracingSpan(context.span, async () => {
+                return await trace(gqlTracer, field.name, async () => {
+                    return await withLogContext(field.name, async () => {
+                        return await originalResolver(root, args, context, info);
+                    });
+                });
+            });
+        } else {
             return await trace(gqlTracer, field.name, async () => {
                 return await withLogContext(field.name, async () => {
                     return await originalResolver(root, args, context, info);
                 });
             });
-        });
+        }
     }
 );
