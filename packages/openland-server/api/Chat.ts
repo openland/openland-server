@@ -707,32 +707,21 @@ export const Resolver = {
                     throw Error('Invalid request');
                 }
 
-                let existing = await FDB.UserDialog.findById(uid, conversationId);
+                let existing = await Modules.Messaging.repo.getUserDialogState(uid, conversationId);
                 let global = await Modules.Messaging.repo.getUserMessagingState(uid);
                 let delta = 0;
                 let totalUnread = 0;
-                if (existing) {
-                    if (!existing.readMessageId || existing.readMessageId < messageId) {
-                        let remaining = (await FDB.Message.allFromChatAfter(conversationId, messageId)).filter((v) => v.uid !== uid).length;
-                        if (remaining === 0) {
-                            delta = -existing.unread;
-                            existing.unread = 0;
-                            existing.readMessageId = messageId;
-                        } else {
-                            delta = remaining - existing.unread;
-                            existing.unread = remaining;
-                            existing.readMessageId = messageId;
-                            totalUnread = remaining;
-                        }
-                    }
-                } else {
-                    let remaining = (await FDB.Message.allFromChatAfter(conversationId, messageId)).filter((v) => v.uid !== uid).length;
-                    if (remaining > 0) {
-                        await FDB.UserDialog.create(uid, conversationId, {
-                            readMessageId: messageId,
-                            unread: remaining
-                        });
-                        delta = remaining;
+                if (!existing.readMessageId || existing.readMessageId < messageId) {
+                    let remaining = (await FDB.Message.allFromChatAfter(conversationId, messageId)).filter((v) => v.uid !== uid).length - 1;
+                    if (remaining === 0) {
+                        delta = -existing.unread;
+                        existing.unread = 0;
+                        existing.readMessageId = messageId;
+                    } else {
+                        delta = remaining - existing.unread;
+                        existing.unread = remaining;
+                        existing.readMessageId = messageId;
+                        totalUnread = remaining;
                     }
                 }
 
