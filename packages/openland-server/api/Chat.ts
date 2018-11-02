@@ -964,7 +964,7 @@ export const Resolver = {
         }),
 
         alphaChatCreateGroup: withUser<{ title?: string | null, photoRef?: ImageRef | null, message?: string, members: string[] }>(async (args, uid) => {
-            return await DB.txStable(async (tx) => {
+            let conv = await DB.txStable(async (tx) => {
                 let title = args.title ? args.title!! : '';
 
                 let imageRef = Sanitizer.sanitizeImageRef(args.photoRef);
@@ -973,7 +973,7 @@ export const Resolver = {
                     await Services.UploadCare.saveFile(imageRef.uuid);
                 }
 
-                let conv = await DB.Conversation.create({
+                let conv2 = await DB.Conversation.create({
                     title: title,
                     type: 'group',
                     ...(imageRef ? { extras: { picture: imageRef } } as any : {}),
@@ -988,13 +988,14 @@ export const Resolver = {
                     }, { transaction: tx });
                 }
 
-                if (args.message) {
-                    await Repos.Chats.sendMessage(conv.id, uid, { message: args.message });
-                } else {
-                    await Repos.Chats.sendMessage(conv.id, uid, { message: 'Group created', isService: true });
-                }
-                return conv;
+                return conv2;
             });
+            if (args.message) {
+                await Repos.Chats.sendMessage(conv.id, uid, { message: args.message });
+            } else {
+                await Repos.Chats.sendMessage(conv.id, uid, { message: 'Group created', isService: true });
+            }
+            return conv;
         }),
         alphaChatUpdateGroup: withUser<{ conversationId: string, input: { title?: string | null, description?: string | null, longDescription?: string | null, photoRef?: ImageRef | null, socialImageRef?: ImageRef | null } }>(async (args, uid) => {
             await validate(

@@ -162,7 +162,7 @@ export const Resolver = {
                 await Services.UploadCare.saveFile(imageRef.uuid);
             }
 
-            return await DB.txStable(async (tx) => {
+            let res =  await DB.txStable(async (tx) => {
 
                 let chat = await DB.Conversation.create({
                     title: args.title.trim(),
@@ -192,13 +192,15 @@ export const Resolver = {
                     userId: uid
                 }, { transaction: tx });
 
-                if (args.message) {
-                    await Repos.Chats.sendMessage(chat.id, uid, { message: args.message });
-                } else {
-                    await Repos.Chats.sendMessage(chat.id, uid, { message: 'Channel created', isService: true });
-                }
                 return chat;
             });
+
+            if (args.message) {
+                await Repos.Chats.sendMessage(res.id, uid, { message: args.message });
+            } else {
+                await Repos.Chats.sendMessage(res.id, uid, { message: 'Channel created', isService: true });
+            }
+            return res;
         }),
 
         alphaChannelSetFeatured: withPermission<{ channelId: string, featured: boolean }>('super-admin', (args) => {
