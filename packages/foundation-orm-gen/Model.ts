@@ -1,3 +1,4 @@
+import { FEntitySchemaReference } from 'foundation-orm/FEntitySchema';
 
 export class EntityField {
     readonly name: string;
@@ -6,11 +7,17 @@ export class EntityField {
     isNullable: boolean = false;
     isSecure: boolean = false;
     dispName?: string;
+    reference?: FEntitySchemaReference;
 
     constructor(name: string, type: 'string' | 'number' | 'boolean' | 'enum' | 'json', enumValues: string[]) {
         this.name = name;
         this.type = type;
         this.enumValues = enumValues;
+    }
+
+    withReference(name: string, type: string) {
+        this.reference = { name, type };
+        return this;
     }
 
     displayName(name: string) {

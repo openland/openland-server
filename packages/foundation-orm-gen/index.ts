@@ -30,7 +30,7 @@ export function enumField(name: string, values: string[]) {
 }
 
 export function primaryKey(name: string, type: 'number' | 'string') {
-    currentEntity!!.addKey(name, type);
+    return currentEntity!!.addKey(name, type);
 }
 
 export function uniqueIndex(name: string, fields: string[]) {
