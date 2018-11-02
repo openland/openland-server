@@ -3,6 +3,11 @@ import { EntityModel } from '../Model';
 export function generateAllEntities(entity: EntityModel[]) {
     let res = '';
     res += 'export class AllEntities extends FDBInstance {\n';
+    res += '    static readonly schema: FEntitySchema[] = [\n';
+    for (let e of entity) {
+        res += '        ' + e.name + 'Factory.schema,\n';
+    }
+    res += '    ];\n';
     for (let e of entity) {
         res += '    ' + e.name + ': ' + e.name + 'Factory;\n';
     }

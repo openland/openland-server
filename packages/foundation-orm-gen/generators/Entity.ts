@@ -92,6 +92,12 @@ export function generateEntity(entity: EntityModel): string {
         return 'new FEntityIndex(\'' + index.name + '\', [' + index.fields.map((v2) => '\'' + v2 + '\'').join(', ') + '], ' + index.unique + condition + ')';
     }
     res += 'export class ' + entityClass + 'Factory extends FEntityFactory<' + entityClass + '> {\n';
+
+    res += '    static schema: FEntitySchema = {\n';
+    res += '        primaryKeys: [' + entity.keys.map((v) => `{ name: '${v.name}', type: '${v.type}' }`).join(', ') + '],\n';
+    res += '        fields: [' + entity.fields.map((v) => `{ name: '${v.name}', type: '${v.type}', nullable: ${v.isNullable}, enumValues: [${v.enumValues.map((v2) => `'${v2}'`).join(', ')}] }`).join(', ') + ']\n';
+    res += '    };\n\n';
+
     res += '    private static validate(src: any) {\n';
     for (let k of entity.keys) {
         res += '        validators.notNull(\'' + k.name + '\', src.' + k.name + ');\n';
@@ -120,6 +126,7 @@ export function generateEntity(entity: EntityModel): string {
         }
     }
     res += '    }\n\n';
+
     res += '    constructor(connection: FConnection) {\n';
     res += '        super(connection,\n';
     res += '            new FNamespace(\'entity\', \'' + entityKey + '\'),\n';
