@@ -10,6 +10,7 @@ import { ChannelInviteEmails } from './emails/ChannelInviteEmails';
 import { createDeliveryWorker } from './workers/DeliveryWorker';
 import { DialogsRepository } from './repositories/DialogsRepository';
 import { startMigrator } from './Migrator';
+import { FixerRepository } from './repositories/Fixer';
 
 export interface MessageInput {
     repeatToken?: string | null;
@@ -28,6 +29,7 @@ export class MessagingModule {
     readonly AugmentationWorker = createAugmentationWorker();
     readonly DeliveryWorker = createDeliveryWorker();
     readonly repo = new MessagingRepository(FDB);
+    readonly fixer = new FixerRepository(FDB);
     private readonly dialogs = new DialogsRepository(FDB);
     private readonly channels = new ChannelRepository(FDB);
 

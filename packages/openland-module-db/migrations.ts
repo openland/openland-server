@@ -4,6 +4,8 @@ import { FDB } from './FDB';
 import { inTx } from 'foundation-orm/inTx';
 import { FDoctor } from 'foundation-orm/FDoctor';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
+import { DB } from 'openland-server/tables';
+import { Modules } from 'openland-modules/Modules';
 // import { FStreamItem } from 'foundation-orm/FStreamItem';
 // import { UserProfile } from './schema';
 // import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
@@ -37,6 +39,13 @@ migrations.push({
     key: '4-dropOnlines',
     migration: async () => {
         await FDoctor.dropEntities(FDB.connection, 'online');
+    }
+});
+
+migrations.push({
+    key: '6-fix-counters',
+    migration: async () => {
+        await Promise.all((await DB.User.findAll()).map((u) => Modules.Messaging.fixer.fixForUser(u.id!)));
     }
 });
 
