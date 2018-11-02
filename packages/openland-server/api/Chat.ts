@@ -367,7 +367,6 @@ export const Resolver = {
     },
     ConversationMessage: {
         id: (src: Message) => {
-            console.log(src);
             return IDs.ConversationMessage.serialize(src.id);
         },
         message: (src: Message) => src.text,
