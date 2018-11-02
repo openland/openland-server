@@ -28,6 +28,7 @@ export class Online extends FEntity {
 export class OnlineFactory extends FEntityFactory<Online> {
     static schema: FEntitySchema = {
         name: 'Online',
+        editable: false,
         primaryKeys: [
             { name: 'uid', type: 'number' },
         ],
@@ -110,6 +111,7 @@ export class Presence extends FEntity {
 export class PresenceFactory extends FEntityFactory<Presence> {
     static schema: FEntitySchema = {
         name: 'Presence',
+        editable: false,
         primaryKeys: [
             { name: 'uid', type: 'number' },
             { name: 'tid', type: 'string' },
@@ -200,6 +202,7 @@ export class AuthToken extends FEntity {
 export class AuthTokenFactory extends FEntityFactory<AuthToken> {
     static schema: FEntitySchema = {
         name: 'AuthToken',
+        editable: false,
         primaryKeys: [
             { name: 'uuid', type: 'string' },
         ],
@@ -284,6 +287,7 @@ export class ServiceCache extends FEntity {
 export class ServiceCacheFactory extends FEntityFactory<ServiceCache> {
     static schema: FEntitySchema = {
         name: 'ServiceCache',
+        editable: false,
         primaryKeys: [
             { name: 'service', type: 'string' },
             { name: 'key', type: 'string' },
@@ -378,6 +382,7 @@ export class Lock extends FEntity {
 export class LockFactory extends FEntityFactory<Lock> {
     static schema: FEntitySchema = {
         name: 'Lock',
+        editable: false,
         primaryKeys: [
             { name: 'key', type: 'string' },
         ],
@@ -531,6 +536,7 @@ export class Task extends FEntity {
 export class TaskFactory extends FEntityFactory<Task> {
     static schema: FEntitySchema = {
         name: 'Task',
+        editable: false,
         primaryKeys: [
             { name: 'taskType', type: 'string' },
             { name: 'uid', type: 'string' },
@@ -751,6 +757,7 @@ export class PushFirebase extends FEntity {
 export class PushFirebaseFactory extends FEntityFactory<PushFirebase> {
     static schema: FEntitySchema = {
         name: 'PushFirebase',
+        editable: false,
         primaryKeys: [
             { name: 'id', type: 'string' },
         ],
@@ -968,6 +975,7 @@ export class PushApple extends FEntity {
 export class PushAppleFactory extends FEntityFactory<PushApple> {
     static schema: FEntitySchema = {
         name: 'PushApple',
+        editable: false,
         primaryKeys: [
             { name: 'id', type: 'string' },
         ],
@@ -1165,6 +1173,7 @@ export class PushWeb extends FEntity {
 export class PushWebFactory extends FEntityFactory<PushWeb> {
     static schema: FEntitySchema = {
         name: 'PushWeb',
+        editable: false,
         primaryKeys: [
             { name: 'id', type: 'string' },
         ],
@@ -1304,6 +1313,7 @@ export class UserProfilePrefil extends FEntity {
 export class UserProfilePrefilFactory extends FEntityFactory<UserProfilePrefil> {
     static schema: FEntitySchema = {
         name: 'UserProfilePrefil',
+        editable: false,
         primaryKeys: [
             { name: 'id', type: 'number' },
         ],
@@ -1512,6 +1522,7 @@ export class UserProfile extends FEntity {
 export class UserProfileFactory extends FEntityFactory<UserProfile> {
     static schema: FEntitySchema = {
         name: 'UserProfile',
+        editable: false,
         primaryKeys: [
             { name: 'id', type: 'number' },
         ],
@@ -1608,6 +1619,7 @@ export class FeatureFlag extends FEntity {
 export class FeatureFlagFactory extends FEntityFactory<FeatureFlag> {
     static schema: FEntitySchema = {
         name: 'FeatureFlag',
+        editable: false,
         primaryKeys: [
             { name: 'key', type: 'string' },
         ],
@@ -1689,6 +1701,7 @@ export class OrganizationFeatures extends FEntity {
 export class OrganizationFeaturesFactory extends FEntityFactory<OrganizationFeatures> {
     static schema: FEntitySchema = {
         name: 'OrganizationFeatures',
+        editable: false,
         primaryKeys: [
             { name: 'id', type: 'string' },
         ],
@@ -1790,6 +1803,7 @@ export class ReaderState extends FEntity {
 export class ReaderStateFactory extends FEntityFactory<ReaderState> {
     static schema: FEntitySchema = {
         name: 'ReaderState',
+        editable: false,
         primaryKeys: [
             { name: 'id', type: 'string' },
         ],
@@ -1863,6 +1877,7 @@ export class SuperAdmin extends FEntity {
 export class SuperAdminFactory extends FEntityFactory<SuperAdmin> {
     static schema: FEntitySchema = {
         name: 'SuperAdmin',
+        editable: false,
         primaryKeys: [
             { name: 'id', type: 'number' },
         ],
@@ -1983,6 +1998,7 @@ export class UserSettings extends FEntity {
 export class UserSettingsFactory extends FEntityFactory<UserSettings> {
     static schema: FEntitySchema = {
         name: 'UserSettings',
+        editable: false,
         primaryKeys: [
             { name: 'id', type: 'number' },
         ],
@@ -2076,6 +2092,7 @@ export class ShortnameReservation extends FEntity {
 export class ShortnameReservationFactory extends FEntityFactory<ShortnameReservation> {
     static schema: FEntitySchema = {
         name: 'ShortnameReservation',
+        editable: false,
         primaryKeys: [
             { name: 'shortname', type: 'string' },
         ],
@@ -2217,6 +2234,7 @@ export class AuthCodeSession extends FEntity {
 export class AuthCodeSessionFactory extends FEntityFactory<AuthCodeSession> {
     static schema: FEntitySchema = {
         name: 'AuthCodeSession',
+        editable: false,
         primaryKeys: [
             { name: 'uid', type: 'string' },
         ],
@@ -2347,6 +2365,7 @@ export class Conversation extends FEntity {
 export class ConversationFactory extends FEntityFactory<Conversation> {
     static schema: FEntitySchema = {
         name: 'Conversation',
+        editable: false,
         primaryKeys: [
             { name: 'cid', type: 'number' },
         ],
@@ -2501,6 +2520,7 @@ export class RoomProfile extends FEntity {
 export class RoomProfileFactory extends FEntityFactory<RoomProfile> {
     static schema: FEntitySchema = {
         name: 'RoomProfile',
+        editable: false,
         primaryKeys: [
             { name: 'cid', type: 'number' },
         ],
@@ -2599,6 +2619,7 @@ export class RoomParticipant extends FEntity {
 export class RoomParticipantFactory extends FEntityFactory<RoomParticipant> {
     static schema: FEntitySchema = {
         name: 'RoomParticipant',
+        editable: false,
         primaryKeys: [
             { name: 'cid', type: 'number' },
             { name: 'uid', type: 'number' },
@@ -2736,6 +2757,7 @@ export class ConversationReceiver extends FEntity {
 export class ConversationReceiverFactory extends FEntityFactory<ConversationReceiver> {
     static schema: FEntitySchema = {
         name: 'ConversationReceiver',
+        editable: false,
         primaryKeys: [
             { name: 'cid', type: 'number' },
             { name: 'uid', type: 'number' },
@@ -2822,6 +2844,7 @@ export class Sequence extends FEntity {
 export class SequenceFactory extends FEntityFactory<Sequence> {
     static schema: FEntitySchema = {
         name: 'Sequence',
+        editable: false,
         primaryKeys: [
             { name: 'sequence', type: 'string' },
         ],
@@ -3057,6 +3080,7 @@ export class Message extends FEntity {
 export class MessageFactory extends FEntityFactory<Message> {
     static schema: FEntitySchema = {
         name: 'Message',
+        editable: false,
         primaryKeys: [
             { name: 'id', type: 'number' },
         ],
@@ -3164,6 +3188,7 @@ export class ConversationSeq extends FEntity {
 export class ConversationSeqFactory extends FEntityFactory<ConversationSeq> {
     static schema: FEntitySchema = {
         name: 'ConversationSeq',
+        editable: false,
         primaryKeys: [
             { name: 'cid', type: 'number' },
         ],
@@ -3250,6 +3275,7 @@ export class ConversationEvent extends FEntity {
 export class ConversationEventFactory extends FEntityFactory<ConversationEvent> {
     static schema: FEntitySchema = {
         name: 'ConversationEvent',
+        editable: false,
         primaryKeys: [
             { name: 'cid', type: 'number' },
             { name: 'seq', type: 'number' },
@@ -3365,6 +3391,7 @@ export class UserDialog extends FEntity {
 export class UserDialogFactory extends FEntityFactory<UserDialog> {
     static schema: FEntitySchema = {
         name: 'UserDialog',
+        editable: false,
         primaryKeys: [
             { name: 'uid', type: 'number' },
             { name: 'cid', type: 'number' },
@@ -3453,6 +3480,7 @@ export class UserDialogSettings extends FEntity {
 export class UserDialogSettingsFactory extends FEntityFactory<UserDialogSettings> {
     static schema: FEntitySchema = {
         name: 'UserDialogSettings',
+        editable: false,
         primaryKeys: [
             { name: 'uid', type: 'number' },
             { name: 'cid', type: 'number' },
@@ -3578,6 +3606,7 @@ export class UserDialogEvent extends FEntity {
 export class UserDialogEventFactory extends FEntityFactory<UserDialogEvent> {
     static schema: FEntitySchema = {
         name: 'UserDialogEvent',
+        editable: false,
         primaryKeys: [
             { name: 'uid', type: 'number' },
             { name: 'seq', type: 'number' },
@@ -3684,6 +3713,7 @@ export class UserMessagingState extends FEntity {
 export class UserMessagingStateFactory extends FEntityFactory<UserMessagingState> {
     static schema: FEntitySchema = {
         name: 'UserMessagingState',
+        editable: false,
         primaryKeys: [
             { name: 'uid', type: 'number' },
         ],
@@ -3811,6 +3841,7 @@ export class UserNotificationsState extends FEntity {
 export class UserNotificationsStateFactory extends FEntityFactory<UserNotificationsState> {
     static schema: FEntitySchema = {
         name: 'UserNotificationsState',
+        editable: false,
         primaryKeys: [
             { name: 'uid', type: 'number' },
         ],
@@ -3899,6 +3930,7 @@ export class HyperLog extends FEntity {
 export class HyperLogFactory extends FEntityFactory<HyperLog> {
     static schema: FEntitySchema = {
         name: 'HyperLog',
+        editable: false,
         primaryKeys: [
             { name: 'id', type: 'string' },
         ],
@@ -3979,6 +4011,7 @@ export class MessageDraft extends FEntity {
 export class MessageDraftFactory extends FEntityFactory<MessageDraft> {
     static schema: FEntitySchema = {
         name: 'MessageDraft',
+        editable: false,
         primaryKeys: [
             { name: 'uid', type: 'number' },
             { name: 'cid', type: 'number' },
@@ -4121,6 +4154,7 @@ export class ChannelInvitation extends FEntity {
 export class ChannelInvitationFactory extends FEntityFactory<ChannelInvitation> {
     static schema: FEntitySchema = {
         name: 'ChannelInvitation',
+        editable: false,
         primaryKeys: [
             { name: 'id', type: 'string' },
         ],
@@ -4238,6 +4272,7 @@ export class ChannelLink extends FEntity {
 export class ChannelLinkFactory extends FEntityFactory<ChannelLink> {
     static schema: FEntitySchema = {
         name: 'ChannelLink',
+        editable: false,
         primaryKeys: [
             { name: 'id', type: 'string' },
         ],
@@ -4324,6 +4359,7 @@ export class AppInviteLink extends FEntity {
 export class AppInviteLinkFactory extends FEntityFactory<AppInviteLink> {
     static schema: FEntitySchema = {
         name: 'AppInviteLink',
+        editable: false,
         primaryKeys: [
             { name: 'id', type: 'string' },
         ],
@@ -4381,6 +4417,68 @@ export class AppInviteLinkFactory extends FEntityFactory<AppInviteLink> {
         return new AppInviteLink(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'AppInviteLink');
     }
 }
+export interface SampleEntityShape {
+    data: string;
+}
+
+export class SampleEntity extends FEntity {
+    get id(): string { return this._value.id; }
+    get data(): string {
+        return this._value.data;
+    }
+    set data(value: string) {
+        this._checkIsWritable();
+        if (value === this._value.data) { return; }
+        this._value.data = value;
+        this.markDirty();
+    }
+}
+
+export class SampleEntityFactory extends FEntityFactory<SampleEntity> {
+    static schema: FEntitySchema = {
+        name: 'SampleEntity',
+        editable: true,
+        primaryKeys: [
+            { name: 'id', type: 'string' },
+        ],
+        fields: [
+            { name: 'data', type: 'string' },
+        ],
+        indexes: [
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isString('id', src.id);
+        validators.notNull('data', src.data);
+        validators.isString('data', src.data);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'sampleEntity'),
+            { enableVersioning: true, enableTimestamps: true, validator: SampleEntityFactory.validate, hasLiveStreams: false },
+            [],
+            'SampleEntity'
+        );
+    }
+    extractId(rawId: any[]) {
+        return { 'id': rawId[0] };
+    }
+    async findById(id: string) {
+        return await this._findById([id]);
+    }
+    async create(id: string, shape: SampleEntityShape) {
+        return await this._create([id], { id, ...shape });
+    }
+    watch(id: string, cb: () => void) {
+        return this._watch([id], cb);
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new SampleEntity(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'SampleEntity');
+    }
+}
 
 export class AllEntities extends FDBInstance {
     static readonly schema: FEntitySchema[] = [
@@ -4420,6 +4518,7 @@ export class AllEntities extends FDBInstance {
         ChannelInvitationFactory.schema,
         ChannelLinkFactory.schema,
         AppInviteLinkFactory.schema,
+        SampleEntityFactory.schema,
     ];
     Online: OnlineFactory;
     Presence: PresenceFactory;
@@ -4457,6 +4556,7 @@ export class AllEntities extends FDBInstance {
     ChannelInvitation: ChannelInvitationFactory;
     ChannelLink: ChannelLinkFactory;
     AppInviteLink: AppInviteLinkFactory;
+    SampleEntity: SampleEntityFactory;
 
     constructor(connection: FConnection) {
         super(connection);
@@ -4496,5 +4596,6 @@ export class AllEntities extends FDBInstance {
         this.ChannelInvitation = new ChannelInvitationFactory(connection);
         this.ChannelLink = new ChannelLinkFactory(connection);
         this.AppInviteLink = new AppInviteLinkFactory(connection);
+        this.SampleEntity = new SampleEntityFactory(connection);
     }
 }

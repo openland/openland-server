@@ -28,6 +28,7 @@ export class SimpleEntity extends FEntity {
 export class SimpleEntityFactory extends FEntityFactory<SimpleEntity> {
     static schema: FEntitySchema = {
         name: 'SimpleEntity',
+        editable: false,
         primaryKeys: [
             { name: 'id', type: 'number' },
         ],
@@ -89,6 +90,7 @@ export class VersionedEntity extends FEntity {
 export class VersionedEntityFactory extends FEntityFactory<VersionedEntity> {
     static schema: FEntitySchema = {
         name: 'VersionedEntity',
+        editable: false,
         primaryKeys: [
             { name: 'id', type: 'number' },
         ],
@@ -150,6 +152,7 @@ export class TimestampedEntity extends FEntity {
 export class TimestampedEntityFactory extends FEntityFactory<TimestampedEntity> {
     static schema: FEntitySchema = {
         name: 'TimestampedEntity',
+        editable: false,
         primaryKeys: [
             { name: 'id', type: 'number' },
         ],
@@ -231,6 +234,7 @@ export class IndexedEntity extends FEntity {
 export class IndexedEntityFactory extends FEntityFactory<IndexedEntity> {
     static schema: FEntitySchema = {
         name: 'IndexedEntity',
+        editable: false,
         primaryKeys: [
             { name: 'id', type: 'number' },
         ],
@@ -340,6 +344,7 @@ export class IndexedRangeEntity extends FEntity {
 export class IndexedRangeEntityFactory extends FEntityFactory<IndexedRangeEntity> {
     static schema: FEntitySchema = {
         name: 'IndexedRangeEntity',
+        editable: false,
         primaryKeys: [
             { name: 'id', type: 'number' },
         ],
@@ -349,7 +354,7 @@ export class IndexedRangeEntityFactory extends FEntityFactory<IndexedRangeEntity
             { name: 'data3', type: 'string' },
         ],
         indexes: [
-            { name: 'default', type: 'unique', fields: ['data1', 'data2'] },
+            { name: 'default', type: 'range', fields: ['data1', 'data2'] },
         ],
     };
 
@@ -446,6 +451,7 @@ export class IndexedPartialEntity extends FEntity {
 export class IndexedPartialEntityFactory extends FEntityFactory<IndexedPartialEntity> {
     static schema: FEntitySchema = {
         name: 'IndexedPartialEntity',
+        editable: false,
         primaryKeys: [
             { name: 'id', type: 'number' },
         ],
@@ -537,6 +543,7 @@ export class NullableEntity extends FEntity {
 export class NullableEntityFactory extends FEntityFactory<NullableEntity> {
     static schema: FEntitySchema = {
         name: 'NullableEntity',
+        editable: false,
         primaryKeys: [
             { name: 'id', type: 'number' },
         ],

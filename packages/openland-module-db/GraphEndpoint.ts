@@ -4,16 +4,36 @@ import {
     GraphQLString,
     GraphQLFloat,
     GraphQLBoolean,
-    GraphQLList
+    GraphQLList,
+    GraphQLInt,
+    GraphQLNonNull,
+    GraphQLInputObjectType
 } from 'graphql';
 import * as Case from 'change-case';
 
 import { AllEntities } from './schema';
 import { FDB } from './FDB';
 import { FEntitySchema, FEntitySchemaIndex } from 'foundation-orm/FEntitySchema';
+import { inTx } from 'foundation-orm/inTx';
+import { delay } from 'openland-server/utils/timer';
 
 let entitiesMap: any = {};
 let queries: any = {};
+let mutations: any = {};
+let subscriptions: any = {};
+
+subscriptions.healthCheck = {
+    type: GraphQLString,
+    subscribe: async function* func() {
+        while (true) {
+            yield Date.now();
+            await delay(1000);
+        }
+    },
+    resolve(v: any) {
+        return v;
+    }
+};
 
 function buildType(src: 'string' | 'number' | 'json' | 'boolean' | 'enum') {
     if (src === 'string') {
@@ -75,6 +95,7 @@ function extractArguments(src: any, entiy: FEntitySchema, index: FEntitySchemaIn
 
 for (let e of AllEntities.schema) {
     let fields: any = {};
+    let inputFields: any = {};
     let args: any = {};
     for (let f of e.primaryKeys) {
         fields[f.name] = {
@@ -89,6 +110,9 @@ for (let e of AllEntities.schema) {
             fields[f.name] = {
                 type: buildType(f.type)
             };
+            inputFields[f.name] = {
+                type: buildType(f.type)
+            };
         }
     }
     let obj = new GraphQLObjectType({
@@ -96,7 +120,20 @@ for (let e of AllEntities.schema) {
         fields: fields
     });
     entitiesMap[e.name] = obj;
-    // entites.push(obj);
+
+    let objConnection = new GraphQLObjectType({
+        name: e.name + 'Connection',
+        fields: {
+            items: { type: new GraphQLList(obj) },
+            cursor: { type: GraphQLString }
+        }
+    });
+    entitiesMap[e.name + 'Connection'] = objConnection;
+    let objInput = new GraphQLInputObjectType({
+        name: e.name + 'InputType',
+        fields: inputFields
+    });
+    entitiesMap[e.name + 'InputType'] = objInput;
 
     // Primary Key query
     queries[Case.camelCase(e.name)] = {
@@ -111,6 +148,28 @@ for (let e of AllEntities.schema) {
         }
     };
 
+    //
+    // Watch
+    //
+
+    subscriptions[Case.camelCase(e.name)] = {
+        type: obj,
+        args: args,
+        subscribe: async function* func(_: any, a: any) {
+            while (true) {
+                let ids: any[] = [];
+                for (let f of e.primaryKeys) {
+                    ids.push(a[f.name]);
+                }
+                yield (FDB as any)[e.name].findById(...ids);
+                await delay(1000);
+            }
+        },
+        resolve(v: any) {
+            return v;
+        }
+    };
+
     // Load all query
     queries[Case.camelCase(e.name) + 'All'] = {
         type: new GraphQLList(obj),
@@ -119,6 +178,7 @@ for (let e of AllEntities.schema) {
         }
     };
 
+    // Indexes
     for (let i of e.indexes) {
         if (i.displayName) {
             if (i.type === 'unique') {
@@ -133,17 +193,68 @@ for (let e of AllEntities.schema) {
                 // Nothing To do
             } else if (i.type === 'range') {
                 queries[i.displayName] = {
-                    type: new GraphQLList(obj),
-                    args: buildArguments(e, i, 1),
-                    resolve: async (_: any, arg: any) => {
+                    type: objConnection,
+                    args: {
+                        ...buildArguments(e, i, 1),
+                        first: {
+                            type: new GraphQLNonNull(GraphQLInt)
+                        },
+                        after: {
+                            type: GraphQLString
+                        },
+                        reversed: {
+                            type: GraphQLBoolean
+                        }
+                    },
+                    resolve: (_: any, arg: any) => {
                         let argm = extractArguments(arg, e, i, 1);
-                        console.log(argm);
-                        let res = await (FDB as any)[e.name]['rangeFrom' + Case.pascalCase(i.name) + 'WithCursor'](...argm, 20);
-                        return res.items;
+                        return (FDB as any)[e.name]['rangeFrom' + Case.pascalCase(i.name) + 'WithCursor'](...argm, arg.first, arg.after, arg.reversed);
                     }
                 };
             }
         }
+    }
+
+    // Creation
+    if (e.editable) {
+        mutations[Case.camelCase(e.name) + 'Create'] = {
+            type: obj,
+            args: { ...args, input: { type: objInput } },
+            resolve(_: any, a: any) {
+                let ids: any[] = [];
+                for (let f of e.primaryKeys) {
+                    ids.push(a[f.name]);
+                }
+                return inTx(async () => {
+                    return await (FDB as any)[e.name].create(...ids, a.input);
+                });
+            }
+        };
+
+        mutations[Case.camelCase(e.name) + 'Update'] = {
+            type: obj,
+            args: { ...args, input: { type: objInput } },
+            resolve(_: any, a: any) {
+                let ids: any[] = [];
+                for (let f of e.primaryKeys) {
+                    ids.push(a[f.name]);
+                }
+                return inTx(async () => {
+                    let item = await (FDB as any)[e.name].findById(...ids);
+                    if (!item) {
+                        throw Error('Not found');
+                    }
+
+                    for (let f of e.fields) {
+                        if (a.input[f.name] !== undefined) {
+                            item[f.name] = a.input[f.name];
+                        }
+                    }
+
+                    return item;
+                });
+            }
+        };
     }
 }
 
@@ -152,6 +263,14 @@ var schema = new GraphQLSchema({
         name: 'RootQueryType',
         fields: queries
     }),
+    mutation: new GraphQLObjectType({
+        name: 'RootMutationType',
+        fields: mutations
+    }),
+    subscription: new GraphQLObjectType({
+        name: 'RootSubsctiptionType',
+        fields: subscriptions
+    })
 });
 
 export const FDBGraphqlSchema = schema;

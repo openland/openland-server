@@ -5,6 +5,9 @@ import morgan from 'morgan';
 import compression from 'compression';
 import { graphqlExpress, graphiqlExpress } from 'apollo-server-express';
 import { FDBGraphqlSchema } from 'openland-module-db/GraphEndpoint';
+import { SubscriptionServer } from 'subscriptions-transport-ws';
+import { execute, subscribe } from 'graphql';
+import * as url from 'url';
 
 export function startAdminInterface() {
     console.log('Starting Admin Interface...');
@@ -22,8 +25,22 @@ export function startAdminInterface() {
 
     let gqlMiddleware = graphqlExpress({ schema: FDBGraphqlSchema });
     app.use('/api', bodyParser.json({ limit: '5mb' }), gqlMiddleware);
-    app.use('/sandbox', bodyParser.json({ limit: '5mb' }), graphiqlExpress({ endpointURL: '/api' }));
+    app.use('/sandbox', bodyParser.json({ limit: '5mb' }),
+        graphiqlExpress((req) => ({
+            endpointURL: '/api',
+            subscriptionsEndpoint: url.format({
+                host: req!!.get('host'),
+                protocol: req!!.get('host') !== 'localhost' ? 'wss' : 'ws',
+                pathname: '/api'
+            })
+        })));
 
     // Start listening
-    app.listen(8319);
+
+    new SubscriptionServer({
+        schema: FDBGraphqlSchema,
+        subscribe,
+        execute,
+        keepAlive: 10000
+    }, { server: app.listen(8319), path: '/api' });
 }

@@ -71,6 +71,7 @@ export class EntityModel {
     indexes: EntityIndex[] = [];
     enableVersioning: boolean = false;
     enableTimestamps: boolean = false;
+    editable: boolean = false;
 
     constructor(name: string) {
         this.name = name;
