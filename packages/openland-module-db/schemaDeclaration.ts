@@ -15,11 +15,6 @@ const Schema = declareSchema(() => {
         field('platform', 'string');
     });
 
-    entity('Counter', () => {
-        primaryKey('name', 'string');
-        field('value', 'number');
-    });
-
     entity('AuthToken', () => {
         primaryKey('uuid', 'string');
         field('salt', 'string');

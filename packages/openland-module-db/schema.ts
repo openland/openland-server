@@ -132,55 +132,6 @@ export class PresenceFactory extends FEntityFactory<Presence> {
         return new Presence(this.connection, this.namespace, [value.uid, value.tid], value, this.options, isNew, this.indexes, 'Presence');
     }
 }
-export interface CounterShape {
-    value: number;
-}
-
-export class Counter extends FEntity {
-    get name(): string { return this._value.name; }
-    get value(): number {
-        return this._value.value;
-    }
-    set value(value: number) {
-        this._checkIsWritable();
-        if (value === this._value.value) { return; }
-        this._value.value = value;
-        this.markDirty();
-    }
-}
-
-export class CounterFactory extends FEntityFactory<Counter> {
-    private static validate(src: any) {
-        validators.notNull('name', src.name);
-        validators.isString('name', src.name);
-        validators.notNull('value', src.value);
-        validators.isNumber('value', src.value);
-    }
-
-    constructor(connection: FConnection) {
-        super(connection,
-            new FNamespace('entity', 'counter'),
-            { enableVersioning: false, enableTimestamps: false, validator: CounterFactory.validate, hasLiveStreams: false },
-            [],
-            'Counter'
-        );
-    }
-    extractId(rawId: any[]) {
-        return { 'name': rawId[0] };
-    }
-    async findById(name: string) {
-        return await this._findById([name]);
-    }
-    async create(name: string, shape: CounterShape) {
-        return await this._create([name], { name, ...shape });
-    }
-    watch(name: string, cb: () => void) {
-        return this._watch([name], cb);
-    }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new Counter(this.connection, this.namespace, [value.name], value, this.options, isNew, this.indexes, 'Counter');
-    }
-}
 export interface AuthTokenShape {
     salt: string;
     uid: number;
@@ -2974,7 +2925,6 @@ export class AppInviteLinkFactory extends FEntityFactory<AppInviteLink> {
 export class AllEntities extends FDBInstance {
     Online: OnlineFactory;
     Presence: PresenceFactory;
-    Counter: CounterFactory;
     AuthToken: AuthTokenFactory;
     ServiceCache: ServiceCacheFactory;
     Lock: LockFactory;
@@ -3008,7 +2958,6 @@ export class AllEntities extends FDBInstance {
         super(connection);
         this.Online = new OnlineFactory(connection);
         this.Presence = new PresenceFactory(connection);
-        this.Counter = new CounterFactory(connection);
         this.AuthToken = new AuthTokenFactory(connection);
         this.ServiceCache = new ServiceCacheFactory(connection);
         this.Lock = new LockFactory(connection);
