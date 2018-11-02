@@ -502,7 +502,7 @@ export class ChatsRepository {
                     role: 'member',
                     status: 'joined',
                     invitedBy: uid
-                });
+                }).then(async p => await p.flush());
             }
         });
 

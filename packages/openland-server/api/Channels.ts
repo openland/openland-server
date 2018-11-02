@@ -162,7 +162,7 @@ export const Resolver = {
                     invitedBy: uid,
                     role: 'owner',
                     status: 'joined'
-                });
+                }).then(async p => await p.flush());
             });
 
             if (args.message) {
@@ -543,7 +543,7 @@ export const Resolver = {
                         role: 'member',
                         status: 'joined',
                         invitedBy: uid!
-                    });
+                    }).then(async p => await p.flush());
 
                     let name = (await Modules.Users.profileById(uid!))!.firstName;
 
