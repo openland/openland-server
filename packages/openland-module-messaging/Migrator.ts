@@ -4,7 +4,7 @@ import { inTx } from 'foundation-orm/inTx';
 import { FDB } from 'openland-module-db/FDB';
 
 export function startMigrator() {
-    let reader = new UpdateReader('export-members', 1, DB.ConversationGroupMembers);
+    let reader = new UpdateReader('export-members', 3, DB.ConversationGroupMembers);
     reader.processor(async (items) => {
         for (let i of items) {
 
@@ -27,6 +27,8 @@ export function startMigrator() {
                                     ? 'joined'
                                     : 'kicked'
                     });
+                } else {
+                    p.markDirty();
                 }
             });
         }

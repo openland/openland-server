@@ -17,7 +17,6 @@ import { JsonMap } from '../utils/json';
 import { IDMailformedError } from '../errors/IDMailformedError';
 import { ImageRef, buildBaseImageUrl, imageRefEquals } from '../repositories/Media';
 import { Organization } from '../tables/Organization';
-import { ConversationGroupMember } from '../tables/ConversationGroupMembers';
 import { AccessDeniedError } from '../errors/AccessDeniedError';
 import { Services } from '../services';
 import { UserError } from '../errors/UserError';
@@ -26,7 +25,7 @@ import { Sanitizer } from '../modules/Sanitizer';
 import { URLAugmentation } from '../services/UrlInfoService';
 import { Modules } from 'openland-modules/Modules';
 import { OnlineEvent } from '../../openland-module-presences/PresenceModule';
-import { UserProfile, UserDialogSettings, Message } from 'openland-module-db/schema';
+import { UserProfile, UserDialogSettings, Message, RoomParticipant } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
 import { TypingEvent } from 'openland-module-typings/TypingEvent';
 import { withLogContext } from 'openland-log/withLogContext';
@@ -201,18 +200,10 @@ export const Resolver = {
             if (src.title !== '') {
                 return src.title;
             }
-            let res = await DB.ConversationGroupMembers.findAll({
-                where: {
-                    conversationId: src.id,
-                    userId: {
-                        $not: context.uid
-                    }
-                },
-                order: ['userId']
-            });
+            let res = (await FDB.RoomParticipant.allFromActive(src.id)).filter((v) => v.uid !== context.uid);
             let name: string[] = [];
             for (let r of res) {
-                let p = (await Modules.Users.profileById(r.userId))!;
+                let p = (await Modules.Users.profileById(r.uid))!;
                 name.push([p.firstName, p.lastName].filter((v) => !!v).join(' '));
             }
             return name.join(', ');
@@ -241,13 +232,8 @@ export const Resolver = {
             return [];
         },
         members: async (src: Conversation) => {
-            let res = await DB.ConversationGroupMembers.findAll({
-                where: {
-                    conversationId: src.id
-                },
-                order: ['userId']
-            });
-            return res.map((v) => DB.User.findById(v.userId));
+            let res = await FDB.RoomParticipant.allFromActive(src.id);
+            return res.map((v) => DB.User.findById(v.uid));
         },
         unreadCount: async (src: Conversation, _: any, context: CallContext) => {
             let state = await FDB.UserDialog.findById(context.uid!!, src.id);
@@ -258,15 +244,7 @@ export const Resolver = {
             }
         },
         topMessage: async (src: Conversation, _: any, context: CallContext) => {
-            let member = await DB.ConversationGroupMembers.find({
-                where: {
-                    conversationId: src.id,
-                    userId: context.uid,
-                    status: 'member'
-                }
-            });
-
-            if (!member) {
+            if (!await Modules.Messaging.room.isActiveMember(context.uid!, src.id)) {
                 return null;
             }
 
@@ -302,12 +280,7 @@ export const Resolver = {
             return 0;
         },
         myRole: async (src: Conversation, _: any, ctx: CallContext) => {
-            let member = await DB.ConversationGroupMembers.findOne({
-                where: {
-                    conversationId: src.id,
-                    userId: ctx.uid
-                }
-            });
+            let member = await Modules.Messaging.room.findMembershipStatus(ctx.uid!, src.id);
 
             return member && member.role;
         }
@@ -479,8 +452,8 @@ export const Resolver = {
     },
 
     GroupConversationMember: {
-        role: (src: ConversationGroupMember) => src.role,
-        user: resolveUser<ConversationGroupMember>()
+        role: (src: RoomParticipant) => src.role === 'owner' ? 'creator' : src.role,
+        user: (src: RoomParticipant) => DB.User.findById(src.uid)
     },
 
     ConversationSettings: {
@@ -526,15 +499,7 @@ export const Resolver = {
                 let conversation = (await DB.Conversation.findById(conversationId))!;
 
                 if (conversation.type === 'group' || conversation.type === 'channel') {
-                    let member = await DB.ConversationGroupMembers.find({
-                        where: {
-                            conversationId,
-                            userId: uid,
-                            status: 'member'
-                        }
-                    });
-
-                    if (!member) {
+                    if (!await Modules.Messaging.room.isActiveMember(uid, conversationId)) {
                         throw new AccessDeniedError();
                     }
                 }
@@ -610,31 +575,21 @@ export const Resolver = {
         alphaChatSearch: withUser<{ members: string[] }>(async (args, uid) => {
             let members = [...args.members.map((v) => IDs.User.parse(v)), uid];
             return await DB.txStable(async (tx) => {
-                let groups = await DB.ConversationGroupMembers.findAll({
-                    where: {
-                        userId: uid
-                    },
-                    transaction: tx
-                });
+                let groups = await FDB.RoomParticipant.allFromUserActive(uid);
                 let suitableGroups: number[] = [];
                 for (let f of groups) {
-                    let allMembers = await DB.ConversationGroupMembers.findAll({
-                        where: {
-                            conversationId: f.conversationId
-                        },
-                        transaction: tx
-                    });
+                    let allMembers = await FDB.RoomParticipant.allFromActive(f.cid);
                     if (allMembers.length !== members.length) {
                         continue;
                     }
 
                     let missed = members
-                        .map((v) => !!allMembers.find((v2) => v2.userId === v))
+                        .map((v) => !!allMembers.find((v2) => v2.uid === v))
                         .filter((v) => !v);
                     if (missed.length > 0) {
                         continue;
                     }
-                    suitableGroups.push(f.conversationId);
+                    suitableGroups.push(f.cid);
                 }
                 if (suitableGroups.length === 0) {
                     return null;
@@ -652,14 +607,8 @@ export const Resolver = {
         }),
         alphaGroupConversationMembers: withUser<{ conversationId: string }>(async (args, uid) => {
             let conversationId = IDs.Conversation.parse(args.conversationId);
-
-            let members = await DB.ConversationGroupMembers.findAll({
-                where: {
-                    conversationId
-                }
-            });
-
-            return members;
+            let res = await FDB.RoomParticipant.allFromActive(conversationId);
+            return res;
         }),
         alphaBlockedList: withUser<{ conversationId?: string }>(async (args, uid) => {
             return [];
@@ -962,12 +911,13 @@ export const Resolver = {
                 }, { transaction: tx });
                 let members = [uid, ...args.members.map((v) => IDs.User.parse(v))];
                 for (let m of members) {
-                    await DB.ConversationGroupMembers.create({
-                        conversationId: conv.id,
-                        invitedById: uid,
-                        userId: m,
-                        role: m === uid ? 'creator' : 'member'
-                    }, { transaction: tx });
+                    await inTx(async () => {
+                        await FDB.RoomParticipant.create(conv2.id, m, {
+                            role: m === uid ? 'owner' : 'member',
+                            invitedBy: uid,
+                            status: 'joined'
+                        });
+                    });
                 }
 
                 return conv2;
@@ -1135,7 +1085,7 @@ export const Resolver = {
             });
         }),
         alphaChatInviteToGroup: withUser<{ conversationId: string, invites: { userId: string, role: string }[] }>(async (args, uid) => {
-            return DB.tx(async (tx) => {
+            return inTx(async () => {
                 await validate({
                     invites: mustBeArray({
                         userId: defined(stringNotEmpty()),
@@ -1145,18 +1095,13 @@ export const Resolver = {
 
                 let conversationId = IDs.Conversation.parse(args.conversationId);
 
-                let chat = await DB.Conversation.findById(conversationId, { transaction: tx });
+                let chat = await DB.Conversation.findById(conversationId);
 
                 if (!chat || (chat.type !== 'group' && chat.type !== 'channel')) {
                     throw new Error('Chat not found');
                 }
 
-                let curMember = await DB.ConversationGroupMembers.findOne({
-                    where: {
-                        conversationId,
-                        userId: uid
-                    }
-                });
+                let curMember = await FDB.RoomParticipant.findById(conversationId, uid);
 
                 if (!curMember) {
                     throw new AccessDeniedError();
@@ -1166,12 +1111,11 @@ export const Resolver = {
                     let userId = IDs.User.parse(invite.userId);
 
                     try {
-                        await DB.ConversationGroupMembers.create({
-                            conversationId: conversationId,
-                            invitedById: uid,
-                            userId: userId,
-                            role: invite.role
-                        }, { transaction: tx });
+                        await FDB.RoomParticipant.create(conversationId, userId, {
+                            invitedBy: uid,
+                            role: invite.role as any,
+                            status: 'joined'
+                        });
                     } catch (e) {
                         throw new Error('User already invited');
                     }
@@ -1227,22 +1171,17 @@ export const Resolver = {
             });
         }),
         alphaChatKickFromGroup: withUser<{ conversationId: string, userId: string }>(async (args, uid) => {
-            return DB.tx(async (tx) => {
+            return inTx(async () => {
                 let conversationId = IDs.Conversation.parse(args.conversationId);
                 let userId = IDs.User.parse(args.userId);
 
-                let chat = await DB.Conversation.findById(conversationId, { transaction: tx });
+                let chat = await DB.Conversation.findById(conversationId);
 
                 if (!chat || (chat.type !== 'group' && chat.type !== 'channel')) {
                     throw new Error('Chat not found');
                 }
 
-                let member = await DB.ConversationGroupMembers.findOne({
-                    where: {
-                        conversationId,
-                        userId
-                    }
-                });
+                let member = await FDB.RoomParticipant.findById(conversationId, userId);
 
                 if (!member) {
                     throw new Error('No such member');
@@ -1250,31 +1189,21 @@ export const Resolver = {
 
                 let isSuperAdmin = (await Repos.Permissions.superRole(uid)) === 'super-admin';
 
-                let curMember = await DB.ConversationGroupMembers.findOne({
-                    where: {
-                        conversationId,
-                        userId: uid
-                    }
-                });
+                let curMember = await FDB.RoomParticipant.findById(conversationId, uid);
 
                 if (!curMember && !isSuperAdmin) {
                     throw new AccessDeniedError();
                 }
 
-                let canKick = isSuperAdmin || curMember!.role === 'admin' || curMember!.role === 'creator' || member.invitedById === uid;
+                let canKick = isSuperAdmin || curMember!.role === 'admin' || curMember!.role === 'owner' || member.invitedBy === uid;
 
                 if (!canKick) {
                     throw new AccessDeniedError();
                 }
 
-                await DB.ConversationGroupMembers.destroy({
-                    where: {
-                        conversationId,
-                        userId
-                    }
-                });
+                curMember!.status = 'kicked';
 
-                let profile = await Modules.Users.profileById(member.userId);
+                let profile = await Modules.Users.profileById(member.uid);
 
                 await Repos.Chats.sendMessage(
                     conversationId,
@@ -1335,7 +1264,7 @@ export const Resolver = {
             });
         }),
         alphaChatChangeRoleInGroup: withUser<{ conversationId: string, userId: string, newRole: string }>(async (args, uid) => {
-            return DB.tx(async (tx) => {
+            return inTx(async () => {
                 await validate({
                     newRole: defined(enumString(['member', 'admin']))
                 }, args);
@@ -1343,42 +1272,31 @@ export const Resolver = {
                 let conversationId = IDs.Conversation.parse(args.conversationId);
                 let userId = IDs.User.parse(args.userId);
 
-                let chat = await DB.Conversation.findById(conversationId, { transaction: tx });
+                let chat = await DB.Conversation.findById(conversationId);
 
                 if (!chat || (chat.type !== 'group' && chat.type !== 'channel')) {
                     throw new Error('Chat not found');
                 }
 
-                let member = await DB.ConversationGroupMembers.findOne({
-                    where: {
-                        conversationId,
-                        userId
-                    },
-                    transaction: tx
-                });
+                let member = await FDB.RoomParticipant.findById(conversationId, userId);
 
                 if (!member) {
                     throw new Error('Member not found');
                 }
 
-                let curMember = await DB.ConversationGroupMembers.findOne({
-                    where: {
-                        conversationId,
-                        userId: uid
-                    }
-                });
+                let curMember = await FDB.RoomParticipant.findById(conversationId, uid);
 
                 if (!curMember) {
                     throw new AccessDeniedError();
                 }
 
-                let canChangeRole = curMember.role === 'admin' || curMember.role === 'creator';
+                let canChangeRole = curMember.role === 'admin' || curMember.role === 'owner';
 
                 if (!canChangeRole) {
                     throw new AccessDeniedError();
                 }
 
-                await member.update({ role: args.newRole }, { transaction: tx });
+                member.role = args.newRole as any;
 
                 // let chatEvent = await Repos.Chats.addChatEvent(
                 //     conversationId,
@@ -1389,42 +1307,6 @@ export const Resolver = {
                 //     },
                 //     tx
                 // );
-
-                return {
-                    chat
-                };
-            });
-        }),
-        alphaChatCopyGroup: withUser<{ conversationId: string, extraMembers: string[], title?: string, message: string }>(async (args, uid) => {
-            return DB.tx(async (tx) => {
-                let conversationId = IDs.Conversation.parse(args.conversationId);
-                let chat = await DB.Conversation.findById(conversationId, { transaction: tx });
-
-                if (!chat || (chat.type !== 'group' && chat.type !== 'channel')) {
-                    throw new Error('Chat not found');
-                }
-
-                let title = args.title ? args.title! : chat.title;
-                let conv = await DB.Conversation.create({
-                    title,
-                    type: 'group'
-                }, { transaction: tx });
-
-                let members = Array.from(new Set([
-                    ...await Repos.Chats.getConversationMembers(conversationId),
-                    ...args.extraMembers.map(id => IDs.User.parse(id))
-                ]));
-
-                for (let member of members) {
-                    await DB.ConversationGroupMembers.create({
-                        conversationId: conv.id,
-                        invitedById: uid,
-                        userId: member,
-                        role: member === uid ? 'creator' : 'member'
-                    }, { transaction: tx });
-                }
-
-                await Repos.Chats.sendMessage(conv.id, uid, { message: args.message });
 
                 return {
                     chat
@@ -1471,22 +1353,16 @@ export const Resolver = {
             return 'ok';
         }),
         alphaChatLeave: withAccount<{ conversationId: string }>(async (args, uid) => {
-            return DB.tx(async (tx) => {
+            return inTx(async () => {
                 let conversationId = IDs.Conversation.parse(args.conversationId);
 
-                let chat = await DB.Conversation.findById(conversationId, { transaction: tx });
+                let chat = await DB.Conversation.findById(conversationId);
 
                 if (!chat || (chat.type !== 'group' && chat.type !== 'channel')) {
                     throw new Error('Chat not found');
                 }
 
-                let member = await DB.ConversationGroupMembers.findOne({
-                    where: {
-                        conversationId,
-                        userId: uid
-                    },
-                    transaction: tx
-                });
+                let member = await FDB.RoomParticipant.findById(conversationId, uid);
 
                 if (!member) {
                     throw new Error('No such member');
@@ -1536,27 +1412,17 @@ export const Resolver = {
                 //     tx
                 // );
 
-                await DB.ConversationGroupMembers.destroy({
-                    where: {
-                        conversationId,
-                        userId: uid
-                    },
-                    transaction: tx
-                });
+                member.status = 'left';
 
-                await inTx(async () => {
-                    let mstate = await Modules.Messaging.repo.getUserMessagingState(uid);
-                    let convState = await Modules.Messaging.repo.getUserDialogState(uid, conversationId);
-                    mstate.unread = mstate.unread - convState.unread;
-                    mstate.seq++;
+                let mstate = await Modules.Messaging.repo.getUserMessagingState(uid);
+                let convState = await Modules.Messaging.repo.getUserDialogState(uid, conversationId);
+                mstate.unread = mstate.unread - convState.unread;
+                mstate.seq++;
 
-                    await FDB.UserDialogEvent.create(uid, mstate.seq, {
-                        kind: 'message_read',
-                        unread: 0,
-                        allUnread: mstate.unread
-                    });
-
-                    return mstate;
+                await FDB.UserDialogEvent.create(uid, mstate.seq, {
+                    kind: 'message_read',
+                    unread: 0,
+                    allUnread: mstate.unread
                 });
 
                 return {

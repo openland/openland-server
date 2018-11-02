@@ -11,6 +11,7 @@ import { createDeliveryWorker } from './workers/DeliveryWorker';
 import { DialogsRepository } from './repositories/DialogsRepository';
 import { startMigrator } from './Migrator';
 import { FixerRepository } from './repositories/Fixer';
+import { RoomRepository } from './repositories/RoomRepository';
 
 export interface MessageInput {
     repeatToken?: string | null;
@@ -30,6 +31,7 @@ export class MessagingModule {
     readonly DeliveryWorker = createDeliveryWorker();
     readonly repo = new MessagingRepository(FDB);
     readonly fixer = new FixerRepository(FDB);
+    readonly room = new RoomRepository(FDB);
     private readonly dialogs = new DialogsRepository(FDB);
     private readonly channels = new ChannelRepository(FDB);
 

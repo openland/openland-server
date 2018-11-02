@@ -258,6 +258,7 @@ const Schema = declareSchema(() => {
         enumField('status', ['joined', 'requested', 'left', 'kicked']);
         uniqueIndex('active', ['cid', 'uid']).withCondition((src) => src.status === 'joined');
         uniqueIndex('requests', ['cid', 'uid']).withCondition((src) => src.status === 'requested');
+        uniqueIndex('userActive', ['uid', 'cid']).withCondition((src) => src.status === 'joined');
         enableVersioning();
         enableTimestamps();
     });

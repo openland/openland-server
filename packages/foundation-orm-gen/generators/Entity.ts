@@ -152,40 +152,40 @@ export function generateEntity(entity: EntityModel): string {
             res += '        return await this._findById([' + ['\'__indexes\'', '\'' + i.name + '\'', ...i.fields].join(', ') + ']);\n';
             res += '    }\n';
         }
-        if (!i.unique || i.range) {
-            let fs = [...i.fields];
-            fs.splice(-1);
-            if (i.fields.length > 1) {
-                res += '    async allFrom' + Case.pascalCase(i.name) + 'After(' + [...fs.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v))), 'after: ' + resolveFieldType(resolveIndexField(entity, i.fields[i.fields.length - 1]))].join(', ') + ') {\n';
-                res += '        return await this._findRangeAllAfter([' + ['\'__indexes\'', '\'' + i.name + '\'', ...fs].join(', ') + '], after);\n';
-                res += '    }\n';
-
-                res += '    async rangeFrom' + Case.pascalCase(i.name) + 'After(' + [...fs.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v))), 'after: ' + resolveFieldType(resolveIndexField(entity, i.fields[i.fields.length - 1])), 'limit: number', 'reversed?: boolean'].join(', ') + ') {\n';
-                res += '        return await this._findRangeAfter([' + ['\'__indexes\'', '\'' + i.name + '\'', ...fs].join(', ') + '], after, limit, reversed);\n';
-                res += '    }\n';
-            }
-
-            res += '    async rangeFrom' + Case.pascalCase(i.name) + '(' + [...fs.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v))), 'limit: number', 'reversed?: boolean'].join(', ') + ') {\n';
-            res += '        return await this._findRange([' + ['\'__indexes\'', '\'' + i.name + '\'', ...fs].join(', ') + '], limit, reversed);\n';
+        // if (!i.unique || i.range) {
+        let fs = [...i.fields];
+        fs.splice(-1);
+        if (i.fields.length > 1) {
+            res += '    async allFrom' + Case.pascalCase(i.name) + 'After(' + [...fs.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v))), 'after: ' + resolveFieldType(resolveIndexField(entity, i.fields[i.fields.length - 1]))].join(', ') + ') {\n';
+            res += '        return await this._findRangeAllAfter([' + ['\'__indexes\'', '\'' + i.name + '\'', ...fs].join(', ') + '], after);\n';
             res += '    }\n';
 
-            res += '    async rangeFrom' + Case.pascalCase(i.name) + 'WithCursor(' + [...fs.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v))), 'limit: number', 'after?: string', 'reversed?: boolean'].join(', ') + ') {\n';
-            res += '        return await this._findRangeWithCursor([' + ['\'__indexes\'', '\'' + i.name + '\'', ...fs].join(', ') + '], limit, after, reversed);\n';
+            res += '    async rangeFrom' + Case.pascalCase(i.name) + 'After(' + [...fs.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v))), 'after: ' + resolveFieldType(resolveIndexField(entity, i.fields[i.fields.length - 1])), 'limit: number', 'reversed?: boolean'].join(', ') + ') {\n';
+            res += '        return await this._findRangeAfter([' + ['\'__indexes\'', '\'' + i.name + '\'', ...fs].join(', ') + '], after, limit, reversed);\n';
             res += '    }\n';
-
-            res += '    async allFrom' + Case.pascalCase(i.name) + '(' + [...fs.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v)))].join(', ') + ') {\n';
-            res += '        return await this._findAll([' + ['\'__indexes\'', '\'' + i.name + '\'', ...fs].join(', ') + ']);\n';
-            res += '    }\n';
-
-            res += '    create' + Case.pascalCase(i.name) + 'Stream(' + [...fs.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v))), 'limit: number', 'after?: string'].join(', ') + ') {\n';
-            res += '        return this._createStream([' + ['\'entity\'', '\'' + entityKey + '\'', '\'__indexes\'', '\'' + i.name + '\'', ...fs].join(', ') + '], limit, after); \n';
-            res += '    }\n';
-            if (i.streaming) {
-                res += '    create' + Case.pascalCase(i.name) + 'LiveStream(' + [...fs.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v))), 'limit: number', 'after?: string'].join(', ') + ') {\n';
-                res += '        return this._createLiveStream([' + ['\'entity\'', '\'' + entityKey + '\'', '\'__indexes\'', '\'' + i.name + '\'', ...fs].join(', ') + '], limit, after); \n';
-                res += '    }\n';
-            }
         }
+
+        res += '    async rangeFrom' + Case.pascalCase(i.name) + '(' + [...fs.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v))), 'limit: number', 'reversed?: boolean'].join(', ') + ') {\n';
+        res += '        return await this._findRange([' + ['\'__indexes\'', '\'' + i.name + '\'', ...fs].join(', ') + '], limit, reversed);\n';
+        res += '    }\n';
+
+        res += '    async rangeFrom' + Case.pascalCase(i.name) + 'WithCursor(' + [...fs.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v))), 'limit: number', 'after?: string', 'reversed?: boolean'].join(', ') + ') {\n';
+        res += '        return await this._findRangeWithCursor([' + ['\'__indexes\'', '\'' + i.name + '\'', ...fs].join(', ') + '], limit, after, reversed);\n';
+        res += '    }\n';
+
+        res += '    async allFrom' + Case.pascalCase(i.name) + '(' + [...fs.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v)))].join(', ') + ') {\n';
+        res += '        return await this._findAll([' + ['\'__indexes\'', '\'' + i.name + '\'', ...fs].join(', ') + ']);\n';
+        res += '    }\n';
+
+        res += '    create' + Case.pascalCase(i.name) + 'Stream(' + [...fs.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v))), 'limit: number', 'after?: string'].join(', ') + ') {\n';
+        res += '        return this._createStream([' + ['\'entity\'', '\'' + entityKey + '\'', '\'__indexes\'', '\'' + i.name + '\'', ...fs].join(', ') + '], limit, after); \n';
+        res += '    }\n';
+        if (i.streaming) {
+            res += '    create' + Case.pascalCase(i.name) + 'LiveStream(' + [...fs.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v))), 'limit: number', 'after?: string'].join(', ') + ') {\n';
+            res += '        return this._createLiveStream([' + ['\'entity\'', '\'' + entityKey + '\'', '\'__indexes\'', '\'' + i.name + '\'', ...fs].join(', ') + '], limit, after); \n';
+            res += '    }\n';
+        }
+        // }
     }
 
     res += '    protected _createEntity(value: any, isNew: boolean) {\n';

@@ -7,7 +7,6 @@ import { CallContext } from './utils/CallContext';
 import { ElasticClient } from '../indexing';
 import { QueryParser } from '../modules/QueryParser';
 import { SelectBuilder } from '../modules/SelectBuilder';
-import { ConversationGroupMember } from '../tables/ConversationGroupMembers';
 import { defined, emailValidator, stringNotEmpty, validate } from '../modules/NewInputValidator';
 import { ErrorText } from '../errors/ErrorText';
 import { NotFoundError } from '../errors/NotFoundError';
@@ -16,7 +15,7 @@ import { Sanitizer } from '../modules/Sanitizer';
 import { Services } from '../services';
 import { Modules } from 'openland-modules/Modules';
 import { inTx } from 'foundation-orm/inTx';
-import { ChannelInvitation, ChannelLink } from 'openland-module-db/schema';
+import { ChannelInvitation, ChannelLink, RoomParticipant } from 'openland-module-db/schema';
 import { FDB } from 'openland-module-db/FDB';
 
 interface AlphaChannelsParams {
@@ -27,8 +26,18 @@ interface AlphaChannelsParams {
     page?: number;
     sort?: string;
 }
-
+// NEVER: 'never',
+//         MIN_15: '15min',
+//         HOUR_1: '1hour',
+//         HOUR_24: '24hour',
+//         WEEK_1: '1week',
 export const Resolver = {
+    ChannelMembershipStatus: {
+        invited: 'invited',
+        member: 'joined',
+        requested: 'requested',
+        none: 'left'
+    },
     ChannelConversation: {
         id: (src: Conversation) => IDs.Conversation.serialize(src.id),
         flexibleId: (src: Conversation) => IDs.Conversation.serialize(src.id),
@@ -44,15 +53,7 @@ export const Resolver = {
             }
         },
         topMessage: async (src: Conversation, _: any, context: CallContext) => {
-            let member = await DB.ConversationGroupMembers.find({
-                where: {
-                    conversationId: src.id,
-                    userId: context.uid,
-                    status: 'member'
-                }
-            });
-
-            if (!member) {
+            if (!await Modules.Messaging.room.isActiveMember(context.uid!, src.id!)) {
                 return null;
             }
 
@@ -65,12 +66,7 @@ export const Resolver = {
         description: (src: Conversation) => src.extras.description || '',
         longDescription: (src: Conversation) => src.extras.longDescription || '',
         myStatus: async (src: Conversation, _: any, context: CallContext) => {
-            let member = await DB.ConversationGroupMembers.findOne({
-                where: {
-                    conversationId: src.id,
-                    userId: context.uid
-                }
-            });
+            let member = await Modules.Messaging.room.findMembershipStatus(context.uid!, src.id!);
 
             if (!member) {
                 return 'none';
@@ -109,20 +105,14 @@ export const Resolver = {
             return 0;
         },
         myRole: async (src: Conversation, _: any, ctx: CallContext) => {
-            let member = await DB.ConversationGroupMembers.findOne({
-                where: {
-                    conversationId: src.id,
-                    userId: ctx.uid
-                }
-            });
-
+            let member = await Modules.Messaging.room.findMembershipStatus(ctx.uid!, src.id!);
             return member && member.role;
         }
     },
     ChannelMember: {
-        role: (src: ConversationGroupMember) => src.role,
-        status: (src: ConversationGroupMember) => src.status,
-        user: (src: ConversationGroupMember) => DB.User.findById(src.userId)
+        role: (src: RoomParticipant) => src.role,
+        status: (src: RoomParticipant) => src.status === 'joined' ? 'member' : 'none',
+        user: (src: RoomParticipant) => DB.User.findById(src.uid)
     },
     ChannelInvite: {
         channel: (src: ChannelInvitation | ChannelLink) => DB.Conversation.findById(src.channelId),
@@ -142,7 +132,7 @@ export const Resolver = {
                 await Services.UploadCare.saveFile(imageRef.uuid);
             }
 
-            let res =  await DB.txStable(async (tx) => {
+            let res = await DB.txStable(async (tx) => {
 
                 let chat = await DB.Conversation.create({
                     title: args.title.trim(),
@@ -164,15 +154,15 @@ export const Resolver = {
                 //     status: 'member'
                 // }, {transaction: tx});
 
-                await DB.ConversationGroupMembers.create({
-                    conversationId: chat.id,
-                    invitedById: uid,
-                    role: 'creator',
-                    status: 'member',
-                    userId: uid
-                }, { transaction: tx });
-
                 return chat;
+            });
+
+            await inTx(async () => {
+                await FDB.RoomParticipant.create(res.id, uid, {
+                    invitedBy: uid,
+                    role: 'owner',
+                    status: 'joined'
+                });
             });
 
             if (args.message) {
@@ -216,31 +206,22 @@ export const Resolver = {
         }),
 
         alphaChannelInvite: withUser<{ channelId: string, userId: string }>(async (args, uid) => {
-            return await DB.txStable(async (tx) => {
+            return await inTx(async () => {
                 let channelId = IDs.Conversation.parse(args.channelId);
                 let userId = IDs.User.parse(args.userId);
-                let channel = await DB.Conversation.findById(channelId, { transaction: tx });
+                let channel = await DB.Conversation.findById(channelId);
 
-                let member = await DB.ConversationGroupMembers.findOne({
-                    where: {
-                        conversationId: channelId,
-                        userId
-                    },
-                    transaction: tx,
-                    lock: tx.LOCK.UPDATE
-                });
+                let membership = await FDB.RoomParticipant.findById(channelId, userId);
 
-                if (member) {
-                    if (member.status === 'member' || member.status === 'invited') {
+                if (membership) {
+                    if (membership.status === 'joined') {
                         return {
                             chat: channel,
                             curSeq: channel!.seq
                         };
-                    } else if (member.status === 'requested') {
-                        await member.update({ status: 'member' }, { transaction: tx });
-
+                    } else {
+                        membership.status = 'joined';
                         let name = (await Modules.Users.profileById(userId))!.firstName;
-
                         await Repos.Chats.sendMessage(
                             channelId,
                             userId,
@@ -255,175 +236,238 @@ export const Resolver = {
                                 }
                             }
                         );
-
-                        // let membersCount = await Repos.Chats.membersCountInConversation(channelId);
-
-                        // await Repos.Chats.addUserEventsInConversation(
-                        //     channelId,
-                        //     uid,
-                        //     'new_members_count',
-                        //     {
-                        //         conversationId: channelId,
-                        //         membersCount: membersCount + 1
-                        //     },
-                        //     tx
-                        // );
                     }
                 } else {
-                    await DB.ConversationGroupMembers.create({
-                        conversationId: channelId,
-                        invitedById: uid,
+                    await FDB.RoomParticipant.create(channelId, uid, {
+                        invitedBy: uid,
                         role: 'member',
-                        status: 'invited'
-                    }, { transaction: tx });
+                        status: 'joined'
+                    });
                 }
-
-                await channel!.reload({ transaction: tx });
 
                 return {
                     chat: channel,
                     curSeq: channel!.seq
                 };
             });
+            // return await DB.txStable(async (tx) => {
+
+            //     let member = await DB.ConversationGroupMembers.findOne({
+            //         where: {
+            //             conversationId: channelId,
+            //             userId
+            //         },
+            //         transaction: tx,
+            //         lock: tx.LOCK.UPDATE
+            //     });
+
+            //     if (member) {
+            //         if (member.status === 'member' || member.status === 'invited') {
+            //             return {
+            //                 chat: channel,
+            //                 curSeq: channel!.seq
+            //             };
+            //         } else if (member.status === 'requested') {
+            //             await member.update({ status: 'member' }, { transaction: tx });
+
+            //             let name = (await Modules.Users.profileById(userId))!.firstName;
+
+            //             await Repos.Chats.sendMessage(
+            //                 channelId,
+            //                 userId,
+            //                 {
+            //                     message: `${name} has joined the channel!`,
+            //                     isService: true,
+            //                     isMuted: true,
+            //                     serviceMetadata: {
+            //                         type: 'user_invite',
+            //                         userIds: [userId],
+            //                         invitedById: uid
+            //                     }
+            //                 }
+            //             );
+
+            //             // let membersCount = await Repos.Chats.membersCountInConversation(channelId);
+
+            //             // await Repos.Chats.addUserEventsInConversation(
+            //             //     channelId,
+            //             //     uid,
+            //             //     'new_members_count',
+            //             //     {
+            //             //         conversationId: channelId,
+            //             //         membersCount: membersCount + 1
+            //             //     },
+            //             //     tx
+            //             // );
+            //         }
+            //     } else {
+            //         await DB.ConversationGroupMembers.create({
+            //             conversationId: channelId,
+            //             invitedById: uid,
+            //             role: 'member',
+            //             status: 'invited'
+            //         }, { transaction: tx });
+            //     }
+
+            //     await channel!.reload({ transaction: tx });
+
+            //     return {
+            //         chat: channel,
+            //         curSeq: channel!.seq
+            //     };
+            // });
         }),
         alphaChannelJoin: withUser<{ channelId: string }>(async (args, uid) => {
-            return await DB.txStable(async (tx) => {
+            // return await DB.txStable(async (tx) => {
+            //     let channelId = IDs.Conversation.parse(args.channelId);
+            //     let channel = await DB.Conversation.findById(channelId, { transaction: tx });
+
+            //     let member = await DB.ConversationGroupMembers.findOne({
+            //         where: {
+            //             conversationId: channelId,
+            //             userId: uid
+            //         },
+            //         transaction: tx
+            //     });
+
+            //     let org = channel && channel.extras!.creatorOrgId ? await DB.Organization.findById(channel.extras!.creatorOrgId as number) : null;
+            //     let orgMember = undefined;
+            //     if (org) {
+            //         orgMember = await DB.OrganizationMember.find({
+            //             where: {
+            //                 userId: uid,
+            //                 orgId: org.id
+            //             }
+            //         });
+            //     }
+
+            //     if (member) {
+            //         if (member.status === 'member') {
+            //             return {
+            //                 chat: channel,
+            //                 curSeq: channel!.seq
+            //             };
+            //         } else if (member.status === 'invited') {
+            //             await member.update({ status: 'member' }, { transaction: tx });
+
+            //             let name = (await Modules.Users.profileById(uid))!.firstName;
+
+            //             await Repos.Chats.sendMessage(
+            //                 channelId,
+            //                 uid,
+            //                 {
+            //                     message: `${name} has joined the channel!`,
+            //                     isService: true,
+            //                     isMuted: true,
+            //                     serviceMetadata: {
+            //                         type: 'user_invite',
+            //                         userIds: [uid],
+            //                         invitedById: uid
+            //                     }
+            //                 }
+            //             );
+
+            //             // let membersCount = await Repos.Chats.membersCountInConversation(channelId);
+
+            //             // await Repos.Chats.addUserEventsInConversation(
+            //             //     channelId,
+            //             //     uid,
+            //             //     'new_members_count',
+            //             //     {
+            //             //         conversationId: channelId,
+            //             //         membersCount: membersCount + 1
+            //             //     },
+            //             //     tx
+            //             // );
+            //         }
+            //     } else if (orgMember) {
+            //         let name = (await Modules.Users.profileById(uid))!.firstName;
+            //         await DB.ConversationGroupMembers.create({
+            //             conversationId: channelId,
+            //             invitedById: uid,
+            //             role: 'admin',
+            //             status: 'member',
+            //             userId: uid,
+            //         }, { transaction: tx });
+
+            //         await Repos.Chats.sendMessage(
+            //             channelId,
+            //             uid,
+            //             {
+            //                 message: `${name} has joined the channel!`,
+            //                 isService: true,
+            //                 isMuted: true,
+            //                 serviceMetadata: {
+            //                     type: 'user_invite',
+            //                     userIds: [uid],
+            //                     invitedById: uid
+            //                 }
+            //             }
+            //         );
+            //         return {
+            //             chat: channel,
+            //             curSeq: channel!.seq
+            //         };
+            //     } else {
+            //         await DB.ConversationGroupMembers.create({
+            //             conversationId: channelId,
+            //             invitedById: uid,
+            //             role: 'member',
+            //             status: 'requested',
+            //             userId: uid,
+            //         }, { transaction: tx });
+            //     }
+
+            //     await channel!.reload({ transaction: tx });
+
+            //     return {
+            //         chat: channel,
+            //         curSeq: channel!.seq
+            //     };
+            // });
+            return await inTx(async () => {
                 let channelId = IDs.Conversation.parse(args.channelId);
-                let channel = await DB.Conversation.findById(channelId, { transaction: tx });
+                let userId = uid;
+                let channel = await DB.Conversation.findById(channelId);
 
-                let member = await DB.ConversationGroupMembers.findOne({
-                    where: {
-                        conversationId: channelId,
-                        userId: uid
-                    },
-                    transaction: tx
-                });
+                let membership = await FDB.RoomParticipant.findById(channelId, userId);
 
-                let org = channel && channel.extras!.creatorOrgId ? await DB.Organization.findById(channel.extras!.creatorOrgId as number) : null;
-                let orgMember = undefined;
-                if (org) {
-                    orgMember = await DB.OrganizationMember.find({
-                        where: {
-                            userId: uid,
-                            orgId: org.id
-                        }
-                    });
-                }
-
-                if (member) {
-                    if (member.status === 'member') {
+                if (membership) {
+                    if (membership.status === 'joined') {
                         return {
                             chat: channel,
                             curSeq: channel!.seq
                         };
-                    } else if (member.status === 'invited') {
-                        await member.update({ status: 'member' }, { transaction: tx });
-
-                        let name = (await Modules.Users.profileById(uid))!.firstName;
-
+                    } else {
+                        membership.status = 'joined';
+                        let name = (await Modules.Users.profileById(userId))!.firstName;
                         await Repos.Chats.sendMessage(
                             channelId,
-                            uid,
+                            userId,
                             {
                                 message: `${name} has joined the channel!`,
                                 isService: true,
                                 isMuted: true,
                                 serviceMetadata: {
                                     type: 'user_invite',
-                                    userIds: [uid],
+                                    userIds: [userId],
                                     invitedById: uid
                                 }
                             }
                         );
-
-                        // let membersCount = await Repos.Chats.membersCountInConversation(channelId);
-
-                        // await Repos.Chats.addUserEventsInConversation(
-                        //     channelId,
-                        //     uid,
-                        //     'new_members_count',
-                        //     {
-                        //         conversationId: channelId,
-                        //         membersCount: membersCount + 1
-                        //     },
-                        //     tx
-                        // );
                     }
-                } else if (orgMember) {
-                    let name = (await Modules.Users.profileById(uid))!.firstName;
-                    await DB.ConversationGroupMembers.create({
-                        conversationId: channelId,
-                        invitedById: uid,
-                        role: 'admin',
-                        status: 'member',
-                        userId: uid,
-                    }, { transaction: tx });
-
-                    await Repos.Chats.sendMessage(
-                        channelId,
-                        uid,
-                        {
-                            message: `${name} has joined the channel!`,
-                            isService: true,
-                            isMuted: true,
-                            serviceMetadata: {
-                                type: 'user_invite',
-                                userIds: [uid],
-                                invitedById: uid
-                            }
-                        }
-                    );
-                    return {
-                        chat: channel,
-                        curSeq: channel!.seq
-                    };
                 } else {
-                    await DB.ConversationGroupMembers.create({
-                        conversationId: channelId,
-                        invitedById: uid,
+                    await FDB.RoomParticipant.create(channelId, uid, {
+                        invitedBy: uid,
                         role: 'member',
-                        status: 'requested',
-                        userId: uid,
-                    }, { transaction: tx });
+                        status: 'joined'
+                    });
                 }
-
-                await channel!.reload({ transaction: tx });
 
                 return {
                     chat: channel,
                     curSeq: channel!.seq
                 };
-            });
-        }),
-        alphaChannelRevokeInvite: withUser<{ channelId: string, userId: string }>(async (args, uid) => {
-            return await DB.txStable(async (tx) => {
-                let userId = IDs.User.parse(args.userId);
-                let channelId = IDs.Conversation.parse(args.channelId);
-
-                await DB.ConversationGroupMembers.destroy({
-                    where: {
-                        userId,
-                        conversationId: channelId,
-                        status: 'invited'
-                    }
-                });
-
-                return 'ok';
-            });
-        }),
-        alphaChannelCancelRequest: withUser<{ channelId: string }>(async (args, uid) => {
-            return await DB.txStable(async (tx) => {
-                let channelId = IDs.Conversation.parse(args.channelId);
-
-                await DB.ConversationGroupMembers.destroy({
-                    where: {
-                        uid,
-                        conversationId: channelId,
-                        status: 'requested'
-                    }
-                });
-
-                return 'ok';
             });
         }),
         alphaChannelInviteMembers: withUser<{ channelId: string, inviteRequests: { email: string, emailText?: string, firstName?: string, lastName?: string }[] }>(async (args, uid) => {
@@ -450,100 +494,84 @@ export const Resolver = {
             if (uid === undefined) {
                 return;
             }
-            return await DB.txStable(async (tx) => {
-                return await inTx(async () => {
-                    let invite = await Modules.Messaging.resolveInvite(args.invite);
+            return await inTx(async () => {
+                let invite = await Modules.Messaging.resolveInvite(args.invite);
 
-                    if (!invite) {
-                        throw new NotFoundError(ErrorText.unableToFindInvite);
-                    }
+                if (!invite) {
+                    throw new NotFoundError(ErrorText.unableToFindInvite);
+                }
 
-                    let existing = await DB.ConversationGroupMembers.findOne({
-                        where: {
-                            userId: uid,
-                            conversationId: invite.channelId
-                        },
-                        transaction: tx
-                    });
+                let existing = await FDB.RoomParticipant.findById(invite.channelId, uid!);
 
-                    if (existing) {
-                        await Repos.Chats.addToChannel(tx, invite.channelId, uid!);
-                        return IDs.Conversation.serialize(invite.channelId);
-                    }
+                if (existing) {
+                    await Repos.Chats.addToChannel(invite.channelId, uid!);
+                    return IDs.Conversation.serialize(invite.channelId);
+                }
 
-                    // Activate user
-                    let user = await DB.User.find({
-                        where: {
-                            id: uid
-                        },
-                        lock: tx.LOCK.UPDATE,
-                        transaction: tx
-                    });
-                    if (user) {
-                        user.status = 'ACTIVATED';
-
-                        // User set invitedBy if none
-                        if (invite.creatorId && !user.invitedBy) {
-                            user.invitedBy = invite.creatorId;
-                        }
-
-                        await user.save({ transaction: tx });
-                        await Repos.Chats.addToInitialChannel(user.id!, tx);
-
-                    }
-
-                    if (context.oid !== undefined) {
-                        // Activate organization
-                        let org = await DB.Organization.find({
-                            where: {
-                                id: context.oid
-                            },
-                            lock: tx.LOCK.UPDATE,
-                            transaction: tx
-                        });
-                        if (org) {
-                            org.status = 'ACTIVATED';
-                            await org.save({ transaction: tx });
-                        }
-                    }
-
-                    try {
-                        await DB.ConversationGroupMembers.create({
-                            conversationId: invite.channelId,
-                            invitedById: uid,
-                            role: 'member',
-                            status: 'member',
-                            userId: uid
-                        }, { transaction: tx });
-
-                        let name = (await Modules.Users.profileById(uid!))!.firstName;
-
-                        await Repos.Chats.sendMessage(
-                            invite.channelId,
-                            uid!,
-                            {
-                                message: `${name} has joined the channel!`,
-                                isService: true,
-                                isMuted: true,
-                                serviceMetadata: {
-                                    type: 'user_invite',
-                                    userIds: [uid],
-                                    invitedById: invite.creatorId || uid
-                                }
-                            }
-                        );
-
-                        if (invite instanceof ChannelInvitation) {
-                            invite.acceptedById = uid!;
-                            invite.enabled = false;
-                        }
-
-                        return IDs.Conversation.serialize(invite.channelId);
-                    } catch (e) {
-                        console.warn(e);
-                        throw e;
+                // Activate user
+                let user = await DB.User.find({
+                    where: {
+                        id: uid
                     }
                 });
+                if (user) {
+                    user.status = 'ACTIVATED';
+
+                    // User set invitedBy if none
+                    if (invite.creatorId && !user.invitedBy) {
+                        user.invitedBy = invite.creatorId;
+                    }
+
+                    await user.save();
+                }
+
+                if (context.oid !== undefined) {
+                    // Activate organization
+                    let org = await DB.Organization.find({
+                        where: {
+                            id: context.oid
+                        }
+                    });
+                    if (org) {
+                        org.status = 'ACTIVATED';
+                        await org.save();
+                    }
+                }
+
+                try {
+                    await FDB.RoomParticipant.create(invite.channelId, uid!, {
+                        role: 'member',
+                        status: 'joined',
+                        invitedBy: uid!
+                    });
+
+                    let name = (await Modules.Users.profileById(uid!))!.firstName;
+
+                    await Repos.Chats.sendMessage(
+                        invite.channelId,
+                        uid!,
+                        {
+                            message: `${name} has joined the channel!`,
+                            isService: true,
+                            isMuted: true,
+                            serviceMetadata: {
+                                type: 'user_invite',
+                                userIds: [uid],
+                                invitedById: invite.creatorId || uid
+                            }
+                        }
+                    );
+
+                    if (invite instanceof ChannelInvitation) {
+                        invite.acceptedById = uid!;
+                        invite.enabled = false;
+                    }
+
+                    return IDs.Conversation.serialize(invite.channelId);
+                } catch (e) {
+                    console.warn(e);
+                    throw e;
+                }
             });
         }),
     },
@@ -562,11 +590,7 @@ export const Resolver = {
         alphaChannelMembers: withUser<{ channelId: string }>(async (args, uid) => {
             let convId = IDs.Conversation.parse(args.channelId);
 
-            return await DB.ConversationGroupMembers.findAll({
-                where: {
-                    conversationId: convId
-                }
-            });
+            return await FDB.RoomParticipant.allFromActive(convId);
         }),
 
         alphaChannelsFeatured: withUser<{}>(async (args, uid) => {

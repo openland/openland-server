@@ -178,7 +178,7 @@ export const Resolvers = {
         }),
         superAccountChannelMemberAdd: withPermission<{ id: string, userId: string }>('super-admin', async (args) => {
             return await DB.txStable(async (tx) => {
-                await Repos.Chats.addToChannel(tx, IDs.Conversation.parse(args.id), IDs.User.parse(args.userId));
+                await Repos.Chats.addToChannel(IDs.Conversation.parse(args.id), IDs.User.parse(args.userId));
                 return 'ok';
             });
 

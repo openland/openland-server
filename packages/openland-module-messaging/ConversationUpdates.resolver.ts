@@ -78,13 +78,8 @@ export default {
                 }
                 let conversation = (await DB.Conversation.findById(conversationId))!;
                 if (conversation.type === 'group' || conversation.type === 'channel') {
-                    let member = await DB.ConversationGroupMembers.find({
-                        where: {
-                            userId: context.uid,
-                            status: 'member'
-                        }
-                    });
-                    if (!member) {
+                    let member = await FDB.RoomParticipant.findById(conversationId, context.uid);
+                    if (!member || member.status !== 'joined') {
                         throw new AccessDeniedError();
                     }
                 }

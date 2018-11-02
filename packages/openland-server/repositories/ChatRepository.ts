@@ -372,28 +372,17 @@ export class ChatsRepository {
                 }
             }
         } else if (conv.type === 'group') {
-            let m = await DB.ConversationGroupMembers.findAll({
-                where: {
-                    conversationId: conv.id,
-                },
-                transaction: tx,
-            });
+            let m = await FDB.RoomParticipant.allFromActive(conv.id);
             for (let i of m) {
-                if (members.indexOf(i.userId) < 0) {
-                    members.push(i.userId);
+                if (members.indexOf(i.uid) < 0) {
+                    members.push(i.uid);
                 }
             }
         } else if (conv.type === 'channel') {
-            let m = await DB.ConversationGroupMembers.findAll({
-                where: {
-                    conversationId: conv.id,
-                    status: 'member'
-                },
-                transaction: tx,
-            });
+            let m = await FDB.RoomParticipant.allFromActive(conv.id);
             for (let i of m) {
-                if (members.indexOf(i.userId) < 0) {
-                    members.push(i.userId);
+                if (members.indexOf(i.uid) < 0) {
+                    members.push(i.uid);
                 }
             }
 
@@ -445,28 +434,17 @@ export class ChatsRepository {
                     }
                 }
             } else if (conv.type === 'group') {
-                let m = await DB.ConversationGroupMembers.findAll({
-                    where: {
-                        conversationId: conv.id,
-                    },
-                    transaction: tx,
-                });
+                let m = await FDB.RoomParticipant.allFromActive(conv.id);
                 for (let i of m) {
-                    if (members.indexOf(i.userId) < 0) {
-                        members.push(i.userId);
+                    if (members.indexOf(i.uid) < 0) {
+                        members.push(i.uid);
                     }
                 }
             } else if (conv.type === 'channel') {
-                let m = await DB.ConversationGroupMembers.findAll({
-                    where: {
-                        conversationId: conv.id,
-                        status: 'member'
-                    },
-                    transaction: tx,
-                });
+                let m = await FDB.RoomParticipant.allFromActive(conv.id);
                 for (let i of m) {
-                    if (members.indexOf(i.userId) < 0) {
-                        members.push(i.userId);
+                    if (members.indexOf(i.uid) < 0) {
+                        members.push(i.uid);
                     }
                 }
             }
@@ -485,12 +463,7 @@ export class ChatsRepository {
     }
 
     async membersCountInConversation(conversationId: number, status?: string): Promise<number> {
-        return await DB.ConversationGroupMembers.count({
-            where: {
-                conversationId: conversationId,
-                status: status || 'member'
-            }
-        });
+        return (await FDB.RoomParticipant.allFromActive(conversationId)).length;
     }
 
     async getConversationSec(conversationId: number, exTx?: Transaction): Promise<number> {
@@ -509,36 +482,29 @@ export class ChatsRepository {
         // await Repos.Chats.addToChannel(tx, channelId, uid);
     }
 
-    async addToChannel(tx: Transaction, channelId: number, uid: number) {
+    async addToChannel(channelId: number, uid: number) {
         let profile = await Modules.Users.profileById(uid);
         // no profile - user not signed up
         if (!profile) {
             return;
         }
         let firstName = profile!!.firstName;
-        let existing = await DB.ConversationGroupMembers.find({
-            where: {
-                conversationId: channelId,
-                userId: uid,
-            },
-            transaction: tx,
-        });
-        if (existing) {
-            if (existing.status === 'member') {
-                return;
+        await inTx(async () => {
+            let existing = await FDB.RoomParticipant.findById(channelId, uid);
+            if (existing) {
+                if (existing.status === 'joined') {
+                    return;
+                } else {
+                    existing.status = 'joined';
+                }
             } else {
-                existing.status = 'member';
-                await existing.save({ transaction: tx });
+                await FDB.RoomParticipant.create(channelId, uid, {
+                    role: 'member',
+                    status: 'joined',
+                    invitedBy: uid
+                });
             }
-        } else {
-            await DB.ConversationGroupMembers.create({
-                conversationId: channelId,
-                invitedById: uid,
-                role: 'member',
-                status: 'member',
-                userId: uid,
-            }, { transaction: tx });
-        }
+        });
 
         await Repos.Chats.sendMessage(
             channelId,
@@ -591,18 +557,10 @@ export class ChatsRepository {
             if (conv.title !== '') {
                 return conv.title;
             }
-            let res = await DB.ConversationGroupMembers.findAll({
-                where: {
-                    conversationId: conv.id,
-                    userId: {
-                        $not: uid
-                    }
-                },
-                order: ['userId']
-            });
+            let res = (await FDB.RoomParticipant.allFromActive(conv.id)).filter((v) => v.uid !== uid);
             let name: string[] = [];
             for (let r of res) {
-                let p = (await Modules.Users.profileById(r.userId))!!;
+                let p = (await Modules.Users.profileById(r.uid))!!;
                 name.push([p.firstName, p.lastName].filter((v) => !!v).join(' '));
             }
             return name.join(', ');
@@ -615,9 +573,11 @@ export class ChatsRepository {
 
     async checkAccessToChat(uid: number, conversation: Conversation) {
         if (conversation.type === 'channel' || conversation.type === 'group') {
-            if (!(await DB.ConversationGroupMembers.findOne({ where: { conversationId: conversation.id, userId: uid } }))) {
+            let part = await FDB.RoomParticipant.findById(conversation.id, uid);
+            if (!part || part.status !== 'joined') {
                 throw new AccessDeniedError();
             }
+
         }
     }
 }

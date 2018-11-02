@@ -204,6 +204,18 @@ export class AuthTokenFactory extends FEntityFactory<AuthToken> {
     async findFromSalt(salt: string) {
         return await this._findById(['__indexes', 'salt', salt]);
     }
+    async rangeFromSalt(limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'salt'], limit, reversed);
+    }
+    async rangeFromSaltWithCursor(limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'salt'], limit, after, reversed);
+    }
+    async allFromSalt() {
+        return await this._findAll(['__indexes', 'salt']);
+    }
+    createSaltStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'authToken', '__indexes', 'salt'], limit, after); 
+    }
     protected _createEntity(value: any, isNew: boolean) {
         return new AuthToken(this.connection, this.namespace, [value.uuid], value, this.options, isNew, this.indexes, 'AuthToken');
     }
@@ -705,6 +717,18 @@ export class PushFirebaseFactory extends FEntityFactory<PushFirebase> {
     async findFromToken(token: string) {
         return await this._findById(['__indexes', 'token', token]);
     }
+    async rangeFromToken(limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'token'], limit, reversed);
+    }
+    async rangeFromTokenWithCursor(limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'token'], limit, after, reversed);
+    }
+    async allFromToken() {
+        return await this._findAll(['__indexes', 'token']);
+    }
+    createTokenStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'pushFirebase', '__indexes', 'token'], limit, after); 
+    }
     protected _createEntity(value: any, isNew: boolean) {
         return new PushFirebase(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'PushFirebase');
     }
@@ -887,6 +911,18 @@ export class PushAppleFactory extends FEntityFactory<PushApple> {
     async findFromToken(token: string) {
         return await this._findById(['__indexes', 'token', token]);
     }
+    async rangeFromToken(limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'token'], limit, reversed);
+    }
+    async rangeFromTokenWithCursor(limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'token'], limit, after, reversed);
+    }
+    async allFromToken() {
+        return await this._findAll(['__indexes', 'token']);
+    }
+    createTokenStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'pushApple', '__indexes', 'token'], limit, after); 
+    }
     protected _createEntity(value: any, isNew: boolean) {
         return new PushApple(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'PushApple');
     }
@@ -1044,6 +1080,18 @@ export class PushWebFactory extends FEntityFactory<PushWeb> {
     }
     async findFromEndpoint(endpoint: string) {
         return await this._findById(['__indexes', 'endpoint', endpoint]);
+    }
+    async rangeFromEndpoint(limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'endpoint'], limit, reversed);
+    }
+    async rangeFromEndpointWithCursor(limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'endpoint'], limit, after, reversed);
+    }
+    async allFromEndpoint() {
+        return await this._findAll(['__indexes', 'endpoint']);
+    }
+    createEndpointStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'pushWeb', '__indexes', 'endpoint'], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
         return new PushWeb(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'PushWeb');
@@ -1790,8 +1838,32 @@ export class ShortnameReservationFactory extends FEntityFactory<ShortnameReserva
     async findFromUser(ownerId: number) {
         return await this._findById(['__indexes', 'user', ownerId]);
     }
+    async rangeFromUser(limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'user'], limit, reversed);
+    }
+    async rangeFromUserWithCursor(limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'user'], limit, after, reversed);
+    }
+    async allFromUser() {
+        return await this._findAll(['__indexes', 'user']);
+    }
+    createUserStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'shortnameReservation', '__indexes', 'user'], limit, after); 
+    }
     async findFromOrg(ownerId: number) {
         return await this._findById(['__indexes', 'org', ownerId]);
+    }
+    async rangeFromOrg(limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'org'], limit, reversed);
+    }
+    async rangeFromOrgWithCursor(limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'org'], limit, after, reversed);
+    }
+    async allFromOrg() {
+        return await this._findAll(['__indexes', 'org']);
+    }
+    createOrgStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'shortnameReservation', '__indexes', 'org'], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
         return new ShortnameReservation(this.connection, this.namespace, [value.shortname], value, this.options, isNew, this.indexes, 'ShortnameReservation');
@@ -2007,6 +2079,24 @@ export class ConversationFactory extends FEntityFactory<Conversation> {
     async findFromPrimate(uid1: number, uid2: number) {
         return await this._findById(['__indexes', 'primate', uid1, uid2]);
     }
+    async allFromPrimateAfter(uid1: number, after: number) {
+        return await this._findRangeAllAfter(['__indexes', 'primate', uid1], after);
+    }
+    async rangeFromPrimateAfter(uid1: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(['__indexes', 'primate', uid1], after, limit, reversed);
+    }
+    async rangeFromPrimate(uid1: number, limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'primate', uid1], limit, reversed);
+    }
+    async rangeFromPrimateWithCursor(uid1: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'primate', uid1], limit, after, reversed);
+    }
+    async allFromPrimate(uid1: number) {
+        return await this._findAll(['__indexes', 'primate', uid1]);
+    }
+    createPrimateStream(uid1: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'conversation', '__indexes', 'primate', uid1], limit, after); 
+    }
     protected _createEntity(value: any, isNew: boolean) {
         return new Conversation(this.connection, this.namespace, [value.cid], value, this.options, isNew, this.indexes, 'Conversation');
     }
@@ -2186,7 +2276,7 @@ export class RoomParticipantFactory extends FEntityFactory<RoomParticipant> {
         super(connection,
             new FNamespace('entity', 'roomParticipant'),
             { enableVersioning: true, enableTimestamps: true, validator: RoomParticipantFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('active', ['cid', 'uid'], true, (src) => src.status === 'joined'), new FEntityIndex('requests', ['cid', 'uid'], true, (src) => src.status === 'requested')],
+            [new FEntityIndex('active', ['cid', 'uid'], true, (src) => src.status === 'joined'), new FEntityIndex('requests', ['cid', 'uid'], true, (src) => src.status === 'requested'), new FEntityIndex('userActive', ['uid', 'cid'], true, (src) => src.status === 'joined')],
             'RoomParticipant'
         );
     }
@@ -2205,8 +2295,65 @@ export class RoomParticipantFactory extends FEntityFactory<RoomParticipant> {
     async findFromActive(cid: number, uid: number) {
         return await this._findById(['__indexes', 'active', cid, uid]);
     }
+    async allFromActiveAfter(cid: number, after: number) {
+        return await this._findRangeAllAfter(['__indexes', 'active', cid], after);
+    }
+    async rangeFromActiveAfter(cid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(['__indexes', 'active', cid], after, limit, reversed);
+    }
+    async rangeFromActive(cid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'active', cid], limit, reversed);
+    }
+    async rangeFromActiveWithCursor(cid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'active', cid], limit, after, reversed);
+    }
+    async allFromActive(cid: number) {
+        return await this._findAll(['__indexes', 'active', cid]);
+    }
+    createActiveStream(cid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'roomParticipant', '__indexes', 'active', cid], limit, after); 
+    }
     async findFromRequests(cid: number, uid: number) {
         return await this._findById(['__indexes', 'requests', cid, uid]);
+    }
+    async allFromRequestsAfter(cid: number, after: number) {
+        return await this._findRangeAllAfter(['__indexes', 'requests', cid], after);
+    }
+    async rangeFromRequestsAfter(cid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(['__indexes', 'requests', cid], after, limit, reversed);
+    }
+    async rangeFromRequests(cid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'requests', cid], limit, reversed);
+    }
+    async rangeFromRequestsWithCursor(cid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'requests', cid], limit, after, reversed);
+    }
+    async allFromRequests(cid: number) {
+        return await this._findAll(['__indexes', 'requests', cid]);
+    }
+    createRequestsStream(cid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'roomParticipant', '__indexes', 'requests', cid], limit, after); 
+    }
+    async findFromUserActive(uid: number, cid: number) {
+        return await this._findById(['__indexes', 'userActive', uid, cid]);
+    }
+    async allFromUserActiveAfter(uid: number, after: number) {
+        return await this._findRangeAllAfter(['__indexes', 'userActive', uid], after);
+    }
+    async rangeFromUserActiveAfter(uid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(['__indexes', 'userActive', uid], after, limit, reversed);
+    }
+    async rangeFromUserActive(uid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'userActive', uid], limit, reversed);
+    }
+    async rangeFromUserActiveWithCursor(uid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'userActive', uid], limit, after, reversed);
+    }
+    async allFromUserActive(uid: number) {
+        return await this._findAll(['__indexes', 'userActive', uid]);
+    }
+    createUserActiveStream(uid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'roomParticipant', '__indexes', 'userActive', uid], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
         return new RoomParticipant(this.connection, this.namespace, [value.cid, value.uid], value, this.options, isNew, this.indexes, 'RoomParticipant');
@@ -2262,6 +2409,24 @@ export class ConversationReceiverFactory extends FEntityFactory<ConversationRece
     }
     async findFromConversation(cid: number, uid: number) {
         return await this._findById(['__indexes', 'conversation', cid, uid]);
+    }
+    async allFromConversationAfter(cid: number, after: number) {
+        return await this._findRangeAllAfter(['__indexes', 'conversation', cid], after);
+    }
+    async rangeFromConversationAfter(cid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(['__indexes', 'conversation', cid], after, limit, reversed);
+    }
+    async rangeFromConversation(cid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'conversation', cid], limit, reversed);
+    }
+    async rangeFromConversationWithCursor(cid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'conversation', cid], limit, after, reversed);
+    }
+    async allFromConversation(cid: number) {
+        return await this._findAll(['__indexes', 'conversation', cid]);
+    }
+    createConversationStream(cid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'conversationReceiver', '__indexes', 'conversation', cid], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
         return new ConversationReceiver(this.connection, this.namespace, [value.cid, value.uid], value, this.options, isNew, this.indexes, 'ConversationReceiver');
@@ -3620,6 +3785,18 @@ export class AppInviteLinkFactory extends FEntityFactory<AppInviteLink> {
     }
     async findFromUser(uid: number) {
         return await this._findById(['__indexes', 'user', uid]);
+    }
+    async rangeFromUser(limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'user'], limit, reversed);
+    }
+    async rangeFromUserWithCursor(limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'user'], limit, after, reversed);
+    }
+    async allFromUser() {
+        return await this._findAll(['__indexes', 'user']);
+    }
+    createUserStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'appInviteLink', '__indexes', 'user'], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
         return new AppInviteLink(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'AppInviteLink');
