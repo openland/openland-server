@@ -251,7 +251,7 @@ const Schema = declareSchema(() => {
 
         field('isMuted', 'boolean');
         field('isService', 'boolean');
-        field('deleted', 'boolean');
+        field('deleted', 'boolean').nullable();
         rangeIndex('chat', ['cid', 'id']).withCondition((src) => !src.deleted);
         enableVersioning();
         enableTimestamps();

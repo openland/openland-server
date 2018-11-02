@@ -1945,7 +1945,7 @@ export interface MessageShape {
     edited?: boolean| null;
     isMuted: boolean;
     isService: boolean;
-    deleted: boolean;
+    deleted?: boolean| null;
 }
 
 export class Message extends FEntity {
@@ -2107,10 +2107,12 @@ export class Message extends FEntity {
         this._value.isService = value;
         this.markDirty();
     }
-    get deleted(): boolean {
-        return this._value.deleted;
+    get deleted(): boolean | null {
+        let res = this._value.deleted;
+        if (res) { return res; }
+        return null;
     }
-    set deleted(value: boolean) {
+    set deleted(value: boolean | null) {
         this._checkIsWritable();
         if (value === this._value.deleted) { return; }
         this._value.deleted = value;
@@ -2135,7 +2137,6 @@ export class MessageFactory extends FEntityFactory<Message> {
         validators.isBoolean('isMuted', src.isMuted);
         validators.notNull('isService', src.isService);
         validators.isBoolean('isService', src.isService);
-        validators.notNull('deleted', src.deleted);
         validators.isBoolean('deleted', src.deleted);
     }
 
