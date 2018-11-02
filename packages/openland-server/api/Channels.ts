@@ -66,7 +66,7 @@ export const Resolver = {
         description: (src: Conversation) => src.extras.description || '',
         longDescription: (src: Conversation) => src.extras.longDescription || '',
         myStatus: async (src: Conversation, _: any, context: CallContext) => {
-            let member = await Modules.Messaging.room.findMembershipStatus(context.uid!, src.id!);
+            let member = context.uid ? await Modules.Messaging.room.findMembershipStatus(context.uid, src.id!) : undefined;
 
             if (!member) {
                 return 'left';
@@ -162,7 +162,7 @@ export const Resolver = {
                     invitedBy: uid,
                     role: 'owner',
                     status: 'joined'
-                });
+                }).then(async p => await p.flush());
             });
 
             if (args.message) {
@@ -543,7 +543,7 @@ export const Resolver = {
                         role: 'member',
                         status: 'joined',
                         invitedBy: uid!
-                    });
+                    }).then(async p => await p.flush());
 
                     let name = (await Modules.Users.profileById(uid!))!.firstName;
 

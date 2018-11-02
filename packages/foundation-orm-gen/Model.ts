@@ -5,11 +5,17 @@ export class EntityField {
     readonly enumValues: string[];
     isNullable: boolean = false;
     isSecure: boolean = false;
+    dispName?: string;
 
     constructor(name: string, type: 'string' | 'number' | 'boolean' | 'enum' | 'json', enumValues: string[]) {
         this.name = name;
         this.type = type;
         this.enumValues = enumValues;
+    }
+
+    displayName(name: string) {
+        this.dispName = name;
+        return this;
     }
 
     secure() {
@@ -30,10 +36,16 @@ export class EntityIndex {
     range: boolean = false;
     streaming: boolean = false;
     condition?: (src: any) => boolean;
+    dispName?: string;
     constructor(name: string, fields: string[], unique: boolean) {
         this.name = name;
         this.fields = fields;
         this.unique = unique;
+    }
+
+    withDisplayName(name: string) {
+        this.dispName = name;
+        return this;
     }
 
     withRange() {
@@ -59,6 +71,7 @@ export class EntityModel {
     indexes: EntityIndex[] = [];
     enableVersioning: boolean = false;
     enableTimestamps: boolean = false;
+
     constructor(name: string) {
         this.name = name;
     }

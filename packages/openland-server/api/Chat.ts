@@ -1124,7 +1124,7 @@ export const Resolver = {
                             invitedBy: uid,
                             role: invite.role as any,
                             status: 'joined'
-                        });
+                        }).then(async p => await p.flush());
                     } catch (e) {
                         throw new Error('User already invited');
                     }
