@@ -49,7 +49,9 @@ export class ModernScheduller {
                         let now = Date.now();
                         let failingTasks = await FDB.Task.rangeFromFailing(100);
                         for (let f of failingTasks) {
-                            if (f.taskFailureTime && f.taskFailureTime < now) {
+                            if (f.taskFailureCount !== null && f.taskFailureCount >= 5) {
+                                f.taskStatus = 'failed';
+                            } else if (f.taskFailureTime && f.taskFailureTime < now) {
                                 f.taskStatus = 'pending';
                             }
                         }
