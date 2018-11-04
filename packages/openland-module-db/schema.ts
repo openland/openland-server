@@ -557,9 +557,9 @@ export class TaskFactory extends FEntityFactory<Task> {
             { name: 'taskFailureMessage', type: 'string' },
         ],
         indexes: [
-            { name: 'pending', type: 'range', fields: ['taskType', 'createdAt'] },
-            { name: 'executing', type: 'range', fields: ['taskLockTimeout'] },
-            { name: 'failing', type: 'range', fields: ['taskFailureTime'] },
+            { name: 'pending', type: 'range', fields: ['taskType', 'createdAt'], displayName: 'tasksPending' },
+            { name: 'executing', type: 'range', fields: ['taskLockTimeout'], displayName: 'tasksExecuting' },
+            { name: 'failing', type: 'range', fields: ['taskFailureTime'], displayName: 'tasksFailing' },
         ],
     };
 

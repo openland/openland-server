@@ -190,12 +190,10 @@ for (let e of AllEntities.schema) {
                         ...buildArguments(e, i, 0),
                     },
                     resolve: async (_: any, arg: any) => {
-                        let argm = extractArguments(arg, e, i, 0);
-                        let res = await (FDB as any)[e.name]['findFrom' + Case.pascalCase(i.name)](...argm, arg.first, arg.after, arg.reversed);
-                        return {
-                            ...res._value,
-                            rawValue: res._value
-                        };
+                        // let argm = extractArguments(arg, e, i, 0);
+                        let res = await (FDB as any)[e.name]['rangeFrom' + Case.pascalCase(i.name) + 'WithCursor'](arg.first, arg.after, arg.reversed);
+                        console.log(res);
+                        return res;
                     }
                 };
                 // queries[i.displayName] = {
@@ -224,11 +222,7 @@ for (let e of AllEntities.schema) {
                     },
                     resolve: async (_: any, arg: any) => {
                         let argm = extractArguments(arg, e, i, 1);
-                        let res = await (FDB as any)[e.name]['rangeFrom' + Case.pascalCase(i.name) + 'WithCursor'](...argm, arg.first, arg.after, arg.reversed);
-                        return {
-                            ...res._value,
-                            rawValue: res._value
-                        };
+                        return await (FDB as any)[e.name]['rangeFrom' + Case.pascalCase(i.name) + 'WithCursor'](...argm, arg.first, arg.after, arg.reversed);
                     }
                 };
             }

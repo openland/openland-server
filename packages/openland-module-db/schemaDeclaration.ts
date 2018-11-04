@@ -57,11 +57,14 @@ const Schema = declareSchema(() => {
         field('taskFailureMessage', 'string').nullable();
 
         rangeIndex('pending', ['taskType', 'createdAt'])
-            .withCondition((src) => src.taskStatus === 'pending');
+            .withCondition((src) => src.taskStatus === 'pending')
+            .withDisplayName('tasksPending');
         rangeIndex('executing', ['taskLockTimeout'])
-            .withCondition((src) => src.taskStatus === 'executing');
+            .withCondition((src) => src.taskStatus === 'executing')
+            .withDisplayName('tasksExecuting');
         rangeIndex('failing', ['taskFailureTime'])
-            .withCondition((src) => src.taskStatus === 'failing');
+            .withCondition((src) => src.taskStatus === 'failing')
+            .withDisplayName('tasksFailing');
 
         enableTimestamps();
         enableVersioning();
