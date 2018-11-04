@@ -67,7 +67,7 @@ export class SimpleEntityFactory extends FEntityFactory<SimpleEntity> {
         return this._watch([id], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new SimpleEntity(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'SimpleEntity');
+        return new SimpleEntity(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'SimpleEntity');
     }
 }
 export interface VersionedEntityShape {
@@ -129,7 +129,7 @@ export class VersionedEntityFactory extends FEntityFactory<VersionedEntity> {
         return this._watch([id], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new VersionedEntity(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'VersionedEntity');
+        return new VersionedEntity(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'VersionedEntity');
     }
 }
 export interface TimestampedEntityShape {
@@ -191,7 +191,7 @@ export class TimestampedEntityFactory extends FEntityFactory<TimestampedEntity> 
         return this._watch([id], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new TimestampedEntity(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'TimestampedEntity');
+        return new TimestampedEntity(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'TimestampedEntity');
     }
 }
 export interface IndexedEntityShape {
@@ -301,7 +301,7 @@ export class IndexedEntityFactory extends FEntityFactory<IndexedEntity> {
         return this._createStream(['entity', 'indexedEntity', '__indexes', 'default', data1, data2], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new IndexedEntity(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'IndexedEntity');
+        return new IndexedEntity(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'IndexedEntity');
     }
 }
 export interface IndexedRangeEntityShape {
@@ -408,7 +408,7 @@ export class IndexedRangeEntityFactory extends FEntityFactory<IndexedRangeEntity
         return this._createStream(['entity', 'indexedRangeEntity', '__indexes', 'default', data1], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new IndexedRangeEntity(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'IndexedRangeEntity');
+        return new IndexedRangeEntity(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'IndexedRangeEntity');
     }
 }
 export interface IndexedPartialEntityShape {
@@ -518,7 +518,7 @@ export class IndexedPartialEntityFactory extends FEntityFactory<IndexedPartialEn
         return this._createStream(['entity', 'indexedPartialEntity', '__indexes', 'default', data1, data2], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new IndexedPartialEntity(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'IndexedPartialEntity');
+        return new IndexedPartialEntity(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'IndexedPartialEntity');
     }
 }
 export interface NullableEntityShape {
@@ -581,7 +581,7 @@ export class NullableEntityFactory extends FEntityFactory<NullableEntity> {
         return this._watch([id], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new NullableEntity(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'NullableEntity');
+        return new NullableEntity(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'NullableEntity');
     }
 }
 

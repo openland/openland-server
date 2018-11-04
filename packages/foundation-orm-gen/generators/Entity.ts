@@ -227,7 +227,7 @@ export function generateEntity(entity: EntityModel): string {
     }
 
     res += '    protected _createEntity(value: any, isNew: boolean) {\n';
-    res += '        return new ' + entityClass + '(this.connection, this.namespace, [' + entity.keys.map((v) => 'value.' + v.name).join(', ') + '], value, this.options, isNew, this.indexes, \'' + entity.name + '\');\n';
+    res += '        return new ' + entityClass + '(this.connection, this.namespace, this.directory, [' + entity.keys.map((v) => 'value.' + v.name).join(', ') + '], value, this.options, isNew, this.indexes, \'' + entity.name + '\');\n';
     res += '    }\n';
     res += '}';
 

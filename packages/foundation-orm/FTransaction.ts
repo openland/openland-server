@@ -64,17 +64,17 @@ export class FTransaction implements FContext {
             return await this.tx!.get(FKeyEncoding.encodeKey(key));
         });
     }
-    set(connection: FConnection, key: (string | number)[], value: any) {
+    set(connection: FConnection, key: Buffer, value: any) {
         this._prepare(connection);
         traceSync(tracer, 'set', () => {
-            this.tx!.set(FKeyEncoding.encodeKey(key), value);
+            this.tx!.set(key, value);
         });
     }
 
-    async delete(connection: FConnection, key: (string | number)[]) {
+    delete(connection: FConnection, key: Buffer) {
         this._prepare(connection);
         traceSync(tracer, 'delete', () => {
-            this.tx!.clear(FKeyEncoding.encodeKey(key));
+            this.tx!.clear(key);
         });
     }
 

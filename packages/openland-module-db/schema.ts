@@ -67,7 +67,7 @@ export class OnlineFactory extends FEntityFactory<Online> {
         return this._watch([uid], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new Online(this.connection, this.namespace, [value.uid], value, this.options, isNew, this.indexes, 'Online');
+        return new Online(this.connection, this.namespace, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'Online');
     }
 }
 export interface PresenceShape {
@@ -159,7 +159,7 @@ export class PresenceFactory extends FEntityFactory<Presence> {
         return this._watch([uid, tid], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new Presence(this.connection, this.namespace, [value.uid, value.tid], value, this.options, isNew, this.indexes, 'Presence');
+        return new Presence(this.connection, this.namespace, this.directory, [value.uid, value.tid], value, this.options, isNew, this.indexes, 'Presence');
     }
 }
 export interface AuthTokenShape {
@@ -263,7 +263,7 @@ export class AuthTokenFactory extends FEntityFactory<AuthToken> {
         return this._createStream(['entity', 'authToken', '__indexes', 'salt'], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new AuthToken(this.connection, this.namespace, [value.uuid], value, this.options, isNew, this.indexes, 'AuthToken');
+        return new AuthToken(this.connection, this.namespace, this.directory, [value.uuid], value, this.options, isNew, this.indexes, 'AuthToken');
     }
 }
 export interface ServiceCacheShape {
@@ -329,7 +329,7 @@ export class ServiceCacheFactory extends FEntityFactory<ServiceCache> {
         return this._watch([service, key], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new ServiceCache(this.connection, this.namespace, [value.service, value.key], value, this.options, isNew, this.indexes, 'ServiceCache');
+        return new ServiceCache(this.connection, this.namespace, this.directory, [value.service, value.key], value, this.options, isNew, this.indexes, 'ServiceCache');
     }
 }
 export interface LockShape {
@@ -430,7 +430,7 @@ export class LockFactory extends FEntityFactory<Lock> {
         return this._watch([key], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new Lock(this.connection, this.namespace, [value.key], value, this.options, isNew, this.indexes, 'Lock');
+        return new Lock(this.connection, this.namespace, this.directory, [value.key], value, this.options, isNew, this.indexes, 'Lock');
     }
 }
 export interface TaskShape {
@@ -636,7 +636,7 @@ export class TaskFactory extends FEntityFactory<Task> {
         return this._createStream(['entity', 'task', '__indexes', 'failing'], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new Task(this.connection, this.namespace, [value.taskType, value.uid], value, this.options, isNew, this.indexes, 'Task');
+        return new Task(this.connection, this.namespace, this.directory, [value.taskType, value.uid], value, this.options, isNew, this.indexes, 'Task');
     }
 }
 export interface PushFirebaseShape {
@@ -854,7 +854,7 @@ export class PushFirebaseFactory extends FEntityFactory<PushFirebase> {
         return this._createStream(['entity', 'pushFirebase', '__indexes', 'token'], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new PushFirebase(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'PushFirebase');
+        return new PushFirebase(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'PushFirebase');
     }
 }
 export interface PushAppleShape {
@@ -1072,7 +1072,7 @@ export class PushAppleFactory extends FEntityFactory<PushApple> {
         return this._createStream(['entity', 'pushApple', '__indexes', 'token'], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new PushApple(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'PushApple');
+        return new PushApple(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'PushApple');
     }
 }
 export interface PushWebShape {
@@ -1264,7 +1264,7 @@ export class PushWebFactory extends FEntityFactory<PushWeb> {
         return this._createStream(['entity', 'pushWeb', '__indexes', 'endpoint'], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new PushWeb(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'PushWeb');
+        return new PushWeb(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'PushWeb');
     }
 }
 export interface UserProfilePrefilShape {
@@ -1355,7 +1355,7 @@ export class UserProfilePrefilFactory extends FEntityFactory<UserProfilePrefil> 
         return this._watch([id], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new UserProfilePrefil(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'UserProfilePrefil');
+        return new UserProfilePrefil(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserProfilePrefil');
     }
 }
 export interface UserShape {
@@ -1484,7 +1484,7 @@ export class UserFactory extends FEntityFactory<User> {
         return this._watch([id], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new User(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'User');
+        return new User(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'User');
     }
 }
 export interface UserProfileShape {
@@ -1725,7 +1725,7 @@ export class UserProfileFactory extends FEntityFactory<UserProfile> {
         return this._createStream(['entity', 'userProfile', '__indexes', 'byUpdatedAt'], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new UserProfile(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'UserProfile');
+        return new UserProfile(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserProfile');
     }
 }
 export interface FeatureFlagShape {
@@ -1787,7 +1787,7 @@ export class FeatureFlagFactory extends FEntityFactory<FeatureFlag> {
         return this._watch([key], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new FeatureFlag(this.connection, this.namespace, [value.key], value, this.options, isNew, this.indexes, 'FeatureFlag');
+        return new FeatureFlag(this.connection, this.namespace, this.directory, [value.key], value, this.options, isNew, this.indexes, 'FeatureFlag');
     }
 }
 export interface OrganizationFeaturesShape {
@@ -1897,7 +1897,7 @@ export class OrganizationFeaturesFactory extends FEntityFactory<OrganizationFeat
         return this._createStream(['entity', 'organizationFeatures', '__indexes', 'organization', organizationId], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new OrganizationFeatures(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'OrganizationFeatures');
+        return new OrganizationFeatures(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationFeatures');
     }
 }
 export interface ReaderStateShape {
@@ -1973,7 +1973,7 @@ export class ReaderStateFactory extends FEntityFactory<ReaderState> {
         return this._watch([id], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new ReaderState(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'ReaderState');
+        return new ReaderState(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ReaderState');
     }
 }
 export interface SuperAdminShape {
@@ -2048,7 +2048,7 @@ export class SuperAdminFactory extends FEntityFactory<SuperAdmin> {
         return this._watch([id], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new SuperAdmin(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'SuperAdmin');
+        return new SuperAdmin(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'SuperAdmin');
     }
 }
 export interface UserSettingsShape {
@@ -2178,7 +2178,7 @@ export class UserSettingsFactory extends FEntityFactory<UserSettings> {
         return this._watch([id], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new UserSettings(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'UserSettings');
+        return new UserSettings(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserSettings');
     }
 }
 export interface ShortnameReservationShape {
@@ -2298,7 +2298,7 @@ export class ShortnameReservationFactory extends FEntityFactory<ShortnameReserva
         return this._createStream(['entity', 'shortnameReservation', '__indexes', 'org'], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new ShortnameReservation(this.connection, this.namespace, [value.shortname], value, this.options, isNew, this.indexes, 'ShortnameReservation');
+        return new ShortnameReservation(this.connection, this.namespace, this.directory, [value.shortname], value, this.options, isNew, this.indexes, 'ShortnameReservation');
     }
 }
 export interface AuthCodeSessionShape {
@@ -2413,7 +2413,7 @@ export class AuthCodeSessionFactory extends FEntityFactory<AuthCodeSession> {
         return this._watch([uid], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new AuthCodeSession(this.connection, this.namespace, [value.uid], value, this.options, isNew, this.indexes, 'AuthCodeSession');
+        return new AuthCodeSession(this.connection, this.namespace, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'AuthCodeSession');
     }
 }
 export interface ConversationShape {
@@ -2566,7 +2566,7 @@ export class ConversationFactory extends FEntityFactory<Conversation> {
         return this._createStream(['entity', 'conversation', '__indexes', 'primate', uid1], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new Conversation(this.connection, this.namespace, [value.cid], value, this.options, isNew, this.indexes, 'Conversation');
+        return new Conversation(this.connection, this.namespace, this.directory, [value.cid], value, this.options, isNew, this.indexes, 'Conversation');
     }
 }
 export interface RoomProfileShape {
@@ -2704,7 +2704,7 @@ export class RoomProfileFactory extends FEntityFactory<RoomProfile> {
         return this._watch([cid], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new RoomProfile(this.connection, this.namespace, [value.cid], value, this.options, isNew, this.indexes, 'RoomProfile');
+        return new RoomProfile(this.connection, this.namespace, this.directory, [value.cid], value, this.options, isNew, this.indexes, 'RoomProfile');
     }
 }
 export interface RoomParticipantShape {
@@ -2862,7 +2862,7 @@ export class RoomParticipantFactory extends FEntityFactory<RoomParticipant> {
         return this._createStream(['entity', 'roomParticipant', '__indexes', 'userActive', uid], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new RoomParticipant(this.connection, this.namespace, [value.cid, value.uid], value, this.options, isNew, this.indexes, 'RoomParticipant');
+        return new RoomParticipant(this.connection, this.namespace, this.directory, [value.cid, value.uid], value, this.options, isNew, this.indexes, 'RoomParticipant');
     }
 }
 export interface ConversationReceiverShape {
@@ -2950,7 +2950,7 @@ export class ConversationReceiverFactory extends FEntityFactory<ConversationRece
         return this._createStream(['entity', 'conversationReceiver', '__indexes', 'conversation', cid], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new ConversationReceiver(this.connection, this.namespace, [value.cid, value.uid], value, this.options, isNew, this.indexes, 'ConversationReceiver');
+        return new ConversationReceiver(this.connection, this.namespace, this.directory, [value.cid, value.uid], value, this.options, isNew, this.indexes, 'ConversationReceiver');
     }
 }
 export interface SequenceShape {
@@ -3012,7 +3012,7 @@ export class SequenceFactory extends FEntityFactory<Sequence> {
         return this._watch([sequence], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new Sequence(this.connection, this.namespace, [value.sequence], value, this.options, isNew, this.indexes, 'Sequence');
+        return new Sequence(this.connection, this.namespace, this.directory, [value.sequence], value, this.options, isNew, this.indexes, 'Sequence');
     }
 }
 export interface MessageShape {
@@ -3294,7 +3294,7 @@ export class MessageFactory extends FEntityFactory<Message> {
         return this._createStream(['entity', 'message', '__indexes', 'chat', cid], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new Message(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'Message');
+        return new Message(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Message');
     }
 }
 export interface ConversationSeqShape {
@@ -3356,7 +3356,7 @@ export class ConversationSeqFactory extends FEntityFactory<ConversationSeq> {
         return this._watch([cid], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new ConversationSeq(this.connection, this.namespace, [value.cid], value, this.options, isNew, this.indexes, 'ConversationSeq');
+        return new ConversationSeq(this.connection, this.namespace, this.directory, [value.cid], value, this.options, isNew, this.indexes, 'ConversationSeq');
     }
 }
 export interface ConversationEventShape {
@@ -3472,7 +3472,7 @@ export class ConversationEventFactory extends FEntityFactory<ConversationEvent> 
         return this._createLiveStream(['entity', 'conversationEvent', '__indexes', 'user', cid], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new ConversationEvent(this.connection, this.namespace, [value.cid, value.seq], value, this.options, isNew, this.indexes, 'ConversationEvent');
+        return new ConversationEvent(this.connection, this.namespace, this.directory, [value.cid, value.seq], value, this.options, isNew, this.indexes, 'ConversationEvent');
     }
 }
 export interface UserDialogShape {
@@ -3585,7 +3585,7 @@ export class UserDialogFactory extends FEntityFactory<UserDialog> {
         return this._createStream(['entity', 'userDialog', '__indexes', 'user', uid], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new UserDialog(this.connection, this.namespace, [value.uid, value.cid], value, this.options, isNew, this.indexes, 'UserDialog');
+        return new UserDialog(this.connection, this.namespace, this.directory, [value.uid, value.cid], value, this.options, isNew, this.indexes, 'UserDialog');
     }
 }
 export interface UserDialogSettingsShape {
@@ -3651,7 +3651,7 @@ export class UserDialogSettingsFactory extends FEntityFactory<UserDialogSettings
         return this._watch([uid, cid], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new UserDialogSettings(this.connection, this.namespace, [value.uid, value.cid], value, this.options, isNew, this.indexes, 'UserDialogSettings');
+        return new UserDialogSettings(this.connection, this.namespace, this.directory, [value.uid, value.cid], value, this.options, isNew, this.indexes, 'UserDialogSettings');
     }
 }
 export interface UserDialogEventShape {
@@ -3809,7 +3809,7 @@ export class UserDialogEventFactory extends FEntityFactory<UserDialogEvent> {
         return this._createLiveStream(['entity', 'userDialogEvent', '__indexes', 'user', uid], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new UserDialogEvent(this.connection, this.namespace, [value.uid, value.seq], value, this.options, isNew, this.indexes, 'UserDialogEvent');
+        return new UserDialogEvent(this.connection, this.namespace, this.directory, [value.uid, value.seq], value, this.options, isNew, this.indexes, 'UserDialogEvent');
     }
 }
 export interface UserMessagingStateShape {
@@ -3897,7 +3897,7 @@ export class UserMessagingStateFactory extends FEntityFactory<UserMessagingState
         return this._createStream(['entity', 'userMessagingState', '__indexes', 'hasUnread'], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new UserMessagingState(this.connection, this.namespace, [value.uid], value, this.options, isNew, this.indexes, 'UserMessagingState');
+        return new UserMessagingState(this.connection, this.namespace, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'UserMessagingState');
     }
 }
 export interface UserNotificationsStateShape {
@@ -4016,7 +4016,7 @@ export class UserNotificationsStateFactory extends FEntityFactory<UserNotificati
         return this._watch([uid], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new UserNotificationsState(this.connection, this.namespace, [value.uid], value, this.options, isNew, this.indexes, 'UserNotificationsState');
+        return new UserNotificationsState(this.connection, this.namespace, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'UserNotificationsState');
     }
 }
 export interface HyperLogShape {
@@ -4116,7 +4116,7 @@ export class HyperLogFactory extends FEntityFactory<HyperLog> {
         return this._createStream(['entity', 'hyperLog', '__indexes', 'created'], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new HyperLog(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'HyperLog');
+        return new HyperLog(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'HyperLog');
     }
 }
 export interface MessageDraftShape {
@@ -4182,7 +4182,7 @@ export class MessageDraftFactory extends FEntityFactory<MessageDraft> {
         return this._watch([uid, cid], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new MessageDraft(this.connection, this.namespace, [value.uid, value.cid], value, this.options, isNew, this.indexes, 'MessageDraft');
+        return new MessageDraft(this.connection, this.namespace, this.directory, [value.uid, value.cid], value, this.options, isNew, this.indexes, 'MessageDraft');
     }
 }
 export interface ChannelInvitationShape {
@@ -4358,7 +4358,7 @@ export class ChannelInvitationFactory extends FEntityFactory<ChannelInvitation> 
         return this._createStream(['entity', 'channelInvitation', '__indexes', 'channel', createdAt], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new ChannelInvitation(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'ChannelInvitation');
+        return new ChannelInvitation(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ChannelInvitation');
     }
 }
 export interface ChannelLinkShape {
@@ -4465,7 +4465,7 @@ export class ChannelLinkFactory extends FEntityFactory<ChannelLink> {
         return this._createStream(['entity', 'channelLink', '__indexes', 'channel', createdAt], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new ChannelLink(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'ChannelLink');
+        return new ChannelLink(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ChannelLink');
     }
 }
 export interface AppInviteLinkShape {
@@ -4543,7 +4543,7 @@ export class AppInviteLinkFactory extends FEntityFactory<AppInviteLink> {
         return this._createStream(['entity', 'appInviteLink', '__indexes', 'user'], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new AppInviteLink(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'AppInviteLink');
+        return new AppInviteLink(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'AppInviteLink');
     }
 }
 export interface SampleEntityShape {
@@ -4605,7 +4605,7 @@ export class SampleEntityFactory extends FEntityFactory<SampleEntity> {
         return this._watch([id], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new SampleEntity(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'SampleEntity');
+        return new SampleEntity(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'SampleEntity');
     }
 }
 

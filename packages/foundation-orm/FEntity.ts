@@ -30,9 +30,9 @@ export class FEntity {
     private isDirty: boolean = false;
     private isNew: boolean;
 
-    constructor(connection: FConnection, namespace: FNamespace, id: (string | number)[], value: any, options: FEntityOptions, isNew: boolean, indexes: FEntityIndex[], name: string) {
+    constructor(connection: FConnection, namespace: FNamespace, directory: FDirectory, id: (string | number)[], value: any, options: FEntityOptions, isNew: boolean, indexes: FEntityIndex[], name: string) {
         this.namespace = namespace;
-        this.directory = connection.getDirectory(namespace.namespace);
+        this.directory = directory;
         this.rawId = id;
         this.connection = connection;
         this.context = connection.currentContext;
@@ -130,9 +130,13 @@ export class FEntity {
             // Validate
             this.options.validator(value);
 
+            if (!this.directory.isAllocated) {
+                await this.directory.awaitAllocation();
+            }
+
             // Write to the store
             this.namespace.set(this.connection, this.rawId, value);
-            // this.directory.set(this.connection, ['v', ...this.rawId], value);
+            this.directory.set(this.rawId, value);
 
             // Create or Update indexes
             if (this.isNew) {

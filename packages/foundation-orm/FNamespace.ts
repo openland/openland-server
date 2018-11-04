@@ -1,5 +1,6 @@
 import { FConnection } from './FConnection';
 import { RangeOptions } from 'foundationdb/dist/lib/transaction';
+import { FKeyEncoding } from './utils/FKeyEncoding';
 
 export class FNamespace {
     readonly namespace: (string | number)[];
@@ -21,10 +22,10 @@ export class FNamespace {
     }
 
     set = (connection: FConnection, key: (string | number)[], value: any) => {
-        connection.currentContext.set(connection, [...this.namespace, ...key], value);
+        connection.currentContext.set(connection, FKeyEncoding.encodeKey([...this.namespace, ...key]), value);
     }
 
     delete = (connection: FConnection, key: (string | number)[]) => {
-        connection.currentContext.delete(connection, [...this.namespace, ...key]);
+        connection.currentContext.delete(connection, FKeyEncoding.encodeKey([...this.namespace, ...key]));
     }
 }

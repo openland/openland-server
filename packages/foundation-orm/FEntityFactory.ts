@@ -8,11 +8,13 @@ import { FStream } from './FStream';
 import { createLogger } from 'openland-log/createLogger';
 import { FLiveStream } from './FLiveStream';
 import { FLiveStreamItem } from './FLiveStreamItem';
+import { FDirectory } from './FDirectory';
 
 const log = createLogger('entity-factory');
 
 export abstract class FEntityFactory<T extends FEntity> {
     readonly namespace: FNamespace;
+    readonly directory: FDirectory;
     readonly connection: FConnection;
     readonly options: FEntityOptions;
     readonly indexes: FEntityIndex[];
@@ -21,6 +23,7 @@ export abstract class FEntityFactory<T extends FEntity> {
 
     constructor(connection: FConnection, namespace: FNamespace, options: FEntityOptions, indexes: FEntityIndex[], name: string) {
         this.namespace = namespace;
+        this.directory = connection.getDirectory(namespace.namespace);
         this.connection = connection;
         this.options = options;
         this.indexes = indexes;
@@ -30,6 +33,7 @@ export abstract class FEntityFactory<T extends FEntity> {
 
     async findAll() {
         let res = await this.namespace.range(this.connection, []);
+        res = res.filter((v) => !v.key.find((k) => k === '__index'));
         return res.map((v) => this.doCreateEntity(v.item, false));
     }
 
