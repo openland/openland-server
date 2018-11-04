@@ -643,7 +643,7 @@ export const Resolver = {
                 let delta = 0;
                 let totalUnread = 0;
                 if (!existing.readMessageId || existing.readMessageId < messageId) {
-                    let remaining = (await FDB.Message.allFromChatAfter(conversationId, messageId)).filter((v) => v.uid !== uid).length - 1;
+                    let remaining = Math.max((await FDB.Message.allFromChatAfter(conversationId, messageId)).filter((v) => v.uid !== uid).length - 1, 0);
                     if (remaining === 0) {
                         delta = -existing.unread;
                         existing.unread = 0;

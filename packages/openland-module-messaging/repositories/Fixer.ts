@@ -1,6 +1,7 @@
 import { AllEntities } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
 import { createLogger } from 'openland-log/createLogger';
+import { DB } from 'openland-server/tables';
 
 const logger = createLogger('fixer');
 
@@ -16,6 +17,14 @@ export class FixerRepository {
             let all = await this.entities.UserDialog.allFromUser(uid);
             let totalUnread = 0;
             for (let a of all) {
+                let conv = (await DB.Conversation.findById(a.cid))!;
+                if (conv.type === 'channel' || conv.type === 'group') {
+                    let pat = await this.entities.RoomParticipant.findById(a.cid, uid);
+                    if (!pat || pat.status !== 'joined') {
+                        a.unread = 0;
+                        continue;
+                    }
+                }
                 if (a.readMessageId) {
                     let total = Math.max(0, (await this.entities.Message.allFromChatAfter(a.cid, a.readMessageId)).filter((v) => v.uid !== uid).length - 1);
                     totalUnread += total;
