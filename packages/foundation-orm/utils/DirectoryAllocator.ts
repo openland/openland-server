@@ -57,7 +57,7 @@ export class DirectoryAllocator {
         let res = await this.connection.fdb.getRangeAll(regsPrefix);
         return res.map((v) => ({
             key: FKeyEncoding.decodeKey(v[0].slice(regsPrefix.length)).join('.'),
-            id: JSON.stringify((v[1] as any)) // buildDataPrefix((v[1] as any).value).toString('hex')
+            id: buildDataPrefix((v[1] as any).value).toString('hex')
         }));
     }
 }
