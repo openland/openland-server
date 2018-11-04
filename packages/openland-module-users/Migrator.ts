@@ -7,7 +7,7 @@ export function startMigrator() {
     let reader = new UpdateReader('users-import', 1, DB.User);
     reader.processor(async (items) => {
         for (let i of items) {
-            inTx(async () => {
+            await inTx(async () => {
                 let c = await FDB.Sequence.findById('user-id');
                 if (!c) {
                     c = await FDB.Sequence.create('user-id', { value: 0 });
