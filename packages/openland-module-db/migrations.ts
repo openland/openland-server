@@ -71,12 +71,12 @@ migrations.push({
 });
 
 migrations.push({
-    key: '9-fix-ids',
+    key: '11-fix-ids',
     migration: async () => {
         for (let e of FDB.allEntities) {
             logger.log('Starting migration of ' + e.name);
             let all = await e.namespace.range(FDB.connection, []);
-            all = all.filter((v) => !v.key.find((k) => k === '__index')).map((v) => ({ item: v.item, key: v.key.slice(2) }));
+            all = all.filter((v) => !v.key.find((k) => k === '__indexes')).map((v) => ({ item: v.item, key: v.key.slice(2) }));
             // let all = await e.findAll();
             logger.log('Loaded ' + all.length);
             let pending: { item: any, key: any[] }[] = [];

@@ -41,7 +41,7 @@ export abstract class FEntityFactory<T extends FEntity> {
 
     async findAll() {
         let res = await this.namespace.range(this.connection, []);
-        res = res.filter((v) => !v.key.find((k) => k === '__index'));
+        res = res.filter((v) => !v.key.find((k) => k === '__indexes'));
         return res.map((v) => this.doCreateEntity(v.item, false));
     }
 

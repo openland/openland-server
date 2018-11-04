@@ -118,7 +118,7 @@ for (let e of AllEntities.schema) {
     }
     let obj = new GraphQLObjectType({
         name: e.name,
-        fields: { ...fields, rawValue: GraphQLString }
+        fields: { ...fields, rawValue: { type: GraphQLString } }
     });
     entitiesMap[e.name] = obj;
 
