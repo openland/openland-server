@@ -125,6 +125,7 @@ migrations.push({
                     break;
                 }
                 logger.log('Loaded ' + all.length);
+                logger.log(after);
                 await inTx(async () => {
                     for (let p of all) {
                         try {
