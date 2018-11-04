@@ -13,8 +13,8 @@ export interface FContext {
     get(connection: FConnection, key: (string | number)[]): Promise<any | null>;
     range(connection: FConnection, key: (string | number)[], options?: RangeOptions): Promise<{ item: any, key: any[] }[]>;
     rangeAfter(connection: FConnection, prefix: (string | number)[], afterKey: (string | number)[], options?: RangeOptions): Promise<{ item: any, key: any[] }[]>;
-    set(connection: FConnection, key: (string | number)[], value: any): Promise<void>;
-    delete(connection: FConnection, key: (string | number)[]): Promise<void>;
+    set(connection: FConnection, key: (string | number)[], value: any): void;
+    delete(connection: FConnection, key: (string | number)[]): void;
     afterTransaction(callback: () => void): void;
 }
 
@@ -42,16 +42,11 @@ export class FGlobalContext implements FContext {
         });
     }
 
-    async set(connection: FConnection, key: (string | number)[], value: any) {
-        console.warn('Set outside of transaction!');
-        return await trace(tracer, 'set', async () => {
-            return await connection.fdb.set(FKeyEncoding.encodeKey(key), value);
-        });
+    set(connection: FConnection, key: (string | number)[], value: any) {
+        throw Error('Trying to write to read-only context');
     }
-    async delete(connection: FConnection, key: (string | number)[]) {
-        return await trace(tracer, 'delete', async () => {
-            return await connection.fdb.clear(FKeyEncoding.encodeKey(key));
-        });
+    delete(connection: FConnection, key: (string | number)[]) {
+        throw Error('Trying to write to read-only context');
     }
     markDirty(entity: FEntity, callback: (connection: FConnection) => void) {
         throw Error('Trying to write to read-only context');

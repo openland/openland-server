@@ -3,6 +3,7 @@ import { FContext } from './FContext';
 import { FConnection } from './FConnection';
 import { FEntityIndex } from './FEntityIndex';
 import { createLogger } from 'openland-log/createLogger';
+import { FDirectory } from './FDirectory';
 
 export interface FEntityOptions {
     enableVersioning: boolean;
@@ -15,6 +16,7 @@ const log = createLogger('FEntity');
 
 export class FEntity {
     readonly namespace: FNamespace;
+    readonly directory: FDirectory;
     readonly rawId: (string | number)[];
     readonly connection: FConnection;
     readonly isReadOnly: boolean;
@@ -30,6 +32,7 @@ export class FEntity {
 
     constructor(connection: FConnection, namespace: FNamespace, id: (string | number)[], value: any, options: FEntityOptions, isNew: boolean, indexes: FEntityIndex[], name: string) {
         this.namespace = namespace;
+        this.directory = new FDirectory(connection, namespace.namespace);
         this.rawId = id;
         this.connection = connection;
         this.context = connection.currentContext;
@@ -128,7 +131,8 @@ export class FEntity {
             this.options.validator(value);
 
             // Write to the store
-            await this.namespace.set(this.connection, this.rawId, value);
+            this.namespace.set(this.connection, this.rawId, value);
+            // this.directory.set(this.connection, ['v', ...this.rawId], value);
 
             // Create or Update indexes
             if (this.isNew) {
@@ -150,9 +154,9 @@ export class FEntity {
                         if (await this.namespace.get(this.connection, ['__indexes', index.name, ...key])) {
                             throw Error('Unique index constraint failed');
                         }
-                        await this.namespace.set(this.connection, ['__indexes', index.name, ...key], value);
+                        this.namespace.set(this.connection, ['__indexes', index.name, ...key], value);
                     } else {
-                        await this.namespace.set(this.connection, ['__indexes', index.name, ...key, ...this.rawId], value);
+                        this.namespace.set(this.connection, ['__indexes', index.name, ...key, ...this.rawId], value);
                     }
                 }
             } else {
@@ -193,7 +197,7 @@ export class FEntity {
 
                     if (index.unique) {
                         if (needToDeleteOld) {
-                            await this.namespace.delete(this.connection, ['__indexes', index.name, ...oldkey]);
+                            this.namespace.delete(this.connection, ['__indexes', index.name, ...oldkey]);
                         }
                         if (needToCreateNew) {
                             if (await this.namespace.get(this.connection, ['__indexes', index.name, ...key])) {
@@ -201,17 +205,17 @@ export class FEntity {
                             }
                         }
                         if (needToCreateNew || needToUpdateNew) {
-                            await this.namespace.set(this.connection, ['__indexes', index.name, ...key], value);
+                            this.namespace.set(this.connection, ['__indexes', index.name, ...key], value);
                         }
                     } else {
                         if (needToDeleteOld) {
-                            await this.namespace.delete(this.connection, ['__indexes', index.name, ...oldkey, ...this.rawId]);
+                            this.namespace.delete(this.connection, ['__indexes', index.name, ...oldkey, ...this.rawId]);
                         }
                         if (needToCreateNew) {
-                            await this.namespace.set(this.connection, ['__indexes', index.name, ...key, ...this.rawId], value);
+                            this.namespace.set(this.connection, ['__indexes', index.name, ...key, ...this.rawId], value);
                         }
                         if (needToCreateNew || needToUpdateNew) {
-                            await this.namespace.set(this.connection, ['__indexes', index.name, ...key, ...this.rawId], value);
+                            this.namespace.set(this.connection, ['__indexes', index.name, ...key, ...this.rawId], value);
                         }
                     }
                 }

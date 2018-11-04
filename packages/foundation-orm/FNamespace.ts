@@ -20,11 +20,11 @@ export class FNamespace {
         return connection.currentContext.rangeAfter(connection, [...this.namespace, ...key], [...after], options);
     }
 
-    set = async (connection: FConnection, key: (string | number)[], value: any) => {
-        return connection.currentContext.set(connection, [...this.namespace, ...key], value);
+    set = (connection: FConnection, key: (string | number)[], value: any) => {
+        connection.currentContext.set(connection, [...this.namespace, ...key], value);
     }
 
-    delete = async (connection: FConnection, key: (string | number)[]) => {
-        return connection.currentContext.delete(connection, [...this.namespace, ...key]);
+    delete = (connection: FConnection, key: (string | number)[]) => {
+        connection.currentContext.delete(connection, [...this.namespace, ...key]);
     }
 }
