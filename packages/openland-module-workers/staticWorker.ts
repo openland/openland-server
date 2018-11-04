@@ -9,8 +9,27 @@ export function staticWorker(config: { name: string, version?: number, delay?: n
             if (!(await LockRepository.tryLock('worker_' + config.name, config.version))) {
                 return false;
             }
+
+            let locked = true;
+
+            (async () => {
+                while (true) {
+                    if (!(await LockRepository.tryLock('worker_' + config.name, config.version))) {
+                        locked = false;
+                        break;
+                    }
+                    await delay(5000);
+                }
+            })();
+
             // Working
-            return await worker();
+            while (locked) {
+                let res2 = await worker();
+                if (!res2) {
+                    return false;
+                }
+            }
+            return true;
         });
         if (!res) {
             await delay(config.delay || 1000);
