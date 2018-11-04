@@ -17,35 +17,37 @@ export function createWebWorker(repo: PushRepository) {
     let queue = new WorkQueue<WebPushTask, { result: string }>('push_sender_web');
     if (AppConfiuguration.webPush) {
         if (serverRoleEnabled('workers')) {
-            queue.addWorker(async (task) => {
-                let token = (await repo.getWebToken(task.tokenId))!;
-                if (!token.enabled) {
-                    return { result: 'skipped' };
-                }
-
-                try {
-                    let res = await WebPush.sendNotification(JSON.parse(token.endpoint), JSON.stringify({
-                        title: task.title,
-                        body: task.body,
-                        picture: task.picture,
-                        ...task.extras
-                    }));
-                    await pushSent.event({ uid: token.uid, tokenId: token.id });
-                    log.log('web_push', token.uid, JSON.stringify({ statusCode: res.statusCode, body: res.body }));
-                } catch (e) {
-                    if (e.statusCode === 410) {
-                        await inTx(async () => {
-                            let t = (await repo.getWebToken(task.tokenId))!;
-                            await handleFail(t);
-                            await pushFail.event({ uid: t.uid, tokenId: t.id, failures: t.failures!, statusCode: e.statusCode, disabled: !t.enabled });
-
-                        });
+            for (let i = 0; i < 10; i++) {
+                queue.addWorker(async (task) => {
+                    let token = (await repo.getWebToken(task.tokenId))!;
+                    if (!token.enabled) {
+                        return { result: 'skipped' };
                     }
-                    log.log('web_push failed', token.uid, JSON.stringify({ statusCode: e.statusCode, body: e.body }));
-                    return { result: 'failed' };
-                }
-                return { result: 'ok' };
-            });
+
+                    try {
+                        let res = await WebPush.sendNotification(JSON.parse(token.endpoint), JSON.stringify({
+                            title: task.title,
+                            body: task.body,
+                            picture: task.picture,
+                            ...task.extras
+                        }));
+                        await pushSent.event({ uid: token.uid, tokenId: token.id });
+                        log.log('web_push', token.uid, JSON.stringify({ statusCode: res.statusCode, body: res.body }));
+                    } catch (e) {
+                        if (e.statusCode === 410) {
+                            await inTx(async () => {
+                                let t = (await repo.getWebToken(task.tokenId))!;
+                                await handleFail(t);
+                                await pushFail.event({ uid: t.uid, tokenId: t.id, failures: t.failures!, statusCode: e.statusCode, disabled: !t.enabled });
+
+                            });
+                        }
+                        log.log('web_push failed', token.uid, JSON.stringify({ statusCode: e.statusCode, body: e.body }));
+                        return { result: 'failed' };
+                    }
+                    return { result: 'ok' };
+                });
+            }
         }
     }
     return queue;

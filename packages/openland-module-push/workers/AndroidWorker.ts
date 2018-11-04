@@ -17,54 +17,56 @@ export function createAndroidWorker(repo: PushRepository) {
     let queue = new WorkQueue<FirebasePushTask, { result: string }>('push_sender_firebase');
     if (AppConfiuguration.google) {
         if (serverRoleEnabled('workers')) {
-            let firbaseApps: { [pkg: string]: Friebase.app.App } = {};
-            for (let creds of AppConfiuguration.google) {
-                for (let pkg of creds.packages) {
-                    firbaseApps[pkg] = Friebase.initializeApp({
-                        credential: Friebase.credential.cert({
-                            privateKey: creds.privateKey,
-                            projectId: creds.projectId,
-                            clientEmail: creds.clientEmail
-                        }),
-                        databaseURL: creds.databaseURL
-                    }, pkg);
-                }
-            }
-            queue.addWorker(async (task) => {
-                let token = (await repo.getAndroidToken(task.tokenId))!;
-                if (!token.enabled) {
-                    return { result: 'skipped' };
-                }
-                let firebase = firbaseApps[token.packageId];
-                if (firebase) {
-                    try {
-                        let res = await firebase.messaging().send({
-                            android: {
-                                collapseKey: task.collapseKey,
-                                notification: task.notification,
-                                data: task.data
-                            },
-                            token: token.token
-                        });
-                        log.log('android_push', token.uid, res);
-                        if (res.includes('messaging/invalid-registration-token') || res.includes('messaging/registration-token-not-registered')) {
-                            await inTx(async () => {
-                                let t = (await repo.getAndroidToken(task.tokenId))!;
-                                await handleFail(t);
-                                await pushFail.event({ uid: t.uid, tokenId: t.id, failures: t.failures!, error: res, disabled: !t.enabled });
-                            });
-                        } else {
-                            await pushSent.event({ uid: token.uid, tokenId: token.id });
-                        }
-                        return { result: 'ok' };
-                    } catch (e) {
-                        log.log('android_push failed', token.uid);
-                        return { result: 'failed' };
+            for (let i = 0; i < 10; i++) {
+                let firbaseApps: { [pkg: string]: Friebase.app.App } = {};
+                for (let creds of AppConfiuguration.google) {
+                    for (let pkg of creds.packages) {
+                        firbaseApps[pkg] = Friebase.initializeApp({
+                            credential: Friebase.credential.cert({
+                                privateKey: creds.privateKey,
+                                projectId: creds.projectId,
+                                clientEmail: creds.clientEmail
+                            }),
+                            databaseURL: creds.databaseURL
+                        }, pkg);
                     }
-                } else {
-                    throw Error('');
                 }
-            });
+                queue.addWorker(async (task) => {
+                    let token = (await repo.getAndroidToken(task.tokenId))!;
+                    if (!token.enabled) {
+                        return { result: 'skipped' };
+                    }
+                    let firebase = firbaseApps[token.packageId];
+                    if (firebase) {
+                        try {
+                            let res = await firebase.messaging().send({
+                                android: {
+                                    collapseKey: task.collapseKey,
+                                    notification: task.notification,
+                                    data: task.data
+                                },
+                                token: token.token
+                            });
+                            log.log('android_push', token.uid, res);
+                            if (res.includes('messaging/invalid-registration-token') || res.includes('messaging/registration-token-not-registered')) {
+                                await inTx(async () => {
+                                    let t = (await repo.getAndroidToken(task.tokenId))!;
+                                    await handleFail(t);
+                                    await pushFail.event({ uid: t.uid, tokenId: t.id, failures: t.failures!, error: res, disabled: !t.enabled });
+                                });
+                            } else {
+                                await pushSent.event({ uid: token.uid, tokenId: token.id });
+                            }
+                            return { result: 'ok' };
+                        } catch (e) {
+                            log.log('android_push failed', token.uid);
+                            return { result: 'failed' };
+                        }
+                    } else {
+                        throw Error('');
+                    }
+                });
+            }
         }
     }
     return queue;
