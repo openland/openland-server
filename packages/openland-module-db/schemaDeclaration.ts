@@ -20,7 +20,8 @@ const Schema = declareSchema(() => {
         field('salt', 'string');
         field('uid', 'number');
         field('lastIp', 'string');
-        uniqueIndex('salt', ['salt']);
+        uniqueIndex('salt', ['salt'])
+            .withDisplayName('authTokenBySalt');
         enableTimestamps();
         enableVersioning();
     });

@@ -68,6 +68,16 @@ export abstract class FEntityFactory<T extends FEntity> {
     protected abstract _createEntity(value: any, isNew: boolean): T;
 
     protected async _findById(key: (string | number)[]) {
+        // let res = await this.directory.get(key);
+        let res = await this.namespace.get(this.connection, key);
+        if (res) {
+            return this.doCreateEntity(res, false);
+        }
+        return null;
+    }
+
+    protected async _findFromIndex(key: (string | number)[]) {
+        // let res = await this.directory.get(key);
         let res = await this.namespace.get(this.connection, key);
         if (res) {
             return this.doCreateEntity(res, false);

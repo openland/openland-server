@@ -188,7 +188,7 @@ export function generateEntity(entity: EntityModel): string {
     for (let i of entity.indexes) {
         if (i.unique) {
             res += '    async findFrom' + Case.pascalCase(i.name) + '(' + i.fields.map((v) => v + ': ' + resolveFieldType(resolveIndexField(entity, v))).join(', ') + ') {\n';
-            res += '        return await this._findById([' + ['\'__indexes\'', '\'' + i.name + '\'', ...i.fields].join(', ') + ']);\n';
+            res += '        return await this._findFromIndex([' + ['\'__indexes\'', '\'' + i.name + '\'', ...i.fields].join(', ') + ']);\n';
             res += '    }\n';
         }
         // if (!i.unique || i.range) {

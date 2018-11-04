@@ -58,10 +58,10 @@ export class FTransaction implements FContext {
         });
     }
 
-    async get(connection: FConnection, key: (string | number)[]) {
+    async get(connection: FConnection, key: Buffer) {
         this._prepare(connection);
         return await trace(tracer, 'get', async () => {
-            return await this.tx!.get(FKeyEncoding.encodeKey(key));
+            return await this.tx!.get(key);
         });
     }
     set(connection: FConnection, key: Buffer, value: any) {

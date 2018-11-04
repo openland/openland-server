@@ -214,7 +214,7 @@ export class AuthTokenFactory extends FEntityFactory<AuthToken> {
             { name: 'lastIp', type: 'string' },
         ],
         indexes: [
-            { name: 'salt', type: 'unique', fields: ['salt'] },
+            { name: 'salt', type: 'unique', fields: ['salt'], displayName: 'authTokenBySalt' },
         ],
     };
 
@@ -251,7 +251,7 @@ export class AuthTokenFactory extends FEntityFactory<AuthToken> {
         return this._watch([uuid], cb);
     }
     async findFromSalt(salt: string) {
-        return await this._findById(['__indexes', 'salt', salt]);
+        return await this._findFromIndex(['__indexes', 'salt', salt]);
     }
     async rangeFromSalt(limit: number, reversed?: boolean) {
         return await this._findRange(['__indexes', 'salt'], limit, reversed);
@@ -846,7 +846,7 @@ export class PushFirebaseFactory extends FEntityFactory<PushFirebase> {
         return this._createStream(['entity', 'pushFirebase', '__indexes', 'user', uid], limit, after); 
     }
     async findFromToken(token: string) {
-        return await this._findById(['__indexes', 'token', token]);
+        return await this._findFromIndex(['__indexes', 'token', token]);
     }
     async rangeFromToken(limit: number, reversed?: boolean) {
         return await this._findRange(['__indexes', 'token'], limit, reversed);
@@ -1065,7 +1065,7 @@ export class PushAppleFactory extends FEntityFactory<PushApple> {
         return this._createStream(['entity', 'pushApple', '__indexes', 'user', uid], limit, after); 
     }
     async findFromToken(token: string) {
-        return await this._findById(['__indexes', 'token', token]);
+        return await this._findFromIndex(['__indexes', 'token', token]);
     }
     async rangeFromToken(limit: number, reversed?: boolean) {
         return await this._findRange(['__indexes', 'token'], limit, reversed);
@@ -1258,7 +1258,7 @@ export class PushWebFactory extends FEntityFactory<PushWeb> {
         return this._createStream(['entity', 'pushWeb', '__indexes', 'user', uid], limit, after); 
     }
     async findFromEndpoint(endpoint: string) {
-        return await this._findById(['__indexes', 'endpoint', endpoint]);
+        return await this._findFromIndex(['__indexes', 'endpoint', endpoint]);
     }
     async rangeFromEndpoint(limit: number, reversed?: boolean) {
         return await this._findRange(['__indexes', 'endpoint'], limit, reversed);
@@ -1890,7 +1890,7 @@ export class OrganizationFeaturesFactory extends FEntityFactory<OrganizationFeat
         return this._watch([id], cb);
     }
     async findFromOrganization(organizationId: number, featureKey: string) {
-        return await this._findById(['__indexes', 'organization', organizationId, featureKey]);
+        return await this._findFromIndex(['__indexes', 'organization', organizationId, featureKey]);
     }
     async allFromOrganizationAfter(organizationId: number, after: string) {
         return await this._findRangeAllAfter(['__indexes', 'organization', organizationId], after);
@@ -2286,7 +2286,7 @@ export class ShortnameReservationFactory extends FEntityFactory<ShortnameReserva
         return this._watch([shortname], cb);
     }
     async findFromUser(ownerId: number) {
-        return await this._findById(['__indexes', 'user', ownerId]);
+        return await this._findFromIndex(['__indexes', 'user', ownerId]);
     }
     async rangeFromUser(limit: number, reversed?: boolean) {
         return await this._findRange(['__indexes', 'user'], limit, reversed);
@@ -2301,7 +2301,7 @@ export class ShortnameReservationFactory extends FEntityFactory<ShortnameReserva
         return this._createStream(['entity', 'shortnameReservation', '__indexes', 'user'], limit, after); 
     }
     async findFromOrg(ownerId: number) {
-        return await this._findById(['__indexes', 'org', ownerId]);
+        return await this._findFromIndex(['__indexes', 'org', ownerId]);
     }
     async rangeFromOrg(limit: number, reversed?: boolean) {
         return await this._findRange(['__indexes', 'org'], limit, reversed);
@@ -2565,7 +2565,7 @@ export class ConversationFactory extends FEntityFactory<Conversation> {
         return this._watch([cid], cb);
     }
     async findFromPrimate(uid1: number, uid2: number) {
-        return await this._findById(['__indexes', 'primate', uid1, uid2]);
+        return await this._findFromIndex(['__indexes', 'primate', uid1, uid2]);
     }
     async allFromPrimateAfter(uid1: number, after: number) {
         return await this._findRangeAllAfter(['__indexes', 'primate', uid1], after);
@@ -2821,7 +2821,7 @@ export class RoomParticipantFactory extends FEntityFactory<RoomParticipant> {
         return this._watch([cid, uid], cb);
     }
     async findFromActive(cid: number, uid: number) {
-        return await this._findById(['__indexes', 'active', cid, uid]);
+        return await this._findFromIndex(['__indexes', 'active', cid, uid]);
     }
     async allFromActiveAfter(cid: number, after: number) {
         return await this._findRangeAllAfter(['__indexes', 'active', cid], after);
@@ -2842,7 +2842,7 @@ export class RoomParticipantFactory extends FEntityFactory<RoomParticipant> {
         return this._createStream(['entity', 'roomParticipant', '__indexes', 'active', cid], limit, after); 
     }
     async findFromRequests(cid: number, uid: number) {
-        return await this._findById(['__indexes', 'requests', cid, uid]);
+        return await this._findFromIndex(['__indexes', 'requests', cid, uid]);
     }
     async allFromRequestsAfter(cid: number, after: number) {
         return await this._findRangeAllAfter(['__indexes', 'requests', cid], after);
@@ -2863,7 +2863,7 @@ export class RoomParticipantFactory extends FEntityFactory<RoomParticipant> {
         return this._createStream(['entity', 'roomParticipant', '__indexes', 'requests', cid], limit, after); 
     }
     async findFromUserActive(uid: number, cid: number) {
-        return await this._findById(['__indexes', 'userActive', uid, cid]);
+        return await this._findFromIndex(['__indexes', 'userActive', uid, cid]);
     }
     async allFromUserActiveAfter(uid: number, after: number) {
         return await this._findRangeAllAfter(['__indexes', 'userActive', uid], after);
@@ -2952,7 +2952,7 @@ export class ConversationReceiverFactory extends FEntityFactory<ConversationRece
         return this._watch([cid, uid], cb);
     }
     async findFromConversation(cid: number, uid: number) {
-        return await this._findById(['__indexes', 'conversation', cid, uid]);
+        return await this._findFromIndex(['__indexes', 'conversation', cid, uid]);
     }
     async allFromConversationAfter(cid: number, after: number) {
         return await this._findRangeAllAfter(['__indexes', 'conversation', cid], after);
@@ -4565,7 +4565,7 @@ export class AppInviteLinkFactory extends FEntityFactory<AppInviteLink> {
         return this._watch([id], cb);
     }
     async findFromUser(uid: number) {
-        return await this._findById(['__indexes', 'user', uid]);
+        return await this._findFromIndex(['__indexes', 'user', uid]);
     }
     async rangeFromUser(limit: number, reversed?: boolean) {
         return await this._findRange(['__indexes', 'user'], limit, reversed);

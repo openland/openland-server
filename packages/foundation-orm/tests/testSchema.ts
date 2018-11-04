@@ -55,6 +55,7 @@ export class SimpleEntityFactory extends FEntityFactory<SimpleEntity> {
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
     async findById(id: number) {
@@ -117,6 +118,7 @@ export class VersionedEntityFactory extends FEntityFactory<VersionedEntity> {
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
     async findById(id: number) {
@@ -179,6 +181,7 @@ export class TimestampedEntityFactory extends FEntityFactory<TimestampedEntity> 
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
     async findById(id: number) {
@@ -268,6 +271,7 @@ export class IndexedEntityFactory extends FEntityFactory<IndexedEntity> {
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
     async findById(id: number) {
@@ -280,7 +284,7 @@ export class IndexedEntityFactory extends FEntityFactory<IndexedEntity> {
         return this._watch([id], cb);
     }
     async findFromDefault(data1: string, data2: string, id: number) {
-        return await this._findById(['__indexes', 'default', data1, data2, id]);
+        return await this._findFromIndex(['__indexes', 'default', data1, data2, id]);
     }
     async allFromDefaultAfter(data1: string, data2: string, after: number) {
         return await this._findRangeAllAfter(['__indexes', 'default', data1, data2], after);
@@ -378,6 +382,7 @@ export class IndexedRangeEntityFactory extends FEntityFactory<IndexedRangeEntity
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
     async findById(id: number) {
@@ -485,6 +490,7 @@ export class IndexedPartialEntityFactory extends FEntityFactory<IndexedPartialEn
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
     async findById(id: number) {
@@ -497,7 +503,7 @@ export class IndexedPartialEntityFactory extends FEntityFactory<IndexedPartialEn
         return this._watch([id], cb);
     }
     async findFromDefault(data1: string, data2: string, id: number) {
-        return await this._findById(['__indexes', 'default', data1, data2, id]);
+        return await this._findFromIndex(['__indexes', 'default', data1, data2, id]);
     }
     async allFromDefaultAfter(data1: string, data2: string, after: number) {
         return await this._findRangeAllAfter(['__indexes', 'default', data1, data2], after);
@@ -569,6 +575,7 @@ export class NullableEntityFactory extends FEntityFactory<NullableEntity> {
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
     async findById(id: number) {

@@ -10,7 +10,7 @@ export class FNamespace {
     }
 
     get = async (connection: FConnection, key: (string | number)[]) => {
-        return connection.currentContext.get(connection, [...this.namespace, ...key]);
+        return connection.currentContext.get(connection, FKeyEncoding.encodeKey([...this.namespace, ...key]));
     }
 
     range = async (connection: FConnection, key: (string | number)[], options?: RangeOptions) => {

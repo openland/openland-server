@@ -183,6 +183,20 @@ for (let e of AllEntities.schema) {
     for (let i of e.indexes) {
         if (i.displayName) {
             if (i.type === 'unique') {
+                queries[i.displayName] = {
+                    type: obj,
+                    args: {
+                        ...buildArguments(e, i, 0),
+                    },
+                    resolve: async (_: any, arg: any) => {
+                        let argm = extractArguments(arg, e, i, 0);
+                        let res = await (FDB as any)[e.name]['findFrom' + Case.pascalCase(i.name)](...argm, arg.first, arg.after, arg.reversed);
+                        return {
+                            ...res._value,
+                            rawValue: res._value
+                        };
+                    }
+                };
                 // queries[i.displayName] = {
                 //     type: new GraphQLList(obj),
                 //     args: buildArguments(e, i, 0),

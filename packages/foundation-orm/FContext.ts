@@ -10,7 +10,7 @@ export interface FContext {
     readonly isReadOnly: boolean;
     readonly isCompleted: boolean;
     markDirty(entity: FEntity, callback: (connection: FConnection) => Promise<void>): void;
-    get(connection: FConnection, key: (string | number)[]): Promise<any | null>;
+    get(connection: FConnection, key: Buffer): Promise<any | null>;
     range(connection: FConnection, key: (string | number)[], options?: RangeOptions): Promise<{ item: any, key: any[] }[]>;
     rangeAfter(connection: FConnection, prefix: (string | number)[], afterKey: (string | number)[], options?: RangeOptions): Promise<{ item: any, key: any[] }[]>;
     set(connection: FConnection, key: Buffer, value: any): void;
@@ -21,9 +21,9 @@ export interface FContext {
 export class FGlobalContext implements FContext {
     readonly isReadOnly: boolean = true;
     readonly isCompleted: boolean = false;
-    async get(connection: FConnection, key: (string | number)[]) {
+    async get(connection: FConnection, key: Buffer) {
         return await trace(tracer, 'get', async () => {
-            return await connection.fdb.get(FKeyEncoding.encodeKey(key));
+            return await connection.fdb.get(key);
         });
     }
     async range(connection: FConnection, key: (string | number)[], options?: RangeOptions) {
