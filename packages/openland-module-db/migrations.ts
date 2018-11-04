@@ -121,6 +121,9 @@ migrations.push({
             let after: any[] | undefined;
             while (true) {
                 let all = after ? await e.findAllKeysAfter(after, 500) : await e.findAllKeys(500);
+                if (all.length === 0) {
+                    break;
+                }
                 logger.log('Loaded ' + all.length);
                 await inTx(async () => {
                     for (let p of all) {
