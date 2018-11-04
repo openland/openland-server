@@ -70,24 +70,6 @@ export class SafeContext<T> {
             this.namespace.set('value', value);
             return callback();
         });
-        // let sourceAsyncId = async_hooks.executionAsyncId();
-        // let current = contexts[this.id][sourceAsyncId];
-        // if (value) {
-        //     contexts[this.id][sourceAsyncId] = value;
-        // } else {
-        //     contexts[this.id][sourceAsyncId] = undefined;
-        // }
-        // let res: P;
-        // try {
-        //     res = callback();
-        // } finally {
-        //     if (current) {
-        //         contexts[this.id][sourceAsyncId] = current;
-        //     } else {
-        //         contexts[this.id][sourceAsyncId] = undefined;
-        //     }
-        // }
-        // return res;
     }
 
     get value(): T | undefined {

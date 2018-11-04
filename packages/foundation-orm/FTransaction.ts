@@ -9,7 +9,7 @@ import { createLogger } from 'openland-log/createLogger';
 import { RangeOptions } from 'foundationdb/dist/lib/transaction';
 import { NativeValue } from 'foundationdb/dist/lib/native';
 import { FKeyEncoding } from './utils/FKeyEncoding';
-import { trace } from 'openland-log/trace';
+import { trace, traceSync } from 'openland-log/trace';
 import { tracer } from './utils/tracer';
 
 const log = createLogger('tx');
@@ -64,16 +64,16 @@ export class FTransaction implements FContext {
             return await this.tx!.get(FKeyEncoding.encodeKey(key));
         });
     }
-    async set(connection: FConnection, key: (string | number)[], value: any) {
+    set(connection: FConnection, key: (string | number)[], value: any) {
         this._prepare(connection);
-        return await trace(tracer, 'set', async () => {
+        traceSync(tracer, 'set', () => {
             this.tx!.set(FKeyEncoding.encodeKey(key), value);
         });
     }
 
     async delete(connection: FConnection, key: (string | number)[]) {
         this._prepare(connection);
-        return await trace(tracer, 'delete', async () => {
+        traceSync(tracer, 'delete', () => {
             this.tx!.clear(FKeyEncoding.encodeKey(key));
         });
     }

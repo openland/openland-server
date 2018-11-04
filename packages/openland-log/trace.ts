@@ -16,3 +16,19 @@ export async function trace<T>(tracer: STracer, name: string, func: () => Promis
         return await func();
     }
 }
+
+export function traceSync<T>(tracer: STracer, name: string, func: () => T) {
+    let parent = STraceContext.value;
+    if (parent && parent.currentSpan) {
+        const span = tracer.startSpan(name, parent.currentSpan!);
+        try {
+            return STraceContext.withContext({ currentSpan: span }, () => {
+                return func();
+            });
+        } finally {
+            span.finish();
+        }
+    } else {
+        return func();
+    }
+}
