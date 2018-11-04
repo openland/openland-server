@@ -4,8 +4,8 @@ import { createLogger } from 'openland-log/createLogger';
 import { backoff } from 'openland-server/utils/timer';
 
 const rootPrefix = Buffer.from('f0', 'hex');
-const dataPrefix = Buffer.concat([rootPrefix, Buffer.from('01', 'hex')]);
-const metaPrefix = Buffer.concat([rootPrefix, Buffer.from('fe', 'hex')]);
+const dataPrefix = Buffer.concat([rootPrefix, Buffer.from('02', 'hex')]);
+const metaPrefix = Buffer.concat([rootPrefix, Buffer.from('fd', 'hex')]);
 const regsPrefix = Buffer.concat([metaPrefix, Buffer.from('01', 'hex')]);
 const counterKey = Buffer.concat([metaPrefix, Buffer.from('02', 'hex')]);
 const logger = createLogger('directory-allocator');
@@ -38,7 +38,7 @@ export class DirectoryAllocator {
                     tx.set(counterKey, { value: 1 });
                 } else {
                     nextCounter = (nextPrefix.value as number) + 1;
-                    tx.set(counterKey, { value: nextPrefix + 1 });
+                    tx.set(counterKey, { value: nextCounter });
                 }
                 if (nextCounter > 6536) {
                     throw Error('Key space overflowed');
@@ -51,5 +51,13 @@ export class DirectoryAllocator {
             console.warn(e);
             throw Error('Unable to allocate key!');
         }
+    }
+
+    async findAllDirectories() {
+        let res = await this.connection.fdb.getRangeAll(regsPrefix);
+        return res.map((v) => ({
+            key: FKeyEncoding.decodeKey(v[0].slice(regsPrefix.length)).join('.'),
+            id: JSON.stringify((v[1] as any)) // buildDataPrefix((v[1] as any).value).toString('hex')
+        }));
     }
 }

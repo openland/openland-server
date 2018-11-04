@@ -258,6 +258,19 @@ for (let e of AllEntities.schema) {
     }
 }
 
+queries.metaAllDirectories =  {
+    type: new GraphQLList(new GraphQLObjectType({
+        name: 'MetaDirectoryConnection',
+        fields: {
+            key: { type: GraphQLString },
+            id: { type: GraphQLString }
+        }
+    })),
+    resolve(_: any, a: any) {
+        return FDB.connection.findAllDirectories();
+    }
+};
+
 var schema = new GraphQLSchema({
     query: new GraphQLObjectType({
         name: 'RootQueryType',

@@ -44,6 +44,10 @@ export class FConnection {
         return new FDirectory(this, this.directoryAllocator, key);
     }
 
+    async findAllDirectories() {
+        return await this.directoryAllocator.findAllDirectories();
+    }
+
     get nodeId() {
         return this.nodeRegistrator.getNodeId();
     }
