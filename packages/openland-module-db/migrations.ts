@@ -70,47 +70,47 @@ migrations.push({
     }
 });
 
-migrations.push({
-    key: '11-fix-ids',
-    migration: async () => {
-        for (let e of FDB.allEntities) {
-            logger.log('Starting migration of ' + e.name);
-            let all = await e.namespace.range(FDB.connection, []);
-            all = all.filter((v) => !v.key.find((k) => k === '__indexes')).map((v) => ({ item: v.item, key: v.key.slice(2) }));
-            // let all = await e.findAll();
-            logger.log('Loaded ' + all.length);
-            let pending: { item: any, key: any[] }[] = [];
-            for (let a of all) {
-                pending.push(a);
-                if (pending.length > 500) {
-                    await inTx(async () => {
-                        for (let p of pending) {
-                            let res = await e.namespace.get(e.connection, p.key);
-                            let entity = e.doCreateEntity({ ...e.extractId(p.key), ...res }, false);
-                            entity.markDirty();
-                        }
-                    });
-                    pending = [];
-                }
-            }
-            if (pending.length > 0) {
-                await inTx(async () => {
-                    for (let p of pending) {
-                        let res = await e.namespace.get(e.connection, p.key);
-                        try {
-                            let entity = e.doCreateEntity({ ...e.extractId(p.key), ...res }, false);
-                            entity.markDirty();
-                        } catch (e) {
-                            console.warn(p.key);
-                            console.warn(e);
-                            throw e;
-                        }
-                    }
-                });
-            }
-        }
-    }
-});
+// migrations.push({
+//     key: '11-fix-ids',
+//     migration: async () => {
+//         for (let e of FDB.allEntities) {
+//             logger.log('Starting migration of ' + e.name);
+//             let all = await e.namespace.range(FDB.connection, []);
+//             all = all.filter((v) => !v.key.find((k) => k === '__indexes')).map((v) => ({ item: v.item, key: v.key.slice(2) }));
+//             // let all = await e.findAll();
+//             logger.log('Loaded ' + all.length);
+//             let pending: { item: any, key: any[] }[] = [];
+//             for (let a of all) {
+//                 pending.push(a);
+//                 if (pending.length > 500) {
+//                     await inTx(async () => {
+//                         for (let p of pending) {
+//                             let res = await e.namespace.get(e.connection, p.key);
+//                             let entity = e.doCreateEntity({ ...e.extractId(p.key), ...res }, false);
+//                             entity.markDirty();
+//                         }
+//                     });
+//                     pending = [];
+//                 }
+//             }
+//             if (pending.length > 0) {
+//                 await inTx(async () => {
+//                     for (let p of pending) {
+//                         let res = await e.namespace.get(e.connection, p.key);
+//                         try {
+//                             let entity = e.doCreateEntity({ ...e.extractId(p.key), ...res }, false);
+//                             entity.markDirty();
+//                         } catch (e) {
+//                             console.warn(p.key);
+//                             console.warn(e);
+//                             throw e;
+//                         }
+//                     }
+//                 });
+//             }
+//         }
+//     }
+// });
 
 migrations.push({
     key: '10-move-entities-to-directory',
