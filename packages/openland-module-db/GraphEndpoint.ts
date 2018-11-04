@@ -17,6 +17,7 @@ import { FEntitySchema, FEntitySchemaIndex } from 'foundation-orm/FEntitySchema'
 import { inTx } from 'foundation-orm/inTx';
 import { delay } from 'openland-server/utils/timer';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
+import { IdsFactory } from 'openland-server/api/utils/IDs';
 
 let entitiesMap: any = {};
 let queries: any = {};
@@ -294,6 +295,18 @@ queries.metaMigrations = {
     type: new GraphQLList(GraphQLString),
     async resolve() {
         return (await FDB.connection.fdb.getRangeAll(FKeyEncoding.encodeKey(['__meta', 'migrations']))).map((v) => (v[1] as any).key);
+    }
+};
+
+queries.metaResolveId = {
+    type: GraphQLInt,
+    args: {
+        id: {
+            type: GraphQLString
+        }
+    },
+    async resolve(_: any, a: any) {
+        return IdsFactory.resolve(a.id).type.typeId;
     }
 };
 
