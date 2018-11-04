@@ -46,8 +46,14 @@ export abstract class FEntityFactory<T extends FEntity> {
         return res.map((v) => this.doCreateEntity(v.item, false));
     }
 
-    async findAllKeys() {
-        let res = await this.namespace.range(this.connection, []);
+    async findAllKeys(limit?: number) {
+        let res = await this.namespace.range(this.connection, [], { limit });
+        res = res.filter((v) => !v.key.find((k) => k === '__indexes'));
+        return res.map((v) => v.key);
+    }
+
+    async findAllKeysAfter(after: any[], limit?: number) {
+        let res = await this.namespace.rangeAfter(this.connection, [], after, { limit });
         res = res.filter((v) => !v.key.find((k) => k === '__indexes'));
         return res.map((v) => v.key);
     }
