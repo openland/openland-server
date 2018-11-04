@@ -595,6 +595,7 @@ export class AllEntities extends FDBInstance {
         IndexedPartialEntityFactory.schema,
         NullableEntityFactory.schema,
     ];
+    allEntities: FEntityFactory<FEntity>[] = [];
     SimpleEntity: SimpleEntityFactory;
     VersionedEntity: VersionedEntityFactory;
     TimestampedEntity: TimestampedEntityFactory;
@@ -606,11 +607,18 @@ export class AllEntities extends FDBInstance {
     constructor(connection: FConnection) {
         super(connection);
         this.SimpleEntity = new SimpleEntityFactory(connection);
+        this.allEntities.push(this.SimpleEntity);
         this.VersionedEntity = new VersionedEntityFactory(connection);
+        this.allEntities.push(this.VersionedEntity);
         this.TimestampedEntity = new TimestampedEntityFactory(connection);
+        this.allEntities.push(this.TimestampedEntity);
         this.IndexedEntity = new IndexedEntityFactory(connection);
+        this.allEntities.push(this.IndexedEntity);
         this.IndexedRangeEntity = new IndexedRangeEntityFactory(connection);
+        this.allEntities.push(this.IndexedRangeEntity);
         this.IndexedPartialEntity = new IndexedPartialEntityFactory(connection);
+        this.allEntities.push(this.IndexedPartialEntity);
         this.NullableEntity = new NullableEntityFactory(connection);
+        this.allEntities.push(this.NullableEntity);
     }
 }

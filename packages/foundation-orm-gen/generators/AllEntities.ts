@@ -8,6 +8,7 @@ export function generateAllEntities(entity: EntityModel[]) {
         res += '        ' + e.name + 'Factory.schema,\n';
     }
     res += '    ];\n';
+    res += '    allEntities: FEntityFactory<FEntity>[] = [];\n';
     for (let e of entity) {
         res += '    ' + e.name + ': ' + e.name + 'Factory;\n';
     }
@@ -16,6 +17,7 @@ export function generateAllEntities(entity: EntityModel[]) {
     res += '        super(connection);\n';
     for (let e of entity) {
         res += '        this.' + e.name + ' = new ' + e.name + 'Factory(connection);\n';
+        res += '        this.allEntities.push(this.' + e.name + ');\n';
     }
     res += '    }\n';
     res += '}\n';

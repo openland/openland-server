@@ -31,6 +31,14 @@ export abstract class FEntityFactory<T extends FEntity> {
         this.watcher = new FWatch(connection);
     }
 
+    async findByRawId(key: (string | number)[]) {
+        let res = await this.namespace.get(this.connection, key);
+        if (res) {
+            return this.doCreateEntity(res, false);
+        }
+        return null;
+    }
+
     async findAll() {
         let res = await this.namespace.range(this.connection, []);
         res = res.filter((v) => !v.key.find((k) => k === '__index'));

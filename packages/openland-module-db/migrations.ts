@@ -6,9 +6,13 @@ import { FDoctor } from 'foundation-orm/FDoctor';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { DB } from 'openland-server/tables';
 import { Modules } from 'openland-modules/Modules';
+import { FEntity } from 'foundation-orm/FEntity';
+import { createLogger } from 'openland-log/createLogger';
 // import { FStreamItem } from 'foundation-orm/FStreamItem';
 // import { UserProfile } from './schema';
 // import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
+
+const logger = createLogger('migration');
 
 var migrations: FMigration[] = [];
 migrations.push({
@@ -62,6 +66,38 @@ migrations.push({
         let users = (await DB.User.findAll());
         for (let u of users) {
             await Modules.Messaging.fixer.fixForUser(u.id!);
+        }
+    }
+});
+
+migrations.push({
+    key: '10-move-entities-to-directory',
+    migration: async () => {
+        for (let e of FDB.allEntities) {
+            logger.log('Starting migration of ' + e.name);
+            let all = await e.findAll();
+            logger.log('Loaded ' + all.length);
+            let pending: FEntity[] = [];
+            for (let a of all) {
+                pending.push(a);
+                if (pending.length > 500) {
+                    await inTx(async () => {
+                        for (let p of pending) {
+                            let a2 = (await e.findByRawId(p.rawId))!;
+                            a2.markDirty();
+                        }
+                    });
+                    pending = [];
+                }
+            }
+            if (pending.length > 0) {
+                await inTx(async () => {
+                    for (let p of pending) {
+                        let a2 = (await e.findByRawId(p.rawId))!;
+                        a2.markDirty();
+                    }
+                });
+            }
         }
     }
 });
