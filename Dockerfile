@@ -12,11 +12,11 @@ RUN apt-get update && dpkg -i foundationdb-clients_5.2.5-1_amd64.deb foundationd
 WORKDIR /app
 ADD package.json /app/
 ADD yarn.lock /app/
+RUN yarn install
+
 ADD tsconfig.json /app/
 ADD tslint.json /app/
 COPY packages/ /app/packages/
-
-RUN yarn install
 RUN yarn build 
 RUN yarn lint
 
