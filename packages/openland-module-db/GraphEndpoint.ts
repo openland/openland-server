@@ -16,6 +16,7 @@ import { FDB } from './FDB';
 import { FEntitySchema, FEntitySchemaIndex } from 'foundation-orm/FEntitySchema';
 import { inTx } from 'foundation-orm/inTx';
 import { delay } from 'openland-server/utils/timer';
+import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 
 let entitiesMap: any = {};
 let queries: any = {};
@@ -258,7 +259,7 @@ for (let e of AllEntities.schema) {
     }
 }
 
-queries.metaAllDirectories =  {
+queries.metaAllDirectories = {
     type: new GraphQLList(new GraphQLObjectType({
         name: 'MetaDirectoryConnection',
         fields: {
@@ -268,6 +269,13 @@ queries.metaAllDirectories =  {
     })),
     resolve(_: any, a: any) {
         return FDB.connection.findAllDirectories();
+    }
+};
+
+queries.metaMigrations = {
+    type: new GraphQLList(GraphQLString),
+    async resolve() {
+        return (await FDB.connection.fdb.getRangeAll(FKeyEncoding.encodeKey(['__meta', 'migrations']))).map((v) => (v[1] as any).key);
     }
 };
 
