@@ -118,7 +118,7 @@ for (let e of AllEntities.schema) {
     }
     let obj = new GraphQLObjectType({
         name: e.name,
-        fields: fields
+        fields: { ...fields, rawValue: GraphQLString }
     });
     entitiesMap[e.name] = obj;
 
@@ -207,9 +207,13 @@ for (let e of AllEntities.schema) {
                             type: GraphQLBoolean
                         }
                     },
-                    resolve: (_: any, arg: any) => {
+                    resolve: async (_: any, arg: any) => {
                         let argm = extractArguments(arg, e, i, 1);
-                        return (FDB as any)[e.name]['rangeFrom' + Case.pascalCase(i.name) + 'WithCursor'](...argm, arg.first, arg.after, arg.reversed);
+                        let res = await (FDB as any)[e.name]['rangeFrom' + Case.pascalCase(i.name) + 'WithCursor'](...argm, arg.first, arg.after, arg.reversed);
+                        return {
+                            ...res._value,
+                            rawValue: res._value
+                        };
                     }
                 };
             }

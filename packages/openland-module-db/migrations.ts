@@ -76,7 +76,7 @@ migrations.push({
         for (let e of FDB.allEntities) {
             logger.log('Starting migration of ' + e.name);
             let all = await e.namespace.range(FDB.connection, []);
-            all = all.filter((v) => !v.key.find((k) => k === '__index'));
+            all = all.filter((v) => !v.key.find((k) => k === '__index')).map((v) => ({ item: v.item, key: v.key.slice(2) }));
             // let all = await e.findAll();
             logger.log('Loaded ' + all.length);
             let pending: { item: any, key: any[] }[] = [];
@@ -97,8 +97,14 @@ migrations.push({
                 await inTx(async () => {
                     for (let p of pending) {
                         let res = await e.namespace.get(e.connection, p.key);
-                        let entity = e.doCreateEntity({ ...e.extractId(p.key), ...res }, false);
-                        entity.markDirty();
+                        try {
+                            let entity = e.doCreateEntity({ ...e.extractId(p.key), ...res }, false);
+                            entity.markDirty();
+                        } catch (e) {
+                            console.warn(p.key);
+                            console.warn(e);
+                            throw e;
+                        }
                     }
                 });
             }
