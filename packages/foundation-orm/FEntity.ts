@@ -32,7 +32,7 @@ export class FEntity {
 
     constructor(connection: FConnection, namespace: FNamespace, id: (string | number)[], value: any, options: FEntityOptions, isNew: boolean, indexes: FEntityIndex[], name: string) {
         this.namespace = namespace;
-        this.directory = new FDirectory(connection, namespace.namespace);
+        this.directory = connection.getDirectory(namespace.namespace);
         this.rawId = id;
         this.connection = connection;
         this.context = connection.currentContext;
