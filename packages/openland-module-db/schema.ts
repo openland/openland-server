@@ -55,6 +55,7 @@ export class OnlineFactory extends FEntityFactory<Online> {
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'uid': rawId[0] };
     }
     async findById(uid: number) {
@@ -147,6 +148,7 @@ export class PresenceFactory extends FEntityFactory<Presence> {
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 2) { throw Error('Invalid key length!'); }
         return { 'uid': rawId[0], 'tid': rawId[1] };
     }
     async findById(uid: number, tid: string) {
@@ -236,6 +238,7 @@ export class AuthTokenFactory extends FEntityFactory<AuthToken> {
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'uuid': rawId[0] };
     }
     async findById(uuid: string) {
@@ -317,6 +320,7 @@ export class ServiceCacheFactory extends FEntityFactory<ServiceCache> {
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 2) { throw Error('Invalid key length!'); }
         return { 'service': rawId[0], 'key': rawId[1] };
     }
     async findById(service: string, key: string) {
@@ -418,6 +422,7 @@ export class LockFactory extends FEntityFactory<Lock> {
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'key': rawId[0] };
     }
     async findById(key: string) {
@@ -582,6 +587,7 @@ export class TaskFactory extends FEntityFactory<Task> {
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 2) { throw Error('Invalid key length!'); }
         return { 'taskType': rawId[0], 'uid': rawId[1] };
     }
     async findById(taskType: string, uid: string) {
@@ -809,6 +815,7 @@ export class PushFirebaseFactory extends FEntityFactory<PushFirebase> {
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
     async findById(id: string) {
@@ -1027,6 +1034,7 @@ export class PushAppleFactory extends FEntityFactory<PushApple> {
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
     async findById(id: string) {
@@ -1219,6 +1227,7 @@ export class PushWebFactory extends FEntityFactory<PushWeb> {
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
     async findById(id: string) {
@@ -1343,6 +1352,7 @@ export class UserProfilePrefilFactory extends FEntityFactory<UserProfilePrefil> 
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
     async findById(id: number) {
@@ -1472,6 +1482,7 @@ export class UserFactory extends FEntityFactory<User> {
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
     async findById(id: number) {
@@ -1701,6 +1712,7 @@ export class UserProfileFactory extends FEntityFactory<UserProfile> {
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
     async findById(id: number) {
@@ -1775,6 +1787,7 @@ export class FeatureFlagFactory extends FEntityFactory<FeatureFlag> {
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'key': rawId[0] };
     }
     async findById(key: string) {
@@ -1864,6 +1877,7 @@ export class OrganizationFeaturesFactory extends FEntityFactory<OrganizationFeat
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
     async findById(id: string) {
@@ -1961,6 +1975,7 @@ export class ReaderStateFactory extends FEntityFactory<ReaderState> {
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
     async findById(id: string) {
@@ -2036,6 +2051,7 @@ export class SuperAdminFactory extends FEntityFactory<SuperAdmin> {
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
     async findById(id: number) {
@@ -2166,6 +2182,7 @@ export class UserSettingsFactory extends FEntityFactory<UserSettings> {
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
     async findById(id: number) {
@@ -2256,6 +2273,7 @@ export class ShortnameReservationFactory extends FEntityFactory<ShortnameReserva
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'shortname': rawId[0] };
     }
     async findById(shortname: string) {
@@ -2401,6 +2419,7 @@ export class AuthCodeSessionFactory extends FEntityFactory<AuthCodeSession> {
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'uid': rawId[0] };
     }
     async findById(uid: string) {
@@ -2533,6 +2552,7 @@ export class ConversationFactory extends FEntityFactory<Conversation> {
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'cid': rawId[0] };
     }
     async findById(cid: number) {
@@ -2692,6 +2712,7 @@ export class RoomProfileFactory extends FEntityFactory<RoomProfile> {
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'cid': rawId[0] };
     }
     async findById(cid: number) {
@@ -2787,6 +2808,7 @@ export class RoomParticipantFactory extends FEntityFactory<RoomParticipant> {
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 2) { throw Error('Invalid key length!'); }
         return { 'cid': rawId[0], 'uid': rawId[1] };
     }
     async findById(cid: number, uid: number) {
@@ -2917,6 +2939,7 @@ export class ConversationReceiverFactory extends FEntityFactory<ConversationRece
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 2) { throw Error('Invalid key length!'); }
         return { 'cid': rawId[0], 'uid': rawId[1] };
     }
     async findById(cid: number, uid: number) {
@@ -3000,6 +3023,7 @@ export class SequenceFactory extends FEntityFactory<Sequence> {
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'sequence': rawId[0] };
     }
     async findById(sequence: string) {
@@ -3264,6 +3288,7 @@ export class MessageFactory extends FEntityFactory<Message> {
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
     async findById(id: number) {
@@ -3344,6 +3369,7 @@ export class ConversationSeqFactory extends FEntityFactory<ConversationSeq> {
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'cid': rawId[0] };
     }
     async findById(cid: number) {
@@ -3439,6 +3465,7 @@ export class ConversationEventFactory extends FEntityFactory<ConversationEvent> 
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 2) { throw Error('Invalid key length!'); }
         return { 'cid': rawId[0], 'seq': rawId[1] };
     }
     async findById(cid: number, seq: number) {
@@ -3555,6 +3582,7 @@ export class UserDialogFactory extends FEntityFactory<UserDialog> {
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 2) { throw Error('Invalid key length!'); }
         return { 'uid': rawId[0], 'cid': rawId[1] };
     }
     async findById(uid: number, cid: number) {
@@ -3639,6 +3667,7 @@ export class UserDialogSettingsFactory extends FEntityFactory<UserDialogSettings
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 2) { throw Error('Invalid key length!'); }
         return { 'uid': rawId[0], 'cid': rawId[1] };
     }
     async findById(uid: number, cid: number) {
@@ -3776,6 +3805,7 @@ export class UserDialogEventFactory extends FEntityFactory<UserDialogEvent> {
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 2) { throw Error('Invalid key length!'); }
         return { 'uid': rawId[0], 'seq': rawId[1] };
     }
     async findById(uid: number, seq: number) {
@@ -3873,6 +3903,7 @@ export class UserMessagingStateFactory extends FEntityFactory<UserMessagingState
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'uid': rawId[0] };
     }
     async findById(uid: number) {
@@ -4004,6 +4035,7 @@ export class UserNotificationsStateFactory extends FEntityFactory<UserNotificati
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'uid': rawId[0] };
     }
     async findById(uid: number) {
@@ -4092,6 +4124,7 @@ export class HyperLogFactory extends FEntityFactory<HyperLog> {
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
     async findById(id: string) {
@@ -4170,6 +4203,7 @@ export class MessageDraftFactory extends FEntityFactory<MessageDraft> {
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 2) { throw Error('Invalid key length!'); }
         return { 'uid': rawId[0], 'cid': rawId[1] };
     }
     async findById(uid: number, cid: number) {
@@ -4328,6 +4362,7 @@ export class ChannelInvitationFactory extends FEntityFactory<ChannelInvitation> 
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
     async findById(id: string) {
@@ -4435,6 +4470,7 @@ export class ChannelLinkFactory extends FEntityFactory<ChannelLink> {
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
     async findById(id: string) {
@@ -4516,6 +4552,7 @@ export class AppInviteLinkFactory extends FEntityFactory<AppInviteLink> {
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
     async findById(id: string) {
@@ -4593,6 +4630,7 @@ export class SampleEntityFactory extends FEntityFactory<SampleEntity> {
         );
     }
     extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
     async findById(id: string) {

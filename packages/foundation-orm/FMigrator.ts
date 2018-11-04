@@ -3,6 +3,7 @@ import { createLogger } from 'openland-log/createLogger';
 import { SLog } from 'openland-log/SLog';
 import { delay } from 'openland-server/utils/timer';
 import { FKeyEncoding } from './utils/FKeyEncoding';
+import { withLogContext } from 'openland-log/withLogContext';
 
 export interface FMigration {
     key: string;
@@ -21,7 +22,9 @@ export async function performMigrations(connection: FConnection, migrations: FMi
             log.log('Remaining migrations: ' + remaining.length);
             for (let m of remaining) {
                 log.log('Starting migration: ' + m.key);
-                await m.migration(log);
+                await withLogContext(m.key, async () => {
+                    await m.migration(log);
+                });
                 await connection.fdb.set(FKeyEncoding.encodeKey(['__meta', 'migrations', m.key]), { key: m.key });
                 log.log('Completed migration: ' + m.key);
             }

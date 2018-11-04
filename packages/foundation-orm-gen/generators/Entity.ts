@@ -168,6 +168,7 @@ export function generateEntity(entity: EntityModel): string {
     res += '    }\n';
 
     res += '    extractId(rawId: any[]) {\n';
+    res += '        if (rawId.length !== ' + entity.keys.length + ') { throw Error(\'Invalid key length!\'); }\n';
     res += '        return { ' + entity.keys.map((v, i) => '\'' + v.name + '\': rawId[' + i + ']').join(', ') + ' };\n';
     res += '    }\n';
 
