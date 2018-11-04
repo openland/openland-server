@@ -1,8 +1,12 @@
 import { FConnection } from './FConnection';
+import { DirectoryAllocator } from './utils/DirectoryAllocator';
 
 export class FDirectory {
     readonly connection: FConnection;
-    constructor(connection: FConnection, key: (string | number | boolean)[]) {
+    readonly allocator: DirectoryAllocator;
+
+    constructor(connection: FConnection, allocator: DirectoryAllocator, key: (string | number | boolean)[]) {
         this.connection = connection;
+        this.allocator = allocator;
     }
 }

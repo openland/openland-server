@@ -15,16 +15,18 @@ export async function inTx<T>(callback: () => Promise<T>): Promise<T> {
     return await FTransaction.context.withContext(tx, async () => {
         return withLogContext(['transaction', tx.id.toString()], async () => {
             // Implementation is copied from database.js from foundationdb library.
+            let isRetry = false;
             do {
                 try {
                     tx.reset();
-                    const result = await trace(tracer, 'tx', async () => { return await callback(); });
+                    const result = await trace(tracer, isRetry ? 'tx-retry' : 'tx', async () => { return await callback(); });
                     await tx.flush();
                     return result;
                 } catch (err) {
                     if (err instanceof FDBError) {
                         await tx.tx!.rawOnError(err.code);
                         log.debug('retry with code ' + err.code);
+                        isRetry = true;
                     } else {
                         throw err;
                     }

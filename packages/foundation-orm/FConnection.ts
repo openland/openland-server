@@ -6,10 +6,13 @@ import { FNodeRegistrator } from './utils/FNodeRegistrator';
 import { RandomIDFactory } from 'openland-security/RandomIDFactory';
 import { NativeValue } from 'foundationdb/dist/lib/native';
 import { FPubsub } from './FPubsub';
+import { DirectoryAllocator } from './utils/DirectoryAllocator';
+import { FDirectory } from './FDirectory';
 
 export class FConnection {
     readonly fdb: fdb.Database<NativeValue, any>;
     readonly pubsub: FPubsub;
+    private readonly directoryAllocator: DirectoryAllocator;
     private readonly globalContext: FContext;
     private readonly nodeRegistrator: FNodeRegistrator;
     private randomFactory: RandomIDFactory | null = null;
@@ -34,6 +37,11 @@ export class FConnection {
         this.globalContext = new FGlobalContext();
         this.nodeRegistrator = new FNodeRegistrator(this);
         this.test = test;
+        this.directoryAllocator = new DirectoryAllocator(this);
+    }
+
+    getDirectory(key: (string | number | boolean)[]) {
+        return new FDirectory(this, this.directoryAllocator, key);
     }
 
     get nodeId() {
