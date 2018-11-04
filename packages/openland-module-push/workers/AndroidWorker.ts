@@ -17,20 +17,20 @@ export function createAndroidWorker(repo: PushRepository) {
     let queue = new WorkQueue<FirebasePushTask, { result: string }>('push_sender_firebase');
     if (AppConfiuguration.google) {
         if (serverRoleEnabled('workers')) {
-            for (let i = 0; i < 10; i++) {
-                let firbaseApps: { [pkg: string]: Friebase.app.App } = {};
-                for (let creds of AppConfiuguration.google) {
-                    for (let pkg of creds.packages) {
-                        firbaseApps[pkg] = Friebase.initializeApp({
-                            credential: Friebase.credential.cert({
-                                privateKey: creds.privateKey,
-                                projectId: creds.projectId,
-                                clientEmail: creds.clientEmail
-                            }),
-                            databaseURL: creds.databaseURL
-                        }, pkg);
-                    }
+            let firbaseApps: { [pkg: string]: Friebase.app.App } = {};
+            for (let creds of AppConfiuguration.google) {
+                for (let pkg of creds.packages) {
+                    firbaseApps[pkg] = Friebase.initializeApp({
+                        credential: Friebase.credential.cert({
+                            privateKey: creds.privateKey,
+                            projectId: creds.projectId,
+                            clientEmail: creds.clientEmail
+                        }),
+                        databaseURL: creds.databaseURL
+                    }, pkg);
                 }
+            }
+            for (let i = 0; i < 10; i++) {
                 queue.addWorker(async (task) => {
                     let token = (await repo.getAndroidToken(task.tokenId))!;
                     if (!token.enabled) {
