@@ -32,8 +32,8 @@ export function createDeliveryWorker() {
 
                     // Deliver messages
                     if (members.length > 0) {
-                        for (let m of members) {
-                            await trace(tracer, 'member', async () => {
+                        await Promise.all(members.map((m) => {
+                            trace(tracer, 'member', async () => {
                                 let existing = await Modules.Messaging.repo.getUserDialogState(m, conversationId);
                                 let existingGlobal = await Modules.Messaging.repo.getUserMessagingState(m);
 
@@ -63,7 +63,7 @@ export function createDeliveryWorker() {
                                 // Send counter push notification to iOS
                                 await Modules.Push.sendCounterPush(m, conversationId, existingGlobal.unread);
                             });
-                        }
+                        }));
                     }
                 });
             });
