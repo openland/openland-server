@@ -9,10 +9,11 @@ export class FDirectory {
 
     constructor(connection: FConnection, allocator: DirectoryAllocator, key: (string | number | boolean)[]) {
         this.connection = connection;
-        this.allocatorProcess = allocator.allocateDirectory(key).then((v) => {
+        this.allocatorProcess = (async () => {
+            let v = await allocator.allocateDirectory(key);
             this.onAllocated(v);
             return v;
-        });
+        })();
     }
 
     get isAllocated() {
