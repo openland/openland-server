@@ -1358,6 +1358,135 @@ export class UserProfilePrefilFactory extends FEntityFactory<UserProfilePrefil> 
         return new UserProfilePrefil(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'UserProfilePrefil');
     }
 }
+export interface UserShape {
+    authId: string;
+    email: string;
+    isBot: boolean;
+    invitedBy?: number| null;
+    botOwner?: number| null;
+    status: 'pending' | 'activated' | 'suspended';
+}
+
+export class User extends FEntity {
+    get id(): number { return this._value.id; }
+    get authId(): string {
+        return this._value.authId;
+    }
+    set authId(value: string) {
+        this._checkIsWritable();
+        if (value === this._value.authId) { return; }
+        this._value.authId = value;
+        this.markDirty();
+    }
+    get email(): string {
+        return this._value.email;
+    }
+    set email(value: string) {
+        this._checkIsWritable();
+        if (value === this._value.email) { return; }
+        this._value.email = value;
+        this.markDirty();
+    }
+    get isBot(): boolean {
+        return this._value.isBot;
+    }
+    set isBot(value: boolean) {
+        this._checkIsWritable();
+        if (value === this._value.isBot) { return; }
+        this._value.isBot = value;
+        this.markDirty();
+    }
+    get invitedBy(): number | null {
+        let res = this._value.invitedBy;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set invitedBy(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.invitedBy) { return; }
+        this._value.invitedBy = value;
+        this.markDirty();
+    }
+    get botOwner(): number | null {
+        let res = this._value.botOwner;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set botOwner(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.botOwner) { return; }
+        this._value.botOwner = value;
+        this.markDirty();
+    }
+    get status(): 'pending' | 'activated' | 'suspended' {
+        return this._value.status;
+    }
+    set status(value: 'pending' | 'activated' | 'suspended') {
+        this._checkIsWritable();
+        if (value === this._value.status) { return; }
+        this._value.status = value;
+        this.markDirty();
+    }
+}
+
+export class UserFactory extends FEntityFactory<User> {
+    static schema: FEntitySchema = {
+        name: 'User',
+        editable: false,
+        primaryKeys: [
+            { name: 'id', type: 'number' },
+        ],
+        fields: [
+            { name: 'authId', type: 'string' },
+            { name: 'email', type: 'string' },
+            { name: 'isBot', type: 'boolean' },
+            { name: 'invitedBy', type: 'number' },
+            { name: 'botOwner', type: 'number' },
+            { name: 'status', type: 'enum', enumValues: ['pending', 'activated', 'suspended'] },
+        ],
+        indexes: [
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isNumber('id', src.id);
+        validators.notNull('authId', src.authId);
+        validators.isString('authId', src.authId);
+        validators.notNull('email', src.email);
+        validators.isString('email', src.email);
+        validators.notNull('isBot', src.isBot);
+        validators.isBoolean('isBot', src.isBot);
+        validators.isNumber('invitedBy', src.invitedBy);
+        validators.isNumber('botOwner', src.botOwner);
+        validators.notNull('status', src.status);
+        validators.isEnum('status', src.status, ['pending', 'activated', 'suspended']);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'user'),
+            { enableVersioning: false, enableTimestamps: false, validator: UserFactory.validate, hasLiveStreams: false },
+            [],
+            'User'
+        );
+    }
+    extractId(rawId: any[]) {
+        return { 'id': rawId[0] };
+    }
+    async findById(id: number) {
+        return await this._findById([id]);
+    }
+    async create(id: number, shape: UserShape) {
+        return await this._create([id], { id, ...shape });
+    }
+    watch(id: number, cb: () => void) {
+        return this._watch([id], cb);
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new User(this.connection, this.namespace, [value.id], value, this.options, isNew, this.indexes, 'User');
+    }
+}
 export interface UserProfileShape {
     firstName: string;
     lastName?: string| null;
@@ -4492,6 +4621,7 @@ export class AllEntities extends FDBInstance {
         PushAppleFactory.schema,
         PushWebFactory.schema,
         UserProfilePrefilFactory.schema,
+        UserFactory.schema,
         UserProfileFactory.schema,
         FeatureFlagFactory.schema,
         OrganizationFeaturesFactory.schema,
@@ -4530,6 +4660,7 @@ export class AllEntities extends FDBInstance {
     PushApple: PushAppleFactory;
     PushWeb: PushWebFactory;
     UserProfilePrefil: UserProfilePrefilFactory;
+    User: UserFactory;
     UserProfile: UserProfileFactory;
     FeatureFlag: FeatureFlagFactory;
     OrganizationFeatures: OrganizationFeaturesFactory;
@@ -4570,6 +4701,7 @@ export class AllEntities extends FDBInstance {
         this.PushApple = new PushAppleFactory(connection);
         this.PushWeb = new PushWebFactory(connection);
         this.UserProfilePrefil = new UserProfilePrefilFactory(connection);
+        this.User = new UserFactory(connection);
         this.UserProfile = new UserProfileFactory(connection);
         this.FeatureFlag = new FeatureFlagFactory(connection);
         this.OrganizationFeatures = new OrganizationFeaturesFactory(connection);

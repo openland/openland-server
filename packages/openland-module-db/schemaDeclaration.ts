@@ -127,6 +127,16 @@ const Schema = declareSchema(() => {
         enableVersioning();
     });
 
+    entity('User', () => {
+        primaryKey('id', 'number');
+        field('authId', 'string');
+        field('email', 'string');
+        field('isBot', 'boolean');
+        field('invitedBy', 'number').nullable();
+        field('botOwner', 'number').nullable();
+        enumField('status', ['pending', 'activated', 'suspended']);
+    });
+
     entity('UserProfile', () => {
         primaryKey('id', 'number');
         field('firstName', 'string');

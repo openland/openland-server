@@ -6,6 +6,7 @@ import { User } from 'openland-server/tables';
 import { userProfileIndexer } from './workers/userProfileIndexer';
 import { UserSearch } from './search/UserSearch';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
+import { startMigrator } from './Migrator';
 
 export class UsersModule {
 
@@ -15,6 +16,7 @@ export class UsersModule {
     start = () => {
         if (serverRoleEnabled('workers')) {
             userProfileIndexer();
+            startMigrator();
         }
     }
 
