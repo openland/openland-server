@@ -22,6 +22,12 @@ export class SuperModule {
         await this.repo.makeNormalUser(uid);
     }
 
+    async calculateStats() {
+        return ({
+            messages: (await FDB.Sequence.findById('message-id'))!.value
+        });
+    }
+
     start = () => {
         if (serverRoleEnabled('admin')) {
             startAdminInterface();
