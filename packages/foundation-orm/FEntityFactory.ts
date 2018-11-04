@@ -128,7 +128,7 @@ export abstract class FEntityFactory<T extends FEntity> {
         return this.watcher.watch(fullKey, cb);
     }
 
-    private doCreateEntity(value: any, isNew: boolean): T {
+    public doCreateEntity(value: any, isNew: boolean): T {
         try {
             this.options.validator(value);
             return this._createEntity(value, isNew);

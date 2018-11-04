@@ -71,6 +71,42 @@ migrations.push({
 });
 
 migrations.push({
+    key: '9-fix-ids',
+    migration: async () => {
+        for (let e of FDB.allEntities) {
+            logger.log('Starting migration of ' + e.name);
+            let all = await e.namespace.range(FDB.connection, []);
+            all = all.filter((v) => !v.key.find((k) => k === '__index'));
+            // let all = await e.findAll();
+            logger.log('Loaded ' + all.length);
+            let pending: { item: any, key: any[] }[] = [];
+            for (let a of all) {
+                pending.push(a);
+                if (pending.length > 500) {
+                    await inTx(async () => {
+                        for (let p of pending) {
+                            let res = await e.namespace.get(e.connection, p.key);
+                            let entity = e.doCreateEntity({ ...e.extractId(p.key), ...res }, false);
+                            entity.markDirty();
+                        }
+                    });
+                    pending = [];
+                }
+            }
+            if (pending.length > 0) {
+                await inTx(async () => {
+                    for (let p of pending) {
+                        let res = await e.namespace.get(e.connection, p.key);
+                        let entity = e.doCreateEntity({ ...e.extractId(p.key), ...res }, false);
+                        entity.markDirty();
+                    }
+                });
+            }
+        }
+    }
+});
+
+migrations.push({
     key: '10-move-entities-to-directory',
     migration: async () => {
         for (let e of FDB.allEntities) {
