@@ -12,8 +12,10 @@ export function staticWorker(config: { name: string, version?: number, delay?: n
 
             let locked = true;
 
+            // Update lock loop
+            // tslint:disable-next-line:no-floating-promises
             (async () => {
-                while (true) {
+                while (locked) {
                     if (!(await LockRepository.tryLock('worker_' + config.name, config.version))) {
                         locked = false;
                         break;
@@ -24,10 +26,16 @@ export function staticWorker(config: { name: string, version?: number, delay?: n
 
             // Working
             while (locked) {
-                let res2 = await worker();
-                if (!res2) {
-                    return false;
+                try {
+                    let res2 = await worker();
+                    if (!res2) {
+                        return false;
+                    }
+                } catch (e) {
+                    locked = false;
+                    throw e;
                 }
+                await delay(100);
             }
             return true;
         });
