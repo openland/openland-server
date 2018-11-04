@@ -1,6 +1,9 @@
 import { forever, delay } from '../openland-server/utils/timer';
 import { LockRepository } from 'openland-module-sync/LockRepository';
 import { withLogContext } from 'openland-log/withLogContext';
+import { createLogger } from 'openland-log/createLogger';
+
+const logger = createLogger('loop');
 
 export function staticWorker(config: { name: string, version?: number, delay?: number }, worker: () => Promise<boolean>) {
     forever(async () => {
@@ -34,6 +37,7 @@ export function staticWorker(config: { name: string, version?: number, delay?: n
                     }
                 } catch (e) {
                     locked = false;
+                    logger.warn(e);
                     throw e;
                 }
                 await delay(100);
