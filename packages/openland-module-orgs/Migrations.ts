@@ -74,22 +74,22 @@ export function startMigrations() {
     });
     reader.start();
 
-    // let reader2 = new UpdateReader('orgs-members-exporter', 1, DB.OrganizationMember);
-    // reader2.processor(async (items) => {
-    //     for (let i of items) {
-    //         await inTx(async () => {
-    //             let memb = await FDB.OrganizationMember.findById(i.orgId, i.userId);
-    //             if (memb) {
-    //                 memb.status = 'joined';
-    //                 memb.role = i.isOwner ? 'admin' : 'member';
-    //             } else {
-    //                 await FDB.OrganizationMember.create(i.orgId, i.userId, {
-    //                     role: i.isOwner ? 'admin' : 'member',
-    //                     status: 'joined'
-    //                 });
-    //             }
-    //         });
-    //     }
-    // });
-    // reader2.start();
+    let reader2 = new UpdateReader('orgs-members-exporter', 1, DB.OrganizationMember);
+    reader2.processor(async (items) => {
+        for (let i of items) {
+            await inTx(async () => {
+                let memb = await FDB.OrganizationMember.findById(i.orgId, i.userId);
+                if (memb) {
+                    memb.status = 'joined';
+                    memb.role = i.isOwner ? 'admin' : 'member';
+                } else {
+                    await FDB.OrganizationMember.create(i.orgId, i.userId, {
+                        role: i.isOwner ? 'admin' : 'member',
+                        status: 'joined'
+                    });
+                }
+            });
+        }
+    });
+    reader2.start();
 }
