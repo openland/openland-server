@@ -37,7 +37,6 @@ export function createOrganizationIndexer(client: ES.Client) {
         },
     });
     reader.indexer(async (item) => {
-        let organizationTypes = (item.extras && item.extras.organizationType && item.extras.organizationType.length > 0) ? item.extras.organizationType.join(' ') : '';
         let published = (!item.extras || item.extras.published !== false) && item.status === 'ACTIVATED';
         let featured = !!(item.extras && item.extras.featured);
         let isCommunity = !!(item.extras && item.extras.isCommunity);
@@ -46,7 +45,6 @@ export function createOrganizationIndexer(client: ES.Client) {
             id: item.id!!,
             doc: {
                 name: item.name,
-                organizationType: organizationTypes,
                 published: published,
                 featured: featured,
                 isCommunity: isCommunity,

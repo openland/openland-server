@@ -21,7 +21,7 @@ export class FEntity {
     readonly connection: FConnection;
     readonly isReadOnly: boolean;
     readonly context: FContext;
-    readonly name: string;
+    readonly entityName: string;
 
     protected readonly _valueInitial: any;
     protected _value: any;
@@ -40,7 +40,7 @@ export class FEntity {
         this.options = options;
         this.isNew = isNew;
         this.indexes = indexes;
-        this.name = name;
+        this.entityName = name;
 
         if (this.isNew && this.isReadOnly) {
             throw Error('Unable to create new entity outside transaction!');
@@ -143,7 +143,7 @@ export class FEntity {
                 // Notify after successful transaction
                 if (this.options.hasLiveStreams) {
                     this.context.afterTransaction(() => {
-                        this.connection.pubsub.publish('fdb-entity-created-' + this.name, { entity: this.name });
+                        this.connection.pubsub.publish('fdb-entity-created-' + this.entityName, { entity: this.entityName });
                     });
                 }
 
@@ -156,7 +156,7 @@ export class FEntity {
                     let key = index.fields.map((v) => value[v]);
                     if (index.unique) {
                         if (await this.namespace.get(this.connection, ['__indexes', index.name, ...key])) {
-                            throw Error('Unique index constraint failed');
+                            throw Error('Unique index constraint failed for index ' + index.name);
                         }
                         this.namespace.set(this.connection, ['__indexes', index.name, ...key], value);
                     } else {
@@ -205,7 +205,7 @@ export class FEntity {
                         }
                         if (needToCreateNew) {
                             if (await this.namespace.get(this.connection, ['__indexes', index.name, ...key])) {
-                                throw Error('Unique index constraint failed');
+                                throw Error('Unique index constraint failed for index ' + index.name);
                             }
                         }
                         if (needToCreateNew || needToUpdateNew) {

@@ -1743,6 +1743,8 @@ export class UserProfileFactory extends FEntityFactory<UserProfile> {
 export interface OrganizationShape {
     ownerId: number;
     status: 'pending' | 'activated' | 'suspended';
+    kind: 'organization' | 'community';
+    editorial: boolean;
 }
 
 export class Organization extends FEntity {
@@ -1765,6 +1767,24 @@ export class Organization extends FEntity {
         this._value.status = value;
         this.markDirty();
     }
+    get kind(): 'organization' | 'community' {
+        return this._value.kind;
+    }
+    set kind(value: 'organization' | 'community') {
+        this._checkIsWritable();
+        if (value === this._value.kind) { return; }
+        this._value.kind = value;
+        this.markDirty();
+    }
+    get editorial(): boolean {
+        return this._value.editorial;
+    }
+    set editorial(value: boolean) {
+        this._checkIsWritable();
+        if (value === this._value.editorial) { return; }
+        this._value.editorial = value;
+        this.markDirty();
+    }
 }
 
 export class OrganizationFactory extends FEntityFactory<Organization> {
@@ -1777,6 +1797,8 @@ export class OrganizationFactory extends FEntityFactory<Organization> {
         fields: [
             { name: 'ownerId', type: 'number' },
             { name: 'status', type: 'enum', enumValues: ['pending', 'activated', 'suspended'] },
+            { name: 'kind', type: 'enum', enumValues: ['organization', 'community'] },
+            { name: 'editorial', type: 'boolean' },
         ],
         indexes: [
         ],
@@ -1789,12 +1811,16 @@ export class OrganizationFactory extends FEntityFactory<Organization> {
         validators.isNumber('ownerId', src.ownerId);
         validators.notNull('status', src.status);
         validators.isEnum('status', src.status, ['pending', 'activated', 'suspended']);
+        validators.notNull('kind', src.kind);
+        validators.isEnum('kind', src.kind, ['organization', 'community']);
+        validators.notNull('editorial', src.editorial);
+        validators.isBoolean('editorial', src.editorial);
     }
 
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'organization'),
-            { enableVersioning: false, enableTimestamps: false, validator: OrganizationFactory.validate, hasLiveStreams: false },
+            { enableVersioning: true, enableTimestamps: true, validator: OrganizationFactory.validate, hasLiveStreams: false },
             [],
             'Organization'
         );
@@ -1818,7 +1844,7 @@ export class OrganizationFactory extends FEntityFactory<Organization> {
 }
 export interface OrganizationProfileShape {
     name: string;
-    photo: any;
+    photo?: any| null;
     about?: string| null;
     twitter?: string| null;
     facebook?: string| null;
@@ -1837,10 +1863,12 @@ export class OrganizationProfile extends FEntity {
         this._value.name = value;
         this.markDirty();
     }
-    get photo(): any {
-        return this._value.photo;
+    get photo(): any | null {
+        let res = this._value.photo;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
     }
-    set photo(value: any) {
+    set photo(value: any | null) {
         this._checkIsWritable();
         if (value === this._value.photo) { return; }
         this._value.photo = value;
@@ -1928,7 +1956,6 @@ export class OrganizationProfileFactory extends FEntityFactory<OrganizationProfi
         validators.isNumber('id', src.id);
         validators.notNull('name', src.name);
         validators.isString('name', src.name);
-        validators.notNull('photo', src.photo);
         validators.isString('about', src.about);
         validators.isString('twitter', src.twitter);
         validators.isString('facebook', src.facebook);
@@ -1939,7 +1966,7 @@ export class OrganizationProfileFactory extends FEntityFactory<OrganizationProfi
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'organizationProfile'),
-            { enableVersioning: false, enableTimestamps: false, validator: OrganizationProfileFactory.validate, hasLiveStreams: false },
+            { enableVersioning: true, enableTimestamps: true, validator: OrganizationProfileFactory.validate, hasLiveStreams: false },
             [],
             'OrganizationProfile'
         );
@@ -1959,6 +1986,206 @@ export class OrganizationProfileFactory extends FEntityFactory<OrganizationProfi
     }
     protected _createEntity(value: any, isNew: boolean) {
         return new OrganizationProfile(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationProfile');
+    }
+}
+export interface OrganizationEditorialShape {
+    listed: boolean;
+    featured: boolean;
+}
+
+export class OrganizationEditorial extends FEntity {
+    get id(): number { return this._value.id; }
+    get listed(): boolean {
+        return this._value.listed;
+    }
+    set listed(value: boolean) {
+        this._checkIsWritable();
+        if (value === this._value.listed) { return; }
+        this._value.listed = value;
+        this.markDirty();
+    }
+    get featured(): boolean {
+        return this._value.featured;
+    }
+    set featured(value: boolean) {
+        this._checkIsWritable();
+        if (value === this._value.featured) { return; }
+        this._value.featured = value;
+        this.markDirty();
+    }
+}
+
+export class OrganizationEditorialFactory extends FEntityFactory<OrganizationEditorial> {
+    static schema: FEntitySchema = {
+        name: 'OrganizationEditorial',
+        editable: false,
+        primaryKeys: [
+            { name: 'id', type: 'number' },
+        ],
+        fields: [
+            { name: 'listed', type: 'boolean' },
+            { name: 'featured', type: 'boolean' },
+        ],
+        indexes: [
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isNumber('id', src.id);
+        validators.notNull('listed', src.listed);
+        validators.isBoolean('listed', src.listed);
+        validators.notNull('featured', src.featured);
+        validators.isBoolean('featured', src.featured);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'organizationEditorial'),
+            { enableVersioning: true, enableTimestamps: true, validator: OrganizationEditorialFactory.validate, hasLiveStreams: false },
+            [],
+            'OrganizationEditorial'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
+        return { 'id': rawId[0] };
+    }
+    async findById(id: number) {
+        return await this._findById([id]);
+    }
+    async create(id: number, shape: OrganizationEditorialShape) {
+        return await this._create([id], { id, ...shape });
+    }
+    watch(id: number, cb: () => void) {
+        return this._watch([id], cb);
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new OrganizationEditorial(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationEditorial');
+    }
+}
+export interface OrganizationMemberShape {
+    role: 'admin' | 'member';
+    status: 'requested' | 'joined' | 'left';
+}
+
+export class OrganizationMember extends FEntity {
+    get oid(): number { return this._value.oid; }
+    get uid(): number { return this._value.uid; }
+    get role(): 'admin' | 'member' {
+        return this._value.role;
+    }
+    set role(value: 'admin' | 'member') {
+        this._checkIsWritable();
+        if (value === this._value.role) { return; }
+        this._value.role = value;
+        this.markDirty();
+    }
+    get status(): 'requested' | 'joined' | 'left' {
+        return this._value.status;
+    }
+    set status(value: 'requested' | 'joined' | 'left') {
+        this._checkIsWritable();
+        if (value === this._value.status) { return; }
+        this._value.status = value;
+        this.markDirty();
+    }
+}
+
+export class OrganizationMemberFactory extends FEntityFactory<OrganizationMember> {
+    static schema: FEntitySchema = {
+        name: 'OrganizationMember',
+        editable: false,
+        primaryKeys: [
+            { name: 'oid', type: 'number' },
+            { name: 'uid', type: 'number' },
+        ],
+        fields: [
+            { name: 'role', type: 'enum', enumValues: ['admin', 'member'] },
+            { name: 'status', type: 'enum', enumValues: ['requested', 'joined', 'left'] },
+        ],
+        indexes: [
+            { name: 'organization', type: 'unique', fields: ['status', 'oid', 'uid'] },
+            { name: 'user', type: 'unique', fields: ['status', 'uid', 'oid'] },
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('oid', src.oid);
+        validators.isNumber('oid', src.oid);
+        validators.notNull('uid', src.uid);
+        validators.isNumber('uid', src.uid);
+        validators.notNull('role', src.role);
+        validators.isEnum('role', src.role, ['admin', 'member']);
+        validators.notNull('status', src.status);
+        validators.isEnum('status', src.status, ['requested', 'joined', 'left']);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'organizationMember'),
+            { enableVersioning: true, enableTimestamps: true, validator: OrganizationMemberFactory.validate, hasLiveStreams: false },
+            [new FEntityIndex('organization', ['status', 'oid', 'uid'], true), new FEntityIndex('user', ['status', 'uid', 'oid'], true)],
+            'OrganizationMember'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 2) { throw Error('Invalid key length!'); }
+        return { 'oid': rawId[0], 'uid': rawId[1] };
+    }
+    async findById(oid: number, uid: number) {
+        return await this._findById([oid, uid]);
+    }
+    async create(oid: number, uid: number, shape: OrganizationMemberShape) {
+        return await this._create([oid, uid], { oid, uid, ...shape });
+    }
+    watch(oid: number, uid: number, cb: () => void) {
+        return this._watch([oid, uid], cb);
+    }
+    async findFromOrganization(status: 'requested' | 'joined' | 'left', oid: number, uid: number) {
+        return await this._findFromIndex(['__indexes', 'organization', status, oid, uid]);
+    }
+    async allFromOrganizationAfter(status: 'requested' | 'joined' | 'left', oid: number, after: number) {
+        return await this._findRangeAllAfter(['__indexes', 'organization', status, oid], after);
+    }
+    async rangeFromOrganizationAfter(status: 'requested' | 'joined' | 'left', oid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(['__indexes', 'organization', status, oid], after, limit, reversed);
+    }
+    async rangeFromOrganization(status: 'requested' | 'joined' | 'left', oid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'organization', status, oid], limit, reversed);
+    }
+    async rangeFromOrganizationWithCursor(status: 'requested' | 'joined' | 'left', oid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'organization', status, oid], limit, after, reversed);
+    }
+    async allFromOrganization(status: 'requested' | 'joined' | 'left', oid: number) {
+        return await this._findAll(['__indexes', 'organization', status, oid]);
+    }
+    createOrganizationStream(status: 'requested' | 'joined' | 'left', oid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'organizationMember', '__indexes', 'organization', status, oid], limit, after); 
+    }
+    async findFromUser(status: 'requested' | 'joined' | 'left', uid: number, oid: number) {
+        return await this._findFromIndex(['__indexes', 'user', status, uid, oid]);
+    }
+    async allFromUserAfter(status: 'requested' | 'joined' | 'left', uid: number, after: number) {
+        return await this._findRangeAllAfter(['__indexes', 'user', status, uid], after);
+    }
+    async rangeFromUserAfter(status: 'requested' | 'joined' | 'left', uid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(['__indexes', 'user', status, uid], after, limit, reversed);
+    }
+    async rangeFromUser(status: 'requested' | 'joined' | 'left', uid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'user', status, uid], limit, reversed);
+    }
+    async rangeFromUserWithCursor(status: 'requested' | 'joined' | 'left', uid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'user', status, uid], limit, after, reversed);
+    }
+    async allFromUser(status: 'requested' | 'joined' | 'left', uid: number) {
+        return await this._findAll(['__indexes', 'user', status, uid]);
+    }
+    createUserStream(status: 'requested' | 'joined' | 'left', uid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'organizationMember', '__indexes', 'user', status, uid], limit, after); 
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new OrganizationMember(this.connection, this.namespace, this.directory, [value.oid, value.uid], value, this.options, isNew, this.indexes, 'OrganizationMember');
     }
 }
 export interface FeatureFlagShape {
@@ -4982,8 +5209,8 @@ export interface OrganizationInviteLinkShape {
     oid: number;
     email: string;
     uid: number;
-    firstName: string;
-    lastName: string;
+    firstName?: string| null;
+    lastName?: string| null;
     text?: string| null;
     ttl?: number| null;
     enabled: boolean;
@@ -5020,19 +5247,23 @@ export class OrganizationInviteLink extends FEntity {
         this._value.uid = value;
         this.markDirty();
     }
-    get firstName(): string {
-        return this._value.firstName;
+    get firstName(): string | null {
+        let res = this._value.firstName;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
     }
-    set firstName(value: string) {
+    set firstName(value: string | null) {
         this._checkIsWritable();
         if (value === this._value.firstName) { return; }
         this._value.firstName = value;
         this.markDirty();
     }
-    get lastName(): string {
-        return this._value.lastName;
+    get lastName(): string | null {
+        let res = this._value.lastName;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
     }
-    set lastName(value: string) {
+    set lastName(value: string | null) {
         this._checkIsWritable();
         if (value === this._value.lastName) { return; }
         this._value.lastName = value;
@@ -5110,7 +5341,6 @@ export class OrganizationInviteLinkFactory extends FEntityFactory<OrganizationIn
         ],
         indexes: [
             { name: 'organization', type: 'unique', fields: ['oid', 'id'] },
-            { name: 'email', type: 'unique', fields: ['email', 'id'] },
             { name: 'emailInOrganization', type: 'unique', fields: ['email', 'oid'] },
         ],
     };
@@ -5124,9 +5354,7 @@ export class OrganizationInviteLinkFactory extends FEntityFactory<OrganizationIn
         validators.isString('email', src.email);
         validators.notNull('uid', src.uid);
         validators.isNumber('uid', src.uid);
-        validators.notNull('firstName', src.firstName);
         validators.isString('firstName', src.firstName);
-        validators.notNull('lastName', src.lastName);
         validators.isString('lastName', src.lastName);
         validators.isString('text', src.text);
         validators.isNumber('ttl', src.ttl);
@@ -5142,7 +5370,7 @@ export class OrganizationInviteLinkFactory extends FEntityFactory<OrganizationIn
         super(connection,
             new FNamespace('entity', 'organizationInviteLink'),
             { enableVersioning: true, enableTimestamps: true, validator: OrganizationInviteLinkFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('organization', ['oid', 'id'], true, src => src.enabled), new FEntityIndex('email', ['email', 'id'], true, src => src.enabled), new FEntityIndex('emailInOrganization', ['email', 'oid'], true, src => src.enabled)],
+            [new FEntityIndex('organization', ['oid', 'id'], true, src => src.enabled), new FEntityIndex('emailInOrganization', ['email', 'oid'], true, src => src.enabled)],
             'OrganizationInviteLink'
         );
     }
@@ -5179,27 +5407,6 @@ export class OrganizationInviteLinkFactory extends FEntityFactory<OrganizationIn
     }
     createOrganizationStream(oid: number, limit: number, after?: string) {
         return this._createStream(['entity', 'organizationInviteLink', '__indexes', 'organization', oid], limit, after); 
-    }
-    async findFromEmail(email: string, id: string) {
-        return await this._findFromIndex(['__indexes', 'email', email, id]);
-    }
-    async allFromEmailAfter(email: string, after: string) {
-        return await this._findRangeAllAfter(['__indexes', 'email', email], after);
-    }
-    async rangeFromEmailAfter(email: string, after: string, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(['__indexes', 'email', email], after, limit, reversed);
-    }
-    async rangeFromEmail(email: string, limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'email', email], limit, reversed);
-    }
-    async rangeFromEmailWithCursor(email: string, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'email', email], limit, after, reversed);
-    }
-    async allFromEmail(email: string) {
-        return await this._findAll(['__indexes', 'email', email]);
-    }
-    createEmailStream(email: string, limit: number, after?: string) {
-        return this._createStream(['entity', 'organizationInviteLink', '__indexes', 'email', email], limit, after); 
     }
     async findFromEmailInOrganization(email: string, oid: number) {
         return await this._findFromIndex(['__indexes', 'emailInOrganization', email, oid]);
@@ -5243,6 +5450,8 @@ export class AllEntities extends FDBInstance {
         UserProfileFactory.schema,
         OrganizationFactory.schema,
         OrganizationProfileFactory.schema,
+        OrganizationEditorialFactory.schema,
+        OrganizationMemberFactory.schema,
         FeatureFlagFactory.schema,
         OrganizationFeaturesFactory.schema,
         ReaderStateFactory.schema,
@@ -5287,6 +5496,8 @@ export class AllEntities extends FDBInstance {
     UserProfile: UserProfileFactory;
     Organization: OrganizationFactory;
     OrganizationProfile: OrganizationProfileFactory;
+    OrganizationEditorial: OrganizationEditorialFactory;
+    OrganizationMember: OrganizationMemberFactory;
     FeatureFlag: FeatureFlagFactory;
     OrganizationFeatures: OrganizationFeaturesFactory;
     ReaderState: ReaderStateFactory;
@@ -5346,6 +5557,10 @@ export class AllEntities extends FDBInstance {
         this.allEntities.push(this.Organization);
         this.OrganizationProfile = new OrganizationProfileFactory(connection);
         this.allEntities.push(this.OrganizationProfile);
+        this.OrganizationEditorial = new OrganizationEditorialFactory(connection);
+        this.allEntities.push(this.OrganizationEditorial);
+        this.OrganizationMember = new OrganizationMemberFactory(connection);
+        this.allEntities.push(this.OrganizationMember);
         this.FeatureFlag = new FeatureFlagFactory(connection);
         this.allEntities.push(this.FeatureFlag);
         this.OrganizationFeatures = new OrganizationFeaturesFactory(connection);

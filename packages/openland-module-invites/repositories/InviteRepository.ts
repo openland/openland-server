@@ -57,10 +57,6 @@ export class InviteRepository {
         return this.entities.OrganizationInviteLink.allFromOrganization(orgId);
     }
 
-    public async getOrganizationInvitesForUser(orgId: number): Promise<OrganizationInviteLink[]> {
-        return this.entities.OrganizationInviteLink.allFromOrganization(orgId);
-    }
-
     public async getPublicOrganizationInvite(oid: number, uid: number): Promise<OrganizationPublicInviteLink> {
         return await inTx(async () => {
             let existing = await this.entities.OrganizationPublicInviteLink.findFromUserInOrganization(uid, oid);

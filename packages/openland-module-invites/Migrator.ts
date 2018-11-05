@@ -1,0 +1,51 @@
+import { UpdateReader } from 'openland-server/modules/updateReader';
+import { DB } from 'openland-server/tables';
+import { FDB } from 'openland-module-db/FDB';
+import { inTx } from 'foundation-orm/inTx';
+
+export function startMigrator() {
+    let reader = new UpdateReader('invites-import', 4, DB.OrganizationInvite);
+    reader.processor(async (items) => {
+        for (let i of items) {
+            await inTx(async () => {
+                if (i.type === 'for_member') {
+                    if (!i.isOneTime) {
+                        let ex = await FDB.OrganizationPublicInviteLink.findById(i.uuid);
+                        if (!ex) {
+                            let uid = i.creatorId;
+                            if (!uid) {
+                                let owner = await DB.OrganizationMember.find({ where: { isOwner: true, orgId: i.orgId } });
+                                if (owner) {
+                                    uid = owner.userId;
+                                }
+                            }
+                            if (uid) {
+                                let existing = await FDB.OrganizationPublicInviteLink.findFromUserInOrganization(uid, i.orgId);
+                                if (existing) {
+                                    existing.enabled = false;
+                                    await existing.flush();
+                                }
+                                await FDB.OrganizationPublicInviteLink.create(i.uuid, { oid: i.orgId, enabled: true, uid: uid });
+                            }
+                        }
+                    } else if (i.isOneTime && i.forEmail) {
+                        let ex = await FDB.OrganizationInviteLink.findById(i.uuid);
+                        if (!ex) {
+                            let ttl: number | undefined = undefined;
+                            ttl = (typeof i.ttl === 'number') ? i.ttl : undefined;
+                            let existing = await FDB.OrganizationInviteLink.findFromEmailInOrganization(i.forEmail, i.orgId);
+                            if (existing) {
+                                existing.enabled = false;
+                                await existing.flush();
+                            }
+                            await FDB.OrganizationInviteLink.create(i.uuid, { oid: i.orgId, email: i.forEmail, uid: i.creatorId, firstName: i.memberFirstName, lastName: i.memberLastName, text: i.emailText, enabled: true, joined: !!i.acceptedById, role: i.memberRole as any, ttl: ttl });
+                        }
+                    }
+
+                }
+
+            });
+        }
+    });
+    reader.start();
+}

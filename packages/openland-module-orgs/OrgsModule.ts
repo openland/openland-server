@@ -1,5 +1,10 @@
+import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
+import { startMigrations } from './Migrations';
+
 export class OrgsModule {
     start = () => {
-        // Nothing to do
+        if (serverRoleEnabled('workers')) {
+            startMigrations();
+        }
     }
 }

@@ -165,17 +165,46 @@ const Schema = declareSchema(() => {
         primaryKey('id', 'number');
         field('ownerId', 'number');
         enumField('status', ['pending', 'activated', 'suspended']);
+        enumField('kind', ['organization', 'community']);
+        field('editorial', 'boolean');
+        enableTimestamps();
+        enableVersioning();
     });
 
     entity('OrganizationProfile', () => {
         primaryKey('id', 'number');
         field('name', 'string');
-        field('photo', 'json');
+        field('photo', 'json').nullable();
         field('about', 'string').nullable();
         field('twitter', 'string').nullable();
         field('facebook', 'string').nullable();
         field('linkedin', 'string').nullable();
         field('website', 'string').nullable();
+        enableTimestamps();
+        enableVersioning();
+    });
+
+    entity('OrganizationEditorial', () => {
+        primaryKey('id', 'number');
+        field('listed', 'boolean');
+        field('featured', 'boolean');
+        enableTimestamps();
+        enableVersioning();
+    });
+
+    entity('OrganizationMember', () => {
+        primaryKey('oid', 'number');
+        primaryKey('uid', 'number');
+        enumField('role', ['admin', 'member']);
+        enumField('status', ['requested', 'joined', 'left']);
+
+        uniqueIndex('organization', ['status', 'oid', 'uid'])
+            .withRange();
+        uniqueIndex('user', ['status', 'uid', 'oid'])
+            .withRange();
+
+        enableTimestamps();
+        enableVersioning();
     });
 
     entity('FeatureFlag', () => {
@@ -485,15 +514,14 @@ const Schema = declareSchema(() => {
         field('oid', 'number');
         field('email', 'string');
         field('uid', 'number');
-        field('firstName', 'string');
-        field('lastName', 'string');
+        field('firstName', 'string').nullable();
+        field('lastName', 'string').nullable();
         field('text', 'string').nullable();
         field('ttl', 'number').nullable();
         field('enabled', 'boolean');
         field('joined', 'boolean');
         enumField('role', ['MEMBER', 'OWNER']);
         uniqueIndex('organization', ['oid', 'id']).withCondition(src => src.enabled);
-        uniqueIndex('email', ['email', 'id']).withCondition(src => src.enabled);
         uniqueIndex('emailInOrganization', ['email', 'oid']).withCondition(src => src.enabled);
         enableVersioning();
         enableTimestamps();
