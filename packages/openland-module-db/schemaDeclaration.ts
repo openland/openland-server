@@ -514,8 +514,8 @@ const Schema = declareSchema(() => {
         field('oid', 'number');
         field('email', 'string');
         field('uid', 'number');
-        field('firstName', 'string');
-        field('lastName', 'string');
+        field('firstName', 'string').nullable();
+        field('lastName', 'string').nullable();
         field('text', 'string').nullable();
         field('ttl', 'number').nullable();
         field('enabled', 'boolean');

@@ -23,7 +23,7 @@ export const Resolver = {
         alphaInviteInfo: withAny<{ key: string }>(async (args, context: CallContext) => {
             let orgInvite = await Modules.Invites.repo.getOrganizationInviteNonJoined(args.key);
             let publicOrginvite = await Modules.Invites.repo.getPublicOrganizationInviteByKey(args.key);
-            let invite: { oid: number, uid: number, ttl?: number | null, role?: string, joined?: boolean, email?: string, firstName?: string } | null = orgInvite || publicOrginvite;
+            let invite: { oid: number, uid: number, ttl?: number | null, role?: string, joined?: boolean, email?: string, firstName?: string | null } | null = orgInvite || publicOrginvite;
             if (!invite) {
                 return null;
             }
