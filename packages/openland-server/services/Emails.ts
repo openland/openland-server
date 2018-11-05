@@ -3,6 +3,7 @@ import { DB } from '../tables';
 import { Repos } from '../repositories';
 import { OrganizationInvite } from '../tables/OrganizationInvite';
 import { Modules } from 'openland-modules/Modules';
+import { OrganizationInviteLink } from 'openland-module-db/schema';
 
 const TEMPLATE_WELCOME = 'c6a056a3-9d56-4b2e-8d50-7748dd28a1fb';
 const TEMPLATE_ACTIVATEED = 'e5b1d39d-35e9-4eba-ac4a-e0676b055346';
@@ -172,20 +173,20 @@ export const Emails = {
         });
     },
 
-    async sendInviteEmail(oid: number, invite: OrganizationInvite, tx: Transaction) {
-        let org = await DB.Organization.findById(oid, { transaction: tx });
+    async sendInviteEmail(oid: number, invite: OrganizationInviteLink) {
+        let org = await DB.Organization.findById(oid);
         if (!org) {
             throw Error('Unable to find organization');
         }
 
         let userWelcome = {
-            'userWelcome': invite.memberFirstName ? 'Hi, ' + invite.memberFirstName : 'Hi',
-            'userName': [invite.memberFirstName, invite.memberLastName].filter((v) => v).join(' '),
-            'userFirstName': invite.memberFirstName || '',
-            'userLastName': invite.memberLastName || ''
+            'userWelcome': invite.firstName ? 'Hi, ' + invite.firstName : 'Hi',
+            'userName': [invite.firstName, invite.lastName].filter((v) => v).join(' '),
+            'userFirstName': invite.firstName || '',
+            'userLastName': invite.lastName || ''
         };
 
-        let profile = await Modules.Users.profileById(invite.creatorId);
+        let profile = await Modules.Users.profileById(invite.uid);
 
         if (!profile) {
             throw Error('Internal inconsistency');
@@ -196,13 +197,13 @@ export const Emails = {
         await Modules.Email.Worker.pushWork({
             subject: `Join ${org.name!} at Openland`,
             templateId: TEMPLATE_INVITE,
-            to: invite.forEmail,
+            to: invite.email,
             args: {
                 firstName: profile.firstName || '',
                 lastName: profile.lastName || '',
-                customText: invite.emailText || '',
-                inviteLink: domain + invite.uuid,
-                link: domain + invite.uuid,
+                customText: invite.text || '',
+                inviteLink: domain + invite.id,
+                link: domain + invite.id,
                 organizationName: org.name!!,
                 ...userWelcome
             }
