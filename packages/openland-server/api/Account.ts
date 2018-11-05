@@ -3,46 +3,45 @@ import { CallContext } from './utils/CallContext';
 import { withUser, withAny, withAccount } from './utils/Resolvers';
 import { Repos } from '../repositories';
 import { IDs } from './utils/IDs';
-import { OrganizationInvite } from '../tables/OrganizationInvite';
-import { randomKey } from '../utils/random';
 import { buildBaseImageUrl, ImageRef } from '../repositories/Media';
 import { NotFoundError } from '../errors/NotFoundError';
 import { ErrorText } from '../errors/ErrorText';
-import { Hooks } from '../repositories/Hooks';
 import { Modules } from 'openland-modules/Modules';
 import { inTx } from 'foundation-orm/inTx';
+import { OrganizationInviteLink, OrganizationPublicInviteLink } from 'openland-module-db/schema';
 
 export const Resolver = {
     Invite: {
-        id: (src: OrganizationInvite) => IDs.Invite.serialize(src.id),
-        key: (src: OrganizationInvite) => src.uuid,
-        ttl: (src: OrganizationInvite) => String(src.ttl)
+        id: (src: OrganizationInviteLink | OrganizationPublicInviteLink) => src.id,
+        key: (src: OrganizationInviteLink | OrganizationPublicInviteLink) => src.id,
+        ttl: (src: OrganizationInviteLink | OrganizationPublicInviteLink) => String((src as any).ttl)
     },
     Query: {
         alphaInvites: withUser(async (args, uid) => {
-            return await DB.OrganizationInvite.findAll({ where: { creatorId: uid } });
+            return [];
         }),
         alphaInviteInfo: withAny<{ key: string }>(async (args, context: CallContext) => {
-            let invite = await DB.OrganizationInvite.find({ where: { uuid: args.key, acceptedById: null } });
+            let orgInvite = await Modules.Invites.repo.getOrganizationInviteNonJoined(args.key);
+            let publicOrginvite = await Modules.Invites.repo.getPublicOrganizationInviteByKey(args.key);
+            let invite: { oid: number, uid: number, ttl?: number | null, role?: string, joined?: boolean, email?: string, firstName?: string } | null = orgInvite || publicOrginvite;
             if (!invite) {
                 return null;
             }
-            let org = await DB.Organization.findById(invite.orgId);
+            let org = await DB.Organization.findById(invite.oid);
             if (!org) {
                 return null;
             }
-            let joined = invite.acceptedById !== null;
             return {
-                id: IDs.InviteInfo.serialize(invite.id),
+                id: args.key,
                 key: args.key,
                 orgId: IDs.Organization.serialize(org.id!!),
                 title: org.name,
                 photo: org.photo ? buildBaseImageUrl(org.photo) : null,
                 photoRef: org.photo,
-                joined: joined,
-                creator: invite.creatorId ? await DB.User.findOne({ where: { id: invite.creatorId } }) : null,
-                forEmail: invite.forEmail,
-                forName: invite.memberFirstName,
+                joined: !!invite.joined,
+                creator: invite.uid ? await DB.User.findOne({ where: { id: invite.uid } }) : null,
+                forEmail: invite.email,
+                forName: invite.firstName,
             };
         }),
         appInviteInfo: withAny<{ key: string }>(async (args, context: CallContext) => {
@@ -73,15 +72,17 @@ export const Resolver = {
         alphaAppInvite: withUser(async (args, uid) => {
             return await Modules.Invites.repo.getInviteLinkKey(uid);
         }),
+        // deperecated
         alphaInvitesHistory: withUser(async (args, uid) => {
-            let invites = await DB.OrganizationInvite.findAll({ where: { creatorId: uid, isOneTime: true }, order: [['createdAt', 'DESC']] });
-            return invites.map(async (invite) => {
-                return ({
-                    acceptedBy: invite.acceptedById ? await DB.User.findOne({ where: { id: invite.acceptedById } }) : null,
-                    forEmail: invite.forEmail,
-                    isGlobal: invite.type === 'for_organization',
-                });
-            });
+            // let invites = await DB.OrganizationInvite.findAll({ where: { creatorId: uid, isOneTime: true }, order: [['createdAt', 'DESC']] });
+            // return invites.map(async (invite) => {
+            //     return ({
+            //         acceptedBy: invite.acceptedById ? await DB.User.findOne({ where: { id: invite.acceptedById } }) : null,
+            //         forEmail: invite.forEmail,
+            //         isGlobal: invite.type === 'for_organization',
+            //     });
+            // });
+            return [];
         }),
         sessionState: async function (_: any, args: {}, context: CallContext) {
 
@@ -154,99 +155,58 @@ export const Resolver = {
     Mutation: {
         alphaJoinInvite: withUser<{ key: string }>(async (args, uid) => {
             return await DB.txStable(async (tx) => {
-                let invite = await DB.OrganizationInvite.find({
-                    where: {
-                        uuid: args.key,
-                        type: 'for_member',
-                        acceptedById: null
-                    },
-                    lock: tx.LOCK.UPDATE,
-                    transaction: tx
-                });
-
-                if (!invite) {
-                    throw new NotFoundError(ErrorText.unableToFindInvite);
-                }
-                let existing = await DB.OrganizationMember.find({
-                    where: {
-                        userId: uid,
-                        orgId: invite.orgId
-                    },
-                    lock: tx.LOCK.UPDATE,
-                    transaction: tx
-                });
-                if (existing) {
-                    return IDs.Organization.serialize(invite.orgId);
-                }
-
-                if (invite.ttl && (new Date().getTime() >= invite.ttl)) {
-                    await invite.destroy({ transaction: tx });
-                    throw new NotFoundError(ErrorText.unableToFindInvite);
-                }
-                if (invite.isOneTime) {
-                    await DB.OrganizationMember.create({
-                        userId: uid,
-                        orgId: invite.orgId,
-                        isOwner: invite.memberRole === 'OWNER',
-                        invitedBy: invite.creatorId
-                    }, { transaction: tx });
-
-                    invite.acceptedById = uid;
-                    await invite.save({ transaction: tx });
-                } else {
-                    await DB.OrganizationMember.create({
-                        userId: uid,
-                        orgId: invite.orgId,
-                        isOwner: false,
-                        invitedBy: invite.creatorId
-                    }, { transaction: tx });
-                }
-
-                // make organization primary if none
                 await inTx(async () => {
+                    let orgInvite = await Modules.Invites.repo.getOrganizationInviteNonJoined(args.key);
+                    let publicOrginvite = await Modules.Invites.repo.getPublicOrganizationInviteByKey(args.key);
+                    let invite: { oid: number, uid: number, ttl?: number | null, role?: string } | null = orgInvite || publicOrginvite;
+
+                    if (!invite) {
+                        throw new NotFoundError(ErrorText.unableToFindInvite);
+                    }
+                    let existing = await DB.OrganizationMember.find({
+                        where: {
+                            userId: uid,
+                            orgId: invite.oid
+                        },
+                        lock: tx.LOCK.UPDATE,
+                        transaction: tx
+                    });
+                    if (existing) {
+                        return IDs.Organization.serialize(invite.oid);
+                    }
+
+                    if (invite.ttl && (new Date().getTime() >= invite.ttl)) {
+                        throw new NotFoundError(ErrorText.unableToFindInvite);
+                    }
+                    await DB.OrganizationMember.create({
+                        userId: uid,
+                        orgId: invite.oid,
+                        isOwner: invite.role === 'OWNER',
+                        invitedBy: invite.uid
+                    }, { transaction: tx });
+
+                    // make organization primary if none
                     let profile = (await Modules.Users.profileById(uid));
                     if (profile && !profile.primaryOrganization) {
-                        profile.primaryOrganization = invite!!.orgId;
+                        profile.primaryOrganization = invite!.oid;
                     }
+
+                    let user = (await DB.User.findById(uid, { transaction: tx }))!;
+                    // User set invitedBy if none
+                    user.invitedBy = user.invitedBy === undefined ? invite.uid : user.invitedBy;
+                    user.status = 'ACTIVATED';
+                    await user.save({ transaction: tx });
+
+                    await Repos.Chats.addToInitialChannel(user.id!, tx);
+
+                    // invalidate invite
+                    if (orgInvite) {
+                        orgInvite.joined = true;
+                    }
+                    return IDs.Organization.serialize(invite.oid);
+
                 });
 
-                // User set invitedBy if none
-                if (invite.creatorId) {
-                    let user = await DB.User.find({
-                        where: {
-                            id: uid,
-                            invitedBy: null
-                        },
-                        lock: tx.LOCK.UPDATE,
-                        transaction: tx
-                    });
-                    if (user) {
-                        user.invitedBy = invite.creatorId;
-                        await user.save({ transaction: tx });
-                    }
-                }
-
-                await Hooks.onUserJoined(uid, invite.orgId, tx);
-                // Activate user if organizaton is ACTIVATED
-                let organization = await DB.Organization.find({ where: { id: invite.orgId }, transaction: tx });
-                if (organization && organization.status === 'ACTIVATED') {
-                    let user = await DB.User.find({
-                        where: {
-                            id: uid
-                        },
-                        lock: tx.LOCK.UPDATE,
-                        transaction: tx
-                    });
-                    if (user) {
-                        user.status = 'ACTIVATED';
-                        await user.save({ transaction: tx });
-
-                        await Repos.Chats.addToInitialChannel(user.id!, tx);
-
-                    }
-                }
-
-                return IDs.Organization.serialize(invite.orgId);
             });
         }),
         joinAppInvite: withAny<{ key: string }>(async (args, context) => {
@@ -275,126 +235,24 @@ export const Resolver = {
             });
         }),
 
-        // depricated. todo: delete
-        alphaJoinGlobalInvite: withAny<{ key: string }>(async (args, context) => {
-            let uid = context.uid;
-            if (uid === undefined) {
-                return;
-            }
-
-            return await DB.txStable(async (tx) => {
-
-                let inviteData = await Modules.Invites.repo.getInvteLinkData(args.key);
-                if (inviteData) {
-                    let user = (await DB.User.findById(uid, { transaction: tx, lock: tx.LOCK.UPDATE }))!;
-                    // activate user, set invited by
-                    user.invitedBy = inviteData.uid;
-                    user.status = 'ACTIVATED';
-                    await user.save({ transaction: tx });
-                    await Repos.Chats.addToInitialChannel(user.id!, tx);
-
-                    // activate user org if have one
-                    let org = context.oid ? (await DB.Organization.findById(context.oid, { transaction: tx, lock: tx.LOCK.UPDATE })) : undefined;
-                    if (org) {
-                        org.status = 'ACTIVATED';
-                        await org.save({ transaction: tx });
-                    }
-
-                    return 'ok';
-                } else {
-                    // todo: enable after drop depricated
-                    // throw new NotFoundError(ErrorText.unableToFindInvite);
-                }
-
-                //
-                // DEPRICATED
-                // 
-
-                let invite = await DB.OrganizationInvite.find({
-                    where: {
-                        uuid: args.key,
-                        type: 'for_organization',
-                        acceptedById: null
-                    },
-                    lock: tx.LOCK.UPDATE,
-                    transaction: tx
-                });
-
-                if (!invite) {
-                    throw new NotFoundError(ErrorText.unableToFindInvite);
-                }
-
-                // User set invitedBy if none
-                if (invite.creatorId) {
-                    let user = await DB.User.find({
-                        where: {
-                            id: uid,
-                            invitedBy: null
-                        },
-                        lock: tx.LOCK.UPDATE,
-                        transaction: tx
-                    });
-                    if (user) {
-                        user.invitedBy = invite.creatorId;
-                        await user.save({ transaction: tx });
-                    }
-                }
-
-                let organization = await DB.Organization.find({ where: { id: invite.orgId }, transaction: tx });
-                if (organization && organization.status === 'ACTIVATED') {
-                    let user = await DB.User.find({
-                        where: {
-                            id: uid
-                        },
-                        lock: tx.LOCK.UPDATE,
-                        transaction: tx
-                    });
-                    if (user) {
-                        user.status = 'ACTIVATED';
-                        await user.save({ transaction: tx });
-                        await Repos.Chats.addToInitialChannel(user.id!, tx);
-
-                    }
-                }
-
-                if (context.oid !== undefined) {
-                    // Activate organization
-                    let org = await DB.Organization.find({
-                        where: {
-                            id: context.oid
-                        },
-                        lock: tx.LOCK.UPDATE,
-                        transaction: tx
-                    });
-                    if (org) {
-                        org.status = 'ACTIVATED';
-                        await org.save({ transaction: tx });
-                    }
-                }
-
-                if (invite.isOneTime === true) {
-                    invite.acceptedById = uid!;
-                    await invite.save({ transaction: tx });
-                }
-
-                return 'ok';
-            });
-        }),
+        // deperecated
         alphaCreateInvite: withAccount(async (args, uid, oid) => {
-            return await DB.OrganizationInvite.create({
-                uuid: randomKey(),
-                orgId: oid,
-                creatorId: uid
-            });
+            // return await DB.OrganizationInvite.create({
+            //     uuid: randomKey(),
+            //     orgId: oid,
+            //     creatorId: uid
+            // });
         }),
+
+        // deperecated
         alphaDeleteInvite: withAccount<{ id: string }>(async (args, uid, oid) => {
-            await DB.OrganizationInvite.destroy({
-                where: {
-                    orgId: oid,
-                    id: IDs.Invite.parse(args.id)
-                }
-            });
-            return 'ok';
+            // await DB.OrganizationInvite.destroy({
+            //     where: {
+            //         orgId: oid,
+            //         id: IDs.Invite.parse(args.id)
+            //     }
+            // });
+            // return 'ok';
         }),
         alphaCreateUserProfileAndOrganization: withUser<{
             user: {

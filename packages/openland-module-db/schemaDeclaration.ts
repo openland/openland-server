@@ -469,6 +469,36 @@ const Schema = declareSchema(() => {
         enableVersioning();
         enableTimestamps();
     });
+
+    entity('OrganizationPublicInviteLink', () => {
+        primaryKey('id', 'string');
+        field('uid', 'number');
+        field('oid', 'number');
+        field('enabled', 'boolean');
+        uniqueIndex('userInOrganization', ['uid', 'oid']).withCondition(src => src.enabled);
+        enableVersioning();
+        enableTimestamps();
+    });
+
+    entity('OrganizationInviteLink', () => {
+        primaryKey('id', 'string');
+        field('oid', 'number');
+        field('email', 'string');
+        field('uid', 'number');
+        field('firstName', 'string');
+        field('lastName', 'string');
+        field('text', 'string').nullable();
+        field('ttl', 'number').nullable();
+        field('enabled', 'boolean');
+        field('joined', 'boolean');
+        enumField('role', ['MEMBER', 'OWNER']);
+        uniqueIndex('organization', ['oid', 'id']).withCondition(src => src.enabled);
+        uniqueIndex('email', ['email', 'id']).withCondition(src => src.enabled);
+        uniqueIndex('emailInOrganization', ['email', 'oid']).withCondition(src => src.enabled);
+        enableVersioning();
+        enableTimestamps();
+    });
+
 });
 
 generate(Schema, __dirname + '/../openland-module-db/schema.ts');
