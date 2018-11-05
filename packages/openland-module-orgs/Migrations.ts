@@ -4,10 +4,18 @@ import { FDB } from 'openland-module-db/FDB';
 import { inTx } from 'foundation-orm/inTx';
 
 export function startMigrations() {
-    let reader = new UpdateReader('orgs-exporter', 1, DB.Organization);
+    let reader = new UpdateReader('orgs-exporter', 2, DB.Organization);
     reader.processor(async (items) => {
         for (let i of items) {
-            inTx(async () => {
+            await inTx(async () => {
+
+                // id sequence
+                let c = await FDB.Sequence.findById('org-id');
+                if (!c) {
+                    c = await FDB.Sequence.create('org-id', { value: 0 });
+                    await c.flush();
+                }
+                c.value = Math.max(c.value, i.id!);
 
                 // Organization object
                 let ex = await FDB.Organization.findById(i.id!);
@@ -60,4 +68,17 @@ export function startMigrations() {
         }
     });
     reader.start();
+
+    // let reader2 = new UpdateReader('orgs-members-exporter', 1, DB.OrganizationMember);
+    // reader2.processor(async (items) => {
+    //     for (let i of items) {
+    //         await inTx(async () => {
+    //             let memb = await FDB.OrganizationMember.findById(i.id!);
+    //             if (memb) {
+                    
+    //             }
+    //         });
+    //     }
+    // });
+    // reader2.start();
 }
