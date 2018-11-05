@@ -193,14 +193,16 @@ const Schema = declareSchema(() => {
     });
 
     entity('OrganizationMember', () => {
-        primaryKey('id', 'number');
-        field('uid', 'number');
-        field('oid', 'number');
+        primaryKey('oid', 'number');
+        primaryKey('uid', 'number');
         enumField('role', ['admin', 'member']);
-        uniqueIndex('organization', ['oid', 'uid'])
+        enumField('status', ['requested', 'joined', 'left']);
+
+        uniqueIndex('organization', ['status', 'oid', 'uid'])
             .withRange();
-        uniqueIndex('user', ['uid', 'oid'])
+        uniqueIndex('user', ['status', 'uid', 'oid'])
             .withRange();
+
         enableTimestamps();
         enableVersioning();
     });

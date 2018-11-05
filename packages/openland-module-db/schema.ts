@@ -2065,31 +2065,13 @@ export class OrganizationEditorialFactory extends FEntityFactory<OrganizationEdi
     }
 }
 export interface OrganizationMemberShape {
-    uid: number;
-    oid: number;
     role: 'admin' | 'member';
+    status: 'requested' | 'joined' | 'left';
 }
 
 export class OrganizationMember extends FEntity {
-    get id(): number { return this._value.id; }
-    get uid(): number {
-        return this._value.uid;
-    }
-    set uid(value: number) {
-        this._checkIsWritable();
-        if (value === this._value.uid) { return; }
-        this._value.uid = value;
-        this.markDirty();
-    }
-    get oid(): number {
-        return this._value.oid;
-    }
-    set oid(value: number) {
-        this._checkIsWritable();
-        if (value === this._value.oid) { return; }
-        this._value.oid = value;
-        this.markDirty();
-    }
+    get oid(): number { return this._value.oid; }
+    get uid(): number { return this._value.uid; }
     get role(): 'admin' | 'member' {
         return this._value.role;
     }
@@ -2099,6 +2081,15 @@ export class OrganizationMember extends FEntity {
         this._value.role = value;
         this.markDirty();
     }
+    get status(): 'requested' | 'joined' | 'left' {
+        return this._value.status;
+    }
+    set status(value: 'requested' | 'joined' | 'left') {
+        this._checkIsWritable();
+        if (value === this._value.status) { return; }
+        this._value.status = value;
+        this.markDirty();
+    }
 }
 
 export class OrganizationMemberFactory extends FEntityFactory<OrganizationMember> {
@@ -2106,95 +2097,95 @@ export class OrganizationMemberFactory extends FEntityFactory<OrganizationMember
         name: 'OrganizationMember',
         editable: false,
         primaryKeys: [
-            { name: 'id', type: 'number' },
+            { name: 'oid', type: 'number' },
+            { name: 'uid', type: 'number' },
         ],
         fields: [
-            { name: 'uid', type: 'number' },
-            { name: 'oid', type: 'number' },
             { name: 'role', type: 'enum', enumValues: ['admin', 'member'] },
+            { name: 'status', type: 'enum', enumValues: ['requested', 'joined', 'left'] },
         ],
         indexes: [
-            { name: 'organization', type: 'unique', fields: ['oid', 'uid'] },
-            { name: 'user', type: 'unique', fields: ['uid', 'oid'] },
+            { name: 'organization', type: 'unique', fields: ['status', 'oid', 'uid'] },
+            { name: 'user', type: 'unique', fields: ['status', 'uid', 'oid'] },
         ],
     };
 
     private static validate(src: any) {
-        validators.notNull('id', src.id);
-        validators.isNumber('id', src.id);
-        validators.notNull('uid', src.uid);
-        validators.isNumber('uid', src.uid);
         validators.notNull('oid', src.oid);
         validators.isNumber('oid', src.oid);
+        validators.notNull('uid', src.uid);
+        validators.isNumber('uid', src.uid);
         validators.notNull('role', src.role);
         validators.isEnum('role', src.role, ['admin', 'member']);
+        validators.notNull('status', src.status);
+        validators.isEnum('status', src.status, ['requested', 'joined', 'left']);
     }
 
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'organizationMember'),
             { enableVersioning: true, enableTimestamps: true, validator: OrganizationMemberFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('organization', ['oid', 'uid'], true), new FEntityIndex('user', ['uid', 'oid'], true)],
+            [new FEntityIndex('organization', ['status', 'oid', 'uid'], true), new FEntityIndex('user', ['status', 'uid', 'oid'], true)],
             'OrganizationMember'
         );
     }
     extractId(rawId: any[]) {
-        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
-        return { 'id': rawId[0] };
+        if (rawId.length !== 2) { throw Error('Invalid key length!'); }
+        return { 'oid': rawId[0], 'uid': rawId[1] };
     }
-    async findById(id: number) {
-        return await this._findById([id]);
+    async findById(oid: number, uid: number) {
+        return await this._findById([oid, uid]);
     }
-    async create(id: number, shape: OrganizationMemberShape) {
-        return await this._create([id], { id, ...shape });
+    async create(oid: number, uid: number, shape: OrganizationMemberShape) {
+        return await this._create([oid, uid], { oid, uid, ...shape });
     }
-    watch(id: number, cb: () => void) {
-        return this._watch([id], cb);
+    watch(oid: number, uid: number, cb: () => void) {
+        return this._watch([oid, uid], cb);
     }
-    async findFromOrganization(oid: number, uid: number) {
-        return await this._findFromIndex(['__indexes', 'organization', oid, uid]);
+    async findFromOrganization(status: 'requested' | 'joined' | 'left', oid: number, uid: number) {
+        return await this._findFromIndex(['__indexes', 'organization', status, oid, uid]);
     }
-    async allFromOrganizationAfter(oid: number, after: number) {
-        return await this._findRangeAllAfter(['__indexes', 'organization', oid], after);
+    async allFromOrganizationAfter(status: 'requested' | 'joined' | 'left', oid: number, after: number) {
+        return await this._findRangeAllAfter(['__indexes', 'organization', status, oid], after);
     }
-    async rangeFromOrganizationAfter(oid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(['__indexes', 'organization', oid], after, limit, reversed);
+    async rangeFromOrganizationAfter(status: 'requested' | 'joined' | 'left', oid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(['__indexes', 'organization', status, oid], after, limit, reversed);
     }
-    async rangeFromOrganization(oid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'organization', oid], limit, reversed);
+    async rangeFromOrganization(status: 'requested' | 'joined' | 'left', oid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'organization', status, oid], limit, reversed);
     }
-    async rangeFromOrganizationWithCursor(oid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'organization', oid], limit, after, reversed);
+    async rangeFromOrganizationWithCursor(status: 'requested' | 'joined' | 'left', oid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'organization', status, oid], limit, after, reversed);
     }
-    async allFromOrganization(oid: number) {
-        return await this._findAll(['__indexes', 'organization', oid]);
+    async allFromOrganization(status: 'requested' | 'joined' | 'left', oid: number) {
+        return await this._findAll(['__indexes', 'organization', status, oid]);
     }
-    createOrganizationStream(oid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'organizationMember', '__indexes', 'organization', oid], limit, after); 
+    createOrganizationStream(status: 'requested' | 'joined' | 'left', oid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'organizationMember', '__indexes', 'organization', status, oid], limit, after); 
     }
-    async findFromUser(uid: number, oid: number) {
-        return await this._findFromIndex(['__indexes', 'user', uid, oid]);
+    async findFromUser(status: 'requested' | 'joined' | 'left', uid: number, oid: number) {
+        return await this._findFromIndex(['__indexes', 'user', status, uid, oid]);
     }
-    async allFromUserAfter(uid: number, after: number) {
-        return await this._findRangeAllAfter(['__indexes', 'user', uid], after);
+    async allFromUserAfter(status: 'requested' | 'joined' | 'left', uid: number, after: number) {
+        return await this._findRangeAllAfter(['__indexes', 'user', status, uid], after);
     }
-    async rangeFromUserAfter(uid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(['__indexes', 'user', uid], after, limit, reversed);
+    async rangeFromUserAfter(status: 'requested' | 'joined' | 'left', uid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(['__indexes', 'user', status, uid], after, limit, reversed);
     }
-    async rangeFromUser(uid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'user', uid], limit, reversed);
+    async rangeFromUser(status: 'requested' | 'joined' | 'left', uid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'user', status, uid], limit, reversed);
     }
-    async rangeFromUserWithCursor(uid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'user', uid], limit, after, reversed);
+    async rangeFromUserWithCursor(status: 'requested' | 'joined' | 'left', uid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'user', status, uid], limit, after, reversed);
     }
-    async allFromUser(uid: number) {
-        return await this._findAll(['__indexes', 'user', uid]);
+    async allFromUser(status: 'requested' | 'joined' | 'left', uid: number) {
+        return await this._findAll(['__indexes', 'user', status, uid]);
     }
-    createUserStream(uid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'organizationMember', '__indexes', 'user', uid], limit, after); 
+    createUserStream(status: 'requested' | 'joined' | 'left', uid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'organizationMember', '__indexes', 'user', status, uid], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new OrganizationMember(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationMember');
+        return new OrganizationMember(this.connection, this.namespace, this.directory, [value.oid, value.uid], value, this.options, isNew, this.indexes, 'OrganizationMember');
     }
 }
 export interface FeatureFlagShape {
