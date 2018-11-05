@@ -20,6 +20,11 @@ export function startMigrator() {
                                 }
                             }
                             if (uid) {
+                                let existing = await FDB.OrganizationPublicInviteLink.findFromUserInOrganization(uid, i.orgId);
+                                if (existing) {
+                                    existing.enabled = false;
+                                    await existing.flush();
+                                }
                                 await FDB.OrganizationPublicInviteLink.create(i.uuid, { oid: i.orgId, enabled: true, uid: uid });
                             }
                         }

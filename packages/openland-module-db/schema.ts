@@ -5341,7 +5341,6 @@ export class OrganizationInviteLinkFactory extends FEntityFactory<OrganizationIn
         ],
         indexes: [
             { name: 'organization', type: 'unique', fields: ['oid', 'id'] },
-            { name: 'email', type: 'unique', fields: ['email', 'id'] },
             { name: 'emailInOrganization', type: 'unique', fields: ['email', 'oid'] },
         ],
     };
@@ -5371,7 +5370,7 @@ export class OrganizationInviteLinkFactory extends FEntityFactory<OrganizationIn
         super(connection,
             new FNamespace('entity', 'organizationInviteLink'),
             { enableVersioning: true, enableTimestamps: true, validator: OrganizationInviteLinkFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('organization', ['oid', 'id'], true, src => src.enabled), new FEntityIndex('email', ['email', 'id'], true, src => src.enabled), new FEntityIndex('emailInOrganization', ['email', 'oid'], true, src => src.enabled)],
+            [new FEntityIndex('organization', ['oid', 'id'], true, src => src.enabled), new FEntityIndex('emailInOrganization', ['email', 'oid'], true, src => src.enabled)],
             'OrganizationInviteLink'
         );
     }
@@ -5408,27 +5407,6 @@ export class OrganizationInviteLinkFactory extends FEntityFactory<OrganizationIn
     }
     createOrganizationStream(oid: number, limit: number, after?: string) {
         return this._createStream(['entity', 'organizationInviteLink', '__indexes', 'organization', oid], limit, after); 
-    }
-    async findFromEmail(email: string, id: string) {
-        return await this._findFromIndex(['__indexes', 'email', email, id]);
-    }
-    async allFromEmailAfter(email: string, after: string) {
-        return await this._findRangeAllAfter(['__indexes', 'email', email], after);
-    }
-    async rangeFromEmailAfter(email: string, after: string, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(['__indexes', 'email', email], after, limit, reversed);
-    }
-    async rangeFromEmail(email: string, limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'email', email], limit, reversed);
-    }
-    async rangeFromEmailWithCursor(email: string, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'email', email], limit, after, reversed);
-    }
-    async allFromEmail(email: string) {
-        return await this._findAll(['__indexes', 'email', email]);
-    }
-    createEmailStream(email: string, limit: number, after?: string) {
-        return this._createStream(['entity', 'organizationInviteLink', '__indexes', 'email', email], limit, after); 
     }
     async findFromEmailInOrganization(email: string, oid: number) {
         return await this._findFromIndex(['__indexes', 'emailInOrganization', email, oid]);

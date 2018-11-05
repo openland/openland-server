@@ -522,7 +522,6 @@ const Schema = declareSchema(() => {
         field('joined', 'boolean');
         enumField('role', ['MEMBER', 'OWNER']);
         uniqueIndex('organization', ['oid', 'id']).withCondition(src => src.enabled);
-        uniqueIndex('email', ['email', 'id']).withCondition(src => src.enabled);
         uniqueIndex('emailInOrganization', ['email', 'oid']).withCondition(src => src.enabled);
         enableVersioning();
         enableTimestamps();
