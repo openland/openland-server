@@ -4,7 +4,7 @@ import { FDB } from 'openland-module-db/FDB';
 import { inTx } from 'foundation-orm/inTx';
 
 export function startMigrator() {
-    let reader = new UpdateReader('invites-import', 2, DB.OrganizationInvite);
+    let reader = new UpdateReader('invites-import', 3, DB.OrganizationInvite);
     reader.processor(async (items) => {
         for (let i of items) {
             await inTx(async () => {
