@@ -3,18 +3,18 @@ import { CallContext } from './utils/CallContext';
 import { withUser, withAny, withAccount } from './utils/Resolvers';
 import { Repos } from '../repositories';
 import { IDs } from './utils/IDs';
-import { OrganizationInvite } from '../tables/OrganizationInvite';
 import { buildBaseImageUrl, ImageRef } from '../repositories/Media';
 import { NotFoundError } from '../errors/NotFoundError';
 import { ErrorText } from '../errors/ErrorText';
 import { Modules } from 'openland-modules/Modules';
 import { inTx } from 'foundation-orm/inTx';
+import { OrganizationInviteLink, OrganizationPublicInviteLink } from 'openland-module-db/schema';
 
 export const Resolver = {
     Invite: {
-        id: (src: OrganizationInvite) => IDs.Invite.serialize(src.id),
-        key: (src: OrganizationInvite) => src.uuid,
-        ttl: (src: OrganizationInvite) => String(src.ttl)
+        id: (src: OrganizationInviteLink | OrganizationPublicInviteLink) => src.id,
+        key: (src: OrganizationInviteLink | OrganizationPublicInviteLink) => src.id,
+        ttl: (src: OrganizationInviteLink | OrganizationPublicInviteLink) => String((src as any).ttl)
     },
     Query: {
         alphaInvites: withUser(async (args, uid) => {

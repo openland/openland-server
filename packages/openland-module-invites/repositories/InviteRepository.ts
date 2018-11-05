@@ -38,7 +38,7 @@ export class InviteRepository {
             if (existing) {
                 existing.enabled = false;
             }
-            let res = await this.entities.OrganizationInviteLink.create(randomGlobalInviteKey(), { oid, email, uid, firstName, lastName, text, enabled: true, joined: false, role, ttl: 1000 * 60 * 60 * 24 * 7 });
+            let res = await this.entities.OrganizationInviteLink.create(randomGlobalInviteKey(), { oid, email, uid, firstName, lastName, text, enabled: true, joined: false, role, ttl: new Date().getTime() + 1000 * 60 * 60 * 24 * 7 });
             return res;
         });
     }
