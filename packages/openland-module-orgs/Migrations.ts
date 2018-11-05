@@ -17,6 +17,11 @@ export function startMigrations() {
                 }
                 c.value = Math.max(c.value, i.id!);
 
+                // Ignore empty orgs
+                if (await DB.OrganizationMember.count({ where: { orgId: i.id! } }) === 0) {
+                    return;
+                }
+
                 // Organization object
                 let ex = await FDB.Organization.findById(i.id!);
                 let status: 'pending' | 'activated' | 'suspended' = i.status === 'ACTIVATED' ? 'activated' : i.status === 'PENDING' ? 'pending' : 'suspended';
@@ -69,22 +74,22 @@ export function startMigrations() {
     });
     reader.start();
 
-    let reader2 = new UpdateReader('orgs-members-exporter', 1, DB.OrganizationMember);
-    reader2.processor(async (items) => {
-        for (let i of items) {
-            await inTx(async () => {
-                let memb = await FDB.OrganizationMember.findById(i.orgId, i.userId);
-                if (memb) {
-                    memb.status = 'joined';
-                    memb.role = i.isOwner ? 'admin' : 'member';
-                } else {
-                    await FDB.OrganizationMember.create(i.orgId, i.userId, {
-                        role: i.isOwner ? 'admin' : 'member',
-                        status: 'joined'
-                    });
-                }
-            });
-        }
-    });
-    reader2.start();
+    // let reader2 = new UpdateReader('orgs-members-exporter', 1, DB.OrganizationMember);
+    // reader2.processor(async (items) => {
+    //     for (let i of items) {
+    //         await inTx(async () => {
+    //             let memb = await FDB.OrganizationMember.findById(i.orgId, i.userId);
+    //             if (memb) {
+    //                 memb.status = 'joined';
+    //                 memb.role = i.isOwner ? 'admin' : 'member';
+    //             } else {
+    //                 await FDB.OrganizationMember.create(i.orgId, i.userId, {
+    //                     role: i.isOwner ? 'admin' : 'member',
+    //                     status: 'joined'
+    //                 });
+    //             }
+    //         });
+    //     }
+    // });
+    // reader2.start();
 }

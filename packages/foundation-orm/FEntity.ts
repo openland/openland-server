@@ -156,7 +156,7 @@ export class FEntity {
                     let key = index.fields.map((v) => value[v]);
                     if (index.unique) {
                         if (await this.namespace.get(this.connection, ['__indexes', index.name, ...key])) {
-                            throw Error('Unique index constraint failed');
+                            throw Error('Unique index constraint failed for index ' + index.name);
                         }
                         this.namespace.set(this.connection, ['__indexes', index.name, ...key], value);
                     } else {
@@ -205,7 +205,7 @@ export class FEntity {
                         }
                         if (needToCreateNew) {
                             if (await this.namespace.get(this.connection, ['__indexes', index.name, ...key])) {
-                                throw Error('Unique index constraint failed');
+                                throw Error('Unique index constraint failed for index ' + index.name);
                             }
                         }
                         if (needToCreateNew || needToUpdateNew) {
