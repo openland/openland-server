@@ -16,7 +16,7 @@ export async function handleFail(token: BasePushToken) {
     token.failedLastAt = Date.now();
 
     // Disable token after 3 days
-    if ((token.failedLastAt - token.failedLastAt) > 1000 * 60 * 60 * 24 * 3) {
+    if ((token.failedLastAt - token.failedFirstAt!) > 1000 * 60 * 60 * 24 * 3) {
         token.enabled = false;
         token.disabledAt = Date.now();
     }
