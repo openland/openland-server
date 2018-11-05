@@ -52,7 +52,7 @@ export const Resolver = {
         alphaFeatured: (src: Organization) => !!(src.extras && src.extras.featured),
         alphaIsCommunity: (src: Organization) => !!(src.extras && src.extras.isCommunity),
 
-        alphaOrganizationType: (src: Organization) => src.extras && src.extras.organizationType,
+        alphaOrganizationType: (src: Organization) => [],
 
         alphaJoinedChannels: async (src: Organization) => {
             return [];
@@ -93,7 +93,7 @@ export const Resolver = {
         alphaFeatured: (src: Organization) => !!(src.extras && src.extras.featured),
         alphaIsCommunity: (src: Organization) => !!(src.extras && src.extras.isCommunity),
 
-        alphaOrganizationType: (src: Organization) => src.extras && src.extras.organizationType,
+        alphaOrganizationType: (src: Organization) => [],
 
         alphaFollowed: async (src: Organization, args: {}, context: CallContext) => {
             return false;
@@ -317,26 +317,7 @@ export const Resolver = {
         }),
 
         alphaTopCategories: withUser(async (args, uid) => {
-            let orgs = await DB.Organization.findAll({
-                where: {
-                    status: 'ACTIVATED',
-                }
-            });
-            let topCategoriesMap: { [category: string]: number } = {};
-            for (let org of orgs) {
-                if (org.extras && org.extras.published === false) {
-                    continue;
-                }
-                let categories = (org.extras && org.extras.organizationType) || [];
-                for (let c of categories) {
-                    topCategoriesMap[c] = (topCategoriesMap[c] || 0) + 1;
-                }
-            }
-            let topCategories: { category: string, count: number }[] = [];
-            for (let key of Object.keys(topCategoriesMap)) {
-                topCategories.push({ category: key, count: topCategoriesMap[key] });
-            }
-            return topCategories.filter(c => c.count >= 3).sort((a, b) => a.count - b.count).map(c => c.category);
+            return [];
         })
     },
     Mutation: {
@@ -470,11 +451,7 @@ export const Resolver = {
                 if (args.input.alphaFeatured !== undefined) {
                     extras.featured = Sanitizer.sanitizeAny(args.input.alphaFeatured);
                 }
-
-                if (args.input.alphaOrganizationType !== undefined) {
-                    extras.organizationType = Sanitizer.sanitizeAny(args.input.alphaOrganizationType);
-                }
-
+                
                 if (extrasValidateError.length > 0) {
                     throw new InvalidInputError(extrasValidateError);
                 }

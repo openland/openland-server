@@ -8,6 +8,4 @@ export interface OrganizationExtras {
     editorial?: boolean | null;
     isCommunity?: boolean | null;
     featured?: boolean | null;
-
-    organizationType?: string[] | null;
 }

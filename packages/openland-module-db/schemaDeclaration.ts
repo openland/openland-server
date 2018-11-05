@@ -165,17 +165,44 @@ const Schema = declareSchema(() => {
         primaryKey('id', 'number');
         field('ownerId', 'number');
         enumField('status', ['pending', 'activated', 'suspended']);
+        enumField('kind', ['organization', 'community']);
+        field('editorial', 'boolean');
+        enableTimestamps();
+        enableVersioning();
     });
 
     entity('OrganizationProfile', () => {
         primaryKey('id', 'number');
         field('name', 'string');
-        field('photo', 'json');
+        field('photo', 'json').nullable();
         field('about', 'string').nullable();
         field('twitter', 'string').nullable();
         field('facebook', 'string').nullable();
         field('linkedin', 'string').nullable();
         field('website', 'string').nullable();
+        enableTimestamps();
+        enableVersioning();
+    });
+
+    entity('OrganizationEditorial', () => {
+        primaryKey('id', 'number');
+        field('listed', 'boolean');
+        field('featured', 'boolean');
+        enableTimestamps();
+        enableVersioning();
+    });
+
+    entity('OrganizationMember', () => {
+        primaryKey('id', 'number');
+        field('uid', 'number');
+        field('oid', 'number');
+        enumField('role', ['admin', 'member']);
+        uniqueIndex('organization', ['oid', 'uid'])
+            .withRange();
+        uniqueIndex('user', ['uid', 'oid'])
+            .withRange();
+        enableTimestamps();
+        enableVersioning();
     });
 
     entity('FeatureFlag', () => {
