@@ -2065,6 +2065,7 @@ export class OrganizationEditorialFactory extends FEntityFactory<OrganizationEdi
     }
 }
 export interface OrganizationMemberShape {
+    invitedBy?: number| null;
     role: 'admin' | 'member';
     status: 'requested' | 'joined' | 'left';
 }
@@ -2072,6 +2073,17 @@ export interface OrganizationMemberShape {
 export class OrganizationMember extends FEntity {
     get oid(): number { return this._value.oid; }
     get uid(): number { return this._value.uid; }
+    get invitedBy(): number | null {
+        let res = this._value.invitedBy;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set invitedBy(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.invitedBy) { return; }
+        this._value.invitedBy = value;
+        this.markDirty();
+    }
     get role(): 'admin' | 'member' {
         return this._value.role;
     }
@@ -2101,6 +2113,7 @@ export class OrganizationMemberFactory extends FEntityFactory<OrganizationMember
             { name: 'uid', type: 'number' },
         ],
         fields: [
+            { name: 'invitedBy', type: 'number' },
             { name: 'role', type: 'enum', enumValues: ['admin', 'member'] },
             { name: 'status', type: 'enum', enumValues: ['requested', 'joined', 'left'] },
         ],
@@ -2115,6 +2128,7 @@ export class OrganizationMemberFactory extends FEntityFactory<OrganizationMember
         validators.isNumber('oid', src.oid);
         validators.notNull('uid', src.uid);
         validators.isNumber('uid', src.uid);
+        validators.isNumber('invitedBy', src.invitedBy);
         validators.notNull('role', src.role);
         validators.isEnum('role', src.role, ['admin', 'member']);
         validators.notNull('status', src.status);

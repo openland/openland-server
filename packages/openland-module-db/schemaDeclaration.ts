@@ -195,6 +195,7 @@ const Schema = declareSchema(() => {
     entity('OrganizationMember', () => {
         primaryKey('oid', 'number');
         primaryKey('uid', 'number');
+        field('invitedBy', 'number').nullable();
         enumField('role', ['admin', 'member']);
         enumField('status', ['requested', 'joined', 'left']);
 
