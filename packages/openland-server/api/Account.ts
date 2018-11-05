@@ -155,7 +155,7 @@ export const Resolver = {
     Mutation: {
         alphaJoinInvite: withUser<{ key: string }>(async (args, uid) => {
             return await DB.txStable(async (tx) => {
-                await inTx(async () => {
+                return await inTx(async () => {
                     let orgInvite = await Modules.Invites.repo.getOrganizationInviteNonJoined(args.key);
                     let publicOrginvite = await Modules.Invites.repo.getPublicOrganizationInviteByKey(args.key);
                     let invite: { oid: number, uid: number, ttl?: number | null, role?: string } | null = orgInvite || publicOrginvite;
