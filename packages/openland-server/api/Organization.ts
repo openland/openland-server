@@ -261,16 +261,16 @@ export const Resolver = {
 
             result.push(... await Repos.Organizations.getOrganizationJoinedMembers(orgId));
 
-            let invites = await Repos.Invites.getOneTimeInvites(orgId);
+            let invites = await Modules.Invites.repo.getOrganizationInvites(orgId);
 
             for (let invite of invites) {
                 result.push({
                     _type: 'OrganizationIvitedMember',
-                    firstName: invite.memberFirstName || '',
-                    lastName: invite.memberLastName || '',
-                    email: invite.forEmail,
-                    role: invite.memberRole,
-                    inviteId: IDs.Invite.serialize(invite.id)
+                    firstName: invite.firstName || '',
+                    lastName: invite.lastName || '',
+                    email: invite.email,
+                    role: invite.role,
+                    inviteId: invite.id
                 });
             }
 
@@ -387,25 +387,7 @@ export const Resolver = {
 
         alphaOrganizationPublicInvite: withAccount<{ organizationId?: string }>(async (args, uid, organizationId) => {
             organizationId = args.organizationId ? IDs.Organization.parse(args.organizationId) : organizationId;
-            return await DB.tx(async (tx) => {
-                let res = await Repos.Invites.getPublicInvite(organizationId, tx);
-                if (!res) {
-                    res = await Repos.Invites.createPublicInvite(organizationId, undefined, tx);
-                }
-                return res;
-            });
-
-        }),
-        alphaOrganizationPublicInviteForOrganizations: withAccount<{ organizationId?: string }>(async (args, uid, organizationId) => {
-            organizationId = args.organizationId ? IDs.Organization.parse(args.organizationId) : organizationId;
-            return await DB.tx(async (tx) => {
-                let res = await Repos.Invites.getPublicInviteForOrganizations(organizationId, tx);
-                if (!res) {
-                    res = await Repos.Invites.createPublicInviteForOrganizations(organizationId, undefined, tx);
-                }
-                return res;
-
-            });
+            return await Modules.Invites.repo.getPublicOrganizationInvite(organizationId, uid);
         }),
 
         alphaTopCategories: withUser(async (args, uid) => {
@@ -816,27 +798,6 @@ export const Resolver = {
                         let user = (await Modules.Users.profileById(memberId))!;
                         user.primaryOrganization = (await Repos.Users.fetchUserAccounts(uid, tx))[0];
                     });
-                } else if (idType.type.typeName === 'Invite') {
-                    let inviteId = IDs.Invite.parse(args.memberId);
-
-                    let invite = await DB.OrganizationInvite.findOne({
-                        where: {
-                            id: inviteId
-                        },
-                        transaction: tx
-                    });
-
-                    if (!invite) {
-                        return 'ok';
-                    }
-
-                    let invitedByUser = (invite.creatorId && (invite.creatorId === uid)) || false;
-
-                    if (!isOwner && !invitedByUser) {
-                        throw new AccessDeniedError(ErrorText.permissionDenied);
-                    }
-
-                    await invite.destroy({ transaction: tx });
                 }
 
                 return 'ok';
@@ -888,20 +849,6 @@ export const Resolver = {
                         default:
                             break;
                     }
-                } else if (idType.type.typeName === 'Invite') {
-                    let invite = await DB.OrganizationInvite.findOne({
-                        where: {
-                            id: IDs.Invite.parse(args.memberId)
-                        }
-                    });
-
-                    if (!invite) {
-                        throw new NotFoundError();
-                    }
-
-                    await invite.update({
-                        memberRole: args.newRole
-                    }, { transaction: tx });
                 }
 
                 return 'ok';
@@ -920,21 +867,14 @@ export const Resolver = {
                 args
             );
 
-            return await DB.tx(async (tx) => {
+            return await inTx(async () => {
                 for (let inviteRequest of args.inviteRequests) {
-                    let isDuplicate = await Repos.Invites.haveInviteForEmail(oid, inviteRequest.email, tx);
-
-                    if (isDuplicate) {
-                        throw new UserError(ErrorText.inviteAlreadyExists);
-                    }
-
                     let isMemberDuplicate = await Repos.Organizations.haveMemberWithEmail(oid, inviteRequest.email);
-
                     if (isMemberDuplicate) {
                         throw new UserError(ErrorText.memberWithEmailAlreadyExists);
                     }
 
-                    let invite = await Repos.Invites.createOneTimeInvite(
+                    let invite = await Modules.Invites.repo.createOrganizationInvite(
                         oid,
                         uid,
                         inviteRequest.firstName || '',
@@ -942,10 +882,9 @@ export const Resolver = {
                         inviteRequest.email,
                         inviteRequest.emailText || '',
                         inviteRequest.role,
-                        tx
                     );
 
-                    await Emails.sendInviteEmail(oid, invite, tx);
+                    await Emails.sendInviteEmail(oid, invite);
                 }
                 return 'ok';
             });
@@ -959,7 +898,7 @@ export const Resolver = {
                     throw new UserError(ErrorText.permissionOnlyOwner);
                 }
 
-                return await Repos.Invites.createPublicInvite(oid, args.expirationDays, tx);
+                return await Modules.Invites.repo.createPublicOrganizationInvite(oid, uid);
             });
         }),
         alphaOrganizationDeletePublicInvite: withAccount<{ organizationId?: string }>(async (args, uid, oid) => {
@@ -971,8 +910,7 @@ export const Resolver = {
                     throw new UserError(ErrorText.permissionOnlyOwner);
                 }
 
-                await Repos.Invites.deletePublicInvite(oid, tx);
-
+                await Modules.Invites.repo.deletePublicOrganizationInvite(oid, uid);
                 return 'ok';
             });
         }),

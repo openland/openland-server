@@ -4646,6 +4646,365 @@ export class SampleEntityFactory extends FEntityFactory<SampleEntity> {
         return new SampleEntity(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'SampleEntity');
     }
 }
+export interface OrganizationPublicInviteLinkShape {
+    uid: number;
+    oid: number;
+    enabled: boolean;
+}
+
+export class OrganizationPublicInviteLink extends FEntity {
+    get id(): string { return this._value.id; }
+    get uid(): number {
+        return this._value.uid;
+    }
+    set uid(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.uid) { return; }
+        this._value.uid = value;
+        this.markDirty();
+    }
+    get oid(): number {
+        return this._value.oid;
+    }
+    set oid(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.oid) { return; }
+        this._value.oid = value;
+        this.markDirty();
+    }
+    get enabled(): boolean {
+        return this._value.enabled;
+    }
+    set enabled(value: boolean) {
+        this._checkIsWritable();
+        if (value === this._value.enabled) { return; }
+        this._value.enabled = value;
+        this.markDirty();
+    }
+}
+
+export class OrganizationPublicInviteLinkFactory extends FEntityFactory<OrganizationPublicInviteLink> {
+    static schema: FEntitySchema = {
+        name: 'OrganizationPublicInviteLink',
+        editable: false,
+        primaryKeys: [
+            { name: 'id', type: 'string' },
+        ],
+        fields: [
+            { name: 'uid', type: 'number' },
+            { name: 'oid', type: 'number' },
+            { name: 'enabled', type: 'boolean' },
+        ],
+        indexes: [
+            { name: 'userInOrganization', type: 'unique', fields: ['uid', 'oid'] },
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isString('id', src.id);
+        validators.notNull('uid', src.uid);
+        validators.isNumber('uid', src.uid);
+        validators.notNull('oid', src.oid);
+        validators.isNumber('oid', src.oid);
+        validators.notNull('enabled', src.enabled);
+        validators.isBoolean('enabled', src.enabled);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'organizationPublicInviteLink'),
+            { enableVersioning: true, enableTimestamps: true, validator: OrganizationPublicInviteLinkFactory.validate, hasLiveStreams: false },
+            [new FEntityIndex('userInOrganization', ['uid', 'oid'], true, src => src.enabled)],
+            'OrganizationPublicInviteLink'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
+        return { 'id': rawId[0] };
+    }
+    async findById(id: string) {
+        return await this._findById([id]);
+    }
+    async create(id: string, shape: OrganizationPublicInviteLinkShape) {
+        return await this._create([id], { id, ...shape });
+    }
+    watch(id: string, cb: () => void) {
+        return this._watch([id], cb);
+    }
+    async findFromUserInOrganization(uid: number, oid: number) {
+        return await this._findFromIndex(['__indexes', 'userInOrganization', uid, oid]);
+    }
+    async allFromUserInOrganizationAfter(uid: number, after: number) {
+        return await this._findRangeAllAfter(['__indexes', 'userInOrganization', uid], after);
+    }
+    async rangeFromUserInOrganizationAfter(uid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(['__indexes', 'userInOrganization', uid], after, limit, reversed);
+    }
+    async rangeFromUserInOrganization(uid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'userInOrganization', uid], limit, reversed);
+    }
+    async rangeFromUserInOrganizationWithCursor(uid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'userInOrganization', uid], limit, after, reversed);
+    }
+    async allFromUserInOrganization(uid: number) {
+        return await this._findAll(['__indexes', 'userInOrganization', uid]);
+    }
+    createUserInOrganizationStream(uid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'organizationPublicInviteLink', '__indexes', 'userInOrganization', uid], limit, after); 
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new OrganizationPublicInviteLink(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationPublicInviteLink');
+    }
+}
+export interface OrganizationInviteLinkShape {
+    oid: number;
+    email: string;
+    uid: number;
+    firstName: string;
+    lastName: string;
+    text?: string| null;
+    ttl?: number| null;
+    enabled: boolean;
+    joined: boolean;
+    role: 'MEMBER' | 'OWNER';
+}
+
+export class OrganizationInviteLink extends FEntity {
+    get id(): string { return this._value.id; }
+    get oid(): number {
+        return this._value.oid;
+    }
+    set oid(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.oid) { return; }
+        this._value.oid = value;
+        this.markDirty();
+    }
+    get email(): string {
+        return this._value.email;
+    }
+    set email(value: string) {
+        this._checkIsWritable();
+        if (value === this._value.email) { return; }
+        this._value.email = value;
+        this.markDirty();
+    }
+    get uid(): number {
+        return this._value.uid;
+    }
+    set uid(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.uid) { return; }
+        this._value.uid = value;
+        this.markDirty();
+    }
+    get firstName(): string {
+        return this._value.firstName;
+    }
+    set firstName(value: string) {
+        this._checkIsWritable();
+        if (value === this._value.firstName) { return; }
+        this._value.firstName = value;
+        this.markDirty();
+    }
+    get lastName(): string {
+        return this._value.lastName;
+    }
+    set lastName(value: string) {
+        this._checkIsWritable();
+        if (value === this._value.lastName) { return; }
+        this._value.lastName = value;
+        this.markDirty();
+    }
+    get text(): string | null {
+        let res = this._value.text;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set text(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.text) { return; }
+        this._value.text = value;
+        this.markDirty();
+    }
+    get ttl(): number | null {
+        let res = this._value.ttl;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set ttl(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.ttl) { return; }
+        this._value.ttl = value;
+        this.markDirty();
+    }
+    get enabled(): boolean {
+        return this._value.enabled;
+    }
+    set enabled(value: boolean) {
+        this._checkIsWritable();
+        if (value === this._value.enabled) { return; }
+        this._value.enabled = value;
+        this.markDirty();
+    }
+    get joined(): boolean {
+        return this._value.joined;
+    }
+    set joined(value: boolean) {
+        this._checkIsWritable();
+        if (value === this._value.joined) { return; }
+        this._value.joined = value;
+        this.markDirty();
+    }
+    get role(): 'MEMBER' | 'OWNER' {
+        return this._value.role;
+    }
+    set role(value: 'MEMBER' | 'OWNER') {
+        this._checkIsWritable();
+        if (value === this._value.role) { return; }
+        this._value.role = value;
+        this.markDirty();
+    }
+}
+
+export class OrganizationInviteLinkFactory extends FEntityFactory<OrganizationInviteLink> {
+    static schema: FEntitySchema = {
+        name: 'OrganizationInviteLink',
+        editable: false,
+        primaryKeys: [
+            { name: 'id', type: 'string' },
+        ],
+        fields: [
+            { name: 'oid', type: 'number' },
+            { name: 'email', type: 'string' },
+            { name: 'uid', type: 'number' },
+            { name: 'firstName', type: 'string' },
+            { name: 'lastName', type: 'string' },
+            { name: 'text', type: 'string' },
+            { name: 'ttl', type: 'number' },
+            { name: 'enabled', type: 'boolean' },
+            { name: 'joined', type: 'boolean' },
+            { name: 'role', type: 'enum', enumValues: ['MEMBER', 'OWNER'] },
+        ],
+        indexes: [
+            { name: 'organization', type: 'unique', fields: ['oid', 'id'] },
+            { name: 'email', type: 'unique', fields: ['email', 'id'] },
+            { name: 'emailInOrganization', type: 'unique', fields: ['email', 'oid'] },
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isString('id', src.id);
+        validators.notNull('oid', src.oid);
+        validators.isNumber('oid', src.oid);
+        validators.notNull('email', src.email);
+        validators.isString('email', src.email);
+        validators.notNull('uid', src.uid);
+        validators.isNumber('uid', src.uid);
+        validators.notNull('firstName', src.firstName);
+        validators.isString('firstName', src.firstName);
+        validators.notNull('lastName', src.lastName);
+        validators.isString('lastName', src.lastName);
+        validators.isString('text', src.text);
+        validators.isNumber('ttl', src.ttl);
+        validators.notNull('enabled', src.enabled);
+        validators.isBoolean('enabled', src.enabled);
+        validators.notNull('joined', src.joined);
+        validators.isBoolean('joined', src.joined);
+        validators.notNull('role', src.role);
+        validators.isEnum('role', src.role, ['MEMBER', 'OWNER']);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'organizationInviteLink'),
+            { enableVersioning: true, enableTimestamps: true, validator: OrganizationInviteLinkFactory.validate, hasLiveStreams: false },
+            [new FEntityIndex('organization', ['oid', 'id'], true, src => src.enabled), new FEntityIndex('email', ['email', 'id'], true, src => src.enabled), new FEntityIndex('emailInOrganization', ['email', 'oid'], true, src => src.enabled)],
+            'OrganizationInviteLink'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
+        return { 'id': rawId[0] };
+    }
+    async findById(id: string) {
+        return await this._findById([id]);
+    }
+    async create(id: string, shape: OrganizationInviteLinkShape) {
+        return await this._create([id], { id, ...shape });
+    }
+    watch(id: string, cb: () => void) {
+        return this._watch([id], cb);
+    }
+    async findFromOrganization(oid: number, id: string) {
+        return await this._findFromIndex(['__indexes', 'organization', oid, id]);
+    }
+    async allFromOrganizationAfter(oid: number, after: string) {
+        return await this._findRangeAllAfter(['__indexes', 'organization', oid], after);
+    }
+    async rangeFromOrganizationAfter(oid: number, after: string, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(['__indexes', 'organization', oid], after, limit, reversed);
+    }
+    async rangeFromOrganization(oid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'organization', oid], limit, reversed);
+    }
+    async rangeFromOrganizationWithCursor(oid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'organization', oid], limit, after, reversed);
+    }
+    async allFromOrganization(oid: number) {
+        return await this._findAll(['__indexes', 'organization', oid]);
+    }
+    createOrganizationStream(oid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'organizationInviteLink', '__indexes', 'organization', oid], limit, after); 
+    }
+    async findFromEmail(email: string, id: string) {
+        return await this._findFromIndex(['__indexes', 'email', email, id]);
+    }
+    async allFromEmailAfter(email: string, after: string) {
+        return await this._findRangeAllAfter(['__indexes', 'email', email], after);
+    }
+    async rangeFromEmailAfter(email: string, after: string, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(['__indexes', 'email', email], after, limit, reversed);
+    }
+    async rangeFromEmail(email: string, limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'email', email], limit, reversed);
+    }
+    async rangeFromEmailWithCursor(email: string, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'email', email], limit, after, reversed);
+    }
+    async allFromEmail(email: string) {
+        return await this._findAll(['__indexes', 'email', email]);
+    }
+    createEmailStream(email: string, limit: number, after?: string) {
+        return this._createStream(['entity', 'organizationInviteLink', '__indexes', 'email', email], limit, after); 
+    }
+    async findFromEmailInOrganization(email: string, oid: number) {
+        return await this._findFromIndex(['__indexes', 'emailInOrganization', email, oid]);
+    }
+    async allFromEmailInOrganizationAfter(email: string, after: number) {
+        return await this._findRangeAllAfter(['__indexes', 'emailInOrganization', email], after);
+    }
+    async rangeFromEmailInOrganizationAfter(email: string, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(['__indexes', 'emailInOrganization', email], after, limit, reversed);
+    }
+    async rangeFromEmailInOrganization(email: string, limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'emailInOrganization', email], limit, reversed);
+    }
+    async rangeFromEmailInOrganizationWithCursor(email: string, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'emailInOrganization', email], limit, after, reversed);
+    }
+    async allFromEmailInOrganization(email: string) {
+        return await this._findAll(['__indexes', 'emailInOrganization', email]);
+    }
+    createEmailInOrganizationStream(email: string, limit: number, after?: string) {
+        return this._createStream(['entity', 'organizationInviteLink', '__indexes', 'emailInOrganization', email], limit, after); 
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new OrganizationInviteLink(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationInviteLink');
+    }
+}
 
 export class AllEntities extends FDBInstance {
     static readonly schema: FEntitySchema[] = [
@@ -4687,6 +5046,8 @@ export class AllEntities extends FDBInstance {
         ChannelLinkFactory.schema,
         AppInviteLinkFactory.schema,
         SampleEntityFactory.schema,
+        OrganizationPublicInviteLinkFactory.schema,
+        OrganizationInviteLinkFactory.schema,
     ];
     allEntities: FEntityFactory<FEntity>[] = [];
     Online: OnlineFactory;
@@ -4727,6 +5088,8 @@ export class AllEntities extends FDBInstance {
     ChannelLink: ChannelLinkFactory;
     AppInviteLink: AppInviteLinkFactory;
     SampleEntity: SampleEntityFactory;
+    OrganizationPublicInviteLink: OrganizationPublicInviteLinkFactory;
+    OrganizationInviteLink: OrganizationInviteLinkFactory;
 
     constructor(connection: FConnection) {
         super(connection);
@@ -4806,5 +5169,9 @@ export class AllEntities extends FDBInstance {
         this.allEntities.push(this.AppInviteLink);
         this.SampleEntity = new SampleEntityFactory(connection);
         this.allEntities.push(this.SampleEntity);
+        this.OrganizationPublicInviteLink = new OrganizationPublicInviteLinkFactory(connection);
+        this.allEntities.push(this.OrganizationPublicInviteLink);
+        this.OrganizationInviteLink = new OrganizationInviteLinkFactory(connection);
+        this.allEntities.push(this.OrganizationInviteLink);
     }
 }
