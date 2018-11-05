@@ -1740,6 +1740,227 @@ export class UserProfileFactory extends FEntityFactory<UserProfile> {
         return new UserProfile(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserProfile');
     }
 }
+export interface OrganizationShape {
+    ownerId: number;
+    status: 'pending' | 'activated' | 'suspended';
+}
+
+export class Organization extends FEntity {
+    get id(): number { return this._value.id; }
+    get ownerId(): number {
+        return this._value.ownerId;
+    }
+    set ownerId(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.ownerId) { return; }
+        this._value.ownerId = value;
+        this.markDirty();
+    }
+    get status(): 'pending' | 'activated' | 'suspended' {
+        return this._value.status;
+    }
+    set status(value: 'pending' | 'activated' | 'suspended') {
+        this._checkIsWritable();
+        if (value === this._value.status) { return; }
+        this._value.status = value;
+        this.markDirty();
+    }
+}
+
+export class OrganizationFactory extends FEntityFactory<Organization> {
+    static schema: FEntitySchema = {
+        name: 'Organization',
+        editable: false,
+        primaryKeys: [
+            { name: 'id', type: 'number' },
+        ],
+        fields: [
+            { name: 'ownerId', type: 'number' },
+            { name: 'status', type: 'enum', enumValues: ['pending', 'activated', 'suspended'] },
+        ],
+        indexes: [
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isNumber('id', src.id);
+        validators.notNull('ownerId', src.ownerId);
+        validators.isNumber('ownerId', src.ownerId);
+        validators.notNull('status', src.status);
+        validators.isEnum('status', src.status, ['pending', 'activated', 'suspended']);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'organization'),
+            { enableVersioning: false, enableTimestamps: false, validator: OrganizationFactory.validate, hasLiveStreams: false },
+            [],
+            'Organization'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
+        return { 'id': rawId[0] };
+    }
+    async findById(id: number) {
+        return await this._findById([id]);
+    }
+    async create(id: number, shape: OrganizationShape) {
+        return await this._create([id], { id, ...shape });
+    }
+    watch(id: number, cb: () => void) {
+        return this._watch([id], cb);
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new Organization(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Organization');
+    }
+}
+export interface OrganizationProfileShape {
+    name: string;
+    photo: any;
+    about?: string| null;
+    twitter?: string| null;
+    facebook?: string| null;
+    linkedin?: string| null;
+    website?: string| null;
+}
+
+export class OrganizationProfile extends FEntity {
+    get id(): number { return this._value.id; }
+    get name(): string {
+        return this._value.name;
+    }
+    set name(value: string) {
+        this._checkIsWritable();
+        if (value === this._value.name) { return; }
+        this._value.name = value;
+        this.markDirty();
+    }
+    get photo(): any {
+        return this._value.photo;
+    }
+    set photo(value: any) {
+        this._checkIsWritable();
+        if (value === this._value.photo) { return; }
+        this._value.photo = value;
+        this.markDirty();
+    }
+    get about(): string | null {
+        let res = this._value.about;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set about(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.about) { return; }
+        this._value.about = value;
+        this.markDirty();
+    }
+    get twitter(): string | null {
+        let res = this._value.twitter;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set twitter(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.twitter) { return; }
+        this._value.twitter = value;
+        this.markDirty();
+    }
+    get facebook(): string | null {
+        let res = this._value.facebook;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set facebook(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.facebook) { return; }
+        this._value.facebook = value;
+        this.markDirty();
+    }
+    get linkedin(): string | null {
+        let res = this._value.linkedin;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set linkedin(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.linkedin) { return; }
+        this._value.linkedin = value;
+        this.markDirty();
+    }
+    get website(): string | null {
+        let res = this._value.website;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set website(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.website) { return; }
+        this._value.website = value;
+        this.markDirty();
+    }
+}
+
+export class OrganizationProfileFactory extends FEntityFactory<OrganizationProfile> {
+    static schema: FEntitySchema = {
+        name: 'OrganizationProfile',
+        editable: false,
+        primaryKeys: [
+            { name: 'id', type: 'number' },
+        ],
+        fields: [
+            { name: 'name', type: 'string' },
+            { name: 'photo', type: 'json' },
+            { name: 'about', type: 'string' },
+            { name: 'twitter', type: 'string' },
+            { name: 'facebook', type: 'string' },
+            { name: 'linkedin', type: 'string' },
+            { name: 'website', type: 'string' },
+        ],
+        indexes: [
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isNumber('id', src.id);
+        validators.notNull('name', src.name);
+        validators.isString('name', src.name);
+        validators.notNull('photo', src.photo);
+        validators.isString('about', src.about);
+        validators.isString('twitter', src.twitter);
+        validators.isString('facebook', src.facebook);
+        validators.isString('linkedin', src.linkedin);
+        validators.isString('website', src.website);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'organizationProfile'),
+            { enableVersioning: false, enableTimestamps: false, validator: OrganizationProfileFactory.validate, hasLiveStreams: false },
+            [],
+            'OrganizationProfile'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
+        return { 'id': rawId[0] };
+    }
+    async findById(id: number) {
+        return await this._findById([id]);
+    }
+    async create(id: number, shape: OrganizationProfileShape) {
+        return await this._create([id], { id, ...shape });
+    }
+    watch(id: number, cb: () => void) {
+        return this._watch([id], cb);
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new OrganizationProfile(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationProfile');
+    }
+}
 export interface FeatureFlagShape {
     title: string;
 }
@@ -4661,6 +4882,8 @@ export class AllEntities extends FDBInstance {
         UserProfilePrefilFactory.schema,
         UserFactory.schema,
         UserProfileFactory.schema,
+        OrganizationFactory.schema,
+        OrganizationProfileFactory.schema,
         FeatureFlagFactory.schema,
         OrganizationFeaturesFactory.schema,
         ReaderStateFactory.schema,
@@ -4701,6 +4924,8 @@ export class AllEntities extends FDBInstance {
     UserProfilePrefil: UserProfilePrefilFactory;
     User: UserFactory;
     UserProfile: UserProfileFactory;
+    Organization: OrganizationFactory;
+    OrganizationProfile: OrganizationProfileFactory;
     FeatureFlag: FeatureFlagFactory;
     OrganizationFeatures: OrganizationFeaturesFactory;
     ReaderState: ReaderStateFactory;
@@ -4754,6 +4979,10 @@ export class AllEntities extends FDBInstance {
         this.allEntities.push(this.User);
         this.UserProfile = new UserProfileFactory(connection);
         this.allEntities.push(this.UserProfile);
+        this.Organization = new OrganizationFactory(connection);
+        this.allEntities.push(this.Organization);
+        this.OrganizationProfile = new OrganizationProfileFactory(connection);
+        this.allEntities.push(this.OrganizationProfile);
         this.FeatureFlag = new FeatureFlagFactory(connection);
         this.allEntities.push(this.FeatureFlag);
         this.OrganizationFeatures = new OrganizationFeaturesFactory(connection);

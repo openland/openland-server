@@ -37,10 +37,7 @@ export function createOrganizationIndexer(client: ES.Client) {
         },
     });
     reader.indexer(async (item) => {
-        let location = (item.extras && item.extras.location) ? item.extras.location : '';
-        let locations = (item.extras && item.extras.locations && item.extras.locations.length > 0) ? item.extras.locations.join(' ') : '';
         let organizationTypes = (item.extras && item.extras.organizationType && item.extras.organizationType.length > 0) ? item.extras.organizationType.join(' ') : '';
-        let interests = (item.extras && item.extras.interests && item.extras.interests.length > 0) ? item.extras.interests.join(' ') : '';
         let published = (!item.extras || item.extras.published !== false) && item.status === 'ACTIVATED';
         let featured = !!(item.extras && item.extras.featured);
         let isCommunity = !!(item.extras && item.extras.isCommunity);
@@ -49,9 +46,7 @@ export function createOrganizationIndexer(client: ES.Client) {
             id: item.id!!,
             doc: {
                 name: item.name,
-                location: (location + ' ' + locations).trim(),
                 organizationType: organizationTypes,
-                interest: interests,
                 published: published,
                 featured: featured,
                 isCommunity: isCommunity,

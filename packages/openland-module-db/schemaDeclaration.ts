@@ -161,6 +161,23 @@ const Schema = declareSchema(() => {
         enableVersioning();
     });
 
+    entity('Organization', () => {
+        primaryKey('id', 'number');
+        field('ownerId', 'number');
+        enumField('status', ['pending', 'activated', 'suspended']);
+    });
+
+    entity('OrganizationProfile', () => {
+        primaryKey('id', 'number');
+        field('name', 'string');
+        field('photo', 'json');
+        field('about', 'string').nullable();
+        field('twitter', 'string').nullable();
+        field('facebook', 'string').nullable();
+        field('linkedin', 'string').nullable();
+        field('website', 'string').nullable();
+    });
+
     entity('FeatureFlag', () => {
         primaryKey('key', 'string');
         field('title', 'string');
