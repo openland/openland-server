@@ -2898,76 +2898,18 @@ export class AuthCodeSessionFactory extends FEntityFactory<AuthCodeSession> {
     }
 }
 export interface ConversationShape {
-    kind: 'private' | 'room';
-    uid1?: number| null;
-    uid2?: number| null;
-    roomType?: 'company' | 'public' | 'group'| null;
-    roomOwner?: number| null;
-    membersCount: number;
+    kind: 'private' | 'organization' | 'room';
 }
 
 export class Conversation extends FEntity {
-    get cid(): number { return this._value.cid; }
-    get kind(): 'private' | 'room' {
+    get id(): number { return this._value.id; }
+    get kind(): 'private' | 'organization' | 'room' {
         return this._value.kind;
     }
-    set kind(value: 'private' | 'room') {
+    set kind(value: 'private' | 'organization' | 'room') {
         this._checkIsWritable();
         if (value === this._value.kind) { return; }
         this._value.kind = value;
-        this.markDirty();
-    }
-    get uid1(): number | null {
-        let res = this._value.uid1;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set uid1(value: number | null) {
-        this._checkIsWritable();
-        if (value === this._value.uid1) { return; }
-        this._value.uid1 = value;
-        this.markDirty();
-    }
-    get uid2(): number | null {
-        let res = this._value.uid2;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set uid2(value: number | null) {
-        this._checkIsWritable();
-        if (value === this._value.uid2) { return; }
-        this._value.uid2 = value;
-        this.markDirty();
-    }
-    get roomType(): 'company' | 'public' | 'group' | null {
-        let res = this._value.roomType;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set roomType(value: 'company' | 'public' | 'group' | null) {
-        this._checkIsWritable();
-        if (value === this._value.roomType) { return; }
-        this._value.roomType = value;
-        this.markDirty();
-    }
-    get roomOwner(): number | null {
-        let res = this._value.roomOwner;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set roomOwner(value: number | null) {
-        this._checkIsWritable();
-        if (value === this._value.roomOwner) { return; }
-        this._value.roomOwner = value;
-        this.markDirty();
-    }
-    get membersCount(): number {
-        return this._value.membersCount;
-    }
-    set membersCount(value: number) {
-        this._checkIsWritable();
-        if (value === this._value.membersCount) { return; }
-        this._value.membersCount = value;
         this.markDirty();
     }
 }
@@ -2977,92 +2919,365 @@ export class ConversationFactory extends FEntityFactory<Conversation> {
         name: 'Conversation',
         editable: false,
         primaryKeys: [
-            { name: 'cid', type: 'number' },
+            { name: 'id', type: 'number' },
         ],
         fields: [
-            { name: 'kind', type: 'enum', enumValues: ['private', 'room'] },
-            { name: 'uid1', type: 'number' },
-            { name: 'uid2', type: 'number' },
-            { name: 'roomType', type: 'enum', enumValues: ['company', 'public', 'group'] },
-            { name: 'roomOwner', type: 'number' },
-            { name: 'membersCount', type: 'number' },
+            { name: 'kind', type: 'enum', enumValues: ['private', 'organization', 'room'] },
         ],
         indexes: [
-            { name: 'primate', type: 'unique', fields: ['uid1', 'uid2'] },
         ],
     };
 
     private static validate(src: any) {
-        validators.notNull('cid', src.cid);
-        validators.isNumber('cid', src.cid);
+        validators.notNull('id', src.id);
+        validators.isNumber('id', src.id);
         validators.notNull('kind', src.kind);
-        validators.isEnum('kind', src.kind, ['private', 'room']);
-        validators.isNumber('uid1', src.uid1);
-        validators.isNumber('uid2', src.uid2);
-        validators.isEnum('roomType', src.roomType, ['company', 'public', 'group']);
-        validators.isNumber('roomOwner', src.roomOwner);
-        validators.notNull('membersCount', src.membersCount);
-        validators.isNumber('membersCount', src.membersCount);
+        validators.isEnum('kind', src.kind, ['private', 'organization', 'room']);
     }
 
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'conversation'),
             { enableVersioning: true, enableTimestamps: true, validator: ConversationFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('primate', ['uid1', 'uid2'], true, (src) => src.kind === 'private')],
+            [],
             'Conversation'
         );
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
-        return { 'cid': rawId[0] };
+        return { 'id': rawId[0] };
     }
-    async findById(cid: number) {
-        return await this._findById([cid]);
+    async findById(id: number) {
+        return await this._findById([id]);
     }
-    async create(cid: number, shape: ConversationShape) {
-        return await this._create([cid], { cid, ...shape });
+    async create(id: number, shape: ConversationShape) {
+        return await this._create([id], { id, ...shape });
     }
-    watch(cid: number, cb: () => void) {
-        return this._watch([cid], cb);
-    }
-    async findFromPrimate(uid1: number, uid2: number) {
-        return await this._findFromIndex(['__indexes', 'primate', uid1, uid2]);
-    }
-    async allFromPrimateAfter(uid1: number, after: number) {
-        return await this._findRangeAllAfter(['__indexes', 'primate', uid1], after);
-    }
-    async rangeFromPrimateAfter(uid1: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(['__indexes', 'primate', uid1], after, limit, reversed);
-    }
-    async rangeFromPrimate(uid1: number, limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'primate', uid1], limit, reversed);
-    }
-    async rangeFromPrimateWithCursor(uid1: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'primate', uid1], limit, after, reversed);
-    }
-    async allFromPrimate(uid1: number) {
-        return await this._findAll(['__indexes', 'primate', uid1]);
-    }
-    createPrimateStream(uid1: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'conversation', '__indexes', 'primate', uid1], limit, after); 
+    watch(id: number, cb: () => void) {
+        return this._watch([id], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new Conversation(this.connection, this.namespace, this.directory, [value.cid], value, this.options, isNew, this.indexes, 'Conversation');
+        return new Conversation(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Conversation');
+    }
+}
+export interface ConversationPrivateShape {
+    uid1: number;
+    uid2: number;
+}
+
+export class ConversationPrivate extends FEntity {
+    get id(): number { return this._value.id; }
+    get uid1(): number {
+        return this._value.uid1;
+    }
+    set uid1(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.uid1) { return; }
+        this._value.uid1 = value;
+        this.markDirty();
+    }
+    get uid2(): number {
+        return this._value.uid2;
+    }
+    set uid2(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.uid2) { return; }
+        this._value.uid2 = value;
+        this.markDirty();
+    }
+}
+
+export class ConversationPrivateFactory extends FEntityFactory<ConversationPrivate> {
+    static schema: FEntitySchema = {
+        name: 'ConversationPrivate',
+        editable: false,
+        primaryKeys: [
+            { name: 'id', type: 'number' },
+        ],
+        fields: [
+            { name: 'uid1', type: 'number' },
+            { name: 'uid2', type: 'number' },
+        ],
+        indexes: [
+            { name: 'users', type: 'unique', fields: ['uid1', 'uid2'] },
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isNumber('id', src.id);
+        validators.notNull('uid1', src.uid1);
+        validators.isNumber('uid1', src.uid1);
+        validators.notNull('uid2', src.uid2);
+        validators.isNumber('uid2', src.uid2);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'conversationPrivate'),
+            { enableVersioning: true, enableTimestamps: true, validator: ConversationPrivateFactory.validate, hasLiveStreams: false },
+            [new FEntityIndex('users', ['uid1', 'uid2'], true)],
+            'ConversationPrivate'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
+        return { 'id': rawId[0] };
+    }
+    async findById(id: number) {
+        return await this._findById([id]);
+    }
+    async create(id: number, shape: ConversationPrivateShape) {
+        return await this._create([id], { id, ...shape });
+    }
+    watch(id: number, cb: () => void) {
+        return this._watch([id], cb);
+    }
+    async findFromUsers(uid1: number, uid2: number) {
+        return await this._findFromIndex(['__indexes', 'users', uid1, uid2]);
+    }
+    async allFromUsersAfter(uid1: number, after: number) {
+        return await this._findRangeAllAfter(['__indexes', 'users', uid1], after);
+    }
+    async rangeFromUsersAfter(uid1: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(['__indexes', 'users', uid1], after, limit, reversed);
+    }
+    async rangeFromUsers(uid1: number, limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'users', uid1], limit, reversed);
+    }
+    async rangeFromUsersWithCursor(uid1: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'users', uid1], limit, after, reversed);
+    }
+    async allFromUsers(uid1: number) {
+        return await this._findAll(['__indexes', 'users', uid1]);
+    }
+    createUsersStream(uid1: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'conversationPrivate', '__indexes', 'users', uid1], limit, after); 
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new ConversationPrivate(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConversationPrivate');
+    }
+}
+export interface ConversationOrganizationShape {
+    oid: number;
+}
+
+export class ConversationOrganization extends FEntity {
+    get id(): number { return this._value.id; }
+    get oid(): number {
+        return this._value.oid;
+    }
+    set oid(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.oid) { return; }
+        this._value.oid = value;
+        this.markDirty();
+    }
+}
+
+export class ConversationOrganizationFactory extends FEntityFactory<ConversationOrganization> {
+    static schema: FEntitySchema = {
+        name: 'ConversationOrganization',
+        editable: false,
+        primaryKeys: [
+            { name: 'id', type: 'number' },
+        ],
+        fields: [
+            { name: 'oid', type: 'number' },
+        ],
+        indexes: [
+            { name: 'organization', type: 'unique', fields: ['oid'] },
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isNumber('id', src.id);
+        validators.notNull('oid', src.oid);
+        validators.isNumber('oid', src.oid);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'conversationOrganization'),
+            { enableVersioning: true, enableTimestamps: true, validator: ConversationOrganizationFactory.validate, hasLiveStreams: false },
+            [new FEntityIndex('organization', ['oid'], true)],
+            'ConversationOrganization'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
+        return { 'id': rawId[0] };
+    }
+    async findById(id: number) {
+        return await this._findById([id]);
+    }
+    async create(id: number, shape: ConversationOrganizationShape) {
+        return await this._create([id], { id, ...shape });
+    }
+    watch(id: number, cb: () => void) {
+        return this._watch([id], cb);
+    }
+    async findFromOrganization(oid: number) {
+        return await this._findFromIndex(['__indexes', 'organization', oid]);
+    }
+    async rangeFromOrganization(limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'organization'], limit, reversed);
+    }
+    async rangeFromOrganizationWithCursor(limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'organization'], limit, after, reversed);
+    }
+    async allFromOrganization() {
+        return await this._findAll(['__indexes', 'organization']);
+    }
+    createOrganizationStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'conversationOrganization', '__indexes', 'organization'], limit, after); 
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new ConversationOrganization(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConversationOrganization');
+    }
+}
+export interface ConversationRoomShape {
+    kind: 'organization' | 'internal' | 'public' | 'group';
+    oid?: number| null;
+    ownerId?: number| null;
+    featured?: boolean| null;
+    listed?: boolean| null;
+}
+
+export class ConversationRoom extends FEntity {
+    get id(): number { return this._value.id; }
+    get kind(): 'organization' | 'internal' | 'public' | 'group' {
+        return this._value.kind;
+    }
+    set kind(value: 'organization' | 'internal' | 'public' | 'group') {
+        this._checkIsWritable();
+        if (value === this._value.kind) { return; }
+        this._value.kind = value;
+        this.markDirty();
+    }
+    get oid(): number | null {
+        let res = this._value.oid;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set oid(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.oid) { return; }
+        this._value.oid = value;
+        this.markDirty();
+    }
+    get ownerId(): number | null {
+        let res = this._value.ownerId;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set ownerId(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.ownerId) { return; }
+        this._value.ownerId = value;
+        this.markDirty();
+    }
+    get featured(): boolean | null {
+        let res = this._value.featured;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set featured(value: boolean | null) {
+        this._checkIsWritable();
+        if (value === this._value.featured) { return; }
+        this._value.featured = value;
+        this.markDirty();
+    }
+    get listed(): boolean | null {
+        let res = this._value.listed;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set listed(value: boolean | null) {
+        this._checkIsWritable();
+        if (value === this._value.listed) { return; }
+        this._value.listed = value;
+        this.markDirty();
+    }
+}
+
+export class ConversationRoomFactory extends FEntityFactory<ConversationRoom> {
+    static schema: FEntitySchema = {
+        name: 'ConversationRoom',
+        editable: false,
+        primaryKeys: [
+            { name: 'id', type: 'number' },
+        ],
+        fields: [
+            { name: 'kind', type: 'enum', enumValues: ['organization', 'internal', 'public', 'group'] },
+            { name: 'oid', type: 'number' },
+            { name: 'ownerId', type: 'number' },
+            { name: 'featured', type: 'boolean' },
+            { name: 'listed', type: 'boolean' },
+        ],
+        indexes: [
+            { name: 'organization', type: 'range', fields: ['oid'] },
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isNumber('id', src.id);
+        validators.notNull('kind', src.kind);
+        validators.isEnum('kind', src.kind, ['organization', 'internal', 'public', 'group']);
+        validators.isNumber('oid', src.oid);
+        validators.isNumber('ownerId', src.ownerId);
+        validators.isBoolean('featured', src.featured);
+        validators.isBoolean('listed', src.listed);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'conversationRoom'),
+            { enableVersioning: true, enableTimestamps: true, validator: ConversationRoomFactory.validate, hasLiveStreams: false },
+            [new FEntityIndex('organization', ['oid'], false, (v) => v.kind === 'public' || v.kind === 'internal')],
+            'ConversationRoom'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
+        return { 'id': rawId[0] };
+    }
+    async findById(id: number) {
+        return await this._findById([id]);
+    }
+    async create(id: number, shape: ConversationRoomShape) {
+        return await this._create([id], { id, ...shape });
+    }
+    watch(id: number, cb: () => void) {
+        return this._watch([id], cb);
+    }
+    async rangeFromOrganization(limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'organization'], limit, reversed);
+    }
+    async rangeFromOrganizationWithCursor(limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'organization'], limit, after, reversed);
+    }
+    async allFromOrganization() {
+        return await this._findAll(['__indexes', 'organization']);
+    }
+    createOrganizationStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'conversationRoom', '__indexes', 'organization'], limit, after); 
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new ConversationRoom(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConversationRoom');
     }
 }
 export interface RoomProfileShape {
     title: string;
-    image: any;
-    socialImage: any;
-    description: string;
-    longDescription: string;
-    featured: boolean;
-    hidden: boolean;
+    image?: any| null;
+    description?: string| null;
+    socialImage?: any| null;
 }
 
 export class RoomProfile extends FEntity {
-    get cid(): number { return this._value.cid; }
+    get id(): number { return this._value.id; }
     get title(): string {
         return this._value.title;
     }
@@ -3072,58 +3287,37 @@ export class RoomProfile extends FEntity {
         this._value.title = value;
         this.markDirty();
     }
-    get image(): any {
-        return this._value.image;
+    get image(): any | null {
+        let res = this._value.image;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
     }
-    set image(value: any) {
+    set image(value: any | null) {
         this._checkIsWritable();
         if (value === this._value.image) { return; }
         this._value.image = value;
         this.markDirty();
     }
-    get socialImage(): any {
-        return this._value.socialImage;
+    get description(): string | null {
+        let res = this._value.description;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
     }
-    set socialImage(value: any) {
-        this._checkIsWritable();
-        if (value === this._value.socialImage) { return; }
-        this._value.socialImage = value;
-        this.markDirty();
-    }
-    get description(): string {
-        return this._value.description;
-    }
-    set description(value: string) {
+    set description(value: string | null) {
         this._checkIsWritable();
         if (value === this._value.description) { return; }
         this._value.description = value;
         this.markDirty();
     }
-    get longDescription(): string {
-        return this._value.longDescription;
+    get socialImage(): any | null {
+        let res = this._value.socialImage;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
     }
-    set longDescription(value: string) {
+    set socialImage(value: any | null) {
         this._checkIsWritable();
-        if (value === this._value.longDescription) { return; }
-        this._value.longDescription = value;
-        this.markDirty();
-    }
-    get featured(): boolean {
-        return this._value.featured;
-    }
-    set featured(value: boolean) {
-        this._checkIsWritable();
-        if (value === this._value.featured) { return; }
-        this._value.featured = value;
-        this.markDirty();
-    }
-    get hidden(): boolean {
-        return this._value.hidden;
-    }
-    set hidden(value: boolean) {
-        this._checkIsWritable();
-        if (value === this._value.hidden) { return; }
-        this._value.hidden = value;
+        if (value === this._value.socialImage) { return; }
+        this._value.socialImage = value;
         this.markDirty();
     }
 }
@@ -3133,36 +3327,24 @@ export class RoomProfileFactory extends FEntityFactory<RoomProfile> {
         name: 'RoomProfile',
         editable: false,
         primaryKeys: [
-            { name: 'cid', type: 'number' },
+            { name: 'id', type: 'number' },
         ],
         fields: [
             { name: 'title', type: 'string' },
             { name: 'image', type: 'json' },
-            { name: 'socialImage', type: 'json' },
             { name: 'description', type: 'string' },
-            { name: 'longDescription', type: 'string' },
-            { name: 'featured', type: 'boolean' },
-            { name: 'hidden', type: 'boolean' },
+            { name: 'socialImage', type: 'json' },
         ],
         indexes: [
         ],
     };
 
     private static validate(src: any) {
-        validators.notNull('cid', src.cid);
-        validators.isNumber('cid', src.cid);
+        validators.notNull('id', src.id);
+        validators.isNumber('id', src.id);
         validators.notNull('title', src.title);
         validators.isString('title', src.title);
-        validators.notNull('image', src.image);
-        validators.notNull('socialImage', src.socialImage);
-        validators.notNull('description', src.description);
         validators.isString('description', src.description);
-        validators.notNull('longDescription', src.longDescription);
-        validators.isString('longDescription', src.longDescription);
-        validators.notNull('featured', src.featured);
-        validators.isBoolean('featured', src.featured);
-        validators.notNull('hidden', src.hidden);
-        validators.isBoolean('hidden', src.hidden);
     }
 
     constructor(connection: FConnection) {
@@ -3175,19 +3357,19 @@ export class RoomProfileFactory extends FEntityFactory<RoomProfile> {
     }
     extractId(rawId: any[]) {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
-        return { 'cid': rawId[0] };
+        return { 'id': rawId[0] };
     }
-    async findById(cid: number) {
-        return await this._findById([cid]);
+    async findById(id: number) {
+        return await this._findById([id]);
     }
-    async create(cid: number, shape: RoomProfileShape) {
-        return await this._create([cid], { cid, ...shape });
+    async create(id: number, shape: RoomProfileShape) {
+        return await this._create([id], { id, ...shape });
     }
-    watch(cid: number, cb: () => void) {
-        return this._watch([cid], cb);
+    watch(id: number, cb: () => void) {
+        return this._watch([id], cb);
     }
     protected _createEntity(value: any, isNew: boolean) {
-        return new RoomProfile(this.connection, this.namespace, this.directory, [value.cid], value, this.options, isNew, this.indexes, 'RoomProfile');
+        return new RoomProfile(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'RoomProfile');
     }
 }
 export interface RoomParticipantShape {
@@ -5474,6 +5656,9 @@ export class AllEntities extends FDBInstance {
         ShortnameReservationFactory.schema,
         AuthCodeSessionFactory.schema,
         ConversationFactory.schema,
+        ConversationPrivateFactory.schema,
+        ConversationOrganizationFactory.schema,
+        ConversationRoomFactory.schema,
         RoomProfileFactory.schema,
         RoomParticipantFactory.schema,
         ConversationReceiverFactory.schema,
@@ -5520,6 +5705,9 @@ export class AllEntities extends FDBInstance {
     ShortnameReservation: ShortnameReservationFactory;
     AuthCodeSession: AuthCodeSessionFactory;
     Conversation: ConversationFactory;
+    ConversationPrivate: ConversationPrivateFactory;
+    ConversationOrganization: ConversationOrganizationFactory;
+    ConversationRoom: ConversationRoomFactory;
     RoomProfile: RoomProfileFactory;
     RoomParticipant: RoomParticipantFactory;
     ConversationReceiver: ConversationReceiverFactory;
@@ -5591,6 +5779,12 @@ export class AllEntities extends FDBInstance {
         this.allEntities.push(this.AuthCodeSession);
         this.Conversation = new ConversationFactory(connection);
         this.allEntities.push(this.Conversation);
+        this.ConversationPrivate = new ConversationPrivateFactory(connection);
+        this.allEntities.push(this.ConversationPrivate);
+        this.ConversationOrganization = new ConversationOrganizationFactory(connection);
+        this.allEntities.push(this.ConversationOrganization);
+        this.ConversationRoom = new ConversationRoomFactory(connection);
+        this.allEntities.push(this.ConversationRoom);
         this.RoomProfile = new RoomProfileFactory(connection);
         this.allEntities.push(this.RoomProfile);
         this.RoomParticipant = new RoomParticipantFactory(connection);

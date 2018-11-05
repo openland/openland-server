@@ -1,7 +1,6 @@
 import { Transaction } from 'sequelize';
 import { DB } from '../tables';
 import { Repos } from '../repositories';
-import { OrganizationInvite } from '../tables/OrganizationInvite';
 import { Modules } from 'openland-modules/Modules';
 import { OrganizationInviteLink } from 'openland-module-db/schema';
 
@@ -12,7 +11,6 @@ const TEMPLATE_MEMBER_REMOVED = '8500f811-f29d-44f1-b1f6-c7975cdeae61';
 const TEMPLATE_MEMBERSHIP_LEVEL_CHANGED = '58c94c0c-a033-4406-935f-43fc5265e399';
 const TEMPLATE_INVITE = '024815a8-5602-4412-83f4-4be505c2026a';
 const TEMPLATE_MEMBER_JOINED = 'c76321cb-5560-4311-bdbf-e0fe337fa2cf';
-const TEMPLATE_INVITE_ORGANIZATION = '8130da76-fa72-45a5-982c-f79f50fa396c';
 const TEMPLATE_UNREAD_MESSAGES = '02787351-db1c-49b5-afbf-3d63a3b7fd76';
 const TEMPLATE_SIGNUP_CODE = '69496416-42cc-441d-912f-a918b968e34a';
 
@@ -210,41 +208,41 @@ export const Emails = {
         });
     },
 
-    async sendOrganizationInviteEmail(oid: number, invite: OrganizationInvite, tx: Transaction) {
-        let org = await DB.Organization.findById(oid, { transaction: tx });
-        if (!org) {
-            throw Error('Unable to find organization');
-        }
+    // async sendOrganizationInviteEmail(oid: number, invite: OrganizationInvite, tx: Transaction) {
+    //     let org = await DB.Organization.findById(oid, { transaction: tx });
+    //     if (!org) {
+    //         throw Error('Unable to find organization');
+    //     }
 
-        let userWelcome = {
-            'userWelcome': invite.memberFirstName ? 'Hi, ' + invite.memberFirstName : 'Hi',
-            'userName': [invite.memberFirstName, invite.memberLastName].filter((v) => v).join(' '),
-            'userFirstName': invite.memberFirstName || '',
-            'userLastName': invite.memberLastName || ''
-        };
+    //     let userWelcome = {
+    //         'userWelcome': invite.memberFirstName ? 'Hi, ' + invite.memberFirstName : 'Hi',
+    //         'userName': [invite.memberFirstName, invite.memberLastName].filter((v) => v).join(' '),
+    //         'userFirstName': invite.memberFirstName || '',
+    //         'userLastName': invite.memberLastName || ''
+    //     };
 
-        let profile = await Modules.Users.profileById(invite.creatorId);
+    //     let profile = await Modules.Users.profileById(invite.creatorId);
 
-        if (!profile) {
-            throw Error('Internal inconsistency');
-        }
+    //     if (!profile) {
+    //         throw Error('Internal inconsistency');
+    //     }
 
-        let domain = process.env.APP_ENVIRONMENT === 'production' ? 'https://app.openland.com/invite/' : 'http://localhost:3000/invite/';
+    //     let domain = process.env.APP_ENVIRONMENT === 'production' ? 'https://app.openland.com/invite/' : 'http://localhost:3000/invite/';
 
-        await Modules.Email.Worker.pushWork({
-            subject: 'Invitation for Openland',
-            templateId: TEMPLATE_INVITE_ORGANIZATION,
-            to: invite.forEmail,
-            args: {
-                firstName: profile.firstName || '',
-                lastName: profile.lastName || '',
-                customText: invite.emailText || '',
-                link: domain + invite.uuid,
-                'organizationName': org.name!!,
-                ...userWelcome
-            }
-        });
-    },
+    //     await Modules.Email.Worker.pushWork({
+    //         subject: 'Invitation for Openland',
+    //         templateId: TEMPLATE_INVITE_ORGANIZATION,
+    //         to: invite.forEmail,
+    //         args: {
+    //             firstName: profile.firstName || '',
+    //             lastName: profile.lastName || '',
+    //             customText: invite.emailText || '',
+    //             link: domain + invite.uuid,
+    //             'organizationName': org.name!!,
+    //             ...userWelcome
+    //         }
+    //     });
+    // },
 
     async sendMemberJoinedEmails(oid: number, memberId: number, etx?: Transaction) {
         await DB.tx(async (tx) => {
