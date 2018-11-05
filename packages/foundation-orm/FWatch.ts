@@ -1,11 +1,24 @@
 import { FConnection } from './FConnection';
 import { FKeyEncoding } from './utils/FKeyEncoding';
+import { delay } from '../openland-server/utils/timer';
+import { fastDeepEquals } from '../openland-server/utils/fastDeepEquals';
 
 type Key = (string | number)[];
 type ChangeCallback = () => void;
 
+interface WatchOptions {
+    onEnd(): void;
+}
+
+interface FWatchSubscription {
+    cb: ChangeCallback;
+    onEnd?(e: any): void;
+}
+
 export class FWatch {
-    private subscriptions = new Map<string, ChangeCallback[]>();
+    public static POOL_TIMEOUT = 100;
+
+    private subscriptions = new Map<Buffer, FWatchSubscription[]>();
 
     constructor(
         private connection: FConnection
@@ -13,55 +26,101 @@ export class FWatch {
 
     }
 
-    public watch(key: Key, cb: ChangeCallback): { cancel: () => void } {
-        let keyStr = key.join('.');
+    public watch(key: Key, cb: ChangeCallback, options?: WatchOptions): { cancel: () => void } {
+        let encodedKey = FKeyEncoding.encodeKey(key);
+        let subscription: FWatchSubscription = {
+            cb,
+            ...options
+        };
 
-        if (this.subscriptions.has(keyStr)) {
-            this.subscriptions.get(keyStr)!.push(cb);
+        if (this.subscriptions.has(encodedKey)) {
+            this.subscriptions.get(encodedKey)!.push(subscription);
         } else {
-            this.subscriptions.set(keyStr, [cb]);
+            this.subscriptions.set(encodedKey, [subscription]);
             // tslint:disable-next-line:no-floating-promises
-            this.startWatch(key);
+            this.startWatching(encodedKey);
         }
 
         return {
-            cancel: () => {
-                if (!this.subscriptions.get(keyStr)) {
-                    throw new Error('FWatch inconsistency');
-                } else {
-                    let subs = this.subscriptions.get(keyStr)!;
-                    let index = subs.indexOf(cb);
-
-                    if (index === -1) {
-                        throw new Error('FWatch double unwatch');
-                    } else {
-                        subs.splice(index, 1);
-                    }
-                }
-            }
+            cancel: () => this.cancelSubscription(encodedKey, cb)
         };
     }
 
-    private async startWatch(key: Key) {
-        let subscription = await this.connection.fdb.getAndWatch(FKeyEncoding.encodeKey(key));
-
-        let res = await subscription.promise;
-
-        if (!res) {
-            throw new Error('FWatch error');
+    private async startWatching(key: Buffer) {
+        try {
+            await this.doWatch(key);
+        } catch (e) {
+            // fallback to polling
+            try {
+                await this.doPolling(key);
+            } catch (e) {
+                // notify subscribers about end
+                let subs = this.subscriptions.get(key);
+                if (subs && subs.length > 0) {
+                    [...subs].forEach(s => s.onEnd && s.onEnd(e));
+                }
+                this.subscriptions.delete(key);
+            }
         }
+    }
 
-        let keyStr = key.join('.');
-        let subs = this.subscriptions.get(keyStr);
+    private async doPolling(key: Buffer) {
+        let value = await this.connection.fdb.get(key);
 
-        if (!subs || subs.length === 0) {
-            this.subscriptions.delete(keyStr);
-            subscription.cancel();
-        } else {
+        while (true) {
+            let newValue = await this.connection.fdb.get(key);
+            if (!fastDeepEquals(newValue, value)) {
+                if (!this.sendNotifications(key)) {
+                    this.subscriptions.delete(key);
+                    return;
+                }
+
+                value = newValue;
+            }
+            await delay(FWatch.POOL_TIMEOUT);
+        }
+    }
+
+    private async doWatch(key: Buffer) {
+        while (true) {
+            let subscription = await this.connection.fdb.getAndWatch(key);
+
+            let res = await subscription.promise;
+
+            if (!res) {
+                throw new Error('FWatch error');
+            }
+
+            if (!this.sendNotifications(key)) {
+                this.subscriptions.delete(key);
+                subscription.cancel();
+                return;
+            }
+        }
+    }
+
+    private sendNotifications(key: Buffer) {
+        let subs = this.subscriptions.get(key);
+        if (subs && subs.length > 0) {
             // we need to copy subs here because original array changes while iteration causes some bugs
-            [...subs].forEach(s => s());
-            // tslint:disable-next-line:no-floating-promises
-            this.startWatch(key);
+            [...subs].forEach(s => s.cb());
+            return true;
+        }
+        return false;
+    }
+
+    private cancelSubscription(key: Buffer, cb: ChangeCallback) {
+        if (!this.subscriptions.get(key)) {
+            throw new Error('FWatch inconsistency');
+        } else {
+            let subs = this.subscriptions.get(key)!;
+            let index = subs.findIndex(s => s.cb === cb);
+
+            if (index === -1) {
+                throw new Error('FWatch double unwatch');
+            } else {
+                subs.splice(index, 1);
+            }
         }
     }
 }

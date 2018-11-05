@@ -7,6 +7,7 @@ import { withLogDisabled } from 'openland-log/withLogDisabled';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { NativeValue } from 'foundationdb/dist/lib/native';
 import { NoOpBus } from './NoOpBus';
+import { FWatch } from '../FWatch';
 
 describe('FWatch', () => {
 
@@ -18,6 +19,7 @@ describe('FWatch', () => {
             .at(FKeyEncoding.encodeKey(['_tests_watch']));
         await db.clearRange(FKeyEncoding.encodeKey([]));
         testEntities = new AllEntities(new FConnection(db, NoOpBus));
+        FWatch.POOL_TIMEOUT = 10;
     });
 
     it('should call callback on entity change', async () => {
@@ -56,7 +58,7 @@ describe('FWatch', () => {
                     let v = await testEntities.SimpleEntity.findById(2);
                     v!.data = Math.random().toString(16);
                 });
-                await delay(100);
+                await delay(200);
             }
 
             await delay(500);
@@ -83,7 +85,7 @@ describe('FWatch', () => {
                 if (i === 1) {
                     sub.cancel();
                 }
-                await delay(100);
+                await delay(200);
             }
 
             await delay(1000);

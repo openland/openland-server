@@ -7,6 +7,7 @@ import { withLogDisabled } from 'openland-log/withLogDisabled';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { NativeValue } from 'foundationdb/dist/lib/native';
 import { NoOpBus } from 'foundation-orm/tests/NoOpBus';
+import { FWatch } from '../foundation-orm/FWatch';
 
 describe('PresenceModule', () => {
     // Database Init
@@ -19,6 +20,7 @@ describe('PresenceModule', () => {
             .at(FKeyEncoding.encodeKey(['_tests_presence']));
         await db.clearRange(FKeyEncoding.encodeKey([]));
         FDB = new AllEntities(new FConnection(db, NoOpBus));
+        FWatch.POOL_TIMEOUT = 10;
 
         Presence = new PresenceModule();
         Presence.start(FDB);
