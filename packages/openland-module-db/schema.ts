@@ -5218,8 +5218,8 @@ export interface OrganizationInviteLinkShape {
     oid: number;
     email: string;
     uid: number;
-    firstName: string;
-    lastName: string;
+    firstName?: string| null;
+    lastName?: string| null;
     text?: string| null;
     ttl?: number| null;
     enabled: boolean;
@@ -5256,19 +5256,23 @@ export class OrganizationInviteLink extends FEntity {
         this._value.uid = value;
         this.markDirty();
     }
-    get firstName(): string {
-        return this._value.firstName;
+    get firstName(): string | null {
+        let res = this._value.firstName;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
     }
-    set firstName(value: string) {
+    set firstName(value: string | null) {
         this._checkIsWritable();
         if (value === this._value.firstName) { return; }
         this._value.firstName = value;
         this.markDirty();
     }
-    get lastName(): string {
-        return this._value.lastName;
+    get lastName(): string | null {
+        let res = this._value.lastName;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
     }
-    set lastName(value: string) {
+    set lastName(value: string | null) {
         this._checkIsWritable();
         if (value === this._value.lastName) { return; }
         this._value.lastName = value;
@@ -5360,9 +5364,7 @@ export class OrganizationInviteLinkFactory extends FEntityFactory<OrganizationIn
         validators.isString('email', src.email);
         validators.notNull('uid', src.uid);
         validators.isNumber('uid', src.uid);
-        validators.notNull('firstName', src.firstName);
         validators.isString('firstName', src.firstName);
-        validators.notNull('lastName', src.lastName);
         validators.isString('lastName', src.lastName);
         validators.isString('text', src.text);
         validators.isNumber('ttl', src.ttl);
