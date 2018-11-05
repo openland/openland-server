@@ -261,7 +261,7 @@ export const Resolver = {
 
             result.push(... await Repos.Organizations.getOrganizationJoinedMembers(orgId));
 
-            let invites = await Modules.Invites.repo.getOrganizationInvites(orgId);
+            let invites = await Modules.Invites.repo.getOrganizationInvitesForOrganization(orgId);
 
             for (let invite of invites) {
                 result.push({
