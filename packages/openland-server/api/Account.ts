@@ -155,59 +155,58 @@ export const Resolver = {
     Mutation: {
         alphaJoinInvite: withUser<{ key: string }>(async (args, uid) => {
             return await DB.txStable(async (tx) => {
-                let orgInvite = await Modules.Invites.repo.getOrganizationInviteNonJoined(args.key);
-                let publicOrginvite = await Modules.Invites.repo.getPublicOrganizationInviteByKey(args.key);
-                let invite: { oid: number, uid: number, ttl?: number | null, role?: string } | null = orgInvite || publicOrginvite;
-
-                if (!invite) {
-                    throw new NotFoundError(ErrorText.unableToFindInvite);
-                }
-                let existing = await DB.OrganizationMember.find({
-                    where: {
-                        userId: uid,
-                        orgId: invite.oid
-                    },
-                    lock: tx.LOCK.UPDATE,
-                    transaction: tx
-                });
-                if (existing) {
-                    return IDs.Organization.serialize(invite.oid);
-                }
-
-                if (invite.ttl && (new Date().getTime() >= invite.ttl)) {
-                    throw new NotFoundError(ErrorText.unableToFindInvite);
-                }
-                await DB.OrganizationMember.create({
-                    userId: uid,
-                    orgId: invite.oid,
-                    isOwner: invite.role === 'OWNER',
-                    invitedBy: invite.uid
-                }, { transaction: tx });
-
                 await inTx(async () => {
+                    let orgInvite = await Modules.Invites.repo.getOrganizationInviteNonJoined(args.key);
+                    let publicOrginvite = await Modules.Invites.repo.getPublicOrganizationInviteByKey(args.key);
+                    let invite: { oid: number, uid: number, ttl?: number | null, role?: string } | null = orgInvite || publicOrginvite;
+
+                    if (!invite) {
+                        throw new NotFoundError(ErrorText.unableToFindInvite);
+                    }
+                    let existing = await DB.OrganizationMember.find({
+                        where: {
+                            userId: uid,
+                            orgId: invite.oid
+                        },
+                        lock: tx.LOCK.UPDATE,
+                        transaction: tx
+                    });
+                    if (existing) {
+                        return IDs.Organization.serialize(invite.oid);
+                    }
+
+                    if (invite.ttl && (new Date().getTime() >= invite.ttl)) {
+                        throw new NotFoundError(ErrorText.unableToFindInvite);
+                    }
+                    await DB.OrganizationMember.create({
+                        userId: uid,
+                        orgId: invite.oid,
+                        isOwner: invite.role === 'OWNER',
+                        invitedBy: invite.uid
+                    }, { transaction: tx });
+
                     // make organization primary if none
                     let profile = (await Modules.Users.profileById(uid));
                     if (profile && !profile.primaryOrganization) {
                         profile.primaryOrganization = invite!.oid;
                     }
-                });
 
-                let user = (await DB.User.findById(uid, { transaction: tx }))!;
-                // User set invitedBy if none
-                user.invitedBy = user.invitedBy === undefined ? invite.uid : user.invitedBy;
-                user.status = 'ACTIVATED';
-                await user.save({ transaction: tx });
+                    let user = (await DB.User.findById(uid, { transaction: tx }))!;
+                    // User set invitedBy if none
+                    user.invitedBy = user.invitedBy === undefined ? invite.uid : user.invitedBy;
+                    user.status = 'ACTIVATED';
+                    await user.save({ transaction: tx });
 
-                await Repos.Chats.addToInitialChannel(user.id!, tx);
+                    await Repos.Chats.addToInitialChannel(user.id!, tx);
 
-                // invalidate invite
-                await inTx(async () => {
+                    // invalidate invite
                     if (orgInvite) {
                         orgInvite.joined = true;
                     }
+                    return IDs.Organization.serialize(invite.oid);
+
                 });
 
-                return IDs.Organization.serialize(invite.oid);
             });
         }),
         joinAppInvite: withAny<{ key: string }>(async (args, context) => {
