@@ -21,7 +21,7 @@ export interface OrganizationInvite extends sequelize.Instance<Partial<Organizat
 
 }
 
-export const OrganizationInviteTable = connection.define<OrganizationInvite, Partial<OrganizationInviteAttributes>>('organization_invites', {
+export const OrganizationInviteTable = connection.define<OrganizationInvite, Partial<OrganizationInviteAttributes>>('organization_invite', {
     id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
     uuid: { type: sequelize.STRING(256), allowNull: false, unique: true },
     orgId: { type: sequelize.INTEGER, allowNull: false, references: { model: 'organization' } },
