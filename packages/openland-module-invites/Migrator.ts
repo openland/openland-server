@@ -4,7 +4,7 @@ import { FDB } from 'openland-module-db/FDB';
 import { inTx } from 'foundation-orm/inTx';
 
 export function startMigrator() {
-    let reader = new UpdateReader('invites-import', 3, DB.OrganizationInvite);
+    let reader = new UpdateReader('invites-import', 4, DB.OrganizationInvite);
     reader.processor(async (items) => {
         for (let i of items) {
             await inTx(async () => {
@@ -33,6 +33,11 @@ export function startMigrator() {
                         if (!ex) {
                             let ttl: number | undefined = undefined;
                             ttl = (typeof i.ttl === 'number') ? i.ttl : undefined;
+                            let existing = await FDB.OrganizationInviteLink.findFromEmailInOrganization(i.forEmail, i.orgId);
+                            if (existing) {
+                                existing.enabled = false;
+                                await existing.flush();
+                            }
                             await FDB.OrganizationInviteLink.create(i.uuid, { oid: i.orgId, email: i.forEmail, uid: i.creatorId, firstName: i.memberFirstName, lastName: i.memberLastName, text: i.emailText, enabled: true, joined: !!i.acceptedById, role: i.memberRole as any, ttl: ttl });
                         }
                     }
