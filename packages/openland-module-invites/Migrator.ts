@@ -26,7 +26,9 @@ export function startMigrator() {
                     } else if (i.isOneTime && i.forEmail) {
                         let ex = await FDB.OrganizationInviteLink.findById(i.uuid);
                         if (!ex) {
-                            await FDB.OrganizationInviteLink.create(i.uuid, { oid: i.orgId, email: i.forEmail, uid: i.creatorId, firstName: i.memberFirstName, lastName: i.memberLastName, text: i.emailText, enabled: true, joined: !!i.acceptedById, role: i.memberRole as any, ttl: i.ttl });
+                            let ttl: number | undefined = undefined;
+                            ttl = (typeof i.ttl === 'number') ? i.ttl : undefined;
+                            await FDB.OrganizationInviteLink.create(i.uuid, { oid: i.orgId, email: i.forEmail, uid: i.creatorId, firstName: i.memberFirstName, lastName: i.memberLastName, text: i.emailText, enabled: true, joined: !!i.acceptedById, role: i.memberRole as any, ttl: ttl });
                         }
                     }
 
