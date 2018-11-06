@@ -146,7 +146,7 @@ export const Emails = {
                 throw Error('Unable to find organization');
             }
 
-            let levelName = member.isOwner ? 'owner' : 'member';
+            let levelName = member.role === 'admin' ? 'owner' : 'member';
 
             let user = await loadUserState(uid);
 
@@ -252,7 +252,7 @@ export const Emails = {
             let organizationMembers = await Repos.Organizations.getOrganizationMembers(oid);
 
             for (let member of organizationMembers) {
-                let user = await loadUserState(member.userId);
+                let user = await loadUserState(member.uid);
 
                 await Modules.Email.Worker.pushWork({
                     subject: 'Invitation accepted',
