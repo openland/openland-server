@@ -24,15 +24,13 @@ if (process.env.NODE_ENV !== 'development') {
 // }
 
 import { initApi } from './init/initApi';
-import { initDatabase } from './init/initDatabase';
 import './init/initConfig';
 import { Modules } from '../openland-modules/Modules';
 import { initHealthcheck } from './init/initHealthcheck';
 
 async function initServer() {
     try {
-        await initDatabase(false, false);
-        Modules.start();
+        await Modules.start();
 
         if (serverRoleEnabled('api')) {
             await initApi(false);

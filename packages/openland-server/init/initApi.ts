@@ -13,14 +13,13 @@ import { fetchWebSocketParameters, buildWebSocketContext } from '../../openland-
 import { errorHandler } from '../errors';
 // import { Rate } from '../utils/rateLimit';
 import { Server as HttpServer } from 'http';
-import { ApolloEngine } from 'apollo-engine';
 // import { delay } from '../utils/timer';
-import { DB } from '../tables';
 import { withAudit } from '../../openland-module-auth/email';
 import { Repos } from '../repositories';
 import { IDs } from '../api/utils/IDs';
 import { withLogContext } from 'openland-log/withLogContext';
 import { withTracingSpan } from 'openland-log/withTracing';
+import { inTx } from 'foundation-orm/inTx';
 
 export async function initApi(isTest: boolean) {
 
@@ -82,7 +81,7 @@ export async function initApi(isTest: boolean) {
     app.post('/auth/getAccessToken', bodyParser.json(), withAudit(Auth.getAccessToken));
 
     app.post('/semaphorebot', bodyParser.json(), (async (req, res) => {
-        await DB.txLight(async tx => {
+        await inTx(async () => {
             let chatId = IDs.Conversation.parse('zoqLwdzr6VHelWZOR6JatW4aak');
             let botId = IDs.User.parse('vmM5pE5lQ4udYLr6AOLBhdQDJK');
             let data = req.body;
@@ -180,21 +179,8 @@ export async function initApi(isTest: boolean) {
             }, { server: server, path: '/api' });
         }
 
-        if (engineKey) {
-            // Starting server with Apollo Engine
-            let server = new HttpServer(app);
-            const engine = new ApolloEngine({
-                apiKey: engineKey
-            });
-            engine.listen({
-                port: dport,
-                httpServer: server,
-                graphqlPaths: ['/graphql', '/api']
-            }, () => { createWebSocketServer(server); });
-        } else {
-            // Starting server
-            createWebSocketServer(app.listen(dport));
-        }
+        // Starting server
+        createWebSocketServer(app.listen(dport));
 
     } else {
         await new Promise((resolver) => app.listen(0, () => resolver()));

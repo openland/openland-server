@@ -37,7 +37,7 @@ class ModulesImpl {
     readonly Invites = new InvitesModule();
     readonly Pubsub = new PubsubModule();
 
-    start = () => {
+    start = async () => {
         this.DB.start();
         this.Workers.start();
         this.Push.start();
