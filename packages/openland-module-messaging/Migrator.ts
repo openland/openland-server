@@ -22,6 +22,8 @@ export function startMigrator() {
                             await FDB.Conversation.create(i.id, {
                                 kind: 'room'
                             });
+                        } else {
+                            conversation.kind = 'room';
                         }
 
                         let convRoom = await FDB.ConversationRoom.findById(i.id);
@@ -78,6 +80,8 @@ export function startMigrator() {
                             await FDB.Conversation.create(i.id, {
                                 kind: 'room'
                             });
+                        } else {
+                            conversation.kind = 'room';
                         }
 
                         let convRoom = await FDB.ConversationRoom.findById(i.id);
@@ -142,6 +146,8 @@ export function startMigrator() {
                             await FDB.Conversation.create(i.id, {
                                 kind: 'private'
                             });
+                        } else {
+                            conversation.kind = 'private';
                         }
 
                         let conversationPrivate = await FDB.ConversationPrivate.findById(i.id);
