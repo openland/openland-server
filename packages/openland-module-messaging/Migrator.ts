@@ -158,7 +158,7 @@ export function startMigrator() {
                 }
             } catch (e) {
                 console.warn(e);
-                throw e;
+                // throw e;
             }
         }
     });
