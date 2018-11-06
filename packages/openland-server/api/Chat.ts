@@ -37,7 +37,11 @@ export const Resolver = {
             } else if (src.kind === 'organization') {
                 return 'SharedConversation';
             } else {
-                let kind = (await FDB.ConversationRoom.findById(src.id!))!.kind;
+                let room = (await FDB.ConversationRoom.findById(src.id!));
+                if (!room) {
+                    console.warn('Unable to find room: ' + src.id);
+                }
+                let kind = room!.kind;
                 if (kind === 'group') {
                     return 'GroupConversation';
                 } else {
