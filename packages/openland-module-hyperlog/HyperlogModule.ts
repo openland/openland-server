@@ -3,7 +3,7 @@ import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 
 export class HyperlogModule {
     start = () => {
-        if (serverRoleEnabled('workers')) {
+        if (serverRoleEnabled('admin')) {
             declareHyperlogIndexer();
         }
     }
