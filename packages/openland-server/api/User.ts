@@ -13,6 +13,7 @@ import { Modules } from 'openland-modules/Modules';
 import { UserProfile, UserSettings } from 'openland-module-db/schema';
 import { UserError } from 'openland-server/errors/UserError';
 import { inTx } from 'foundation-orm/inTx';
+import { SelectBuilder } from 'openland-server/modules/SelectBuilder';
 
 function userLoader(context: CallContext) {
     if (!context.cache.has('__profile_loader')) {
@@ -194,14 +195,21 @@ export const Resolver = {
             let users = await DB.User.findAll({
                 where: [DB.connection.and({ id: { $in: uids } }, { status: 'ACTIVATED' })]
             });
-            let restored: any[] = [];
+            let restored: User[] = [];
             for (let u of uids) {
                 let existing = users.find((v) => v.id === u);
                 if (existing) {
                     restored.push(existing);
                 }
             }
-            return restored;
+
+            let builder = new SelectBuilder(DB.User)
+                .after(args.after)
+                .page(args.page)
+                .limit(args.first);
+
+            return await builder.findElastic({ hits: { total: restored.length, hits: restored.map(u => ({ _id: u.id!.toString() } as any)) } } as any);
+
         }),
     },
     Mutation: {
