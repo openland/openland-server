@@ -20,10 +20,11 @@ export function startMigrator() {
                     let members = await FDB.RoomParticipant.allFromActive(i.id);
                     if (!convRoom) {
                         let owner = members.find((v) => v.role === 'owner')!;
+                        let admin = members.find((v) => v.role === 'admin')!;
                         await FDB.ConversationRoom.create(i.id, {
                             oid: i.extras.creatorOrgId as any,
                             kind: 'public',
-                            ownerId: owner.uid,
+                            ownerId: owner ? owner.uid : (admin ? admin.uid : members[0].uid),
                             featured: (i.extras.featured as boolean) || false,
                             listed: !(i.extras.hidden as boolean),
                         });
