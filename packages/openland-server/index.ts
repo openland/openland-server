@@ -1,14 +1,3 @@
-Error.stackTraceLimit = Infinity;
-import * as async_hooks from 'async_hooks';
-
-async_hooks.createHook({
-    init(id: any, type: any, triggerId: any, resource: any) {
-        if (triggerId === undefined || id === undefined || triggerId < 0 || id < 0) {
-            (process as any)._rawDebug('init', {id, type, triggerId});
-            throw new Error('bad async id');
-        }
-    }
-}).enable();
 require('module-alias/register');
 
 // require('blocked-at')((time: number, stack: string) => {
