@@ -147,11 +147,11 @@ export function startPushNotificationWorker() {
                             continue;
                         }
 
-                        let receiverPrimaryOrg =  await DB.Organization.findById(receiver.primaryOrganization || (await Repos.Users.fetchUserAccounts(receiver.id))[0]);
+                        let receiverPrimaryOrg = await DB.Organization.findById(receiver.primaryOrganization || (await Repos.Users.fetchUserAccounts(receiver.id))[0]);
                         if (!receiverPrimaryOrg) {
                             continue;
                         }
-                        let chatTitle = await Repos.Chats.getConversationTitle(conversation.id, receiverPrimaryOrg.id, u.uid);
+                        let chatTitle = await Modules.Messaging.conv.resolveConversationTitle(conversation.id, receiverPrimaryOrg.id, u.uid);
 
                         hasMessage = true;
                         let senderName = [sender.firstName, sender.lastName].filter((v) => !!v).join(' ');
@@ -185,7 +185,7 @@ export function startPushNotificationWorker() {
                             mobile: sendMobile,
                             desktop: sendDesktop,
                             mobileAlert: (settings.mobileAlert !== undefined && settings.mobileAlert !== null) ? settings.mobileAlert : true,
-                            mobileIncludeText: ( settings.mobileIncludeText !== undefined &&  settings.mobileIncludeText !== null) ?  settings.mobileIncludeText : true,
+                            mobileIncludeText: (settings.mobileIncludeText !== undefined && settings.mobileIncludeText !== null) ? settings.mobileIncludeText : true,
                             silent: null
                         };
 

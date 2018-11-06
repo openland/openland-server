@@ -12,7 +12,7 @@ export function startMigrator() {
                     let sequence = await FDB.Sequence.findById('conversation-id');
                     if (!sequence) {
                         sequence = (await FDB.Sequence.create('conversation-id', { value: 1 }));
-                        sequence.flush();
+                        await sequence.flush();
                     }
                     sequence.value = Math.max(i.id, sequence.value);
 
@@ -59,7 +59,7 @@ export function startMigrator() {
                     let sequence = await FDB.Sequence.findById('conversation-id');
                     if (!sequence) {
                         sequence = (await FDB.Sequence.create('conversation-id', { value: 1 }));
-                        sequence.flush();
+                        await sequence.flush();
                     }
                     sequence.value = Math.max(i.id, sequence.value);
 
@@ -102,7 +102,7 @@ export function startMigrator() {
                     let sequence = await FDB.Sequence.findById('conversation-id');
                     if (!sequence) {
                         sequence = (await FDB.Sequence.create('conversation-id', { value: 1 }));
-                        sequence.flush();
+                        await sequence.flush();
                     }
                     sequence.value = Math.max(i.id, sequence.value);
 
@@ -127,7 +127,7 @@ export function startMigrator() {
                     let sequence = await FDB.Sequence.findById('conversation-id');
                     if (!sequence) {
                         sequence = (await FDB.Sequence.create('conversation-id', { value: 1 }));
-                        sequence.flush();
+                        await sequence.flush();
                     }
                     sequence.value = Math.max(i.id, sequence.value);
 

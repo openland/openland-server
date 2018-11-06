@@ -23,10 +23,10 @@ describe('FEntity', () => {
     it('should be able to create items', async () => {
         await withLogDisabled(async () => {
             let res = await inTx(async () => {
-                return await testEntities.SimpleEntity.create(0, { data: 'hello world' });
+                return await testEntities.SimpleEntity.create(14, { data: 'hello world' });
             });
             expect(res.data).toEqual('hello world');
-            expect(res.id).toEqual(0);
+            expect(res.id).toEqual(14);
             expect(res.versionCode).toEqual(0);
             expect(res.createdAt).toEqual(0);
             expect(res.updatedAt).toEqual(0);
@@ -36,13 +36,13 @@ describe('FEntity', () => {
         await withLogDisabled(async () => {
             // First create
             await inTx(async () => {
-                await testEntities.SimpleEntity.create(2, { data: 'hello world' });
+                await testEntities.SimpleEntity.create(12, { data: 'hello world' });
             });
             // Double create
             let res = inTx(async () => {
-                return await testEntities.SimpleEntity.create(2, { data: 'hello world' });
+                return await testEntities.SimpleEntity.create(12, { data: 'hello world' });
             });
-            expect(res).rejects.toThrowError('Object already exists');
+            expect(res).rejects.toThrowError('Object with id entity.simpleEntity.12 already exists');
         });
     });
 

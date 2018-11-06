@@ -5,6 +5,7 @@ import { inTx } from 'foundation-orm/inTx';
 import { Repos } from 'openland-server/repositories';
 import { Modules } from 'openland-modules/Modules';
 import { imageRefEquals } from 'openland-server/repositories/Media';
+import { NotFoundError } from 'openland-server/errors/NotFoundError';
 
 interface RoomProfileInput {
     title: string;
@@ -31,13 +32,13 @@ export class ConversationRepository {
                 description: profile.description,
                 socialImage: profile.socialImage
             });
-            (await FDB.RoomParticipant.create(id, uid, {
+            await (await FDB.RoomParticipant.create(id, uid, {
                 role: 'owner',
                 invitedBy: uid,
                 status: 'joined'
             })).flush();
             for (let m of members) {
-                (await FDB.RoomParticipant.create(id, m, {
+                await (await FDB.RoomParticipant.create(id, m, {
                     role: 'member',
                     invitedBy: uid,
                     status: 'joined'
@@ -385,6 +386,47 @@ export class ConversationRepository {
             return (await FDB.OrganizationMember.allFromOrganization('joined', org.oid)).map((v) => v.uid);
         } else {
             throw new Error('Internal error');
+        }
+    }
+
+    async resolveConversationTitle(conversationId: number, oid: number | undefined, uid: number): Promise<string> {
+        let conv = await FDB.Conversation.findById(conversationId);
+
+        if (!conv) {
+            throw new NotFoundError('Conversation not found');
+        }
+
+        if (conv.kind === 'private') {
+            let p = (await FDB.ConversationPrivate.findById(conv.id))!;
+            let _uid;
+            if (p.uid1 === uid) {
+                _uid = p.uid2;
+            } else if (p.uid2 === uid) {
+                _uid = p.uid1;
+            } else {
+                throw Error('Inconsistent Private Conversation resolver');
+            }
+            let profile = (await Modules.Users.profileById(_uid))!;
+            return [profile.firstName, profile.lastName].filter((v) => !!v).join(' ');
+        } else if (conv.kind === 'organization') {
+            let o = await FDB.ConversationOrganization.findById(conv.id);
+            return (await FDB.OrganizationProfile.findById(o!.oid))!.name;
+        } else {
+            let r = (await FDB.ConversationRoom.findById(conv.id))!;
+            let p = (await FDB.RoomProfile.findById(conv.id))!;
+            if (r.kind === 'group') {
+                if (p.title !== '') {
+                    return p.title;
+                }
+                let res = (await FDB.RoomParticipant.allFromActive(conv.id)).filter((v) => v.uid !== uid);
+                let name: string[] = [];
+                for (let r2 of res) {
+                    let p2 = (await Modules.Users.profileById(r2.uid))!!;
+                    name.push([p2.firstName, p2.lastName].filter((v) => !!v).join(' '));
+                }
+                return name.join(', ');
+            }
+            return p.title;
         }
     }
 
