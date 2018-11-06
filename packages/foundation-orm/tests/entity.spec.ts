@@ -116,4 +116,14 @@ describe('FEntity', () => {
             expect(res.data).toEqual('hello world');
         });
     });
+
+    it('double flush should work', async () => {
+        await withLogDisabled(async () => {
+            await inTx(async () => {
+                let res = await testEntities.SimpleEntity.create(10, { data: 'hello world' });
+                await res.flush();
+                await res.flush();
+            });
+        });
+    });
 });

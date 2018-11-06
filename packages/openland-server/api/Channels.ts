@@ -60,18 +60,18 @@ export const Resolver = {
         memberRequestsCount: (src: Conversation) => Repos.Chats.membersCountInConversation(src.id, 'requested'),
         featured: async (src: Conversation) => (await FDB.ConversationRoom.findById(src.id))!.featured || false,
         hidden: async (src: Conversation) => !(await FDB.ConversationRoom.findById(src.id))!.listed || false,
-        description: async (src: Conversation) => (await FDB.RoomProfile.findById(src.id))!.description,
+        description: async (src: Conversation) => (await FDB.RoomProfile.findById(src.id))!.description || '',
         longDescription: (src: Conversation) => '',
         myStatus: async (src: Conversation, _: any, context: CallContext) => {
             let member = context.uid ? await Modules.Messaging.room.findMembershipStatus(context.uid, src.id!) : undefined;
 
-            if (!member) {
+            if (!member || member.status === 'kicked') {
                 return 'left';
             }
 
             return member.status;
         },
-        organization: async (src: Conversation) => FDB.Organization.findById((await FDB.ConversationRoom.findById(src.id))!.oid!),
+        organization: async (src: Conversation) => DB.Organization.findById((await FDB.ConversationRoom.findById(src.id))!.oid!),
         isRoot: (src: Conversation) => false,
         settings: (src: Conversation, _: any, context: CallContext) => Modules.Messaging.getConversationSettings(context.uid!!, src.id),
 

@@ -74,7 +74,7 @@ export function startMigrations() {
     });
     reader.start();
 
-    let reader2 = new UpdateReader('orgs-members-exporter', 2, DB.OrganizationMember);
+    let reader2 = new UpdateReader('orgs-members-exporter', 4, DB.OrganizationMember);
     reader2.processor(async (items) => {
         for (let i of items) {
             await inTx(async () => {
@@ -83,6 +83,7 @@ export function startMigrations() {
                     memb.status = 'joined';
                     memb.role = i.isOwner ? 'admin' : 'member';
                     memb.invitedBy = i.invitedBy ? i.invitedBy! : i.userId;
+                    await memb.markDirty();
                 } else {
                     await FDB.OrganizationMember.create(i.orgId, i.userId, {
                         role: i.isOwner ? 'admin' : 'member',

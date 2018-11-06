@@ -32,12 +32,13 @@ import { FEntity } from 'foundation-orm/FEntity';
 export const Resolver = {
     Conversation: {
         __resolveType: async (src: Conversation) => {
-            if (src.kind === 'organization') {
-                return 'SharedConversation';
-            } else if (src.kind === 'private') {
+            if (src.kind === 'private') {
                 return 'PrivateConversation';
+            } else if (src.kind === 'organization') {
+                return 'SharedConversation';
             } else {
-                if ((await FDB.ConversationRoom.findById(src.id!))!.kind === 'group') {
+                let kind = (await FDB.ConversationRoom.findById(src.id!))!.kind;
+                if (kind === 'group') {
                     return 'GroupConversation';
                 } else {
                     return 'ChannelConversation';
@@ -147,6 +148,9 @@ export const Resolver = {
         flexibleId: (src: Conversation) => IDs.Conversation.serialize(src.id),
         title: async (src: Conversation, _: any, context: CallContext) => {
             let conv = (await FDB.RoomProfile.findById(src.id))!;
+            if (!conv) {
+                console.warn('Unable to find room for id: ' + src.id);
+            }
             if (conv.title !== '') {
                 return conv.title;
             }

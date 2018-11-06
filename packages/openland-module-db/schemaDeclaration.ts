@@ -199,10 +199,9 @@ const Schema = declareSchema(() => {
         enumField('role', ['admin', 'member']);
         enumField('status', ['requested', 'joined', 'left']);
 
-        uniqueIndex('organization', ['status', 'oid', 'uid'])
-            .withRange();
-        uniqueIndex('user', ['status', 'uid', 'oid'])
-            .withRange();
+        uniqueIndex('ids', ['oid', 'uid']);
+        rangeIndex('organization', ['status', 'oid', 'uid']);
+        rangeIndex('user', ['status', 'uid', 'oid']);
 
         enableTimestamps();
         enableVersioning();
@@ -303,7 +302,7 @@ const Schema = declareSchema(() => {
 
     entity('ConversationRoom', () => {
         primaryKey('id', 'number');
-        enumField('kind', ['organization', 'internal', 'public', 'group']);
+        enumField('kind', ['internal', 'public', 'group']);
         field('oid', 'number').nullable();
         field('ownerId', 'number').nullable();
         field('featured', 'boolean').nullable();

@@ -153,7 +153,9 @@ export class MessagingRepository {
         return await inTx(async () => {
             let ex = await this.entities.Sequence.findById('message-id');
             if (ex) {
-                return ++ex.value;
+                let res = ++ex.value;
+                await ex.flush();
+                return res;
             } else {
                 await this.entities.Sequence.create('message-id', { value: 1 });
                 return 1;

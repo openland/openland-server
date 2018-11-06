@@ -11,7 +11,7 @@ import { OrganizationMemberTable } from './OrganizationMember';
 import { ConversationTable } from './Conversation';
 import { retry } from '../utils/timer';
 
-const SILENT_TX_ACTUALLY_SILENT = false;
+const SILENT_TX_ACTUALLY_SILENT = process.env.NODE_ENV !== 'production';
 export const DB_SILENT = !SILENT_TX_ACTUALLY_SILENT;
 
 export const DB = {

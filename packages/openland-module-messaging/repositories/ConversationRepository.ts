@@ -24,25 +24,26 @@ export class ConversationRepository {
         return await inTx(async () => {
             let id = await this.fetchNextConversationId();
             let conv = await FDB.Conversation.create(id, { kind: 'room' });
-            await FDB.ConversationRoom.create(id, { kind, ownerId: oid, oid: kind === 'public' ? oid : undefined, featured: false, listed: kind === 'public' });
+            await (await FDB.ConversationRoom.create(id, { kind, ownerId: oid, oid: kind === 'public' ? oid : undefined, featured: false, listed: kind === 'public' })).flush();
             await FDB.RoomProfile.create(id, {
                 title: profile.title,
                 image: profile.image,
                 description: profile.description,
                 socialImage: profile.socialImage
             });
-            await FDB.RoomParticipant.create(id, uid, {
+            (await FDB.RoomParticipant.create(id, uid, {
                 role: 'owner',
                 invitedBy: uid,
                 status: 'joined'
-            });
+            })).flush();
             for (let m of members) {
-                await FDB.RoomParticipant.create(id, m, {
+                (await FDB.RoomParticipant.create(id, m, {
                     role: 'member',
                     invitedBy: uid,
                     status: 'joined'
-                });
+                })).flush();
             }
+            await conv.flush();
             await Repos.Chats.sendMessage(id, uid, { message: kind === 'group' ? 'Group created' : 'Room created', isService: true });
             if (message) {
                 await Repos.Chats.sendMessage(id, uid, { message: message });
@@ -86,7 +87,7 @@ export class ConversationRepository {
                 }
             });
 
-            return conv;
+            return (await FDB.Conversation.findById(conv.id))!;
         });
     }
 
@@ -113,7 +114,7 @@ export class ConversationRepository {
             }
 
             // Kick user from Room
-            p.status = 'kicked';
+            kickedP.status = 'kicked';
 
             // Send kick message
             let profile = await Modules.Users.profileById(kickedUid);
@@ -123,7 +124,7 @@ export class ConversationRepository {
                 isMuted: true,
                 serviceMetadata: {
                     type: 'user_kick',
-                    kickedUid,
+                    userId: kickedUid,
                     kickedById: uid
                 }
             });
@@ -141,7 +142,7 @@ export class ConversationRepository {
                 });
             }
 
-            return conv;
+            return (await FDB.Conversation.findById(conv.id))!;
         });
     }
 
@@ -183,7 +184,7 @@ export class ConversationRepository {
                 });
             }
 
-            return conv;
+            return (await FDB.Conversation.findById(conv.id))!;
         });
     }
 
@@ -224,7 +225,7 @@ export class ConversationRepository {
                 }
             });
 
-            return conv;
+            return (await FDB.Conversation.findById(conv.id))!;
         });
     }
 
@@ -270,7 +271,7 @@ export class ConversationRepository {
                     }
                 } else {
                     let res = profile.description.trim();
-                    if (profile.description !== res) {
+                    if (conv.description !== res) {
                         conv.description = res;
                     }
                 }
@@ -314,7 +315,7 @@ export class ConversationRepository {
                 }
             }
 
-            return conv;
+            return (await FDB.Conversation.findById(conv.id))!;
         });
     }
 
@@ -342,7 +343,7 @@ export class ConversationRepository {
 
             p2.role = role;
 
-            return conv;
+            return (await FDB.Conversation.findById(conv.id))!;
         });
     }
 
@@ -350,10 +351,12 @@ export class ConversationRepository {
         return await inTx(async () => {
             let conv = await FDB.ConversationPrivate.findFromUsers(Math.min(uid1, uid2), Math.max(uid1, uid2));
             if (!conv) {
-                return await FDB.ConversationPrivate.create(await this.fetchNextConversationId(), { uid1: Math.min(uid1, uid2), uid2: Math.max(uid1, uid2) });
-            } else {
-                return conv;
+                let id = await this.fetchNextConversationId();
+                await (await FDB.Conversation.create(id, { kind: 'private' })).flush();
+                conv = await FDB.ConversationPrivate.create(id, { uid1: Math.min(uid1, uid2), uid2: Math.max(uid1, uid2) });
+                await conv.flush();
             }
+            return (await FDB.Conversation.findById(conv.id))!;
         });
     }
 
@@ -361,10 +364,12 @@ export class ConversationRepository {
         return await inTx(async () => {
             let conv = await FDB.ConversationOrganization.findFromOrganization(oid);
             if (!conv) {
-                return await FDB.ConversationOrganization.create(await this.fetchNextConversationId(), { oid });
-            } else {
-                return conv;
+                let id = await this.fetchNextConversationId();
+                await (await FDB.Conversation.create(id, { kind: 'organization' })).flush();
+                conv = await FDB.ConversationOrganization.create(id, { oid });
+                await conv.flush();
             }
+            return (await FDB.Conversation.findById(conv.id))!;
         });
     }
 
@@ -377,7 +382,7 @@ export class ConversationRepository {
             return (await FDB.RoomParticipant.rangeFromActive(cid, 1000)).map((v) => v.uid);
         } else if (conv.kind === 'organization') {
             let org = (await FDB.ConversationOrganization.findById(cid))!;
-            return (await FDB.OrganizationMember.rangeFromOrganization('joined', org.id, 1000)).map((v) => v.uid);
+            return (await FDB.OrganizationMember.allFromOrganization('joined', org.oid)).map((v) => v.uid);
         } else {
             throw new Error('Internal error');
         }

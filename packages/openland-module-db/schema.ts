@@ -2118,8 +2118,9 @@ export class OrganizationMemberFactory extends FEntityFactory<OrganizationMember
             { name: 'status', type: 'enum', enumValues: ['requested', 'joined', 'left'] },
         ],
         indexes: [
-            { name: 'organization', type: 'unique', fields: ['status', 'oid', 'uid'] },
-            { name: 'user', type: 'unique', fields: ['status', 'uid', 'oid'] },
+            { name: 'ids', type: 'unique', fields: ['oid', 'uid'] },
+            { name: 'organization', type: 'range', fields: ['status', 'oid', 'uid'] },
+            { name: 'user', type: 'range', fields: ['status', 'uid', 'oid'] },
         ],
     };
 
@@ -2139,7 +2140,7 @@ export class OrganizationMemberFactory extends FEntityFactory<OrganizationMember
         super(connection,
             new FNamespace('entity', 'organizationMember'),
             { enableVersioning: true, enableTimestamps: true, validator: OrganizationMemberFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('organization', ['status', 'oid', 'uid'], true), new FEntityIndex('user', ['status', 'uid', 'oid'], true)],
+            [new FEntityIndex('ids', ['oid', 'uid'], true), new FEntityIndex('organization', ['status', 'oid', 'uid'], false), new FEntityIndex('user', ['status', 'uid', 'oid'], false)],
             'OrganizationMember'
         );
     }
@@ -2156,8 +2157,26 @@ export class OrganizationMemberFactory extends FEntityFactory<OrganizationMember
     watch(oid: number, uid: number, cb: () => void) {
         return this._watch([oid, uid], cb);
     }
-    async findFromOrganization(status: 'requested' | 'joined' | 'left', oid: number, uid: number) {
-        return await this._findFromIndex(['__indexes', 'organization', status, oid, uid]);
+    async findFromIds(oid: number, uid: number) {
+        return await this._findFromIndex(['__indexes', 'ids', oid, uid]);
+    }
+    async allFromIdsAfter(oid: number, after: number) {
+        return await this._findRangeAllAfter(['__indexes', 'ids', oid], after);
+    }
+    async rangeFromIdsAfter(oid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(['__indexes', 'ids', oid], after, limit, reversed);
+    }
+    async rangeFromIds(oid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'ids', oid], limit, reversed);
+    }
+    async rangeFromIdsWithCursor(oid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'ids', oid], limit, after, reversed);
+    }
+    async allFromIds(oid: number) {
+        return await this._findAll(['__indexes', 'ids', oid]);
+    }
+    createIdsStream(oid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'organizationMember', '__indexes', 'ids', oid], limit, after); 
     }
     async allFromOrganizationAfter(status: 'requested' | 'joined' | 'left', oid: number, after: number) {
         return await this._findRangeAllAfter(['__indexes', 'organization', status, oid], after);
@@ -2176,9 +2195,6 @@ export class OrganizationMemberFactory extends FEntityFactory<OrganizationMember
     }
     createOrganizationStream(status: 'requested' | 'joined' | 'left', oid: number, limit: number, after?: string) {
         return this._createStream(['entity', 'organizationMember', '__indexes', 'organization', status, oid], limit, after); 
-    }
-    async findFromUser(status: 'requested' | 'joined' | 'left', uid: number, oid: number) {
-        return await this._findFromIndex(['__indexes', 'user', status, uid, oid]);
     }
     async allFromUserAfter(status: 'requested' | 'joined' | 'left', uid: number, after: number) {
         return await this._findRangeAllAfter(['__indexes', 'user', status, uid], after);
@@ -3138,7 +3154,7 @@ export class ConversationOrganizationFactory extends FEntityFactory<Conversation
     }
 }
 export interface ConversationRoomShape {
-    kind: 'organization' | 'internal' | 'public' | 'group';
+    kind: 'internal' | 'public' | 'group';
     oid?: number| null;
     ownerId?: number| null;
     featured?: boolean| null;
@@ -3147,10 +3163,10 @@ export interface ConversationRoomShape {
 
 export class ConversationRoom extends FEntity {
     get id(): number { return this._value.id; }
-    get kind(): 'organization' | 'internal' | 'public' | 'group' {
+    get kind(): 'internal' | 'public' | 'group' {
         return this._value.kind;
     }
-    set kind(value: 'organization' | 'internal' | 'public' | 'group') {
+    set kind(value: 'internal' | 'public' | 'group') {
         this._checkIsWritable();
         if (value === this._value.kind) { return; }
         this._value.kind = value;
@@ -3210,7 +3226,7 @@ export class ConversationRoomFactory extends FEntityFactory<ConversationRoom> {
             { name: 'id', type: 'number' },
         ],
         fields: [
-            { name: 'kind', type: 'enum', enumValues: ['organization', 'internal', 'public', 'group'] },
+            { name: 'kind', type: 'enum', enumValues: ['internal', 'public', 'group'] },
             { name: 'oid', type: 'number' },
             { name: 'ownerId', type: 'number' },
             { name: 'featured', type: 'boolean' },
@@ -3226,7 +3242,7 @@ export class ConversationRoomFactory extends FEntityFactory<ConversationRoom> {
         validators.notNull('id', src.id);
         validators.isNumber('id', src.id);
         validators.notNull('kind', src.kind);
-        validators.isEnum('kind', src.kind, ['organization', 'internal', 'public', 'group']);
+        validators.isEnum('kind', src.kind, ['internal', 'public', 'group']);
         validators.isNumber('oid', src.oid);
         validators.isNumber('ownerId', src.ownerId);
         validators.isBoolean('featured', src.featured);

@@ -4,7 +4,7 @@ import { inTx } from 'foundation-orm/inTx';
 import { FDB } from 'openland-module-db/FDB';
 
 export function startMigrator() {
-    let reader = new UpdateReader('export-conversations', 4, DB.Conversation);
+    let reader = new UpdateReader('export-conversations', 6, DB.Conversation);
     reader.processor(async (items) => {
         for (let i of items) {
             if (i.type === 'channel') {
@@ -15,7 +15,7 @@ export function startMigrator() {
                         sequence.flush();
                     }
                     sequence.value = Math.max(i.id, sequence.value);
-                    
+
                     let conversation = await FDB.Conversation.findById(i.id);
                     if (!conversation) {
                         await FDB.Conversation.create(i.id, {
@@ -109,16 +109,17 @@ export function startMigrator() {
                     let conversation = await FDB.Conversation.findById(i.id);
                     if (!conversation) {
                         await FDB.Conversation.create(i.id, {
-                            kind: 'room'
+                            kind: 'organization'
                         });
+                    } else {
+                        conversation.kind = 'organization';
                     }
 
-                    let convRoom = await FDB.ConversationRoom.findById(i.id);
-                    if (!convRoom) {
-                        await FDB.ConversationRoom.create(i.id, {
-                            kind: 'organization',
-                            oid: i.organization1Id!
-                        });
+                    let convOrg = await FDB.ConversationOrganization.findById(i.id);
+                    if (!convOrg) {
+                        await FDB.ConversationOrganization.create(i.id, { oid: i.organization1Id! });
+                    } else {
+                        convOrg.oid = i.organization1Id!;
                     }
                 });
             } else if (i.type === 'private') {
