@@ -3,6 +3,7 @@ import { DB } from '../tables';
 import { Repos } from '../repositories';
 import { Modules } from 'openland-modules/Modules';
 import { OrganizationInviteLink } from 'openland-module-db/schema';
+import { IDs } from 'openland-server/api/utils/IDs';
 
 const TEMPLATE_WELCOME = 'c6a056a3-9d56-4b2e-8d50-7748dd28a1fb';
 const TEMPLATE_ACTIVATEED = 'e5b1d39d-35e9-4eba-ac4a-e0676b055346';
@@ -270,7 +271,7 @@ export const Emails = {
                         memberName: memberProfile.firstName || '',
                         firstName: memberProfile.firstName || '',
                         lastName: memberProfile.lastName || '',
-                        link: 'https://app.openland.com/mail',
+                        link: 'https://app.openland.com/mail/' + IDs.User.serialize(memberId),
                         'organizationName': org.name!!,
                         ...(user.args)
                     }
