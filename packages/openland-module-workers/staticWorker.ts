@@ -2,6 +2,7 @@ import { delay, foreverBreakable } from '../openland-server/utils/timer';
 import { LockRepository } from 'openland-module-sync/LockRepository';
 import { withLogContext } from 'openland-log/withLogContext';
 import { createLogger } from 'openland-log/createLogger';
+import { Shutdown } from '../openland-utils/Shutdown';
 
 const logger = createLogger('loop');
 
@@ -52,16 +53,20 @@ export function staticWorker(config: { name: string, version?: number, delay?: n
         }
     });
 
-    return {
-        shutdown: async () => {
-            if (!working) {
-                throw new Error('Worker already stopped');
-            }
-
-            working = false;
-            await workLoop.stop();
-            await await LockRepository.releaseLock('worker_' + config.name, config.version);
-            logger.log('worker_' + config.name, 'stopped');
+    const shutdown = async () => {
+        if (!working) {
+            throw new Error('Worker already stopped');
         }
+
+        working = false;
+        await workLoop.stop();
+        await await LockRepository.releaseLock('worker_' + config.name, config.version);
+        logger.log('worker_' + config.name, 'stopped');
+    };
+
+    Shutdown.registerWork({ name: 'worker_' + config.name, shutdown });
+
+    return {
+        shutdown
     };
 }

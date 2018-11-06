@@ -1,3 +1,14 @@
+Error.stackTraceLimit = Infinity;
+import * as async_hooks from 'async_hooks';
+
+async_hooks.createHook({
+    init(id: any, type: any, triggerId: any, resource: any) {
+        if (triggerId === undefined || id === undefined || triggerId < 0 || id < 0) {
+            (process as any)._rawDebug('init', {id, type, triggerId});
+            throw new Error('bad async id');
+        }
+    }
+}).enable();
 require('module-alias/register');
 
 // require('blocked-at')((time: number, stack: string) => {
@@ -27,6 +38,17 @@ import { initApi } from './init/initApi';
 import './init/initConfig';
 import { Modules } from '../openland-modules/Modules';
 import { initHealthcheck } from './init/initHealthcheck';
+import { Shutdown } from '../openland-utils/Shutdown';
+
+let sigintCalled = false;
+process.on('SIGINT', async function() {
+    if (sigintCalled) {
+        process.exit();
+    }
+    sigintCalled = true;
+    await Shutdown.shutdown();
+    process.exit();
+});
 
 async function initServer() {
     try {
