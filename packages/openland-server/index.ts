@@ -29,15 +29,18 @@ import { Modules } from '../openland-modules/Modules';
 import { initHealthcheck } from './init/initHealthcheck';
 import { Shutdown } from '../openland-utils/Shutdown';
 
-let sigintCalled = false;
-process.on('SIGINT', async function() {
-    if (sigintCalled) {
+let exitCalled = false;
+async function onExit() {
+    if (exitCalled) {
         process.exit();
     }
-    sigintCalled = true;
+    exitCalled = true;
     await Shutdown.shutdown();
     process.exit();
-});
+}
+
+process.on('SIGTERM', onExit);
+process.on('SIGINT', onExit);
 
 async function initServer() {
     try {
