@@ -9,6 +9,11 @@ import { inTx } from 'foundation-orm/inTx';
 import { FDB } from 'openland-module-db/FDB';
 
 export const Resolvers = {
+    SuperAccountState: {
+        PENDING: 'pending',
+        ACTIVATED: 'activated',
+        SUSPENDED: 'suspended'
+    },
     SuperAccount: {
         id: (src: Organization) => IDs.SuperAccount.serialize(src.id!!),
         orgId: (src: Organization) => IDs.Organization.serialize(src.id!!),
