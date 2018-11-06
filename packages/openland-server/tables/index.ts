@@ -8,7 +8,6 @@ import { UserTable } from './User';
 import { ReaderStateTable } from './ReaderState';
 import { OrganizationTable } from './Organization';
 import { OrganizationMemberTable } from './OrganizationMember';
-import { ConversationTable } from './Conversation';
 import { retry } from '../utils/timer';
 
 const SILENT_TX_ACTUALLY_SILENT = process.env.NODE_ENV !== 'production';
@@ -19,8 +18,6 @@ export const DB = {
     ReaderState: ReaderStateTable,
     Organization: OrganizationTable,
     OrganizationMember: OrganizationMemberTable,
-
-    Conversation: ConversationTable,
 
     tx: async function tx<A>(handler: (tx: sequelize.Transaction) => PromiseLike<A>, existingTx?: sequelize.Transaction): Promise<A> {
         if (existingTx) {

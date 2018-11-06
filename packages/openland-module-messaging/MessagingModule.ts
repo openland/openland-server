@@ -9,7 +9,6 @@ import { inTx } from 'foundation-orm/inTx';
 import { ChannelInviteEmails } from './emails/ChannelInviteEmails';
 import { createDeliveryWorker } from './workers/DeliveryWorker';
 import { DialogsRepository } from './repositories/DialogsRepository';
-import { startMigrator } from './Migrator';
 import { FixerRepository } from './repositories/Fixer';
 import { RoomRepository } from './repositories/RoomRepository';
 import { ConversationRepository } from './repositories/ConversationRepository';
@@ -43,9 +42,6 @@ export class MessagingModule {
         }
         if (serverRoleEnabled('workers')) {
             startPushNotificationWorker();
-        }
-        if (serverRoleEnabled('workers')) {
-            startMigrator();
         }
     }
 
