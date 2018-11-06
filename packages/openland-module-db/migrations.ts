@@ -191,7 +191,7 @@ migrations.push({
                 let res = await FDB.UserDialog.allFromUser(u.id!);
                 for (let r of res) {
                     let conv = (await DB.Conversation.findById(r.cid));
-                    if (conv!.type === 'channel' && (await FDB.RoomParticipant.allFromActive(conv!.id)).length === 0) {
+                    if (conv && conv!.type === 'channel' && (await FDB.RoomParticipant.allFromActive(conv!.id)).length === 0) {
                         r.date = null;
                     }
                 }
