@@ -1,7 +1,7 @@
 import { JsonMap } from 'openland-server/utils/json';
 import { FDB } from 'openland-module-db/FDB';
 import { inTx } from 'foundation-orm/inTx';
-import { forever, delayBreakable } from 'openland-server/utils/timer';
+import { delayBreakable, foreverBreakable } from 'openland-server/utils/timer';
 import { uuid } from 'openland-utils/uuid';
 import { withLogContext } from 'openland-log/withLogContext';
 import { createLogger } from 'openland-log/createLogger';
@@ -9,6 +9,7 @@ import { exponentialBackoffDelay } from 'openland-server/utils/exponentialBackof
 import { EventBus } from 'openland-module-pubsub/EventBus';
 import { FTransaction } from 'foundation-orm/FTransaction';
 import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent';
+import { Shutdown } from '../openland-utils/Shutdown';
 
 const workCompleted = createHyperlogger<{ taskId: string, taskType: string, duration: number }>('task_completed');
 const workScheduled = createHyperlogger<{ taskId: string, taskType: string, duration: number }>('task_scheduled');
@@ -38,6 +39,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
     }
 
     addWorker = (handler: (item: ARGS, uid: string) => RES | Promise<RES>) => {
+        let working = true;
         const lockSeed = uuid();
         const log = createLogger('handler');
         let awaiter: (() => void) | undefined;
@@ -52,7 +54,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
             awaiter = w.resolver;
             await w.promise;
         };
-        forever(async () => {
+        let workLoop = foreverBreakable(async () => {
             await withLogContext(['worker', this.taskType], async () => {
                 let task = await inTx(async () => {
                     let pend = await FDB.Task.rangeFromPending(this.taskType, 1);
@@ -128,5 +130,21 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                 }
             });
         });
+
+        const shutdown = async () => {
+            if (!working) {
+                throw new Error('Worker already stopped');
+            }
+
+            working = false;
+            await workLoop.stop();
+            log.log(this.taskType, 'stopped');
+        };
+
+        Shutdown.registerWork({ name: this.taskType, shutdown });
+
+        return {
+            shutdown
+        };
     }
 }
