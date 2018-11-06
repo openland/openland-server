@@ -25,6 +25,10 @@ export function startMigrator() {
 
                     let convRoom = await FDB.ConversationRoom.findById(i.id);
                     let members = await FDB.RoomParticipant.allFromActive(i.id);
+                    if (members.length === 0) {
+                        return;
+                    }
+
                     if (!convRoom) {
                         let owner = members.find((v) => v.role === 'owner')!;
                         let admin = members.find((v) => v.role === 'admin')!;
