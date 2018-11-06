@@ -164,6 +164,24 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '13-remove-org-chats',
+    migration: async () => {
+        let users = (await DB.User.findAll());
+        for (let u of users) {
+            await inTx(async () => {
+                let res = await FDB.UserDialog.allFromUser(u.id!);
+                for (let r of res) {
+                    let conv = (await DB.Conversation.findById(r.cid));
+                    if (conv!.type === 'shared' && conv!.organization1Id !== conv!.organization2Id) {
+                        r.date = null;
+                    }
+                }
+            });
+        }
+    }
+});
+
 export function startMigrationsWorker() {
     if (serverRoleEnabled('workers')) {
         staticWorker({ name: 'foundation-migrator' }, async () => {

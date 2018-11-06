@@ -1,10 +1,9 @@
 import { IDs } from 'openland-server/api/utils/IDs';
-import { DB } from 'openland-server/tables';
 import { CallContext } from 'openland-server/api/utils/CallContext';
-import { AccessDeniedError } from 'openland-server/errors/AccessDeniedError';
 import { ConversationEvent } from 'openland-module-db/schema';
 import { FDB } from 'openland-module-db/FDB';
 import { FLiveStreamItem } from 'foundation-orm/FLiveStreamItem';
+import { Modules } from 'openland-modules/Modules';
 
 export default {
     /* 
@@ -76,13 +75,7 @@ export default {
                 if (!context.uid) {
                     throw Error('Not logged in');
                 }
-                let conversation = (await DB.Conversation.findById(conversationId))!;
-                if (conversation.type === 'group' || conversation.type === 'channel') {
-                    let member = await FDB.RoomParticipant.findById(conversationId, context.uid);
-                    if (!member || member.status !== 'joined') {
-                        throw new AccessDeniedError();
-                    }
-                }
+                await Modules.Messaging.conv.checkAccess(context.uid, conversationId);
                 return FDB.ConversationEvent.createUserLiveStream(conversationId, 20, args.fromState);
             }
         }

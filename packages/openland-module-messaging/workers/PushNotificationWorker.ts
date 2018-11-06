@@ -111,7 +111,7 @@ export function startPushNotificationWorker() {
                         if (!receiver) {
                             continue;
                         }
-                        let conversation = await DB.Conversation.findById(message.cid);
+                        let conversation = await FDB.Conversation.findById(message.cid);
                         if (!conversation) {
                             continue;
                         }
@@ -123,12 +123,12 @@ export function startPushNotificationWorker() {
 
                         // Filter non-private if only direct messages enabled
                         if (settings.desktopNotifications === 'direct') {
-                            if (conversation.type !== 'private') {
+                            if (conversation.kind !== 'private') {
                                 sendDesktop = false;
                             }
                         }
                         if (settings.mobileNotifications === 'direct') {
-                            if (conversation.type !== 'private') {
+                            if (conversation.kind !== 'private') {
                                 sendMobile = false;
                             }
                         }
@@ -158,7 +158,7 @@ export function startPushNotificationWorker() {
 
                         let pushTitle = Texts.Notifications.GROUP_PUSH_TITLE({ senderName, chatTitle });
 
-                        if (conversation.type === 'private') {
+                        if (conversation.kind === 'private') {
                             pushTitle = chatTitle;
                         }
 

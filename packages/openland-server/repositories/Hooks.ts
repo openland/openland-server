@@ -11,7 +11,7 @@ export const Hooks = {
     },
     onUserJoined: async (uid: number, oid: number, tx: Transaction) => {
         // await Emails.sendMemberJoinedEmails(oid, uid, tx);
-        let chat = await Repos.Chats.loadOrganizationalChat(oid, oid, tx);
+        let chat = await Modules.Messaging.conv.resolveOrganizationChat(oid);
         let profile = await Modules.Users.profileById(uid);
         await Repos.Chats.sendMessage(chat.id, uid, { message: `${profile!.firstName} has joined organization`, isService: true, isMuted: true });
     },

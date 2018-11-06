@@ -4,11 +4,18 @@ import { inTx } from 'foundation-orm/inTx';
 import { FDB } from 'openland-module-db/FDB';
 
 export function startMigrator() {
-    let reader = new UpdateReader('export-conversations', 1, DB.Conversation);
+    let reader = new UpdateReader('export-conversations', 4, DB.Conversation);
     reader.processor(async (items) => {
         for (let i of items) {
             if (i.type === 'channel') {
                 await inTx(async () => {
+                    let sequence = await FDB.Sequence.findById('conversation-id');
+                    if (!sequence) {
+                        sequence = (await FDB.Sequence.create('conversation-id', { value: 1 }));
+                        sequence.flush();
+                    }
+                    sequence.value = Math.max(i.id, sequence.value);
+                    
                     let conversation = await FDB.Conversation.findById(i.id);
                     if (!conversation) {
                         await FDB.Conversation.create(i.id, {
@@ -49,6 +56,13 @@ export function startMigrator() {
                 });
             } else if (i.type === 'group') {
                 await inTx(async () => {
+                    let sequence = await FDB.Sequence.findById('conversation-id');
+                    if (!sequence) {
+                        sequence = (await FDB.Sequence.create('conversation-id', { value: 1 }));
+                        sequence.flush();
+                    }
+                    sequence.value = Math.max(i.id, sequence.value);
+
                     let members = await FDB.RoomParticipant.allFromActive(i.id);
                     if (members.length === 0) {
                         return;
@@ -85,6 +99,13 @@ export function startMigrator() {
                 });
             } else if (i.type === 'shared' && i.organization1Id === i.organization2Id) {
                 await inTx(async () => {
+                    let sequence = await FDB.Sequence.findById('conversation-id');
+                    if (!sequence) {
+                        sequence = (await FDB.Sequence.create('conversation-id', { value: 1 }));
+                        sequence.flush();
+                    }
+                    sequence.value = Math.max(i.id, sequence.value);
+
                     let conversation = await FDB.Conversation.findById(i.id);
                     if (!conversation) {
                         await FDB.Conversation.create(i.id, {
@@ -102,6 +123,13 @@ export function startMigrator() {
                 });
             } else if (i.type === 'private') {
                 await inTx(async () => {
+                    let sequence = await FDB.Sequence.findById('conversation-id');
+                    if (!sequence) {
+                        sequence = (await FDB.Sequence.create('conversation-id', { value: 1 }));
+                        sequence.flush();
+                    }
+                    sequence.value = Math.max(i.id, sequence.value);
+
                     let conversation = await FDB.Conversation.findById(i.id);
                     if (!conversation) {
                         await FDB.Conversation.create(i.id, {

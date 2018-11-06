@@ -4,9 +4,7 @@ import { JsonMap } from '../utils/json';
 import { NotFoundError } from '../errors/NotFoundError';
 import { Repos } from './index';
 import { AccessDeniedError } from '../errors/AccessDeniedError';
-import { Conversation } from '../tables/Conversation';
 import { URLAugmentation } from '../services/UrlInfoService';
-import { CacheRepository } from 'openland-module-cache/CacheRepository';
 import { Modules } from 'openland-modules/Modules';
 // import { createLogger } from 'openland-log/createLogger';
 import { withTracing } from 'openland-log/withTracing';
@@ -67,76 +65,6 @@ export interface Settings {
 }
 
 export class ChatsRepository {
-    draftsCache = new CacheRepository<{ message: string }>('message_draft');
-
-    loadPrivateChat = async (uid1: number, uid2: number) => {
-        let _uid1 = Math.min(uid1, uid2);
-        let _uid2 = Math.max(uid1, uid2);
-        return await DB.txStable(async (tx) => {
-            let conversation = await DB.Conversation.find({
-                where: {
-                    member1Id: _uid1,
-                    member2Id: _uid2,
-                    type: 'private'
-                },
-                transaction: tx,
-                lock: tx.LOCK.UPDATE
-            });
-            if (conversation) {
-                return conversation;
-            }
-            let res = await DB.Conversation.create({
-                type: 'private',
-                title: 'Private Chat',
-                member1Id: _uid1,
-                member2Id: _uid2
-            });
-            return res;
-        });
-    }
-
-    loadOrganizationalChat = async (oid1: number, oid2: number, exTx?: Transaction) => {
-        let _oid1 = Math.min(oid1, oid2);
-        let _oid2 = Math.max(oid1, oid2);
-        return await DB.txStable(async (tx) => {
-            let conversation = await DB.Conversation.find({
-                where: {
-                    organization1Id: _oid1,
-                    organization2Id: _oid2,
-                    type: 'shared'
-                },
-                transaction: tx,
-                lock: tx.LOCK.UPDATE
-            });
-            if (conversation) {
-                return conversation;
-            }
-            let res = await DB.Conversation.create({
-                type: 'shared',
-                title: 'Cross Organization Chat',
-                organization1Id: _oid1,
-                organization2Id: _oid2
-            }, { transaction: tx });
-            return res;
-        }, exTx);
-    }
-
-    async messageToText(message: Message) {
-        let parts: string[] = [];
-
-        if (message.message) {
-            parts.push(message.message);
-        }
-        if (message.file) {
-            if (message.fileMetadata && message.fileMetadata.isImage) {
-                parts.push('<image>');
-            } else {
-                parts.push('<file>');
-            }
-        }
-
-        return parts.join('\n');
-    }
 
     async sendMessage(conversationId: number, uid: number, message: Message): Promise<ConversationEvent> {
         return await withTracing(tracer, 'send_message', async () => {
@@ -145,15 +73,10 @@ export class ChatsRepository {
                     throw Error('');
                 }
 
-                let conv = await DB.Conversation.findById(conversationId);
-                if (!conv) {
-                    throw new NotFoundError('Conversation not found');
-                }
-
                 //
                 // Check access
                 //
-                await this.checkAccessToChat(uid, conv);
+                await Modules.Messaging.conv.checkAccess(uid, conversationId);
 
                 // 
                 // Persist Messages
@@ -187,7 +110,7 @@ export class ChatsRepository {
         });
     }
 
-    async editMessage(tx: Transaction, messageId: number, uid: number, newMessage: Message, markAsEdited: boolean): Promise<ConversationEvent> {
+    async editMessage(messageId: number, uid: number, newMessage: Message, markAsEdited: boolean): Promise<ConversationEvent> {
         return await inTx(async () => {
             let message = await FDB.Message.findById(messageId);
 
@@ -226,7 +149,7 @@ export class ChatsRepository {
                 message.edited = true;
             }
 
-            let members = await this.getConversationMembers(message.cid, tx);
+            let members = await Modules.Messaging.conv.findConversationMembers(message.cid);
             for (let member of members) {
                 let global = await Modules.Messaging.repo.getUserMessagingState(member);
                 global.seq++;
@@ -269,7 +192,7 @@ export class ChatsRepository {
             }
             message.reactions = reactions;
 
-            let members = await this.getConversationMembers(message!.cid);
+            let members = await Modules.Messaging.conv.findConversationMembers(message.cid);
             for (let member of members) {
                 let global = await Modules.Messaging.repo.getUserMessagingState(member);
                 global.seq++;
@@ -311,7 +234,7 @@ export class ChatsRepository {
             //  Update counters
             //
 
-            let members = await this.getConversationMembers(message.cid, tx);
+            let members = await Modules.Messaging.conv.findConversationMembers(message.cid);
             for (let member of members) {
 
                 let existing = await Modules.Messaging.repo.getUserDialogState(member, message!.cid);
@@ -347,134 +270,8 @@ export class ChatsRepository {
         });
     }
 
-    async getConversationMembersFast(conversationId: number, conv: Conversation, tx?: Transaction): Promise<number[]> {
-        if (!conv) {
-            throw new NotFoundError('Conversation not found');
-        }
-
-        let members: number[] = [];
-
-        if (conv.type === 'private') {
-            members = [conv.member1Id!!, conv.member2Id!!];
-        } else if (conv.type === 'shared') {
-            let m = await DB.OrganizationMember.findAll({
-                where: {
-                    orgId: {
-                        $in: [conv.organization1Id!!, conv.organization2Id!!]
-                    }
-                },
-                order: [['createdAt', 'DESC']],
-                transaction: tx,
-            });
-            for (let i of m) {
-                if (members.indexOf(i.userId) < 0) {
-                    members.push(i.userId);
-                }
-            }
-        } else if (conv.type === 'group') {
-            let m = await FDB.RoomParticipant.allFromActive(conv.id);
-            for (let i of m) {
-                if (members.indexOf(i.uid) < 0) {
-                    members.push(i.uid);
-                }
-            }
-        } else if (conv.type === 'channel') {
-            let m = await FDB.RoomParticipant.allFromActive(conv.id);
-            for (let i of m) {
-                if (members.indexOf(i.uid) < 0) {
-                    members.push(i.uid);
-                }
-            }
-
-            // let orgs = await DB.ConversationChannelMembers.findAll({
-            //     where: {
-            //         conversationId: conv.id,
-            //         status: 'member'
-            //     },
-            //     transaction: tx
-            // });
-            //
-            // for (let org of orgs) {
-            //     let orgMembers = await Repos.Organizations.getOrganizationMembers(org.orgId);
-            //
-            //     for (let member of orgMembers) {
-            //         members.push(member.userId);
-            //     }
-            // }
-        }
-
-        return members;
-    }
-
-    async getConversationMembers(conversationId: number, eTx?: Transaction): Promise<number[]> {
-        return DB.txStable(async (tx) => {
-            let conv = await DB.Conversation.findById(conversationId, { transaction: tx });
-
-            if (!conv) {
-                throw new NotFoundError('Conversation not found');
-            }
-
-            let members: number[] = [];
-
-            if (conv.type === 'private') {
-                members = [conv.member1Id!!, conv.member2Id!!];
-            } else if (conv.type === 'shared') {
-                let m = await DB.OrganizationMember.findAll({
-                    where: {
-                        orgId: {
-                            $in: [conv.organization1Id!!, conv.organization2Id!!]
-                        }
-                    },
-                    order: [['createdAt', 'DESC']],
-                    transaction: tx,
-                });
-                for (let i of m) {
-                    if (members.indexOf(i.userId) < 0) {
-                        members.push(i.userId);
-                    }
-                }
-            } else if (conv.type === 'group') {
-                let m = await FDB.RoomParticipant.allFromActive(conv.id);
-                for (let i of m) {
-                    if (members.indexOf(i.uid) < 0) {
-                        members.push(i.uid);
-                    }
-                }
-            } else if (conv.type === 'channel') {
-                let m = await FDB.RoomParticipant.allFromActive(conv.id);
-                for (let i of m) {
-                    if (members.indexOf(i.uid) < 0) {
-                        members.push(i.uid);
-                    }
-                }
-            }
-
-            return members;
-        }, eTx);
-    }
-
-    async groupChatExists(conversationId: number): Promise<boolean> {
-        return !!await DB.Conversation.findOne({
-            where: {
-                id: conversationId,
-                type: 'group'
-            }
-        });
-    }
-
     async membersCountInConversation(conversationId: number, status?: string): Promise<number> {
         return (await FDB.RoomParticipant.allFromActive(conversationId)).filter(m => status === undefined || m.status === status).length;
-    }
-
-    async getConversationSec(conversationId: number, exTx?: Transaction): Promise<number> {
-        return await DB.txStable(async (tx) => {
-            let conv = await DB.Conversation.findById(conversationId, { lock: tx.LOCK.UPDATE, transaction: tx });
-            if (!conv) {
-                throw new NotFoundError('Conversation not found');
-            }
-
-            return conv.seq;
-        }, exTx);
     }
 
     async addToInitialChannel(uid: number, tx: Transaction) {
@@ -569,15 +366,5 @@ export class ChatsRepository {
         }
 
         throw new Error('Unknown chat type');
-    }
-
-    async checkAccessToChat(uid: number, conversation: Conversation) {
-        if (conversation.type === 'channel' || conversation.type === 'group') {
-            let part = await FDB.RoomParticipant.findById(conversation.id, uid);
-            if (!part || part.status !== 'joined') {
-                throw new AccessDeniedError();
-            }
-
-        }
     }
 }

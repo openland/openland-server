@@ -94,34 +94,10 @@ export const Resolver = {
         online: async (src: User) => await Repos.Users.isUserOnline(src.id!),
         lastSeen: async (src: User) => Modules.Presence.getLastSeen(src.id!), // await Repos.Users.getUserLastSeen(src.id!),
         createdChannels: async (src: User) => {
-            return DB.Conversation.findAll({
-                where: {
-                    extras: {
-                        creatorId: src.id
-                    }
-                }
-            });
+            return [];
         },
         channelsJoined: async (src: User) => {
-            return DB.txStable(async (tx) => {
-                // let memberships = await  DB.ConversationGroupMembers.findAll({
-                //     where: {
-                //         userId: src.id
-                //     },
-                //     transaction: tx
-                // });
-
-                // let chats = await DB.Conversation.findAll({
-                //     where: {
-                //         id: { $in: memberships.map(m => m.conversationId) },
-                //         type: 'channel'
-                //     },
-                //     transaction: tx
-                // });
-
-                // return chats;
-                return [];
-            });
+            return [];
         },
         shortname: async (src: User) => {
             let shortname = await Modules.Shortnames.findUserShortname(src.id!);
@@ -132,7 +108,7 @@ export const Resolver = {
         },
         phones: async (src: User) => [],
         lastIP: async (src: User) => Repos.Users.getUserLastIp(src.id!),
-        alphaConversationSettings: async (src: User, _: any, context: CallContext) => await Modules.Messaging.getConversationSettings(context.uid!!, (await Repos.Chats.loadPrivateChat(context.uid!!, src.id!)).id),
+        alphaConversationSettings: async (src: User, _: any, context: CallContext) => await Modules.Messaging.getConversationSettings(context.uid!!, (await Modules.Messaging.conv.resolvePrivateChat(context.uid!!, src.id!)).id),
         status: async (src: User) => src.status,
         alphaLocations: withProfile((src, profile) => profile && profile.locations),
         organizations: async (src: User) => (await Repos.Users.fetchUserAccounts(src.id!)).map(async oid => await DB.Organization.findById(oid)),

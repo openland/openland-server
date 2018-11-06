@@ -12,6 +12,7 @@ import { DialogsRepository } from './repositories/DialogsRepository';
 import { startMigrator } from './Migrator';
 import { FixerRepository } from './repositories/Fixer';
 import { RoomRepository } from './repositories/RoomRepository';
+import { ConversationRepository } from './repositories/ConversationRepository';
 
 export interface MessageInput {
     repeatToken?: string | null;
@@ -32,6 +33,7 @@ export class MessagingModule {
     readonly repo = new MessagingRepository(FDB);
     readonly fixer = new FixerRepository(FDB);
     readonly room = new RoomRepository(FDB);
+    readonly conv = new ConversationRepository(FDB);
     private readonly dialogs = new DialogsRepository(FDB);
     private readonly channels = new ChannelRepository(FDB);
 

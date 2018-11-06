@@ -3218,6 +3218,7 @@ export class ConversationRoomFactory extends FEntityFactory<ConversationRoom> {
         ],
         indexes: [
             { name: 'organization', type: 'range', fields: ['oid'] },
+            { name: 'organizationPublicRooms', type: 'unique', fields: ['oid', 'id'] },
         ],
     };
 
@@ -3236,7 +3237,7 @@ export class ConversationRoomFactory extends FEntityFactory<ConversationRoom> {
         super(connection,
             new FNamespace('entity', 'conversationRoom'),
             { enableVersioning: true, enableTimestamps: true, validator: ConversationRoomFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('organization', ['oid'], false, (v) => v.kind === 'public' || v.kind === 'internal')],
+            [new FEntityIndex('organization', ['oid'], false, (v) => v.kind === 'public' || v.kind === 'internal'), new FEntityIndex('organizationPublicRooms', ['oid', 'id'], true, (v) => v.kind === 'public')],
             'ConversationRoom'
         );
     }
@@ -3264,6 +3265,27 @@ export class ConversationRoomFactory extends FEntityFactory<ConversationRoom> {
     }
     createOrganizationStream(limit: number, after?: string) {
         return this._createStream(['entity', 'conversationRoom', '__indexes', 'organization'], limit, after); 
+    }
+    async findFromOrganizationPublicRooms(oid: number, id: number) {
+        return await this._findFromIndex(['__indexes', 'organizationPublicRooms', oid, id]);
+    }
+    async allFromOrganizationPublicRoomsAfter(oid: number, after: number) {
+        return await this._findRangeAllAfter(['__indexes', 'organizationPublicRooms', oid], after);
+    }
+    async rangeFromOrganizationPublicRoomsAfter(oid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(['__indexes', 'organizationPublicRooms', oid], after, limit, reversed);
+    }
+    async rangeFromOrganizationPublicRooms(oid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'organizationPublicRooms', oid], limit, reversed);
+    }
+    async rangeFromOrganizationPublicRoomsWithCursor(oid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'organizationPublicRooms', oid], limit, after, reversed);
+    }
+    async allFromOrganizationPublicRooms(oid: number) {
+        return await this._findAll(['__indexes', 'organizationPublicRooms', oid]);
+    }
+    createOrganizationPublicRoomsStream(oid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'conversationRoom', '__indexes', 'organizationPublicRooms', oid], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
         return new ConversationRoom(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConversationRoom');

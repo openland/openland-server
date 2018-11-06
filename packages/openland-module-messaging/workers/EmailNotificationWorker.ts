@@ -1,5 +1,4 @@
 import { staticWorker } from 'openland-module-workers/staticWorker';
-import { DB } from '../../openland-server/tables';
 import { Emails } from '../../openland-server/services/Emails';
 import { Modules } from 'openland-modules/Modules';
 import { inTx } from 'foundation-orm/inTx';
@@ -76,9 +75,11 @@ export function startEmailNotificationWorker() {
                         }
 
                         // disable email notificaitons for channels
-                        let conversation = await DB.Conversation.findById(message.cid);
-                        if (!conversation || conversation.type === 'channel') {
-                            continue;
+                        let conversation = (await FDB.Conversation.findById(message.cid))!;
+                        if (conversation.kind === 'room') {
+                            if ((await FDB.ConversationRoom.findById(message.cid))!.kind === 'public') {
+                                continue;
+                            }
                         }
 
                         let conversationSettings = await Modules.Messaging.getConversationSettings(u.uid, conversation.id);

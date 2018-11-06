@@ -310,6 +310,9 @@ const Schema = declareSchema(() => {
         field('listed', 'boolean').nullable();
         rangeIndex('organization', ['oid'])
             .withCondition((v) => v.kind === 'public' || v.kind === 'internal');
+        uniqueIndex('organizationPublicRooms', ['oid', 'id'])
+            .withCondition((v) => v.kind === 'public')
+            .withRange();
         enableVersioning();
         enableTimestamps();
     });
@@ -332,9 +335,9 @@ const Schema = declareSchema(() => {
         field('invitedBy', 'number');
         enumField('role', ['member', 'admin', 'owner']);
         enumField('status', ['joined', 'requested', 'left', 'kicked']);
-        uniqueIndex('active', ['cid', 'uid']).withCondition((src) => src.status === 'joined');
-        uniqueIndex('requests', ['cid', 'uid']).withCondition((src) => src.status === 'requested');
-        uniqueIndex('userActive', ['uid', 'cid']).withCondition((src) => src.status === 'joined');
+        uniqueIndex('active', ['cid', 'uid']).withCondition((src) => src.status === 'joined').withRange();
+        uniqueIndex('requests', ['cid', 'uid']).withCondition((src) => src.status === 'requested').withRange();
+        uniqueIndex('userActive', ['uid', 'cid']).withCondition((src) => src.status === 'joined').withRange();
         enableVersioning();
         enableTimestamps();
     });

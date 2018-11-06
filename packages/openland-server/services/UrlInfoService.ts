@@ -6,6 +6,7 @@ import { ImageRef } from '../repositories/Media';
 import { UploadCareFileInfo } from './UploadCare';
 import { CacheRepository } from 'openland-module-cache/CacheRepository';
 import { Modules } from 'openland-modules/Modules';
+import { FDB } from 'openland-module-db/FDB';
 
 export interface URLAugmentation {
     url: string;
@@ -145,20 +146,22 @@ export default class UrlInfoService {
 
         let channelId = IDs.Conversation.parse(_channelId);
 
-        let channel = await DB.Conversation.findById(channelId);
+        let channel = await FDB.ConversationRoom.findById(channelId);
 
-        if (channel!.type !== 'channel') {
+        if (!channel || channel!.kind !== 'public') {
             return null;
         }
 
+        let profile = (await FDB.RoomProfile.findById(channelId));
+
         return {
             url,
-            title: channel!.title || null,
-            subtitle: channel!.title || null,
-            description: channel!.title || null,
+            title: profile!.title || null,
+            subtitle: profile!.title || null,
+            description: profile!.title || null,
             imageURL: null,
             imageInfo: null,
-            photo: channel!.extras!.picture as any || null,
+            photo: profile!.image,
             hostname: hostname || null,
             type: 'channel',
             extra: channelId,

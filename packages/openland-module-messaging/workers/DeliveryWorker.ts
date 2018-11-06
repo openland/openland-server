@@ -1,8 +1,6 @@
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
-import { DB } from 'openland-server/tables';
 import { Modules } from 'openland-modules/Modules';
-import { Repos } from 'openland-server/repositories';
 import { inTx } from 'foundation-orm/inTx';
 import { FDB } from 'openland-module-db/FDB';
 import { createTracer } from 'openland-log/createTracer';
@@ -20,9 +18,8 @@ export function createDeliveryWorker() {
                 await inTx(async () => {
                     let message = (await FDB.Message.findById(item.messageId))!;
                     let conversationId = message.cid;
-                    let conv = (await DB.Conversation.findById(conversationId))!;
                     let uid = message.uid;
-                    let members = await Repos.Chats.getConversationMembersFast(conversationId, conv);
+                    let members = await Modules.Messaging.conv.findConversationMembers(conversationId);
 
                     // Cancel Typings
                     await Modules.Typings.cancelTyping(uid, conversationId, members);
