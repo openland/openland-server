@@ -182,6 +182,24 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '13-remove-left-chats',
+    migration: async () => {
+        let users = (await DB.User.findAll());
+        for (let u of users) {
+            await inTx(async () => {
+                let res = await FDB.UserDialog.allFromUser(u.id!);
+                for (let r of res) {
+                    let conv = (await DB.Conversation.findById(r.cid));
+                    if (conv!.type === 'channel' && (await FDB.RoomParticipant.allFromActive(conv!.id)).length === 0) {
+                        r.date = null;
+                    }
+                }
+            });
+        }
+    }
+});
+
 export function startMigrationsWorker() {
     if (serverRoleEnabled('workers')) {
         staticWorker({ name: 'foundation-migrator' }, async () => {
