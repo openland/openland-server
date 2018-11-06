@@ -9,6 +9,13 @@ export default {
             let conversations = await FDB.UserDialog
                 .rangeFromUserWithCursor(uid, args.first, args.after ? args.after : undefined, true);
             let res = await Promise.all(conversations.items.map((v) => FDB.Conversation.findById(v.cid)));
+            let index = 0;
+            for (let r of res) {
+                if (!r) {
+                    console.warn('Unable to find conversation: ' + conversations.items[index].cid);
+                }
+                index++;
+            }
             return {
                 conversations: res,
                 seq: seq,
