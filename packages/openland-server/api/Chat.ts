@@ -84,6 +84,9 @@ export const Resolver = {
         id: (src: Conversation) => IDs.Conversation.serialize(src.id),
         flexibleId: async (src: Conversation, _: any, context: CallContext) => {
             let conv = (await FDB.ConversationPrivate.findById(src.id))!;
+            if (!conv) {
+                console.warn('Unable to find private conversation: ' + src.id);
+            }
             if (conv.uid1 === context.uid) {
                 return IDs.User.serialize(conv.uid2);
             } else if (conv.uid2 === context.uid) {
