@@ -7,6 +7,7 @@ import { ErrorText } from '../errors/ErrorText';
 import { Emails } from '../services/Emails';
 import { inTx } from 'foundation-orm/inTx';
 import { Modules } from 'openland-modules/Modules';
+import { FDB } from 'openland-module-db/FDB';
 
 export class SuperRepository {
     async fetchAllOrganizations() {
@@ -43,20 +44,14 @@ export class SuperRepository {
                 await org.save({ transaction: tx });
                 await Emails.sendAccountActivatedEmail(org.id!!, tx);
 
-                let members = await DB.OrganizationMember.findAll({
-                    where: { orgId: id },
-                    include: [{
-                        model: DB.User,
-                        as: 'user'
-                    }],
-                    transaction: tx
-                });
+                let members = await FDB.OrganizationMember.allFromOrganization('joined', id);
 
                 for (let m of members) {
-                    m.user.status = 'ACTIVATED';
-                    await m.user.save({ transaction: tx });
+                    let u = (await DB.User.findById(m.uid, { transaction: tx }))!;
+                    u.status = 'ACTIVATED';
+                    await u.save({ transaction: tx });
 
-                    await Repos.Chats.addToInitialChannel(m.user.id!, tx);
+                    await Repos.Chats.addToInitialChannel(u.id!, tx);
                 }
             }
             return org;
@@ -87,17 +82,27 @@ export class SuperRepository {
     }
 
     async addToOrganization(organizationId: number, uid: number, tx: Transaction) {
-        let existing = await DB.OrganizationMember.find({ where: { orgId: organizationId, userId: uid }, transaction: tx, lock: tx.LOCK.UPDATE });
-        if (existing) {
-            return;
-        }
-        await DB.OrganizationMember.create({
-            userId: uid,
-            orgId: organizationId,
-            isOwner: true
-        }, { transaction: tx });
+        // let existing = await DB.OrganizationMember.find({ where: { orgId: organizationId, userId: uid }, transaction: tx, lock: tx.LOCK.UPDATE });
+        // if (existing) {
+        //     return;
+        // }
+        // await DB.OrganizationMember.create({
+        //     userId: uid,
+        //     orgId: organizationId,
+        //     isOwner: true
+        // }, { transaction: tx });
 
         await inTx(async () => {
+            let ex = await FDB.OrganizationMember.findById(organizationId, uid);
+            if (ex) {
+                if (ex.status === 'joined') {
+                    return;
+                } else {
+                    ex.status = 'joined';
+                }
+            } else {
+                await FDB.OrganizationMember.create(organizationId, uid, { status: 'joined', role: 'member' });
+            }
             let profile = await Modules.Users.profileById(uid);
             if (profile && !profile.primaryOrganization) {
                 profile.primaryOrganization = organizationId;
@@ -108,21 +113,18 @@ export class SuperRepository {
     }
 
     async removeFromOrganization(organizationId: number, uid: number) {
-        await DB.txStable(async (tx) => {
-            let isLast = (await DB.OrganizationMember.count({ where: { orgId: organizationId }, transaction: tx })) === 1;
-            let existing = await DB.OrganizationMember.find({ where: { orgId: organizationId, userId: uid }, transaction: tx, lock: tx.LOCK.UPDATE });
-            if (existing) {
+        await inTx(async () => {
+            let isLast = (await FDB.OrganizationMember.allFromOrganization('joined', organizationId)).length <= 1;
+            let existing = await FDB.OrganizationMember.findById(organizationId, uid);
+            if (existing && existing.status === 'joined') {
                 if (isLast) {
                     throw new UserError(ErrorText.unableToRemoveLastMember);
                 }
-                await existing.destroy({ transaction: tx });
 
-                // pick new primary organization
-                await inTx(async () => {
-                    let profile = await Modules.Users.profileById(uid);
-                    profile!.primaryOrganization = (await Repos.Users.fetchUserAccounts(uid, tx))[0];
-                });
+                let profile = await Modules.Users.profileById(uid);
+                profile!.primaryOrganization = (await Repos.Users.fetchUserAccounts(uid))[0];
             }
+
         });
         return this.fetchById(organizationId);
     }

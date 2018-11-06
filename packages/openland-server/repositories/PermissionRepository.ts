@@ -2,8 +2,9 @@ import { DB } from '../tables';
 import { NotFoundError } from '../errors/NotFoundError';
 import { ErrorText } from '../errors/ErrorText';
 import { IDs } from '../api/utils/IDs';
-import { OrganizationMember } from '../tables/OrganizationMember';
 import { Modules } from 'openland-modules/Modules';
+import { FDB } from 'openland-module-db/FDB';
+import { OrganizationMember } from 'openland-module-db/schema';
 
 export class PermissionRepository {
 
@@ -39,15 +40,11 @@ export class PermissionRepository {
             // Membership
             //
 
-            let members = await DB.OrganizationMember.findAll(({
-                where: {
-                    userId: args.uid,
-                }
-            }));
+            let members = await FDB.OrganizationMember.allFromUser('joined', args.uid);
             for (let member of members) {
-                permissions.add('org-' + IDs.Organization.serialize(member.orgId) + '-member');
-                if (member.isOwner) {
-                    permissions.add('org-' + IDs.Organization.serialize(member.orgId) + '-admin');
+                permissions.add('org-' + IDs.Organization.serialize(member.oid) + '-member');
+                if (member.role === 'admin') {
+                    permissions.add('org-' + IDs.Organization.serialize(member.oid) + '-admin');
                 }
             }
 
@@ -70,12 +67,10 @@ export class PermissionRepository {
         let roles: string[] = [];
 
         for (let member of members) {
-            if (member.user) {
-                if (member.isOwner) {
-                    roles.push(`OWNER`);
-                } else {
-                    roles.push(`MEMBER`);
-                }
+            if (member.role === 'admin') {
+                roles.push(`OWNER`);
+            } else {
+                roles.push(`MEMBER`);
             }
         }
 

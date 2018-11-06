@@ -4,6 +4,7 @@ import { Repos } from '../repositories';
 import { Modules } from 'openland-modules/Modules';
 import { OrganizationInviteLink } from 'openland-module-db/schema';
 import { IDs } from 'openland-server/api/utils/IDs';
+import { FDB } from 'openland-module-db/FDB';
 
 const TEMPLATE_WELCOME = 'c6a056a3-9d56-4b2e-8d50-7748dd28a1fb';
 const TEMPLATE_ACTIVATEED = 'e5b1d39d-35e9-4eba-ac4a-e0676b055346';
@@ -74,14 +75,9 @@ export const Emails = {
             if (!org) {
                 throw Error('Unable to find organization');
             }
-            let members = await DB.OrganizationMember.findAll({
-                where: {
-                    orgId: oid
-                },
-                transaction: tx
-            });
+            let members = await FDB.OrganizationMember.allFromOrganization('joined', oid);
             for (let m of members) {
-                let user = await loadUserState(m.userId);
+                let user = await loadUserState(m.uid);
                 await Modules.Email.Worker.pushWork({
                     subject: 'Organization account activated',
                     templateId: TEMPLATE_ACTIVATEED,
@@ -100,14 +96,9 @@ export const Emails = {
             if (!org) {
                 throw Error('Unable to find organization');
             }
-            let members = await DB.OrganizationMember.findAll({
-                where: {
-                    orgId: oid
-                },
-                transaction: tx
-            });
+            let members = await FDB.OrganizationMember.allFromOrganization('joined', oid);
             for (let m of members) {
-                let user = await loadUserState(m.userId);
+                let user = await loadUserState(m.uid);
                 await Modules.Email.Worker.pushWork({
                     subject: 'Organization account deactivated',
                     templateId: TEMPLATE_DEACTIVATED,

@@ -1,4 +1,3 @@
-import { OrganizationMember } from '../tables/OrganizationMember';
 import { DB } from '../tables';
 import { Transaction } from 'sequelize';
 import { validate, stringNotEmpty } from '../modules/NewInputValidator';
@@ -10,6 +9,8 @@ import { Modules } from 'openland-modules/Modules';
 import { CallContext } from 'openland-server/api/utils/CallContext';
 import DataLoader from 'dataloader';
 import { Organization } from 'openland-server/tables/Organization';
+import { FDB } from 'openland-module-db/FDB';
+import { OrganizationMember } from 'openland-module-db/schema';
 
 export class OrganizationRepository {
 
@@ -86,31 +87,15 @@ export class OrganizationRepository {
     }
 
     async getOrganizationMember(orgId: number, userId: number): Promise<OrganizationMember | null> {
-        return await DB.OrganizationMember.findOne({
-            where: {
-                orgId,
-                userId
-            },
-            include: [{
-                model: DB.User,
-                as: 'user',
-            }]
-        });
+        return await FDB.OrganizationMember.findById(orgId, userId);
     }
 
     async notAdminOrOrgIsOpenland(member: OrganizationMember) {
-        return member.orgId === 1 || !(await Repos.Permissions.superRole(member.userId));
+        return member.oid === 1 || !(await Repos.Permissions.superRole(member.uid));
     }
 
     async getOrganizationMembers(orgId: number): Promise<OrganizationMember[]> {
-        return await DB.OrganizationMember.findAll({
-            where: { orgId },
-            order: [['createdAt', 'DESC']],
-            include: [{
-                model: DB.User,
-                as: 'user'
-            }]
-        });
+        return await FDB.OrganizationMember.allFromOrganization('joined', orgId);
     }
 
     async getOrganizationJoinedMembers(orgId: number) {
@@ -123,10 +108,10 @@ export class OrganizationRepository {
         for (let i = 0; i < members.length; i++) {
             result.push({
                 _type: 'OrganizationJoinedMember',
-                user: members[i].user,
+                user: await DB.User.findById(members[i].uid),
                 joinedAt: (members[i] as any).createdAt,
-                email: members[i].user.email,
-                showInContacts: members[i].showInContacts,
+                email: (await DB.User.findById(members[i].uid))!.email!,
+                showInContacts: false,
                 role: roles[i]
             });
         }
@@ -135,10 +120,7 @@ export class OrganizationRepository {
     }
 
     async getOrganizationContacts(orgId: number): Promise<OrganizationMember[]> {
-        let members = await DB.OrganizationMember.findAll({
-            where: { orgId, showInContacts: true },
-            order: [['createdAt', 'ASC']]
-        });
+        let members = await FDB.OrganizationMember.allFromOrganization('joined', orgId);
         let res: OrganizationMember[] = [];
         for (let m of members) {
             if (await this.notAdminOrOrgIsOpenland(m)) {
@@ -149,45 +131,22 @@ export class OrganizationRepository {
     }
 
     async isOwnerOfOrganization(orgId: number, userId: number, tx?: Transaction): Promise<boolean> {
-        let isOwner = await DB.OrganizationMember.findOne({
-            where: {
-                orgId,
-                userId,
-                isOwner: true
-            },
-            transaction: tx
-        });
+        let isOwner = await FDB.OrganizationMember.findById(orgId, userId);
 
-        return !!isOwner;
+        return !!(isOwner && isOwner.role === 'admin');
     }
 
     async isMemberOfOrganization(orgId: number, userId: number, tx?: Transaction): Promise<boolean> {
-        let isMember = await DB.OrganizationMember.findOne({
-            where: {
-                orgId,
-                userId,
-            },
-            transaction: tx
-        });
+        let isMember = await FDB.OrganizationMember.findById(orgId, userId);
 
         return !!isMember;
     }
 
     async haveMemberWithEmail(orgId: number, email: string): Promise<boolean> {
-        let member = await DB.OrganizationMember.findOne({
-            where: {
-                orgId,
-            },
-            include: [{
-                model: DB.User,
-                as: 'user',
-                where: {
-                    email
-                }
-            }]
-        });
-
-        return !!member;
+        return !!(await Promise.all(
+            (await FDB.OrganizationMember.allFromOrganization('joined', orgId))
+                .map((v) => DB.User.findById(v.uid))))
+            .find((v) => v!.email === email);
     }
 
     organizationLoader(context: CallContext) {

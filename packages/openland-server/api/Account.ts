@@ -9,6 +9,7 @@ import { ErrorText } from '../errors/ErrorText';
 import { Modules } from 'openland-modules/Modules';
 import { inTx } from 'foundation-orm/inTx';
 import { OrganizationInviteLink, OrganizationPublicInviteLink } from 'openland-module-db/schema';
+import { FDB } from 'openland-module-db/FDB';
 
 export const Resolver = {
     Invite: {
@@ -163,27 +164,20 @@ export const Resolver = {
                     if (!invite) {
                         throw new NotFoundError(ErrorText.unableToFindInvite);
                     }
-                    let existing = await DB.OrganizationMember.find({
-                        where: {
-                            userId: uid,
-                            orgId: invite.oid
-                        },
-                        lock: tx.LOCK.UPDATE,
-                        transaction: tx
-                    });
-                    if (existing) {
+                    // TODO: Better handling?
+                    let existing = await FDB.OrganizationMember.findById(invite.oid, uid);
+                    if (existing && existing.status === 'joined') {
                         return IDs.Organization.serialize(invite.oid);
                     }
 
                     if (invite.ttl && (new Date().getTime() >= invite.ttl)) {
                         throw new NotFoundError(ErrorText.unableToFindInvite);
                     }
-                    await DB.OrganizationMember.create({
-                        userId: uid,
-                        orgId: invite.oid,
-                        isOwner: invite.role === 'OWNER',
+                    await FDB.OrganizationMember.create(invite.oid, uid, {
+                        role: invite.role === 'OWNER' ? 'admin' : 'member',
+                        status: 'joined',
                         invitedBy: invite.uid
-                    }, { transaction: tx });
+                    });
 
                     // make organization primary if none
                     let profile = (await Modules.Users.profileById(uid));

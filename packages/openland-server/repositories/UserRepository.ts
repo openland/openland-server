@@ -6,6 +6,7 @@ import { Transaction } from 'sequelize';
 import { Repos } from '.';
 import { Modules } from 'openland-modules/Modules';
 import { UserProfile } from 'openland-module-db/schema';
+import { FDB } from 'openland-module-db/FDB';
 
 export class UserRepository {
     private readonly userCache = new Map<string, number | undefined>();
@@ -67,11 +68,7 @@ export class UserRepository {
     }
 
     async fetchOrganizationMembers(organizationId: number) {
-        let uids = (await DB.OrganizationMember.findAll({
-            where: {
-                orgId: organizationId
-            }
-        })).map((v) => v.userId);
+        let uids = (await FDB.OrganizationMember.allFromOrganization('joined', organizationId)).map((v) => v.uid);
         return await DB.User.findAll({
             where: {
                 id: { $in: uids }
@@ -102,13 +99,8 @@ export class UserRepository {
         }
     }
 
-    async fetchUserAccounts(uid: number, tx?: Transaction): Promise<number[]> {
-        return (await DB.OrganizationMember.findAll({
-            where: {
-                userId: uid
-            },
-            transaction: tx
-        })).map((v) => v.orgId);
+    async fetchUserAccounts(uid: number): Promise<number[]> {
+        return (await FDB.OrganizationMember.allFromUser('joined', uid)).map((v) => v.oid);
     }
 
     async loadPrimatyOrganization(context: CallContext, profile: UserProfile | null, src: User) {
@@ -117,14 +109,9 @@ export class UserRepository {
     }
 
     async isMemberOfOrganization(uid: number, orgId: number): Promise<boolean> {
-        let isMember = await DB.OrganizationMember.findOne({
-            where: {
-                userId: uid,
-                orgId: orgId
-            }
-        });
+        let isMember = await FDB.OrganizationMember.findById(orgId, uid);
 
-        return !!isMember;
+        return !!(isMember && isMember.status === 'joined');
     }
 
     async isUserOnline(uid: number): Promise<boolean> {

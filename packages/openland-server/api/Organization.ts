@@ -79,7 +79,7 @@ export const Resolver = {
         facebook: (src: Organization) => src.extras && src.extras.facebook,
         linkedin: (src: Organization) => src.extras && src.extras.linkedin,
 
-        alphaContacts: async (src: Organization) => (await Repos.Organizations.getOrganizationContacts(src.id!!)).map(async (m) => await Modules.Users.profileById(m.userId)).filter(p => p),
+        alphaContacts: async (src: Organization) => (await Repos.Organizations.getOrganizationContacts(src.id!!)).map(async (m) => await Modules.Users.profileById(m.uid)).filter(p => p),
         alphaOrganizationMembers: async (src: Organization) => await Repos.Organizations.getOrganizationJoinedMembers(src.id!!),
         alphaPublished: (src: Organization) => !src.extras || src.extras.published !== false,
         alphaEditorial: (src: Organization) => !!(src.extras && src.extras.editorial),
@@ -127,15 +127,11 @@ export const Resolver = {
         },
         myOrganizations: async (_: any, args: {}, context: CallContext) => {
             if (context.uid) {
-                let allOrgs = await DB.OrganizationMember.findAll({
-                    where: {
-                        userId: context.uid,
-                    }
-                });
+                let allOrgs = await FDB.OrganizationMember.allFromUser('joined', context.uid);
                 return await DB.Organization.findAll({
                     where: {
                         id: {
-                            $in: allOrgs.map((v) => v.orgId)
+                            $in: allOrgs.map((v) => v.oid)
                         },
                         status: {
                             $not: 'SUSPENDED'
@@ -373,13 +369,8 @@ export const Resolver = {
                 }
                 orgId = IDs.Organization.parse(args.id);
             } else {
-                let member = await DB.OrganizationMember.find({
-                    where: {
-                        orgId: oid,
-                        userId: uid,
-                    }
-                });
-                if (member === null || !member.isOwner) {
+                let member = await FDB.OrganizationMember.findById(oid, uid);
+                if (member === null || member.status !== 'joined' || member.role !== 'admin') {
                     throw new UserError(ErrorText.permissionOnlyOwner);
                 }
             }
@@ -437,7 +428,7 @@ export const Resolver = {
                 if (args.input.alphaFeatured !== undefined) {
                     extras.featured = Sanitizer.sanitizeAny(args.input.alphaFeatured);
                 }
-                
+
                 if (extrasValidateError.length > 0) {
                     throw new InvalidInputError(extrasValidateError);
                 }
@@ -479,7 +470,7 @@ export const Resolver = {
 
         alphaOrganizationRemoveMember: withAccount<{ memberId: string, organizationId: string }>(async (args, uid, oid) => {
             oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
-            return await DB.txStable(async (tx) => {
+            return await inTx(async () => {
                 let isOwner = await Repos.Organizations.isOwnerOfOrganization(oid, uid);
 
                 let idType = IdsFactory.resolve(args.memberId);
@@ -487,13 +478,7 @@ export const Resolver = {
                 if (idType.type.typeName === 'User') {
                     let memberId = IDs.User.parse(args.memberId);
 
-                    let member = await DB.OrganizationMember.findOne({
-                        where: {
-                            userId: memberId,
-                            orgId: oid
-                        },
-                        transaction: tx
-                    });
+                    let member = await FDB.OrganizationMember.findById(oid, memberId);
 
                     if (!member) {
                         return 'ok';
@@ -509,13 +494,13 @@ export const Resolver = {
                         throw new AccessDeniedError(ErrorText.permissionDenied);
                     }
 
-                    await member.destroy({ transaction: tx });
+                    member.status = 'left';
+
                     // await Emails.sendMemberRemovedEmail(oid, memberId, tx);
                     // pick new primary organization
-                    await inTx(async () => {
-                        let user = (await Modules.Users.profileById(memberId))!;
-                        user.primaryOrganization = (await Repos.Users.fetchUserAccounts(uid, tx))[0];
-                    });
+
+                    let user = (await Modules.Users.profileById(memberId))!;
+                    user.primaryOrganization = (await Repos.Users.fetchUserAccounts(uid))[0];
                 }
 
                 return 'ok';
@@ -525,7 +510,7 @@ export const Resolver = {
         alphaOrganizationChangeMemberRole: withAccount<{ memberId: string, newRole: 'OWNER' | 'MEMBER', organizationId: string }>(async (args, uid, oid) => {
             oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
 
-            return await DB.tx(async (tx) => {
+            return await inTx(async () => {
                 let isOwner = await Repos.Organizations.isOwnerOfOrganization(oid, uid);
 
                 if (!isOwner) {
@@ -541,13 +526,7 @@ export const Resolver = {
                         throw new AccessDeniedError(ErrorText.permissionDenied);
                     }
 
-                    let member = await DB.OrganizationMember.findOne({
-                        where: {
-                            userId: memberId,
-                            orgId: oid
-                        },
-                        transaction: tx
-                    });
+                    let member = await FDB.OrganizationMember.findById(memberId, oid);
 
                     if (!member) {
                         throw new NotFoundError();
@@ -555,14 +534,10 @@ export const Resolver = {
 
                     switch (args.newRole) {
                         case 'OWNER':
-                            await member.update({
-                                isOwner: true,
-                            }, { transaction: tx });
+                            member.role = 'admin';
                             break;
                         case 'MEMBER':
-                            await member.update({
-                                isOwner: false,
-                            }, { transaction: tx });
+                            member.role = 'member';
                             break;
                         default:
                             break;
@@ -631,40 +606,6 @@ export const Resolver = {
                 await Modules.Invites.repo.deletePublicOrganizationInvite(oid, uid);
                 return 'ok';
             });
-        }),
-
-        alphaAlterMemberAsContact: withUser<{ orgId: string, memberId: string, showInContacts: boolean }>(async (args, uid) => {
-            let orgId = IDs.Organization.parse(args.orgId);
-
-            let role = await Repos.Permissions.superRole(uid);
-            let canEdit = role === 'super-admin' || role === 'editor';
-
-            let member = await DB.OrganizationMember.find({
-                where: {
-                    orgId: orgId,
-                    userId: uid,
-                }
-            });
-            canEdit = canEdit || (member !== null && member.isOwner);
-
-            if (!canEdit) {
-                throw new UserError(ErrorText.permissionOnlyOwner);
-            }
-
-            let targetMember = await DB.OrganizationMember.find({
-                where: {
-                    orgId: orgId,
-                    userId: IDs.User.parse(args.memberId),
-                }
-            });
-
-            if (!targetMember) {
-                throw new UserError(ErrorText.unableToFindUser);
-            }
-
-            targetMember.showInContacts = args.showInContacts;
-            await targetMember.save();
-            return 'ok';
-        }),
+        })
     }
 };

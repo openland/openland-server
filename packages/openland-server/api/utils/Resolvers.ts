@@ -6,6 +6,7 @@ import { UserError } from '../../errors/UserError';
 import { DB } from '../../tables';
 import { SecID } from '../../../openland-security/SecID';
 import { GraphQLField, GraphQLFieldResolver, GraphQLObjectType, GraphQLSchema } from 'graphql';
+import { FDB } from 'openland-module-db/FDB';
 
 async function fetchPermissions(context: CallContext) {
     if (context.cache.has('permissions')) {
@@ -92,14 +93,9 @@ export function withOrgOwner<T = {}>(resolver: (args: T, uid: number, org: numbe
             throw new AccessDeniedError(ErrorText.permissionDenied);
         }
 
-        let member = await DB.OrganizationMember.find({
-            where: {
-                orgId: res,
-                userId: context.uid,
-            },
-        });
+        let member = await FDB.OrganizationMember.findById(res, context.uid);
 
-        if (member === null || !member.isOwner) {
+        if (member === null || member.status !== 'joined' || member.role !== 'admin') {
             throw new UserError(ErrorText.permissionOnlyOwner);
         }
 

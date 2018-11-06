@@ -3,6 +3,7 @@ import { withAccount } from './utils/Resolvers';
 import { UserError } from '../errors/UserError';
 import { ErrorText } from '../errors/ErrorText';
 import { Modules } from 'openland-modules/Modules';
+import { FDB } from 'openland-module-db/FDB';
 
 function testShortName(name: string) {
     if (!/^\w*$/.test(name)) {
@@ -55,13 +56,8 @@ export const Resolvers = {
         alphaSetOrgShortName: withAccount<{ shortname: string, id: number }>(async (args, uid, orgId) => {
             testShortName(args.shortname);
 
-            let member = await DB.OrganizationMember.find({
-                where: {
-                    orgId: args.id,
-                    userId: uid,
-                }
-            });
-            if (member === null || !member.isOwner) {
+            let member = await FDB.OrganizationMember.findById(args.id, uid);
+            if (member === null || member.status !== 'joined' || member.role !== 'admin') {
                 throw new UserError(ErrorText.permissionOnlyOwner);
             }
 
@@ -70,8 +66,4 @@ export const Resolvers = {
             return 'ok';
         }),
     },
-
-    __Schema: {
-
-    }
 };
