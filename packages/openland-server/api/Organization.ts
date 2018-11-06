@@ -62,7 +62,7 @@ export const Resolver = {
         id: (src: Organization) => IDs.Organization.serialize(src.id!!),
         superAccountId: (src: Organization) => IDs.SuperAccount.serialize(src.id!!),
         isMine: (src: Organization, args: {}, context: CallContext) => context.uid ? Repos.Organizations.isMemberOfOrganization(src.id!!, context.uid!!) : false,
-        alphaIsOwner: (src: Organization, args: {}, context: CallContext) => Repos.Organizations.isOwnerOfOrganization(src.id!!, context.uid!!),
+        alphaIsOwner: (src: Organization, args: {}, context: CallContext) => context.uid ? Repos.Organizations.isOwnerOfOrganization(src.id!!, context.uid!!) : false,
 
         name: async (src: Organization) => ((await FDB.OrganizationProfile.findById(src.id!!)))!.name,
         photo: async (src: Organization) => buildBaseImageUrl(((await FDB.OrganizationProfile.findById(src.id!!)))!.photo),
