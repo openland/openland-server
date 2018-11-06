@@ -1,11 +1,11 @@
-import { UpdateReader } from 'openland-server/modules/updateReader';
 import { DB } from 'openland-server/tables';
 import { inTx } from 'foundation-orm/inTx';
 import { FDB } from 'openland-module-db/FDB';
+import { forever } from 'openland-server/utils/timer';
 
 export function startMigrator() {
-    let reader = new UpdateReader('export-conversations', 6, DB.Conversation);
-    reader.processor(async (items) => {
+    forever(async () => {
+        let items = await DB.Conversation.findAll();
         for (let i of items) {
             if (i.type === 'channel') {
                 await inTx(async () => {
@@ -157,5 +157,4 @@ export function startMigrator() {
             }
         }
     });
-    reader.start();
 }
