@@ -3154,7 +3154,7 @@ export class ConversationOrganizationFactory extends FEntityFactory<Conversation
     }
 }
 export interface ConversationRoomShape {
-    kind: 'internal' | 'public' | 'group';
+    kind: 'organization' | 'internal' | 'public' | 'group';
     oid?: number| null;
     ownerId?: number| null;
     featured?: boolean| null;
@@ -3163,10 +3163,10 @@ export interface ConversationRoomShape {
 
 export class ConversationRoom extends FEntity {
     get id(): number { return this._value.id; }
-    get kind(): 'internal' | 'public' | 'group' {
+    get kind(): 'organization' | 'internal' | 'public' | 'group' {
         return this._value.kind;
     }
-    set kind(value: 'internal' | 'public' | 'group') {
+    set kind(value: 'organization' | 'internal' | 'public' | 'group') {
         this._checkIsWritable();
         if (value === this._value.kind) { return; }
         this._value.kind = value;
@@ -3226,7 +3226,7 @@ export class ConversationRoomFactory extends FEntityFactory<ConversationRoom> {
             { name: 'id', type: 'number' },
         ],
         fields: [
-            { name: 'kind', type: 'enum', enumValues: ['internal', 'public', 'group'] },
+            { name: 'kind', type: 'enum', enumValues: ['organization', 'internal', 'public', 'group'] },
             { name: 'oid', type: 'number' },
             { name: 'ownerId', type: 'number' },
             { name: 'featured', type: 'boolean' },
@@ -3242,7 +3242,7 @@ export class ConversationRoomFactory extends FEntityFactory<ConversationRoom> {
         validators.notNull('id', src.id);
         validators.isNumber('id', src.id);
         validators.notNull('kind', src.kind);
-        validators.isEnum('kind', src.kind, ['internal', 'public', 'group']);
+        validators.isEnum('kind', src.kind, ['organization', 'internal', 'public', 'group']);
         validators.isNumber('oid', src.oid);
         validators.isNumber('ownerId', src.ownerId);
         validators.isBoolean('featured', src.featured);

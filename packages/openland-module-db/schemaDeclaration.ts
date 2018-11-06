@@ -302,7 +302,7 @@ const Schema = declareSchema(() => {
 
     entity('ConversationRoom', () => {
         primaryKey('id', 'number');
-        enumField('kind', ['internal', 'public', 'group']);
+        enumField('kind', ['organization', 'internal', 'public', 'group']);
         field('oid', 'number').nullable();
         field('ownerId', 'number').nullable();
         field('featured', 'boolean').nullable();
