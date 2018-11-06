@@ -35,6 +35,24 @@ class LockRepositoryImpl {
             }
         });
     }
+
+    releaseLock = async (key: string, version: number = 0) => {
+        return inTx(async () => {
+            if ((await this.tryLock(key, version))) {
+                let existing = await FDB.Lock.findById(key);
+                if (!existing) {
+                    return false;
+                }
+
+                existing.seed = this.lockSeed;
+                existing.timeout = Date.now();
+
+                return true;
+            }
+
+            return false;
+        });
+    }
 }
 
 export const LockRepository = new LockRepositoryImpl();

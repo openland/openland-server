@@ -103,6 +103,23 @@ export function forever(callback: () => Promise<void>) {
     })();
 }
 
+export function foreverBreakable(callback: () => Promise<void>) {
+    let working = true;
+    // tslint:disable-next-line:no-floating-promises
+    let promise = (async () => {
+        while (working) {
+            await backoff(callback);
+        }
+    })();
+
+    return {
+        stop: async () => {
+            working = false;
+            await promise;
+        }
+    };
+}
+
 export function currentTime(): number {
     return new Date().getTime();
 }
