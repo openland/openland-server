@@ -118,23 +118,6 @@ export const IDScalars = {
     WallEntityID: IDType(IDs.WallEntity),
 };
 
-// class TestType extends GraphQLScalarType {
-//     constructor () {
-//         super({
-//             name: `TestType`,
-//             serialize (value: any) {
-//                 return '';
-//             },
-//             parseValue (value: any) {
-//                 return '11';
-//             },
-//             parseLiteral (ast: any) {
-//                 return '11';
-//             }
-//         });
-//     }
-// }
-
 export const Directives = {
     withAuth: createFieldDirective(async (root, args, ctx, info, resolve) => {
         if (!ctx.uid) {
@@ -161,27 +144,6 @@ export const Directives = {
             async (_args, _ctx) => resolve(root, _args, _ctx, info)
         )(root, args, ctx);
     }),
-
-    // stringNotEmpty: class extends SchemaDirectiveVisitor {
-    //     visitInputFieldDefinition(field: GraphQLInputField) {
-    //         // if (
-    //         //     field.type instanceof TestType ||
-    //         //     (
-    //         //         field.type instanceof GraphQLNonNull &&
-    //         //         field.type.ofType instanceof TestType
-    //         //     )
-    //         // ) {
-    //         //     return;
-    //         // }
-    //         //
-    //         console.log(field);
-    //         if (field.type instanceof GraphQLNonNull) {
-    //             field.type = new GraphQLNonNull(new TestType());
-    //         } else if (field.type instanceof GraphQLScalarType) {
-    //             field.type = new TestType();
-    //         }
-    //     }
-    // },
 
     userID: createIDDirective(IDScalars.UserID),
     organizationID: createIDDirective(IDScalars.OrganizationID),
