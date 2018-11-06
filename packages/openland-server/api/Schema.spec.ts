@@ -20,6 +20,9 @@ let resolvers = buildResolvers(__dirname + '/../../');
 
 describe('GQLSchema', () => {
     it('should be valid', () => {
+        const spy = jest.spyOn(global.console, 'warn');
+        const spy2 = jest.spyOn(global.console, 'error');
+
         makeExecutableSchema({
             typeDefs: schema,
             resolvers: merge(
@@ -39,5 +42,8 @@ describe('GQLSchema', () => {
             ),
             schemaDirectives: Directives
         });
+
+        expect(spy).not.toHaveBeenCalled();
+        expect(spy2).not.toHaveBeenCalled();
     });
 });
