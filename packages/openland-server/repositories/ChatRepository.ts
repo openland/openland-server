@@ -1,4 +1,3 @@
-import { Transaction } from 'sequelize';
 import { JsonMap } from '../utils/json';
 import { Repos } from './index';
 import { AccessDeniedError } from '../errors/AccessDeniedError';
@@ -208,7 +207,7 @@ export class ChatsRepository {
         });
     }
 
-    async deleteMessage(tx: Transaction, messageId: number, uid: number): Promise<ConversationEvent> {
+    async deleteMessage(messageId: number, uid: number): Promise<ConversationEvent> {
         return await inTx(async () => {
             let message = await FDB.Message.findById(messageId);
 
@@ -272,7 +271,7 @@ export class ChatsRepository {
         return (await FDB.RoomParticipant.allFromActive(conversationId)).filter(m => status === undefined || m.status === status).length;
     }
 
-    async addToInitialChannel(uid: number, tx: Transaction) {
+    async addToInitialChannel(uid: number) {
         // let channelId = IDs.Conversation.parse('EQvPJ1LaODSWXZ3xJ0P5CybWBL');
         // await Repos.Chats.addToChannel(tx, channelId, uid);
     }

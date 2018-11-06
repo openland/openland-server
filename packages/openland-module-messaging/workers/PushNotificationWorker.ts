@@ -1,5 +1,4 @@
 import { staticWorker } from 'openland-module-workers/staticWorker';
-import { DB } from 'openland-server/tables';
 import { Repos } from 'openland-server/repositories';
 import { buildBaseImageUrl } from 'openland-server/repositories/Media';
 import { Texts } from 'openland-server/texts';
@@ -147,7 +146,7 @@ export function startPushNotificationWorker() {
                             continue;
                         }
 
-                        let receiverPrimaryOrg = await DB.Organization.findById(receiver.primaryOrganization || (await Repos.Users.fetchUserAccounts(receiver.id))[0]);
+                        let receiverPrimaryOrg = await FDB.Organization.findById(receiver.primaryOrganization || (await Repos.Users.fetchUserAccounts(receiver.id))[0]);
                         if (!receiverPrimaryOrg) {
                             continue;
                         }

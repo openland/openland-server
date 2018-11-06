@@ -1,4 +1,3 @@
-import { DB, User } from '../tables';
 import { CallContext } from './utils/CallContext';
 import { IDs } from './utils/IDs';
 import DataLoader from 'dataloader';
@@ -10,10 +9,10 @@ import { Repos } from '../repositories';
 import { Services } from '../services';
 import { AccessDeniedError } from '../errors/AccessDeniedError';
 import { Modules } from 'openland-modules/Modules';
-import { UserProfile, UserSettings } from 'openland-module-db/schema';
+import { UserProfile, UserSettings, User } from 'openland-module-db/schema';
 import { UserError } from 'openland-server/errors/UserError';
 import { inTx } from 'foundation-orm/inTx';
-import { SelectBuilder } from 'openland-server/modules/SelectBuilder';
+import { FDB } from 'openland-module-db/FDB';
 
 function userLoader(context: CallContext) {
     if (!context.cache.has('__profile_loader')) {
@@ -112,7 +111,7 @@ export const Resolver = {
         alphaConversationSettings: async (src: User, _: any, context: CallContext) => await Modules.Messaging.getConversationSettings(context.uid!!, (await Modules.Messaging.conv.resolvePrivateChat(context.uid!!, src.id!)).id),
         status: async (src: User) => src.status,
         alphaLocations: withProfile((src, profile) => profile && profile.locations),
-        organizations: async (src: User) => (await Repos.Users.fetchUserAccounts(src.id!)).map(async oid => await DB.Organization.findById(oid)),
+        organizations: async (src: User) => (await Repos.Users.fetchUserAccounts(src.id!)).map(async oid => await FDB.Organization.findById(oid)),
     },
     Profile: {
         id: (src: UserProfile) => IDs.Profile.serialize(src.id!!),
@@ -129,13 +128,13 @@ export const Resolver = {
         alphaLinkedin: (src: UserProfile) => src.linkedin,
         alphaTwitter: (src: UserProfile) => src.twitter,
         alphaPrimaryOrganizationId: (src: UserProfile) => src.primaryOrganization ? IDs.Organization.serialize(src.primaryOrganization) : null,
-        alphaPrimaryOrganization: async (src: UserProfile) => await DB.Organization.findById(src.primaryOrganization || (await Repos.Users.fetchUserAccounts(src.id))[0]),
+        alphaPrimaryOrganization: async (src: UserProfile) => await FDB.Organization.findById(src.primaryOrganization || (await Repos.Users.fetchUserAccounts(src.id))[0]),
         alphaJoinedAt: (src: UserProfile) => src.createdAt,
         alphaInvitedBy: async (src: UserProfile) => await Repos.Users.getUserInvitedBy(src.id),
     },
     Settings: {
         id: (src: UserSettings) => IDs.Settings.serialize(src.id),
-        primaryEmail: async (src: UserSettings) => (await DB.User.findById(src.id))!!.email,
+        primaryEmail: async (src: UserSettings) => (await FDB.User.findById(src.id))!!.email,
         emailFrequency: (src: UserSettings) => src.emailFrequency,
         desktopNotifications: (src: UserSettings) => src.desktopNotifications,
         mobileNotifications: (src: UserSettings) => src.mobileNotifications,
@@ -153,7 +152,7 @@ export const Resolver = {
                     return null;
                 }
 
-                return DB.User.findById(context.uid);
+                return FDB.User.findById(context.uid);
             }
         },
         myProfile: async function (_obj: any, _params: {}, context: CallContext) {
@@ -181,7 +180,7 @@ export const Resolver = {
             return Modules.Users.getUserSettings(uid);
         }),
         user: withAny<{ id: string }>((args) => {
-            return DB.User.findById(IDs.User.parse(args.id));
+            return FDB.User.findById(IDs.User.parse(args.id));
         }),
         alphaProfiles: withAny<{ query: string, first: number, after: string, page: number, sort?: string }>(async (args) => {
 
@@ -192,24 +191,33 @@ export const Resolver = {
             }
 
             // Fetch profiles
-            let users = await DB.User.findAll({
-                where: [DB.connection.and({ id: { $in: uids } }, { status: 'ACTIVATED' })]
-            });
-            let restored: User[] = [];
-            for (let u of uids) {
-                let existing = users.find((v) => v.id === u);
-                if (existing) {
-                    restored.push(existing);
-                }
+            let users = uids.map((v) => FDB.User.findById(v));
+
+            let offset = 0;
+            if (args.after) {
+                offset = parseInt(args.after, 10);
+            } else if (args.page) {
+                offset = (args.page - 1) * args.first;
             }
+            let total = users.length;
 
-            let builder = new SelectBuilder(DB.User)
-                .after(args.after)
-                .page(args.page)
-                .limit(args.first);
+            return {
+                edges: users.map((p, i) => {
+                    return {
+                        node: p,
+                        cursor: (i + 1 + offset).toString()
+                    };
+                }),
+                pageInfo: {
+                    hasNextPage: (total - (offset + 1)) >= args.first, // ids.length === this.limitValue,
+                    hasPreviousPage: false,
 
-            return await builder.findElastic({ hits: { total: restored.length, hits: restored.map(u => ({ _id: u.id!.toString() } as any)) } } as any);
-
+                    itemsCount: total,
+                    pagesCount: Math.min(Math.floor(8000 / args.first), Math.ceil(total / args.first)),
+                    currentPage: Math.floor(offset / args.first) + 1,
+                    openEnded: true
+                },
+            };
         }),
     },
     Mutation: {
@@ -225,10 +233,7 @@ export const Resolver = {
                 location?: string | null
             }
         }>(async (args, uid) => {
-            return await DB.tx(async (tx) => {
-                let res = await Repos.Users.createUser(uid, args.input, tx);
-                return res;
-            });
+            return await Repos.Users.createUser(uid, args.input);
         }),
         updateProfile: withUser<{
             input: {
@@ -248,7 +253,7 @@ export const Resolver = {
             },
             uid?: string
         }>(async (args, uid) => {
-            return await DB.tx(async (tx) => {
+            return await inTx(async () => {
                 if (args.uid) {
                     let role = await Repos.Permissions.superRole(uid);
                     if (!(role === 'super-admin')) {
@@ -256,7 +261,7 @@ export const Resolver = {
                     }
                     uid = IDs.User.parse(args.uid);
                 }
-                let user = await DB.User.findById(uid, { transaction: tx });
+                let user = await FDB.User.findById(uid);
                 if (!user) {
                     throw Error('Unable to find user');
                 }

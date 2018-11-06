@@ -1,5 +1,4 @@
 import { withPermission, withAny, withAccount, withUser } from './utils/Resolvers';
-import { DB } from '../tables';
 import { Repos } from '../repositories';
 import { IDs } from './utils/IDs';
 import { CallContext } from './utils/CallContext';
@@ -71,7 +70,7 @@ export const Resolver = {
 
             return member.status;
         },
-        organization: async (src: Conversation) => DB.Organization.findById((await FDB.ConversationRoom.findById(src.id))!.oid!),
+        organization: async (src: Conversation) => FDB.Organization.findById((await FDB.ConversationRoom.findById(src.id))!.oid!),
         isRoot: (src: Conversation) => false,
         settings: (src: Conversation, _: any, context: CallContext) => Modules.Messaging.getConversationSettings(context.uid!!, src.id),
 
@@ -109,11 +108,11 @@ export const Resolver = {
     ChannelMember: {
         role: (src: RoomParticipant) => src.role,
         status: (src: RoomParticipant) => src.status === 'joined' ? 'member' : 'left',
-        user: (src: RoomParticipant) => DB.User.findById(src.uid)
+        user: (src: RoomParticipant) => FDB.User.findById(src.uid)
     },
     ChannelInvite: {
         channel: (src: ChannelInvitation | ChannelLink) => FDB.Conversation.findById(src.channelId),
-        invitedByUser: (src: ChannelInvitation | ChannelLink) => DB.User.findById(src.creatorId)
+        invitedByUser: (src: ChannelInvitation | ChannelLink) => FDB.User.findById(src.creatorId)
     },
 
     Mutation: {
@@ -196,32 +195,21 @@ export const Resolver = {
                 }
 
                 // Activate user
-                let user = await DB.User.find({
-                    where: {
-                        id: uid
-                    }
-                });
+                let user = (await FDB.User.findById(uid!))!;
                 if (user) {
-                    user.status = 'ACTIVATED';
+                    user.status = 'activated';
 
                     // User set invitedBy if none
                     if (invite.creatorId && !user.invitedBy) {
                         user.invitedBy = invite.creatorId;
                     }
-
-                    await user.save();
                 }
 
                 if (context.oid !== undefined) {
                     // Activate organization
-                    let org = await DB.Organization.find({
-                        where: {
-                            id: context.oid
-                        }
-                    });
+                    let org = (await FDB.Organization.findById(context.oid!))!;
                     if (org) {
-                        org.status = 'ACTIVATED';
-                        await org.save();
+                        org.status = 'activated';
                     }
                 }
 

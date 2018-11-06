@@ -1,5 +1,4 @@
 import { IDs, IdsFactory } from './utils/IDs';
-import { DB, User } from '../tables';
 import { withUser, resolveUser, withAccount } from './utils/Resolvers';
 import {
     validate,
@@ -22,7 +21,7 @@ import { Sanitizer } from '../modules/Sanitizer';
 import { URLAugmentation } from '../services/UrlInfoService';
 import { Modules } from 'openland-modules/Modules';
 import { OnlineEvent } from '../../openland-module-presences/PresenceModule';
-import { UserDialogSettings, Message, RoomParticipant, Conversation, Organization } from 'openland-module-db/schema';
+import { UserDialogSettings, Message, RoomParticipant, Conversation, Organization, User } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
 import { TypingEvent } from 'openland-module-typings/TypingEvent';
 import { withLogContext } from 'openland-log/withLogContext';
@@ -145,7 +144,7 @@ export const Resolver = {
             } else {
                 throw Error('Inconsistent Private Conversation resolver');
             }
-            return DB.User.findById(uid);
+            return FDB.User.findById(uid);
         },
         blocked: async (src: Conversation, _: any, context: CallContext) => false,
         settings: (src: Conversation, _: any, context: CallContext) => Modules.Messaging.getConversationSettings(context.uid!!, src.id),
@@ -194,7 +193,7 @@ export const Resolver = {
         },
         members: async (src: Conversation) => {
             let res = await FDB.RoomParticipant.allFromActive(src.id);
-            return res.map((v) => DB.User.findById(v.uid));
+            return res.map((v) => FDB.User.findById(v.uid));
         },
         unreadCount: async (src: Conversation, _: any, context: CallContext) => {
             let state = await FDB.UserDialog.findById(context.uid!!, src.id);
@@ -248,12 +247,12 @@ export const Resolver = {
     },
 
     MessageReaction: {
-        user: (src: any) => DB.User.findById(src.userId),
+        user: (src: any) => FDB.User.findById(src.userId),
         reaction: (src: any) => src.reaction
     },
     UrlAugmentationExtra: {
         __resolveType(src: any) {
-            if (src instanceof (DB.User as any)) {
+            if ((src instanceof (FEntity) && src.entityName === 'User')) {
                 return 'User';
             } else if ((src instanceof (FEntity) && src.entityName === 'Organization')) {
                 return 'Organization';
@@ -280,13 +279,13 @@ export const Resolver = {
             if (src.type === 'url') {
                 return null;
             } else if (src.type === 'user') {
-                return DB.User.findById(src.extra);
+                return FDB.User.findById(src.extra);
             } else if (src.type === 'org') {
-                return DB.Organization.findById(src.extra);
+                return FDB.Organization.findById(src.extra);
             } else if (src.type === 'channel') {
                 return FDB.Conversation.findById(src.extra);
             } else if (src.type === 'intro') {
-                return DB.User.findById(src.extra);
+                return FDB.User.findById(src.extra);
             }
 
             return null;
@@ -315,7 +314,7 @@ export const Resolver = {
             }
         },
         filePreview: (src: Message) => null,
-        sender: (src: Message, _: any, context: CallContext) => Repos.Users.userLoader(context).load(src.uid),
+        sender: (src: Message, _: any, context: CallContext) => FDB.User.findById(src.uid),
         date: (src: Message) => src.createdAt,
         repeatKey: (src: Message, args: any, context: CallContext) => src.uid === context.uid ? src.repeatKey : null,
         isService: (src: Message) => src.isService,
@@ -333,15 +332,15 @@ export const Resolver = {
             return src.replyMessages ? (src.replyMessages as number[]).map(id => FDB.Message.findById(id)) : null;
         },
         plainText: async (src: Message) => null,
-        mentions: async (src: Message) => src.mentions ? (src.mentions as number[]).map(id => DB.User.findById(id)) : null
+        mentions: async (src: Message) => src.mentions ? (src.mentions as number[]).map(id => FDB.User.findById(id)) : null
     },
     InviteServiceMetadata: {
-        users: (src: any) => src.userIds.map((id: number) => DB.User.findById(id)),
-        invitedBy: (src: any) => DB.User.findById(src.invitedById)
+        users: (src: any) => src.userIds.map((id: number) => FDB.User.findById(id)),
+        invitedBy: (src: any) => FDB.User.findById(src.invitedById)
     },
     KickServiceMetadata: {
         user: resolveUser(),
-        kickedBy: (src: any) => DB.User.findById(src.kickedById)
+        kickedBy: (src: any) => FDB.User.findById(src.kickedById)
     },
     ServiceMetadata: {
         __resolveType(src: any) {
@@ -404,17 +403,17 @@ export const Resolver = {
         type: (src: TypingEvent) => src.type,
         cancel: (src: TypingEvent) => src.cancel,
         conversation: (src: TypingEvent) => FDB.Conversation.findById(src.conversationId),
-        user: (src: TypingEvent) => DB.User.findById(src.userId),
+        user: (src: TypingEvent) => FDB.User.findById(src.userId),
     },
     OnlineEvent: {
         type: (src: OnlineEvent) => src.online ? 'online' : 'offline',
-        user: (src: OnlineEvent) => DB.User.findById(src.userId),
+        user: (src: OnlineEvent) => FDB.User.findById(src.userId),
         timeout: (src: OnlineEvent) => src.timeout,
     },
 
     GroupConversationMember: {
         role: (src: RoomParticipant) => src.role === 'owner' ? 'creator' : src.role,
-        user: (src: RoomParticipant) => DB.User.findById(src.uid)
+        user: (src: RoomParticipant) => FDB.User.findById(src.uid)
     },
 
     ConversationSettings: {
@@ -513,12 +512,10 @@ export const Resolver = {
             }
 
             // Fetch profiles
-            let users = await DB.User.findAll({
-                where: [DB.connection.and({ id: { $in: uids } }, { status: 'ACTIVATED' })]
-            });
+            let users = (await Promise.all(uids.map((v) => FDB.User.findById(v)))).filter((v) => v && v.status === 'activated');
             let restored: any[] = [];
             for (let u of uids) {
-                let existing = users.find((v) => v.id === u);
+                let existing = users.find((v) => v!.id === u);
                 if (existing) {
                     restored.push(existing);
                 }
@@ -819,10 +816,7 @@ export const Resolver = {
         }),
         alphaDeleteMessage: withUser<{ messageId: string }>(async (args, uid) => {
             let messageId = IDs.ConversationMessage.parse(args.messageId);
-
-            return await DB.txStable(async (tx) => {
-                return await Repos.Chats.deleteMessage(tx, messageId, uid);
-            });
+            return await Repos.Chats.deleteMessage(messageId, uid);
         }),
         alphaSetTyping: withUser<{ conversationId: string, type: string }>(async (args, uid) => {
             await validate({ type: optional(enumString(['text', 'photo'])) }, args);

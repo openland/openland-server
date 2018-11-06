@@ -1,11 +1,8 @@
-import { DB, User } from '../tables';
-import DataLoader from 'dataloader';
 import { CallContext } from '../api/utils/CallContext';
 import { ImageRef } from './Media';
-import { Transaction } from 'sequelize';
 import { Repos } from '.';
 import { Modules } from 'openland-modules/Modules';
-import { UserProfile } from 'openland-module-db/schema';
+import { UserProfile, User } from 'openland-module-db/schema';
 import { FDB } from 'openland-module-db/FDB';
 
 export class UserRepository {
@@ -20,71 +17,32 @@ export class UserRepository {
         website?: string | null,
         about?: string | null,
         location?: string | null
-    }, tx: Transaction, isBot: boolean = false) {
-        let user = await DB.User.findById(uid, { transaction: tx });
+    }, isBot: boolean = false) {
+        let user = await FDB.User.findById(uid);
         if (!user) {
             throw Error('Unable to find user');
         }
 
-        await Modules.Users.createUserProfile(user, input);
+        await Modules.Users.createUserProfile(uid, input);
 
-        if (!isBot && user.status === 'ACTIVATED') {
-            await Repos.Chats.addToInitialChannel(user.id!!, tx);
+        if (!isBot && user.status === 'activated') {
+            await Repos.Chats.addToInitialChannel(uid);
         }
 
         return user;
     }
 
-    userLoader(context: CallContext) {
-        if (!context.cache.has('__user_loader')) {
-            context.cache.set('__user_loader', new DataLoader<number, User | null>(async (ids) => {
-                let foundTokens = await DB.User.findAll({
-                    where: {
-                        id: {
-                            $in: ids
-                        }
-                    }
-                });
-
-                let res: (User | null)[] = [];
-                for (let i of ids) {
-                    let found = false;
-                    for (let f of foundTokens) {
-                        if (i === f.id) {
-                            res.push(f);
-                            found = true;
-                            break;
-                        }
-                    }
-                    if (!found) {
-                        res.push(null);
-                    }
-                }
-                return res;
-            }));
-        }
-        let loader = context.cache.get('__user_loader') as DataLoader<number, User | null>;
-        return loader;
-    }
-
     async fetchOrganizationMembers(organizationId: number) {
-        let uids = (await FDB.OrganizationMember.allFromOrganization('joined', organizationId)).map((v) => v.uid);
-        return await DB.User.findAll({
-            where: {
-                id: { $in: uids }
-            }
-        });
+        return (await Promise.all((await FDB.OrganizationMember.allFromOrganization('joined', organizationId))
+            .map((v) => FDB.User.findById(v.uid))))
+            .map((v) => v!);
     }
 
     async fetchUserByAuthId(authId: string): Promise<number | undefined> {
         if (this.userCache.has(authId)) {
             return this.userCache.get(authId);
         } else {
-            let exists = await DB.User.find({
-                where: {
-                    authId: authId
-                }
-            });
+            let exists = (await FDB.User.findAll()).find((v) => v.authId === authId);
             if (exists != null) {
                 if (!this.userCache.has(authId)) {
                     this.userCache.set(authId, exists.id!!);
@@ -105,7 +63,7 @@ export class UserRepository {
 
     async loadPrimatyOrganization(context: CallContext, profile: UserProfile | null, src: User) {
         let orgId = (profile && profile.primaryOrganization) || (await Repos.Users.fetchUserAccounts(src.id!))[0];
-        return orgId ? Repos.Organizations.organizationLoader(context).load(orgId) : undefined;
+        return orgId ? FDB.Organization.findById(orgId) : undefined;
     }
 
     async isMemberOfOrganization(uid: number, orgId: number): Promise<boolean> {
@@ -119,9 +77,9 @@ export class UserRepository {
     }
 
     async getUserInvitedBy(uid: number) {
-        let user = await DB.User.findOne({ where: { id: uid } });
+        let user = await FDB.User.findById(uid);
         if (user && user.invitedBy) {
-            return await DB.User.findOne({ where: { id: user.invitedBy } });
+            return await FDB.User.findById(user.invitedBy);
         }
         return null;
     }

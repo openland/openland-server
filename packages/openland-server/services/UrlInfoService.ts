@@ -1,6 +1,5 @@
 import { fetchURLInfo } from '../modules/UrlInfo';
 import { IDs } from '../api/utils/IDs';
-import { DB } from '../tables';
 import * as URL from 'url';
 import { ImageRef } from '../repositories/Media';
 import { UploadCareFileInfo } from './UploadCare';
@@ -122,13 +121,13 @@ export default class UrlInfoService {
 
         let orgId = IDs.Organization.parse(_orgId);
 
-        let org = await DB.Organization.findById(orgId);
+        let org = await FDB.OrganizationProfile.findById(orgId);
 
         return {
             url,
             title: org!.name || null,
-            subtitle: (org!.extras && org!.extras!.about) || null,
-            description: (org!.extras && org!.extras!.about) || null,
+            subtitle: (org!.about || null),
+            description: (org!.about) || null,
             imageURL: null,
             imageInfo: null,
             photo: org!.photo || null,

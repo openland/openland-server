@@ -1,4 +1,3 @@
-import { DB } from '../tables';
 import { NotFoundError } from '../errors/NotFoundError';
 import { ErrorText } from '../errors/ErrorText';
 import { IDs } from '../api/utils/IDs';
@@ -15,7 +14,7 @@ export class PermissionRepository {
         // User Based Permissions
         //
         if (args.uid) {
-            let user = await DB.User.find({ where: { id: args.uid } });
+            let user = await FDB.User.findById(args.uid);
             if (user == null) {
                 throw new NotFoundError(ErrorText.unableToFindUser);
             }
@@ -51,7 +50,7 @@ export class PermissionRepository {
             //
             // Organization features
             //
-            let org = await DB.Organization.findById(args.oid);
+            let org = await FDB.Organization.findById(args.oid);
             if (org) {
                 let features = await Modules.Features.repo.findOrganizationFeatures(org.id!);
                 for (let f of features) {

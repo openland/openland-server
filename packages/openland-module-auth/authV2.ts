@@ -2,11 +2,12 @@ import fetch from 'node-fetch';
 import jwt from 'express-jwt';
 import * as jwksRsa from 'jwks-rsa';
 import * as express from 'express';
-import { DB } from '../openland-server/tables';
 import { Profile } from './Profile';
 import { fetchKeyFromRequest } from '../openland-utils/fetchKeyFromRequest';
 import { Emails } from '../openland-server/services/Emails';
 import { Modules } from 'openland-modules/Modules';
+import { inTx } from 'foundation-orm/inTx';
+import { FDB } from 'openland-module-db/FDB';
 
 //
 // Main JWT verifier
@@ -93,44 +94,32 @@ export const Authenticator = async function (req: express.Request, response: exp
         //
         // Get Or Create User
         //
-        let uid = await DB.tx(async (tx) => {
+        let uid = await inTx(async () => {
             let userKey = req.user.sub;
 
             let isNewAccount = false;
 
-            let sequelize = DB.connection;
             // Account
-            let user = await DB.User.find({
-                where: [
-                    sequelize.or(
-                        {
-                            email: profile.email.toLowerCase()
-                        },
-                        {
-                            authId: userKey
-                        }
-
-                    )],
-                order: [['createdAt', 'ASC']],
-                transaction: tx
-            });
+            let user = (await FDB.User.findAll()).find((v) => v.email === profile.email.toLowerCase() || v.authId === userKey);
             if (user === null) {
-                user = (await DB.User.create({ authId: userKey, email: profile.email.toLowerCase(), }, { transaction: tx }));
+                let c = (await FDB.Sequence.findById('user-id'))!;
+                let id = ++c.value;
+                user = (await FDB.User.create(id, { authId: userKey, email: profile.email.toLowerCase(), isBot: false, status: 'pending' }));
                 isNewAccount = true;
             }
 
             // Prefill
-            await Modules.Users.saveProfilePrefill(user.id!, {
+            await Modules.Users.saveProfilePrefill(user!.id, {
                 firstName: firstName ? firstName : undefined,
                 lastName: lastName ? lastName : undefined,
                 picture: profile.picture
             });
 
             if (isNewAccount) {
-                await Emails.sendWelcomeEmail(user.id!, tx);
+                await Emails.sendWelcomeEmail(user!.id);
             }
 
-            return user.id!!;
+            return user!.id;
         });
 
         //

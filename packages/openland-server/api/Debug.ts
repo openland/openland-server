@@ -1,6 +1,4 @@
 import { withAny, withPermissionOptional, withUser } from './utils/Resolvers';
-import { DB, User } from '../tables';
-import { normalizeCapitalized } from '../modules/Normalizer';
 import { IDs } from './utils/IDs';
 import { delay } from '../utils/timer';
 import { Emails } from '../services/Emails';
@@ -11,11 +9,14 @@ import { geoIP, GeoIPResponse } from '../utils/geoIp/geoIP';
 import { Repos } from '../repositories';
 import { ImageRef } from '../repositories/Media';
 import { Modules } from 'openland-modules/Modules';
+import { inTx } from 'foundation-orm/inTx';
+import { FDB } from 'openland-module-db/FDB';
+import { User } from 'openland-module-db/schema';
 
 export const Resolver = {
     MessagesLeaderboardItem: {
         count: (src: any) => src.dataValues.count,
-        user: (src: any) => DB.User.findById(src.userId),
+        user: (src: any) => FDB.User.findById(src.userId),
     },
 
     MessagesSentEntry: {
@@ -51,11 +52,11 @@ export const Resolver = {
     Query: {
         ping: () => 'pong',
         debugReaderStates: withPermissionOptional(['software-developer'], async () => {
-            let readers = (await DB.ReaderState.findAll());
+            let readers = (await FDB.ReaderState.findAll());
             return readers.map((v) => ({
-                id: IDs.DebugReader.serialize(v.id!!),
-                title: normalizeCapitalized(v.key!!.replace('_', ' ')),
-                remaining: v.remaining
+                id: 'reader-' + v.id,
+                title: v.id,
+                remaining: 0
             }));
         }),
 
@@ -248,14 +249,15 @@ export const Resolver = {
         // }
 
         alphaMyBots: withUser(async (args, uid) => {
-            return DB.User.findAll({
-                where: {
-                    isBot: true,
-                    extras: {
-                        botOwner: uid
-                    }
-                }
-            });
+            // return DB.User.findAll({
+            //     where: {
+            //         isBot: true,
+            //         extras: {
+            //             botOwner: uid
+            //         }
+            //     }
+            // });
+            return [];
         })
     },
     Mutation: {
@@ -313,17 +315,15 @@ export const Resolver = {
                 location?: string | null
             }
         }>(async (args, uid) => {
-            return DB.txLight(async (tx) => {
-                let user = await DB.User.create({
+            return inTx(async () => {
+                let user = await FDB.User.create(uid, {
                     authId: 'bot|u-' + uid,
                     email: '',
-                    status: 'ACTIVATED',
+                    status: 'activated',
                     isBot: true,
-                    extras: {
-                        botOwner: uid
-                    }
-                }, { transaction: tx });
-                await Repos.Users.createUser(user.id!, args.input, tx, true);
+                    botOwner: uid,
+                });
+                await Repos.Users.createUser(user.id!, args.input, true);
                 return await Modules.Auth.createToken(user.id!);
             });
         }),

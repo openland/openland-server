@@ -1,4 +1,3 @@
-import { DB } from '../tables';
 import { CallContext } from './utils/CallContext';
 import { withUser, withAny, withAccount } from './utils/Resolvers';
 import { Repos } from '../repositories';
@@ -28,19 +27,20 @@ export const Resolver = {
             if (!invite) {
                 return null;
             }
-            let org = await DB.Organization.findById(invite.oid);
+            let org = await FDB.Organization.findById(invite.oid);
             if (!org) {
                 return null;
             }
+            let profile = (await FDB.OrganizationProfile.findById(invite.oid))!;
             return {
                 id: args.key,
                 key: args.key,
                 orgId: IDs.Organization.serialize(org.id!!),
-                title: org.name,
-                photo: org.photo ? buildBaseImageUrl(org.photo) : null,
-                photoRef: org.photo,
+                title: profile.name,
+                photo: profile.photo ? buildBaseImageUrl(profile.photo) : null,
+                photoRef: profile.photo,
                 joined: !!invite.joined,
-                creator: invite.uid ? await DB.User.findOne({ where: { id: invite.uid } }) : null,
+                creator: invite.uid ? await FDB.User.findById(invite.uid) : null,
                 forEmail: invite.email,
                 forName: invite.firstName,
             };
@@ -50,7 +50,7 @@ export const Resolver = {
             if (!invite) {
                 return null;
             }
-            let inviter = await DB.User.findById(invite.uid);
+            let inviter = await FDB.User.findById(invite.uid);
             return {
                 inviter: inviter,
             };
@@ -64,7 +64,7 @@ export const Resolver = {
             if (!invite) {
                 return null;
             }
-            let inviter = await DB.User.findById(invite.uid);
+            let inviter = await FDB.User.findById(invite.uid);
             return {
                 inviter: inviter,
             };
@@ -103,7 +103,7 @@ export const Resolver = {
             }
 
             // User unknown?! Just softly ignore errors
-            let res = await DB.User.findById(context.uid);
+            let res = await FDB.User.findById(context.uid);
             if (res === null) {
                 return {
                     isLoggedIn: false,
@@ -126,17 +126,17 @@ export const Resolver = {
             let isProfileCreated = !!profile;
 
             // Stage 2: Pick organization or create a new one (if there are no exists)
-            let organization = !!context.oid ? await DB.Organization.findById(context.oid) : null;
+            let organization = !!context.oid ? await FDB.Organization.findById(context.oid) : null;
             let isOrganizationPicked = organization !== null;
             let orgsIDs = await Repos.Users.fetchUserAccounts(context.uid);
             let isOrganizationExists = orgsIDs.length > 0;
 
             // Stage 3: Activation Status
-            let orgs = await DB.Organization.findAll({ where: { id: { $in: orgsIDs } } });
-            let isAllOrganizationsSuspended = orgs.length > 0 && orgs.filter(o => o.status === 'SUSPENDED').length === orgs.length;
-            let isActivated = orgs.filter(o => o.status === 'ACTIVATED').length > 0;
+            let orgs = await Promise.all(orgsIDs.map((v) => FDB.Organization.findById(v)));
+            let isAllOrganizationsSuspended = orgs.length > 0 && orgs.filter(o => o!.status === 'suspended').length === orgs.length;
+            let isActivated = orgs.filter(o => o!.status === 'activated').length > 0;
             // depricated
-            let isOrganizationActivated = isOrganizationPicked && organization!!.status !== 'PENDING';
+            let isOrganizationActivated = isOrganizationPicked && organization!!.status !== 'pending';
 
             let queryResult = {
                 isLoggedIn: isLoggedIn,
@@ -155,51 +155,47 @@ export const Resolver = {
     },
     Mutation: {
         alphaJoinInvite: withUser<{ key: string }>(async (args, uid) => {
-            return await DB.txStable(async (tx) => {
-                return await inTx(async () => {
-                    let orgInvite = await Modules.Invites.repo.getOrganizationInviteNonJoined(args.key);
-                    let publicOrginvite = await Modules.Invites.repo.getPublicOrganizationInviteByKey(args.key);
-                    let invite: { oid: number, uid: number, ttl?: number | null, role?: string } | null = orgInvite || publicOrginvite;
+            return await inTx(async () => {
+                let orgInvite = await Modules.Invites.repo.getOrganizationInviteNonJoined(args.key);
+                let publicOrginvite = await Modules.Invites.repo.getPublicOrganizationInviteByKey(args.key);
+                let invite: { oid: number, uid: number, ttl?: number | null, role?: string } | null = orgInvite || publicOrginvite;
 
-                    if (!invite) {
-                        throw new NotFoundError(ErrorText.unableToFindInvite);
-                    }
-                    // TODO: Better handling?
-                    let existing = await FDB.OrganizationMember.findById(invite.oid, uid);
-                    if (existing && existing.status === 'joined') {
-                        return IDs.Organization.serialize(invite.oid);
-                    }
-
-                    if (invite.ttl && (new Date().getTime() >= invite.ttl)) {
-                        throw new NotFoundError(ErrorText.unableToFindInvite);
-                    }
-                    await FDB.OrganizationMember.create(invite.oid, uid, {
-                        role: invite.role === 'OWNER' ? 'admin' : 'member',
-                        status: 'joined',
-                        invitedBy: invite.uid
-                    });
-
-                    // make organization primary if none
-                    let profile = (await Modules.Users.profileById(uid));
-                    if (profile && !profile.primaryOrganization) {
-                        profile.primaryOrganization = invite!.oid;
-                    }
-
-                    let user = (await DB.User.findById(uid, { transaction: tx }))!;
-                    // User set invitedBy if none
-                    user.invitedBy = user.invitedBy === undefined ? invite.uid : user.invitedBy;
-                    user.status = 'ACTIVATED';
-                    await user.save({ transaction: tx });
-
-                    await Repos.Chats.addToInitialChannel(user.id!, tx);
-
-                    // invalidate invite
-                    if (orgInvite) {
-                        orgInvite.joined = true;
-                    }
+                if (!invite) {
+                    throw new NotFoundError(ErrorText.unableToFindInvite);
+                }
+                // TODO: Better handling?
+                let existing = await FDB.OrganizationMember.findById(invite.oid, uid);
+                if (existing && existing.status === 'joined') {
                     return IDs.Organization.serialize(invite.oid);
+                }
 
+                if (invite.ttl && (new Date().getTime() >= invite.ttl)) {
+                    throw new NotFoundError(ErrorText.unableToFindInvite);
+                }
+                await FDB.OrganizationMember.create(invite.oid, uid, {
+                    role: invite.role === 'OWNER' ? 'admin' : 'member',
+                    status: 'joined',
+                    invitedBy: invite.uid
                 });
+
+                // make organization primary if none
+                let profile = (await Modules.Users.profileById(uid));
+                if (profile && !profile.primaryOrganization) {
+                    profile.primaryOrganization = invite!.oid;
+                }
+
+                let user = (await FDB.User.findById(uid))!;
+                // User set invitedBy if none
+                user.invitedBy = user.invitedBy === undefined ? invite.uid : user.invitedBy;
+                user.status = 'activated';
+
+                await Repos.Chats.addToInitialChannel(user.id!);
+
+                // invalidate invite
+                if (orgInvite) {
+                    orgInvite.joined = true;
+                }
+                return IDs.Organization.serialize(invite.oid);
 
             });
         }),
@@ -208,22 +204,20 @@ export const Resolver = {
             if (uid === undefined) {
                 return;
             }
-            return await DB.txStable(async (tx) => {
+            return await inTx(async () => {
                 let inviteData = await Modules.Invites.repo.getInvteLinkData(args.key);
                 if (!inviteData) {
                     throw new NotFoundError(ErrorText.unableToFindInvite);
                 }
-                let user = (await DB.User.findById(uid, { transaction: tx, lock: tx.LOCK.UPDATE }))!;
+                let user = (await FDB.User.findById(uid!))!;
                 // activate user, set invited by
                 user.invitedBy = inviteData.uid;
-                user.status = 'ACTIVATED';
-                await user.save({ transaction: tx });
-                await Repos.Chats.addToInitialChannel(user.id!, tx);
+                user.status = 'activated';
+                await Repos.Chats.addToInitialChannel(user.id!);
                 // activate user org if have one
-                let org = context.oid ? (await DB.Organization.findById(context.oid, { transaction: tx, lock: tx.LOCK.UPDATE })) : undefined;
+                let org = context.oid ? (await FDB.Organization.findById(context.oid)) : undefined;
                 if (org) {
-                    org.status = 'ACTIVATED';
-                    await org.save({ transaction: tx });
+                    org.status = 'activated';
                 }
                 return 'ok';
             });
@@ -266,9 +260,9 @@ export const Resolver = {
                 photoRef?: ImageRef | null
             }
         }>(async (args, uid) => {
-            return await DB.txLight(async (tx) => {
-                let userProfile = await Repos.Users.createUser(uid, args.user, tx);
-                let organization = await Repos.Organizations.createOrganization(uid, { ...args.organization, personal: false }, tx);
+            return await inTx(async () => {
+                let userProfile = await Repos.Users.createUser(uid, args.user);
+                let organization = await Repos.Organizations.createOrganization(uid, { ...args.organization, personal: false });
 
                 return {
                     user: userProfile,

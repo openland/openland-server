@@ -1,13 +1,13 @@
 import express from 'express';
 import { randomNumbersString } from '../openland-server/utils/random';
 import { Emails } from '../openland-server/services/Emails';
-import { DB } from '../openland-server/tables';
 import * as base64 from '../openland-server/utils/base64';
 import { randomBytes } from 'crypto';
 import { Modules } from 'openland-modules/Modules';
 import { inTx } from 'foundation-orm/inTx';
 import { AuthCodeSession } from 'openland-module-db/schema';
 import { calculateBase64len } from '../openland-server/utils/base64';
+import { FDB } from 'openland-module-db/FDB';
 
 const Errors = {
     wrong_arg: { code: 0, text: 'Wrong arguments passed' },
@@ -50,7 +50,7 @@ const testEmailCode = (email: string) => {
     return num[num.length - 1].repeat(5);
 };
 
-const checkEmail = (email: any) => typeof email === 'string' &&  email.length <= 254; // according to rfc
+const checkEmail = (email: any) => typeof email === 'string' && email.length <= 254; // according to rfc
 
 const checkSession = (session: any) => typeof session === 'string' && session.length === calculateBase64len(64);
 
@@ -191,84 +191,71 @@ export async function checkCode(req: express.Request, response: express.Response
 }
 
 export async function getAccessToken(req: express.Request, response: express.Response) {
-    return await DB.txLight(async (tx) => {
-        let {
-            session,
-            authToken
-        } = req.body;
+    let {
+        session,
+        authToken
+    } = req.body;
 
-        if (!session) {
-            sendError(response, Errors.no_session);
-            return;
-        } else if (!checkSession(session)) {
-            sendError(response, Errors.no_session);
+    if (!session) {
+        sendError(response, Errors.no_session);
+        return;
+    } else if (!checkSession(session)) {
+        sendError(response, Errors.no_session);
+        return;
+    }
+
+    if (!authToken) {
+        sendError(response, Errors.no_auth_token);
+        return;
+    } else if (!checkAuthToken(authToken)) {
+        sendError(response, Errors.invalid_auth_token);
+        return;
+    }
+
+    await inTx(async () => {
+        let authSession = await Modules.Auth.repo.findSession(session);
+
+        // No session found
+        if (!authSession) {
+            sendError(response, Errors.session_not_found);
             return;
         }
 
-        if (!authToken) {
-            sendError(response, Errors.no_auth_token);
-            return;
-        } else if (!checkAuthToken(authToken)) {
+        if (!authSession.enabled) {
+            sendError(response, Errors.session_expired);
+        }
+
+        // Wrong auth token
+        if (authSession.tokenId !== authToken) {
             sendError(response, Errors.invalid_auth_token);
             return;
         }
 
-        await inTx(async () => {
-            let authSession = await Modules.Auth.repo.findSession(session);
+        if (authSession.email) {
+            let existing = (await FDB.User.findAll())
+                .find((v) => v.email === authSession!.email || v.authId === 'email|' + authSession!.email as any);
 
-            // No session found
-            if (!authSession) {
-                sendError(response, Errors.session_not_found);
+            if (existing) {
+                let token = await Modules.Auth.createToken(existing.id!);
+                response.json({ ok: true, accessToken: token.salt });
+                authSession.enabled = false;
                 return;
-            }
-
-            if (!authSession.enabled) {
-                sendError(response, Errors.session_expired);
-            }
-
-            // Wrong auth token
-            if (authSession.tokenId !== authToken) {
-                sendError(response, Errors.invalid_auth_token);
-                return;
-            }
-
-            if (authSession.email) {
-                let sequelize = DB.connection;
-
-                let existing = await DB.User.findOne({
-                    where: [
-                        sequelize.or(
-                            {
-                                email: authSession.email as any
-                            },
-                            {
-                                authId: 'email|' + authSession.email as any
-                            }
-
-                        )],
-                    order: [['createdAt', 'ASC']],
-                    transaction: tx,
-                    lock: tx.LOCK.UPDATE
-                });
-
-                if (existing) {
-                    let token = await Modules.Auth.createToken(existing.id!);
-                    response.json({ ok: true, accessToken: token.salt });
-                    authSession.enabled = false;
-                    return;
-                } else {
-                    let user = await DB.User.create({
-                        authId: 'email|' + authSession.email,
-                        email: authSession.email as string,
-                    }, { transaction: tx });
-                    let token = await Modules.Auth.createToken(user.id!);
-                    response.json({ ok: true, accessToken: token });
-                    authSession.enabled = false;
-                    return;
-                }
             } else {
-                sendError(response, Errors.server_error);
+                let c = (await FDB.Sequence.findById('user-id'))!;
+                let id = ++c.value;
+                let user = await FDB.User.create(id, {
+                    authId: 'email|' + authSession.email,
+                    email: authSession.email as string,
+                    isBot: false,
+                    status: 'pending'
+                });
+                let token = await Modules.Auth.createToken(user.id!);
+                response.json({ ok: true, accessToken: token });
+                authSession.enabled = false;
+                return;
             }
-        });
+        } else {
+            sendError(response, Errors.server_error);
+        }
     });
 }

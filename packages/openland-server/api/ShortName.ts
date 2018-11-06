@@ -1,4 +1,3 @@
-import { DB } from '../tables';
 import { withAccount } from './utils/Resolvers';
 import { UserError } from '../errors/UserError';
 import { ErrorText } from '../errors/ErrorText';
@@ -18,11 +17,12 @@ function testShortName(name: string) {
 export const Resolvers = {
     ShortNameDestination: {
         __resolveType(src: any) {
-            if (src instanceof (DB.User as any)) {
-                return 'User';
-            } else if (src instanceof (DB.Organization as any)) {
-                return 'Organization';
-            }
+            // TODO: Implement
+            // if (src instanceof (DB.User as any)) {
+            //     return 'User';
+            // } else if (src instanceof (DB.Organization as any)) {
+            //     return 'Organization';
+            // }
 
             throw new Error('Unknown shortname type');
         }
@@ -37,9 +37,9 @@ export const Resolvers = {
             }
 
             if (shortname.ownerType === 'user') {
-                return await DB.User.findById(shortname.ownerId);
+                return await FDB.User.findById(shortname.ownerId);
             } else if (shortname.ownerType === 'org') {
-                return await DB.Organization.findById(shortname.ownerId);
+                return await FDB.Organization.findById(shortname.ownerId);
             }
 
             return null;

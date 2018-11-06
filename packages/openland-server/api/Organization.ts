@@ -1,19 +1,14 @@
-import { DB } from '../tables';
-import { Organization } from '../tables/Organization';
 import { IDs, IdsFactory } from './utils/IDs';
 import { buildBaseImageUrl } from '../repositories/Media';
 import { withUser, withAccount, withAny, withPermission } from './utils/Resolvers';
 import { Repos } from '../repositories';
 import { ImageRef } from '../repositories/Media';
 import { CallContext } from './utils/CallContext';
-import { OrganizationExtras } from '../repositories/OrganizationExtras';
 import { UserError } from '../errors/UserError';
 import { ErrorText } from '../errors/ErrorText';
 import { NotFoundError } from '../errors/NotFoundError';
 import { Sanitizer } from '../modules/Sanitizer';
-import { InvalidInputError } from '../errors/InvalidInputError';
 import { buildElasticQuery, QueryParser } from '../modules/QueryParser';
-import { SelectBuilder } from '../modules/SelectBuilder';
 import {
     defined, emailValidator, stringNotEmpty,
     validate
@@ -24,6 +19,7 @@ import { Services } from '../services';
 import { Modules } from 'openland-modules/Modules';
 import { inTx } from 'foundation-orm/inTx';
 import { FDB } from 'openland-module-db/FDB';
+import { Organization } from 'openland-module-db/schema';
 
 interface AlphaOrganizationsParams {
     query?: string;
@@ -37,20 +33,20 @@ interface AlphaOrganizationsParams {
 export const Resolver = {
     OrganizationProfile: {
         id: (src: Organization) => IDs.Organization.serialize(src.id!!),
-        name: (src: Organization) => src.name,
-        photoRef: (src: Organization) => src.photo,
+        name: async (src: Organization) => ((await FDB.OrganizationProfile.findById(src.id!!)))!.name,
+        photoRef: async (src: Organization) => ((await FDB.OrganizationProfile.findById(src.id!!)))!.photo,
 
-        website: (src: Organization) => src.website,
-        websiteTitle: (src: Organization) => src.website,
-        about: (src: Organization) => src.extras && src.extras.about,
-        twitter: (src: Organization) => src.extras && src.extras.twitter,
-        facebook: (src: Organization) => src.extras && src.extras.facebook,
-        linkedin: (src: Organization) => src.extras && src.extras.linkedin,
+        website: async (src: Organization) => ((await FDB.OrganizationProfile.findById(src.id!!)))!.website,
+        websiteTitle: (src: Organization) => null,
+        about: async (src: Organization) => ((await FDB.OrganizationProfile.findById(src.id!!)))!.about,
+        twitter: async (src: Organization) => ((await FDB.OrganizationProfile.findById(src.id!!)))!.twitter,
+        facebook: async (src: Organization) => ((await FDB.OrganizationProfile.findById(src.id!!)))!.facebook,
+        linkedin: async (src: Organization) => ((await FDB.OrganizationProfile.findById(src.id!!)))!.linkedin,
 
-        alphaPublished: (src: Organization) => !src.extras || src.extras.published !== false,
-        alphaEditorial: (src: Organization) => !!(src.extras && src.extras.editorial),
-        alphaFeatured: (src: Organization) => !!(src.extras && src.extras.featured),
-        alphaIsCommunity: (src: Organization) => !!(src.extras && src.extras.isCommunity),
+        alphaPublished: async (src: Organization) => ((await FDB.OrganizationEditorial.findById(src.id!!)))!.listed,
+        alphaEditorial: (src: Organization) => src.editorial,
+        alphaFeatured: async (src: Organization) => ((await FDB.OrganizationEditorial.findById(src.id!!)))!.featured,
+        alphaIsCommunity: (src: Organization) => src.kind === 'community',
 
         alphaOrganizationType: (src: Organization) => [],
 
@@ -68,23 +64,23 @@ export const Resolver = {
         isMine: (src: Organization, args: {}, context: CallContext) => Repos.Organizations.isMemberOfOrganization(src.id!!, context.uid!!),
         alphaIsOwner: (src: Organization, args: {}, context: CallContext) => Repos.Organizations.isOwnerOfOrganization(src.id!!, context.uid!!),
 
-        name: (src: Organization) => src.name,
-        photo: (src: Organization) => src.photo ? buildBaseImageUrl(src.photo) : null,
-        photoRef: (src: Organization) => src.photo,
+        name: async (src: Organization) => ((await FDB.OrganizationProfile.findById(src.id!!)))!.name,
+        photo: async (src: Organization) => buildBaseImageUrl(((await FDB.OrganizationProfile.findById(src.id!!)))!.photo),
+        photoRef: async (src: Organization) => ((await FDB.OrganizationProfile.findById(src.id!!)))!.photo,
 
-        website: (src: Organization) => src.website,
-        websiteTitle: (src: Organization) => src.website,
-        about: (src: Organization) => src.extras && src.extras.about,
-        twitter: (src: Organization) => src.extras && src.extras.twitter,
-        facebook: (src: Organization) => src.extras && src.extras.facebook,
-        linkedin: (src: Organization) => src.extras && src.extras.linkedin,
+        website: async (src: Organization) => ((await FDB.OrganizationProfile.findById(src.id!!)))!.website,
+        websiteTitle: (src: Organization) => null,
+        about: async (src: Organization) => ((await FDB.OrganizationProfile.findById(src.id!!)))!.about,
+        twitter: async (src: Organization) => ((await FDB.OrganizationProfile.findById(src.id!!)))!.twitter,
+        facebook: async (src: Organization) => ((await FDB.OrganizationProfile.findById(src.id!!)))!.facebook,
+        linkedin: async (src: Organization) => ((await FDB.OrganizationProfile.findById(src.id!!)))!.linkedin,
 
-        alphaContacts: async (src: Organization) => (await Repos.Organizations.getOrganizationContacts(src.id!!)).map(async (m) => await Modules.Users.profileById(m.uid)).filter(p => p),
+        alphaContacts: async (src: Organization) => [], // (await Repos.Organizations.getOrganizationContacts(src.id!!)).map(async (m) => await Modules.Users.profileById(m.uid)).filter(p => p),
         alphaOrganizationMembers: async (src: Organization) => await Repos.Organizations.getOrganizationJoinedMembers(src.id!!),
-        alphaPublished: (src: Organization) => !src.extras || src.extras.published !== false,
-        alphaEditorial: (src: Organization) => !!(src.extras && src.extras.editorial),
-        alphaFeatured: (src: Organization) => !!(src.extras && src.extras.featured),
-        alphaIsCommunity: (src: Organization) => !!(src.extras && src.extras.isCommunity),
+        alphaPublished: async (src: Organization) => ((await FDB.OrganizationEditorial.findById(src.id!!)))!.listed,
+        alphaEditorial: (src: Organization) => src.editorial,
+        alphaFeatured: async (src: Organization) => ((await FDB.OrganizationEditorial.findById(src.id!!)))!.featured,
+        alphaIsCommunity: (src: Organization) => src.kind === 'community',
 
         alphaOrganizationType: (src: Organization) => [],
 
@@ -115,41 +111,33 @@ export const Resolver = {
     Query: {
         myOrganization: async (_: any, args: {}, context: CallContext) => {
             if (context.oid) {
-                return await DB.Organization.findById(context.oid);
+                return await FDB.Organization.findById(context.oid);
             }
             return null;
         },
         myOrganizationProfile: async (_: any, args: {}, context: CallContext) => {
             if (context.oid) {
-                return await DB.Organization.findById(context.oid);
+                return await FDB.Organization.findById(context.oid);
             }
             return null;
         },
         myOrganizations: async (_: any, args: {}, context: CallContext) => {
             if (context.uid) {
-                let allOrgs = await FDB.OrganizationMember.allFromUser('joined', context.uid);
-                return await DB.Organization.findAll({
-                    where: {
-                        id: {
-                            $in: allOrgs.map((v) => v.oid)
-                        },
-                        status: {
-                            $not: 'SUSPENDED'
-                        }
-                    }
-                });
+                return (await Promise.all((await FDB.OrganizationMember.allFromUser('joined', context.uid))
+                    .map((v) => FDB.Organization.findById(v.oid))))
+                    .filter((v) => v!.status !== 'suspended');
             }
             return [];
         },
         organization: withAny<{ id: string }>(async (args) => {
-            let res = await DB.Organization.findById(IDs.Organization.parse(args.id));
+            let res = await FDB.Organization.findById(IDs.Organization.parse(args.id));
             if (!res) {
                 throw new NotFoundError('Unable to find organization');
             }
             return res;
         }),
         organizationProfile: withAny<{ id: string }>(async (args) => {
-            let res = await DB.Organization.findById(IDs.Organization.parse(args.id));
+            let res = await FDB.Organization.findById(IDs.Organization.parse(args.id));
             if (!res) {
                 throw new NotFoundError('Unable to find organization');
             }
@@ -208,13 +196,8 @@ export const Resolver = {
                     }
                 }
             });
-            let res = await DB.Organization.find({
-                where: {
-                    id: {
-                        $in: hits.hits.hits.map((v) => v._id)
-                    }
-                },
-            });
+
+            let res = hits.hits.hits.map((v) => FDB.Organization.findById(parseInt(v._id, 10)));
 
             return res;
         }),
@@ -234,12 +217,39 @@ export const Resolver = {
                     query: { bool: { must: clauses } }
                 }
             });
-            let builder = new SelectBuilder(DB.Organization)
-                .after(args.after)
-                .page(args.page)
-                .limit(args.first);
 
-            return await builder.findElastic(hits);
+            let orgs = hits.hits.hits.map((v) => FDB.Organization.findById(parseInt(v._id, 10)));
+            let offset = 0;
+            if (args.after) {
+                offset = parseInt(args.after, 10);
+            } else if (args.page) {
+                offset = (args.page - 1) * args.first;
+            }
+            let total = orgs.length;
+
+            return {
+                edges: orgs.map((p, i) => {
+                    return {
+                        node: p,
+                        cursor: (i + 1 + offset).toString()
+                    };
+                }),
+                pageInfo: {
+                    hasNextPage: (total - (offset + 1)) >= args.first, // ids.length === this.limitValue,
+                    hasPreviousPage: false,
+
+                    itemsCount: total,
+                    pagesCount: Math.min(Math.floor(8000 / args.first), Math.ceil(total / args.first)),
+                    currentPage: Math.floor(offset / args.first) + 1,
+                    openEnded: true
+                },
+            };
+            // let builder = new SelectBuilder(DB.Organization)
+            //     .after(args.after)
+            //     .page(args.page)
+            //     .limit(args.first);
+
+            // return await builder.findElastic(hits);
         }),
 
         alphaOrganizations: withAny<AlphaOrganizationsParams>(async args => {
@@ -285,12 +295,32 @@ export const Resolver = {
                 }
             });
 
-            let builder = new SelectBuilder(DB.Organization)
-                .after(args.after)
-                .page(args.page)
-                .limit(args.first);
+            let orgs = hits.hits.hits.map((v) => FDB.Organization.findById(parseInt(v._id, 10)));
+            let offset = 0;
+            if (args.after) {
+                offset = parseInt(args.after, 10);
+            } else if (args.page) {
+                offset = (args.page - 1) * args.first;
+            }
+            let total = orgs.length;
 
-            return await builder.findElastic(hits);
+            return {
+                edges: orgs.map((p, i) => {
+                    return {
+                        node: p,
+                        cursor: (i + 1 + offset).toString()
+                    };
+                }),
+                pageInfo: {
+                    hasNextPage: (total - (offset + 1)) >= args.first, // ids.length === this.limitValue,
+                    hasPreviousPage: false,
+
+                    itemsCount: total,
+                    pagesCount: Math.min(Math.floor(8000 / args.first), Math.ceil(total / args.first)),
+                    currentPage: Math.floor(offset / args.first) + 1,
+                    openEnded: true
+                },
+            };
         }),
 
         alphaOrganizationPublicInvite: withAccount<{ organizationId?: string }>(async (args, uid, organizationId) => {
@@ -313,20 +343,16 @@ export const Resolver = {
                 isCommunity?: boolean
             }
         }>(async (args, uid) => {
-            return await DB.tx(async (tx) => {
-                return await Repos.Organizations.createOrganization(uid, args.input, tx);
-            });
+            return await Repos.Organizations.createOrganization(uid, args.input);
         }),
         alphaAlterPublished: withPermission<{ id: string, published: boolean }>(['super-admin', 'editor'], async (args) => {
-            return await DB.tx(async (tx) => {
-                let org = await DB.Organization.find({ where: { id: IDs.Organization.parse(args.id) }, transaction: tx });
+            return await inTx(async () => {
+                let org = await FDB.Organization.findById(IDs.Organization.parse(args.id));
                 if (!org) {
                     throw new UserError(ErrorText.unableToFindOrganization);
                 }
-                let extras = org.extras || {};
-                extras.published = args.published;
-                org.extras = extras;
-                await org.save({ transaction: tx });
+                let editorial = await FDB.OrganizationEditorial.findById(org.id);
+                editorial!.listed = args.published;
                 return org;
             });
         }),
@@ -375,11 +401,13 @@ export const Resolver = {
                 }
             }
 
-            return await DB.tx(async (tx) => {
-                let existing = await DB.Organization.find({ where: { id: orgId }, transaction: tx, lock: tx.LOCK.UPDATE });
+            return await inTx(async () => {
+                let existing = await FDB.Organization.findById(orgId);
                 if (!existing) {
                     throw new UserError(ErrorText.unableToFindOrganization);
                 }
+
+                let profile = (await FDB.OrganizationProfile.findById(orgId))!;
 
                 if (args.input.name !== undefined) {
                     await validate(
@@ -387,54 +415,45 @@ export const Resolver = {
                         args.input.name,
                         'input.name'
                     );
-                    existing.name = Sanitizer.sanitizeString(args.input.name)!;
+                    profile.name = Sanitizer.sanitizeString(args.input.name)!;
                 }
                 if (args.input.website !== undefined) {
-                    existing.website = Sanitizer.sanitizeString(args.input.website);
-                }
-                if (args.input.websiteTitle !== undefined) {
-                    existing.websiteTitle = Sanitizer.sanitizeString(args.input.websiteTitle);
+                    profile.website = Sanitizer.sanitizeString(args.input.website);
                 }
                 if (args.input.photoRef !== undefined) {
                     if (args.input.photoRef !== null) {
                         await Services.UploadCare.saveFile(args.input.photoRef.uuid);
                     }
-                    existing.photo = Sanitizer.sanitizeImageRef(args.input.photoRef);
+                    profile.photo = Sanitizer.sanitizeImageRef(args.input.photoRef);
                 }
 
-                let extrasValidateError: { key: string, message: string }[] = [];
-                let extras: OrganizationExtras = existing.extras || {};
                 if (args.input.twitter !== undefined) {
-                    extras.twitter = Sanitizer.sanitizeString(args.input.twitter);
+                    profile.twitter = Sanitizer.sanitizeString(args.input.twitter);
                 }
                 if (args.input.facebook !== undefined) {
-                    extras.facebook = Sanitizer.sanitizeString(args.input.facebook);
+                    profile.facebook = Sanitizer.sanitizeString(args.input.facebook);
                 }
                 if (args.input.linkedin !== undefined) {
-                    extras.linkedin = Sanitizer.sanitizeString(args.input.linkedin);
+                    profile.linkedin = Sanitizer.sanitizeString(args.input.linkedin);
                 }
                 if (args.input.about !== undefined) {
-                    extras.about = Sanitizer.sanitizeString(args.input.about);
+                    profile.about = Sanitizer.sanitizeString(args.input.about);
                 }
 
+                let editorial = (await FDB.OrganizationEditorial.findById(oid))!;
+
                 if (args.input.alphaPublished !== undefined) {
-                    extras.published = Sanitizer.sanitizeAny(args.input.alphaPublished);
+                    editorial.listed = Sanitizer.sanitizeAny(args.input.alphaPublished) ? true : false;
                 }
 
                 if (args.input.alphaEditorial !== undefined) {
-                    extras.editorial = Sanitizer.sanitizeAny(args.input.alphaEditorial);
+                    existing.editorial = Sanitizer.sanitizeAny(args.input.alphaEditorial) ? true : false;
                 }
 
                 if (args.input.alphaFeatured !== undefined) {
-                    extras.featured = Sanitizer.sanitizeAny(args.input.alphaFeatured);
+                    editorial.featured = Sanitizer.sanitizeAny(args.input.alphaFeatured) || false;
                 }
 
-                if (extrasValidateError.length > 0) {
-                    throw new InvalidInputError(extrasValidateError);
-                }
-
-                existing.extras = extras;
-                await existing.save({ transaction: tx });
                 return existing;
             });
         }),
@@ -583,9 +602,9 @@ export const Resolver = {
             });
         }),
         alphaOrganizationCreatePublicInvite: withAccount<{ expirationDays?: number, organizationId?: string }>(async (args, uid, oid) => {
-            return DB.tx(async (tx) => {
+            return inTx(async () => {
                 oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
-                let isOwner = await Repos.Organizations.isOwnerOfOrganization(oid, uid, tx);
+                let isOwner = await Repos.Organizations.isOwnerOfOrganization(oid, uid);
 
                 if (!isOwner) {
                     throw new UserError(ErrorText.permissionOnlyOwner);
@@ -596,8 +615,8 @@ export const Resolver = {
         }),
         alphaOrganizationDeletePublicInvite: withAccount<{ organizationId?: string }>(async (args, uid, oid) => {
             oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
-            return DB.tx(async (tx) => {
-                let isOwner = await Repos.Organizations.isOwnerOfOrganization(oid, uid, tx);
+            return inTx(async () => {
+                let isOwner = await Repos.Organizations.isOwnerOfOrganization(oid, uid);
 
                 if (!isOwner) {
                     throw new UserError(ErrorText.permissionOnlyOwner);

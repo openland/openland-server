@@ -3,7 +3,6 @@ import { inTx } from 'foundation-orm/inTx';
 import { ImageRef } from 'openland-server/repositories/Media';
 import { validate, stringNotEmpty } from 'openland-server/modules/NewInputValidator';
 import { Sanitizer } from 'openland-server/modules/Sanitizer';
-import { User } from 'openland-server/tables';
 
 export class UserRepository {
     private entities: AllEntities;
@@ -20,7 +19,7 @@ export class UserRepository {
         return this.entities.UserProfile.findById(uid);
     }
 
-    async createUserProfile(user: User, input: {
+    async createUserProfile(uid: number, input: {
         firstName: string,
         lastName?: string | null,
         photoRef?: ImageRef | null,
@@ -31,6 +30,7 @@ export class UserRepository {
         location?: string | null
     }) {
         return await inTx(async () => {
+            let user = (await this.entities.User.findById(uid))!;
             let existing = await this.entities.UserProfile.findById(user.id!);
             if (existing) {
                 return existing;

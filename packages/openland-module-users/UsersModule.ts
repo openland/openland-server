@@ -2,7 +2,6 @@
 import { FDB } from 'openland-module-db/FDB';
 import { UserRepository } from './repositories/UsersRepository';
 import { ImageRef } from 'openland-server/repositories/Media';
-import { User } from 'openland-server/tables';
 import { userProfileIndexer } from './workers/userProfileIndexer';
 import { UserSearch } from './search/UserSearch';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
@@ -24,7 +23,7 @@ export class UsersModule {
         return this.repo.findUserProfile(uid);
     }
 
-    async createUserProfile(user: User, input: {
+    async createUserProfile(uid: number, input: {
         firstName: string,
         lastName?: string | null,
         photoRef?: ImageRef | null,
@@ -34,7 +33,7 @@ export class UsersModule {
         about?: string | null,
         location?: string | null
     }) {
-        return await this.repo.createUserProfile(user, input);
+        return await this.repo.createUserProfile(uid, input);
     }
 
     async findProfilePrefill(uid: number) {

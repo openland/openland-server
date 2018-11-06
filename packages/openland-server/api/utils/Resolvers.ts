@@ -3,7 +3,6 @@ import { Repos } from '../../repositories';
 import { AccessDeniedError } from '../../errors/AccessDeniedError';
 import { ErrorText } from '../../errors/ErrorText';
 import { UserError } from '../../errors/UserError';
-import { DB } from '../../tables';
 import { SecID } from '../../../openland-security/SecID';
 import { GraphQLField, GraphQLFieldResolver, GraphQLObjectType, GraphQLSchema } from 'graphql';
 import { FDB } from 'openland-module-db/FDB';
@@ -140,7 +139,7 @@ export function resolveID(id: SecID) {
 
 export function resolveUser<T extends { userId: number }>() {
     return function (src: T) {
-        return DB.User.findById(src.userId);
+        return FDB.User.findById(src.userId);
     };
 }
 

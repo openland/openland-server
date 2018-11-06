@@ -1,28 +1,28 @@
 import { CallContext } from './utils/CallContext';
 import { Repos } from '../repositories';
 import { withPermission, withAny } from './utils/Resolvers';
-import { Organization } from '../tables/Organization';
 import { IDs } from './utils/IDs';
-import { DB } from '../tables';
 import { UserError } from '../errors/UserError';
 import { Modules } from 'openland-modules/Modules';
-import { FeatureFlag, SuperAdmin } from 'openland-module-db/schema';
+import { FeatureFlag, SuperAdmin, Organization } from 'openland-module-db/schema';
+import { inTx } from 'foundation-orm/inTx';
+import { FDB } from 'openland-module-db/FDB';
 
 export const Resolvers = {
     SuperAccount: {
         id: (src: Organization) => IDs.SuperAccount.serialize(src.id!!),
         orgId: (src: Organization) => IDs.Organization.serialize(src.id!!),
-        title: (src: Organization) => src.name!!,
-        name: (src: Organization) => src.name!!,
+        title: async (src: Organization) => (await FDB.OrganizationProfile.findById(src.id))!.name,
+        name: async (src: Organization) => (await FDB.OrganizationProfile.findById(src.id))!.name,
         state: (src: Organization) => src.status,
         members: (src: Organization) => Repos.Users.fetchOrganizationMembers(src.id!!),
         features: async (src: Organization) => (await Modules.Features.repo.findOrganizationFeatureFlags(src.id!!)),
-        alphaPublished: (src: Organization) => !!(!src.extras || src.extras.published),
+        alphaPublished: async (src: Organization) => (await FDB.OrganizationEditorial.findById(src.id))!.listed,
         createdAt: (src: Organization) => (src as any).createdAt,
-        createdBy: async (src: Organization) => await DB.User.findOne({ where: { id: src.createdBy } }),
+        createdBy: async (src: Organization) => await FDB.User.findById(src.ownerId),
     },
     SuperAdmin: {
-        user: (src: SuperAdmin) => DB.User.findById(src.id),
+        user: (src: SuperAdmin) => FDB.User.findById(src.id),
         role: (src: SuperAdmin) => {
             if (src.role === 'software-developer') {
                 return 'SOFTWARE_DEVELOPER';
@@ -32,7 +32,7 @@ export const Resolvers = {
                 return 'SUPER_ADMIN';
             }
         },
-        email: async (src: SuperAdmin) => (await DB.User.findById(src.id))!.email,
+        email: async (src: SuperAdmin) => (await FDB.User.findById(src.id))!.email,
     },
     // Task: {
     //     id: (src: Task) => IDs.Task.serialize(src.id),
@@ -120,9 +120,6 @@ export const Resolvers = {
         })
     },
     Mutation: {
-        superAccountAdd: withPermission<{ title: string }>('super-admin', (args) => {
-            return Repos.Super.createOrganization(args.title);
-        }),
         superAccountRename: withPermission<{ id: string, title: string }>('super-admin', (args) => {
             return Repos.Super.renameOrganization(IDs.SuperAccount.parse(args.id), args.title);
         }),
@@ -136,10 +133,7 @@ export const Resolvers = {
             return Repos.Super.suspendOrganization(IDs.SuperAccount.parse(args.id));
         }),
         superAccountMemberAdd: withPermission<{ id: string, userId: string }>('super-admin', async (args) => {
-            return await DB.tx(async (tx) => {
-                return await Repos.Super.addToOrganization(IDs.SuperAccount.parse(args.id), IDs.User.parse(args.userId), tx);
-            });
-
+            return await Repos.Super.addToOrganization(IDs.SuperAccount.parse(args.id), IDs.User.parse(args.userId));
         }),
         superAccountMemberRemove: withPermission<{ id: string, userId: string }>('super-admin', (args) => {
             return Repos.Super.removeFromOrganization(IDs.SuperAccount.parse(args.id), IDs.User.parse(args.userId));
@@ -177,7 +171,7 @@ export const Resolvers = {
             return null;
         }),
         superAccountChannelMemberAdd: withPermission<{ id: string, userId: string }>('super-admin', async (args) => {
-            return await DB.txStable(async (tx) => {
+            return await inTx(async () => {
                 await Repos.Chats.addToChannel(IDs.Conversation.parse(args.id), IDs.User.parse(args.userId));
                 return 'ok';
             });
