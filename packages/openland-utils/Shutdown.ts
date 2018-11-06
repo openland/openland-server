@@ -20,10 +20,12 @@ class ShutdownImpl {
     }
 
     async shutdown() {
-        for (let work of this.works) {
-            logger.log('stopping', work.name);
-            await work.shutdown();
-        }
+        await Promise.all(this.works.map(w => {
+            return (async () => {
+                logger.log('stopping', w.name);
+                await w.shutdown();
+            })();
+        }));
         this.subs.forEach(s => s());
         logger.log('done');
     }
