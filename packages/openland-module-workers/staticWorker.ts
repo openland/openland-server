@@ -1,4 +1,4 @@
-import { delay, foreverBreakable } from '../openland-server/utils/timer';
+import { delay, delayBreakable, foreverBreakable } from '../openland-server/utils/timer';
 import { LockRepository } from 'openland-module-sync/LockRepository';
 import { withLogContext } from 'openland-log/withLogContext';
 import { createLogger } from 'openland-log/createLogger';
@@ -8,6 +8,7 @@ const logger = createLogger('loop');
 
 export function staticWorker(config: { name: string, version?: number, delay?: number }, worker: () => Promise<boolean>) {
     let working = true;
+    let awaiter: (() => void) | undefined;
     let workLoop = foreverBreakable(async () => {
         let res = await withLogContext(['static-worker', config.name], async () => {
             // Locking
@@ -46,8 +47,13 @@ export function staticWorker(config: { name: string, version?: number, delay?: n
             }
             return true;
         });
+        if (!working) {
+            return;
+        }
         if (!res) {
-            await delay(config.delay || 1000);
+            let w = delayBreakable(config.delay || 1000);
+            awaiter = w.resolver;
+            await w.promise;
         } else {
             await delay(100);
         }
@@ -57,8 +63,11 @@ export function staticWorker(config: { name: string, version?: number, delay?: n
         if (!working) {
             throw new Error('Worker already stopped');
         }
-
         working = false;
+        if (awaiter) {
+            awaiter();
+            awaiter = undefined;
+        }
         await workLoop.stop();
         await await LockRepository.releaseLock('worker_' + config.name, config.version);
         logger.log('worker_' + config.name, 'stopped');
