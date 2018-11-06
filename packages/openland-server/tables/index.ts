@@ -8,11 +8,10 @@ import { UserTable } from './User';
 import { ReaderStateTable } from './ReaderState';
 import { OrganizationTable } from './Organization';
 import { OrganizationMemberTable } from './OrganizationMember';
-import { OrganizationInviteTable } from './OrganizationInvite';
 import { ConversationTable } from './Conversation';
 import { retry } from '../utils/timer';
 
-const SILENT_TX_ACTUALLY_SILENT = false;
+const SILENT_TX_ACTUALLY_SILENT = process.env.NODE_ENV !== 'production';
 export const DB_SILENT = !SILENT_TX_ACTUALLY_SILENT;
 
 export const DB = {
@@ -20,7 +19,6 @@ export const DB = {
     ReaderState: ReaderStateTable,
     Organization: OrganizationTable,
     OrganizationMember: OrganizationMemberTable,
-    OrganizationInvite: OrganizationInviteTable,
 
     Conversation: ConversationTable,
 

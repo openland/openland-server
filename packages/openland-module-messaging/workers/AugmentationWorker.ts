@@ -2,7 +2,6 @@
 import linkify from 'linkify-it';
 import tlds from 'tlds';
 import { Services } from '../../openland-server/services';
-import { Repos } from '../../openland-server/repositories';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { inTx } from 'foundation-orm/inTx';
@@ -45,7 +44,7 @@ export function createAugmentationWorker() {
             let urlInfo = await Services.URLInfo.fetchURLInfo(firstUrl.url);
 
             if (urlInfo.title) {
-                let members = await Repos.Chats.getConversationMembers(message.cid);
+                let members = await Modules.Messaging.conv.findConversationMembers(message.cid);
 
                 await inTx(async () => {
                     let message2 = await FDB.Message.findById(item.messageId);

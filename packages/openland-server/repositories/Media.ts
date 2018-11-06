@@ -10,12 +10,16 @@ export interface ImageRef {
     crop?: ImageCrop | null;
 }
 
-export function buildBaseImageUrl(image: ImageRef) {
-    let res = 'https://ucarecdn.com/' + image.uuid + '/';
-    if (image.crop) {
-        res += `-/crop/${image.crop.w}x${image.crop.h}/${image.crop.x},${image.crop.y}/`;
+export function buildBaseImageUrl(image?: ImageRef | null) {
+    if (image) {
+        let res = 'https://ucarecdn.com/' + image.uuid + '/';
+        if (image.crop) {
+            res += `-/crop/${image.crop.w}x${image.crop.h}/${image.crop.x},${image.crop.y}/`;
+        }
+        return res;
+    } else {
+        return null;
     }
-    return res;
 }
 
 export function imageCropEquals(crop1: ImageCrop, crop2: ImageCrop) {
@@ -25,7 +29,7 @@ export function imageCropEquals(crop1: ImageCrop, crop2: ImageCrop) {
         crop1.y === crop2.y;
 }
 
-export function imageRefEquals(ref1: ImageRef|null, ref2: ImageRef|null) {
+export function imageRefEquals(ref1: ImageRef | null, ref2: ImageRef | null) {
     if (ref1 === null && ref2 === null) {
         return true;
     } else if (ref1 === null || ref2 === null) {

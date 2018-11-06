@@ -1,7 +1,6 @@
 import { IDs, IdsFactory } from './utils/IDs';
-import { Conversation } from '../tables/Conversation';
 import { DB, User } from '../tables';
-import { withPermission, withUser, resolveUser, withAccount } from './utils/Resolvers';
+import { withUser, resolveUser, withAccount } from './utils/Resolvers';
 import {
     validate,
     stringNotEmpty,
@@ -15,9 +14,7 @@ import { CallContext } from './utils/CallContext';
 import { Repos } from '../repositories';
 import { JsonMap } from '../utils/json';
 import { IDMailformedError } from '../errors/IDMailformedError';
-import { ImageRef, buildBaseImageUrl, imageRefEquals } from '../repositories/Media';
-import { Organization } from '../tables/Organization';
-import { AccessDeniedError } from '../errors/AccessDeniedError';
+import { ImageRef, buildBaseImageUrl } from '../repositories/Media';
 import { Services } from '../services';
 import { UserError } from '../errors/UserError';
 import { NotFoundError } from '../errors/NotFoundError';
@@ -25,86 +22,46 @@ import { Sanitizer } from '../modules/Sanitizer';
 import { URLAugmentation } from '../services/UrlInfoService';
 import { Modules } from 'openland-modules/Modules';
 import { OnlineEvent } from '../../openland-module-presences/PresenceModule';
-import { UserProfile, UserDialogSettings, Message, RoomParticipant } from 'openland-module-db/schema';
+import { UserDialogSettings, Message, RoomParticipant, Conversation, Organization } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
 import { TypingEvent } from 'openland-module-typings/TypingEvent';
 import { withLogContext } from 'openland-log/withLogContext';
 import { FDB } from 'openland-module-db/FDB';
+import { FEntity } from 'foundation-orm/FEntity';
 
 export const Resolver = {
     Conversation: {
-        __resolveType: (src: Conversation) => {
-            if (src.type === 'anonymous') {
-                return 'AnonymousConversation';
-            } else if (src.type === 'shared') {
-                return 'SharedConversation';
-            } else if (src.type === 'private') {
+        __resolveType: async (src: Conversation) => {
+            if (src.kind === 'private') {
                 return 'PrivateConversation';
-            } else if (src.type === 'group') {
-                return 'GroupConversation';
-            } else if (src.type === 'channel') {
-                return 'ChannelConversation';
+            } else if (src.kind === 'organization') {
+                return 'SharedConversation';
             } else {
-                throw Error('Unsupported Conversation Type');
+                let room = (await FDB.ConversationRoom.findById(src.id!));
+                if (!room) {
+                    console.warn('Unable to find room: ' + src.id);
+                }
+                let kind = room!.kind;
+                if (kind === 'group') {
+                    return 'GroupConversation';
+                } else {
+                    return 'ChannelConversation';
+                }
             }
         },
-    },
-    AnonymousConversation: {
-        id: (src: Conversation) => IDs.Conversation.serialize(src.id),
-        flexibleId: (src: Conversation) => IDs.Conversation.serialize(src.id),
-        title: (src: Conversation) => src.title,
-        photos: (src: Conversation) => [],
-        unreadCount: async (src: Conversation, _: any, context: CallContext) => {
-            let state = await FDB.UserDialog.findById(context.uid!!, src.id);
-            if (state) {
-                return state.unread;
-            } else {
-                return 0;
-            }
-        },
-        topMessage: (src: Conversation) => Modules.Messaging.repo.findTopMessage(src.id!),
-        settings: (src: Conversation, _: any, context: CallContext) => Modules.Messaging.getConversationSettings(context.uid!!, src.id),
     },
     SharedConversation: {
         id: (src: Conversation) => IDs.Conversation.serialize(src.id),
-        flexibleId: (src: Conversation, _: any, context: CallContext) => {
-            if (src.organization1Id === context.oid || (src.organization1 && src.organization1.id === context.oid)) {
-                return IDs.Organization.serialize(src.organization2Id!!);
-            } else if (src.organization2Id === context.oid || (src.organization2 && src.organization2.id === context.oid)) {
-                return IDs.Organization.serialize(src.organization1Id!!);
-            } else {
-                return IDs.Conversation.serialize(src.id);
-                // console.warn(src);
-                // console.warn(context);
-                // throw Error('Inconsistent Shared Conversation resolver');
-            }
+        flexibleId: async (src: Conversation, _: any, context: CallContext) => {
+            return IDs.Conversation.serialize((await FDB.ConversationOrganization.findById(src.id))!.oid);
         },
         title: async (src: Conversation, _: any, context: CallContext) => {
-            if (src.organization1Id === context.oid || (src.organization1 && src.organization1.id === context.oid)) {
-                return (src.organization2 || await src.getOrganization2())!!.name;
-            } else if (src.organization2Id === context.oid || (src.organization2 && src.organization2.id === context.oid)) {
-                return (src.organization1 || await src.getOrganization1())!!.name;
-            } else {
-                let org1 = (src.organization1 || await src.getOrganization2())!!;
-                let org2 = (src.organization2 || await src.getOrganization2())!!;
-                if (org1.id === org2.id) {
-                    return org1.name;
-                }
-                return org1.name + ', ' + org2.name;
-            }
+            return (await FDB.OrganizationProfile.findById((await FDB.ConversationOrganization.findById(src.id))!.oid))!.name;
         },
         photos: async (src: Conversation, _: any, context: CallContext) => {
-            let photo: ImageRef | null = null;
-            if (src.organization1Id === context.oid || (src.organization1 && src.organization1.id === context.oid)) {
-                photo = (src.organization2 || await src.getOrganization2())!!.photo!!;
-            } else if (src.organization2Id === context.oid || (src.organization2 && src.organization2.id === context.oid)) {
-                photo = (src.organization1 || await src.getOrganization1())!!.photo!!;
-            } else {
-                // it can be inner shared conversation from another org of this user
-                photo = (src.organization1 || await src.getOrganization1())!!.photo!!;
-            }
-            if (photo) {
-                return [buildBaseImageUrl(photo)];
+            let p = (await FDB.OrganizationProfile.findById((await FDB.ConversationOrganization.findById(src.id))!.oid))!.photo;
+            if (p) {
+                return [buildBaseImageUrl(p)];
             } else {
                 return [];
             }
@@ -119,34 +76,29 @@ export const Resolver = {
         },
         topMessage: (src: Conversation) => Modules.Messaging.repo.findTopMessage(src.id!),
         organization: async (src: Conversation, _: any, context: CallContext) => {
-            if (src.organization1Id === context.oid || (src.organization1 && src.organization1.id === context.oid)) {
-                return (src.organization2 || await src.getOrganization2())!!;
-            } else if (src.organization2Id === context.oid || (src.organization2 && src.organization2.id === context.oid)) {
-                return (src.organization1 || await src.getOrganization1())!!;
-            }
-            return src.organization1 || await src.getOrganization1();
+            return FDB.OrganizationProfile.findById((await FDB.ConversationOrganization.findById(src.id))!.oid);
         },
         settings: (src: Conversation, _: any, context: CallContext) => Modules.Messaging.getConversationSettings(context.uid!!, src.id),
     },
     PrivateConversation: {
         id: (src: Conversation) => IDs.Conversation.serialize(src.id),
-        flexibleId: (src: Conversation, _: any, context: CallContext) => {
-            let uid;
-            if (src.member1Id === context.uid || (src.member1 && src.member1.id === context.uid)) {
-                uid = src.member2Id!!;
-            } else if (src.member2Id === context.uid || (src.member2 && src.member2.id === context.uid)) {
-                uid = src.member1Id!!;
+        flexibleId: async (src: Conversation, _: any, context: CallContext) => {
+            let conv = (await FDB.ConversationPrivate.findById(src.id))!;
+            if (conv.uid1 === context.uid) {
+                return IDs.User.serialize(conv.uid2);
+            } else if (conv.uid2 === context.uid) {
+                return IDs.User.serialize(conv.uid1);
             } else {
                 throw Error('Inconsistent Private Conversation resolver');
             }
-            return IDs.User.serialize(uid);
         },
         title: async (src: Conversation, _: any, context: CallContext) => {
             let uid;
-            if (src.member1Id === context.uid || (src.member1 && src.member1.id === context.uid)) {
-                uid = src.member2Id!!;
-            } else if (src.member2Id === context.uid || (src.member2 && src.member2.id === context.uid)) {
-                uid = src.member1Id!!;
+            let conv = (await FDB.ConversationPrivate.findById(src.id))!;
+            if (conv.uid1 === context.uid) {
+                uid = conv.uid2;
+            } else if (conv.uid2 === context.uid) {
+                uid = conv.uid1;
             } else {
                 throw Error('Inconsistent Private Conversation resolver');
             }
@@ -155,10 +107,11 @@ export const Resolver = {
         },
         photos: async (src: Conversation, _: any, context: CallContext) => {
             let uid;
-            if (src.member1Id === context.uid || (src.member1 && src.member1.id === context.uid)) {
-                uid = src.member2Id!!;
-            } else if (src.member2Id === context.uid || (src.member2 && src.member2.id === context.uid)) {
-                uid = src.member1Id!!;
+            let conv = (await FDB.ConversationPrivate.findById(src.id))!;
+            if (conv.uid1 === context.uid) {
+                uid = conv.uid2;
+            } else if (conv.uid2 === context.uid) {
+                uid = conv.uid1;
             } else {
                 throw Error('Inconsistent Private Conversation resolver');
             }
@@ -181,10 +134,11 @@ export const Resolver = {
         topMessage: (src: Conversation) => Modules.Messaging.repo.findTopMessage(src.id!),
         user: async (src: Conversation, _: any, context: CallContext) => {
             let uid;
-            if (src.member1Id === context.uid || (src.member1 && src.member1.id === context.uid)) {
-                uid = src.member2Id!!;
-            } else if (src.member2Id === context.uid || (src.member2 && src.member2.id === context.uid)) {
-                uid = src.member1Id!!;
+            let conv = (await FDB.ConversationPrivate.findById(src.id))!;
+            if (conv.uid1 === context.uid) {
+                uid = conv.uid2;
+            } else if (conv.uid2 === context.uid) {
+                uid = conv.uid1;
             } else {
                 throw Error('Inconsistent Private Conversation resolver');
             }
@@ -197,8 +151,12 @@ export const Resolver = {
         id: (src: Conversation) => IDs.Conversation.serialize(src.id),
         flexibleId: (src: Conversation) => IDs.Conversation.serialize(src.id),
         title: async (src: Conversation, _: any, context: CallContext) => {
-            if (src.title !== '') {
-                return src.title;
+            let conv = (await FDB.RoomProfile.findById(src.id))!;
+            if (!conv) {
+                console.warn('Unable to find room for id: ' + src.id);
+            }
+            if (conv.title !== '') {
+                return conv.title;
             }
             let res = (await FDB.RoomParticipant.allFromActive(src.id)).filter((v) => v.uid !== context.uid);
             let name: string[] = [];
@@ -253,10 +211,10 @@ export const Resolver = {
         membersCount: (src: Conversation) => Repos.Chats.membersCountInConversation(src.id),
         settings: (src: Conversation, _: any, context: CallContext) => Modules.Messaging.getConversationSettings(context.uid!!, src.id),
 
-        photo: (src: Conversation) => src.extras && src.extras.picture ? buildBaseImageUrl(src.extras.picture as any) : null,
-        photoRef: (src: Conversation) => src.extras && src.extras.picture,
-        description: (src: Conversation) => src.extras.description || '',
-        longDescription: (src: Conversation) => src.extras.longDescription || '',
+        photo: async (src: Conversation) => buildBaseImageUrl((await FDB.RoomProfile.findById(src.id))!.image),
+        photoRef: async (src: Conversation) => (await FDB.RoomProfile.findById(src.id))!.image,
+        description: async (src: Conversation) => (await FDB.RoomProfile.findById(src.id))!.description,
+        longDescription: (src: Conversation) => '',
         pinnedMessage: (src: Conversation) => null,
         membersOnline: async (src: Conversation) => {
             // let res = await DB.ConversationGroupMembers.findAll({
@@ -294,9 +252,9 @@ export const Resolver = {
         __resolveType(src: any) {
             if (src instanceof (DB.User as any)) {
                 return 'User';
-            } else if (src instanceof (DB.Organization as any)) {
+            } else if ((src instanceof (FEntity) && src.entityName === 'Organization')) {
                 return 'Organization';
-            } else if (src instanceof (DB.Conversation as any)) {
+            } else if ((src instanceof (FEntity) && src.entityName === 'Conversation')) {
                 return 'ChannelConversation';
             }
 
@@ -323,7 +281,7 @@ export const Resolver = {
             } else if (src.type === 'org') {
                 return DB.Organization.findById(src.extra);
             } else if (src.type === 'channel') {
-                return DB.Conversation.findById(src.extra);
+                return FDB.Conversation.findById(src.extra);
             } else if (src.type === 'intro') {
                 return DB.User.findById(src.extra);
             }
@@ -402,7 +360,7 @@ export const Resolver = {
         photoRef: (src: any) => src.picture,
     },
     ChatReadResult: {
-        conversation: (src: { uid: number, conversationId: number }) => DB.Conversation.findById(src.conversationId),
+        conversation: (src: { uid: number, conversationId: number }) => FDB.Conversation.findById(src.conversationId),
         counter: (src: { uid: number, conversationId: number }) => src.uid
     },
     ComposeSearchResult: {
@@ -442,7 +400,7 @@ export const Resolver = {
     TypingEvent: {
         type: (src: TypingEvent) => src.type,
         cancel: (src: TypingEvent) => src.cancel,
-        conversation: (src: TypingEvent) => DB.Conversation.findById(src.conversationId),
+        conversation: (src: TypingEvent) => FDB.Conversation.findById(src.conversationId),
         user: (src: TypingEvent) => DB.User.findById(src.userId),
     },
     OnlineEvent: {
@@ -472,20 +430,24 @@ export const Resolver = {
                 }
 
                 if (shortName.ownerType === 'user') {
-                    return Repos.Chats.loadPrivateChat(shortName.ownerId!, uid);
-                } else if (shortName.ownerType === 'org') {
-                    return Repos.Chats.loadOrganizationalChat(oid, shortName.ownerId!);
-                } else {
-                    throw new NotFoundError();
-                }
+                    return Modules.Messaging.conv.resolvePrivateChat(shortName.ownerId!, uid);
+                } // else if (shortName.ownerType === 'org') {
+                // return Repos.Chats.loadOrganizationalChat(oid, shortName.ownerId!);
+                // } else {
+                throw new NotFoundError();
+                // }
             } else if (args.conversationId) {
                 let id = IdsFactory.resolve(args.conversationId);
                 if (id.type === IDs.Conversation) {
-                    return DB.Conversation.findById(id.id);
+                    return FDB.Conversation.findById(id.id);
                 } else if (id.type === IDs.User) {
-                    return Repos.Chats.loadPrivateChat(id.id, uid);
+                    return Modules.Messaging.conv.resolvePrivateChat(id.id, uid);
                 } else if (id.type === IDs.Organization) {
-                    return Repos.Chats.loadOrganizationalChat(oid, id.id);
+                    let member = await FDB.OrganizationMember.findById(id.id, uid);
+                    if (!member || member.status !== 'joined') {
+                        throw new IDMailformedError('Invalid id');
+                    }
+                    return Modules.Messaging.conv.resolveOrganizationChat(id.id);
                 } else {
                     throw new IDMailformedError('Invalid id');
                 }
@@ -493,59 +455,47 @@ export const Resolver = {
                 throw new UserError('No id passed');
             }
         }),
-        alphaLoadMessages: withUser<{ conversationId: string, first?: number, before?: string, after?: string }>((args, uid) => {
+        alphaLoadMessages: withUser<{ conversationId: string, first?: number, before?: string, after?: string }>(async (args, uid) => {
             let conversationId = IDs.Conversation.parse(args.conversationId);
-            return DB.tx(async (tx) => {
-                let conversation = (await DB.Conversation.findById(conversationId))!;
 
-                if (conversation.type === 'group' || conversation.type === 'channel') {
-                    if (!await Modules.Messaging.room.isActiveMember(uid, conversationId)) {
-                        throw new AccessDeniedError();
-                    }
-                }
+            await Modules.Messaging.conv.checkAccess(uid, conversationId);
 
-                let beforeMessage: Message | null = null;
-                if (args.before) {
-                    beforeMessage = await FDB.Message.findById(IDs.ConversationMessage.parse(args.before));
-                }
-                // let afterMessage: Message | null = null;
-                // if (args.after) {
-                //     afterMessage = await FDB.Message.findById(IDs.ConversationMessage.parse(args.after));
-                // }
-                let seq = (conversation)!!.seq;
+            let beforeMessage: Message | null = null;
+            if (args.before) {
+                beforeMessage = await FDB.Message.findById(IDs.ConversationMessage.parse(args.before));
+            }
 
-                if (beforeMessage) {
-                    return {
-                        seq: seq,
-                        messages: await FDB.Message.rangeFromChatAfter(conversationId, beforeMessage.id, args.first!, true)
-                    };
-                }
-
+            if (beforeMessage) {
                 return {
-                    seq: seq,
-                    messages: await FDB.Message.rangeFromChat(conversationId, args.first!, true)
+                    seq: 0,
+                    messages: await FDB.Message.rangeFromChatAfter(conversationId, beforeMessage.id, args.first!, true)
                 };
-                // if (beforeMessage) {
-                //     return {
-                //         seq: seq,
-                //         messages: await FDB.Message.rangeFromChat(conversationId, args.first!, true)
-                //     };
-                // } else if (afterMessage) {
+            }
 
-                // }
-                // return {
-                //     seq: seq,
-                //     messages: await (DB.ConversationMessage.findAll({
-                //         where: {
-                //             conversationId: conversationId,
-                //             ...((beforeMessage || afterMessage) ? { id: beforeMessage ? { $lt: beforeMessage.id } : { $gt: afterMessage!!.id } } : {}),
-                //         },
-                //         limit: args.first,
-                //         order: [['id', 'DESC']],
-                //         transaction: tx
-                //     }))
-                // };
-            });
+            return {
+                seq: 0,
+                messages: await FDB.Message.rangeFromChat(conversationId, args.first!, true)
+            };
+            // if (beforeMessage) {
+            //     return {
+            //         seq: seq,
+            //         messages: await FDB.Message.rangeFromChat(conversationId, args.first!, true)
+            //     };
+            // } else if (afterMessage) {
+
+            // }
+            // return {
+            //     seq: seq,
+            //     messages: await (DB.ConversationMessage.findAll({
+            //         where: {
+            //             conversationId: conversationId,
+            //             ...((beforeMessage || afterMessage) ? { id: beforeMessage ? { $lt: beforeMessage.id } : { $gt: afterMessage!!.id } } : {}),
+            //         },
+            //         limit: args.first,
+            //         order: [['id', 'DESC']],
+            //         transaction: tx
+            //     }))
+            // };
         }),
         alphaChatsSearchForCompose: withAccount<{ query: string, organizations: boolean, limit?: number }>(async (args, uid, oid) => {
 
@@ -574,36 +524,35 @@ export const Resolver = {
         }),
         alphaChatSearch: withUser<{ members: string[] }>(async (args, uid) => {
             let members = [...args.members.map((v) => IDs.User.parse(v)), uid];
-            return await DB.txStable(async (tx) => {
-                let groups = await FDB.RoomParticipant.allFromUserActive(uid);
-                let suitableGroups: number[] = [];
-                for (let f of groups) {
-                    let allMembers = await FDB.RoomParticipant.allFromActive(f.cid);
-                    if (allMembers.length !== members.length) {
-                        continue;
-                    }
+            let groups = await FDB.RoomParticipant.allFromUserActive(uid);
+            let suitableGroups: number[] = [];
+            for (let f of groups) {
+                let allMembers = await FDB.RoomParticipant.allFromActive(f.cid);
+                if (allMembers.length !== members.length) {
+                    continue;
+                }
 
-                    let missed = members
-                        .map((v) => !!allMembers.find((v2) => v2.uid === v))
-                        .filter((v) => !v);
-                    if (missed.length > 0) {
-                        continue;
-                    }
-                    suitableGroups.push(f.cid);
+                let missed = members
+                    .map((v) => !!allMembers.find((v2) => v2.uid === v))
+                    .filter((v) => !v);
+                if (missed.length > 0) {
+                    continue;
                 }
-                if (suitableGroups.length === 0) {
-                    return null;
-                }
-                return await DB.Conversation.find({
-                    where: {
-                        id: {
-                            $in: suitableGroups
-                        }
-                    },
-                    order: [['updatedAt', 'DESC']],
-                    transaction: tx
-                });
-            });
+                suitableGroups.push(f.cid);
+            }
+            if (suitableGroups.length === 0) {
+                return null;
+            }
+            // return await FDB.Conversation.find({
+            //     where: {
+            //         id: {
+            //             $in: suitableGroups
+            //         }
+            //     },
+            //     order: [['updatedAt', 'DESC']],
+            //     transaction: tx
+            // });
+            return null;
         }),
         alphaGroupConversationMembers: withUser<{ conversationId: string }>(async (args, uid) => {
             let conversationId = IDs.Conversation.parse(args.conversationId);
@@ -623,12 +572,6 @@ export const Resolver = {
         }),
     },
     Mutation: {
-        superCreateChat: withPermission<{ title: string }>('software-developer', async (args) => {
-            await validate({ title: stringNotEmpty() }, args);
-            return DB.Conversation.create({
-                title: args.title
-            });
-        }),
         alphaReadChat: withUser<{ conversationId: string, messageId: string }>(async (args, uid) => {
             let conversationId = IDs.Conversation.parse(args.conversationId);
             let messageId = IDs.ConversationMessage.parse(args.messageId);
@@ -716,7 +659,7 @@ export const Resolver = {
                     }
                 }
 
-                return await DB.txLight(async (tx) => {
+                return await inTx(async () => {
                     return (await Repos.Chats.sendMessage(conversationId, uid!, {
                         message: args.message,
                         file: args.file,
@@ -752,7 +695,7 @@ export const Resolver = {
                 }
             }
 
-            return await DB.txLight(async (tx) => {
+            return await inTx(async () => {
                 let profile = (await Modules.Users.profileById(args.userId))!;
 
                 if (!profile) {
@@ -805,14 +748,14 @@ export const Resolver = {
                 }
             }
 
-            return await DB.txLight(async (tx) => {
+            return await inTx(async () => {
                 let profile = (await Modules.Users.profileById(uid))!;
 
                 if (!profile) {
                     throw new NotFoundError();
                 }
 
-                return await Repos.Chats.editMessage(tx, messageId, uid!, {
+                return await Repos.Chats.editMessage(messageId, uid!, {
                     message: args.message,
                     file: args.file,
                     fileMetadata,
@@ -836,8 +779,8 @@ export const Resolver = {
             });
         }),
         alphaEditMessage: withUser<{ messageId: string, message?: string | null, file?: string | null, replyMessages?: number[] | null, mentions?: number[] | null }>(async (args, uid) => {
-            let fileMetadata: JsonMap | null;
-            let filePreview: string | null;
+            let fileMetadata: JsonMap | null = null;
+            let filePreview: string | null = null;
 
             if (args.file) {
                 let fileInfo = await Services.UploadCare.saveFile(args.file);
@@ -850,27 +793,18 @@ export const Resolver = {
 
             let messageId = IDs.ConversationMessage.parse(args.messageId);
 
-            return await DB.txStable(async (tx) => {
-                return await Repos.Chats.editMessage(
-                    tx,
-                    messageId,
-                    uid,
-                    {
-                        message: args.message,
-                        file: args.file,
-                        fileMetadata,
-                        filePreview,
-                        replyMessages: args.replyMessages,
-                        mentions: args.mentions
-                    },
-                    true
-                );
-            });
+            return await Repos.Chats.editMessage(messageId, uid, {
+                message: args.message,
+                file: args.file,
+                fileMetadata,
+                filePreview,
+                replyMessages: args.replyMessages,
+                mentions: args.mentions
+            }, true);
         }),
         alphaDeleteMessageUrlAugmentation: withUser<{ messageId: number }>(async (args, uid) => {
-            return await DB.txStable(async (tx) => {
+            return await inTx(async () => {
                 return await Repos.Chats.editMessage(
-                    tx,
                     args.messageId,
                     uid,
                     {
@@ -894,40 +828,20 @@ export const Resolver = {
             return 'ok';
         }),
 
-        alphaChatCreateGroup: withUser<{ title?: string | null, photoRef?: ImageRef | null, message?: string, members: string[] }>(async (args, uid) => {
-            let conv = await DB.txStable(async (tx) => {
-                let title = args.title ? args.title!! : '';
+        //
+        // Group Management
+        //
 
-                let imageRef = Sanitizer.sanitizeImageRef(args.photoRef);
-
-                if (imageRef) {
-                    await Services.UploadCare.saveFile(imageRef.uuid);
-                }
-
-                let conv2 = await DB.Conversation.create({
-                    title: title,
-                    type: 'group',
-                    ...(imageRef ? { extras: { picture: imageRef } } as any : {}),
-                }, { transaction: tx });
-                let members = [uid, ...args.members.map((v) => IDs.User.parse(v))];
-                for (let m of members) {
-                    await inTx(async () => {
-                        await FDB.RoomParticipant.create(conv2.id, m, {
-                            role: m === uid ? 'owner' : 'member',
-                            invitedBy: uid,
-                            status: 'joined'
-                        });
-                    });
-                }
-
-                return conv2;
-            });
-            if (args.message) {
-                await Repos.Chats.sendMessage(conv.id, uid, { message: args.message });
-            } else {
-                await Repos.Chats.sendMessage(conv.id, uid, { message: 'Group created', isService: true });
+        alphaChatCreateGroup: withAccount<{ title?: string | null, photoRef?: ImageRef | null, message?: string, members: string[] }>(async (args, uid, oid) => {
+            let title = args.title ? args.title!! : '';
+            let imageRef = Sanitizer.sanitizeImageRef(args.photoRef);
+            if (imageRef) {
+                await Services.UploadCare.saveFile(imageRef.uuid);
             }
-            return conv;
+            return Modules.Messaging.conv.createRoom('group', oid, uid, args.members.map((v) => IDs.User.parse(v)), {
+                title: title,
+                image: imageRef
+            }, args.message);
         }),
         alphaChatUpdateGroup: withUser<{ conversationId: string, input: { title?: string | null, description?: string | null, longDescription?: string | null, photoRef?: ImageRef | null, socialImageRef?: ImageRef | null } }>(async (args, uid) => {
             await validate(
@@ -939,388 +853,68 @@ export const Resolver = {
 
             let conversationId = IDs.Conversation.parse(args.conversationId);
 
-            return await DB.txStable(async (tx) => {
-                let chat = await DB.Conversation.findById(conversationId, { transaction: tx });
+            let imageRef = Sanitizer.sanitizeImageRef(args.input.photoRef);
+            if (args.input.photoRef) {
+                await Services.UploadCare.saveFile(args.input.photoRef.uuid);
+            }
 
-                if (!chat) {
-                    throw new Error('Chat not found');
-                }
+            let socialImageRef = Sanitizer.sanitizeImageRef(args.input.socialImageRef);
+            if (args.input.socialImageRef) {
+                await Services.UploadCare.saveFile(args.input.socialImageRef.uuid);
+            }
 
-                let curMember = await FDB.RoomParticipant.findById(conversationId, uid);
-                let role = await Repos.Permissions.superRole(uid);
-
-                let haveAccess = (curMember && (curMember.role === 'owner' || curMember.role === 'admin')) || role === 'super-admin';
-
-                if (!haveAccess) {
-                    throw new AccessDeniedError();
-                }
-
-                let chatChanged = false;
-
-                if (args.input.title !== undefined && args.input.title !== chat.title) {
-                    chatChanged = true;
-                    chat.title = args.input.title!.trim();
-
-                    await Repos.Chats.sendMessage(conversationId, uid, {
-                        message: `New chat title: ${args.input.title}`,
-                        isService: true,
-                        isMuted: true,
-                        serviceMetadata: {
-                            type: 'title_change',
-                            title: args.input.title
-                        }
-                    });
-                }
-
-                let imageRef = Sanitizer.sanitizeImageRef(args.input.photoRef);
-
-                if (args.input.photoRef !== undefined && !imageRefEquals(chat.extras.picture as any || null, imageRef)) {
-                    chatChanged = true;
-                    if (args.input.photoRef !== null) {
-                        await Services.UploadCare.saveFile(args.input.photoRef.uuid);
-                    }
-                    (chat as any).changed('extras', true);
-                    chat.extras.picture = imageRef as any;
-
-                    await Repos.Chats.sendMessage(conversationId, uid, {
-                        message: `New chat photo`,
-                        isService: true,
-                        isMuted: true,
-                        serviceMetadata: {
-                            type: 'photo_change',
-                            picture: imageRef as any
-                        }
-                    });
-                }
-
-                if (args.input.description !== undefined) {
-                    chatChanged = true;
-                    (chat as any).changed('extras', true);
-                    chat.extras.description = Sanitizer.sanitizeString(args.input.description);
-                }
-                if (args.input.longDescription !== undefined) {
-                    chatChanged = true;
-                    (chat as any).changed('extras', true);
-                    chat.extras.longDescription = Sanitizer.sanitizeString(args.input.longDescription);
-                }
-
-                let socialImageRef = Sanitizer.sanitizeImageRef(args.input.socialImageRef);
-                if (args.input.socialImageRef !== undefined && !imageRefEquals(chat.extras.socialImage as any || null, socialImageRef)) {
-                    chatChanged = true;
-                    if (args.input.socialImageRef !== null) {
-                        await Services.UploadCare.saveFile(args.input.socialImageRef.uuid);
-                    }
-                    (chat as any).changed('extras', true);
-                    chat.extras.socialImage = socialImageRef as any;
-                }
-
-                if (chatChanged) {
-                    // await Repos.Chats.addChatEvent(
-                    //     conversationId,
-                    //     'chat_update',
-                    //     {},
-                    //     tx
-                    // );
-
-                    // await Repos.Chats.addUserEventsInConversation(
-                    //     conversationId,
-                    //     uid,
-                    //     'chat_update',
-                    //     {
-                    //         conversationId
-                    //     },
-                    //     tx
-                    // );
-
-                    await chat.save({ transaction: tx });
-                }
-
-                await chat.reload({ transaction: tx });
-
-                return {
-                    chat,
-                    curSeq: chat.seq
-                };
+            let conv = await Modules.Messaging.conv.updateRoomProfile(conversationId, uid, {
+                title: args.input.title!,
+                description: args.input.description!,
+                image: imageRef,
+                socialImage: socialImageRef
             });
-        }),
-        alphaChatChangeGroupTitle: withUser<{ conversationId: string, title: string }>(async (args, uid) => {
-            return DB.tx(async (tx) => {
-                await validate({ title: defined(stringNotEmpty()) }, args);
 
-                let conversationId = IDs.Conversation.parse(args.conversationId);
-
-                let chat = await DB.Conversation.findById(conversationId, { transaction: tx });
-
-                if (!chat || (chat.type !== 'group' && chat.type !== 'channel')) {
-                    throw new Error('Chat not found');
-                }
-
-                await chat.update({
-                    title: args.title
-                }, { transaction: tx });
-
-                // await Repos.Chats.addChatEvent(
-                //     conversationId,
-                //     'title_change',
-                //     {
-                //         title: args.title
-                //     },
-                //     tx
-                // );
-
-                // await Repos.Chats.addUserEventsInConversation(
-                //     conversationId,
-                //     uid,
-                //     'title_change',
-                //     {
-                //         title: args.title
-                //     },
-                //     tx
-                // );
-
-                await Repos.Chats.sendMessage(conversationId, uid, {
-                    message: `New chat title: ${args.title}`,
-                    isService: true,
-                    isMuted: true,
-                    serviceMetadata: {
-                        type: 'title_change',
-                        title: args.title
-                    }
-                });
-
-                return {
-                    chat
-                };
-            });
+            return {
+                chat: conv,
+                curSeq: 0
+            };
         }),
         alphaChatInviteToGroup: withUser<{ conversationId: string, invites: { userId: string, role: string }[] }>(async (args, uid) => {
-            return inTx(async () => {
-                await validate({
-                    invites: mustBeArray({
-                        userId: defined(stringNotEmpty()),
-                        role: defined(enumString(['member', 'admin']))
-                    })
-                }, args);
+            await validate({
+                invites: mustBeArray({
+                    userId: defined(stringNotEmpty()),
+                    role: defined(enumString(['member', 'admin']))
+                })
+            }, args);
 
-                let conversationId = IDs.Conversation.parse(args.conversationId);
+            let conversationId = IDs.Conversation.parse(args.conversationId);
 
-                let chat = await DB.Conversation.findById(conversationId);
+            let members = args.invites.map((v) => IDs.User.parse(v.userId));
 
-                if (!chat || (chat.type !== 'group' && chat.type !== 'channel')) {
-                    throw new Error('Chat not found');
-                }
-
-                let curMember = await FDB.RoomParticipant.findById(conversationId, uid);
-
-                if (!curMember) {
-                    throw new AccessDeniedError();
-                }
-
-                for (let invite of args.invites) {
-                    let userId = IDs.User.parse(invite.userId);
-
-                    try {
-                        await FDB.RoomParticipant.create(conversationId, userId, {
-                            invitedBy: uid,
-                            role: invite.role as any,
-                            status: 'joined'
-                        }).then(async p => await p.flush());
-                    } catch (e) {
-                        throw new Error('User already invited');
-                    }
-                }
-
-                let users: UserProfile[] = [];
-
-                for (let invite of args.invites) {
-                    users.push((await Modules.Users.profileById(IDs.User.parse(invite.userId)))!);
-                }
-
-                await Repos.Chats.sendMessage(
-                    conversationId,
-                    uid,
-                    {
-                        message: `${users.map(u => u.firstName).join(', ')} joined chat`,
-                        isService: true,
-                        isMuted: true,
-                        serviceMetadata: {
-                            type: 'user_invite',
-                            userIds: args.invites.map(i => IDs.User.parse(i.userId)),
-                            invitedById: uid
-                        }
-                    }
-                );
-
-                // await Repos.Chats.addChatEvent(
-                //     conversationId,
-                //     'new_members',
-                //     {
-                //         userIds: args.invites.map(i => IDs.User.parse(i.userId)),
-                //         invitedById: uid
-                //     },
-                //     tx
-                // );
-
-                // let membersCount = await Repos.Chats.membersCountInConversation(conversationId);
-
-                // await Repos.Chats.addUserEventsInConversation(
-                //     conversationId,
-                //     uid,
-                //     'new_members_count',
-                //     {
-                //         conversationId,
-                //         membersCount: membersCount + args.invites.length
-                //     },
-                //     tx
-                // );
-
-                return {
-                    chat
-                };
-            });
+            let chat = await Modules.Messaging.conv.inviteToRoom(conversationId, uid, members);
+            return {
+                chat
+            };
         }),
         alphaChatKickFromGroup: withUser<{ conversationId: string, userId: string }>(async (args, uid) => {
+            let conversationId = IDs.Conversation.parse(args.conversationId);
+            let userId = IDs.User.parse(args.userId);
             return inTx(async () => {
-                let conversationId = IDs.Conversation.parse(args.conversationId);
-                let userId = IDs.User.parse(args.userId);
-
-                let chat = await DB.Conversation.findById(conversationId);
-
-                if (!chat || (chat.type !== 'group' && chat.type !== 'channel')) {
-                    throw new Error('Chat not found');
-                }
-
-                let member = await FDB.RoomParticipant.findById(conversationId, userId);
-
-                if (!member) {
-                    throw new Error('No such member');
-                }
-
-                let isSuperAdmin = (await Repos.Permissions.superRole(uid)) === 'super-admin';
-
-                let curMember = await FDB.RoomParticipant.findById(conversationId, uid);
-
-                if (!curMember && !isSuperAdmin) {
-                    throw new AccessDeniedError();
-                }
-
-                let canKick = isSuperAdmin || curMember!.role === 'admin' || curMember!.role === 'owner' || member.invitedBy === uid;
-
-                if (!canKick) {
-                    throw new AccessDeniedError();
-                }
-
-                curMember!.status = 'kicked';
-
-                let profile = await Modules.Users.profileById(member.uid);
-
-                await Repos.Chats.sendMessage(
-                    conversationId,
-                    uid,
-                    {
-                        message: `${profile!.firstName} was kicked from chat`,
-                        isService: true,
-                        isMuted: true,
-                        serviceMetadata: {
-                            type: 'user_kick',
-                            userId,
-                            kickedById: uid
-                        }
-                    }
-                );
-
-                // await Repos.Chats.addChatEvent(
-                //     conversationId,
-                //     'kick_member',
-                //     {
-                //         userId: userId,
-                //         kickedById: uid
-                //     },
-                //     tx
-                // );
-
-                // let membersCount = await Repos.Chats.membersCountInConversation(conversationId);
-
-                // await Repos.Chats.addUserEventsInConversation(
-                //     conversationId,
-                //     uid,
-                //     'new_members_count',
-                //     {
-                //         conversationId,
-                //         membersCount: membersCount
-                //     },
-                //     tx
-                // );
-
-                await inTx(async () => {
-                    let mstate = await Modules.Messaging.repo.getUserMessagingState(uid);
-                    let convState = await Modules.Messaging.repo.getUserDialogState(uid, conversationId);
-                    mstate.unread = mstate.unread - convState.unread;
-                    mstate.seq++;
-
-                    await FDB.UserDialogEvent.create(uid, mstate.seq, {
-                        kind: 'message_read',
-                        unread: 0,
-                        allUnread: mstate.unread
-                    });
-
-                    return mstate;
-                });
-
+                let chat = await Modules.Messaging.conv.kickFromRoom(conversationId, uid, userId);
                 return {
                     chat
                 };
             });
         }),
         alphaChatChangeRoleInGroup: withUser<{ conversationId: string, userId: string, newRole: string }>(async (args, uid) => {
-            return inTx(async () => {
-                await validate({
-                    newRole: defined(enumString(['member', 'admin']))
-                }, args);
+            await validate({
+                newRole: defined(enumString(['member', 'admin']))
+            }, args);
 
-                let conversationId = IDs.Conversation.parse(args.conversationId);
-                let userId = IDs.User.parse(args.userId);
+            let conversationId = IDs.Conversation.parse(args.conversationId);
+            let userId = IDs.User.parse(args.userId);
 
-                let chat = await DB.Conversation.findById(conversationId);
+            let conv = await Modules.Messaging.conv.updateMemberRole(conversationId, uid, userId, args.newRole as any);
 
-                if (!chat || (chat.type !== 'group' && chat.type !== 'channel')) {
-                    throw new Error('Chat not found');
-                }
-
-                let member = await FDB.RoomParticipant.findById(conversationId, userId);
-
-                if (!member) {
-                    throw new Error('Member not found');
-                }
-
-                let curMember = await FDB.RoomParticipant.findById(conversationId, uid);
-
-                if (!curMember) {
-                    throw new AccessDeniedError();
-                }
-
-                let canChangeRole = curMember.role === 'admin' || curMember.role === 'owner';
-
-                if (!canChangeRole) {
-                    throw new AccessDeniedError();
-                }
-
-                member.role = args.newRole as any;
-
-                // let chatEvent = await Repos.Chats.addChatEvent(
-                //     conversationId,
-                //     'update_role',
-                //     {
-                //         userId: userId,
-                //         newRole: args.newRole
-                //     },
-                //     tx
-                // );
-
-                return {
-                    chat
-                };
-            });
+            return {
+                chat: conv
+            };
         }),
 
         alphaBlockUser: withUser<{ userId: string }>(async (args, uid) => {
@@ -1365,78 +959,10 @@ export const Resolver = {
             return inTx(async () => {
                 let conversationId = IDs.Conversation.parse(args.conversationId);
 
-                let chat = await DB.Conversation.findById(conversationId);
-
-                if (!chat || (chat.type !== 'group' && chat.type !== 'channel')) {
-                    throw new Error('Chat not found');
-                }
-
-                let member = await FDB.RoomParticipant.findById(conversationId, uid);
-
-                if (!member) {
-                    throw new Error('No such member');
-                }
-                let profile = await Modules.Users.profileById(uid);
-
-                await Repos.Chats.sendMessage(
-                    conversationId,
-                    uid,
-                    {
-                        message: `${profile!.firstName} has left the chat`,
-                        isService: true,
-                        isMuted: true,
-                        serviceMetadata: {
-                            type: 'user_kick',
-                            userId: uid,
-                            kickedById: uid
-                        }
-                    }
-                );
-
-                // await Repos.Chats.addChatEvent(
-                //     conversationId,
-                //     'kick_member',
-                //     {
-                //         userId: uid,
-                //         kickedById: uid
-                //     },
-                //     tx
-                // );
-
-                // let membersCount = await DB.ConversationGroupMembers.count({
-                //     where: {
-                //         conversationId: conversationId,
-                //     },
-                //     transaction: tx
-                // });
-
-                // await Repos.Chats.addUserEventsInConversation(
-                //     conversationId,
-                //     uid,
-                //     'new_members_count',
-                //     {
-                //         conversationId,
-                //         membersCount: membersCount
-                //     },
-                //     tx
-                // );
-
-                member.status = 'left';
-
-                let mstate = await Modules.Messaging.repo.getUserMessagingState(uid);
-                let convState = await Modules.Messaging.repo.getUserDialogState(uid, conversationId);
-                mstate.unread = mstate.unread - convState.unread;
-                mstate.seq++;
-
-                await FDB.UserDialogEvent.create(uid, mstate.seq, {
-                    kind: 'message_read',
-                    unread: 0,
-                    allUnread: mstate.unread
-                });
+                let res = await Modules.Messaging.conv.leaveRoom(conversationId, uid);
 
                 return {
-                    chat,
-                    curSeq: chat.seq
+                    chat: res
                 };
             });
         }),
@@ -1491,7 +1017,7 @@ export const Resolver = {
                 let uids: number[] = [];
 
                 for (let chatId of conversationIds) {
-                    uids.push(...await Repos.Chats.getConversationMembers(chatId));
+                    uids.push(...await Modules.Messaging.conv.findConversationMembers(chatId));
                 }
 
                 return Modules.Presence.createPresenceStream(context.uid, uids);

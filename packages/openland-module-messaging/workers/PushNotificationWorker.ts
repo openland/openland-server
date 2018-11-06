@@ -111,7 +111,7 @@ export function startPushNotificationWorker() {
                         if (!receiver) {
                             continue;
                         }
-                        let conversation = await DB.Conversation.findById(message.cid);
+                        let conversation = await FDB.Conversation.findById(message.cid);
                         if (!conversation) {
                             continue;
                         }
@@ -123,12 +123,12 @@ export function startPushNotificationWorker() {
 
                         // Filter non-private if only direct messages enabled
                         if (settings.desktopNotifications === 'direct') {
-                            if (conversation.type !== 'private') {
+                            if (conversation.kind !== 'private') {
                                 sendDesktop = false;
                             }
                         }
                         if (settings.mobileNotifications === 'direct') {
-                            if (conversation.type !== 'private') {
+                            if (conversation.kind !== 'private') {
                                 sendMobile = false;
                             }
                         }
@@ -147,18 +147,18 @@ export function startPushNotificationWorker() {
                             continue;
                         }
 
-                        let receiverPrimaryOrg =  await DB.Organization.findById(receiver.primaryOrganization || (await Repos.Users.fetchUserAccounts(receiver.id))[0]);
+                        let receiverPrimaryOrg = await DB.Organization.findById(receiver.primaryOrganization || (await Repos.Users.fetchUserAccounts(receiver.id))[0]);
                         if (!receiverPrimaryOrg) {
                             continue;
                         }
-                        let chatTitle = await Repos.Chats.getConversationTitle(conversation.id, receiverPrimaryOrg.id, u.uid);
+                        let chatTitle = await Modules.Messaging.conv.resolveConversationTitle(conversation.id, receiverPrimaryOrg.id, u.uid);
 
                         hasMessage = true;
                         let senderName = [sender.firstName, sender.lastName].filter((v) => !!v).join(' ');
 
                         let pushTitle = Texts.Notifications.GROUP_PUSH_TITLE({ senderName, chatTitle });
 
-                        if (conversation.type === 'private') {
+                        if (conversation.kind === 'private') {
                             pushTitle = chatTitle;
                         }
 
@@ -185,7 +185,7 @@ export function startPushNotificationWorker() {
                             mobile: sendMobile,
                             desktop: sendDesktop,
                             mobileAlert: (settings.mobileAlert !== undefined && settings.mobileAlert !== null) ? settings.mobileAlert : true,
-                            mobileIncludeText: ( settings.mobileIncludeText !== undefined &&  settings.mobileIncludeText !== null) ?  settings.mobileIncludeText : true,
+                            mobileIncludeText: (settings.mobileIncludeText !== undefined && settings.mobileIncludeText !== null) ? settings.mobileIncludeText : true,
                             silent: null
                         };
 

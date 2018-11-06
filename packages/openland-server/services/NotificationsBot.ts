@@ -1,6 +1,7 @@
 import { JsonMap } from '../utils/json';
 import { DB } from '../tables/index';
 import { Repos } from '../repositories/index';
+import { Modules } from 'openland-modules/Modules';
 
 export type NotificationMessage = { message?: string | null, file?: string | null, fileMetadata?: JsonMap | null };
 
@@ -18,29 +19,9 @@ export const NotificationsBot = {
                 throw new Error('Cant find notifications bot in DB');
             }
 
-            let _uid1 = Math.min(uid, notificationsBot.id!);
-            let _uid2 = Math.max(uid, notificationsBot.id!);
-
-            let conversation = await DB.Conversation.find({
-                where: {
-                    member1Id: _uid1,
-                    member2Id: _uid2,
-                    type: 'private'
-                },
-                transaction: tx,
-                lock: tx.LOCK.UPDATE
-            });
-
-            if (!conversation) {
-                conversation = await DB.Conversation.create({
-                    title: 'Notifications',
-                    type: 'private',
-                    member1Id: _uid1,
-                    member2Id: _uid2,
-                }, { transaction: tx });
-            }
-
-            await Repos.Chats.sendMessage(conversation.id, notificationsBot.id!, message);
+            let conv = await Modules.Messaging.conv.resolvePrivateChat(uid, notificationsBot.id!);
+          
+            await Repos.Chats.sendMessage(conv.id, notificationsBot.id!, message);
         });
     }
 };

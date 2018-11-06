@@ -140,9 +140,11 @@ export abstract class FEntityFactory<T extends FEntity> {
 
     protected async _create(key: (string | number)[], value: any) {
         if (await this._findById(key)) {
-            throw Error('Object already exists');
+            throw Error('Object with id ' + [...this.namespace.namespace, ...key].join('.') + ' already exists');
         }
-        return this.doCreateEntity(value, true);
+        let res = this.doCreateEntity(value, true);
+        await res.flush();
+        return res;
     }
 
     protected _watch(key: (string | number)[], cb: () => void) {

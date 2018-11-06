@@ -1,8 +1,8 @@
 import { createIterator } from 'openland-server/utils/asyncIterator';
 import { TypingEvent } from './TypingEvent';
 import { PubsubSubcription, Pubsub } from 'openland-server/modules/pubsub';
-import { Repos } from 'openland-server/repositories';
 import { debouncer } from 'openland-server/utils/timer';
+import { Modules } from 'openland-modules/Modules';
 
 export class TypingsModule {
 
@@ -70,7 +70,7 @@ export class TypingsModule {
         if (this.cache.has(chatId)) {
             return this.cache.get(chatId)!;
         } else {
-            let members = await Repos.Chats.getConversationMembers(chatId);
+            let members = await Modules.Messaging.conv.findConversationMembers(chatId);
 
             this.cache.set(chatId, members);
 

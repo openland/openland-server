@@ -195,13 +195,13 @@ const Schema = declareSchema(() => {
     entity('OrganizationMember', () => {
         primaryKey('oid', 'number');
         primaryKey('uid', 'number');
+        field('invitedBy', 'number').nullable();
         enumField('role', ['admin', 'member']);
         enumField('status', ['requested', 'joined', 'left']);
 
-        uniqueIndex('organization', ['status', 'oid', 'uid'])
-            .withRange();
-        uniqueIndex('user', ['status', 'uid', 'oid'])
-            .withRange();
+        uniqueIndex('ids', ['oid', 'uid']);
+        rangeIndex('organization', ['status', 'oid', 'uid']);
+        rangeIndex('user', ['status', 'uid', 'oid']);
 
         enableTimestamps();
         enableVersioning();
@@ -277,34 +277,52 @@ const Schema = declareSchema(() => {
     //
 
     entity('Conversation', () => {
-        primaryKey('cid', 'number');
-        enumField('kind', ['private', 'room']);
+        primaryKey('id', 'number');
+        enumField('kind', ['private', 'organization', 'room']);
+        enableVersioning();
+        enableTimestamps();
+    });
 
-        // Private
-        field('uid1', 'number').nullable();
-        field('uid2', 'number').nullable();
-        uniqueIndex('primate', ['uid1', 'uid2']).withCondition((src) => src.kind === 'private');
+    entity('ConversationPrivate', () => {
+        primaryKey('id', 'number');
+        field('uid1', 'number');
+        field('uid2', 'number');
+        uniqueIndex('users', ['uid1', 'uid2']);
+        enableVersioning();
+        enableTimestamps();
+    });
 
-        // Room
-        enumField('roomType', ['company', 'public', 'group']).nullable();
-        field('roomOwner', 'number').nullable();
-        field('membersCount', 'number');
+    entity('ConversationOrganization', () => {
+        primaryKey('id', 'number');
+        field('oid', 'number');
+        uniqueIndex('organization', ['oid']);
+        enableVersioning();
+        enableTimestamps();
+    });
 
+    entity('ConversationRoom', () => {
+        primaryKey('id', 'number');
+        enumField('kind', ['organization', 'internal', 'public', 'group']);
+        field('oid', 'number').nullable();
+        field('ownerId', 'number').nullable();
+        field('featured', 'boolean').nullable();
+        field('listed', 'boolean').nullable();
+        rangeIndex('organization', ['oid'])
+            .withCondition((v) => v.kind === 'public' || v.kind === 'internal');
+        uniqueIndex('organizationPublicRooms', ['oid', 'id'])
+            .withCondition((v) => v.kind === 'public')
+            .withRange();
         enableVersioning();
         enableTimestamps();
     });
 
     entity('RoomProfile', () => {
-        primaryKey('cid', 'number');
+        primaryKey('id', 'number');
 
         field('title', 'string');
-        field('image', 'json');
-        field('socialImage', 'json');
-        field('description', 'string');
-        field('longDescription', 'string');
-
-        field('featured', 'boolean');
-        field('hidden', 'boolean');
+        field('image', 'json').nullable();
+        field('description', 'string').nullable();
+        field('socialImage', 'json').nullable();
 
         enableVersioning();
         enableTimestamps();
@@ -316,9 +334,9 @@ const Schema = declareSchema(() => {
         field('invitedBy', 'number');
         enumField('role', ['member', 'admin', 'owner']);
         enumField('status', ['joined', 'requested', 'left', 'kicked']);
-        uniqueIndex('active', ['cid', 'uid']).withCondition((src) => src.status === 'joined');
-        uniqueIndex('requests', ['cid', 'uid']).withCondition((src) => src.status === 'requested');
-        uniqueIndex('userActive', ['uid', 'cid']).withCondition((src) => src.status === 'joined');
+        uniqueIndex('active', ['cid', 'uid']).withCondition((src) => src.status === 'joined').withRange();
+        uniqueIndex('requests', ['cid', 'uid']).withCondition((src) => src.status === 'requested').withRange();
+        uniqueIndex('userActive', ['uid', 'cid']).withCondition((src) => src.status === 'joined').withRange();
         enableVersioning();
         enableTimestamps();
     });

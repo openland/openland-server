@@ -1,4 +1,3 @@
-import { DB } from 'openland-server/tables';
 import { withUser } from 'openland-server/api/utils/Resolvers';
 import { FDB } from 'openland-module-db/FDB';
 
@@ -9,16 +8,13 @@ export default {
             let seq = global ? global.seq : 0;
             let conversations = await FDB.UserDialog
                 .rangeFromUserWithCursor(uid, args.first, args.after ? args.after : undefined, true);
-            let convs = await DB.Conversation.findAll({
-                where: {
-                    id: {
-                        $in: conversations.items.map((v) => v.cid)
-                    }
+            let res = await Promise.all(conversations.items.map((v) => FDB.Conversation.findById(v.cid)));
+            let index = 0;
+            for (let r of res) {
+                if (!r) {
+                    console.warn('Unable to find conversation: ' + conversations.items[index].cid);
                 }
-            });
-            let res: any[] = [];
-            for (let c of conversations.items) {
-                res.push(convs.find((v) => v.id === c.cid));
+                index++;
             }
             return {
                 conversations: res,
@@ -30,19 +26,8 @@ export default {
         dialogs: withUser<{ first: number, after?: string | null, seq?: number }>(async (args, uid) => {
             let conversations = await FDB.UserDialog
                 .rangeFromUserWithCursor(uid, args.first, args.after ? args.after : undefined, true);
-            let convs = await DB.Conversation.findAll({
-                where: {
-                    id: {
-                        $in: conversations.items.map((v) => v.cid)
-                    }
-                }
-            });
-            let res: any[] = [];
-            for (let c of conversations.items) {
-                res.push(convs.find((v) => v.id === c.cid));
-            }
             return {
-                conversations: res,
+                conversations: conversations.items.map((v) => FDB.Conversation.findById(v.cid)),
                 next: conversations.cursor
             };
         }),

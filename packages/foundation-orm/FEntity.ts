@@ -155,8 +155,9 @@ export class FEntity {
                     }
                     let key = index.fields.map((v) => value[v]);
                     if (index.unique) {
-                        if (await this.namespace.get(this.connection, ['__indexes', index.name, ...key])) {
-                            throw Error('Unique index constraint failed for index ' + index.name);
+                        let ex = await this.namespace.get(this.connection, ['__indexes', index.name, ...key]);
+                        if (ex) {
+                            throw Error('Unique index constraint failed for index ' + index.name + ', got: ' + JSON.stringify(ex));
                         }
                         this.namespace.set(this.connection, ['__indexes', index.name, ...key], value);
                     } else {

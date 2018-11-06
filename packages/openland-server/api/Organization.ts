@@ -12,7 +12,6 @@ import { ErrorText } from '../errors/ErrorText';
 import { NotFoundError } from '../errors/NotFoundError';
 import { Sanitizer } from '../modules/Sanitizer';
 import { InvalidInputError } from '../errors/InvalidInputError';
-import { ElasticClient } from '../indexing';
 import { buildElasticQuery, QueryParser } from '../modules/QueryParser';
 import { SelectBuilder } from '../modules/SelectBuilder';
 import {
@@ -24,6 +23,7 @@ import { Emails } from '../services/Emails';
 import { Services } from '../services';
 import { Modules } from 'openland-modules/Modules';
 import { inTx } from 'foundation-orm/inTx';
+import { FDB } from 'openland-module-db/FDB';
 
 interface AlphaOrganizationsParams {
     query?: string;
@@ -58,14 +58,7 @@ export const Resolver = {
             return [];
         },
         alphaCreatedChannels: async (src: Organization) => {
-            return DB.Conversation.findAll({
-                where: {
-                    type: 'channel',
-                    extras: {
-                        creatorOrgId: src.id
-                    }
-                }
-            });
+            return [];
         }
     },
 
@@ -100,14 +93,7 @@ export const Resolver = {
         },
 
         alphaCreatedChannels: async (src: Organization) => {
-            return DB.Conversation.findAll({
-                where: {
-                    type: 'channel',
-                    extras: {
-                        creatorOrgId: src.id
-                    }
-                }
-            });
+            return FDB.ConversationRoom.allFromOrganizationPublicRooms(src.id!);
         },
         shortname: async (src: Organization) => {
             let shortName = await Modules.Shortnames.findOrganizationShortname(src.id!);
@@ -205,7 +191,7 @@ export const Resolver = {
 
         alphaOrganizationByPrefix: withAny<{ query: string }>(async args => {
 
-            let hits = await ElasticClient.search({
+            let hits = await Modules.Search.elastic.client.search({
                 index: 'organizations',
                 type: 'organization',
                 body: {
@@ -245,7 +231,7 @@ export const Resolver = {
                 clauses.push({ match_phrase_prefix: { name: args.query } });
             }
 
-            let hits = await ElasticClient.search({
+            let hits = await Modules.Search.elastic.client.search({
                 index: 'organizations',
                 type: 'organization',
                 body: {
@@ -292,7 +278,7 @@ export const Resolver = {
             clauses.push({ term: { published: true } });
             clauses.push({ term: { isCommunity: false } });
 
-            let hits = await ElasticClient.search({
+            let hits = await Modules.Search.elastic.client.search({
                 index: 'organizations',
                 type: 'organization',
                 size: args.first,
