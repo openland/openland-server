@@ -1,5 +1,4 @@
 type Query {
-
     alphaInvites: [Invite!]
     alphaInviteInfo(key: String!): InviteInfo
     appInvite: String!
@@ -7,6 +6,4 @@ type Query {
     alphaAppInvite: String! @deprecated(reason: "renamed to 'appInvite'")
     alphaAppInviteInfo(key: String!): AppInviteInfo @deprecated(reason: "renamed to 'appInviteInfo'")
     alphaInvitesHistory: [InviteHistotyInfo!]
-
-    user(id: ID!): User!
 }

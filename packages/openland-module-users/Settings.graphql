@@ -1,0 +1,53 @@
+enum EmailFrequency {
+    NEVER
+    MIN_15
+    HOUR_1
+    HOUR_24
+    WEEK_1
+}
+
+enum NotificationMessages {
+    ALL
+    DIRECT
+    NONE
+}
+
+enum NotificationsDelay {
+    NONE
+    MIN_1
+    MIN_15
+}
+
+input UpdateSettingsInput {
+    emailFrequency: EmailFrequency
+    desktopNotifications: NotificationMessages
+    mobileNotifications: NotificationMessages
+    mobileAlert: Boolean
+    mobileIncludeText: Boolean
+    mute: Boolean
+    notificationsDelay: NotificationsDelay
+}
+
+type Settings {
+    id: ID!
+    primaryEmail: String!
+    emailFrequency: EmailFrequency!
+    desktopNotifications: NotificationMessages!
+    mobileNotifications: NotificationMessages!
+    mobileAlert: Boolean!
+    mobileIncludeText: Boolean!
+    mute: Boolean
+    notificationsDelay: NotificationsDelay!
+}
+
+extend type Query {
+    settings: Settings!
+}
+
+extend type Mutation {
+    updateSettings(settings: UpdateSettingsInput): Settings!
+}
+
+extend type Subscription {
+    watchSettings: Settings!
+}
