@@ -17,6 +17,10 @@ export class UsersModule {
         }
     }
 
+    async createUser(authId: string, email: string) {
+        return this.repo.createUser(authId, email);
+    }
+
     async profileById(uid: number) {
         return this.repo.findUserProfile(uid);
     }

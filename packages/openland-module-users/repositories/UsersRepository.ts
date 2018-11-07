@@ -13,6 +13,22 @@ export class UserRepository {
     }
 
     /*
+     * User
+     */
+
+    async createUser(authId: string, email: string) {
+        return await inTx(async () => {
+            // TODO: Create INDEX!
+            let c = (await this.entities.Sequence.findById('user-id'))!;
+            let id = ++c.value;
+            await c.flush();
+            let res = (await this.entities.User.create(id, { authId: authId, email: email.toLowerCase(), isBot: false, status: 'pending' }));
+            await res.flush();
+            return res;
+        });
+    }
+
+    /*
      * Profile
      */
 
