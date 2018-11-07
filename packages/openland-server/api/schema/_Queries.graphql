@@ -1,9 +1,3 @@
 type Query {
-    alphaInvites: [Invite!]
-    alphaInviteInfo(key: String!): InviteInfo
-    appInvite: String!
-    appInviteInfo(key: String!): AppInvite
-    alphaAppInvite: String! @deprecated(reason: "renamed to 'appInvite'")
-    alphaAppInviteInfo(key: String!): AppInviteInfo @deprecated(reason: "renamed to 'appInviteInfo'")
-    alphaInvitesHistory: [InviteHistotyInfo!]
+    lifecheck: String
 }

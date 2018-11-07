@@ -1,12 +1,12 @@
-import { withPermission, withAny, withAccount, withUser } from './utils/Resolvers';
-import { Repos } from '../repositories';
-import { IDs } from './utils/IDs';
-import { CallContext } from './utils/CallContext';
-import { QueryParser } from '../modules/QueryParser';
-import { defined, emailValidator, stringNotEmpty, validate } from '../modules/NewInputValidator';
-import { ErrorText } from '../errors/ErrorText';
-import { NotFoundError } from '../errors/NotFoundError';
-import { Sanitizer } from '../modules/Sanitizer';
+import { withPermission, withAny, withAccount, withUser } from '../openland-server/api/utils/Resolvers';
+import { Repos } from '../openland-server/repositories';
+import { IDs } from '../openland-server/api/utils/IDs';
+import { CallContext } from '../openland-server/api/utils/CallContext';
+import { QueryParser } from '../openland-server/modules/QueryParser';
+import { defined, emailValidator, stringNotEmpty, validate } from '../openland-server/modules/NewInputValidator';
+import { ErrorText } from '../openland-server/errors/ErrorText';
+import { NotFoundError } from '../openland-server/errors/NotFoundError';
+import { Sanitizer } from '../openland-server/modules/Sanitizer';
 import { Modules } from 'openland-modules/Modules';
 import { inTx } from 'foundation-orm/inTx';
 import { ChannelInvitation, ChannelLink, RoomParticipant, Conversation } from 'openland-module-db/schema';
@@ -27,7 +27,7 @@ interface AlphaChannelsParams {
 //         HOUR_1: '1hour',
 //         HOUR_24: '24hour',
 //         WEEK_1: '1week',
-export const Resolver = {
+export default {
     ChannelMembershipStatus: {
         invited: 'invited',
         member: 'joined',

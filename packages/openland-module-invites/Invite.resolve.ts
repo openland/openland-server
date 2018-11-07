@@ -1,17 +1,18 @@
-import { CallContext } from './utils/CallContext';
-import { withUser, withAny, withAccount } from './utils/Resolvers';
-import { Repos } from '../repositories';
-import { IDs } from './utils/IDs';
-import { NotFoundError } from '../errors/NotFoundError';
-import { ErrorText } from '../errors/ErrorText';
-import { Modules } from 'openland-modules/Modules';
-import { inTx } from 'foundation-orm/inTx';
 import { OrganizationInviteLink, OrganizationPublicInviteLink } from 'openland-module-db/schema';
+import { withUser, withAny, withAccount } from 'openland-server/api/utils/Resolvers';
+import { Modules } from 'openland-modules/Modules';
+import { CallContext } from 'openland-server/api/utils/CallContext';
 import { FDB } from 'openland-module-db/FDB';
+import { IDs } from 'openland-server/api/utils/IDs';
+import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
+import { inTx } from 'foundation-orm/inTx';
+import { ErrorText } from 'openland-server/errors/ErrorText';
+import { NotFoundError } from 'openland-server/errors/NotFoundError';
+import { Repos } from 'openland-server/repositories';
 import { buildBaseImageUrl, ImageRef } from 'openland-module-media/ImageRef';
 import { Emails } from '../services/Emails';
 
-export const Resolver = {
+export default {
     Invite: {
         id: (src: OrganizationInviteLink | OrganizationPublicInviteLink) => src.id,
         key: (src: OrganizationInviteLink | OrganizationPublicInviteLink) => src.id,
@@ -71,73 +72,6 @@ export const Resolver = {
             // });
             return [];
         }),
-        sessionState: async function (_: any, args: {}, context: CallContext) {
-
-            // If there are no user in the context
-            if (!context.uid) {
-                return {
-                    isLoggedIn: false,
-                    isProfileCreated: false,
-                    isActivated: false,
-                    isAccountExists: false,
-                    isCompleted: false,
-                    isBlocked: false,
-                    // depricated
-                    isAccountPicked: false,
-                    isAccountActivated: false,
-                };
-            }
-
-            // User unknown?! Just softly ignore errors
-            let res = await FDB.User.findById(context.uid);
-            if (res === null) {
-                return {
-                    isLoggedIn: false,
-                    isProfileCreated: false,
-                    isActivated: false,
-                    isAccountExists: false,
-                    isCompleted: false,
-                    isBlocked: false,
-                    // depricated
-                    isAccountPicked: false,
-                    isAccountActivated: false,
-                };
-            }
-
-            // State 0: Is Logged In
-            let isLoggedIn = true; // Checked in previous steps
-
-            // Stage 1: Create Profile
-            let profile = context.uid ? (await Modules.Users.profileById(context.uid)) : null;
-            let isProfileCreated = !!profile;
-
-            // Stage 2: Pick organization or create a new one (if there are no exists)
-            let organization = !!context.oid ? await FDB.Organization.findById(context.oid) : null;
-            let isOrganizationPicked = organization !== null;
-            let orgsIDs = await Repos.Users.fetchUserAccounts(context.uid);
-            let isOrganizationExists = orgsIDs.length > 0;
-
-            // Stage 3: Activation Status
-            let orgs = await Promise.all(orgsIDs.map((v) => FDB.Organization.findById(v)));
-            let isAllOrganizationsSuspended = orgs.length > 0 && orgs.filter(o => o!.status === 'suspended').length === orgs.length;
-            let isActivated = orgs.filter(o => o!.status === 'activated').length > 0;
-            // depricated
-            let isOrganizationActivated = isOrganizationPicked && organization!!.status !== 'pending';
-
-            let queryResult = {
-                isLoggedIn: isLoggedIn,
-                isProfileCreated: isProfileCreated,
-                isActivated: isActivated,
-                isAccountExists: isOrganizationExists,
-                isCompleted: isProfileCreated && isOrganizationExists && isOrganizationPicked && isActivated,
-                isBlocked: isAllOrganizationsSuspended,
-                // depricated
-                isAccountPicked: isOrganizationPicked,
-                isAccountActivated: isOrganizationActivated,
-            };
-
-            return queryResult;
-        },
     },
     Mutation: {
         alphaJoinInvite: withUser<{ key: string }>(async (args, uid) => {
@@ -231,34 +165,6 @@ export const Resolver = {
             //     }
             // });
             // return 'ok';
-        }),
-        alphaCreateUserProfileAndOrganization: withUser<{
-            user: {
-                firstName: string,
-                lastName?: string | null,
-                photoRef?: ImageRef | null,
-                phone?: string | null,
-                email?: string | null,
-                website?: string | null,
-                about?: string | null,
-                location?: string | null
-            },
-            organization: {
-                name: string,
-                website?: string | null
-                personal: boolean
-                photoRef?: ImageRef | null
-            }
-        }>(async (args, uid) => {
-            return await inTx(async () => {
-                let userProfile = await Repos.Users.createUser(uid, args.user);
-                let organization = await Repos.Organizations.createOrganization(uid, { ...args.organization, personal: false });
-
-                return {
-                    user: userProfile,
-                    organization: organization
-                };
-            });
-        }),
+        })
     }
 };
