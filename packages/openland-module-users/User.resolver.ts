@@ -46,12 +46,12 @@ function withProfile(handler: (user: User, profile: UserProfile | null, context:
 export default {
     User: {
         id: (src: User) => IDs.User.serialize(src.id!!),
+        isBot: (src: User) => src.isBot || false,
+        isYou: (src: User, args: {}, context: CallContext) => src.id === context.uid,
+        
         name: withProfile((src, profile) => profile ? [profile.firstName, profile.lastName].filter((v) => !!v).join(' ') : src.email),
         firstName: withProfile((src, profile) => profile ? profile.firstName : src.email),
         lastName: withProfile((src, profile) => profile ? profile.lastName : null),
-
-        picture: withProfile((src, profile) => profile && profile.picture ? buildBaseImageUrl(profile.picture) : null),
-        pictureRef: withProfile((src, profile) => profile && profile.picture),
         photo: withProfile((src, profile) => profile && profile.picture ? buildBaseImageUrl(profile.picture) : null),
         photoRef: withProfile((src, profile) => profile && profile.picture),
 
@@ -59,36 +59,36 @@ export default {
         phone: withProfile((src, profile) => profile ? profile.phone : null),
         about: withProfile((src, profile) => profile ? profile.about : null),
         website: withProfile((src, profile) => profile ? profile.website : null),
-        alphaRole: withProfile((src, profile) => profile && profile.role),
-        alphaLinkedin: withProfile((src, profile) => profile && profile.linkedin),
-        alphaTwitter: withProfile((src, profile) => profile && profile.twitter),
+        linkedin: withProfile((src, profile) => profile && profile.linkedin),
+        twitter: withProfile((src, profile) => profile && profile.twitter),
         location: withProfile((src, profile) => profile ? profile.location : null),
 
-        isCreated: withProfile((src, profile) => !!profile),
-        isBot: (src: User) => src.isBot || false,
-        isYou: (src: User, args: {}, context: CallContext) => src.id === context.uid,
-        alphaPrimaryOrganization: withProfile(async (src, profile, context) => Repos.Users.loadPrimatyOrganization(context, profile, src)),
-        online: async (src: User) => await Repos.Users.isUserOnline(src.id!),
-        lastSeen: async (src: User) => Modules.Presence.getLastSeen(src.id!), // await Repos.Users.getUserLastSeen(src.id!),
-        createdChannels: async (src: User) => {
-            return [];
-        },
-        channelsJoined: async (src: User) => {
-            return [];
-        },
+        primaryOrganization: withProfile(async (src, profile) => Repos.Users.loadPrimatyOrganization(profile, src)),
+
+        organizations: async (src: User) => (await Repos.Users.fetchUserAccounts(src.id!)).map(async oid => await FDB.Organization.findById(oid)),
+        online: async (src: User) => await Modules.Presence.getLastSeen(src.id) === 'online',
+        lastSeen: async (src: User) => Modules.Presence.getLastSeen(src.id), // await Repos.Users.getUserLastSeen(src.id!),
+
         shortname: async (src: User) => {
-            let shortname = await Modules.Shortnames.findUserShortname(src.id!);
+            let shortname = await Modules.Shortnames.findUserShortname(src.id);
             if (shortname) {
                 return shortname.shortname;
             }
             return null;
         },
-        phones: async (src: User) => [],
-        lastIP: async (src: User) => Repos.Users.getUserLastIp(src.id!),
-        alphaConversationSettings: async (src: User, _: any, context: CallContext) => await Modules.Messaging.getConversationSettings(context.uid!!, (await Modules.Messaging.conv.resolvePrivateChat(context.uid!!, src.id!)).id),
-        status: async (src: User) => src.status,
+
+        // Deprecated
+        picture: withProfile((src, profile) => profile && profile.picture ? buildBaseImageUrl(profile.picture) : null),
+        pictureRef: withProfile((src, profile) => profile && profile.picture),
+        alphaRole: withProfile((src, profile) => profile && profile.role),
+        alphaLinkedin: withProfile((src, profile) => profile && profile.linkedin),
+        alphaTwitter: withProfile((src, profile) => profile && profile.twitter),
+
+        alphaPrimaryOrganization: withProfile(async (src, profile) => Repos.Users.loadPrimatyOrganization(profile, src)),
+        channelsJoined: async (src: User) => {
+            return [];
+        },
         alphaLocations: withProfile((src, profile) => profile && profile.locations),
-        organizations: async (src: User) => (await Repos.Users.fetchUserAccounts(src.id!)).map(async oid => await FDB.Organization.findById(oid)),
     },
     Query: {
         me: async function (_obj: any, _params: {}, context: CallContext) {

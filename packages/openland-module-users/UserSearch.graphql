@@ -9,5 +9,8 @@ type UserConnection {
 }
 
 extend type Query {
+    userSearch(query: String, first: Int!, after: String, page: Int, sort: String): UserConnection! @withAuth
+
+    # Deprecated
     alphaProfiles(query: String, first: Int!, after: String, page: Int, sort: String): UserConnection! @withAuth
 }

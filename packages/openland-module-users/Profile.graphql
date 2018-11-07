@@ -9,16 +9,36 @@ type Profile {
     website: String
     about: String
     location: String
-    alphaRole: String,
-    alphaLocations: [String!],
-    alphaLinkedin: String,
-    alphaTwitter: String,
-    alphaPrimaryOrganizationId: ID,
-    alphaPrimaryOrganization: Organization,
-    alphaJoinedAt: String,
+    linkedin: String
+    twitter: String
+    primaryOrganization: Organization
+
+    # Deprecated
+    alphaLinkedin: String
+    alphaTwitter: String
+    alphaPrimaryOrganizationId: ID
+    alphaPrimaryOrganization: Organization
+    alphaJoinedAt: String
     alphaInvitedBy: User
+    alphaRole: String
+    alphaLocations: [String!]
 }
 
+input ProfileInput {
+    firstName: String
+    lastName: String
+    photoRef: ImageRefInput
+    phone: String
+    email: String
+    website: String
+    about: String
+    location: String
+    linkedin: String
+    twitter: String
+    primaryOrganization: ID
+}
+
+# Deprecated
 input UpdateProfileInput {
     firstName: String
     lastName: String
@@ -28,22 +48,30 @@ input UpdateProfileInput {
     website: String
     about: String
     location: String
-    alphaRole: String,
-    alphaLocations: [String!],
-    alphaLinkedin: String,
-    alphaTwitter: String,
-    alphaPrimaryOrganizationId: ID,
+    linkedin: String
+    twitter: String
+    primaryOrganization: ID
+
+    alphaRole: String
+    alphaLocations: [String!]
+    alphaLinkedin: String
+    alphaTwitter: String
+    alphaPrimaryOrganizationId: ID
 }
 
+# Deprecated
 input CreateProfileInput {
     firstName: String!
     lastName: String
     photoRef: ImageRefInput
     phone: String
     email: String
-    website: String
     about: String
     location: String
+    website: String
+    linkedin: String
+    twitter: String
+    primaryOrganization: ID
 }
 
 extend type Query {
@@ -51,8 +79,8 @@ extend type Query {
 }
 
 extend type Mutation {
-    profileCreate(input: CreateProfileInput!): Profile!
-    profileUpdate(input: UpdateProfileInput!, uid: ID): Profile!
+    profileCreate(input: ProfileInput!): Profile!
+    profileUpdate(input: ProfileInput!, uid: ID): Profile!
 
     # Deprecated
     createProfile(input: CreateProfileInput!): Profile!
