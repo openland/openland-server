@@ -2,7 +2,7 @@ import * as fdb from 'foundationdb';
 import { AllEntities } from './testSchema';
 import { FConnection } from '../FConnection';
 import { inTx } from '../inTx';
-import { delay } from '../../openland-server/utils/timer';
+import { delay } from '../../openland-utils/timer';
 import { withLogDisabled } from 'openland-log/withLogDisabled';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { NativeValue } from 'foundationdb/dist/lib/native';

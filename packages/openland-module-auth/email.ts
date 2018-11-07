@@ -1,12 +1,12 @@
 import express from 'express';
-import { randomNumbersString } from '../openland-server/utils/random';
+import { randomNumbersString } from '../openland-utils/random';
 import { Emails } from '../openland-server/services/Emails';
-import * as base64 from '../openland-server/utils/base64';
+import * as base64 from '../openland-utils/base64';
 import { randomBytes } from 'crypto';
 import { Modules } from 'openland-modules/Modules';
 import { inTx } from 'foundation-orm/inTx';
 import { AuthCodeSession } from 'openland-module-db/schema';
-import { calculateBase64len } from '../openland-server/utils/base64';
+import { calculateBase64len } from '../openland-utils/base64';
 import { FDB } from 'openland-module-db/FDB';
 
 const Errors = {

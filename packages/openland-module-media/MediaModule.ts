@@ -7,7 +7,7 @@ import { createReadStream, unlink, writeFile } from 'fs';
 import fetch from 'node-fetch';
 import { promisify } from 'util';
 import { extname } from 'path';
-import { randomString } from 'openland-server/utils/random';
+import { randomString } from 'openland-utils/random';
 import { FileInfo } from './FileInfo';
 
 const writeFileAsync = promisify(writeFile);

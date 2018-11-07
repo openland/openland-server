@@ -1,7 +1,7 @@
 import { FConnection } from 'foundation-orm/FConnection';
 import { FKeyEncoding } from './FKeyEncoding';
 import { createLogger } from 'openland-log/createLogger';
-import { backoff } from 'openland-server/utils/timer';
+import { backoff } from 'openland-utils/timer';
 
 const rootPrefix = Buffer.from('f0', 'hex');
 const dataPrefix = Buffer.concat([rootPrefix, Buffer.from('02', 'hex')]);

@@ -1,7 +1,7 @@
 import { FConnection } from './FConnection';
 import { FKeyEncoding } from './utils/FKeyEncoding';
-import { delay } from '../openland-server/utils/timer';
-import { fastDeepEquals } from '../openland-server/utils/fastDeepEquals';
+import { delay } from '../openland-utils/timer';
+import { fastDeepEquals } from '../openland-utils/fastDeepEquals';
 
 type Key = (string | number)[];
 type ChangeCallback = () => void;

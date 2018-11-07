@@ -1,7 +1,7 @@
 import { inTx } from 'foundation-orm/inTx';
 import { FDB } from 'openland-module-db/FDB';
 import Timer = NodeJS.Timer;
-import { createIterator } from '../openland-server/utils/asyncIterator';
+import { createIterator } from '../openland-utils/asyncIterator';
 import { Pubsub, PubsubSubcription } from '../openland-server/modules/pubsub';
 import { AllEntities } from '../openland-module-db/schema';
 import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent';

@@ -1,6 +1,6 @@
 import { FConnection } from '../FConnection';
-import { randomKey } from 'openland-server/utils/random';
-import { delay } from 'openland-server/utils/timer';
+import { randomKey } from 'openland-utils/random';
+import { delay } from 'openland-utils/timer';
 import { withLogContext } from 'openland-log/withLogContext';
 import { createLogger } from 'openland-log/createLogger';
 import { FKeyEncoding } from './FKeyEncoding';

@@ -1,3 +1,5 @@
+import { randomBytes } from 'crypto';
+
 function unescape(str: string) {
     return (str + '==='.slice((str.length + 3) % 4))
         .replace(/-/g, '+')
@@ -25,3 +27,5 @@ export function encodeBuffer(buffer: Buffer) {
 export function decodeBuffer(str: string) {
     return Buffer.from(unescape(str), 'base64');
 }
+
+export const calculateBase64len = (bytes: number) => encodeBuffer(randomBytes(bytes)).length;

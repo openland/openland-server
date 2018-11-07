@@ -1,7 +1,7 @@
-import { createIterator } from 'openland-server/utils/asyncIterator';
+import { createIterator } from 'openland-utils/asyncIterator';
 import { TypingEvent } from './TypingEvent';
 import { PubsubSubcription, Pubsub } from 'openland-server/modules/pubsub';
-import { debouncer } from 'openland-server/utils/timer';
+import { debouncer } from 'openland-utils/timer';
 import { Modules } from 'openland-modules/Modules';
 
 export class TypingsModule {

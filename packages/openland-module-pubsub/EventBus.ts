@@ -1,6 +1,6 @@
 import { FPubsub } from 'foundation-orm/FPubsub';
 import { createRedisClient, isRedisConfigured } from './redis/createRedisClient';
-import { backoff } from 'openland-server/utils/timer';
+import { backoff } from 'openland-utils/timer';
 import { createTracer } from 'openland-log/createTracer';
 import { withTracing } from 'openland-log/withTracing';
 import { createLogger } from 'openland-log/createLogger';

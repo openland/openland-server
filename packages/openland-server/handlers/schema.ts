@@ -6,10 +6,10 @@ import * as Schema from '../api';
 import { callContextMiddleware } from './context';
 import { errorHandler } from '../errors';
 import { CallContext } from '../api/utils/CallContext';
-import { Rate } from '../utils/rateLimit';
-import { delay } from '../utils/timer';
+import { Rate } from '../../openland-utils/rateLimit';
+import { delay } from '../../openland-utils/timer';
 import { withTracing } from 'openland-log/withTracing';
-import { gqlTracer } from 'openland-server/utils/gqlTracer';
+import { gqlTracer } from 'openland-graphql/gqlTracer';
 import { withLogContext } from 'openland-log/withLogContext';
 
 function getClientId(req: express.Request, res: express.Response) {

@@ -1,6 +1,6 @@
 import { FStream } from './FStream';
 import { FEntity } from './FEntity';
-import { delayBreakable } from 'openland-server/utils/timer';
+import { delayBreakable } from 'openland-utils/timer';
 import { FLiveStreamItem } from './FLiveStreamItem';
 import { FPubsubSubcription } from './FPubsub';
 

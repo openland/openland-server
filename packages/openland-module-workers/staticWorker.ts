@@ -1,4 +1,4 @@
-import { delay, delayBreakable, foreverBreakable } from '../openland-server/utils/timer';
+import { delay, delayBreakable, foreverBreakable } from '../openland-utils/timer';
 import { LockRepository } from 'openland-module-sync/LockRepository';
 import { withLogContext } from 'openland-log/withLogContext';
 import { createLogger } from 'openland-log/createLogger';

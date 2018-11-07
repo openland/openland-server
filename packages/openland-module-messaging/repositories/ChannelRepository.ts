@@ -2,7 +2,7 @@ import { AllEntities } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
 import { ErrorText } from 'openland-server/errors/ErrorText';
 import { UserError } from 'openland-server/errors/UserError';
-import { randomInviteKey } from 'openland-server/utils/random';
+import { randomInviteKey } from 'openland-utils/random';
 // import { DB } from 'openland-server/tables';
 // import { Modules } from 'openland-modules/Modules';
 

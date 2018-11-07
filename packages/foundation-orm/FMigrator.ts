@@ -1,7 +1,7 @@
 import { FConnection } from './FConnection';
 import { createLogger } from 'openland-log/createLogger';
 import { SLog } from 'openland-log/SLog';
-import { delay } from 'openland-server/utils/timer';
+import { delay } from 'openland-utils/timer';
 import { FKeyEncoding } from './utils/FKeyEncoding';
 import { withLogContext } from 'openland-log/withLogContext';
 
