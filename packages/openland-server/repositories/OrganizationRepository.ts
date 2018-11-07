@@ -1,63 +1,8 @@
-import { validate, stringNotEmpty } from '../../openland-utils/NewInputValidator';
-import { Sanitizer } from '../../openland-utils/Sanitizer';
 import { Repos } from '.';
-import { Hooks } from './Hooks';
-import { Modules } from 'openland-modules/Modules';
 import { FDB } from 'openland-module-db/FDB';
 import { OrganizationMember } from 'openland-module-db/schema';
-import { inTx } from 'foundation-orm/inTx';
-import { ImageRef } from 'openland-module-media/ImageRef';
 
 export class OrganizationRepository {
-
-    async createOrganization(uid: number, input: {
-        name: string,
-        website?: string | null
-        personal: boolean
-        photoRef?: ImageRef | null
-        about?: string
-        isCommunity?: boolean
-    }) {
-        await validate(
-            stringNotEmpty('Name can\'t be empty!'),
-            input.name,
-            'input.name'
-        );
-
-        return await inTx(async () => {
-            let status: 'activated' | 'pending' = 'pending';
-            let user = await FDB.User.findById(uid);
-            if (user && user.status === 'activated') {
-                status = 'activated';
-            }
-
-            let isEditor = (await Modules.Super.findSuperRole(uid)) === 'editor';
-
-            let orgId = ++(await FDB.Sequence.findById('org-id'))!.value;
-            let organization = await FDB.Organization.create(orgId, {
-                kind: input.isCommunity ? 'community' : 'organization',
-                ownerId: uid,
-                status: status,
-                editorial: !!isEditor,
-            });
-            await FDB.OrganizationProfile.create(orgId, {
-                name: Sanitizer.sanitizeString(input.name)!,
-                website: Sanitizer.sanitizeString(input.website),
-                photo: Sanitizer.sanitizeImageRef(input.photoRef),
-                about: Sanitizer.sanitizeString(input.about)
-            });
-
-            await FDB.OrganizationEditorial.create(orgId, {
-                listed: true,
-                featured: false
-            });
-
-            await Repos.Super.addToOrganization(organization.id!!, uid);
-            await Hooks.onOrganizstionCreated(uid, organization.id!!);
-
-            return organization;
-        });
-    }
 
     async getOrganizationMember(orgId: number, userId: number): Promise<OrganizationMember | null> {
         return await FDB.OrganizationMember.findById(orgId, userId);

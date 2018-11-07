@@ -1,13 +1,7 @@
-import { IDs } from '../openland-server/api/utils/IDs';
-import { withUser, withAccount, withAny } from '../openland-server/api/utils/Resolvers';
-import { Repos } from '../openland-server/repositories';
-import { CallContext } from '../openland-server/api/utils/CallContext';
-import { ErrorText } from '../openland-server/errors/ErrorText';
-import { NotFoundError } from '../openland-server/errors/NotFoundError';
-import { buildElasticQuery, QueryParser } from '../openland-utils/QueryParser';
-import { AccessDeniedError } from '../openland-server/errors/AccessDeniedError';
-import { Modules } from 'openland-modules/Modules';
 import { FDB } from 'openland-module-db/FDB';
+import { Modules } from 'openland-modules/Modules';
+import { withAny } from 'openland-server/api/utils/Resolvers';
+import { QueryParser, buildElasticQuery } from 'openland-utils/QueryParser';
 
 interface AlphaOrganizationsParams {
     query?: string;
@@ -19,77 +13,7 @@ interface AlphaOrganizationsParams {
 }
 
 export default {
-    OrganizationMember: {
-        __resolveType(src: any) {
-            return src._type;
-        }
-    },
-
     Query: {
-        myOrganization: async (_: any, args: {}, context: CallContext) => {
-            if (context.oid) {
-                return await FDB.Organization.findById(context.oid);
-            }
-            return null;
-        },
-        myOrganizationProfile: async (_: any, args: {}, context: CallContext) => {
-            if (context.oid) {
-                return await FDB.Organization.findById(context.oid);
-            }
-            return null;
-        },
-        myOrganizations: async (_: any, args: {}, context: CallContext) => {
-            if (context.uid) {
-                return (await Promise.all((await FDB.OrganizationMember.allFromUser('joined', context.uid))
-                    .map((v) => FDB.Organization.findById(v.oid))))
-                    .filter((v) => v!.status !== 'suspended');
-            }
-            return [];
-        },
-        organization: withAny<{ id: string }>(async (args) => {
-            let res = await FDB.Organization.findById(IDs.Organization.parse(args.id));
-            if (!res) {
-                throw new NotFoundError('Unable to find organization');
-            }
-            return res;
-        }),
-        organizationProfile: withAny<{ id: string }>(async (args) => {
-            let res = await FDB.Organization.findById(IDs.Organization.parse(args.id));
-            if (!res) {
-                throw new NotFoundError('Unable to find organization');
-            }
-            return res;
-        }),
-
-        alphaOrganizationMembers: withAccount<{ orgId: string }>(async (args, uid, orgId) => {
-            let targetOrgId = IDs.Organization.parse(args.orgId);
-
-            let isMember = await Modules.Orgs.isUserMember(uid, targetOrgId);
-
-            if (!isMember) {
-                throw new AccessDeniedError(ErrorText.permissionDenied);
-            }
-
-            let result: any[] = [];
-
-            result.push(... await Repos.Organizations.getOrganizationJoinedMembers(targetOrgId));
-
-            let invites = await Modules.Invites.repo.getOrganizationInvitesForOrganization(targetOrgId);
-
-            for (let invite of invites) {
-                result.push({
-                    _type: 'OrganizationIvitedMember',
-                    firstName: invite.firstName || '',
-                    lastName: invite.lastName || '',
-                    email: invite.email,
-                    role: invite.role,
-                    inviteId: invite.id
-                });
-            }
-
-            return result;
-        }),
-
         alphaOrganizationByPrefix: withAny<{ query: string }>(async args => {
 
             let hits = await Modules.Search.elastic.client.search({
@@ -238,15 +162,6 @@ export default {
                     openEnded: true
                 },
             };
-        }),
-
-        alphaOrganizationPublicInvite: withAccount<{ organizationId?: string }>(async (args, uid, organizationId) => {
-            organizationId = args.organizationId ? IDs.Organization.parse(args.organizationId) : organizationId;
-            return await Modules.Invites.repo.getPublicOrganizationInvite(organizationId, uid);
-        }),
-
-        alphaTopCategories: withUser(async (args, uid) => {
-            return [];
         })
-    },
+    }
 };

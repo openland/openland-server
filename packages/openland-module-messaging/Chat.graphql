@@ -103,7 +103,7 @@ type PhotoChangeServiceMetadata {
     photoRef: ImageRef
 }
 
-union UrlAugmentationExtra = AlphaOrganizationListing | User | Organization | ChannelConversation
+union UrlAugmentationExtra = User | Organization | ChannelConversation
 
 type UrlAugmentation {
     url: String!

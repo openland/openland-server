@@ -1,0 +1,47 @@
+enum OrganizationMemberRole {
+    OWNER,
+    MEMBER
+}
+
+interface OrganizationMember {
+    email: String!
+    role: OrganizationMemberRole!
+}
+
+type OrganizationIvitedMember implements OrganizationMember {
+    email: String!
+    role: OrganizationMemberRole!
+    firstName: String
+    lastName: String
+    inviteId: ID!
+}
+
+type OrganizationJoinedMember implements OrganizationMember {
+    email: String!
+    role: OrganizationMemberRole!
+    user: User!
+    joinedAt: String
+    showInContacts: Boolean!
+}
+
+input InviteRequest {
+    email: String!
+    emailText: String
+    role: OrganizationMemberRole!,
+    firstName: String
+    lastName: String
+}
+
+extend type Query {
+    alphaOrganizationMembers(orgId: ID!): [OrganizationMember!]!
+    alphaOrganizationPublicInvite(organizationId: ID): Invite
+}
+
+extend type Mutation {
+    alphaOrganizationRemoveMember(memberId: ID!, organizationId: ID!): String!
+    alphaOrganizationChangeMemberRole(memberId: ID!, newRole: OrganizationMemberRole!, organizationId: ID!): String!
+    alphaOrganizationInviteMembers(inviteRequests: [InviteRequest!]!, organizationId: ID): String!
+
+    alphaOrganizationCreatePublicInvite(expirationDays: Int, organizationId: ID): Invite!
+    alphaOrganizationDeletePublicInvite(organizationId: ID): String!
+}

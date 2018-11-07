@@ -1,6 +1,18 @@
 import { Organization } from 'openland-module-db/schema';
 import { IDs } from 'openland-server/api/utils/IDs';
 import { FDB } from 'openland-module-db/FDB';
+import { CallContext } from 'openland-server/api/utils/CallContext';
+import { withAny, withUser, withAccount } from 'openland-server/api/utils/Resolvers';
+import { NotFoundError } from 'openland-server/errors/NotFoundError';
+import { OrganizatinProfileInput } from './OrganizationProfileInput';
+import { Modules } from 'openland-modules/Modules';
+import { ImageRef } from 'openland-module-media/ImageRef';
+import { Repos } from 'openland-server/repositories';
+import { UserError } from 'openland-server/errors/UserError';
+import { ErrorText } from 'openland-server/errors/ErrorText';
+import { inTx } from 'foundation-orm/inTx';
+import { stringNotEmpty, validate } from 'openland-utils/NewInputValidator';
+import { Sanitizer } from 'openland-utils/Sanitizer';
 
 export default {
     OrganizationProfile: {
@@ -29,4 +41,126 @@ export default {
             return [];
         }
     },
+    Query: {
+        myOrganizationProfile: async (_: any, args: {}, context: CallContext) => {
+            if (context.oid) {
+                return await FDB.Organization.findById(context.oid);
+            }
+            return null;
+        },
+        organizationProfile: withAny<{ id: string }>(async (args) => {
+            // TODO: Fix permissions!11
+            let res = await FDB.Organization.findById(IDs.Organization.parse(args.id));
+            if (!res) {
+                throw new NotFoundError('Unable to find organization');
+            }
+            return res;
+        }),
+    },
+    Mutation: {
+        createOrganization: withUser<{ input: OrganizatinProfileInput }>(async (args, uid) => {
+            return await Modules.Orgs.createOrganization(uid, args.input);
+        }),
+        updateOrganizationProfile: withAccount<{
+            input: {
+                name?: string | null,
+                photoRef?: ImageRef | null,
+
+                website?: string | null
+                websiteTitle?: string | null
+                about?: string | null
+                twitter?: string | null
+                facebook?: string | null
+                linkedin?: string | null
+                location?: string | null
+
+                contacts?: {
+                    name: string
+                    photoRef?: ImageRef | null
+                    position?: string | null
+                    email?: string | null
+                    phone?: string | null
+                    link?: string | null
+                }[] | null
+
+                alphaPublished?: boolean | null;
+                alphaEditorial?: boolean | null;
+                alphaFeatured?: boolean | null;
+
+                alphaOrganizationType?: string[] | null
+            },
+            id?: string;
+        }>(async (args, uid, oid) => {
+
+            let orgId = oid;
+            if (args.id) {
+                let role = await Repos.Permissions.superRole(uid);
+                if (!(role === 'super-admin' || role === 'editor')) {
+                    throw new UserError(ErrorText.permissionOnlyOwner);
+                }
+                orgId = IDs.Organization.parse(args.id);
+            } else {
+                let member = await FDB.OrganizationMember.findById(oid, uid);
+                if (member === null || member.status !== 'joined' || member.role !== 'admin') {
+                    throw new UserError(ErrorText.permissionOnlyOwner);
+                }
+            }
+
+            return await inTx(async () => {
+                let existing = await FDB.Organization.findById(orgId);
+                if (!existing) {
+                    throw new UserError(ErrorText.unableToFindOrganization);
+                }
+
+                let profile = (await FDB.OrganizationProfile.findById(orgId))!;
+
+                if (args.input.name !== undefined) {
+                    await validate(
+                        stringNotEmpty('Name can\'t be empty!'),
+                        args.input.name,
+                        'input.name'
+                    );
+                    profile.name = Sanitizer.sanitizeString(args.input.name)!;
+                }
+                if (args.input.website !== undefined) {
+                    profile.website = Sanitizer.sanitizeString(args.input.website);
+                }
+                if (args.input.photoRef !== undefined) {
+                    if (args.input.photoRef !== null) {
+                        await Modules.Media.saveFile(args.input.photoRef.uuid);
+                    }
+                    profile.photo = Sanitizer.sanitizeImageRef(args.input.photoRef);
+                }
+
+                if (args.input.twitter !== undefined) {
+                    profile.twitter = Sanitizer.sanitizeString(args.input.twitter);
+                }
+                if (args.input.facebook !== undefined) {
+                    profile.facebook = Sanitizer.sanitizeString(args.input.facebook);
+                }
+                if (args.input.linkedin !== undefined) {
+                    profile.linkedin = Sanitizer.sanitizeString(args.input.linkedin);
+                }
+                if (args.input.about !== undefined) {
+                    profile.about = Sanitizer.sanitizeString(args.input.about);
+                }
+
+                let editorial = (await FDB.OrganizationEditorial.findById(oid))!;
+
+                if (args.input.alphaPublished !== undefined) {
+                    editorial.listed = Sanitizer.sanitizeAny(args.input.alphaPublished) ? true : false;
+                }
+
+                if (args.input.alphaEditorial !== undefined) {
+                    existing.editorial = Sanitizer.sanitizeAny(args.input.alphaEditorial) ? true : false;
+                }
+
+                if (args.input.alphaFeatured !== undefined) {
+                    editorial.featured = Sanitizer.sanitizeAny(args.input.alphaFeatured) || false;
+                }
+
+                return existing;
+            });
+        }),
+    }
 };

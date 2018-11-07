@@ -1,11 +1,16 @@
 import { OrganizationRepository } from './repositories/OrganizationRepository';
 import { FDB } from 'openland-module-db/FDB';
+import { OrganizatinProfileInput } from './OrganizationProfileInput';
 
 export class OrgsModule {
     private readonly repo = new OrganizationRepository(FDB);
 
     start = () => {
         // Nothing to do
+    }
+
+    async createOrganization(uid: number, input: OrganizatinProfileInput) {
+        return this.repo.createOrganization(uid, input);
     }
 
     async findOrganizationMembers(organizationId: number) {
