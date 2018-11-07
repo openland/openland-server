@@ -344,8 +344,6 @@ extend type Subscription {
     alphaChatSubscribe(conversationId: ID!, fromSeq: Int): ConversationEvent!
     alphaNotificationCounterSubscribe: NotificationCounter!
 
-    alphaSubscribeTypings: TypingEvent!
-    alphaSubscribeChatTypings(conversationId: ID!): TypingEvent!
     alphaSubscribeChatOnline(conversations: [ID!]!): OnlineEvent!
     alphaSubscribeOnline(users: [ID!]! @userID): OnlineEvent!
 }
