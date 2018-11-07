@@ -13,7 +13,8 @@ export class PushModule {
     readonly worker = createPushWorker(this.repository);
 
     start = () => {
-        // Nothing to do
+        // Load config
+        require('./PushConfig');
     }
 
     async registerPushApple(uid: number, tid: string, token: string, bundleId: string, sandbox: boolean) {

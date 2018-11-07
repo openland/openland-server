@@ -1,15 +1,15 @@
-import { CallContext } from './utils/CallContext';
-import { AppConfiuguration } from '../init/initConfig';
 import { Modules } from 'openland-modules/Modules';
 import { withLogContext } from 'openland-log/withLogContext';
 import { createLogger } from 'openland-log/createLogger';
+import { CallContext } from 'openland-server/api/utils/CallContext';
+import { PushConfig } from './PushConfig';
 
 const pushLog = createLogger('push');
 
-export const Resolvers = {
+export default {
     Query: {
         pushSettings: () => ({
-            webPushKey: AppConfiuguration.webPush && AppConfiuguration.webPush.public
+            webPushKey: PushConfig.webPush && PushConfig.webPush.public
         })
     },
     Mutation: {

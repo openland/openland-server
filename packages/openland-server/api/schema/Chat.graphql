@@ -262,9 +262,6 @@ type GroupChatUpdateResponse {
 
     chatEventMessage: ConversationEventMessage
     chatEvent: ConversationEvent
-
-    userEventMessage: UserEventMessage
-    userEvent: UserEvent
 }
 
 type ConversationUpdateResponse {

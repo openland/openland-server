@@ -1,9 +1,9 @@
-extends type Query {
+extend type Query {
     conversationDraft(conversationId: ID!): String
     alphaDraftMessage(conversationId: ID!): String
 }
 
-extends type Mutation {
+extend type Mutation {
     conversationDraftUpdate(conversationId: ID!, message: String): String!
     alphaSaveDraftMessage(conversationId: ID!, message: String): String!
 }
