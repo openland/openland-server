@@ -1,4 +1,5 @@
 type Query {
+    lifecheck: String
     alphaInvites: [Invite!]
     alphaInviteInfo(key: String!): InviteInfo
     appInvite: String!

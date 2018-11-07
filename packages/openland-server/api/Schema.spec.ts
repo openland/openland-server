@@ -1,7 +1,6 @@
 import { makeExecutableSchema } from 'graphql-tools';
 import { merge } from 'lodash';
 import * as Basics from './_Basics';
-import * as Account from './Account';
 import * as Organization from './Organization';
 import * as Chat from './Chat';
 import * as Channels from './Channels';
@@ -18,7 +17,6 @@ describe('GQLSchema', () => {
             typeDefs: injectIDScalars(schema),
             resolvers: merge(
                 Basics.Resolvers,
-                Account.Resolver,
                 Organization.Resolver,
                 Chat.Resolver,
                 Channels.Resolver,

@@ -1,9 +1,8 @@
 type Mutation {    
+    lifecheck: String
+
     alphaCreateInvite: Invite!
     alphaDeleteInvite(id: ID!): String!
     alphaJoinInvite(key: String!): ID!
     joinAppInvite(key: String!): ID!
-    alphaJoinGlobalInvite(key: String!): ID! @deprecated(reason: "renamed to 'joinAppInvite'")
-
-    alphaCreateUserProfileAndOrganization(user: CreateProfileInput!, organization: CreateOrganizationInput!): AlphaSignupData!
 }

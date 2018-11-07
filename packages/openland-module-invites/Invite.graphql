@@ -29,17 +29,8 @@ type AppInviteInfo {
     inviter: User!
 }
 
-type InviteHistotyInfo{
+type InviteHistotyInfo {
     acceptedBy: User
     forEmail: String!
     isGlobal: Boolean!
-}
-
-#
-# Signup
-#
-
-type AlphaSignupData {
-    organization: OrganizationProfile!
-    user: Profile!
 }
