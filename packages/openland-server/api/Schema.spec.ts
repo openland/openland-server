@@ -5,7 +5,7 @@ import * as Account from './Account';
 import * as Organization from './Organization';
 import * as Chat from './Chat';
 import * as Channels from './Channels';
-import { Directives, IDScalars } from './directives';
+import { Directives, IDScalars, injectIDScalars } from './directives';
 import { buildSchema } from '../../openland-graphql/buildSchema';
 import { buildResolvers } from '../../openland-graphql/buildResolvers';
 
@@ -15,7 +15,7 @@ let resolvers = buildResolvers(__dirname + '/../../');
 describe('GQLSchema', () => {
     it('should be valid', () => {
         makeExecutableSchema({
-            typeDefs: schema,
+            typeDefs: injectIDScalars(schema),
             resolvers: merge(
                 Basics.Resolvers,
                 Account.Resolver,

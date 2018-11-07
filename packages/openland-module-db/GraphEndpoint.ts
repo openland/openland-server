@@ -119,7 +119,7 @@ for (let e of AllEntities.schema) {
     }
     let obj = new GraphQLObjectType({
         name: e.name,
-        fields: { ...fields, rawValue: { type: GraphQLString } }
+        fields: { ...fields, rawValue: { type: GraphQLString, resolve: entity => JSON.stringify(entity._value) } }
     });
     entitiesMap[e.name] = obj;
 
