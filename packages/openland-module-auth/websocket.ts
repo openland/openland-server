@@ -1,4 +1,3 @@
-import { Repos } from '../openland-server/repositories';
 import { IDs } from '../openland-server/api/utils/IDs';
 import { CallContext } from '../openland-server/api/utils/CallContext';
 import { Modules } from 'openland-modules/Modules';
@@ -14,7 +13,7 @@ export async function fetchWebSocketParameters(args: any, websocket: any) {
         if (uid !== null) {
             res.uid = uid.uid;
             res.tid = uid.uuid;
-            let accounts = await Repos.Users.fetchUserAccounts(res.uid);
+            let accounts = await Modules.Orgs.findUserOrganizations(res.uid);
             if (accounts.length === 1) {
                 res.oid = accounts[0];
             }

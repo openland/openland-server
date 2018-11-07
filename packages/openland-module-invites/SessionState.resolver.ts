@@ -1,5 +1,4 @@
 import { CallContext } from '../openland-server/api/utils/CallContext';
-import { Repos } from '../openland-server/repositories';
 import { Modules } from 'openland-modules/Modules';
 import { FDB } from 'openland-module-db/FDB';
 
@@ -48,7 +47,7 @@ export default {
             // Stage 2: Pick organization or create a new one (if there are no exists)
             let organization = !!context.oid ? await FDB.Organization.findById(context.oid) : null;
             let isOrganizationPicked = organization !== null;
-            let orgsIDs = await Repos.Users.fetchUserAccounts(context.uid);
+            let orgsIDs = context.uid ? await Modules.Orgs.findUserOrganizations(context.uid) : [];
             let isOrganizationExists = orgsIDs.length > 0;
 
             // Stage 3: Activation Status

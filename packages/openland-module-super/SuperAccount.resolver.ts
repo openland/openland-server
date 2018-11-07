@@ -12,13 +12,13 @@ export default {
         SUSPENDED: 'suspended'
     },
     SuperAccount: {
-        id: (src: Organization) => IDs.SuperAccount.serialize(src.id!!),
-        orgId: (src: Organization) => IDs.Organization.serialize(src.id!!),
+        id: (src: Organization) => IDs.SuperAccount.serialize(src.id),
+        orgId: (src: Organization) => IDs.Organization.serialize(src.id),
         title: async (src: Organization) => (await FDB.OrganizationProfile.findById(src.id))!.name,
         name: async (src: Organization) => (await FDB.OrganizationProfile.findById(src.id))!.name,
         state: (src: Organization) => src.status,
-        members: (src: Organization) => Repos.Users.fetchOrganizationMembers(src.id!!),
-        features: async (src: Organization) => (await Modules.Features.repo.findOrganizationFeatureFlags(src.id!!)),
+        members: (src: Organization) => Modules.Orgs.findOrganizationMembers(src.id),
+        features: async (src: Organization) => (await Modules.Features.repo.findOrganizationFeatureFlags(src.id)),
         alphaPublished: async (src: Organization) => (await FDB.OrganizationEditorial.findById(src.id))!.listed,
         createdAt: (src: Organization) => (src as any).createdAt,
         createdBy: async (src: Organization) => await FDB.User.findById(src.ownerId),

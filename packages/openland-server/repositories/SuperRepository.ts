@@ -1,4 +1,3 @@
-import { Repos } from '.';
 import { NotFoundError } from '../errors/NotFoundError';
 import { UserError } from '../errors/UserError';
 import { ErrorText } from '../errors/ErrorText';
@@ -103,7 +102,7 @@ export class SuperRepository {
                 }
 
                 let profile = await Modules.Users.profileById(uid);
-                profile!.primaryOrganization = (await Repos.Users.fetchUserAccounts(uid))[0];
+                profile!.primaryOrganization = (await Modules.Orgs.findUserOrganizations(uid))[0];
             }
 
         });

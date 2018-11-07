@@ -172,7 +172,7 @@ export default {
                     // pick new primary organization
 
                     let user = (await Modules.Users.profileById(memberId))!;
-                    user.primaryOrganization = (await Repos.Users.fetchUserAccounts(uid))[0];
+                    user.primaryOrganization = (await Modules.Orgs.findUserOrganizations(uid))[0];
                 }
 
                 return 'ok';

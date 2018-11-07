@@ -3,7 +3,6 @@ import { User, UserProfile } from 'openland-module-db/schema';
 import { Modules } from 'openland-modules/Modules';
 import { CallContext } from 'openland-server/api/utils/CallContext';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
-import { Repos } from 'openland-server/repositories';
 import { FDB } from 'openland-module-db/FDB';
 import { IDs } from 'openland-server/api/utils/IDs';
 import { withAny } from 'openland-server/api/utils/Resolvers';
@@ -35,6 +34,11 @@ function userLoader(context: CallContext) {
     return loader;
 }
 
+async function loadPrimatyOrganization(profile: UserProfile | null, src: User) {
+    let orgId = (profile && profile.primaryOrganization) || (await Modules.Orgs.findUserOrganizations(src.id))[0];
+    return orgId ? FDB.Organization.findById(orgId) : undefined;
+}
+
 function withProfile(handler: (user: User, profile: UserProfile | null, context: CallContext) => any) {
     return async (src: User, _params: {}, context: CallContext) => {
         let loader = userLoader(context);
@@ -63,9 +67,9 @@ export default {
         twitter: withProfile((src, profile) => profile && profile.twitter),
         location: withProfile((src, profile) => profile ? profile.location : null),
 
-        primaryOrganization: withProfile(async (src, profile) => Repos.Users.loadPrimatyOrganization(profile, src)),
+        primaryOrganization: withProfile(async (src, profile) => loadPrimatyOrganization(profile, src)),
 
-        organizations: async (src: User) => (await Repos.Users.fetchUserAccounts(src.id!)).map(async oid => await FDB.Organization.findById(oid)),
+        organizations: async (src: User) => (await Modules.Orgs.findUserOrganizations(src.id!)).map(async oid => await FDB.Organization.findById(oid)),
         online: async (src: User) => await Modules.Presence.getLastSeen(src.id) === 'online',
         lastSeen: async (src: User) => Modules.Presence.getLastSeen(src.id), // await Repos.Users.getUserLastSeen(src.id!),
 
@@ -84,7 +88,7 @@ export default {
         alphaLinkedin: withProfile((src, profile) => profile && profile.linkedin),
         alphaTwitter: withProfile((src, profile) => profile && profile.twitter),
 
-        alphaPrimaryOrganization: withProfile(async (src, profile) => Repos.Users.loadPrimatyOrganization(profile, src)),
+        alphaPrimaryOrganization: withProfile(async (src, profile) => loadPrimatyOrganization(profile, src)),
         channelsJoined: async (src: User) => {
             return [];
         },

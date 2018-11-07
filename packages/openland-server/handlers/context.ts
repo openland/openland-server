@@ -1,6 +1,5 @@
 import * as express from 'express';
 import { CallContext } from '../api/utils/CallContext';
-import { Repos } from '../repositories';
 import { Modules } from 'openland-modules/Modules';
 import { withTracingSpan } from 'openland-log/withTracing';
 import { createTracer } from 'openland-log/createTracer';
@@ -27,7 +26,7 @@ async function context(src: express.Request): Promise<CallContext> {
     // Loading Organization
     //
     if (res.uid) {
-        let accounts = await Repos.Users.fetchUserAccounts(res.uid);
+        let accounts = await Modules.Orgs.findUserOrganizations(res.uid);
 
         // Default behaviour: pick the default one
         if (accounts.length >= 1) {

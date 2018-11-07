@@ -64,7 +64,7 @@ export default {
         alphaOrganizationMembers: withAccount<{ orgId: string }>(async (args, uid, orgId) => {
             let targetOrgId = IDs.Organization.parse(args.orgId);
 
-            let isMember = Repos.Users.isMemberOfOrganization(uid, targetOrgId);
+            let isMember = await Modules.Orgs.isUserMember(uid, targetOrgId);
 
             if (!isMember) {
                 throw new AccessDeniedError(ErrorText.permissionDenied);
@@ -72,9 +72,9 @@ export default {
 
             let result: any[] = [];
 
-            result.push(... await Repos.Organizations.getOrganizationJoinedMembers(orgId));
+            result.push(... await Repos.Organizations.getOrganizationJoinedMembers(targetOrgId));
 
-            let invites = await Modules.Invites.repo.getOrganizationInvitesForOrganization(orgId);
+            let invites = await Modules.Invites.repo.getOrganizationInvitesForOrganization(targetOrgId);
 
             for (let invite of invites) {
                 result.push({

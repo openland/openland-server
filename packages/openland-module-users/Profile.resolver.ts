@@ -25,16 +25,22 @@ export default {
         location: (src: UserProfile) => src.location,
         linkedin: (src: UserProfile) => src.linkedin,
         twitter: (src: UserProfile) => src.twitter,
-        primaryOrganization: async (src: UserProfile) => await FDB.Organization.findById(src.primaryOrganization || (await Repos.Users.fetchUserAccounts(src.id))[0]),
+        primaryOrganization: async (src: UserProfile) => await FDB.Organization.findById(src.primaryOrganization || (await Modules.Orgs.findUserOrganizations(src.id))[0]),
 
         alphaRole: (src: UserProfile) => src.role,
         alphaLocations: (src: UserProfile) => src.locations,
         alphaLinkedin: (src: UserProfile) => src.linkedin,
         alphaTwitter: (src: UserProfile) => src.twitter,
         alphaPrimaryOrganizationId: (src: UserProfile) => src.primaryOrganization ? IDs.Organization.serialize(src.primaryOrganization) : null,
-        alphaPrimaryOrganization: async (src: UserProfile) => await FDB.Organization.findById(src.primaryOrganization || (await Repos.Users.fetchUserAccounts(src.id))[0]),
+        alphaPrimaryOrganization: async (src: UserProfile) => await FDB.Organization.findById(src.primaryOrganization || (await Modules.Orgs.findUserOrganizations(src.id))[0]),
         alphaJoinedAt: (src: UserProfile) => src.createdAt,
-        alphaInvitedBy: async (src: UserProfile) => await Repos.Users.getUserInvitedBy(src.id),
+        alphaInvitedBy: async (src: UserProfile) => {
+            let user = await FDB.User.findById(src.id);
+            if (user && user.invitedBy) {
+                return await FDB.User.findById(user.invitedBy);
+            }
+            return null;
+        },
     },
     Query: {
         myProfile: async function (_obj: any, _params: {}, context: CallContext) {
