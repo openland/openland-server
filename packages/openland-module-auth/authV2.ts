@@ -130,7 +130,7 @@ export const Authenticator = async function (req: express.Request, response: exp
 
         response.json({ ok: true, token: token.salt });
     } catch (e) {
-        console.warn(e);
+        console.warn('authenticator_error', e);
         response.status(500).send({ error: 'Internal server error' });
     }
 };
