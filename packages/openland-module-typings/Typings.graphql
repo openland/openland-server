@@ -13,6 +13,7 @@ enum TypingType {
 
 extend type Mutation {
     typingSend(conversationId: ID!, type: TypingType!): String!
+    typingCancel(conversationId: ID! @chatID): String!
 
     # Deprecated
     alphaSetTyping(conversationId: ID!, type: String): String!

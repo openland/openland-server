@@ -23,6 +23,11 @@ export default {
             await Modules.Typings.setTyping(uid, conversationId, args.type || 'text');
             return 'ok';
         }),
+        typingCancel: withUser<{ conversationId: number }>(async (args, uid) => {
+            let members = await Modules.Messaging.conv.findConversationMembers(args.conversationId);
+            await Modules.Typings.cancelTyping(uid, args.conversationId, members);
+            return 'ok';
+        }),
     },
     Subscription: {
         typings: {
