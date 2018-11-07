@@ -4,7 +4,7 @@ import { FConnection } from './FConnection';
 import { FEntity } from './FEntity';
 import { Transaction } from 'foundationdb';
 import { SafeContext } from 'openland-utils/SafeContext';
-import { currentTime } from 'openland-server/utils/timer';
+import { currentTime } from 'openland-utils/timer';
 import { createLogger } from 'openland-log/createLogger';
 import { RangeOptions } from 'foundationdb/dist/lib/transaction';
 import { NativeValue } from 'foundationdb/dist/lib/native';

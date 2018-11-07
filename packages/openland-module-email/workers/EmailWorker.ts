@@ -1,8 +1,9 @@
 import SendGrid from '@sendgrid/mail';
-import { SENDGRID_KEY } from 'openland-server/utils/keys';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
+
+export const SENDGRID_KEY = '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';
 
 let devTeamEmails = [
     'korshakov.stepan@gmail.com',

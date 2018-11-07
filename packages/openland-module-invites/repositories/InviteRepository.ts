@@ -1,6 +1,6 @@
 import { AllEntities, OrganizationInviteLink, OrganizationPublicInviteLink } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
-import { randomGlobalInviteKey } from 'openland-server/utils/random';
+import { randomGlobalInviteKey } from 'openland-utils/random';
 
 export class InviteRepository {
     private readonly entities: AllEntities;

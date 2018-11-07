@@ -1,5 +1,5 @@
 import { AllEntities } from 'openland-module-db/schema';
-import * as base64 from '../../openland-server/utils/base64';
+import * as base64 from '../../openland-utils/base64';
 import { randomBytes } from 'crypto';
 import { inTx } from 'foundation-orm/inTx';
 

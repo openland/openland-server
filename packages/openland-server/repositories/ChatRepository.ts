@@ -1,4 +1,4 @@
-import { JsonMap } from '../utils/json';
+import { JsonMap } from '../../openland-utils/json';
 import { Repos } from './index';
 import { AccessDeniedError } from '../errors/AccessDeniedError';
 import { URLAugmentation } from '../../openland-module-messaging/workers/UrlInfoService';

@@ -1,8 +1,8 @@
-import { forever, delay } from 'openland-server/utils/timer';
+import { forever, delay } from 'openland-utils/timer';
 import { LockRepository } from 'openland-module-sync/LockRepository';
 import { FDB } from 'openland-module-db/FDB';
 import { inTx } from 'foundation-orm/inTx';
-import { exponentialBackoffDelay } from 'openland-server/utils/exponentialBackoffDelay';
+import { exponentialBackoffDelay } from 'openland-utils/exponentialBackoffDelay';
 import { withLogContext } from 'openland-log/withLogContext';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 

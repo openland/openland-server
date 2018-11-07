@@ -15,7 +15,7 @@ import { AllEntities } from './schema';
 import { FDB } from './FDB';
 import { FEntitySchema, FEntitySchemaIndex } from 'foundation-orm/FEntitySchema';
 import { inTx } from 'foundation-orm/inTx';
-import { delay } from 'openland-server/utils/timer';
+import { delay } from 'openland-utils/timer';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { IdsFactory } from 'openland-server/api/utils/IDs';
 

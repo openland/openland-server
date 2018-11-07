@@ -7,7 +7,7 @@ import { GraphQLField, GraphQLFieldResolver } from 'graphql';
 import { wrapAllResolvers } from './utils/Resolvers';
 import { withLogContext } from '../../openland-log/withLogContext';
 import { trace } from 'openland-log/trace';
-import { gqlTracer } from 'openland-server/utils/gqlTracer';
+import { gqlTracer } from 'openland-graphql/gqlTracer';
 import { buildSchema } from 'openland-graphql/buildSchema';
 import { buildResolvers } from 'openland-graphql/buildResolvers';
 import { withTracingSpan } from 'openland-log/withTracing';
