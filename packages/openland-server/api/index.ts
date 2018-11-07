@@ -1,6 +1,5 @@
 import { merge } from 'lodash';
 import { makeExecutableSchema } from 'graphql-tools';
-import * as User from './User';
 import * as Basics from './_Basics';
 import * as Account from './Account';
 import * as Organization from './Organization';
@@ -26,7 +25,6 @@ export const Schema = wrapAllResolvers(
         resolvers: merge(
             Basics.Resolvers,
             Account.Resolver,
-            User.Resolver,
             Organization.Resolver,
             Chat.Resolver,
             Channels.Resolver,
