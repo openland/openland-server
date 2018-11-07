@@ -59,6 +59,7 @@ export class PermissionRepository {
             }
         }
 
+
         return permissions;
     }
 
