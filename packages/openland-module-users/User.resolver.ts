@@ -6,6 +6,7 @@ import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { Repos } from 'openland-server/repositories';
 import { FDB } from 'openland-module-db/FDB';
 import { IDs } from 'openland-server/api/utils/IDs';
+import { withAny } from 'openland-server/api/utils/Resolvers';
 
 function userLoader(context: CallContext) {
     if (!context.cache.has('__profile_loader')) {
@@ -102,5 +103,8 @@ export default {
                 return FDB.User.findById(context.uid);
             }
         },
+        user: withAny<{ id: string }>((args) => {
+            return FDB.User.findById(IDs.User.parse(args.id));
+        }),
     }
 };
