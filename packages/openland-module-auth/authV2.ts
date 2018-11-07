@@ -105,6 +105,7 @@ export const Authenticator = async function (req: express.Request, response: exp
                 let c = (await FDB.Sequence.findById('user-id'))!;
                 let id = ++c.value;
                 user = (await FDB.User.create(id, { authId: userKey, email: profile.email.toLowerCase(), isBot: false, status: 'pending' }));
+                await user.flush();
                 isNewAccount = true;
             }
 
