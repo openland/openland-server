@@ -87,7 +87,7 @@ export class UserRepository {
 
     async saveProfilePrefill(uid: number, prefill: { firstName?: string, lastName?: string, picture?: string }) {
         await inTx(async () => {
-            let existing = this.entities.UserProfilePrefil.findById(uid);
+            let existing = await this.entities.UserProfilePrefil.findById(uid);
             if (!existing) {
                 await this.entities.UserProfilePrefil.create(uid, {
                     firstName: prefill.firstName,

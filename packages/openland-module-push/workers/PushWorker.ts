@@ -1,11 +1,11 @@
 import { IDs } from 'openland-server/api/utils/IDs';
-import { Texts } from 'openland-server/texts';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { PushRepository } from 'openland-module-push/repositories/PushRepository';
 import { Modules } from 'openland-modules/Modules';
 import { withTracing } from 'openland-log/withTracing';
 import { createTracer } from 'openland-log/createTracer';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
+import { Texts } from '../../openland-module-messaging/texts';
 
 export function doSimpleHash(key: string): number {
     var h = 0, l = key.length, i = 0;
