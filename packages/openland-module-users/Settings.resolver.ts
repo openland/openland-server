@@ -63,10 +63,55 @@ export default {
                 }
                 return settings;
             });
+        }),
+        settingsUpdate: withUser<{ settings: { emailFrequency?: string | null, desktopNotifications?: string | null, mobileNotifications?: string | null, mobileAlert?: boolean | null, mobileIncludeText?: boolean | null, notificationsDelay?: boolean | null } }>(async (args, uid) => {
+            return await inTx(async () => {
+                let settings = await Modules.Users.getUserSettings(uid);
+                if (args.settings.emailFrequency) {
+                    settings.emailFrequency = args.settings.emailFrequency as any;
+                }
+                if (args.settings.desktopNotifications) {
+                    settings.desktopNotifications = args.settings.desktopNotifications as any;
+                }
+                if (args.settings.mobileNotifications) {
+                    settings.mobileNotifications = args.settings.mobileNotifications as any;
+                }
+                if (args.settings.mobileAlert !== null) {
+                    settings.mobileAlert = args.settings.mobileAlert as any;
+                }
+                if (args.settings.mobileIncludeText !== null) {
+                    settings.mobileIncludeText = args.settings.mobileIncludeText as any;
+                }
+                if (args.settings.notificationsDelay !== null) {
+                    settings.notificationsDelay = args.settings.notificationsDelay as any;
+                }
+                return settings;
+            });
         })
     },
     Subscription: {
         watchSettings: {
+            resolve: async (msg: any) => {
+                return msg;
+            },
+            subscribe: async function (_: any, args: any, context: CallContext) {
+                let ended = false;
+                return {
+                    ...(async function* func() {
+                        while (!ended) {
+                            let settings = await Modules.Users.getUserSettings(context.uid!!);
+                            yield settings;
+                            await Modules.Users.waitForNextSettings(context.uid!);
+                        }
+                    })(),
+                    return: async () => {
+                        ended = true;
+                        return 'ok';
+                    }
+                };
+            }
+        },
+        settingsWatch: {
             resolve: async (msg: any) => {
                 return msg;
             },

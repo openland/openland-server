@@ -51,7 +51,10 @@ extend type Query {
 }
 
 extend type Mutation {
-    # TODO: Rename
+    profileCreate(input: CreateProfileInput!): Profile!
+    profileUpdate(input: UpdateProfileInput!, uid: ID): Profile!
+
+    # Deprecated
     createProfile(input: CreateProfileInput!): Profile!
     updateProfile(input: UpdateProfileInput!, uid: ID): Profile!
 }
