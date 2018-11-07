@@ -33,7 +33,7 @@ export class OpenSpan implements SSpan {
 }
 
 export class OpenTracer implements STracer {
-    private readonly tracer: any;
+    readonly tracer: any;
 
     constructor(src: any) {
         this.tracer = src;

@@ -2,9 +2,9 @@ import { Repos } from '../openland-server/repositories';
 import { IDs } from '../openland-server/api/utils/IDs';
 import { CallContext } from '../openland-server/api/utils/CallContext';
 import { Modules } from 'openland-modules/Modules';
-import { createTracer } from 'openland-log/createTracer';
+// import { createTracer } from 'openland-log/createTracer';
 
-const tracer = createTracer('ws');
+// const tracer = createTracer('ws');
 
 export async function fetchWebSocketParameters(args: any, websocket: any) {
     let res: any = {};
@@ -57,6 +57,6 @@ export function buildWebSocketContext(args: any) {
     if (args.oid) {
         res.oid = args.oid;
     }
-    res.span = tracer.startSpan('op');
+    // res.span = tracer.startSpan('op');
     return res;
 }
