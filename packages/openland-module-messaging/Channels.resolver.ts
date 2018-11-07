@@ -12,7 +12,7 @@ import { inTx } from 'foundation-orm/inTx';
 import { ChannelInvitation, ChannelLink, RoomParticipant, Conversation } from 'openland-module-db/schema';
 import { FDB } from 'openland-module-db/FDB';
 import { buildBaseImageUrl, ImageRef } from 'openland-module-media/ImageRef';
-import { Emails } from '../services/Emails';
+import { Emails } from '../openland-server/services/Emails';
 
 interface AlphaChannelsParams {
     orgId: string;
