@@ -101,11 +101,10 @@ export const Authenticator = async function (req: express.Request, response: exp
 
             // Account
             let user = (await FDB.User.findAll()).find((v) => v.email === profile.email.toLowerCase() || v.authId === userKey);
-            if (user === null) {
+            if (!user) {
                 let c = (await FDB.Sequence.findById('user-id'))!;
                 let id = ++c.value;
                 user = (await FDB.User.create(id, { authId: userKey, email: profile.email.toLowerCase(), isBot: false, status: 'pending' }));
-                await user.flush();
                 isNewAccount = true;
             }
 
