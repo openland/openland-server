@@ -810,12 +810,6 @@ export const Resolver = {
             let messageId = IDs.ConversationMessage.parse(args.messageId);
             return await Repos.Chats.deleteMessage(messageId, uid);
         }),
-        alphaSetTyping: withUser<{ conversationId: string, type: string }>(async (args, uid) => {
-            await validate({ type: optional(enumString(['text', 'photo'])) }, args);
-            let conversationId = IDs.Conversation.parse(args.conversationId);
-            await Modules.Typings.setTyping(uid, conversationId, args.type || 'text');
-            return 'ok';
-        }),
 
         //
         // Group Management
@@ -944,32 +938,6 @@ export const Resolver = {
         }),
     },
     Subscription: {
-        alphaSubscribeTypings: {
-            resolve: async (msg: any) => {
-                return msg;
-            },
-            subscribe: async function (_: any, args: any, context: CallContext) {
-                if (!context.uid) {
-                    throw Error('Not logged in');
-                }
-
-                return Modules.Typings.createTypingStream(context.uid);
-            }
-        },
-        alphaSubscribeChatTypings: {
-            resolve: async (msg: any) => {
-                return msg;
-            },
-            subscribe: async function (_: any, args: { conversationId: string }, context: CallContext) {
-                let conversationId = IDs.Conversation.parse(args.conversationId);
-
-                if (!context.uid) {
-                    throw Error('Not logged in');
-                }
-
-                return Modules.Typings.createTypingStream(context.uid, conversationId);
-            }
-        },
         alphaSubscribeChatOnline: {
             resolve: async (msg: any) => {
                 return msg;

@@ -1,0 +1,28 @@
+type TypingEvent {
+    conversation: Conversation!
+    user: User!
+    type: TypingType!
+    cancel: Boolean!
+}
+
+enum TypingType {
+    TEXT,
+    PHOTO,
+    FILE
+}
+
+extend type Mutation {
+    typingSend(conversationId: ID!, type: TypingType!): String!
+
+    # Deprecated
+    alphaSetTyping(conversationId: ID!, type: String): String!
+}
+
+extend type Subscription {
+    typings: TypingEvent!
+    conversationTypings: TypingEvent!
+
+    # Deprecated
+    alphaSubscribeTypings: TypingEvent!
+    alphaSubscribeChatTypings(conversationId: ID!): TypingEvent!
+}
