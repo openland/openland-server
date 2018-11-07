@@ -13,6 +13,7 @@ const TEMPLATE_MEMBERSHIP_LEVEL_CHANGED = '58c94c0c-a033-4406-935f-43fc5265e399'
 const TEMPLATE_INVITE = '024815a8-5602-4412-83f4-4be505c2026a';
 const TEMPLATE_MEMBER_JOINED = 'c76321cb-5560-4311-bdbf-e0fe337fa2cf';
 const TEMPLATE_UNREAD_MESSAGES = '02787351-db1c-49b5-afbf-3d63a3b7fd76';
+const TEMPLATE_UNREAD_MESSAGE = 'd3c583e1-9418-48ba-b719-4230e1e1d43d';
 const TEMPLATE_SIGNUP_CODE = '69496416-42cc-441d-912f-a918b968e34a';
 
 const loadUserState = async (uid: number) => {
@@ -57,11 +58,11 @@ export const Emails = {
     async sendUnreadMesages(uid: number, count: number) {
         let user = await loadUserState(uid);
         await Modules.Email.Worker.pushWork({
-            subject: 'You’ve got new messages\n',
-            templateId: TEMPLATE_UNREAD_MESSAGES,
+            subject: count === 1 ? 'You’ve got a new message' : 'You’ve got new messages',
+            templateId: count === 1 ? TEMPLATE_UNREAD_MESSAGE : TEMPLATE_UNREAD_MESSAGES,
             to: user.email,
             args: {
-                messageCount: `${count} new message${count > 1 ? 's' : ''}`,
+                messageCount: `${count}`,
                 ...user.args
             }
         });
