@@ -1,7 +1,3 @@
-#
-# Super Accounting
-#
-
 enum SuperAccountState {
     PENDING,
     ACTIVATED,
@@ -37,29 +33,4 @@ extend type Mutation {
     superAccountMemberRemove(id: ID!, userId: ID!): SuperAccount!
 
     superAccountChannelMemberAdd(id: ID!, userId: ID!): String!
-}
-
-#
-# Super Admins
-#
-
-enum SuperAdminRole {
-    SUPER_ADMIN,
-    SOFTWARE_DEVELOPER,
-    EDITOR
-}
-
-type SuperAdmin {
-    user: User!
-    role: SuperAdminRole!
-    email: String
-}
-
-extend type Mutation {
-    superAdminAdd(userId: ID!, role: SuperAdminRole!): String!
-    superAdminRemove(userId: ID!): String!
-}
-
-extend type Query {
-    superAdmins: [SuperAdmin!]!
 }

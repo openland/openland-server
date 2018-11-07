@@ -3,9 +3,8 @@ type Permissions {
 }
 
 extend type Query {
-    myPermissions: Permissions!
-    
-    # Deprecated
-    
     permissions: Permissions!
+
+    # Deprecated
+    users(query:String!): [User!]!
 }

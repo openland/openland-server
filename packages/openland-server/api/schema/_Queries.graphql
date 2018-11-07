@@ -8,7 +8,5 @@ type Query {
     alphaAppInviteInfo(key: String!): AppInviteInfo @deprecated(reason: "renamed to 'appInviteInfo'")
     alphaInvitesHistory: [InviteHistotyInfo!]
 
-    users(query:String!): [User!]!
-
     user(id: ID!): User!
 }

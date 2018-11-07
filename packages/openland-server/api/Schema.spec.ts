@@ -3,7 +3,6 @@ import { merge } from 'lodash';
 import * as Basics from './_Basics';
 import * as Account from './Account';
 import * as User from './User';
-import * as Permissions from './Permissions';
 import * as Organization from './Organization';
 import * as Chat from './Chat';
 import * as Channels from './Channels';
@@ -22,7 +21,6 @@ describe('GQLSchema', () => {
                 Basics.Resolvers,
                 Account.Resolver,
                 User.Resolver,
-                Permissions.Resolvers,
                 Organization.Resolver,
                 Chat.Resolver,
                 Channels.Resolver,

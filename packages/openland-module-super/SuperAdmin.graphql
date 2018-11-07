@@ -1,0 +1,20 @@
+enum SuperAdminRole {
+    SUPER_ADMIN,
+    SOFTWARE_DEVELOPER,
+    EDITOR
+}
+
+type SuperAdmin {
+    user: User!
+    role: SuperAdminRole!
+    email: String
+}
+
+extend type Mutation {
+    superAdminAdd(userId: ID!, role: SuperAdminRole!): String!
+    superAdminRemove(userId: ID!): String!
+}
+
+extend type Query {
+    superAdmins: [SuperAdmin!]!
+}

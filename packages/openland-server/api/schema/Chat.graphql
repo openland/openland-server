@@ -341,9 +341,6 @@ extend type Mutation {
 }
 
 extend type Subscription {
-    alphaChatSubscribe(conversationId: ID!, fromSeq: Int): ConversationEvent!
-    alphaNotificationCounterSubscribe: NotificationCounter!
-
     alphaSubscribeChatOnline(conversations: [ID!]!): OnlineEvent!
     alphaSubscribeOnline(users: [ID!]! @userID): OnlineEvent!
 }
