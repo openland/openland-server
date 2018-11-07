@@ -8,7 +8,6 @@ import * as Debug from './Debug';
 import * as Organization from './Organization';
 import * as Chat from './Chat';
 import * as Channels from './Channels';
-import * as Developer from './Developer';
 
 import { Directives, IDScalars } from './directives';
 import { GraphQLField, GraphQLFieldResolver } from 'graphql';
@@ -36,7 +35,6 @@ export const Schema = wrapAllResolvers(
             Chat.Resolver,
             Channels.Resolver,
             IDScalars,
-            Developer.Resolver,
             ...resolvers
         ),
         schemaDirectives: Directives

@@ -9,7 +9,6 @@ import * as Organization from './Organization';
 import * as Chat from './Chat';
 import * as Channels from './Channels';
 import { Directives, IDScalars } from './directives';
-import * as Developer from './Developer';
 import { buildSchema } from '../../openland-graphql/buildSchema';
 import { buildResolvers } from '../../openland-graphql/buildResolvers';
 
