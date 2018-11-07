@@ -5,7 +5,7 @@ import { CallContext } from 'openland-server/api/utils/CallContext';
 
 export default {
     Query: {
-        permissions: async function (_: any, _params: {}, context: CallContext) {
+        myPermissions: async function (_: any, _params: {}, context: CallContext) {
             return {
                 roles: Repos.Permissions.resolvePermissions({ uid: context.uid, oid: context.oid })
             };
