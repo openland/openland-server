@@ -6,13 +6,12 @@ import { QueryParser } from '../modules/QueryParser';
 import { defined, emailValidator, stringNotEmpty, validate } from '../modules/NewInputValidator';
 import { ErrorText } from '../errors/ErrorText';
 import { NotFoundError } from '../errors/NotFoundError';
-import { buildBaseImageUrl, ImageRef } from '../repositories/Media';
 import { Sanitizer } from '../modules/Sanitizer';
-import { Services } from '../services';
 import { Modules } from 'openland-modules/Modules';
 import { inTx } from 'foundation-orm/inTx';
 import { ChannelInvitation, ChannelLink, RoomParticipant, Conversation } from 'openland-module-db/schema';
 import { FDB } from 'openland-module-db/FDB';
+import { buildBaseImageUrl, ImageRef } from 'openland-module-media/ImageRef';
 
 interface AlphaChannelsParams {
     orgId: string;
@@ -125,7 +124,7 @@ export const Resolver = {
             let imageRef = Sanitizer.sanitizeImageRef(args.photoRef);
 
             if (imageRef) {
-                await Services.UploadCare.saveFile(imageRef.uuid);
+                await Modules.Media.saveFile(imageRef.uuid);
             }
             return Modules.Messaging.conv.createRoom('public', oid, uid, [], {
                 title: args.title,

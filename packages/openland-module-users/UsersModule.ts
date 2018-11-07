@@ -1,10 +1,10 @@
 
 import { FDB } from 'openland-module-db/FDB';
 import { UserRepository } from './repositories/UsersRepository';
-import { ImageRef } from 'openland-server/repositories/Media';
 import { userProfileIndexer } from './workers/userProfileIndexer';
 import { UserSearch } from './search/UserSearch';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
+import { ImageRef } from 'openland-module-media/ImageRef';
 
 export class UsersModule {
 

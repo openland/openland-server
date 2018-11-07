@@ -4,7 +4,6 @@ import * as Basics from './_Basics';
 import * as Account from './Account';
 import * as User from './User';
 import * as Permissions from './Permissions';
-import * as Debug from './Debug';
 import * as Organization from './Organization';
 import * as Chat from './Chat';
 import * as Channels from './Channels';
@@ -24,12 +23,10 @@ describe('GQLSchema', () => {
                 Account.Resolver,
                 User.Resolver,
                 Permissions.Resolvers,
-                Debug.Resolver,
                 Organization.Resolver,
                 Chat.Resolver,
                 Channels.Resolver,
                 IDScalars,
-                Developer.Resolver,
                 ...resolvers
             ),
             schemaDirectives: Directives

@@ -1,7 +1,7 @@
 import { JsonMap } from '../utils/json';
 import { Repos } from './index';
 import { AccessDeniedError } from '../errors/AccessDeniedError';
-import { URLAugmentation } from '../services/UrlInfoService';
+import { URLAugmentation } from '../../openland-module-messaging/workers/UrlInfoService';
 import { Modules } from 'openland-modules/Modules';
 // import { createLogger } from 'openland-log/createLogger';
 import { withTracing } from 'openland-log/withTracing';

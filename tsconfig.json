@@ -93,6 +93,9 @@
       ],
       "openland-module-users": [
         "openland-module-users"
+      ],
+      "openland-module-media": [
+        "openland-module-media"
       ]
     }
   },

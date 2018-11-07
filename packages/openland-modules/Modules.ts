@@ -16,8 +16,10 @@ import { TypingsModule } from 'openland-module-typings/TypingsModule';
 import { OrgsModule } from 'openland-module-orgs/OrgsModule';
 import { InvitesModule } from 'openland-module-invites/InvitesModule';
 import { PubsubModule } from 'openland-module-pubsub/PubsubModule';
+import { MediaModule } from 'openland-module-media/MediaModule';
 
 class ModulesImpl {
+    readonly Media = new MediaModule();
     readonly Auth = new AuthModule();
     readonly DB = new DBModule();
     readonly Workers = new WorkerModule();
@@ -39,6 +41,7 @@ class ModulesImpl {
 
     start = async () => {
         this.DB.start();
+        this.Media.start();
         this.Workers.start();
         this.Push.start();
         this.Presence.start();

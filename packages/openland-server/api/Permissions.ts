@@ -172,15 +172,11 @@ export const Resolvers = {
             await Modules.Super.makeNormalUser(uid);
             return 'ok';
         }),
-        superMultiplyValue: withPermission<{ value: number }>(['super-admin', 'software-developer'], async (args) => {
-            return null;
-        }),
         superAccountChannelMemberAdd: withPermission<{ id: string, userId: string }>('super-admin', async (args) => {
             return await inTx(async () => {
                 await Repos.Chats.addToChannel(IDs.Conversation.parse(args.id), IDs.User.parse(args.userId));
                 return 'ok';
             });
-
         }),
     }
 };

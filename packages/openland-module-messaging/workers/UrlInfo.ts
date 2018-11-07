@@ -1,21 +1,21 @@
 import fetch from 'node-fetch';
 import cheerio from 'cheerio';
-import { ImageRef } from '../repositories/Media';
 import * as URL from 'url';
-import { Services } from '../services';
-import { UploadCareFileInfo } from '../services/UploadCare';
+import { Modules } from 'openland-modules/Modules';
+import { FileInfo } from 'openland-module-media/FileInfo';
+import { ImageRef } from 'openland-module-media/ImageRef';
 
 export interface URLInfo {
     url: string;
-    title: string|null;
-    subtitle: string|null;
-    description: string|null;
-    imageURL: string|null;
-    imageInfo: UploadCareFileInfo|null;
-    photo: ImageRef|null;
-    hostname: string|null;
-    iconRef: ImageRef|null;
-    iconInfo: UploadCareFileInfo|null;
+    title: string | null;
+    subtitle: string | null;
+    description: string | null;
+    imageURL: string | null;
+    imageInfo: FileInfo | null;
+    photo: ImageRef | null;
+    hostname: string | null;
+    iconRef: ImageRef | null;
+    iconInfo: FileInfo | null;
 }
 
 export async function fetchURLInfo(url: string): Promise<URLInfo> {
@@ -46,9 +46,9 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
     let doc = cheerio.load(text);
 
     let title =
-        getMeta(doc, 'og:title')  ||
-        getMeta(doc, 'vk:title')  ||
-        getMeta(doc, 'twitter:title')  ||
+        getMeta(doc, 'og:title') ||
+        getMeta(doc, 'vk:title') ||
+        getMeta(doc, 'twitter:title') ||
         getHTMLTitle(doc) ||
         null;
 
@@ -64,16 +64,16 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
         getMeta(doc, 'twitter:image') ||
         null;
 
-    let {hostname, protocol} = URL.parse(url);
+    let { hostname, protocol } = URL.parse(url);
 
-    let imageInfo: UploadCareFileInfo|null = null;
-    let imageRef: ImageRef|null = null;
+    let imageInfo: FileInfo | null = null;
+    let imageRef: ImageRef | null = null;
 
     if (imageURL) {
         try {
-            let {file} = await Services.UploadCare.uploadFromUrl(imageURL);
+            let { file } = await Modules.Media.uploadFromUrl(imageURL);
             imageRef = { uuid: file };
-            imageInfo = await Services.UploadCare.fetchFileInfo(file);
+            imageInfo = await Modules.Media.fetchFileInfo(file);
         } catch (e) {
             console.warn('Cant fetch image ' + imageURL);
         }
@@ -88,13 +88,13 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
         iconUrl = protocol! + '//' + hostname + iconUrl;
     }
 
-    let iconInfo: UploadCareFileInfo|null = null;
-    let iconRef: ImageRef|null = null;
+    let iconInfo: FileInfo | null = null;
+    let iconRef: ImageRef | null = null;
 
     try {
-        let {file} = await Services.UploadCare.uploadFromUrl(iconUrl);
+        let { file } = await Modules.Media.uploadFromUrl(iconUrl);
         iconRef = { uuid: file };
-        iconInfo = await Services.UploadCare.fetchFileInfo(file);
+        iconInfo = await Modules.Media.fetchFileInfo(file);
     } catch (e) {
         console.warn('Cant fetch image ' + imageURL);
     }
@@ -113,13 +113,13 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
     };
 }
 
-function getMeta(doc: CheerioStatic, metaName: string): string|null {
+function getMeta(doc: CheerioStatic, metaName: string): string | null {
     let data = doc(`meta[property="${metaName}"]`);
 
     return data[0] ? data[0].attribs.content : null;
 }
 
-function getHTMLTitle(doc: CheerioStatic): string|null {
+function getHTMLTitle(doc: CheerioStatic): string | null {
     let data = doc('title');
 
     if (
@@ -134,7 +134,7 @@ function getHTMLTitle(doc: CheerioStatic): string|null {
     return null;
 }
 
-function getLink(doc: CheerioStatic, rel: string): string|null {
+function getLink(doc: CheerioStatic, rel: string): string | null {
     let data = doc(`link[rel="${rel}"]`);
 
     return data[0] ? data[0].attribs.href : null;

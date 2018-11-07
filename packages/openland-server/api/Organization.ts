@@ -1,8 +1,6 @@
 import { IDs, IdsFactory } from './utils/IDs';
-import { buildBaseImageUrl } from '../repositories/Media';
 import { withUser, withAccount, withAny, withPermission } from './utils/Resolvers';
 import { Repos } from '../repositories';
-import { ImageRef } from '../repositories/Media';
 import { CallContext } from './utils/CallContext';
 import { UserError } from '../errors/UserError';
 import { ErrorText } from '../errors/ErrorText';
@@ -15,11 +13,11 @@ import {
 } from '../modules/NewInputValidator';
 import { AccessDeniedError } from '../errors/AccessDeniedError';
 import { Emails } from '../services/Emails';
-import { Services } from '../services';
 import { Modules } from 'openland-modules/Modules';
 import { inTx } from 'foundation-orm/inTx';
 import { FDB } from 'openland-module-db/FDB';
 import { Organization } from 'openland-module-db/schema';
+import { buildBaseImageUrl, ImageRef } from 'openland-module-media/ImageRef';
 
 interface AlphaOrganizationsParams {
     query?: string;
@@ -422,7 +420,7 @@ export const Resolver = {
                 }
                 if (args.input.photoRef !== undefined) {
                     if (args.input.photoRef !== null) {
-                        await Services.UploadCare.saveFile(args.input.photoRef.uuid);
+                        await Modules.Media.saveFile(args.input.photoRef.uuid);
                     }
                     profile.photo = Sanitizer.sanitizeImageRef(args.input.photoRef);
                 }

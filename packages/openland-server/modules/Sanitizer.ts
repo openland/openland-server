@@ -1,4 +1,4 @@
-import { ImageRef } from '../repositories/Media';
+import { ImageRef } from 'openland-module-media/ImageRef';
 
 export const Sanitizer = {
     sanitizeAny<T>(src: T | null | undefined): T | null {

@@ -2,9 +2,7 @@ enum Platform {
     WEB, IOS, ANDROID
 }
 
-type Mutation {
-    superMultiplyValue(value: Int!): Task!
-    
+type Mutation {    
     alphaCreateInvite: Invite!
     alphaDeleteInvite(id: ID!): String!
     alphaJoinInvite(key: String!): ID!
