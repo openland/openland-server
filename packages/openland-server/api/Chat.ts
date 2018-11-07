@@ -561,15 +561,7 @@ export const Resolver = {
         }),
         alphaBlockedList: withUser<{ conversationId?: string }>(async (args, uid) => {
             return [];
-        }),
-        conversationDraft: withUser<{ conversationId: string }>(async (args, uid) => {
-            let conversationId = IDs.Conversation.parse(args.conversationId);
-            return await Modules.Drafts.findDraft(uid, conversationId);
-        }),
-        alphaDraftMessage: withUser<{ conversationId: string }>(async (args, uid) => {
-            let conversationId = IDs.Conversation.parse(args.conversationId);
-            return await Modules.Drafts.findDraft(uid, conversationId);
-        }),
+        })
     },
     Mutation: {
         alphaReadChat: withUser<{ conversationId: string, messageId: string }>(async (args, uid) => {
@@ -929,28 +921,6 @@ export const Resolver = {
                 }
                 return settings;
             });
-        }),
-        conversationDraftUpdate: withUser<{ conversationId: string, message?: string }>(async (args, uid) => {
-            let conversationId = IDs.Conversation.parse(args.conversationId);
-
-            if (!args.message) {
-                await Modules.Drafts.clearDraft(uid, conversationId);
-            } else {
-                await Modules.Drafts.saveDraft(uid, conversationId, args.message);
-            }
-
-            return 'ok';
-        }),
-        alphaSaveDraftMessage: withUser<{ conversationId: string, message?: string }>(async (args, uid) => {
-            let conversationId = IDs.Conversation.parse(args.conversationId);
-
-            if (!args.message) {
-                await Modules.Drafts.clearDraft(uid, conversationId);
-            } else {
-                await Modules.Drafts.saveDraft(uid, conversationId, args.message);
-            }
-
-            return 'ok';
         }),
         alphaChatLeave: withAccount<{ conversationId: string }>(async (args, uid) => {
             return inTx(async () => {

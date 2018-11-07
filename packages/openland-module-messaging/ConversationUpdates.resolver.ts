@@ -3,7 +3,6 @@ import { CallContext } from 'openland-server/api/utils/CallContext';
 import { ConversationEvent } from 'openland-module-db/schema';
 import { FDB } from 'openland-module-db/FDB';
 import { FLiveStreamItem } from 'foundation-orm/FLiveStreamItem';
-import { Modules } from 'openland-modules/Modules';
 
 export default {
     /* 
@@ -66,20 +65,12 @@ export default {
                 return FDB.ConversationEvent.createUserLiveStream(conversationId, 20, args.fromState);
             }
         },
-        alphaChatSubscribe2: {
-            resolve: async (msg: any) => {
-                return msg;
-            },
-            subscribe: async function (_: any, args: { conversationId: string, fromState?: string }, context: CallContext) {
-                let conversationId = IDs.Conversation.parse(args.conversationId);
-                if (!context.uid) {
-                    throw Error('Not logged in');
-                }
-                await Modules.Messaging.conv.checkAccess(context.uid, conversationId);
-                return FDB.ConversationEvent.createUserLiveStream(conversationId, 20, args.fromState);
-            }
-        }
     },
+
+    //
+    // Deprecated
+    //
+    
     ConversationEvent: {
         __resolveType(obj: ConversationEvent) {
             if (obj.kind === 'message_received') {

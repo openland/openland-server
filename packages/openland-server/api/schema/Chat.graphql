@@ -219,64 +219,6 @@ type ConversationState {
 }
 
 #
-# User Events
-#
-
-interface UserEvent {
-    seq: Int!
-}
-
-type UserEventMessage implements UserEvent {
-    seq: Int!
-    unread: Int!
-    globalUnread: Int!
-    conversationId: ID!
-    message: ConversationMessage!
-    conversation: Conversation!
-    isOut: Boolean!
-    repeatKey: String
-}
-
-type UserEventEditMessage implements UserEvent {
-    seq: Int!
-    message: ConversationMessage!
-}
-
-type UserEventDeleteMessage implements UserEvent {
-    seq: Int!
-    message: ConversationMessage!
-}
-
-type UserEventOwnMessage implements UserEvent {
-    seq: Int!
-    conversationId: ID!
-    message: ConversationMessage!
-}
-
-type UserEventRead implements UserEvent {
-    seq: Int!
-    unread: Int!
-    globalUnread: Int!
-    conversationId: ID!
-}
-
-type UserEventTitleChange implements UserEvent {
-    seq: Int!
-    title: String!
-}
-
-type UserEventNewMembersCount implements UserEvent {
-    seq: Int!
-    conversationId: ID!
-    membersCount: Int!
-}
-
-type UserEventConversationUpdate implements UserEvent {
-    seq: Int!
-    chat: Conversation!
-}
-
-#
 # Conversation List
 #
 
@@ -352,10 +294,6 @@ extend type Query {
     alphaGroupConversationMembers(conversationId: ID!): [GroupConversationMember!]!
     alphaBlockedList(conversationId: ID): [ConversationBlockedUser!]!
     alphaChatTextSearch(query: String!): [Conversation!]!
-
-    alphaDraftMessage(conversationId: ID!): String
-
-    conversationDraft(conversationId: ID!): String
 }
 
 input UpdateGroupInput {
@@ -376,8 +314,6 @@ extend type Mutation {
     alphaDeleteMessage(messageId: ID!): ConversationEventDelete!
     alphaReadChat(conversationId: ID!, messageId: ID!): ChatReadResult!
     alphaGlobalRead(toSeq: Int): String!
-    alphaSaveDraftMessage(conversationId: ID!, message: String): String!
-    conversationDraftUpdate(conversationId: ID!, message: String): String!
 
     alphaSetTyping(conversationId: ID!, type: String): String!
 
