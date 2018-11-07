@@ -113,7 +113,6 @@ export const IDScalars = {
     ConversationSettingsID: IDType(IDs.ConversationSettings),
     ConversationMessageID: IDType(IDs.ConversationMessage),
     NotificationCounterID: IDType(IDs.NotificationCounter),
-    UserEventID: IDType(IDs.UserEvent),
     SettingsID: IDType(IDs.Settings),
     WallEntityID: IDType(IDs.WallEntity),
 };

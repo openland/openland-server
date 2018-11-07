@@ -262,9 +262,6 @@ type GroupChatUpdateResponse {
 
     chatEventMessage: ConversationEventMessage
     chatEvent: ConversationEvent
-
-    userEventMessage: UserEventMessage
-    userEvent: UserEvent
 }
 
 type ConversationUpdateResponse {
@@ -286,7 +283,6 @@ extend type Query {
     alphaChatSearch(members: [ID!]!): Conversation
     alphaGroupConversationMembers(conversationId: ID!): [GroupConversationMember!]!
     alphaBlockedList(conversationId: ID): [ConversationBlockedUser!]!
-    alphaChatTextSearch(query: String!): [Conversation!]!
 }
 
 input UpdateGroupInput {
@@ -345,6 +341,11 @@ extend type Mutation {
 }
 
 extend type Subscription {
+    alphaChatSubscribe(conversationId: ID!, fromSeq: Int): ConversationEvent!
+    alphaNotificationCounterSubscribe: NotificationCounter!
+
+    alphaSubscribeTypings: TypingEvent!
+    alphaSubscribeChatTypings(conversationId: ID!): TypingEvent!
     alphaSubscribeChatOnline(conversations: [ID!]!): OnlineEvent!
     alphaSubscribeOnline(users: [ID!]! @userID): OnlineEvent!
 }

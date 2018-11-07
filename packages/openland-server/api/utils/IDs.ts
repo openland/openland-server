@@ -36,7 +36,6 @@ export const IDs = {
     ConversationSettings: IdsFactory.createId('ConversationSettings'),
     ConversationMessage: IdsFactory.createId('ConversationMessage'),
     NotificationCounter: IdsFactory.createId('NotificationCounter'),
-    UserEvent: IdsFactory.createId('UserEvent'),
     Settings: IdsFactory.createId('Settings'),
     WallEntity: IdsFactory.createId('WallEntity'),
     PrivateCall: IdsFactory.createId('PrivateCall'),

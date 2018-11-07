@@ -44,7 +44,6 @@ process.on('SIGINT', onExit);
 
 async function initServer() {
     try {
-        Shutdown.onShutdownDone(() => console.log('shutdown test! 2'));
         await Modules.start();
 
         if (serverRoleEnabled('api')) {
