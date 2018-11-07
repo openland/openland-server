@@ -9,6 +9,7 @@ import { inTx } from 'foundation-orm/inTx';
 import { OrganizationInviteLink, OrganizationPublicInviteLink } from 'openland-module-db/schema';
 import { FDB } from 'openland-module-db/FDB';
 import { buildBaseImageUrl, ImageRef } from 'openland-module-media/ImageRef';
+import { Emails } from '../services/Emails';
 
 export const Resolver = {
     Invite: {
@@ -172,7 +173,10 @@ export const Resolver = {
                 let user = (await FDB.User.findById(uid))!;
                 // User set invitedBy if none
                 user.invitedBy = user.invitedBy === undefined ? invite.uid : user.invitedBy;
-                user.status = 'activated';
+                if (user.status !== 'activated') {
+                    await Emails.sendWelcomeEmail(user!.id);
+                    user.status = 'activated';
+                }
 
                 await Repos.Chats.addToInitialChannel(user.id!);
 
@@ -198,6 +202,7 @@ export const Resolver = {
                 // activate user, set invited by
                 user.invitedBy = inviteData.uid;
                 user.status = 'activated';
+                await Emails.sendWelcomeEmail(user!.id);
                 await Repos.Chats.addToInitialChannel(user.id!);
                 // activate user org if have one
                 let org = context.oid ? (await FDB.Organization.findById(context.oid)) : undefined;

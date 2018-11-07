@@ -12,6 +12,7 @@ import { inTx } from 'foundation-orm/inTx';
 import { ChannelInvitation, ChannelLink, RoomParticipant, Conversation } from 'openland-module-db/schema';
 import { FDB } from 'openland-module-db/FDB';
 import { buildBaseImageUrl, ImageRef } from 'openland-module-media/ImageRef';
+import { Emails } from '../services/Emails';
 
 interface AlphaChannelsParams {
     orgId: string;
@@ -196,6 +197,7 @@ export const Resolver = {
                 // Activate user
                 let user = (await FDB.User.findById(uid!))!;
                 if (user) {
+                    await Emails.sendWelcomeEmail(user!.id);
                     user.status = 'activated';
 
                     // User set invitedBy if none

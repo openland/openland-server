@@ -35,7 +35,10 @@ export class SuperRepository {
                 org.status = 'activated';
                 for (let m of await FDB.OrganizationMember.allFromOrganization('joined', org.id)) {
                     let u = (await FDB.User.findById(m.uid));
-                    u!.status = 'activated';
+                    if (u!.status !== 'activated') {
+                        await Emails.sendWelcomeEmail(u!.id);
+                        u!.status = 'activated';
+                    }
                 }
             }
             return org;
