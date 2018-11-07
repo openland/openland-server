@@ -1,6 +1,6 @@
 import { CallContext } from './utils/CallContext';
 import { Repos } from '../repositories';
-import { withPermission, withAny } from './utils/Resolvers';
+import { withPermission } from './utils/Resolvers';
 import { IDs } from './utils/IDs';
 import { UserError } from '../errors/UserError';
 import { Modules } from 'openland-modules/Modules';
