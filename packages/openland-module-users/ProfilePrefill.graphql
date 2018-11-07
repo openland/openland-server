@@ -1,0 +1,9 @@
+type ProfilePrefill {
+    firstName: String
+    lastName: String
+    picture: String
+}
+
+extend type Query {
+    myProfilePrefill: ProfilePrefill
+}

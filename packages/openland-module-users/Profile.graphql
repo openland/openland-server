@@ -1,0 +1,57 @@
+
+type Profile {
+    id: ID!
+    firstName: String
+    lastName: String
+    photoRef: ImageRef
+    phone: String
+    email: String
+    website: String
+    about: String
+    location: String
+    alphaRole: String,
+    alphaLocations: [String!],
+    alphaLinkedin: String,
+    alphaTwitter: String,
+    alphaPrimaryOrganizationId: ID,
+    alphaPrimaryOrganization: Organization,
+    alphaJoinedAt: String,
+    alphaInvitedBy: User
+}
+
+input UpdateProfileInput {
+    firstName: String
+    lastName: String
+    photoRef: ImageRefInput
+    phone: String
+    email: String
+    website: String
+    about: String
+    location: String
+    alphaRole: String,
+    alphaLocations: [String!],
+    alphaLinkedin: String,
+    alphaTwitter: String,
+    alphaPrimaryOrganizationId: ID,
+}
+
+input CreateProfileInput {
+    firstName: String!
+    lastName: String
+    photoRef: ImageRefInput
+    phone: String
+    email: String
+    website: String
+    about: String
+    location: String
+}
+
+extend type Query {
+    myProfile: Profile
+}
+
+extend type Mutation {
+    # TODO: Rename
+    createProfile(input: CreateProfileInput!): Profile!
+    updateProfile(input: UpdateProfileInput!, uid: ID): Profile!
+}

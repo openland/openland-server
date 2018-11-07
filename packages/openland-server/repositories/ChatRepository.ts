@@ -16,25 +16,6 @@ const tracer = createTracer('messaging-legacy');
 // const messageSent = createHyperlogger<{ cid: number }>('message_sent');
 // const messageReceived = createHyperlogger<{ cid: number }>('message_received');
 
-export type ChatEventType =
-    'new_message' |
-    'delete_message' |
-    'title_change' |
-    'new_members' |
-    'kick_member' |
-    'update_role' |
-    'edit_message' |
-    'chat_update';
-
-export type UserEventType =
-    'new_message' |
-    'delete_message' |
-    'conversation_read' |
-    'title_change' |
-    'new_members_count' |
-    'edit_message' |
-    'chat_update';
-
 export type ServiceMessageMetadataType =
     'user_invite' |
     'user_kick' |

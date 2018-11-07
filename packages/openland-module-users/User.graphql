@@ -1,0 +1,37 @@
+type User {
+    id: ID!
+    name: String!
+    firstName: String!
+    lastName: String
+    picture: String
+    pictureRef: ImageRef
+    photo: String
+    photoRef: ImageRef
+    phone: String
+    email: String
+    website: String
+    about: String
+    location: String
+    isYou: Boolean!
+    isCreated: Boolean!
+    isBot: Boolean!
+    alphaRole: String
+    alphaPrimaryOrganization: Organization
+    alphaLinkedin: String
+    alphaTwitter: String
+    online: Boolean!
+    lastSeen: String
+    createdChannels: [ChannelConversation!]!
+    channelsJoined: [ChannelConversation!]!
+    shortname: String
+    phones: [String!]!
+    lastIP: String @withPermissions(permission: ["super-admin", "software-developer"]) @withAuth
+    alphaConversationSettings: ConversationSettings!
+    status: String @withPermissions(permission: ["super-admin", "software-developer"]) @withAuth
+    alphaLocations: [String!]
+    organizations: [Organization!]!
+}
+
+extend type Query {
+    me: User
+}
