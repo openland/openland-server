@@ -9,8 +9,7 @@ import { inTx } from 'foundation-orm/inTx';
 import { ErrorText } from 'openland-server/errors/ErrorText';
 import { NotFoundError } from 'openland-server/errors/NotFoundError';
 import { Repos } from 'openland-server/repositories';
-import { buildBaseImageUrl, ImageRef } from 'openland-module-media/ImageRef';
-import { Emails } from '../services/Emails';
+import { Emails } from '../openland-server/services/Emails';
 
 export default {
     Invite: {
