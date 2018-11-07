@@ -1,4 +1,4 @@
-import { Repos } from '../repositories';
+import { Repos } from '../openland-server/repositories';
 import { Modules } from 'openland-modules/Modules';
 import { OrganizationInviteLink } from 'openland-module-db/schema';
 import { IDs } from 'openland-server/api/utils/IDs';

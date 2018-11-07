@@ -2,17 +2,17 @@ import { withPermission, withAny, withAccount, withUser } from '../openland-serv
 import { Repos } from '../openland-server/repositories';
 import { IDs } from '../openland-server/api/utils/IDs';
 import { CallContext } from '../openland-server/api/utils/CallContext';
-import { QueryParser } from '../openland-server/modules/QueryParser';
-import { defined, emailValidator, stringNotEmpty, validate } from '../openland-server/modules/NewInputValidator';
+import { QueryParser } from '../openland-utils/QueryParser';
+import { defined, emailValidator, stringNotEmpty, validate } from '../openland-utils/NewInputValidator';
 import { ErrorText } from '../openland-server/errors/ErrorText';
 import { NotFoundError } from '../openland-server/errors/NotFoundError';
-import { Sanitizer } from '../openland-server/modules/Sanitizer';
+import { Sanitizer } from '../openland-utils/Sanitizer';
 import { Modules } from 'openland-modules/Modules';
 import { inTx } from 'foundation-orm/inTx';
 import { ChannelInvitation, ChannelLink, RoomParticipant, Conversation } from 'openland-module-db/schema';
 import { FDB } from 'openland-module-db/FDB';
 import { buildBaseImageUrl, ImageRef } from 'openland-module-media/ImageRef';
-import { Emails } from '../openland-server/services/Emails';
+import { Emails } from 'openland-module-email/Emails';
 
 interface AlphaChannelsParams {
     orgId: string;

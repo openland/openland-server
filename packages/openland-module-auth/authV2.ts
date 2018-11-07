@@ -4,9 +4,9 @@ import * as jwksRsa from 'jwks-rsa';
 import * as express from 'express';
 import { Profile } from './Profile';
 import { fetchKeyFromRequest } from '../openland-utils/fetchKeyFromRequest';
-import { Modules } from 'openland-modules/Modules';
 import { inTx } from 'foundation-orm/inTx';
 import { FDB } from 'openland-module-db/FDB';
+import { Modules } from 'openland-modules/Modules';
 
 //
 // Main JWT verifier

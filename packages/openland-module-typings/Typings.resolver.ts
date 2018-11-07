@@ -2,7 +2,7 @@ import { Modules } from 'openland-modules/Modules';
 import { IDs } from 'openland-server/api/utils/IDs';
 import { CallContext } from 'openland-server/api/utils/CallContext';
 import { withUser } from 'openland-server/api/utils/Resolvers';
-import { validate, optional, enumString } from 'openland-server/modules/NewInputValidator';
+import { validate, optional, enumString } from 'openland-utils/NewInputValidator';
 
 export default {
     TypingType: {

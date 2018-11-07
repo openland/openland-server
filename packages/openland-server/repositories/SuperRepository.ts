@@ -2,7 +2,7 @@ import { Repos } from '.';
 import { NotFoundError } from '../errors/NotFoundError';
 import { UserError } from '../errors/UserError';
 import { ErrorText } from '../errors/ErrorText';
-import { Emails } from '../services/Emails';
+import { Emails } from '../../openland-module-email/Emails';
 import { inTx } from 'foundation-orm/inTx';
 import { Modules } from 'openland-modules/Modules';
 import { FDB } from 'openland-module-db/FDB';

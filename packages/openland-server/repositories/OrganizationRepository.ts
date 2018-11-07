@@ -1,5 +1,5 @@
-import { validate, stringNotEmpty } from '../modules/NewInputValidator';
-import { Sanitizer } from '../modules/Sanitizer';
+import { validate, stringNotEmpty } from '../../openland-utils/NewInputValidator';
+import { Sanitizer } from '../../openland-utils/Sanitizer';
 import { Repos } from '.';
 import { Hooks } from './Hooks';
 import { Modules } from 'openland-modules/Modules';

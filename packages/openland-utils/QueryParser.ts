@@ -1,4 +1,4 @@
-import { UserError } from '../errors/UserError';
+import { UserError } from '../openland-server/errors/UserError';
 
 export type QueryPart = OrQuery | AndQuery | IntValueQuery | IntValueSpanQuery | ValueEnumQuery | NotQuery;
 

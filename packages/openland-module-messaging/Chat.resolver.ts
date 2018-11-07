@@ -8,14 +8,14 @@ import {
     defined,
     mustBeArray,
     isNumber
-} from '../openland-server/modules/NewInputValidator';
+} from '../openland-utils/NewInputValidator';
 import { CallContext } from '../openland-server/api/utils/CallContext';
 import { Repos } from '../openland-server/repositories';
 import { JsonMap } from '../openland-utils/json';
 import { IDMailformedError } from '../openland-server/errors/IDMailformedError';
 import { UserError } from '../openland-server/errors/UserError';
 import { NotFoundError } from '../openland-server/errors/NotFoundError';
-import { Sanitizer } from '../openland-server/modules/Sanitizer';
+import { Sanitizer } from '../openland-utils/Sanitizer';
 import { URLAugmentation } from './workers/UrlInfoService';
 import { Modules } from 'openland-modules/Modules';
 import { OnlineEvent } from '../openland-module-presences/PresenceModule';
