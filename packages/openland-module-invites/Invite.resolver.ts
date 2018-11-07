@@ -9,6 +9,7 @@ import { inTx } from 'foundation-orm/inTx';
 import { ErrorText } from 'openland-server/errors/ErrorText';
 import { NotFoundError } from 'openland-server/errors/NotFoundError';
 import { Repos } from 'openland-server/repositories';
+import { Emails } from '../openland-server/services/Emails';
 
 export default {
     Invite: {
@@ -105,7 +106,10 @@ export default {
                 let user = (await FDB.User.findById(uid))!;
                 // User set invitedBy if none
                 user.invitedBy = user.invitedBy === undefined ? invite.uid : user.invitedBy;
-                user.status = 'activated';
+                if (user.status !== 'activated') {
+                    await Emails.sendWelcomeEmail(user!.id);
+                    user.status = 'activated';
+                }
 
                 await Repos.Chats.addToInitialChannel(user.id!);
 
@@ -131,6 +135,7 @@ export default {
                 // activate user, set invited by
                 user.invitedBy = inviteData.uid;
                 user.status = 'activated';
+                await Emails.sendWelcomeEmail(user!.id);
                 await Repos.Chats.addToInitialChannel(user.id!);
                 // activate user org if have one
                 let org = context.oid ? (await FDB.Organization.findById(context.oid)) : undefined;
