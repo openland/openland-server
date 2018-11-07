@@ -1,7 +1,7 @@
 import { AllEntities } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
-import { validate, stringNotEmpty } from 'openland-server/modules/NewInputValidator';
-import { Sanitizer } from 'openland-server/modules/Sanitizer';
+import { validate, stringNotEmpty } from 'openland-utils/NewInputValidator';
+import { Sanitizer } from 'openland-utils/Sanitizer';
 import { ImageRef } from 'openland-module-media/ImageRef';
 
 export class UserRepository {

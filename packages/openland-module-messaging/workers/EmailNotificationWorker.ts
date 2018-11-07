@@ -1,5 +1,5 @@
 import { staticWorker } from 'openland-module-workers/staticWorker';
-import { Emails } from '../../openland-server/services/Emails';
+import { Emails } from '../../openland-module-email/Emails';
 import { Modules } from 'openland-modules/Modules';
 import { inTx } from 'foundation-orm/inTx';
 import { FDB } from 'openland-module-db/FDB';

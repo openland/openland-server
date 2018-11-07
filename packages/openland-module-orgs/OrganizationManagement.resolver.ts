@@ -6,12 +6,12 @@ import { FDB } from 'openland-module-db/FDB';
 import { IDs, IdsFactory } from 'openland-server/api/utils/IDs';
 import { UserError } from 'openland-server/errors/UserError';
 import { ErrorText } from 'openland-server/errors/ErrorText';
-import { validate, stringNotEmpty, defined, emailValidator } from 'openland-server/modules/NewInputValidator';
-import { Sanitizer } from 'openland-server/modules/Sanitizer';
+import { validate, stringNotEmpty, defined, emailValidator } from 'openland-utils/NewInputValidator';
+import { Sanitizer } from 'openland-utils/Sanitizer';
 import { Modules } from 'openland-modules/Modules';
 import { AccessDeniedError } from 'openland-server/errors/AccessDeniedError';
 import { NotFoundError } from 'openland-server/errors/NotFoundError';
-import { Emails } from 'openland-server/services/Emails';
+import { Emails } from 'openland-module-email/Emails';
 
 export default {
     Mutation: {

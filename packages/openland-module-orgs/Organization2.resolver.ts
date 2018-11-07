@@ -4,7 +4,7 @@ import { Repos } from '../openland-server/repositories';
 import { CallContext } from '../openland-server/api/utils/CallContext';
 import { ErrorText } from '../openland-server/errors/ErrorText';
 import { NotFoundError } from '../openland-server/errors/NotFoundError';
-import { buildElasticQuery, QueryParser } from '../openland-server/modules/QueryParser';
+import { buildElasticQuery, QueryParser } from '../openland-utils/QueryParser';
 import { AccessDeniedError } from '../openland-server/errors/AccessDeniedError';
 import { Modules } from 'openland-modules/Modules';
 import { FDB } from 'openland-module-db/FDB';

@@ -1,4 +1,4 @@
-import { InvalidInputError } from '../errors/InvalidInputError';
+import { InvalidInputError } from '../openland-server/errors/InvalidInputError';
 
 export type ValidationPrimitive = string | number;
 
