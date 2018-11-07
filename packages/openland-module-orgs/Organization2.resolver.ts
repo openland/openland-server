@@ -1,11 +1,11 @@
-import { IDs } from './utils/IDs';
-import { withUser, withAccount, withAny } from './utils/Resolvers';
-import { Repos } from '../repositories';
-import { CallContext } from './utils/CallContext';
-import { ErrorText } from '../errors/ErrorText';
-import { NotFoundError } from '../errors/NotFoundError';
-import { buildElasticQuery, QueryParser } from '../modules/QueryParser';
-import { AccessDeniedError } from '../errors/AccessDeniedError';
+import { IDs } from '../openland-server/api/utils/IDs';
+import { withUser, withAccount, withAny } from '../openland-server/api/utils/Resolvers';
+import { Repos } from '../openland-server/repositories';
+import { CallContext } from '../openland-server/api/utils/CallContext';
+import { ErrorText } from '../openland-server/errors/ErrorText';
+import { NotFoundError } from '../openland-server/errors/NotFoundError';
+import { buildElasticQuery, QueryParser } from '../openland-server/modules/QueryParser';
+import { AccessDeniedError } from '../openland-server/errors/AccessDeniedError';
 import { Modules } from 'openland-modules/Modules';
 import { FDB } from 'openland-module-db/FDB';
 
@@ -18,7 +18,7 @@ interface AlphaOrganizationsParams {
     sort?: string;
 }
 
-export const Resolver = {
+export default {
     OrganizationMember: {
         __resolveType(src: any) {
             return src._type;

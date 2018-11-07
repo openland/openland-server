@@ -1,9 +1,6 @@
 import { merge } from 'lodash';
 import { makeExecutableSchema } from 'graphql-tools';
 import * as Basics from './_Basics';
-import * as Organization from './Organization';
-import * as Chat from './Chat';
-import * as Channels from './Channels';
 
 import { Directives, IDScalars, injectIDScalars } from './directives';
 import { GraphQLField, GraphQLFieldResolver } from 'graphql';
@@ -23,9 +20,6 @@ export const Schema = wrapAllResolvers(
         typeDefs: injectIDScalars(schema),
         resolvers: merge(
             Basics.Resolvers,
-            Organization.Resolver,
-            Chat.Resolver,
-            Channels.Resolver,
             IDScalars,
             ...resolvers
         ),

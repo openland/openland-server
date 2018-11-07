@@ -1,5 +1,5 @@
-import { IDs, IdsFactory } from './utils/IDs';
-import { withUser, resolveUser, withAccount } from './utils/Resolvers';
+import { IDs, IdsFactory } from '../openland-server/api/utils/IDs';
+import { withUser, resolveUser, withAccount } from '../openland-server/api/utils/Resolvers';
 import {
     validate,
     stringNotEmpty,
@@ -8,17 +8,17 @@ import {
     defined,
     mustBeArray,
     isNumber
-} from '../modules/NewInputValidator';
-import { CallContext } from './utils/CallContext';
-import { Repos } from '../repositories';
-import { JsonMap } from '../utils/json';
-import { IDMailformedError } from '../errors/IDMailformedError';
-import { UserError } from '../errors/UserError';
-import { NotFoundError } from '../errors/NotFoundError';
-import { Sanitizer } from '../modules/Sanitizer';
-import { URLAugmentation } from '../../openland-module-messaging/workers/UrlInfoService';
+} from '../openland-server/modules/NewInputValidator';
+import { CallContext } from '../openland-server/api/utils/CallContext';
+import { Repos } from '../openland-server/repositories';
+import { JsonMap } from '../openland-server/utils/json';
+import { IDMailformedError } from '../openland-server/errors/IDMailformedError';
+import { UserError } from '../openland-server/errors/UserError';
+import { NotFoundError } from '../openland-server/errors/NotFoundError';
+import { Sanitizer } from '../openland-server/modules/Sanitizer';
+import { URLAugmentation } from './workers/UrlInfoService';
 import { Modules } from 'openland-modules/Modules';
-import { OnlineEvent } from '../../openland-module-presences/PresenceModule';
+import { OnlineEvent } from '../openland-module-presences/PresenceModule';
 import { UserDialogSettings, Message, RoomParticipant, Conversation, Organization, User } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
 import { TypingEvent } from 'openland-module-typings/TypingEvent';
@@ -27,7 +27,7 @@ import { FDB } from 'openland-module-db/FDB';
 import { FEntity } from 'foundation-orm/FEntity';
 import { buildBaseImageUrl, ImageRef } from 'openland-module-media/ImageRef';
 
-export const Resolver = {
+export default {
     Conversation: {
         __resolveType: async (src: Conversation) => {
             if (src.kind === 'private') {

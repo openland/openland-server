@@ -1,9 +1,6 @@
 import { makeExecutableSchema } from 'graphql-tools';
 import { merge } from 'lodash';
 import * as Basics from './_Basics';
-import * as Organization from './Organization';
-import * as Chat from './Chat';
-import * as Channels from './Channels';
 import { Directives, IDScalars, injectIDScalars } from './directives';
 import { buildSchema } from '../../openland-graphql/buildSchema';
 import { buildResolvers } from '../../openland-graphql/buildResolvers';
@@ -17,9 +14,6 @@ describe('GQLSchema', () => {
             typeDefs: injectIDScalars(schema),
             resolvers: merge(
                 Basics.Resolvers,
-                Organization.Resolver,
-                Chat.Resolver,
-                Channels.Resolver,
                 IDScalars,
                 ...resolvers
             ),
