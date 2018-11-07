@@ -1,6 +1,6 @@
-import { withAccount } from './utils/Resolvers';
-import { UserError } from '../errors/UserError';
-import { ErrorText } from '../errors/ErrorText';
+import { withAccount } from '../openland-server/api/utils/Resolvers';
+import { UserError } from '../openland-server/errors/UserError';
+import { ErrorText } from '../openland-server/errors/ErrorText';
 import { Modules } from 'openland-modules/Modules';
 import { FDB } from 'openland-module-db/FDB';
 
@@ -14,7 +14,7 @@ function testShortName(name: string) {
     }
 }
 
-export const Resolvers = {
+export default {
     ShortNameDestination: {
         __resolveType(src: any) {
             // TODO: Implement

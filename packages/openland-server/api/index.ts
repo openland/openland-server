@@ -7,9 +7,7 @@ import * as Account from './Account';
 import * as Debug from './Debug';
 import * as Organization from './Organization';
 import * as Chat from './Chat';
-import * as Push from './Push';
 import * as Channels from './Channels';
-import * as ShortName from './ShortName';
 import * as Developer from './Developer';
 
 import { Directives, IDScalars } from './directives';
@@ -36,9 +34,7 @@ export const Schema = wrapAllResolvers(
             Debug.Resolver,
             Organization.Resolver,
             Chat.Resolver,
-            Push.Resolvers,
             Channels.Resolver,
-            ShortName.Resolvers,
             IDScalars,
             Developer.Resolver,
             ...resolvers

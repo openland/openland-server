@@ -24,7 +24,6 @@ if (process.env.NODE_ENV !== 'development') {
 // }
 
 import { initApi } from './init/initApi';
-import './init/initConfig';
 import { Modules } from '../openland-modules/Modules';
 import { initHealthcheck } from './init/initHealthcheck';
 import { Shutdown } from '../openland-utils/Shutdown';

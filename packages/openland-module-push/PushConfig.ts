@@ -1,13 +1,13 @@
 import fs from 'fs';
 import WebPush from 'web-push';
 
-class AppConfig {
+class PushConfigFile {
     webPush: { private: string, public: string } | undefined;
     apple: { teamId: string, key: string, keyId: string, bundles: string[] }[] | undefined;
     google: { privateKey: string, projectId: string, clientEmail: string, databaseURL: string, packages: string[] }[] | undefined;
 }
 
-export const AppConfiuguration = new AppConfig();
+export const PushConfig = new PushConfigFile();
 
 interface CertsConfig {
     'web-push': {
@@ -47,19 +47,19 @@ if (process.env.PUSH_CERTS_PATH) {
 
     // Loading Web Push
     if (config['web-push']) {
-        AppConfiuguration.webPush = { private: config['web-push']!!.private, public: config['web-push']!!.public };
+        PushConfig.webPush = { private: config['web-push']!!.private, public: config['web-push']!!.public };
         WebPush.setVapidDetails(
             'mailto:support@openland.com',
-            AppConfiuguration.webPush.public,
-            AppConfiuguration.webPush.private
+            PushConfig.webPush.public,
+            PushConfig.webPush.private
         );
     }
     if (config.apple && config.apple.teams && config.apple.teams.length > 0) {
         let t = config.apple!!.teams!!;
-        AppConfiuguration.apple = t.map((v) => ({ teamId: v['team-id'], keyId: v['key-id'], key: v.key, bundles: v.bundles }));
+        PushConfig.apple = t.map((v) => ({ teamId: v['team-id'], keyId: v['key-id'], key: v.key, bundles: v.bundles }));
     }
 
     if (config.google && config.google.accounts) {
-        AppConfiuguration.google = config.google.accounts.map(a => ({ privateKey: a.key.private_key, projectId: a.key.project_id, clientEmail: a.key.client_email, databaseURL: a.endpoint, packages: a.packages }));
+        PushConfig.google = config.google.accounts.map(a => ({ privateKey: a.key.private_key, projectId: a.key.project_id, clientEmail: a.key.client_email, databaseURL: a.endpoint, packages: a.packages }));
     }
 }

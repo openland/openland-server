@@ -2,12 +2,12 @@ import WebPush from 'web-push';
 import { PushRepository } from 'openland-module-push/repositories/PushRepository';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { WebPushTask } from './types';
-import { AppConfiuguration } from 'openland-server/init/initConfig';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { createLogger } from '../../openland-log/createLogger';
 import { handleFail } from './util/handleFail';
 import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
 import { inTx } from '../../foundation-orm/inTx';
+import { PushConfig } from 'openland-module-push/PushConfig';
 
 const log = createLogger('web_push');
 const pushSent = createHyperlogger<{ uid: number, tokenId: string }>('push_web_sent');
@@ -15,7 +15,7 @@ const pushFail = createHyperlogger<{ uid: number, tokenId: string, failures: num
 
 export function createWebWorker(repo: PushRepository) {
     let queue = new WorkQueue<WebPushTask, { result: string }>('push_sender_web');
-    if (AppConfiuguration.webPush) {
+    if (PushConfig.webPush) {
         if (serverRoleEnabled('workers')) {
             for (let i = 0; i < 10; i++) {
                 queue.addWorker(async (task) => {

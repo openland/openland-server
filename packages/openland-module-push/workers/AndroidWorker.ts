@@ -1,6 +1,5 @@
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { FirebasePushTask } from './types';
-import { AppConfiuguration } from 'openland-server/init/initConfig';
 import { createLogger } from 'openland-log/createLogger';
 import * as Friebase from 'firebase-admin';
 import { PushRepository } from 'openland-module-push/repositories/PushRepository';
@@ -8,6 +7,7 @@ import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { handleFail } from './util/handleFail';
 import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
 import { inTx } from '../../foundation-orm/inTx';
+import { PushConfig } from 'openland-module-push/PushConfig';
 
 const log = createLogger('firebase');
 const pushSent = createHyperlogger<{ uid: number, tokenId: string }>('push_firebase_sent');
@@ -15,10 +15,10 @@ const pushFail = createHyperlogger<{ uid: number, tokenId: string, failures: num
 
 export function createAndroidWorker(repo: PushRepository) {
     let queue = new WorkQueue<FirebasePushTask, { result: string }>('push_sender_firebase');
-    if (AppConfiuguration.google) {
+    if (PushConfig.google) {
         if (serverRoleEnabled('workers')) {
             let firbaseApps: { [pkg: string]: Friebase.app.App } = {};
-            for (let creds of AppConfiuguration.google) {
+            for (let creds of PushConfig.google) {
                 for (let pkg of creds.packages) {
                     firbaseApps[pkg] = Friebase.initializeApp({
                         credential: Friebase.credential.cert({
