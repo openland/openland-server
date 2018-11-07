@@ -1,0 +1,9 @@
+enum Platform {
+    WEB, IOS, ANDROID
+}
+
+extend type Mutation {
+    alphaReportOnline(timeout: Int!, platform: Platform): String!
+    alphaReportOffline(platform: Platform): String! @withAuth
+    alphaReportActive(timeout: Int!, platform: Platform): String!
+}

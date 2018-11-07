@@ -1,17 +1,9 @@
-enum Platform {
-    WEB, IOS, ANDROID
-}
-
 type Mutation {    
     alphaCreateInvite: Invite!
     alphaDeleteInvite(id: ID!): String!
     alphaJoinInvite(key: String!): ID!
     joinAppInvite(key: String!): ID!
     alphaJoinGlobalInvite(key: String!): ID! @deprecated(reason: "renamed to 'joinAppInvite'")
-
-    alphaReportOnline(timeout: Int!, platform: Platform): String!
-    alphaReportOffline(platform: Platform): String! @withAuth
-    alphaReportActive(timeout: Int!, platform: Platform): String!
 
     alphaCreateUserProfileAndOrganization(user: CreateProfileInput!, organization: CreateOrganizationInput!): AlphaSignupData!
 }

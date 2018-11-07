@@ -2,7 +2,6 @@ import { makeExecutableSchema } from 'graphql-tools';
 import { merge } from 'lodash';
 import * as Basics from './_Basics';
 import * as Account from './Account';
-import * as User from './User';
 import * as Organization from './Organization';
 import * as Chat from './Chat';
 import * as Channels from './Channels';
@@ -20,7 +19,6 @@ describe('GQLSchema', () => {
             resolvers: merge(
                 Basics.Resolvers,
                 Account.Resolver,
-                User.Resolver,
                 Organization.Resolver,
                 Chat.Resolver,
                 Channels.Resolver,
