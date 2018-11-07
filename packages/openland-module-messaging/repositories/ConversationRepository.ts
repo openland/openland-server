@@ -4,8 +4,8 @@ import { AccessDeniedError } from 'openland-server/errors/AccessDeniedError';
 import { inTx } from 'foundation-orm/inTx';
 import { Repos } from 'openland-server/repositories';
 import { Modules } from 'openland-modules/Modules';
-import { imageRefEquals } from 'openland-server/repositories/Media';
 import { NotFoundError } from 'openland-server/errors/NotFoundError';
+import { imageRefEquals } from 'openland-module-media/ImageRef';
 
 interface RoomProfileInput {
     title: string;

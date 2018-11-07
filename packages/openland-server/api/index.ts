@@ -4,11 +4,9 @@ import * as User from './User';
 import * as Basics from './_Basics';
 import * as Permissions from './Permissions';
 import * as Account from './Account';
-import * as Debug from './Debug';
 import * as Organization from './Organization';
 import * as Chat from './Chat';
 import * as Channels from './Channels';
-import * as Developer from './Developer';
 
 import { Directives, IDScalars, injectIDScalars } from './directives';
 import { GraphQLField, GraphQLFieldResolver } from 'graphql';
@@ -31,12 +29,10 @@ export const Schema = wrapAllResolvers(
             Account.Resolver,
             User.Resolver,
             Permissions.Resolvers,
-            Debug.Resolver,
             Organization.Resolver,
             Chat.Resolver,
             Channels.Resolver,
             IDScalars,
-            Developer.Resolver,
             ...resolvers
         ),
         schemaDirectives: Directives

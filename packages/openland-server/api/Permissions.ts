@@ -4,7 +4,7 @@ import { withPermission, withAny } from './utils/Resolvers';
 import { IDs } from './utils/IDs';
 import { UserError } from '../errors/UserError';
 import { Modules } from 'openland-modules/Modules';
-import { FeatureFlag, SuperAdmin, Organization } from 'openland-module-db/schema';
+import { SuperAdmin, Organization } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
 import { FDB } from 'openland-module-db/FDB';
 
@@ -38,26 +38,6 @@ export const Resolvers = {
             }
         },
         email: async (src: SuperAdmin) => (await FDB.User.findById(src.id))!.email,
-    },
-    // Task: {
-    //     id: (src: Task) => IDs.Task.serialize(src.id),
-    //     status: (src: Task) => {
-    //         if (src.taskStatus === 'completed') {
-    //             return 'COMPLETED';
-    //         } else if (src.taskStatus === 'failed') {
-    //             return 'FAILED';
-    //         } else {
-    //             return 'IN_PROGRESS';
-    //         }
-    //     },
-    //     result: (src: Task) => {
-    //         return src.result && JSON.stringify(src.result);
-    //     }
-    // },
-    FeatureFlag: {
-        id: (src: FeatureFlag) => src.key /* TODO: FIXME */,
-        title: (src: FeatureFlag) => src.title,
-        key: (src: FeatureFlag) => src.key
     },
     Query: {
         permissions: async function (_: any, _params: {}, context: CallContext) {
@@ -117,9 +97,6 @@ export const Resolvers = {
             // });
             throw new UserError('Not supported yet');
         }),
-        featureFlags: withPermission(['super-admin', 'software-developer'], () => {
-            return Modules.Features.repo.findAllFeatures();
-        }),
         alphaRefreshTask: withAny<{ id: string }>((args) => {
             return null;
         })
@@ -143,19 +120,6 @@ export const Resolvers = {
         superAccountMemberRemove: withPermission<{ id: string, userId: string }>('super-admin', (args) => {
             return Repos.Super.removeFromOrganization(IDs.SuperAccount.parse(args.id), IDs.User.parse(args.userId));
         }),
-        featureFlagAdd: withPermission<{ key: string, title: string }>(['super-admin', 'software-developer'], async (args) => {
-            return Modules.Features.repo.createFeatureFlag(args.key, args.title);
-        }),
-        superAccountFeatureAdd: withPermission<{ id: string, featureId: string }>(['super-admin', 'software-developer'], async (args) => {
-            let org = await Repos.Super.fetchById(IDs.SuperAccount.parse(args.id));
-            await Modules.Features.repo.enableFeatureForOrganization(org.id!, args.featureId);
-            return org;
-        }),
-        superAccountFeatureRemove: withPermission<{ id: string, featureId: string }>(['super-admin', 'software-developer'], async (args) => {
-            let org = await Repos.Super.fetchById(IDs.SuperAccount.parse(args.id));
-            await Modules.Features.repo.disableFeatureForOrganization(org.id!, args.featureId);
-            return org;
-        }),
         superAdminAdd: withPermission<{ userId: string, role: 'SUPER_ADMIN' | 'SOFTWARE_DEVELOPER' | 'EDITOR' }>('super-admin', async (args) => {
             let uid = IDs.User.parse(args.userId);
             let role = 'editor';
@@ -172,15 +136,11 @@ export const Resolvers = {
             await Modules.Super.makeNormalUser(uid);
             return 'ok';
         }),
-        superMultiplyValue: withPermission<{ value: number }>(['super-admin', 'software-developer'], async (args) => {
-            return null;
-        }),
         superAccountChannelMemberAdd: withPermission<{ id: string, userId: string }>('super-admin', async (args) => {
             return await inTx(async () => {
                 await Repos.Chats.addToChannel(IDs.Conversation.parse(args.id), IDs.User.parse(args.userId));
                 return 'ok';
             });
-
         }),
     }
 };

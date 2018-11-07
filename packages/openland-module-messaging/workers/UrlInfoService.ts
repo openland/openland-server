@@ -1,11 +1,11 @@
-import { fetchURLInfo } from '../modules/UrlInfo';
-import { IDs } from '../api/utils/IDs';
+import { IDs } from '../../openland-server/api/utils/IDs';
 import * as URL from 'url';
-import { ImageRef } from '../repositories/Media';
-import { UploadCareFileInfo } from './UploadCare';
 import { CacheRepository } from 'openland-module-cache/CacheRepository';
 import { Modules } from 'openland-modules/Modules';
 import { FDB } from 'openland-module-db/FDB';
+import { fetchURLInfo } from './UrlInfo';
+import { FileInfo } from 'openland-module-media/FileInfo';
+import { ImageRef } from 'openland-module-media/ImageRef';
 
 export interface URLAugmentation {
     url: string;
@@ -13,10 +13,10 @@ export interface URLAugmentation {
     subtitle: string | null;
     description: string | null;
     imageURL: string | null;
-    imageInfo: UploadCareFileInfo | null;
+    imageInfo: FileInfo | null;
     photo: ImageRef | null;
     iconRef: ImageRef | null;
-    iconInfo: UploadCareFileInfo | null;
+    iconInfo: FileInfo | null;
     hostname: string | null;
     type: 'org' | 'listing' | 'user' | 'url' | 'none' | 'channel' | 'intro';
     extra?: any;

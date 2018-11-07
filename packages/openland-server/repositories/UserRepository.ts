@@ -1,9 +1,9 @@
 import { CallContext } from '../api/utils/CallContext';
-import { ImageRef } from './Media';
 import { Repos } from '.';
 import { Modules } from 'openland-modules/Modules';
 import { UserProfile, User } from 'openland-module-db/schema';
 import { FDB } from 'openland-module-db/FDB';
+import { ImageRef } from 'openland-module-media/ImageRef';
 
 export class UserRepository {
     private readonly userCache = new Map<string, number | undefined>();

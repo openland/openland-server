@@ -2,13 +2,13 @@ import { CallContext } from './utils/CallContext';
 import { withUser, withAny, withAccount } from './utils/Resolvers';
 import { Repos } from '../repositories';
 import { IDs } from './utils/IDs';
-import { buildBaseImageUrl, ImageRef } from '../repositories/Media';
 import { NotFoundError } from '../errors/NotFoundError';
 import { ErrorText } from '../errors/ErrorText';
 import { Modules } from 'openland-modules/Modules';
 import { inTx } from 'foundation-orm/inTx';
 import { OrganizationInviteLink, OrganizationPublicInviteLink } from 'openland-module-db/schema';
 import { FDB } from 'openland-module-db/FDB';
+import { buildBaseImageUrl, ImageRef } from 'openland-module-media/ImageRef';
 
 export const Resolver = {
     Invite: {
@@ -56,21 +56,6 @@ export const Resolver = {
             };
         }),
         appInvite: withUser(async (args, uid) => {
-            return await Modules.Invites.repo.getInviteLinkKey(uid);
-        }),
-        // depricated. todo: delete
-        alphaAppInviteInfo: withAny<{ key: string }>(async (args, context: CallContext) => {
-            let invite = await Modules.Invites.repo.getInvteLinkData(args.key);
-            if (!invite) {
-                return null;
-            }
-            let inviter = await FDB.User.findById(invite.uid);
-            return {
-                inviter: inviter,
-            };
-        }),
-        // depricated. todo: delete
-        alphaAppInvite: withUser(async (args, uid) => {
             return await Modules.Invites.repo.getInviteLinkKey(uid);
         }),
         // deperecated

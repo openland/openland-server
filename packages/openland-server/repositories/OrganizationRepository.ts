@@ -1,5 +1,4 @@
 import { validate, stringNotEmpty } from '../modules/NewInputValidator';
-import { ImageRef } from './Media';
 import { Sanitizer } from '../modules/Sanitizer';
 import { Repos } from '.';
 import { Hooks } from './Hooks';
@@ -7,6 +6,7 @@ import { Modules } from 'openland-modules/Modules';
 import { FDB } from 'openland-module-db/FDB';
 import { OrganizationMember } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
+import { ImageRef } from 'openland-module-media/ImageRef';
 
 export class OrganizationRepository {
 

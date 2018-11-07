@@ -7,5 +7,3 @@ sudo dpkg -i foundationdb-server_5.2.5-1_amd64.deb foundationdb-server_5.2.5-1_a
 sudo apt-get update
 sudo apt -y --fix-broken install
 sudo service foundationdb start
-change-pg-version 10
-createdb openland_tests -U $DATABASE_POSTGRESQL_USERNAME

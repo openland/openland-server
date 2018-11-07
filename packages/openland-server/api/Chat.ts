@@ -13,12 +13,10 @@ import { CallContext } from './utils/CallContext';
 import { Repos } from '../repositories';
 import { JsonMap } from '../utils/json';
 import { IDMailformedError } from '../errors/IDMailformedError';
-import { ImageRef, buildBaseImageUrl } from '../repositories/Media';
-import { Services } from '../services';
 import { UserError } from '../errors/UserError';
 import { NotFoundError } from '../errors/NotFoundError';
 import { Sanitizer } from '../modules/Sanitizer';
-import { URLAugmentation } from '../services/UrlInfoService';
+import { URLAugmentation } from '../../openland-module-messaging/workers/UrlInfoService';
 import { Modules } from 'openland-modules/Modules';
 import { OnlineEvent } from '../../openland-module-presences/PresenceModule';
 import { UserDialogSettings, Message, RoomParticipant, Conversation, Organization, User } from 'openland-module-db/schema';
@@ -27,6 +25,7 @@ import { TypingEvent } from 'openland-module-typings/TypingEvent';
 import { withLogContext } from 'openland-log/withLogContext';
 import { FDB } from 'openland-module-db/FDB';
 import { FEntity } from 'foundation-orm/FEntity';
+import { buildBaseImageUrl, ImageRef } from 'openland-module-media/ImageRef';
 
 export const Resolver = {
     Conversation: {
@@ -643,11 +642,11 @@ export const Resolver = {
                 let filePreview: string | null;
 
                 if (args.file) {
-                    let fileInfo = await Services.UploadCare.saveFile(args.file);
+                    let fileInfo = await Modules.Media.saveFile(args.file);
                     fileMetadata = fileInfo as any;
 
                     if (fileInfo.isImage) {
-                        filePreview = await Services.UploadCare.fetchLowResPreview(args.file);
+                        filePreview = await Modules.Media.fetchLowResPreview(args.file);
                     }
                 }
 
@@ -679,11 +678,11 @@ export const Resolver = {
             let filePreview: string | null;
 
             if (args.file) {
-                let fileInfo = await Services.UploadCare.saveFile(args.file);
+                let fileInfo = await Modules.Media.saveFile(args.file);
                 fileMetadata = fileInfo as any;
 
                 if (fileInfo.isImage) {
-                    filePreview = await Services.UploadCare.fetchLowResPreview(args.file);
+                    filePreview = await Modules.Media.fetchLowResPreview(args.file);
                 }
             }
 
@@ -732,11 +731,11 @@ export const Resolver = {
             let filePreview: string | null;
 
             if (args.file) {
-                let fileInfo = await Services.UploadCare.saveFile(args.file);
+                let fileInfo = await Modules.Media.saveFile(args.file);
                 fileMetadata = fileInfo as any;
 
                 if (fileInfo.isImage) {
-                    filePreview = await Services.UploadCare.fetchLowResPreview(args.file);
+                    filePreview = await Modules.Media.fetchLowResPreview(args.file);
                 }
             }
 
@@ -775,11 +774,11 @@ export const Resolver = {
             let filePreview: string | null = null;
 
             if (args.file) {
-                let fileInfo = await Services.UploadCare.saveFile(args.file);
+                let fileInfo = await Modules.Media.saveFile(args.file);
                 fileMetadata = fileInfo as any;
 
                 if (fileInfo.isImage) {
-                    filePreview = await Services.UploadCare.fetchLowResPreview(args.file);
+                    filePreview = await Modules.Media.fetchLowResPreview(args.file);
                 }
             }
 
@@ -819,7 +818,7 @@ export const Resolver = {
             let title = args.title ? args.title!! : '';
             let imageRef = Sanitizer.sanitizeImageRef(args.photoRef);
             if (imageRef) {
-                await Services.UploadCare.saveFile(imageRef.uuid);
+                await Modules.Media.saveFile(imageRef.uuid);
             }
             return Modules.Messaging.conv.createRoom('group', oid, uid, args.members.map((v) => IDs.User.parse(v)), {
                 title: title,
@@ -838,12 +837,12 @@ export const Resolver = {
 
             let imageRef = Sanitizer.sanitizeImageRef(args.input.photoRef);
             if (args.input.photoRef) {
-                await Services.UploadCare.saveFile(args.input.photoRef.uuid);
+                await Modules.Media.saveFile(args.input.photoRef.uuid);
             }
 
             let socialImageRef = Sanitizer.sanitizeImageRef(args.input.socialImageRef);
             if (args.input.socialImageRef) {
-                await Services.UploadCare.saveFile(args.input.socialImageRef.uuid);
+                await Modules.Media.saveFile(args.input.socialImageRef.uuid);
             }
 
             let conv = await Modules.Messaging.conv.updateRoomProfile(conversationId, uid, {

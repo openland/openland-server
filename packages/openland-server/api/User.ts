@@ -1,18 +1,17 @@
 import { CallContext } from './utils/CallContext';
 import { IDs } from './utils/IDs';
 import DataLoader from 'dataloader';
-import { buildBaseImageUrl, ImageRef } from '../repositories/Media';
 import { withUser, withAny } from './utils/Resolvers';
 import { Sanitizer } from '../modules/Sanitizer';
 import { validate, stringNotEmpty } from '../modules/NewInputValidator';
 import { Repos } from '../repositories';
-import { Services } from '../services';
 import { AccessDeniedError } from '../errors/AccessDeniedError';
 import { Modules } from 'openland-modules/Modules';
 import { UserProfile, UserSettings, User } from 'openland-module-db/schema';
 import { UserError } from 'openland-server/errors/UserError';
 import { inTx } from 'foundation-orm/inTx';
 import { FDB } from 'openland-module-db/FDB';
+import { buildBaseImageUrl, ImageRef } from 'openland-module-media/ImageRef';
 
 function userLoader(context: CallContext) {
     if (!context.cache.has('__profile_loader')) {
@@ -292,7 +291,7 @@ export const Resolver = {
                     }
                     if (args.input.photoRef !== undefined) {
                         if (args.input.photoRef !== null) {
-                            await Services.UploadCare.saveFile(args.input.photoRef.uuid);
+                            await Modules.Media.saveFile(args.input.photoRef.uuid);
                         }
                         profile.picture = Sanitizer.sanitizeImageRef(args.input.photoRef);
                     }

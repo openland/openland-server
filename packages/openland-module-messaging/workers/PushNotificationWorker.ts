@@ -1,12 +1,12 @@
 import { staticWorker } from 'openland-module-workers/staticWorker';
 import { Repos } from 'openland-server/repositories';
-import { buildBaseImageUrl } from 'openland-server/repositories/Media';
 import { Texts } from 'openland-server/texts';
 import { Modules } from 'openland-modules/Modules';
 import { withLogContext } from 'openland-log/withLogContext';
 import { inTx } from 'foundation-orm/inTx';
 import { createLogger } from 'openland-log/createLogger';
 import { FDB } from 'openland-module-db/FDB';
+import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 
 const Delays = {
     'none': 10 * 1000,

@@ -1,9 +1,0 @@
-type PersonalToken {
-    id: ID!
-    token: String!
-    createdAt: String!
-}
-
-extend type Query {
-    devPersonalTokens: [PersonalToken!]!
-}

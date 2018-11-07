@@ -1,52 +1,27 @@
 import request from 'request';
 import * as Path from 'path';
 import { tmpdir } from 'os';
-import { randomString } from '../utils/random';
+
 import FormData from 'form-data';
 import { createReadStream, unlink, writeFile } from 'fs';
 import fetch from 'node-fetch';
 import { promisify } from 'util';
 import { extname } from 'path';
+import { randomString } from 'openland-server/utils/random';
+import { FileInfo } from './FileInfo';
 
 const writeFileAsync = promisify(writeFile);
 const unlinkFile = promisify(unlink);
 
-export interface UploadCareFileInfo {
-    isImage: boolean;
-    isStored: boolean;
-    imageWidth: number | null;
-    imageHeight: number | null;
-    imageFormat: string | null;
-    mimeType: string;
-    name: string;
-    size: number;
-}
-
-export class UploadCare {
+export class MediaModule {
     static UPLOAD_CARE_PUB_KEY = 'b70227616b5eac21ba88';
     static UPLOAD_CARE_AUTH = 'Uploadcare.Simple b70227616b5eac21ba88:65d4918fb06d4fe0bec8';
 
-    async call(path: string, method: string = 'GET'): Promise<any> {
-        return new Promise<any>((resolve, reject) => {
-            request({
-                method,
-                url: 'https://api.uploadcare.com/' + path,
-                headers: {
-                    'Authorization': UploadCare.UPLOAD_CARE_AUTH
-                }
-            }, (error, response, body) => {
-                if (!error && response.statusCode === 200) {
-                    resolve(JSON.parse(body));
-                } else {
-                    console.warn(error);
-                    reject(new Error('File error'));
-                    // reject(error);
-                }
-            });
-        });
+    start = () => {
+        // Nothing to do
     }
 
-    async fetchFileInfo(uuid: string): Promise<UploadCareFileInfo> {
+    async fetchFileInfo(uuid: string): Promise<FileInfo> {
         let res = await this.call('files/' + uuid + '/');
 
         let isImage = (!!(res.is_image) || res.image_info);
@@ -70,7 +45,7 @@ export class UploadCare {
         };
     }
 
-    async saveFile(uuid: string): Promise<UploadCareFileInfo> {
+    async saveFile(uuid: string): Promise<FileInfo> {
         let fileInfo = await this.fetchFileInfo(uuid);
 
         if (!fileInfo.isStored) {
@@ -111,7 +86,7 @@ export class UploadCare {
 
         let form = new FormData();
         form.append('UPLOADCARE_STORE', '1');
-        form.append('UPLOADCARE_PUB_KEY', UploadCare.UPLOAD_CARE_PUB_KEY);
+        form.append('UPLOADCARE_PUB_KEY', MediaModule.UPLOAD_CARE_PUB_KEY);
         form.append('file', createReadStream(tmpPath));
 
         let res = await fetch(
@@ -128,5 +103,25 @@ export class UploadCare {
         let data = await (await fetch(url)).buffer();
 
         return this.upload(data, (extname(url).length > 0) ? extname(url) : undefined);
+    }
+
+    private async call(path: string, method: string = 'GET'): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            request({
+                method,
+                url: 'https://api.uploadcare.com/' + path,
+                headers: {
+                    'Authorization': MediaModule.UPLOAD_CARE_AUTH
+                }
+            }, (error, response, body) => {
+                if (!error && response.statusCode === 200) {
+                    resolve(JSON.parse(body));
+                } else {
+                    console.warn(error);
+                    reject(new Error('File error'));
+                    // reject(error);
+                }
+            });
+        });
     }
 }
