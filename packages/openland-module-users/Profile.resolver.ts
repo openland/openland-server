@@ -54,7 +54,112 @@ export default {
         }>(async (args, uid) => {
             return await Repos.Users.createUser(uid, args.input);
         }),
+        profileCreate: withUser<{
+            input: {
+                firstName: string,
+                lastName?: string | null,
+                photoRef?: ImageRef | null,
+                phone?: string | null,
+                email?: string | null,
+                website?: string | null,
+                about?: string | null,
+                location?: string | null
+            }
+        }>(async (args, uid) => {
+            return await Repos.Users.createUser(uid, args.input);
+        }),
         updateProfile: withUser<{
+            input: {
+                firstName?: string | null,
+                lastName?: string | null,
+                photoRef?: ImageRef | null,
+                phone?: string | null,
+                email?: string | null,
+                website?: string | null,
+                about?: string | null,
+                location?: string | null,
+                alphaLocations?: string[] | null,
+                alphaLinkedin?: string | null,
+                alphaTwitter?: string | null,
+                alphaRole?: string | null,
+                alphaPrimaryOrganizationId?: string,
+            },
+            uid?: string
+        }>(async (args, uid) => {
+            return await inTx(async () => {
+                if (args.uid) {
+                    let role = await Repos.Permissions.superRole(uid);
+                    if (!(role === 'super-admin')) {
+                        throw new AccessDeniedError();
+                    }
+                    uid = IDs.User.parse(args.uid);
+                }
+                let user = await FDB.User.findById(uid);
+                if (!user) {
+                    throw Error('Unable to find user');
+                }
+                await inTx(async () => {
+                    let profile = await Modules.Users.profileById(uid);
+                    if (!profile) {
+                        throw Error('Unable to find profile');
+                    }
+                    if (args.input.firstName !== undefined) {
+                        await validate(
+                            stringNotEmpty('First name can\'t be empty!'),
+                            args.input.firstName,
+                            'input.firstName'
+                        );
+                        profile.firstName = Sanitizer.sanitizeString(args.input.firstName)!;
+                    }
+                    if (args.input.lastName !== undefined) {
+                        profile.lastName = Sanitizer.sanitizeString(args.input.lastName);
+                    }
+                    if (args.input.location !== undefined) {
+                        profile.location = Sanitizer.sanitizeString(args.input.location);
+                    }
+                    if (args.input.website !== undefined) {
+                        profile.website = Sanitizer.sanitizeString(args.input.website);
+                    }
+                    if (args.input.about !== undefined) {
+                        profile.about = Sanitizer.sanitizeString(args.input.about);
+                    }
+                    if (args.input.photoRef !== undefined) {
+                        if (args.input.photoRef !== null) {
+                            await Modules.Media.saveFile(args.input.photoRef.uuid);
+                        }
+                        profile.picture = Sanitizer.sanitizeImageRef(args.input.photoRef);
+                    }
+                    if (args.input.phone !== undefined) {
+                        profile.phone = Sanitizer.sanitizeString(args.input.phone);
+                    }
+                    if (args.input.email !== undefined) {
+                        profile.email = Sanitizer.sanitizeString(args.input.email);
+                    }
+
+                    if (args.input.alphaLocations !== undefined) {
+                        profile.locations = Sanitizer.sanitizeAny(args.input.alphaLocations);
+                    }
+
+                    if (args.input.alphaLinkedin !== undefined) {
+                        profile.linkedin = Sanitizer.sanitizeString(args.input.alphaLinkedin);
+                    }
+
+                    if (args.input.alphaTwitter !== undefined) {
+                        profile.twitter = Sanitizer.sanitizeString(args.input.alphaTwitter);
+                    }
+
+                    if (args.input.alphaRole !== undefined) {
+                        profile.role = Sanitizer.sanitizeString(args.input.alphaRole);
+                    }
+
+                    if (args.input.alphaPrimaryOrganizationId !== undefined) {
+                        profile.primaryOrganization = IDs.Organization.parse(args.input.alphaPrimaryOrganizationId);
+                    }
+                });
+                return user;
+            });
+        }),
+        profileUpdate: withUser<{
             input: {
                 firstName?: string | null,
                 lastName?: string | null,
