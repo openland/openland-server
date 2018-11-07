@@ -97,9 +97,6 @@ export const Resolvers = {
             // });
             throw new UserError('Not supported yet');
         }),
-        alphaRefreshTask: withAny<{ id: string }>((args) => {
-            return null;
-        })
     },
     Mutation: {
         superAccountRename: withPermission<{ id: string, title: string }>('super-admin', (args) => {

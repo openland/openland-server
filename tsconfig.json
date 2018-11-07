@@ -96,6 +96,9 @@
       ],
       "openland-module-media": [
         "openland-module-media"
+      ],
+      "openland-module-api": [
+        "openland-module-api"
       ]
     }
   },
