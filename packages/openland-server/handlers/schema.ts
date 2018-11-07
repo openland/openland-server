@@ -11,12 +11,6 @@ import { delay } from '../utils/timer';
 import { withTracing } from 'openland-log/withTracing';
 import { gqlTracer } from 'openland-server/utils/gqlTracer';
 import { withLogContext } from 'openland-log/withLogContext';
-import { createTracer } from 'openland-log/createTracer';
-import { OpenTracer } from 'openland-log/src/STracer';
-
-const OpentracingExtension = require('apollo-opentracing').default;
-const tracer = createTracer('graphql');
-const tracerResolve = createTracer('resolve');
 
 function getClientId(req: express.Request, res: express.Response) {
     if (res.locals.ctx) {
@@ -55,10 +49,6 @@ function handleRequest(withEngine: boolean) {
                 context: res.locals.ctx,
                 cacheControl: withEngine,
                 tracing: withEngine,
-                extensions: tracer instanceof OpenTracer ? [() => new OpentracingExtension({
-                    server: (tracer as OpenTracer).tracer,
-                    local: (tracerResolve as OpenTracer).tracer,
-                })] : [],
                 formatError: (err: any) => {
                     return {
                         ...errorHandler(err),
@@ -69,7 +59,7 @@ function handleRequest(withEngine: boolean) {
                 validationRules: [
                     // disableIntrospection((res.locals.ctx as CallContext) || undefined)
                 ]
-            } as any;
+            };
         }
     };
 }

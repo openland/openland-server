@@ -3,9 +3,9 @@ import { CallContext } from '../api/utils/CallContext';
 import { Repos } from '../repositories';
 import { Modules } from 'openland-modules/Modules';
 import { withTracingSpan } from 'openland-log/withTracing';
-// import { createTracer } from 'openland-log/createTracer';
+import { createTracer } from 'openland-log/createTracer';
 
-// let tracer = createTracer('express');
+let tracer = createTracer('express');
 
 async function context(src: express.Request): Promise<CallContext> {
     let res = new CallContext();
@@ -40,7 +40,7 @@ async function context(src: express.Request): Promise<CallContext> {
         // res.superRope = await Repos.Permissions.superRole(res.uid);
     }
 
-    // res.span = tracer.startSpan('http');
+    res.span = tracer.startSpan('http');
 
     return res;
 }
