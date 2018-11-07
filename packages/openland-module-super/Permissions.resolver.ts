@@ -3,9 +3,9 @@ import { withPermission } from 'openland-server/api/utils/Resolvers';
 import { UserError } from 'openland-server/errors/UserError';
 import { CallContext } from 'openland-server/api/utils/CallContext';
 
-export const Resolvers = {
+export default {
     Query: {
-        myPermissions: async function (_: any, _params: {}, context: CallContext) {
+        permissions: async function (_: any, _params: {}, context: CallContext) {
             return {
                 roles: Repos.Permissions.resolvePermissions({ uid: context.uid, oid: context.oid })
             };
