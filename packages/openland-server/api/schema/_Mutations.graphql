@@ -1,8 +1,3 @@
 type Mutation {    
     lifecheck: String
-
-    alphaCreateInvite: Invite!
-    alphaDeleteInvite(id: ID!): String!
-    alphaJoinInvite(key: String!): ID!
-    joinAppInvite(key: String!): ID!
 }

@@ -34,3 +34,20 @@ type InviteHistotyInfo {
     forEmail: String!
     isGlobal: Boolean!
 }
+
+extend type Query {
+    alphaInvites: [Invite!]
+    alphaInviteInfo(key: String!): InviteInfo
+    appInvite: String!
+    appInviteInfo(key: String!): AppInvite
+    alphaAppInvite: String! @deprecated(reason: "renamed to 'appInvite'")
+    alphaAppInviteInfo(key: String!): AppInviteInfo @deprecated(reason: "renamed to 'appInviteInfo'")
+    alphaInvitesHistory: [InviteHistotyInfo!]
+}
+
+extend type Mutation {
+    alphaCreateInvite: Invite!
+    alphaDeleteInvite(id: ID!): String!
+    alphaJoinInvite(key: String!): ID!
+    joinAppInvite(key: String!): ID!
+}
