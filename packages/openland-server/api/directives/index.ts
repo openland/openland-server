@@ -88,34 +88,50 @@ export function IDType(type: SecID) {
     });
 }
 
-export const IDScalars = {
-    OrganizationID: IDType(IDs.Organization),
-    OrganizationAccountID: IDType(IDs.OrganizationAccount),
-    OrganizationListingID: IDType(IDs.OrganizationListing),
-    InviteID: IDType(IDs.Invite),
-    InviteInfoID: IDType(IDs.InviteInfo),
-    StateID: IDType(IDs.State),
-    CountyID: IDType(IDs.County),
-    CityID: IDType(IDs.City),
-    UserID: IDType(IDs.User),
-    ProfileID: IDType(IDs.Profile),
-    DealID: IDType(IDs.Deal),
-    BlockID: IDType(IDs.Block),
-    SuperAccountID: IDType(IDs.SuperAccount),
-    SuperCityID: IDType(IDs.SuperCity),
-    FeatureFlagID: IDType(IDs.FeatureFlag),
-    OpportunitiesID: IDType(IDs.Opportunities),
-    DebugReaderID: IDType(IDs.DebugReader),
-    FolderID: IDType(IDs.Folder),
-    FolderItemID: IDType(IDs.FolderItem),
-    TaskID: IDType(IDs.Task),
-    ConversationID: IDType(IDs.Conversation),
-    ConversationSettingsID: IDType(IDs.ConversationSettings),
-    ConversationMessageID: IDType(IDs.ConversationMessage),
-    NotificationCounterID: IDType(IDs.NotificationCounter),
-    SettingsID: IDType(IDs.Settings),
-    WallEntityID: IDType(IDs.WallEntity),
+function generateIDScalars() {
+    let scalars: { [key: string]: GraphQLScalarType } = {};
+    for (let scalarName in IDs) {
+        scalars[scalarName + 'ID'] = IDType((IDs as any)[scalarName]);
+    }
+    return scalars;
+}
+
+export const IDScalars = generateIDScalars();
+
+const ALIASES: { [key: string]: string } = {
+    'conversationID': 'chatID',
+    'conversationMessageID': 'messageID'
 };
+
+function generateIdDirectives() {
+    let directives: { [key: string]: typeof SchemaDirectiveVisitor } = {};
+    for (let scalarName in IDScalars) {
+        let name = scalarName.charAt(0).toLowerCase() + scalarName.substr(1);
+        if (ALIASES[name]) {
+            name = ALIASES[name];
+        }
+        directives[name] = createIDDirective(IDScalars[scalarName]);
+    }
+    return directives;
+}
+
+const IDScalarDirectives = generateIdDirectives();
+
+export function injectIDScalars(schema: string): string {
+    for (let scalarName in IDScalars) {
+        schema += `scalar ${scalarName}\n`;
+    }
+
+    for (let scalarName in IDScalars) {
+        let name = scalarName.charAt(0).toLowerCase() + scalarName.substr(1);
+        if (ALIASES[name]) {
+            name = ALIASES[name];
+        }
+        schema += `directive @${name} on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION | FIELD_DEFINITION\n`;
+    }
+
+    return schema;
+}
 
 export const Directives = {
     withAuth: createFieldDirective(async (root, args, ctx, info, resolve) => {
@@ -144,8 +160,5 @@ export const Directives = {
         )(root, args, ctx);
     }),
 
-    userID: createIDDirective(IDScalars.UserID),
-    organizationID: createIDDirective(IDScalars.OrganizationID),
-    chatID: createIDDirective(IDScalars.ConversationID),
-    messageID: createIDDirective(IDScalars.ConversationMessageID),
+    ...IDScalarDirectives
 };

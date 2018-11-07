@@ -10,7 +10,7 @@ import * as Chat from './Chat';
 import * as Channels from './Channels';
 import * as Developer from './Developer';
 
-import { Directives, IDScalars } from './directives';
+import { Directives, IDScalars, injectIDScalars } from './directives';
 import { GraphQLField, GraphQLFieldResolver } from 'graphql';
 import { wrapAllResolvers } from './utils/Resolvers';
 import { withLogContext } from '../../openland-log/withLogContext';
@@ -25,7 +25,7 @@ let resolvers = buildResolvers(__dirname + '/../../');
 
 export const Schema = wrapAllResolvers(
     makeExecutableSchema({
-        typeDefs: schema,
+        typeDefs: injectIDScalars(schema),
         resolvers: merge(
             Basics.Resolvers,
             Account.Resolver,
