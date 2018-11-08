@@ -8,6 +8,7 @@ enum DialogKind {
 type Dialog {
     id: ID!
     cid: ID!
+    fid: ID!
     kind: DialogKind!
     
     title: String!

@@ -9,6 +9,25 @@ export default {
     Dialog: {
         id: (src: UserDialog) => IDs.Dialog.serialize(src.cid),
         cid: (src: UserDialog) => IDs.Conversation.serialize(src.cid),
+        fid: async (src: UserDialog, args: {}, context: CallContext) => {
+            let conv = (await FDB.Conversation.findById(src.cid))!;
+            if (conv.kind === 'organization') {
+                return IDs.Organization.serialize((await FDB.ConversationOrganization.findById(src.cid))!.oid);
+            } else if (conv.kind === 'private') {
+                let pc = (await FDB.ConversationPrivate.findById(conv.id))!;
+                if (pc.uid1 === context.uid) {
+                    return IDs.User.serialize(pc.uid2);
+                } else if (pc.uid2 === context.uid) {
+                    return IDs.User.serialize(pc.uid2);
+                } else {
+                    throw Error('Unknwon conversation type');
+                }
+            } else if (conv.kind === 'room') {
+                return IDs.Conversation.serialize(src.cid);
+            } else {
+                throw Error('Unknwon conversation type');
+            }
+        },
         kind: async (src: UserDialog) => {
             let conv = (await FDB.Conversation.findById(src.cid))!;
             if (conv.kind === 'organization') {
