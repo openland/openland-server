@@ -14,7 +14,8 @@ export interface FEntityOptions {
 
 const log = createLogger('FEntity');
 
-export class FEntity {
+export abstract class FEntity {
+    abstract readonly entityName: string;
     readonly namespace: FNamespace;
     readonly directory: FDirectory;
     readonly rawId: (string | number)[];

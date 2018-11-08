@@ -16,7 +16,7 @@ type Dialog {
 
     unreadCount: Int!
 
-    topMessage: ConversationMessage
+    topMessage: Message
 }
 
 type DialogsConnection {
