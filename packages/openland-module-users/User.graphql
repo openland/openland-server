@@ -6,7 +6,6 @@ type User {
     firstName: String!
     lastName: String
     photo: String
-    photoRef: ImageRef
     phone: String
     email: String
     website: String
@@ -22,6 +21,7 @@ type User {
     channelsJoined: [ChannelConversation!]!
 
     # Deprecated: Will be removed soon
+    photoRef: ImageRef
     picture: String
     pictureRef: ImageRef
     alphaRole: String
