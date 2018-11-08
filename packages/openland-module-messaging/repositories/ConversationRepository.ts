@@ -1,9 +1,9 @@
 import { AllEntities } from 'openland-module-db/schema';
 import { FDB } from 'openland-module-db/FDB';
-import { AccessDeniedError } from 'openland-server/errors/AccessDeniedError';
+import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { inTx } from 'foundation-orm/inTx';
 import { Modules } from 'openland-modules/Modules';
-import { NotFoundError } from 'openland-server/errors/NotFoundError';
+import { NotFoundError } from 'openland-errors/NotFoundError';
 import { imageRefEquals } from 'openland-module-media/ImageRef';
 
 interface RoomProfileInput {

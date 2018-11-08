@@ -5,10 +5,10 @@ import { FDB } from 'openland-module-db/FDB';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { Modules } from 'openland-modules/Modules';
 import { withAny, withPermission } from 'openland-server/api/utils/Resolvers';
-import { NotFoundError } from 'openland-server/errors/NotFoundError';
+import { NotFoundError } from 'openland-errors/NotFoundError';
 import { inTx } from 'foundation-orm/inTx';
-import { UserError } from 'openland-server/errors/UserError';
-import { ErrorText } from 'openland-server/errors/ErrorText';
+import { UserError } from 'openland-errors/UserError';
+import { ErrorText } from 'openland-errors/ErrorText';
 import { resolveOrganizationJoinedMembers } from './utils/resolveOrganizationJoinedMembers';
 
 export default {

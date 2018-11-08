@@ -11,9 +11,9 @@ import {
 } from '../openland-utils/NewInputValidator';
 import { CallContext } from '../openland-server/api/utils/CallContext';
 import { JsonMap } from '../openland-utils/json';
-import { IDMailformedError } from '../openland-server/errors/IDMailformedError';
-import { UserError } from '../openland-server/errors/UserError';
-import { NotFoundError } from '../openland-server/errors/NotFoundError';
+import { IDMailformedError } from '../openland-errors/IDMailformedError';
+import { UserError } from '../openland-errors/UserError';
+import { NotFoundError } from '../openland-errors/NotFoundError';
 import { Sanitizer } from '../openland-utils/Sanitizer';
 import { URLAugmentation } from './workers/UrlInfoService';
 import { Modules } from 'openland-modules/Modules';

@@ -99,6 +99,12 @@
       ],
       "openland-module-api": [
         "openland-module-api"
+      ],
+      "openland-module-hooks": [
+        "openland-module-hooks"
+      ],
+      "openland-errors": [
+        "openland-errors"
       ]
     }
   },

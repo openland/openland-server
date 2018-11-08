@@ -1,6 +1,6 @@
 import { createIterator } from 'openland-utils/asyncIterator';
 import { TypingEvent } from './TypingEvent';
-import { PubsubSubcription, Pubsub } from 'openland-server/modules/pubsub';
+import { PubsubSubcription, Pubsub } from 'openland-module-pubsub/pubsub';
 import { debouncer } from 'openland-utils/timer';
 import { Modules } from 'openland-modules/Modules';
 

@@ -6,8 +6,8 @@ import { FDB } from 'openland-module-db/FDB';
 import { IDs } from 'openland-server/api/utils/IDs';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { inTx } from 'foundation-orm/inTx';
-import { ErrorText } from 'openland-server/errors/ErrorText';
-import { NotFoundError } from 'openland-server/errors/NotFoundError';
+import { ErrorText } from 'openland-errors/ErrorText';
+import { NotFoundError } from 'openland-errors/NotFoundError';
 import { Emails } from '../openland-module-email/Emails';
 
 export default {

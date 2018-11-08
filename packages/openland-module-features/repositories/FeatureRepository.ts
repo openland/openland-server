@@ -1,6 +1,6 @@
 import { AllEntities } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
-import { UserError } from 'openland-server/errors/UserError';
+import { UserError } from 'openland-errors/UserError';
 
 export class FeatureRepository {
     private entities: AllEntities;

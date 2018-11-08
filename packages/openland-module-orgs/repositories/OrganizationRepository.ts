@@ -4,9 +4,8 @@ import { Modules } from 'openland-modules/Modules';
 import { Sanitizer } from 'openland-utils/Sanitizer';
 import { OrganizatinProfileInput } from 'openland-module-orgs/OrganizationProfileInput';
 import { validate, stringNotEmpty } from 'openland-utils/NewInputValidator';
-import { Hooks } from 'openland-server/repositories/Hooks';
-import { UserError } from 'openland-server/errors/UserError';
-import { ErrorText } from 'openland-server/errors/ErrorText';
+import { UserError } from 'openland-errors/UserError';
+import { ErrorText } from 'openland-errors/ErrorText';
 
 export class OrganizationRepository {
     readonly entities: AllEntities;
@@ -53,7 +52,7 @@ export class OrganizationRepository {
             });
 
             await this.addUserToOrganization(uid, organization.id);
-            await Hooks.onOrganizstionCreated(uid, organization.id);
+            await Modules.Hooks.onOrganizstionCreated(uid, organization.id);
 
             return organization;
         });

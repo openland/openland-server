@@ -1,8 +1,8 @@
 import { withPermission } from 'openland-server/api/utils/Resolvers';
 import { inTx } from 'foundation-orm/inTx';
 import { FDB } from 'openland-module-db/FDB';
-import { UserError } from 'openland-server/errors/UserError';
-import { ErrorText } from 'openland-server/errors/ErrorText';
+import { UserError } from 'openland-errors/UserError';
+import { ErrorText } from 'openland-errors/ErrorText';
 import { IDs } from 'openland-server/api/utils/IDs';
 
 export default {

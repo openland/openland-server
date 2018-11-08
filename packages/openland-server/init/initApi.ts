@@ -10,7 +10,7 @@ import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { Schema } from '../api';
 import { execute, subscribe, GraphQLSchema, DocumentNode, GraphQLFieldResolver } from 'graphql';
 import { fetchWebSocketParameters, buildWebSocketContext } from '../../openland-module-auth/websocket';
-import { errorHandler } from '../errors';
+import { errorHandler } from '../../openland-errors';
 // import { Rate } from '../utils/rateLimit';
 import { Server as HttpServer } from 'http';
 // import { delay } from '../utils/timer';

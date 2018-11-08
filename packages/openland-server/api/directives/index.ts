@@ -10,8 +10,8 @@ import {
     Kind
 } from 'graphql';
 import { CallContext } from '../utils/CallContext';
-import { ErrorText } from '../../errors/ErrorText';
-import { AccessDeniedError } from '../../errors/AccessDeniedError';
+import { ErrorText } from '../../../openland-errors/ErrorText';
+import { AccessDeniedError } from '../../../openland-errors/AccessDeniedError';
 import { GraphQLFieldResolver, GraphQLInputType, GraphQLOutputType } from 'graphql/type/definition';
 import { withPermission } from '../utils/Resolvers';
 import { SecID } from '../../../openland-security/SecID';

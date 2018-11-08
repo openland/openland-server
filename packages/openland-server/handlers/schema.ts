@@ -4,7 +4,7 @@ import { GraphQLOptions } from 'apollo-server-core';
 import { graphqlExpress } from 'apollo-server-express';
 import * as Schema from '../api';
 import { callContextMiddleware } from './context';
-import { errorHandler } from '../errors';
+import { errorHandler } from '../../openland-errors';
 import { CallContext } from '../api/utils/CallContext';
 import { Rate } from '../../openland-utils/rateLimit';
 import { delay } from '../../openland-utils/timer';

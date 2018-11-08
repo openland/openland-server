@@ -2,7 +2,7 @@ import { AllEntities, ConversationEvent } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
 import { Modules } from 'openland-modules/Modules';
 import { MessageInput } from 'openland-module-messaging/MessageInput';
-import { AccessDeniedError } from 'openland-server/errors/AccessDeniedError';
+import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 
 export class MessagingRepository {
     readonly entities: AllEntities;

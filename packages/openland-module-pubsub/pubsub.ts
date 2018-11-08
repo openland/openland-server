@@ -1,46 +1,19 @@
-import * as Redis from './redis/redis';
-import { IHandyRedis } from 'handy-redis';
+import { EventBus } from './EventBus';
 
 export type PubsubSubcription = { cancel(): void };
 
 export class Pubsub<T> {
 
-    private client: IHandyRedis | null = null;
-    private subscriberClient: IHandyRedis | null = null;
+    private readonly useRedis: boolean;
     private subscribers = new Map<string, Array<{ listener: (data: T) => void }>>();
-    private subscribedTopics = new Set<string>();
 
     constructor(useRedis: boolean = true) {
-        if (useRedis) {
-            this.client = Redis.redisClient();
-            this.subscriberClient = Redis.redisClient();
-        }
-        if (this.subscriberClient) {
-            this.subscriberClient.redis.on('message', (topic: string, message) => {
-                // Check topic
-                if (!this.subscribedTopics.has(topic)) {
-                    return;
-                }
-
-                // Parsing data
-                let parsed: T;
-                try {
-                    parsed = JSON.parse(message) as T;
-                } catch (e) {
-                    return;
-                }
-
-                // Delivering notifications
-                for (let r of this.subscribers.get(topic)!!) {
-                    r.listener(parsed);
-                }
-            });
-        }
+        this.useRedis = useRedis;
     }
 
     async publish(topic: string, data: T) {
-        if (this.client) {
-            await this.client.publish(topic, JSON.stringify(data));
+        if (this.useRedis) {
+            EventBus.publish(topic, data);
         } else {
 
             // Simulate redis if not configured
@@ -56,17 +29,14 @@ export class Pubsub<T> {
     }
 
     async subscribe(topic: string, receiver: (data: T) => void): Promise<PubsubSubcription> {
-        if (!this.subscribedTopics.has(topic)) {
-            this.subscribedTopics.add(topic);
-            if (this.subscriberClient) {
-                await this.subscriberClient.subscribe([topic]);
-            }
+        if (this.useRedis) {
+            return EventBus.subscribe(topic, (src) => { receiver(src); });
         }
+
         if (!this.subscribers.has(topic)) {
             this.subscribers.set(topic, []);
         }
         this.subscribers.get(topic)!!.push({ listener: receiver });
-
         return {
             cancel: () => {
                 if (!this.subscribers.get(topic)) {

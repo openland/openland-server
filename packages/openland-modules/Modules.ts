@@ -18,8 +18,10 @@ import { InvitesModule } from 'openland-module-invites/InvitesModule';
 import { PubsubModule } from 'openland-module-pubsub/PubsubModule';
 import { MediaModule } from 'openland-module-media/MediaModule';
 import { ApiModule } from 'openland-module-api/ApiModule';
+import { HooksModule } from 'openland-module-hooks/HooksModule';
 
 class ModulesImpl {
+    readonly Hooks = new HooksModule();
     readonly Media = new MediaModule();
     readonly Auth = new AuthModule();
     readonly DB = new DBModule();
@@ -42,6 +44,7 @@ class ModulesImpl {
     readonly API = new ApiModule();
 
     start = async () => {
+        this.Hooks.start();
         this.DB.start();
         this.Media.start();
         this.Workers.start();

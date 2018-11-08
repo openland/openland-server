@@ -2,12 +2,12 @@ import { withAccount } from 'openland-server/api/utils/Resolvers';
 import { inTx } from 'foundation-orm/inTx';
 import { FDB } from 'openland-module-db/FDB';
 import { IDs, IdsFactory } from 'openland-server/api/utils/IDs';
-import { UserError } from 'openland-server/errors/UserError';
-import { ErrorText } from 'openland-server/errors/ErrorText';
+import { UserError } from 'openland-errors/UserError';
+import { ErrorText } from 'openland-errors/ErrorText';
 import { validate, defined, emailValidator } from 'openland-utils/NewInputValidator';
 import { Modules } from 'openland-modules/Modules';
-import { AccessDeniedError } from 'openland-server/errors/AccessDeniedError';
-import { NotFoundError } from 'openland-server/errors/NotFoundError';
+import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
+import { NotFoundError } from 'openland-errors/NotFoundError';
 import { Emails } from 'openland-module-email/Emails';
 import { resolveOrganizationJoinedMembers } from './utils/resolveOrganizationJoinedMembers';
 

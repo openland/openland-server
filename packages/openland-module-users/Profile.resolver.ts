@@ -8,7 +8,7 @@ import { inTx } from 'foundation-orm/inTx';
 import { Sanitizer } from 'openland-utils/Sanitizer';
 import { withUser } from 'openland-server/api/utils/Resolvers';
 import { ImageRef } from 'openland-module-media/ImageRef';
-import { AccessDeniedError } from 'openland-server/errors/AccessDeniedError';
+import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { ProfileInput } from './ProfileInput';
 
 export default {
