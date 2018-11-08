@@ -39,12 +39,12 @@ export default {
                     [] as any[]
                 );
                 let messages = new Map<number, Message | null>();
-                for (let c of res) {
-                    let msg = await FDB.Message.rangeFromChat(c.id, 1, true);
-                    if (msg.length === 0) {
-                        messages.set(c.id, null);
-                    } else {
-                        messages.set(c.id, msg[0]);
+
+                let topMesges = await Promise.all(res.map(c => FDB.Message.rangeFromChat(c.id, 1, true)));
+                for (let tmsgs of topMesges) {
+                    let msg = tmsgs[0];
+                    if (msg) {
+                        messages.set(msg.cid, msg);
                     }
                 }
                 res = res.filter(c => messages.get(c.id))
