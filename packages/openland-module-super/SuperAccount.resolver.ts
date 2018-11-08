@@ -28,27 +28,27 @@ export default {
             return FDB.Organization.findAll();
         }),
         superAccount: withPermission<{ id: string, viaOrgId?: boolean }>('super-admin', (args) => {
-            return Repos.Super.fetchById(args.viaOrgId ? IDs.Organization.parse(args.id) : IDs.SuperAccount.parse(args.id));
+            return FDB.Organization.findById(args.viaOrgId ? IDs.Organization.parse(args.id) : IDs.SuperAccount.parse(args.id));
         }),
     },
     Mutation: {
         superAccountRename: withPermission<{ id: string, title: string }>('super-admin', (args) => {
-            return Repos.Super.renameOrganization(IDs.SuperAccount.parse(args.id), args.title);
+            return Modules.Orgs.renameOrganization(IDs.SuperAccount.parse(args.id), args.title);
         }),
         superAccountActivate: withPermission<{ id: string }>('super-admin', (args) => {
-            return Repos.Super.activateOrganization(IDs.SuperAccount.parse(args.id));
+            return Modules.Orgs.activateOrganization(IDs.SuperAccount.parse(args.id));
         }),
         superAccountPend: withPermission<{ id: string }>('super-admin', (args) => {
-            return Repos.Super.pendOrganization(IDs.SuperAccount.parse(args.id));
+            return Modules.Orgs.pendOrganization(IDs.SuperAccount.parse(args.id));
         }),
         superAccountSuspend: withPermission<{ id: string }>('super-admin', (args) => {
-            return Repos.Super.suspendOrganization(IDs.SuperAccount.parse(args.id));
+            return Modules.Orgs.suspendOrganization(IDs.SuperAccount.parse(args.id));
         }),
-        superAccountMemberAdd: withPermission<{ id: string, userId: string }>('super-admin', async (args) => {
-            return await Repos.Super.addToOrganization(IDs.SuperAccount.parse(args.id), IDs.User.parse(args.userId));
+        superAccountMemberAdd: withPermission<{ id: string, userId: string }>('super-admin', (args) => {
+            return Modules.Orgs.addUserToOrganization(IDs.User.parse(args.userId), IDs.SuperAccount.parse(args.id));
         }),
         superAccountMemberRemove: withPermission<{ id: string, userId: string }>('super-admin', (args) => {
-            return Repos.Super.removeFromOrganization(IDs.SuperAccount.parse(args.id), IDs.User.parse(args.userId));
+            return Modules.Orgs.removeUserFromOrganization(IDs.User.parse(args.userId), IDs.SuperAccount.parse(args.id));
         }),
         superAccountChannelMemberAdd: withPermission<{ id: string, userId: string }>('super-admin', async (args) => {
             await Repos.Chats.addToChannel(IDs.Conversation.parse(args.id), IDs.User.parse(args.userId));
