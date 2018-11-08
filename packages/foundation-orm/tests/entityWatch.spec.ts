@@ -25,15 +25,15 @@ describe('FWatch', () => {
     it('should call callback on entity change', async () => {
         await withLogDisabled(async () => {
             await inTx(async () => {
-                await testEntities.SimpleEntity.create(1, { data: 'test' });
+                await testEntities.SimpleEntity.create(100, { data: 'test' });
             });
 
             let func = jest.fn();
 
-            testEntities.SimpleEntity.watch(1, () => func());
+            testEntities.SimpleEntity.watch(100, () => func());
 
             await inTx(async () => {
-                let v = await testEntities.SimpleEntity.findById(1);
+                let v = await testEntities.SimpleEntity.findById(100);
                 v!.data = 'test2';
             });
 
@@ -46,17 +46,17 @@ describe('FWatch', () => {
     it('should call callback on entity change multiply times', async () => {
         await withLogDisabled(async () => {
             await inTx(async () => {
-                await testEntities.SimpleEntity.create(2, { data: 'test' });
+                await testEntities.SimpleEntity.create(101, { data: 'test' });
             });
 
             let func = jest.fn();
 
-            testEntities.SimpleEntity.watch(2, () => func());
+            testEntities.SimpleEntity.watch(101, () => func());
 
             for (let i = 0; i < 4; i++) {
                 await inTx(async () => {
-                    let v = await testEntities.SimpleEntity.findById(2);
-                    v!.data = Math.random().toString(16);
+                    let v = await testEntities.SimpleEntity.findById(101);
+                    v!.data = i.toString(16);
                 });
                 await delay(200);
             }
@@ -70,17 +70,17 @@ describe('FWatch', () => {
     it('should not call callback if subscription was canceled', async () => {
         await withLogDisabled(async () => {
             await inTx(async () => {
-                await testEntities.SimpleEntity.create(3, { data: 'test' });
+                await testEntities.SimpleEntity.create(103, { data: 'test' });
             });
 
             let func = jest.fn();
 
-            let sub = testEntities.SimpleEntity.watch(3, () => func());
+            let sub = testEntities.SimpleEntity.watch(103, () => func());
 
             for (let i = 0; i < 4; i++) {
                 await inTx(async () => {
-                    let v = await testEntities.SimpleEntity.findById(3);
-                    v!.data = Math.random().toString(16);
+                    let v = await testEntities.SimpleEntity.findById(103);
+                    v!.data = i.toString(16);
                 });
                 if (i === 1) {
                     sub.cancel();
