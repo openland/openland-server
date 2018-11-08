@@ -20,9 +20,11 @@ export default {
             let personal = Promise.all((
                 await Modules.Users.searchForUsers(args.query, { uid, limit: 50 })).map((v) => Modules.Messaging.conv.resolvePrivateChat(uid, v)));
 
-            // SHARED search org1 matching name, org2 current and vice versa
+            // Organizations chats
+            let orgsConvs = await Promise.all((await Modules.Orgs.findUserOrganizations(uid)).map(o => FDB.ConversationOrganization.findFromOrganization(o)));
+            let oganizationsConversations = (await Promise.all(orgsConvs.filter(oc => !!oc).map(oc => oc!).map(oc => FDB.Conversation.findById(oc.id)))).filter(oc => !!oc).map(oc => oc!);
 
-            let res = [...await personal, ...await groupsChannels];
+            let res = [...await personal, ...await groupsChannels, ...oganizationsConversations];
             res = res.reduce(
                 (p, x) => {
                     if (!p.find(c => c.id === x.id)) {
