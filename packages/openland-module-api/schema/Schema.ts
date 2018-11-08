@@ -2,7 +2,7 @@ import { merge } from 'lodash';
 import { makeExecutableSchema } from 'graphql-tools';
 import * as Basics from './Date';
 
-import { Directives, IDScalars, injectIDScalars } from './Directives';
+import { Directives, IDScalars, injectIDScalars } from './Directives2';
 import { GraphQLField, GraphQLFieldResolver } from 'graphql';
 import { wrapAllResolvers } from '../Resolvers';
 import { withLogContext } from '../../openland-log/withLogContext';
