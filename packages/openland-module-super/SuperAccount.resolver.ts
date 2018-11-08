@@ -25,7 +25,7 @@ export default {
     },
     Query: {
         superAccounts: withPermission('super-admin', () => {
-            return Repos.Super.fetchAllOrganizations();
+            return FDB.Organization.findAll();
         }),
         superAccount: withPermission<{ id: string, viaOrgId?: boolean }>('super-admin', (args) => {
             return Repos.Super.fetchById(args.viaOrgId ? IDs.Organization.parse(args.id) : IDs.SuperAccount.parse(args.id));

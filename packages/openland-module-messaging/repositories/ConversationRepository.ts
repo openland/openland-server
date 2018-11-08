@@ -108,7 +108,7 @@ export class ConversationRepository {
             }
 
             // Check permissions
-            let isSuperAdmin = (await Repos.Permissions.superRole(uid)) === 'super-admin';
+            let isSuperAdmin = (await Modules.Super.superRole(uid)) === 'super-admin';
             let canKick = isSuperAdmin || p.role === 'admin' || p.role === 'owner' || kickedP.invitedBy === uid;
             if (!canKick) {
                 throw new AccessDeniedError();
@@ -242,7 +242,7 @@ export class ConversationRepository {
             }
 
             let curMember = await FDB.RoomParticipant.findById(cid, uid);
-            let role = await Repos.Permissions.superRole(uid);
+            let role = await Modules.Super.superRole(uid);
             let haveAccess = (curMember && (curMember.role === 'owner' || curMember.role === 'admin')) || role === 'super-admin';
 
             if (!haveAccess) {

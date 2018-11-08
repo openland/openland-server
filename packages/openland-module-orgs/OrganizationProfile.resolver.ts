@@ -7,7 +7,6 @@ import { NotFoundError } from 'openland-server/errors/NotFoundError';
 import { OrganizatinProfileInput } from './OrganizationProfileInput';
 import { Modules } from 'openland-modules/Modules';
 import { ImageRef } from 'openland-module-media/ImageRef';
-import { Repos } from 'openland-server/repositories';
 import { UserError } from 'openland-server/errors/UserError';
 import { ErrorText } from 'openland-server/errors/ErrorText';
 import { inTx } from 'foundation-orm/inTx';
@@ -94,7 +93,7 @@ export default {
 
             let orgId = oid;
             if (args.id) {
-                let role = await Repos.Permissions.superRole(uid);
+                let role = await Modules.Super.superRole(uid);
                 if (!(role === 'super-admin' || role === 'editor')) {
                     throw new UserError(ErrorText.permissionOnlyOwner);
                 }

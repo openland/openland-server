@@ -197,7 +197,7 @@ export class ChatsRepository {
             }
 
             if (message.uid !== uid) {
-                if (await Repos.Permissions.superRole(uid) !== 'super-admin') {
+                if (await Modules.Super.superRole(uid) !== 'super-admin') {
                     throw new AccessDeniedError();
                 }
             }

@@ -1,11 +1,15 @@
-import { NotFoundError } from '../errors/NotFoundError';
-import { ErrorText } from '../errors/ErrorText';
-import { IDs } from '../api/utils/IDs';
+import { AllEntities } from 'openland-module-db/schema';
 import { Modules } from 'openland-modules/Modules';
-import { FDB } from 'openland-module-db/FDB';
-import { OrganizationMember } from 'openland-module-db/schema';
+import { ErrorText } from 'openland-server/errors/ErrorText';
+import { NotFoundError } from 'openland-server/errors/NotFoundError';
+import { IDs } from 'openland-server/api/utils/IDs';
 
-export class PermissionRepository {
+export class PermissionsRepository {
+    private readonly entities: AllEntities;
+
+    constructor(entities: AllEntities) {
+        this.entities = entities;
+    }
 
     async resolvePermissions(args: { uid: number | null | undefined, oid: number | null | undefined }) {
         let permissions = new Set<string>();
@@ -14,7 +18,7 @@ export class PermissionRepository {
         // User Based Permissions
         //
         if (args.uid) {
-            let user = await FDB.User.findById(args.uid);
+            let user = await this.entities.User.findById(args.uid);
             if (user == null) {
                 throw new NotFoundError(ErrorText.unableToFindUser);
             }
@@ -39,7 +43,7 @@ export class PermissionRepository {
             // Membership
             //
 
-            let members = await FDB.OrganizationMember.allFromUser('joined', args.uid);
+            let members = await this.entities.OrganizationMember.allFromUser('joined', args.uid);
             for (let member of members) {
                 permissions.add('org-' + IDs.Organization.serialize(member.oid) + '-member');
                 if (member.role === 'admin') {
@@ -50,7 +54,7 @@ export class PermissionRepository {
             //
             // Organization features
             //
-            let org = await FDB.Organization.findById(args.oid);
+            let org = await this.entities.Organization.findById(args.oid);
             if (org) {
                 let features = await Modules.Features.repo.findOrganizationFeatures(org.id!);
                 for (let f of features) {
@@ -60,20 +64,6 @@ export class PermissionRepository {
         }
 
         return permissions;
-    }
-
-    async resolveRoleInOrganization(members: OrganizationMember[]): Promise<string[]> {
-        let roles: string[] = [];
-
-        for (let member of members) {
-            if (member.role === 'admin') {
-                roles.push(`OWNER`);
-            } else {
-                roles.push(`MEMBER`);
-            }
-        }
-
-        return roles;
     }
 
     async superRole(userId: number | null | undefined): Promise<string | false> {

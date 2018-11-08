@@ -1,7 +1,6 @@
 import { FDB } from 'openland-module-db/FDB';
 import { IDs } from 'openland-server/api/utils/IDs';
 import { UserProfile } from 'openland-module-db/schema';
-import { Repos } from 'openland-server/repositories';
 import { Modules } from 'openland-modules/Modules';
 import { CallContext } from 'openland-server/api/utils/CallContext';
 import { validate, stringNotEmpty } from 'openland-utils/NewInputValidator';
@@ -57,7 +56,7 @@ export default {
         profileUpdate: withUser<{ input: ProfileInput, uid?: string }>(async (args, uid) => {
             return await inTx(async () => {
                 if (args.uid) {
-                    let role = await Repos.Permissions.superRole(uid);
+                    let role = await Modules.Super.superRole(uid);
                     if (!(role === 'super-admin')) {
                         throw new AccessDeniedError();
                     }
@@ -145,7 +144,7 @@ export default {
         }>(async (args, uid) => {
             return await inTx(async () => {
                 if (args.uid) {
-                    let role = await Repos.Permissions.superRole(uid);
+                    let role = await Modules.Super.superRole(uid);
                     if (!(role === 'super-admin')) {
                         throw new AccessDeniedError();
                     }

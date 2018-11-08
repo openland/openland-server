@@ -1,17 +1,17 @@
 import { CallContext } from './CallContext';
-import { Repos } from '../../repositories';
 import { AccessDeniedError } from '../../errors/AccessDeniedError';
 import { ErrorText } from '../../errors/ErrorText';
 import { UserError } from '../../errors/UserError';
 import { SecID } from '../../../openland-security/SecID';
 import { GraphQLField, GraphQLFieldResolver, GraphQLObjectType, GraphQLSchema } from 'graphql';
 import { FDB } from 'openland-module-db/FDB';
+import { Modules } from 'openland-modules/Modules';
 
 async function fetchPermissions(context: CallContext) {
     if (context.cache.has('permissions')) {
         return (await context.cache.get('permissions')) as Set<string>;
     }
-    let res = Repos.Permissions.resolvePermissions({ uid: context.uid, oid: context.oid });
+    let res = Modules.Super.resolvePermissions({ uid: context.uid, oid: context.oid });
     context.cache.set('permissions', res);
     return await res;
 }

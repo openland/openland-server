@@ -7,9 +7,7 @@ import { Modules } from 'openland-modules/Modules';
 import { FDB } from 'openland-module-db/FDB';
 
 export class SuperRepository {
-    async fetchAllOrganizations() {
-        return await FDB.Organization.findAll();
-    }
+    
     async fetchById(id: number) {
         let res = await FDB.Organization.findById(id);
         if (!res) {

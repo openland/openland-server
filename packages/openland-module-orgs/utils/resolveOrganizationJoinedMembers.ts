@@ -1,11 +1,25 @@
 import { Modules } from 'openland-modules/Modules';
-import { Repos } from 'openland-server/repositories';
 import { FDB } from 'openland-module-db/FDB';
+import { OrganizationMember } from 'openland-module-db/schema';
+
+async function resolveRoleInOrganization(members: OrganizationMember[]): Promise<string[]> {
+    let roles: string[] = [];
+
+    for (let member of members) {
+        if (member.role === 'admin') {
+            roles.push(`OWNER`);
+        } else {
+            roles.push(`MEMBER`);
+        }
+    }
+
+    return roles;
+}
 
 export async function resolveOrganizationJoinedMembers(orgId: number) {
     let members = await Modules.Orgs.findOrganizationMembership(orgId);
 
-    let roles = await Repos.Permissions.resolveRoleInOrganization(members);
+    let roles = await resolveRoleInOrganization(members);
 
     let result: any[] = [];
 
