@@ -39,7 +39,7 @@ export default {
         },
 
         unreadCount: async (src: UserDialog) => {
-            return (await Modules.Messaging.repo.getUserDialogState(src.uid, src.cid)).unread;
+            return src.unread;
         },
 
         topMessage: (src: UserDialog) => Modules.Messaging.repo.findTopMessage(src.cid),
