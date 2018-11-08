@@ -80,7 +80,8 @@ export class OrgsModule {
             if (await this.repo.activateOrganization(id)) {
                 for (let m of await FDB.OrganizationMember.allFromOrganization('joined', id)) {
                     let u = (await FDB.User.findById(m.uid))!;
-                    if (u.status === 'activated') {
+                    if (u.status !== 'activated') {
+                        u.status = 'activated';
                         await Emails.sendWelcomeEmail(u.id);
                     }
                 }
