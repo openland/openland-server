@@ -11,62 +11,25 @@ type OrganizationContact {
 
 type Organization {
     id: ID!
-    superAccountId: ID!
     isMine: Boolean!
-    alphaIsOwner: Boolean!
     name: String!
     photo: String
-    photoRef: ImageRef
-
     website: String
     websiteTitle: String
     about: String
     twitter: String
     facebook: String
     linkedin: String
-    contacts: [OrganizationContact!]!
     location: String
     
-    alphaContacts: [Profile!]!
+    ## Refactor?
+    superAccountId: ID!
+    alphaIsOwner: Boolean!
     alphaOrganizationMembers: [OrganizationJoinedMember!]!
-    alphaPublished: Boolean!
-    alphaEditorial: Boolean!
     alphaFeatured: Boolean!
     alphaIsCommunity: Boolean!
-
-    alphaFollowed: Boolean!
-
-    alphaLocations: [String!]
-    alphaInterests: [String!]
-    alphaOrganizationType: [String!]
-
-    alphaPotentialSites: [Range!]
-    alphaSiteSizes: [Range!]
-    alphaDevelopmentModels: [String!]
-    alphaAvailability: [String!]
-    alphaLandUse: [String!]
-    alphaGoodFor: [String!]
-    alphaSpecialAttributes: [String!]
-    alphaLookingFor: [String!]
-    alphaGeographies: [String!]
-
-    alphaDOShapeAndForm: [String!]
-    alphaDOCurrentUse: [String!]
-    alphaDOGoodFitFor: [String!]
-    alphaDOSpecialAttributes: [String!]
-    alphaDOAvailability: [String!]
-
-    alphaARGeographies: [String!]
-    alphaARAreaRange: [String!]
-    alphaARHeightLimit: [String!]
-    alphaARActivityStatus: [String!]
-    alphaARAquisitionBudget: [String!]
-    alphaARAquisitionRate: [String!]
-    alphaARClosingTime: [String!]
-    alphaARSpecialAttributes: [String!]
-    alphaARLandUse: [String!]
-
     alphaCreatedChannels: [ChannelConversation]!
+
     shortname: String
 }
 

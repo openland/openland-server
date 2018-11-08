@@ -11,9 +11,7 @@ type OnlineEvent {
 extend type Mutation {
     presenceReportOnline(timeout: Int!, platform: Platform): String!
     presenceReportOffline(platform: Platform): String! @withAuth
-
-    alphaReportOnline(timeout: Int!, platform: Platform): String!
-    alphaReportOffline(platform: Platform): String! @withAuth
+    
     alphaReportActive(timeout: Int!, platform: Platform): String!
 }
 

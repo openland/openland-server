@@ -111,7 +111,7 @@ for (let e of AllEntities.schema) {
         if (!f.secure) {
             fields[f.name] = {
                 type: buildType(f.type),
-                ...(f.type === 'json' ? { resolve: (entity: any) =>  JSON.stringify(entity[f.name]) } : {})
+                ...(f.type === 'json' ? { resolve: (entity: any) => JSON.stringify(entity[f.name]) } : {})
             };
             inputFields[f.name] = {
                 type: buildType(f.type)
@@ -229,6 +229,20 @@ for (let e of AllEntities.schema) {
             }
         }
     }
+
+    mutations[Case.camelCase(e.name) + 'Rebuild'] = {
+        type: GraphQLString,
+        resolve: async (_: any, arg: any) => {
+            await inTx(async () => {
+                let all = await (FDB as any)[e.name].findAll();
+                for (let a of all) {
+                    a.markDirty();
+                    await a.flush();
+                }
+            });
+            return 'ok';
+        }
+    };
 
     // Creation
     if (e.editable) {
