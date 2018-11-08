@@ -39,23 +39,23 @@ export function createPushWorker(repo: PushRepository) {
         for (let i = 0; i < 10; i++) {
             queue.addWorker(async (args) => {
                 return await withTracing(tracer, 'SORT #' + args.uid, async () => {
-                    //
-                    // Web Push
-                    //
+                    if (args.desktop) {
+                        //
+                        // Web Push
+                        //
 
-                    let webTokens = await repo.getUserWebPushTokens(args.uid);
-                    for (let wp of webTokens) {
-                        await Modules.Push.webWorker.pushWork({
-                            tokenId: wp.id,
-                            title: args.title,
-                            body: args.body,
-                            picture: args.picture ? args.picture : undefined,
-                        });
+                        let webTokens = await repo.getUserWebPushTokens(args.uid);
+                        for (let wp of webTokens) {
+                            await Modules.Push.webWorker.pushWork({
+                                tokenId: wp.id,
+                                title: args.title,
+                                body: args.body,
+                                picture: args.picture ? args.picture : undefined,
+                            });
+                        }
                     }
-
                     if (args.mobile) {
                         let mobileBody = args.mobileIncludeText ? args.body : Texts.Notifications.NEW_MESSAGE_ANONYMOUS;
-
                         //
                         // iOS
                         //
