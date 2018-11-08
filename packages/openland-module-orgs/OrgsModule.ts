@@ -3,6 +3,7 @@ import { FDB } from 'openland-module-db/FDB';
 import { OrganizatinProfileInput } from './OrganizationProfileInput';
 import { inTx } from 'foundation-orm/inTx';
 import { Emails } from 'openland-module-email/Emails';
+import { Modules } from 'openland-modules/Modules';
 
 export class OrgsModule {
     private readonly repo = new OrganizationRepository(FDB);
@@ -12,7 +13,12 @@ export class OrgsModule {
     }
 
     async createOrganization(uid: number, input: OrganizatinProfileInput) {
-        return this.repo.createOrganization(uid, input);
+        return inTx(async () => {
+            let isEditor = (await Modules.Super.findSuperRole(uid)) === 'editor';
+            let res = await this.repo.createOrganization(uid, input, isEditor);
+            await Modules.Hooks.onOrganizstionCreated(uid, res.id);
+            return res;
+        });
     }
 
     async findOrganizationMembers(organizationId: number) {

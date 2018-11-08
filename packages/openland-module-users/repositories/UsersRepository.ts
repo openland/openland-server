@@ -19,9 +19,12 @@ export class UserRepository {
     async createUser(authId: string, email: string) {
         return await inTx(async () => {
             // TODO: Create INDEX!
-            let c = (await this.entities.Sequence.findById('user-id'))!;
-            let id = ++c.value;
-            await c.flush();
+            let seq = (await this.entities.Sequence.findById('user-id'));
+            if (!seq) {
+                seq = await this.entities.Sequence.create('user-id', { value: 0 });
+            }
+            let id = ++seq.value;
+            await seq.flush();
             let res = (await this.entities.User.create(id, { authId: authId, email: email.toLowerCase(), isBot: false, status: 'pending' }));
             await res.flush();
             return res;

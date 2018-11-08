@@ -1,6 +1,5 @@
 import { AllEntities, OrganizationMember } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
-import { Modules } from 'openland-modules/Modules';
 import { Sanitizer } from 'openland-utils/Sanitizer';
 import { OrganizatinProfileInput } from 'openland-module-orgs/OrganizationProfileInput';
 import { validate, stringNotEmpty } from 'openland-utils/NewInputValidator';
@@ -14,7 +13,7 @@ export class OrganizationRepository {
         this.entities = entities;
     }
 
-    async createOrganization(uid: number, input: OrganizatinProfileInput) {
+    async createOrganization(uid: number, input: OrganizatinProfileInput, editorial: boolean) {
         await validate(
             stringNotEmpty('Name can\'t be empty!'),
             input.name,
@@ -24,12 +23,18 @@ export class OrganizationRepository {
         return await inTx(async () => {
             let status: 'activated' | 'pending' = 'pending';
             let user = await this.entities.User.findById(uid);
+            if (!user) {
+                throw Error('Unable to find user');
+            }
             if (user && user.status === 'activated') {
                 status = 'activated';
             }
 
-            let isEditor = (await Modules.Super.findSuperRole(uid)) === 'editor';
-            let seq = (await this.entities.Sequence.findById('org-id'))!;
+            // Fetch Organization Number
+            let seq = (await this.entities.Sequence.findById('org-id'));
+            if (!seq) {
+                seq = await this.entities.Sequence.create('org-id', { value: 0 });
+            }
             let orgId = ++seq.value;
             await seq.flush();
 
@@ -37,7 +42,7 @@ export class OrganizationRepository {
                 kind: input.isCommunity ? 'community' : 'organization',
                 ownerId: uid,
                 status: status,
-                editorial: !!isEditor,
+                editorial: editorial,
             });
             await this.entities.OrganizationProfile.create(orgId, {
                 name: Sanitizer.sanitizeString(input.name)!,
@@ -52,7 +57,6 @@ export class OrganizationRepository {
             });
 
             await this.addUserToOrganization(uid, organization.id);
-            await Modules.Hooks.onOrganizstionCreated(uid, organization.id);
 
             return organization;
         });
@@ -156,7 +160,7 @@ export class OrganizationRepository {
             } else {
                 await this.entities.OrganizationMember.create(oid, uid, { status: 'joined', role: 'member' });
             }
-            let profile = await Modules.Users.profileById(uid);
+            let profile = await this.entities.UserProfile.findById(uid);
             if (profile && !profile.primaryOrganization) {
                 profile.primaryOrganization = oid;
             }
@@ -177,8 +181,8 @@ export class OrganizationRepository {
                     throw new UserError(ErrorText.unableToRemoveLastMember);
                 }
 
-                let profile = await Modules.Users.profileById(uid);
-                profile!.primaryOrganization = (await Modules.Orgs.findUserOrganizations(uid))[0];
+                let profile = await this.entities.UserProfile.findById(uid);
+                profile!.primaryOrganization = (await this.findUserOrganizations(uid))[0];
             }
             return org;
         });
