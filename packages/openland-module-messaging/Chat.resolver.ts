@@ -17,10 +17,8 @@ import { NotFoundError } from '../openland-errors/NotFoundError';
 import { Sanitizer } from '../openland-utils/Sanitizer';
 import { URLAugmentation } from './workers/UrlInfoService';
 import { Modules } from 'openland-modules/Modules';
-import { OnlineEvent } from '../openland-module-presences/PresenceModule';
 import { UserDialogSettings, Message, RoomParticipant, Conversation, Organization, User } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
-import { TypingEvent } from 'openland-module-typings/TypingEvent';
 import { withLogContext } from 'openland-log/withLogContext';
 import { FDB } from 'openland-module-db/FDB';
 import { FEntity } from 'foundation-orm/FEntity';
@@ -395,18 +393,6 @@ export default {
                 return src.counter;
             }
         }
-    },
-
-    TypingEvent: {
-        type: (src: TypingEvent) => src.type,
-        cancel: (src: TypingEvent) => src.cancel,
-        conversation: (src: TypingEvent) => FDB.Conversation.findById(src.conversationId),
-        user: (src: TypingEvent) => FDB.User.findById(src.userId),
-    },
-    OnlineEvent: {
-        type: (src: OnlineEvent) => src.online ? 'online' : 'offline',
-        user: (src: OnlineEvent) => FDB.User.findById(src.userId),
-        timeout: (src: OnlineEvent) => src.timeout,
     },
 
     GroupConversationMember: {

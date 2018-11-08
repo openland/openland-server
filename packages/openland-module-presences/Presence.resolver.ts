@@ -2,8 +2,14 @@ import { Modules } from 'openland-modules/Modules';
 import { withAny } from 'openland-module-api/Resolvers';
 import { CallContext } from 'openland-module-api/CallContext';
 import { IDs } from 'openland-module-api/IDs';
+import { OnlineEvent } from './PresenceModule';
 
 export default {
+    OnlineEvent: {
+        type: (src: OnlineEvent) => src.online ? 'online' : 'offline',
+        user: (src: OnlineEvent) => src.userId,
+        timeout: (src: OnlineEvent) => src.timeout,
+    },
     Mutation: {
         presenceReportOnline: async (_: any, args: { timeout: number, platform?: string }, context: CallContext) => {
             if (!context.uid) {

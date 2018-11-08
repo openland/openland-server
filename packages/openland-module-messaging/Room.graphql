@@ -1,0 +1,35 @@
+union Room = PrivateRoom | SharedRoom
+
+type PrivateRoom {
+    id: ID!
+    user: User!
+}
+
+enum SharedRoomKind {
+    INTERNAL
+    PUBLIC
+    GROUP
+}
+
+enum SharedRoomMembershipStatus {
+    MEMBER
+    REQUESTED
+    LEFT
+    KICKED
+    NONE
+}
+
+type SharedRoom {
+    id: ID!
+    kind: SharedRoomKind!
+    title: String!
+    photo: String!
+    description: String!
+
+    membership: SharedRoomMembershipStatus!
+    membersCount: Int
+}
+
+extend type Query {
+    room(id: ID!): Room
+}

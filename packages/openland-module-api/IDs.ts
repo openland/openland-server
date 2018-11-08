@@ -41,4 +41,5 @@ export const IDs = {
     PrivateCall: IdsFactory.createId('PrivateCall'),
     Dialog: IdsFactory.createId('Dialog'),
     Message: IdsFactory.createId('Message'),
+    Room: IdsFactory.createId('Room'),
 };
