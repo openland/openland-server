@@ -82,7 +82,9 @@ extend type Mutation {
     profileCreate(input: ProfileInput!): Profile!
     profileUpdate(input: ProfileInput!, uid: ID): Profile!
 
+
     # Deprecated
     createProfile(input: CreateProfileInput!): Profile!
     updateProfile(input: UpdateProfileInput!, uid: ID): Profile!
+    alphaCreateUserProfileAndOrganization(user: ProfileInput!, organization: CreateOrganizationInput!): AlphaSignupData!
 }
