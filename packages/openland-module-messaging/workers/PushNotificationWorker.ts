@@ -145,11 +145,7 @@ export function startPushNotificationWorker() {
                             continue;
                         }
 
-                        let receiverPrimaryOrg = await FDB.Organization.findById(receiver.primaryOrganization || (await Modules.Orgs.findUserOrganizations(receiver.id))[0]);
-                        if (!receiverPrimaryOrg) {
-                            continue;
-                        }
-                        let chatTitle = await Modules.Messaging.conv.resolveConversationTitle(conversation.id, receiverPrimaryOrg.id, u.uid);
+                        let chatTitle = await Modules.Messaging.conv.resolveConversationTitle(conversation.id, u.uid);
 
                         hasMessage = true;
                         let senderName = [sender.firstName, sender.lastName].filter((v) => !!v).join(' ');

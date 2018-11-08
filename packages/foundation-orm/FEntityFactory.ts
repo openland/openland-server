@@ -9,6 +9,8 @@ import { createLogger } from 'openland-log/createLogger';
 import { FLiveStream } from './FLiveStream';
 import { FLiveStreamItem } from './FLiveStreamItem';
 import { FDirectory } from './FDirectory';
+import { FCacheContext } from './FCacheContext';
+import { FTransaction } from './FTransaction';
 
 const log = createLogger('entity-factory');
 
@@ -67,12 +69,29 @@ export abstract class FEntityFactory<T extends FEntity> {
     protected abstract _createEntity(value: any, isNew: boolean): T;
 
     protected async _findById(key: (string | number)[]) {
-        // let res = await this.directory.get(key);
-        let res = await this.namespace.get(this.connection, key);
-        if (res) {
-            return this.doCreateEntity(res, false);
+        let cache = FCacheContext.context.value;
+        if (cache && !FTransaction.context.value) {
+            let cacheKey = FKeyEncoding.encodeKeyToString([...this.namespace.namespace, ...key]);
+            let cached = cache.findInCache(cacheKey);
+            if (cached !== undefined) {
+                return cached as T;
+            }
+
+            let res = await this.namespace.get(this.connection, key);
+            if (res) {
+                let ent = this.doCreateEntity(res, false);
+                cache.putInCache(cacheKey, ent);
+                return ent;
+            }
+            cache.putInCache(cacheKey, null);
+            return null;
+        } else {
+            let res = await this.namespace.get(this.connection, key);
+            if (res) {
+                return this.doCreateEntity(res, false);
+            }
+            return null;
         }
-        return null;
     }
 
     protected async _findFromIndex(key: (string | number)[]) {

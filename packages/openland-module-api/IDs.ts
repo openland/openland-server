@@ -39,4 +39,5 @@ export const IDs = {
     Settings: IdsFactory.createId('Settings'),
     WallEntity: IdsFactory.createId('WallEntity'),
     PrivateCall: IdsFactory.createId('PrivateCall'),
+    Dialog: IdsFactory.createId('Dialog'),
 };

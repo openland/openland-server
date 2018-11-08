@@ -253,12 +253,6 @@ type ChatReadResult {
 
 union ComposeSearchResult = User | Organization
 
-type OnlineEvent {
-    user: User!
-    type: String!
-    timeout: Int!
-}
-
 type GroupConversationMember {
     user: User!
     role: String! # member | creator | admin
@@ -287,7 +281,6 @@ type ConversationBlockedUser{
 }
 
 extend type Query {
-    alphaChats(first: Int!, after: String): ConversationConnection!
     alphaNotificationCounter: NotificationCounter!
     alphaChat(conversationId: ID, shortName: String): Conversation!
     alphaLoadMessages(conversationId: ID!, first: Int, before: ID, after: ID): ConversationState!
@@ -350,9 +343,4 @@ extend type Mutation {
     # Pinned message
     #
     alphaChatPinMessage(conversationId: ID! @chatID, messageId: ID @messageID): ConversationUpdateResponse!
-}
-
-extend type Subscription {
-    alphaSubscribeChatOnline(conversations: [ID!]!): OnlineEvent!
-    alphaSubscribeOnline(users: [ID!]! @userID): OnlineEvent!
 }

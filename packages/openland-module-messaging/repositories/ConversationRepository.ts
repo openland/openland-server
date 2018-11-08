@@ -4,7 +4,18 @@ import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { inTx } from 'foundation-orm/inTx';
 import { Modules } from 'openland-modules/Modules';
 import { NotFoundError } from 'openland-errors/NotFoundError';
-import { imageRefEquals } from 'openland-module-media/ImageRef';
+import { imageRefEquals, buildBaseImageUrl } from 'openland-module-media/ImageRef';
+import { IDs } from 'openland-module-api/IDs';
+
+function doSimpleHash(key: string): number {
+    var h = 0, l = key.length, i = 0;
+    if (l > 0) {
+        while (i < l) {
+            h = (h << 5) - h + key.charCodeAt(i++) | 0;
+        }
+    }
+    return Math.abs(h);
+}
 
 interface RoomProfileInput {
     title: string;
@@ -388,7 +399,7 @@ export class ConversationRepository {
         }
     }
 
-    async resolveConversationTitle(conversationId: number, oid: number | undefined, uid: number): Promise<string> {
+    async resolveConversationTitle(conversationId: number, uid: number): Promise<string> {
         let conv = await FDB.Conversation.findById(conversationId);
 
         if (!conv) {
@@ -426,6 +437,49 @@ export class ConversationRepository {
                 return name.join(', ');
             }
             return p.title;
+        }
+    }
+
+    async resolveConversationPhoto(conversationId: number, uid: number): Promise<string | null> {
+        let conv = await FDB.Conversation.findById(conversationId);
+
+        if (!conv) {
+            throw new NotFoundError('Conversation not found');
+        }
+
+        if (conv.kind === 'private') {
+            let p = (await FDB.ConversationPrivate.findById(conv.id))!;
+            let _uid;
+            if (p.uid1 === uid) {
+                _uid = p.uid2;
+            } else if (p.uid2 === uid) {
+                _uid = p.uid1;
+            } else {
+                throw Error('Inconsistent Private Conversation resolver');
+            }
+            let profile = (await Modules.Users.profileById(_uid))!;
+            let res = buildBaseImageUrl(profile.picture);
+            if (res) {
+                return res;
+            } else {
+                return 'ph://' + doSimpleHash(IDs.User.serialize(_uid)) % 6;
+            }
+        } else if (conv.kind === 'organization') {
+            let o = await FDB.ConversationOrganization.findById(conv.id);
+            let res = buildBaseImageUrl((await FDB.OrganizationProfile.findById(o!.oid))!.photo);
+            if (res) {
+                return res;
+            } else {
+                return 'ph://' + doSimpleHash(IDs.Organization.serialize(o!.oid)) % 6;
+            }
+        } else {
+            let p = (await FDB.RoomProfile.findById(conv.id))!;
+            let res =  buildBaseImageUrl(p.image);
+            if (res) {
+                return res;
+            } else {
+                return 'ph://' + doSimpleHash(IDs.Conversation.serialize(conv.id)) % 6;
+            }
         }
     }
 
