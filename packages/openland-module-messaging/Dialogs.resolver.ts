@@ -12,17 +12,17 @@ export default {
         kind: async (src: UserDialog) => {
             let conv = (await FDB.Conversation.findById(src.cid))!;
             if (conv.kind === 'organization') {
-                return 'COMPANY';
+                return 'INTERNAL';
             } else if (conv.kind === 'private') {
                 return 'PRIVATE';
             } else if (conv.kind === 'room') {
                 let room = (await FDB.ConversationRoom.findById(src.cid))!;
                 if (room.kind === 'group') {
-                    return 'ROOM_GROUP';
+                    return 'GROUP';
                 } else if (room.kind === 'internal') {
-                    return 'ROOM_INTERNAL';
+                    return 'INTERNAL';
                 } else if (room.kind === 'public') {
-                    return 'ROOM_PUBLIC';
+                    return 'PUBLIC';
                 } else {
                     throw Error('Unknown room type');
                 }

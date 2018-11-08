@@ -1,9 +1,8 @@
 enum DialogKind {
-    COMPANY
     PRIVATE
-    ROOM_INTERNAL
-    ROOM_PUBLIC
-    ROOM_GROUP
+    INTERNAL
+    PUBLIC
+    GROUP
 }
 
 type Dialog {
