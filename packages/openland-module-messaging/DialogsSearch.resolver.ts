@@ -26,7 +26,7 @@ export default {
 
                 // Organizations chats
                 let matchingUserOrgProfiles = (await Promise.all((await Modules.Orgs.findUserOrganizations(uid)).map(uoid => FDB.OrganizationProfile.findById(uoid)))).filter(oc => !!oc && oc.name.toLocaleLowerCase().indexOf(args.query.toLowerCase()) >= 0).map(oc => oc!);
-                let orgConv = (await Promise.all(matchingUserOrgProfiles.map(oc => FDB.ConversationOrganization.findById(oc.id)))).filter(oc => !!oc).map(oc => oc!);
+                let orgConv = (await Promise.all(matchingUserOrgProfiles.map(oc => FDB.ConversationOrganization.findFromOrganization(oc.id)))).filter(oc => !!oc).map(oc => oc!);
                 let oganizationsConversations = (await Promise.all(orgConv.map(oc => FDB.Conversation.findById(oc.id)))).filter(oc => !!oc).map(oc => oc!);
 
                 let res = [...await personal, ...await groupsChannels, ...oganizationsConversations];
