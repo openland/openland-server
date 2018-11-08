@@ -110,7 +110,8 @@ for (let e of AllEntities.schema) {
     for (let f of e.fields) {
         if (!f.secure) {
             fields[f.name] = {
-                type: buildType(f.type)
+                type: buildType(f.type),
+                ...(f.type === 'json' ? { resolve: (entity: any) =>  JSON.stringify(entity[f.name]) } : {})
             };
             inputFields[f.name] = {
                 type: buildType(f.type)
