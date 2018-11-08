@@ -364,9 +364,9 @@ export default {
     ComposeSearchResult: {
         __resolveType(obj: User | Organization) {
             // WTF, sequelize? Why Model is undefined??
-            if (obj.constructor.name === 'user') {
+            if (obj.entityName === 'User') {
                 return 'User';
-            } else if (obj.constructor.name === 'organization') {
+            } else if (obj.entityName === 'Organization') {
                 return 'Organization';
             }
             throw Error('Unknown type');
