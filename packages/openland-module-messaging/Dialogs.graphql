@@ -5,6 +5,7 @@ enum DialogKind {
     ROOM_PUBLIC
     ROOM_GROUP
 }
+
 type Dialog {
     id: ID!
     cid: ID!
@@ -20,7 +21,7 @@ type Dialog {
 
 type DialogsConnection {
     items: [Dialog!]!
-    next: String
+    cursor: String
 }
 
 extend type Query {
