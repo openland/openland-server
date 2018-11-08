@@ -1,4 +1,3 @@
-import DataLoader from 'dataloader';
 import { User, UserProfile } from 'openland-module-db/schema';
 import { Modules } from 'openland-modules/Modules';
 import { CallContext } from 'openland-module-api/CallContext';
@@ -7,52 +6,50 @@ import { FDB } from 'openland-module-db/FDB';
 import { IDs } from 'openland-module-api/IDs';
 import { withAny } from 'openland-module-api/Resolvers';
 
-function userLoader(context: CallContext) {
-    if (!context.cache.has('__profile_loader')) {
-        context.cache.set('__profile_loader', new DataLoader<number, UserProfile | null>(async (ids) => {
-            let foundTokens = ids.map((v) => Modules.Users.profileById(v));
-
-            let res: (UserProfile | null)[] = [];
-            for (let i of ids) {
-                let found = false;
-                for (let f of foundTokens) {
-                    let f2 = (await f);
-                    if (f2 && i === f2.id) {
-                        res.push(f2);
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found) {
-                    res.push(null);
-                }
-            }
-            return res;
-        }));
-    }
-    let loader = context.cache.get('__profile_loader') as DataLoader<number, UserProfile | null>;
-    return loader;
-}
+type UserRoot = User | UserProfile | number;
 
 async function loadPrimatyOrganization(profile: UserProfile | null, src: User) {
     let orgId = (profile && profile.primaryOrganization) || (await Modules.Orgs.findUserOrganizations(src.id))[0];
     return orgId ? FDB.Organization.findById(orgId) : undefined;
 }
 
+function withUser(handler: (user: User, context: CallContext) => any) {
+    return async (src: UserRoot, _params: {}, context: CallContext) => {
+        if (typeof src === 'number') {
+            let user = (await (FDB.User.findById(src)))!;
+            return handler(user, context);
+        } else if (src.entityName === 'User') {
+            return handler(src, context);
+        } else {
+            let user = (await (FDB.User.findById(src.id)))!;
+            return handler(user, context);
+        }
+    };
+}
+
 function withProfile(handler: (user: User, profile: UserProfile | null, context: CallContext) => any) {
-    return async (src: User, _params: {}, context: CallContext) => {
-        let loader = userLoader(context);
-        let profile = await loader.load(src.id!!);
-        return handler(src, profile, context);
+    return async (src: UserRoot, _params: {}, context: CallContext) => {
+        if (typeof src === 'number') {
+            let user = (await (FDB.User.findById(src)))!;
+            let profile = (await (FDB.UserProfile.findById(src)))!;
+            return handler(user, profile, context);
+        } else if (src.entityName === 'User') {
+            let profile = (await (FDB.UserProfile.findById(src.id)))!;
+            return handler(src, profile, context);
+        } else {
+            let user = (await (FDB.User.findById(src.id)))!;
+            return handler(user, src, context);
+        }
+
     };
 }
 
 export default {
     User: {
-        id: (src: User) => IDs.User.serialize(src.id!!),
-        isBot: (src: User) => src.isBot || false,
-        isYou: (src: User, args: {}, context: CallContext) => src.id === context.uid,
-        
+        id: (src: UserRoot) => IDs.User.serialize(typeof src === 'number' ? src : src.id),
+        isBot: withUser((src: User) => src.isBot || false),
+        isYou: withUser((src: User, context: CallContext) => src.id === context.uid),
+
         name: withProfile((src, profile) => profile ? [profile.firstName, profile.lastName].filter((v) => !!v).join(' ') : src.email),
         firstName: withProfile((src, profile) => profile ? profile.firstName : src.email),
         lastName: withProfile((src, profile) => profile ? profile.lastName : null),
@@ -69,17 +66,17 @@ export default {
 
         primaryOrganization: withProfile(async (src, profile) => loadPrimatyOrganization(profile, src)),
 
-        organizations: async (src: User) => (await Modules.Orgs.findUserOrganizations(src.id!)).map(async oid => await FDB.Organization.findById(oid)),
-        online: async (src: User) => await Modules.Presence.getLastSeen(src.id) === 'online',
-        lastSeen: async (src: User) => Modules.Presence.getLastSeen(src.id), // await Repos.Users.getUserLastSeen(src.id!),
+        organizations: withUser(async (src: User) => (await Modules.Orgs.findUserOrganizations(src.id!)).map(async oid => await FDB.Organization.findById(oid))),
+        online: withUser(async (src: User) => await Modules.Presence.getLastSeen(src.id) === 'online'),
+        lastSeen: withUser((src: User) => Modules.Presence.getLastSeen(src.id)),
 
-        shortname: async (src: User) => {
+        shortname: withUser(async (src: User) => {
             let shortname = await Modules.Shortnames.findUserShortname(src.id);
             if (shortname) {
                 return shortname.shortname;
             }
             return null;
-        },
+        }),
 
         // Deprecated
         picture: withProfile((src, profile) => profile && profile.picture ? buildBaseImageUrl(profile.picture) : null),

@@ -21,10 +21,10 @@ export class FEntity {
     readonly connection: FConnection;
     readonly isReadOnly: boolean;
     readonly context: FContext;
-    readonly entityName: string;
 
     protected readonly _valueInitial: any;
     protected _value: any;
+    private readonly _entityName: string;
     private readonly indexes: FEntityIndex[];
     private readonly options: FEntityOptions;
     private isDirty: boolean = false;
@@ -40,7 +40,7 @@ export class FEntity {
         this.options = options;
         this.isNew = isNew;
         this.indexes = indexes;
-        this.entityName = name;
+        this._entityName = name;
 
         if (this.isNew && this.isReadOnly) {
             throw Error('Unable to create new entity outside transaction!');
@@ -143,7 +143,7 @@ export class FEntity {
                 // Notify after successful transaction
                 if (this.options.hasLiveStreams) {
                     this.context.afterTransaction(() => {
-                        this.connection.pubsub.publish('fdb-entity-created-' + this.entityName, { entity: this.entityName });
+                        this.connection.pubsub.publish('fdb-entity-created-' + this._entityName, { entity: this._entityName });
                     });
                 }
 

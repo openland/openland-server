@@ -13,6 +13,7 @@ export interface OnlineShape {
 }
 
 export class Online extends FEntity {
+    readonly entityName: 'Online' = 'Online';
     get uid(): number { return this._value.uid; }
     get lastSeen(): number {
         return this._value.lastSeen;
@@ -78,6 +79,7 @@ export interface PresenceShape {
 }
 
 export class Presence extends FEntity {
+    readonly entityName: 'Presence' = 'Presence';
     get uid(): number { return this._value.uid; }
     get tid(): string { return this._value.tid; }
     get lastSeen(): number {
@@ -171,6 +173,7 @@ export interface AuthTokenShape {
 }
 
 export class AuthToken extends FEntity {
+    readonly entityName: 'AuthToken' = 'AuthToken';
     get uuid(): string { return this._value.uuid; }
     get salt(): string {
         return this._value.salt;
@@ -274,6 +277,7 @@ export interface ServiceCacheShape {
 }
 
 export class ServiceCache extends FEntity {
+    readonly entityName: 'ServiceCache' = 'ServiceCache';
     get service(): string { return this._value.service; }
     get key(): string { return this._value.key; }
     get value(): string {
@@ -344,6 +348,7 @@ export interface LockShape {
 }
 
 export class Lock extends FEntity {
+    readonly entityName: 'Lock' = 'Lock';
     get key(): string { return this._value.key; }
     get seed(): string {
         return this._value.seed;
@@ -450,6 +455,7 @@ export interface TaskShape {
 }
 
 export class Task extends FEntity {
+    readonly entityName: 'Task' = 'Task';
     get taskType(): string { return this._value.taskType; }
     get uid(): string { return this._value.uid; }
     get arguments(): any {
@@ -659,6 +665,7 @@ export interface PushFirebaseShape {
 }
 
 export class PushFirebase extends FEntity {
+    readonly entityName: 'PushFirebase' = 'PushFirebase';
     get id(): string { return this._value.id; }
     get uid(): number {
         return this._value.uid;
@@ -878,6 +885,7 @@ export interface PushAppleShape {
 }
 
 export class PushApple extends FEntity {
+    readonly entityName: 'PushApple' = 'PushApple';
     get id(): string { return this._value.id; }
     get uid(): number {
         return this._value.uid;
@@ -1095,6 +1103,7 @@ export interface PushWebShape {
 }
 
 export class PushWeb extends FEntity {
+    readonly entityName: 'PushWeb' = 'PushWeb';
     get id(): string { return this._value.id; }
     get uid(): number {
         return this._value.uid;
@@ -1283,6 +1292,7 @@ export interface UserProfilePrefilShape {
 }
 
 export class UserProfilePrefil extends FEntity {
+    readonly entityName: 'UserProfilePrefil' = 'UserProfilePrefil';
     get id(): number { return this._value.id; }
     get firstName(): string | null {
         let res = this._value.firstName;
@@ -1378,6 +1388,7 @@ export interface UserShape {
 }
 
 export class User extends FEntity {
+    readonly entityName: 'User' = 'User';
     get id(): number { return this._value.id; }
     get authId(): string {
         return this._value.authId;
@@ -1515,6 +1526,7 @@ export interface UserProfileShape {
 }
 
 export class UserProfile extends FEntity {
+    readonly entityName: 'UserProfile' = 'UserProfile';
     get id(): number { return this._value.id; }
     get firstName(): string {
         return this._value.firstName;
@@ -1748,6 +1760,7 @@ export interface OrganizationShape {
 }
 
 export class Organization extends FEntity {
+    readonly entityName: 'Organization' = 'Organization';
     get id(): number { return this._value.id; }
     get ownerId(): number {
         return this._value.ownerId;
@@ -1853,6 +1866,7 @@ export interface OrganizationProfileShape {
 }
 
 export class OrganizationProfile extends FEntity {
+    readonly entityName: 'OrganizationProfile' = 'OrganizationProfile';
     get id(): number { return this._value.id; }
     get name(): string {
         return this._value.name;
@@ -1994,6 +2008,7 @@ export interface OrganizationEditorialShape {
 }
 
 export class OrganizationEditorial extends FEntity {
+    readonly entityName: 'OrganizationEditorial' = 'OrganizationEditorial';
     get id(): number { return this._value.id; }
     get listed(): boolean {
         return this._value.listed;
@@ -2071,6 +2086,7 @@ export interface OrganizationMemberShape {
 }
 
 export class OrganizationMember extends FEntity {
+    readonly entityName: 'OrganizationMember' = 'OrganizationMember';
     get oid(): number { return this._value.oid; }
     get uid(): number { return this._value.uid; }
     get invitedBy(): number | null {
@@ -2223,6 +2239,7 @@ export interface FeatureFlagShape {
 }
 
 export class FeatureFlag extends FEntity {
+    readonly entityName: 'FeatureFlag' = 'FeatureFlag';
     get key(): string { return this._value.key; }
     get title(): string {
         return this._value.title;
@@ -2288,6 +2305,7 @@ export interface OrganizationFeaturesShape {
 }
 
 export class OrganizationFeatures extends FEntity {
+    readonly entityName: 'OrganizationFeatures' = 'OrganizationFeatures';
     get id(): string { return this._value.id; }
     get featureKey(): string {
         return this._value.featureKey;
@@ -2398,6 +2416,7 @@ export interface ReaderStateShape {
 }
 
 export class ReaderState extends FEntity {
+    readonly entityName: 'ReaderState' = 'ReaderState';
     get id(): string { return this._value.id; }
     get cursor(): string {
         return this._value.cursor;
@@ -2475,6 +2494,7 @@ export interface SuperAdminShape {
 }
 
 export class SuperAdmin extends FEntity {
+    readonly entityName: 'SuperAdmin' = 'SuperAdmin';
     get id(): number { return this._value.id; }
     get role(): string {
         return this._value.role;
@@ -2555,6 +2575,7 @@ export interface UserSettingsShape {
 }
 
 export class UserSettings extends FEntity {
+    readonly entityName: 'UserSettings' = 'UserSettings';
     get id(): number { return this._value.id; }
     get emailFrequency(): '1hour' | '15min' | 'never' | '24hour' | '1week' {
         return this._value.emailFrequency;
@@ -2683,6 +2704,7 @@ export interface ShortnameReservationShape {
 }
 
 export class ShortnameReservation extends FEntity {
+    readonly entityName: 'ShortnameReservation' = 'ShortnameReservation';
     get shortname(): string { return this._value.shortname; }
     get ownerType(): 'org' | 'user' {
         return this._value.ownerType;
@@ -2806,6 +2828,7 @@ export interface AuthCodeSessionShape {
 }
 
 export class AuthCodeSession extends FEntity {
+    readonly entityName: 'AuthCodeSession' = 'AuthCodeSession';
     get uid(): string { return this._value.uid; }
     get code(): string {
         return this._value.code;
@@ -2918,6 +2941,7 @@ export interface ConversationShape {
 }
 
 export class Conversation extends FEntity {
+    readonly entityName: 'Conversation' = 'Conversation';
     get id(): number { return this._value.id; }
     get kind(): 'private' | 'organization' | 'room' {
         return this._value.kind;
@@ -2982,6 +3006,7 @@ export interface ConversationPrivateShape {
 }
 
 export class ConversationPrivate extends FEntity {
+    readonly entityName: 'ConversationPrivate' = 'ConversationPrivate';
     get id(): number { return this._value.id; }
     get uid1(): number {
         return this._value.uid1;
@@ -3079,6 +3104,7 @@ export interface ConversationOrganizationShape {
 }
 
 export class ConversationOrganization extends FEntity {
+    readonly entityName: 'ConversationOrganization' = 'ConversationOrganization';
     get id(): number { return this._value.id; }
     get oid(): number {
         return this._value.oid;
@@ -3162,6 +3188,7 @@ export interface ConversationRoomShape {
 }
 
 export class ConversationRoom extends FEntity {
+    readonly entityName: 'ConversationRoom' = 'ConversationRoom';
     get id(): number { return this._value.id; }
     get kind(): 'organization' | 'internal' | 'public' | 'group' {
         return this._value.kind;
@@ -3315,6 +3342,7 @@ export interface RoomProfileShape {
 }
 
 export class RoomProfile extends FEntity {
+    readonly entityName: 'RoomProfile' = 'RoomProfile';
     get id(): number { return this._value.id; }
     get title(): string {
         return this._value.title;
@@ -3417,6 +3445,7 @@ export interface RoomParticipantShape {
 }
 
 export class RoomParticipant extends FEntity {
+    readonly entityName: 'RoomParticipant' = 'RoomParticipant';
     get cid(): number { return this._value.cid; }
     get uid(): number { return this._value.uid; }
     get invitedBy(): number {
@@ -3574,6 +3603,7 @@ export interface ConversationReceiverShape {
 }
 
 export class ConversationReceiver extends FEntity {
+    readonly entityName: 'ConversationReceiver' = 'ConversationReceiver';
     get cid(): number { return this._value.cid; }
     get uid(): number { return this._value.uid; }
     get enabled(): boolean {
@@ -3663,6 +3693,7 @@ export interface SequenceShape {
 }
 
 export class Sequence extends FEntity {
+    readonly entityName: 'Sequence' = 'Sequence';
     get sequence(): string { return this._value.sequence; }
     get value(): number {
         return this._value.value;
@@ -3741,6 +3772,7 @@ export interface MessageShape {
 }
 
 export class Message extends FEntity {
+    readonly entityName: 'Message' = 'Message';
     get id(): number { return this._value.id; }
     get cid(): number {
         return this._value.cid;
@@ -4009,6 +4041,7 @@ export interface ConversationSeqShape {
 }
 
 export class ConversationSeq extends FEntity {
+    readonly entityName: 'ConversationSeq' = 'ConversationSeq';
     get cid(): number { return this._value.cid; }
     get seq(): number {
         return this._value.seq;
@@ -4074,6 +4107,7 @@ export interface ConversationEventShape {
 }
 
 export class ConversationEvent extends FEntity {
+    readonly entityName: 'ConversationEvent' = 'ConversationEvent';
     get cid(): number { return this._value.cid; }
     get seq(): number { return this._value.seq; }
     get uid(): number | null {
@@ -4191,6 +4225,7 @@ export interface UserDialogShape {
 }
 
 export class UserDialog extends FEntity {
+    readonly entityName: 'UserDialog' = 'UserDialog';
     get uid(): number { return this._value.uid; }
     get cid(): number { return this._value.cid; }
     get unread(): number {
@@ -4303,6 +4338,7 @@ export interface UserDialogSettingsShape {
 }
 
 export class UserDialogSettings extends FEntity {
+    readonly entityName: 'UserDialogSettings' = 'UserDialogSettings';
     get uid(): number { return this._value.uid; }
     get cid(): number { return this._value.cid; }
     get mute(): boolean {
@@ -4375,6 +4411,7 @@ export interface UserDialogEventShape {
 }
 
 export class UserDialogEvent extends FEntity {
+    readonly entityName: 'UserDialogEvent' = 'UserDialogEvent';
     get uid(): number { return this._value.uid; }
     get seq(): number { return this._value.seq; }
     get cid(): number | null {
@@ -4530,6 +4567,7 @@ export interface UserMessagingStateShape {
 }
 
 export class UserMessagingState extends FEntity {
+    readonly entityName: 'UserMessagingState' = 'UserMessagingState';
     get uid(): number { return this._value.uid; }
     get seq(): number {
         return this._value.seq;
@@ -4622,6 +4660,7 @@ export interface UserNotificationsStateShape {
 }
 
 export class UserNotificationsState extends FEntity {
+    readonly entityName: 'UserNotificationsState' = 'UserNotificationsState';
     get uid(): number { return this._value.uid; }
     get readSeq(): number | null {
         let res = this._value.readSeq;
@@ -4740,6 +4779,7 @@ export interface HyperLogShape {
 }
 
 export class HyperLog extends FEntity {
+    readonly entityName: 'HyperLog' = 'HyperLog';
     get id(): string { return this._value.id; }
     get type(): string {
         return this._value.type;
@@ -4839,6 +4879,7 @@ export interface MessageDraftShape {
 }
 
 export class MessageDraft extends FEntity {
+    readonly entityName: 'MessageDraft' = 'MessageDraft';
     get uid(): number { return this._value.uid; }
     get cid(): number { return this._value.cid; }
     get contents(): string {
@@ -4913,6 +4954,7 @@ export interface ChannelInvitationShape {
 }
 
 export class ChannelInvitation extends FEntity {
+    readonly entityName: 'ChannelInvitation' = 'ChannelInvitation';
     get id(): string { return this._value.id; }
     get creatorId(): number {
         return this._value.creatorId;
@@ -5085,6 +5127,7 @@ export interface ChannelLinkShape {
 }
 
 export class ChannelLink extends FEntity {
+    readonly entityName: 'ChannelLink' = 'ChannelLink';
     get id(): string { return this._value.id; }
     get creatorId(): number {
         return this._value.creatorId;
@@ -5191,6 +5234,7 @@ export interface AppInviteLinkShape {
 }
 
 export class AppInviteLink extends FEntity {
+    readonly entityName: 'AppInviteLink' = 'AppInviteLink';
     get id(): string { return this._value.id; }
     get uid(): number {
         return this._value.uid;
@@ -5270,6 +5314,7 @@ export interface SampleEntityShape {
 }
 
 export class SampleEntity extends FEntity {
+    readonly entityName: 'SampleEntity' = 'SampleEntity';
     get id(): string { return this._value.id; }
     get data(): string {
         return this._value.data;
@@ -5335,6 +5380,7 @@ export interface OrganizationPublicInviteLinkShape {
 }
 
 export class OrganizationPublicInviteLink extends FEntity {
+    readonly entityName: 'OrganizationPublicInviteLink' = 'OrganizationPublicInviteLink';
     get id(): string { return this._value.id; }
     get uid(): number {
         return this._value.uid;
@@ -5453,6 +5499,7 @@ export interface OrganizationInviteLinkShape {
 }
 
 export class OrganizationInviteLink extends FEntity {
+    readonly entityName: 'OrganizationInviteLink' = 'OrganizationInviteLink';
     get id(): string { return this._value.id; }
     get oid(): number {
         return this._value.oid;
