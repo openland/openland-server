@@ -15,11 +15,11 @@ import { errorHandler } from '../errors';
 import { Server as HttpServer } from 'http';
 // import { delay } from '../utils/timer';
 import { withAudit } from '../../openland-module-auth/email';
-import { Repos } from '../repositories';
 import { IDs } from '../api/utils/IDs';
 import { withLogContext } from 'openland-log/withLogContext';
 import { withTracingSpan } from 'openland-log/withTracing';
 import { inTx } from 'foundation-orm/inTx';
+import { Modules } from 'openland-modules/Modules';
 
 export async function initApi(isTest: boolean) {
 
@@ -89,7 +89,7 @@ export async function initApi(isTest: boolean) {
             if (data.result === 'passed') {
                 let text = `${data.commit.author_name} ${data.event === 'deploy' ? 'deployed' : 'build'} :tada: - ${data.commit.message} to ${data.project_name}`;
 
-                await Repos.Chats.sendMessage(chatId, botId, { message: text });
+                await Modules.Messaging.sendMessage(chatId, botId, { message: text });
             }
         });
     }));

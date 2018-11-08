@@ -1,5 +1,4 @@
 import { withPermission } from 'openland-server/api/utils/Resolvers';
-import { Repos } from 'openland-server/repositories';
 import { IDs } from 'openland-server/api/utils/IDs';
 import { Organization } from 'openland-module-db/schema';
 import { FDB } from 'openland-module-db/FDB';
@@ -51,7 +50,7 @@ export default {
             return Modules.Orgs.removeUserFromOrganization(IDs.User.parse(args.userId), IDs.SuperAccount.parse(args.id));
         }),
         superAccountChannelMemberAdd: withPermission<{ id: string, userId: string }>('super-admin', async (args) => {
-            await Repos.Chats.addToChannel(IDs.Conversation.parse(args.id), IDs.User.parse(args.userId));
+            await Modules.Messaging.addToChannel(IDs.Conversation.parse(args.id), IDs.User.parse(args.userId));
             return 'ok';
         }),
     }

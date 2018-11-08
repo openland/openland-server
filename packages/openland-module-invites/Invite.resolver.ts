@@ -8,7 +8,6 @@ import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { inTx } from 'foundation-orm/inTx';
 import { ErrorText } from 'openland-server/errors/ErrorText';
 import { NotFoundError } from 'openland-server/errors/NotFoundError';
-import { Repos } from 'openland-server/repositories';
 import { Emails } from '../openland-module-email/Emails';
 
 export default {
@@ -111,8 +110,6 @@ export default {
                     user.status = 'activated';
                 }
 
-                await Repos.Chats.addToInitialChannel(user.id!);
-
                 // invalidate invite
                 if (orgInvite) {
                     orgInvite.joined = true;
@@ -136,7 +133,6 @@ export default {
                 user.invitedBy = inviteData.uid;
                 user.status = 'activated';
                 await Emails.sendWelcomeEmail(user!.id);
-                await Repos.Chats.addToInitialChannel(user.id!);
                 // activate user org if have one
                 let org = context.oid ? (await FDB.Organization.findById(context.oid)) : undefined;
                 if (org) {

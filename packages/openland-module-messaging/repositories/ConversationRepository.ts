@@ -2,7 +2,6 @@ import { AllEntities } from 'openland-module-db/schema';
 import { FDB } from 'openland-module-db/FDB';
 import { AccessDeniedError } from 'openland-server/errors/AccessDeniedError';
 import { inTx } from 'foundation-orm/inTx';
-import { Repos } from 'openland-server/repositories';
 import { Modules } from 'openland-modules/Modules';
 import { NotFoundError } from 'openland-server/errors/NotFoundError';
 import { imageRefEquals } from 'openland-module-media/ImageRef';
@@ -45,9 +44,9 @@ export class ConversationRepository {
                 })).flush();
             }
             await conv.flush();
-            await Repos.Chats.sendMessage(id, uid, { message: kind === 'group' ? 'Group created' : 'Room created', isService: true });
+            await Modules.Messaging.sendMessage(id, uid, { message: kind === 'group' ? 'Group created' : 'Room created', isService: true });
             if (message) {
-                await Repos.Chats.sendMessage(id, uid, { message: message });
+                await Modules.Messaging.sendMessage(id, uid, { message: message });
             }
             return conv;
         });
@@ -77,7 +76,7 @@ export class ConversationRepository {
 
             let users = invites.map((v) => FDB.UserProfile.findById(v));
 
-            await Repos.Chats.sendMessage(cid, uid, {
+            await Modules.Messaging.sendMessage(cid, uid, {
                 message: `${(await Promise.all(users)).map(u => u!.firstName).join(', ')} joined chat`,
                 isService: true,
                 isMuted: true,
@@ -119,7 +118,7 @@ export class ConversationRepository {
 
             // Send kick message
             let profile = await Modules.Users.profileById(kickedUid);
-            await Repos.Chats.sendMessage(cid, uid, {
+            await Modules.Messaging.sendMessage(cid, uid, {
                 message: `${profile!.firstName} was kicked from chat`,
                 isService: true,
                 isMuted: true,
@@ -161,7 +160,7 @@ export class ConversationRepository {
 
             // Send message to everyone
             let profile = await Modules.Users.profileById(uid);
-            await Repos.Chats.sendMessage(cid, uid, {
+            await Modules.Messaging.sendMessage(cid, uid, {
                 message: `${profile!.firstName} has left the chat`,
                 isService: true,
                 isMuted: true,
@@ -215,7 +214,7 @@ export class ConversationRepository {
             }
 
             let name = (await Modules.Users.profileById(uid))!.firstName;
-            await Repos.Chats.sendMessage(cid, uid, {
+            await Modules.Messaging.sendMessage(cid, uid, {
                 message: `${name} has joined the channel!`,
                 isService: true,
                 isMuted: true,
@@ -253,7 +252,7 @@ export class ConversationRepository {
                 let res = profile.title.trim();
                 if (res !== '' && conv.title !== res) {
                     conv.title = res;
-                    await Repos.Chats.sendMessage(cid, uid, {
+                    await Modules.Messaging.sendMessage(cid, uid, {
                         message: `New chat title: ${res}`,
                         isService: true,
                         isMuted: true,
@@ -292,7 +291,7 @@ export class ConversationRepository {
                     }
                 }
                 if (imageChanged) {
-                    await Repos.Chats.sendMessage(cid, uid, {
+                    await Modules.Messaging.sendMessage(cid, uid, {
                         message: `New chat photo`,
                         isService: true,
                         isMuted: true,

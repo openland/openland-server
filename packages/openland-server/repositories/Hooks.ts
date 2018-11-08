@@ -1,4 +1,3 @@
-import { Repos } from '.';
 import { Modules } from 'openland-modules/Modules';
 
 export const Hooks = {
@@ -11,7 +10,7 @@ export const Hooks = {
         // await Emails.sendMemberJoinedEmails(oid, uid, tx);
         let chat = await Modules.Messaging.conv.resolveOrganizationChat(oid);
         let profile = await Modules.Users.profileById(uid);
-        await Repos.Chats.sendMessage(chat.id, uid, { message: `${profile!.firstName} has joined organization`, isService: true, isMuted: true });
+        await Modules.Messaging.sendMessage(chat.id, uid, { message: `${profile!.firstName} has joined organization`, isService: true, isMuted: true });
     },
     onUserRemoved: async (uid: number, oid: number) => {
         //

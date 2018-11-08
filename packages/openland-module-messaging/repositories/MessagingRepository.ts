@@ -1,5 +1,8 @@
-import { AllEntities } from 'openland-module-db/schema';
+import { AllEntities, ConversationEvent } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
+import { Modules } from 'openland-modules/Modules';
+import { MessageInput } from 'openland-module-messaging/MessageInput';
+import { AccessDeniedError } from 'openland-server/errors/AccessDeniedError';
 
 export class MessagingRepository {
     readonly entities: AllEntities;
@@ -8,123 +11,251 @@ export class MessagingRepository {
         this.entities = entities;
     }
 
-    // async createMessage(cid: string, uid: number, message: MessageInput) {
-    //     await inTx(async () => {
+    async sendMessage(conversationId: number, uid: number, message: MessageInput): Promise<ConversationEvent> {
+        return await inTx(async () => {
+            if (message.message === 'fuck') {
+                throw Error('');
+            }
 
-    //         // 1. Create Message
-    //         let mid = await this.entities.connection.nextRandomId();
-    //         await this.entities.Message.create(mid, {
-    //             cid,
-    //             uid,
-    //             ...message,
-    //             deleted: false
-    //         });
+            //
+            // Check access
+            //
+            await Modules.Messaging.conv.checkAccess(uid, conversationId);
 
-    //         // 2. Schedule event
-    //         let seq = await this.fetchConversationNextSeq(cid);
-    //         await this.entities.ConversationEvent.create(cid, seq, {
-    //             kind: 'create_message',
-    //             messageId: mid,
-    //             userId: uid,
-    //         });
-    //     });
-    // }
+            // 
+            // Persist Messages
+            //
+            let mid = await Modules.Messaging.repo.fetchNextMessageId();
+            await this.entities.Message.create(mid, {
+                cid: conversationId,
+                uid: uid,
+                isMuted: message.isMuted || false,
+                isService: message.isService || false,
+                fileId: message.file,
+                fileMetadata: message.fileMetadata,
+                text: message.message,
+                serviceMetadata: message.serviceMetadata || null,
+                augmentation: message.urlAugmentation,
+                replyMessages: message.replyMessages,
+                mentions: message.mentions,
+                repeatKey: message.repeatKey,
+                deleted: false
+            });
 
-    // async updateMessage(mid: string, message: Partial<MessageInput>) {
-    //     await inTx(async () => {
+            //
+            // Persist Event
+            //
+            let seq = await this.fetchConversationNextSeq(conversationId);
+            let res = await this.entities.ConversationEvent.create(conversationId, seq, {
+                kind: 'message_received',
+                mid: mid
+            });
+            return res;
+        });
+    }
 
-    //         // 1. Find message
-    //         let msg = await this.entities.Message.findById(mid);
-    //         if (!msg) {
-    //             throw Error('Unable to find message');
-    //         }
+    async editMessage(messageId: number, uid: number, newMessage: MessageInput, markAsEdited: boolean): Promise<ConversationEvent> {
+        return await inTx(async () => {
+            let message = await this.entities.Message.findById(messageId);
 
-    //         // 2. Update message
-    //         if (message.text) {
-    //             msg.text = message.text;
-    //         }
-    //         if (message.mentions) {
-    //             msg.mentions = message.mentions;
-    //         }
+            if (!message) {
+                throw new Error('Message not found');
+            }
 
-    //         // 3. Schedule update
-    //         let seq = await this.fetchConversationNextSeq(msg.cid);
-    //         await this.entities.ConversationEvent.create(msg.cid, seq, {
-    //             kind: 'update_message',
-    //             messageId: mid,
-    //         });
-    //     });
-    // }
+            if (message.uid !== uid) {
+                throw new AccessDeniedError();
+            }
 
-    // async deleteMessage(mid: string) {
-    //     await inTx(async () => {
+            if (newMessage.message) {
+                message.text = newMessage.message;
+            }
+            if (newMessage.file) {
+                message.fileId = newMessage.file;
+            }
+            if (newMessage.fileMetadata) {
+                message.fileMetadata = newMessage.fileMetadata;
+            }
+            // if (newMessage.filePreview) {
+            //     (message as any).changed('extras', true);
+            //     message.extras.filePreview = newMessage.filePreview;
+            // }
+            if (newMessage.replyMessages) {
+                message.replyMessages = newMessage.replyMessages;
+            }
+            if (newMessage.urlAugmentation || newMessage.urlAugmentation === null) {
+                message.augmentation = newMessage.urlAugmentation;
+            }
+            if (newMessage.mentions) {
+                message.mentions = newMessage.mentions;
+            }
 
-    //         // 1. Find message
-    //         let msg = await this.entities.Message.findById(mid);
-    //         if (!msg) {
-    //             throw Error('Unable to find message');
-    //         }
+            if (markAsEdited) {
+                message.edited = true;
+            }
 
-    //         // 2. Update message
-    //         msg.deleted = true;
+            let members = await Modules.Messaging.conv.findConversationMembers(message.cid);
+            for (let member of members) {
+                let global = await Modules.Messaging.repo.getUserMessagingState(member);
+                global.seq++;
+                await this.entities.UserDialogEvent.create(member, global.seq, {
+                    kind: 'message_updated',
+                    mid: message!.id
+                });
+            }
 
-    //         // 3. Schedule update
-    //         let seq = await this.fetchConversationNextSeq(msg.cid);
-    //         await this.entities.ConversationEvent.create(msg.cid, seq, {
-    //             kind: 'delete_message',
-    //             messageId: mid,
-    //         });
-    //     });
-    // }
+            let seq = await Modules.Messaging.repo.fetchConversationNextSeq(message!.cid);
+            let res = await this.entities.ConversationEvent.create(message!.cid, seq, {
+                kind: 'message_updated',
+                mid: message!.id
+            });
 
-    // async processConversationEvent(uid: number, event: ConversationEvent) {
-    //     await inTx(async () => {
+            await Modules.Messaging.AugmentationWorker.pushWork({ messageId: message.id });
 
-    //         if (event.kind === 'create_message') {
+            return res;
+        });
+    }
 
-    //             // 1. Increment user counter
-    //             let senderId = event.userId!;
-    //             if (uid !== senderId) {
-    //                 await this.updateUserUnreadCounter(uid, 1);
-    //             }
+    async roomMembersCount(conversationId: number, status?: string): Promise<number> {
+        return (await this.entities.RoomParticipant.allFromActive(conversationId)).filter(m => status === undefined || m.status === status).length;
+    }
 
-    //             // 2. Create Event
-    //             let seq = await this.fetchUserNextSeq(uid);
-    //             let unread = await this.fetchUserUnread(uid);
-    //             await this.entities.UserMessagingEvent.create(uid, seq, {
-    //                 allUnread: unread,
-    //                 convUnread: 0,
+    async deleteMessage(messageId: number, uid: number): Promise<ConversationEvent> {
+        return await inTx(async () => {
+            let message = await this.entities.Message.findById(messageId);
 
-    //                 kind: 'create_message',
-    //                 messageId: event.messageId,
-    //                 userId: uid,
-    //             });
-    //         } else if (event.kind === 'update_message') {
-    //             // 1. Create Event
-    //             let seq = await this.fetchUserNextSeq(uid);
-    //             let unread = await this.fetchUserUnread(uid);
-    //             await this.entities.UserMessagingEvent.create(uid, seq, {
-    //                 allUnread: unread,
-    //                 convUnread: 0,
+            if (!message) {
+                throw new Error('Message not found');
+            }
 
-    //                 kind: 'update_message',
-    //                 messageId: event.messageId
-    //             });
-    //         } else if (event.kind === 'delete_message') {
+            if (message.uid !== uid) {
+                if (await Modules.Super.superRole(uid) !== 'super-admin') {
+                    throw new AccessDeniedError();
+                }
+            }
 
-    //             // 1. Create Event
-    //             let seq = await this.fetchUserNextSeq(uid);
-    //             let unread = await this.fetchUserUnread(uid);
-    //             await this.entities.UserMessagingEvent.create(uid, seq, {
-    //                 allUnread: unread,
-    //                 convUnread: 0,
+            //
+            // Delete message
+            //
 
-    //                 kind: 'delete_message',
-    //                 messageId: event.messageId
-    //             });
-    //         }
-    //     });
-    // }
+            message.deleted = true;
+
+            //
+            //  Update counters
+            //
+
+            let members = await Modules.Messaging.conv.findConversationMembers(message.cid);
+            for (let member of members) {
+
+                let existing = await Modules.Messaging.repo.getUserDialogState(member, message!.cid);
+                let global = await Modules.Messaging.repo.getUserMessagingState(member);
+
+                if (member !== uid) {
+                    if (!existing.readMessageId || existing.readMessageId < message!.id) {
+                        existing.unread--;
+                        global.unread--;
+                        global.seq++;
+
+                        await this.entities.UserDialogEvent.create(member, global.seq, {
+                            kind: 'message_read',
+                            cid: message!.cid,
+                            unread: existing.unread,
+                            allUnread: global.unread
+                        });
+                    }
+                }
+
+                global.seq++;
+                await this.entities.UserDialogEvent.create(member, global.seq, {
+                    kind: 'message_deleted',
+                    mid: message!.id
+                });
+            }
+
+            let seq = await Modules.Messaging.repo.fetchConversationNextSeq(message!.cid);
+            return await this.entities.ConversationEvent.create(message!.cid, seq, {
+                kind: 'message_deleted',
+                mid: message!.id
+            });
+        });
+    }
+
+    async setReaction(messageId: number, uid: number, reaction: string, reset: boolean = false) {
+        return await inTx(async () => {
+            let message = await this.entities.Message.findById(messageId);
+
+            if (!message) {
+                throw new Error('Message not found');
+            }
+
+            let reactions: { reaction: string, userId: number }[] = message.reactions ? [...message.reactions] as any : [];
+            if (reactions.find(r => (r.userId === uid) && (r.reaction === reaction))) {
+                if (reset) {
+                    reactions = reactions.filter(r => !((r.userId === uid) && (r.reaction === reaction)));
+                } else {
+                    return;
+
+                }
+            } else {
+                reactions.push({ userId: uid, reaction });
+            }
+            message.reactions = reactions;
+
+            let members = await Modules.Messaging.conv.findConversationMembers(message.cid);
+            for (let member of members) {
+                let global = await Modules.Messaging.repo.getUserMessagingState(member);
+                global.seq++;
+                await this.entities.UserDialogEvent.create(member, global.seq, {
+                    kind: 'message_updated',
+                    mid: message!.id
+                });
+            }
+
+            let seq = await Modules.Messaging.repo.fetchConversationNextSeq(message!.cid);
+            return await this.entities.ConversationEvent.create(message!.cid, seq, {
+                kind: 'message_updated',
+                mid: message!.id
+            });
+        });
+    }
+
+    async addToChannel(channelId: number, uid: number) {
+        let profile = await Modules.Users.profileById(uid);
+        // no profile - user not signed up
+        if (!profile) {
+            return;
+        }
+        let firstName = profile!!.firstName;
+        await inTx(async () => {
+            let existing = await this.entities.RoomParticipant.findById(channelId, uid);
+            if (existing) {
+                if (existing.status === 'joined') {
+                    return;
+                } else {
+                    existing.status = 'joined';
+                }
+            } else {
+                await this.entities.RoomParticipant.create(channelId, uid, {
+                    role: 'member',
+                    status: 'joined',
+                    invitedBy: uid
+                }).then(async p => await p.flush());
+            }
+            await Modules.Messaging.sendMessage(
+                channelId,
+                uid,
+                {
+                    message: `${firstName} has joined the channel!`,
+                    isService: true,
+                    isMuted: true,
+                    serviceMetadata: {
+                        type: 'user_invite',
+                        userIds: [uid],
+                        invitedById: uid
+                    }
+                }
+            );
+        });
+    }
 
     async fetchConversationNextSeq(cid: number) {
         return await inTx(async () => {
