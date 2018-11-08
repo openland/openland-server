@@ -12,19 +12,9 @@ import { DialogsRepository } from './repositories/DialogsRepository';
 import { FixerRepository } from './repositories/Fixer';
 import { RoomRepository } from './repositories/RoomRepository';
 import { ConversationRepository } from './repositories/ConversationRepository';
-
-export interface MessageInput {
-    repeatToken?: string | null;
-    text?: string | null;
-    fileId?: string | null;
-    fileMetadata?: any | null;
-    filePreview?: string | null;
-    mentions?: any | null;
-    replyMessages?: any | null;
-    augmentation?: any | null;
-    isMuted: boolean;
-    isService: boolean;
-}
+import { MessageInput } from './MessageInput';
+import { ConversationEvent } from 'openland-module-db/schema';
+import { Modules } from 'openland-modules/Modules';
 
 export class MessagingModule {
     readonly AugmentationWorker = createAugmentationWorker();
@@ -36,6 +26,8 @@ export class MessagingModule {
     private readonly dialogs = new DialogsRepository(FDB);
     private readonly channels = new ChannelRepository(FDB);
 
+    // await Modules.Drafts.clearDraft(uid, conversationId);
+    //         await Modules.Messaging.DeliveryWorker.pushWork({ messageId: mid });
     start = () => {
         if (serverRoleEnabled('workers')) {
             startEmailNotificationWorker();
@@ -67,5 +59,34 @@ export class MessagingModule {
             await ChannelInviteEmails.sendChannelInviteEmail(invite);
             return invite;
         });
+    }
+
+    async sendMessage(conversationId: number, uid: number, message: MessageInput): Promise<ConversationEvent> {
+        return await inTx(async () => {
+            let res = await this.repo.sendMessage(conversationId, uid, message);
+            await Modules.Drafts.clearDraft(uid, conversationId);
+            await this.DeliveryWorker.pushWork({ messageId: res.mid! });
+            return res;
+        });
+    }
+
+    async editMessage(messageId: number, uid: number, newMessage: MessageInput, markAsEdited: boolean): Promise<ConversationEvent> {
+        return this.repo.editMessage(messageId, uid, newMessage, markAsEdited);
+    }
+
+    async setReaction(messageId: number, uid: number, reaction: string, reset: boolean = false) {
+        return this.repo.setReaction(messageId, uid, reaction, reset);
+    }
+
+    async deleteMessage(messageId: number, uid: number): Promise<ConversationEvent> {
+        return this.repo.deleteMessage(messageId, uid);
+    }
+
+    async roomMembersCount(conversationId: number, status?: string): Promise<number> {
+        return this.repo.roomMembersCount(conversationId, status);
+    }
+
+    async addToChannel(channelId: number, uid: number) {
+        return this.repo.addToChannel(channelId, uid);
     }
 }

@@ -2,9 +2,11 @@ import { SuperRepository } from './repositories/SuperRepository';
 import { FDB } from 'openland-module-db/FDB';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { startAdminInterface } from './startAdminInterface';
+import { PermissionsRepository } from './repositories/PermissionsRepository';
 
 export class SuperModule {
-    readonly repo = new SuperRepository(FDB);
+    private readonly repo = new SuperRepository(FDB);
+    private readonly permissionsRepo = new PermissionsRepository(FDB);
 
     async findAllSuperAdmins() {
         return this.repo.findAllSuperAdmins();
@@ -26,6 +28,14 @@ export class SuperModule {
         return ({
             messages: (await FDB.Sequence.findById('message-id'))!.value
         });
+    }
+
+    async resolvePermissions(args: { uid: number | null | undefined, oid: number | null | undefined }) {
+        return this.permissionsRepo.resolvePermissions(args);
+    }
+
+    async superRole(userId: number | null | undefined) {
+        return this.permissionsRepo.superRole(userId);
     }
 
     start = () => {

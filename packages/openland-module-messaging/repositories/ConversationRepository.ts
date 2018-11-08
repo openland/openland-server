@@ -1,11 +1,21 @@
 import { AllEntities } from 'openland-module-db/schema';
 import { FDB } from 'openland-module-db/FDB';
-import { AccessDeniedError } from 'openland-server/errors/AccessDeniedError';
+import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { inTx } from 'foundation-orm/inTx';
-import { Repos } from 'openland-server/repositories';
 import { Modules } from 'openland-modules/Modules';
-import { NotFoundError } from 'openland-server/errors/NotFoundError';
-import { imageRefEquals } from 'openland-module-media/ImageRef';
+import { NotFoundError } from 'openland-errors/NotFoundError';
+import { imageRefEquals, buildBaseImageUrl } from 'openland-module-media/ImageRef';
+import { IDs } from 'openland-module-api/IDs';
+
+function doSimpleHash(key: string): number {
+    var h = 0, l = key.length, i = 0;
+    if (l > 0) {
+        while (i < l) {
+            h = (h << 5) - h + key.charCodeAt(i++) | 0;
+        }
+    }
+    return Math.abs(h);
+}
 
 interface RoomProfileInput {
     title: string;
@@ -45,9 +55,9 @@ export class ConversationRepository {
                 })).flush();
             }
             await conv.flush();
-            await Repos.Chats.sendMessage(id, uid, { message: kind === 'group' ? 'Group created' : 'Room created', isService: true });
+            await Modules.Messaging.sendMessage(id, uid, { message: kind === 'group' ? 'Group created' : 'Room created', isService: true });
             if (message) {
-                await Repos.Chats.sendMessage(id, uid, { message: message });
+                await Modules.Messaging.sendMessage(id, uid, { message: message });
             }
             return conv;
         });
@@ -77,7 +87,7 @@ export class ConversationRepository {
 
             let users = invites.map((v) => FDB.UserProfile.findById(v));
 
-            await Repos.Chats.sendMessage(cid, uid, {
+            await Modules.Messaging.sendMessage(cid, uid, {
                 message: `${(await Promise.all(users)).map(u => u!.firstName).join(', ')} joined chat`,
                 isService: true,
                 isMuted: true,
@@ -108,7 +118,7 @@ export class ConversationRepository {
             }
 
             // Check permissions
-            let isSuperAdmin = (await Repos.Permissions.superRole(uid)) === 'super-admin';
+            let isSuperAdmin = (await Modules.Super.superRole(uid)) === 'super-admin';
             let canKick = isSuperAdmin || p.role === 'admin' || p.role === 'owner' || kickedP.invitedBy === uid;
             if (!canKick) {
                 throw new AccessDeniedError();
@@ -119,7 +129,7 @@ export class ConversationRepository {
 
             // Send kick message
             let profile = await Modules.Users.profileById(kickedUid);
-            await Repos.Chats.sendMessage(cid, uid, {
+            await Modules.Messaging.sendMessage(cid, uid, {
                 message: `${profile!.firstName} was kicked from chat`,
                 isService: true,
                 isMuted: true,
@@ -161,7 +171,7 @@ export class ConversationRepository {
 
             // Send message to everyone
             let profile = await Modules.Users.profileById(uid);
-            await Repos.Chats.sendMessage(cid, uid, {
+            await Modules.Messaging.sendMessage(cid, uid, {
                 message: `${profile!.firstName} has left the chat`,
                 isService: true,
                 isMuted: true,
@@ -215,7 +225,7 @@ export class ConversationRepository {
             }
 
             let name = (await Modules.Users.profileById(uid))!.firstName;
-            await Repos.Chats.sendMessage(cid, uid, {
+            await Modules.Messaging.sendMessage(cid, uid, {
                 message: `${name} has joined the channel!`,
                 isService: true,
                 isMuted: true,
@@ -242,7 +252,7 @@ export class ConversationRepository {
             }
 
             let curMember = await FDB.RoomParticipant.findById(cid, uid);
-            let role = await Repos.Permissions.superRole(uid);
+            let role = await Modules.Super.superRole(uid);
             let haveAccess = (curMember && (curMember.role === 'owner' || curMember.role === 'admin')) || role === 'super-admin';
 
             if (!haveAccess) {
@@ -253,7 +263,7 @@ export class ConversationRepository {
                 let res = profile.title.trim();
                 if (res !== '' && conv.title !== res) {
                     conv.title = res;
-                    await Repos.Chats.sendMessage(cid, uid, {
+                    await Modules.Messaging.sendMessage(cid, uid, {
                         message: `New chat title: ${res}`,
                         isService: true,
                         isMuted: true,
@@ -292,7 +302,7 @@ export class ConversationRepository {
                     }
                 }
                 if (imageChanged) {
-                    await Repos.Chats.sendMessage(cid, uid, {
+                    await Modules.Messaging.sendMessage(cid, uid, {
                         message: `New chat photo`,
                         isService: true,
                         isMuted: true,
@@ -389,7 +399,7 @@ export class ConversationRepository {
         }
     }
 
-    async resolveConversationTitle(conversationId: number, oid: number | undefined, uid: number): Promise<string> {
+    async resolveConversationTitle(conversationId: number, uid: number): Promise<string> {
         let conv = await FDB.Conversation.findById(conversationId);
 
         if (!conv) {
@@ -427,6 +437,49 @@ export class ConversationRepository {
                 return name.join(', ');
             }
             return p.title;
+        }
+    }
+
+    async resolveConversationPhoto(conversationId: number, uid: number): Promise<string | null> {
+        let conv = await FDB.Conversation.findById(conversationId);
+
+        if (!conv) {
+            throw new NotFoundError('Conversation not found');
+        }
+
+        if (conv.kind === 'private') {
+            let p = (await FDB.ConversationPrivate.findById(conv.id))!;
+            let _uid;
+            if (p.uid1 === uid) {
+                _uid = p.uid2;
+            } else if (p.uid2 === uid) {
+                _uid = p.uid1;
+            } else {
+                throw Error('Inconsistent Private Conversation resolver');
+            }
+            let profile = (await Modules.Users.profileById(_uid))!;
+            let res = buildBaseImageUrl(profile.picture);
+            if (res) {
+                return res;
+            } else {
+                return 'ph://' + doSimpleHash(IDs.User.serialize(_uid)) % 6;
+            }
+        } else if (conv.kind === 'organization') {
+            let o = await FDB.ConversationOrganization.findById(conv.id);
+            let res = buildBaseImageUrl((await FDB.OrganizationProfile.findById(o!.oid))!.photo);
+            if (res) {
+                return res;
+            } else {
+                return 'ph://' + doSimpleHash(IDs.Organization.serialize(o!.oid)) % 6;
+            }
+        } else {
+            let p = (await FDB.RoomProfile.findById(conv.id))!;
+            let res =  buildBaseImageUrl(p.image);
+            if (res) {
+                return res;
+            } else {
+                return 'ph://' + doSimpleHash(IDs.Conversation.serialize(conv.id)) % 6;
+            }
         }
     }
 

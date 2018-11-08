@@ -1,6 +1,6 @@
-import { withAccount } from '../openland-server/api/utils/Resolvers';
-import { UserError } from '../openland-server/errors/UserError';
-import { ErrorText } from '../openland-server/errors/ErrorText';
+import { withAccount } from '../openland-module-api/Resolvers';
+import { UserError } from '../openland-errors/UserError';
+import { ErrorText } from '../openland-errors/ErrorText';
 import { Modules } from 'openland-modules/Modules';
 import { FDB } from 'openland-module-db/FDB';
 

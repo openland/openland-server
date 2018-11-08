@@ -1,5 +1,5 @@
 import Crypto from 'crypto';
-import { IDMailformedError } from 'openland-server/errors/IDMailformedError';
+import { IDMailformedError } from 'openland-errors/IDMailformedError';
 import Hashids from 'hashids';
 
 // Randomly generated string for using as salt for type name hashing

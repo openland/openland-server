@@ -1,5 +1,5 @@
 import { Modules } from 'openland-modules/Modules';
-import { CallContext } from 'openland-server/api/utils/CallContext';
+import { CallContext } from 'openland-module-api/CallContext';
 
 export default {
     Query: {

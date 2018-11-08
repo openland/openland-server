@@ -1,8 +1,30 @@
+enum DialogKind {
+    PRIVATE
+    INTERNAL
+    PUBLIC
+    GROUP
+}
+
+type Dialog {
+    id: ID!
+    cid: ID!
+    fid: ID!
+    kind: DialogKind!
+    
+    title: String!
+    photo: String!
+
+    unreadCount: Int!
+
+    topMessage: Message
+}
+
 type DialogsConnection {
-    conversations: [Conversation!]!
-    next: String
+    items: [Dialog!]!
+    cursor: String
 }
 
 extend type Query {
+    alphaChats(first: Int!, after: String): ConversationConnection!
     dialogs(first: Int!, after: String): DialogsConnection!
 }

@@ -1,0 +1,4 @@
+extend type User {
+    online: Boolean!
+    lastSeen: String
+}

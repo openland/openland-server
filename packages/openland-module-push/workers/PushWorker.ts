@@ -1,4 +1,4 @@
-import { IDs } from 'openland-server/api/utils/IDs';
+import { IDs } from 'openland-module-api/IDs';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { PushRepository } from 'openland-module-push/repositories/PushRepository';
 import { Modules } from 'openland-modules/Modules';

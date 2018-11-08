@@ -51,6 +51,7 @@ export function generateEntity(entity: EntityModel): string {
     // res += '    static findById(' + entity.keys.map((v) => v.name + ': ' + v.type).join(', ') + ') {\n';
     // res += '    }\n';
     // Keys
+    res += '    readonly entityName: \'' + entity.name + '\' = \'' + entity.name + '\';\n';
     for (let k of entity.keys) {
         let type: string = resolveFieldType(k);
         res += '    get ' + k.name + '(): ' + type + ' { return this._value.' + k.name + '; }\n';

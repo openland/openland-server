@@ -1,0 +1,56 @@
+scalar Date
+
+type PageInfo {
+    hasNextPage: Boolean!
+    hasPreviousPage: Boolean!
+    itemsCount: Int!
+    pagesCount: Int!
+    currentPage: Int!
+    openEnded: Boolean!
+}
+
+enum TaskStatus {
+    IN_PROGRESS
+    FAILED
+    COMPLETED
+}
+
+type Task {
+    id: ID!
+    status: TaskStatus!
+    result: String
+}
+
+input ImageCropInput {
+    x: Int!
+    y: Int!
+    w: Int!
+    h: Int!
+}
+
+type ImageCrop {
+    x: Int!
+    y: Int!
+    w: Int!
+    h: Int!
+}
+
+type ImageRef {
+    uuid: String!
+    crop: ImageCrop
+}
+
+input ImageRefInput {
+    uuid: String!
+    crop: ImageCropInput
+}
+
+type Range {
+    from: Int
+    to: Int
+}
+
+input RangeInput {
+    from: Int
+    to: Int
+}

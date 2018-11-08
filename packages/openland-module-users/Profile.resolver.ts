@@ -1,15 +1,16 @@
 import { FDB } from 'openland-module-db/FDB';
-import { IDs } from 'openland-server/api/utils/IDs';
+import { IDs } from 'openland-module-api/IDs';
 import { UserProfile } from 'openland-module-db/schema';
-import { Repos } from 'openland-server/repositories';
 import { Modules } from 'openland-modules/Modules';
-import { CallContext } from 'openland-server/api/utils/CallContext';
+import { CallContext } from 'openland-module-api/CallContext';
 import { validate, stringNotEmpty } from 'openland-utils/NewInputValidator';
 import { inTx } from 'foundation-orm/inTx';
 import { Sanitizer } from 'openland-utils/Sanitizer';
-import { withUser } from 'openland-server/api/utils/Resolvers';
+import { withUser } from 'openland-module-api/Resolvers';
 import { ImageRef } from 'openland-module-media/ImageRef';
-import { AccessDeniedError } from 'openland-server/errors/AccessDeniedError';
+import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
+import { ProfileInput } from './ProfileInput';
+import { OrganizatinProfileInput } from 'openland-module-orgs/OrganizationProfileInput';
 
 export default {
     Profile: {
@@ -22,14 +23,24 @@ export default {
         website: (src: UserProfile) => src.website,
         about: (src: UserProfile) => src.about,
         location: (src: UserProfile) => src.location,
+        linkedin: (src: UserProfile) => src.linkedin,
+        twitter: (src: UserProfile) => src.twitter,
+        primaryOrganization: async (src: UserProfile) => await FDB.Organization.findById(src.primaryOrganization || (await Modules.Orgs.findUserOrganizations(src.id))[0]),
+
         alphaRole: (src: UserProfile) => src.role,
         alphaLocations: (src: UserProfile) => src.locations,
         alphaLinkedin: (src: UserProfile) => src.linkedin,
         alphaTwitter: (src: UserProfile) => src.twitter,
         alphaPrimaryOrganizationId: (src: UserProfile) => src.primaryOrganization ? IDs.Organization.serialize(src.primaryOrganization) : null,
-        alphaPrimaryOrganization: async (src: UserProfile) => await FDB.Organization.findById(src.primaryOrganization || (await Repos.Users.fetchUserAccounts(src.id))[0]),
+        alphaPrimaryOrganization: async (src: UserProfile) => await FDB.Organization.findById(src.primaryOrganization || (await Modules.Orgs.findUserOrganizations(src.id))[0]),
         alphaJoinedAt: (src: UserProfile) => src.createdAt,
-        alphaInvitedBy: async (src: UserProfile) => await Repos.Users.getUserInvitedBy(src.id),
+        alphaInvitedBy: async (src: UserProfile) => {
+            let user = await FDB.User.findById(src.id);
+            if (user && user.invitedBy) {
+                return await FDB.User.findById(user.invitedBy);
+            }
+            return null;
+        },
     },
     Query: {
         myProfile: async function (_obj: any, _params: {}, context: CallContext) {
@@ -40,55 +51,13 @@ export default {
         },
     },
     Mutation: {
-        createProfile: withUser<{
-            input: {
-                firstName: string,
-                lastName?: string | null,
-                photoRef?: ImageRef | null,
-                phone?: string | null,
-                email?: string | null,
-                website?: string | null,
-                about?: string | null,
-                location?: string | null
-            }
-        }>(async (args, uid) => {
-            return await Repos.Users.createUser(uid, args.input);
+        profileCreate: withUser<{ input: ProfileInput }>(async (args, uid) => {
+            return await Modules.Users.createUserProfile(uid, args.input);
         }),
-        profileCreate: withUser<{
-            input: {
-                firstName: string,
-                lastName?: string | null,
-                photoRef?: ImageRef | null,
-                phone?: string | null,
-                email?: string | null,
-                website?: string | null,
-                about?: string | null,
-                location?: string | null
-            }
-        }>(async (args, uid) => {
-            return await Repos.Users.createUser(uid, args.input);
-        }),
-        updateProfile: withUser<{
-            input: {
-                firstName?: string | null,
-                lastName?: string | null,
-                photoRef?: ImageRef | null,
-                phone?: string | null,
-                email?: string | null,
-                website?: string | null,
-                about?: string | null,
-                location?: string | null,
-                alphaLocations?: string[] | null,
-                alphaLinkedin?: string | null,
-                alphaTwitter?: string | null,
-                alphaRole?: string | null,
-                alphaPrimaryOrganizationId?: string,
-            },
-            uid?: string
-        }>(async (args, uid) => {
+        profileUpdate: withUser<{ input: ProfileInput, uid?: string }>(async (args, uid) => {
             return await inTx(async () => {
                 if (args.uid) {
-                    let role = await Repos.Permissions.superRole(uid);
+                    let role = await Modules.Super.superRole(uid);
                     if (!(role === 'super-admin')) {
                         throw new AccessDeniedError();
                     }
@@ -136,30 +105,42 @@ export default {
                         profile.email = Sanitizer.sanitizeString(args.input.email);
                     }
 
-                    if (args.input.alphaLocations !== undefined) {
-                        profile.locations = Sanitizer.sanitizeAny(args.input.alphaLocations);
+                    if (args.input.linkedin !== undefined) {
+                        profile.linkedin = Sanitizer.sanitizeString(args.input.linkedin);
                     }
 
-                    if (args.input.alphaLinkedin !== undefined) {
-                        profile.linkedin = Sanitizer.sanitizeString(args.input.alphaLinkedin);
+                    if (args.input.twitter !== undefined) {
+                        profile.twitter = Sanitizer.sanitizeString(args.input.twitter);
                     }
 
-                    if (args.input.alphaTwitter !== undefined) {
-                        profile.twitter = Sanitizer.sanitizeString(args.input.alphaTwitter);
-                    }
-
-                    if (args.input.alphaRole !== undefined) {
-                        profile.role = Sanitizer.sanitizeString(args.input.alphaRole);
-                    }
-
-                    if (args.input.alphaPrimaryOrganizationId !== undefined) {
-                        profile.primaryOrganization = IDs.Organization.parse(args.input.alphaPrimaryOrganizationId);
+                    if (args.input.primaryOrganization) {
+                        profile.primaryOrganization = IDs.Organization.parse(args.input.primaryOrganization);
                     }
                 });
                 return user;
             });
         }),
-        profileUpdate: withUser<{
+
+        // Deprecated
+        createProfile: withUser<{ input: ProfileInput }>(async (args, uid) => {
+            return await Modules.Users.createUserProfile(uid, args.input);
+        }),
+        // Deprecated
+        alphaCreateUserProfileAndOrganization: withUser<{
+            user: ProfileInput,
+            organization: OrganizatinProfileInput
+        }>(async (args, uid) => {
+            return await inTx(async () => {
+                let userProfile = Modules.Users.createUserProfile(uid, args.user);
+                let organization = await Modules.Orgs.createOrganization(uid, { ...args.organization, personal: false });
+
+                return {
+                    user: userProfile,
+                    organization: organization
+                };
+            });
+        }),
+        updateProfile: withUser<{
             input: {
                 firstName?: string | null,
                 lastName?: string | null,
@@ -179,7 +160,7 @@ export default {
         }>(async (args, uid) => {
             return await inTx(async () => {
                 if (args.uid) {
-                    let role = await Repos.Permissions.superRole(uid);
+                    let role = await Modules.Super.superRole(uid);
                     if (!(role === 'super-admin')) {
                         throw new AccessDeniedError();
                     }

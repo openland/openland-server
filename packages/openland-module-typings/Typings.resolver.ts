@@ -1,14 +1,22 @@
 import { Modules } from 'openland-modules/Modules';
-import { IDs } from 'openland-server/api/utils/IDs';
-import { CallContext } from 'openland-server/api/utils/CallContext';
-import { withUser } from 'openland-server/api/utils/Resolvers';
+import { IDs } from 'openland-module-api/IDs';
+import { CallContext } from 'openland-module-api/CallContext';
+import { withUser } from 'openland-module-api/Resolvers';
 import { validate, optional, enumString } from 'openland-utils/NewInputValidator';
+import { TypingEvent } from './TypingEvent';
+import { FDB } from 'openland-module-db/FDB';
 
 export default {
     TypingType: {
         TEXT: 'text',
         PHOTO: 'photo',
         FILE: 'file'
+    },
+    TypingEvent: {
+        type: (src: TypingEvent) => src.type,
+        cancel: (src: TypingEvent) => src.cancel,
+        conversation: (src: TypingEvent) => FDB.Conversation.findById(src.conversationId),
+        user: (src: TypingEvent) => src.userId,
     },
     Mutation: {
         alphaSetTyping: withUser<{ conversationId: string, type: 'text' | 'photo' | 'file' }>(async (args, uid) => {

@@ -2,13 +2,33 @@ import { AllEntities } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
 import { validate, stringNotEmpty } from 'openland-utils/NewInputValidator';
 import { Sanitizer } from 'openland-utils/Sanitizer';
-import { ImageRef } from 'openland-module-media/ImageRef';
+import { ProfileInput } from 'openland-module-users/ProfileInput';
 
 export class UserRepository {
+    private readonly userAuthIdCache = new Map<string, number | undefined>();
     private entities: AllEntities;
 
     constructor(entities: AllEntities) {
         this.entities = entities;
+    }
+
+    /*
+     * User
+     */
+
+    async createUser(authId: string, email: string) {
+        return await inTx(async () => {
+            // TODO: Create INDEX!
+            let seq = (await this.entities.Sequence.findById('user-id'));
+            if (!seq) {
+                seq = await this.entities.Sequence.create('user-id', { value: 0 });
+            }
+            let id = ++seq.value;
+            await seq.flush();
+            let res = (await this.entities.User.create(id, { authId: authId, email: email.toLowerCase(), isBot: false, status: 'pending' }));
+            await res.flush();
+            return res;
+        });
     }
 
     /*
@@ -19,16 +39,7 @@ export class UserRepository {
         return this.entities.UserProfile.findById(uid);
     }
 
-    async createUserProfile(uid: number, input: {
-        firstName: string,
-        lastName?: string | null,
-        photoRef?: ImageRef | null,
-        phone?: string | null,
-        email?: string | null,
-        website?: string | null,
-        about?: string | null,
-        location?: string | null
-    }) {
+    async createUserProfile(uid: number, input: ProfileInput) {
         return await inTx(async () => {
             let user = (await this.entities.User.findById(uid))!;
             let existing = await this.entities.UserProfile.findById(user.id!);
@@ -104,5 +115,27 @@ export class UserRepository {
                 });
             }
         });
+    }
+
+    /**
+     * Queries
+     */
+    async findUserByAuthId(authId: string): Promise<number | undefined> {
+        if (this.userAuthIdCache.has(authId)) {
+            return this.userAuthIdCache.get(authId);
+        } else {
+            let exists = (await this.entities.User.findAll()).find((v) => v.authId === authId);
+            if (exists != null) {
+                if (!this.userAuthIdCache.has(authId)) {
+                    this.userAuthIdCache.set(authId, exists.id!!);
+                }
+                return exists.id;
+            } else {
+                if (!this.userAuthIdCache.has(authId)) {
+                    this.userAuthIdCache.set(authId, undefined);
+                }
+                return undefined;
+            }
+        }
     }
 }

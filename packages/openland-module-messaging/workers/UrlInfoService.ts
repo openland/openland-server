@@ -1,4 +1,4 @@
-import { IDs } from '../../openland-server/api/utils/IDs';
+import { IDs } from '../../openland-module-api/IDs';
 import * as URL from 'url';
 import { CacheRepository } from 'openland-module-cache/CacheRepository';
 import { Modules } from 'openland-modules/Modules';

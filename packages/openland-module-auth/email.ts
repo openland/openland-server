@@ -241,14 +241,7 @@ export async function getAccessToken(req: express.Request, response: express.Res
                 authSession.enabled = false;
                 return;
             } else {
-                let c = (await FDB.Sequence.findById('user-id'))!;
-                let id = ++c.value;
-                let user = await FDB.User.create(id, {
-                    authId: 'email|' + authSession.email,
-                    email: authSession.email as string,
-                    isBot: false,
-                    status: 'pending'
-                });
+                let user = await Modules.Users.createUser('email|' + authSession.email, authSession.email as string);
                 let token = await Modules.Auth.createToken(user.id!);
                 response.json({ ok: true, accessToken: token });
                 authSession.enabled = false;

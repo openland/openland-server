@@ -13,6 +13,7 @@ export interface SimpleEntityShape {
 }
 
 export class SimpleEntity extends FEntity {
+    readonly entityName: 'SimpleEntity' = 'SimpleEntity';
     get id(): number { return this._value.id; }
     get data(): string {
         return this._value.data;
@@ -76,6 +77,7 @@ export interface VersionedEntityShape {
 }
 
 export class VersionedEntity extends FEntity {
+    readonly entityName: 'VersionedEntity' = 'VersionedEntity';
     get id(): number { return this._value.id; }
     get data(): string {
         return this._value.data;
@@ -139,6 +141,7 @@ export interface TimestampedEntityShape {
 }
 
 export class TimestampedEntity extends FEntity {
+    readonly entityName: 'TimestampedEntity' = 'TimestampedEntity';
     get id(): number { return this._value.id; }
     get data(): string {
         return this._value.data;
@@ -204,6 +207,7 @@ export interface IndexedEntityShape {
 }
 
 export class IndexedEntity extends FEntity {
+    readonly entityName: 'IndexedEntity' = 'IndexedEntity';
     get id(): number { return this._value.id; }
     get data1(): string {
         return this._value.data1;
@@ -315,6 +319,7 @@ export interface IndexedRangeEntityShape {
 }
 
 export class IndexedRangeEntity extends FEntity {
+    readonly entityName: 'IndexedRangeEntity' = 'IndexedRangeEntity';
     get id(): number { return this._value.id; }
     get data1(): string {
         return this._value.data1;
@@ -423,6 +428,7 @@ export interface IndexedPartialEntityShape {
 }
 
 export class IndexedPartialEntity extends FEntity {
+    readonly entityName: 'IndexedPartialEntity' = 'IndexedPartialEntity';
     get id(): number { return this._value.id; }
     get data1(): string {
         return this._value.data1;
@@ -532,6 +538,7 @@ export interface NullableEntityShape {
 }
 
 export class NullableEntity extends FEntity {
+    readonly entityName: 'NullableEntity' = 'NullableEntity';
     get id(): number { return this._value.id; }
     get flag(): boolean | null {
         let res = this._value.flag;

@@ -1,5 +1,5 @@
-import { IDs, IdsFactory } from '../openland-server/api/utils/IDs';
-import { withUser, resolveUser, withAccount } from '../openland-server/api/utils/Resolvers';
+import { IDs, IdsFactory } from '../openland-module-api/IDs';
+import { withUser, resolveUser, withAccount } from '../openland-module-api/Resolvers';
 import {
     validate,
     stringNotEmpty,
@@ -9,19 +9,16 @@ import {
     mustBeArray,
     isNumber
 } from '../openland-utils/NewInputValidator';
-import { CallContext } from '../openland-server/api/utils/CallContext';
-import { Repos } from '../openland-server/repositories';
+import { CallContext } from '../openland-module-api/CallContext';
 import { JsonMap } from '../openland-utils/json';
-import { IDMailformedError } from '../openland-server/errors/IDMailformedError';
-import { UserError } from '../openland-server/errors/UserError';
-import { NotFoundError } from '../openland-server/errors/NotFoundError';
+import { IDMailformedError } from '../openland-errors/IDMailformedError';
+import { UserError } from '../openland-errors/UserError';
+import { NotFoundError } from '../openland-errors/NotFoundError';
 import { Sanitizer } from '../openland-utils/Sanitizer';
 import { URLAugmentation } from './workers/UrlInfoService';
 import { Modules } from 'openland-modules/Modules';
-import { OnlineEvent } from '../openland-module-presences/PresenceModule';
 import { UserDialogSettings, Message, RoomParticipant, Conversation, Organization, User } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
-import { TypingEvent } from 'openland-module-typings/TypingEvent';
 import { withLogContext } from 'openland-log/withLogContext';
 import { FDB } from 'openland-module-db/FDB';
 import { FEntity } from 'foundation-orm/FEntity';
@@ -209,7 +206,7 @@ export default {
 
             return Modules.Messaging.repo.findTopMessage(src.id!);
         },
-        membersCount: (src: Conversation) => Repos.Chats.membersCountInConversation(src.id),
+        membersCount: (src: Conversation) => Modules.Messaging.roomMembersCount(src.id),
         settings: (src: Conversation, _: any, context: CallContext) => Modules.Messaging.getConversationSettings(context.uid!!, src.id),
 
         photo: async (src: Conversation) => buildBaseImageUrl((await FDB.RoomProfile.findById(src.id))!.image),
@@ -367,9 +364,9 @@ export default {
     ComposeSearchResult: {
         __resolveType(obj: User | Organization) {
             // WTF, sequelize? Why Model is undefined??
-            if (obj.constructor.name === 'user') {
+            if (obj.entityName === 'User') {
                 return 'User';
-            } else if (obj.constructor.name === 'organization') {
+            } else if (obj.entityName === 'Organization') {
                 return 'Organization';
             }
             throw Error('Unknown type');
@@ -396,18 +393,6 @@ export default {
                 return src.counter;
             }
         }
-    },
-
-    TypingEvent: {
-        type: (src: TypingEvent) => src.type,
-        cancel: (src: TypingEvent) => src.cancel,
-        conversation: (src: TypingEvent) => FDB.Conversation.findById(src.conversationId),
-        user: (src: TypingEvent) => FDB.User.findById(src.userId),
-    },
-    OnlineEvent: {
-        type: (src: OnlineEvent) => src.online ? 'online' : 'offline',
-        user: (src: OnlineEvent) => FDB.User.findById(src.userId),
-        timeout: (src: OnlineEvent) => src.timeout,
     },
 
     GroupConversationMember: {
@@ -638,8 +623,8 @@ export default {
             return await withLogContext('send-message', async () => {
                 let conversationId = IDs.Conversation.parse(args.conversationId);
 
-                let fileMetadata: JsonMap | null;
-                let filePreview: string | null;
+                let fileMetadata: JsonMap | null = null;
+                let filePreview: string | null = null;
 
                 if (args.file) {
                     let fileInfo = await Modules.Media.saveFile(args.file);
@@ -650,16 +635,14 @@ export default {
                     }
                 }
 
-                return await inTx(async () => {
-                    return (await Repos.Chats.sendMessage(conversationId, uid!, {
-                        message: args.message,
-                        file: args.file,
-                        fileMetadata,
-                        repeatKey: args.repeatKey,
-                        filePreview,
-                        replyMessages: args.replyMessages,
-                        mentions: args.mentions
-                    }));
+                return Modules.Messaging.sendMessage(conversationId, uid!, {
+                    message: args.message,
+                    file: args.file,
+                    fileMetadata,
+                    repeatKey: args.repeatKey,
+                    filePreview,
+                    replyMessages: args.replyMessages,
+                    mentions: args.mentions
                 });
             });
         }),
@@ -674,8 +657,8 @@ export default {
 
             let conversationId = IDs.Conversation.parse(args.conversationId);
 
-            let fileMetadata: JsonMap | null;
-            let filePreview: string | null;
+            let fileMetadata: JsonMap | null = null;
+            let filePreview: string | null = null;
 
             if (args.file) {
                 let fileInfo = await Modules.Media.saveFile(args.file);
@@ -686,35 +669,33 @@ export default {
                 }
             }
 
-            return await inTx(async () => {
-                let profile = (await Modules.Users.profileById(args.userId))!;
+            let profile = (await Modules.Users.profileById(args.userId))!;
 
-                if (!profile) {
-                    throw new NotFoundError();
+            if (!profile) {
+                throw new NotFoundError();
+            }
+
+            return (await Modules.Messaging.sendMessage(conversationId, uid!, {
+                message: args.message,
+                file: args.file,
+                fileMetadata,
+                repeatKey: args.repeatKey,
+                filePreview,
+                urlAugmentation: {
+                    type: 'intro',
+                    extra: args.userId,
+                    url: `https://next.openland.com/mail/u/${IDs.User.serialize(args.userId)}`,
+                    title: profile.firstName + ' ' + profile.lastName,
+                    subtitle: 'intro',
+                    description: args.about,
+                    imageURL: null,
+                    imageInfo: null,
+                    photo: profile!.picture,
+                    hostname: 'openland.com',
+                    iconRef: null,
+                    iconInfo: null,
                 }
-
-                return (await Repos.Chats.sendMessage(conversationId, uid!, {
-                    message: args.message,
-                    file: args.file,
-                    fileMetadata,
-                    repeatKey: args.repeatKey,
-                    filePreview,
-                    urlAugmentation: {
-                        type: 'intro',
-                        extra: args.userId,
-                        url: `https://next.openland.com/mail/u/${IDs.User.serialize(args.userId)}`,
-                        title: profile.firstName + ' ' + profile.lastName,
-                        subtitle: 'intro',
-                        description: args.about,
-                        imageURL: null,
-                        imageInfo: null,
-                        photo: profile!.picture,
-                        hostname: 'openland.com',
-                        iconRef: null,
-                        iconInfo: null,
-                    }
-                }));
-            });
+            }));
         }),
         alphaEditIntro: withUser<{ messageId: string, userId: number, about: string, message?: string | null, file?: string | null, repeatKey?: string | null }>(async (args, uid) => {
             await validate(
@@ -727,8 +708,8 @@ export default {
 
             let messageId = IDs.ConversationMessage.parse(args.messageId);
 
-            let fileMetadata: JsonMap | null;
-            let filePreview: string | null;
+            let fileMetadata: JsonMap | null = null;
+            let filePreview: string | null = null;
 
             if (args.file) {
                 let fileInfo = await Modules.Media.saveFile(args.file);
@@ -739,35 +720,33 @@ export default {
                 }
             }
 
-            return await inTx(async () => {
-                let profile = (await Modules.Users.profileById(uid))!;
+            let profile = (await Modules.Users.profileById(uid))!;
 
-                if (!profile) {
-                    throw new NotFoundError();
+            if (!profile) {
+                throw new NotFoundError();
+            }
+
+            return await Modules.Messaging.editMessage(messageId, uid!, {
+                message: args.message,
+                file: args.file,
+                fileMetadata,
+                repeatKey: args.repeatKey,
+                filePreview,
+                urlAugmentation: {
+                    type: 'intro',
+                    extra: args.userId,
+                    url: `https://next.openland.com/mail/u/${IDs.User.serialize(args.userId)}`,
+                    title: profile.firstName + ' ' + profile.lastName,
+                    subtitle: 'intro',
+                    description: args.about,
+                    imageURL: null,
+                    imageInfo: null,
+                    photo: profile!.picture,
+                    hostname: 'openland.com',
+                    iconRef: null,
+                    iconInfo: null,
                 }
-
-                return await Repos.Chats.editMessage(messageId, uid!, {
-                    message: args.message,
-                    file: args.file,
-                    fileMetadata,
-                    repeatKey: args.repeatKey,
-                    filePreview,
-                    urlAugmentation: {
-                        type: 'intro',
-                        extra: args.userId,
-                        url: `https://next.openland.com/mail/u/${IDs.User.serialize(args.userId)}`,
-                        title: profile.firstName + ' ' + profile.lastName,
-                        subtitle: 'intro',
-                        description: args.about,
-                        imageURL: null,
-                        imageInfo: null,
-                        photo: profile!.picture,
-                        hostname: 'openland.com',
-                        iconRef: null,
-                        iconInfo: null,
-                    }
-                }, true);
-            });
+            }, true);
         }),
         alphaEditMessage: withUser<{ messageId: string, message?: string | null, file?: string | null, replyMessages?: number[] | null, mentions?: number[] | null }>(async (args, uid) => {
             let fileMetadata: JsonMap | null = null;
@@ -784,7 +763,7 @@ export default {
 
             let messageId = IDs.ConversationMessage.parse(args.messageId);
 
-            return await Repos.Chats.editMessage(messageId, uid, {
+            return await Modules.Messaging.editMessage(messageId, uid, {
                 message: args.message,
                 file: args.file,
                 fileMetadata,
@@ -794,20 +773,18 @@ export default {
             }, true);
         }),
         alphaDeleteMessageUrlAugmentation: withUser<{ messageId: number }>(async (args, uid) => {
-            return await inTx(async () => {
-                return await Repos.Chats.editMessage(
-                    args.messageId,
-                    uid,
-                    {
-                        urlAugmentation: false
-                    },
-                    true
-                );
-            });
+            return await Modules.Messaging.editMessage(
+                args.messageId,
+                uid,
+                {
+                    urlAugmentation: false
+                },
+                true
+            );
         }),
         alphaDeleteMessage: withUser<{ messageId: string }>(async (args, uid) => {
             let messageId = IDs.ConversationMessage.parse(args.messageId);
-            return await Repos.Chats.deleteMessage(messageId, uid);
+            return await Modules.Messaging.deleteMessage(messageId, uid);
         }),
 
         //
@@ -928,46 +905,12 @@ export default {
         }),
 
         alphaChatSetReaction: withAccount<{ messageId: number, reaction: string }>(async (args, uid) => {
-            await Repos.Chats.setReaction(args.messageId, uid, args.reaction);
+            await Modules.Messaging.setReaction(args.messageId, uid, args.reaction);
             return 'ok';
         }),
         alphaChatUnsetReaction: withAccount<{ messageId: number, reaction: string }>(async (args, uid) => {
-            await Repos.Chats.setReaction(args.messageId, uid, args.reaction, true);
+            await Modules.Messaging.setReaction(args.messageId, uid, args.reaction, true);
             return 'ok';
         }),
-    },
-    Subscription: {
-        alphaSubscribeChatOnline: {
-            resolve: async (msg: any) => {
-                return msg;
-            },
-            subscribe: async function (_: any, args: { conversations: string[] }, context: CallContext) {
-                let conversationIds = args.conversations.map(c => IDs.Conversation.parse(c));
-
-                if (!context.uid) {
-                    throw Error('Not logged in');
-                }
-
-                let uids: number[] = [];
-
-                for (let chatId of conversationIds) {
-                    uids.push(...await Modules.Messaging.conv.findConversationMembers(chatId));
-                }
-
-                return Modules.Presence.createPresenceStream(context.uid, uids);
-            }
-        },
-        alphaSubscribeOnline: {
-            resolve: async (msg: any) => {
-                return msg;
-            },
-            subscribe: async function (_: any, args: { users: number[] }, context: CallContext) {
-                if (!context.uid) {
-                    throw Error('Not logged in');
-                }
-
-                return Modules.Presence.createPresenceStream(context.uid!, args.users);
-            }
-        }
     }
 };

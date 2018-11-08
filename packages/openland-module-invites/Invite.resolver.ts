@@ -1,14 +1,13 @@
 import { OrganizationInviteLink, OrganizationPublicInviteLink } from 'openland-module-db/schema';
-import { withUser, withAny, withAccount } from 'openland-server/api/utils/Resolvers';
+import { withUser, withAny, withAccount } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
-import { CallContext } from 'openland-server/api/utils/CallContext';
+import { CallContext } from 'openland-module-api/CallContext';
 import { FDB } from 'openland-module-db/FDB';
-import { IDs } from 'openland-server/api/utils/IDs';
+import { IDs } from 'openland-module-api/IDs';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { inTx } from 'foundation-orm/inTx';
-import { ErrorText } from 'openland-server/errors/ErrorText';
-import { NotFoundError } from 'openland-server/errors/NotFoundError';
-import { Repos } from 'openland-server/repositories';
+import { ErrorText } from 'openland-errors/ErrorText';
+import { NotFoundError } from 'openland-errors/NotFoundError';
 import { Emails } from '../openland-module-email/Emails';
 
 export default {
@@ -111,8 +110,6 @@ export default {
                     user.status = 'activated';
                 }
 
-                await Repos.Chats.addToInitialChannel(user.id!);
-
                 // invalidate invite
                 if (orgInvite) {
                     orgInvite.joined = true;
@@ -136,7 +133,6 @@ export default {
                 user.invitedBy = inviteData.uid;
                 user.status = 'activated';
                 await Emails.sendWelcomeEmail(user!.id);
-                await Repos.Chats.addToInitialChannel(user.id!);
                 // activate user org if have one
                 let org = context.oid ? (await FDB.Organization.findById(context.oid)) : undefined;
                 if (org) {

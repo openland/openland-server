@@ -1,5 +1,5 @@
 import { Sanitizer } from './Sanitizer';
-import { InvalidInputError } from '../openland-server/errors/InvalidInputError';
+import { InvalidInputError } from '../openland-errors/InvalidInputError';
 
 export const InputValidator = {
 

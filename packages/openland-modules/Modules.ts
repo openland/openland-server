@@ -18,8 +18,10 @@ import { InvitesModule } from 'openland-module-invites/InvitesModule';
 import { PubsubModule } from 'openland-module-pubsub/PubsubModule';
 import { MediaModule } from 'openland-module-media/MediaModule';
 import { ApiModule } from 'openland-module-api/ApiModule';
+import { HooksModule } from 'openland-module-hooks/HooksModule';
 
 class ModulesImpl {
+    readonly Hooks = new HooksModule();
     readonly Media = new MediaModule();
     readonly Auth = new AuthModule();
     readonly DB = new DBModule();
@@ -42,25 +44,26 @@ class ModulesImpl {
     readonly API = new ApiModule();
 
     start = async () => {
-        this.DB.start();
-        this.Media.start();
-        this.Workers.start();
-        this.Push.start();
-        this.Presence.start();
-        this.Email.start();
-        this.Users.start();
-        this.Messaging.start();
-        this.Features.start();
-        this.Search.start();
-        this.Super.start();
-        this.Shortnames.start();
-        this.Hyperlog.start();
-        this.Drafts.start();
-        this.Typings.start();
-        this.Orgs.start();
-        this.Invites.start();
-        this.Pubsub.start();
-        this.API.start();
+        await this.Hooks.start();
+        await this.DB.start();
+        await this.Media.start();
+        await this.Workers.start();
+        await this.Push.start();
+        await this.Presence.start();
+        await this.Email.start();
+        await this.Users.start();
+        await this.Messaging.start();
+        await this.Features.start();
+        await this.Search.start();
+        await this.Super.start();
+        await this.Shortnames.start();
+        await this.Hyperlog.start();
+        await this.Drafts.start();
+        await this.Typings.start();
+        await this.Orgs.start();
+        await this.Invites.start();
+        await this.Pubsub.start();
+        await this.API.start();
     }
 }
 

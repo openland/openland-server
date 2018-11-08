@@ -2,6 +2,12 @@ enum Platform {
     WEB, IOS, ANDROID
 }
 
+type OnlineEvent {
+    user: User!
+    type: String!
+    timeout: Int!
+}
+
 extend type Mutation {
     presenceReportOnline(timeout: Int!, platform: Platform): String!
     presenceReportOffline(platform: Platform): String! @withAuth
@@ -9,4 +15,9 @@ extend type Mutation {
     alphaReportOnline(timeout: Int!, platform: Platform): String!
     alphaReportOffline(platform: Platform): String! @withAuth
     alphaReportActive(timeout: Int!, platform: Platform): String!
+}
+
+extend type Subscription {
+    alphaSubscribeChatOnline(conversations: [ID!]!): OnlineEvent!
+    alphaSubscribeOnline(users: [ID!]! @userID): OnlineEvent!
 }

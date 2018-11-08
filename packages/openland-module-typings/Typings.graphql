@@ -21,7 +21,7 @@ extend type Mutation {
 
 extend type Subscription {
     typings: TypingEvent!
-    conversationTypings: TypingEvent!
+    conversationTypings(conversationId: ID!): TypingEvent!
 
     # Deprecated
     alphaSubscribeTypings: TypingEvent!

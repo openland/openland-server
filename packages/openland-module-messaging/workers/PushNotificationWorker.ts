@@ -1,5 +1,4 @@
 import { staticWorker } from 'openland-module-workers/staticWorker';
-import { Repos } from 'openland-server/repositories';
 import { Modules } from 'openland-modules/Modules';
 import { withLogContext } from 'openland-log/withLogContext';
 import { inTx } from 'foundation-orm/inTx';
@@ -146,11 +145,7 @@ export function startPushNotificationWorker() {
                             continue;
                         }
 
-                        let receiverPrimaryOrg = await FDB.Organization.findById(receiver.primaryOrganization || (await Repos.Users.fetchUserAccounts(receiver.id))[0]);
-                        if (!receiverPrimaryOrg) {
-                            continue;
-                        }
-                        let chatTitle = await Modules.Messaging.conv.resolveConversationTitle(conversation.id, receiverPrimaryOrg.id, u.uid);
+                        let chatTitle = await Modules.Messaging.conv.resolveConversationTitle(conversation.id, u.uid);
 
                         hasMessage = true;
                         let senderName = [sender.firstName, sender.lastName].filter((v) => !!v).join(' ');

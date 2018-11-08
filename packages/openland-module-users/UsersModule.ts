@@ -4,7 +4,7 @@ import { UserRepository } from './repositories/UsersRepository';
 import { userProfileIndexer } from './workers/userProfileIndexer';
 import { UserSearch } from './search/UserSearch';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
-import { ImageRef } from 'openland-module-media/ImageRef';
+import { ProfileInput } from './ProfileInput';
 
 export class UsersModule {
 
@@ -17,20 +17,19 @@ export class UsersModule {
         }
     }
 
+    async createUser(authId: string, email: string) {
+        return this.repo.createUser(authId, email);
+    }
+
     async profileById(uid: number) {
         return this.repo.findUserProfile(uid);
     }
 
-    async createUserProfile(uid: number, input: {
-        firstName: string,
-        lastName?: string | null,
-        photoRef?: ImageRef | null,
-        phone?: string | null,
-        email?: string | null,
-        website?: string | null,
-        about?: string | null,
-        location?: string | null
-    }) {
+    async findUserByAuthId(authId: string): Promise<number | undefined> {
+        return this.repo.findUserByAuthId(authId);
+    }
+
+    async createUserProfile(uid: number, input: ProfileInput) {
         return await this.repo.createUserProfile(uid, input);
     }
 

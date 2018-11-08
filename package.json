@@ -190,6 +190,8 @@
     "openland-module-pubsub": "build/openland-module-pubsub",
     "openland-module-media": "build/openland-module-media",
     "openland-module-api": "build/openland-module-api",
-    "openland-graphql": "build/openland-graphql"
+    "openland-module-hooks": "build/openland-module-hooks",
+    "openland-graphql": "build/openland-graphql",
+    "openland-errors": "build/openland-errors"
   }
 }

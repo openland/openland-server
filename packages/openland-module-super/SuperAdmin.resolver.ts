@@ -1,8 +1,8 @@
 import { FDB } from 'openland-module-db/FDB';
 import { SuperAdmin } from 'openland-module-db/schema';
-import { withPermission } from 'openland-server/api/utils/Resolvers';
+import { withPermission } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
-import { IDs } from 'openland-server/api/utils/IDs';
+import { IDs } from 'openland-module-api/IDs';
 
 export default {
     SuperAdmin: {

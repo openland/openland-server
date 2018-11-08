@@ -1,0 +1,129 @@
+type OrganizationProfile {
+    id: ID!
+    name: String!
+    photoRef: ImageRef
+
+    website: String
+    websiteTitle: String
+    about: String
+    twitter: String
+    facebook: String
+    linkedin: String
+    contacts: [OrganizationContact!]!
+    location: String
+
+    alphaPublished: Boolean!
+    alphaEditorial: Boolean!
+    alphaFeatured: Boolean!
+    alphaIsCommunity: Boolean!
+
+    alphaLocations: [String!]
+    alphaInterests: [String!]
+    alphaOrganizationType: [String!]
+
+    alphaPotentialSites: [Range!]
+    alphaSiteSizes: [Range!]
+    alphaDevelopmentModels: [String!]
+    alphaAvailability: [String!]
+    alphaLandUse: [String!]
+    alphaGoodFor: [String!]
+    alphaSpecialAttributes: [String!]
+    alphaLookingFor: [String!]
+    alphaGeographies: [String!]
+
+    alphaDOShapeAndForm: [String!]
+    alphaDOCurrentUse: [String!]
+    alphaDOGoodFitFor: [String!]
+    alphaDOSpecialAttributes: [String!]
+    alphaDOAvailability: [String!]
+
+    alphaARGeographies: [String!]
+    alphaARAreaRange: [String!]
+    alphaARHeightLimit: [String!]
+    alphaARActivityStatus: [String!]
+    alphaARAquisitionBudget: [String!]
+    alphaARAquisitionRate: [String!]
+    alphaARClosingTime: [String!]
+    alphaARSpecialAttributes: [String!]
+    alphaARLandUse: [String!]
+
+    alphaJoinedChannels: [ChannelConversation]!
+    alphaCreatedChannels: [ChannelConversation]!
+}
+
+input CreateOrganizationInput {
+    name: String!
+    website: String
+    personal: Boolean!
+    photoRef: ImageRefInput
+    about: String
+    isCommunity: Boolean
+}
+
+input UpdateOrganizationProfileInput {
+    name: String
+    photoRef: ImageRefInput
+
+    website: String
+    websiteTitle: String
+    about: String
+    twitter: String
+    facebook: String
+    linkedin: String
+    location: String
+    contacts: [ContactPersonInput!]
+
+    alphaPublished: Boolean
+    alphaEditorial: Boolean
+    alphaFeatured: Boolean
+
+    alphaLocations: [String!]
+    alphaInterests: [String!]
+    alphaOrganizationType: [String!]
+
+    alphaPotentialSites: [RangeInput]
+    alphaSiteSizes: [RangeInput]
+    alphaDevelopmentModels: [String]
+    alphaAvailability: [String]
+    alphaLandUse: [String]
+    alphaGoodFor: [String]
+    alphaSpecialAttributes: [String]
+    alphaOrganizationType: [String!]
+    alphaLookingFor: [String!]
+    alphaGeographies: [String!]
+
+    alphaDOShapeAndForm: [String!]
+    alphaDOCurrentUse: [String!]
+    alphaDOGoodFitFor: [String!]
+    alphaDOSpecialAttributes: [String!]
+    alphaDOAvailability: [String!]
+
+    alphaARGeographies: [String!]
+    alphaARAreaRange: [String!]
+    alphaARHeightLimit: [String!]
+    alphaARActivityStatus: [String!]
+    alphaARAquisitionBudget: [String!]
+    alphaARAquisitionRate: [String!]
+    alphaARClosingTime: [String!]
+    alphaARSpecialAttributes: [String!]
+    alphaARLandUse: [String!]
+}
+
+input ContactPersonInput {
+    name: String!
+    photoRef: ImageRefInput
+    position: String
+    email: String
+    phone: String
+    link: String
+    twitter: String
+}
+
+extend type Query {
+    myOrganizationProfile: OrganizationProfile!
+    organizationProfile(id: ID!): OrganizationProfile!
+}
+extend type Mutation {
+    createOrganization(input: CreateOrganizationInput): OrganizationProfile!
+    updateOrganizationProfile(input: UpdateOrganizationProfileInput!, id: ID): OrganizationProfile!
+}

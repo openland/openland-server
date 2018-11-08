@@ -1,6 +1,5 @@
 import { Modules } from 'openland-modules/Modules';
 import { FDB } from 'openland-module-db/FDB';
-import { Repos } from 'openland-server/repositories';
 
 export class UserSearch {
     async searchForUsers(query: string, options?: { uid?: number, limit?: number }) {
@@ -19,7 +18,7 @@ export class UserSearch {
 
         if (options && options.uid) {
             let profile = await FDB.UserProfile.findById(options.uid);
-            let organizations = await Repos.Users.fetchUserAccounts(options.uid);
+            let organizations = await Modules.Orgs.findUserOrganizations(options.uid);
             let functions: any[] = [];
 
             // Huge boost if primary organization same

@@ -32,3 +32,16 @@ class ShutdownImpl {
 }
 
 export const Shutdown = new ShutdownImpl();
+
+let exitCalled = false;
+async function onExit() {
+    if (exitCalled) {
+        process.exit();
+    }
+    exitCalled = true;
+    await Shutdown.shutdown();
+    process.exit();
+}
+
+process.on('SIGTERM', onExit);
+process.on('SIGINT', onExit);

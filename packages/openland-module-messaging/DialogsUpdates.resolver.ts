@@ -1,5 +1,5 @@
-import { CallContext } from 'openland-server/api/utils/CallContext';
-import { IDs } from 'openland-server/api/utils/IDs';
+import { CallContext } from 'openland-module-api/CallContext';
+import { IDs } from 'openland-module-api/IDs';
 import { FDB } from 'openland-module-db/FDB';
 import { FLiveStreamItem } from 'foundation-orm/FLiveStreamItem';
 import { UserDialogEvent } from 'openland-module-db/schema';

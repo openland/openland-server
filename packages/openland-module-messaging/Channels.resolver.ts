@@ -1,11 +1,10 @@
-import { withPermission, withAny, withAccount, withUser } from '../openland-server/api/utils/Resolvers';
-import { Repos } from '../openland-server/repositories';
-import { IDs } from '../openland-server/api/utils/IDs';
-import { CallContext } from '../openland-server/api/utils/CallContext';
+import { withPermission, withAny, withAccount, withUser } from '../openland-module-api/Resolvers';
+import { IDs } from '../openland-module-api/IDs';
+import { CallContext } from '../openland-module-api/CallContext';
 import { QueryParser } from '../openland-utils/QueryParser';
 import { defined, emailValidator, stringNotEmpty, validate } from '../openland-utils/NewInputValidator';
-import { ErrorText } from '../openland-server/errors/ErrorText';
-import { NotFoundError } from '../openland-server/errors/NotFoundError';
+import { ErrorText } from '../openland-errors/ErrorText';
+import { NotFoundError } from '../openland-errors/NotFoundError';
 import { Sanitizer } from '../openland-utils/Sanitizer';
 import { Modules } from 'openland-modules/Modules';
 import { inTx } from 'foundation-orm/inTx';
@@ -55,8 +54,8 @@ export default {
 
             return Modules.Messaging.repo.findTopMessage(src.id!);
         },
-        membersCount: (src: Conversation) => Repos.Chats.membersCountInConversation(src.id),
-        memberRequestsCount: (src: Conversation) => Repos.Chats.membersCountInConversation(src.id, 'requested'),
+        membersCount: (src: Conversation) => Modules.Messaging.roomMembersCount(src.id),
+        memberRequestsCount: (src: Conversation) => Modules.Messaging.roomMembersCount(src.id, 'requested'),
         featured: async (src: Conversation) => (await FDB.ConversationRoom.findById(src.id))!.featured || false,
         hidden: async (src: Conversation) => !(await FDB.ConversationRoom.findById(src.id))!.listed || false,
         description: async (src: Conversation) => (await FDB.RoomProfile.findById(src.id))!.description || '',
@@ -190,7 +189,7 @@ export default {
                 let existing = await FDB.RoomParticipant.findById(invite.channelId, uid!);
 
                 if (existing) {
-                    await Repos.Chats.addToChannel(invite.channelId, uid!);
+                    await Modules.Messaging.addToChannel(invite.channelId, uid!);
                     return IDs.Conversation.serialize(invite.channelId);
                 }
 
@@ -223,7 +222,7 @@ export default {
 
                     let name = (await Modules.Users.profileById(uid!))!.firstName;
 
-                    await Repos.Chats.sendMessage(
+                    await Modules.Messaging.sendMessage(
                         invite.channelId,
                         uid!,
                         {
