@@ -2,10 +2,10 @@ import * as express from 'express';
 import * as Compose from 'compose-middleware';
 import { GraphQLOptions } from 'apollo-server-core';
 import { graphqlExpress } from 'apollo-server-express';
-import * as Schema from '../api';
+import { Schema } from '../../openland-module-api/schema/Schema';
 import { callContextMiddleware } from './context';
 import { errorHandler } from '../../openland-errors';
-import { CallContext } from '../api/utils/CallContext';
+import { CallContext } from '../../openland-module-api/CallContext';
 import { Rate } from '../../openland-utils/rateLimit';
 import { delay } from '../../openland-utils/timer';
 import { withTracing } from 'openland-log/withTracing';
@@ -45,7 +45,7 @@ function handleRequest(withEngine: boolean) {
             }
 
             return {
-                schema: Schema.Schema,
+                schema: Schema,
                 context: res.locals.ctx,
                 cacheControl: withEngine,
                 tracing: withEngine,

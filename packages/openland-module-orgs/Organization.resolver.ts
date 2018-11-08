@@ -1,10 +1,10 @@
 import { Organization } from 'openland-module-db/schema';
-import { IDs } from 'openland-server/api/utils/IDs';
-import { CallContext } from 'openland-server/api/utils/CallContext';
+import { IDs } from 'openland-module-api/IDs';
+import { CallContext } from 'openland-module-api/CallContext';
 import { FDB } from 'openland-module-db/FDB';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { Modules } from 'openland-modules/Modules';
-import { withAny, withPermission } from 'openland-server/api/utils/Resolvers';
+import { withAny, withPermission } from 'openland-module-api/Resolvers';
 import { NotFoundError } from 'openland-errors/NotFoundError';
 import { inTx } from 'foundation-orm/inTx';
 import { UserError } from 'openland-errors/UserError';

@@ -1,10 +1,10 @@
 import { UserSettings } from 'openland-module-db/schema';
-import { IDs } from 'openland-server/api/utils/IDs';
+import { IDs } from 'openland-module-api/IDs';
 import { FDB } from 'openland-module-db/FDB';
-import { withUser } from 'openland-server/api/utils/Resolvers';
+import { withUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { inTx } from 'foundation-orm/inTx';
-import { CallContext } from 'openland-server/api/utils/CallContext';
+import { CallContext } from 'openland-module-api/CallContext';
 
 export default {
     EmailFrequency: {

@@ -1,11 +1,11 @@
 import DataLoader from 'dataloader';
 import { User, UserProfile } from 'openland-module-db/schema';
 import { Modules } from 'openland-modules/Modules';
-import { CallContext } from 'openland-server/api/utils/CallContext';
+import { CallContext } from 'openland-module-api/CallContext';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { FDB } from 'openland-module-db/FDB';
-import { IDs } from 'openland-server/api/utils/IDs';
-import { withAny } from 'openland-server/api/utils/Resolvers';
+import { IDs } from 'openland-module-api/IDs';
+import { withAny } from 'openland-module-api/Resolvers';
 
 function userLoader(context: CallContext) {
     if (!context.cache.has('__profile_loader')) {

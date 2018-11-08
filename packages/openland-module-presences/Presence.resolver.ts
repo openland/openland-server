@@ -1,6 +1,6 @@
 import { Modules } from 'openland-modules/Modules';
-import { withAny } from 'openland-server/api/utils/Resolvers';
-import { CallContext } from 'openland-server/api/utils/CallContext';
+import { withAny } from 'openland-module-api/Resolvers';
+import { CallContext } from 'openland-module-api/CallContext';
 
 export default {
     Mutation: {

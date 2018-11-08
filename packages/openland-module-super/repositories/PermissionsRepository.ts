@@ -2,7 +2,7 @@ import { AllEntities } from 'openland-module-db/schema';
 import { Modules } from 'openland-modules/Modules';
 import { ErrorText } from 'openland-errors/ErrorText';
 import { NotFoundError } from 'openland-errors/NotFoundError';
-import { IDs } from 'openland-server/api/utils/IDs';
+import { IDs } from 'openland-module-api/IDs';
 
 export class PermissionsRepository {
     private readonly entities: AllEntities;

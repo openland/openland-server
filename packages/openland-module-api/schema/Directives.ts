@@ -9,14 +9,14 @@ import {
     GraphQLScalarType,
     Kind
 } from 'graphql';
-import { CallContext } from '../utils/CallContext';
-import { ErrorText } from '../../../openland-errors/ErrorText';
-import { AccessDeniedError } from '../../../openland-errors/AccessDeniedError';
 import { GraphQLFieldResolver, GraphQLInputType, GraphQLOutputType } from 'graphql/type/definition';
-import { withPermission } from '../utils/Resolvers';
-import { SecID } from '../../../openland-security/SecID';
 import { ValueNode } from 'graphql/language/ast';
-import { IDs } from '../utils/IDs';
+import { CallContext } from 'openland-module-api/CallContext';
+import { SecID } from 'openland-security/SecID';
+import { IDs } from 'openland-module-api/IDs';
+import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
+import { ErrorText } from 'openland-errors/ErrorText';
+import { withPermission } from 'openland-module-api/Resolvers';
 
 function createFieldDirective(
     resolver: (root: any, args: any, context: CallContext, info: any, originalResolver: GraphQLFieldResolver<any, any, any>, directiveArgs: any) => any

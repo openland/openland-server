@@ -1,12 +1,12 @@
 import { FDB } from 'openland-module-db/FDB';
-import { IDs } from 'openland-server/api/utils/IDs';
+import { IDs } from 'openland-module-api/IDs';
 import { UserProfile } from 'openland-module-db/schema';
 import { Modules } from 'openland-modules/Modules';
-import { CallContext } from 'openland-server/api/utils/CallContext';
+import { CallContext } from 'openland-module-api/CallContext';
 import { validate, stringNotEmpty } from 'openland-utils/NewInputValidator';
 import { inTx } from 'foundation-orm/inTx';
 import { Sanitizer } from 'openland-utils/Sanitizer';
-import { withUser } from 'openland-server/api/utils/Resolvers';
+import { withUser } from 'openland-module-api/Resolvers';
 import { ImageRef } from 'openland-module-media/ImageRef';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { ProfileInput } from './ProfileInput';

@@ -1,4 +1,4 @@
-import { SecIDFactory } from '../../../openland-security/SecID';
+import { SecIDFactory } from '../openland-security/SecID';
 
 let salt = 'DEBUG_SALT. IF IN PRODUCTION - YOU WILL BE FIRED';
 if (!process.env.AUTHENTICATION_SALT || process.env.AUTHENTICATION_SALT.trim() === '') {

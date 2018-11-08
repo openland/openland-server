@@ -3,23 +3,23 @@ import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import compression from 'compression';
-import * as Auth2 from '../../openland-module-auth/authV2';
-import * as Auth from '../../openland-module-auth/email';
-import { schemaHandler } from '../handlers/schema';
+import * as Auth2 from '../openland-module-auth/authV2';
+import * as Auth from '../openland-module-auth/email';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
-import { Schema } from '../api';
+import { Schema } from './schema/Schema';
 import { execute, subscribe, GraphQLSchema, DocumentNode, GraphQLFieldResolver } from 'graphql';
-import { fetchWebSocketParameters, buildWebSocketContext } from '../../openland-module-auth/websocket';
-import { errorHandler } from '../../openland-errors';
+import { fetchWebSocketParameters, buildWebSocketContext } from './handlers/websocket';
+import { errorHandler } from '../openland-errors';
 // import { Rate } from '../utils/rateLimit';
 import { Server as HttpServer } from 'http';
 // import { delay } from '../utils/timer';
-import { withAudit } from '../../openland-module-auth/email';
-import { IDs } from '../api/utils/IDs';
+import { withAudit } from '../openland-module-auth/email';
+import { IDs } from './IDs';
 import { withLogContext } from 'openland-log/withLogContext';
 import { withTracingSpan } from 'openland-log/withTracing';
 import { inTx } from 'foundation-orm/inTx';
 import { Modules } from 'openland-modules/Modules';
+import { schemaHandler } from './handlers/schema';
 
 export async function initApi(isTest: boolean) {
 

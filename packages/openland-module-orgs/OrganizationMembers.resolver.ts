@@ -1,7 +1,7 @@
-import { withAccount } from 'openland-server/api/utils/Resolvers';
+import { withAccount } from 'openland-module-api/Resolvers';
 import { inTx } from 'foundation-orm/inTx';
 import { FDB } from 'openland-module-db/FDB';
-import { IDs, IdsFactory } from 'openland-server/api/utils/IDs';
+import { IDs, IdsFactory } from 'openland-module-api/IDs';
 import { UserError } from 'openland-errors/UserError';
 import { ErrorText } from 'openland-errors/ErrorText';
 import { validate, defined, emailValidator } from 'openland-utils/NewInputValidator';

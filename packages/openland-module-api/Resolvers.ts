@@ -1,8 +1,8 @@
 import { CallContext } from './CallContext';
-import { AccessDeniedError } from '../../../openland-errors/AccessDeniedError';
-import { ErrorText } from '../../../openland-errors/ErrorText';
-import { UserError } from '../../../openland-errors/UserError';
-import { SecID } from '../../../openland-security/SecID';
+import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
+import { ErrorText } from '../openland-errors/ErrorText';
+import { UserError } from '../openland-errors/UserError';
+import { SecID } from '../openland-security/SecID';
 import { GraphQLField, GraphQLFieldResolver, GraphQLObjectType, GraphQLSchema } from 'graphql';
 import { FDB } from 'openland-module-db/FDB';
 import { Modules } from 'openland-modules/Modules';

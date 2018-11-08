@@ -1,4 +1,4 @@
-import { withUser } from 'openland-server/api/utils/Resolvers';
+import { withUser } from 'openland-module-api/Resolvers';
 import { FDB } from 'openland-module-db/FDB';
 
 export default {

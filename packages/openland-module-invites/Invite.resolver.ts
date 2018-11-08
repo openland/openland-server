@@ -1,9 +1,9 @@
 import { OrganizationInviteLink, OrganizationPublicInviteLink } from 'openland-module-db/schema';
-import { withUser, withAny, withAccount } from 'openland-server/api/utils/Resolvers';
+import { withUser, withAny, withAccount } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
-import { CallContext } from 'openland-server/api/utils/CallContext';
+import { CallContext } from 'openland-module-api/CallContext';
 import { FDB } from 'openland-module-db/FDB';
-import { IDs } from 'openland-server/api/utils/IDs';
+import { IDs } from 'openland-module-api/IDs';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { inTx } from 'foundation-orm/inTx';
 import { ErrorText } from 'openland-errors/ErrorText';

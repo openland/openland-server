@@ -2,7 +2,7 @@ import fetch from 'node-fetch';
 import jwt from 'express-jwt';
 import * as jwksRsa from 'jwks-rsa';
 import * as express from 'express';
-import { Profile } from './Profile';
+import { Profile } from './utils/Profile';
 import { fetchKeyFromRequest } from '../openland-utils/fetchKeyFromRequest';
 import { inTx } from 'foundation-orm/inTx';
 import { FDB } from 'openland-module-db/FDB';

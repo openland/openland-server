@@ -1,6 +1,6 @@
-import { withPermission, withAny, withAccount, withUser } from '../openland-server/api/utils/Resolvers';
-import { IDs } from '../openland-server/api/utils/IDs';
-import { CallContext } from '../openland-server/api/utils/CallContext';
+import { withPermission, withAny, withAccount, withUser } from '../openland-module-api/Resolvers';
+import { IDs } from '../openland-module-api/IDs';
+import { CallContext } from '../openland-module-api/CallContext';
 import { QueryParser } from '../openland-utils/QueryParser';
 import { defined, emailValidator, stringNotEmpty, validate } from '../openland-utils/NewInputValidator';
 import { ErrorText } from '../openland-errors/ErrorText';

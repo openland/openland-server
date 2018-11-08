@@ -1,5 +1,5 @@
-import { withPermission } from 'openland-server/api/utils/Resolvers';
-import { IDs } from 'openland-server/api/utils/IDs';
+import { withPermission } from 'openland-module-api/Resolvers';
+import { IDs } from 'openland-module-api/IDs';
 import { Organization } from 'openland-module-db/schema';
 import { FDB } from 'openland-module-db/FDB';
 import { Modules } from 'openland-modules/Modules';

@@ -1,7 +1,7 @@
 import { Modules } from 'openland-modules/Modules';
 import { withLogContext } from 'openland-log/withLogContext';
 import { createLogger } from 'openland-log/createLogger';
-import { CallContext } from 'openland-server/api/utils/CallContext';
+import { CallContext } from 'openland-module-api/CallContext';
 import { PushConfig } from './PushConfig';
 
 const pushLog = createLogger('push');

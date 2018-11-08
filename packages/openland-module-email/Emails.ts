@@ -1,6 +1,6 @@
 import { Modules } from 'openland-modules/Modules';
 import { OrganizationInviteLink } from 'openland-module-db/schema';
-import { IDs } from 'openland-server/api/utils/IDs';
+import { IDs } from 'openland-module-api/IDs';
 import { FDB } from 'openland-module-db/FDB';
 import { inTx } from 'foundation-orm/inTx';
 

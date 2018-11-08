@@ -1,10 +1,10 @@
 import { merge } from 'lodash';
 import { makeExecutableSchema } from 'graphql-tools';
-import * as Basics from './_Basics';
+import * as Basics from './Date';
 
 import { Directives, IDScalars, injectIDScalars } from './directives';
 import { GraphQLField, GraphQLFieldResolver } from 'graphql';
-import { wrapAllResolvers } from './utils/Resolvers';
+import { wrapAllResolvers } from '../Resolvers';
 import { withLogContext } from '../../openland-log/withLogContext';
 import { trace } from 'openland-log/trace';
 import { gqlTracer } from 'openland-graphql/gqlTracer';

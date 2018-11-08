@@ -1,5 +1,5 @@
 import * as express from 'express';
-import { CallContext } from '../api/utils/CallContext';
+import { CallContext } from '../../openland-module-api/CallContext';
 import { Modules } from 'openland-modules/Modules';
 import { withTracingSpan } from 'openland-log/withTracing';
 import { createTracer } from 'openland-log/createTracer';

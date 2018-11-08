@@ -1,6 +1,6 @@
 import { makeExecutableSchema } from 'graphql-tools';
 import { merge } from 'lodash';
-import * as Basics from './_Basics';
+import * as Basics from './Date';
 import { Directives, IDScalars, injectIDScalars } from './directives';
 import { buildSchema } from '../../openland-graphql/buildSchema';
 import { buildResolvers } from '../../openland-graphql/buildResolvers';

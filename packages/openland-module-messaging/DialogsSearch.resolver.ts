@@ -1,5 +1,5 @@
 import { FDB } from 'openland-module-db/FDB';
-import { withAccount } from 'openland-server/api/utils/Resolvers';
+import { withAccount } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { Message } from 'openland-module-db/schema';
 

@@ -1,5 +1,5 @@
-import { IDs } from '../openland-server/api/utils/IDs';
-import { CallContext } from '../openland-server/api/utils/CallContext';
+import { IDs } from '../IDs';
+import { CallContext } from '../CallContext';
 import { Modules } from 'openland-modules/Modules';
 import { createTracer } from 'openland-log/createTracer';
 

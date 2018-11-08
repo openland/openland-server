@@ -9,20 +9,6 @@ type PageInfo {
     openEnded: Boolean!
 }
 
-type MapPoint {
-    ref: String
-    count: Int
-    lat: Float!
-    lon: Float!
-}
-
-input MapPointInput {
-    ref: String
-    count: Int
-    lat: Float!
-    lon: Float!
-}
-
 enum TaskStatus {
     IN_PROGRESS
     FAILED

@@ -1,4 +1,4 @@
-import { CallContext } from '../openland-server/api/utils/CallContext';
+import { CallContext } from '../openland-module-api/CallContext';
 import { Modules } from 'openland-modules/Modules';
 import { FDB } from 'openland-module-db/FDB';
 

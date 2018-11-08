@@ -1,5 +1,5 @@
-import { IDs, IdsFactory } from '../openland-server/api/utils/IDs';
-import { withUser, resolveUser, withAccount } from '../openland-server/api/utils/Resolvers';
+import { IDs, IdsFactory } from '../openland-module-api/IDs';
+import { withUser, resolveUser, withAccount } from '../openland-module-api/Resolvers';
 import {
     validate,
     stringNotEmpty,
@@ -9,7 +9,7 @@ import {
     mustBeArray,
     isNumber
 } from '../openland-utils/NewInputValidator';
-import { CallContext } from '../openland-server/api/utils/CallContext';
+import { CallContext } from '../openland-module-api/CallContext';
 import { JsonMap } from '../openland-utils/json';
 import { IDMailformedError } from '../openland-errors/IDMailformedError';
 import { UserError } from '../openland-errors/UserError';

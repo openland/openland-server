@@ -1,5 +1,5 @@
-import { withPermission } from 'openland-server/api/utils/Resolvers';
-import { CallContext } from 'openland-server/api/utils/CallContext';
+import { withPermission } from 'openland-module-api/Resolvers';
+import { CallContext } from 'openland-module-api/CallContext';
 import { Modules } from '../openland-modules/Modules';
 import { FDB } from '../openland-module-db/FDB';
 

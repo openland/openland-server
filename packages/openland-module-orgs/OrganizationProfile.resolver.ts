@@ -1,8 +1,8 @@
 import { Organization } from 'openland-module-db/schema';
-import { IDs } from 'openland-server/api/utils/IDs';
+import { IDs } from 'openland-module-api/IDs';
 import { FDB } from 'openland-module-db/FDB';
-import { CallContext } from 'openland-server/api/utils/CallContext';
-import { withAny, withUser, withAccount } from 'openland-server/api/utils/Resolvers';
+import { CallContext } from 'openland-module-api/CallContext';
+import { withAny, withUser, withAccount } from 'openland-module-api/Resolvers';
 import { NotFoundError } from 'openland-errors/NotFoundError';
 import { OrganizatinProfileInput } from './OrganizationProfileInput';
 import { Modules } from 'openland-modules/Modules';
