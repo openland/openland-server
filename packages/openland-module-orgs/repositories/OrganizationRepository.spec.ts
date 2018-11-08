@@ -26,14 +26,28 @@ describe('OrganizationRepository', () => {
         user = new UserRepository(FDB);
     });
 
-    it('should create organization', async () => {
+    it('should create organization and set primary organization for user', async () => {
 
         // Create Test User
         let u = await user.createUser('authid', 'some@email.com');
+        let p = await user.createUserProfile(u.id, { firstName: 'user' });
+        expect(p.primaryOrganization).toBeNull();
 
         // Create Organization
-        await repo.createOrganization(u.id, {
-            name: 'my nice org'
-        }, false);
+        let id = (await repo.createOrganization(u.id, {
+            name: 'my nice org '
+        }, false)).id;
+
+        // Check Result
+        let org = await FDB.Organization.findById(id);
+        expect(org).not.toBeNull();
+        expect(org).not.toBeUndefined();
+        expect(org!.ownerId).toEqual(u.id);
+        let orgp = await FDB.OrganizationProfile.findById(org!.id);
+        expect(orgp!.name).toEqual('my nice org');
+
+        // Check user profile
+        let p2 = (await FDB.UserProfile.findById(u.id))!;
+        expect(p2.primaryOrganization).toEqual(org!.id);
     });
 });
