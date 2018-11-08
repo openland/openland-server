@@ -1,5 +1,4 @@
 import { withAccount } from 'openland-server/api/utils/Resolvers';
-import { Repos } from 'openland-server/repositories';
 import { inTx } from 'foundation-orm/inTx';
 import { FDB } from 'openland-module-db/FDB';
 import { IDs, IdsFactory } from 'openland-server/api/utils/IDs';
@@ -10,6 +9,7 @@ import { Modules } from 'openland-modules/Modules';
 import { AccessDeniedError } from 'openland-server/errors/AccessDeniedError';
 import { NotFoundError } from 'openland-server/errors/NotFoundError';
 import { Emails } from 'openland-module-email/Emails';
+import { resolveOrganizationJoinedMembers } from './utils/resolveOrganizationJoinedMembers';
 
 export default {
     OrganizationMember: {
@@ -29,7 +29,7 @@ export default {
 
             let result: any[] = [];
 
-            result.push(... await Repos.Organizations.getOrganizationJoinedMembers(targetOrgId));
+            result.push(... await resolveOrganizationJoinedMembers(targetOrgId));
 
             let invites = await Modules.Invites.repo.getOrganizationInvitesForOrganization(targetOrgId);
 
@@ -56,7 +56,7 @@ export default {
         alphaOrganizationRemoveMember: withAccount<{ memberId: string, organizationId: string }>(async (args, uid, oid) => {
             oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
             return await inTx(async () => {
-                let isOwner = await Repos.Organizations.isOwnerOfOrganization(oid, uid);
+                let isOwner = await Modules.Orgs.isUserAdmin(uid, oid);
 
                 let idType = IdsFactory.resolve(args.memberId);
 
@@ -96,7 +96,7 @@ export default {
             oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
 
             return await inTx(async () => {
-                let isOwner = await Repos.Organizations.isOwnerOfOrganization(oid, uid);
+                let isOwner = await Modules.Orgs.isUserAdmin(uid, oid);
 
                 if (!isOwner) {
                     throw new UserError(ErrorText.permissionOnlyOwner);
@@ -147,7 +147,7 @@ export default {
 
             return await inTx(async () => {
                 for (let inviteRequest of args.inviteRequests) {
-                    let isMemberDuplicate = await Repos.Organizations.haveMemberWithEmail(oid, inviteRequest.email);
+                    let isMemberDuplicate = await Modules.Orgs.hasMemberWithEmail(oid, inviteRequest.email);
                     if (isMemberDuplicate) {
                         throw new UserError(ErrorText.memberWithEmailAlreadyExists);
                     }
@@ -170,7 +170,7 @@ export default {
         alphaOrganizationCreatePublicInvite: withAccount<{ expirationDays?: number, organizationId?: string }>(async (args, uid, oid) => {
             return inTx(async () => {
                 oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
-                let isOwner = await Repos.Organizations.isOwnerOfOrganization(oid, uid);
+                let isOwner = await Modules.Orgs.isUserAdmin(uid, oid);
 
                 if (!isOwner) {
                     throw new UserError(ErrorText.permissionOnlyOwner);
@@ -182,7 +182,7 @@ export default {
         alphaOrganizationDeletePublicInvite: withAccount<{ organizationId?: string }>(async (args, uid, oid) => {
             oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
             return inTx(async () => {
-                let isOwner = await Repos.Organizations.isOwnerOfOrganization(oid, uid);
+                let isOwner = await Modules.Orgs.isUserAdmin(uid, oid);
 
                 if (!isOwner) {
                     throw new UserError(ErrorText.permissionOnlyOwner);

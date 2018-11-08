@@ -1,4 +1,4 @@
-import { AllEntities } from 'openland-module-db/schema';
+import { AllEntities, OrganizationMember } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
 import { Modules } from 'openland-modules/Modules';
 import { Sanitizer } from 'openland-utils/Sanitizer';
@@ -64,12 +64,32 @@ export class OrganizationRepository {
             .map((v) => v!);
     }
 
+    async findOrganizationMembership(organizationId: number) {
+        return await this.entities.OrganizationMember.allFromOrganization('joined', organizationId);
+    }
+
     async findUserOrganizations(uid: number): Promise<number[]> {
         return (await this.entities.OrganizationMember.allFromUser('joined', uid)).map((v) => v.oid);
+    }
+
+    async fundUserMembership(uid: number, oid: number): Promise<OrganizationMember | null> {
+        return await this.entities.OrganizationMember.findById(oid, uid);
     }
 
     async isUserMember(uid: number, orgId: number): Promise<boolean> {
         let isMember = await this.entities.OrganizationMember.findById(orgId, uid);
         return !!(isMember && isMember.status === 'joined');
+    }
+
+    async isUserAdmin(uid: number, oid: number): Promise<boolean> {
+        let isOwner = await this.entities.OrganizationMember.findById(oid, uid);
+        return !!(isOwner && isOwner.role === 'admin');
+    }
+
+    async hasMemberWithEmail(oid: number, email: string): Promise<boolean> {
+        return !!(await Promise.all(
+            (await this.entities.OrganizationMember.allFromOrganization('joined', oid))
+                .map((v) => this.entities.User.findById(v.uid))))
+            .find((v) => v!.email === email);
     }
 }

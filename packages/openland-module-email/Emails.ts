@@ -1,4 +1,3 @@
-import { Repos } from '../openland-server/repositories';
 import { Modules } from 'openland-modules/Modules';
 import { OrganizationInviteLink } from 'openland-module-db/schema';
 import { IDs } from 'openland-server/api/utils/IDs';
@@ -141,7 +140,7 @@ export const Emails = {
                 throw Error('Unable to find organization');
             }
 
-            let member = await Repos.Organizations.getOrganizationMember(oid, uid);
+            let member = await Modules.Orgs.fundUserMembership(uid, oid);
 
             if (!member) {
                 throw Error('Unable to find organization');
@@ -254,10 +253,10 @@ export const Emails = {
                 throw Error('Internal inconsistency');
             }
 
-            let organizationMembers = await Repos.Organizations.getOrganizationMembers(oid);
+            let organizationMembers = await Modules.Orgs.findOrganizationMembers(oid);
             let orgProfile = (await FDB.OrganizationProfile.findById(oid))!;
             for (let member of organizationMembers) {
-                let user = await loadUserState(member.uid);
+                let user = await loadUserState(member.id);
 
                 await Modules.Email.Worker.pushWork({
                     subject: 'Invitation accepted',
