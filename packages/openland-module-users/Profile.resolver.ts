@@ -10,6 +10,7 @@ import { withUser } from 'openland-module-api/Resolvers';
 import { ImageRef } from 'openland-module-media/ImageRef';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { ProfileInput } from './ProfileInput';
+import { OrganizatinProfileInput } from 'openland-module-orgs/OrganizationProfileInput';
 
 export default {
     Profile: {
@@ -123,6 +124,21 @@ export default {
         // Deprecated
         createProfile: withUser<{ input: ProfileInput }>(async (args, uid) => {
             return await Modules.Users.createUserProfile(uid, args.input);
+        }),
+        // Deprecated
+        alphaCreateUserProfileAndOrganization: withUser<{
+            user: ProfileInput,
+            organization: OrganizatinProfileInput
+        }>(async (args, uid) => {
+            return await inTx(async () => {
+                let userProfile = Modules.Users.createUserProfile(uid, args.user);
+                let organization = await Modules.Orgs.createOrganization(uid, { ...args.organization, personal: false });
+
+                return {
+                    user: userProfile,
+                    organization: organization
+                };
+            });
         }),
         updateProfile: withUser<{
             input: {
