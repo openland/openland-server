@@ -49,5 +49,8 @@ describe('OrganizationRepository', () => {
         // Check user profile
         let p2 = (await FDB.UserProfile.findById(u.id))!;
         expect(p2.primaryOrganization).toEqual(org!.id);
+
+        let members = await repo.findOrganizationMembership(id);
+        expect(members.length).toBe(1);
     });
 });
