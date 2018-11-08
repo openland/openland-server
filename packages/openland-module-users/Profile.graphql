@@ -78,6 +78,11 @@ extend type Query {
     myProfile: Profile
 }
 
+type AlphaSignupData{
+    user: User
+    organization: Organization
+}
+
 extend type Mutation {
     profileCreate(input: ProfileInput!): Profile!
     profileUpdate(input: ProfileInput!, uid: ID): Profile!
