@@ -720,7 +720,7 @@ export default {
                 }
             }
 
-            let profile = (await Modules.Users.profileById(uid))!;
+            let profile = (await Modules.Users.profileById(args.userId))!;
 
             if (!profile) {
                 throw new NotFoundError();
