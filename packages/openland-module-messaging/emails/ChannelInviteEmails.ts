@@ -25,7 +25,7 @@ export const ChannelInviteEmails = {
 
         let domain = process.env.APP_ENVIRONMENT === 'production' ? 'https://app.openland.com/joinChannel/' : 'http://localhost:3000/joinChannel/';
 
-        await Modules.Email.Worker.pushWork({
+        await Modules.Email.enqueueEmail({
             subject: `Join ${channel.title} at Openland`,
             templateId: TEMPLATE_INVITE,
             to: invite.email,

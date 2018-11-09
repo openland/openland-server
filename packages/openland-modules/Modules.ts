@@ -19,8 +19,9 @@ import { PubsubModule } from 'openland-module-pubsub/PubsubModule';
 import { MediaModule } from 'openland-module-media/MediaModule';
 import { ApiModule } from 'openland-module-api/ApiModule';
 import { HooksModule } from 'openland-module-hooks/HooksModule';
+import { ModulesRegistry } from './ModulesRegistry';
 
-class ModulesImpl {
+class ModulesImpl implements ModulesRegistry {
     readonly Hooks = new HooksModule();
     readonly Media = new MediaModule();
     readonly Auth = new AuthModule();
@@ -38,7 +39,7 @@ class ModulesImpl {
     readonly Hyperlog = new HyperlogModule();
     readonly Drafts = new DraftsModule();
     readonly Typings = new TypingsModule();
-    readonly Orgs = new OrgsModule();
+    readonly Orgs: OrgsModule = new OrgsModule(this);
     readonly Invites = new InvitesModule();
     readonly Pubsub = new PubsubModule();
     readonly API = new ApiModule();
@@ -67,4 +68,4 @@ class ModulesImpl {
     }
 }
 
-export const Modules = new ModulesImpl();
+export const Modules = new ModulesImpl() as ModulesRegistry;

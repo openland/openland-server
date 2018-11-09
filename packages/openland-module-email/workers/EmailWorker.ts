@@ -2,6 +2,7 @@ import SendGrid from '@sendgrid/mail';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
+import { EmailTask } from 'openland-module-email/EmailTask';
 
 export const SENDGRID_KEY = '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';
 
@@ -22,7 +23,7 @@ const emailSent = createHyperlogger<{ to: string, templateId: string }>('email_s
 const emailFailed = createHyperlogger<{ to: string, templateId: string }>('email_failed');
 
 export function createEmailWorker() {
-    let queue = new WorkQueue<{ templateId: string, to: string, subject: string, args: { [key: string]: string; } }, { result: string }>('emailSender');
+    let queue = new WorkQueue<EmailTask, { result: string }>('emailSender');
     SendGrid.setApiKey(SENDGRID_KEY);
     let isTesting = process.env.TESTING === 'true';
     if (serverRoleEnabled('workers')) {

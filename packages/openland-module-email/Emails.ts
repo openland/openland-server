@@ -47,7 +47,7 @@ const loadUserState = async (uid: number) => {
 export const Emails = {
     async sendWelcomeEmail(uid: number) {
         let user = await loadUserState(uid);
-        await Modules.Email.Worker.pushWork({
+        await Modules.Email.enqueueEmail({
             subject: 'Welcome to Openland!',
             templateId: TEMPLATE_WELCOME,
             to: user.email,
@@ -56,7 +56,7 @@ export const Emails = {
     },
     async sendUnreadMesages(uid: number, count: number) {
         let user = await loadUserState(uid);
-        await Modules.Email.Worker.pushWork({
+        await Modules.Email.enqueueEmail({
             subject: count === 1 ? 'You’ve got a new message' : 'You’ve got new messages',
             templateId: count === 1 ? TEMPLATE_UNREAD_MESSAGE : TEMPLATE_UNREAD_MESSAGES,
             to: user.email,
@@ -76,7 +76,7 @@ export const Emails = {
             let members = await FDB.OrganizationMember.allFromOrganization('joined', oid);
             for (let m of members) {
                 let user = await loadUserState(m.uid);
-                await Modules.Email.Worker.pushWork({
+                await Modules.Email.enqueueEmail({
                     subject: 'Organization account activated',
                     templateId: TEMPLATE_ACTIVATEED,
                     to: user.email,
@@ -98,7 +98,7 @@ export const Emails = {
             let members = await FDB.OrganizationMember.allFromOrganization('joined', oid);
             for (let m of members) {
                 let user = await loadUserState(m.uid);
-                await Modules.Email.Worker.pushWork({
+                await Modules.Email.enqueueEmail({
                     subject: 'Organization account deactivated',
                     templateId: TEMPLATE_DEACTIVATED,
                     to: user.email,
@@ -121,7 +121,7 @@ export const Emails = {
             let orgProfile = (await FDB.OrganizationProfile.findById(oid))!;
             let user = await loadUserState(uid);
 
-            await Modules.Email.Worker.pushWork({
+            await Modules.Email.enqueueEmail({
                 subject: `You were removed from ${orgProfile.name!}`,
                 templateId: TEMPLATE_MEMBER_REMOVED,
                 to: user.email,
@@ -152,7 +152,7 @@ export const Emails = {
 
             let orgProfile = (await FDB.OrganizationProfile.findById(oid))!;
 
-            await Modules.Email.Worker.pushWork({
+            await Modules.Email.enqueueEmail({
                 subject: `Your role at ${orgProfile.name!}} was updated`,
                 templateId: TEMPLATE_MEMBERSHIP_LEVEL_CHANGED,
                 to: user.email,
@@ -187,7 +187,7 @@ export const Emails = {
 
             let domain = process.env.APP_ENVIRONMENT === 'production' ? 'https://app.openland.com/join/' : 'http://localhost:3000/join/';
             let orgProfile = (await FDB.OrganizationProfile.findById(oid))!;
-            await Modules.Email.Worker.pushWork({
+            await Modules.Email.enqueueEmail({
                 subject: `Join ${orgProfile.name!} at Openland`,
                 templateId: TEMPLATE_INVITE,
                 to: invite.email,
@@ -258,7 +258,7 @@ export const Emails = {
             for (let member of organizationMembers) {
                 let user = await loadUserState(member.id);
 
-                await Modules.Email.Worker.pushWork({
+                await Modules.Email.enqueueEmail({
                     subject: 'Invitation accepted',
                     templateId: TEMPLATE_MEMBER_JOINED,
                     to: user.email,
@@ -276,7 +276,7 @@ export const Emails = {
     },
 
     async sendDebugEmail(email: string, text: string) {
-        await Modules.Email.Worker.pushWork({
+        await Modules.Email.enqueueEmail({
             subject: 'Debug email',
             templateId: TEMPLATE_INVITE,
             to: email,
@@ -290,7 +290,7 @@ export const Emails = {
     },
 
     async sendActivationCodeEmail(email: string, code: string) {
-        await Modules.Email.Worker.pushWork({
+        await Modules.Email.enqueueEmail({
             subject: `Activation code: ` + code,
             templateId: TEMPLATE_SIGNUP_CODE,
             to: email,

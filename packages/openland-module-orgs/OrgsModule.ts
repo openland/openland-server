@@ -4,9 +4,16 @@ import { OrganizatinProfileInput } from './OrganizationProfileInput';
 import { inTx } from 'foundation-orm/inTx';
 import { Emails } from 'openland-module-email/Emails';
 import { Modules } from 'openland-modules/Modules';
+import { ModulesRegistry } from 'openland-modules/ModulesRegistry';
 
 export class OrgsModule {
-    private readonly repo = new OrganizationRepository(FDB);
+    readonly registry: ModulesRegistry;
+    private readonly repo: OrganizationRepository;
+
+    constructor(registry: ModulesRegistry) {
+        this.registry = registry;
+        this.repo  = new OrganizationRepository(registry.DB.entities);
+    }
 
     start = () => {
         // Nothing to do
