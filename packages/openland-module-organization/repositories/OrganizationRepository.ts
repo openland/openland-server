@@ -88,50 +88,6 @@ export class OrganizationRepository {
         });
     }
 
-    async renameOrganization(id: number, title: string) {
-        return await inTx(async () => {
-            let org = await this.entities.Organization.findById(id);
-            let profile = await this.entities.OrganizationProfile.findById(id);
-            profile!.name = title;
-            return org;
-        });
-    }
-
-    async findOrganizationMembers(organizationId: number) {
-        return (await Promise.all((await this.entities.OrganizationMember.allFromOrganization('joined', organizationId))
-            .map((v) => this.entities.User.findById(v.uid))))
-            .map((v) => v!);
-    }
-
-    async findOrganizationMembership(organizationId: number) {
-        return await this.entities.OrganizationMember.allFromOrganization('joined', organizationId);
-    }
-
-    async findUserOrganizations(uid: number): Promise<number[]> {
-        return (await this.entities.OrganizationMember.allFromUser('joined', uid)).map((v) => v.oid);
-    }
-
-    async fundUserMembership(uid: number, oid: number): Promise<OrganizationMember | null> {
-        return await this.entities.OrganizationMember.findById(oid, uid);
-    }
-
-    async isUserMember(uid: number, orgId: number): Promise<boolean> {
-        let isMember = await this.entities.OrganizationMember.findById(orgId, uid);
-        return !!(isMember && isMember.status === 'joined');
-    }
-
-    async isUserAdmin(uid: number, oid: number): Promise<boolean> {
-        let isOwner = await this.entities.OrganizationMember.findById(oid, uid);
-        return !!(isOwner && isOwner.role === 'admin');
-    }
-
-    async hasMemberWithEmail(oid: number, email: string): Promise<boolean> {
-        return !!(await Promise.all(
-            (await this.entities.OrganizationMember.allFromOrganization('joined', oid))
-                .map((v) => this.entities.User.findById(v.uid))))
-            .find((v) => v!.email === email);
-    }
-
     async addUserToOrganization(uid: number, oid: number) {
         return await inTx(async () => {
             let org = await this.entities.Organization.findById(oid);
@@ -139,20 +95,15 @@ export class OrganizationRepository {
                 throw Error('Unable to find organization');
             }
             let ex = await this.entities.OrganizationMember.findById(oid, uid);
-            if (ex) {
-                if (ex.status === 'joined') {
-                    return;
-                } else {
-                    ex.status = 'joined';
-                }
+            if (ex && ex.status === 'joined') {
+                return false;
+            } else if (ex) {
+                ex.status = 'joined';
+                return true;
             } else {
                 await this.entities.OrganizationMember.create(oid, uid, { status: 'joined', role: 'member' });
+                return true;
             }
-            let profile = await this.entities.UserProfile.findById(uid);
-            if (profile && !profile.primaryOrganization) {
-                profile.primaryOrganization = oid;
-            }
-            return org;
         });
     }
 
@@ -174,5 +125,55 @@ export class OrganizationRepository {
             }
             return org;
         });
+    }
+
+    //
+    // Admin
+    //
+
+    async renameOrganization(id: number, title: string) {
+        return await inTx(async () => {
+            let org = await this.entities.Organization.findById(id);
+            let profile = await this.entities.OrganizationProfile.findById(id);
+            profile!.name = title;
+            return org;
+        });
+    }
+
+    //
+    // Queries
+    //
+
+    async findOrganizationMembership(oid: number) {
+        return await this.entities.OrganizationMember.allFromOrganization('joined', oid);
+    }
+
+    async findOrganizationMembers(oid: number) {
+        return (await Promise.all((await this.findOrganizationMembership(oid))
+            .map((v) => this.entities.User.findById(v.uid))))
+            .map((v) => v!);
+    }
+
+    async findUserOrganizations(uid: number): Promise<number[]> {
+        return (await this.entities.OrganizationMember.allFromUser('joined', uid)).map((v) => v.oid);
+    }
+
+    async findUserMembership(uid: number, oid: number): Promise<OrganizationMember | null> {
+        return await this.entities.OrganizationMember.findById(oid, uid);
+    }
+
+    async isUserMember(uid: number, oid: number): Promise<boolean> {
+        let isMember = await this.entities.OrganizationMember.findById(oid, uid);
+        return !!(isMember && isMember.status === 'joined');
+    }
+
+    async isUserAdmin(uid: number, oid: number): Promise<boolean> {
+        let isOwner = await this.entities.OrganizationMember.findById(oid, uid);
+        return !!(isOwner && isOwner.role === 'admin');
+    }
+
+    async hasMemberWithEmail(oid: number, email: string): Promise<boolean> {
+        return !!(await this.findOrganizationMembers(oid))
+            .find((v) => v!.email === email);
     }
 }

@@ -140,7 +140,7 @@ export const Emails = {
                 throw Error('Unable to find organization');
             }
 
-            let member = await Modules.Orgs.fundUserMembership(uid, oid);
+            let member = await Modules.Orgs.findUserMembership(uid, oid);
 
             if (!member) {
                 throw Error('Unable to find organization');

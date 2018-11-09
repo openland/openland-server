@@ -45,27 +45,47 @@ describe('OrganizationModule', () => {
         expect(org.status).toEqual('pending');
         expect(org.ownerId).toBe(user.id);
 
-        // Should update primary organization
+        // Should NOT update primary organization since organization is not activated yet
         let profile2 = (await FDB.UserProfile.findById(user.id))!;
-        expect(profile2.primaryOrganization).toBe(org.id);
+        expect(profile2.primaryOrganization).toBeNull();
     });
 
-    it('should NOT update primary organization', async () => {
-        let user = await Modules.Users.createUser('test2', 'some2@email.comn');
+    it('should activate organization for activated user', async () => {
+        let user = await Modules.Users.createUser('tes2', 'som2@email.comn');
         await Modules.Users.createUserProfile(user.id, { firstName: 'Some Name' });
+        await Modules.Users.activateUser(user.id);
         let org1 = await Modules.Orgs.createOrganization(user.id, { name: 'hey' });
         await Modules.Orgs.createOrganization(user.id, { name: 'hey' });
-
         let profile2 = (await FDB.UserProfile.findById(user.id))!;
         expect(profile2.primaryOrganization).toBe(org1.id);
+    });
+
+    it('should select primary organization from first activated', async () => {
+        let user = await Modules.Users.createUser('test2', 'some2@email.comn');
+        await Modules.Users.createUserProfile(user.id, { firstName: 'Some Name' });
+        // await Modules.Users.activateUser(user.id);
+
+        let org1 = await Modules.Orgs.createOrganization(user.id, { name: 'hey' });
+        let org2 = await Modules.Orgs.createOrganization(user.id, { name: 'hey' });
+        let org3 = await Modules.Orgs.createOrganization(user.id, { name: 'hey' });
+        await Modules.Orgs.activateOrganization(org2.id);
+        await Modules.Orgs.activateOrganization(org1.id);
+        await Modules.Orgs.activateOrganization(org3.id);
+
+        let profile2 = (await FDB.UserProfile.findById(user.id))!;
+        expect(profile2.primaryOrganization).toBe(org2.id);
     });
 
     it('should activate user on organization activation', async () => {
         // Create User and Org
         let user = await Modules.Users.createUser('test3', 'some3@email.comn');
         await Modules.Users.createUserProfile(user.id, { firstName: 'Some Name' });
+        let userp = (await FDB.UserProfile.findById(user.id))!;
+        expect(userp.primaryOrganization).toBeNull();
         let user2 = await Modules.Users.createUser('test4', 'some4@email.comn');
         await Modules.Users.createUserProfile(user2.id, { firstName: 'Some Name' });
+        let user2p = (await FDB.UserProfile.findById(user2.id))!;
+        expect(user2p.primaryOrganization).toBeNull();
 
         // Create Organization
         let org = await Modules.Orgs.createOrganization(user.id, { name: 'hey' });
@@ -76,9 +96,13 @@ describe('OrganizationModule', () => {
 
         // Check users status
         let user4 = (await FDB.User.findById(user.id))!;
+        let user4p = (await FDB.UserProfile.findById(user.id))!;
         expect(user4.status).toEqual('activated');
+        expect(user4p.primaryOrganization).toEqual(org.id);
         let user5 = (await FDB.User.findById(user2.id))!;
+        let user5p = (await FDB.UserProfile.findById(user2.id))!;
         expect(user5.status).toEqual('activated');
+        expect(user5p.primaryOrganization).toEqual(org.id);
     });
 
     it('should suspend organization and DO NOT suspend user', async () => {
