@@ -15,7 +15,7 @@ import { ShortnameModule } from 'openland-module-shortname/ShortnameModule';
 import { HyperlogModule } from 'openland-module-hyperlog/HyperlogModule';
 import { DraftsModule } from 'openland-module-drafts/DraftsModule';
 import { TypingsModule } from 'openland-module-typings/TypingsModule';
-import { OrgsModule } from 'openland-module-orgs/OrgsModule';
+import { OrganizationModule } from 'openland-module-organization/OrganizationModule';
 import { InvitesModule } from 'openland-module-invites/InvitesModule';
 import { PubsubModule } from 'openland-module-pubsub/PubsubModule';
 import { ApiModule } from 'openland-module-api/ApiModule';
@@ -38,7 +38,7 @@ export interface ModulesRegistry {
     readonly Hyperlog: HyperlogModule;
     readonly Drafts: DraftsModule;
     readonly Typings: TypingsModule;
-    readonly Orgs: OrgsModule;
+    readonly Orgs: OrganizationModule;
     readonly Invites: InvitesModule;
     readonly Pubsub: PubsubModule;
     readonly API: ApiModule;

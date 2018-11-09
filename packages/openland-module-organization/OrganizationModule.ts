@@ -7,7 +7,7 @@ import { Emails } from 'openland-module-email/Emails';
 import { Modules } from 'openland-modules/Modules';
 
 @injectable()
-export class OrgsModule {
+export class OrganizationModule {
     private readonly repo: OrganizationRepository;
 
     constructor() {

@@ -1,7 +1,7 @@
 import { AllEntities, OrganizationMember } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
 import { Sanitizer } from 'openland-utils/Sanitizer';
-import { OrganizatinProfileInput } from 'openland-module-orgs/OrganizationProfileInput';
+import { OrganizatinProfileInput } from 'openland-module-organization/OrganizationProfileInput';
 import { validate, stringNotEmpty } from 'openland-utils/NewInputValidator';
 import { UserError } from 'openland-errors/UserError';
 import { ErrorText } from 'openland-errors/ErrorText';

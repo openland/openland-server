@@ -13,17 +13,18 @@ import { ShortnameModule } from 'openland-module-shortname/ShortnameModule';
 import { HyperlogModule } from 'openland-module-hyperlog/HyperlogModule';
 import { DraftsModule } from 'openland-module-drafts/DraftsModule';
 import { TypingsModule } from 'openland-module-typings/TypingsModule';
-import { OrgsModule } from 'openland-module-orgs/OrgsModule';
+import { OrganizationModule } from 'openland-module-organization/OrganizationModule';
 import { InvitesModule } from 'openland-module-invites/InvitesModule';
 import { PubsubModule } from 'openland-module-pubsub/PubsubModule';
 import { MediaModule } from 'openland-module-media/MediaModule';
 import { ApiModule } from 'openland-module-api/ApiModule';
 import { HooksModule } from 'openland-module-hooks/HooksModule';
 import { ModulesRegistry } from './ModulesRegistry';
-import { Container } from 'inversify';
 import { ModulesTypes } from './ModulesTypes';
+import { createDefaultContainer } from './Modules.container';
 
 class ModulesImpl implements ModulesRegistry {
+
     get Hooks() {
         return this.container.resolve(HooksModule);
     }
@@ -76,7 +77,7 @@ class ModulesImpl implements ModulesRegistry {
         return this.container.resolve(TypingsModule);
     }
     get Orgs() {
-        return this.container.resolve(OrgsModule);
+        return this.container.resolve(OrganizationModule);
     }
     get Invites() {
         return this.container.resolve(InvitesModule);
@@ -88,31 +89,10 @@ class ModulesImpl implements ModulesRegistry {
         return this.container.resolve(ApiModule);
     }
 
-    private readonly container = new Container();
+    private readonly container = createDefaultContainer();
 
     constructor() {
         this.container.bind(ModulesTypes.Registry).toConstantValue(this);
-        this.container.bind(HooksModule).toSelf().inSingletonScope();
-        this.container.bind(MediaModule).toSelf().inSingletonScope();
-        this.container.bind(AuthModule).toSelf().inSingletonScope();
-        this.container.bind(DBModule).toSelf().inSingletonScope();
-        this.container.bind(WorkerModule).toSelf().inSingletonScope();
-        this.container.bind(PushModule).toSelf().inSingletonScope();
-        this.container.bind(PresenceModule).toSelf().inSingletonScope();
-        this.container.bind(EmailModule).toSelf().inSingletonScope();
-        this.container.bind(MessagingModule).toSelf().inSingletonScope();
-        this.container.bind(UsersModule).toSelf().inSingletonScope();
-        this.container.bind(FeaturesModule).toSelf().inSingletonScope();
-        this.container.bind(SearchModule).toSelf().inSingletonScope();
-        this.container.bind(SuperModule).toSelf().inSingletonScope();
-        this.container.bind(ShortnameModule).toSelf().inSingletonScope();
-        this.container.bind(HyperlogModule).toSelf().inSingletonScope();
-        this.container.bind(DraftsModule).toSelf().inSingletonScope();
-        this.container.bind(TypingsModule).toSelf().inSingletonScope();
-        this.container.bind(OrgsModule).toSelf().inSingletonScope();
-        this.container.bind(InvitesModule).toSelf().inSingletonScope();
-        this.container.bind(PubsubModule).toSelf().inSingletonScope();
-        this.container.bind(ApiModule).toSelf().inSingletonScope();
     }
 
     start = async () => {
