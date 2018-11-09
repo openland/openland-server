@@ -35,7 +35,7 @@ export class FDirectory {
         if (!this.isAllocated) {
             await this.allocatorProcess;
         }
-        return this.connection.currentContext.range(this.connection, Buffer.concat([this.allocatedKey!, FKeyEncoding.encodeKey(key)]));
+        return this.connection.currentContext.rangeAll(this.connection, Buffer.concat([this.allocatedKey!, FKeyEncoding.encodeKey(key)]));
     }
 
     set = (key: (string | number)[], value: any) => {

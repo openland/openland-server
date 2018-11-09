@@ -39,6 +39,14 @@ export class FTransaction implements FContext {
         this.pendingCallbacks.push(callback);
     }
 
+    async rangeAll(connection: FConnection, key: Buffer, options?: RangeOptions): Promise<any[]> {
+        this._prepare(connection);
+        return await trace(tracer, 'range', async () => {
+            let res = (await this.tx!.getRangeAll(key, undefined, options));
+            return res.map((v) => v[1] as any);
+        });
+    }
+
     async range(connection: FConnection, key: Buffer, options?: RangeOptions) {
         this._prepare(connection);
         return await trace(tracer, 'range', async () => {

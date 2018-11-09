@@ -12,6 +12,7 @@ export interface FContext {
     markDirty(entity: FEntity, callback: (connection: FConnection) => Promise<void>): void;
     get(connection: FConnection, key: Buffer): Promise<any | null>;
     range(connection: FConnection, key: Buffer, options?: RangeOptions): Promise<{ item: any, key: any[] }[]>;
+    rangeAll(connection: FConnection, key: Buffer, options?: RangeOptions): Promise<any[]>;
     rangeAfter(connection: FConnection, prefix: (string | number)[], afterKey: (string | number)[], options?: RangeOptions): Promise<{ item: any, key: any[] }[]>;
     set(connection: FConnection, key: Buffer, value: any): void;
     delete(connection: FConnection, key: Buffer): void;
@@ -30,6 +31,12 @@ export class FGlobalContext implements FContext {
         return await trace(tracer, 'range', async () => {
             let res = await connection.fdb.getRangeAll(key, undefined, options);
             return res.map((v) => ({ item: v[1] as any, key: FKeyEncoding.decodeKey(v[0]) }));
+        });
+    }
+    async rangeAll(connection: FConnection, key: Buffer, options?: RangeOptions) {
+        return await trace(tracer, 'range', async () => {
+            let res = await connection.fdb.getRangeAll(key, undefined, options);
+            return res.map((v) => (v[1] as any));
         });
     }
     async rangeAfter(connection: FConnection, prefix: (string | number)[], afterKey: (string | number)[], options?: RangeOptions) {

@@ -42,7 +42,7 @@ export abstract class FEntityFactory<T extends FEntity> {
     }
 
     async findAll() {
-        return (await this.directory.range([])).map((v) => this.doCreateEntity(v.item, false));
+        return (await this.directory.range([])).map((v) => this.doCreateEntity(v, false));
     }
 
     async findAllKeys(limit?: number) {
