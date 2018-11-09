@@ -100,7 +100,6 @@ export const IDScalars = generateIDScalars();
 
 const ALIASES: { [key: string]: string } = {
     'conversationID': 'chatID',
-    'conversationMessageID': 'messageID'
 };
 
 function generateIdDirectives() {
@@ -129,7 +128,6 @@ export function injectIDScalars(schema: string): string {
         }
         schema += `directive @${name} on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION | FIELD_DEFINITION\n`;
     }
-
     return schema;
 }
 
