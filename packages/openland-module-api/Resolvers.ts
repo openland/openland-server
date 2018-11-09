@@ -175,3 +175,7 @@ export function wrapAllResolvers(schema: GraphQLSchema, f: FieldHandler) {
     }
     return schema;
 }
+
+export function typed<T>(resolver: { [P in keyof T]: ((...args: any[]) => T[P]) | ((...args: any[]) => Promise<T[P]>) }) {
+    return resolver;
+}
