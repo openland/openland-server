@@ -104,7 +104,7 @@ describe('OrganizationRepository', () => {
         expect(u.status).toEqual('suspended');
 
         // Should throw an error
-        expect(repo.createOrganization(u.id, { name: 'orgname' }, false))
+        await expect(repo.createOrganization(u.id, { name: 'orgname' }, false))
             .rejects.toThrowError();
     });
 });
