@@ -10,6 +10,7 @@ import { EventBus } from 'openland-module-pubsub/EventBus';
 import { FTransaction } from 'foundation-orm/FTransaction';
 import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent';
 import { Shutdown } from '../openland-utils/Shutdown';
+import { SafeContext } from 'openland-utils/SafeContext';
 
 const workCompleted = createHyperlogger<{ taskId: string, taskType: string, duration: number }>('task_completed');
 const workScheduled = createHyperlogger<{ taskId: string, taskType: string, duration: number }>('task_scheduled');
@@ -54,7 +55,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
             awaiter = w.resolver;
             await w.promise;
         };
-        let workLoop = foreverBreakable(async () => {
+        let workLoop = SafeContext.inNewContext(() => foreverBreakable(async () => {
             await withLogContext(['worker', this.taskType], async () => {
                 let task = await inTx(async () => {
                     let pend = await FDB.Task.rangeFromPending(this.taskType, 1);
@@ -129,7 +130,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                     await awaitTask();
                 }
             });
-        });
+        }));
 
         const shutdown = async () => {
             if (!working) {

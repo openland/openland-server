@@ -3,50 +3,58 @@ import { LockRepository } from 'openland-module-sync/LockRepository';
 import { withLogContext } from 'openland-log/withLogContext';
 import { createLogger } from 'openland-log/createLogger';
 import { Shutdown } from '../openland-utils/Shutdown';
+import { SafeContext } from 'openland-utils/SafeContext';
 
 const logger = createLogger('loop');
 
-export function staticWorker(config: { name: string, version?: number, delay?: number }, worker: () => Promise<boolean>) {
+export function staticWorker(config: { name: string, version?: number, delay?: number, startDelay?: number }, worker: () => Promise<boolean>) {
     let working = true;
     let awaiter: (() => void) | undefined;
-    let workLoop = foreverBreakable(async () => {
-        let res = await withLogContext(['static-worker', config.name], async () => {
-            // Locking
-            if (!(await LockRepository.tryLock('worker_' + config.name, config.version))) {
-                return false;
-            }
+    let wasStarted = false;
+    let workLoop = SafeContext.inNewContext(() => foreverBreakable(async () => {
+        if (!wasStarted && config.startDelay) {
+            await delay(config.startDelay);
+        }
+        wasStarted = true;
+        let res =
+            await withLogContext(['static-worker', config.name], async () => {
 
-            let locked = true;
-
-            // Update lock loop
-            // tslint:disable-next-line:no-floating-promises
-            (async () => {
-                while (locked) {
-                    await delay(5000);
-                    if (!(await LockRepository.tryLock('worker_' + config.name, config.version))) {
-                        locked = false;
-                        break;
-                    }
+                // Locking
+                if (!(await LockRepository.tryLock('worker_' + config.name, config.version))) {
+                    return false;
                 }
-            })();
 
-            // Working
-            while (locked && working) {
-                try {
-                    let res2 = await worker();
-                    if (!res2) {
-                        locked = false;
-                        return false;
+                let locked = true;
+
+                // Update lock loop
+                // tslint:disable-next-line:no-floating-promises
+                (async () => {
+                    while (locked) {
+                        await delay(5000);
+                        if (!(await LockRepository.tryLock('worker_' + config.name, config.version))) {
+                            locked = false;
+                            break;
+                        }
                     }
-                } catch (e) {
-                    locked = false;
-                    logger.warn(e);
-                    throw e;
+                })();
+
+                // Working
+                while (locked && working) {
+                    try {
+                        let res2 = await worker();
+                        if (!res2) {
+                            locked = false;
+                            return false;
+                        }
+                    } catch (e) {
+                        locked = false;
+                        logger.warn(e);
+                        throw e;
+                    }
+                    await delay(100);
                 }
-                await delay(100);
-            }
-            return true;
-        });
+                return true;
+            });
         if (!working) {
             return;
         }
@@ -57,7 +65,7 @@ export function staticWorker(config: { name: string, version?: number, delay?: n
         } else {
             await delay(100);
         }
-    });
+    }));
 
     const shutdown = async () => {
         if (!working) {

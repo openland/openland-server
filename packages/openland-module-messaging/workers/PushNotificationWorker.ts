@@ -16,7 +16,7 @@ const Delays = {
 const log = createLogger('push');
 
 export function startPushNotificationWorker() {
-    staticWorker({ name: 'push_notifications', delay: 3000 }, async () => {
+    staticWorker({ name: 'push_notifications', delay: 3000, startDelay: 3000 }, async () => {
         let unreadUsers = await FDB.UserMessagingState.allFromHasUnread();
         log.debug('unread users: ' + unreadUsers.length);
         for (let u of unreadUsers) {

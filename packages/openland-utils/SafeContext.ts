@@ -57,23 +57,26 @@ export function exportContextDebug() {
 
 export class SafeContext<T> {
     private static nextId = 0;
+    private static namespace = cls.createNamespace('safe-context');
     private readonly id = SafeContext.nextId++;
-    private readonly namespace: cls.Namespace;
+
+    static inNewContext<P>(callback: () => P): P {
+        return SafeContext.namespace.bind(callback, {})();
+    }
 
     constructor() {
-        this.namespace = cls.createNamespace('opl-' + this.id);
-        // contexts.push({});
+        //
     }
 
     withContext<P>(value: T | undefined, callback: () => P): P {
-        return this.namespace.runAndReturn(() => {
-            this.namespace.set('value', value);
+        return SafeContext.namespace.runAndReturn(() => {
+            SafeContext.namespace.set('value-' + this.id, value);
             return callback();
         });
     }
 
     get value(): T | undefined {
-        return this.namespace.get('value');
+        return SafeContext.namespace.get('value-' + this.id);
         // if (ENABLE_DEBUG) {
         //     debug.push(`read: ${async_hooks.executionAsyncId()}`);
         // }
