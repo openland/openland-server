@@ -1,13 +1,13 @@
+import { container } from './Modules.container';
 import { HooksModule } from 'openland-module-hooks/HooksModule';
-import { MediaModule } from 'openland-module-media/MediaModule';
-import { AuthModule } from 'openland-module-auth/AuthModule';
 import { DBModule } from 'openland-module-db/DBModule';
+import { MediaModule } from 'openland-module-media/MediaModule';
 import { WorkerModule } from 'openland-module-workers/WorkerModule';
 import { PushModule } from 'openland-module-push/PushModule';
 import { PresenceModule } from 'openland-module-presences/PresenceModule';
 import { EmailModule } from 'openland-module-email/EmailModule';
-import { MessagingModule } from 'openland-module-messaging/MessagingModule';
 import { UsersModule } from 'openland-module-users/UsersModule';
+import { MessagingModule } from 'openland-module-messaging/MessagingModule';
 import { FeaturesModule } from 'openland-module-features/FeaturesModule';
 import { SearchModule } from 'openland-module-search/SearchModule';
 import { SuperModule } from 'openland-module-super/SuperModule';
@@ -20,28 +20,25 @@ import { InvitesModule } from 'openland-module-invites/InvitesModule';
 import { PubsubModule } from 'openland-module-pubsub/PubsubModule';
 import { ApiModule } from 'openland-module-api/ApiModule';
 
-export interface ModulesRegistry {
-    readonly Hooks: HooksModule;
-    readonly Media: MediaModule;
-    readonly Auth: AuthModule;
-    readonly DB: DBModule;
-    readonly Workers: WorkerModule;
-    readonly Push: PushModule;
-    readonly Presence: PresenceModule;
-    readonly Email: EmailModule;
-    readonly Messaging: MessagingModule;
-    readonly Users: UsersModule;
-    readonly Features: FeaturesModule;
-    readonly Search: SearchModule;
-    readonly Super: SuperModule;
-    readonly Shortnames: ShortnameModule;
-    readonly Hyperlog: HyperlogModule;
-    readonly Drafts: DraftsModule;
-    readonly Typings: TypingsModule;
-    readonly Orgs: OrganizationModule;
-    readonly Invites: InvitesModule;
-    readonly Pubsub: PubsubModule;
-    readonly API: ApiModule;
-
-    start: () => Promise<void>;
+export async function loadAllModules() {
+    await container.get(HooksModule).start();
+    await container.get(DBModule).start();
+    await container.get(MediaModule).start();
+    await container.get(WorkerModule).start();
+    await container.get(PushModule).start();
+    await container.get(PresenceModule).start();
+    await container.get(EmailModule).start();
+    await container.get(UsersModule).start();
+    await container.get(MessagingModule).start();
+    await container.get(FeaturesModule).start();
+    await container.get(SearchModule).start();
+    await container.get(SuperModule).start();
+    await container.get(ShortnameModule).start();
+    await container.get(HyperlogModule).start();
+    await container.get(DraftsModule).start();
+    await container.get(TypingsModule).start();
+    await container.get(OrganizationModule).start();
+    await container.get(InvitesModule).start();
+    await container.get(PubsubModule).start();
+    await container.get(ApiModule).start();
 }

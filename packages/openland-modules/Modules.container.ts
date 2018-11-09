@@ -20,29 +20,31 @@ import { OrganizationModule } from 'openland-module-organization/OrganizationMod
 import { InvitesModule } from 'openland-module-invites/InvitesModule';
 import { PubsubModule } from 'openland-module-pubsub/PubsubModule';
 import { ApiModule } from 'openland-module-api/ApiModule';
+import { OrganizationRepository } from 'openland-module-organization/repositories/OrganizationRepository';
 
-export function createDefaultContainer() {
-    let container = new Container();
-    container.bind(HooksModule).toSelf().inSingletonScope();
-    container.bind(MediaModule).toSelf().inSingletonScope();
-    container.bind(AuthModule).toSelf().inSingletonScope();
-    container.bind(DBModule).toSelf().inSingletonScope();
-    container.bind(WorkerModule).toSelf().inSingletonScope();
-    container.bind(PushModule).toSelf().inSingletonScope();
-    container.bind(PresenceModule).toSelf().inSingletonScope();
-    container.bind(EmailModule).toSelf().inSingletonScope();
-    container.bind(MessagingModule).toSelf().inSingletonScope();
-    container.bind(UsersModule).toSelf().inSingletonScope();
-    container.bind(FeaturesModule).toSelf().inSingletonScope();
-    container.bind(SearchModule).toSelf().inSingletonScope();
-    container.bind(SuperModule).toSelf().inSingletonScope();
-    container.bind(ShortnameModule).toSelf().inSingletonScope();
-    container.bind(HyperlogModule).toSelf().inSingletonScope();
-    container.bind(DraftsModule).toSelf().inSingletonScope();
-    container.bind(TypingsModule).toSelf().inSingletonScope();
-    container.bind(OrganizationModule).toSelf().inSingletonScope();
-    container.bind(InvitesModule).toSelf().inSingletonScope();
-    container.bind(PubsubModule).toSelf().inSingletonScope();
-    container.bind(ApiModule).toSelf().inSingletonScope();
-    return container;
-}
+let container = new Container();
+container.bind(HooksModule).toSelf().inSingletonScope();
+container.bind(MediaModule).toSelf().inSingletonScope();
+container.bind(AuthModule).toSelf().inSingletonScope();
+container.bind(DBModule).toSelf().inSingletonScope();
+container.bind(WorkerModule).toSelf().inSingletonScope();
+container.bind(PushModule).toSelf().inSingletonScope();
+container.bind(PresenceModule).toSelf().inSingletonScope();
+container.bind(EmailModule).toSelf().inSingletonScope();
+container.bind(MessagingModule).toSelf().inSingletonScope();
+container.bind(UsersModule).toSelf().inSingletonScope();
+container.bind(FeaturesModule).toSelf().inSingletonScope();
+container.bind(SearchModule).toSelf().inSingletonScope();
+container.bind(SuperModule).toSelf().inSingletonScope();
+container.bind(ShortnameModule).toSelf().inSingletonScope();
+container.bind(HyperlogModule).toSelf().inSingletonScope();
+container.bind(DraftsModule).toSelf().inSingletonScope();
+container.bind(TypingsModule).toSelf().inSingletonScope();
+
+container.bind(OrganizationModule).toSelf().inSingletonScope();
+container.bind(OrganizationRepository).toSelf();
+
+container.bind(InvitesModule).toSelf().inSingletonScope();
+container.bind(PubsubModule).toSelf().inSingletonScope();
+container.bind(ApiModule).toSelf().inSingletonScope();
+export { container };

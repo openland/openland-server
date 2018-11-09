@@ -19,104 +19,73 @@ import { PubsubModule } from 'openland-module-pubsub/PubsubModule';
 import { MediaModule } from 'openland-module-media/MediaModule';
 import { ApiModule } from 'openland-module-api/ApiModule';
 import { HooksModule } from 'openland-module-hooks/HooksModule';
-import { ModulesRegistry } from './ModulesRegistry';
-import { ModulesTypes } from './ModulesTypes';
-import { createDefaultContainer } from './Modules.container';
+import { container } from './Modules.container';
 
-class ModulesImpl implements ModulesRegistry {
+class ModulesImpl  {
 
     get Hooks() {
-        return this.container.resolve(HooksModule);
+        return container.get(HooksModule);
     }
     get Media() {
-        return this.container.resolve(MediaModule);
+        return container.get(MediaModule);
     }
     get Auth() {
-        return this.container.resolve(AuthModule);
+        return container.get(AuthModule);
     }
     get DB() {
-        return this.container.resolve(DBModule);
+        return container.get(DBModule);
     }
     get Workers() {
-        return this.container.resolve(WorkerModule);
+        return container.get(WorkerModule);
     }
     get Push() {
-        return this.container.resolve(PushModule);
+        return container.get(PushModule);
     }
     get Presence() {
-        return this.container.resolve(PresenceModule);
+        return container.get(PresenceModule);
     }
     get Email() {
-        return this.container.resolve(EmailModule);
+        return container.get(EmailModule);
     }
     get Messaging() {
-        return this.container.resolve(MessagingModule);
+        return container.get(MessagingModule);
     }
     get Users() {
-        return this.container.resolve(UsersModule);
+        return container.get(UsersModule);
     }
     get Features() {
-        return this.container.resolve(FeaturesModule);
+        return container.get(FeaturesModule);
     }
     get Search() {
-        return this.container.resolve(SearchModule);
+        return container.get(SearchModule);
     }
     get Super() {
-        return this.container.resolve(SuperModule);
+        return container.get(SuperModule);
     }
     get Shortnames() {
-        return this.container.resolve(ShortnameModule);
+        return container.get(ShortnameModule);
     }
     get Hyperlog() {
-        return this.container.resolve(HyperlogModule);
+        return container.get(HyperlogModule);
     }
     get Drafts() {
-        return this.container.resolve(DraftsModule);
+        return container.get(DraftsModule);
     }
     get Typings() {
-        return this.container.resolve(TypingsModule);
+        return container.get(TypingsModule);
     }
     get Orgs() {
-        return this.container.resolve(OrganizationModule);
+        return container.get(OrganizationModule);
     }
     get Invites() {
-        return this.container.resolve(InvitesModule);
+        return container.get(InvitesModule);
     }
     get Pubsub() {
-        return this.container.resolve(PubsubModule);
+        return container.get(PubsubModule);
     }
     get API() {
-        return this.container.resolve(ApiModule);
-    }
-
-    private readonly container = createDefaultContainer();
-
-    constructor() {
-        this.container.bind(ModulesTypes.Registry).toConstantValue(this);
-    }
-
-    start = async () => {
-        await this.Hooks.start();
-        await this.DB.start();
-        await this.Media.start();
-        await this.Workers.start();
-        await this.Push.start();
-        await this.Presence.start();
-        await this.Email.start();
-        await this.Users.start();
-        await this.Messaging.start();
-        await this.Features.start();
-        await this.Search.start();
-        await this.Super.start();
-        await this.Shortnames.start();
-        await this.Hyperlog.start();
-        await this.Drafts.start();
-        await this.Typings.start();
-        await this.Orgs.start();
-        await this.Invites.start();
-        await this.Pubsub.start();
-        await this.API.start();
+        return container.get(ApiModule);
     }
 }
 
-export const Modules = new ModulesImpl() as ModulesRegistry;
+export const Modules = new ModulesImpl();

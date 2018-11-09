@@ -5,7 +5,9 @@ import { OrganizatinProfileInput } from 'openland-module-organization/Organizati
 import { validate, stringNotEmpty } from 'openland-utils/NewInputValidator';
 import { UserError } from 'openland-errors/UserError';
 import { ErrorText } from 'openland-errors/ErrorText';
+import { injectable } from 'inversify';
 
+@injectable()
 export class OrganizationRepository {
     readonly entities: AllEntities;
 

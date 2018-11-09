@@ -186,7 +186,7 @@
     "openland-module-sync": "build/openland-module-sync",
     "openland-module-drafts": "build/openland-module-drafts",
     "openland-module-typings": "build/openland-module-typings",
-    "openland-module-orgs": "build/openland-module-orgs",
+    "openland-module-organization": "build/openland-module-organization",
     "openland-module-invites": "build/openland-module-invites",
     "openland-module-pubsub": "build/openland-module-pubsub",
     "openland-module-media": "build/openland-module-media",

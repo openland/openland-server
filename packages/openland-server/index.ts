@@ -18,10 +18,10 @@ if (process.env.NODE_ENV !== 'development') {
 // Register graceful shutdown
 import '../openland-utils/Shutdown';
 
-import { Modules } from '../openland-modules/Modules';
+import { loadAllModules } from 'openland-modules/loadAllModules';
 async function initServer() {
     try {
-        await Modules.start();
+        await loadAllModules();
     } catch (e) {
         console.error('Unable to init server');
         console.error(e);
