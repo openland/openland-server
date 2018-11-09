@@ -10,7 +10,7 @@ import { withUser } from 'openland-module-api/Resolvers';
 import { ImageRef } from 'openland-module-media/ImageRef';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { ProfileInput } from './ProfileInput';
-import { OrganizatinProfileInput } from 'openland-module-orgs/OrganizationProfileInput';
+import { OrganizatinProfileInput } from 'openland-module-organization/OrganizationProfileInput';
 
 export default {
     Profile: {
