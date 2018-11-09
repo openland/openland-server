@@ -325,7 +325,16 @@ export default {
         edited: (src: Message) => (src.edited) || false,
         reactions: (src: Message) => src.reactions || [],
         replyMessages: async (src: Message) => {
-            return src.replyMessages ? (src.replyMessages as number[]).map(id => FDB.Message.findById(id)) : null;
+            if (src.replyMessages) {
+                let messages = await Promise.all((src.replyMessages as number[]).map(id => FDB.Message.findById(id)));
+                let filtered = messages.filter(m => !!m);
+                if (filtered.length > 0) {
+                    return filtered;
+                }
+                return null;
+            }
+            return null;
+            // return src.replyMessages ? (src.replyMessages as number[]).map(id => FDB.Message.findById(id)).filter(m => !!m) : [];
         },
         plainText: async (src: Message) => null,
         mentions: async (src: Message) => src.mentions ? (src.mentions as number[]).map(id => FDB.User.findById(id)) : null
@@ -635,18 +644,21 @@ export default {
                     }
                 }
 
+                let replyMessages = args.replyMessages && args.replyMessages.map(id => IDs.ConversationMessage.parse(id));
+                let mentions = args.mentions && args.mentions.map(id => IDs.User.parse(id));
+
                 return Modules.Messaging.sendMessage(conversationId, uid!, {
                     message: args.message,
                     file: args.file,
                     fileMetadata,
                     repeatKey: args.repeatKey,
                     filePreview,
-                    replyMessages: args.replyMessages,
-                    mentions: args.mentions
+                    replyMessages,
+                    mentions
                 });
             });
         }),
-        alphaSendIntro: withUser<{ conversationId: string, userId: number, about: string, message?: string | null, file?: string | null, repeatKey?: string | null }>(async (args, uid) => {
+        alphaSendIntro: withUser<{ conversationId: string, userId: string, about: string, message?: string | null, file?: string | null, repeatKey?: string | null }>(async (args, uid) => {
             await validate(
                 {
                     about: defined(stringNotEmpty(`About can't be empty!`)),
@@ -655,6 +667,7 @@ export default {
                 args
             );
 
+            let userId = IDs.User.parse(args.userId);
             let conversationId = IDs.Conversation.parse(args.conversationId);
 
             let fileMetadata: JsonMap | null = null;
@@ -669,7 +682,7 @@ export default {
                 }
             }
 
-            let profile = (await Modules.Users.profileById(args.userId))!;
+            let profile = (await Modules.Users.profileById(userId))!;
 
             if (!profile) {
                 throw new NotFoundError();
@@ -683,8 +696,8 @@ export default {
                 filePreview,
                 urlAugmentation: {
                     type: 'intro',
-                    extra: args.userId,
-                    url: `https://next.openland.com/mail/u/${IDs.User.serialize(args.userId)}`,
+                    extra: userId,
+                    url: `https://next.openland.com/mail/u/${IDs.User.serialize(userId)}`,
                     title: profile.firstName + ' ' + profile.lastName,
                     subtitle: 'intro',
                     description: args.about,
@@ -697,7 +710,7 @@ export default {
                 }
             }));
         }),
-        alphaEditIntro: withUser<{ messageId: string, userId: number, about: string, message?: string | null, file?: string | null, repeatKey?: string | null }>(async (args, uid) => {
+        alphaEditIntro: withUser<{ messageId: string, userId: string, about: string, message?: string | null, file?: string | null, repeatKey?: string | null }>(async (args, uid) => {
             await validate(
                 {
                     about: defined(stringNotEmpty(`About can't be empty!`)),
@@ -706,6 +719,7 @@ export default {
                 args
             );
 
+            let userId = IDs.User.parse(args.userId);
             let messageId = IDs.ConversationMessage.parse(args.messageId);
 
             let fileMetadata: JsonMap | null = null;
@@ -720,7 +734,7 @@ export default {
                 }
             }
 
-            let profile = (await Modules.Users.profileById(args.userId))!;
+            let profile = (await Modules.Users.profileById(userId))!;
 
             if (!profile) {
                 throw new NotFoundError();
@@ -735,7 +749,7 @@ export default {
                 urlAugmentation: {
                     type: 'intro',
                     extra: args.userId,
-                    url: `https://next.openland.com/mail/u/${IDs.User.serialize(args.userId)}`,
+                    url: `https://next.openland.com/mail/u/${IDs.User.serialize(userId)}`,
                     title: profile.firstName + ' ' + profile.lastName,
                     subtitle: 'intro',
                     description: args.about,
@@ -748,7 +762,7 @@ export default {
                 }
             }, true);
         }),
-        alphaEditMessage: withUser<{ messageId: string, message?: string | null, file?: string | null, replyMessages?: number[] | null, mentions?: number[] | null }>(async (args, uid) => {
+        alphaEditMessage: withUser<{ messageId: string, message?: string | null, file?: string | null, replyMessages?: string[] | null, mentions?: string[] | null }>(async (args, uid) => {
             let fileMetadata: JsonMap | null = null;
             let filePreview: string | null = null;
 
@@ -763,18 +777,21 @@ export default {
 
             let messageId = IDs.ConversationMessage.parse(args.messageId);
 
+            let replyMessages = args.replyMessages && args.replyMessages.map(id => IDs.ConversationMessage.parse(id));
+            let mentions = args.mentions && args.mentions.map(id => IDs.User.parse(id));
+
             return await Modules.Messaging.editMessage(messageId, uid, {
                 message: args.message,
                 file: args.file,
                 fileMetadata,
                 filePreview,
-                replyMessages: args.replyMessages,
-                mentions: args.mentions
+                replyMessages,
+                mentions
             }, true);
         }),
-        alphaDeleteMessageUrlAugmentation: withUser<{ messageId: number }>(async (args, uid) => {
+        alphaDeleteMessageUrlAugmentation: withUser<{ messageId: string }>(async (args, uid) => {
             return await Modules.Messaging.editMessage(
-                args.messageId,
+                IDs.ConversationMessage.parse(args.messageId),
                 uid,
                 {
                     urlAugmentation: false
@@ -904,12 +921,12 @@ export default {
             });
         }),
 
-        alphaChatSetReaction: withAccount<{ messageId: number, reaction: string }>(async (args, uid) => {
-            await Modules.Messaging.setReaction(args.messageId, uid, args.reaction);
+        alphaChatSetReaction: withAccount<{ messageId: string, reaction: string }>(async (args, uid) => {
+            await Modules.Messaging.setReaction(IDs.ConversationMessage.parse(args.messageId), uid, args.reaction);
             return 'ok';
         }),
-        alphaChatUnsetReaction: withAccount<{ messageId: number, reaction: string }>(async (args, uid) => {
-            await Modules.Messaging.setReaction(args.messageId, uid, args.reaction, true);
+        alphaChatUnsetReaction: withAccount<{ messageId: string, reaction: string }>(async (args, uid) => {
+            await Modules.Messaging.setReaction(IDs.ConversationMessage.parse(args.messageId), uid, args.reaction, true);
             return 'ok';
         }),
     }

@@ -75,12 +75,13 @@ export default {
             resolve: async (msg: any) => {
                 return msg;
             },
-            subscribe: async function (_: any, args: { users: number[] }, context: CallContext) {
+            subscribe: async function (_: any, args: { users: string[] }, context: CallContext) {
                 if (!context.uid) {
                     throw Error('Not logged in');
                 }
+                let userIds = args.users.map(c => IDs.User.parse(c));
 
-                return Modules.Presence.createPresenceStream(context.uid!, args.users);
+                return Modules.Presence.createPresenceStream(context.uid!, userIds);
             }
         }
     }

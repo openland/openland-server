@@ -126,21 +126,22 @@ function genFunctionArguments(type: GenericTypeNode | ObjectTypeExtensionNode, f
 }
 
 function applyIDsDirective(node: { type: TypeNode, directives?: ReadonlyArray<DirectiveNode> }) {
-    let haveIDDirective = node.directives && node.directives.find(d => d.name.value.substr(-2) === 'ID');
-    if (haveIDDirective) {
-        const replace = (t: TypeNode) => {
-            if (t.kind === 'NamedType') {
-                (t.name.value as any) = 'Int';
-            } else if (t.kind === 'ListType') {
-                replace(t.type);
-            } else if (t.kind === 'NonNullType') {
-                replace(t.type);
-            }
-        };
-        replace(node.type);
-        return node;
-    }
     return node;
+    // let haveIDDirective = node.directives && node.directives.find(d => d.name.value.substr(-2) === 'ID');
+    // if (haveIDDirective) {
+    //     const replace = (t: TypeNode) => {
+    //         if (t.kind === 'NamedType') {
+    //             (t.name.value as any) = 'Int';
+    //         } else if (t.kind === 'ListType') {
+    //             replace(t.type);
+    //         } else if (t.kind === 'NonNullType') {
+    //             replace(t.type);
+    //         }
+    //     };
+    //     replace(node.type);
+    //     return node;
+    // }
+    // return node;
 }
 
 function genFunctionReturnType(type: GenericTypeNode | ObjectTypeExtensionNode, field: FieldDefinitionNode): string {

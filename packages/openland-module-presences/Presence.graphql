@@ -17,5 +17,5 @@ extend type Mutation {
 
 extend type Subscription {
     alphaSubscribeChatOnline(conversations: [ID!]!): OnlineEvent!
-    alphaSubscribeOnline(users: [ID!]! @userID): OnlineEvent!
+    alphaSubscribeOnline(users: [ID!]!): OnlineEvent!
 }

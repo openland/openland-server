@@ -31,9 +31,10 @@ export default {
             await Modules.Typings.setTyping(uid, conversationId, args.type || 'text');
             return 'ok';
         }),
-        typingCancel: withUser<{ conversationId: number }>(async (args, uid) => {
-            let members = await Modules.Messaging.conv.findConversationMembers(args.conversationId);
-            await Modules.Typings.cancelTyping(uid, args.conversationId, members);
+        typingCancel: withUser<{ conversationId: string }>(async (args, uid) => {
+            let chatId = IDs.Conversation.parse(args.conversationId);
+            let members = await Modules.Messaging.conv.findConversationMembers(chatId);
+            await Modules.Typings.cancelTyping(uid, chatId, members);
             return 'ok';
         }),
     },

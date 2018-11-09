@@ -144,7 +144,6 @@ export namespace GQL {
     export interface ConversationEventSimpleBatch {
         events: ConversationEvent[];
     }
-    export type ConversationEventBatch = ConversationEventSimpleBatch;
     export interface ConversationEvent {
         seq: number;
     }
@@ -265,21 +264,21 @@ export namespace GQL {
         message: Nullable<string>;
         file: Nullable<string>;
         repeatKey: Nullable<string>;
-        replyMessages: Nullable<number[]>;
-        mentions: Nullable<number[]>;
+        replyMessages: Nullable<string[]>;
+        mentions: Nullable<string[]>;
     }
     export type MutationAlphaSendMessageResult = ConversationEventMessage;
     export interface MutationAlphaEditMessageArgs {
         messageId: string;
         message: Nullable<string>;
         file: Nullable<string>;
-        replyMessages: Nullable<number[]>;
-        mentions: Nullable<number[]>;
+        replyMessages: Nullable<string[]>;
+        mentions: Nullable<string[]>;
     }
     export type MutationAlphaEditMessageResult = ConversationEventEditMessage;
     export interface MutationAlphaSendIntroArgs {
         conversationId: string;
-        userId: Nullable<number>;
+        userId: Nullable<string>;
         about: Nullable<string>;
         message: Nullable<string>;
         file: Nullable<string>;
@@ -288,14 +287,14 @@ export namespace GQL {
     export type MutationAlphaSendIntroResult = ConversationEventMessage;
     export interface MutationAlphaEditIntroArgs {
         messageId: string;
-        userId: Nullable<number>;
+        userId: Nullable<string>;
         about: Nullable<string>;
         message: Nullable<string>;
         file: Nullable<string>;
     }
     export type MutationAlphaEditIntroResult = ConversationEventMessage;
     export interface MutationAlphaDeleteMessageUrlAugmentationArgs {
-        messageId: number;
+        messageId: string;
     }
     export type MutationAlphaDeleteMessageUrlAugmentationResult = ConversationEventMessage;
     export interface MutationAlphaDeleteMessageArgs {
@@ -370,18 +369,18 @@ export namespace GQL {
     }
     export type MutationAlphaUpdateConversationSettingsResult = ConversationSettings;
     export interface MutationAlphaChatSetReactionArgs {
-        messageId: number;
+        messageId: string;
         reaction: string;
     }
     export type MutationAlphaChatSetReactionResult = string;
     export interface MutationAlphaChatUnsetReactionArgs {
-        messageId: number;
+        messageId: string;
         reaction: string;
     }
     export type MutationAlphaChatUnsetReactionResult = string;
     export interface MutationAlphaChatPinMessageArgs {
-        conversationId: number;
-        messageId: Nullable<number>;
+        conversationId: string;
+        messageId: Nullable<string>;
     }
     export type MutationAlphaChatPinMessageResult = ConversationUpdateResponse;
     export interface Profile {
@@ -686,7 +685,7 @@ export namespace GQL {
     }
     export type SubscriptionAlphaSubscribeChatOnlineResult = OnlineEvent;
     export interface SubscriptionAlphaSubscribeOnlineArgs {
-        users: number[];
+        users: string[];
     }
     export type SubscriptionAlphaSubscribeOnlineResult = OnlineEvent;
     export type SuperAccountState = 'PENDING' | 'ACTIVATED' | 'SUSPENDED';
@@ -1303,7 +1302,7 @@ export namespace GQL {
     }
     export type MutationTypingSendResult = string;
     export interface MutationTypingCancelArgs {
-        conversationId: number;
+        conversationId: string;
     }
     export type MutationTypingCancelResult = string;
     export interface MutationAlphaSetTypingArgs {
@@ -1402,7 +1401,7 @@ export namespace GQL {
     }
     export type MutationAlphaSetUserShortNameResult = Nullable<string>;
     export interface MutationAlphaSetOrgShortNameArgs {
-        id: number;
+        id: string;
         shortname: string;
     }
     export type MutationAlphaSetOrgShortNameResult = Nullable<string>;
