@@ -154,6 +154,7 @@
     "test:integration": "yarn test:jest",
     "test:rebuild": "yarn test:start && yarn test:prepare && yarn test:stop",
     "schema:publish": "apollo schema:publish --key=\"service:openland-production:qrYALC8Flb8hv-SGm4grug\" --endpoint=\"https://api.openland.com/api\"",
+    "schema:gen": "./node_modules/.bin/ts-node packages/openland-module-api/schema/SchemaGenSpec.ts",
     "model": "./node_modules/.bin/ts-node packages/openland-module-db/schemaDeclaration.ts",
     "model:test": "./node_modules/.bin/ts-node ./packages/foundation-orm/tests/createTestSchema.ts",
     "benchmark": "./node_modules/.bin/ts-node ./packages/openland-benchmarks/index.ts",

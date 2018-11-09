@@ -16,6 +16,7 @@ import { withCache } from 'foundation-orm/withCache';
 export const Schema = () => {
     let schema = buildSchema(__dirname + '/../../');
     let resolvers = buildResolvers(__dirname + '/../../');
+
     return wrapAllResolvers(
         makeExecutableSchema({
             typeDefs: injectIDScalars(schema),
