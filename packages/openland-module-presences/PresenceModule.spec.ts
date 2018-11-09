@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import * as fdb from 'foundationdb';
 import { FConnection } from '../foundation-orm/FConnection';
 import { AllEntities } from '../openland-module-db/schema';

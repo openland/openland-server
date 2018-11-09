@@ -5,6 +5,7 @@ import { createIterator } from '../openland-utils/asyncIterator';
 import { Pubsub, PubsubSubcription } from '../openland-module-pubsub/pubsub';
 import { AllEntities } from '../openland-module-db/schema';
 import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent';
+import { injectable } from 'inversify';
 
 const presenceEvent = createHyperlogger<{ uid: number, online: boolean }>('presence');
 
@@ -14,6 +15,7 @@ export interface OnlineEvent {
     online: boolean;
 }
 
+@injectable()
 export class PresenceModule {
     private onlines = new Map<number, { online: boolean, timer?: Timer }>();
     private fdbSubscriptions = new Map<number, { cancel: () => void }>();

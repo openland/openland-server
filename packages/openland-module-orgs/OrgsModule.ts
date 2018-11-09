@@ -1,18 +1,17 @@
+import { injectable } from 'inversify';
 import { OrganizationRepository } from './repositories/OrganizationRepository';
 import { FDB } from 'openland-module-db/FDB';
 import { OrganizatinProfileInput } from './OrganizationProfileInput';
 import { inTx } from 'foundation-orm/inTx';
 import { Emails } from 'openland-module-email/Emails';
 import { Modules } from 'openland-modules/Modules';
-import { ModulesRegistry } from 'openland-modules/ModulesRegistry';
 
+@injectable()
 export class OrgsModule {
-    readonly registry: ModulesRegistry;
     private readonly repo: OrganizationRepository;
 
-    constructor(registry: ModulesRegistry) {
-        this.registry = registry;
-        this.repo  = new OrganizationRepository(registry.DB.entities);
+    constructor() {
+        this.repo  = new OrganizationRepository(Modules.DB.entities);
     }
 
     start = () => {

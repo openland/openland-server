@@ -3,7 +3,9 @@ import { TypingEvent } from './TypingEvent';
 import { PubsubSubcription, Pubsub } from 'openland-module-pubsub/pubsub';
 import { debouncer } from 'openland-utils/timer';
 import { Modules } from 'openland-modules/Modules';
+import { injectable } from 'inversify';
 
+@injectable()
 export class TypingsModule {
 
     public TIMEOUT = 2000;

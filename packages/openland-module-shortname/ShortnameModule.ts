@@ -1,6 +1,8 @@
 import { ShortnameRepository } from './repositories/ShortnameRepository';
 import { FDB } from 'openland-module-db/FDB';
+import { injectable } from 'inversify';
 
+@injectable()
 export class ShortnameModule {
     private readonly repo = new ShortnameRepository(FDB);
 

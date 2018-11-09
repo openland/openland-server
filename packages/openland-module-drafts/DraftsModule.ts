@@ -1,6 +1,8 @@
 import { DraftsRepository } from './repositories/DraftsRepository';
 import { FDB } from 'openland-module-db/FDB';
+import { injectable } from 'inversify';
 
+@injectable()
 export class DraftsModule {
     private readonly repo = new DraftsRepository(FDB);
 

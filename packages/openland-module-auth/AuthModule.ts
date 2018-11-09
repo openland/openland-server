@@ -6,7 +6,9 @@ import { inTx } from 'foundation-orm/inTx';
 import { uuid } from 'openland-utils/uuid';
 import { randomBytes } from 'crypto';
 import { AuthCodeRepository } from './repositories/AuthCodeRepository';
+import { injectable } from 'inversify';
 
+@injectable()
 export class AuthModule {
     readonly repo = new AuthCodeRepository(FDB);
     

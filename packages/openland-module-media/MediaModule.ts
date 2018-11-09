@@ -9,10 +9,12 @@ import { promisify } from 'util';
 import { extname } from 'path';
 import { randomString } from 'openland-utils/random';
 import { FileInfo } from './FileInfo';
+import { injectable } from 'inversify';
 
 const writeFileAsync = promisify(writeFile);
 const unlinkFile = promisify(unlink);
 
+@injectable()
 export class MediaModule {
     static UPLOAD_CARE_PUB_KEY = 'b70227616b5eac21ba88';
     static UPLOAD_CARE_AUTH = 'Uploadcare.Simple b70227616b5eac21ba88:65d4918fb06d4fe0bec8';

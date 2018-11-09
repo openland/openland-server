@@ -15,7 +15,9 @@ import { ConversationRepository } from './repositories/ConversationRepository';
 import { MessageInput } from './MessageInput';
 import { ConversationEvent } from 'openland-module-db/schema';
 import { Modules } from 'openland-modules/Modules';
+import { injectable } from 'inversify';
 
+@injectable()
 export class MessagingModule {
     readonly AugmentationWorker = createAugmentationWorker();
     readonly DeliveryWorker = createDeliveryWorker();

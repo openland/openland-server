@@ -3,7 +3,9 @@ import { FDB } from 'openland-module-db/FDB';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { startAdminInterface } from './startAdminInterface';
 import { PermissionsRepository } from './repositories/PermissionsRepository';
+import { injectable } from 'inversify';
 
+@injectable()
 export class SuperModule {
     private readonly repo = new SuperRepository(FDB);
     private readonly permissionsRepo = new PermissionsRepository(FDB);

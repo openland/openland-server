@@ -1,6 +1,8 @@
 import { FDB } from 'openland-module-db/FDB';
 import { InviteRepository } from './repositories/InviteRepository';
+import { injectable } from 'inversify';
 
+@injectable()
 export class InvitesModule {
     readonly repo = new InviteRepository(FDB);
 

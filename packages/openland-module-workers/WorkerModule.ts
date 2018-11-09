@@ -2,7 +2,9 @@ import { ModernScheduller } from './src/TaskScheduler';
 import { WorkQueue } from './WorkQueue';
 import { delay } from 'openland-utils/timer';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
+import { injectable } from 'inversify';
 
+@injectable()
 export class WorkerModule {
 
     readonly TestWorker = new WorkQueue<{ value: number }, { value: number }>('sample');

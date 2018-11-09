@@ -5,7 +5,9 @@ import { userProfileIndexer } from './workers/userProfileIndexer';
 import { UserSearch } from './search/UserSearch';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { ProfileInput } from './ProfileInput';
+import { injectable } from 'inversify';
 
+@injectable()
 export class UsersModule {
 
     private readonly repo = new UserRepository(FDB);

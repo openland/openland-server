@@ -4,7 +4,9 @@ import { PushRepository } from './repositories/PushRepository';
 import { createAppleWorker } from './workers/AppleWorker';
 import { createAndroidWorker } from './workers/AndroidWorker';
 import { createWebWorker } from './workers/WebWorker';
+import { injectable } from 'inversify';
 
+@injectable()
 export class PushModule {
     readonly repository = new PushRepository(FDB);
     readonly appleWorker = createAppleWorker(this.repository);

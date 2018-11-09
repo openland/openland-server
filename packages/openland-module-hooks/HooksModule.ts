@@ -1,5 +1,7 @@
 import { Modules } from 'openland-modules/Modules';
+import { injectable } from 'inversify';
 
+@injectable()
 export class HooksModule {
 
     start = () => {
