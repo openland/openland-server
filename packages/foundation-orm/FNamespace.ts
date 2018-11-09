@@ -14,7 +14,7 @@ export class FNamespace {
     }
 
     range = async (connection: FConnection, key: (string | number)[], options?: RangeOptions) => {
-        return connection.currentContext.range(connection, [...this.namespace, ...key], options);
+        return connection.currentContext.range(connection, FKeyEncoding.encodeKey([...this.namespace, ...key]), options);
     }
 
     rangeAfter = async (connection: FConnection, key: (string | number)[], after: (string | number)[], options?: RangeOptions) => {

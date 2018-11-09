@@ -30,7 +30,7 @@ export class FStream<T extends FEntity> {
     }
 
     async tail() {
-        let res = await this.factory.connection.currentContext.range(this.factory.connection, this._subspace, { limit: 1, reverse: true });
+        let res = await this.factory.connection.currentContext.range(this.factory.connection, FKeyEncoding.encodeKey(this._subspace), { limit: 1, reverse: true });
         if (res.length === 1) {
             return FKeyEncoding.encodeKeyToString(res[0].key);
         } else {
@@ -48,7 +48,7 @@ export class FStream<T extends FEntity> {
             }
             return d;
         } else {
-            let res = await this.factory.connection.currentContext.range(this.factory.connection, this._subspace, { limit: this.limit });
+            let res = await this.factory.connection.currentContext.range(this.factory.connection, FKeyEncoding.encodeKey(this._subspace), { limit: this.limit });
             let d: T[] = [];
             for (let r of res) {
                 d.push(this.builder(r.item));

@@ -39,10 +39,10 @@ export class FTransaction implements FContext {
         this.pendingCallbacks.push(callback);
     }
 
-    async range(connection: FConnection, key: (string | number)[], options?: RangeOptions) {
+    async range(connection: FConnection, key: Buffer, options?: RangeOptions) {
         this._prepare(connection);
         return await trace(tracer, 'range', async () => {
-            let res = (await this.tx!.getRangeAll(FKeyEncoding.encodeKey(key), undefined, options));
+            let res = (await this.tx!.getRangeAll(key, undefined, options));
             return res.map((v) => ({ item: v[1] as any, key: FKeyEncoding.decodeKey(v[0]) }));
         });
     }
