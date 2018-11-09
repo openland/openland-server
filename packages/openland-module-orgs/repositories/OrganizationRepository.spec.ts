@@ -61,8 +61,12 @@ describe('OrganizationRepository', () => {
         let p2 = (await FDB.UserProfile.findById(u.id))!;
         expect(p2.primaryOrganization).toEqual(org!.id);
 
+        // Check membership
         let members = await repo.findOrganizationMembership(id);
         expect(members.length).toBe(1);
+        expect(members[0].uid).toBe(u.id);
+        expect(members[0].status).toBe('joined');
+        expect(members[0].role).toBe('admin');
     });
 
     it('should create activated organization if owner is activated', async () => {

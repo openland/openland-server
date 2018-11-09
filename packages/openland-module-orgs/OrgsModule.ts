@@ -49,7 +49,7 @@ export class OrgsModule {
     }
 
     async addUserToOrganization(uid: number, oid: number) {
-        return this.repo.addUserToOrganization(uid, oid);
+        return this.repo.addUserToOrganization(uid, oid, 'member');
     }
 
     async removeUserFromOrganization(uid: number, oid: number) {

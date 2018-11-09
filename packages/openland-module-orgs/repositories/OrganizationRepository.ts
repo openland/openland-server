@@ -21,6 +21,8 @@ export class OrganizationRepository {
         );
 
         return await inTx(async () => {
+
+            // Resolve status of organization
             let status: 'activated' | 'pending' = 'pending';
             let user = await this.entities.User.findById(uid);
             if (!user) {
@@ -63,18 +65,9 @@ export class OrganizationRepository {
             });
 
             // Add owner to organization
-            await this.addUserToOrganization(uid, organization.id);
+            await this.addUserToOrganization(uid, organization.id, 'admin');
 
             return organization;
-        });
-    }
-
-    async renameOrganization(id: number, title: string) {
-        return await inTx(async () => {
-            let org = await this.entities.Organization.findById(id);
-            let profile = await this.entities.OrganizationProfile.findById(id);
-            profile!.name = title;
-            return org;
         });
     }
 
@@ -116,6 +109,15 @@ export class OrganizationRepository {
         });
     }
 
+    async renameOrganization(id: number, title: string) {
+        return await inTx(async () => {
+            let org = await this.entities.Organization.findById(id);
+            let profile = await this.entities.OrganizationProfile.findById(id);
+            profile!.name = title;
+            return org;
+        });
+    }
+
     async findOrganizationMembers(organizationId: number) {
         return (await Promise.all((await this.entities.OrganizationMember.allFromOrganization('joined', organizationId))
             .map((v) => this.entities.User.findById(v.uid))))
@@ -151,7 +153,7 @@ export class OrganizationRepository {
             .find((v) => v!.email === email);
     }
 
-    async addUserToOrganization(uid: number, oid: number) {
+    async addUserToOrganization(uid: number, oid: number, role: 'admin' | 'member') {
         return await inTx(async () => {
             let org = await this.entities.Organization.findById(oid);
             if (!org) {
@@ -165,7 +167,7 @@ export class OrganizationRepository {
                     ex.status = 'joined';
                 }
             } else {
-                await this.entities.OrganizationMember.create(oid, uid, { status: 'joined', role: 'member' });
+                await this.entities.OrganizationMember.create(oid, uid, { status: 'joined', role: role });
             }
             let profile = await this.entities.UserProfile.findById(uid);
             if (profile && !profile.primaryOrganization) {
