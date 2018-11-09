@@ -10,8 +10,9 @@ import { Modules } from 'openland-modules/Modules';
 import { inTx } from 'foundation-orm/inTx';
 import { ChannelInvitation, ChannelLink, RoomParticipant, Conversation } from 'openland-module-db/schema';
 import { FDB } from 'openland-module-db/FDB';
-import { buildBaseImageUrl, ImageRef } from 'openland-module-media/ImageRef';
+import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { Emails } from 'openland-module-email/Emails';
+import { GQL } from '../openland-module-api/schema/SchemaSpec';
 
 interface AlphaChannelsParams {
     orgId: string;
@@ -115,7 +116,7 @@ export default {
     },
 
     Mutation: {
-        alphaChannelCreate: withAccount<{ title: string, message?: string, photoRef?: ImageRef, description?: string, oid?: string }>(async (args, uid, oid) => {
+        alphaChannelCreate: withAccount<GQL.MutationAlphaChannelCreateArgs>(async (args, uid, oid) => {
             oid = args.oid ? IDs.Organization.parse(args.oid) : oid;
             await validate({
                 title: defined(stringNotEmpty('Title cant be empty'))
@@ -133,29 +134,29 @@ export default {
             });
         }),
 
-        alphaChannelSetFeatured: withPermission<{ channelId: string, featured: boolean }>('super-admin', async (args) => {
+        alphaChannelSetFeatured: withPermission<GQL.MutationAlphaChannelSetFeaturedArgs>('super-admin', async (args) => {
             let channelId = IDs.Conversation.parse(args.channelId);
             return await Modules.Messaging.conv.setFeatured(channelId, args.featured);
         }),
 
-        alphaChannelHideFromSearch: withPermission<{ channelId: string, hidden: boolean }>('super-admin', async (args) => {
+        alphaChannelHideFromSearch: withPermission<GQL.MutationAlphaChannelHideFromSearchArgs>('super-admin', async (args) => {
             let channelId = IDs.Conversation.parse(args.channelId);
             return await Modules.Messaging.conv.setListed(channelId, !args.hidden);
         }),
 
-        alphaChannelInvite: withUser<{ channelId: string, userId: string }>(async (args, uid) => {
+        alphaChannelInvite: withUser<GQL.MutationAlphaChannelInviteArgs>(async (args, uid) => {
             let channelId = IDs.Conversation.parse(args.channelId);
             let userId = IDs.User.parse(args.userId);
             return Modules.Messaging.conv.inviteToRoom(channelId, uid, [userId]);
         }),
-        alphaChannelJoin: withUser<{ channelId: string }>(async (args, uid) => {
+        alphaChannelJoin: withUser<GQL.MutationAlphaChannelJoinArgs>(async (args, uid) => {
             let channelId = IDs.Conversation.parse(args.channelId);
             let chat = await Modules.Messaging.conv.joinRoom(channelId, uid);
             return {
                 chat
             };
         }),
-        alphaChannelInviteMembers: withUser<{ channelId: string, inviteRequests: { email: string, emailText?: string, firstName?: string, lastName?: string }[] }>(async (args, uid) => {
+        alphaChannelInviteMembers: withUser<GQL.MutationAlphaChannelInviteMembersArgs>(async (args, uid) => {
             let channelId = IDs.Conversation.parse(args.channelId);
             await validate({
                 inviteRequests: [{ email: defined(emailValidator) }]
@@ -163,8 +164,14 @@ export default {
 
             await inTx(async () => {
                 for (let inviteRequest of args.inviteRequests) {
-                    await Modules.Messaging.createChannelInvite(channelId, uid,
-                        inviteRequest.email, inviteRequest.emailText, inviteRequest.firstName, inviteRequest.lastName);
+                    await Modules.Messaging.createChannelInvite(
+                        channelId,
+                        uid,
+                        inviteRequest.email,
+                        inviteRequest.emailText || undefined,
+                        inviteRequest.firstName || undefined,
+                        inviteRequest.lastName || undefined
+                    );
                 }
             });
 

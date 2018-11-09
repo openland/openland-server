@@ -287,7 +287,6 @@ export default {
 
             return null;
         },
-
     },
     ConversationMessage: {
         id: (src: Message) => {
