@@ -7,10 +7,8 @@ import { validate, stringNotEmpty } from 'openland-utils/NewInputValidator';
 import { inTx } from 'foundation-orm/inTx';
 import { Sanitizer } from 'openland-utils/Sanitizer';
 import { withUser } from 'openland-module-api/Resolvers';
-import { ImageRef } from 'openland-module-media/ImageRef';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
-import { ProfileInput } from './ProfileInput';
-import { OrganizatinProfileInput } from 'openland-module-organization/OrganizationProfileInput';
+import { GQL } from '../openland-module-api/schema/SchemaSpec';
 
 export default {
     Profile: {
@@ -51,10 +49,10 @@ export default {
         },
     },
     Mutation: {
-        profileCreate: withUser<{ input: ProfileInput }>(async (args, uid) => {
+        profileCreate: withUser<GQL.MutationProfileCreateArgs>(async (args, uid) => {
             return await Modules.Users.createUserProfile(uid, args.input);
         }),
-        profileUpdate: withUser<{ input: ProfileInput, uid?: string }>(async (args, uid) => {
+        profileUpdate: withUser<GQL.MutationProfileUpdateArgs>(async (args, uid) => {
             return await inTx(async () => {
                 if (args.uid) {
                     let role = await Modules.Super.superRole(uid);
@@ -122,14 +120,11 @@ export default {
         }),
 
         // Deprecated
-        createProfile: withUser<{ input: ProfileInput }>(async (args, uid) => {
+        createProfile: withUser<GQL.MutationCreateProfileArgs>(async (args, uid) => {
             return await Modules.Users.createUserProfile(uid, args.input);
         }),
         // Deprecated
-        alphaCreateUserProfileAndOrganization: withUser<{
-            user: ProfileInput,
-            organization: OrganizatinProfileInput
-        }>(async (args, uid) => {
+        alphaCreateUserProfileAndOrganization: withUser<GQL.MutationAlphaCreateUserProfileAndOrganizationArgs>(async (args, uid) => {
             return await inTx(async () => {
                 let userProfile = Modules.Users.createUserProfile(uid, args.user);
                 let organization = await Modules.Orgs.createOrganization(uid, { ...args.organization, personal: false });
@@ -140,24 +135,7 @@ export default {
                 };
             });
         }),
-        updateProfile: withUser<{
-            input: {
-                firstName?: string | null,
-                lastName?: string | null,
-                photoRef?: ImageRef | null,
-                phone?: string | null,
-                email?: string | null,
-                website?: string | null,
-                about?: string | null,
-                location?: string | null,
-                alphaLocations?: string[] | null,
-                alphaLinkedin?: string | null,
-                alphaTwitter?: string | null,
-                alphaRole?: string | null,
-                alphaPrimaryOrganizationId?: string,
-            },
-            uid?: string
-        }>(async (args, uid) => {
+        updateProfile: withUser<GQL.MutationUpdateProfileArgs>(async (args, uid) => {
             return await inTx(async () => {
                 if (args.uid) {
                     let role = await Modules.Super.superRole(uid);
@@ -225,7 +203,7 @@ export default {
                     }
 
                     if (args.input.alphaPrimaryOrganizationId !== undefined) {
-                        profile.primaryOrganization = IDs.Organization.parse(args.input.alphaPrimaryOrganizationId);
+                        profile.primaryOrganization = IDs.Organization.parse(args.input.alphaPrimaryOrganizationId!);
                     }
                 });
                 return user;

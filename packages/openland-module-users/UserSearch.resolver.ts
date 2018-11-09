@@ -1,12 +1,13 @@
 import { withAny } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { FDB } from 'openland-module-db/FDB';
+import { GQL } from '../openland-module-api/schema/SchemaSpec';
 
 export default {
     Query: {
-        userSearch: withAny<{ query: string, first: number, after: string, page: number, sort?: string }>(async (args) => {
+        userSearch: withAny<GQL.QueryUserSearchArgs>(async (args) => {
 
-            let uids = await Modules.Users.searchForUsers(args.query);
+            let uids = await Modules.Users.searchForUsers(args.query || '');
 
             if (uids.length === 0) {
                 return [];
@@ -41,9 +42,9 @@ export default {
                 },
             };
         }),
-        alphaProfiles: withAny<{ query: string, first: number, after: string, page: number, sort?: string }>(async (args) => {
+        alphaProfiles: withAny<GQL.QueryAlphaProfilesArgs>(async (args) => {
 
-            let uids = await Modules.Users.searchForUsers(args.query);
+            let uids = await Modules.Users.searchForUsers(args.query || '');
 
             if (uids.length === 0) {
                 return [];

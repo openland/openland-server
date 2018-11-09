@@ -4,14 +4,13 @@ import { FDB } from 'openland-module-db/FDB';
 import { CallContext } from 'openland-module-api/CallContext';
 import { withAny, withUser, withAccount } from 'openland-module-api/Resolvers';
 import { NotFoundError } from 'openland-errors/NotFoundError';
-import { OrganizatinProfileInput } from '../OrganizationProfileInput';
 import { Modules } from 'openland-modules/Modules';
-import { ImageRef } from 'openland-module-media/ImageRef';
 import { UserError } from 'openland-errors/UserError';
 import { ErrorText } from 'openland-errors/ErrorText';
 import { inTx } from 'foundation-orm/inTx';
 import { stringNotEmpty, validate } from 'openland-utils/NewInputValidator';
 import { Sanitizer } from 'openland-utils/Sanitizer';
+import { GQL } from '../../openland-module-api/schema/SchemaSpec';
 
 export default {
     OrganizationProfile: {
@@ -47,7 +46,7 @@ export default {
             }
             return null;
         },
-        organizationProfile: withAny<{ id: string }>(async (args) => {
+        organizationProfile: withAny<GQL.QueryOrganizationProfileArgs>(async (args) => {
             // TODO: Fix permissions!11
             let res = await FDB.Organization.findById(IDs.Organization.parse(args.id));
             if (!res) {
@@ -57,27 +56,10 @@ export default {
         }),
     },
     Mutation: {
-        createOrganization: withUser<{ input: OrganizatinProfileInput }>(async (args, uid) => {
+        createOrganization: withUser<GQL.MutationCreateOrganizationArgs>(async (args, uid) => {
             return await Modules.Orgs.createOrganization(uid, args.input);
         }),
-        updateOrganizationProfile: withAccount<{
-            input: {
-                name?: string | null,
-                photoRef?: ImageRef | null,
-
-                website?: string | null
-                about?: string | null
-                twitter?: string | null
-                facebook?: string | null
-                linkedin?: string | null
-                location?: string | null
-
-                alphaPublished?: boolean | null
-                alphaEditorial?: boolean | null
-                alphaFeatured?: boolean | null
-            },
-            id?: string;
-        }>(async (args, uid, oid) => {
+        updateOrganizationProfile: withAccount<GQL.MutationUpdateOrganizationProfileArgs>(async (args, uid, oid) => {
 
             let orgId = oid;
             if (args.id) {
