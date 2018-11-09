@@ -45,7 +45,7 @@ function handleRequest(withEngine: boolean) {
             }
 
             return {
-                schema: Schema,
+                schema: Schema(),
                 context: res.locals.ctx,
                 cacheControl: withEngine,
                 tracing: withEngine,

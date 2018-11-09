@@ -1,7 +1,7 @@
 // tslint:disable:no-floating-promises
 import * as fdb from 'foundationdb';
 import { FConnection } from 'foundation-orm/FConnection';
-import { AllEntities } from 'openland-module-db/schema';
+import { AllEntities, AllEntitiesDirect } from 'openland-module-db/schema';
 import { PushRepository } from './PushRepository';
 import { withLogDisabled } from 'openland-log/withLogDisabled';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
@@ -16,7 +16,7 @@ describe('PushRepository', () => {
         db = FConnection.create()
             .at(FKeyEncoding.encodeKey(['_tests_push']));
         await db.clearRange(FKeyEncoding.encodeKey([]));
-        entities = new AllEntities(new FConnection(db, NoOpBus));
+        entities = new AllEntitiesDirect(new FConnection(db, NoOpBus));
     });
 
     it('should register web push', async () => {

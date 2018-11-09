@@ -11,7 +11,7 @@ export class OrganizationModule {
     private readonly repo: OrganizationRepository;
 
     constructor() {
-        this.repo  = new OrganizationRepository(Modules.DB.entities);
+        this.repo = new OrganizationRepository(Modules.DB.entities);
     }
 
     start = () => {
@@ -20,9 +20,39 @@ export class OrganizationModule {
 
     async createOrganization(uid: number, input: OrganizatinProfileInput) {
         return inTx(async () => {
-            let isEditor = (await Modules.Super.findSuperRole(uid)) === 'editor';
-            let res = await this.repo.createOrganization(uid, input, isEditor);
-            await Modules.Hooks.onOrganizstionCreated(uid, res.id);
+
+            // 1. Resolve user status
+            let status: 'activated' | 'pending' = 'pending';
+            let user = await Modules.DB.entities.User.findById(uid);
+            if (!user) {
+                throw Error('Unable to find user');
+            }
+            if (user.status === 'activated') {
+                status = 'activated';
+            } else if (user.status === 'suspended') {
+                throw Error('User is suspended');
+            }
+
+            // 2. Check if profile created
+            let profile = await Modules.DB.entities.UserProfile.findById(uid);
+            if (!profile) {
+                throw Error('Profile is not created');
+            }
+
+            // 3. Resolve editorial flag
+            let editorial = (await Modules.Super.findSuperRole(uid)) === 'editor';
+
+            // 4. Create Organization
+            let res = await this.repo.createOrganization(uid, input, { editorial, status });
+
+            // 5. Update primary organization if needed
+            if (!profile.primaryOrganization) {
+                profile.primaryOrganization = res.id;
+            }
+
+            // 6. Invoke Hook
+            await Modules.Hooks.onOrganizationCreated(uid, res.id);
+
             return res;
         });
     }

@@ -599,7 +599,17 @@ export class NullableEntityFactory extends FEntityFactory<NullableEntity> {
     }
 }
 
-export class AllEntities extends FDBInstance {
+export interface AllEntities {
+    readonly connection: FConnection;
+    readonly SimpleEntity: SimpleEntityFactory;
+    readonly VersionedEntity: VersionedEntityFactory;
+    readonly TimestampedEntity: TimestampedEntityFactory;
+    readonly IndexedEntity: IndexedEntityFactory;
+    readonly IndexedRangeEntity: IndexedRangeEntityFactory;
+    readonly IndexedPartialEntity: IndexedPartialEntityFactory;
+    readonly NullableEntity: NullableEntityFactory;
+}
+export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     static readonly schema: FEntitySchema[] = [
         SimpleEntityFactory.schema,
         VersionedEntityFactory.schema,
@@ -634,5 +644,35 @@ export class AllEntities extends FDBInstance {
         this.allEntities.push(this.IndexedPartialEntity);
         this.NullableEntity = new NullableEntityFactory(connection);
         this.allEntities.push(this.NullableEntity);
+    }
+}
+export class AllEntitiesProxy implements AllEntities {
+    get connection(): FConnection {
+        return this.resolver().connection;
+    }
+    get SimpleEntity(): SimpleEntityFactory {
+        return this.resolver().SimpleEntity;
+    }
+    get VersionedEntity(): VersionedEntityFactory {
+        return this.resolver().VersionedEntity;
+    }
+    get TimestampedEntity(): TimestampedEntityFactory {
+        return this.resolver().TimestampedEntity;
+    }
+    get IndexedEntity(): IndexedEntityFactory {
+        return this.resolver().IndexedEntity;
+    }
+    get IndexedRangeEntity(): IndexedRangeEntityFactory {
+        return this.resolver().IndexedRangeEntity;
+    }
+    get IndexedPartialEntity(): IndexedPartialEntityFactory {
+        return this.resolver().IndexedPartialEntity;
+    }
+    get NullableEntity(): NullableEntityFactory {
+        return this.resolver().NullableEntity;
+    }
+    private resolver: () => AllEntities;
+    constructor(resolver: () => AllEntities) {
+        this.resolver = resolver;
     }
 }

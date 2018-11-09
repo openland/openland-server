@@ -5,6 +5,7 @@ import { MediaModule } from 'openland-module-media/MediaModule';
 import { WorkerModule } from 'openland-module-workers/WorkerModule';
 import { PushModule } from 'openland-module-push/PushModule';
 import { PresenceModule } from 'openland-module-presences/PresenceModule';
+import { EmailModuleImpl } from 'openland-module-email/EmailModule.impl';
 import { EmailModule } from 'openland-module-email/EmailModule';
 import { UsersModule } from 'openland-module-users/UsersModule';
 import { MessagingModule } from 'openland-module-messaging/MessagingModule';
@@ -19,15 +20,50 @@ import { OrganizationModule } from 'openland-module-organization/OrganizationMod
 import { InvitesModule } from 'openland-module-invites/InvitesModule';
 import { PubsubModule } from 'openland-module-pubsub/PubsubModule';
 import { ApiModule } from 'openland-module-api/ApiModule';
+import { OrganizationRepository } from 'openland-module-organization/repositories/OrganizationRepository';
+import { AuthModule } from 'openland-module-auth/AuthModule';
+import { AllEntities, AllEntitiesDirect } from 'openland-module-db/schema';
+import { FConnection } from 'foundation-orm/FConnection';
+import { EventBus } from 'openland-module-pubsub/EventBus';
 
 export async function loadAllModules() {
+
+    container.bind<AllEntities>('FDB')
+        .toDynamicValue(() => new AllEntitiesDirect(new FConnection(FConnection.create(), EventBus)))
+        .inSingletonScope();
+
+    container.bind(DBModule).toSelf().inSingletonScope();
+    container.bind(HooksModule).toSelf().inSingletonScope();
+    container.bind(MediaModule).toSelf().inSingletonScope();
+    container.bind(AuthModule).toSelf().inSingletonScope();
+    container.bind(WorkerModule).toSelf().inSingletonScope();
+    container.bind(PushModule).toSelf().inSingletonScope();
+    container.bind(PresenceModule).toSelf().inSingletonScope();
+    container.bind('EmailModule').to(EmailModuleImpl).inSingletonScope();
+    container.bind(MessagingModule).toSelf().inSingletonScope();
+    container.bind(UsersModule).toSelf().inSingletonScope();
+    container.bind(FeaturesModule).toSelf().inSingletonScope();
+    container.bind(SearchModule).toSelf().inSingletonScope();
+    container.bind(SuperModule).toSelf().inSingletonScope();
+    container.bind(ShortnameModule).toSelf().inSingletonScope();
+    container.bind(HyperlogModule).toSelf().inSingletonScope();
+    container.bind(DraftsModule).toSelf().inSingletonScope();
+    container.bind(TypingsModule).toSelf().inSingletonScope();
+
+    container.bind(OrganizationModule).toSelf().inSingletonScope();
+    container.bind(OrganizationRepository).toSelf();
+
+    container.bind(InvitesModule).toSelf().inSingletonScope();
+    container.bind(PubsubModule).toSelf().inSingletonScope();
+    container.bind(ApiModule).toSelf().inSingletonScope();
+
     await container.get(HooksModule).start();
     await container.get(DBModule).start();
     await container.get(MediaModule).start();
     await container.get(WorkerModule).start();
     await container.get(PushModule).start();
     await container.get(PresenceModule).start();
-    await container.get(EmailModule).start();
+    await container.get<EmailModule>('EmailModule').start();
     await container.get(UsersModule).start();
     await container.get(MessagingModule).start();
     await container.get(FeaturesModule).start();

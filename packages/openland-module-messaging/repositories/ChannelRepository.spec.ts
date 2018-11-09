@@ -1,7 +1,7 @@
 import * as fdb from 'foundationdb';
 import { FConnection } from 'foundation-orm/FConnection';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
-import { AllEntities } from 'openland-module-db/schema';
+import { AllEntities, AllEntitiesDirect } from 'openland-module-db/schema';
 import { NativeValue } from 'foundationdb/dist/lib/native';
 import { ChannelRepository } from './ChannelRepository';
 import { NoOpBus } from 'foundation-orm/tests/NoOpBus';
@@ -15,7 +15,7 @@ describe('ChannelRepository', () => {
         db = FConnection.create()
             .at(FKeyEncoding.encodeKey(['_tests_channel_invites']));
         await db.clearRange(FKeyEncoding.encodeKey([]));
-        entities = new AllEntities(new FConnection(db, NoOpBus));
+        entities = new AllEntitiesDirect(new FConnection(db, NoOpBus));
     });
 
     it('should create links', async () => {

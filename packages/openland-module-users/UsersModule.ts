@@ -6,6 +6,7 @@ import { UserSearch } from './search/UserSearch';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { ProfileInput } from './ProfileInput';
 import { injectable } from 'inversify';
+import { inTx } from 'foundation-orm/inTx';
 
 @injectable()
 export class UsersModule {
@@ -21,6 +22,14 @@ export class UsersModule {
 
     async createUser(authId: string, email: string) {
         return this.repo.createUser(authId, email);
+    }
+
+    async activateUser(uid: number) {
+        await inTx(async () => {
+            if (await this.repo.activateUser(uid)) {
+                // TODO: Send email
+            }
+        });
     }
 
     async profileById(uid: number) {

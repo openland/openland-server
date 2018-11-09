@@ -1,6 +1,6 @@
 // tslint:disable:no-floating-promises
 import * as fdb from 'foundationdb';
-import { AllEntities } from './testSchema';
+import { AllEntities, AllEntitiesDirect } from './testSchema';
 import { FConnection } from '../FConnection';
 import { inTx } from '../inTx';
 import { withLogDisabled } from 'openland-log/withLogDisabled';
@@ -17,7 +17,7 @@ describe('FEntity Versioned', () => {
         db = FConnection.create()
             .at(FKeyEncoding.encodeKey(['_tests_versioned']));
         await db.clearRange(FKeyEncoding.encodeKey([]));
-        testEntities = new AllEntities(new FConnection(db, NoOpBus));
+        testEntities = new AllEntitiesDirect(new FConnection(db, NoOpBus));
     });
 
     it('should create with version number eq to one', async () => {

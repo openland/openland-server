@@ -1,5 +1,4 @@
-import { AllEntities } from './schema';
-import { FConnection } from 'foundation-orm/FConnection';
-import { EventBus } from 'openland-module-pubsub/EventBus';
+import { AllEntities, AllEntitiesProxy } from './schema';
+import { container } from 'openland-modules/Modules.container';
 
-export const FDB = new AllEntities(new FConnection(FConnection.create(), EventBus));
+export const FDB = new AllEntitiesProxy(() => container.get('FDB')) as AllEntities;

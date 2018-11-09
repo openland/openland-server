@@ -13,29 +13,38 @@ import { buildResolvers } from 'openland-graphql/buildResolvers';
 import { withTracingSpan } from 'openland-log/withTracing';
 import { withCache } from 'foundation-orm/withCache';
 
-let schema = buildSchema(__dirname + '/../../');
-let resolvers = buildResolvers(__dirname + '/../../');
-
-export const Schema = wrapAllResolvers(
-    makeExecutableSchema({
-        typeDefs: injectIDScalars(schema),
-        resolvers: merge(
-            Basics.Resolvers,
-            IDScalars,
-            ...resolvers
-        ),
-        schemaDirectives: Directives
-    }),
-    async (
-        field: GraphQLField<any, any>,
-        originalResolver: GraphQLFieldResolver<any, any, any>,
-        root: any,
-        args: any,
-        context: any,
-        info: any
-    ) => {
-        if (context.span) {
-            return await withTracingSpan(context.span, async () => {
+export const Schema = () => {
+    let schema = buildSchema(__dirname + '/../../');
+    let resolvers = buildResolvers(__dirname + '/../../');
+    return wrapAllResolvers(
+        makeExecutableSchema({
+            typeDefs: injectIDScalars(schema),
+            resolvers: merge(
+                Basics.Resolvers,
+                IDScalars,
+                ...resolvers
+            ),
+            schemaDirectives: Directives
+        }),
+        async (
+            field: GraphQLField<any, any>,
+            originalResolver: GraphQLFieldResolver<any, any, any>,
+            root: any,
+            args: any,
+            context: any,
+            info: any
+        ) => {
+            if (context.span) {
+                return await withTracingSpan(context.span, async () => {
+                    return await trace(gqlTracer, field.name, async () => {
+                        return await withLogContext(field.name, async () => {
+                            return await withCache(async () => {
+                                return await originalResolver(root, args, context, info);
+                            });
+                        });
+                    });
+                });
+            } else {
                 return await trace(gqlTracer, field.name, async () => {
                     return await withLogContext(field.name, async () => {
                         return await withCache(async () => {
@@ -43,15 +52,7 @@ export const Schema = wrapAllResolvers(
                         });
                     });
                 });
-            });
-        } else {
-            return await trace(gqlTracer, field.name, async () => {
-                return await withLogContext(field.name, async () => {
-                    return await withCache(async () => {
-                        return await originalResolver(root, args, context, info);
-                    });
-                });
-            });
+            }
         }
-    }
-);
+    );
+};

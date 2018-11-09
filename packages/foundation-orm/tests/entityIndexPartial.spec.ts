@@ -1,7 +1,7 @@
 // tslint:disable:no-floating-promises
 import * as fdb from 'foundationdb';
 import { FConnection } from 'foundation-orm/FConnection';
-import { AllEntities } from './testSchema';
+import { AllEntities, AllEntitiesDirect } from './testSchema';
 import { inTx } from 'foundation-orm/inTx';
 import { withLogDisabled } from 'openland-log/withLogDisabled';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
@@ -17,7 +17,7 @@ describe('Partial Index', () => {
         db = FConnection.create()
             .at(FKeyEncoding.encodeKey(['_tests_partial']));
         await db.clearRange(FKeyEncoding.encodeKey([]));
-        testEntities = new AllEntities(new FConnection(db, NoOpBus));
+        testEntities = new AllEntitiesDirect(new FConnection(db, NoOpBus));
     });
 
     it('should create indexes if condition true', async () => {

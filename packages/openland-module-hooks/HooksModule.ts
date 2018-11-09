@@ -8,7 +8,7 @@ export class HooksModule {
         // Nothing to do
     }
 
-    onOrganizstionCreated = async (uid: number, oid: number) => {
+    onOrganizationCreated = async (uid: number, oid: number) => {
         // let chat = await Repos.Chats.loadOrganizationalChat(oid, oid, tx);
         // let profile = await DB.UserProfile.find({ where: { userId: uid }, transaction: tx });
         // await Repos.Chats.sendMessage(tx, chat.id, uid, { message: `${profile!.firstName} has joined organization`, isService: true, isMuted: true });

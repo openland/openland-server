@@ -5715,7 +5715,57 @@ export class OrganizationInviteLinkFactory extends FEntityFactory<OrganizationIn
     }
 }
 
-export class AllEntities extends FDBInstance {
+export interface AllEntities {
+    readonly connection: FConnection;
+    readonly Online: OnlineFactory;
+    readonly Presence: PresenceFactory;
+    readonly AuthToken: AuthTokenFactory;
+    readonly ServiceCache: ServiceCacheFactory;
+    readonly Lock: LockFactory;
+    readonly Task: TaskFactory;
+    readonly PushFirebase: PushFirebaseFactory;
+    readonly PushApple: PushAppleFactory;
+    readonly PushWeb: PushWebFactory;
+    readonly UserProfilePrefil: UserProfilePrefilFactory;
+    readonly User: UserFactory;
+    readonly UserProfile: UserProfileFactory;
+    readonly Organization: OrganizationFactory;
+    readonly OrganizationProfile: OrganizationProfileFactory;
+    readonly OrganizationEditorial: OrganizationEditorialFactory;
+    readonly OrganizationMember: OrganizationMemberFactory;
+    readonly FeatureFlag: FeatureFlagFactory;
+    readonly OrganizationFeatures: OrganizationFeaturesFactory;
+    readonly ReaderState: ReaderStateFactory;
+    readonly SuperAdmin: SuperAdminFactory;
+    readonly UserSettings: UserSettingsFactory;
+    readonly ShortnameReservation: ShortnameReservationFactory;
+    readonly AuthCodeSession: AuthCodeSessionFactory;
+    readonly Conversation: ConversationFactory;
+    readonly ConversationPrivate: ConversationPrivateFactory;
+    readonly ConversationOrganization: ConversationOrganizationFactory;
+    readonly ConversationRoom: ConversationRoomFactory;
+    readonly RoomProfile: RoomProfileFactory;
+    readonly RoomParticipant: RoomParticipantFactory;
+    readonly ConversationReceiver: ConversationReceiverFactory;
+    readonly Sequence: SequenceFactory;
+    readonly Message: MessageFactory;
+    readonly ConversationSeq: ConversationSeqFactory;
+    readonly ConversationEvent: ConversationEventFactory;
+    readonly UserDialog: UserDialogFactory;
+    readonly UserDialogSettings: UserDialogSettingsFactory;
+    readonly UserDialogEvent: UserDialogEventFactory;
+    readonly UserMessagingState: UserMessagingStateFactory;
+    readonly UserNotificationsState: UserNotificationsStateFactory;
+    readonly HyperLog: HyperLogFactory;
+    readonly MessageDraft: MessageDraftFactory;
+    readonly ChannelInvitation: ChannelInvitationFactory;
+    readonly ChannelLink: ChannelLinkFactory;
+    readonly AppInviteLink: AppInviteLinkFactory;
+    readonly SampleEntity: SampleEntityFactory;
+    readonly OrganizationPublicInviteLink: OrganizationPublicInviteLinkFactory;
+    readonly OrganizationInviteLink: OrganizationInviteLinkFactory;
+}
+export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     static readonly schema: FEntitySchema[] = [
         OnlineFactory.schema,
         PresenceFactory.schema,
@@ -5910,5 +5960,155 @@ export class AllEntities extends FDBInstance {
         this.allEntities.push(this.OrganizationPublicInviteLink);
         this.OrganizationInviteLink = new OrganizationInviteLinkFactory(connection);
         this.allEntities.push(this.OrganizationInviteLink);
+    }
+}
+export class AllEntitiesProxy implements AllEntities {
+    get connection(): FConnection {
+        return this.resolver().connection;
+    }
+    get Online(): OnlineFactory {
+        return this.resolver().Online;
+    }
+    get Presence(): PresenceFactory {
+        return this.resolver().Presence;
+    }
+    get AuthToken(): AuthTokenFactory {
+        return this.resolver().AuthToken;
+    }
+    get ServiceCache(): ServiceCacheFactory {
+        return this.resolver().ServiceCache;
+    }
+    get Lock(): LockFactory {
+        return this.resolver().Lock;
+    }
+    get Task(): TaskFactory {
+        return this.resolver().Task;
+    }
+    get PushFirebase(): PushFirebaseFactory {
+        return this.resolver().PushFirebase;
+    }
+    get PushApple(): PushAppleFactory {
+        return this.resolver().PushApple;
+    }
+    get PushWeb(): PushWebFactory {
+        return this.resolver().PushWeb;
+    }
+    get UserProfilePrefil(): UserProfilePrefilFactory {
+        return this.resolver().UserProfilePrefil;
+    }
+    get User(): UserFactory {
+        return this.resolver().User;
+    }
+    get UserProfile(): UserProfileFactory {
+        return this.resolver().UserProfile;
+    }
+    get Organization(): OrganizationFactory {
+        return this.resolver().Organization;
+    }
+    get OrganizationProfile(): OrganizationProfileFactory {
+        return this.resolver().OrganizationProfile;
+    }
+    get OrganizationEditorial(): OrganizationEditorialFactory {
+        return this.resolver().OrganizationEditorial;
+    }
+    get OrganizationMember(): OrganizationMemberFactory {
+        return this.resolver().OrganizationMember;
+    }
+    get FeatureFlag(): FeatureFlagFactory {
+        return this.resolver().FeatureFlag;
+    }
+    get OrganizationFeatures(): OrganizationFeaturesFactory {
+        return this.resolver().OrganizationFeatures;
+    }
+    get ReaderState(): ReaderStateFactory {
+        return this.resolver().ReaderState;
+    }
+    get SuperAdmin(): SuperAdminFactory {
+        return this.resolver().SuperAdmin;
+    }
+    get UserSettings(): UserSettingsFactory {
+        return this.resolver().UserSettings;
+    }
+    get ShortnameReservation(): ShortnameReservationFactory {
+        return this.resolver().ShortnameReservation;
+    }
+    get AuthCodeSession(): AuthCodeSessionFactory {
+        return this.resolver().AuthCodeSession;
+    }
+    get Conversation(): ConversationFactory {
+        return this.resolver().Conversation;
+    }
+    get ConversationPrivate(): ConversationPrivateFactory {
+        return this.resolver().ConversationPrivate;
+    }
+    get ConversationOrganization(): ConversationOrganizationFactory {
+        return this.resolver().ConversationOrganization;
+    }
+    get ConversationRoom(): ConversationRoomFactory {
+        return this.resolver().ConversationRoom;
+    }
+    get RoomProfile(): RoomProfileFactory {
+        return this.resolver().RoomProfile;
+    }
+    get RoomParticipant(): RoomParticipantFactory {
+        return this.resolver().RoomParticipant;
+    }
+    get ConversationReceiver(): ConversationReceiverFactory {
+        return this.resolver().ConversationReceiver;
+    }
+    get Sequence(): SequenceFactory {
+        return this.resolver().Sequence;
+    }
+    get Message(): MessageFactory {
+        return this.resolver().Message;
+    }
+    get ConversationSeq(): ConversationSeqFactory {
+        return this.resolver().ConversationSeq;
+    }
+    get ConversationEvent(): ConversationEventFactory {
+        return this.resolver().ConversationEvent;
+    }
+    get UserDialog(): UserDialogFactory {
+        return this.resolver().UserDialog;
+    }
+    get UserDialogSettings(): UserDialogSettingsFactory {
+        return this.resolver().UserDialogSettings;
+    }
+    get UserDialogEvent(): UserDialogEventFactory {
+        return this.resolver().UserDialogEvent;
+    }
+    get UserMessagingState(): UserMessagingStateFactory {
+        return this.resolver().UserMessagingState;
+    }
+    get UserNotificationsState(): UserNotificationsStateFactory {
+        return this.resolver().UserNotificationsState;
+    }
+    get HyperLog(): HyperLogFactory {
+        return this.resolver().HyperLog;
+    }
+    get MessageDraft(): MessageDraftFactory {
+        return this.resolver().MessageDraft;
+    }
+    get ChannelInvitation(): ChannelInvitationFactory {
+        return this.resolver().ChannelInvitation;
+    }
+    get ChannelLink(): ChannelLinkFactory {
+        return this.resolver().ChannelLink;
+    }
+    get AppInviteLink(): AppInviteLinkFactory {
+        return this.resolver().AppInviteLink;
+    }
+    get SampleEntity(): SampleEntityFactory {
+        return this.resolver().SampleEntity;
+    }
+    get OrganizationPublicInviteLink(): OrganizationPublicInviteLinkFactory {
+        return this.resolver().OrganizationPublicInviteLink;
+    }
+    get OrganizationInviteLink(): OrganizationInviteLinkFactory {
+        return this.resolver().OrganizationInviteLink;
+    }
+    private resolver: () => AllEntities;
+    constructor(resolver: () => AllEntities) {
+        this.resolver = resolver;
     }
 }

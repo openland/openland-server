@@ -40,8 +40,12 @@ export class UserRepository {
             if (!user) {
                 throw new NotFoundError('Unable to find user');
             }
-            user.status = 'activated';
-            return user;
+            if (user.status !== 'activated') {
+                user.status = 'activated';
+                return true;
+            } else {
+                return false;
+            }
         });
     }
 

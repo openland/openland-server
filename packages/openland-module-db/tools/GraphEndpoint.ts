@@ -11,14 +11,16 @@ import {
 } from 'graphql';
 import * as Case from 'change-case';
 
-import { AllEntities } from './schema';
-import { FDB } from './FDB';
+import { AllEntitiesDirect } from '../schema';
 import { FEntitySchema, FEntitySchemaIndex } from 'foundation-orm/FEntitySchema';
 import { inTx } from 'foundation-orm/inTx';
 import { delay } from 'openland-utils/timer';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { IdsFactory } from 'openland-module-api/IDs';
+import { FConnection } from 'foundation-orm/FConnection';
+import { EventBus } from 'openland-module-pubsub/EventBus';
 
+let FDB = new AllEntitiesDirect(new FConnection(FConnection.create(), EventBus));
 let entitiesMap: any = {};
 let queries: any = {};
 let mutations: any = {};
@@ -95,7 +97,7 @@ function extractArguments(src: any, entiy: FEntitySchema, index: FEntitySchemaIn
     return res;
 }
 
-for (let e of AllEntities.schema) {
+for (let e of AllEntitiesDirect.schema) {
     let fields: any = {};
     let inputFields: any = {};
     let args: any = {};

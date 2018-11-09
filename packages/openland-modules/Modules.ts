@@ -21,7 +21,7 @@ import { ApiModule } from 'openland-module-api/ApiModule';
 import { HooksModule } from 'openland-module-hooks/HooksModule';
 import { container } from './Modules.container';
 
-class ModulesImpl  {
+class ModulesImpl {
 
     get Hooks() {
         return container.get(HooksModule);
@@ -44,8 +44,8 @@ class ModulesImpl  {
     get Presence() {
         return container.get(PresenceModule);
     }
-    get Email() {
-        return container.get(EmailModule);
+    get Email(): EmailModule {
+        return container.get<EmailModule>('EmailModule');
     }
     get Messaging() {
         return container.get(MessagingModule);

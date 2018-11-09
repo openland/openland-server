@@ -15,7 +15,7 @@ export class OrganizationRepository {
         this.entities = entities;
     }
 
-    async createOrganization(uid: number, input: OrganizatinProfileInput, editorial: boolean) {
+    async createOrganization(uid: number, input: OrganizatinProfileInput, opts: { editorial: boolean, status: 'activated' | 'pending' | 'suspended' }) {
         await validate(
             stringNotEmpty('Name can\'t be empty!'),
             input.name,
@@ -23,18 +23,6 @@ export class OrganizationRepository {
         );
 
         return await inTx(async () => {
-
-            // Resolve status of organization
-            let status: 'activated' | 'pending' = 'pending';
-            let user = await this.entities.User.findById(uid);
-            if (!user) {
-                throw Error('Unable to find user');
-            }
-            if (user.status === 'activated') {
-                status = 'activated';
-            } else if (user.status === 'suspended') {
-                throw Error('User is suspended');
-            }
 
             // Fetch Organization Number
             let seq = (await this.entities.Sequence.findById('org-id'));
@@ -48,8 +36,8 @@ export class OrganizationRepository {
             let organization = await this.entities.Organization.create(orgId, {
                 kind: input.isCommunity ? 'community' : 'organization',
                 ownerId: uid,
-                status: status,
-                editorial: editorial,
+                status: opts.status,
+                editorial: opts.editorial,
             });
 
             // Create organization profile
@@ -67,7 +55,9 @@ export class OrganizationRepository {
             });
 
             // Add owner to organization
-            await this.addUserToOrganization(uid, organization.id, 'admin');
+            await this.entities.OrganizationMember.create(organization.id, uid, {
+                status: 'joined', role: 'admin'
+            });
 
             return organization;
         });

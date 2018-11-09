@@ -109,7 +109,7 @@ export async function initApi(isTest: boolean) {
 
         function createWebSocketServer(server: HttpServer) {
             new SubscriptionServer({
-                schema: Schema,
+                schema: Schema(),
                 execute: async (schema: GraphQLSchema, document: DocumentNode, rootValue?: any, contextValue?: any, variableValues?: {
                     [key: string]: any;
                 }, operationName?: string, fieldResolver?: GraphQLFieldResolver<any, any>) => {

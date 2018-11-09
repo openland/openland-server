@@ -1,5 +1,5 @@
 import * as fdb from 'foundationdb';
-import { AllEntities } from './testSchema';
+import { AllEntities, AllEntitiesDirect } from './testSchema';
 import { FConnection } from '../FConnection';
 import { inTx } from '../inTx';
 import { delay } from '../../openland-utils/timer';
@@ -18,7 +18,7 @@ describe('FWatch', () => {
         db = FConnection.create()
             .at(FKeyEncoding.encodeKey(['_tests_watch']));
         await db.clearRange(FKeyEncoding.encodeKey([]));
-        testEntities = new AllEntities(new FConnection(db, NoOpBus));
+        testEntities = new AllEntitiesDirect(new FConnection(db, NoOpBus));
         FWatch.POOL_TIMEOUT = 10;
     });
 

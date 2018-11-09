@@ -4,7 +4,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import compression from 'compression';
 import { graphqlExpress, graphiqlExpress } from 'apollo-server-express';
-import { FDBGraphqlSchema } from 'openland-module-db/GraphEndpoint';
+import { FDBGraphqlSchema } from 'openland-module-db/tools/GraphEndpoint';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { execute, subscribe } from 'graphql';
 import * as url from 'url';
