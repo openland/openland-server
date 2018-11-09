@@ -23,6 +23,7 @@ import { withLogContext } from 'openland-log/withLogContext';
 import { FDB } from 'openland-module-db/FDB';
 import { FEntity } from 'foundation-orm/FEntity';
 import { buildBaseImageUrl, ImageRef } from 'openland-module-media/ImageRef';
+import { GQL } from '../openland-module-api/schema/SchemaSpec';
 
 export default {
     Conversation: {
@@ -618,7 +619,7 @@ export default {
             });
             return 'ok';
         }),
-        alphaSendMessage: withUser<{ conversationId: string, message?: string | null, file?: string | null, repeatKey?: string | null, replyMessages?: number[] | null, mentions?: number[] | null }>(async (args, uid) => {
+        alphaSendMessage: withUser<GQL.MutationAlphaSendMessageArgs>(async (args, uid) => {
             // validate({ message: stringNotEmpty() }, args);
             return await withLogContext('send-message', async () => {
                 let conversationId = IDs.Conversation.parse(args.conversationId);
