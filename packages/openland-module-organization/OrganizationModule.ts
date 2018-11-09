@@ -5,6 +5,8 @@ import { OrganizatinProfileInput } from './OrganizationProfileInput';
 import { inTx } from 'foundation-orm/inTx';
 import { Emails } from 'openland-module-email/Emails';
 import { Modules } from 'openland-modules/Modules';
+import { ErrorText } from 'openland-errors/ErrorText';
+import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 
 @injectable()
 export class OrganizationModule {
@@ -88,7 +90,7 @@ export class OrganizationModule {
         });
     }
 
-    async addUserToOrganization(uid: number, oid: number) {
+    async addUserToOrganization(uid: number, oid: number, by: number) {
         return await inTx(async () => {
 
             // Check user state
@@ -105,28 +107,105 @@ export class OrganizationModule {
             }
 
             // Add member
-            if (await this.repo.addUserToOrganization(uid, oid)) {
-                // Update primary organization if there are no one set and organization is activated
-                if (!profile.primaryOrganization) {
-                    let org = (await Modules.DB.entities.Organization.findById(oid))!;
-                    if (org.status === 'activated') {
+            if (await this.repo.addUserToOrganization(uid, oid, by)) {
+                let org = (await Modules.DB.entities.Organization.findById(oid))!;
+                if (org.status === 'activated') {
+
+                    // Activate user if organization is in activated state
+                    await Modules.Users.activateUser(uid);
+
+                    // Update primary organization if needed
+                    if (!profile.primaryOrganization) {
                         profile.primaryOrganization = oid;
                     }
-                    return org;
                 }
+                return org;
             }
 
             return await Modules.DB.entities.Organization.findById(oid);
         });
     }
 
-    async removeUserFromOrganization(uid: number, oid: number) {
-        return this.repo.removeUserFromOrganization(uid, oid);
+    async removeUserFromOrganization(uid: number, oid: number, by: number) {
+        return await inTx(async () => {
+
+            // Check current membership state
+            let member = await FDB.OrganizationMember.findById(oid, uid);
+            if (!member) {
+                return false;
+            }
+            if (member.status === 'left') {
+                return false;
+            }
+
+            // Check permissions
+            let isAdmin = await this.isUserAdmin(by, oid);
+            let invitedByUser = (member.invitedBy && (member.invitedBy === uid)) || false;
+            if (!isAdmin && !invitedByUser) {
+                throw new AccessDeniedError(ErrorText.permissionDenied);
+            }
+
+            // Disallow kicking admins by non-admins
+            if (member.role === 'admin' && !isAdmin) {
+                throw new AccessDeniedError(ErrorText.permissionDenied);
+            }
+
+            // Disallow owner kick
+            if (await this.isUserOwner(uid, oid)) {
+                throw new AccessDeniedError(ErrorText.permissionDenied);
+            }
+
+            if (await this.repo.removeUserFromOrganization(uid, oid)) {
+                let profile = (await FDB.UserProfile.findById(uid))!;
+                if (profile.primaryOrganization === oid) {
+                    let orgs = await this.repo.findUserOrganizations(uid);
+                    if (orgs.length === 0) {
+                        profile.primaryOrganization = null;
+                    } else {
+                        profile.primaryOrganization = orgs[0];
+                    }
+                    await profile.flush();
+                }
+                return true;
+            }
+
+            return false;
+        });
     }
 
-    async renameOrganization(id: number, title: string) {
-        return this.repo.renameOrganization(id, title);
+    //
+    // Permissions
+    //
+
+    async updateMemberRole(uid: number, oid: number, role: 'admin' | 'member', by: number) {
+        return await inTx(async () => {
+            let isOwner = await this.isUserOwner(by, oid);
+            if (!isOwner) {
+                throw new AccessDeniedError('Only owners can change roles');
+            }
+            if (await this.isUserOwner(uid, oid)) {
+                throw new AccessDeniedError('Owner role can\'t be changed');
+            }
+
+            return await this.repo.updateMembershipRole(uid, oid, role);
+        });
     }
+
+    async isUserMember(uid: number, orgId: number) {
+        return this.repo.isUserMember(uid, orgId);
+    }
+
+    async isUserAdmin(uid: number, oid: number) {
+        return this.repo.isUserAdmin(uid, oid);
+    }
+
+    async isUserOwner(uid: number, oid: number) {
+        return this.repo.isUserOwner(uid, oid);
+    }
+
+    //
+    // Queries
+    //
 
     async findOrganizationMembers(organizationId: number) {
         return this.repo.findOrganizationMembers(organizationId);
@@ -140,19 +219,19 @@ export class OrganizationModule {
         return this.repo.findOrganizationMembership(oid);
     }
 
-    async isUserMember(uid: number, orgId: number) {
-        return this.repo.isUserMember(uid, orgId);
-    }
-
-    async isUserAdmin(uid: number, oid: number) {
-        return this.repo.isUserAdmin(uid, oid);
-    }
-
     async hasMemberWithEmail(oid: number, email: string) {
         return this.repo.hasMemberWithEmail(oid, email);
     }
 
     async findUserMembership(uid: number, oid: number) {
         return this.repo.findUserMembership(uid, oid);
+    }
+
+    //
+    // Deprecated
+    //
+
+    async renameOrganization(id: number, title: string) {
+        return this.repo.renameOrganization(id, title);
     }
 }

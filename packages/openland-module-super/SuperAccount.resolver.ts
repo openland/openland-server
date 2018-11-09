@@ -45,10 +45,10 @@ export default {
             return Modules.Orgs.suspendOrganization(IDs.SuperAccount.parse(args.id));
         }),
         superAccountMemberAdd: withPermission<{ id: string, userId: string }>('super-admin', (args) => {
-            return Modules.Orgs.addUserToOrganization(IDs.User.parse(args.userId), IDs.SuperAccount.parse(args.id));
+            return Modules.Orgs.addUserToOrganization(IDs.User.parse(args.userId), IDs.SuperAccount.parse(args.id), IDs.User.parse(args.userId));
         }),
         superAccountMemberRemove: withPermission<{ id: string, userId: string }>('super-admin', (args) => {
-            return Modules.Orgs.removeUserFromOrganization(IDs.User.parse(args.userId), IDs.SuperAccount.parse(args.id));
+            return Modules.Orgs.removeUserFromOrganization(IDs.User.parse(args.userId), IDs.SuperAccount.parse(args.id), IDs.User.parse(args.userId));
         }),
         superAccountChannelMemberAdd: withPermission<{ id: string, userId: string }>('super-admin', async (args) => {
             await Modules.Messaging.addToChannel(IDs.Conversation.parse(args.id), IDs.User.parse(args.userId));

@@ -1,13 +1,11 @@
 import { withAccount } from 'openland-module-api/Resolvers';
 import { inTx } from 'foundation-orm/inTx';
-import { FDB } from 'openland-module-db/FDB';
-import { IDs, IdsFactory } from 'openland-module-api/IDs';
+import { IDs } from 'openland-module-api/IDs';
 import { UserError } from 'openland-errors/UserError';
 import { ErrorText } from 'openland-errors/ErrorText';
 import { validate, defined, emailValidator } from 'openland-utils/NewInputValidator';
 import { Modules } from 'openland-modules/Modules';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
-import { NotFoundError } from 'openland-errors/NotFoundError';
 import { Emails } from 'openland-module-email/Emails';
 import { resolveOrganizationJoinedMembers } from './utils/resolveOrganizationJoinedMembers';
 
@@ -52,98 +50,22 @@ export default {
         }),
     },
     Mutation: {
-
-        alphaOrganizationRemoveMember: withAccount<{ memberId: string, organizationId: string }>(async (args, uid, oid) => {
-            oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
-            return await inTx(async () => {
-                let isOwner = await Modules.Orgs.isUserAdmin(uid, oid);
-
-                let idType = IdsFactory.resolve(args.memberId);
-
-                if (idType.type.typeName === 'User') {
-                    let memberId = IDs.User.parse(args.memberId);
-
-                    let member = await FDB.OrganizationMember.findById(oid, memberId);
-
-                    if (!member) {
-                        return 'ok';
-                    }
-
-                    let invitedByUser = (member.invitedBy && (member.invitedBy === uid)) || false;
-
-                    if (!isOwner && !invitedByUser) {
-                        throw new AccessDeniedError(ErrorText.permissionDenied);
-                    }
-
-                    if (isOwner && (memberId === uid)) {
-                        throw new AccessDeniedError(ErrorText.permissionDenied);
-                    }
-
-                    member.status = 'left';
-
-                    // await Emails.sendMemberRemovedEmail(oid, memberId, tx);
-                    // pick new primary organization
-
-                    let user = (await Modules.Users.profileById(memberId))!;
-                    user.primaryOrganization = (await Modules.Orgs.findUserOrganizations(uid))[0];
-                }
-
-                return 'ok';
-            });
+        alphaOrganizationRemoveMember: withAccount<{ memberId: string, organizationId: string }>(async (args, uid) => {
+            let oid = IDs.Organization.parse(args.organizationId);
+            let memberId = IDs.User.parse(args.memberId);
+            await Modules.Orgs.removeUserFromOrganization(memberId, oid, uid);
+            return 'ok';
+        }),
+        alphaOrganizationChangeMemberRole: withAccount<{ memberId: string, newRole: 'OWNER' | 'MEMBER', organizationId: string }>(async (args, uid) => {
+            let oid = IDs.Organization.parse(args.organizationId);
+            let memberId = IDs.User.parse(args.memberId);
+            await Modules.Orgs.updateMemberRole(memberId, oid, args.newRole === 'OWNER' ? 'admin' : 'member', uid);
+            return 'ok';
         }),
 
-        alphaOrganizationChangeMemberRole: withAccount<{ memberId: string, newRole: 'OWNER' | 'MEMBER', organizationId: string }>(async (args, uid, oid) => {
-            oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
-
-            return await inTx(async () => {
-                let isOwner = await Modules.Orgs.isUserAdmin(uid, oid);
-
-                if (!isOwner) {
-                    throw new UserError(ErrorText.permissionOnlyOwner);
-                }
-
-                let idType = IdsFactory.resolve(args.memberId);
-
-                if (idType.type.typeName === 'User') {
-                    let memberId = IDs.User.parse(args.memberId);
-
-                    if (memberId === uid) {
-                        throw new AccessDeniedError(ErrorText.permissionDenied);
-                    }
-
-                    let member = await FDB.OrganizationMember.findById(memberId, oid);
-
-                    if (!member) {
-                        throw new NotFoundError();
-                    }
-
-                    switch (args.newRole) {
-                        case 'OWNER':
-                            member.role = 'admin';
-                            break;
-                        case 'MEMBER':
-                            member.role = 'member';
-                            break;
-                        default:
-                            break;
-                    }
-                }
-
-                return 'ok';
-            });
-        }),
         alphaOrganizationInviteMembers: withAccount<{ inviteRequests: { email: string, emailText?: string, firstName?: string, lastName?: string, role: 'OWNER' | 'MEMBER' }[], organizationId?: string }>(async (args, uid, oid) => {
             oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
-            await validate(
-                {
-                    inviteRequests: [
-                        {
-                            email: defined(emailValidator),
-                        }
-                    ]
-                },
-                args
-            );
+            await validate({ inviteRequests: [{ email: defined(emailValidator) }] }, args);
 
             return await inTx(async () => {
                 for (let inviteRequest of args.inviteRequests) {
