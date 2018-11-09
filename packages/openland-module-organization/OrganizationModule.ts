@@ -57,6 +57,31 @@ export class OrganizationModule {
         });
     }
 
+    async activateOrganization(id: number) {
+        return await inTx(async () => {
+            if (await this.repo.activateOrganization(id)) {
+                for (let m of await FDB.OrganizationMember.allFromOrganization('joined', id)) {
+                    await Modules.Users.activateUser(m.uid);
+                }
+            }
+            return (await FDB.Organization.findById(id))!;
+        });
+    }
+
+    async suspendOrganization(id: number) {
+        return await inTx(async () => {
+            if (await this.repo.suspendOrganization(id)) {
+                for (let m of await FDB.OrganizationMember.allFromOrganization('joined', id)) {
+                    let u = (await FDB.User.findById(m.uid))!;
+                    if (u.status === 'activated') {
+                        await Emails.sendAccountDeactivatedEmail(u.id);
+                    }
+                }
+            }
+            return (await FDB.Organization.findById(id))!;
+        });
+    }
+
     async findOrganizationMembers(organizationId: number) {
         return this.repo.findOrganizationMembers(organizationId);
     }
@@ -85,7 +110,7 @@ export class OrganizationModule {
     }
 
     async addUserToOrganization(uid: number, oid: number) {
-        return this.repo.addUserToOrganization(uid, oid, 'member');
+        return this.repo.addUserToOrganization(uid, oid);
     }
 
     async removeUserFromOrganization(uid: number, oid: number) {
@@ -94,41 +119,5 @@ export class OrganizationModule {
 
     async renameOrganization(id: number, title: string) {
         return this.repo.renameOrganization(id, title);
-    }
-
-    async suspendOrganization(id: number) {
-        return await inTx(async () => {
-            if (await this.repo.suspendOrganization(id)) {
-                for (let m of await FDB.OrganizationMember.allFromOrganization('joined', id)) {
-                    let u = (await FDB.User.findById(m.uid))!;
-                    if (u.status === 'activated') {
-                        await Emails.sendAccountDeactivatedEmail(u.id);
-                    }
-                }
-            }
-            return (await FDB.Organization.findById(id))!;
-        });
-    }
-
-    async pendOrganization(id: number) {
-        return await inTx(async () => {
-            await this.repo.pendOrganization(id);
-            return (await FDB.Organization.findById(id))!;
-        });
-    }
-
-    async activateOrganization(id: number) {
-        return await inTx(async () => {
-            if (await this.repo.activateOrganization(id)) {
-                for (let m of await FDB.OrganizationMember.allFromOrganization('joined', id)) {
-                    let u = (await FDB.User.findById(m.uid))!;
-                    if (u.status !== 'activated') {
-                        u.status = 'activated';
-                        await Emails.sendWelcomeEmail(u.id);
-                    }
-                }
-            }
-            return (await FDB.Organization.findById(id))!;
-        });
     }
 }

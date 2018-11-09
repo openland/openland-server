@@ -3,6 +3,7 @@ import { IDs } from 'openland-module-api/IDs';
 import { Organization } from 'openland-module-db/schema';
 import { FDB } from 'openland-module-db/FDB';
 import { Modules } from 'openland-modules/Modules';
+import { UserError } from 'openland-errors/UserError';
 
 export default {
     SuperAccountState: {
@@ -38,7 +39,7 @@ export default {
             return Modules.Orgs.activateOrganization(IDs.SuperAccount.parse(args.id));
         }),
         superAccountPend: withPermission<{ id: string }>('super-admin', (args) => {
-            return Modules.Orgs.pendOrganization(IDs.SuperAccount.parse(args.id));
+            throw new UserError('Pend is unsupported');
         }),
         superAccountSuspend: withPermission<{ id: string }>('super-admin', (args) => {
             return Modules.Orgs.suspendOrganization(IDs.SuperAccount.parse(args.id));

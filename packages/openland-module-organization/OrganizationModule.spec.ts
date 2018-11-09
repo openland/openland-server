@@ -59,4 +59,48 @@ describe('OrganizationModule', () => {
         let profile2 = (await FDB.UserProfile.findById(user.id))!;
         expect(profile2.primaryOrganization).toBe(org1.id);
     });
+
+    it('should activate user on organization activation', async () => {
+        // Create User and Org
+        let user = await Modules.Users.createUser('test3', 'some3@email.comn');
+        await Modules.Users.createUserProfile(user.id, { firstName: 'Some Name' });
+        let user2 = await Modules.Users.createUser('test4', 'some4@email.comn');
+        await Modules.Users.createUserProfile(user2.id, { firstName: 'Some Name' });
+
+        // Create Organization
+        let org = await Modules.Orgs.createOrganization(user.id, { name: 'hey' });
+        await Modules.Orgs.addUserToOrganization(user2.id, org.id);
+
+        // Activate Org
+        await Modules.Orgs.activateOrganization(org.id);
+
+        // Check users status
+        let user4 = (await FDB.User.findById(user.id))!;
+        expect(user4.status).toEqual('activated');
+        let user5 = (await FDB.User.findById(user2.id))!;
+        expect(user5.status).toEqual('activated');
+    });
+
+    it('should suspend organization and DO NOT suspend user', async () => {
+
+        // Create User and Org
+        let user = await Modules.Users.createUser('test5', 'some5@email.comn');
+        await Modules.Users.createUserProfile(user.id, { firstName: 'Some Name' });
+        await Modules.Users.activateUser(user.id);
+        user = (await FDB.User.findById(user.id))!;
+        expect(user.status).toEqual('activated');
+
+        // Create organization
+        let org = await Modules.Orgs.createOrganization(user.id, { name: 'hey' });
+        expect(org.status).toEqual('activated');
+
+        // Deactivate organization
+        await Modules.Orgs.suspendOrganization(org.id);
+        let org2 = (await FDB.Organization.findById(org.id))!;
+        expect(org2.status).toEqual('suspended');
+
+        // Check user status
+        let user4 = (await FDB.User.findById(user.id))!;
+        expect(user4.status).toEqual('activated');
+    });
 });

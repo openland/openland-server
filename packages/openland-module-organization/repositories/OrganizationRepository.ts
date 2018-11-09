@@ -75,19 +75,6 @@ export class OrganizationRepository {
         });
     }
 
-    async pendOrganization(id: number) {
-        return await inTx(async () => {
-            let org = (await this.entities.Organization.findById(id))!;
-            if (org.status !== 'pending') {
-                org.status = 'pending';
-                await org.flush();
-                return true;
-            } else {
-                return false;
-            }
-        });
-    }
-
     async suspendOrganization(id: number) {
         return await inTx(async () => {
             let org = (await this.entities.Organization.findById(id))!;
@@ -145,7 +132,7 @@ export class OrganizationRepository {
             .find((v) => v!.email === email);
     }
 
-    async addUserToOrganization(uid: number, oid: number, role: 'admin' | 'member') {
+    async addUserToOrganization(uid: number, oid: number) {
         return await inTx(async () => {
             let org = await this.entities.Organization.findById(oid);
             if (!org) {
@@ -159,7 +146,7 @@ export class OrganizationRepository {
                     ex.status = 'joined';
                 }
             } else {
-                await this.entities.OrganizationMember.create(oid, uid, { status: 'joined', role: role });
+                await this.entities.OrganizationMember.create(oid, uid, { status: 'joined', role: 'member' });
             }
             let profile = await this.entities.UserProfile.findById(uid);
             if (profile && !profile.primaryOrganization) {

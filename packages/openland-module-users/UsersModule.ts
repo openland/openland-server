@@ -7,6 +7,7 @@ import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { ProfileInput } from './ProfileInput';
 import { injectable } from 'inversify';
 import { inTx } from 'foundation-orm/inTx';
+import { Emails } from 'openland-module-email/Emails';
 
 @injectable()
 export class UsersModule {
@@ -27,7 +28,7 @@ export class UsersModule {
     async activateUser(uid: number) {
         await inTx(async () => {
             if (await this.repo.activateUser(uid)) {
-                // TODO: Send email
+                await Emails.sendWelcomeEmail(uid);
             }
         });
     }
