@@ -66,27 +66,15 @@ export default {
                 photoRef?: ImageRef | null,
 
                 website?: string | null
-                websiteTitle?: string | null
                 about?: string | null
                 twitter?: string | null
                 facebook?: string | null
                 linkedin?: string | null
                 location?: string | null
 
-                contacts?: {
-                    name: string
-                    photoRef?: ImageRef | null
-                    position?: string | null
-                    email?: string | null
-                    phone?: string | null
-                    link?: string | null
-                }[] | null
-
-                alphaPublished?: boolean | null;
-                alphaEditorial?: boolean | null;
-                alphaFeatured?: boolean | null;
-
-                alphaOrganizationType?: string[] | null
+                alphaPublished?: boolean | null
+                alphaEditorial?: boolean | null
+                alphaFeatured?: boolean | null
             },
             id?: string;
         }>(async (args, uid, oid) => {

@@ -26,8 +26,10 @@ export class OrganizationRepository {
             if (!user) {
                 throw Error('Unable to find user');
             }
-            if (user && user.status === 'activated') {
+            if (user.status === 'activated') {
                 status = 'activated';
+            } else if (user.status === 'suspended') {
+                throw Error('User is suspended');
             }
 
             // Fetch Organization Number
@@ -38,12 +40,15 @@ export class OrganizationRepository {
             let orgId = ++seq.value;
             await seq.flush();
 
+            // Create organization
             let organization = await this.entities.Organization.create(orgId, {
                 kind: input.isCommunity ? 'community' : 'organization',
                 ownerId: uid,
                 status: status,
                 editorial: editorial,
             });
+
+            // Create organization profile
             await this.entities.OrganizationProfile.create(orgId, {
                 name: Sanitizer.sanitizeString(input.name)!,
                 website: Sanitizer.sanitizeString(input.website),
@@ -51,11 +56,13 @@ export class OrganizationRepository {
                 about: Sanitizer.sanitizeString(input.about)
             });
 
+            // Create editorial data
             await this.entities.OrganizationEditorial.create(orgId, {
                 listed: true,
                 featured: false
             });
 
+            // Add owner to organization
             await this.addUserToOrganization(uid, organization.id);
 
             return organization;

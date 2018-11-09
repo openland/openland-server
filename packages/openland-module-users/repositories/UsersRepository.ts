@@ -3,6 +3,7 @@ import { inTx } from 'foundation-orm/inTx';
 import { validate, stringNotEmpty } from 'openland-utils/NewInputValidator';
 import { Sanitizer } from 'openland-utils/Sanitizer';
 import { ProfileInput } from 'openland-module-users/ProfileInput';
+import { NotFoundError } from 'openland-errors/NotFoundError';
 
 export class UserRepository {
     private readonly userAuthIdCache = new Map<string, number | undefined>();
@@ -18,16 +19,40 @@ export class UserRepository {
 
     async createUser(authId: string, email: string) {
         return await inTx(async () => {
-            // TODO: Create INDEX!
+
+            // Build next user id sequence number
             let seq = (await this.entities.Sequence.findById('user-id'));
             if (!seq) {
                 seq = await this.entities.Sequence.create('user-id', { value: 0 });
             }
             let id = ++seq.value;
             await seq.flush();
+
             let res = (await this.entities.User.create(id, { authId: authId, email: email.toLowerCase(), isBot: false, status: 'pending' }));
             await res.flush();
             return res;
+        });
+    }
+
+    async activateUser(uid: number) {
+        return await inTx(async () => {
+            let user = (await this.entities.User.findById(uid))!;
+            if (!user) {
+                throw new NotFoundError('Unable to find user');
+            }
+            user.status = 'activated';
+            return user;
+        });
+    }
+
+    async suspendUser(uid: number) {
+        return await inTx(async () => {
+            let user = (await this.entities.User.findById(uid))!;
+            if (!user) {
+                throw new NotFoundError('Unable to find user');
+            }
+            user.status = 'suspended';
+            return user;
         });
     }
 
