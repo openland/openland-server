@@ -4,7 +4,7 @@ import { FDB } from 'openland-module-db/FDB';
 import { CallContext } from 'openland-module-api/CallContext';
 import { withAny, withUser, withAccount } from 'openland-module-api/Resolvers';
 import { NotFoundError } from 'openland-errors/NotFoundError';
-import { OrganizatinProfileInput } from './OrganizationProfileInput';
+import { OrganizatinProfileInput } from '../OrganizationProfileInput';
 import { Modules } from 'openland-modules/Modules';
 import { ImageRef } from 'openland-module-media/ImageRef';
 import { UserError } from 'openland-errors/UserError';
