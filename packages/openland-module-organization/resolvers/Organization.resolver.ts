@@ -4,11 +4,8 @@ import { CallContext } from 'openland-module-api/CallContext';
 import { FDB } from 'openland-module-db/FDB';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { Modules } from 'openland-modules/Modules';
-import { withAny, withPermission } from 'openland-module-api/Resolvers';
+import { withAny } from 'openland-module-api/Resolvers';
 import { NotFoundError } from 'openland-errors/NotFoundError';
-import { inTx } from 'foundation-orm/inTx';
-import { UserError } from 'openland-errors/UserError';
-import { ErrorText } from 'openland-errors/ErrorText';
 import { resolveOrganizationJoinedMembers } from './utils/resolveOrganizationJoinedMembers';
 
 export default {
@@ -46,12 +43,6 @@ export default {
         }
     },
     Query: {
-        myOrganization: async (_: any, args: {}, context: CallContext) => {
-            if (context.oid) {
-                return await FDB.Organization.findById(context.oid);
-            }
-            return null;
-        },
         myOrganizations: async (_: any, args: {}, context: CallContext) => {
             if (context.uid) {
                 return (await Promise.all((await FDB.OrganizationMember.allFromUser('joined', context.uid))
@@ -66,19 +57,6 @@ export default {
                 throw new NotFoundError('Unable to find organization');
             }
             return res;
-        }),
-    },
-    Mutation: {
-        alphaAlterPublished: withPermission<{ id: string, published: boolean }>(['super-admin', 'editor'], async (args) => {
-            return await inTx(async () => {
-                let org = await FDB.Organization.findById(IDs.Organization.parse(args.id));
-                if (!org) {
-                    throw new UserError(ErrorText.unableToFindOrganization);
-                }
-                let editorial = await FDB.OrganizationEditorial.findById(org.id);
-                editorial!.listed = args.published;
-                return org;
-            });
         }),
     }
 };

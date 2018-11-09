@@ -3,8 +3,6 @@ import { inTx } from 'foundation-orm/inTx';
 import { Sanitizer } from 'openland-utils/Sanitizer';
 import { OrganizatinProfileInput } from 'openland-module-organization/OrganizationProfileInput';
 import { validate, stringNotEmpty } from 'openland-utils/NewInputValidator';
-import { UserError } from 'openland-errors/UserError';
-import { ErrorText } from 'openland-errors/ErrorText';
 import { injectable } from 'inversify';
 
 @injectable()
@@ -56,7 +54,7 @@ export class OrganizationRepository {
 
             // Add owner to organization
             await this.entities.OrganizationMember.create(organization.id, uid, {
-                status: 'joined', role: 'admin'
+                status: 'joined', role: 'admin', invitedBy: uid
             });
 
             return organization;
@@ -88,7 +86,7 @@ export class OrganizationRepository {
         });
     }
 
-    async addUserToOrganization(uid: number, oid: number) {
+    async addUserToOrganization(uid: number, oid: number, by: number) {
         return await inTx(async () => {
             let org = await this.entities.Organization.findById(oid);
             if (!org) {
@@ -101,7 +99,7 @@ export class OrganizationRepository {
                 ex.status = 'joined';
                 return true;
             } else {
-                await this.entities.OrganizationMember.create(oid, uid, { status: 'joined', role: 'member' });
+                await this.entities.OrganizationMember.create(oid, uid, { status: 'joined', role: 'member', invitedBy: by });
                 return true;
             }
         });
@@ -113,31 +111,53 @@ export class OrganizationRepository {
             if (!org) {
                 throw Error('Unable to find organization');
             }
-            let isLast = (await this.entities.OrganizationMember.allFromOrganization('joined', oid)).length <= 1;
-            let existing = await this.entities.OrganizationMember.findById(oid, uid);
-            if (existing && existing.status === 'joined') {
-                if (isLast) {
-                    throw new UserError(ErrorText.unableToRemoveLastMember);
-                }
-
-                let profile = await this.entities.UserProfile.findById(uid);
-                profile!.primaryOrganization = (await this.findUserOrganizations(uid))[0];
+            if (await this.isUserOwner(uid, oid)) {
+                throw Error('Unable to remove owner');
             }
-            return org;
+
+            let existing = await this.entities.OrganizationMember.findById(oid, uid);
+            if (!existing || existing.status !== 'joined') {
+                return false;
+            }
+            existing.status = 'left';
+            existing.role = 'member'; // Downgrade membership
+            await existing.flush();
+            return true;
+        });
+    }
+
+    async updateMembershipRole(uid: number, oid: number, role: 'admin' | 'member') {
+        return await inTx(async () => {
+            let member = await this.entities.OrganizationMember.findById(oid, uid);
+            if (!member || member.status !== 'joined') {
+                throw Error('User is not a member of organization');
+            }
+            if (member.role === role) {
+                return false;
+            }
+            member.role = role;
+            await member.flush();
+            return true;
         });
     }
 
     //
-    // Admin
+    // Permissions
     //
 
-    async renameOrganization(id: number, title: string) {
-        return await inTx(async () => {
-            let org = await this.entities.Organization.findById(id);
-            let profile = await this.entities.OrganizationProfile.findById(id);
-            profile!.name = title;
-            return org;
-        });
+    async isUserMember(uid: number, oid: number): Promise<boolean> {
+        let isMember = await this.entities.OrganizationMember.findById(oid, uid);
+        return !!(isMember && isMember.status === 'joined');
+    }
+
+    async isUserAdmin(uid: number, oid: number): Promise<boolean> {
+        let isOwner = await this.entities.OrganizationMember.findById(oid, uid);
+        return !!(isOwner && isOwner.status === 'joined' && isOwner.role === 'admin');
+    }
+
+    async isUserOwner(uid: number, oid: number): Promise<boolean> {
+        let org = await this.entities.Organization.findById(oid);
+        return !!(org && org.ownerId === uid);
     }
 
     //
@@ -162,18 +182,21 @@ export class OrganizationRepository {
         return await this.entities.OrganizationMember.findById(oid, uid);
     }
 
-    async isUserMember(uid: number, oid: number): Promise<boolean> {
-        let isMember = await this.entities.OrganizationMember.findById(oid, uid);
-        return !!(isMember && isMember.status === 'joined');
-    }
-
-    async isUserAdmin(uid: number, oid: number): Promise<boolean> {
-        let isOwner = await this.entities.OrganizationMember.findById(oid, uid);
-        return !!(isOwner && isOwner.role === 'admin');
-    }
-
     async hasMemberWithEmail(oid: number, email: string): Promise<boolean> {
         return !!(await this.findOrganizationMembers(oid))
             .find((v) => v!.email === email);
+    }
+
+    //
+    // Deprecated
+    //
+
+    async renameOrganization(id: number, title: string) {
+        return await inTx(async () => {
+            let org = await this.entities.Organization.findById(id);
+            let profile = await this.entities.OrganizationProfile.findById(id);
+            profile!.name = title;
+            return org;
+        });
     }
 }
