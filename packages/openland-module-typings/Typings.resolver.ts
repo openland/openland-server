@@ -5,6 +5,7 @@ import { withUser } from 'openland-module-api/Resolvers';
 import { validate, optional, enumString } from 'openland-utils/NewInputValidator';
 import { TypingEvent } from './TypingEvent';
 import { FDB } from 'openland-module-db/FDB';
+import { GQL } from '../openland-module-api/schema/SchemaSpec';
 
 export default {
     TypingType: {
@@ -19,19 +20,19 @@ export default {
         user: (src: TypingEvent) => src.userId,
     },
     Mutation: {
-        alphaSetTyping: withUser<{ conversationId: string, type: 'text' | 'photo' | 'file' }>(async (args, uid) => {
+        alphaSetTyping: withUser<GQL.MutationAlphaSetTypingArgs>(async (args, uid) => {
             await validate({ type: optional(enumString(['text', 'photo'])) }, args);
             let conversationId = IDs.Conversation.parse(args.conversationId);
             await Modules.Typings.setTyping(uid, conversationId, args.type || 'text');
             return 'ok';
         }),
-        typingSend: withUser<{ conversationId: string, type: 'text' | 'photo' | 'file' }>(async (args, uid) => {
+        typingSend: withUser<GQL.MutationTypingSendArgs>(async (args, uid) => {
             await validate({ type: optional(enumString(['text', 'photo'])) }, args);
             let conversationId = IDs.Conversation.parse(args.conversationId);
             await Modules.Typings.setTyping(uid, conversationId, args.type || 'text');
             return 'ok';
         }),
-        typingCancel: withUser<{ conversationId: string }>(async (args, uid) => {
+        typingCancel: withUser<GQL.MutationTypingCancelArgs>(async (args, uid) => {
             let chatId = IDs.Conversation.parse(args.conversationId);
             let members = await Modules.Messaging.conv.findConversationMembers(chatId);
             await Modules.Typings.cancelTyping(uid, chatId, members);

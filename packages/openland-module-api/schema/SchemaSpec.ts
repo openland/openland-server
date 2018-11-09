@@ -278,7 +278,7 @@ export namespace GQL {
     export type MutationAlphaEditMessageResult = ConversationEventEditMessage;
     export interface MutationAlphaSendIntroArgs {
         conversationId: string;
-        userId: Nullable<string>;
+        userId: string;
         about: Nullable<string>;
         message: Nullable<string>;
         file: Nullable<string>;
@@ -287,7 +287,7 @@ export namespace GQL {
     export type MutationAlphaSendIntroResult = ConversationEventMessage;
     export interface MutationAlphaEditIntroArgs {
         messageId: string;
-        userId: Nullable<string>;
+        userId: string;
         about: Nullable<string>;
         message: Nullable<string>;
         file: Nullable<string>;
@@ -307,7 +307,7 @@ export namespace GQL {
     }
     export type MutationAlphaReadChatResult = ChatReadResult;
     export interface MutationAlphaGlobalReadArgs {
-        toSeq: Nullable<number>;
+        toSeq: number;
     }
     export type MutationAlphaGlobalReadResult = string;
     export interface MutationAlphaChatCreateGroupArgs {
