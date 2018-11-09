@@ -5,7 +5,7 @@ import { inTx } from 'foundation-orm/inTx';
 import { FDB } from 'openland-module-db/FDB';
 
 export function startEmailNotificationWorker() {
-    staticWorker({ name: 'email_notifications', delay: 15000 }, async () => {
+    staticWorker({ name: 'email_notifications', delay: 15000, startDelay: 3000 }, async () => {
 
         let unreadUsers = await FDB.UserMessagingState.allFromHasUnread();
         let now = Date.now();
