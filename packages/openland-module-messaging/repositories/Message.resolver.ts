@@ -2,8 +2,8 @@ import { Message } from 'openland-module-db/schema';
 import { IDs } from 'openland-module-api/IDs';
 import { CallContext } from 'openland-module-api/CallContext';
 import { FDB } from 'openland-module-db/FDB';
-import { GQL } from '../openland-module-api/schema/SchemaSpec';
-import { typed } from '../openland-module-api/Resolvers';
+import { GQL } from '../../openland-module-api/schema/SchemaSpec';
+import { typed } from '../../openland-module-api/Resolvers';
 
 type MessageRoot = Message | number;
 

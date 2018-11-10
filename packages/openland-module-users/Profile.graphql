@@ -11,13 +11,10 @@ type Profile {
     location: String
     linkedin: String
     twitter: String
-    primaryOrganization: Organization
 
     # Deprecated
     alphaLinkedin: String
     alphaTwitter: String
-    alphaPrimaryOrganizationId: ID
-    alphaPrimaryOrganization: Organization
     alphaJoinedAt: String
     alphaInvitedBy: User
     alphaRole: String

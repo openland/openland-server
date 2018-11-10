@@ -40,8 +40,8 @@ extend type Query {
 extend type Mutation {
     alphaOrganizationRemoveMember(memberId: ID!, organizationId: ID!): String!
     alphaOrganizationChangeMemberRole(memberId: ID!, newRole: OrganizationMemberRole!, organizationId: ID!): String!
+    
     alphaOrganizationInviteMembers(inviteRequests: [InviteRequest!]!, organizationId: ID): String!
-
     alphaOrganizationCreatePublicInvite(expirationDays: Int, organizationId: ID): Invite!
     alphaOrganizationDeletePublicInvite(organizationId: ID): String!
 }

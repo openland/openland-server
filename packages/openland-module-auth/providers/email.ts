@@ -1,12 +1,12 @@
 import express from 'express';
-import { randomNumbersString } from '../openland-utils/random';
-import { Emails } from '../openland-module-email/Emails';
-import * as base64 from '../openland-utils/base64';
+import { randomNumbersString } from '../../openland-utils/random';
+import { Emails } from '../../openland-module-email/Emails';
+import * as base64 from '../../openland-utils/base64';
 import { randomBytes } from 'crypto';
 import { Modules } from 'openland-modules/Modules';
 import { inTx } from 'foundation-orm/inTx';
 import { AuthCodeSession } from 'openland-module-db/schema';
-import { calculateBase64len } from '../openland-utils/base64';
+import { calculateBase64len } from '../../openland-utils/base64';
 import { FDB } from 'openland-module-db/FDB';
 
 const Errors = {
@@ -96,7 +96,7 @@ export async function sendCode(req: express.Request, response: express.Response)
                 return;
             }
 
-            let existing = await Modules.Auth.repo.findSession(session);
+            let existing = await Modules.Auth.findAuthSession(session);
             if (!existing) {
                 sendError(response, Errors.session_not_found);
                 return;
@@ -126,7 +126,7 @@ export async function sendCode(req: express.Request, response: express.Response)
             }
 
             if (!authSession) {
-                authSession = await Modules.Auth.repo.createSession(email, code);
+                authSession = await Modules.Auth.createEmailAuthSession(email, code);
             } else {
                 authSession.code = code;
             }
@@ -162,7 +162,7 @@ export async function checkCode(req: express.Request, response: express.Response
     }
 
     let res = await inTx(async () => {
-        let authSession = await Modules.Auth.repo.findSession(session);
+        let authSession = await Modules.Auth.findAuthSession(session);
 
         // No session found
         if (!authSession) {
@@ -213,7 +213,7 @@ export async function getAccessToken(req: express.Request, response: express.Res
     }
 
     await inTx(async () => {
-        let authSession = await Modules.Auth.repo.findSession(session);
+        let authSession = await Modules.Auth.findAuthSession(session);
 
         // No session found
         if (!authSession) {

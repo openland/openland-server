@@ -23,14 +23,11 @@ export default {
         location: (src: UserProfile) => src.location,
         linkedin: (src: UserProfile) => src.linkedin,
         twitter: (src: UserProfile) => src.twitter,
-        primaryOrganization: async (src: UserProfile) => await FDB.Organization.findById(src.primaryOrganization || (await Modules.Orgs.findUserOrganizations(src.id))[0]),
 
         alphaRole: (src: UserProfile) => src.role,
         alphaLocations: (src: UserProfile) => src.locations,
         alphaLinkedin: (src: UserProfile) => src.linkedin,
         alphaTwitter: (src: UserProfile) => src.twitter,
-        alphaPrimaryOrganizationId: (src: UserProfile) => src.primaryOrganization ? IDs.Organization.serialize(src.primaryOrganization) : null,
-        alphaPrimaryOrganization: async (src: UserProfile) => await FDB.Organization.findById(src.primaryOrganization || (await Modules.Orgs.findUserOrganizations(src.id))[0]),
         alphaJoinedAt: (src: UserProfile) => src.createdAt,
         alphaInvitedBy: async (src: UserProfile) => {
             let user = await FDB.User.findById(src.id);

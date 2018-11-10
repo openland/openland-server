@@ -8,7 +8,7 @@ import { randomInviteKey } from 'openland-utils/random';
 
 // const TEMPLATE_INVITE = '024815a8-5602-4412-83f4-4be505c2026a';
 
-export class ChannelRepository {
+export class InvitesRepository {
     readonly entities: AllEntities;
 
     constructor(entities: AllEntities) {

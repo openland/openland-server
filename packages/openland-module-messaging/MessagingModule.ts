@@ -4,7 +4,7 @@ import { startEmailNotificationWorker } from './workers/EmailNotificationWorker'
 import { startPushNotificationWorker } from './workers/PushNotificationWorker';
 import { MessagingRepository } from './repositories/MessagingRepository';
 import { FDB } from 'openland-module-db/FDB';
-import { ChannelRepository } from './repositories/ChannelRepository';
+import { InvitesRepository } from './repositories/InvitesRepository';
 import { inTx } from 'foundation-orm/inTx';
 import { ChannelInviteEmails } from './emails/ChannelInviteEmails';
 import { createDeliveryWorker } from './workers/DeliveryWorker';
@@ -25,8 +25,8 @@ export class MessagingModule {
     readonly fixer = new FixerRepository(FDB);
     readonly room = new RoomRepository(FDB);
     readonly conv = new ConversationRepository(FDB);
-    private readonly dialogs = new DialogsRepository(FDB);
-    private readonly channels = new ChannelRepository(FDB);
+    readonly dialogs = new DialogsRepository(FDB);
+    private readonly invites = new InvitesRepository(FDB);
 
     // await Modules.Drafts.clearDraft(uid, conversationId);
     //         await Modules.Messaging.DeliveryWorker.pushWork({ messageId: mid });
@@ -43,25 +43,33 @@ export class MessagingModule {
         return await this.dialogs.getConversationSettings(uid, cid);
     }
 
+    //
+    // Invites
+    //
+
     async resolveInvite(id: string) {
-        return await this.channels.resolveInvite(id);
+        return await this.invites.resolveInvite(id);
     }
 
     async createChannelInviteLink(channelId: number, uid: number) {
-        return await this.channels.createChannelInviteLink(channelId, uid);
+        return await this.invites.createChannelInviteLink(channelId, uid);
     }
 
     async refreshChannelInviteLink(channelId: number, uid: number) {
-        return await this.channels.refreshChannelInviteLink(channelId, uid);
+        return await this.invites.refreshChannelInviteLink(channelId, uid);
     }
 
     async createChannelInvite(channelId: number, uid: number, email: string, emailText?: string, firstName?: string, lastName?: string) {
         return await inTx(async () => {
-            let invite = await this.channels.createChannelInvite(channelId, uid, email, emailText, firstName, lastName);
+            let invite = await this.invites.createChannelInvite(channelId, uid, email, emailText, firstName, lastName);
             await ChannelInviteEmails.sendChannelInviteEmail(invite);
             return invite;
         });
     }
+
+    //
+    // Messaging
+    //
 
     async sendMessage(conversationId: number, uid: number, message: MessageInput): Promise<ConversationEvent> {
         return await inTx(async () => {
@@ -73,7 +81,10 @@ export class MessagingModule {
     }
 
     async editMessage(messageId: number, uid: number, newMessage: MessageInput, markAsEdited: boolean): Promise<ConversationEvent> {
-        return this.repo.editMessage(messageId, uid, newMessage, markAsEdited);
+        return await inTx(async () => {
+            // TODO: Check permissions
+            return await this.repo.editMessage(messageId, newMessage, markAsEdited);
+        });
     }
 
     async setReaction(messageId: number, uid: number, reaction: string, reset: boolean = false) {
@@ -84,11 +95,15 @@ export class MessagingModule {
         return this.repo.deleteMessage(messageId, uid);
     }
 
+    //
+    // Rooms
+    //
+
     async roomMembersCount(conversationId: number, status?: string): Promise<number> {
-        return this.repo.roomMembersCount(conversationId, status);
+        return this.room.roomMembersCount(conversationId, status);
     }
 
     async addToChannel(channelId: number, uid: number) {
-        return this.repo.addToChannel(channelId, uid);
+        return this.room.addToChannel(channelId, uid);
     }
 }

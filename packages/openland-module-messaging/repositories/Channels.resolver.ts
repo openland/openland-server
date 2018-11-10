@@ -1,18 +1,18 @@
-import { withPermission, withAny, withAccount, withUser } from '../openland-module-api/Resolvers';
-import { IDs } from '../openland-module-api/IDs';
-import { CallContext } from '../openland-module-api/CallContext';
-import { QueryParser } from '../openland-utils/QueryParser';
-import { defined, emailValidator, stringNotEmpty, validate } from '../openland-utils/NewInputValidator';
-import { ErrorText } from '../openland-errors/ErrorText';
-import { NotFoundError } from '../openland-errors/NotFoundError';
-import { Sanitizer } from '../openland-utils/Sanitizer';
+import { withPermission, withAny, withAccount, withUser } from '../../openland-module-api/Resolvers';
+import { IDs } from '../../openland-module-api/IDs';
+import { CallContext } from '../../openland-module-api/CallContext';
+import { QueryParser } from '../../openland-utils/QueryParser';
+import { defined, emailValidator, stringNotEmpty, validate } from '../../openland-utils/NewInputValidator';
+import { ErrorText } from '../../openland-errors/ErrorText';
+import { NotFoundError } from '../../openland-errors/NotFoundError';
+import { Sanitizer } from '../../openland-utils/Sanitizer';
 import { Modules } from 'openland-modules/Modules';
 import { inTx } from 'foundation-orm/inTx';
 import { ChannelInvitation, ChannelLink, RoomParticipant, Conversation } from 'openland-module-db/schema';
 import { FDB } from 'openland-module-db/FDB';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { Emails } from 'openland-module-email/Emails';
-import { GQL } from '../openland-module-api/schema/SchemaSpec';
+import { GQL } from '../../openland-module-api/schema/SchemaSpec';
 
 interface AlphaChannelsParams {
     orgId: string;

@@ -3,7 +3,6 @@ import linkify from 'linkify-it';
 import tlds from 'tlds';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
-import { inTx } from 'foundation-orm/inTx';
 import { Modules } from 'openland-modules/Modules';
 import { FDB } from 'openland-module-db/FDB';
 import UrlInfoService from './UrlInfoService';
@@ -45,28 +44,7 @@ export function createAugmentationWorker() {
             let urlInfo = await service.fetchURLInfo(firstUrl.url);
 
             if (urlInfo.title) {
-                let members = await Modules.Messaging.conv.findConversationMembers(message.cid);
-
-                await inTx(async () => {
-                    let message2 = await FDB.Message.findById(item.messageId);
-                    message2!.augmentation = urlInfo as any;
-
-                    for (let member of members) {
-
-                        let global = await Modules.Messaging.repo.getUserMessagingState(member);
-                        global.seq++;
-                        await FDB.UserDialogEvent.create(member, global.seq, {
-                            kind: 'message_updated',
-                            mid: message!.id
-                        });
-
-                    }
-
-                    let seq = await Modules.Messaging.repo.fetchConversationNextSeq(message!.cid);
-                    await FDB.ConversationEvent.create(message!.cid, seq, { kind: 'message_updated', mid: message!.id });
-                });
-
-                return { result: 'ok' };
+                await Modules.Messaging.repo.editMessage(item.messageId, { urlAugmentation: urlInfo }, false);
             }
 
             return { result: 'ok' };

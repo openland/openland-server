@@ -3,7 +3,7 @@ import { FConnection } from 'foundation-orm/FConnection';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { AllEntities, AllEntitiesDirect } from 'openland-module-db/schema';
 import { NativeValue } from 'foundationdb/dist/lib/native';
-import { ChannelRepository } from './ChannelRepository';
+import { InvitesRepository } from './InvitesRepository';
 import { NoOpBus } from 'foundation-orm/tests/NoOpBus';
 
 describe('ChannelRepository', () => {
@@ -19,7 +19,7 @@ describe('ChannelRepository', () => {
     });
 
     it('should create links', async () => {
-        let repo = new ChannelRepository(entities);
+        let repo = new InvitesRepository(entities);
         let uuid = await repo.createChannelInviteLink(1, 1);
         let res = await repo.resolveInvite(uuid);
         expect(res).not.toBeNull();

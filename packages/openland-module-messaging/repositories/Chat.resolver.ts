@@ -1,5 +1,5 @@
-import { IDs, IdsFactory } from '../openland-module-api/IDs';
-import { withUser, resolveUser, withAccount, typedSoftly } from '../openland-module-api/Resolvers';
+import { IDs, IdsFactory } from '../../openland-module-api/IDs';
+import { withUser, resolveUser, withAccount, typedSoftly } from '../../openland-module-api/Resolvers';
 import {
     validate,
     stringNotEmpty,
@@ -8,14 +8,14 @@ import {
     defined,
     mustBeArray,
     isNumber
-} from '../openland-utils/NewInputValidator';
-import { CallContext } from '../openland-module-api/CallContext';
-import { JsonMap } from '../openland-utils/json';
-import { IDMailformedError } from '../openland-errors/IDMailformedError';
-import { UserError } from '../openland-errors/UserError';
-import { NotFoundError } from '../openland-errors/NotFoundError';
-import { Sanitizer } from '../openland-utils/Sanitizer';
-import { URLAugmentation } from './workers/UrlInfoService';
+} from '../../openland-utils/NewInputValidator';
+import { CallContext } from '../../openland-module-api/CallContext';
+import { JsonMap } from '../../openland-utils/json';
+import { IDMailformedError } from '../../openland-errors/IDMailformedError';
+import { UserError } from '../../openland-errors/UserError';
+import { NotFoundError } from '../../openland-errors/NotFoundError';
+import { Sanitizer } from '../../openland-utils/Sanitizer';
+import { URLAugmentation } from '../workers/UrlInfoService';
 import { Modules } from 'openland-modules/Modules';
 import { UserDialogSettings, Message, RoomParticipant, Conversation, Organization, User } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
@@ -23,7 +23,7 @@ import { withLogContext } from 'openland-log/withLogContext';
 import { FDB } from 'openland-module-db/FDB';
 import { FEntity } from 'foundation-orm/FEntity';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
-import { GQL } from '../openland-module-api/schema/SchemaSpec';
+import { GQL } from '../../openland-module-api/schema/SchemaSpec';
 
 export default {
     Conversation: {
@@ -567,8 +567,8 @@ export default {
                     throw Error('Invalid request');
                 }
 
-                let existing = await Modules.Messaging.repo.getUserDialogState(uid, conversationId);
-                let global = await Modules.Messaging.repo.getUserMessagingState(uid);
+                let existing = await Modules.Messaging.dialogs.getUserDialogState(uid, conversationId);
+                let global = await Modules.Messaging.dialogs.getUserMessagingState(uid);
                 let delta = 0;
                 let totalUnread = 0;
                 if (!existing.readMessageId || existing.readMessageId < messageId) {
@@ -623,7 +623,7 @@ export default {
         }),
         alphaGlobalRead: withUser<GQL.MutationAlphaGlobalReadArgs>(async (args, uid) => {
             await inTx(async () => {
-                let state = await Modules.Messaging.repo.getUserNotificationState(uid);
+                let state = await Modules.Messaging.dialogs.getUserNotificationState(uid);
                 state.readSeq = args.toSeq;
             });
             return 'ok';

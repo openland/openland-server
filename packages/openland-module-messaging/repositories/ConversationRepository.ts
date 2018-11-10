@@ -88,7 +88,7 @@ export class ConversationRepository {
             let users = invites.map((v) => FDB.UserProfile.findById(v));
 
             await Modules.Messaging.sendMessage(cid, uid, {
-                message: `${(await Promise.all(users)).map(u => u!.firstName).join(', ')} joined chat`,
+                message: `${(await Promise.all(users)).map(u => u!.firstName).join(', ')} joined the room`,
                 isService: true,
                 isMuted: true,
                 serviceMetadata: {
@@ -130,7 +130,7 @@ export class ConversationRepository {
             // Send kick message
             let profile = await Modules.Users.profileById(kickedUid);
             await Modules.Messaging.sendMessage(cid, uid, {
-                message: `${profile!.firstName} was kicked from chat`,
+                message: `${profile!.firstName} was kicked from the room`,
                 isService: true,
                 isMuted: true,
                 serviceMetadata: {
@@ -141,8 +141,8 @@ export class ConversationRepository {
             });
 
             // Reset counter for kicked user
-            let mstate = await Modules.Messaging.repo.getUserMessagingState(kickedUid);
-            let convState = await Modules.Messaging.repo.getUserDialogState(kickedUid, cid);
+            let mstate = await Modules.Messaging.dialogs.getUserMessagingState(kickedUid);
+            let convState = await Modules.Messaging.dialogs.getUserDialogState(kickedUid, cid);
             if (convState.unread > 0) {
                 mstate.unread = mstate.unread - convState.unread;
                 mstate.seq++;
@@ -165,14 +165,14 @@ export class ConversationRepository {
             }
             let p = await FDB.RoomParticipant.findById(cid, uid);
             if (!p || p.status !== 'joined') {
-                throw new Error('User is not member of a room');
+                throw new Error('User is not member of the room');
             }
             p.status = 'left';
 
             // Send message to everyone
             let profile = await Modules.Users.profileById(uid);
             await Modules.Messaging.sendMessage(cid, uid, {
-                message: `${profile!.firstName} has left the chat`,
+                message: `${profile!.firstName} has left the room`,
                 isService: true,
                 isMuted: true,
                 serviceMetadata: {
@@ -183,8 +183,8 @@ export class ConversationRepository {
             });
 
             // Reset counter for left user
-            let mstate = await Modules.Messaging.repo.getUserMessagingState(uid);
-            let convState = await Modules.Messaging.repo.getUserDialogState(uid, cid);
+            let mstate = await Modules.Messaging.dialogs.getUserMessagingState(uid);
+            let convState = await Modules.Messaging.dialogs.getUserDialogState(uid, cid);
             if (convState.unread > 0) {
                 mstate.unread = mstate.unread - convState.unread;
                 mstate.seq++;
@@ -226,7 +226,7 @@ export class ConversationRepository {
 
             let name = (await Modules.Users.profileById(uid))!.firstName;
             await Modules.Messaging.sendMessage(cid, uid, {
-                message: `${name} has joined the channel!`,
+                message: `${name} has joined the room!`,
                 isService: true,
                 isMuted: true,
                 serviceMetadata: {
