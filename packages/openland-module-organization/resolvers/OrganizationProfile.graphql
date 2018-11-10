@@ -123,6 +123,6 @@ extend type Query {
     organizationProfile(id: ID!): OrganizationProfile!
 }
 extend type Mutation {
-    createOrganization(input: CreateOrganizationInput): OrganizationProfile!
+    createOrganization(input: CreateOrganizationInput!): OrganizationProfile!
     updateOrganizationProfile(input: UpdateOrganizationProfileInput!, id: ID): OrganizationProfile!
 }

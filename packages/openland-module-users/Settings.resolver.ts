@@ -5,6 +5,7 @@ import { withUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { inTx } from 'foundation-orm/inTx';
 import { CallContext } from 'openland-module-api/CallContext';
+import { GQL } from '../openland-module-api/schema/SchemaSpec';
 
 export default {
     EmailFrequency: {
@@ -40,9 +41,12 @@ export default {
         }),
     },
     Mutation: {
-        updateSettings: withUser<{ settings: { emailFrequency?: string | null, desktopNotifications?: string | null, mobileNotifications?: string | null, mobileAlert?: boolean | null, mobileIncludeText?: boolean | null, notificationsDelay?: boolean | null } }>(async (args, uid) => {
+        updateSettings: withUser<GQL.MutationUpdateSettingsArgs>(async (args, uid) => {
             return await inTx(async () => {
                 let settings = await Modules.Users.getUserSettings(uid);
+                if (!args.settings) {
+                    return settings;
+                }
                 if (args.settings.emailFrequency) {
                     settings.emailFrequency = args.settings.emailFrequency as any;
                 }
@@ -64,9 +68,12 @@ export default {
                 return settings;
             });
         }),
-        settingsUpdate: withUser<{ settings: { emailFrequency?: string | null, desktopNotifications?: string | null, mobileNotifications?: string | null, mobileAlert?: boolean | null, mobileIncludeText?: boolean | null, notificationsDelay?: boolean | null } }>(async (args, uid) => {
+        settingsUpdate: withUser<GQL.MutationSettingsUpdateArgs>(async (args, uid) => {
             return await inTx(async () => {
                 let settings = await Modules.Users.getUserSettings(uid);
+                if (!args.settings) {
+                    return settings;
+                }
                 if (args.settings.emailFrequency) {
                     settings.emailFrequency = args.settings.emailFrequency as any;
                 }

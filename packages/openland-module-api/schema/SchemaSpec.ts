@@ -1240,7 +1240,7 @@ export namespace GQL {
     }
     export type QueryOrganizationProfileResult = OrganizationProfile;
     export interface MutationCreateOrganizationArgs {
-        input: Nullable<CreateOrganizationInput>;
+        input: CreateOrganizationInput;
     }
     export type MutationCreateOrganizationResult = OrganizationProfile;
     export interface MutationUpdateOrganizationProfileArgs {
