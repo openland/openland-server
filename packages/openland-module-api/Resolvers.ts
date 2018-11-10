@@ -176,6 +176,15 @@ export function wrapAllResolvers(schema: GraphQLSchema, f: FieldHandler) {
     return schema;
 }
 
-export function typed<T>(resolver: { [P in keyof T]: ((...args: any[]) => T[P]) | ((...args: any[]) => Promise<T[P]>) }) {
+type MaybePromise<T> = Promise<T> | T;
+type FieldResolver<T> = (...args: any[]) => MaybePromise<T>;
+// type SoftFieldResolver<T> = T extends object ? FieldResolver<any> : FieldResolver<T>;
+type Nullable<T> = undefined | null | T;
+
+export function typed<T>(resolver: { [P in keyof T]: FieldResolver<T[P]> }) {
+    return resolver;
+}
+
+export function typedSoftly<T>(resolver: { [P in keyof T]: (T[P] extends Nullable<object|object[]> ? FieldResolver<any> : FieldResolver<T[P]>) }) {
     return resolver;
 }

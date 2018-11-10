@@ -1,5 +1,5 @@
 import { IDs, IdsFactory } from '../openland-module-api/IDs';
-import { withUser, resolveUser, withAccount } from '../openland-module-api/Resolvers';
+import { withUser, resolveUser, withAccount, typedSoftly } from '../openland-module-api/Resolvers';
 import {
     validate,
     stringNotEmpty,
@@ -146,7 +146,7 @@ export default {
         blocked: async (src: Conversation, _: any, context: CallContext) => false,
         settings: (src: Conversation, _: any, context: CallContext) => Modules.Messaging.getConversationSettings(context.uid!!, src.id),
     },
-    GroupConversation: {
+    GroupConversation: typedSoftly<GQL.GroupConversation>({
         id: (src: Conversation) => IDs.Conversation.serialize(src.id),
         flexibleId: (src: Conversation) => IDs.Conversation.serialize(src.id),
         title: async (src: Conversation, _: any, context: CallContext) => {
@@ -212,7 +212,7 @@ export default {
 
         photo: async (src: Conversation) => buildBaseImageUrl((await FDB.RoomProfile.findById(src.id))!.image),
         photoRef: async (src: Conversation) => (await FDB.RoomProfile.findById(src.id))!.image,
-        description: async (src: Conversation) => (await FDB.RoomProfile.findById(src.id))!.description,
+        description: async (src: Conversation) => (await FDB.RoomProfile.findById(src.id))!.description as string,
         longDescription: (src: Conversation) => '',
         pinnedMessage: (src: Conversation) => null,
         membersOnline: async (src: Conversation) => {
@@ -240,13 +240,13 @@ export default {
             let member = await Modules.Messaging.room.findMembershipStatus(ctx.uid!, src.id);
 
             return member && member.role;
-        }
-    },
+        },
+    }),
 
-    MessageReaction: {
+    MessageReaction: typedSoftly<GQL.MessageReaction>({
         user: (src: any) => FDB.User.findById(src.userId),
         reaction: (src: any) => src.reaction
-    },
+    }),
     UrlAugmentationExtra: {
         __resolveType(src: any) {
             if ((src instanceof (FEntity) && src.entityName === 'User')) {
@@ -260,7 +260,7 @@ export default {
             throw new Error('Unknown UrlAugmentationExtra');
         }
     },
-    UrlAugmentation: {
+    UrlAugmentation: typedSoftly<GQL.UrlAugmentation>({
         url: (src: URLAugmentation) => src.url,
         title: (src: URLAugmentation) => src.title,
         subtitle: (src: URLAugmentation) => src.subtitle,
@@ -287,13 +287,14 @@ export default {
 
             return null;
         },
-    },
-    ConversationMessage: {
+        date: () => ''
+    }),
+    ConversationMessage: typedSoftly<GQL.ConversationMessage>({
         id: (src: Message) => {
             return IDs.ConversationMessage.serialize(src.id);
         },
-        message: (src: Message) => src.text,
-        file: (src: Message) => src.fileId,
+        message: (src: Message) => src.text || '',
+        file: (src: Message) => src.fileId as any,
         fileMetadata: (src: Message) => {
             if (src.fileId && src.fileMetadata) {
                 return {
@@ -338,7 +339,7 @@ export default {
         },
         plainText: async (src: Message) => null,
         mentions: async (src: Message) => src.mentions ? (src.mentions as number[]).map(id => FDB.User.findById(id)) : null
-    },
+    }),
     InviteServiceMetadata: {
         users: (src: any) => src.userIds.map((id: number) => FDB.User.findById(id)),
         invitedBy: (src: any) => FDB.User.findById(src.invitedById)

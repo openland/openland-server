@@ -72,7 +72,7 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
     if (imageURL) {
         try {
             let { file } = await Modules.Media.uploadFromUrl(imageURL);
-            imageRef = { uuid: file };
+            imageRef = { uuid: file, crop: undefined };
             imageInfo = await Modules.Media.fetchFileInfo(file);
         } catch (e) {
             console.warn('Cant fetch image ' + imageURL);
@@ -93,7 +93,7 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
 
     try {
         let { file } = await Modules.Media.uploadFromUrl(iconUrl);
-        iconRef = { uuid: file };
+        iconRef = { uuid: file, crop: undefined };
         iconInfo = await Modules.Media.fetchFileInfo(file);
     } catch (e) {
         console.warn('Cant fetch image ' + imageURL);

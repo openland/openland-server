@@ -7,7 +7,7 @@ export interface ImageCrop {
 
 export interface ImageRef {
     uuid: string;
-    crop?: ImageCrop | null;
+    crop: ImageCrop | null | undefined;
 }
 
 export function buildBaseImageUrl(image?: ImageRef | null) {
