@@ -1,4 +1,4 @@
-import { User, UserProfile } from '../../openland-module-db/schema';
+import { Conversation, User, UserDialogSettings, UserProfile } from '../../openland-module-db/schema';
 
 export type ResolverRootType<T> = { [K in keyof T]: T[K] extends (root: infer R, ...args: any[]) => any ? R : any }[keyof T];
 
@@ -6,12 +6,12 @@ export type ResolverRootType<T> = { [K in keyof T]: T[K] extends (root: infer R,
 //  Root types
 //
 export namespace GQLRoots {
-    export type ConversationSettingsRoot = any;
-    export type ConversationRoot = any;
-    export type AnonymousConversationRoot = any;
-    export type SharedConversationRoot = any;
-    export type PrivateConversationRoot = any;
-    export type GroupConversationRoot = any;
+    export type ConversationSettingsRoot = UserDialogSettings;
+    export type ConversationRoot = Conversation;
+    export type AnonymousConversationRoot = Conversation;
+    export type SharedConversationRoot = Conversation;
+    export type PrivateConversationRoot = Conversation;
+    export type GroupConversationRoot = Conversation;
     export type InviteServiceMetadataRoot = any;
     export type KickServiceMetadataRoot = any;
     export type TitleChangeServiceMetadataRoot = any;

@@ -79,24 +79,32 @@ export function genResolverInterface(ast: DocumentNode) {
             if (def.name.value === 'Query' || def.name.value === 'Mutation' || def.name.value === 'Subscription') {
                 continue;
             }
-            function fetchType(type: TypeNode): string {
+            function fetchType(type: TypeNode, nullable: boolean = true): string {
                 switch (type.kind) {
                     case 'NamedType':
-                        return type.name.value;
+                        let typeName = PRIMITIVE_TYPES[type.name.value] || type.name.value;
+
+                        if (nullable) {
+                            return `Nullable<GQLRoots.${typeName}Root>`;
+                        } else {
+                            return `GQLRoots.${typeName}Root`;
+                        }
                     case 'NonNullType':
-                        return fetchType(type.type);
+                        return fetchType(type.type, false);
 
                     case 'ListType':
-                        return fetchType(type.type);
+                        if (nullable) {
+                            return `Nullable<${fetchType(type.type)}[]>`;
+                        } else {
+                            return `${fetchType(type.type)}[]`;
+                        }
 
                     default:
-                        throw new Error('Unknown type');
+                        return 'UnknownType';
                 }
             }
-            // out += genTab(1) + `${def.name.value}?: SoftlyTypedResolver<GQL.${def.name.value}>;\n`;
             let fields = (def.fields || []).filter(f => !isPrimitiveType(f.type));
-            // let fieldsRendered = fields.map(f => `${f.name.value}: ResolverRootType<AllTypes['${fetchType(f.type)}']>`).join(', ');
-            let fieldsRendered = fields.map(f => `${f.name.value}: GQLRoots.${fetchType(f.type)}Root`).join(', ');
+            let fieldsRendered = fields.map(f => `${f.name.value}: ${fetchType(f.type)}`).join(', ');
             out += genTab(1) + `${def.name.value}?: ComplexTypedResolver<GQL.${def.name.value}, {${fieldsRendered}}>;\n`;
         }
     }
