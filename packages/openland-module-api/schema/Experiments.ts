@@ -1,4 +1,4 @@
-import { Conversation, User, UserDialogSettings, UserProfile } from '../../openland-module-db/schema';
+import { Conversation, Message, User, UserDialogSettings, UserProfile } from '../../openland-module-db/schema';
 
 export type ResolverRootType<T> = { [K in keyof T]: T[K] extends (root: infer R, ...args: any[]) => any ? R : any }[keyof T];
 
@@ -20,7 +20,7 @@ export namespace GQLRoots {
     export type UrlAugmentationRoot = any;
     export type ServiceMetadataRoot = any;
     export type MessageReactionRoot = any;
-    export type ConversationMessageRoot = any;
+    export type ConversationMessageRoot = Message;
     export type FileMetadataRoot = any;
     export type StickerPackRoot = any;
     export type StickerRoot = any;

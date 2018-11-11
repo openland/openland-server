@@ -103,9 +103,25 @@ export function genResolverInterface(ast: DocumentNode) {
                         return 'UnknownType';
                 }
             }
+            // function fetcRootType(type: TypeNode): string {
+            //     switch (type.kind) {
+            //         case 'NamedType':
+            //             return type.name.value;
+            //         case 'NonNullType':
+            //             return fetchType(type.type);
+            //
+            //         case 'ListType':
+            //             return fetchType(type.type);
+            //
+            //         default:
+            //             throw new Error('Unknown type');
+            //     }
+            // }
+            // out += genTab(1) + `${def.name.value}?: SoftlyTypedResolver<GQL.${def.name.value}>;\n`;
             let fields = (def.fields || []).filter(f => !isPrimitiveType(f.type));
+            // let fieldsRendered = fields.map(f => `${f.name.value}: ResolverRootType<AllTypes['${fetchType(f.type)}']>`).join(', ');
             let fieldsRendered = fields.map(f => `${f.name.value}: ${fetchType(f.type)}`).join(', ');
-            out += genTab(1) + `${def.name.value}?: ComplexTypedResolver<GQL.${def.name.value}, {${fieldsRendered}}>;\n`;
+            out += genTab(1) + `${def.name.value}?: ComplexTypedResolver<GQL.${def.name.value}, {${fieldsRendered}}, GQLRoots.${def.name.value}Root>;\n`;
         }
     }
     out += '}\n';

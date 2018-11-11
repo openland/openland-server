@@ -1,5 +1,5 @@
 import { IDs, IdsFactory } from '../../openland-module-api/IDs';
-import { withUser, resolveUser, withAccount, typedSoftly } from '../../openland-module-api/Resolvers';
+import { withUser, resolveUser, withAccount } from '../../openland-module-api/Resolvers';
 import {
     validate,
     stringNotEmpty,
@@ -23,7 +23,7 @@ import { withLogContext } from 'openland-log/withLogContext';
 import { FDB } from 'openland-module-db/FDB';
 import { FEntity } from 'foundation-orm/FEntity';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
-import { GQL } from '../../openland-module-api/schema/SchemaSpec';
+import { GQL, GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 
 export default {
     Conversation: {
@@ -75,6 +75,7 @@ export default {
             return FDB.OrganizationProfile.findById((await FDB.ConversationOrganization.findById(src.id))!.oid);
         },
         settings: (src: Conversation, _: any, context: CallContext) => Modules.Messaging.getConversationSettings(context.uid!!, src.id),
+        organizations: () => []
     },
     PrivateConversation: {
         id: (src: Conversation) => IDs.Conversation.serialize(src.id),
@@ -146,7 +147,7 @@ export default {
         blocked: async (src: Conversation, _: any, context: CallContext) => false,
         settings: (src: Conversation, _: any, context: CallContext) => Modules.Messaging.getConversationSettings(context.uid!!, src.id),
     },
-    GroupConversation: typedSoftly<GQL.GroupConversation>({
+    GroupConversation: {
         id: (src: Conversation) => IDs.Conversation.serialize(src.id),
         flexibleId: (src: Conversation) => IDs.Conversation.serialize(src.id),
         title: async (src: Conversation, _: any, context: CallContext) => {
@@ -190,7 +191,7 @@ export default {
         },
         members: async (src: Conversation) => {
             let res = await FDB.RoomParticipant.allFromActive(src.id);
-            return res.map((v) => FDB.User.findById(v.uid));
+            return Promise.all(res.map((v) => FDB.User.findById(v.uid)));
         },
         unreadCount: async (src: Conversation, _: any, context: CallContext) => {
             let state = await FDB.UserDialog.findById(context.uid!!, src.id);
@@ -241,12 +242,12 @@ export default {
 
             return member && member.role;
         },
-    }),
+    },
 
-    MessageReaction: typedSoftly<GQL.MessageReaction>({
+    MessageReaction: {
         user: (src: any) => FDB.User.findById(src.userId),
         reaction: (src: any) => src.reaction
-    }),
+    },
     UrlAugmentationExtra: {
         __resolveType(src: any) {
             if ((src instanceof (FEntity) && src.entityName === 'User')) {
@@ -260,7 +261,7 @@ export default {
             throw new Error('Unknown UrlAugmentationExtra');
         }
     },
-    UrlAugmentation: typedSoftly<GQL.UrlAugmentation>({
+    UrlAugmentation: {
         url: (src: URLAugmentation) => src.url,
         title: (src: URLAugmentation) => src.title,
         subtitle: (src: URLAugmentation) => src.subtitle,
@@ -288,8 +289,8 @@ export default {
             return null;
         },
         date: () => ''
-    }),
-    ConversationMessage: typedSoftly<GQL.ConversationMessage>({
+    },
+    ConversationMessage: {
         id: (src: Message) => {
             return IDs.ConversationMessage.serialize(src.id);
         },
@@ -339,7 +340,7 @@ export default {
         },
         plainText: async (src: Message) => null,
         mentions: async (src: Message) => src.mentions ? (src.mentions as number[]).map(id => FDB.User.findById(id)) : null
-    }),
+    },
     InviteServiceMetadata: {
         users: (src: any) => src.userIds.map((id: number) => FDB.User.findById(id)),
         invitedBy: (src: any) => FDB.User.findById(src.invitedById)
@@ -413,7 +414,7 @@ export default {
     ConversationSettings: {
         id: (src: UserDialogSettings) => IDs.ConversationSettings.serialize(src.cid),
         mute: (src: UserDialogSettings) => src.mute,
-        mobileNotifications: (src: UserDialogSettings) => 'all'
+        mobileNotifications: (src: UserDialogSettings) => 'ALL'
     },
 
     Query: {
@@ -848,4 +849,4 @@ export default {
             return 'ok';
         }),
     }
-};
+} as GQLResolver;
