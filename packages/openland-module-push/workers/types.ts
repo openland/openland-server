@@ -13,6 +13,7 @@ export type Push = {
 };
 
 export type ApplePushTask = {
+    uid: number;
     tokenId: string;
     badge?: number;
     expirity?: number;
@@ -23,6 +24,7 @@ export type ApplePushTask = {
 };
 
 export type FirebasePushTask = {
+    uid: number;
     tokenId: string;
     collapseKey: string;
     notification?: {
@@ -35,6 +37,7 @@ export type FirebasePushTask = {
 };
 
 export type WebPushTask = {
+    uid: number;
     tokenId: string;
     title: string;
     body: string;
