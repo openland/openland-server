@@ -19,9 +19,9 @@ describe('CountersRepository', () => {
         let mrepo = container.get<MessagingRepository>('MessagingRepository');
         let repo = container.get<CountersRepository>('CountersRepository');
         
-        let mid1 = (await mrepo.createMessage(1, 1, { message: '1' })).mid!;
-        let mid2 = (await mrepo.createMessage(1, 1, { message: '1' })).mid!;
-        let mid3 = (await mrepo.createMessage(1, 1, { message: '1' })).mid!;
+        let mid1 = (await mrepo.createMessage(1, 1, { message: '1' })).message.id!;
+        let mid2 = (await mrepo.createMessage(1, 1, { message: '1' })).message.id!;
+        let mid3 = (await mrepo.createMessage(1, 1, { message: '1' })).message.id!;
         // Sender
         expect(await repo.onMessageReceived(1, mid1)).toBe(0);
         expect(await repo.onMessageReceived(1, mid2)).toBe(0);
@@ -51,9 +51,9 @@ describe('CountersRepository', () => {
         let mrepo = container.get<MessagingRepository>('MessagingRepository');
         let repo = container.get<CountersRepository>('CountersRepository');
 
-        let mid1 = (await mrepo.createMessage(2, 1, { message: '1' })).mid!;
-        let mid2 = (await mrepo.createMessage(2, 1, { message: '1' })).mid!;
-        let mid3 = (await mrepo.createMessage(2, 1, { message: '1' })).mid!;
+        let mid1 = (await mrepo.createMessage(2, 1, { message: '1' })).message.id!;
+        let mid2 = (await mrepo.createMessage(2, 1, { message: '1' })).message.id!;
+        let mid3 = (await mrepo.createMessage(2, 1, { message: '1' })).message.id!;
 
         expect(await repo.onMessageReceived(2, mid1)).toBe(1);
         expect(await repo.onMessageRead(2, mid3)).toBe(-1);
@@ -70,9 +70,9 @@ describe('CountersRepository', () => {
         let mrepo = container.get<MessagingRepository>('MessagingRepository');
         let repo = container.get<CountersRepository>('CountersRepository');
 
-        let mid1 = (await mrepo.createMessage(3, 1, { message: '1' })).mid!;
-        let mid2 = (await mrepo.createMessage(3, 1, { message: '1' })).mid!;
-        let mid3 = (await mrepo.createMessage(3, 1, { message: '1' })).mid!;
+        let mid1 = (await mrepo.createMessage(3, 1, { message: '1' })).message.id!;
+        let mid2 = (await mrepo.createMessage(3, 1, { message: '1' })).message.id!;
+        let mid3 = (await mrepo.createMessage(3, 1, { message: '1' })).message.id!;
 
         expect(await repo.onMessageReceived(3, mid1)).toBe(1);
         expect(await repo.onMessageReceived(3, mid1)).toBe(0);

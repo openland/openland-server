@@ -1,4 +1,4 @@
-import { AllEntities, ConversationEvent } from 'openland-module-db/schema';
+import { AllEntities, ConversationEvent, Message } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
 import { MessageInput } from 'openland-module-messaging/MessageInput';
 import { injectable, inject } from 'inversify';
@@ -11,16 +11,16 @@ export class MessagingRepository {
         this.entities = entities;
     }
 
-    async createMessage(conversationId: number, uid: number, message: MessageInput): Promise<ConversationEvent> {
-        return await inTx(async () => { 
+    async createMessage(cid: number, uid: number, message: MessageInput): Promise<{ event: ConversationEvent, message: Message }> {
+        return await inTx(async () => {
 
             // 
             // Persist Messages
             //
 
             let mid = await this.fetchNextMessageId();
-            await this.entities.Message.create(mid, {
-                cid: conversationId,
+            let msg = await this.entities.Message.create(mid, {
+                cid: cid,
                 uid: uid,
                 isMuted: message.isMuted || false,
                 isService: message.isService || false,
@@ -39,18 +39,22 @@ export class MessagingRepository {
             // Write Event
             //
 
-            let seq = await this.fetchConversationNextSeq(conversationId);
-            let res = await this.entities.ConversationEvent.create(conversationId, seq, {
+            let seq = await this.fetchConversationNextSeq(cid);
+            let res = await this.entities.ConversationEvent.create(cid, seq, {
                 kind: 'message_received',
+                uid: uid,
                 mid: mid
             });
-            return res;
+            return {
+                event: res,
+                message: msg
+            };
         });
     }
 
-    async editMessage(messageId: number, newMessage: MessageInput, markAsEdited: boolean): Promise<ConversationEvent> {
+    async editMessage(mid: number, newMessage: MessageInput, markAsEdited: boolean): Promise<ConversationEvent> {
         return await inTx(async () => {
-            let message = await this.entities.Message.findById(messageId);
+            let message = await this.entities.Message.findById(mid);
             if (!message) {
                 throw new Error('Message not found');
             }
@@ -100,9 +104,9 @@ export class MessagingRepository {
         });
     }
 
-    async deleteMessage(messageId: number, uid: number): Promise<ConversationEvent> {
+    async deleteMessage(mid: number): Promise<ConversationEvent> {
         return await inTx(async () => {
-            let message = (await this.entities.Message.findById(messageId));
+            let message = (await this.entities.Message.findById(mid));
 
             if (!message) {
                 throw new Error('Message not found');
@@ -128,9 +132,9 @@ export class MessagingRepository {
         });
     }
 
-    async setReaction(messageId: number, uid: number, reaction: string, reset: boolean = false) {
+    async setReaction(mid: number, uid: number, reaction: string, reset: boolean = false) {
         return await inTx(async () => {
-            let message = await this.entities.Message.findById(messageId);
+            let message = await this.entities.Message.findById(mid);
 
             if (!message) {
                 throw new Error('Message not found');

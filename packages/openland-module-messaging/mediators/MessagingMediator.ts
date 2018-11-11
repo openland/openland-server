@@ -39,11 +39,10 @@ export class MessagingMediator {
             let res = await this.repo.createMessage(cid, uid, message);
 
             // Delivery
-            await this.delivery.onNewMessage((await this.entities.Message.findById(res.mid!))!);
+            await this.delivery.onNewMessage(res.message);
 
             // Augment
-            let message2 = (await this.entities.Message.findById(res.mid!))!;
-            await this.augmentation.onMessageUpdated(message2);
+            await this.augmentation.onMessageUpdated(res.message);
 
             // Cancel typings
             // TODO: Remove
@@ -53,7 +52,7 @@ export class MessagingMediator {
             // Clear draft
             await Modules.Drafts.clearDraft(uid, cid);
 
-            return res;
+            return res.event;
         });
     }
 
@@ -69,6 +68,7 @@ export class MessagingMediator {
 
             // Update
             let res = await this.repo.editMessage(mid, newMessage, markAsEdited);
+            message = (await this.entities.Message.findById(mid!))!;
 
             // Delivery
             await this.delivery.onUpdateMessage(message);
@@ -97,11 +97,18 @@ export class MessagingMediator {
     deleteMessage = async (mid: number, uid: number) => {
         return await inTx(async () => {
 
+            let message = (await this.entities.Message.findById(mid!))!;
+            if (message.uid !== uid) {
+                if (await Modules.Super.superRole(uid) !== 'super-admin') {
+                    throw new AccessDeniedError();
+                }
+            }
+
             // Delete
-            let res = await this.repo.deleteMessage(mid, uid);
+            let res = await this.repo.deleteMessage(mid);
 
             // Delivery
-            let message = (await this.entities.Message.findById(res!.mid!))!;
+            message = (await this.entities.Message.findById(res!.mid!))!;
             await this.delivery.onDeleteMessage(message);
 
             return res;
