@@ -29,6 +29,12 @@ export class CountersRepository {
                 return 0;
             }
 
+            // Avoid double counter for same message
+            if (await this.entities.UserDialogHandledMessage.findById(uid, message.cid, mid)) {
+                return 0;
+            }
+            this.entities.UserDialogHandledMessage.create(uid, message.cid, mid, {});
+
             // Updating counters if not read already
             let local = await this.userState.getUserDialogState(uid, message.cid);
             let global = await this.userState.getUserMessagingState(uid);

@@ -64,4 +64,23 @@ describe('CountersRepository', () => {
         expect(receiverState.unread).toBe(0);
         expect(receiverState.readMessageId).toBe(mid3);
     });
+
+    it('should be tolerant to double invoke', async () => {
+        let urepo = container.get<UserStateRepository>('UserStateRepository');
+        let mrepo = container.get<MessagingRepository>('MessagingRepository');
+        let repo = container.get<CountersRepository>('CountersRepository');
+
+        let mid1 = (await mrepo.createMessage(3, 1, { message: '1' })).mid!;
+        let mid2 = (await mrepo.createMessage(3, 1, { message: '1' })).mid!;
+        let mid3 = (await mrepo.createMessage(3, 1, { message: '1' })).mid!;
+
+        expect(await repo.onMessageReceived(3, mid1)).toBe(1);
+        expect(await repo.onMessageReceived(3, mid1)).toBe(0);
+        expect(await repo.onMessageRead(3, mid3)).toBe(-1);
+        expect(await repo.onMessageReceived(3, mid2)).toBe(0);
+        expect(await repo.onMessageReceived(3, mid3)).toBe(0);
+
+        let receiverState = await urepo.getUserDialogState(3, 3);
+        expect(receiverState.unread).toBe(0);
+    });
 });
