@@ -8,6 +8,7 @@ import { AllEntities } from 'openland-module-db/schema';
 import { Modules } from 'openland-modules/Modules';
 import { RoomRepository } from 'openland-module-messaging/repositories/RoomRepository';
 import { AugmentationMediator } from './AugmentationMediator';
+import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 
 @injectable()
 export class MessagingMediator {
@@ -58,11 +59,16 @@ export class MessagingMediator {
 
     editMessage = async (mid: number, uid: number, newMessage: MessageInput, markAsEdited: boolean) => {
         return await inTx(async () => {
-            // TODO: Permissions
+            // Permissions
+            let message = (await this.entities.Message.findById(mid!))!;
+            if (message.uid !== uid) {
+                if (await Modules.Super.superRole(uid) !== 'super-admin') {
+                    throw new AccessDeniedError();
+                }
+            }
 
             // Update
             let res = await this.repo.editMessage(mid, newMessage, markAsEdited);
-            let message = (await this.entities.Message.findById(res.mid!))!;
 
             // Delivery
             await this.delivery.onUpdateMessage(message);
@@ -90,7 +96,7 @@ export class MessagingMediator {
 
     deleteMessage = async (mid: number, uid: number) => {
         return await inTx(async () => {
-            
+
             // Delete
             let res = await this.repo.deleteMessage(mid, uid);
 

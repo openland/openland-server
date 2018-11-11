@@ -5,15 +5,8 @@ import { UserStateRepository } from './UserStateRepository';
 
 describe('UserStateRepository', () => {
     beforeAll(async () => {
-        // let start = Date.now();
         await testEnvironmentStart('user-state');
         container.bind('UserStateRepository').to(UserStateRepository).inSingletonScope();
-        // container.bind(OrganizationRepository).toSelf().inSingletonScope();
-        // container.bind(OrganizationModule).toSelf().inSingletonScope();
-        // container.bind(UsersModule).toSelf().inSingletonScope();
-        // container.bind(SuperModule).toSelf().inSingletonScope();
-        // container.bind(HooksModule).toSelf().inSingletonScope();
-        // console.log('loaded in ' + (Date.now() - start) + ' ms');
     });
     afterAll(() => {
         testEnvironmentEnd();

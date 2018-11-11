@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { container } from './Modules.container';
 import { AllEntities, AllEntitiesDirect } from 'openland-module-db/schema';
 import { FConnection } from 'foundation-orm/FConnection';

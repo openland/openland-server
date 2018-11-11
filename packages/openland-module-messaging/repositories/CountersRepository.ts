@@ -24,10 +24,15 @@ export class CountersRepository {
                 return 0;
             }
 
+            // Ignore own messages
+            if (message.uid === uid) {
+                return 0;
+            }
+
             // Updating counters if not read already
             let local = await this.userState.getUserDialogState(uid, message.cid);
             let global = await this.userState.getUserMessagingState(uid);
-            if (message.uid !== uid && (!local.readMessageId || mid < local.readMessageId)) {
+            if (!local.readMessageId || mid > local.readMessageId) {
                 local.unread++;
                 global.unread++;
                 await global.flush();
@@ -68,7 +73,6 @@ export class CountersRepository {
             let local = await this.userState.getUserDialogState(uid, message.cid);
             let global = await this.userState.getUserMessagingState(uid);
             if (!local.readMessageId || local.readMessageId < mid) {
-
                 local.readMessageId = mid;
 
                 // Find all remaining messages
@@ -79,14 +83,18 @@ export class CountersRepository {
                 } else {
                     delta = - (remaining - local.unread);
                 }
+                // Crazy hack to avoid -0 values
+                if (delta === 0) {
+                    delta = 0;
+                }
 
                 // Update counters
                 if (delta !== 0) {
                     local.unread += delta;
                     global.unread += delta;
-                    await global.flush();
-                    await local.flush();
                 }
+                await global.flush();
+                await local.flush();
                 return delta;
             }
             return 0;

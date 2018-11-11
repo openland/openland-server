@@ -1,9 +1,7 @@
 import { AllEntities, ConversationEvent } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
 import { MessageInput } from 'openland-module-messaging/MessageInput';
-import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { injectable, inject } from 'inversify';
-import { Modules } from 'openland-modules/Modules';
 
 @injectable()
 export class MessagingRepository {
@@ -108,12 +106,6 @@ export class MessagingRepository {
 
             if (!message) {
                 throw new Error('Message not found');
-            }
-
-            if (message.uid !== uid) {
-                if (await Modules.Super.superRole(uid) !== 'super-admin') {
-                    throw new AccessDeniedError();
-                }
             }
 
             //

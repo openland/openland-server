@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { container } from './Modules.container';
 import { HooksModule } from 'openland-module-hooks/HooksModule';
 import { DBModule } from 'openland-module-db/DBModule';
