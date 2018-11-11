@@ -3,7 +3,7 @@ import { IDs } from 'openland-module-api/IDs';
 import { FDB } from 'openland-module-db/FDB';
 import { FLiveStreamItem } from 'foundation-orm/FLiveStreamItem';
 import { UserDialogEvent } from 'openland-module-db/schema';
-import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
+import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 
 export default {
     /* 

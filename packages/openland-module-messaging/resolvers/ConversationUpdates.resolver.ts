@@ -3,6 +3,7 @@ import { CallContext } from 'openland-module-api/CallContext';
 import { ConversationEvent } from 'openland-module-db/schema';
 import { FDB } from 'openland-module-db/FDB';
 import { FLiveStreamItem } from 'foundation-orm/FLiveStreamItem';
+import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 
 export default {
     /* 
@@ -82,15 +83,17 @@ export default {
             }
             throw Error('Unknown type');
         },
-        seq: (src: ConversationEvent) => src.seq
     },
     ConversationEventMessage: {
-        message: (src: ConversationEvent) => FDB.Message.findById(src.mid!)
+        message: (src: ConversationEvent) => FDB.Message.findById(src.mid!),
+        seq: (src: ConversationEvent) => src.seq
     },
     ConversationEventEditMessage: {
-        message: (src: ConversationEvent) => FDB.Message.findById(src.mid!)
+        message: (src: ConversationEvent) => FDB.Message.findById(src.mid!),
+        seq: (src: ConversationEvent) => src.seq
     },
     ConversationEventDelete: {
-        messageId: (src: ConversationEvent) => IDs.ConversationMessage.serialize(src.mid!)
+        messageId: (src: ConversationEvent) => IDs.ConversationMessage.serialize(src.mid!),
+        seq: (src: ConversationEvent) => src.seq
     },
-};
+} as GQLResolver;
