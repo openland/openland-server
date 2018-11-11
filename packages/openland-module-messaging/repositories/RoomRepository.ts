@@ -8,6 +8,7 @@ import { NotFoundError } from 'openland-errors/NotFoundError';
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { DeliveryMediator } from 'openland-module-messaging/mediators/DeliveryMediator';
+import { RoomProfileInput } from 'openland-module-messaging/RoomProfileInput';
 
 function doSimpleHash(key: string): number {
     var h = 0, l = key.length, i = 0;
@@ -17,13 +18,6 @@ function doSimpleHash(key: string): number {
         }
     }
     return Math.abs(h);
-}
-
-interface RoomProfileInput {
-    title: string;
-    image: any;
-    description?: string | null;
-    socialImage?: any | null;
 }
 
 @injectable()

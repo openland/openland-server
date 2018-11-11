@@ -5,17 +5,17 @@ import { startPushNotificationWorker } from './workers/PushNotificationWorker';
 import { InvitesRepository } from './repositories/InvitesRepository';
 import { inTx } from 'foundation-orm/inTx';
 import { ChannelInviteEmails } from './emails/ChannelInviteEmails';
-import { RoomRepository } from './repositories/RoomRepository';
 import { MessageInput } from './MessageInput';
 import { ConversationEvent } from 'openland-module-db/schema';
 import { UserStateRepository } from './repositories/UserStateRepository';
 import { AugmentationMediator } from './mediators/AugmentationMediator';
 import { DeliveryMediator } from './mediators/DeliveryMediator';
 import { MessagingMediator } from './mediators/MessagingMediator';
+import { RoomMediator } from './mediators/RoomMediator';
 
 @injectable()
 export class MessagingModule {
-    readonly room: RoomRepository;
+    readonly room: RoomMediator;
     private readonly delivery: DeliveryMediator;
     private readonly messaging: MessagingMediator;
     private readonly augmentation: AugmentationMediator;
@@ -25,10 +25,10 @@ export class MessagingModule {
     constructor(
         @inject('MessagingMediator') messaging: MessagingMediator,
         @inject('UserStateRepository') userState: UserStateRepository,
-        @inject('RoomRepository') room: RoomRepository,
         @inject('InvitesRepository') invites: InvitesRepository,
         @inject('AugmentationMediator') augmentation: AugmentationMediator,
-        @inject('DeliveryMediator') delivery: DeliveryMediator
+        @inject('DeliveryMediator') delivery: DeliveryMediator,
+        @inject('RoomMediator') room: RoomMediator,
     ) {
         this.delivery = delivery;
         this.userState = userState;

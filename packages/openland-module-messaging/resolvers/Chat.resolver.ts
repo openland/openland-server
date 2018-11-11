@@ -201,7 +201,7 @@ export default {
             }
         },
         topMessage: async (src: Conversation, _: any, context: CallContext) => {
-            if (!await Modules.Messaging.room.isActiveMember(context.uid!, src.id)) {
+            if (!await Modules.Messaging.room.isRoomMember(context.uid!, src.id)) {
                 return null;
             }
 
