@@ -2,7 +2,7 @@ import { Message } from 'openland-module-db/schema';
 import { IDs } from 'openland-module-api/IDs';
 import { CallContext } from 'openland-module-api/CallContext';
 import { FDB } from 'openland-module-db/FDB';
-import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
+import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 
 type MessageRoot = Message | number;
 
