@@ -65,7 +65,7 @@ export default {
                 let uids: number[] = [];
 
                 for (let chatId of conversationIds) {
-                    uids.push(...await Modules.Messaging.conv.findConversationMembers(chatId));
+                    uids.push(...await Modules.Messaging.room.findConversationMembers(chatId));
                 }
 
                 return Modules.Presence.createPresenceStream(context.uid, uids);

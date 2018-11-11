@@ -53,7 +53,7 @@ export default {
                 return null;
             }
 
-            return Modules.Messaging.repo.findTopMessage(src.id!);
+            return Modules.Messaging.findTopMessage(src.id!);
         },
         membersCount: (src: Conversation) => Modules.Messaging.roomMembersCount(src.id),
         memberRequestsCount: (src: Conversation) => Modules.Messaging.roomMembersCount(src.id, 'requested'),
@@ -127,7 +127,7 @@ export default {
             if (imageRef) {
                 await Modules.Media.saveFile(imageRef.uuid);
             }
-            return Modules.Messaging.conv.createRoom('public', oid, uid, [], {
+            return Modules.Messaging.room.createRoom('public', oid, uid, [], {
                 title: args.title,
                 image: imageRef,
                 description: args.description
@@ -136,22 +136,22 @@ export default {
 
         alphaChannelSetFeatured: withPermission<GQL.MutationAlphaChannelSetFeaturedArgs>('super-admin', async (args) => {
             let channelId = IDs.Conversation.parse(args.channelId);
-            return await Modules.Messaging.conv.setFeatured(channelId, args.featured);
+            return await Modules.Messaging.room.setFeatured(channelId, args.featured);
         }),
 
         alphaChannelHideFromSearch: withPermission<GQL.MutationAlphaChannelHideFromSearchArgs>('super-admin', async (args) => {
             let channelId = IDs.Conversation.parse(args.channelId);
-            return await Modules.Messaging.conv.setListed(channelId, !args.hidden);
+            return await Modules.Messaging.room.setListed(channelId, !args.hidden);
         }),
 
         alphaChannelInvite: withUser<GQL.MutationAlphaChannelInviteArgs>(async (args, uid) => {
             let channelId = IDs.Conversation.parse(args.channelId);
             let userId = IDs.User.parse(args.userId);
-            return Modules.Messaging.conv.inviteToRoom(channelId, uid, [userId]);
+            return Modules.Messaging.room.inviteToRoom(channelId, uid, [userId]);
         }),
         alphaChannelJoin: withUser<GQL.MutationAlphaChannelJoinArgs>(async (args, uid) => {
             let channelId = IDs.Conversation.parse(args.channelId);
-            let chat = await Modules.Messaging.conv.joinRoom(channelId, uid);
+            let chat = await Modules.Messaging.room.joinRoom(channelId, uid);
             return {
                 chat
             };
@@ -196,7 +196,7 @@ export default {
                 let existing = await FDB.RoomParticipant.findById(invite.channelId, uid!);
 
                 if (existing) {
-                    await Modules.Messaging.addToChannel(invite.channelId, uid!);
+                    await Modules.Messaging.room.joinRoom(invite.channelId, uid!);
                     return IDs.Conversation.serialize(invite.channelId);
                 }
 

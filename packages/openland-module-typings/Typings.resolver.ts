@@ -34,7 +34,7 @@ export default {
         }),
         typingCancel: withUser<GQL.MutationTypingCancelArgs>(async (args, uid) => {
             let chatId = IDs.Conversation.parse(args.conversationId);
-            let members = await Modules.Messaging.conv.findConversationMembers(chatId);
+            let members = await Modules.Messaging.room.findConversationMembers(chatId);
             await Modules.Typings.cancelTyping(uid, chatId, members);
             return 'ok';
         }),

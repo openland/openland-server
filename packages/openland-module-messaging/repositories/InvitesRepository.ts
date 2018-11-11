@@ -3,15 +3,13 @@ import { inTx } from 'foundation-orm/inTx';
 import { ErrorText } from 'openland-errors/ErrorText';
 import { UserError } from 'openland-errors/UserError';
 import { randomInviteKey } from 'openland-utils/random';
-// import { DB } from 'openland-server/tables';
-// import { Modules } from 'openland-modules/Modules';
+import { injectable, inject } from 'inversify';
 
-// const TEMPLATE_INVITE = '024815a8-5602-4412-83f4-4be505c2026a';
-
+@injectable()
 export class InvitesRepository {
     readonly entities: AllEntities;
 
-    constructor(entities: AllEntities) {
+    constructor(@inject('FDB') entities: AllEntities) {
         this.entities = entities;
     }
 

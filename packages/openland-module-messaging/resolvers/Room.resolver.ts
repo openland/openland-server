@@ -74,8 +74,8 @@ export default {
                 throw Error('Unknown room kind: ' + room.kind);
             }
         }),
-        title: withConverationId(async (id, context) => Modules.Messaging.conv.resolveConversationTitle(id, context.uid!)),
-        photo: withConverationId(async (id, context) => Modules.Messaging.conv.resolveConversationPhoto(id, context.uid!)),
+        title: withConverationId(async (id, context) => Modules.Messaging.room.resolveConversationTitle(id, context.uid!)),
+        photo: withConverationId(async (id, context) => Modules.Messaging.room.resolveConversationPhoto(id, context.uid!)),
         organization: async (root: RoomRoot) => {
             //
         },
@@ -97,13 +97,13 @@ export default {
             if (id.type === IDs.Conversation) {
                 return id.id;
             } else if (id.type === IDs.User) {
-                return Modules.Messaging.conv.resolvePrivateChat(id.id, uid);
+                return Modules.Messaging.room.resolvePrivateChat(id.id, uid);
             } else if (id.type === IDs.Organization) {
                 let member = await FDB.OrganizationMember.findById(id.id, uid);
                 if (!member || member.status !== 'joined') {
                     throw new IDMailformedError('Invalid id');
                 }
-                return Modules.Messaging.conv.resolveOrganizationChat(id.id);
+                return Modules.Messaging.room.resolveOrganizationChat(id.id);
             } else {
                 throw new IDMailformedError('Invalid id');
             }

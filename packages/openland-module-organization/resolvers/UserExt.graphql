@@ -6,7 +6,7 @@ extend type User {
     alphaPrimaryOrganization: Organization
 }
 
-extends type UserProfile {
+extend type Profile {
     primaryOrganization: Organization
 
     # Deprecated

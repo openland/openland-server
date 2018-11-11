@@ -1,33 +1,26 @@
 import { AllEntities, ConversationEvent } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
-import { Modules } from 'openland-modules/Modules';
 import { MessageInput } from 'openland-module-messaging/MessageInput';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
+import { injectable, inject } from 'inversify';
+import { Modules } from 'openland-modules/Modules';
 
+@injectable()
 export class MessagingRepository {
     readonly entities: AllEntities;
 
-    constructor(entities: AllEntities) {
+    constructor(@inject('FDB') entities: AllEntities) {
         this.entities = entities;
     }
 
-    async sendMessage(conversationId: number, uid: number, message: MessageInput): Promise<ConversationEvent> {
-        return await inTx(async () => {
-            if (message.message === 'fuck') {
-                throw Error('');
-            }
-
-            //
-            // Check access
-            //
-
-            await Modules.Messaging.conv.checkAccess(uid, conversationId);
+    async createMessage(conversationId: number, uid: number, message: MessageInput): Promise<ConversationEvent> {
+        return await inTx(async () => { 
 
             // 
             // Persist Messages
             //
 
-            let mid = await Modules.Messaging.repo.fetchNextMessageId();
+            let mid = await this.fetchNextMessageId();
             await this.entities.Message.create(mid, {
                 cid: conversationId,
                 uid: uid,
@@ -45,8 +38,9 @@ export class MessagingRepository {
             });
 
             //
-            // Persist Event
+            // Write Event
             //
+
             let seq = await this.fetchConversationNextSeq(conversationId);
             let res = await this.entities.ConversationEvent.create(conversationId, seq, {
                 kind: 'message_received',
@@ -62,6 +56,10 @@ export class MessagingRepository {
             if (!message) {
                 throw new Error('Message not found');
             }
+
+            //
+            // Update message
+            //
 
             if (newMessage.message) {
                 message.text = newMessage.message;
@@ -90,18 +88,15 @@ export class MessagingRepository {
                 message.edited = true;
             }
 
-            let members = await Modules.Messaging.conv.findConversationMembers(message.cid);
-            for (let member of members) {
-                await Modules.Messaging.dialogs.deliverMessageDeleteToUser(member, message.id);
-            }
+            //
+            // Write Event
+            //
 
-            let seq = await Modules.Messaging.repo.fetchConversationNextSeq(message!.cid);
+            let seq = await this.fetchConversationNextSeq(message!.cid);
             let res = await this.entities.ConversationEvent.create(message!.cid, seq, {
                 kind: 'message_updated',
                 mid: message!.id
             });
-
-            await Modules.Messaging.AugmentationWorker.pushWork({ messageId: message.id });
 
             return res;
         });
@@ -127,20 +122,15 @@ export class MessagingRepository {
 
             message.deleted = true;
 
-            let seq = await Modules.Messaging.repo.fetchConversationNextSeq(message.cid);
+            //
+            // Write Event
+            //
+
+            let seq = await this.fetchConversationNextSeq(message.cid);
             let res = await this.entities.ConversationEvent.create(message.cid, seq, {
                 kind: 'message_deleted',
                 mid: message!.id
             });
-
-            //
-            //  Deliver update
-            //
-
-            let members = await Modules.Messaging.conv.findConversationMembers(message.cid);
-            for (let member of members) {
-                await Modules.Messaging.dialogs.deliverMessageDeleteToUser(member, message.id);
-            }
 
             return res;
         });
@@ -153,6 +143,10 @@ export class MessagingRepository {
             if (!message) {
                 throw new Error('Message not found');
             }
+
+            //
+            // Update message
+            //
 
             let reactions: { reaction: string, userId: number }[] = message.reactions ? [...message.reactions] as any : [];
             if (reactions.find(r => (r.userId === uid) && (r.reaction === reaction))) {
@@ -167,19 +161,24 @@ export class MessagingRepository {
             }
             message.reactions = reactions;
 
-            let members = await Modules.Messaging.conv.findConversationMembers(message.cid);
-            for (let member of members) {
-                await Modules.Messaging.dialogs.deliverMessageDeleteToUser(member, message.id);
-            }
+            //
+            // Write Event
+            //
 
-            let seq = await Modules.Messaging.repo.fetchConversationNextSeq(message!.cid);
-            return await this.entities.ConversationEvent.create(message!.cid, seq, {
+            let seq = await this.fetchConversationNextSeq(message!.cid);
+            let res = await this.entities.ConversationEvent.create(message!.cid, seq, {
                 kind: 'message_updated',
                 mid: message!.id
             });
+
+            return res;
         });
     }
 
+    /**
+     * @deprecated top message should be persisted in dialog list
+     * @param cid conversation id
+     */
     async findTopMessage(cid: number) {
         let res = await this.entities.Message.rangeFromChat(cid, 1, true);
         if (res.length === 0) {

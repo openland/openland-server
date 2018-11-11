@@ -70,7 +70,7 @@ export default {
                 return 0;
             }
         },
-        topMessage: (src: Conversation) => Modules.Messaging.repo.findTopMessage(src.id!),
+        topMessage: (src: Conversation) => Modules.Messaging.findTopMessage(src.id!),
         organization: async (src: Conversation, _: any, context: CallContext) => {
             return FDB.OrganizationProfile.findById((await FDB.ConversationOrganization.findById(src.id))!.oid);
         },
@@ -130,7 +130,7 @@ export default {
                 return 0;
             }
         },
-        topMessage: (src: Conversation) => Modules.Messaging.repo.findTopMessage(src.id!),
+        topMessage: (src: Conversation) => Modules.Messaging.findTopMessage(src.id!),
         user: async (src: Conversation, _: any, context: CallContext) => {
             let uid;
             let conv = (await FDB.ConversationPrivate.findById(src.id))!;
@@ -205,7 +205,7 @@ export default {
                 return null;
             }
 
-            return Modules.Messaging.repo.findTopMessage(src.id!);
+            return Modules.Messaging.findTopMessage(src.id!);
         },
         membersCount: (src: Conversation) => Modules.Messaging.roomMembersCount(src.id),
         settings: (src: Conversation, _: any, context: CallContext) => Modules.Messaging.getConversationSettings(context.uid!!, src.id),
@@ -426,7 +426,7 @@ export default {
                 }
 
                 if (shortName.ownerType === 'user') {
-                    return Modules.Messaging.conv.resolvePrivateChat(shortName.ownerId!, uid);
+                    return Modules.Messaging.room.resolvePrivateChat(shortName.ownerId!, uid);
                 } // else if (shortName.ownerType === 'org') {
                 // return Repos.Chats.loadOrganizationalChat(oid, shortName.ownerId!);
                 // } else {
@@ -437,13 +437,13 @@ export default {
                 if (id.type === IDs.Conversation) {
                     return FDB.Conversation.findById(id.id);
                 } else if (id.type === IDs.User) {
-                    return Modules.Messaging.conv.resolvePrivateChat(id.id, uid);
+                    return Modules.Messaging.room.resolvePrivateChat(id.id, uid);
                 } else if (id.type === IDs.Organization) {
                     let member = await FDB.OrganizationMember.findById(id.id, uid);
                     if (!member || member.status !== 'joined') {
                         throw new IDMailformedError('Invalid id');
                     }
-                    return Modules.Messaging.conv.resolveOrganizationChat(id.id);
+                    return Modules.Messaging.room.resolveOrganizationChat(id.id);
                 } else {
                     throw new IDMailformedError('Invalid id');
                 }
@@ -454,7 +454,7 @@ export default {
         alphaLoadMessages: withUser<GQL.QueryAlphaLoadMessagesArgs>(async (args, uid) => {
             let conversationId = IDs.Conversation.parse(args.conversationId);
 
-            await Modules.Messaging.conv.checkAccess(uid, conversationId);
+            await Modules.Messaging.room.checkAccess(uid, conversationId);
 
             let beforeMessage: Message | null = null;
             if (args.before) {
@@ -472,26 +472,6 @@ export default {
                 seq: 0,
                 messages: await FDB.Message.rangeFromChat(conversationId, args.first!, true)
             };
-            // if (beforeMessage) {
-            //     return {
-            //         seq: seq,
-            //         messages: await FDB.Message.rangeFromChat(conversationId, args.first!, true)
-            //     };
-            // } else if (afterMessage) {
-
-            // }
-            // return {
-            //     seq: seq,
-            //     messages: await (DB.ConversationMessage.findAll({
-            //         where: {
-            //             conversationId: conversationId,
-            //             ...((beforeMessage || afterMessage) ? { id: beforeMessage ? { $lt: beforeMessage.id } : { $gt: afterMessage!!.id } } : {}),
-            //         },
-            //         limit: args.first,
-            //         order: [['id', 'DESC']],
-            //         transaction: tx
-            //     }))
-            // };
         }),
         alphaChatsSearchForCompose: withAccount<GQL.QueryAlphaChatsSearchForComposeArgs>(async (args, uid, oid) => {
 
@@ -561,71 +541,14 @@ export default {
         alphaReadChat: withUser<GQL.MutationAlphaReadChatArgs>(async (args, uid) => {
             let conversationId = IDs.Conversation.parse(args.conversationId);
             let messageId = IDs.ConversationMessage.parse(args.messageId);
-            await inTx(async () => {
-                let msg = await FDB.Message.findById(messageId);
-                if (!msg || msg.cid !== conversationId) {
-                    throw Error('Invalid request');
-                }
-
-                let existing = await Modules.Messaging.dialogs.getUserDialogState(uid, conversationId);
-                let global = await Modules.Messaging.dialogs.getUserMessagingState(uid);
-                let delta = 0;
-                let totalUnread = 0;
-                if (!existing.readMessageId || existing.readMessageId < messageId) {
-                    let remaining = Math.max((await FDB.Message.allFromChatAfter(conversationId, messageId)).filter((v) => v.uid !== uid).length - 1, 0);
-                    if (remaining === 0) {
-                        delta = -existing.unread;
-                        existing.unread = 0;
-                        existing.readMessageId = messageId;
-                    } else {
-                        delta = remaining - existing.unread;
-                        existing.unread = remaining;
-                        existing.readMessageId = messageId;
-                        totalUnread = remaining;
-                    }
-                }
-
-                if (delta !== 0) {
-
-                    //
-                    // Update Global State
-                    //
-
-                    let unread = global.unread + delta;
-                    if (unread < 0) {
-                        throw Error('Internal inconsistency');
-                    }
-                    global.unread = unread;
-                    global.seq++;
-
-                    //
-                    // Write Event
-                    //
-
-                    await FDB.UserDialogEvent.create(uid, global.seq, {
-                        kind: 'message_read',
-                        cid: conversationId,
-                        unread: totalUnread,
-                        allUnread: global.unread
-                    });
-
-                    //
-                    // Update counter
-                    //
-                    await Modules.Push.sendCounterPush(uid, conversationId, global.unread);
-                }
-            });
-
+            await Modules.Messaging.readRoom(uid, conversationId, messageId);
             return {
                 uid: uid,
                 conversationId: conversationId
             };
         }),
         alphaGlobalRead: withUser<GQL.MutationAlphaGlobalReadArgs>(async (args, uid) => {
-            await inTx(async () => {
-                let state = await Modules.Messaging.dialogs.getUserNotificationState(uid);
-                state.readSeq = args.toSeq;
-            });
+            await Modules.Messaging.markAsSeqRead(uid, args.toSeq);
             return 'ok';
         }),
         alphaSendMessage: withUser<GQL.MutationAlphaSendMessageArgs>(async (args, uid) => {
@@ -790,14 +713,9 @@ export default {
             }, true);
         }),
         alphaDeleteMessageUrlAugmentation: withUser<GQL.MutationAlphaDeleteMessageUrlAugmentationArgs>(async (args, uid) => {
-            return await Modules.Messaging.editMessage(
-                IDs.ConversationMessage.parse(args.messageId),
-                uid,
-                {
-                    urlAugmentation: false
-                },
-                true
-            );
+            return await Modules.Messaging.editMessage(IDs.ConversationMessage.parse(args.messageId), uid, {
+                urlAugmentation: false
+            }, true);
         }),
         alphaDeleteMessage: withUser<GQL.MutationAlphaDeleteMessageArgs>(async (args, uid) => {
             let messageId = IDs.ConversationMessage.parse(args.messageId);
@@ -814,7 +732,7 @@ export default {
             if (imageRef) {
                 await Modules.Media.saveFile(imageRef.uuid);
             }
-            return Modules.Messaging.conv.createRoom('group', oid, uid, args.members.map((v) => IDs.User.parse(v)), {
+            return Modules.Messaging.room.createRoom('group', oid, uid, args.members.map((v) => IDs.User.parse(v)), {
                 title: title,
                 image: imageRef
             }, args.message || '');
@@ -839,7 +757,7 @@ export default {
                 await Modules.Media.saveFile(args.input.socialImageRef.uuid);
             }
 
-            let conv = await Modules.Messaging.conv.updateRoomProfile(conversationId, uid, {
+            let conv = await Modules.Messaging.room.updateRoomProfile(conversationId, uid, {
                 title: args.input.title!,
                 description: args.input.description!,
                 image: imageRef,
@@ -863,7 +781,7 @@ export default {
 
             let members = args.invites.map((v) => IDs.User.parse(v.userId));
 
-            let chat = await Modules.Messaging.conv.inviteToRoom(conversationId, uid, members);
+            let chat = await Modules.Messaging.room.inviteToRoom(conversationId, uid, members);
             return {
                 chat
             };
@@ -872,7 +790,7 @@ export default {
             let conversationId = IDs.Conversation.parse(args.conversationId);
             let userId = IDs.User.parse(args.userId);
             return inTx(async () => {
-                let chat = await Modules.Messaging.conv.kickFromRoom(conversationId, uid, userId);
+                let chat = await Modules.Messaging.room.kickFromRoom(conversationId, uid, userId);
                 return {
                     chat
                 };
@@ -886,7 +804,7 @@ export default {
             let conversationId = IDs.Conversation.parse(args.conversationId);
             let userId = IDs.User.parse(args.userId);
 
-            let conv = await Modules.Messaging.conv.updateMemberRole(conversationId, uid, userId, args.newRole as any);
+            let conv = await Modules.Messaging.room.updateMemberRole(conversationId, uid, userId, args.newRole as any);
 
             return {
                 chat: conv
@@ -913,7 +831,7 @@ export default {
             return inTx(async () => {
                 let conversationId = IDs.Conversation.parse(args.conversationId);
 
-                let res = await Modules.Messaging.conv.leaveRoom(conversationId, uid);
+                let res = await Modules.Messaging.room.leaveRoom(conversationId, uid);
 
                 return {
                     chat: res

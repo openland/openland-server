@@ -51,7 +51,7 @@ export default {
             return Modules.Orgs.removeUserFromOrganization(IDs.User.parse(args.userId), IDs.SuperAccount.parse(args.id), IDs.User.parse(args.userId));
         }),
         superAccountChannelMemberAdd: withPermission<{ id: string, userId: string }>('super-admin', async (args) => {
-            await Modules.Messaging.addToChannel(IDs.Conversation.parse(args.id), IDs.User.parse(args.userId));
+            await Modules.Messaging.room.joinRoom(IDs.Conversation.parse(args.id), IDs.User.parse(args.userId));
             return 'ok';
         }),
     }

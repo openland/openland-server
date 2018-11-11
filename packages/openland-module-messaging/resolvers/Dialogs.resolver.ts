@@ -51,17 +51,17 @@ export default {
         },
 
         title: async (src: UserDialog, args: {}, context: CallContext) => {
-            return Modules.Messaging.conv.resolveConversationTitle(src.cid, context.uid!);
+            return Modules.Messaging.room.resolveConversationTitle(src.cid, context.uid!);
         },
         photo: async (src: UserDialog, args: {}, context: CallContext) => {
-            return await Modules.Messaging.conv.resolveConversationPhoto(src.cid, context.uid!);
+            return await Modules.Messaging.room.resolveConversationPhoto(src.cid, context.uid!);
         },
 
         unreadCount: async (src: UserDialog) => {
             return src.unread;
         },
 
-        topMessage: (src: UserDialog) => Modules.Messaging.repo.findTopMessage(src.cid),
+        topMessage: (src: UserDialog) => Modules.Messaging.findTopMessage(src.cid),
     },
     Query: {
         dialogs: withUser<{ first: number, after?: string | null, seq?: number }>(async (args, uid) => {
