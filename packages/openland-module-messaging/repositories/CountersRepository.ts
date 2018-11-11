@@ -65,7 +65,7 @@ export class CountersRepository {
             if (!message) {
                 throw Error('Unable to find message');
             }
-            let local = await this.userState.getUserDialogState(uid, mid);
+            let local = await this.userState.getUserDialogState(uid, message.cid);
             let global = await this.userState.getUserMessagingState(uid);
             if (!local.readMessageId || local.readMessageId < mid) {
 
@@ -73,7 +73,6 @@ export class CountersRepository {
 
                 // Find all remaining messages
                 let remaining = (await this.entities.Message.allFromChatAfter(message.cid, mid)).filter((v) => v.uid !== uid && v.id !== mid).length;
-                console.log('remaining:' + remaining);
                 let delta: number;
                 if (remaining === 0) { // Just additional case for self-healing of a broken counters
                     delta = -local.unread;
