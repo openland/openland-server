@@ -22,7 +22,7 @@ export default {
 
                 // PERSONAL - search users first, then matching conversations with current user
                 let personal = Promise.all((
-                    await Modules.Users.searchForUsers(args.query, { uid, limit: 50 })).map((v) => Modules.Messaging.conv.resolvePrivateChat(uid, v)));
+                    await Modules.Users.searchForUsers(args.query, { uid, limit: 50 })).map((v) => Modules.Messaging.room.resolvePrivateChat(uid, v)));
 
                 // Organizations chats
                 let matchingUserOrgProfiles = (await Promise.all((await Modules.Orgs.findUserOrganizations(uid)).map(uoid => FDB.OrganizationProfile.findById(uoid)))).filter(oc => !!oc && oc.name.toLocaleLowerCase().indexOf(args.query.toLowerCase()) >= 0).map(oc => oc!);

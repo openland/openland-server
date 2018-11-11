@@ -47,6 +47,7 @@ export function createPushWorker(repo: PushRepository) {
                         let webTokens = await repo.getUserWebPushTokens(args.uid);
                         for (let wp of webTokens) {
                             await Modules.Push.webWorker.pushWork({
+                                uid: args.uid,
                                 tokenId: wp.id,
                                 title: args.title,
                                 body: args.body,
@@ -63,6 +64,7 @@ export function createPushWorker(repo: PushRepository) {
                         for (let t of iosTokens) {
                             if (args.silent) {
                                 await Modules.Push.appleWorker.pushWork({
+                                    uid: args.uid,
                                     tokenId: t.id,
                                     contentAvailable: true,
                                     badge: args.counter,
@@ -73,6 +75,7 @@ export function createPushWorker(repo: PushRepository) {
                                 });
                             } else {
                                 await Modules.Push.appleWorker.pushWork({
+                                    uid: args.uid,
                                     tokenId: t.id,
                                     sound: args.mobileAlert ? 'default' : undefined,
                                     contentAvailable: true,
@@ -99,6 +102,7 @@ export function createPushWorker(repo: PushRepository) {
                         let androidTokens = await repo.getUserAndroidPushTokens(args.uid);
                         for (let token of androidTokens) {
                             await Modules.Push.androidWorker.pushWork({
+                                uid: args.uid,
                                 tokenId: token.id,
                                 collapseKey: IDs.Conversation.serialize(args.conversationId),
                                 notification: {

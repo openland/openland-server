@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { container } from './Modules.container';
 import { HooksModule } from 'openland-module-hooks/HooksModule';
 import { DBModule } from 'openland-module-db/DBModule';
@@ -25,12 +26,15 @@ import { AuthModule } from 'openland-module-auth/AuthModule';
 import { AllEntities, AllEntitiesDirect } from 'openland-module-db/schema';
 import { FConnection } from 'foundation-orm/FConnection';
 import { EventBus } from 'openland-module-pubsub/EventBus';
+import { loadMessagingModule } from 'openland-module-messaging/Messaging.container';
 
 export async function loadAllModules() {
 
     container.bind<AllEntities>('FDB')
         .toDynamicValue(() => new AllEntitiesDirect(new FConnection(FConnection.create(), EventBus)))
         .inSingletonScope();
+
+    loadMessagingModule();
 
     container.bind(DBModule).toSelf().inSingletonScope();
     container.bind(HooksModule).toSelf().inSingletonScope();
@@ -40,7 +44,6 @@ export async function loadAllModules() {
     container.bind(PushModule).toSelf().inSingletonScope();
     container.bind(PresenceModule).toSelf().inSingletonScope();
     container.bind('EmailModule').to(EmailModuleImpl).inSingletonScope();
-    container.bind(MessagingModule).toSelf().inSingletonScope();
     container.bind(UsersModule).toSelf().inSingletonScope();
     container.bind(FeaturesModule).toSelf().inSingletonScope();
     container.bind(SearchModule).toSelf().inSingletonScope();

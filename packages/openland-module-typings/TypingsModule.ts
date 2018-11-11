@@ -72,7 +72,7 @@ export class TypingsModule {
         if (this.cache.has(chatId)) {
             return this.cache.get(chatId)!;
         } else {
-            let members = await Modules.Messaging.conv.findConversationMembers(chatId);
+            let members = await Modules.Messaging.room.findConversationMembers(chatId);
 
             this.cache.set(chatId, members);
 

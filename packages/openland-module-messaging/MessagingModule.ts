@@ -1,36 +1,49 @@
-import { createAugmentationWorker } from './workers/AugmentationWorker';
+import { injectable, inject } from 'inversify';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { startEmailNotificationWorker } from './workers/EmailNotificationWorker';
 import { startPushNotificationWorker } from './workers/PushNotificationWorker';
-import { MessagingRepository } from './repositories/MessagingRepository';
-import { FDB } from 'openland-module-db/FDB';
-import { ChannelRepository } from './repositories/ChannelRepository';
+import { InvitesRepository } from './repositories/InvitesRepository';
 import { inTx } from 'foundation-orm/inTx';
 import { ChannelInviteEmails } from './emails/ChannelInviteEmails';
-import { createDeliveryWorker } from './workers/DeliveryWorker';
-import { DialogsRepository } from './repositories/DialogsRepository';
-import { FixerRepository } from './repositories/Fixer';
-import { RoomRepository } from './repositories/RoomRepository';
-import { ConversationRepository } from './repositories/ConversationRepository';
 import { MessageInput } from './MessageInput';
 import { ConversationEvent } from 'openland-module-db/schema';
-import { Modules } from 'openland-modules/Modules';
-import { injectable } from 'inversify';
+import { UserStateRepository } from './repositories/UserStateRepository';
+import { AugmentationMediator } from './mediators/AugmentationMediator';
+import { DeliveryMediator } from './mediators/DeliveryMediator';
+import { MessagingMediator } from './mediators/MessagingMediator';
+import { RoomMediator } from './mediators/RoomMediator';
 
 @injectable()
 export class MessagingModule {
-    readonly AugmentationWorker = createAugmentationWorker();
-    readonly DeliveryWorker = createDeliveryWorker();
-    readonly repo = new MessagingRepository(FDB);
-    readonly fixer = new FixerRepository(FDB);
-    readonly room = new RoomRepository(FDB);
-    readonly conv = new ConversationRepository(FDB);
-    private readonly dialogs = new DialogsRepository(FDB);
-    private readonly channels = new ChannelRepository(FDB);
+    readonly room: RoomMediator;
+    private readonly delivery: DeliveryMediator;
+    private readonly messaging: MessagingMediator;
+    private readonly augmentation: AugmentationMediator;
+    private readonly invites: InvitesRepository;
+    private readonly userState: UserStateRepository;
 
-    // await Modules.Drafts.clearDraft(uid, conversationId);
-    //         await Modules.Messaging.DeliveryWorker.pushWork({ messageId: mid });
+    constructor(
+        @inject('MessagingMediator') messaging: MessagingMediator,
+        @inject('UserStateRepository') userState: UserStateRepository,
+        @inject('InvitesRepository') invites: InvitesRepository,
+        @inject('AugmentationMediator') augmentation: AugmentationMediator,
+        @inject('DeliveryMediator') delivery: DeliveryMediator,
+        @inject('RoomMediator') room: RoomMediator,
+    ) {
+        this.delivery = delivery;
+        this.userState = userState;
+        this.messaging = messaging;
+        this.room = room;
+        this.invites = invites;
+        this.augmentation = augmentation;
+    }
+
+    //
+    // Start 
+    //
     start = () => {
+        this.augmentation.start();
+        this.delivery.start();
         if (serverRoleEnabled('workers')) {
             startEmailNotificationWorker();
         }
@@ -39,56 +52,79 @@ export class MessagingModule {
         }
     }
 
+    //
+    // Conversation Settings
+    //
+
     async getConversationSettings(uid: number, cid: number) {
-        return await this.dialogs.getConversationSettings(uid, cid);
+        return await this.userState.getConversationSettings(uid, cid);
     }
 
+    async getUserNotificationState(uid: number) {
+        return await this.userState.getUserNotificationState(uid);
+    }
+
+    //
+    // Invites
+    //
+
     async resolveInvite(id: string) {
-        return await this.channels.resolveInvite(id);
+        return await this.invites.resolveInvite(id);
     }
 
     async createChannelInviteLink(channelId: number, uid: number) {
-        return await this.channels.createChannelInviteLink(channelId, uid);
+        return await this.invites.createChannelInviteLink(channelId, uid);
     }
 
     async refreshChannelInviteLink(channelId: number, uid: number) {
-        return await this.channels.refreshChannelInviteLink(channelId, uid);
+        return await this.invites.refreshChannelInviteLink(channelId, uid);
     }
 
     async createChannelInvite(channelId: number, uid: number, email: string, emailText?: string, firstName?: string, lastName?: string) {
         return await inTx(async () => {
-            let invite = await this.channels.createChannelInvite(channelId, uid, email, emailText, firstName, lastName);
+            let invite = await this.invites.createChannelInvite(channelId, uid, email, emailText, firstName, lastName);
             await ChannelInviteEmails.sendChannelInviteEmail(invite);
             return invite;
         });
     }
 
-    async sendMessage(conversationId: number, uid: number, message: MessageInput): Promise<ConversationEvent> {
-        return await inTx(async () => {
-            let res = await this.repo.sendMessage(conversationId, uid, message);
-            await Modules.Drafts.clearDraft(uid, conversationId);
-            await this.DeliveryWorker.pushWork({ messageId: res.mid! });
-            return res;
-        });
+    //
+    // Messaging
+    //
+
+    async findTopMessage(cid: number) {
+        return await this.messaging.findTopMessage(cid);
     }
 
-    async editMessage(messageId: number, uid: number, newMessage: MessageInput, markAsEdited: boolean): Promise<ConversationEvent> {
-        return this.repo.editMessage(messageId, uid, newMessage, markAsEdited);
+    async sendMessage(cid: number, uid: number, message: MessageInput): Promise<ConversationEvent> {
+        return await this.messaging.sendMessage(uid, cid, message);
     }
 
-    async setReaction(messageId: number, uid: number, reaction: string, reset: boolean = false) {
-        return this.repo.setReaction(messageId, uid, reaction, reset);
+    async editMessage(mid: number, uid: number, newMessage: MessageInput, markAsEdited: boolean): Promise<ConversationEvent> {
+        return await this.messaging.editMessage(mid, uid, newMessage, markAsEdited);
     }
 
-    async deleteMessage(messageId: number, uid: number): Promise<ConversationEvent> {
-        return this.repo.deleteMessage(messageId, uid);
+    async setReaction(mid: number, uid: number, reaction: string, reset: boolean = false) {
+        return await this.messaging.setReaction(mid, uid, reaction, reset);
     }
+
+    async deleteMessage(mid: number, uid: number): Promise<ConversationEvent> {
+        return await this.messaging.deleteMessage(mid, uid);
+    }
+
+    async readRoom(uid: number, cid: number, mid: number) {
+        return await this.messaging.readRoom(uid, cid, mid);
+    }
+
+    async markAsSeqRead(uid: number, toSeq: number) {
+        return await this.userState.markAsSeqRead(uid, toSeq);
+    }
+
+    //
+    // Rooms
+    //
 
     async roomMembersCount(conversationId: number, status?: string): Promise<number> {
-        return this.repo.roomMembersCount(conversationId, status);
-    }
-
-    async addToChannel(channelId: number, uid: number) {
-        return this.repo.addToChannel(channelId, uid);
+        return await this.room.roomMembersCount(conversationId, status);
     }
 }

@@ -24,7 +24,7 @@ export function startPushNotificationWorker() {
                 await withLogContext(['user', '' + u.uid], async () => {
                     // Loading user's settings and state
                     let settings = await Modules.Users.getUserSettings(u.uid);
-                    let state = await Modules.Messaging.repo.getUserNotificationState(u.uid);
+                    let state = await Modules.Messaging.getUserNotificationState(u.uid);
 
                     let now = Date.now();
 
@@ -145,7 +145,7 @@ export function startPushNotificationWorker() {
                             continue;
                         }
 
-                        let chatTitle = await Modules.Messaging.conv.resolveConversationTitle(conversation.id, u.uid);
+                        let chatTitle = await Modules.Messaging.room.resolveConversationTitle(conversation.id, u.uid);
 
                         hasMessage = true;
                         let senderName = [sender.firstName, sender.lastName].filter((v) => !!v).join(' ');

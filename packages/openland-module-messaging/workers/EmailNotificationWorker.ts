@@ -11,7 +11,7 @@ export function startEmailNotificationWorker() {
         let now = Date.now();
         for (let u of unreadUsers) {
             await inTx(async () => {
-                let state = await Modules.Messaging.repo.getUserNotificationState(u.uid);
+                let state = await Modules.Messaging.getUserNotificationState(u.uid);
                 let lastSeen = await Modules.Presence.getLastSeen(u.uid);
                 let tag = 'email_notifications ' + u.uid;
 

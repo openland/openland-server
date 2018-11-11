@@ -417,6 +417,14 @@ const Schema = declareSchema(() => {
         enableVersioning();
     });
 
+    entity('UserDialogHandledMessage', () => {
+        primaryKey('uid', 'number');
+        primaryKey('cid', 'number');
+        primaryKey('mid', 'number');
+        enableTimestamps();
+        enableVersioning();
+    });
+
     entity('UserDialogSettings', () => {
         primaryKey('uid', 'number');
         primaryKey('cid', 'number');

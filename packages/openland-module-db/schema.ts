@@ -4333,6 +4333,65 @@ export class UserDialogFactory extends FEntityFactory<UserDialog> {
         return new UserDialog(this.connection, this.namespace, this.directory, [value.uid, value.cid], value, this.options, isNew, this.indexes, 'UserDialog');
     }
 }
+export interface UserDialogHandledMessageShape {
+}
+
+export class UserDialogHandledMessage extends FEntity {
+    readonly entityName: 'UserDialogHandledMessage' = 'UserDialogHandledMessage';
+    get uid(): number { return this._value.uid; }
+    get cid(): number { return this._value.cid; }
+    get mid(): number { return this._value.mid; }
+}
+
+export class UserDialogHandledMessageFactory extends FEntityFactory<UserDialogHandledMessage> {
+    static schema: FEntitySchema = {
+        name: 'UserDialogHandledMessage',
+        editable: false,
+        primaryKeys: [
+            { name: 'uid', type: 'number' },
+            { name: 'cid', type: 'number' },
+            { name: 'mid', type: 'number' },
+        ],
+        fields: [
+        ],
+        indexes: [
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('uid', src.uid);
+        validators.isNumber('uid', src.uid);
+        validators.notNull('cid', src.cid);
+        validators.isNumber('cid', src.cid);
+        validators.notNull('mid', src.mid);
+        validators.isNumber('mid', src.mid);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'userDialogHandledMessage'),
+            { enableVersioning: true, enableTimestamps: true, validator: UserDialogHandledMessageFactory.validate, hasLiveStreams: false },
+            [],
+            'UserDialogHandledMessage'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 3) { throw Error('Invalid key length!'); }
+        return { 'uid': rawId[0], 'cid': rawId[1], 'mid': rawId[2] };
+    }
+    async findById(uid: number, cid: number, mid: number) {
+        return await this._findById([uid, cid, mid]);
+    }
+    async create(uid: number, cid: number, mid: number, shape: UserDialogHandledMessageShape) {
+        return await this._create([uid, cid, mid], { uid, cid, mid, ...shape });
+    }
+    watch(uid: number, cid: number, mid: number, cb: () => void) {
+        return this._watch([uid, cid, mid], cb);
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new UserDialogHandledMessage(this.connection, this.namespace, this.directory, [value.uid, value.cid, value.mid], value, this.options, isNew, this.indexes, 'UserDialogHandledMessage');
+    }
+}
 export interface UserDialogSettingsShape {
     mute: boolean;
 }
@@ -5752,6 +5811,7 @@ export interface AllEntities {
     readonly ConversationSeq: ConversationSeqFactory;
     readonly ConversationEvent: ConversationEventFactory;
     readonly UserDialog: UserDialogFactory;
+    readonly UserDialogHandledMessage: UserDialogHandledMessageFactory;
     readonly UserDialogSettings: UserDialogSettingsFactory;
     readonly UserDialogEvent: UserDialogEventFactory;
     readonly UserMessagingState: UserMessagingStateFactory;
@@ -5802,6 +5862,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         ConversationSeqFactory.schema,
         ConversationEventFactory.schema,
         UserDialogFactory.schema,
+        UserDialogHandledMessageFactory.schema,
         UserDialogSettingsFactory.schema,
         UserDialogEventFactory.schema,
         UserMessagingStateFactory.schema,
@@ -5851,6 +5912,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     ConversationSeq: ConversationSeqFactory;
     ConversationEvent: ConversationEventFactory;
     UserDialog: UserDialogFactory;
+    UserDialogHandledMessage: UserDialogHandledMessageFactory;
     UserDialogSettings: UserDialogSettingsFactory;
     UserDialogEvent: UserDialogEventFactory;
     UserMessagingState: UserMessagingStateFactory;
@@ -5936,6 +5998,8 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         this.allEntities.push(this.ConversationEvent);
         this.UserDialog = new UserDialogFactory(connection);
         this.allEntities.push(this.UserDialog);
+        this.UserDialogHandledMessage = new UserDialogHandledMessageFactory(connection);
+        this.allEntities.push(this.UserDialogHandledMessage);
         this.UserDialogSettings = new UserDialogSettingsFactory(connection);
         this.allEntities.push(this.UserDialogSettings);
         this.UserDialogEvent = new UserDialogEventFactory(connection);
@@ -6070,6 +6134,9 @@ export class AllEntitiesProxy implements AllEntities {
     }
     get UserDialog(): UserDialogFactory {
         return this.resolver().UserDialog;
+    }
+    get UserDialogHandledMessage(): UserDialogHandledMessageFactory {
+        return this.resolver().UserDialogHandledMessage;
     }
     get UserDialogSettings(): UserDialogSettingsFactory {
         return this.resolver().UserDialogSettings;

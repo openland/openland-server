@@ -1,5 +1,15 @@
 extend type User {
-    alphaPrimaryOrganization: Organization
     organizations: [Organization!]!
     primaryOrganization: Organization
+
+    # Deprecated
+    alphaPrimaryOrganization: Organization
+}
+
+extend type Profile {
+    primaryOrganization: Organization
+
+    # Deprecated
+    alphaPrimaryOrganizationId: ID
+    alphaPrimaryOrganization: Organization
 }
