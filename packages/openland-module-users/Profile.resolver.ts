@@ -123,7 +123,7 @@ export default {
         // Deprecated
         alphaCreateUserProfileAndOrganization: withUser<GQL.MutationAlphaCreateUserProfileAndOrganizationArgs>(async (args, uid) => {
             return await inTx(async () => {
-                let userProfile = Modules.Users.createUserProfile(uid, args.user);
+                let userProfile = await Modules.Users.createUserProfile(uid, args.user);
                 let organization = await Modules.Orgs.createOrganization(uid, { ...args.organization, personal: false });
 
                 return {
