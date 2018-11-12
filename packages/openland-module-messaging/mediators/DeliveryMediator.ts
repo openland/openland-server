@@ -121,8 +121,8 @@ export class DeliveryMediator {
 
     private deliverDialogDeleteToUser = async (uid: number, cid: number) => {
         await inTx(async () => {
-            let delta = await this.counters.onDialogDeleted(uid, cid);
-            await this.repo.deliverDialogDeleteToUser(uid, cid, delta);
+            await this.counters.onDialogDeleted(uid, cid);
+            await this.repo.deliverDialogDeleteToUser(uid, cid);
         });
     }
 }

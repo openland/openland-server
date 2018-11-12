@@ -205,7 +205,7 @@ export class RoomMediator {
             }
             if (res.updatedTitle) {
                 await this.messaging.sendMessage(uid, cid, {
-                    message: `Updated room name to "${res}"`,
+                    message: `Updated room name to "${roomProfile.title}"`,
                     isService: true,
                     isMuted: true,
                     serviceMetadata: {

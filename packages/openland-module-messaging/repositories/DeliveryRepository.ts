@@ -69,21 +69,18 @@ export class DeliveryRepository {
         });
     }
 
-    async deliverDialogDeleteToUser(uid: number, cid: number, delta: number) {
+    async deliverDialogDeleteToUser(uid: number, cid: number) {
         return await inTx(async () => {
-            if (delta !== 0) {
-                let local = await this.userState.getUserDialogState(uid, cid);
-                let global = await this.userState.getUserMessagingState(uid);
-                global.seq++;
-                local.date = null;
-                await this.entities.UserDialogEvent.create(uid, global.seq, {
-                    kind: 'dialog_deleted',
-                    cid: cid,
-                    unread: 0,
-                    allUnread: global.unread
-                });
-            }
-            return delta;
+            let local = await this.userState.getUserDialogState(uid, cid);
+            let global = await this.userState.getUserMessagingState(uid);
+            global.seq++;
+            local.date = null;
+            await this.entities.UserDialogEvent.create(uid, global.seq, {
+                kind: 'dialog_deleted',
+                cid: cid,
+                unread: 0,
+                allUnread: global.unread
+            });
         });
     }
 
