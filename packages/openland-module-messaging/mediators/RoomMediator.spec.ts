@@ -34,6 +34,7 @@ describe('RoomMediator', () => {
     it('should be able to join room', async () => {
         let mediator = container.get<RoomMediator>('RoomMediator');
         let users = container.get<UsersModule>(UsersModule);
+        await users.createUser('user110', 'email1110');
         let USER_ID = (await users.createUser('user111', 'email111')).id;
         let USER2_ID = (await users.createUser('user112', 'email112')).id;
         await users.createUserProfile(USER_ID, { firstName: 'User Name' });
