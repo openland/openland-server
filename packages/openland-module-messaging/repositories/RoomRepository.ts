@@ -103,10 +103,10 @@ export class RoomRepository {
 
     async leaveRoom(cid: number, uid: number) {
         return await inTx(async () => {
-            let conv = await this.entities.ConversationRoom.findById(cid);
-            if (!conv) {
-                throw new Error('Room not found');
-            }
+
+            // Check if room exists
+            await this.checkRoomExists(cid);
+
             let p = await this.entities.RoomParticipant.findById(cid, uid);
             if (!p || p.status !== 'joined') {
                 return false;
@@ -117,28 +117,26 @@ export class RoomRepository {
     }
 
     async joinRoom(cid: number, uid: number) {
-        await inTx(async () => {
-            let conv = await this.entities.ConversationRoom.findById(cid);
-            if (!conv) {
-                throw new Error('Room not found');
-            }
-
-            if (conv.kind !== 'public') {
-                throw new Error('You can\'t join non-public rooms');
-            }
+        return await inTx(async () => {
+            // Check if room exists
+            await this.checkRoomExists(cid);
 
             let p = await this.entities.RoomParticipant.findById(cid, uid);
-            if (p && p.status === 'kicked') {
-                throw new Error('User was kicked from channel');
-            }
-
             if (p) {
                 if (p.status === 'joined') {
-                    return;
+                    return false;
+                } else {
+                    p.invitedBy = uid;
+                    p.status = 'joined';
+                    return true;
                 }
-                p.status = 'joined';
             } else {
-                await this.entities.RoomParticipant.create(cid, uid, { status: 'joined', role: 'member', invitedBy: uid });
+                await this.entities.RoomParticipant.create(cid, uid, {
+                    status: 'joined',
+                    role: 'member',
+                    invitedBy: uid
+                });
+                return true;
             }
         });
     }

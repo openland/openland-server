@@ -73,17 +73,19 @@ export class RoomMediator {
                 }))).filter((v) => !!v).map((v) => v!);
 
                 // Send message about joining the room
-                let users = res.map((v) => this.entities.UserProfile.findById(v));
-                await this.messaging.sendMessage(cid, uid, {
-                    message: `${(await Promise.all(users)).map(u => u!.firstName).join(', ')} joined the room`,
-                    isService: true,
-                    isMuted: true,
-                    serviceMetadata: {
-                        type: 'user_invite',
-                        userIds: invites,
-                        invitedById: uid
-                    }
-                });
+                if (res.length > 0) {
+                    let users = res.map((v) => this.entities.UserProfile.findById(v));
+                    await this.messaging.sendMessage(cid, uid, {
+                        message: `${(await Promise.all(users)).map(u => u!.firstName).join(', ')} joined the room`,
+                        isService: true,
+                        isMuted: true,
+                        serviceMetadata: {
+                            type: 'user_invite',
+                            userIds: invites,
+                            invitedById: uid
+                        }
+                    });
+                }
             }
 
             return (await this.entities.Conversation.findById(cid))!;
