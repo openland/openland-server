@@ -62,22 +62,31 @@ export class RoomMediator {
     async inviteToRoom(cid: number, uid: number, invites: number[]) {
         return await inTx(async () => {
 
-            // Invite to room
-            let res = await this.repo.inviteToRoom(cid, uid, invites);
+            if (invites.length > 0) {
+                // Invite to room
+                let res = (await Promise.all(invites.map(async (v) => {
+                    if (await this.repo.addToRoom(cid, uid, v)) {
+                        return v;
+                    } else {
+                        return null;
+                    }
+                }))).filter((v) => !!v).map((v) => v!);
 
-            // Send message about joining the room
-            let users = invites.map((v) => this.entities.UserProfile.findById(v));
-            await this.messaging.sendMessage(cid, uid, {
-                message: `${(await Promise.all(users)).map(u => u!.firstName).join(', ')} joined the room`,
-                isService: true,
-                isMuted: true,
-                serviceMetadata: {
-                    type: 'user_invite',
-                    userIds: invites,
-                    invitedById: uid
-                }
-            });
-            return res;
+                // Send message about joining the room
+                let users = res.map((v) => this.entities.UserProfile.findById(v));
+                await this.messaging.sendMessage(cid, uid, {
+                    message: `${(await Promise.all(users)).map(u => u!.firstName).join(', ')} joined the room`,
+                    isService: true,
+                    isMuted: true,
+                    serviceMetadata: {
+                        type: 'user_invite',
+                        userIds: invites,
+                        invitedById: uid
+                    }
+                });
+            }
+
+            return (await this.entities.Conversation.findById(cid))!;
         });
     }
 

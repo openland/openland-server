@@ -59,61 +59,60 @@ export class RoomRepository {
         });
     }
 
-    async inviteToRoom(cid: number, uid: number, invites: number[]) {
+    async addToRoom(cid: number, uid: number, by: number) {
         return await inTx(async () => {
-            // TODO: More checks if room exists
-            let conv = await this.entities.ConversationRoom.findById(cid);
-            if (!conv) {
-                throw new Error('Room not found');
-            }
+
+            // Check if room exists
+            await this.checkRoomExists(cid);
+
+            // Create or update room participant
             let p = await this.entities.RoomParticipant.findById(cid, uid);
-            if (!p || p.status !== 'joined') {
-                throw new Error('User is not member of a room');
-            }
-
-            for (let i of invites) {
-                let p2 = await this.entities.RoomParticipant.findById(cid, i);
-                if (!p2) {
-                    await this.entities.RoomParticipant.create(cid, uid, { role: 'member', invitedBy: uid, status: 'joined' });
-                } else if (p2.status !== 'joined') {
-                    p2.status = 'joined';
+            if (p) {
+                if (p.status === 'joined') {
+                    return false;
                 } else {
-                    throw new Error('User already invited');
+                    p.status = 'joined';
+                    p.invitedBy = by;
+                    return true;
                 }
+            } else {
+                await this.entities.RoomParticipant.create(cid, uid, {
+                    status: 'joined',
+                    invitedBy: by,
+                    role: 'member'
+                });
+                return true;
             }
-
-            return (await this.entities.Conversation.findById(conv.id))!;
         });
     }
 
     async kickFromRoom(cid: number, uid: number) {
-        await inTx(async () => {
-            // TODO: Better checks
-            let conv = await this.entities.ConversationRoom.findById(cid);
-            if (!conv) {
-                throw new Error('Room not found');
-            }
+        return await inTx(async () => {
+            // Check if room exists
+            await this.checkRoomExists(cid);
 
             // Kick user from Room
             let participant = await this.entities.RoomParticipant.findById(cid, uid);
             if (!participant || participant.status !== 'joined') {
-                throw new Error('User is not member of a room');
+                return false;
             }
             participant.status = 'kicked';
+            return true;
         });
     }
 
     async leaveRoom(cid: number, uid: number) {
-        await inTx(async () => {
+        return await inTx(async () => {
             let conv = await this.entities.ConversationRoom.findById(cid);
             if (!conv) {
                 throw new Error('Room not found');
             }
             let p = await this.entities.RoomParticipant.findById(cid, uid);
             if (!p || p.status !== 'joined') {
-                throw new Error('User is not member of the room');
+                return false;
             }
             p.status = 'left';
+            return true;
         });
     }
 
@@ -272,6 +271,13 @@ export class RoomRepository {
     //
     // Queries
     //
+
+    async checkRoomExists(cid: number) {
+        let conv = await this.entities.ConversationRoom.findById(cid);
+        if (!conv) {
+            throw new Error('Room not found');
+        }
+    }
 
     async isActiveMember(uid: number, cid: number) {
         let p = await this.entities.RoomParticipant.findById(cid, uid);

@@ -57,4 +57,41 @@ describe('RoomRepository', () => {
             }
         }
     });
+
+    it('should add members', async () => {
+        let repo = container.get<RoomRepository>('RoomRepository');
+        let USER_ID = 2;
+        let ORG_ID = 1;
+        let conv = await repo.createRoom('public', ORG_ID, USER_ID, [], { title: 'Room' });
+
+        expect(await repo.addToRoom(conv.id, 3, USER_ID)).toBe(true);
+        expect(await repo.addToRoom(conv.id, 3, USER_ID)).toBe(false); // Double invoke
+        expect(await repo.addToRoom(conv.id, 4, USER_ID)).toBe(true);
+        expect(await repo.addToRoom(conv.id, 5, USER_ID)).toBe(true);
+        expect((await FDB.RoomParticipant.allFromActive(conv.id)).length).toBe(4);
+    });
+
+    it('should kick members', async () => {
+        let repo = container.get<RoomRepository>('RoomRepository');
+        let USER_ID = 2;
+        let ORG_ID = 1;
+        let conv = await repo.createRoom('public', ORG_ID, USER_ID, [3, 4, 5], { title: 'Room' });
+        expect(await repo.kickFromRoom(conv.id, 3)).toBe(true);
+        expect(await repo.kickFromRoom(conv.id, 3)).toBe(false); // Double invoke
+        expect(await repo.kickFromRoom(conv.id, 4)).toBe(true);
+        expect(await repo.kickFromRoom(conv.id, 5)).toBe(true);
+        expect((await FDB.RoomParticipant.allFromActive(conv.id)).length).toBe(1);
+    });
+
+    it('should be able to leave room', async () => {
+        let repo = container.get<RoomRepository>('RoomRepository');
+        let USER_ID = 2;
+        let ORG_ID = 1;
+        let conv = await repo.createRoom('public', ORG_ID, USER_ID, [3, 4, 5], { title: 'Room' });
+        expect(await repo.leaveRoom(conv.id, 3)).toBe(true);
+        expect(await repo.leaveRoom(conv.id, 3)).toBe(false); // Double invoke
+        expect(await repo.leaveRoom(conv.id, 4)).toBe(true);
+        expect(await repo.leaveRoom(conv.id, 5)).toBe(true);
+        expect((await FDB.RoomParticipant.allFromActive(conv.id)).length).toBe(1);
+    });
 });
