@@ -7,31 +7,42 @@ import { Modules } from 'openland-modules/Modules';
 
 var migrations: FMigration[] = [];
 migrations.push({
-    key: '17-fix-primaryorganization',
+    key: '18-fix-primaryorganization',
     migration: async (log) => {
         let user = await FDB.UserProfile.findAll();
         for (let u of user) {
+            log.log('Fixing primary organization for user ' + u.id);
             await inTx(async () => {
                 let primaryOrganization: number | null = null;
                 let profile = (await FDB.UserProfile.findById(u.id))!;
                 let orgs = await Modules.Orgs.findUserOrganizations(u.id);
 
                 if (orgs.length === 0) {
+                    log.log('No organizations for user ' + u.id);
                     // If no active organizations - no primary one
                     primaryOrganization = null;
                 } else {
 
                     // If there are one existing check if it is activated
                     if (profile.primaryOrganization) {
+                        log.log('Checking existing for user ' + u.id + ', ' + profile.primaryOrganization);
                         let existing = orgs.find((v) => v === profile.primaryOrganization);
                         if (existing) {
+                            log.log('found existing ' + existing);
                             let o = await FDB.Organization.findById(existing);
                             if (o && o.status === 'activated') {
+                                log.log('apply existing ' + existing);
                                 primaryOrganization = o.id;
                             } else {
+                                if (!o) {
+                                    log.log('organization not found ' + existing);
+                                } else {
+                                    log.log('organization not activated ' + existing);
+                                }
                                 primaryOrganization = null;
                             }
                         } else {
+                            log.log('organization not found2 ' + existing);
                             primaryOrganization = null;
                         }
                     }
@@ -43,6 +54,12 @@ migrations.push({
                             if (o && o.status === 'activated') {
                                 primaryOrganization = oid;
                                 break;
+                            } else {
+                                if (!o) {
+                                    log.log('organization not found2 ' + oid);
+                                } else {
+                                    log.log('organization not activated ' + o!.id);
+                                }
                             }
                         }
                     }
