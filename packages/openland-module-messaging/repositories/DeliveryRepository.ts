@@ -40,10 +40,15 @@ export class DeliveryRepository {
 
     async deliverMessageUpdateToUser(uid: number, mid: number) {
         await inTx(async () => {
+            let message = (await this.entities.Message.findById(mid));
+            if (!message) {
+                throw Error('Message not found');
+            }
             let global = await this.userState.getUserMessagingState(uid);
             global.seq++;
             await this.entities.UserDialogEvent.create(uid, global.seq, {
                 kind: 'message_updated',
+                cid: message.cid,
                 mid: mid
             });
         });
@@ -62,6 +67,7 @@ export class DeliveryRepository {
             global.seq++;
             await this.entities.UserDialogEvent.create(uid, global.seq, {
                 kind: 'message_deleted',
+                cid: message.cid,
                 mid: message.id,
                 allUnread: global.unread,
                 unread: local.unread

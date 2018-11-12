@@ -23,10 +23,12 @@ type DialogMessageReceived {
 }
 
 type DialogMessageUpdated {
+    cid: ID!
     message: ConversationMessage!
 }
 
 type DialogMessageDeleted {
+    cid: ID!
     message: ConversationMessage!
     unread: Int!
     globalUnread: Int!

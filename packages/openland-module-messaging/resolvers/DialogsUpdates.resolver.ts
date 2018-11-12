@@ -60,9 +60,11 @@ export default {
         globalUnread: (src: UserDialogEvent) => src.allUnread || 0
     },
     DialogMessageUpdated: {
+        cid: async (src: UserDialogEvent) => IDs.Conversation.serialize(src.cid || (await FDB.Message.findById(src.mid!))!.cid),
         message: (src: UserDialogEvent) => FDB.Message.findById(src.mid!),
     },
     DialogMessageDeleted: {
+        cid: async (src: UserDialogEvent) => IDs.Conversation.serialize(src.cid || (await FDB.Message.findById(src.mid!))!.cid),
         message: (src: UserDialogEvent) => FDB.Message.findById(src.mid!),
         unread: (src: UserDialogEvent) => src.unread || 0,
         globalUnread: (src: UserDialogEvent) => src.allUnread || 0
