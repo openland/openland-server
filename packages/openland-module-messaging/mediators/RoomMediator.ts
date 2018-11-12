@@ -8,6 +8,8 @@ import { AllEntities } from 'openland-module-db/schema';
 import { Modules } from 'openland-modules/Modules';
 import { DeliveryMediator } from './DeliveryMediator';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
+import { NotFoundError } from 'openland-errors/NotFoundError';
+import { UserError } from 'openland-errors/UserError';
 
 @injectable()
 export class RoomMediator {
@@ -40,6 +42,21 @@ export class RoomMediator {
 
     async joinRoom(cid: number, uid: number) {
         return await inTx(async () => {
+
+            // Check Room
+            let conv = await this.entities.ConversationRoom.findById(cid);
+            if (!conv) {
+                throw new NotFoundError();
+            }
+            if (conv.kind !== 'public') {
+                throw new UserError('You can\'t join non-public room');
+            }
+
+            // Check if was kicked
+            let participant = await this.entities.RoomParticipant.findById(cid, uid);
+            if (participant && participant.status === 'kicked') {
+                throw new UserError('You was kicked from this room');
+            }
 
             // Join room
             if (await this.repo.joinRoom(cid, uid)) {
