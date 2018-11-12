@@ -6,7 +6,7 @@ import { randomInviteKey } from 'openland-utils/random';
 import { injectable, inject } from 'inversify';
 
 @injectable()
-export class InvitesRepository {
+export class InvitesChannelsRepository {
     readonly entities: AllEntities;
 
     constructor(@inject('FDB') entities: AllEntities) {

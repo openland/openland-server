@@ -3,15 +3,12 @@ import { IDs } from '../../openland-module-api/IDs';
 import { CallContext } from '../../openland-module-api/CallContext';
 import { QueryParser } from '../../openland-utils/QueryParser';
 import { defined, emailValidator, stringNotEmpty, validate } from '../../openland-utils/NewInputValidator';
-import { ErrorText } from '../../openland-errors/ErrorText';
-import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { Sanitizer } from '../../openland-utils/Sanitizer';
 import { Modules } from 'openland-modules/Modules';
 import { inTx } from 'foundation-orm/inTx';
 import { ChannelInvitation, ChannelLink, RoomParticipant, Conversation } from 'openland-module-db/schema';
 import { FDB } from 'openland-module-db/FDB';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
-import { Emails } from 'openland-module-email/Emails';
 import { GQL, GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 
 interface AlphaChannelsParams {
@@ -164,7 +161,7 @@ export default {
 
             await inTx(async () => {
                 for (let inviteRequest of args.inviteRequests) {
-                    await Modules.Messaging.createChannelInvite(
+                    await Modules.Invites.createChannelInvite(
                         channelId,
                         uid,
                         inviteRequest.email,
@@ -179,82 +176,14 @@ export default {
         }),
         alphaChannelRenewInviteLink: withUser<{ channelId: string }>(async (args, uid) => {
             let channelId = IDs.Conversation.parse(args.channelId);
-            return await Modules.Messaging.refreshChannelInviteLink(channelId, uid);
+            return await Modules.Invites.refreshChannelInviteLink(channelId, uid);
         }),
         alphaChannelJoinInvite: withAny<{ invite: string }>(async (args, context) => {
             let uid = context.uid;
             if (uid === undefined) {
                 return;
             }
-            return await inTx(async () => {
-                let invite = await Modules.Messaging.resolveInvite(args.invite);
-
-                if (!invite) {
-                    throw new NotFoundError(ErrorText.unableToFindInvite);
-                }
-
-                let existing = await FDB.RoomParticipant.findById(invite.channelId, uid!);
-
-                if (existing) {
-                    await Modules.Messaging.room.joinRoom(invite.channelId, uid!);
-                    return IDs.Conversation.serialize(invite.channelId);
-                }
-
-                // Activate user
-                let user = (await FDB.User.findById(uid!))!;
-                if (user) {
-                    await Emails.sendWelcomeEmail(user!.id);
-                    user.status = 'activated';
-
-                    // User set invitedBy if none
-                    if (invite.creatorId && !user.invitedBy) {
-                        user.invitedBy = invite.creatorId;
-                    }
-                }
-
-                if (context.oid !== undefined) {
-                    // Activate organization
-                    let org = (await FDB.Organization.findById(context.oid!))!;
-                    if (org) {
-                        org.status = 'activated';
-                    }
-                }
-
-                try {
-                    await FDB.RoomParticipant.create(invite.channelId, uid!, {
-                        role: 'member',
-                        status: 'joined',
-                        invitedBy: uid!
-                    }).then(async p => await p.flush());
-
-                    let name = (await Modules.Users.profileById(uid!))!.firstName;
-
-                    await Modules.Messaging.sendMessage(
-                        invite.channelId,
-                        uid!,
-                        {
-                            message: `${name} has joined the channel!`,
-                            isService: true,
-                            isMuted: true,
-                            serviceMetadata: {
-                                type: 'user_invite',
-                                userIds: [uid],
-                                invitedById: invite.creatorId || uid
-                            }
-                        }
-                    );
-
-                    if (invite instanceof ChannelInvitation) {
-                        invite.acceptedById = uid!;
-                        invite.enabled = false;
-                    }
-
-                    return IDs.Conversation.serialize(invite.channelId);
-                } catch (e) {
-                    console.warn(e);
-                    throw e;
-                }
-            });
+            return await Modules.Invites.joinChannelInvite(uid, args.invite);
         }),
     },
 
@@ -330,11 +259,11 @@ export default {
             };
         }),
         alphaChannelInviteInfo: withAny<{ uuid: string }>(async (args, context: CallContext) => {
-            return await Modules.Messaging.resolveInvite(args.uuid);
+            return await Modules.Invites.resolveInvite(args.uuid);
         }),
         alphaChannelInviteLink: withUser<{ channelId: string }>(async (args, uid) => {
             let channelId = IDs.Conversation.parse(args.channelId);
-            return await Modules.Messaging.createChannelInviteLink(channelId, uid);
+            return await Modules.Invites.createChannelInviteLink(channelId, uid);
         })
     }
 } as GQLResolver;

@@ -1,11 +1,13 @@
 import { AllEntities, OrganizationInviteLink, OrganizationPublicInviteLink } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
 import { randomGlobalInviteKey } from 'openland-utils/random';
+import { injectable, inject } from 'inversify';
 
-export class InviteRepository {
-    private readonly entities: AllEntities;
+@injectable()
+export class InvitesOrganizationRepository {
+    readonly entities: AllEntities;
 
-    constructor(entities: AllEntities) {
+    constructor(@inject('FDB') entities: AllEntities) {
         this.entities = entities;
     }
 
