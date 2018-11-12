@@ -26,6 +26,7 @@ export class MessagingRepository {
                 isService: message.isService || false,
                 fileId: message.file,
                 fileMetadata: message.fileMetadata,
+                filePreview: message.filePreview,
                 text: message.message,
                 serviceMetadata: message.serviceMetadata || null,
                 augmentation: message.urlAugmentation,
@@ -72,10 +73,9 @@ export class MessagingRepository {
             if (newMessage.fileMetadata) {
                 message.fileMetadata = newMessage.fileMetadata;
             }
-            // if (newMessage.filePreview) {
-            //     (message as any).changed('extras', true);
-            //     message.extras.filePreview = newMessage.filePreview;
-            // }
+            if (newMessage.filePreview) {
+                message.filePreview = newMessage.filePreview;
+            }
             if (newMessage.replyMessages) {
                 message.replyMessages = newMessage.replyMessages;
             }
@@ -85,7 +85,6 @@ export class MessagingRepository {
             if (newMessage.mentions) {
                 message.mentions = newMessage.mentions;
             }
-
             if (markAsEdited) {
                 message.edited = true;
             }
