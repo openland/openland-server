@@ -8,7 +8,7 @@ import { injectable } from 'inversify';
 @injectable()
 export class TypingsModule {
 
-    public TIMEOUT = 2000;
+    private TIMEOUT = 2000;
     private debounce = debouncer(this.TIMEOUT);
     private cache = new Map<number, number[]>();
     private xPubSub = new Pubsub<TypingEvent>();
@@ -45,10 +45,6 @@ export class TypingsModule {
                 cancel: true
             });
         }
-    }
-
-    public resetCache(charId: number) {
-        this.cache.delete(charId);
     }
 
     public async createTypingStream(uid: number, conversationId?: number) {

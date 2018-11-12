@@ -30,9 +30,9 @@ export class RoomMediator {
             // Create room
             let res = await this.repo.createRoom(kind, oid, uid, members, profile);
             // Send initial messages
-            await this.messaging.sendMessage(res.id, uid, { message: kind === 'group' ? 'Group created' : 'Room created', isService: true });
+            await this.messaging.sendMessage(uid, res.id, { message: kind === 'group' ? 'Group created' : 'Room created', isService: true });
             if (message) {
-                await this.messaging.sendMessage(res.id, uid, { message: message });
+                await this.messaging.sendMessage(uid, res.id, { message: message });
             }
             return res;
         });
