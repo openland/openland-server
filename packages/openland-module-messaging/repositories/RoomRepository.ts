@@ -28,7 +28,7 @@ export class RoomRepository {
             let conv = await this.entities.Conversation.create(id, { kind: 'room' });
             await this.entities.ConversationRoom.create(id, {
                 kind,
-                ownerId: oid,
+                ownerId: uid,
                 oid: kind === 'public' ? oid : undefined,
                 featured: false,
                 listed: kind === 'public'

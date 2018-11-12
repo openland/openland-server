@@ -1,6 +1,6 @@
 export interface RoomProfileInput {
     title: string;
-    image: any;
+    image?: any | null;
     description?: string | null;
     socialImage?: any | null;
 }
