@@ -8,7 +8,7 @@ import { Message, AllEntities } from 'openland-module-db/schema';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { CountersMediator } from './CountersMediator';
 import { inTx } from 'foundation-orm/inTx';
-import { RoomRepository } from 'openland-module-messaging/repositories/RoomRepository';
+import { RoomMediator } from './RoomMediator';
 
 const tracer = createTracer('message-delivery');
 
@@ -19,7 +19,7 @@ export class DeliveryMediator {
     @lazyInject('FDB') private readonly entities!: AllEntities;
     @lazyInject('DeliveryRepository') private readonly repo!: DeliveryRepository;
     @lazyInject('CountersMediator') private readonly counters!: CountersMediator;
-    @lazyInject('RoomRepository') private readonly room!: RoomRepository;
+    @lazyInject('RoomMediator') private readonly room!: RoomMediator;
 
     start = () => {
         if (serverRoleEnabled('delivery')) {

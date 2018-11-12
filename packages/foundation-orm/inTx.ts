@@ -8,7 +8,9 @@ const log = createLogger('tx');
 export async function inTx<T>(callback: () => Promise<T>): Promise<T> {
     let ex = FTransaction.context.value;
     if (ex) {
-        return callback();
+        let res = await callback();
+        await ex.flushPending(); // Flush all pending operations to avoid nasty bugs during compose
+        return res;
     }
 
     let tx = new FTransaction();

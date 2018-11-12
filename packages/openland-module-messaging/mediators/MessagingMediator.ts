@@ -6,9 +6,9 @@ import { inTx } from 'foundation-orm/inTx';
 import { DeliveryMediator } from './DeliveryMediator';
 import { AllEntities } from 'openland-module-db/schema';
 import { Modules } from 'openland-modules/Modules';
-import { RoomRepository } from 'openland-module-messaging/repositories/RoomRepository';
 import { AugmentationMediator } from './AugmentationMediator';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
+import { RoomMediator } from './RoomMediator';
 
 @injectable()
 export class MessagingMediator {
@@ -21,8 +21,8 @@ export class MessagingMediator {
     private readonly delivery!: DeliveryMediator;
     @lazyInject('AugmentationMediator')
     private readonly augmentation!: AugmentationMediator;
-    @lazyInject('RoomRepository')
-    private readonly room!: RoomRepository;
+    @lazyInject('RoomMediator')
+    private readonly room!: RoomMediator;
 
     sendMessage = async (uid: number, cid: number, message: MessageInput) => {
         return await inTx(async () => {
@@ -42,7 +42,7 @@ export class MessagingMediator {
             await this.delivery.onNewMessage(res.message);
 
             // Augment
-            await this.augmentation.onMessageUpdated(res.message);
+            await this.augmentation.onNewMessage(res.message);
 
             // Cancel typings
             // TODO: Remove
@@ -50,6 +50,7 @@ export class MessagingMediator {
             await Modules.Typings.cancelTyping(uid, cid, members);
 
             // Clear draft
+            // TODO: Move
             await Modules.Drafts.clearDraft(uid, cid);
 
             return res.event;

@@ -104,6 +104,25 @@ export class FTransaction implements FContext {
         await this.tx!!.rawCancel();
     }
 
+    async flushPending() {
+        if (this._isCompleted) {
+            return;
+        }
+        if (!this.connection) {
+            return;
+        }
+
+        let t = currentTime();
+        await trace(tracer, 'flush', async () => {
+            let pend = [...this._pending.values()];
+            this._pending.clear();
+            for (let p of pend) {
+                await p(this.connection!);
+            }
+        });
+        log.debug('flush time: ' + (currentTime() - t) + ' ms');
+    }
+
     async flush() {
         if (this._isCompleted) {
             return;
@@ -119,9 +138,7 @@ export class FTransaction implements FContext {
                 await p(this.connection!);
             }
         });
-        // if (this._hadMutations) {
         log.debug('flush time: ' + (currentTime() - t) + ' ms');
-        // }
         t = currentTime();
         await trace(tracer, 'commit', async () => {
             await this.tx!!.rawCommit();

@@ -2,47 +2,191 @@ import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { RoomRepository } from 'openland-module-messaging/repositories/RoomRepository';
 import { RoomProfileInput } from 'openland-module-messaging/RoomProfileInput';
+import { inTx } from 'foundation-orm/inTx';
+import { MessagingMediator } from './MessagingMediator';
+import { AllEntities } from 'openland-module-db/schema';
+import { Modules } from 'openland-modules/Modules';
+import { DeliveryMediator } from './DeliveryMediator';
 
 @injectable()
 export class RoomMediator {
+
+    @lazyInject('FDB')
+    private readonly entities!: AllEntities;
     @lazyInject('RoomRepository')
     private readonly repo!: RoomRepository;
+    @lazyInject('MessagingMediator')
+    private readonly messaging!: MessagingMediator;
+    @lazyInject('DeliveryMediator')
+    private readonly delivery!: DeliveryMediator;
 
     async isRoomMember(uid: number, cid: number) {
         return await this.repo.isActiveMember(uid, cid);
     }
 
     async createRoom(kind: 'public' | 'group', oid: number, uid: number, members: number[], profile: RoomProfileInput, message?: string) {
-        return await this.repo.createRoom(kind, oid, uid, members, profile, message);
-    }
-
-    async inviteToRoom(cid: number, uid: number, invites: number[]) {
-        return await this.repo.inviteToRoom(cid, uid, invites);
-    }
-
-    async kickFromRoom(cid: number, uid: number, kickedUid: number) {
-        if (uid === kickedUid) {
-            return await this.repo.leaveRoom(cid, uid);
-        } else {
-            return await this.repo.kickFromRoom(cid, uid, kickedUid);
-        }
-    }
-
-    async leaveRoom(cid: number, uid: number) {
-        return await this.repo.leaveRoom(cid, uid);
+        return await inTx(async () => {
+            // Create room
+            let res = await this.repo.createRoom(kind, oid, uid, members, profile);
+            // Send initial messages
+            await this.messaging.sendMessage(res.id, uid, { message: kind === 'group' ? 'Group created' : 'Room created', isService: true });
+            if (message) {
+                await this.messaging.sendMessage(res.id, uid, { message: message });
+            }
+            return res;
+        });
     }
 
     async joinRoom(cid: number, uid: number) {
-        return await this.repo.joinRoom(cid, uid);
+        return await inTx(async () => {
+            // Join room
+            await this.repo.joinRoom(cid, uid);
+
+            // Send message
+            let name = (await this.entities.UserProfile.findById(uid))!.firstName;
+            await Modules.Messaging.sendMessage(cid, uid, {
+                message: `${name} has joined the room!`,
+                isService: true,
+                isMuted: true,
+                serviceMetadata: {
+                    type: 'user_invite',
+                    userIds: [uid],
+                    invitedById: uid
+                }
+            });
+
+            return (await this.entities.Conversation.findById(cid))!;
+        });
+    }
+
+    async inviteToRoom(cid: number, uid: number, invites: number[]) {
+        return await inTx(async () => {
+
+            // Invite to room
+            let res = await this.repo.inviteToRoom(cid, uid, invites);
+
+            // Send message about joining the room
+            let users = invites.map((v) => this.entities.UserProfile.findById(v));
+            await this.messaging.sendMessage(cid, uid, {
+                message: `${(await Promise.all(users)).map(u => u!.firstName).join(', ')} joined the room`,
+                isService: true,
+                isMuted: true,
+                serviceMetadata: {
+                    type: 'user_invite',
+                    userIds: invites,
+                    invitedById: uid
+                }
+            });
+            return res;
+        });
+    }
+
+    async kickFromRoom(cid: number, uid: number, kickedUid: number) {
+        return await inTx(async () => {
+            if (uid === kickedUid) {
+                throw Error('Unable to kick yourself');
+            }
+
+            // Permissions
+            // TODO: Implement better
+            let isSuperAdmin = (await Modules.Super.superRole(uid)) === 'super-admin';
+            if (!isSuperAdmin && !(await this.repo.isActiveMember(cid, uid))) {
+                throw Error('You are not member of a room');
+            }
+            let existingMembership = await this.repo.findMembershipStatus(kickedUid, cid);
+            if (!existingMembership || existingMembership.status !== 'joined') {
+                throw Error('User are not member of a room');
+            }
+            let canKick = isSuperAdmin || existingMembership.invitedBy === uid;
+            if (!canKick) {
+                throw Error('Insufficient rights');
+            }
+
+            // Kick from group
+            await this.repo.kickFromRoom(cid, uid);
+
+            // Send message
+            let profile = (await this.entities.UserProfile.findById(kickedUid))!;
+            await this.messaging.sendMessage(cid, uid, {
+                message: `${profile!.firstName} was kicked from the room`,
+                isService: true,
+                isMuted: true,
+                serviceMetadata: {
+                    type: 'user_kick',
+                    userId: kickedUid,
+                    kickedById: uid
+                }
+            });
+
+            // Deliver dialog deletion
+            await this.delivery.onDialogDelete(kickedUid, cid);
+
+            return (await this.entities.Conversation.findById(cid))!;
+        });
+    }
+
+    async leaveRoom(cid: number, uid: number) {
+        return await inTx(async () => {
+            await this.repo.leaveRoom(cid, uid);
+
+            // Send message
+            let profile = await Modules.Users.profileById(uid);
+            await this.messaging.sendMessage(cid, uid, {
+                message: `${profile!.firstName} has left the room`,
+                isService: true,
+                isMuted: true,
+                serviceMetadata: {
+                    type: 'user_kick',
+                    userId: uid,
+                    kickedById: uid
+                }
+            });
+
+            // Deliver dialog deletion
+            await this.delivery.onDialogDelete(uid, cid);
+
+            return (await this.entities.Conversation.findById(cid))!;
+        });
     }
 
     async updateRoomProfile(cid: number, uid: number, profile: Partial<RoomProfileInput>) {
-        return await this.repo.updateRoomProfile(cid, uid, profile);
+        return await inTx(async () => {
+            let res = await this.repo.updateRoomProfile(cid, uid, profile);
+            let roomProfile = (await this.entities.RoomProfile.findById(cid))!;
+            if (res.updatedPhoto) {
+                await this.messaging.sendMessage(cid, uid, {
+                    message: `Updated room photo`,
+                    isService: true,
+                    isMuted: true,
+                    serviceMetadata: {
+                        type: 'photo_change',
+                        picture: roomProfile.image
+                    }
+                });
+            }
+            if (res.updatedTitle) {
+                await this.messaging.sendMessage(cid, uid, {
+                    message: `Updated room name to "${res}"`,
+                    isService: true,
+                    isMuted: true,
+                    serviceMetadata: {
+                        type: 'title_change',
+                        title: roomProfile.title
+                    }
+                });
+            }
+
+            return (await this.entities.Conversation.findById(cid))!;
+        });
     }
 
     async updateMemberRole(cid: number, uid: number, updatedUid: number, role: 'admin' | 'owner' | 'member') {
         return await this.repo.updateMemberRole(cid, uid, updatedUid, role);
     }
+
+    //
+    // Queries
+    //
 
     async resolvePrivateChat(uid1: number, uid2: number) {
         return await this.repo.resolvePrivateChat(uid1, uid2);

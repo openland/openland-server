@@ -790,10 +790,18 @@ export default {
             let conversationId = IDs.Conversation.parse(args.conversationId);
             let userId = IDs.User.parse(args.userId);
             return inTx(async () => {
-                let chat = await Modules.Messaging.room.kickFromRoom(conversationId, uid, userId);
-                return {
-                    chat
-                };
+                if (uid === userId) {
+                    let chat = await Modules.Messaging.room.leaveRoom(conversationId, uid);
+                    return {
+                        chat
+                    };
+                } else {
+                    let chat = await Modules.Messaging.room.kickFromRoom(conversationId, uid, userId);
+                    return {
+                        chat
+                    };
+                }
+
             });
         }),
         alphaChatChangeRoleInGroup: withUser<GQL.MutationAlphaChatChangeRoleInGroupArgs>(async (args, uid) => {
