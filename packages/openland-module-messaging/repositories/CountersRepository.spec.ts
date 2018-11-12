@@ -18,7 +18,7 @@ describe('CountersRepository', () => {
         let urepo = container.get<UserStateRepository>('UserStateRepository');
         let mrepo = container.get<MessagingRepository>('MessagingRepository');
         let repo = container.get<CountersRepository>('CountersRepository');
-        
+
         let mid1 = (await mrepo.createMessage(1, 1, { message: '1' })).message.id!;
         let mid2 = (await mrepo.createMessage(1, 1, { message: '1' })).message.id!;
         let mid3 = (await mrepo.createMessage(1, 1, { message: '1' })).message.id!;
@@ -82,5 +82,26 @@ describe('CountersRepository', () => {
 
         let receiverState = await urepo.getUserDialogState(3, 3);
         expect(receiverState.unread).toBe(0);
+    });
+
+    it('should decrement counter on unread message deletion', async () => {
+        let urepo = container.get<UserStateRepository>('UserStateRepository');
+        let mrepo = container.get<MessagingRepository>('MessagingRepository');
+        let repo = container.get<CountersRepository>('CountersRepository');
+
+        let mid1 = (await mrepo.createMessage(4, 1, { message: '1' })).message.id!;
+        let mid2 = (await mrepo.createMessage(4, 1, { message: '1' })).message.id!;
+        let mid3 = (await mrepo.createMessage(4, 1, { message: '1' })).message.id!;
+
+        expect(await repo.onMessageReceived(3, mid1)).toBe(1);
+        expect(await repo.onMessageRead(3, mid1)).toBe(-1);
+        expect(await repo.onMessageDeleted(3, mid1)).toBe(0); // Should ignore if already read
+
+        expect(await repo.onMessageReceived(3, mid2)).toBe(1);
+        expect(await repo.onMessageDeleted(3, mid2)).toBe(-1);
+        expect(await repo.onMessageReceived(3, mid3)).toBe(1);
+
+        let receiverState = await urepo.getUserDialogState(3, 4);
+        expect(receiverState.unread).toBe(1);
     });
 });

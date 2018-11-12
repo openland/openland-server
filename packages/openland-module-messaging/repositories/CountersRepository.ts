@@ -59,7 +59,7 @@ export class CountersRepository {
             // Updating counters if not read already
             let local = await this.userState.getUserDialogState(uid, message.cid);
             let global = await this.userState.getUserMessagingState(uid);
-            if (message.uid !== uid && (!local.readMessageId || mid < local.readMessageId)) {
+            if (message.uid !== uid && (!local.readMessageId || mid > local.readMessageId)) {
                 local.unread--;
                 global.unread--;
                 await global.flush();
