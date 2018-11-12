@@ -39,21 +39,22 @@ export class RoomMediator {
 
     async joinRoom(cid: number, uid: number) {
         return await inTx(async () => {
-            // Join room
-            await this.repo.joinRoom(cid, uid);
 
-            // Send message
-            let name = (await this.entities.UserProfile.findById(uid))!.firstName;
-            await Modules.Messaging.sendMessage(cid, uid, {
-                message: `${name} has joined the room!`,
-                isService: true,
-                isMuted: true,
-                serviceMetadata: {
-                    type: 'user_invite',
-                    userIds: [uid],
-                    invitedById: uid
-                }
-            });
+            // Join room
+            if (await this.repo.joinRoom(cid, uid)) {
+                // Send message
+                let name = (await this.entities.UserProfile.findById(uid))!.firstName;
+                await Modules.Messaging.sendMessage(cid, uid, {
+                    message: `${name} has joined the room!`,
+                    isService: true,
+                    isMuted: true,
+                    serviceMetadata: {
+                        type: 'user_invite',
+                        userIds: [uid],
+                        invitedById: uid
+                    }
+                });
+            }
 
             return (await this.entities.Conversation.findById(cid))!;
         });
@@ -114,23 +115,24 @@ export class RoomMediator {
             }
 
             // Kick from group
-            await this.repo.kickFromRoom(cid, uid);
+            if (await this.repo.kickFromRoom(cid, uid)) {
 
-            // Send message
-            let profile = (await this.entities.UserProfile.findById(kickedUid))!;
-            await this.messaging.sendMessage(cid, uid, {
-                message: `${profile!.firstName} was kicked from the room`,
-                isService: true,
-                isMuted: true,
-                serviceMetadata: {
-                    type: 'user_kick',
-                    userId: kickedUid,
-                    kickedById: uid
-                }
-            });
+                // Send message
+                let profile = (await this.entities.UserProfile.findById(kickedUid))!;
+                await this.messaging.sendMessage(cid, uid, {
+                    message: `${profile!.firstName} was kicked from the room`,
+                    isService: true,
+                    isMuted: true,
+                    serviceMetadata: {
+                        type: 'user_kick',
+                        userId: kickedUid,
+                        kickedById: uid
+                    }
+                });
 
-            // Deliver dialog deletion
-            await this.delivery.onDialogDelete(kickedUid, cid);
+                // Deliver dialog deletion
+                await this.delivery.onDialogDelete(kickedUid, cid);
+            }
 
             return (await this.entities.Conversation.findById(cid))!;
         });
@@ -138,23 +140,24 @@ export class RoomMediator {
 
     async leaveRoom(cid: number, uid: number) {
         return await inTx(async () => {
-            await this.repo.leaveRoom(cid, uid);
 
-            // Send message
-            let profile = await Modules.Users.profileById(uid);
-            await this.messaging.sendMessage(cid, uid, {
-                message: `${profile!.firstName} has left the room`,
-                isService: true,
-                isMuted: true,
-                serviceMetadata: {
-                    type: 'user_kick',
-                    userId: uid,
-                    kickedById: uid
-                }
-            });
+            if (await this.repo.leaveRoom(cid, uid)) {
+                // Send message
+                let profile = await Modules.Users.profileById(uid);
+                await this.messaging.sendMessage(cid, uid, {
+                    message: `${profile!.firstName} has left the room`,
+                    isService: true,
+                    isMuted: true,
+                    serviceMetadata: {
+                        type: 'user_kick',
+                        userId: uid,
+                        kickedById: uid
+                    }
+                });
 
-            // Deliver dialog deletion
-            await this.delivery.onDialogDelete(uid, cid);
+                // Deliver dialog deletion
+                await this.delivery.onDialogDelete(uid, cid);
+            }
 
             return (await this.entities.Conversation.findById(cid))!;
         });
