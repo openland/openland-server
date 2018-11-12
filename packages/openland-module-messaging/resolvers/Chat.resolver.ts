@@ -584,13 +584,10 @@ export default {
             });
         }),
         alphaSendIntro: withUser<GQL.MutationAlphaSendIntroArgs>(async (args, uid) => {
-            await validate(
-                {
-                    about: defined(stringNotEmpty(`About can't be empty!`)),
-                    userId: defined(isNumber('Select user'))
-                },
-                args
-            );
+            await validate({
+                about: defined(stringNotEmpty(`About can't be empty!`)),
+                userId: defined(isNumber('Select user'))
+            }, args);
 
             let userId = IDs.User.parse(args.userId);
             let conversationId = IDs.Conversation.parse(args.conversationId);

@@ -1,3 +1,13 @@
 extend type Mutation {
-    roomRead(id: ID!, messageId: ID!): Boolean!
+    roomRead(id: ID!, mid: ID!): Boolean!
+
+    betaMessageSend(message: String, file: String, repeatKey: String, replyMessages: [ID!], mentions: [ID!], room: ID!): Boolean!
+    betaMessageEdit(mid: ID!, message: String, file: String, replyMessages: [ID!], mentions: [ID!]): Boolean!
+    betaMessageDeleteAugmentation(mid: ID!): Boolean!
+    betaMessageDelete(mid: ID!): Boolean!
+    betaReactionSet(mid: ID!, reaction: String!): Boolean!
+    betaReactionRemove(mid: ID!, reaction: String!): Boolean!
+
+    betaIntroSend(room: ID!, uid: ID!, about: String, message: String, file: String, repeatKey: String): Boolean!
+    betaIntroEdit(mid: ID!, uid: ID!, about: String, message: String, file: String): Boolean!
 }

@@ -84,13 +84,6 @@ input ChannelInviteRequest {
 extend type Mutation {
     alphaChannelCreate(title: String!, photoRef: ImageRefInput, message: String, description: String, oid: ID): Conversation!
 
-    # approves join request if there was one
-    # creates invite if there was no request
-    alphaChannelInviteOrg(channelId: ID!, orgId: ID!): String!
-
-    # joins channel if organization was already invited
-    # creates request if there was no invite
-    alphaChannelJoinOrg(channelId: ID!): String!
     alphaChannelSetFeatured(channelId: ID!, featured: Boolean!): Conversation!
     alphaChannelHideFromSearch(channelId: ID!, hidden: Boolean!): Conversation!
     
@@ -106,10 +99,7 @@ extend type Mutation {
 
 extend type Query {
     alphaChannelsList(first: Int!, after: String): ConversationConnection!
-    alphaChannelMembersOrg(channelId: ID!): [ChannelMemberOrg!]!
     alphaChannelMembers(channelId: ID!): [ChannelMember!]!
-    alphaChannelMyOrgInvites: [ChannelOrgInvite!]!
-    alphaChannelJoinRequestsOrg(channelId: ID!): [ChannelJoinRequestOrg!]!
     alphaChannelsFeatured: [ChannelConversation!]!
     alphaChannels(
         query: String,

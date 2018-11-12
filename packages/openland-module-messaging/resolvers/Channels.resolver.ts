@@ -259,16 +259,6 @@ export default {
     },
 
     Query: {
-        alphaChannelMembersOrg: withUser<{ channelId: string }>(async (args, uid) => {
-            // let convId = IDs.Conversation.parse(args.channelId);
-
-            // return await DB.ConversationChannelMembers.findAll({
-            //     where: {
-            //         conversationId: convId
-            //     }
-            // });
-            return [];
-        }),
         alphaChannelMembers: withUser<{ channelId: string }>(async (args, uid) => {
             let convId = IDs.Conversation.parse(args.channelId);
 
