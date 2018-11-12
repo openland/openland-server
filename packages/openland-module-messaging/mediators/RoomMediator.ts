@@ -45,7 +45,7 @@ export class RoomMediator {
             if (await this.repo.joinRoom(cid, uid)) {
                 // Send message
                 let name = (await this.entities.UserProfile.findById(uid))!.firstName;
-                await Modules.Messaging.sendMessage(cid, uid, {
+                await this.messaging.sendMessage(cid, uid, {
                     message: `${name} has joined the room!`,
                     isService: true,
                     isMuted: true,
@@ -144,7 +144,7 @@ export class RoomMediator {
 
             if (await this.repo.leaveRoom(cid, uid)) {
                 // Send message
-                let profile = await Modules.Users.profileById(uid);
+                let profile = await this.entities.UserProfile.findById(uid);
                 await this.messaging.sendMessage(cid, uid, {
                     message: `${profile!.firstName} has left the room`,
                     isService: true,
