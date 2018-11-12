@@ -4,6 +4,7 @@ import { validate, stringNotEmpty } from 'openland-utils/NewInputValidator';
 import { Sanitizer } from 'openland-utils/Sanitizer';
 import { ProfileInput } from 'openland-module-users/ProfileInput';
 import { NotFoundError } from 'openland-errors/NotFoundError';
+import { ImageRef } from 'openland-module-media/ImageRef';
 
 export class UserRepository {
     private readonly userAuthIdCache = new Map<string, number | undefined>();
@@ -94,6 +95,17 @@ export class UserRepository {
                 location: Sanitizer.sanitizeString(input.location)
             });
         });
+    }
+
+    /*
+     * Bots
+     */
+    
+    async createSystemBot(key: string, name: string, photoRef: ImageRef) {
+        let user = await this.createUser('system-bot|' + key, 'hello@openland.com');
+        await this.createUserProfile(user.id, { firstName: name, photoRef: photoRef, email: 'hello@openland.com' });
+        await this.activateUser(user.id);
+        return user.id;
     }
 
     /*

@@ -7,6 +7,15 @@ import { Modules } from 'openland-modules/Modules';
 
 var migrations: FMigration[] = [];
 migrations.push({
+    key: '21-create-notification-bot',
+    migration: async (log) => {
+        await Modules.Users.createSystemBot('openbot', 'openbot', {
+            uuid: 'db12b7df-6005-42d9-87d6-46f15dd5b880',
+            crop: null
+        });
+    }
+});
+migrations.push({
     key: '19-fix-profile',
     migration: async (log) => {
         let user = await FDB.UserProfile.findAllKeys();

@@ -8,6 +8,7 @@ import { ProfileInput } from './ProfileInput';
 import { injectable } from 'inversify';
 import { inTx } from 'foundation-orm/inTx';
 import { Emails } from 'openland-module-email/Emails';
+import { ImageRef } from 'openland-module-media/ImageRef';
 
 @injectable()
 export class UsersModule {
@@ -39,6 +40,10 @@ export class UsersModule {
 
     async findUserByAuthId(authId: string): Promise<number | undefined> {
         return this.repo.findUserByAuthId(authId);
+    }
+
+    async createSystemBot(key: string, name: string, photoRef: ImageRef) {
+        return await this.repo.createSystemBot(key, name, photoRef);
     }
 
     async createUserProfile(uid: number, input: ProfileInput) {
