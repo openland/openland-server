@@ -62,7 +62,7 @@ export class RoomMediator {
             if (await this.repo.joinRoom(cid, uid)) {
                 // Send message
                 let name = (await this.entities.UserProfile.findById(uid))!.firstName;
-                await this.messaging.sendMessage(cid, uid, {
+                await this.messaging.sendMessage(uid, cid, {
                     message: `${name} has joined the room!`,
                     isService: true,
                     isMuted: true,
@@ -94,7 +94,7 @@ export class RoomMediator {
                 // Send message about joining the room
                 if (res.length > 0) {
                     let users = res.map((v) => this.entities.UserProfile.findById(v));
-                    await this.messaging.sendMessage(cid, uid, {
+                    await this.messaging.sendMessage(uid, cid, {
                         message: `${(await Promise.all(users)).map(u => u!.firstName).join(', ')} joined the room`,
                         isService: true,
                         isMuted: true,
@@ -114,22 +114,22 @@ export class RoomMediator {
     async kickFromRoom(cid: number, uid: number, kickedUid: number) {
         return await inTx(async () => {
             if (uid === kickedUid) {
-                throw Error('Unable to kick yourself');
+                throw new UserError('Unable to kick yourself');
             }
 
             // Permissions
             // TODO: Implement better
             let isSuperAdmin = (await Modules.Super.superRole(uid)) === 'super-admin';
-            if (!isSuperAdmin && !(await this.repo.isActiveMember(cid, uid))) {
-                throw Error('You are not member of a room');
+            if (!isSuperAdmin && !(await this.repo.isActiveMember(uid, cid))) {
+                throw new UserError('You are not member of a room');
             }
             let existingMembership = await this.repo.findMembershipStatus(kickedUid, cid);
             if (!existingMembership || existingMembership.status !== 'joined') {
-                throw Error('User are not member of a room');
+                throw new UserError('User are not member of a room');
             }
             let canKick = isSuperAdmin || existingMembership.invitedBy === uid;
             if (!canKick) {
-                throw Error('Insufficient rights');
+                throw new UserError('Insufficient rights');
             }
 
             // Kick from group
@@ -137,7 +137,7 @@ export class RoomMediator {
 
                 // Send message
                 let profile = (await this.entities.UserProfile.findById(kickedUid))!;
-                await this.messaging.sendMessage(cid, uid, {
+                await this.messaging.sendMessage(uid, cid, {
                     message: `${profile!.firstName} was kicked from the room`,
                     isService: true,
                     isMuted: true,
@@ -146,7 +146,7 @@ export class RoomMediator {
                         userId: kickedUid,
                         kickedById: uid
                     }
-                });
+                }, false);
 
                 // Deliver dialog deletion
                 await this.delivery.onDialogDelete(kickedUid, cid);
@@ -160,9 +160,11 @@ export class RoomMediator {
         return await inTx(async () => {
 
             if (await this.repo.leaveRoom(cid, uid)) {
+                console.log('exited');
+
                 // Send message
                 let profile = await this.entities.UserProfile.findById(uid);
-                await this.messaging.sendMessage(cid, uid, {
+                await this.messaging.sendMessage(uid, cid, {
                     message: `${profile!.firstName} has left the room`,
                     isService: true,
                     isMuted: true,
@@ -171,7 +173,7 @@ export class RoomMediator {
                         userId: uid,
                         kickedById: uid
                     }
-                });
+                }, true);
 
                 // Deliver dialog deletion
                 await this.delivery.onDialogDelete(uid, cid);
@@ -191,7 +193,7 @@ export class RoomMediator {
             let res = await this.repo.updateRoomProfile(cid, profile);
             let roomProfile = (await this.entities.RoomProfile.findById(cid))!;
             if (res.updatedPhoto) {
-                await this.messaging.sendMessage(cid, uid, {
+                await this.messaging.sendMessage(uid, cid, {
                     message: `Updated room photo`,
                     isService: true,
                     isMuted: true,
@@ -202,7 +204,7 @@ export class RoomMediator {
                 });
             }
             if (res.updatedTitle) {
-                await this.messaging.sendMessage(cid, uid, {
+                await this.messaging.sendMessage(uid, cid, {
                     message: `Updated room name to "${res}"`,
                     isService: true,
                     isMuted: true,

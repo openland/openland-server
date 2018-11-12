@@ -1071,7 +1071,7 @@ export namespace GQL {
         state: string;
     }
     export type DialogUpdateContainer = DialogUpdateSingle | DialogUpdateBatch;
-    export type DialogUpdate = DialogMessageReceived | DialogMessageUpdated | DialogMessageDeleted | DialogMessageRead | DialogTitleUpdated;
+    export type DialogUpdate = DialogMessageReceived | DialogMessageUpdated | DialogMessageDeleted | DialogMessageRead | DialogTitleUpdated | DialogDeleted;
     export interface DialogMessageReceived {
         cid: string;
         message: ConversationMessage;
@@ -1083,6 +1083,8 @@ export namespace GQL {
     }
     export interface DialogMessageDeleted {
         message: ConversationMessage;
+        unread: number;
+        globalUnread: number;
     }
     export interface DialogMessageRead {
         cid: string;
@@ -1096,6 +1098,10 @@ export namespace GQL {
     export interface DialogPhotoUpdated {
         cid: string;
         photoRef: Nullable<ImageRef>;
+    }
+    export interface DialogDeleted {
+        cid: string;
+        globalUnread: number;
     }
     export interface SubscriptionDialogsUpdatesArgs {
         fromState: Nullable<string>;
@@ -1518,6 +1524,7 @@ export interface GQLResolver {
     DialogMessageRead?: ComplexTypedResolver<GQL.DialogMessageRead, {}, GQLRoots.DialogMessageReadRoot>;
     DialogTitleUpdated?: ComplexTypedResolver<GQL.DialogTitleUpdated, {}, GQLRoots.DialogTitleUpdatedRoot>;
     DialogPhotoUpdated?: ComplexTypedResolver<GQL.DialogPhotoUpdated, {photoRef: Nullable<GQLRoots.ImageRefRoot>}, GQLRoots.DialogPhotoUpdatedRoot>;
+    DialogDeleted?: ComplexTypedResolver<GQL.DialogDeleted, {}, GQLRoots.DialogDeletedRoot>;
     FeatureFlag?: ComplexTypedResolver<GQL.FeatureFlag, {}, GQLRoots.FeatureFlagRoot>;
     OrganizationContact?: ComplexTypedResolver<GQL.OrganizationContact, {photoRef: Nullable<GQLRoots.ImageRefRoot>}, GQLRoots.OrganizationContactRoot>;
     Organization?: ComplexTypedResolver<GQL.Organization, {alphaOrganizationMembers: GQLRoots.OrganizationJoinedMemberRoot[], alphaCreatedChannels: Nullable<GQLRoots.ChannelConversationRoot>[]}, GQLRoots.OrganizationRoot>;

@@ -24,7 +24,7 @@ export class MessagingMediator {
     @lazyInject('RoomMediator')
     private readonly room!: RoomMediator;
 
-    sendMessage = async (uid: number, cid: number, message: MessageInput) => {
+    sendMessage = async (uid: number, cid: number, message: MessageInput, skipAccessCheck?: boolean) => {
         return await inTx(async () => {
 
             // Check for bad words. Useful for debug.
@@ -33,7 +33,9 @@ export class MessagingMediator {
             }
 
             // Permissions
-            await this.room.checkAccess(uid, cid);
+            if (!skipAccessCheck) {
+                await this.room.checkAccess(uid, cid);
+            }
 
             // Create
             let res = await this.repo.createMessage(cid, uid, message);

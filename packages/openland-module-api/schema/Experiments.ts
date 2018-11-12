@@ -13,6 +13,7 @@ export type ResolverRootType<T> = { [K in keyof T]: T[K] extends (root: infer R,
 //  Root types
 //
 export namespace GQLRoots {
+    export type DialogDeletedRoot = any;
     export type ConversationSettingsRoot = UserDialogSettings;
     export type ConversationRoot = Conversation;
     export type AnonymousConversationRoot = Conversation;
