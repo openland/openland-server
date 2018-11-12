@@ -58,10 +58,13 @@ export class DeliveryRepository {
 
             // TODO: Update date
             let global = await this.userState.getUserMessagingState(uid);
+            let local = await this.userState.getUserDialogState(uid, message.cid);
             global.seq++;
             await this.entities.UserDialogEvent.create(uid, global.seq, {
                 kind: 'message_deleted',
-                mid: message!.id
+                mid: message.id,
+                allUnread: global.unread,
+                unread: local.unread
             });
         });
     }
@@ -69,11 +72,13 @@ export class DeliveryRepository {
     async deliverDialogDeleteToUser(uid: number, cid: number, delta: number) {
         return await inTx(async () => {
             if (delta !== 0) {
-                // TODO: Replace with dialog deletion
+                let local = await this.userState.getUserDialogState(uid, cid);
                 let global = await this.userState.getUserMessagingState(uid);
                 global.seq++;
+                local.date = null;
                 await this.entities.UserDialogEvent.create(uid, global.seq, {
-                    kind: 'message_read',
+                    kind: 'dialog_deleted',
+                    cid: cid,
                     unread: 0,
                     allUnread: global.unread
                 });

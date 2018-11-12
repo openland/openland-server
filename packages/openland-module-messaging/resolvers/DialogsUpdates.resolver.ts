@@ -44,6 +44,8 @@ export default {
                 return 'DialogMessageRead';
             } else if (obj.kind === 'title_updated') {
                 return 'DialogTitleUpdated';
+            } else if (obj.kind === 'dialog_deleted') {
+                return 'DialogDeleted';
             }
             // } else if (obj.eventType === 'chat_update') {
             //     return 'DialogPhotoUpdated';
@@ -62,6 +64,8 @@ export default {
     },
     DialogMessageDeleted: {
         message: (src: UserDialogEvent) => FDB.Message.findById(src.mid!),
+        unread: (src: UserDialogEvent) => src.unread || 0,
+        globalUnread: (src: UserDialogEvent) => src.allUnread || 0
     },
     DialogMessageRead: {
         cid: (src: UserDialogEvent) => IDs.Conversation.serialize(src.cid!),
@@ -75,6 +79,10 @@ export default {
     // DialogPhotoUpdated: {
     //     photoRef: async (src: ConversationUserEvents) => (await DB.Conversation.findById(src.event.conversationId as any))!.,
     // },
+    DialogDeleted: {
+        cid: (src: UserDialogEvent) => IDs.Conversation.serialize(src.cid!),
+        globalUnread: (src: UserDialogEvent) => src.allUnread || 0
+    },
 
     /*
      * Subscription

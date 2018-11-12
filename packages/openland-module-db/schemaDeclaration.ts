@@ -441,7 +441,7 @@ const Schema = declareSchema(() => {
         field('allUnread', 'number').nullable();
         field('unread', 'number').nullable();
         field('title', 'string').nullable();
-        enumField('kind', ['message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated']);
+        enumField('kind', ['message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated', 'dialog_deleted']);
         rangeIndex('user', ['uid', 'seq']).withStreaming();
         enableVersioning();
         enableTimestamps();

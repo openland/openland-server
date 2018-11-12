@@ -13,7 +13,7 @@ type DialogUpdateBatch {
 
 union DialogUpdateContainer = DialogUpdateSingle | DialogUpdateBatch
 
-union DialogUpdate = DialogMessageReceived | DialogMessageUpdated | DialogMessageDeleted | DialogMessageRead | DialogTitleUpdated
+union DialogUpdate = DialogMessageReceived | DialogMessageUpdated | DialogMessageDeleted | DialogMessageRead | DialogTitleUpdated | DialogDeleted
 
 type DialogMessageReceived {
     cid: ID!
@@ -28,6 +28,8 @@ type DialogMessageUpdated {
 
 type DialogMessageDeleted {
     message: ConversationMessage!
+    unread: Int!
+    globalUnread: Int!
 }
 
 type DialogMessageRead {
@@ -44,6 +46,11 @@ type DialogTitleUpdated {
 type DialogPhotoUpdated {
     cid: ID!
     photoRef: ImageRef
+}
+
+type DialogDeleted {
+    cid: ID!
+    globalUnread: Int!
 }
 
 extend type Subscription {

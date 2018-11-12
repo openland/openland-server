@@ -4466,7 +4466,7 @@ export interface UserDialogEventShape {
     allUnread?: number| null;
     unread?: number| null;
     title?: string| null;
-    kind: 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated';
+    kind: 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' | 'dialog_deleted';
 }
 
 export class UserDialogEvent extends FEntity {
@@ -4528,10 +4528,10 @@ export class UserDialogEvent extends FEntity {
         this._value.title = value;
         this.markDirty();
     }
-    get kind(): 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' {
+    get kind(): 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' | 'dialog_deleted' {
         return this._value.kind;
     }
-    set kind(value: 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated') {
+    set kind(value: 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' | 'dialog_deleted') {
         this._checkIsWritable();
         if (value === this._value.kind) { return; }
         this._value.kind = value;
@@ -4553,7 +4553,7 @@ export class UserDialogEventFactory extends FEntityFactory<UserDialogEvent> {
             { name: 'allUnread', type: 'number' },
             { name: 'unread', type: 'number' },
             { name: 'title', type: 'string' },
-            { name: 'kind', type: 'enum', enumValues: ['message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated'] },
+            { name: 'kind', type: 'enum', enumValues: ['message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated', 'dialog_deleted'] },
         ],
         indexes: [
             { name: 'user', type: 'range', fields: ['uid', 'seq'] },
@@ -4571,7 +4571,7 @@ export class UserDialogEventFactory extends FEntityFactory<UserDialogEvent> {
         validators.isNumber('unread', src.unread);
         validators.isString('title', src.title);
         validators.notNull('kind', src.kind);
-        validators.isEnum('kind', src.kind, ['message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated']);
+        validators.isEnum('kind', src.kind, ['message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated', 'dialog_deleted']);
     }
 
     constructor(connection: FConnection) {
