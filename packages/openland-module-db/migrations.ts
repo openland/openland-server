@@ -7,7 +7,21 @@ import { Modules } from 'openland-modules/Modules';
 
 var migrations: FMigration[] = [];
 migrations.push({
-    key: '18-fix-primaryorganization',
+    key: '19-fix-profile',
+    migration: async (log) => {
+        let user = await FDB.UserProfile.findAllKeys();
+        for (let u of user) {
+            await inTx(async () => {
+                let profile = await FDB.UserProfile.findById(u[u.length - 1]);
+                profile!.markDirty();
+                await profile!.flush();
+            });
+        }
+    }
+});
+
+migrations.push({
+    key: '20-fix-primaryorganization',
     migration: async (log) => {
         let user = await FDB.UserProfile.findAll();
         for (let u of user) {
