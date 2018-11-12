@@ -141,23 +141,13 @@ export class RoomRepository {
         });
     }
 
-    async updateRoomProfile(cid: number, uid: number, profile: Partial<RoomProfileInput>) {
+    async updateRoomProfile(cid: number, profile: Partial<RoomProfileInput>) {
         return await inTx(async () => {
+            await this.checkRoomExists(cid);
+
             let conv = await this.entities.RoomProfile.findById(cid);
             if (!conv) {
                 throw new Error('Room not found');
-            }
-            let p = await this.entities.RoomParticipant.findById(cid, uid);
-            if (!p || p.status !== 'joined') {
-                throw new Error('User is not member of a room');
-            }
-
-            let curMember = await this.entities.RoomParticipant.findById(cid, uid);
-            // let role = await Modules.Super.superRole(uid);
-            let haveAccess = (curMember && (curMember.role === 'owner' || curMember.role === 'admin'));
-
-            if (!haveAccess) {
-                throw new AccessDeniedError();
             }
 
             let updatedTitle = false;
@@ -220,24 +210,11 @@ export class RoomRepository {
             if (!conv) {
                 throw new Error('Room not found');
             }
-            let p = await this.entities.RoomParticipant.findById(cid, uid);
-            if (!p || p.status !== 'joined') {
-                throw new Error('User is not member of a room');
-            }
-
             let p2 = await this.entities.RoomParticipant.findById(cid, updatedUid);
             if (!p2 || p2.status !== 'joined') {
                 throw new Error('User is not member of a room');
             }
-
-            let canChangeRole = p.role === 'admin' || p.role === 'owner';
-
-            if (!canChangeRole) {
-                throw new AccessDeniedError();
-            }
-
             p2.role = role;
-
             return (await this.entities.Conversation.findById(conv.id))!;
         });
     }

@@ -7,6 +7,7 @@ import { MessagingMediator } from './MessagingMediator';
 import { AllEntities } from 'openland-module-db/schema';
 import { Modules } from 'openland-modules/Modules';
 import { DeliveryMediator } from './DeliveryMediator';
+import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 
 @injectable()
 export class RoomMediator {
@@ -165,7 +166,12 @@ export class RoomMediator {
 
     async updateRoomProfile(cid: number, uid: number, profile: Partial<RoomProfileInput>) {
         return await inTx(async () => {
-            let res = await this.repo.updateRoomProfile(cid, uid, profile);
+            let conv = await this.entities.RoomProfile.findById(cid);
+            if (!conv) {
+                throw new Error('Room not found');
+            }
+            // TODO: Check Access
+            let res = await this.repo.updateRoomProfile(cid, profile);
             let roomProfile = (await this.entities.RoomProfile.findById(cid))!;
             if (res.updatedPhoto) {
                 await this.messaging.sendMessage(cid, uid, {
@@ -195,7 +201,24 @@ export class RoomMediator {
     }
 
     async updateMemberRole(cid: number, uid: number, updatedUid: number, role: 'admin' | 'owner' | 'member') {
-        return await this.repo.updateMemberRole(cid, uid, updatedUid, role);
+        return await inTx(async () => {
+            let p = await this.entities.RoomParticipant.findById(cid, uid);
+            if (!p || p.status !== 'joined') {
+                throw new Error('User is not member of a room');
+            }
+
+            let p2 = await this.entities.RoomParticipant.findById(cid, updatedUid);
+            if (!p2 || p2.status !== 'joined') {
+                throw new Error('User is not member of a room');
+            }
+
+            let canChangeRole = p.role === 'admin' || p.role === 'owner';
+
+            if (!canChangeRole) {
+                throw new AccessDeniedError();
+            }
+            return await this.repo.updateMemberRole(cid, uid, updatedUid, role);
+        });
     }
 
     //
