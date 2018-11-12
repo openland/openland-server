@@ -200,8 +200,8 @@ const Schema = declareSchema(() => {
         enumField('status', ['requested', 'joined', 'left']);
 
         uniqueIndex('ids', ['oid', 'uid']);
-        rangeIndex('organization', ['status', 'oid', 'uid']);
-        rangeIndex('user', ['status', 'uid', 'oid']);
+        rangeIndex('organization', ['status', 'oid', 'uid']).withDisplayName('usersFromOrganization');
+        rangeIndex('user', ['status', 'uid', 'oid']).withDisplayName('organizationsFromUser');
 
         enableTimestamps();
         enableVersioning();

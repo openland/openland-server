@@ -2135,8 +2135,8 @@ export class OrganizationMemberFactory extends FEntityFactory<OrganizationMember
         ],
         indexes: [
             { name: 'ids', type: 'unique', fields: ['oid', 'uid'] },
-            { name: 'organization', type: 'range', fields: ['status', 'oid', 'uid'] },
-            { name: 'user', type: 'range', fields: ['status', 'uid', 'oid'] },
+            { name: 'organization', type: 'range', fields: ['status', 'oid', 'uid'], displayName: 'usersFromOrganization' },
+            { name: 'user', type: 'range', fields: ['status', 'uid', 'oid'], displayName: 'organizationsFromUser' },
         ],
     };
 
