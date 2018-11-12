@@ -5,6 +5,7 @@ import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { FDB } from 'openland-module-db/FDB';
 import { IDs } from 'openland-module-api/IDs';
 import { withAny } from 'openland-module-api/Resolvers';
+import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 
 type UserRoot = User | UserProfile | number;
 
@@ -96,4 +97,4 @@ export default {
             return FDB.User.findById(IDs.User.parse(args.id));
         }),
     }
-};
+} as GQLResolver;

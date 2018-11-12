@@ -6,6 +6,7 @@ import { FDB } from 'openland-module-db/FDB';
 import { Conversation, RoomProfile } from 'openland-module-db/schema';
 import { CallContext } from 'openland-module-api/CallContext';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
+import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 
 type RoomRoot = Conversation | number;
 
@@ -77,7 +78,7 @@ export default {
         title: withConverationId(async (id, context) => Modules.Messaging.room.resolveConversationTitle(id, context.uid!)),
         photo: withConverationId(async (id, context) => Modules.Messaging.room.resolveConversationPhoto(id, context.uid!)),
         organization: async (root: RoomRoot) => {
-            //
+            throw new Error('Not implemented');
         },
 
         description: withRoomProfile((profile) => {
@@ -85,7 +86,7 @@ export default {
         }),
 
         membership: async (root: RoomRoot) => {
-            //
+            throw new Error('Not implemented');
         },
         membersCount: async (root: RoomRoot) => {
             //
@@ -109,4 +110,4 @@ export default {
             }
         })
     }
-};
+} as GQLResolver;

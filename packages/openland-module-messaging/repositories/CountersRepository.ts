@@ -33,6 +33,7 @@ export class CountersRepository {
             if (await this.entities.UserDialogHandledMessage.findById(uid, message.cid, mid)) {
                 return 0;
             }
+            // tslint:disable:no-floating-promises
             this.entities.UserDialogHandledMessage.create(uid, message.cid, mid, {});
 
             // Updating counters if not read already

@@ -12,7 +12,7 @@ import { ChannelInvitation, ChannelLink, RoomParticipant, Conversation } from 'o
 import { FDB } from 'openland-module-db/FDB';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { Emails } from 'openland-module-email/Emails';
-import { GQL } from '../../openland-module-api/schema/SchemaSpec';
+import { GQL, GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 
 interface AlphaChannelsParams {
     orgId: string;
@@ -347,4 +347,4 @@ export default {
             return await Modules.Messaging.createChannelInviteLink(channelId, uid);
         })
     }
-};
+} as GQLResolver;

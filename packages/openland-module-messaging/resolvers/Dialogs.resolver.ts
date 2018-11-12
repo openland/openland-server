@@ -4,6 +4,7 @@ import { UserDialog } from 'openland-module-db/schema';
 import { IDs } from 'openland-module-api/IDs';
 import { Modules } from 'openland-modules/Modules';
 import { CallContext } from 'openland-module-api/CallContext';
+import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 
 export default {
     Dialog: {
@@ -88,4 +89,4 @@ export default {
             };
         }),
     }
-};
+} as GQLResolver;
