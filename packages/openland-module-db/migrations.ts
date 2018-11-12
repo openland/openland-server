@@ -25,8 +25,8 @@ migrations.push({
                     if (profile.primaryOrganization) {
                         let existing = orgs.find((v) => v === profile.primaryOrganization);
                         if (existing) {
-                            let o = (await FDB.Organization.findById(existing))!;
-                            if (o.status === 'activated') {
+                            let o = await FDB.Organization.findById(existing);
+                            if (o && o.status === 'activated') {
                                 primaryOrganization = o.id;
                             } else {
                                 primaryOrganization = null;
@@ -39,8 +39,8 @@ migrations.push({
                     // If not present - try to find activated one
                     if (!primaryOrganization) {
                         for (let oid of orgs) {
-                            let o = (await FDB.Organization.findById(oid))!;
-                            if (o.status === 'activated') {
+                            let o = await FDB.Organization.findById(oid);
+                            if (o && o.status === 'activated') {
                                 primaryOrganization = oid;
                                 break;
                             }
