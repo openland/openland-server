@@ -33,16 +33,6 @@ type Organization {
     shortname: String
 }
 
-type OrganizationsEdge {
-    node: Organization!
-    cursor: String!
-}
-
-type OrganizationsConnection {
-    edges: [OrganizationsEdge!]!
-    pageInfo: PageInfo!
-}
-
 extend type Query {
     myOrganization: Organization
     myOrganizations: [Organization!]!

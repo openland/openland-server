@@ -1,3 +1,13 @@
+type OrganizationsEdge {
+    node: Organization!
+    cursor: String!
+}
+
+type OrganizationsConnection {
+    edges: [OrganizationsEdge!]!
+    pageInfo: PageInfo!
+}
+
 extend type Query {
     alphaOrganizations(
         query: String,

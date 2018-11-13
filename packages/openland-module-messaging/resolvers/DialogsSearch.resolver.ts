@@ -1,7 +1,7 @@
 import { FDB } from 'openland-module-db/FDB';
 import { withAccount } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
-import { Message } from 'openland-module-db/schema';
+// import { Message } from 'openland-module-db/schema';
 import { createTracer } from 'openland-log/createTracer';
 import { withTracing } from 'openland-log/withTracing';
 
@@ -11,13 +11,12 @@ export default {
     Query: {
         alphaChatTextSearch: withAccount<{ query: string }>(async (args, uid, oid) => {
             return await withTracing(tracer, 'chat-text-search', async () => {
-                // GROUPS / CHANNELS has titles we can search 
-                let searchableConversations = Promise.all((await FDB.UserDialog.allFromUser(uid)).map((v) => FDB.Conversation.findById(v.cid)));
-
+                // Group Search
+                let searchableConversations = Promise.all((await FDB.RoomParticipant.allFromUserActive(uid))
+                    .map((v) => FDB.Conversation.findById(v.cid)));
                 let groupsChannels = (await Promise.all((await searchableConversations)
-                    .filter((v) => v!.kind === 'room')
-                    .map((v) => FDB.RoomProfile.findById(v!.id))))
-                    .filter((v) => v!.title.toLocaleLowerCase().indexOf(args.query.toLowerCase()) >= 0)
+                    .map((v) => v && FDB.RoomProfile.findById(v.id))))
+                    .filter((v) => v && v.title.toLocaleLowerCase().indexOf(args.query.toLowerCase()) >= 0)
                     .map((v) => v!);
 
                 // PERSONAL - search users first, then matching conversations with current user
@@ -39,21 +38,21 @@ export default {
                     },
                     [] as any[]
                 );
-                let messages = new Map<number, Message | null>();
+                // let messages = new Map<number, Message | null>();
 
-                let topMesges = await Promise.all(res.map(c => FDB.Message.rangeFromChat(c.id, 1, true)));
-                for (let tmsgs of topMesges) {
-                    let msg = tmsgs[0];
-                    if (msg) {
-                        messages.set(msg.cid, msg);
-                    }
-                }
-                res = res.filter(c => messages.get(c.id))
-                    .sort((a, b) => {
-                        let lastMessageA = messages.get(a.id);
-                        let lastMessageB = messages.get(b.id);
-                        return (lastMessageB ? new Date((lastMessageB as any).createdAt).getTime() : 0) - (lastMessageA ? new Date((lastMessageA as any).createdAt).getTime() : 0);
-                    });
+                // let topMesges = await Promise.all(res.map(c => FDB.Message.rangeFromChat(c.id, 1, true)));
+                // for (let tmsgs of topMesges) {
+                //     let msg = tmsgs[0];
+                //     if (msg) {
+                //         messages.set(msg.cid, msg);
+                //     }
+                // }
+                // res = res.filter(c => messages.get(c.id))
+                //     .sort((a, b) => {
+                //         let lastMessageA = messages.get(a.id);
+                //         let lastMessageB = messages.get(b.id);
+                //         return (lastMessageB ? new Date((lastMessageB as any).createdAt).getTime() : 0) - (lastMessageA ? new Date((lastMessageA as any).createdAt).getTime() : 0);
+                //     });
                 return res;
             });
         }),
