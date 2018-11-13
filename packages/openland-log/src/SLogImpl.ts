@@ -3,7 +3,7 @@ import { SLog } from '../SLog';
 import winston from 'winston';
 
 const logger = winston.createLogger({
-    level: 'debug',
+    level: 'info',
     format: winston.format.cli(),
     transports: [
         new winston.transports.Console(),
@@ -28,11 +28,11 @@ export class SLogImpl implements SLog {
 
     debug = (message?: any, ...optionalParams: any[]) => {
         // if (this.production) {
-        if (SLogContext.value && SLogContext.value.disabled) {
-            return;
-        }
-        let context = SLogContext.value ? SLogContext.value.path : [];
-        logger.debug([...context, this.name, message, ...optionalParams].join(' '));
+        //     if (SLogContext.value && SLogContext.value.disabled) {
+        //         return;
+        //     }
+        //     let context = SLogContext.value ? SLogContext.value.path : [];
+        //     logger.debug([...context, this.name, message, ...optionalParams].join(' '));
         // }
     }
     warn = (message?: any, ...optionalParams: any[]) => {
