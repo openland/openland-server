@@ -45,8 +45,8 @@ export default {
         alphaComunityPrefixSearch: withAny<AlphaOrganizationsParams>(async args => {
 
             let clauses: any[] = [];
-            clauses.push({ term: { isCommunity: true } });
-            clauses.push({ term: { published: true } });
+            clauses.push({ term: { kind: 'community' } });
+            clauses.push({ term: { listed: true } });
             if (args.query && args.query.length > 0) {
                 clauses.push({ match_phrase_prefix: { name: args.query } });
             }
