@@ -22,10 +22,22 @@ export function dialogSearchIndexer() {
             }
         })
         .start(async (item) => {
+            let title: string;
+            try {
+                title = await Modules.Messaging.room.resolveConversationTitle(item.cid, item.uid);
+            } catch (e) {
+                console.warn(item.cid);
+                console.warn(e);
+                return {
+                    id: item.cid,
+                    doc: {
+                    }
+                };
+            }
             return {
                 id: item.cid,
                 doc: {
-                    title: await Modules.Messaging.room.resolveConversationTitle(item.cid, item.uid),
+                    title,
                     uid: item.uid,
                     visible: !!item.date,
                     createdAt: item.createdAt,
