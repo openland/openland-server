@@ -52,7 +52,7 @@ export class InvitesMediator {
     async joinOrganizationInvite(uid: number, inviteString: string) {
         return await inTx(async () => {
             let orgInvite = await Modules.Invites.orgInvitesRepo.getOrganizationInviteNonJoined(inviteString);
-            let publicOrginvite = await Modules.Invites.orgInvitesRepo.getPublicOrganizationInviteByKey(inviteString);
+            let publicOrginvite = await Modules.Invites.orgInvitesRepo.getOrganizationInviteLinkByKey(inviteString);
             let invite: { oid: number, uid: number, ttl?: number | null, role?: string } | null = orgInvite || publicOrginvite;
 
             if (!invite) {
