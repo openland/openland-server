@@ -122,8 +122,8 @@ export default {
                 }
             }
 
-            clauses.push({ term: { published: true } });
-            clauses.push({ term: { isCommunity: false } });
+            clauses.push({ term: { listed: true } });
+            clauses.push({ term: { kind: 'organization' } });
 
             let hits = await Modules.Search.elastic.client.search({
                 index: 'organization',
