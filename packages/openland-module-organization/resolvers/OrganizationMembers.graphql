@@ -34,6 +34,8 @@ input InviteRequest {
 
 extend type Query {
     alphaOrganizationMembers(orgId: ID!): [OrganizationMember!]!
+    alphaOrganizationInviteLink(organizationId: ID): Invite
+    # deprecated
     alphaOrganizationPublicInvite(organizationId: ID): Invite
 }
 
@@ -42,6 +44,8 @@ extend type Mutation {
     alphaOrganizationChangeMemberRole(memberId: ID!, newRole: OrganizationMemberRole!, organizationId: ID!): String!
     
     alphaOrganizationInviteMembers(inviteRequests: [InviteRequest!]!, organizationId: ID): String!
+    alphaOrganizationRefreshInviteLink(expirationDays: Int, organizationId: ID): Invite!
+    # deprecated
     alphaOrganizationCreatePublicInvite(expirationDays: Int, organizationId: ID): Invite!
     alphaOrganizationDeletePublicInvite(organizationId: ID): String!
 }
