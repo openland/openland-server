@@ -3,7 +3,7 @@ import { FDB } from 'openland-module-db/FDB';
 import { createTracer } from 'openland-log/createTracer';
 import { withTracing } from 'openland-log/withTracing';
 
-const tracer = createTracer('room-search');
+const tracer = createTracer('user-search');
 export class UserSearch {
     async searchForUsers(query: string, options?: { uid?: number, limit?: number }) {
         return await withTracing(tracer, 'search', async () => {
@@ -22,8 +22,10 @@ export class UserSearch {
             };
 
             if (options && options.uid) {
-                let profile = await FDB.UserProfile.findById(options.uid);
-                let organizations = await Modules.Orgs.findUserOrganizations(options.uid);
+                let profilePromise = FDB.UserProfile.findById(options.uid);
+                let organizationsPromise = Modules.Orgs.findUserOrganizations(options.uid);
+                let profile = await profilePromise;
+                let organizations = await organizationsPromise;
                 let functions: any[] = [];
 
                 // Huge boost if primary organization same
