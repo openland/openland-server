@@ -127,4 +127,16 @@ export class MessagingModule {
     async roomMembersCount(conversationId: number, status?: string): Promise<number> {
         return await this.room.roomMembersCount(conversationId, status);
     }
+
+    //
+    // Hooks handler
+    //
+    
+    onUserProfileUpdated = async (uid: number) => {
+        await this.delivery.onUserProfileUpdated(uid);
+    }
+
+    onOrganizationProfileUpdated = async (oid: number) => {
+        await this.delivery.onOrganizationProfileUpdated(oid);
+    }
 }

@@ -410,9 +410,16 @@ const Schema = declareSchema(() => {
         field('unread', 'number');
         field('readMessageId', 'number').nullable();
         field('date', 'number').nullable();
+
+        field('title', 'string').nullable();
+        field('photo', 'json').nullable();
+
         rangeIndex('user', ['uid', 'date'])
             .withCondition((src) => !!src.date)
             .withDisplayName('dialogsForUser');
+        uniqueIndex('conversation', ['cid', 'uid'])
+            .withRange();
+        rangeIndex('updated', ['updatedAt']);
         enableTimestamps();
         enableVersioning();
     });

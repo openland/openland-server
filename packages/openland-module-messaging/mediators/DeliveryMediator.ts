@@ -52,6 +52,17 @@ export class DeliveryMediator {
         await this.deliverDialogDeleteToUser(uid, cid);
     }
 
+    onUserProfileUpdated = async (uid: number) => {
+        //
+    }
+
+    onOrganizationProfileUpdated = async (oid: number) => {
+        // await inTx(async () => {
+        //     let org = await this.room.resolveOrganizationChat(oid);
+        //     // let title =
+        // });
+    }
+
     private async deliverNewMessage(mid: number) {
         await inTx(async () => {
             let message = (await this.entities.Message.findById(mid))!;

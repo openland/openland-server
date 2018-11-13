@@ -4222,6 +4222,8 @@ export interface UserDialogShape {
     unread: number;
     readMessageId?: number| null;
     date?: number| null;
+    title?: string| null;
+    photo?: any| null;
 }
 
 export class UserDialog extends FEntity {
@@ -4259,6 +4261,28 @@ export class UserDialog extends FEntity {
         this._value.date = value;
         this.markDirty();
     }
+    get title(): string | null {
+        let res = this._value.title;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set title(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.title) { return; }
+        this._value.title = value;
+        this.markDirty();
+    }
+    get photo(): any | null {
+        let res = this._value.photo;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set photo(value: any | null) {
+        this._checkIsWritable();
+        if (value === this._value.photo) { return; }
+        this._value.photo = value;
+        this.markDirty();
+    }
 }
 
 export class UserDialogFactory extends FEntityFactory<UserDialog> {
@@ -4273,9 +4297,13 @@ export class UserDialogFactory extends FEntityFactory<UserDialog> {
             { name: 'unread', type: 'number' },
             { name: 'readMessageId', type: 'number' },
             { name: 'date', type: 'number' },
+            { name: 'title', type: 'string' },
+            { name: 'photo', type: 'json' },
         ],
         indexes: [
             { name: 'user', type: 'range', fields: ['uid', 'date'], displayName: 'dialogsForUser' },
+            { name: 'conversation', type: 'unique', fields: ['cid', 'uid'] },
+            { name: 'updated', type: 'range', fields: ['updatedAt'] },
         ],
     };
 
@@ -4288,13 +4316,14 @@ export class UserDialogFactory extends FEntityFactory<UserDialog> {
         validators.isNumber('unread', src.unread);
         validators.isNumber('readMessageId', src.readMessageId);
         validators.isNumber('date', src.date);
+        validators.isString('title', src.title);
     }
 
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'userDialog'),
             { enableVersioning: true, enableTimestamps: true, validator: UserDialogFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('user', ['uid', 'date'], false, (src) => !!src.date)],
+            [new FEntityIndex('user', ['uid', 'date'], false, (src) => !!src.date), new FEntityIndex('conversation', ['cid', 'uid'], true), new FEntityIndex('updated', ['updatedAt'], false)],
             'UserDialog'
         );
     }
@@ -4328,6 +4357,39 @@ export class UserDialogFactory extends FEntityFactory<UserDialog> {
     }
     createUserStream(uid: number, limit: number, after?: string) {
         return this._createStream(['entity', 'userDialog', '__indexes', 'user', uid], limit, after); 
+    }
+    async findFromConversation(cid: number, uid: number) {
+        return await this._findFromIndex(['__indexes', 'conversation', cid, uid]);
+    }
+    async allFromConversationAfter(cid: number, after: number) {
+        return await this._findRangeAllAfter(['__indexes', 'conversation', cid], after);
+    }
+    async rangeFromConversationAfter(cid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(['__indexes', 'conversation', cid], after, limit, reversed);
+    }
+    async rangeFromConversation(cid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'conversation', cid], limit, reversed);
+    }
+    async rangeFromConversationWithCursor(cid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'conversation', cid], limit, after, reversed);
+    }
+    async allFromConversation(cid: number) {
+        return await this._findAll(['__indexes', 'conversation', cid]);
+    }
+    createConversationStream(cid: number, limit: number, after?: string) {
+        return this._createStream(['entity', 'userDialog', '__indexes', 'conversation', cid], limit, after); 
+    }
+    async rangeFromUpdated(limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'updated'], limit, reversed);
+    }
+    async rangeFromUpdatedWithCursor(limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'updated'], limit, after, reversed);
+    }
+    async allFromUpdated() {
+        return await this._findAll(['__indexes', 'updated']);
+    }
+    createUpdatedStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'userDialog', '__indexes', 'updated'], limit, after); 
     }
     protected _createEntity(value: any, isNew: boolean) {
         return new UserDialog(this.connection, this.namespace, this.directory, [value.uid, value.cid], value, this.options, isNew, this.indexes, 'UserDialog');

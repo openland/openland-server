@@ -128,6 +128,11 @@ export default {
                     editorial.featured = Sanitizer.sanitizeAny(args.input.alphaFeatured) || false;
                 }
 
+                // Call hook
+                await editorial.flush();
+                await profile.flush();
+                await Modules.Hooks.onOrganizationProfileUpdated(profile.id);
+
                 return existing;
             });
         }),

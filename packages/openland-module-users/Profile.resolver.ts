@@ -202,6 +202,10 @@ export default {
                     if (args.input.alphaPrimaryOrganizationId !== undefined) {
                         profile.primaryOrganization = IDs.Organization.parse(args.input.alphaPrimaryOrganizationId!);
                     }
+
+                    // Call hook
+                    await profile.flush();
+                    await Modules.Hooks.onUserProfileUpdated(profile.id);
                 });
                 return user;
             });
