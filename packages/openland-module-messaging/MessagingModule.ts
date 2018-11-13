@@ -9,6 +9,7 @@ import { AugmentationMediator } from './mediators/AugmentationMediator';
 import { DeliveryMediator } from './mediators/DeliveryMediator';
 import { MessagingMediator } from './mediators/MessagingMediator';
 import { RoomMediator } from './mediators/RoomMediator';
+import { dialogIndexer } from './workers/DialogIndexer';
 
 @injectable()
 export class MessagingModule {
@@ -43,6 +44,9 @@ export class MessagingModule {
         }
         if (serverRoleEnabled('workers')) {
             startPushNotificationWorker();
+        }
+        if (serverRoleEnabled('workers')) {
+            dialogIndexer();
         }
     }
 

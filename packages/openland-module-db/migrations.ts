@@ -107,6 +107,21 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '22-enforce-dialog-update',
+    migration: async (log) => {
+        await inTx(async () => {
+            let k = await FDB.UserDialog.findAll();
+            for (let o of k) {
+                if (o.date) {
+                    o.markDirty();
+                    await o.flush();
+                }
+            }
+        });
+    }
+});
+
 export function startMigrationsWorker() {
     if (serverRoleEnabled('workers')) {
         staticWorker({ name: 'foundation-migrator' }, async () => {
