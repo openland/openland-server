@@ -52,7 +52,7 @@ export class InvitesMediator {
                 user.invitedBy = inviter;
             }
 
-            (await Modules.Orgs.findUserOrganizations(uid)).map(async oid => await Modules.Orgs.activateOrganization(oid));
+            await Promise.all((await Modules.Orgs.findUserOrganizations(uid)).map(async oid => await Modules.Orgs.activateOrganization(oid)));
         }
     }
 }

@@ -17,9 +17,6 @@ describe('InvitesMediator', () => {
 
     let users: UsersModule;
     let orgs: OrganizationModule;
-    let USER_ID: number;
-    let USER2_ID: number;
-    let USER2_ORG_ID: number;
     let entities: AllEntities;
     beforeAll(async () => {
         await testEnvironmentStart('invites-mediator');
@@ -34,13 +31,6 @@ describe('InvitesMediator', () => {
         entities = container.get<AllEntities>('FDB');
         users = container.get<UsersModule>(UsersModule);
         orgs = container.get<OrganizationModule>(OrganizationModule);
-
-        USER_ID = (await users.createUser('user111', 'email111')).id;
-        USER2_ID = (await users.createUser('user112', 'email112')).id;
-        await users.createUserProfile(USER_ID, { firstName: 'User Name' });
-        await users.createUserProfile(USER2_ID, { firstName: 'User Name' });
-
-        USER2_ORG_ID = (await orgs.createOrganization(USER2_ID, { name: 'ACME' })).id;
     });
 
     afterAll(() => {
@@ -48,6 +38,13 @@ describe('InvitesMediator', () => {
     });
 
     it('should add to channel', async () => {
+        let USER_ID = (await users.createUser('user111', 'email111')).id;
+        let USER2_ID = (await users.createUser('user112', 'email112')).id;
+        await users.createUserProfile(USER_ID, { firstName: 'User Name' });
+        await users.createUserProfile(USER2_ID, { firstName: 'User Name' });
+
+        let USER2_ORG_ID = (await orgs.createOrganization(USER2_ID, { name: 'ACME' })).id;
+
         let roomMediator = container.get<RoomMediator>('RoomMediator');
         let channel = await roomMediator.createRoom('public', 1, USER_ID, [], { title: 'channel' });
 
