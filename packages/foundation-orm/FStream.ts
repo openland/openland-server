@@ -1,6 +1,7 @@
 import { FEntity } from './FEntity';
 import { FKeyEncoding } from './utils/FKeyEncoding';
 import { FEntityFactory } from './FEntityFactory';
+import { withLogContext } from 'openland-log/withLogContext';
 
 export class FStream<T extends FEntity> {
     readonly factory: FEntityFactory<T>;
@@ -39,22 +40,24 @@ export class FStream<T extends FEntity> {
     }
 
     async next(): Promise<T[]> {
-        if (this._cursor && this._cursor !== '') {
-            let res = await this.factory.connection.currentContext.rangeAfter(this.factory.connection, this._subspace, FKeyEncoding.decodeFromString(this._cursor) as any, { limit: this.limit });
-            let d: T[] = [];
-            for (let r of res) {
-                d.push(this.builder(r.item));
-                this._cursor = FKeyEncoding.encodeKeyToString(r.key);
+        return await withLogContext('stream-' + this.factory.name, async () => {
+            if (this._cursor && this._cursor !== '') {
+                let res = await this.factory.connection.currentContext.rangeAfter(this.factory.connection, this._subspace, FKeyEncoding.decodeFromString(this._cursor) as any, { limit: this.limit });
+                let d: T[] = [];
+                for (let r of res) {
+                    d.push(this.builder(r.item));
+                    this._cursor = FKeyEncoding.encodeKeyToString(r.key);
+                }
+                return d;
+            } else {
+                let res = await this.factory.connection.currentContext.range(this.factory.connection, FKeyEncoding.encodeKey(this._subspace), { limit: this.limit });
+                let d: T[] = [];
+                for (let r of res) {
+                    d.push(this.builder(r.item));
+                    this._cursor = FKeyEncoding.encodeKeyToString(r.key);
+                }
+                return d;
             }
-            return d;
-        } else {
-            let res = await this.factory.connection.currentContext.range(this.factory.connection, FKeyEncoding.encodeKey(this._subspace), { limit: this.limit });
-            let d: T[] = [];
-            for (let r of res) {
-                d.push(this.builder(r.item));
-                this._cursor = FKeyEncoding.encodeKeyToString(r.key);
-            }
-            return d;
-        }
+        });
     }
 }
