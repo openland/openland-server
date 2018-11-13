@@ -283,6 +283,10 @@ export class RoomRepository {
     }
 
     async resolvePrivateChat(uid1: number, uid2: number) {
+        let conv2 = await this.entities.ConversationPrivate.findFromUsers(Math.min(uid1, uid2), Math.max(uid1, uid2));
+        if (conv2) {
+            return (await this.entities.Conversation.findById(conv2.id))!;
+        }
         return await inTx(async () => {
             let conv = await this.entities.ConversationPrivate.findFromUsers(Math.min(uid1, uid2), Math.max(uid1, uid2));
             if (!conv) {
