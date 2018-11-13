@@ -4,6 +4,7 @@ import { withLogContext } from 'openland-log/withLogContext';
 import { createLogger } from 'openland-log/createLogger';
 import { trace } from 'openland-log/trace';
 import { tracer } from './utils/tracer';
+import { currentTime } from 'openland-utils/timer';
 const log = createLogger('tx');
 export async function inTx<T>(callback: () => Promise<T>): Promise<T> {
     let ex = FTransaction.context.value;
@@ -14,26 +15,31 @@ export async function inTx<T>(callback: () => Promise<T>): Promise<T> {
     }
 
     let tx = new FTransaction();
+    let start = currentTime();
     return await FTransaction.context.withContext(tx, async () => {
         return withLogContext(['transaction', tx.id.toString()], async () => {
             // Implementation is copied from database.js from foundationdb library.
-            let isRetry = false;
-            do {
-                try {
-                    tx.reset();
-                    const result = await trace(tracer, isRetry ? 'tx-retry' : 'tx', async () => { return await callback(); });
-                    await tx.flush();
-                    return result;
-                } catch (err) {
-                    if (err instanceof FDBError) {
-                        await tx.tx!.rawOnError(err.code);
-                        log.debug('retry with code ' + err.code);
-                        isRetry = true;
-                    } else {
-                        throw err;
+            try {
+                let isRetry = false;
+                do {
+                    try {
+                        tx.reset();
+                        const result = await trace(tracer, isRetry ? 'tx-retry' : 'tx', async () => { return await callback(); });
+                        await tx.flush();
+                        return result;
+                    } catch (err) {
+                        if (err instanceof FDBError) {
+                            await tx.tx!.rawOnError(err.code);
+                            log.debug('retry with code ' + err.code);
+                            isRetry = true;
+                        } else {
+                            throw err;
+                        }
                     }
-                }
-            } while (true);
+                } while (true);
+            } finally {
+                log.debug('full tx time: ' + (currentTime() - start) + ' ms');
+            }
         });
     });
 }
