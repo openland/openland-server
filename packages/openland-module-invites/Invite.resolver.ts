@@ -5,10 +5,6 @@ import { CallContext } from 'openland-module-api/CallContext';
 import { FDB } from 'openland-module-db/FDB';
 import { IDs } from 'openland-module-api/IDs';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
-import { inTx } from 'foundation-orm/inTx';
-import { ErrorText } from 'openland-errors/ErrorText';
-import { NotFoundError } from 'openland-errors/NotFoundError';
-import { Emails } from '../openland-module-email/Emails';
 
 export default {
     Invite: {
@@ -46,7 +42,7 @@ export default {
             };
         }),
         appInviteInfo: withAny<{ key: string }>(async (args, context: CallContext) => {
-            let invite = await Modules.Invites.orgInvitesRepo.getInvteLinkData(args.key);
+            let invite = await Modules.Invites.orgInvitesRepo.getAppInvteLinkData(args.key);
             if (!invite) {
                 return null;
             }
@@ -56,7 +52,7 @@ export default {
             };
         }),
         appInvite: withUser(async (args, uid) => {
-            return await Modules.Invites.orgInvitesRepo.getInviteLinkKey(uid);
+            return await Modules.Invites.orgInvitesRepo.getAppInviteLinkKey(uid);
         }),
         // deperecated
         alphaInvitesHistory: withUser(async (args, uid) => {
@@ -73,73 +69,14 @@ export default {
     },
     Mutation: {
         alphaJoinInvite: withUser<{ key: string }>(async (args, uid) => {
-            return await inTx(async () => {
-                let orgInvite = await Modules.Invites.orgInvitesRepo.getOrganizationInviteNonJoined(args.key);
-                let publicOrginvite = await Modules.Invites.orgInvitesRepo.getPublicOrganizationInviteByKey(args.key);
-                let invite: { oid: number, uid: number, ttl?: number | null, role?: string } | null = orgInvite || publicOrginvite;
-
-                if (!invite) {
-                    throw new NotFoundError(ErrorText.unableToFindInvite);
-                }
-                // TODO: Better handling?
-                let existing = await FDB.OrganizationMember.findById(invite.oid, uid);
-                if (existing && existing.status === 'joined') {
-                    return IDs.Organization.serialize(invite.oid);
-                }
-
-                if (invite.ttl && (new Date().getTime() >= invite.ttl)) {
-                    throw new NotFoundError(ErrorText.unableToFindInvite);
-                }
-                await FDB.OrganizationMember.create(invite.oid, uid, {
-                    role: invite.role === 'OWNER' ? 'admin' : 'member',
-                    status: 'joined',
-                    invitedBy: invite.uid
-                });
-
-                // make organization primary if none
-                let profile = (await Modules.Users.profileById(uid));
-                if (profile && !profile.primaryOrganization) {
-                    profile.primaryOrganization = invite!.oid;
-                }
-
-                let user = (await FDB.User.findById(uid))!;
-                // User set invitedBy if none
-                user.invitedBy = user.invitedBy === undefined ? invite.uid : user.invitedBy;
-                if (user.status !== 'activated') {
-                    await Emails.sendWelcomeEmail(user!.id);
-                    user.status = 'activated';
-                }
-
-                // invalidate invite
-                if (orgInvite) {
-                    orgInvite.joined = true;
-                }
-                return IDs.Organization.serialize(invite.oid);
-
-            });
+            return await Modules.Invites.joinOrganizationInvite(uid, args.key);
         }),
         joinAppInvite: withAny<{ key: string }>(async (args, context) => {
             let uid = context.uid;
             if (uid === undefined) {
                 return;
             }
-            return await inTx(async () => {
-                let inviteData = await Modules.Invites.orgInvitesRepo.getInvteLinkData(args.key);
-                if (!inviteData) {
-                    throw new NotFoundError(ErrorText.unableToFindInvite);
-                }
-                let user = (await FDB.User.findById(uid!))!;
-                // activate user, set invited by
-                user.invitedBy = inviteData.uid;
-                user.status = 'activated';
-                await Emails.sendWelcomeEmail(user!.id);
-                // activate user org if have one
-                let org = context.oid ? (await FDB.Organization.findById(context.oid)) : undefined;
-                if (org) {
-                    org.status = 'activated';
-                }
-                return 'ok';
-            });
+           return await Modules.Invites.joinAppInvite(uid, args.key);
         }),
 
         // deperecated

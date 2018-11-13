@@ -24,7 +24,7 @@ export class InvitesModule {
     }
 
     async getInviteLinkKey(uid: number) {
-        return this.orgInvitesRepo.getInviteLinkKey(uid);
+        return this.orgInvitesRepo.getAppInviteLinkKey(uid);
     }
 
     //
@@ -49,5 +49,12 @@ export class InvitesModule {
 
     async joinChannelInvite(uid: number, invite: string) {
         return await this.invitesMediator.joinChannelInvite(uid, invite);
+    }
+    async joinAppInvite(uid: number, invite: string) {
+        return await this.invitesMediator.joinAppInvite(uid, invite);
+    }
+
+    async joinOrganizationInvite(uid: number, invite: string) {
+        return await this.invitesMediator.joinOrganizationInvite(uid, invite);
     }
 }
