@@ -7,7 +7,7 @@ import { RoomMediator } from 'openland-module-messaging/mediators/RoomMediator';
 import { OrganizationModule } from 'openland-module-organization/OrganizationModule';
 import { UsersModule } from 'openland-module-users/UsersModule';
 import { InvitesMediator } from './InvitesMediator';
-import { loadInvitesModule } from 'openland-module-invites/INVITES.container';
+import { loadInvitesModule } from 'openland-module-invites/Invites.container';
 import { AllEntities } from 'openland-module-db/schema';
 import { OrganizationRepository } from 'openland-module-organization/repositories/OrganizationRepository';
 import { SuperModule } from 'openland-module-super/SuperModule';

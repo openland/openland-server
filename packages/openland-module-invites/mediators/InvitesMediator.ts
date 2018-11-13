@@ -8,7 +8,6 @@ import { ChannelInviteEmails } from 'openland-module-messaging/emails/ChannelInv
 import { RoomMediator } from 'openland-module-messaging/mediators/RoomMediator';
 import { NotFoundError } from 'openland-errors/NotFoundError';
 import { IDs } from 'openland-module-api/IDs';
-import { OrganizationModule } from 'openland-module-organization/OrganizationModule';
 import { Modules } from 'openland-modules/Modules';
 
 @injectable()
