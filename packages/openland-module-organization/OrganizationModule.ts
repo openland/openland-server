@@ -231,6 +231,10 @@ export class OrganizationModule {
         return this.repo.findUserMembership(uid, oid);
     }
 
+    async markForUndexing(oid: number) {
+        await this.repo.markForUndexing(oid);
+    }
+
     //
     // Deprecated
     //

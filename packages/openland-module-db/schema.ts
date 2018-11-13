@@ -2079,6 +2079,70 @@ export class OrganizationEditorialFactory extends FEntityFactory<OrganizationEdi
         return new OrganizationEditorial(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationEditorial');
     }
 }
+export interface OrganizationIndexingQueueShape {
+}
+
+export class OrganizationIndexingQueue extends FEntity {
+    readonly entityName: 'OrganizationIndexingQueue' = 'OrganizationIndexingQueue';
+    get id(): number { return this._value.id; }
+}
+
+export class OrganizationIndexingQueueFactory extends FEntityFactory<OrganizationIndexingQueue> {
+    static schema: FEntitySchema = {
+        name: 'OrganizationIndexingQueue',
+        editable: false,
+        primaryKeys: [
+            { name: 'id', type: 'number' },
+        ],
+        fields: [
+        ],
+        indexes: [
+            { name: 'updated', type: 'range', fields: ['updatedAt'] },
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isNumber('id', src.id);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'organizationIndexingQueue'),
+            { enableVersioning: true, enableTimestamps: true, validator: OrganizationIndexingQueueFactory.validate, hasLiveStreams: false },
+            [new FEntityIndex('updated', ['updatedAt'], false)],
+            'OrganizationIndexingQueue'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
+        return { 'id': rawId[0] };
+    }
+    async findById(id: number) {
+        return await this._findById([id]);
+    }
+    async create(id: number, shape: OrganizationIndexingQueueShape) {
+        return await this._create([id], { id, ...shape });
+    }
+    watch(id: number, cb: () => void) {
+        return this._watch([id], cb);
+    }
+    async rangeFromUpdated(limit: number, reversed?: boolean) {
+        return await this._findRange(['__indexes', 'updated'], limit, reversed);
+    }
+    async rangeFromUpdatedWithCursor(limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(['__indexes', 'updated'], limit, after, reversed);
+    }
+    async allFromUpdated() {
+        return await this._findAll(['__indexes', 'updated']);
+    }
+    createUpdatedStream(limit: number, after?: string) {
+        return this._createStream(['entity', 'organizationIndexingQueue', '__indexes', 'updated'], limit, after); 
+    }
+    protected _createEntity(value: any, isNew: boolean) {
+        return new OrganizationIndexingQueue(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationIndexingQueue');
+    }
+}
 export interface OrganizationMemberShape {
     invitedBy?: number| null;
     role: 'admin' | 'member';
@@ -5853,6 +5917,7 @@ export interface AllEntities {
     readonly Organization: OrganizationFactory;
     readonly OrganizationProfile: OrganizationProfileFactory;
     readonly OrganizationEditorial: OrganizationEditorialFactory;
+    readonly OrganizationIndexingQueue: OrganizationIndexingQueueFactory;
     readonly OrganizationMember: OrganizationMemberFactory;
     readonly FeatureFlag: FeatureFlagFactory;
     readonly OrganizationFeatures: OrganizationFeaturesFactory;
@@ -5904,6 +5969,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         OrganizationFactory.schema,
         OrganizationProfileFactory.schema,
         OrganizationEditorialFactory.schema,
+        OrganizationIndexingQueueFactory.schema,
         OrganizationMemberFactory.schema,
         FeatureFlagFactory.schema,
         OrganizationFeaturesFactory.schema,
@@ -5954,6 +6020,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     Organization: OrganizationFactory;
     OrganizationProfile: OrganizationProfileFactory;
     OrganizationEditorial: OrganizationEditorialFactory;
+    OrganizationIndexingQueue: OrganizationIndexingQueueFactory;
     OrganizationMember: OrganizationMemberFactory;
     FeatureFlag: FeatureFlagFactory;
     OrganizationFeatures: OrganizationFeaturesFactory;
@@ -6020,6 +6087,8 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         this.allEntities.push(this.OrganizationProfile);
         this.OrganizationEditorial = new OrganizationEditorialFactory(connection);
         this.allEntities.push(this.OrganizationEditorial);
+        this.OrganizationIndexingQueue = new OrganizationIndexingQueueFactory(connection);
+        this.allEntities.push(this.OrganizationIndexingQueue);
         this.OrganizationMember = new OrganizationMemberFactory(connection);
         this.allEntities.push(this.OrganizationMember);
         this.FeatureFlag = new FeatureFlagFactory(connection);
@@ -6136,6 +6205,9 @@ export class AllEntitiesProxy implements AllEntities {
     }
     get OrganizationEditorial(): OrganizationEditorialFactory {
         return this.resolver().OrganizationEditorial;
+    }
+    get OrganizationIndexingQueue(): OrganizationIndexingQueueFactory {
+        return this.resolver().OrganizationIndexingQueue;
     }
     get OrganizationMember(): OrganizationMemberFactory {
         return this.resolver().OrganizationMember;

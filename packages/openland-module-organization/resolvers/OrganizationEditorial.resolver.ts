@@ -4,6 +4,7 @@ import { FDB } from 'openland-module-db/FDB';
 import { UserError } from 'openland-errors/UserError';
 import { ErrorText } from 'openland-errors/ErrorText';
 import { IDs } from 'openland-module-api/IDs';
+import { Modules } from 'openland-modules/Modules';
 
 export default {
     Mutation: {
@@ -16,9 +17,8 @@ export default {
                 let editorial = await FDB.OrganizationEditorial.findById(org.id);
                 editorial!.listed = args.published;
 
-                // Update profile to enforce indexing
-                let profile = (await FDB.OrganizationProfile.findById(org.id))!;
-                profile.markDirty();
+                // Schedule for indexing
+                await Modules.Orgs.markForUndexing(org.id);
                 
                 return org;
             });

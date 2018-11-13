@@ -17,17 +17,17 @@ export default {
         alphaOrganizationByPrefix: withAny<{ query: string }>(async args => {
 
             let hits = await Modules.Search.elastic.client.search({
-                index: 'organizations',
+                index: 'organization',
                 type: 'organization',
                 body: {
                     query: {
                         bool: {
                             must: [
                                 {
-                                    term: { isCommunity: false }
+                                    term: { kind: 'organization' }
                                 },
                                 {
-                                    term: { published: true }
+                                    term: { listed: true }
                                 },
                                 {
                                     match_phrase_prefix: { name: args.query }
@@ -52,7 +52,7 @@ export default {
             }
 
             let hits = await Modules.Search.elastic.client.search({
-                index: 'organizations',
+                index: 'organization',
                 type: 'organization',
                 body: {
                     query: { bool: { must: clauses } }
@@ -126,7 +126,7 @@ export default {
             clauses.push({ term: { isCommunity: false } });
 
             let hits = await Modules.Search.elastic.client.search({
-                index: 'organizations',
+                index: 'organization',
                 type: 'organization',
                 size: args.first,
                 from: args.after ? parseInt(args.after, 10) : (args.page ? ((args.page - 1) * args.first) : 0),

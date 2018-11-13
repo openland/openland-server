@@ -2,7 +2,7 @@ import { FDB } from 'openland-module-db/FDB';
 import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexer';
 
 export function organizationProfileIndexer() {
-    declareSearchIndexer('organization-profile-index', 6, 'organization', FDB.OrganizationProfile.createUpdatedStream(50))
+    declareSearchIndexer('organization-profile-index', 6, 'organization', FDB.OrganizationIndexingQueue.createUpdatedStream(50))
         .withProperties({
             name: {
                 type: 'text'
@@ -25,11 +25,12 @@ export function organizationProfileIndexer() {
         })
         .start(async (item) => {
             let org = (await FDB.Organization.findById(item.id))!;
+            let profile = (await (FDB.OrganizationProfile.findById(item.id)))!;
             let editorial = (await FDB.OrganizationEditorial.findById(item.id))!;
             return {
-                id: item.id!!,
+                id: item.id,
                 doc: {
-                    name: item.name,
+                    name: profile.name,
                     kind: org.kind,
                     featured: editorial.featured,
                     listed: editorial.listed,

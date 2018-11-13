@@ -97,6 +97,16 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '21-initial-index',
+    migration: async (log) => {
+        let k = await FDB.Organization.findAll();
+        for (let o of k) {
+            await Modules.Orgs.markForUndexing(o.id);
+        }
+    }
+});
+
 export function startMigrationsWorker() {
     if (serverRoleEnabled('workers')) {
         staticWorker({ name: 'foundation-migrator' }, async () => {

@@ -192,6 +192,13 @@ const Schema = declareSchema(() => {
         enableVersioning();
     });
 
+    entity('OrganizationIndexingQueue', () => {
+        primaryKey('id', 'number');
+        rangeIndex('updated', ['updatedAt']);
+        enableTimestamps();
+        enableVersioning();
+    });
+
     entity('OrganizationMember', () => {
         primaryKey('oid', 'number');
         primaryKey('uid', 'number');

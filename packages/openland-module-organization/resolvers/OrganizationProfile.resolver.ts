@@ -128,6 +128,9 @@ export default {
                     editorial.featured = Sanitizer.sanitizeAny(args.input.alphaFeatured) || false;
                 }
 
+                // Schedule indexing
+                await Modules.Orgs.markForUndexing(profile.id);
+
                 // Call hook
                 await editorial.flush();
                 await profile.flush();

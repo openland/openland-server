@@ -188,6 +188,21 @@ export class OrganizationRepository {
     }
 
     //
+    // Tools
+    //
+    async markForUndexing(oid: number) {
+        await inTx(async () => {
+            let existing = await this.entities.OrganizationIndexingQueue.findById(oid);
+            if (existing) {
+                existing.markDirty();
+            } else {
+                await this.entities.OrganizationIndexingQueue.create(oid, {});
+            }
+        });
+
+    }
+
+    //
     // Deprecated
     //
 
