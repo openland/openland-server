@@ -37,7 +37,7 @@ export async function loadAllModules() {
     loadMessagingModule();
 
     container.bind(DBModule).toSelf().inSingletonScope();
-    container.bind(HooksModule).toSelf().inSingletonScope();
+    container.bind('HooksModule').to(HooksModule).inSingletonScope();
     container.bind(MediaModule).toSelf().inSingletonScope();
     container.bind(AuthModule).toSelf().inSingletonScope();
     container.bind(WorkerModule).toSelf().inSingletonScope();

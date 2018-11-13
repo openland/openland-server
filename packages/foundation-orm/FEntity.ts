@@ -23,7 +23,7 @@ export abstract class FEntity {
     readonly isReadOnly: boolean;
     readonly context: FContext;
 
-    protected readonly _valueInitial: any;
+    protected _valueInitial: any;
     protected _value: any;
     private readonly _entityName: string;
     private readonly indexes: FEntityIndex[];
@@ -158,7 +158,7 @@ export abstract class FEntity {
                     if (index.unique) {
                         let ex = await this.namespace.get(this.connection, ['__indexes', index.name, ...key]);
                         if (ex) {
-                            throw Error('Unique index constraint failed for index ' + index.name + ', got: ' + JSON.stringify(ex));
+                            throw Error('Unique index constraint failed for index ' + index.name + ', at ' + key.join('.') + ', got: ' + JSON.stringify(ex));
                         }
                         this.namespace.set(this.connection, ['__indexes', index.name, ...key], value);
                     } else {
@@ -226,6 +226,13 @@ export abstract class FEntity {
                     }
                 }
             }
+            this.isNew = false;
+            this._valueInitial = {
+                ...value
+            };
+            this._value = {
+                ...value
+            };
         } catch (e) {
             log.warn('Unable to flush entity', JSON.stringify(this._value), e);
             throw e;

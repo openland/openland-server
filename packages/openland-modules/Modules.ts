@@ -24,7 +24,7 @@ import { container } from './Modules.container';
 class ModulesImpl {
 
     get Hooks() {
-        return container.get(HooksModule);
+        return container.get<HooksModule>('HooksModule');
     }
     get Media() {
         return container.get(MediaModule);
