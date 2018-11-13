@@ -67,6 +67,7 @@
     "cheerio": "^1.0.0-rc.2",
     "cls-bluebird": "^2.1.0",
     "cls-hooked": "^4.2.2",
+    "codecov": "^3.1.0",
     "compose-middleware": "^4.0.0",
     "compression": "^1.7.1",
     "concurrently": "^3.5.0",
