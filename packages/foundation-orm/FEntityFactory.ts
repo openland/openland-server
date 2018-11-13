@@ -72,17 +72,19 @@ export abstract class FEntityFactory<T extends FEntity> {
             let cacheKey = FKeyEncoding.encodeKeyToString([...this.namespace.namespace, ...key]);
             let cached = cache.findInCache(cacheKey);
             if (cached !== undefined) {
-                return cached as T;
+                return await (cached as Promise<T | null>);
             }
 
-            let res = await this.namespace.get(this.connection, key);
-            if (res) {
-                let ent = this.doCreateEntity(res, false);
-                cache.putInCache(cacheKey, ent);
-                return ent;
-            }
-            cache.putInCache(cacheKey, null);
-            return null;
+            let res: Promise<T | null> = (async () => {
+                let r = await this.namespace.get(this.connection, key);
+                if (r) {
+                    return this.doCreateEntity(r, false);
+                } else {
+                    return null;
+                }
+            })();
+            cache.putInCache(cacheKey, res);
+            return await res;
         } else {
             let res = await this.namespace.get(this.connection, key);
             if (res) {
