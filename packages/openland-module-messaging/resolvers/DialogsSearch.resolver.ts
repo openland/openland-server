@@ -19,20 +19,20 @@ export default {
                 //     .filter((v) => v && v.title.toLocaleLowerCase().indexOf(args.query.toLowerCase()) >= 0)
                 //     .map((v) => v!);
 
-                let conversations = Promise.all(
-                    (await Modules.Messaging.search.searchForRooms(args.query, { uid, limit: 20 }))
-                        .map(async (v) => (await FDB.Conversation.findById(v))));
+                let conversations = Modules.Messaging.search
+                    .searchForRooms(args.query, { uid, limit: 20 })
+                    .then((r) => r.map((v) => FDB.Conversation.findById(v)));
 
                 // PERSONAL - search users first, then matching conversations with current user
-                let personal = Promise.all((await Modules.Users.searchForUsers(args.query, { uid, limit: 20 }))
-                    .map((v) => Modules.Messaging.room.resolvePrivateChat(uid, v)));
+                let personal = Modules.Users.searchForUsers(args.query, { uid, limit: 20 })
+                    .then((r) => r.map((v) => Modules.Messaging.room.resolvePrivateChat(uid, v)));
 
                 // Organizations chats
                 // let matchingUserOrgProfiles = (await Promise.all((await Modules.Orgs.findUserOrganizations(uid)).map(uoid => FDB.OrganizationProfile.findById(uoid)))).filter(oc => !!oc && oc.name.toLocaleLowerCase().indexOf(args.query.toLowerCase()) >= 0).map(oc => oc!);
                 // let orgConv = (await Promise.all(matchingUserOrgProfiles.map(oc => FDB.ConversationOrganization.findFromOrganization(oc.id)))).filter(oc => !!oc).map(oc => oc!);
                 // let oganizationsConversations = (await Promise.all(orgConv.map(oc => FDB.Conversation.findById(oc.id)))).filter(oc => !!oc).map(oc => oc!);
 
-                let res = [...await conversations, ...await personal];
+                let res = [...await Promise.all(await conversations), ...await Promise.all((await personal))];
                 res = res.filter((v) => !!v).reduce(
                     (p, x) => {
                         if (!p.find(c => c.id === x!.id)) {
