@@ -60,7 +60,7 @@ export async function loadAllModules() {
     container.bind(PubsubModule).toSelf().inSingletonScope();
     container.bind(ApiModule).toSelf().inSingletonScope();
 
-    await container.get(HooksModule).start();
+    await container.get<HooksModule>('HooksModule').start();
     await container.get(DBModule).start();
     await container.get(MediaModule).start();
     await container.get(WorkerModule).start();
