@@ -29,7 +29,7 @@ export default {
 
             result.push(... await resolveOrganizationJoinedMembers(targetOrgId));
 
-            let invites = await Modules.Invites.repo.getOrganizationInvitesForOrganization(targetOrgId);
+            let invites = await Modules.Invites.orgInvitesRepo.getOrganizationInvitesForOrganization(targetOrgId);
 
             for (let invite of invites) {
                 result.push({
@@ -46,7 +46,7 @@ export default {
         }),
         alphaOrganizationPublicInvite: withAccount<{ organizationId?: string }>(async (args, uid, organizationId) => {
             organizationId = args.organizationId ? IDs.Organization.parse(args.organizationId) : organizationId;
-            return await Modules.Invites.repo.getPublicOrganizationInvite(organizationId, uid);
+            return await Modules.Invites.orgInvitesRepo.getPublicOrganizationInvite(organizationId, uid);
         }),
     },
     Mutation: {
@@ -74,7 +74,7 @@ export default {
                         throw new UserError(ErrorText.memberWithEmailAlreadyExists);
                     }
 
-                    let invite = await Modules.Invites.repo.createOrganizationInvite(
+                    let invite = await Modules.Invites.orgInvitesRepo.createOrganizationInvite(
                         oid,
                         uid,
                         inviteRequest.firstName || '',
@@ -98,7 +98,7 @@ export default {
                     throw new UserError(ErrorText.permissionOnlyOwner);
                 }
 
-                return await Modules.Invites.repo.createPublicOrganizationInvite(oid, uid);
+                return await Modules.Invites.orgInvitesRepo.createPublicOrganizationInvite(oid, uid);
             });
         }),
         alphaOrganizationDeletePublicInvite: withAccount<{ organizationId?: string }>(async (args, uid, oid) => {
@@ -110,7 +110,7 @@ export default {
                     throw new UserError(ErrorText.permissionOnlyOwner);
                 }
 
-                await Modules.Invites.repo.deletePublicOrganizationInvite(oid, uid);
+                await Modules.Invites.orgInvitesRepo.deletePublicOrganizationInvite(oid, uid);
                 return 'ok';
             });
         })

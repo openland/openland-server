@@ -2,9 +2,6 @@ import { injectable, inject } from 'inversify';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { startEmailNotificationWorker } from './workers/EmailNotificationWorker';
 import { startPushNotificationWorker } from './workers/PushNotificationWorker';
-import { InvitesRepository } from './repositories/InvitesRepository';
-import { inTx } from 'foundation-orm/inTx';
-import { ChannelInviteEmails } from './emails/ChannelInviteEmails';
 import { MessageInput } from './MessageInput';
 import { ConversationEvent } from 'openland-module-db/schema';
 import { UserStateRepository } from './repositories/UserStateRepository';
@@ -19,13 +16,11 @@ export class MessagingModule {
     private readonly delivery: DeliveryMediator;
     private readonly messaging: MessagingMediator;
     private readonly augmentation: AugmentationMediator;
-    private readonly invites: InvitesRepository;
     private readonly userState: UserStateRepository;
 
     constructor(
         @inject('MessagingMediator') messaging: MessagingMediator,
         @inject('UserStateRepository') userState: UserStateRepository,
-        @inject('InvitesRepository') invites: InvitesRepository,
         @inject('AugmentationMediator') augmentation: AugmentationMediator,
         @inject('DeliveryMediator') delivery: DeliveryMediator,
         @inject('RoomMediator') room: RoomMediator,
@@ -34,7 +29,6 @@ export class MessagingModule {
         this.userState = userState;
         this.messaging = messaging;
         this.room = room;
-        this.invites = invites;
         this.augmentation = augmentation;
     }
 
@@ -62,30 +56,6 @@ export class MessagingModule {
 
     async getUserNotificationState(uid: number) {
         return await this.userState.getUserNotificationState(uid);
-    }
-
-    //
-    // Invites
-    //
-
-    async resolveInvite(id: string) {
-        return await this.invites.resolveInvite(id);
-    }
-
-    async createChannelInviteLink(channelId: number, uid: number) {
-        return await this.invites.createChannelInviteLink(channelId, uid);
-    }
-
-    async refreshChannelInviteLink(channelId: number, uid: number) {
-        return await this.invites.refreshChannelInviteLink(channelId, uid);
-    }
-
-    async createChannelInvite(channelId: number, uid: number, email: string, emailText?: string, firstName?: string, lastName?: string) {
-        return await inTx(async () => {
-            let invite = await this.invites.createChannelInvite(channelId, uid, email, emailText, firstName, lastName);
-            await ChannelInviteEmails.sendChannelInviteEmail(invite);
-            return invite;
-        });
     }
 
     //

@@ -21,8 +21,8 @@ export default {
             return [];
         }),
         alphaInviteInfo: withAny<{ key: string }>(async (args, context: CallContext) => {
-            let orgInvite = await Modules.Invites.repo.getOrganizationInviteNonJoined(args.key);
-            let publicOrginvite = await Modules.Invites.repo.getPublicOrganizationInviteByKey(args.key);
+            let orgInvite = await Modules.Invites.orgInvitesRepo.getOrganizationInviteNonJoined(args.key);
+            let publicOrginvite = await Modules.Invites.orgInvitesRepo.getPublicOrganizationInviteByKey(args.key);
             let invite: { oid: number, uid: number, ttl?: number | null, role?: string, joined?: boolean, email?: string, firstName?: string | null } | null = orgInvite || publicOrginvite;
             if (!invite) {
                 return null;
@@ -46,7 +46,7 @@ export default {
             };
         }),
         appInviteInfo: withAny<{ key: string }>(async (args, context: CallContext) => {
-            let invite = await Modules.Invites.repo.getInvteLinkData(args.key);
+            let invite = await Modules.Invites.orgInvitesRepo.getInvteLinkData(args.key);
             if (!invite) {
                 return null;
             }
@@ -56,7 +56,7 @@ export default {
             };
         }),
         appInvite: withUser(async (args, uid) => {
-            return await Modules.Invites.repo.getInviteLinkKey(uid);
+            return await Modules.Invites.orgInvitesRepo.getInviteLinkKey(uid);
         }),
         // deperecated
         alphaInvitesHistory: withUser(async (args, uid) => {
@@ -74,8 +74,8 @@ export default {
     Mutation: {
         alphaJoinInvite: withUser<{ key: string }>(async (args, uid) => {
             return await inTx(async () => {
-                let orgInvite = await Modules.Invites.repo.getOrganizationInviteNonJoined(args.key);
-                let publicOrginvite = await Modules.Invites.repo.getPublicOrganizationInviteByKey(args.key);
+                let orgInvite = await Modules.Invites.orgInvitesRepo.getOrganizationInviteNonJoined(args.key);
+                let publicOrginvite = await Modules.Invites.orgInvitesRepo.getPublicOrganizationInviteByKey(args.key);
                 let invite: { oid: number, uid: number, ttl?: number | null, role?: string } | null = orgInvite || publicOrginvite;
 
                 if (!invite) {
@@ -124,7 +124,7 @@ export default {
                 return;
             }
             return await inTx(async () => {
-                let inviteData = await Modules.Invites.repo.getInvteLinkData(args.key);
+                let inviteData = await Modules.Invites.orgInvitesRepo.getInvteLinkData(args.key);
                 if (!inviteData) {
                     throw new NotFoundError(ErrorText.unableToFindInvite);
                 }
