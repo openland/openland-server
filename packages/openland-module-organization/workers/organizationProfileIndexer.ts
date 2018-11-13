@@ -1,0 +1,41 @@
+import { FDB } from 'openland-module-db/FDB';
+import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexer';
+
+export function organizationProfileIndexer() {
+    declareSearchIndexer('organization-profile-index', 6, 'organization', FDB.OrganizationProfile.createUpdatedStream(50))
+        .withProperties({
+            name: {
+                type: 'text'
+            },
+            kind: {
+                type: 'keyword'
+            },
+            createdAt: {
+                type: 'date'
+            },
+            updatedAt: {
+                type: 'date'
+            },
+            featured: {
+                type: 'boolean'
+            },
+            listed: {
+                type: 'boolean'
+            }
+        })
+        .start(async (item) => {
+            let org = (await FDB.Organization.findById(item.id))!;
+            let editorial = (await FDB.OrganizationEditorial.findById(item.id))!;
+            return {
+                id: item.id!!,
+                doc: {
+                    name: item.name,
+                    kind: org.kind,
+                    featured: editorial.featured,
+                    listed: editorial.listed,
+                    createdAt: item.createdAt,
+                    updatedAt: item.updatedAt,
+                }
+            };
+        });
+}

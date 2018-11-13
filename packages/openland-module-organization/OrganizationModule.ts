@@ -7,6 +7,8 @@ import { Emails } from 'openland-module-email/Emails';
 import { Modules } from 'openland-modules/Modules';
 import { ErrorText } from 'openland-errors/ErrorText';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
+import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
+import { organizationProfileIndexer } from './workers/organizationProfileIndexer';
 
 @injectable()
 export class OrganizationModule {
@@ -17,7 +19,9 @@ export class OrganizationModule {
     }
 
     start = () => {
-        // Nothing to do
+        if (serverRoleEnabled('workers')) {
+            organizationProfileIndexer();
+        }
     }
 
     async createOrganization(uid: number, input: OrganizatinProfileInput) {

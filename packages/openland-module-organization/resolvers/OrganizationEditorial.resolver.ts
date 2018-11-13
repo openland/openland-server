@@ -15,6 +15,11 @@ export default {
                 }
                 let editorial = await FDB.OrganizationEditorial.findById(org.id);
                 editorial!.listed = args.published;
+
+                // Update profile to enforce indexing
+                let profile = (await FDB.OrganizationProfile.findById(org.id))!;
+                profile.markDirty();
+                
                 return org;
             });
         }),
