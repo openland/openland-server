@@ -4,8 +4,8 @@ import { staticWorker } from './staticWorker';
 import { FDB } from 'openland-module-db/FDB';
 import { inTx } from 'foundation-orm/inTx';
 
-export function updateReader<T extends FEntity>(name: string, version: number, stream: FStream<T>, handler: (items: T[], first: boolean) => Promise<void>) {
-    staticWorker({ name: 'update_reader_' + name, version }, async () => {
+export function updateReader<T extends FEntity>(name: string, version: number, stream: FStream<T>, handler: (items: T[], first: boolean) => Promise<void>, args?: { delay: number }) {
+    staticWorker({ name: 'update_reader_' + name, version, delay: args && args.delay }, async () => {
 
         let existing = await FDB.ReaderState.findById(name);
         let first = false;

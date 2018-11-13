@@ -20,6 +20,7 @@ import { withTracingSpan } from 'openland-log/withTracing';
 import { inTx } from 'foundation-orm/inTx';
 import { Modules } from 'openland-modules/Modules';
 import { schemaHandler } from './handlers/schema';
+import { withCache } from 'foundation-orm/withCache';
 
 export async function initApi(isTest: boolean) {
 
@@ -115,17 +116,21 @@ export async function initApi(isTest: boolean) {
                 }, operationName?: string, fieldResolver?: GraphQLFieldResolver<any, any>) => {
                     if (contextValue!.span!) {
                         try {
-                            return await withLogContext('ws', async () => {
-                                return await withTracingSpan(contextValue!.span!, async () => {
-                                    return await execute(schema, document, rootValue, contextValue, variableValues, operationName, fieldResolver);
+                            return await withCache(async () => {
+                                return await withLogContext('ws', async () => {
+                                    return await withTracingSpan(contextValue!.span!, async () => {
+                                        return await execute(schema, document, rootValue, contextValue, variableValues, operationName, fieldResolver);
+                                    });
                                 });
                             });
                         } finally {
                             contextValue!.span!.finish();
                         }
                     } else {
-                        return await withLogContext('ws', async () => {
-                            return await execute(schema, document, rootValue, contextValue, variableValues, operationName, fieldResolver);
+                        return await withCache(async () => {
+                            return await withLogContext('ws', async () => {
+                                return await execute(schema, document, rootValue, contextValue, variableValues, operationName, fieldResolver);
+                            });
                         });
                     }
                 },

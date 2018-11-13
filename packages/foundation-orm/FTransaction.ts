@@ -10,7 +10,7 @@ import { RangeOptions } from 'foundationdb/dist/lib/transaction';
 import { NativeValue } from 'foundationdb/dist/lib/native';
 import { FKeyEncoding } from './utils/FKeyEncoding';
 import { trace, traceSync } from 'openland-log/trace';
-import { tracer } from './utils/tracer';
+import { tracer, logger } from './utils/tracer';
 
 const log = createLogger('tx');
 
@@ -42,6 +42,7 @@ export class FTransaction implements FContext {
     async rangeAll(connection: FConnection, key: Buffer, options?: RangeOptions): Promise<any[]> {
         this._prepare(connection);
         return await trace(tracer, 'range', async () => {
+            logger.debug('get-range-all');
             let res = (await this.tx!.getRangeAll(key, undefined, options));
             return res.map((v) => v[1] as any);
         });
@@ -50,6 +51,7 @@ export class FTransaction implements FContext {
     async range(connection: FConnection, key: Buffer, options?: RangeOptions) {
         this._prepare(connection);
         return await trace(tracer, 'range', async () => {
+            logger.debug('get-range');
             let res = (await this.tx!.getRangeAll(key, undefined, options));
             return res.map((v) => ({ item: v[1] as any, key: FKeyEncoding.decodeKey(v[0]) }));
         });
@@ -58,6 +60,7 @@ export class FTransaction implements FContext {
     async rangeAfter(connection: FConnection, prefix: (string | number)[], afterKey: (string | number)[], options?: RangeOptions) {
         this._prepare(connection);
         return await trace(tracer, 'rangeAfter', async () => {
+            logger.debug('get-range-after');
             let reversed = (options && options.reverse) ? true : false;
             let start = reversed ? FKeyEncoding.firstKeyInSubspace(prefix) : keySelector.firstGreaterThan(FKeyEncoding.encodeKey(afterKey));
             let end = reversed ? keySelector.lastLessOrEqual(FKeyEncoding.encodeKey(afterKey)) : FKeyEncoding.lastKeyInSubspace(prefix);
@@ -69,12 +72,14 @@ export class FTransaction implements FContext {
     async get(connection: FConnection, key: Buffer) {
         this._prepare(connection);
         return await trace(tracer, 'get', async () => {
+            logger.debug('get');
             return await this.tx!.get(key);
         });
     }
     set(connection: FConnection, key: Buffer, value: any) {
         this._prepare(connection);
         traceSync(tracer, 'set', () => {
+            logger.debug('set');
             this.tx!.set(key, value);
         });
     }
@@ -82,11 +87,13 @@ export class FTransaction implements FContext {
     delete(connection: FConnection, key: Buffer) {
         this._prepare(connection);
         traceSync(tracer, 'delete', () => {
+            logger.debug('delete');
             this.tx!.clear(key);
         });
     }
 
     markDirty(entity: FEntity, callback: (connection: FConnection) => Promise<void>) {
+        logger.debug('markDirty');
         this._prepare(entity.connection);
         let key = [...entity.namespace.namespace, ...entity.rawId].join('.');
         this._pending.set(key, callback);

@@ -80,7 +80,7 @@ export class SearchIndexer<T extends FEntity> {
                     throw e;
                 }
             }
-        });
+        }, { delay: 5000 });
     }
 }
 
