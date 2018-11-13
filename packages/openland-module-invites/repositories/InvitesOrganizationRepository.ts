@@ -11,7 +11,7 @@ export class InvitesOrganizationRepository {
         this.entities = entities;
     }
 
-    async getInviteLinkKey(uid: number) {
+    async getAppInviteLinkKey(uid: number) {
         return await inTx(async () => {
             let existing = await this.entities.AppInviteLink.findFromUser(uid);
             if (existing) {
@@ -22,7 +22,7 @@ export class InvitesOrganizationRepository {
         });
     }
 
-    async getInvteLinkData(key: string) {
+    async getAppInvteLinkData(key: string) {
         return this.entities.AppInviteLink.findById(key);
     }
 
