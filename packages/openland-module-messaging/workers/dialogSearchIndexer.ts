@@ -2,7 +2,7 @@ import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexe
 import { FDB } from 'openland-module-db/FDB';
 import { Modules } from 'openland-modules/Modules';
 
-export function dialogIndexer() {
+export function dialogSearchIndexer() {
     declareSearchIndexer('dialog-index', 6, 'dialog', FDB.UserDialog.createUpdatedStream(50))
         .withProperties({
             uid: {
