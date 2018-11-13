@@ -1,9 +1,18 @@
 import { SLogContext } from './SLogContext';
 import { SLog } from '../SLog';
+import winston from 'winston';
+
+const logger = winston.createLogger({
+    level: 'debug',
+    format: winston.format.cli(),
+    transports: [
+        new winston.transports.Console(),
+    ]
+});
 
 export class SLogImpl implements SLog {
     private readonly name: String;
-    private readonly production = process.env.NODE_ENV === 'production';
+    // private readonly production = process.env.NODE_ENV === 'production';
 
     constructor(name: String) {
         this.name = name;
@@ -14,23 +23,24 @@ export class SLogImpl implements SLog {
             return;
         }
         let context = SLogContext.value ? SLogContext.value.path : [];
-        console.log(...context, this.name, message, ...optionalParams);
+        logger.info([...context, this.name, message, ...optionalParams].join(' '));
     }
 
     debug = (message?: any, ...optionalParams: any[]) => {
-        if (this.production) {
-            if (SLogContext.value && SLogContext.value.disabled) {
-                return;
-            }
-            let context = SLogContext.value ? SLogContext.value.path : [];
-            console.debug(...context, this.name, message, ...optionalParams);
+        // if (this.production) {
+        if (SLogContext.value && SLogContext.value.disabled) {
+            return;
         }
+        let context = SLogContext.value ? SLogContext.value.path : [];
+        logger.debug([...context, this.name, message, ...optionalParams].join(' '));
+        // }
     }
     warn = (message?: any, ...optionalParams: any[]) => {
         if (SLogContext.value && SLogContext.value.disabled) {
             return;
         }
         let context = SLogContext.value ? SLogContext.value.path : [];
-        console.warn(...context, this.name, message, ...optionalParams);
+        // console.warn(...context, this.name, message, ...optionalParams);
+        logger.warn([...context, this.name, message, ...optionalParams].join(' '));
     }
 }
