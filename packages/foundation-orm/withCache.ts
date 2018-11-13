@@ -1,6 +1,7 @@
 import { FCacheContext } from './FCacheContext';
 import { currentTime } from 'openland-utils/timer';
 import { createLogger } from 'openland-log/createLogger';
+import { withLogContext } from 'openland-log/withLogContext';
 
 const log = createLogger('tx-cache');
 export async function withCache<T>(callback: () => Promise<T>): Promise<T> {
@@ -12,10 +13,12 @@ export async function withCache<T>(callback: () => Promise<T>): Promise<T> {
     let cache = new FCacheContext();
     let start = currentTime();
     return await FCacheContext.context.withContext(cache, async () => {
-        try {
-            return await callback();
-        } finally {
-            log.debug('full read tx time: ' + (currentTime() - start) + ' ms');
-        }
+        return withLogContext(['cache', cache.id.toString()], async () => {
+            try {
+                return await callback();
+            } finally {
+                log.debug('full read tx time: ' + (currentTime() - start) + ' ms');
+            }
+        });
     });
 }
