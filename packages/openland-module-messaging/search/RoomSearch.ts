@@ -17,7 +17,7 @@ export class RoomSearch {
                 ]
             }
         };
-        
+
         return await withTracing(tracer, 'search-dialog', async () => {
             let hits = await Modules.Search.elastic.client.search({
                 index: 'dialog',
@@ -25,7 +25,7 @@ export class RoomSearch {
                 size: options && options.limit ? options.limit : 20,
                 body: { query: mainQuery }
             });
-            let uids = hits.hits.hits.map((v) => parseInt(v._id, 10));
+            let uids = hits.hits.hits.map((v) => parseInt((v._source as any).cid, 10));
             return uids;
         });
     }

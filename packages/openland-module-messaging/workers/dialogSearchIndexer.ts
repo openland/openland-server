@@ -3,8 +3,11 @@ import { FDB } from 'openland-module-db/FDB';
 import { Modules } from 'openland-modules/Modules';
 
 export function dialogSearchIndexer() {
-    declareSearchIndexer('dialog-index', 6, 'dialog', FDB.UserDialog.createUpdatedStream(50))
+    declareSearchIndexer('dialog-index', 8, 'dialog', FDB.UserDialog.createUpdatedStream(50))
         .withProperties({
+            cid: {
+                type: 'integer'
+            },
             uid: {
                 type: 'integer'
             },
@@ -26,18 +29,19 @@ export function dialogSearchIndexer() {
             try {
                 title = await Modules.Messaging.room.resolveConversationTitle(item.cid, item.uid);
             } catch (e) {
-                console.warn(item.cid);
-                console.warn(e);
                 return {
-                    id: item.cid,
+                    id: item.cid + '_' + item.uid,
                     doc: {
+                        cid: item.cid,
+                        uid: item.uid,
                     }
                 };
             }
             return {
-                id: item.cid,
+                id: item.cid + '_' + item.uid,
                 doc: {
                     title,
+                    cid: item.cid,
                     uid: item.uid,
                     visible: !!item.date,
                     createdAt: item.createdAt,
