@@ -21,7 +21,7 @@ export default {
 
                 let conversations = Promise.all(
                     (await Modules.Messaging.search.searchForRooms(args.query, { uid, limit: 20 }))
-                        .map(async (v) => (await FDB.Conversation.findById(v))!));
+                        .map(async (v) => (await FDB.Conversation.findById(v))));
 
                 // PERSONAL - search users first, then matching conversations with current user
                 let personal = Promise.all((await Modules.Users.searchForUsers(args.query, { uid, limit: 20 }))
@@ -33,9 +33,9 @@ export default {
                 // let oganizationsConversations = (await Promise.all(orgConv.map(oc => FDB.Conversation.findById(oc.id)))).filter(oc => !!oc).map(oc => oc!);
 
                 let res = [...await conversations, ...await personal];
-                res = res.reduce(
+                res = res.filter((v) => !!v).reduce(
                     (p, x) => {
-                        if (!p.find(c => c.id === x.id)) {
+                        if (!p.find(c => c.id === x!.id)) {
                             p.push(x);
                         }
                         return p;
