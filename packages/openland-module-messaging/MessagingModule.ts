@@ -10,10 +10,12 @@ import { DeliveryMediator } from './mediators/DeliveryMediator';
 import { MessagingMediator } from './mediators/MessagingMediator';
 import { RoomMediator } from './mediators/RoomMediator';
 import { dialogSearchIndexer } from './workers/dialogSearchIndexer';
+import { RoomSearch } from './search/RoomSearch';
 
 @injectable()
 export class MessagingModule {
     readonly room: RoomMediator;
+    readonly search: RoomSearch = new RoomSearch();
     private readonly delivery: DeliveryMediator;
     private readonly messaging: MessagingMediator;
     private readonly augmentation: AugmentationMediator;
