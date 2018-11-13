@@ -6,6 +6,7 @@ import {
     UserDialogSettings,
     UserProfile
 } from '../../openland-module-db/schema';
+import { GQL, Nullable } from './SchemaSpec';
 
 export type ResolverRootType<T> = { [K in keyof T]: T[K] extends (root: infer R, ...args: any[]) => any ? R : any }[keyof T];
 
@@ -106,8 +107,8 @@ export namespace GQLRoots {
     export type OrganizationsEdgeRoot = any;
     export type OrganizationsConnectionRoot = any;
     export type OrganizationProfileRoot = any;
-    export type PermissionsRoot = any;
-    export type ProfilePrefillRoot = any;
+    export type PermissionsRoot = { roles: string[] };
+    export type ProfilePrefillRoot = Nullable<GQL.ProfilePrefill>;
     export type PushSettingsRoot = any;
     export type QueryRoot = any;
     export type SessionStateRoot = any;

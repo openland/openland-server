@@ -9,257 +9,694 @@ export namespace GQL {
         mute: Nullable<boolean>;
     }
     export interface ConversationSettings {
-        id: string;
-        mobileNotifications: NotificationMessages;
-        mute: boolean;
+        id?: string;
+        mobileNotifications?: NotificationMessages;
+        mute?: boolean;
     }
     export interface Conversation {
-        id: string;
-        flexibleId: string;
-        title: string;
-        photos: string[];
-        unreadCount: number;
-        topMessage: Nullable<ConversationMessage>;
-        settings: ConversationSettings;
+        id?: string;
+        flexibleId?: string;
+        title?: string;
+        photos?: string[];
+        unreadCount?: number;
+        topMessage?: Nullable<ConversationMessage>;
+        settings?: ConversationSettings;
     }
     export interface AnonymousConversation extends Conversation {
-        id: string;
-        flexibleId: string;
-        title: string;
-        photos: string[];
-        unreadCount: number;
-        topMessage: Nullable<ConversationMessage>;
-        settings: ConversationSettings;
+        id?: string;
+        flexibleId?: string;
+        title?: string;
+        photos?: string[];
+        unreadCount?: number;
+        topMessage?: Nullable<ConversationMessage>;
+        settings?: ConversationSettings;
     }
     export interface SharedConversation extends Conversation {
-        id: string;
-        flexibleId: string;
-        title: string;
-        photos: string[];
-        organizations: Organization[];
-        unreadCount: number;
-        topMessage: Nullable<ConversationMessage>;
-        organization: Nullable<Organization>;
-        settings: ConversationSettings;
+        id?: string;
+        flexibleId?: string;
+        title?: string;
+        photos?: string[];
+        organizations?: Organization[];
+        unreadCount?: number;
+        topMessage?: Nullable<ConversationMessage>;
+        organization?: Nullable<Organization>;
+        settings?: ConversationSettings;
     }
     export interface PrivateConversation extends Conversation {
-        id: string;
-        flexibleId: string;
-        title: string;
-        photos: string[];
-        user: User;
-        unreadCount: number;
-        topMessage: Nullable<ConversationMessage>;
-        blocked: boolean;
-        settings: ConversationSettings;
+        id?: string;
+        flexibleId?: string;
+        title?: string;
+        photos?: string[];
+        user?: User;
+        unreadCount?: number;
+        topMessage?: Nullable<ConversationMessage>;
+        blocked?: boolean;
+        settings?: ConversationSettings;
     }
     export interface GroupConversation extends Conversation {
-        id: string;
-        flexibleId: string;
-        title: string;
-        photos: string[];
-        members: User[];
-        unreadCount: number;
-        topMessage: Nullable<ConversationMessage>;
-        membersCount: number;
-        settings: ConversationSettings;
-        photo: Nullable<string>;
-        photoRef: Nullable<ImageRef>;
-        description: string;
-        longDescription: string;
-        pinnedMessage: Nullable<ConversationMessage>;
-        membersOnline: number;
-        myRole: Nullable<string>;
+        id?: string;
+        flexibleId?: string;
+        title?: string;
+        photos?: string[];
+        members?: User[];
+        unreadCount?: number;
+        topMessage?: Nullable<ConversationMessage>;
+        membersCount?: number;
+        settings?: ConversationSettings;
+        photo?: Nullable<string>;
+        photoRef?: Nullable<ImageRef>;
+        description?: string;
+        longDescription?: string;
+        pinnedMessage?: Nullable<ConversationMessage>;
+        membersOnline?: number;
+        myRole?: Nullable<string>;
     }
     export interface InviteServiceMetadata {
-        users: Nullable<User[]>;
-        invitedBy: User;
+        users?: Nullable<User[]>;
+        invitedBy?: User;
     }
     export interface KickServiceMetadata {
-        user: User;
-        kickedBy: User;
+        user?: User;
+        kickedBy?: User;
     }
     export interface TitleChangeServiceMetadata {
-        title: string;
+        title?: string;
     }
     export interface PhotoChangeServiceMetadata {
-        photo: Nullable<string>;
-        photoRef: Nullable<ImageRef>;
+        photo?: Nullable<string>;
+        photoRef?: Nullable<ImageRef>;
     }
     export type UrlAugmentationExtra = User | Organization | ChannelConversation;
     export interface UrlAugmentation {
-        url: string;
-        title: Nullable<string>;
-        date: Nullable<string>;
-        subtitle: Nullable<string>;
-        description: Nullable<string>;
-        photo: Nullable<ImageRef>;
-        imageInfo: Nullable<FileMetadata>;
-        imageURL: Nullable<string>;
-        iconRef: Nullable<ImageRef>;
-        iconInfo: Nullable<FileMetadata>;
-        hostname: Nullable<string>;
-        type: Nullable<string>;
-        extra: Nullable<UrlAugmentationExtra>;
+        url?: string;
+        title?: Nullable<string>;
+        date?: Nullable<string>;
+        subtitle?: Nullable<string>;
+        description?: Nullable<string>;
+        photo?: Nullable<ImageRef>;
+        imageInfo?: Nullable<FileMetadata>;
+        imageURL?: Nullable<string>;
+        iconRef?: Nullable<ImageRef>;
+        iconInfo?: Nullable<FileMetadata>;
+        hostname?: Nullable<string>;
+        type?: Nullable<string>;
+        extra?: Nullable<UrlAugmentationExtra>;
     }
     export type ServiceMetadata = InviteServiceMetadata | KickServiceMetadata | TitleChangeServiceMetadata | PhotoChangeServiceMetadata;
     export interface MessageReaction {
-        user: User;
-        reaction: string;
+        user?: User;
+        reaction?: string;
     }
     export interface ConversationMessage {
-        id: string;
-        message: Nullable<string>;
-        file: Nullable<string>;
-        fileMetadata: Nullable<FileMetadata>;
-        filePreview: Nullable<string>;
-        sender: User;
-        date: Date;
-        repeatKey: Nullable<string>;
-        isService: boolean;
-        serviceMetadata: Nullable<ServiceMetadata>;
-        urlAugmentation: Nullable<UrlAugmentation>;
-        edited: boolean;
-        reactions: MessageReaction[];
-        replyMessages: Nullable<ConversationMessage[]>;
-        plainText: Nullable<string>;
-        mentions: Nullable<User[]>;
+        id?: string;
+        message?: Nullable<string>;
+        file?: Nullable<string>;
+        fileMetadata?: Nullable<FileMetadata>;
+        filePreview?: Nullable<string>;
+        sender?: User;
+        date?: Date;
+        repeatKey?: Nullable<string>;
+        isService?: boolean;
+        serviceMetadata?: Nullable<ServiceMetadata>;
+        urlAugmentation?: Nullable<UrlAugmentation>;
+        edited?: boolean;
+        reactions?: MessageReaction[];
+        replyMessages?: Nullable<ConversationMessage[]>;
+        plainText?: Nullable<string>;
+        mentions?: Nullable<User[]>;
     }
     export interface FileMetadata {
-        name: string;
-        mimeType: Nullable<string>;
-        size: number;
-        isImage: boolean;
-        imageWidth: Nullable<number>;
-        imageHeight: Nullable<number>;
-        imageFormat: Nullable<string>;
+        name?: string;
+        mimeType?: Nullable<string>;
+        size?: number;
+        isImage?: boolean;
+        imageWidth?: Nullable<number>;
+        imageHeight?: Nullable<number>;
+        imageFormat?: Nullable<string>;
     }
     export interface StickerPack {
-        name: string;
-        stickers: Nullable<Sticker[]>;
+        name?: string;
+        stickers?: Nullable<Sticker[]>;
     }
     export interface Sticker {
-        aliases: string[];
-        uuid: string;
-        meta: FileMetadata;
+        aliases?: string[];
+        uuid?: string;
+        meta?: FileMetadata;
     }
     export interface ConversationEventSimpleBatch {
-        events: ConversationEvent[];
+        events?: ConversationEvent[];
     }
     export interface ConversationEvent {
-        seq: number;
+        seq?: number;
     }
     export interface ConversationEventMessage extends ConversationEvent {
-        seq: number;
-        message: ConversationMessage;
+        seq?: number;
+        message?: ConversationMessage;
     }
     export interface ConversationEventEditMessage extends ConversationEvent {
-        seq: number;
-        message: ConversationMessage;
+        seq?: number;
+        message?: ConversationMessage;
     }
     export interface ConversationEventDelete extends ConversationEvent {
-        seq: number;
-        messageId: string;
+        seq?: number;
+        messageId?: string;
     }
     export interface ConversationEventNewMembers extends ConversationEvent {
-        seq: number;
-        users: Nullable<User[]>;
-        invitedBy: User;
+        seq?: number;
+        users?: Nullable<User[]>;
+        invitedBy?: User;
     }
     export interface ConversationEventKick extends ConversationEvent {
-        seq: number;
-        user: User;
-        kickedBy: User;
+        seq?: number;
+        user?: User;
+        kickedBy?: User;
     }
     export interface ConversationEventTitle extends ConversationEvent {
-        seq: number;
-        title: string;
+        seq?: number;
+        title?: string;
     }
     export interface ConversationEventUpdate extends ConversationEvent {
-        seq: number;
-        chat: Conversation;
+        seq?: number;
+        chat?: Conversation;
     }
     export interface ConversationEventUpdateRole extends ConversationEvent {
-        seq: number;
-        user: User;
-        newRole: string;
+        seq?: number;
+        user?: User;
+        newRole?: string;
     }
     export interface ConversationState {
-        seq: number;
-        messages: ConversationMessage[];
+        seq?: number;
+        messages?: ConversationMessage[];
     }
     export interface ConversationConnection {
-        conversations: Conversation[];
-        counter: NotificationCounter;
-        seq: number;
-        next: Nullable<string>;
+        conversations?: Conversation[];
+        counter?: NotificationCounter;
+        seq?: number;
+        next?: Nullable<string>;
     }
     export interface NotificationCounter {
-        id: string;
-        unreadCount: number;
+        id?: string;
+        unreadCount?: number;
     }
     export interface ChatReadResult {
-        conversation: Conversation;
-        counter: NotificationCounter;
+        conversation?: Conversation;
+        counter?: NotificationCounter;
     }
     export type ComposeSearchResult = User | Organization;
     export interface GroupConversationMember {
-        user: User;
-        role: string;
+        user?: User;
+        role?: string;
     }
     export interface GroupConversationInvite {
         userId: string;
         role: string;
     }
     export interface GroupChatUpdateResponse {
-        chat: Conversation;
-        chatEventMessage: Nullable<ConversationEventMessage>;
-        chatEvent: Nullable<ConversationEvent>;
+        chat?: Conversation;
+        chatEventMessage?: Nullable<ConversationEventMessage>;
+        chatEvent?: Nullable<ConversationEvent>;
     }
     export interface ConversationUpdateResponse {
-        chat: Conversation;
-        curSeq: number;
+        chat?: Conversation;
+        curSeq?: number;
     }
     export interface ConversationBlockedUser {
-        user: User;
-        blockedBy: User;
+        user?: User;
+        blockedBy?: User;
     }
-    export interface QueryAlphaChatArgs {
-        conversationId: Nullable<string>;
-        shortName: Nullable<string>;
-    }
-    export type QueryAlphaChatResult = Conversation;
-    export interface QueryAlphaLoadMessagesArgs {
-        conversationId: string;
-        first: Nullable<number>;
-        before: Nullable<string>;
-        after: Nullable<string>;
-    }
-    export type QueryAlphaLoadMessagesResult = ConversationState;
-    export interface QueryAlphaChatsSearchForComposeArgs {
-        query: Nullable<string>;
-        organizations: Nullable<boolean>;
-        limit: Nullable<number>;
-    }
-    export type QueryAlphaChatsSearchForComposeResult = ComposeSearchResult[];
-    export interface QueryAlphaChatSearchArgs {
-        members: string[];
-    }
-    export type QueryAlphaChatSearchResult = Nullable<Conversation>;
-    export interface QueryAlphaGroupConversationMembersArgs {
-        conversationId: string;
-    }
-    export type QueryAlphaGroupConversationMembersResult = GroupConversationMember[];
-    export interface QueryAlphaBlockedListArgs {
-        conversationId: Nullable<string>;
-    }
-    export type QueryAlphaBlockedListResult = ConversationBlockedUser[];
     export interface UpdateGroupInput {
         title: Nullable<string>;
         photoRef: Nullable<ImageRefInput>;
         description: Nullable<string>;
         longDescription: Nullable<string>;
         socialImageRef: Nullable<ImageRefInput>;
+    }
+    export interface Profile {
+        id?: string;
+        firstName?: Nullable<string>;
+        lastName?: Nullable<string>;
+        photoRef?: Nullable<ImageRef>;
+        phone?: Nullable<string>;
+        email?: Nullable<string>;
+        website?: Nullable<string>;
+        about?: Nullable<string>;
+        location?: Nullable<string>;
+        linkedin?: Nullable<string>;
+        twitter?: Nullable<string>;
+        alphaLinkedin?: Nullable<string>;
+        alphaTwitter?: Nullable<string>;
+        alphaJoinedAt?: Nullable<string>;
+        alphaInvitedBy?: Nullable<User>;
+        alphaRole?: Nullable<string>;
+        alphaLocations?: Nullable<string[]>;
+        primaryOrganization?: Nullable<Organization>;
+        alphaPrimaryOrganizationId?: Nullable<string>;
+        alphaPrimaryOrganization?: Nullable<Organization>;
+    }
+    export interface ProfileInput {
+        firstName: Nullable<string>;
+        lastName: Nullable<string>;
+        photoRef: Nullable<ImageRefInput>;
+        phone: Nullable<string>;
+        email: Nullable<string>;
+        website: Nullable<string>;
+        about: Nullable<string>;
+        location: Nullable<string>;
+        linkedin: Nullable<string>;
+        twitter: Nullable<string>;
+        primaryOrganization: Nullable<string>;
+    }
+    export interface UpdateProfileInput {
+        firstName: Nullable<string>;
+        lastName: Nullable<string>;
+        photoRef: Nullable<ImageRefInput>;
+        phone: Nullable<string>;
+        email: Nullable<string>;
+        website: Nullable<string>;
+        about: Nullable<string>;
+        location: Nullable<string>;
+        linkedin: Nullable<string>;
+        twitter: Nullable<string>;
+        primaryOrganization: Nullable<string>;
+        alphaRole: Nullable<string>;
+        alphaLocations: Nullable<string[]>;
+        alphaLinkedin: Nullable<string>;
+        alphaTwitter: Nullable<string>;
+        alphaPrimaryOrganizationId: Nullable<string>;
+    }
+    export interface CreateProfileInput {
+        firstName: string;
+        lastName: Nullable<string>;
+        photoRef: Nullable<ImageRefInput>;
+        phone: Nullable<string>;
+        email: Nullable<string>;
+        about: Nullable<string>;
+        location: Nullable<string>;
+        website: Nullable<string>;
+        linkedin: Nullable<string>;
+        twitter: Nullable<string>;
+        primaryOrganization: Nullable<string>;
+    }
+    export interface AlphaSignupData {
+        user?: Nullable<User>;
+        organization?: Nullable<Organization>;
+    }
+    export interface Invite {
+        id?: string;
+        key?: string;
+        ttl?: Nullable<string>;
+    }
+    export interface InviteInfo {
+        id?: string;
+        key?: string;
+        orgId?: string;
+        title?: string;
+        photo?: Nullable<string>;
+        photoRef?: Nullable<ImageRef>;
+        joined?: boolean;
+        creator?: Nullable<User>;
+        forEmail?: Nullable<string>;
+        forName?: Nullable<string>;
+    }
+    export interface AppInvite {
+        inviter?: User;
+    }
+    export interface AppInviteInfo {
+        inviter?: User;
+    }
+    export interface InviteHistotyInfo {
+        acceptedBy?: Nullable<User>;
+        forEmail?: string;
+        isGlobal?: boolean;
+    }
+    export interface Reaction {
+        user?: User;
+        reaction?: string;
+    }
+    export interface Message {
+        id?: string;
+        date?: Date;
+        sender?: User;
+        edited?: boolean;
+        text?: Nullable<string>;
+        quoted?: Message[];
+        alphaReactions?: Reaction[];
+    }
+    export type DialogKind = 'PRIVATE' | 'INTERNAL' | 'PUBLIC' | 'GROUP';
+    export interface Dialog {
+        id?: string;
+        cid?: string;
+        fid?: string;
+        kind?: DialogKind;
+        title?: string;
+        photo?: string;
+        unreadCount?: number;
+        topMessage?: Nullable<Message>;
+    }
+    export interface DialogsConnection {
+        items?: Dialog[];
+        cursor?: Nullable<string>;
+    }
+    export type EmailFrequency = 'NEVER' | 'MIN_15' | 'HOUR_1' | 'HOUR_24' | 'WEEK_1';
+    export type NotificationMessages = 'ALL' | 'DIRECT' | 'NONE';
+    export type NotificationsDelay = 'NONE' | 'MIN_1' | 'MIN_15';
+    export interface UpdateSettingsInput {
+        emailFrequency: Nullable<EmailFrequency>;
+        desktopNotifications: Nullable<NotificationMessages>;
+        mobileNotifications: Nullable<NotificationMessages>;
+        mobileAlert: Nullable<boolean>;
+        mobileIncludeText: Nullable<boolean>;
+        mute: Nullable<boolean>;
+        notificationsDelay: Nullable<NotificationsDelay>;
+    }
+    export interface Settings {
+        id?: string;
+        primaryEmail?: string;
+        emailFrequency?: EmailFrequency;
+        desktopNotifications?: NotificationMessages;
+        mobileNotifications?: NotificationMessages;
+        mobileAlert?: boolean;
+        mobileIncludeText?: boolean;
+        mute?: Nullable<boolean>;
+        notificationsDelay?: NotificationsDelay;
+    }
+    export type OrganizationMemberRole = 'OWNER' | 'MEMBER';
+    export interface OrganizationMember {
+        email?: string;
+        role?: OrganizationMemberRole;
+    }
+    export interface OrganizationIvitedMember extends OrganizationMember {
+        email?: string;
+        role?: OrganizationMemberRole;
+        firstName?: Nullable<string>;
+        lastName?: Nullable<string>;
+        inviteId?: string;
+    }
+    export interface OrganizationJoinedMember extends OrganizationMember {
+        email?: string;
+        role?: OrganizationMemberRole;
+        user?: User;
+        joinedAt?: Nullable<string>;
+        showInContacts?: boolean;
+    }
+    export interface InviteRequest {
+        email: string;
+        emailText: Nullable<string>;
+        role: OrganizationMemberRole;
+        firstName: Nullable<string>;
+        lastName: Nullable<string>;
+    }
+    export type Platform = 'WEB' | 'IOS' | 'ANDROID';
+    export interface OnlineEvent {
+        user?: User;
+        type?: string;
+        timeout?: number;
+    }
+    export type SuperAccountState = 'PENDING' | 'ACTIVATED' | 'SUSPENDED';
+    export interface SuperAccount {
+        id?: string;
+        orgId?: string;
+        title?: string;
+        name?: string;
+        state?: SuperAccountState;
+        members?: User[];
+        features?: FeatureFlag[];
+        alphaPublished?: boolean;
+        createdAt?: Nullable<string>;
+        createdBy?: Nullable<User>;
+    }
+    export type SuperAdminRole = 'SUPER_ADMIN' | 'SOFTWARE_DEVELOPER' | 'EDITOR';
+    export interface SuperAdmin {
+        user?: User;
+        role?: SuperAdminRole;
+        email?: Nullable<string>;
+    }
+    export interface PageInfo {
+        hasNextPage?: boolean;
+        hasPreviousPage?: boolean;
+        itemsCount?: number;
+        pagesCount?: number;
+        currentPage?: number;
+        openEnded?: boolean;
+    }
+    export type TaskStatus = 'IN_PROGRESS' | 'FAILED' | 'COMPLETED';
+    export interface Task {
+        id?: string;
+        status?: TaskStatus;
+        result?: Nullable<string>;
+    }
+    export interface ImageCropInput {
+        x: number;
+        y: number;
+        w: number;
+        h: number;
+    }
+    export interface ImageCrop {
+        x?: number;
+        y?: number;
+        w?: number;
+        h?: number;
+    }
+    export interface ImageRef {
+        uuid?: string;
+        crop?: Nullable<ImageCrop>;
+    }
+    export interface ImageRefInput {
+        uuid: string;
+        crop: Nullable<ImageCropInput>;
+    }
+    export interface Range {
+        from?: Nullable<number>;
+        to?: Nullable<number>;
+    }
+    export interface RangeInput {
+        from: Nullable<number>;
+        to: Nullable<number>;
+    }
+    export interface ChannelConversation extends Conversation {
+        id?: string;
+        flexibleId?: string;
+        title?: string;
+        photos?: string[];
+        members?: User[];
+        unreadCount?: number;
+        topMessage?: Nullable<ConversationMessage>;
+        settings?: ConversationSettings;
+        membersCount?: number;
+        memberRequestsCount?: number;
+        featured?: boolean;
+        hidden?: boolean;
+        description?: string;
+        longDescription?: string;
+        myStatus?: ChannelMembershipStatus;
+        organization?: Nullable<Organization>;
+        isRoot?: boolean;
+        photo?: Nullable<string>;
+        photoRef?: Nullable<ImageRef>;
+        socialImage?: Nullable<string>;
+        socialImageRef?: Nullable<ImageRef>;
+        pinnedMessage?: Nullable<ConversationMessage>;
+        membersOnline?: number;
+        myRole?: Nullable<string>;
+    }
+    export type ChannelMembershipStatus = 'invited' | 'member' | 'requested' | 'none';
+    export interface ChannelMemberOrg {
+        organization?: Organization;
+        role?: string;
+        status?: string;
+    }
+    export interface ChannelMember {
+        user?: User;
+        role?: string;
+        status?: string;
+    }
+    export interface ChannelInvite {
+        channel?: ChannelConversation;
+        invitedByUser?: User;
+    }
+    export interface ChannelOrgInvite {
+        channel?: ChannelConversation;
+        invitedByOrg?: Organization;
+        invitedByUser?: User;
+    }
+    export interface ChannelJoinRequestOrg {
+        organization?: Organization;
+        user?: User;
+    }
+    export interface ChannelConversationConnectionEdge {
+        node?: ChannelConversation;
+        cursor?: string;
+    }
+    export interface ChannelConversationConnection {
+        edges?: ChannelConversationConnectionEdge[];
+        pageInfo?: PageInfo;
+    }
+    export interface ChannelInviteRequest {
+        email: string;
+        emailText: Nullable<string>;
+        firstName: Nullable<string>;
+        lastName: Nullable<string>;
+    }
+    export interface ConversationUpdateSingle {
+        seq?: number;
+        state?: string;
+        update?: ConversationUpdate;
+    }
+    export interface ConversationUpdateBatch {
+        updates?: ConversationUpdate[];
+        fromSeq?: number;
+        seq?: number;
+        state?: string;
+    }
+    export type ConversationUpdateContainer = ConversationUpdateSingle | ConversationUpdateBatch;
+    export type ConversationUpdate = ConversationMessageReceived | ConversationMessageUpdated | ConversationMessageDeleted;
+    export interface ConversationMessageReceived {
+        message?: ConversationMessage;
+    }
+    export interface ConversationMessageUpdated {
+        message?: ConversationMessage;
+    }
+    export interface ConversationMessageDeleted {
+        message?: ConversationMessage;
+    }
+    export interface DialogUpdateSingle {
+        seq?: number;
+        state?: string;
+        update?: DialogUpdate;
+    }
+    export interface DialogUpdateBatch {
+        updates?: DialogUpdate[];
+        fromSeq?: number;
+        seq?: number;
+        state?: string;
+    }
+    export type DialogUpdateContainer = DialogUpdateSingle | DialogUpdateBatch;
+    export type DialogUpdate = DialogMessageReceived | DialogMessageUpdated | DialogMessageDeleted | DialogMessageRead | DialogTitleUpdated | DialogDeleted;
+    export interface DialogMessageReceived {
+        cid?: string;
+        message?: ConversationMessage;
+        unread?: number;
+        globalUnread?: number;
+    }
+    export interface DialogMessageUpdated {
+        cid?: string;
+        message?: ConversationMessage;
+    }
+    export interface DialogMessageDeleted {
+        cid?: string;
+        message?: ConversationMessage;
+        unread?: number;
+        globalUnread?: number;
+    }
+    export interface DialogMessageRead {
+        cid?: string;
+        unread?: number;
+        globalUnread?: number;
+    }
+    export interface DialogTitleUpdated {
+        cid?: string;
+        title?: string;
+    }
+    export interface DialogPhotoUpdated {
+        cid?: string;
+        photoRef?: Nullable<ImageRef>;
+    }
+    export interface DialogDeleted {
+        cid?: string;
+        globalUnread?: number;
+    }
+    export interface FeatureFlag {
+        id?: string;
+        key?: string;
+        title?: string;
+    }
+    export interface Mutation {
+        lifecheck?: Nullable<string>;
+        alphaSendMessage?: ConversationEventMessage;
+        alphaReadChat?: ChatReadResult;
+        alphaEditMessage?: ConversationEventEditMessage;
+        alphaSendIntro?: ConversationEventMessage;
+        alphaEditIntro?: ConversationEventMessage;
+        alphaDeleteMessageUrlAugmentation?: ConversationEventMessage;
+        alphaDeleteMessage?: ConversationEventDelete;
+        alphaChatSetReaction?: string;
+        alphaChatUnsetReaction?: string;
+        alphaGlobalRead?: string;
+        alphaBlockUser?: string;
+        alphaUnblockUser?: string;
+        alphaChatCreateGroup?: Conversation;
+        alphaChatUpdateGroup?: ConversationUpdateResponse;
+        alphaChatChangeGroupTitle?: GroupChatUpdateResponse;
+        alphaChatInviteToGroup?: GroupChatUpdateResponse;
+        alphaChatKickFromGroup?: GroupChatUpdateResponse;
+        alphaChatChangeRoleInGroup?: GroupChatUpdateResponse;
+        alphaChatCopyGroup?: GroupChatUpdateResponse;
+        alphaChatLeave?: ConversationUpdateResponse;
+        alphaUpdateConversationSettings?: ConversationSettings;
+        profileCreate?: Profile;
+        profileUpdate?: Profile;
+        createProfile?: Profile;
+        updateProfile?: Profile;
+        alphaCreateUserProfileAndOrganization?: AlphaSignupData;
+        alphaCreateInvite?: Invite;
+        alphaDeleteInvite?: string;
+        alphaJoinInvite?: string;
+        joinAppInvite?: string;
+        settingsUpdate?: Settings;
+        updateSettings?: Settings;
+        alphaOrganizationRemoveMember?: string;
+        alphaOrganizationChangeMemberRole?: string;
+        alphaOrganizationInviteMembers?: string;
+        alphaOrganizationRefreshInviteLink?: Invite;
+        alphaOrganizationCreatePublicInvite?: Invite;
+        alphaOrganizationDeletePublicInvite?: string;
+        presenceReportOnline?: string;
+        presenceReportOffline?: string;
+        alphaReportActive?: string;
+        superAccountAdd?: SuperAccount;
+        superAccountRename?: SuperAccount;
+        superAccountActivate?: SuperAccount;
+        superAccountSuspend?: SuperAccount;
+        superAccountPend?: SuperAccount;
+        superAccountMemberAdd?: SuperAccount;
+        superAccountMemberRemove?: SuperAccount;
+        superAccountChannelMemberAdd?: string;
+        superAdminAdd?: string;
+        superAdminRemove?: string;
+        alphaAlterPublished?: Organization;
+        roomRead?: boolean;
+        betaMessageSend?: boolean;
+        betaMessageEdit?: boolean;
+        betaMessageDeleteAugmentation?: boolean;
+        betaMessageDelete?: boolean;
+        betaReactionSet?: boolean;
+        betaReactionRemove?: boolean;
+        betaIntroSend?: boolean;
+        betaIntroEdit?: boolean;
+        conversationDraftUpdate?: string;
+        alphaSaveDraftMessage?: string;
+        alphaChannelCreate?: Conversation;
+        alphaChannelSetFeatured?: Conversation;
+        alphaChannelHideFromSearch?: Conversation;
+        alphaChannelInvite?: ConversationUpdateResponse;
+        alphaChannelJoin?: ConversationUpdateResponse;
+        alphaChannelRevokeInvite?: string;
+        alphaChannelCancelRequest?: Nullable<string>;
+        alphaChannelInviteMembers?: string;
+        alphaChannelJoinInvite?: string;
+        alphaChannelRenewInviteLink?: string;
+        featureFlagAdd?: FeatureFlag;
+        superAccountFeatureAdd?: SuperAccount;
+        superAccountFeatureRemove?: SuperAccount;
+        createOrganization?: OrganizationProfile;
+        updateOrganizationProfile?: OrganizationProfile;
+        registerWebPush?: string;
+        registerPush?: string;
+        typingSend?: string;
+        typingCancel?: string;
+        alphaSetTyping?: string;
+        alphaSetUserShortName?: Nullable<string>;
+        alphaSetOrgShortName?: Nullable<string>;
     }
     export interface MutationAlphaSendMessageArgs {
         conversationId: string;
@@ -380,73 +817,6 @@ export namespace GQL {
         conversationId: string;
     }
     export type MutationAlphaUpdateConversationSettingsResult = ConversationSettings;
-    export interface Profile {
-        id: string;
-        firstName: Nullable<string>;
-        lastName: Nullable<string>;
-        photoRef: Nullable<ImageRef>;
-        phone: Nullable<string>;
-        email: Nullable<string>;
-        website: Nullable<string>;
-        about: Nullable<string>;
-        location: Nullable<string>;
-        linkedin: Nullable<string>;
-        twitter: Nullable<string>;
-        alphaLinkedin: Nullable<string>;
-        alphaTwitter: Nullable<string>;
-        alphaJoinedAt: Nullable<string>;
-        alphaInvitedBy: Nullable<User>;
-        alphaRole: Nullable<string>;
-        alphaLocations: Nullable<string[]>;
-    }
-    export interface ProfileInput {
-        firstName: Nullable<string>;
-        lastName: Nullable<string>;
-        photoRef: Nullable<ImageRefInput>;
-        phone: Nullable<string>;
-        email: Nullable<string>;
-        website: Nullable<string>;
-        about: Nullable<string>;
-        location: Nullable<string>;
-        linkedin: Nullable<string>;
-        twitter: Nullable<string>;
-        primaryOrganization: Nullable<string>;
-    }
-    export interface UpdateProfileInput {
-        firstName: Nullable<string>;
-        lastName: Nullable<string>;
-        photoRef: Nullable<ImageRefInput>;
-        phone: Nullable<string>;
-        email: Nullable<string>;
-        website: Nullable<string>;
-        about: Nullable<string>;
-        location: Nullable<string>;
-        linkedin: Nullable<string>;
-        twitter: Nullable<string>;
-        primaryOrganization: Nullable<string>;
-        alphaRole: Nullable<string>;
-        alphaLocations: Nullable<string[]>;
-        alphaLinkedin: Nullable<string>;
-        alphaTwitter: Nullable<string>;
-        alphaPrimaryOrganizationId: Nullable<string>;
-    }
-    export interface CreateProfileInput {
-        firstName: string;
-        lastName: Nullable<string>;
-        photoRef: Nullable<ImageRefInput>;
-        phone: Nullable<string>;
-        email: Nullable<string>;
-        about: Nullable<string>;
-        location: Nullable<string>;
-        website: Nullable<string>;
-        linkedin: Nullable<string>;
-        twitter: Nullable<string>;
-        primaryOrganization: Nullable<string>;
-    }
-    export interface AlphaSignupData {
-        user: Nullable<User>;
-        organization: Nullable<Organization>;
-    }
     export interface MutationProfileCreateArgs {
         input: ProfileInput;
     }
@@ -470,50 +840,6 @@ export namespace GQL {
         organization: CreateOrganizationInput;
     }
     export type MutationAlphaCreateUserProfileAndOrganizationResult = AlphaSignupData;
-    export interface QueryAlphaChatTextSearchArgs {
-        query: string;
-    }
-    export type QueryAlphaChatTextSearchResult = Conversation[];
-    export interface Invite {
-        id: string;
-        key: string;
-        ttl: Nullable<string>;
-    }
-    export interface InviteInfo {
-        id: string;
-        key: string;
-        orgId: string;
-        title: string;
-        photo: Nullable<string>;
-        photoRef: Nullable<ImageRef>;
-        joined: boolean;
-        creator: Nullable<User>;
-        forEmail: Nullable<string>;
-        forName: Nullable<string>;
-    }
-    export interface AppInvite {
-        inviter: User;
-    }
-    export interface AppInviteInfo {
-        inviter: User;
-    }
-    export interface InviteHistotyInfo {
-        acceptedBy: Nullable<User>;
-        forEmail: string;
-        isGlobal: boolean;
-    }
-    export interface QueryAlphaInviteInfoArgs {
-        key: string;
-    }
-    export type QueryAlphaInviteInfoResult = Nullable<InviteInfo>;
-    export interface QueryAppInviteInfoArgs {
-        key: string;
-    }
-    export type QueryAppInviteInfoResult = Nullable<AppInvite>;
-    export interface QueryAlphaAppInviteInfoArgs {
-        key: string;
-    }
-    export type QueryAlphaAppInviteInfoResult = Nullable<AppInviteInfo>;
     export interface MutationAlphaDeleteInviteArgs {
         id: string;
     }
@@ -526,67 +852,6 @@ export namespace GQL {
         key: string;
     }
     export type MutationJoinAppInviteResult = string;
-    export interface Reaction {
-        user: User;
-        reaction: string;
-    }
-    export interface Message {
-        id: string;
-        date: Date;
-        sender: User;
-        edited: boolean;
-        text: Nullable<string>;
-        quoted: Message[];
-        alphaReactions: Reaction[];
-    }
-    export type DialogKind = 'PRIVATE' | 'INTERNAL' | 'PUBLIC' | 'GROUP';
-    export interface Dialog {
-        id: string;
-        cid: string;
-        fid: string;
-        kind: DialogKind;
-        title: string;
-        photo: string;
-        unreadCount: number;
-        topMessage: Nullable<Message>;
-    }
-    export interface DialogsConnection {
-        items: Dialog[];
-        cursor: Nullable<string>;
-    }
-    export interface QueryAlphaChatsArgs {
-        first: number;
-        after: Nullable<string>;
-    }
-    export type QueryAlphaChatsResult = ConversationConnection;
-    export interface QueryDialogsArgs {
-        first: number;
-        after: Nullable<string>;
-    }
-    export type QueryDialogsResult = DialogsConnection;
-    export type EmailFrequency = 'NEVER' | 'MIN_15' | 'HOUR_1' | 'HOUR_24' | 'WEEK_1';
-    export type NotificationMessages = 'ALL' | 'DIRECT' | 'NONE';
-    export type NotificationsDelay = 'NONE' | 'MIN_1' | 'MIN_15';
-    export interface UpdateSettingsInput {
-        emailFrequency: Nullable<EmailFrequency>;
-        desktopNotifications: Nullable<NotificationMessages>;
-        mobileNotifications: Nullable<NotificationMessages>;
-        mobileAlert: Nullable<boolean>;
-        mobileIncludeText: Nullable<boolean>;
-        mute: Nullable<boolean>;
-        notificationsDelay: Nullable<NotificationsDelay>;
-    }
-    export interface Settings {
-        id: string;
-        primaryEmail: string;
-        emailFrequency: EmailFrequency;
-        desktopNotifications: NotificationMessages;
-        mobileNotifications: NotificationMessages;
-        mobileAlert: boolean;
-        mobileIncludeText: boolean;
-        mute: Nullable<boolean>;
-        notificationsDelay: NotificationsDelay;
-    }
     export interface MutationSettingsUpdateArgs {
         settings: Nullable<UpdateSettingsInput>;
     }
@@ -595,40 +860,6 @@ export namespace GQL {
         settings: Nullable<UpdateSettingsInput>;
     }
     export type MutationUpdateSettingsResult = Settings;
-    export type OrganizationMemberRole = 'OWNER' | 'MEMBER';
-    export interface OrganizationMember {
-        email: string;
-        role: OrganizationMemberRole;
-    }
-    export interface OrganizationIvitedMember extends OrganizationMember {
-        email: string;
-        role: OrganizationMemberRole;
-        firstName: Nullable<string>;
-        lastName: Nullable<string>;
-        inviteId: string;
-    }
-    export interface OrganizationJoinedMember extends OrganizationMember {
-        email: string;
-        role: OrganizationMemberRole;
-        user: User;
-        joinedAt: Nullable<string>;
-        showInContacts: boolean;
-    }
-    export interface InviteRequest {
-        email: string;
-        emailText: Nullable<string>;
-        role: OrganizationMemberRole;
-        firstName: Nullable<string>;
-        lastName: Nullable<string>;
-    }
-    export interface QueryAlphaOrganizationMembersArgs {
-        orgId: string;
-    }
-    export type QueryAlphaOrganizationMembersResult = OrganizationMember[];
-    export interface QueryAlphaOrganizationPublicInviteArgs {
-        organizationId: Nullable<string>;
-    }
-    export type QueryAlphaOrganizationPublicInviteResult = Nullable<Invite>;
     export interface MutationAlphaOrganizationRemoveMemberArgs {
         memberId: string;
         organizationId: string;
@@ -645,6 +876,11 @@ export namespace GQL {
         organizationId: Nullable<string>;
     }
     export type MutationAlphaOrganizationInviteMembersResult = string;
+    export interface MutationAlphaOrganizationRefreshInviteLinkArgs {
+        expirationDays: Nullable<number>;
+        organizationId: Nullable<string>;
+    }
+    export type MutationAlphaOrganizationRefreshInviteLinkResult = Invite;
     export interface MutationAlphaOrganizationCreatePublicInviteArgs {
         expirationDays: Nullable<number>;
         organizationId: Nullable<string>;
@@ -654,12 +890,6 @@ export namespace GQL {
         organizationId: Nullable<string>;
     }
     export type MutationAlphaOrganizationDeletePublicInviteResult = string;
-    export type Platform = 'WEB' | 'IOS' | 'ANDROID';
-    export interface OnlineEvent {
-        user: User;
-        type: string;
-        timeout: number;
-    }
     export interface MutationPresenceReportOnlineArgs {
         timeout: number;
         platform: Nullable<Platform>;
@@ -674,32 +904,6 @@ export namespace GQL {
         platform: Nullable<Platform>;
     }
     export type MutationAlphaReportActiveResult = string;
-    export interface SubscriptionAlphaSubscribeChatOnlineArgs {
-        conversations: string[];
-    }
-    export type SubscriptionAlphaSubscribeChatOnlineResult = OnlineEvent;
-    export interface SubscriptionAlphaSubscribeOnlineArgs {
-        users: string[];
-    }
-    export type SubscriptionAlphaSubscribeOnlineResult = OnlineEvent;
-    export type SuperAccountState = 'PENDING' | 'ACTIVATED' | 'SUSPENDED';
-    export interface SuperAccount {
-        id: string;
-        orgId: string;
-        title: string;
-        name: string;
-        state: SuperAccountState;
-        members: User[];
-        features: FeatureFlag[];
-        alphaPublished: boolean;
-        createdAt: Nullable<string>;
-        createdBy: Nullable<User>;
-    }
-    export interface QuerySuperAccountArgs {
-        id: string;
-        viaOrgId: Nullable<boolean>;
-    }
-    export type QuerySuperAccountResult = SuperAccount;
     export interface MutationSuperAccountAddArgs {
         title: string;
     }
@@ -736,12 +940,6 @@ export namespace GQL {
         userId: string;
     }
     export type MutationSuperAccountChannelMemberAddResult = string;
-    export type SuperAdminRole = 'SUPER_ADMIN' | 'SOFTWARE_DEVELOPER' | 'EDITOR';
-    export interface SuperAdmin {
-        user: User;
-        role: SuperAdminRole;
-        email: Nullable<string>;
-    }
     export interface MutationSuperAdminAddArgs {
         userId: string;
         role: SuperAdminRole;
@@ -813,35 +1011,6 @@ export namespace GQL {
         file: Nullable<string>;
     }
     export type MutationBetaIntroEditResult = boolean;
-    export interface QueryAlphaOrganizationsArgs {
-        query: Nullable<string>;
-        prefix: Nullable<string>;
-        sort: Nullable<string>;
-        first: number;
-        after: Nullable<string>;
-        page: Nullable<number>;
-    }
-    export type QueryAlphaOrganizationsResult = OrganizationsConnection;
-    export interface QueryAlphaOrganizationByPrefixArgs {
-        query: Nullable<string>;
-    }
-    export type QueryAlphaOrganizationByPrefixResult = Nullable<Organization>;
-    export interface QueryAlphaComunityPrefixSearchArgs {
-        query: Nullable<string>;
-        sort: Nullable<string>;
-        first: number;
-        after: Nullable<string>;
-        page: Nullable<number>;
-    }
-    export type QueryAlphaComunityPrefixSearchResult = OrganizationsConnection;
-    export interface QueryConversationDraftArgs {
-        conversationId: string;
-    }
-    export type QueryConversationDraftResult = Nullable<string>;
-    export interface QueryAlphaDraftMessageArgs {
-        conversationId: string;
-    }
-    export type QueryAlphaDraftMessageResult = Nullable<string>;
     export interface MutationConversationDraftUpdateArgs {
         conversationId: string;
         message: Nullable<string>;
@@ -852,112 +1021,6 @@ export namespace GQL {
         message: Nullable<string>;
     }
     export type MutationAlphaSaveDraftMessageResult = string;
-    export interface PageInfo {
-        hasNextPage: boolean;
-        hasPreviousPage: boolean;
-        itemsCount: number;
-        pagesCount: number;
-        currentPage: number;
-        openEnded: boolean;
-    }
-    export type TaskStatus = 'IN_PROGRESS' | 'FAILED' | 'COMPLETED';
-    export interface Task {
-        id: string;
-        status: TaskStatus;
-        result: Nullable<string>;
-    }
-    export interface ImageCropInput {
-        x: number;
-        y: number;
-        w: number;
-        h: number;
-    }
-    export interface ImageCrop {
-        x: number;
-        y: number;
-        w: number;
-        h: number;
-    }
-    export interface ImageRef {
-        uuid: string;
-        crop: Nullable<ImageCrop>;
-    }
-    export interface ImageRefInput {
-        uuid: string;
-        crop: Nullable<ImageCropInput>;
-    }
-    export interface Range {
-        from: Nullable<number>;
-        to: Nullable<number>;
-    }
-    export interface RangeInput {
-        from: Nullable<number>;
-        to: Nullable<number>;
-    }
-    export interface ChannelConversation extends Conversation {
-        id: string;
-        flexibleId: string;
-        title: string;
-        photos: string[];
-        members: User[];
-        unreadCount: number;
-        topMessage: Nullable<ConversationMessage>;
-        settings: ConversationSettings;
-        membersCount: number;
-        memberRequestsCount: number;
-        featured: boolean;
-        hidden: boolean;
-        description: string;
-        longDescription: string;
-        myStatus: ChannelMembershipStatus;
-        organization: Nullable<Organization>;
-        isRoot: boolean;
-        photo: Nullable<string>;
-        photoRef: Nullable<ImageRef>;
-        socialImage: Nullable<string>;
-        socialImageRef: Nullable<ImageRef>;
-        pinnedMessage: Nullable<ConversationMessage>;
-        membersOnline: number;
-        myRole: Nullable<string>;
-    }
-    export type ChannelMembershipStatus = 'invited' | 'member' | 'requested' | 'none';
-    export interface ChannelMemberOrg {
-        organization: Organization;
-        role: string;
-        status: string;
-    }
-    export interface ChannelMember {
-        user: User;
-        role: string;
-        status: string;
-    }
-    export interface ChannelInvite {
-        channel: ChannelConversation;
-        invitedByUser: User;
-    }
-    export interface ChannelOrgInvite {
-        channel: ChannelConversation;
-        invitedByOrg: Organization;
-        invitedByUser: User;
-    }
-    export interface ChannelJoinRequestOrg {
-        organization: Organization;
-        user: User;
-    }
-    export interface ChannelConversationConnectionEdge {
-        node: ChannelConversation;
-        cursor: string;
-    }
-    export interface ChannelConversationConnection {
-        edges: ChannelConversationConnectionEdge[];
-        pageInfo: PageInfo;
-    }
-    export interface ChannelInviteRequest {
-        email: string;
-        emailText: Nullable<string>;
-        firstName: Nullable<string>;
-        lastName: Nullable<string>;
-    }
     export interface MutationAlphaChannelCreateArgs {
         title: string;
         photoRef: Nullable<ImageRefInput>;
@@ -1007,111 +1070,6 @@ export namespace GQL {
         channelId: string;
     }
     export type MutationAlphaChannelRenewInviteLinkResult = string;
-    export interface QueryAlphaChannelsListArgs {
-        first: number;
-        after: Nullable<string>;
-    }
-    export type QueryAlphaChannelsListResult = ConversationConnection;
-    export interface QueryAlphaChannelMembersArgs {
-        channelId: string;
-    }
-    export type QueryAlphaChannelMembersResult = ChannelMember[];
-    export interface QueryAlphaChannelsArgs {
-        query: Nullable<string>;
-        first: number;
-        after: Nullable<string>;
-        page: Nullable<number>;
-        sort: Nullable<string>;
-    }
-    export type QueryAlphaChannelsResult = ChannelConversationConnection;
-    export interface QueryAlphaChannelInviteInfoArgs {
-        uuid: string;
-    }
-    export type QueryAlphaChannelInviteInfoResult = Nullable<ChannelInvite>;
-    export interface QueryAlphaChannelInviteLinkArgs {
-        channelId: string;
-    }
-    export type QueryAlphaChannelInviteLinkResult = string;
-    export interface ConversationUpdateSingle {
-        seq: number;
-        state: string;
-        update: ConversationUpdate;
-    }
-    export interface ConversationUpdateBatch {
-        updates: ConversationUpdate[];
-        fromSeq: number;
-        seq: number;
-        state: string;
-    }
-    export type ConversationUpdateContainer = ConversationUpdateSingle | ConversationUpdateBatch;
-    export type ConversationUpdate = ConversationMessageReceived | ConversationMessageUpdated | ConversationMessageDeleted;
-    export interface ConversationMessageReceived {
-        message: ConversationMessage;
-    }
-    export interface ConversationMessageUpdated {
-        message: ConversationMessage;
-    }
-    export interface ConversationMessageDeleted {
-        message: ConversationMessage;
-    }
-    export interface SubscriptionConversationUpdatesArgs {
-        conversationId: string;
-        fromState: Nullable<string>;
-    }
-    export type SubscriptionConversationUpdatesResult = ConversationUpdateContainer;
-    export interface DialogUpdateSingle {
-        seq: number;
-        state: string;
-        update: DialogUpdate;
-    }
-    export interface DialogUpdateBatch {
-        updates: DialogUpdate[];
-        fromSeq: number;
-        seq: number;
-        state: string;
-    }
-    export type DialogUpdateContainer = DialogUpdateSingle | DialogUpdateBatch;
-    export type DialogUpdate = DialogMessageReceived | DialogMessageUpdated | DialogMessageDeleted | DialogMessageRead | DialogTitleUpdated | DialogDeleted;
-    export interface DialogMessageReceived {
-        cid: string;
-        message: ConversationMessage;
-        unread: number;
-        globalUnread: number;
-    }
-    export interface DialogMessageUpdated {
-        message: ConversationMessage;
-    }
-    export interface DialogMessageDeleted {
-        message: ConversationMessage;
-        unread: number;
-        globalUnread: number;
-    }
-    export interface DialogMessageRead {
-        cid: string;
-        unread: number;
-        globalUnread: number;
-    }
-    export interface DialogTitleUpdated {
-        cid: string;
-        title: string;
-    }
-    export interface DialogPhotoUpdated {
-        cid: string;
-        photoRef: Nullable<ImageRef>;
-    }
-    export interface DialogDeleted {
-        cid: string;
-        globalUnread: number;
-    }
-    export interface SubscriptionDialogsUpdatesArgs {
-        fromState: Nullable<string>;
-    }
-    export type SubscriptionDialogsUpdatesResult = DialogUpdateContainer;
-    export interface FeatureFlag {
-        id: string;
-        key: string;
-        title: string;
-    }
     export interface MutationFeatureFlagAddArgs {
         key: string;
         title: string;
@@ -1127,95 +1085,121 @@ export namespace GQL {
         featureId: string;
     }
     export type MutationSuperAccountFeatureRemoveResult = SuperAccount;
-    export interface Mutation {
-        lifecheck: Nullable<string>;
+    export interface MutationCreateOrganizationArgs {
+        input: CreateOrganizationInput;
     }
+    export type MutationCreateOrganizationResult = OrganizationProfile;
+    export interface MutationUpdateOrganizationProfileArgs {
+        input: UpdateOrganizationProfileInput;
+        id: Nullable<string>;
+    }
+    export type MutationUpdateOrganizationProfileResult = OrganizationProfile;
+    export interface MutationRegisterWebPushArgs {
+        endpoint: string;
+    }
+    export type MutationRegisterWebPushResult = string;
+    export interface MutationRegisterPushArgs {
+        endpoint: string;
+        type: PushType;
+    }
+    export type MutationRegisterPushResult = string;
+    export interface MutationTypingSendArgs {
+        conversationId: string;
+        type: TypingType;
+    }
+    export type MutationTypingSendResult = string;
+    export interface MutationTypingCancelArgs {
+        conversationId: string;
+    }
+    export type MutationTypingCancelResult = string;
+    export interface MutationAlphaSetTypingArgs {
+        conversationId: string;
+        type: Nullable<string>;
+    }
+    export type MutationAlphaSetTypingResult = string;
+    export interface MutationAlphaSetUserShortNameArgs {
+        shortname: string;
+    }
+    export type MutationAlphaSetUserShortNameResult = Nullable<string>;
+    export interface MutationAlphaSetOrgShortNameArgs {
+        id: string;
+        shortname: string;
+    }
+    export type MutationAlphaSetOrgShortNameResult = Nullable<string>;
     export interface OrganizationContact {
-        name: string;
-        photo: Nullable<string>;
-        photoRef: Nullable<ImageRef>;
-        position: Nullable<string>;
-        email: Nullable<string>;
-        phone: Nullable<string>;
-        link: Nullable<string>;
-        twitter: Nullable<string>;
+        name?: string;
+        photo?: Nullable<string>;
+        photoRef?: Nullable<ImageRef>;
+        position?: Nullable<string>;
+        email?: Nullable<string>;
+        phone?: Nullable<string>;
+        link?: Nullable<string>;
+        twitter?: Nullable<string>;
     }
     export interface Organization {
-        id: string;
-        isMine: boolean;
-        name: string;
-        photo: Nullable<string>;
-        website: Nullable<string>;
-        websiteTitle: Nullable<string>;
-        about: Nullable<string>;
-        twitter: Nullable<string>;
-        facebook: Nullable<string>;
-        linkedin: Nullable<string>;
-        location: Nullable<string>;
-        superAccountId: string;
-        alphaIsOwner: boolean;
-        alphaOrganizationMembers: OrganizationJoinedMember[];
-        alphaFeatured: boolean;
-        alphaIsCommunity: boolean;
-        alphaCreatedChannels: Nullable<ChannelConversation>[];
-        shortname: Nullable<string>;
+        id?: string;
+        isMine?: boolean;
+        name?: string;
+        photo?: Nullable<string>;
+        website?: Nullable<string>;
+        websiteTitle?: Nullable<string>;
+        about?: Nullable<string>;
+        twitter?: Nullable<string>;
+        facebook?: Nullable<string>;
+        linkedin?: Nullable<string>;
+        location?: Nullable<string>;
+        superAccountId?: string;
+        alphaIsOwner?: boolean;
+        alphaOrganizationMembers?: OrganizationJoinedMember[];
+        alphaFeatured?: boolean;
+        alphaIsCommunity?: boolean;
+        alphaCreatedChannels?: Nullable<ChannelConversation>[];
+        shortname?: Nullable<string>;
     }
-    export interface OrganizationsEdge {
-        node: Organization;
-        cursor: string;
-    }
-    export interface OrganizationsConnection {
-        edges: OrganizationsEdge[];
-        pageInfo: PageInfo;
-    }
-    export interface QueryOrganizationArgs {
-        id: string;
-    }
-    export type QueryOrganizationResult = Organization;
     export interface OrganizationProfile {
-        id: string;
-        name: string;
-        photoRef: Nullable<ImageRef>;
-        website: Nullable<string>;
-        websiteTitle: Nullable<string>;
-        about: Nullable<string>;
-        twitter: Nullable<string>;
-        facebook: Nullable<string>;
-        linkedin: Nullable<string>;
-        contacts: OrganizationContact[];
-        location: Nullable<string>;
-        alphaPublished: boolean;
-        alphaEditorial: boolean;
-        alphaFeatured: boolean;
-        alphaIsCommunity: boolean;
-        alphaLocations: Nullable<string[]>;
-        alphaInterests: Nullable<string[]>;
-        alphaOrganizationType: Nullable<string[]>;
-        alphaPotentialSites: Nullable<Range[]>;
-        alphaSiteSizes: Nullable<Range[]>;
-        alphaDevelopmentModels: Nullable<string[]>;
-        alphaAvailability: Nullable<string[]>;
-        alphaLandUse: Nullable<string[]>;
-        alphaGoodFor: Nullable<string[]>;
-        alphaSpecialAttributes: Nullable<string[]>;
-        alphaLookingFor: Nullable<string[]>;
-        alphaGeographies: Nullable<string[]>;
-        alphaDOShapeAndForm: Nullable<string[]>;
-        alphaDOCurrentUse: Nullable<string[]>;
-        alphaDOGoodFitFor: Nullable<string[]>;
-        alphaDOSpecialAttributes: Nullable<string[]>;
-        alphaDOAvailability: Nullable<string[]>;
-        alphaARGeographies: Nullable<string[]>;
-        alphaARAreaRange: Nullable<string[]>;
-        alphaARHeightLimit: Nullable<string[]>;
-        alphaARActivityStatus: Nullable<string[]>;
-        alphaARAquisitionBudget: Nullable<string[]>;
-        alphaARAquisitionRate: Nullable<string[]>;
-        alphaARClosingTime: Nullable<string[]>;
-        alphaARSpecialAttributes: Nullable<string[]>;
-        alphaARLandUse: Nullable<string[]>;
-        alphaJoinedChannels: Nullable<ChannelConversation>[];
-        alphaCreatedChannels: Nullable<ChannelConversation>[];
+        id?: string;
+        name?: string;
+        photoRef?: Nullable<ImageRef>;
+        website?: Nullable<string>;
+        websiteTitle?: Nullable<string>;
+        about?: Nullable<string>;
+        twitter?: Nullable<string>;
+        facebook?: Nullable<string>;
+        linkedin?: Nullable<string>;
+        contacts?: OrganizationContact[];
+        location?: Nullable<string>;
+        alphaPublished?: boolean;
+        alphaEditorial?: boolean;
+        alphaFeatured?: boolean;
+        alphaIsCommunity?: boolean;
+        alphaLocations?: Nullable<string[]>;
+        alphaInterests?: Nullable<string[]>;
+        alphaOrganizationType?: Nullable<string[]>;
+        alphaPotentialSites?: Nullable<Range[]>;
+        alphaSiteSizes?: Nullable<Range[]>;
+        alphaDevelopmentModels?: Nullable<string[]>;
+        alphaAvailability?: Nullable<string[]>;
+        alphaLandUse?: Nullable<string[]>;
+        alphaGoodFor?: Nullable<string[]>;
+        alphaSpecialAttributes?: Nullable<string[]>;
+        alphaLookingFor?: Nullable<string[]>;
+        alphaGeographies?: Nullable<string[]>;
+        alphaDOShapeAndForm?: Nullable<string[]>;
+        alphaDOCurrentUse?: Nullable<string[]>;
+        alphaDOGoodFitFor?: Nullable<string[]>;
+        alphaDOSpecialAttributes?: Nullable<string[]>;
+        alphaDOAvailability?: Nullable<string[]>;
+        alphaARGeographies?: Nullable<string[]>;
+        alphaARAreaRange?: Nullable<string[]>;
+        alphaARHeightLimit?: Nullable<string[]>;
+        alphaARActivityStatus?: Nullable<string[]>;
+        alphaARAquisitionBudget?: Nullable<string[]>;
+        alphaARAquisitionRate?: Nullable<string[]>;
+        alphaARClosingTime?: Nullable<string[]>;
+        alphaARSpecialAttributes?: Nullable<string[]>;
+        alphaARLandUse?: Nullable<string[]>;
+        alphaJoinedChannels?: Nullable<ChannelConversation>[];
+        alphaCreatedChannels?: Nullable<ChannelConversation>[];
     }
     export interface CreateOrganizationInput {
         name: string;
@@ -1275,126 +1259,220 @@ export namespace GQL {
         link: Nullable<string>;
         twitter: Nullable<string>;
     }
+    export interface OrganizationsEdge {
+        node?: Organization;
+        cursor?: string;
+    }
+    export interface OrganizationsConnection {
+        edges?: OrganizationsEdge[];
+        pageInfo?: PageInfo;
+    }
+    export interface Permissions {
+        roles?: string[];
+    }
+    export interface ProfilePrefill {
+        firstName?: Nullable<string>;
+        lastName?: Nullable<string>;
+        picture?: Nullable<string>;
+    }
+    export interface PushSettings {
+        webPushKey?: Nullable<string>;
+    }
+    export type PushType = 'WEB_PUSH' | 'IOS' | 'ANDROID';
+    export interface Query {
+        lifecheck?: Nullable<string>;
+        alphaNotificationCounter?: NotificationCounter;
+        alphaChat?: Conversation;
+        alphaLoadMessages?: ConversationState;
+        alphaChatsSearchForCompose?: ComposeSearchResult[];
+        alphaChatSearch?: Nullable<Conversation>;
+        alphaGroupConversationMembers?: GroupConversationMember[];
+        myProfile?: Nullable<Profile>;
+        alphaChatTextSearch?: Conversation[];
+        alphaInvites?: Nullable<Invite[]>;
+        alphaInviteInfo?: Nullable<InviteInfo>;
+        appInvite?: string;
+        appInviteInfo?: Nullable<AppInvite>;
+        alphaAppInvite?: string;
+        alphaAppInviteInfo?: Nullable<AppInviteInfo>;
+        alphaInvitesHistory?: Nullable<InviteHistotyInfo[]>;
+        alphaChats?: ConversationConnection;
+        dialogs?: DialogsConnection;
+        settings?: Settings;
+        alphaOrganizationMembers?: OrganizationMember[];
+        alphaOrganizationInviteLink?: Nullable<Invite>;
+        alphaOrganizationPublicInvite?: Nullable<Invite>;
+        superAccounts?: SuperAccount[];
+        superAccount?: SuperAccount;
+        superAdmins?: SuperAdmin[];
+        conversationDraft?: Nullable<string>;
+        alphaDraftMessage?: Nullable<string>;
+        alphaChannelsList?: ConversationConnection;
+        alphaChannelMembers?: ChannelMember[];
+        alphaChannelsFeatured?: ChannelConversation[];
+        alphaChannels?: ChannelConversationConnection;
+        alphaChannelInviteInfo?: Nullable<ChannelInvite>;
+        alphaChannelInviteLink?: string;
+        featureFlags?: FeatureFlag[];
+        myOrganization?: Nullable<Organization>;
+        myOrganizations?: Organization[];
+        organization?: Organization;
+        myOrganizationProfile?: OrganizationProfile;
+        organizationProfile?: OrganizationProfile;
+        alphaOrganizations?: OrganizationsConnection;
+        alphaOrganizationByPrefix?: Nullable<Organization>;
+        alphaComunityPrefixSearch?: OrganizationsConnection;
+        myPermissions?: Permissions;
+        users?: User[];
+        myProfilePrefill?: Nullable<ProfilePrefill>;
+        pushSettings?: PushSettings;
+        sessionState?: SessionState;
+        me?: Nullable<User>;
+        user?: User;
+        userSearch?: UserConnection;
+        alphaProfiles?: UserConnection;
+        room?: Nullable<Room>;
+        alphaResolveShortName?: Nullable<ShortNameDestination>;
+    }
+    export interface QueryAlphaChatArgs {
+        conversationId: Nullable<string>;
+        shortName: Nullable<string>;
+    }
+    export type QueryAlphaChatResult = Conversation;
+    export interface QueryAlphaLoadMessagesArgs {
+        conversationId: string;
+        first: Nullable<number>;
+        before: Nullable<string>;
+        after: Nullable<string>;
+    }
+    export type QueryAlphaLoadMessagesResult = ConversationState;
+    export interface QueryAlphaChatsSearchForComposeArgs {
+        query: Nullable<string>;
+        organizations: Nullable<boolean>;
+        limit: Nullable<number>;
+    }
+    export type QueryAlphaChatsSearchForComposeResult = ComposeSearchResult[];
+    export interface QueryAlphaChatSearchArgs {
+        members: string[];
+    }
+    export type QueryAlphaChatSearchResult = Nullable<Conversation>;
+    export interface QueryAlphaGroupConversationMembersArgs {
+        conversationId: string;
+    }
+    export type QueryAlphaGroupConversationMembersResult = GroupConversationMember[];
+    export interface QueryAlphaChatTextSearchArgs {
+        query: string;
+    }
+    export type QueryAlphaChatTextSearchResult = Conversation[];
+    export interface QueryAlphaInviteInfoArgs {
+        key: string;
+    }
+    export type QueryAlphaInviteInfoResult = Nullable<InviteInfo>;
+    export interface QueryAppInviteInfoArgs {
+        key: string;
+    }
+    export type QueryAppInviteInfoResult = Nullable<AppInvite>;
+    export interface QueryAlphaAppInviteInfoArgs {
+        key: string;
+    }
+    export type QueryAlphaAppInviteInfoResult = Nullable<AppInviteInfo>;
+    export interface QueryAlphaChatsArgs {
+        first: number;
+        after: Nullable<string>;
+    }
+    export type QueryAlphaChatsResult = ConversationConnection;
+    export interface QueryDialogsArgs {
+        first: number;
+        after: Nullable<string>;
+    }
+    export type QueryDialogsResult = DialogsConnection;
+    export interface QueryAlphaOrganizationMembersArgs {
+        orgId: string;
+    }
+    export type QueryAlphaOrganizationMembersResult = OrganizationMember[];
+    export interface QueryAlphaOrganizationInviteLinkArgs {
+        organizationId: Nullable<string>;
+    }
+    export type QueryAlphaOrganizationInviteLinkResult = Nullable<Invite>;
+    export interface QueryAlphaOrganizationPublicInviteArgs {
+        organizationId: Nullable<string>;
+    }
+    export type QueryAlphaOrganizationPublicInviteResult = Nullable<Invite>;
+    export interface QuerySuperAccountArgs {
+        id: string;
+        viaOrgId: Nullable<boolean>;
+    }
+    export type QuerySuperAccountResult = SuperAccount;
+    export interface QueryConversationDraftArgs {
+        conversationId: string;
+    }
+    export type QueryConversationDraftResult = Nullable<string>;
+    export interface QueryAlphaDraftMessageArgs {
+        conversationId: string;
+    }
+    export type QueryAlphaDraftMessageResult = Nullable<string>;
+    export interface QueryAlphaChannelsListArgs {
+        first: number;
+        after: Nullable<string>;
+    }
+    export type QueryAlphaChannelsListResult = ConversationConnection;
+    export interface QueryAlphaChannelMembersArgs {
+        channelId: string;
+    }
+    export type QueryAlphaChannelMembersResult = ChannelMember[];
+    export interface QueryAlphaChannelsArgs {
+        query: Nullable<string>;
+        first: number;
+        after: Nullable<string>;
+        page: Nullable<number>;
+        sort: Nullable<string>;
+    }
+    export type QueryAlphaChannelsResult = ChannelConversationConnection;
+    export interface QueryAlphaChannelInviteInfoArgs {
+        uuid: string;
+    }
+    export type QueryAlphaChannelInviteInfoResult = Nullable<ChannelInvite>;
+    export interface QueryAlphaChannelInviteLinkArgs {
+        channelId: string;
+    }
+    export type QueryAlphaChannelInviteLinkResult = string;
+    export interface QueryOrganizationArgs {
+        id: string;
+    }
+    export type QueryOrganizationResult = Organization;
     export interface QueryOrganizationProfileArgs {
         id: string;
     }
     export type QueryOrganizationProfileResult = OrganizationProfile;
-    export interface MutationCreateOrganizationArgs {
-        input: CreateOrganizationInput;
+    export interface QueryAlphaOrganizationsArgs {
+        query: Nullable<string>;
+        prefix: Nullable<string>;
+        sort: Nullable<string>;
+        first: number;
+        after: Nullable<string>;
+        page: Nullable<number>;
     }
-    export type MutationCreateOrganizationResult = OrganizationProfile;
-    export interface MutationUpdateOrganizationProfileArgs {
-        input: UpdateOrganizationProfileInput;
-        id: Nullable<string>;
+    export type QueryAlphaOrganizationsResult = OrganizationsConnection;
+    export interface QueryAlphaOrganizationByPrefixArgs {
+        query: Nullable<string>;
     }
-    export type MutationUpdateOrganizationProfileResult = OrganizationProfile;
-    export interface Permissions {
-        roles: string[];
+    export type QueryAlphaOrganizationByPrefixResult = Nullable<Organization>;
+    export interface QueryAlphaComunityPrefixSearchArgs {
+        query: Nullable<string>;
+        sort: Nullable<string>;
+        first: number;
+        after: Nullable<string>;
+        page: Nullable<number>;
     }
+    export type QueryAlphaComunityPrefixSearchResult = OrganizationsConnection;
     export interface QueryUsersArgs {
         query: string;
     }
     export type QueryUsersResult = User[];
-    export interface ProfilePrefill {
-        firstName: Nullable<string>;
-        lastName: Nullable<string>;
-        picture: Nullable<string>;
-    }
-    export interface PushSettings {
-        webPushKey: Nullable<string>;
-    }
-    export type PushType = 'WEB_PUSH' | 'IOS' | 'ANDROID';
-    export interface MutationRegisterWebPushArgs {
-        endpoint: string;
-    }
-    export type MutationRegisterWebPushResult = string;
-    export interface MutationRegisterPushArgs {
-        endpoint: string;
-        type: PushType;
-    }
-    export type MutationRegisterPushResult = string;
-    export interface Query {
-        lifecheck: Nullable<string>;
-    }
-    export interface SessionState {
-        isLoggedIn: boolean;
-        isProfileCreated: boolean;
-        isActivated: boolean;
-        isAccountExists: boolean;
-        isCompleted: boolean;
-        isBlocked: boolean;
-        isAccountPicked: boolean;
-        isAccountActivated: boolean;
-    }
-    export interface Subscription {
-        lifecheck: Nullable<string>;
-    }
-    export interface TypingEvent {
-        conversation: Conversation;
-        user: User;
-        type: TypingType;
-        cancel: boolean;
-    }
-    export type TypingType = 'TEXT' | 'PHOTO' | 'FILE';
-    export interface MutationTypingSendArgs {
-        conversationId: string;
-        type: TypingType;
-    }
-    export type MutationTypingSendResult = string;
-    export interface MutationTypingCancelArgs {
-        conversationId: string;
-    }
-    export type MutationTypingCancelResult = string;
-    export interface MutationAlphaSetTypingArgs {
-        conversationId: string;
-        type: Nullable<string>;
-    }
-    export type MutationAlphaSetTypingResult = string;
-    export interface SubscriptionConversationTypingsArgs {
-        conversationId: string;
-    }
-    export type SubscriptionConversationTypingsResult = TypingEvent;
-    export interface SubscriptionAlphaSubscribeChatTypingsArgs {
-        conversationId: string;
-    }
-    export type SubscriptionAlphaSubscribeChatTypingsResult = TypingEvent;
-    export interface User {
-        id: string;
-        isYou: boolean;
-        isBot: boolean;
-        name: string;
-        firstName: string;
-        lastName: Nullable<string>;
-        photo: Nullable<string>;
-        phone: Nullable<string>;
-        email: Nullable<string>;
-        website: Nullable<string>;
-        about: Nullable<string>;
-        location: Nullable<string>;
-        linkedin: Nullable<string>;
-        twitter: Nullable<string>;
-        shortname: Nullable<string>;
-        channelsJoined: ChannelConversation[];
-        photoRef: Nullable<ImageRef>;
-        picture: Nullable<string>;
-        pictureRef: Nullable<ImageRef>;
-        alphaRole: Nullable<string>;
-        alphaLinkedin: Nullable<string>;
-        alphaTwitter: Nullable<string>;
-        alphaLocations: Nullable<string[]>;
-    }
     export interface QueryUserArgs {
         id: string;
     }
     export type QueryUserResult = User;
-    export interface UserEdge {
-        node: User;
-        cursor: string;
-    }
-    export interface UserConnection {
-        edges: UserEdge[];
-        pageInfo: PageInfo;
-    }
     export interface QueryUserSearchArgs {
         query: Nullable<string>;
         first: number;
@@ -1411,41 +1489,125 @@ export namespace GQL {
         sort: Nullable<string>;
     }
     export type QueryAlphaProfilesResult = UserConnection;
-    export type Room = PrivateRoom | SharedRoom;
-    export interface PrivateRoom {
-        id: string;
-        user: User;
-    }
-    export type SharedRoomKind = 'INTERNAL' | 'PUBLIC' | 'GROUP';
-    export type SharedRoomMembershipStatus = 'MEMBER' | 'REQUESTED' | 'LEFT' | 'KICKED' | 'NONE';
-    export interface SharedRoom {
-        id: string;
-        kind: SharedRoomKind;
-        title: string;
-        photo: string;
-        description: string;
-        organization: Organization;
-        membership: SharedRoomMembershipStatus;
-        membersCount: Nullable<number>;
-    }
     export interface QueryRoomArgs {
         id: string;
     }
     export type QueryRoomResult = Nullable<Room>;
-    export type ShortNameDestination = User | Organization;
     export interface QueryAlphaResolveShortNameArgs {
         shortname: string;
     }
     export type QueryAlphaResolveShortNameResult = Nullable<ShortNameDestination>;
-    export interface MutationAlphaSetUserShortNameArgs {
-        shortname: string;
+    export interface SessionState {
+        isLoggedIn?: boolean;
+        isProfileCreated?: boolean;
+        isActivated?: boolean;
+        isAccountExists?: boolean;
+        isCompleted?: boolean;
+        isBlocked?: boolean;
+        isAccountPicked?: boolean;
+        isAccountActivated?: boolean;
     }
-    export type MutationAlphaSetUserShortNameResult = Nullable<string>;
-    export interface MutationAlphaSetOrgShortNameArgs {
-        id: string;
-        shortname: string;
+    export interface Subscription {
+        lifecheck?: Nullable<string>;
+        settingsWatch?: Settings;
+        watchSettings?: Settings;
+        alphaSubscribeChatOnline?: OnlineEvent;
+        alphaSubscribeOnline?: OnlineEvent;
+        conversationUpdates?: ConversationUpdateContainer;
+        dialogsUpdates?: DialogUpdateContainer;
+        typings?: TypingEvent;
+        conversationTypings?: TypingEvent;
+        alphaSubscribeTypings?: TypingEvent;
+        alphaSubscribeChatTypings?: TypingEvent;
     }
-    export type MutationAlphaSetOrgShortNameResult = Nullable<string>;
+    export interface SubscriptionAlphaSubscribeChatOnlineArgs {
+        conversations: string[];
+    }
+    export type SubscriptionAlphaSubscribeChatOnlineResult = OnlineEvent;
+    export interface SubscriptionAlphaSubscribeOnlineArgs {
+        users: string[];
+    }
+    export type SubscriptionAlphaSubscribeOnlineResult = OnlineEvent;
+    export interface SubscriptionConversationUpdatesArgs {
+        conversationId: string;
+        fromState: Nullable<string>;
+    }
+    export type SubscriptionConversationUpdatesResult = ConversationUpdateContainer;
+    export interface SubscriptionDialogsUpdatesArgs {
+        fromState: Nullable<string>;
+    }
+    export type SubscriptionDialogsUpdatesResult = DialogUpdateContainer;
+    export interface SubscriptionConversationTypingsArgs {
+        conversationId: string;
+    }
+    export type SubscriptionConversationTypingsResult = TypingEvent;
+    export interface SubscriptionAlphaSubscribeChatTypingsArgs {
+        conversationId: string;
+    }
+    export type SubscriptionAlphaSubscribeChatTypingsResult = TypingEvent;
+    export interface TypingEvent {
+        conversation?: Conversation;
+        user?: User;
+        type?: TypingType;
+        cancel?: boolean;
+    }
+    export type TypingType = 'TEXT' | 'PHOTO' | 'FILE';
+    export interface User {
+        id?: string;
+        isYou?: boolean;
+        isBot?: boolean;
+        name?: string;
+        firstName?: string;
+        lastName?: Nullable<string>;
+        photo?: Nullable<string>;
+        phone?: Nullable<string>;
+        email?: Nullable<string>;
+        website?: Nullable<string>;
+        about?: Nullable<string>;
+        location?: Nullable<string>;
+        linkedin?: Nullable<string>;
+        twitter?: Nullable<string>;
+        shortname?: Nullable<string>;
+        channelsJoined?: ChannelConversation[];
+        photoRef?: Nullable<ImageRef>;
+        picture?: Nullable<string>;
+        pictureRef?: Nullable<ImageRef>;
+        alphaRole?: Nullable<string>;
+        alphaLinkedin?: Nullable<string>;
+        alphaTwitter?: Nullable<string>;
+        alphaLocations?: Nullable<string[]>;
+        online?: boolean;
+        lastSeen?: Nullable<string>;
+        organizations?: Organization[];
+        primaryOrganization?: Nullable<Organization>;
+        alphaPrimaryOrganization?: Nullable<Organization>;
+    }
+    export interface UserEdge {
+        node?: User;
+        cursor?: string;
+    }
+    export interface UserConnection {
+        edges?: UserEdge[];
+        pageInfo?: PageInfo;
+    }
+    export type Room = PrivateRoom | SharedRoom;
+    export interface PrivateRoom {
+        id?: string;
+        user?: User;
+    }
+    export type SharedRoomKind = 'INTERNAL' | 'PUBLIC' | 'GROUP';
+    export type SharedRoomMembershipStatus = 'MEMBER' | 'REQUESTED' | 'LEFT' | 'KICKED' | 'NONE';
+    export interface SharedRoom {
+        id?: string;
+        kind?: SharedRoomKind;
+        title?: string;
+        photo?: string;
+        description?: string;
+        organization?: Organization;
+        membership?: SharedRoomMembershipStatus;
+        membersCount?: Nullable<number>;
+    }
+    export type ShortNameDestination = User | Organization;
 }
 
 export interface GQLResolver {
@@ -1481,7 +1643,7 @@ export interface GQLResolver {
     GroupChatUpdateResponse?: ComplexTypedResolver<GQL.GroupChatUpdateResponse, {chat: GQLRoots.ConversationRoot, chatEventMessage: Nullable<GQLRoots.ConversationEventMessageRoot>, chatEvent: Nullable<GQLRoots.ConversationEventRoot>}, GQLRoots.GroupChatUpdateResponseRoot>;
     ConversationUpdateResponse?: ComplexTypedResolver<GQL.ConversationUpdateResponse, {chat: GQLRoots.ConversationRoot}, GQLRoots.ConversationUpdateResponseRoot>;
     ConversationBlockedUser?: ComplexTypedResolver<GQL.ConversationBlockedUser, {user: GQLRoots.UserRoot, blockedBy: GQLRoots.UserRoot}, GQLRoots.ConversationBlockedUserRoot>;
-    Profile?: ComplexTypedResolver<GQL.Profile, {photoRef: Nullable<GQLRoots.ImageRefRoot>, alphaInvitedBy: Nullable<GQLRoots.UserRoot>}, GQLRoots.ProfileRoot>;
+    Profile?: ComplexTypedResolver<GQL.Profile, {photoRef: Nullable<GQLRoots.ImageRefRoot>, alphaInvitedBy: Nullable<GQLRoots.UserRoot>, primaryOrganization: Nullable<GQLRoots.OrganizationRoot>, alphaPrimaryOrganization: Nullable<GQLRoots.OrganizationRoot>}, GQLRoots.ProfileRoot>;
     AlphaSignupData?: ComplexTypedResolver<GQL.AlphaSignupData, {user: Nullable<GQLRoots.UserRoot>, organization: Nullable<GQLRoots.OrganizationRoot>}, GQLRoots.AlphaSignupDataRoot>;
     Invite?: ComplexTypedResolver<GQL.Invite, {}, GQLRoots.InviteRoot>;
     InviteInfo?: ComplexTypedResolver<GQL.InviteInfo, {photoRef: Nullable<GQLRoots.ImageRefRoot>, creator: Nullable<GQLRoots.UserRoot>}, GQLRoots.InviteInfoRoot>;
@@ -1526,17 +1688,20 @@ export interface GQLResolver {
     DialogPhotoUpdated?: ComplexTypedResolver<GQL.DialogPhotoUpdated, {photoRef: Nullable<GQLRoots.ImageRefRoot>}, GQLRoots.DialogPhotoUpdatedRoot>;
     DialogDeleted?: ComplexTypedResolver<GQL.DialogDeleted, {}, GQLRoots.DialogDeletedRoot>;
     FeatureFlag?: ComplexTypedResolver<GQL.FeatureFlag, {}, GQLRoots.FeatureFlagRoot>;
+    Mutation?: ComplexTypedResolver<GQL.Mutation, {alphaSendMessage: GQLRoots.ConversationEventMessageRoot, alphaReadChat: GQLRoots.ChatReadResultRoot, alphaEditMessage: GQLRoots.ConversationEventEditMessageRoot, alphaSendIntro: GQLRoots.ConversationEventMessageRoot, alphaEditIntro: GQLRoots.ConversationEventMessageRoot, alphaDeleteMessageUrlAugmentation: GQLRoots.ConversationEventMessageRoot, alphaDeleteMessage: GQLRoots.ConversationEventDeleteRoot, alphaChatCreateGroup: GQLRoots.ConversationRoot, alphaChatUpdateGroup: GQLRoots.ConversationUpdateResponseRoot, alphaChatChangeGroupTitle: GQLRoots.GroupChatUpdateResponseRoot, alphaChatInviteToGroup: GQLRoots.GroupChatUpdateResponseRoot, alphaChatKickFromGroup: GQLRoots.GroupChatUpdateResponseRoot, alphaChatChangeRoleInGroup: GQLRoots.GroupChatUpdateResponseRoot, alphaChatCopyGroup: GQLRoots.GroupChatUpdateResponseRoot, alphaChatLeave: GQLRoots.ConversationUpdateResponseRoot, alphaUpdateConversationSettings: GQLRoots.ConversationSettingsRoot, profileCreate: GQLRoots.ProfileRoot, profileUpdate: GQLRoots.ProfileRoot, createProfile: GQLRoots.ProfileRoot, updateProfile: GQLRoots.ProfileRoot, alphaCreateUserProfileAndOrganization: GQLRoots.AlphaSignupDataRoot, alphaCreateInvite: GQLRoots.InviteRoot, settingsUpdate: GQLRoots.SettingsRoot, updateSettings: GQLRoots.SettingsRoot, alphaOrganizationRefreshInviteLink: GQLRoots.InviteRoot, alphaOrganizationCreatePublicInvite: GQLRoots.InviteRoot, superAccountAdd: GQLRoots.SuperAccountRoot, superAccountRename: GQLRoots.SuperAccountRoot, superAccountActivate: GQLRoots.SuperAccountRoot, superAccountSuspend: GQLRoots.SuperAccountRoot, superAccountPend: GQLRoots.SuperAccountRoot, superAccountMemberAdd: GQLRoots.SuperAccountRoot, superAccountMemberRemove: GQLRoots.SuperAccountRoot, alphaAlterPublished: GQLRoots.OrganizationRoot, alphaChannelCreate: GQLRoots.ConversationRoot, alphaChannelSetFeatured: GQLRoots.ConversationRoot, alphaChannelHideFromSearch: GQLRoots.ConversationRoot, alphaChannelInvite: GQLRoots.ConversationUpdateResponseRoot, alphaChannelJoin: GQLRoots.ConversationUpdateResponseRoot, featureFlagAdd: GQLRoots.FeatureFlagRoot, superAccountFeatureAdd: GQLRoots.SuperAccountRoot, superAccountFeatureRemove: GQLRoots.SuperAccountRoot, createOrganization: GQLRoots.OrganizationProfileRoot, updateOrganizationProfile: GQLRoots.OrganizationProfileRoot}, GQLRoots.MutationRoot>;
     OrganizationContact?: ComplexTypedResolver<GQL.OrganizationContact, {photoRef: Nullable<GQLRoots.ImageRefRoot>}, GQLRoots.OrganizationContactRoot>;
     Organization?: ComplexTypedResolver<GQL.Organization, {alphaOrganizationMembers: GQLRoots.OrganizationJoinedMemberRoot[], alphaCreatedChannels: Nullable<GQLRoots.ChannelConversationRoot>[]}, GQLRoots.OrganizationRoot>;
+    OrganizationProfile?: ComplexTypedResolver<GQL.OrganizationProfile, {photoRef: Nullable<GQLRoots.ImageRefRoot>, contacts: GQLRoots.OrganizationContactRoot[], alphaPotentialSites: Nullable<GQLRoots.RangeRoot[]>, alphaSiteSizes: Nullable<GQLRoots.RangeRoot[]>, alphaJoinedChannels: Nullable<GQLRoots.ChannelConversationRoot>[], alphaCreatedChannels: Nullable<GQLRoots.ChannelConversationRoot>[]}, GQLRoots.OrganizationProfileRoot>;
     OrganizationsEdge?: ComplexTypedResolver<GQL.OrganizationsEdge, {node: GQLRoots.OrganizationRoot}, GQLRoots.OrganizationsEdgeRoot>;
     OrganizationsConnection?: ComplexTypedResolver<GQL.OrganizationsConnection, {edges: GQLRoots.OrganizationsEdgeRoot[], pageInfo: GQLRoots.PageInfoRoot}, GQLRoots.OrganizationsConnectionRoot>;
-    OrganizationProfile?: ComplexTypedResolver<GQL.OrganizationProfile, {photoRef: Nullable<GQLRoots.ImageRefRoot>, contacts: GQLRoots.OrganizationContactRoot[], alphaPotentialSites: Nullable<GQLRoots.RangeRoot[]>, alphaSiteSizes: Nullable<GQLRoots.RangeRoot[]>, alphaJoinedChannels: Nullable<GQLRoots.ChannelConversationRoot>[], alphaCreatedChannels: Nullable<GQLRoots.ChannelConversationRoot>[]}, GQLRoots.OrganizationProfileRoot>;
     Permissions?: ComplexTypedResolver<GQL.Permissions, {}, GQLRoots.PermissionsRoot>;
     ProfilePrefill?: ComplexTypedResolver<GQL.ProfilePrefill, {}, GQLRoots.ProfilePrefillRoot>;
     PushSettings?: ComplexTypedResolver<GQL.PushSettings, {}, GQLRoots.PushSettingsRoot>;
+    Query?: ComplexTypedResolver<GQL.Query, {alphaNotificationCounter: GQLRoots.NotificationCounterRoot, alphaChat: GQLRoots.ConversationRoot, alphaLoadMessages: GQLRoots.ConversationStateRoot, alphaChatsSearchForCompose: GQLRoots.ComposeSearchResultRoot[], alphaChatSearch: Nullable<GQLRoots.ConversationRoot>, alphaGroupConversationMembers: GQLRoots.GroupConversationMemberRoot[], myProfile: Nullable<GQLRoots.ProfileRoot>, alphaChatTextSearch: GQLRoots.ConversationRoot[], alphaInvites: Nullable<GQLRoots.InviteRoot[]>, alphaInviteInfo: Nullable<GQLRoots.InviteInfoRoot>, appInviteInfo: Nullable<GQLRoots.AppInviteRoot>, alphaAppInviteInfo: Nullable<GQLRoots.AppInviteInfoRoot>, alphaInvitesHistory: Nullable<GQLRoots.InviteHistotyInfoRoot[]>, alphaChats: GQLRoots.ConversationConnectionRoot, dialogs: GQLRoots.DialogsConnectionRoot, settings: GQLRoots.SettingsRoot, alphaOrganizationMembers: GQLRoots.OrganizationMemberRoot[], alphaOrganizationInviteLink: Nullable<GQLRoots.InviteRoot>, alphaOrganizationPublicInvite: Nullable<GQLRoots.InviteRoot>, superAccounts: GQLRoots.SuperAccountRoot[], superAccount: GQLRoots.SuperAccountRoot, superAdmins: GQLRoots.SuperAdminRoot[], alphaChannelsList: GQLRoots.ConversationConnectionRoot, alphaChannelMembers: GQLRoots.ChannelMemberRoot[], alphaChannelsFeatured: GQLRoots.ChannelConversationRoot[], alphaChannels: GQLRoots.ChannelConversationConnectionRoot, alphaChannelInviteInfo: Nullable<GQLRoots.ChannelInviteRoot>, featureFlags: GQLRoots.FeatureFlagRoot[], myOrganization: Nullable<GQLRoots.OrganizationRoot>, myOrganizations: GQLRoots.OrganizationRoot[], organization: GQLRoots.OrganizationRoot, myOrganizationProfile: GQLRoots.OrganizationProfileRoot, organizationProfile: GQLRoots.OrganizationProfileRoot, alphaOrganizations: GQLRoots.OrganizationsConnectionRoot, alphaOrganizationByPrefix: Nullable<GQLRoots.OrganizationRoot>, alphaComunityPrefixSearch: GQLRoots.OrganizationsConnectionRoot, myPermissions: GQLRoots.PermissionsRoot, users: GQLRoots.UserRoot[], myProfilePrefill: Nullable<GQLRoots.ProfilePrefillRoot>, pushSettings: GQLRoots.PushSettingsRoot, sessionState: GQLRoots.SessionStateRoot, me: Nullable<GQLRoots.UserRoot>, user: GQLRoots.UserRoot, userSearch: GQLRoots.UserConnectionRoot, alphaProfiles: GQLRoots.UserConnectionRoot, room: Nullable<GQLRoots.RoomRoot>, alphaResolveShortName: Nullable<GQLRoots.ShortNameDestinationRoot>}, any>;
     SessionState?: ComplexTypedResolver<GQL.SessionState, {}, GQLRoots.SessionStateRoot>;
+    Subscription?: ComplexTypedResolver<GQL.Subscription, {settingsWatch: GQLRoots.SettingsRoot, watchSettings: GQLRoots.SettingsRoot, alphaSubscribeChatOnline: GQLRoots.OnlineEventRoot, alphaSubscribeOnline: GQLRoots.OnlineEventRoot, conversationUpdates: GQLRoots.ConversationUpdateContainerRoot, dialogsUpdates: GQLRoots.DialogUpdateContainerRoot, typings: GQLRoots.TypingEventRoot, conversationTypings: GQLRoots.TypingEventRoot, alphaSubscribeTypings: GQLRoots.TypingEventRoot, alphaSubscribeChatTypings: GQLRoots.TypingEventRoot}, GQLRoots.SubscriptionRoot>;
     TypingEvent?: ComplexTypedResolver<GQL.TypingEvent, {conversation: GQLRoots.ConversationRoot, user: GQLRoots.UserRoot}, GQLRoots.TypingEventRoot>;
-    User?: ComplexTypedResolver<GQL.User, {channelsJoined: GQLRoots.ChannelConversationRoot[], photoRef: Nullable<GQLRoots.ImageRefRoot>, pictureRef: Nullable<GQLRoots.ImageRefRoot>}, GQLRoots.UserRoot>;
+    User?: ComplexTypedResolver<GQL.User, {channelsJoined: GQLRoots.ChannelConversationRoot[], photoRef: Nullable<GQLRoots.ImageRefRoot>, pictureRef: Nullable<GQLRoots.ImageRefRoot>, organizations: GQLRoots.OrganizationRoot[], primaryOrganization: Nullable<GQLRoots.OrganizationRoot>, alphaPrimaryOrganization: Nullable<GQLRoots.OrganizationRoot>}, GQLRoots.UserRoot>;
     UserEdge?: ComplexTypedResolver<GQL.UserEdge, {node: GQLRoots.UserRoot}, GQLRoots.UserEdgeRoot>;
     UserConnection?: ComplexTypedResolver<GQL.UserConnection, {edges: GQLRoots.UserEdgeRoot[], pageInfo: GQLRoots.PageInfoRoot}, GQLRoots.UserConnectionRoot>;
     PrivateRoom?: ComplexTypedResolver<GQL.PrivateRoom, {user: GQLRoots.UserRoot}, GQLRoots.PrivateRoomRoot>;

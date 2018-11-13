@@ -176,12 +176,24 @@ export function wrapAllResolvers(schema: GraphQLSchema, f: FieldHandler) {
     return schema;
 }
 
-type MaybePromise<T> = Promise<T> | T;
-type FieldResolver<T> = (...args: any[]) => MaybePromise<T>;
-type FieldResolverWithRoot<T, R> = (root: R, ...args: any[]) => MaybePromise<T>;
+export type MaybePromise<T> = Promise<T> | T;
+export type FieldResolver<T> = (...args: any[]) => MaybePromise<T>;
+export type FieldResolverWithRoot<T, R> = (root: R, ...args: any[]) => MaybePromise<T>;
+// export type FieldResolverWithRoot<T, R, C> = C extends TypeName<T> ? (root: R, ...args: any[]) => MaybePromise<T> : never;
+
 type Nullable<T> = undefined | null | T;
 export type TypedResolver<T> = { [P in keyof T]: FieldResolver<T[P]> };
 export type SoftlyTypedResolver<T> = { [P in keyof T]: (T[P] extends Nullable<object|object[]> ? FieldResolver<any> : FieldResolver<T[P]>) };
+
+export type TypeName<T> =
+    T extends string ? 'string' :
+    T extends number ? 'number' :
+    T extends boolean ? 'boolean' :
+    T extends undefined ? 'undefined' :
+    T extends Function ? 'function' :
+    'object';
+
+export type SameType<A, B> = TypeName<A> extends TypeName<B> ? (A extends B ? true : false) : false;
 
 export type ComplexTypedResolver<T, M extends any, R> = {
     [P in keyof T]: (T[P] extends Nullable<object|object[]> ? FieldResolverWithRoot<M[P], R> : FieldResolverWithRoot<T[P], R>)

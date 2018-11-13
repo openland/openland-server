@@ -27,6 +27,7 @@ fs.writeFileSync(__dirname + '/SchemaSpec.ts', res);
 type GenericTypeNode = InterfaceTypeDefinitionNode | ObjectTypeDefinitionNode;
 
 function gen(ast: DocumentNode): string {
+    ast = applyExtensions(ast);
     let types = ``;
 
     for (let definition of ast.definitions) {
@@ -44,7 +45,7 @@ function gen(ast: DocumentNode): string {
             types += genEnum(definition) + '\n';
         }
         if (definition.kind === 'ObjectTypeExtension') {
-            types += genExtension(definition) + '\n';
+            // types += genExtension(definition) + '\n';
         }
         if (definition.kind === 'UnionTypeDefinition') {
             types += genUnion(definition) + '\n';
@@ -69,16 +70,32 @@ function gen(ast: DocumentNode): string {
     return out;
 }
 
+function applyExtensions(ast: DocumentNode) {
+    let out = { ...ast };
+
+    for (let definition of ast.definitions) {
+        if (definition.kind === 'ObjectTypeExtension') {
+            let obj: ObjectTypeDefinitionNode|undefined = out.definitions.find(d => d.kind === 'ObjectTypeDefinition' && d.name.value === (definition as ObjectTypeExtensionNode).name.value) as ObjectTypeDefinitionNode;
+            if (!obj) {
+                throw new Error('Extension of non-declared type');
+            }
+            (obj.fields as FieldDefinitionNode[]).push(...(definition.fields || []));
+        }
+    }
+
+    return out;
+}
+
 export function genResolverInterface(ast: DocumentNode) {
     let out = '';
 
     out += 'export interface GQLResolver {\n';
     for (let def of ast.definitions) {
         if (def.kind === 'ObjectTypeDefinition') {
-            // TODO: Support Query, Mutation and Subscription
-            if (def.name.value === 'Query' || def.name.value === 'Mutation' || def.name.value === 'Subscription') {
-                continue;
-            }
+            // // TODO: Support Query, Mutation and Subscription
+            // if (def.name.value === 'Query' || def.name.value === 'Mutation' || def.name.value === 'Subscription') {
+            //     continue;
+            // }
             function fetchType(type: TypeNode, nullable: boolean = true): string {
                 switch (type.kind) {
                     case 'NamedType':
@@ -128,6 +145,7 @@ export function genResolverInterface(ast: DocumentNode) {
 
     return out;
 }
+
 function isObjectTypeDefinitionNode(ast: GenericTypeNode): ast is ObjectTypeDefinitionNode {
     return ast.kind === 'ObjectTypeDefinition';
 }
@@ -146,7 +164,7 @@ function genInputType(ast: InputObjectTypeDefinitionNode): string {
     return out;
 }
 
-function genType(ast: GenericTypeNode): string {
+function genType(ast: GenericTypeNode, genFuncs: boolean = false): string {
     let out = ``;
 
     let extendsInterface = '';
@@ -167,14 +185,18 @@ function genType(ast: GenericTypeNode): string {
                 args.push(`${argument.name.value}: ${renderType(argument.type)}`);
             }
 
-            out += `${genTab(1)}${field.name.value}(${args.join(', ')}): ${renderType(field.type)};\n`;
+            if (genFuncs) {
+                out += `${genTab(1)}${field.name.value}(${args.join(', ')}): ${renderType(field.type)};\n`;
+            } else {
+                out += `${genTab(1)}${field.name.value}?: ${renderType(field.type)};\n`;
+            }
 
             extraTypes += genFunctionArguments(ast, field) + '\n';
             extraTypes += genFunctionReturnType(ast, field) + '\n';
 
             continue;
         }
-        out += `${genTab(1)}${field.name.value}: ${renderType(field.type)};\n`;
+        out += `${genTab(1)}${field.name.value}?: ${renderType(field.type)};\n`;
     }
 
     out += `}`;
@@ -231,7 +253,7 @@ function genEnum(type: EnumTypeDefinitionNode): string {
     return out;
 }
 
-function genExtension(type: ObjectTypeExtensionNode): string {
+export function genExtension(type: ObjectTypeExtensionNode): string {
     let out = ``;
 
     if (!type.fields) {
@@ -244,7 +266,6 @@ function genExtension(type: ObjectTypeExtensionNode): string {
             out += genFunctionReturnType(type, field) + '\n';
         }
     }
-
     return out;
 }
 
