@@ -1,7 +1,7 @@
 import { injectable, inject } from 'inversify';
-import { InvitesChannelsRepository } from 'openland-module-messaging/repositories/InvitesRepository';
-import { InvitesOrganizationRepository } from './repositories/InviteRepository';
 import { InvitesMediator } from './mediators/InvitesMediator';
+import { InvitesChannelsRepository } from './repositories/InvitesChannelsRepository';
+import { InvitesOrganizationRepository } from './repositories/InvitesOrganizationRepository';
 
 @injectable()
 export class InvitesModule {

@@ -2,7 +2,6 @@ import { injectable, inject } from 'inversify';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { startEmailNotificationWorker } from './workers/EmailNotificationWorker';
 import { startPushNotificationWorker } from './workers/PushNotificationWorker';
-import { InvitesChannelsRepository } from './repositories/InvitesRepository';
 import { MessageInput } from './MessageInput';
 import { ConversationEvent } from 'openland-module-db/schema';
 import { UserStateRepository } from './repositories/UserStateRepository';
@@ -22,7 +21,6 @@ export class MessagingModule {
     constructor(
         @inject('MessagingMediator') messaging: MessagingMediator,
         @inject('UserStateRepository') userState: UserStateRepository,
-        @inject('InvitesRepository') invites: InvitesChannelsRepository,
         @inject('AugmentationMediator') augmentation: AugmentationMediator,
         @inject('DeliveryMediator') delivery: DeliveryMediator,
         @inject('RoomMediator') room: RoomMediator,

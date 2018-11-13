@@ -5,7 +5,6 @@ import { DeliveryRepository } from './repositories/DeliveryRepository';
 import { CountersRepository } from './repositories/CountersRepository';
 import { MessagingRepository } from './repositories/MessagingRepository';
 import { RoomRepository } from './repositories/RoomRepository';
-import { InvitesChannelsRepository } from './repositories/InvitesRepository';
 import { MessagingMediator } from './mediators/MessagingMediator';
 import { AugmentationMediator } from './mediators/AugmentationMediator';
 import { DeliveryMediator } from './mediators/DeliveryMediator';
@@ -19,7 +18,6 @@ export function loadMessagingModule() {
     container.bind('CountersRepository').to(CountersRepository).inSingletonScope();
     container.bind('MessagingRepository').to(MessagingRepository).inSingletonScope();
     container.bind('RoomRepository').to(RoomRepository).inSingletonScope();
-    container.bind('InvitesRepository').to(InvitesChannelsRepository).inSingletonScope();
     container.bind('MessagingMediator').to(MessagingMediator).inSingletonScope();
     container.bind('AugmentationMediator').to(AugmentationMediator).inSingletonScope();
     container.bind('DeliveryMediator').to(DeliveryMediator).inSingletonScope();

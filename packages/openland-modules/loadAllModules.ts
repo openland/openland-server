@@ -27,6 +27,7 @@ import { AllEntities, AllEntitiesDirect } from 'openland-module-db/schema';
 import { FConnection } from 'foundation-orm/FConnection';
 import { EventBus } from 'openland-module-pubsub/EventBus';
 import { loadMessagingModule } from 'openland-module-messaging/Messaging.container';
+import { loadInvitesModule } from 'openland-module-invites/INVITES.container';
 
 export async function loadAllModules() {
 
@@ -55,8 +56,7 @@ export async function loadAllModules() {
 
     container.bind(OrganizationModule).toSelf().inSingletonScope();
     container.bind(OrganizationRepository).toSelf();
-
-    container.bind(InvitesModule).toSelf().inSingletonScope();
+    loadInvitesModule();
     container.bind(PubsubModule).toSelf().inSingletonScope();
     container.bind(ApiModule).toSelf().inSingletonScope();
 

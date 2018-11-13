@@ -2,25 +2,24 @@ import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { AllEntities } from 'openland-module-db/schema';
 import { Emails } from 'openland-module-email/Emails';
-import { InvitesChannelsRepository } from 'openland-module-messaging/repositories/InvitesRepository';
+import { InvitesChannelsRepository } from '../repositories/InvitesChannelsRepository';
 import { inTx } from 'foundation-orm/inTx';
 import { ChannelInviteEmails } from 'openland-module-messaging/emails/ChannelInviteEmails';
 import { RoomMediator } from 'openland-module-messaging/mediators/RoomMediator';
 import { NotFoundError } from 'openland-errors/NotFoundError';
 import { IDs } from 'openland-module-api/IDs';
 import { OrganizationModule } from 'openland-module-organization/OrganizationModule';
+import { Modules } from 'openland-modules/Modules';
 
 @injectable()
 export class InvitesMediator {
     @lazyInject('FDB')
     private readonly entities!: AllEntities;
-    @lazyInject('InvitesRepository')
+    @lazyInject('InvitesChannelsRepository')
     private readonly repo!: InvitesChannelsRepository;
     @lazyInject('RoomMediator')
     private readonly rooms!: RoomMediator;
-    @lazyInject('OrganizationModule')
-    private readonly organizationModule!: OrganizationModule;
-
+    
     async createChannelInvite(channelId: number, uid: number, email: string, emailText?: string, firstName?: string, lastName?: string) {
         return await inTx(async () => {
             let invite = await this.repo.createChannelInvite(channelId, uid, email, emailText, firstName, lastName);
@@ -53,7 +52,7 @@ export class InvitesMediator {
                 user.invitedBy = inviter;
             }
 
-            (await this.organizationModule.findUserOrganizations(uid)).map(async oid => await this.organizationModule.activateOrganization(oid));
+            (await Modules.Orgs.findUserOrganizations(uid)).map(async oid => await Modules.Orgs.activateOrganization(oid));
         }
     }
 }

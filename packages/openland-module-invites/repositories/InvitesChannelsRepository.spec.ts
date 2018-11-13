@@ -4,7 +4,7 @@ import { FConnection } from 'foundation-orm/FConnection';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { AllEntities, AllEntitiesDirect } from 'openland-module-db/schema';
 import { NativeValue } from 'foundationdb/dist/lib/native';
-import { InvitesChannelsRepository } from './InvitesRepository';
+import { InvitesChannelsRepository } from './InvitesChannelsRepository';
 import { NoOpBus } from 'foundation-orm/tests/NoOpBus';
 
 describe('ChannelRepository', () => {
