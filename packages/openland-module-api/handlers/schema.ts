@@ -5,24 +5,24 @@ import { graphqlExpress } from 'apollo-server-express';
 import { Schema } from '../../openland-module-api/schema/Schema';
 import { callContextMiddleware } from './context';
 import { errorHandler } from '../../openland-errors';
-import { CallContext } from '../../openland-module-api/CallContext';
-import { Rate } from '../../openland-utils/rateLimit';
-import { delay } from '../../openland-utils/timer';
+// import { CallContext } from '../../openland-module-api/CallContext';
+// import { Rate } from '../../openland-utils/rateLimit';
+// import { delay } from '../../openland-utils/timer';
 import { withTracing } from 'openland-log/withTracing';
 import { gqlTracer } from 'openland-graphql/gqlTracer';
 import { withLogContext } from 'openland-log/withLogContext';
 
-function getClientId(req: express.Request, res: express.Response) {
-    if (res.locals.ctx) {
-        let context: CallContext = res.locals.ctx;
+// function getClientId(req: express.Request, res: express.Response) {
+//     if (res.locals.ctx) {
+//         let context: CallContext = res.locals.ctx;
 
-        if (context.uid) {
-            return 'user_' + context.uid;
-        }
-    }
+//         if (context.uid) {
+//             return 'user_' + context.uid;
+//         }
+//     }
 
-    return 'ip_' + req.ip;
-}
+//     return 'ip_' + req.ip;
+// }
 
 let schema = Schema();
 
@@ -31,20 +31,20 @@ function handleRequest(withEngine: boolean) {
         if (req === undefined || res === undefined) {
             throw new Error('Unexpected error!');
         } else {
-            let clientId = getClientId(req, res);
+            // let clientId = getClientId(req, res);
 
-            let handleStatus = Rate.HTTP.canHandle(clientId);
+            // let handleStatus = Rate.HTTP.canHandle(clientId);
 
-            if (!handleStatus.canHandle) {
-                if (handleStatus.delay) {
-                    Rate.HTTP.hit(clientId);
-                    await delay(handleStatus.delay);
-                } else {
-                    throw new Error('Rate limit!');
-                }
-            } else {
-                Rate.HTTP.hit(clientId);
-            }
+            // if (!handleStatus.canHandle) {
+            //     if (handleStatus.delay) {
+            //         Rate.HTTP.hit(clientId);
+            //         await delay(handleStatus.delay);
+            //     } else {
+            //         throw new Error('Rate limit!');
+            //     }
+            // } else {
+            //     Rate.HTTP.hit(clientId);
+            // }
 
             return {
                 schema: schema,
