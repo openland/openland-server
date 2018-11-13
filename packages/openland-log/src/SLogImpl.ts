@@ -1,17 +1,14 @@
 import { SLogContext } from './SLogContext';
 import { SLog } from '../SLog';
-// import winston from 'winston';
-import pino from 'pino';
+import winston from 'winston';
 
-// const logger = winston.createLogger({
-//     level: 'info',
-//     format: winston.format.cli(),
-//     transports: [
-//         new winston.transports.Console(),
-//     ]
-// });
-
-const logger = pino();
+const logger = winston.createLogger({
+    level: 'info',
+    format: winston.format.cli(),
+    transports: [
+        new winston.transports.Console(),
+    ]
+});
 
 export class SLogImpl implements SLog {
     private readonly name: String;
