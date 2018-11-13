@@ -11,6 +11,9 @@ import { FLiveStreamItem } from './FLiveStreamItem';
 import { FDirectory } from './FDirectory';
 import { FCacheContext } from './FCacheContext';
 import { FTransaction } from './FTransaction';
+import { createTracer } from 'openland-log/createTracer';
+import { STracer } from 'openland-log/STracer';
+import { withTracing } from 'openland-log/withTracing';
 
 const log = createLogger('entity-factory');
 
@@ -22,8 +25,10 @@ export abstract class FEntityFactory<T extends FEntity> {
     readonly indexes: FEntityIndex[];
     readonly name: string;
     private watcher: FWatch;
+    private tracer: STracer;
 
     constructor(connection: FConnection, namespace: FNamespace, options: FEntityOptions, indexes: FEntityIndex[], name: string) {
+        this.tracer = createTracer(name);
         this.namespace = namespace;
         this.directory = connection.getDirectory(namespace.namespace);
         this.connection = connection;
@@ -67,31 +72,33 @@ export abstract class FEntityFactory<T extends FEntity> {
     protected abstract _createEntity(value: any, isNew: boolean): T;
 
     protected async _findById(key: (string | number)[]) {
-        let cache = FCacheContext.context.value;
-        if (cache && !FTransaction.context.value) {
-            let cacheKey = FKeyEncoding.encodeKeyToString([...this.namespace.namespace, ...key]);
-            let cached = cache.findInCache(cacheKey);
-            if (cached !== undefined) {
-                return await (cached as Promise<T | null>);
-            }
-
-            let res: Promise<T | null> = (async () => {
-                let r = await this.namespace.get(this.connection, key);
-                if (r) {
-                    return this.doCreateEntity(r, false);
-                } else {
-                    return null;
+        return await withTracing(this.tracer, 'findById', async () => {
+            let cache = FCacheContext.context.value;
+            if (cache && !FTransaction.context.value) {
+                let cacheKey = FKeyEncoding.encodeKeyToString([...this.namespace.namespace, ...key]);
+                let cached = cache.findInCache(cacheKey);
+                if (cached !== undefined) {
+                    return await(cached as Promise<T | null>);
                 }
-            })();
-            cache.putInCache(cacheKey, res);
-            return await res;
-        } else {
-            let res = await this.namespace.get(this.connection, key);
-            if (res) {
-                return this.doCreateEntity(res, false);
+
+                let res: Promise<T | null> = (async () => {
+                    let r = await this.namespace.get(this.connection, key);
+                    if (r) {
+                        return this.doCreateEntity(r, false);
+                    } else {
+                        return null;
+                    }
+                })();
+                cache.putInCache(cacheKey, res);
+                return await res;
+            } else {
+                let res = await this.namespace.get(this.connection, key);
+                if (res) {
+                    return this.doCreateEntity(res, false);
+                }
+                return null;
             }
-            return null;
-        }
+        });
     }
 
     protected async _findFromIndex(key: (string | number)[]) {
