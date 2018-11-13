@@ -12,7 +12,7 @@ const logger = winston.createLogger({
 
 export class SLogImpl implements SLog {
     private readonly name: String;
-    // private readonly production = process.env.NODE_ENV === 'production';
+    private readonly production = process.env.NODE_ENV === 'production';
 
     constructor(name: String) {
         this.name = name;
@@ -27,20 +27,19 @@ export class SLogImpl implements SLog {
     }
 
     debug = (message?: any, ...optionalParams: any[]) => {
-        // if (this.production) {
-        //     if (SLogContext.value && SLogContext.value.disabled) {
-        //         return;
-        //     }
-        //     let context = SLogContext.value ? SLogContext.value.path : [];
-        //     logger.debug([...context, this.name, message, ...optionalParams].join(' '));
-        // }
+        if (this.production) {
+            if (SLogContext.value && SLogContext.value.disabled) {
+                return;
+            }
+            let context = SLogContext.value ? SLogContext.value.path : [];
+            logger.debug([...context, this.name, message, ...optionalParams].join(' '));
+        }
     }
     warn = (message?: any, ...optionalParams: any[]) => {
         if (SLogContext.value && SLogContext.value.disabled) {
             return;
         }
         let context = SLogContext.value ? SLogContext.value.path : [];
-        // console.warn(...context, this.name, message, ...optionalParams);
         logger.warn([...context, this.name, message, ...optionalParams].join(' '));
     }
 }

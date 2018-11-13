@@ -24,6 +24,8 @@ function getClientId(req: express.Request, res: express.Response) {
     return 'ip_' + req.ip;
 }
 
+let schema = Schema();
+
 function handleRequest(withEngine: boolean) {
     return async function (req?: express.Request, res?: express.Response): Promise<GraphQLOptions> {
         if (req === undefined || res === undefined) {
@@ -45,7 +47,7 @@ function handleRequest(withEngine: boolean) {
             }
 
             return {
-                schema: Schema(),
+                schema: schema,
                 context: res.locals.ctx,
                 cacheControl: withEngine,
                 tracing: withEngine,

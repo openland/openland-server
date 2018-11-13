@@ -21,6 +21,9 @@ import { inTx } from 'foundation-orm/inTx';
 import { Modules } from 'openland-modules/Modules';
 import { schemaHandler } from './handlers/schema';
 import { withCache } from 'foundation-orm/withCache';
+import { createLogger } from 'openland-log/createLogger';
+
+const logger = createLogger('ws');
 
 export async function initApi(isTest: boolean) {
 
@@ -142,9 +145,9 @@ export async function initApi(isTest: boolean) {
                 onOperation: async (message: any, params: any, webSocket: any) => {
                     if (!isTest) {
                         if (webSocket.__params.uid) {
-                            console.log('WS GraphQL [#' + webSocket.__params.uid + ']: ' + JSON.stringify(message.payload));
+                            logger.log('GraphQL [#' + webSocket.__params.uid + ']: ' + JSON.stringify(message.payload));
                         } else {
-                            console.log('WS GraphQL [#ANON]: ' + JSON.stringify(message.payload));
+                            logger.log('WS GraphQL [#ANON]: ' + JSON.stringify(message.payload));
                         }
                     }
 

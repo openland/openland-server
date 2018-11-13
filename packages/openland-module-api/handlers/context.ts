@@ -3,6 +3,7 @@ import { CallContext } from '../../openland-module-api/CallContext';
 import { Modules } from 'openland-modules/Modules';
 import { withTracingSpan } from 'openland-log/withTracing';
 import { createTracer } from 'openland-log/createTracer';
+import { createLogger } from 'openland-log/createLogger';
 
 let tracer = createTracer('express');
 
@@ -43,7 +44,7 @@ async function context(src: express.Request): Promise<CallContext> {
 
     return res;
 }
-
+const logger = createLogger('http');
 export async function callContextMiddleware(isTest: boolean, req: express.Request, res: express.Response, next: express.NextFunction) {
     let ctx: CallContext;
     try {
@@ -54,9 +55,9 @@ export async function callContextMiddleware(isTest: boolean, req: express.Reques
     }
     if (!isTest) {
         if (ctx.uid) {
-            console.log('GraphQL [#' + ctx.uid + ']: ' + JSON.stringify(req.body));
+            logger.log('GraphQL [#' + ctx.uid + ']: ' + JSON.stringify(req.body));
         } else {
-            console.log('GraphQL [#ANON]: ' + JSON.stringify(req.body));
+            logger.log('GraphQL [#ANON]: ' + JSON.stringify(req.body));
         }
     }
     res.locals.ctx = ctx;
