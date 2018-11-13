@@ -10,7 +10,18 @@ export default {
             let uids = await Modules.Users.searchForUsers(args.query || '');
 
             if (uids.length === 0) {
-                return [];
+                return {
+                    edges: [],
+                    pageInfo: {
+                        hasNextPage: false,
+                        hasPreviousPage: false,
+
+                        itemsCount: 0,
+                        pagesCount: 0,
+                        currentPage: 0,
+                        openEnded: false
+                    },
+                };
             }
 
             // Fetch profiles
@@ -56,7 +67,7 @@ export default {
                         itemsCount: 0,
                         pagesCount: 0,
                         currentPage: 0,
-                        openEnded: true
+                        openEnded: false
                     },
                 };
             }
