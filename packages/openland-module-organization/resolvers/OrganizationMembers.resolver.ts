@@ -44,9 +44,14 @@ export default {
 
             return result;
         }),
+        alphaOrganizationInviteLink: withAccount<{ organizationId?: string }>(async (args, uid, organizationId) => {
+            organizationId = args.organizationId ? IDs.Organization.parse(args.organizationId) : organizationId;
+            return await Modules.Invites.orgInvitesRepo.getOrganizationInviteLink(organizationId, uid);
+        }),
+        // deperecated
         alphaOrganizationPublicInvite: withAccount<{ organizationId?: string }>(async (args, uid, organizationId) => {
             organizationId = args.organizationId ? IDs.Organization.parse(args.organizationId) : organizationId;
-            return await Modules.Invites.orgInvitesRepo.getPublicOrganizationInvite(organizationId, uid);
+            return await Modules.Invites.orgInvitesRepo.getOrganizationInviteLink(organizationId, uid);
         }),
     },
     Mutation: {
@@ -89,6 +94,19 @@ export default {
                 return 'ok';
             });
         }),
+        alphaOrganizationRefreshInviteLink: withAccount<{ expirationDays?: number, organizationId?: string }>(async (args, uid, oid) => {
+            return inTx(async () => {
+                oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
+                let isOwner = await Modules.Orgs.isUserAdmin(uid, oid);
+
+                if (!isOwner) {
+                    throw new UserError(ErrorText.permissionOnlyOwner);
+                }
+
+                return await Modules.Invites.orgInvitesRepo.refreshOrganizationInviteLink(oid, uid);
+            });
+        }),
+        // deperecated
         alphaOrganizationCreatePublicInvite: withAccount<{ expirationDays?: number, organizationId?: string }>(async (args, uid, oid) => {
             return inTx(async () => {
                 oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
@@ -98,21 +116,22 @@ export default {
                     throw new UserError(ErrorText.permissionOnlyOwner);
                 }
 
-                return await Modules.Invites.orgInvitesRepo.createPublicOrganizationInvite(oid, uid);
+                return await Modules.Invites.orgInvitesRepo.refreshOrganizationInviteLink(oid, uid);
             });
         }),
+        // deprecated
         alphaOrganizationDeletePublicInvite: withAccount<{ organizationId?: string }>(async (args, uid, oid) => {
-            oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
-            return inTx(async () => {
-                let isOwner = await Modules.Orgs.isUserAdmin(uid, oid);
+            // oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
+            // return inTx(async () => {
+            //     let isOwner = await Modules.Orgs.isUserAdmin(uid, oid);
 
-                if (!isOwner) {
-                    throw new UserError(ErrorText.permissionOnlyOwner);
-                }
+            //     if (!isOwner) {
+            //         throw new UserError(ErrorText.permissionOnlyOwner);
+            //     }
 
-                await Modules.Invites.orgInvitesRepo.deletePublicOrganizationInvite(oid, uid);
-                return 'ok';
-            });
+            //     await Modules.Invites.orgInvitesRepo.deletePublicOrganizationInvite(oid, uid);
+            //     return 'ok';
+            // });
         })
     }
 };

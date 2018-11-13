@@ -18,7 +18,7 @@ export default {
         }),
         alphaInviteInfo: withAny<{ key: string }>(async (args, context: CallContext) => {
             let orgInvite = await Modules.Invites.orgInvitesRepo.getOrganizationInviteNonJoined(args.key);
-            let publicOrginvite = await Modules.Invites.orgInvitesRepo.getPublicOrganizationInviteByKey(args.key);
+            let publicOrginvite = await Modules.Invites.orgInvitesRepo.getOrganizationInviteLinkByKey(args.key);
             let invite: { oid: number, uid: number, ttl?: number | null, role?: string, joined?: boolean, email?: string, firstName?: string | null } | null = orgInvite || publicOrginvite;
             if (!invite) {
                 return null;

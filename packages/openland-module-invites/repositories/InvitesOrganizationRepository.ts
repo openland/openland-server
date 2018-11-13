@@ -59,7 +59,7 @@ export class InvitesOrganizationRepository {
         return this.entities.OrganizationInviteLink.allFromOrganization(orgId);
     }
 
-    public async getPublicOrganizationInvite(oid: number, uid: number): Promise<OrganizationPublicInviteLink> {
+    public async getOrganizationInviteLink(oid: number, uid: number): Promise<OrganizationPublicInviteLink> {
         return await inTx(async () => {
             let existing = await this.entities.OrganizationPublicInviteLink.findFromUserInOrganization(uid, oid);
             if (!existing) {
@@ -69,20 +69,11 @@ export class InvitesOrganizationRepository {
         });
     }
 
-    public async getPublicOrganizationInviteByKey(key: string): Promise<OrganizationPublicInviteLink | null> {
+    public async getOrganizationInviteLinkByKey(key: string): Promise<OrganizationPublicInviteLink | null> {
         return await this.entities.OrganizationPublicInviteLink.findById(key);
     }
 
-    public async deletePublicOrganizationInvite(oid: number, uid: number): Promise<void> {
-        return await inTx(async () => {
-            let existing = await this.entities.OrganizationPublicInviteLink.findFromUserInOrganization(uid, oid);
-            if (existing) {
-                existing.enabled = false;
-            }
-        });
-    }
-
-    public async createPublicOrganizationInvite(oid: number, uid: number): Promise<OrganizationPublicInviteLink> {
+    public async refreshOrganizationInviteLink(oid: number, uid: number): Promise<OrganizationPublicInviteLink> {
         return await inTx(async () => {
             let existing = await this.entities.OrganizationPublicInviteLink.findFromUserInOrganization(uid, oid);
             if (existing) {
