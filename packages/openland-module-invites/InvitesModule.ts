@@ -11,7 +11,7 @@ export class InvitesModule {
 
     constructor(
         @inject('InvitesChannelsRepository') channelsInvitesRepo: InvitesChannelsRepository,
-        @inject('InvitesChannelsMediator') channelsInvitesMediator: InvitesMediator,
+        @inject('InvitesMediator') channelsInvitesMediator: InvitesMediator,
         @inject('InviteRepository') orgInvitesRepo: InvitesOrganizationRepository,
     ) {
         this.channelsInvitesRepo = channelsInvitesRepo;
