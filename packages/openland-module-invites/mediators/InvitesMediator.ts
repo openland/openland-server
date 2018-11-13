@@ -34,6 +34,7 @@ export class InvitesMediator {
                 throw new NotFoundError('Invite not found');
             }
             await this.rooms.joinRoom(invite.channelId, uid);
+            await Modules.Users.activateUser(uid);
             await this.activateUserOrgs(uid);
 
             return IDs.Conversation.serialize(invite.channelId);
@@ -45,9 +46,7 @@ export class InvitesMediator {
         if (!inviteData) {
             throw new NotFoundError(ErrorText.unableToFindInvite);
         }
-        // tem fix, remove after activation called after create profile/org on client
         await Modules.Users.activateUser(uid);
-        
         await this.activateUserOrgs(uid);
         return 'ok';
     }
