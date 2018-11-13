@@ -65,7 +65,7 @@ export default {
                 let conversationId = IDs.Conversation.parse(args.conversationId);
                 return FDB.ConversationEvent.createUserLiveStream(conversationId, 20, args.fromState);
             }
-        },
+        } as any,
     },
 
     //

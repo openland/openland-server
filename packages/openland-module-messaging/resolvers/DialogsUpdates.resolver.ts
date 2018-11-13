@@ -97,6 +97,6 @@ export default {
             subscribe: function (_: any, args: { fromState?: string }, context: CallContext) {
                 return FDB.UserDialogEvent.createUserLiveStream(context.uid!, 20, args.fromState);
             }
-        },
+        } as any,
     }
 } as GQLResolver;
