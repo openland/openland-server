@@ -12,7 +12,7 @@ export class InvitesModule {
     constructor(
         @inject('InvitesChannelsRepository') channelsInvitesRepo: InvitesChannelsRepository,
         @inject('InvitesMediator') channelsInvitesMediator: InvitesMediator,
-        @inject('InviteRepository') orgInvitesRepo: InvitesOrganizationRepository,
+        @inject('InvitesOrganizationRepository') orgInvitesRepo: InvitesOrganizationRepository,
     ) {
         this.channelsInvitesRepo = channelsInvitesRepo;
         this.invitesMediator = channelsInvitesMediator;
