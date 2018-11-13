@@ -122,6 +122,22 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '23-fix-index',
+    migration: async (log) => {
+        let k = await FDB.UserDialog.findAllKeys();
+        for (let o of k) {
+            await inTx(async () => {
+                let u = await FDB.UserDialog.findById(o[o.length - 2], o[o.length - 1]);
+                if (u) {
+                    u.markDirty();
+                    await u.flush();
+                }
+            });
+        }
+    }
+});
+
 export function startMigrationsWorker() {
     if (serverRoleEnabled('workers')) {
         staticWorker({ name: 'foundation-migrator' }, async () => {
