@@ -18,7 +18,7 @@ export class InvitesMediator {
     private readonly repoOrgs!: InvitesOrganizationRepository;
     @lazyInject('RoomMediator')
     private readonly rooms!: RoomMediator;
-    
+
     async createChannelInvite(channelId: number, uid: number, email: string, emailText?: string, firstName?: string, lastName?: string) {
         return await inTx(async () => {
             let invite = await this.repoChannels.createChannelInvite(channelId, uid, email, emailText, firstName, lastName);
@@ -45,6 +45,9 @@ export class InvitesMediator {
         if (!inviteData) {
             throw new NotFoundError(ErrorText.unableToFindInvite);
         }
+        // tem fix, remove after activation called after create profile/org on client
+        await Modules.Users.activateUser(uid);
+        
         await this.activateUserOrgs(uid);
         return 'ok';
     }
