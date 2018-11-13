@@ -72,13 +72,14 @@ export abstract class FEntityFactory<T extends FEntity> {
     protected abstract _createEntity(value: any, isNew: boolean): T;
 
     protected async _findById(key: (string | number)[]) {
-        return await withTracing(this.tracer, 'findById', async () => {
-            let cache = FCacheContext.context.value;
-            if (cache && !FTransaction.context.value) {
+
+        let cache = FCacheContext.context.value;
+        if (cache && !FTransaction.context.value) {
+            return await withTracing(this.tracer, 'findById-cached', async () => {
                 let cacheKey = FKeyEncoding.encodeKeyToString([...this.namespace.namespace, ...key]);
-                let cached = cache.findInCache(cacheKey);
+                let cached = cache!.findInCache(cacheKey);
                 if (cached !== undefined) {
-                    return await(cached as Promise<T | null>);
+                    return await (cached as Promise<T | null>);
                 }
 
                 let res: Promise<T | null> = (async () => {
@@ -89,16 +90,18 @@ export abstract class FEntityFactory<T extends FEntity> {
                         return null;
                     }
                 })();
-                cache.putInCache(cacheKey, res);
+                cache!.putInCache(cacheKey, res);
                 return await res;
-            } else {
+            });
+        } else {
+            return await withTracing(this.tracer, 'findById', async () => {
                 let res = await this.namespace.get(this.connection, key);
                 if (res) {
                     return this.doCreateEntity(res, false);
                 }
                 return null;
-            }
-        });
+            });
+        }
     }
 
     protected async _findFromIndex(key: (string | number)[]) {
