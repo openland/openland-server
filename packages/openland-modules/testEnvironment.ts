@@ -7,6 +7,8 @@ import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { DBModule } from 'openland-module-db/DBModule';
 import { EmailModuleMock } from 'openland-module-email/EmailModule.mock';
 import { randomKey } from 'openland-utils/random';
+import { HooksModule } from 'openland-module-hooks/HooksModule';
+import { HooksModuleMock } from 'openland-module-hooks/HooksModule.mock';
 
 export async function testEnvironmentStart(name: string) {
 
@@ -16,6 +18,7 @@ export async function testEnvironmentStart(name: string) {
 
     // Set Mock Email
     container.bind('EmailModule').toConstantValue(new EmailModuleMock());
+    container.bind(HooksModule).toConstantValue(new HooksModuleMock());
 
     // Prepare test DB connection
     let connection = FConnection.create()

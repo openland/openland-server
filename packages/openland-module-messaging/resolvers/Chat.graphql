@@ -287,7 +287,6 @@ extend type Query {
     alphaChatsSearchForCompose(query: String, organizations: Boolean, limit: Int): [ComposeSearchResult!]!
     alphaChatSearch(members: [ID!]!): Conversation
     alphaGroupConversationMembers(conversationId: ID!): [GroupConversationMember!]!
-    alphaBlockedList(conversationId: ID): [ConversationBlockedUser!]!
 }
 
 input UpdateGroupInput {

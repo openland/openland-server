@@ -533,9 +533,6 @@ export default {
             let res = await FDB.RoomParticipant.allFromActive(conversationId);
             return res;
         }),
-        alphaBlockedList: withUser<GQL.QueryAlphaBlockedListArgs>(async (args, uid) => {
-            return [];
-        })
     },
     Mutation: {
         alphaReadChat: withUser<GQL.MutationAlphaReadChatArgs>(async (args, uid) => {
