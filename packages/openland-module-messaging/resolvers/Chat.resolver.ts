@@ -322,7 +322,7 @@ export default {
 
             return null;
         },
-        urlAugmentation: (src: Message) => src.augmentation,
+        urlAugmentation: (src: Message) => src.augmentation || null,
         edited: (src: Message) => (src.edited) || false,
         reactions: (src: Message) => src.reactions || [],
         replyMessages: async (src: Message) => {

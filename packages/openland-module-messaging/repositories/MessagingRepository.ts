@@ -79,7 +79,7 @@ export class MessagingRepository {
             if (newMessage.replyMessages) {
                 message.replyMessages = newMessage.replyMessages;
             }
-            if (newMessage.urlAugmentation || newMessage.urlAugmentation === null) {
+            if (newMessage.urlAugmentation !== undefined) {
                 message.augmentation = newMessage.urlAugmentation;
             }
             if (newMessage.mentions) {
