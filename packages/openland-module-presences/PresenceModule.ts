@@ -6,8 +6,10 @@ import { Pubsub, PubsubSubcription } from '../openland-module-pubsub/pubsub';
 import { AllEntities } from '../openland-module-db/schema';
 import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent';
 import { injectable } from 'inversify';
+import { createLogger } from 'openland-log/createLogger';
 
 const presenceEvent = createHyperlogger<{ uid: number, online: boolean }>('presence');
+const log = createLogger('presences');
 
 export interface OnlineEvent {
     userId: number;
@@ -136,6 +138,7 @@ export class PresenceModule {
         } else {
             // tslint:disable-next-line:no-floating-promises
             let sub = this.FDB.Online.watch(uid, () => {
+                log.debug('presence watch fired for ' + uid);
                 // tslint:disable-next-line:no-floating-promises
                 this.handleOnlineChange(uid);
             });
