@@ -1,6 +1,9 @@
 import { EventBus } from './EventBus';
+import { createLogger } from 'openland-log/createLogger';
 
 export type PubsubSubcription = { cancel(): void };
+
+const log = createLogger('pubsub');
 
 export class Pubsub<T> {
 
@@ -21,6 +24,7 @@ export class Pubsub<T> {
                 let subscribers = this.subscribers.get(topic);
                 if (subscribers) {
                     for (let r of [...subscribers]) {
+                        log.debug('local fire for ' + topic);
                         r.listener(data);
                     }
                 }

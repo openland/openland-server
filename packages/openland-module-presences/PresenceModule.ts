@@ -56,8 +56,8 @@ export class PresenceModule {
     }
 
     public async getLastSeen(uid: number): Promise<'online' | 'never_online' | number> {
+        log.debug('get last seen');
         let res = await this.FDB.Online.findById(uid);
-
         if (res) {
             if (res.lastSeen > Date.now()) {
                 return 'online';
