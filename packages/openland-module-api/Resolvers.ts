@@ -35,32 +35,6 @@ export function withPermission<T = {}>(permission: string | string[], resolver: 
     };
 }
 
-export function withPermissionOptional<T = {}, C = {}>(permission: string | string[], resolver: (ctx: AppContext, args: T, src: C) => any) {
-    return async function (c: C, args: T, ctx: AppContext) {
-        let permissions = await fetchPermissions(ctx);
-        if (Array.isArray(permission)) {
-            for (let p of permission) {
-                if (permissions.has(p)) {
-                    return resolver(ctx, args, c);
-                }
-            }
-        } else if (permissions.has(permission)) {
-            return resolver(ctx, args, c);
-        } else {
-            return null;
-        }
-    };
-}
-
-export function withAuth<T = {}>(resolver: (ctx: AppContext, args: T, uid: number) => any) {
-    return async function (_: any, args: T, ctx: AppContext) {
-        if (!ctx.auth.uid) {
-            throw new AccessDeniedError(ErrorText.permissionDenied);
-        }
-        return resolver(ctx, args, ctx.auth.uid);
-    };
-}
-
 export function withAccount<T = {}>(resolver: (ctx: AppContext, args: T, uid: number, org: number) => any) {
     return async function (_: any, args: T, ctx: AppContext) {
         if (!ctx.auth.uid) {

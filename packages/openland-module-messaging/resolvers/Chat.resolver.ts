@@ -417,7 +417,7 @@ export default {
     },
 
     Query: {
-        alphaNotificationCounter: withUser((args, uid) => uid),
+        alphaNotificationCounter: withUser((ctx, args, uid) => uid),
         alphaChat: withAccount<GQL.QueryAlphaChatArgs>(async (ctx, args, uid, oid) => {
             if (args.shortName) {
                 let shortName = await Modules.Shortnames.findShortname(args.shortName);

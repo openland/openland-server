@@ -146,7 +146,7 @@ export const Directives = {
 
         return await withPermission(
             permission,
-            async (_args, _ctx) => resolve(root, _args, _ctx, info)
+            async (_ctx, _args) => resolve(root, _args, _ctx, info)
         )(root, args, ctx);
     }),
 
@@ -155,7 +155,7 @@ export const Directives = {
 
         return await withPermission(
             permission,
-            async (_args, _ctx) => resolve(root, _args, _ctx, info)
+            async (_ctx, _args) => resolve(root, _args, _ctx, info)
         )(root, args, ctx);
     }),
 

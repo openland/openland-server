@@ -13,7 +13,7 @@ export default {
         ttl: (src: OrganizationInviteLink | OrganizationPublicInviteLink) => String((src as any).ttl)
     },
     Query: {
-        alphaInvites: withUser(async (args, uid) => {
+        alphaInvites: withUser(async (ctx, args, uid) => {
             return [];
         }),
         alphaInviteInfo: withAny<{ key: string }>(async (ctx, args) => {
@@ -55,7 +55,7 @@ export default {
             return await Modules.Invites.orgInvitesRepo.getAppInviteLinkKey(uid);
         }),
         // deperecated
-        alphaInvitesHistory: withUser(async (args, uid) => {
+        alphaInvitesHistory: withUser(async (ctx, args, uid) => {
             // let invites = await DB.OrganizationInvite.findAll({ where: { creatorId: uid, isOneTime: true }, order: [['createdAt', 'DESC']] });
             // return invites.map(async (invite) => {
             //     return ({
@@ -80,7 +80,7 @@ export default {
         }),
 
         // deperecated
-        alphaCreateInvite: withAccount(async (args, uid, oid) => {
+        alphaCreateInvite: withAccount(async (ctx, args, uid, oid) => {
             // return await DB.OrganizationInvite.create({
             //     uuid: randomKey(),
             //     orgId: oid,
@@ -89,7 +89,7 @@ export default {
         }),
 
         // deperecated
-        alphaDeleteInvite: withAccount<{ id: string }>(async (args, uid, oid) => {
+        alphaDeleteInvite: withAccount<{ id: string }>(async (ctx, args, uid, oid) => {
             // await DB.OrganizationInvite.destroy({
             //     where: {
             //         orgId: oid,
