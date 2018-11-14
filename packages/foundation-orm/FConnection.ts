@@ -8,6 +8,7 @@ import { NativeValue } from 'foundationdb/dist/lib/native';
 import { FPubsub } from './FPubsub';
 import { DirectoryAllocator } from './utils/DirectoryAllocator';
 import { FDirectory } from './FDirectory';
+import { FCacheContext } from './FCacheContext';
 
 export class FConnection {
     readonly fdb: fdb.Database<NativeValue, any>;
@@ -67,6 +68,10 @@ export class FConnection {
         let tx = FTransaction.context.value;
         if (tx) {
             return tx;
+        }
+        let rtx = FCacheContext.context.value;
+        if (rtx) {
+            return rtx;
         }
         return this.globalContext;
     }

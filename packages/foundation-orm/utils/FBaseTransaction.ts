@@ -1,0 +1,80 @@
+import { keySelector } from 'foundationdb';
+import { FConnection } from 'foundation-orm/FConnection';
+import { FContext } from 'foundation-orm/FContext';
+import { FEntity } from 'foundation-orm/FEntity';
+import Transaction, { RangeOptions } from 'foundationdb/dist/lib/transaction';
+import { NativeValue } from 'foundationdb/dist/lib/native';
+import { createLogger } from 'openland-log/createLogger';
+import { trace } from 'openland-log/trace';
+import { tracer } from './tracer';
+import { SLog } from 'openland-log/SLog';
+import { FKeyEncoding } from './FKeyEncoding';
+
+const log = createLogger('tx');
+
+export abstract class FBaseTransaction implements FContext {
+    private static nextId = 1;
+
+    readonly id = FBaseTransaction.nextId++;
+    abstract isReadOnly: boolean;
+    abstract isCompleted: boolean;
+    tx: Transaction<NativeValue, any> | null = null;
+
+    protected readonly log: SLog = log;
+    protected connection: FConnection | null = null;
+
+    async get(connection: FConnection, key: Buffer): Promise<any | null> {
+        this.prepare(connection);
+        return await trace(tracer, 'get', async () => {
+            this.log.debug('get');
+            return await (this.isReadOnly ? this.tx!.snapshot() : this.tx!).get(key);
+        });
+    }
+    async range(connection: FConnection, key: Buffer, options?: RangeOptions): Promise<{ item: any, key: Buffer }[]> {
+        this.prepare(connection);
+        return await trace(tracer, 'range', async () => {
+            this.log.debug('get-range');
+            let res = await (this.isReadOnly ? this.tx!.snapshot() : this.tx!).getRangeAll(key, undefined, options);
+            return res.map((v) => ({ item: v[1] as any, key: v[0] }));
+        });
+    }
+    async rangeAll(connection: FConnection, key: Buffer, options?: RangeOptions): Promise<any[]> {
+        this.prepare(connection);
+        return await trace(tracer, 'range', async () => {
+            this.log.debug('get-range-all');
+            let res = (await (this.isReadOnly ? this.tx!.snapshot() : this.tx!).getRangeAll(key, undefined, options));
+            return res.map((v) => v[1] as any);
+        });
+    }
+    async rangeAfter(connection: FConnection, prefix: (string | number)[], afterKey: (string | number)[], options?: RangeOptions): Promise<{ item: any, key: Buffer }[]> {
+        this.prepare(connection);
+        return await trace(tracer, 'rangeAfter', async () => {
+            this.log.debug('get-range-after');
+            let reversed = (options && options.reverse) ? true : false;
+            let start = reversed ? FKeyEncoding.firstKeyInSubspace(prefix) : keySelector.firstGreaterThan(FKeyEncoding.encodeKey(afterKey));
+            let end = reversed ? keySelector.lastLessOrEqual(FKeyEncoding.encodeKey(afterKey)) : FKeyEncoding.lastKeyInSubspace(prefix);
+            let res = await (this.isReadOnly ? this.tx!.snapshot() : this.tx!).getRangeAll(start, end, options);
+            return res.map((v) => ({ item: v[1] as any, key: v[0] }));
+        });
+    }
+
+    protected abstract createTransaction(connection: FConnection): Transaction;
+
+    abstract markDirty(entity: FEntity, callback: (connection: FConnection) => Promise<void>): void;
+    abstract set(connection: FConnection, key: Buffer, value: any): void;
+    abstract delete(connection: FConnection, key: Buffer): void;
+    abstract afterTransaction(callback: () => void): void;
+
+    protected prepare(connection: FConnection) {
+        if (this.connection && this.connection !== connection) {
+            throw Error('Unable to use two different connections in the same transaction');
+        }
+        if (this.connection) {
+            return;
+        }
+
+        log.debug('started');
+        this.connection = connection;
+        this.tx = this.createTransaction(connection);
+    }
+}

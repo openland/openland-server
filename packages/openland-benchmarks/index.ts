@@ -53,7 +53,7 @@ fdb.setAPIVersion(510);
                 //     v.set(['counter2!' + (i)], 1);
                 // }
                 rawtxtime += Date.now() - txopstart;
-            }, { causal_write_risky: true });
+            }, { causal_read_risky: true });
             txTime += Date.now() - txstart;
         })());
     }
