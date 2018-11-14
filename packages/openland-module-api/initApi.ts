@@ -2,7 +2,7 @@ import * as bodyParser from 'body-parser';
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
-import compression from 'compression';
+// import compression from 'compression';
 import * as Auth2 from '../openland-module-auth/authV2';
 import * as Auth from '../openland-module-auth/providers/email';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
@@ -59,7 +59,7 @@ export async function initApi(isTest: boolean) {
     if (!isTest) {
         app.use(cors());
         app.use(morgan('tiny'));
-        app.use(compression());
+        // app.use(compression());
     }
 
     // To avoid logging on this route
