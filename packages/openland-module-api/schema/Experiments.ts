@@ -121,4 +121,8 @@ export namespace GQLRoots {
     export type PrivateRoomRoot = any;
     export type SharedRoomRoot = any;
     export type ShortNameDestinationRoot = any;
+
+    export type RoomMemberRoot = any;
+    export type RoomMessageRoot = any;
+    export type RoomUserNotificaionSettingsRoot = any;
 }

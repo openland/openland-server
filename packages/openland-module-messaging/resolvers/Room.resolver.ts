@@ -1,4 +1,4 @@
-import { withAccount, withUser } from 'openland-module-api/Resolvers';
+import { withAccount, withUser, withPermission } from 'openland-module-api/Resolvers';
 import { IdsFactory, IDs } from 'openland-module-api/IDs';
 import { Modules } from 'openland-modules/Modules';
 import { IDMailformedError } from 'openland-errors/IDMailformedError';
@@ -79,6 +79,8 @@ export default {
             }
         }),
         title: withConverationId(async (id, context) => Modules.Messaging.room.resolveConversationTitle(id, context.uid!)),
+        listed: withConverationId(async (id, context) => !!(await FDB.ConversationRoom.findById(id))!.listed),
+        featured: withConverationId(async (id, context) => !!(await FDB.ConversationRoom.findById(id))!.featured),
         photo: withConverationId(async (id, context) => Modules.Messaging.room.resolveConversationPhoto(id, context.uid!)),
         organization: async (root: RoomRoot) => {
             throw new Error('Not implemented');
@@ -190,6 +192,9 @@ export default {
         }),
     },
     Mutation: {
+        //
+        // Room mgmt
+        //
         betaRoomCreate: withAccount<GQL.MutationBetaRoomCreateArgs>(async (args, uid, oid) => {
             await validate({
                 title: optional(stringNotEmpty('Title can\'t be empty')),
@@ -231,6 +236,10 @@ export default {
 
             return room;
         }),
+
+        //
+        // Members mgmt
+        //
         betaRoomInvite: withUser<GQL.MutationBetaRoomInviteArgs>(async (args, uid) => {
             await validate({
                 invites: mustBeArray({
@@ -260,14 +269,33 @@ export default {
             };
             return await Modules.Messaging.room.updateMemberRole(IDs.Room.parse(args.roomId), uid, IDs.User.parse(args.userId), roleMap[args.newRole] as any);
         }),
+
+        betaRoomJoin: withUser<GQL.MutationBetaRoomJoinArgs>(async (args, uid) => {
+            return await Modules.Messaging.room.joinRoom(IDs.Room.parse(args.roomId), uid);
+        }),
+
+        //
+        // User setting
+        //
         betaRoomUpdateUserNotificationSettings: withUser<GQL.MutationBetaRoomUpdateUserNotificationSettingsArgs>(async (args, uid) => {
             return await inTx(async () => {
-                let settings = await Modules.Messaging.getRoomSettings(uid, IDs.Conversation.parse(args.roomId));
+                let settings = await Modules.Messaging.getRoomSettings(uid, IDs.Room.parse(args.roomId));
                 if (args.settings.mute !== undefined && args.settings.mute !== null) {
                     settings.mute = args.settings.mute;
                 }
                 return settings;
             });
+        }),
+
+        //
+        // Admin tools
+        //
+        betaRoomAlterFeatured: withPermission<GQL.MutationBetaRoomAlterFeaturedArgs>('super-admin', async (args) => {
+            return await Modules.Messaging.room.setFeatured(IDs.Room.parse(args.roomId), args.featured);
+        }),
+
+        betaRoomAlterListed: withPermission<GQL.MutationBetaRoomAlterListedArgs>('super-admin', async (args) => {
+            return await Modules.Messaging.room.setListed(IDs.Room.parse(args.roomId), args.listed);
         }),
 
     }

@@ -31,6 +31,8 @@ type SharedRoom {
     title: String!
     photo: String!
     description: String!
+    listed: Boolean!
+    featured: Boolean!
     
     organization: Organization!
     membership: SharedRoomMembershipStatus!
@@ -99,9 +101,13 @@ extend type Mutation {
     betaRoomInvite(roomId: ID!, invites: [RoomInvite!]!): Room!
     betaRoomKick(roomId: ID!, userId: ID!): Room!
     betaRoomChangeRole(roomId: ID!, userId: ID!, newRole: RoomMemberRole!): Room!
+    betaRoomJoin(roomId: ID!): Room!
 
-    # Room user params
+    # User settings
     betaRoomUpdateUserNotificationSettings(settings: RoomUserNotificaionSettingsInput!, roomId: ID!): RoomUserNotificaionSettings!
     
-   
+    # Admin tools
+    betaRoomAlterFeatured(roomId: ID!, featured: Boolean!): Room!
+    betaRoomAlterListed(roomId: ID!, listed: Boolean!): Room!
+    
 }
