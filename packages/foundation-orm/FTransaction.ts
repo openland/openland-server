@@ -53,7 +53,7 @@ export class FTransaction implements FContext {
         return await trace(tracer, 'range', async () => {
             logger.debug('get-range');
             let res = (await this.tx!.getRangeAll(key, undefined, options));
-            return res.map((v) => ({ item: v[1] as any, key: FKeyEncoding.decodeKey(v[0]) }));
+            return res.map((v) => ({ item: v[1] as any, key: v[0] }));
         });
     }
 
@@ -65,7 +65,7 @@ export class FTransaction implements FContext {
             let start = reversed ? FKeyEncoding.firstKeyInSubspace(prefix) : keySelector.firstGreaterThan(FKeyEncoding.encodeKey(afterKey));
             let end = reversed ? keySelector.lastLessOrEqual(FKeyEncoding.encodeKey(afterKey)) : FKeyEncoding.lastKeyInSubspace(prefix);
             let res = await this.tx!.getRangeAll(start, end, options);
-            return res.map((v) => ({ item: v[1] as any, key: FKeyEncoding.decodeKey(v[0]) }));
+            return res.map((v) => ({ item: v[1] as any, key: v[0] }));
         });
     }
 

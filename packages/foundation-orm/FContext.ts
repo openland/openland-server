@@ -11,9 +11,9 @@ export interface FContext {
     readonly isCompleted: boolean;
     markDirty(entity: FEntity, callback: (connection: FConnection) => Promise<void>): void;
     get(connection: FConnection, key: Buffer): Promise<any | null>;
-    range(connection: FConnection, key: Buffer, options?: RangeOptions): Promise<{ item: any, key: any[] }[]>;
+    range(connection: FConnection, key: Buffer, options?: RangeOptions): Promise<{ item: any, key: Buffer }[]>;
     rangeAll(connection: FConnection, key: Buffer, options?: RangeOptions): Promise<any[]>;
-    rangeAfter(connection: FConnection, prefix: (string | number)[], afterKey: (string | number)[], options?: RangeOptions): Promise<{ item: any, key: any[] }[]>;
+    rangeAfter(connection: FConnection, prefix: (string | number)[], afterKey: (string | number)[], options?: RangeOptions): Promise<{ item: any, key: Buffer }[]>;
     set(connection: FConnection, key: Buffer, value: any): void;
     delete(connection: FConnection, key: Buffer): void;
     afterTransaction(callback: () => void): void;
@@ -32,7 +32,7 @@ export class FGlobalContext implements FContext {
         return await trace(tracer, 'range', async () => {
             logger.debug('get-range');
             let res = await connection.fdb.getRangeAll(key, undefined, options);
-            return res.map((v) => ({ item: v[1] as any, key: FKeyEncoding.decodeKey(v[0]) }));
+            return res.map((v) => ({ item: v[1] as any, key: v[0] }));
         });
     }
     async rangeAll(connection: FConnection, key: Buffer, options?: RangeOptions) {
@@ -49,7 +49,7 @@ export class FGlobalContext implements FContext {
             let start = reversed ? FKeyEncoding.firstKeyInSubspace(prefix) : keySelector.firstGreaterThan(FKeyEncoding.encodeKey(afterKey));
             let end = reversed ? FKeyEncoding.encodeKey(afterKey) : FKeyEncoding.lastKeyInSubspace(prefix);
             let res = await connection.fdb.getRangeAll(start, end, options);
-            return res.map((v) => ({ item: v[1] as any, key: FKeyEncoding.decodeKey(v[0]) }));
+            return res.map((v) => ({ item: v[1] as any, key: v[0] }));
         });
     }
 

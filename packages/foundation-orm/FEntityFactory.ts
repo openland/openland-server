@@ -52,13 +52,13 @@ export abstract class FEntityFactory<T extends FEntity> {
 
     async findAllKeys(limit?: number) {
         let res = await this.namespace.range(this.connection, [], { limit });
-        res = res.filter((v) => !v.key.find((k) => k === '__indexes'));
+        res = res.filter((v) => !FKeyEncoding.decodeKey(v.key).find((k) => k === '__indexes'));
         return res.map((v) => v.key);
     }
 
     async findAllKeysAfter(after: any[], limit?: number) {
         let res = await this.namespace.rangeAfter(this.connection, [], after, { limit });
-        res = res.filter((v) => !v.key.find((k) => k === '__indexes'));
+        res = res.filter((v) => !FKeyEncoding.decodeKey(v.key).find((k) => k === '__indexes'));
         return res.map((v) => v.key);
     }
 
@@ -132,7 +132,7 @@ export abstract class FEntityFactory<T extends FEntity> {
                 d.push(this._createEntity(res[i].item, false));
             }
             if (res.length > limit) {
-                cursor = FKeyEncoding.encodeKeyToString(res[res.length - 2].key);
+                cursor = FKeyEncoding.encodeKeyToString(FKeyEncoding.decodeKey(res[res.length - 2].key) as any);
             }
             return { items: d, cursor };
         } else {
@@ -143,7 +143,7 @@ export abstract class FEntityFactory<T extends FEntity> {
                 d.push(this._createEntity(res[i].item, false));
             }
             if (res.length > limit) {
-                cursor = FKeyEncoding.encodeKeyToString(res[res.length - 2].key);
+                cursor = FKeyEncoding.encodeKeyToString(FKeyEncoding.decodeKey(res[res.length - 2].key) as any);
             }
             return { items: d, cursor };
         }
