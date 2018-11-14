@@ -51,7 +51,7 @@ class ContextNamespaceHolder<T> implements ContextNamespace<T> {
         if (val) {
             return val as T;
         } else {
-            if (!this.defaultValue) {
+            if (this.defaultValue === undefined) {
                 throw Error('Context ' + this.name + ' is not set');
             } else {
                 return this.defaultValue;
