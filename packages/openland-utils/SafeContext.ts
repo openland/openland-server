@@ -1,4 +1,5 @@
 import cls from 'cls-hooked';
+var clsBluebird = require('cls-bluebird');
 // import async_hooks from 'async_hooks';
 // const ENABLE_DEBUG = false;
 
@@ -55,13 +56,16 @@ export function exportContextDebug() {
     // console.log(d.join('\n'));
 }
 
+const namespace = cls.createNamespace('safe-context');
+
+clsBluebird(namespace);
+
 export class SafeContext<T> {
     private static nextId = 0;
-    private static namespace = cls.createNamespace('safe-context');
     private readonly id = SafeContext.nextId++;
 
     static inNewContext<P>(callback: () => P): P {
-        return SafeContext.namespace.bind(callback, {})();
+        return namespace.bind(callback, {})();
     }
 
     constructor() {
@@ -69,14 +73,14 @@ export class SafeContext<T> {
     }
 
     withContext<P>(value: T | undefined, callback: () => P): P {
-        return SafeContext.namespace.runAndReturn(() => {
-            SafeContext.namespace.set('value-' + this.id, value);
+        return namespace.runAndReturn(() => {
+            namespace.set('value-' + this.id, value);
             return callback();
         });
     }
 
     get value(): T | undefined {
-        return SafeContext.namespace.get('value-' + this.id);
+        return namespace.get('value-' + this.id);
         // if (ENABLE_DEBUG) {
         //     debug.push(`read: ${async_hooks.executionAsyncId()}`);
         // }
