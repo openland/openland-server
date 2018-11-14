@@ -1,52 +1,56 @@
 import * as express from 'express';
-import { CallContext } from '../../openland-module-api/CallContext';
 import { Modules } from 'openland-modules/Modules';
-import { withTracingSpan } from 'openland-log/withTracing';
 import { createTracer } from 'openland-log/createTracer';
 import { createLogger } from 'openland-log/createLogger';
+import { createEmptyContext } from 'openland-utils/Context';
+import { AuthContext } from 'openland-module-auth/AuthContext';
+import { TracingContext } from 'openland-log/TracingContext';
+import { CacheContext } from 'openland-module-api/CacheContext';
+import { AppContext } from 'openland-modules/AppContext';
 
 let tracer = createTracer('express');
+const logger = createLogger('http');
 
-async function context(src: express.Request): Promise<CallContext> {
-    let res = new CallContext();
-    //
-    // Loading UID
-    //
+async function context(src: express.Request): Promise<AppContext> {
+
+    let res = createEmptyContext();
+    let uid: number | undefined;
+    let tid: string | undefined;
+    let oid: number | undefined;
+
+    // User
     if (src.user !== null && src.user !== undefined) {
         if (typeof src.user.sub === 'string') {
-            res.uid = await Modules.Users.findUserByAuthId(src.user.sub);
+            uid = await Modules.Users.findUserByAuthId(src.user.sub);
         } else if (typeof src.user.uid === 'number' && typeof src.user.tid === 'number') {
-            res.uid = src.user.uid;
-            res.tid = src.user.tid;
+            uid = src.user.uid;
+            tid = src.user.tid;
         }
     }
-
-    res.ip = src.ip;
-
-    //
-    // Loading Organization
-    //
-    if (res.uid) {
-        let accounts = await Modules.Orgs.findUserOrganizations(res.uid);
+    // Organization
+    if (uid) {
+        let accounts = await Modules.Orgs.findUserOrganizations(uid);
 
         // Default behaviour: pick the default one
         if (accounts.length >= 1) {
-            res.oid = accounts[0];
+            oid = accounts[0];
 
-            let profile = await Modules.Users.profileById(res.uid);
-            res.oid = (profile && profile.primaryOrganization) || res.oid;
+            let profile = await Modules.Users.profileById(uid);
+            oid = (profile && profile.primaryOrganization) || oid;
         }
-
-        // res.superRope = await Repos.Permissions.superRole(res.uid);
     }
 
-    res.span = tracer.startSpan('http');
-
-    return res;
+    // Auth Context
+    res = AuthContext.set(res, { tid, uid, oid });
+    
+    // Tracing Context
+    res = TracingContext.set(res, { span: tracer.startSpan('http') });
+    res = CacheContext.set(res, new Map());
+    return new AppContext(res);
 }
-const logger = createLogger('http');
+
 export async function callContextMiddleware(isTest: boolean, req: express.Request, res: express.Response, next: express.NextFunction) {
-    let ctx: CallContext;
+    let ctx: AppContext;
     try {
         ctx = await context(req);
     } catch (e) {
@@ -54,8 +58,8 @@ export async function callContextMiddleware(isTest: boolean, req: express.Reques
         return;
     }
     if (!isTest) {
-        if (ctx.uid) {
-            logger.log('GraphQL [#' + ctx.uid + ']: ' + JSON.stringify(req.body));
+        if (AuthContext.get(ctx).uid) {
+            logger.log('GraphQL [#' + AuthContext.get(ctx).uid + ']: ' + JSON.stringify(req.body));
         } else {
             logger.log('GraphQL [#ANON]: ' + JSON.stringify(req.body));
         }
@@ -66,16 +70,12 @@ export async function callContextMiddleware(isTest: boolean, req: express.Reques
     res.end = function (...args: any[]) {
         res.end = originalEnd;
         const returned = res.end.call(this, ...args);
-        if (ctx.span) {
-            ctx.span.finish();
+        let span = TracingContext.get(ctx).span;
+        if (span) {
+            span.finish();
         }
         return returned;
     };
 
-    if (ctx.span) {
-        // tslint:disable-next-line:no-floating-promises
-        withTracingSpan(ctx.span, next);
-    } else {
-        next();
-    }
+    next();
 }

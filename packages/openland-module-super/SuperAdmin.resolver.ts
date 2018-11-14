@@ -24,7 +24,7 @@ export default {
         }),
     },
     Mutation: {
-        superAdminAdd: withPermission<{ userId: string, role: 'SUPER_ADMIN' | 'SOFTWARE_DEVELOPER' | 'EDITOR' }>('super-admin', async (args) => {
+        superAdminAdd: withPermission<{ userId: string, role: 'SUPER_ADMIN' | 'SOFTWARE_DEVELOPER' | 'EDITOR' }>('super-admin', async (ctx, args) => {
             let uid = IDs.User.parse(args.userId);
             let role = 'editor';
             if (args.role === 'SUPER_ADMIN') {
@@ -35,7 +35,7 @@ export default {
             await Modules.Super.makeSuperAdmin(uid, role);
             return 'ok';
         }),
-        superAdminRemove: withPermission<{ userId: string }>('super-admin', async (args) => {
+        superAdminRemove: withPermission<{ userId: string }>('super-admin', async (ctx, args) => {
             let uid = IDs.User.parse(args.userId);
             await Modules.Super.makeNormalUser(uid);
             return 'ok';

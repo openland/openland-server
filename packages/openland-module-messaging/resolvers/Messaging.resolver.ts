@@ -8,14 +8,14 @@ import { NotFoundError } from 'openland-errors/NotFoundError';
 
 export default {
     Mutation: {
-        roomRead: withUser<GQL.MutationRoomReadArgs>(async (args, uid) => {
+        roomRead: withUser<GQL.MutationRoomReadArgs>(async (ctx, args, uid) => {
             let cid = IDs.Conversation.parse(args.id);
             let mid = IDs.ConversationMessage.parse(args.mid);
             await Modules.Messaging.readRoom(uid, cid, mid);
             return true;
         }),
 
-        betaMessageSend: withUser<GQL.MutationBetaMessageSendArgs>(async (args, uid) => {
+        betaMessageSend: withUser<GQL.MutationBetaMessageSendArgs>(async (ctx, args, uid) => {
             let cid = IDs.Conversation.parse(args.room);
             let replyMessages = args.replyMessages && args.replyMessages.map(id => IDs.ConversationMessage.parse(id));
             let mentions = args.mentions && args.mentions.map(id => IDs.User.parse(id));
@@ -45,7 +45,7 @@ export default {
 
             return true;
         }),
-        betaMessageEdit: withUser<GQL.MutationBetaMessageEditArgs>(async (args, uid) => {
+        betaMessageEdit: withUser<GQL.MutationBetaMessageEditArgs>(async (ctx, args, uid) => {
 
             // Resolve arguments
             let mid = IDs.ConversationMessage.parse(args.mid);
@@ -72,28 +72,28 @@ export default {
             }, true);
             return true;
         }),
-        betaMessageDelete: withUser<GQL.MutationBetaMessageDeleteArgs>(async (args, uid) => {
+        betaMessageDelete: withUser<GQL.MutationBetaMessageDeleteArgs>(async (ctx, args, uid) => {
             let messageId = IDs.ConversationMessage.parse(args.mid);
             await Modules.Messaging.deleteMessage(messageId, uid);
             return true;
         }),
-        betaMessageDeleteAugmentation: withUser<GQL.MutationBetaMessageDeleteAugmentationArgs>(async (args, uid) => {
+        betaMessageDeleteAugmentation: withUser<GQL.MutationBetaMessageDeleteAugmentationArgs>(async (ctx, args, uid) => {
             await Modules.Messaging.editMessage(IDs.ConversationMessage.parse(args.mid), uid, {
                 urlAugmentation: false
             }, true);
             return true;
         }),
 
-        betaReactionSet: withUser<GQL.MutationBetaReactionSetArgs>(async (args, uid) => {
+        betaReactionSet: withUser<GQL.MutationBetaReactionSetArgs>(async (ctx, args, uid) => {
             await Modules.Messaging.setReaction(IDs.ConversationMessage.parse(args.mid), uid, args.reaction);
             return true;
         }),
-        betaReactionRemove: withUser<GQL.MutationBetaReactionRemoveArgs>(async (args, uid) => {
+        betaReactionRemove: withUser<GQL.MutationBetaReactionRemoveArgs>(async (ctx, args, uid) => {
             await Modules.Messaging.setReaction(IDs.ConversationMessage.parse(args.mid), uid, args.reaction, true);
             return true;
         }),
 
-        betaIntroSend: withUser<GQL.MutationBetaIntroSendArgs>(async (args, uid) => {
+        betaIntroSend: withUser<GQL.MutationBetaIntroSendArgs>(async (ctx, args, uid) => {
             await validate({
                 about: defined(stringNotEmpty(`About can't be empty!`)),
                 userId: defined(isNumber('Select user'))
@@ -141,7 +141,7 @@ export default {
                 }
             }));
         }),
-        betaIntroEdit: withUser<GQL.MutationBetaIntroEditArgs>(async (args, uid) => {
+        betaIntroEdit: withUser<GQL.MutationBetaIntroEditArgs>(async (ctx, args, uid) => {
             await validate({
                 about: defined(stringNotEmpty(`About can't be empty!`)),
                 userId: defined(isNumber('Select user'))

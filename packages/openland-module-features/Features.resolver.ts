@@ -16,10 +16,10 @@ export default {
         }),
     },
     Mutation: {
-        featureFlagAdd: withPermission<{ key: string, title: string }>(['super-admin', 'software-developer'], async (args) => {
+        featureFlagAdd: withPermission<{ key: string, title: string }>(['super-admin', 'software-developer'], async (ctx, args) => {
             return Modules.Features.repo.createFeatureFlag(args.key, args.title);
         }),
-        superAccountFeatureAdd: withPermission<{ id: string, featureId: string }>(['super-admin', 'software-developer'], async (args) => {
+        superAccountFeatureAdd: withPermission<{ id: string, featureId: string }>(['super-admin', 'software-developer'], async (ctx, args) => {
             let org = await FDB.Organization.findById(IDs.SuperAccount.parse(args.id));
             if (!org) {
                 throw Error('Unable to find organization');
@@ -27,7 +27,7 @@ export default {
             await Modules.Features.repo.enableFeatureForOrganization(org.id, args.featureId);
             return org;
         }),
-        superAccountFeatureRemove: withPermission<{ id: string, featureId: string }>(['super-admin', 'software-developer'], async (args) => {
+        superAccountFeatureRemove: withPermission<{ id: string, featureId: string }>(['super-admin', 'software-developer'], async (ctx, args) => {
             let org = await FDB.Organization.findById(IDs.SuperAccount.parse(args.id));
             if (!org) {
                 throw Error('Unable to find organization');

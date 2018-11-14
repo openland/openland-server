@@ -7,11 +7,11 @@ import { IDs } from 'openland-module-api/IDs';
 
 export default {
     User: {
-        primaryOrganization: withProfile((src, profile) => profile && profile.primaryOrganization ? FDB.Organization.findById(profile.primaryOrganization) : null),
-        organizations: withUser(async (src) => (await Modules.Orgs.findUserOrganizations(src.id!)).map(async oid => await FDB.Organization.findById(oid))),
-        
+        primaryOrganization: withProfile((ctx, src, profile) => profile && profile.primaryOrganization ? FDB.Organization.findById(profile.primaryOrganization) : null),
+        organizations: withUser(async (ctx, src) => (await Modules.Orgs.findUserOrganizations(src.id!)).map(async oid => await FDB.Organization.findById(oid))),
+
         // Deprecated
-        alphaPrimaryOrganization: withProfile(async (src, profile) => profile && profile.primaryOrganization ? FDB.Organization.findById(profile.primaryOrganization) : null),
+        alphaPrimaryOrganization: withProfile(async (ctx, src, profile) => profile && profile.primaryOrganization ? FDB.Organization.findById(profile.primaryOrganization) : null),
     },
     Profile: {
         primaryOrganization: async (src: UserProfile) => src.primaryOrganization ? FDB.Organization.findById(src.primaryOrganization) : null,

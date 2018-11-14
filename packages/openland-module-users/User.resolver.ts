@@ -1,40 +1,40 @@
 import { User, UserProfile } from 'openland-module-db/schema';
 import { Modules } from 'openland-modules/Modules';
-import { CallContext } from 'openland-module-api/CallContext';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { FDB } from 'openland-module-db/FDB';
 import { IDs } from 'openland-module-api/IDs';
 import { withAny } from 'openland-module-api/Resolvers';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
+import { AppContext } from 'openland-modules/AppContext';
 
 type UserRoot = User | UserProfile | number;
 
-export function withUser(handler: (user: User, context: CallContext) => any) {
-    return async (src: UserRoot, _params: {}, context: CallContext) => {
+export function withUser(handler: (ctx: AppContext, user: User) => any) {
+    return async (src: UserRoot, _params: {}, ctx: AppContext) => {
         if (typeof src === 'number') {
             let user = (await (FDB.User.findById(src)))!;
-            return handler(user, context);
+            return handler(ctx, user);
         } else if (src.entityName === 'User') {
-            return handler(src, context);
+            return handler(ctx, src);
         } else {
             let user = (await (FDB.User.findById(src.id)))!;
-            return handler(user, context);
+            return handler(ctx, user);
         }
     };
 }
 
-export function withProfile(handler: (user: User, profile: UserProfile | null, context: CallContext) => any) {
-    return async (src: UserRoot, _params: {}, context: CallContext) => {
+export function withProfile(handler: (ctx: AppContext, user: User, profile: UserProfile | null) => any) {
+    return async (src: UserRoot, _params: {}, ctx: AppContext) => {
         if (typeof src === 'number') {
             let user = (await (FDB.User.findById(src)))!;
             let profile = (await (FDB.UserProfile.findById(src)))!;
-            return handler(user, profile, context);
+            return handler(ctx, user, profile);
         } else if (src.entityName === 'User') {
             let profile = (await (FDB.UserProfile.findById(src.id)))!;
-            return handler(src, profile, context);
+            return handler(ctx, src, profile);
         } else {
             let user = (await (FDB.User.findById(src.id)))!;
-            return handler(user, src, context);
+            return handler(ctx, user, src);
         }
 
     };
@@ -43,24 +43,24 @@ export function withProfile(handler: (user: User, profile: UserProfile | null, c
 export default {
     User: {
         id: (src: UserRoot) => IDs.User.serialize(typeof src === 'number' ? src : src.id),
-        isBot: withUser((src: User) => src.isBot || false),
-        isYou: withUser((src: User, context: CallContext) => src.id === context.uid),
+        isBot: withUser((ctx, src) => src.isBot || false),
+        isYou: withUser((ctx, src) => src.id === ctx.auth.uid),
 
-        name: withProfile((src, profile) => profile ? [profile.firstName, profile.lastName].filter((v) => !!v).join(' ') : src.email),
-        firstName: withProfile((src, profile) => profile ? profile.firstName : src.email),
-        lastName: withProfile((src, profile) => profile ? profile.lastName : null),
-        photo: withProfile((src, profile) => profile && profile.picture ? buildBaseImageUrl(profile.picture) : null),
-        photoRef: withProfile((src, profile) => profile && profile.picture),
+        name: withProfile((ctx, src, profile) => profile ? [profile.firstName, profile.lastName].filter((v) => !!v).join(' ') : src.email),
+        firstName: withProfile((ctx, src, profile) => profile ? profile.firstName : src.email),
+        lastName: withProfile((ctx, src, profile) => profile ? profile.lastName : null),
+        photo: withProfile((ctx, src, profile) => profile && profile.picture ? buildBaseImageUrl(profile.picture) : null),
+        photoRef: withProfile((ctx, src, profile) => profile && profile.picture),
 
-        email: withProfile((src, profile) => profile ? profile.email : null),
-        phone: withProfile((src, profile) => profile ? profile.phone : null),
-        about: withProfile((src, profile) => profile ? profile.about : null),
-        website: withProfile((src, profile) => profile ? profile.website : null),
-        linkedin: withProfile((src, profile) => profile && profile.linkedin),
-        twitter: withProfile((src, profile) => profile && profile.twitter),
-        location: withProfile((src, profile) => profile ? profile.location : null),
+        email: withProfile((ctx, src, profile) => profile ? profile.email : null),
+        phone: withProfile((ctx, src, profile) => profile ? profile.phone : null),
+        about: withProfile((ctx, src, profile) => profile ? profile.about : null),
+        website: withProfile((ctx, src, profile) => profile ? profile.website : null),
+        linkedin: withProfile((ctx, src, profile) => profile && profile.linkedin),
+        twitter: withProfile((ctx, src, profile) => profile && profile.twitter),
+        location: withProfile((ctx, src, profile) => profile ? profile.location : null),
 
-        shortname: withUser(async (src: User) => {
+        shortname: withUser(async (ctx, src) => {
             let shortname = await Modules.Shortnames.findUserShortname(src.id);
             if (shortname) {
                 return shortname.shortname;
@@ -69,31 +69,31 @@ export default {
         }),
 
         // Deprecated
-        picture: withProfile((src, profile) => profile && profile.picture ? buildBaseImageUrl(profile.picture) : null),
-        pictureRef: withProfile((src, profile) => profile && profile.picture),
-        alphaRole: withProfile((src, profile) => profile && profile.role),
-        alphaLinkedin: withProfile((src, profile) => profile && profile.linkedin),
-        alphaTwitter: withProfile((src, profile) => profile && profile.twitter),
+        picture: withProfile((ctx, src, profile) => profile && profile.picture ? buildBaseImageUrl(profile.picture) : null),
+        pictureRef: withProfile((ctx, src, profile) => profile && profile.picture),
+        alphaRole: withProfile((ctx, src, profile) => profile && profile.role),
+        alphaLinkedin: withProfile((ctx, src, profile) => profile && profile.linkedin),
+        alphaTwitter: withProfile((ctx, src, profile) => profile && profile.twitter),
 
         channelsJoined: async (src: User) => {
             return [];
         },
-        alphaLocations: withProfile((src, profile) => profile && profile.locations),
+        alphaLocations: withProfile((ctx, src, profile) => profile && profile.locations),
     },
     Query: {
-        me: async function (_obj: any, _params: {}, context: CallContext) {
-            if (context.uid == null) {
+        me: async function (_obj: any, _params: {}, ctx: AppContext) {
+            if (ctx.auth.uid == null) {
                 return null;
             } else {
-                let profile = await FDB.User.findById(context.uid);
+                let profile = await FDB.User.findById(ctx.auth.uid);
                 if (profile === null) {
                     return null;
                 }
 
-                return FDB.User.findById(context.uid);
+                return FDB.User.findById(ctx.auth.uid);
             }
         },
-        user: withAny<{ id: string }>((args) => {
+        user: withAny<{ id: string }>((ctx, args) => {
             return FDB.User.findById(IDs.User.parse(args.id));
         }),
     }

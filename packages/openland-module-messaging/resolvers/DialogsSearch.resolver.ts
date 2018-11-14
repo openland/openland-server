@@ -9,7 +9,7 @@ const tracer = createTracer('chat-text-search');
 
 export default {
     Query: {
-        alphaChatTextSearch: withAccount<{ query: string }>(async (args, uid, oid) => {
+        alphaChatTextSearch: withAccount<{ query: string }>(async (ctx, args, uid, oid) => {
             return await withTracing(tracer, 'chat-text-search', async () => {
                 // Group Search
                 // let searchableConversations = Promise.all((await FDB.RoomParticipant.allFromUserActive(uid))

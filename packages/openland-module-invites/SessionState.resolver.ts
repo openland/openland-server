@@ -1,13 +1,16 @@
-import { CallContext } from '../openland-module-api/CallContext';
 import { Modules } from 'openland-modules/Modules';
 import { FDB } from 'openland-module-db/FDB';
+import { Context } from 'openland-utils/Context';
+import { AuthContext } from 'openland-module-auth/AuthContext';
 
 export default {
     Query: {
-        sessionState: async function (_: any, args: {}, context: CallContext) {
+        sessionState: async function (_: any, args: {}, ctx: Context) {
+
+            let auth = AuthContext.get(ctx);
 
             // If there are no user in the context
-            if (!context.uid) {
+            if (!auth.uid) {
                 return {
                     isLoggedIn: false,
                     isProfileCreated: false,
@@ -22,7 +25,7 @@ export default {
             }
 
             // User unknown?! Just softly ignore errors
-            let res = await FDB.User.findById(context.uid);
+            let res = await FDB.User.findById(auth.uid);
             if (res === null) {
                 return {
                     isLoggedIn: false,
@@ -41,13 +44,13 @@ export default {
             let isLoggedIn = true; // Checked in previous steps
 
             // Stage 1: Create Profile
-            let profile = context.uid ? (await Modules.Users.profileById(context.uid)) : null;
+            let profile = auth.uid ? (await Modules.Users.profileById(auth.uid)) : null;
             let isProfileCreated = !!profile;
 
             // Stage 2: Pick organization or create a new one (if there are no exists)
-            let organization = !!context.oid ? await FDB.Organization.findById(context.oid) : null;
+            let organization = !!auth.oid ? await FDB.Organization.findById(auth.oid) : null;
             let isOrganizationPicked = organization !== null;
-            let orgsIDs = context.uid ? await Modules.Orgs.findUserOrganizations(context.uid) : [];
+            let orgsIDs = auth.uid ? await Modules.Orgs.findUserOrganizations(auth.uid) : [];
             let isOrganizationExists = orgsIDs.length > 0;
 
             // Stage 3: Activation Status

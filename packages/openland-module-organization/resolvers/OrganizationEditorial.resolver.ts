@@ -8,7 +8,7 @@ import { Modules } from 'openland-modules/Modules';
 
 export default {
     Mutation: {
-        alphaAlterPublished: withPermission<{ id: string, published: boolean }>(['super-admin', 'editor'], async (args) => {
+        alphaAlterPublished: withPermission<{ id: string, published: boolean }>(['super-admin', 'editor'], async (ctx, args) => {
             return await inTx(async () => {
                 let org = await FDB.Organization.findById(IDs.Organization.parse(args.id));
                 if (!org) {
@@ -19,7 +19,7 @@ export default {
 
                 // Schedule for indexing
                 await Modules.Orgs.markForUndexing(org.id);
-                
+
                 return org;
             });
         }),

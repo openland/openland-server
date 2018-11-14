@@ -1,139 +1,92 @@
-import { CallContext } from './CallContext';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 import { ErrorText } from '../openland-errors/ErrorText';
-import { UserError } from '../openland-errors/UserError';
-import { SecID } from '../openland-security/SecID';
 import { GraphQLField, GraphQLFieldResolver, GraphQLObjectType, GraphQLSchema } from 'graphql';
 import { FDB } from 'openland-module-db/FDB';
 import { Modules } from 'openland-modules/Modules';
+import { AppContext } from 'openland-modules/AppContext';
 
-async function fetchPermissions(context: CallContext) {
-    if (context.cache.has('permissions')) {
-        return (await context.cache.get('permissions')) as Set<string>;
+async function fetchPermissions(ctx: AppContext) {
+    if (ctx.cache.has('permissions')) {
+        return (await ctx.cache.get('permissions')) as Set<string>;
     }
-    let res = Modules.Super.resolvePermissions({ uid: context.uid, oid: context.oid });
-    context.cache.set('permissions', res);
+    let res = Modules.Super.resolvePermissions({ uid: ctx.auth.uid, oid: ctx.auth.oid });
+    ctx.cache.set('permissions', res);
     return await res;
 }
 
-async function fetchOrganizationId(context: CallContext) {
-    // if (context.cache.has('org_id')) {
-    //     return (await context.cache.get('org_id')) as number | null;
-    // }
-    // let res = DB.User.findById(context.uid).then((v) => v ? v.organizationId as number | null : null);
-    // context.cache.set('org_id', res);
-    return context.oid !== undefined ? context.oid : null;
+async function fetchOrganizationId(ctx: AppContext) {
+    return ctx.auth.oid;
 }
 
-export function withPermission<T = {}>(permission: string | string[], resolver: (args: T, context: CallContext) => any) {
-    return async function (_: any, args: T, context: CallContext) {
-        let permissions = await fetchPermissions(context);
+export function withPermission<T = {}>(permission: string | string[], resolver: (ctx: AppContext, args: T) => any) {
+    return async function (_: any, args: T, ctx: AppContext) {
+        let permissions = await fetchPermissions(ctx);
         if (Array.isArray(permission)) {
             for (let p of permission) {
                 if (permissions.has(p)) {
-                    return resolver(args, context);
+                    return resolver(ctx, args);
                 }
             }
         } else if (permissions.has(permission)) {
-            return resolver(args, context);
+            return resolver(ctx, args);
         } else {
             throw new AccessDeniedError(ErrorText.permissionDenied);
         }
     };
 }
 
-export function withPermissionOptional<T = {}, C = {}>(permission: string | string[], resolver: (args: T, context: CallContext, src: C) => any) {
-    return async function (c: C, args: T, context: CallContext) {
-        let permissions = await fetchPermissions(context);
+export function withPermissionOptional<T = {}, C = {}>(permission: string | string[], resolver: (ctx: AppContext, args: T, src: C) => any) {
+    return async function (c: C, args: T, ctx: AppContext) {
+        let permissions = await fetchPermissions(ctx);
         if (Array.isArray(permission)) {
             for (let p of permission) {
                 if (permissions.has(p)) {
-                    return resolver(args, context, c);
+                    return resolver(ctx, args, c);
                 }
             }
         } else if (permissions.has(permission)) {
-            return resolver(args, context, c);
+            return resolver(ctx, args, c);
         } else {
             return null;
         }
     };
 }
 
-export function withAuth<T = {}>(resolver: (args: T, uid: number) => any) {
-    return async function (_: any, args: T, context: CallContext) {
-        if (!context.uid) {
+export function withAuth<T = {}>(resolver: (ctx: AppContext, args: T, uid: number) => any) {
+    return async function (_: any, args: T, ctx: AppContext) {
+        if (!ctx.auth.uid) {
             throw new AccessDeniedError(ErrorText.permissionDenied);
         }
-        return resolver(args, context.uid!!);
+        return resolver(ctx, args, ctx.auth.uid);
     };
 }
 
-export function withAccount<T = {}>(resolver: (args: T, uid: number, org: number) => any) {
-    return async function (_: any, args: T, context: CallContext) {
-        if (!context.uid) {
+export function withAccount<T = {}>(resolver: (ctx: AppContext, args: T, uid: number, org: number) => any) {
+    return async function (_: any, args: T, ctx: AppContext) {
+        if (!ctx.auth.uid) {
             throw new AccessDeniedError(ErrorText.permissionDenied);
         }
-        let res = await fetchOrganizationId(context);
-        if (res === null) {
-            throw new AccessDeniedError(ErrorText.permissionDenied);
-        }
-
-        return resolver(args, context.uid!!, res);
-    };
-}
-
-export function withOrgOwner<T = {}>(resolver: (args: T, uid: number, org: number) => any) {
-    return async function (_: any, args: T, context: CallContext) {
-        if (!context.uid) {
-            throw new AccessDeniedError(ErrorText.permissionDenied);
-        }
-        let res = await fetchOrganizationId(context);
-        if (res === null) {
+        let res = await fetchOrganizationId(ctx);
+        if (!res) {
             throw new AccessDeniedError(ErrorText.permissionDenied);
         }
 
-        let member = await FDB.OrganizationMember.findById(res, context.uid);
-
-        if (member === null || member.status !== 'joined' || member.role !== 'admin') {
-            throw new UserError(ErrorText.permissionOnlyOwner);
-        }
-
-        return resolver(args, context.uid!!, res);
+        return resolver(ctx, args, ctx.auth.uid, res);
     };
 }
 
-export function withUser<T = {}>(resolver: (args: T, uid: number) => any) {
-    return async function (_: any, args: T, context: CallContext) {
-        if (!context.uid) {
+export function withUser<T = {}>(resolver: (ctx: AppContext, args: T, uid: number) => any) {
+    return async function (_: any, args: T, ctx: AppContext) {
+        if (!ctx.auth.uid) {
             throw new AccessDeniedError(ErrorText.permissionDenied);
         }
-        return resolver(args, context.uid!!);
+        return resolver(ctx, args, ctx.auth.uid);
     };
 }
 
-export function withAccountTypeOptional<T = {}>(resolver: (args: T, uid?: number, org?: number) => any) {
-    return async function (args: T, _: any, context: CallContext) {
-        let uid = context.uid;
-        let org: number | undefined = undefined;
-        if (context.uid) {
-            let res = await fetchOrganizationId(context);
-            if (res) {
-                org = res;
-            }
-        }
-        return resolver(args, uid, org);
-    };
-}
-
-export function withAny<T = {}>(resolver: (args: T, context: CallContext) => any) {
-    return async function (_: any, args: T, context: CallContext) {
-        return resolver(args, context);
-    };
-}
-
-export function resolveID(id: SecID) {
-    return function (src: { id: number }, args: any, context: CallContext) {
-        return id.serialize(src.id);
+export function withAny<T = {}>(resolver: (ctx: AppContext, args: T) => any) {
+    return async function (_: any, args: T, ctx: AppContext) {
+        return resolver(ctx, args);
     };
 }
 
@@ -166,7 +119,7 @@ export function wrapAllResolvers(schema: GraphQLSchema, f: FieldHandler) {
 
                 let fieldResolve = field.resolve;
                 if (field.resolve) {
-                    field.resolve = async (root: any, args: any, context: CallContext, info: any) => {
+                    field.resolve = async (root: any, args: any, context: AppContext, info: any) => {
                         return f(field, fieldResolve!, root, args, context, info);
                     };
                 }
@@ -183,7 +136,7 @@ export type FieldResolverWithRoot<T, R> = (root: R, ...args: any[]) => MaybeProm
 
 type Nullable<T> = undefined | null | T;
 export type TypedResolver<T> = { [P in keyof T]: FieldResolver<T[P]> };
-export type SoftlyTypedResolver<T> = { [P in keyof T]: (T[P] extends Nullable<object|object[]> ? FieldResolver<any> : FieldResolver<T[P]>) };
+export type SoftlyTypedResolver<T> = { [P in keyof T]: (T[P] extends Nullable<object | object[]> ? FieldResolver<any> : FieldResolver<T[P]>) };
 
 export type TypeName<T> =
     T extends string ? 'string' :
@@ -196,13 +149,13 @@ export type TypeName<T> =
 export type SameType<A, B> = TypeName<A> extends TypeName<B> ? (A extends B ? true : false) : false;
 
 export type ComplexTypedResolver<T, M extends any, R> = {
-    [P in keyof T]: (T[P] extends Nullable<object|object[]> ? FieldResolverWithRoot<M[P], R> : FieldResolverWithRoot<T[P], R>)
+    [P in keyof T]: (T[P] extends Nullable<object | object[]> ? FieldResolverWithRoot<M[P], R> : FieldResolverWithRoot<T[P], R>)
 };
 
 export function typed<T>(resolver: { [P in keyof T]: FieldResolver<T[P]> }) {
     return resolver;
 }
 
-export function typedSoftly<T>(resolver: { [P in keyof T]: (T[P] extends Nullable<object|object[]> ? FieldResolver<any> : FieldResolver<T[P]>) }) {
+export function typedSoftly<T>(resolver: { [P in keyof T]: (T[P] extends Nullable<object | object[]> ? FieldResolver<any> : FieldResolver<T[P]>) }) {
     return resolver;
 }

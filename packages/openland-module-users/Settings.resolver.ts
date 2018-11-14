@@ -4,8 +4,8 @@ import { FDB } from 'openland-module-db/FDB';
 import { withUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { inTx } from 'foundation-orm/inTx';
-import { CallContext } from 'openland-module-api/CallContext';
 import { GQL } from '../openland-module-api/schema/SchemaSpec';
+import { AppContext } from 'openland-modules/AppContext';
 
 export default {
     EmailFrequency: {
@@ -36,12 +36,12 @@ export default {
         notificationsDelay: (src: UserSettings) => src.notificationsDelay,
     },
     Query: {
-        settings: withUser(async (args, uid) => {
+        settings: withUser(async (ctx, args, uid) => {
             return Modules.Users.getUserSettings(uid);
         }),
     },
     Mutation: {
-        updateSettings: withUser<GQL.MutationUpdateSettingsArgs>(async (args, uid) => {
+        updateSettings: withUser<GQL.MutationUpdateSettingsArgs>(async (ctx, args, uid) => {
             return await inTx(async () => {
                 let settings = await Modules.Users.getUserSettings(uid);
                 if (!args.settings) {
@@ -68,7 +68,7 @@ export default {
                 return settings;
             });
         }),
-        settingsUpdate: withUser<GQL.MutationSettingsUpdateArgs>(async (args, uid) => {
+        settingsUpdate: withUser<GQL.MutationSettingsUpdateArgs>(async (ctx, args, uid) => {
             return await inTx(async () => {
                 let settings = await Modules.Users.getUserSettings(uid);
                 if (!args.settings) {
@@ -101,14 +101,14 @@ export default {
             resolve: async (msg: any) => {
                 return msg;
             },
-            subscribe: async function (_: any, args: any, context: CallContext) {
+            subscribe: async function (_: any, args: any, ctx: AppContext) {
                 let ended = false;
                 return {
                     ...(async function* func() {
                         while (!ended) {
-                            let settings = await Modules.Users.getUserSettings(context.uid!!);
+                            let settings = await Modules.Users.getUserSettings(ctx.auth.uid!!);
                             yield settings;
-                            await Modules.Users.waitForNextSettings(context.uid!);
+                            await Modules.Users.waitForNextSettings(ctx.auth.uid!);
                         }
                     })(),
                     return: async () => {
@@ -122,14 +122,14 @@ export default {
             resolve: async (msg: any) => {
                 return msg;
             },
-            subscribe: async function (_: any, args: any, context: CallContext) {
+            subscribe: async function (_: any, args: any, ctx: AppContext) {
                 let ended = false;
                 return {
                     ...(async function* func() {
                         while (!ended) {
-                            let settings = await Modules.Users.getUserSettings(context.uid!!);
+                            let settings = await Modules.Users.getUserSettings(ctx.auth.uid!!);
                             yield settings;
-                            await Modules.Users.waitForNextSettings(context.uid!);
+                            await Modules.Users.waitForNextSettings(ctx.auth.uid!);
                         }
                     })(),
                     return: async () => {

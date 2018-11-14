@@ -1,9 +1,9 @@
 import { IDs } from 'openland-module-api/IDs';
-import { CallContext } from 'openland-module-api/CallContext';
 import { ConversationEvent } from 'openland-module-db/schema';
 import { FDB } from 'openland-module-db/FDB';
 import { FLiveStreamItem } from 'foundation-orm/FLiveStreamItem';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
+import { AppContext } from 'openland-modules/AppContext';
 
 export default {
     /* 
@@ -61,7 +61,7 @@ export default {
             resolve: async (msg: any) => {
                 return msg;
             },
-            subscribe: function (_: any, args: { conversationId: string, fromState?: string }, context: CallContext) {
+            subscribe: function (_: any, args: { conversationId: string, fromState?: string }, ctx: AppContext) {
                 let conversationId = IDs.Conversation.parse(args.conversationId);
                 return FDB.ConversationEvent.createUserLiveStream(conversationId, 20, args.fromState);
             }

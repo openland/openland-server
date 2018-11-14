@@ -1,14 +1,14 @@
 import { Modules } from 'openland-modules/Modules';
-import { CallContext } from 'openland-module-api/CallContext';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
+import { AppContext } from 'openland-modules/AppContext';
 
 export default {
     Query: {
-        myProfilePrefill: async function (_: any, args: {}, context: CallContext) {
-            if (!context.uid) {
+        myProfilePrefill: async function (_: any, args: {}, ctx: AppContext) {
+            if (!ctx.auth.uid) {
                 return {};
             }
-            let prefill = await Modules.Users.findProfilePrefill(context.uid);
+            let prefill = await Modules.Users.findProfilePrefill(ctx.auth.uid);
             if (prefill) {
                 return {
                     firstName: prefill.firstName,

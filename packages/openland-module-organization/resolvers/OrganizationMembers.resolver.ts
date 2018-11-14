@@ -16,7 +16,7 @@ export default {
         }
     },
     Query: {
-        alphaOrganizationMembers: withAccount<{ orgId: string }>(async (args, uid, orgId) => {
+        alphaOrganizationMembers: withAccount<{ orgId: string }>(async (ctx, args, uid, orgId) => {
             let targetOrgId = IDs.Organization.parse(args.orgId);
 
             let isMember = await Modules.Orgs.isUserMember(uid, targetOrgId);
@@ -44,31 +44,31 @@ export default {
 
             return result;
         }),
-        alphaOrganizationInviteLink: withAccount<{ organizationId?: string }>(async (args, uid, organizationId) => {
+        alphaOrganizationInviteLink: withAccount<{ organizationId?: string }>(async (ctx, args, uid, organizationId) => {
             organizationId = args.organizationId ? IDs.Organization.parse(args.organizationId) : organizationId;
             return await Modules.Invites.orgInvitesRepo.getOrganizationInviteLink(organizationId, uid);
         }),
         // deperecated
-        alphaOrganizationPublicInvite: withAccount<{ organizationId?: string }>(async (args, uid, organizationId) => {
+        alphaOrganizationPublicInvite: withAccount<{ organizationId?: string }>(async (ctx, args, uid, organizationId) => {
             organizationId = args.organizationId ? IDs.Organization.parse(args.organizationId) : organizationId;
             return await Modules.Invites.orgInvitesRepo.getOrganizationInviteLink(organizationId, uid);
         }),
     },
     Mutation: {
-        alphaOrganizationRemoveMember: withAccount<{ memberId: string, organizationId: string }>(async (args, uid) => {
+        alphaOrganizationRemoveMember: withAccount<{ memberId: string, organizationId: string }>(async (ctx, args, uid) => {
             let oid = IDs.Organization.parse(args.organizationId);
             let memberId = IDs.User.parse(args.memberId);
             await Modules.Orgs.removeUserFromOrganization(memberId, oid, uid);
             return 'ok';
         }),
-        alphaOrganizationChangeMemberRole: withAccount<{ memberId: string, newRole: 'OWNER' | 'MEMBER', organizationId: string }>(async (args, uid) => {
+        alphaOrganizationChangeMemberRole: withAccount<{ memberId: string, newRole: 'OWNER' | 'MEMBER', organizationId: string }>(async (ctx, args, uid) => {
             let oid = IDs.Organization.parse(args.organizationId);
             let memberId = IDs.User.parse(args.memberId);
             await Modules.Orgs.updateMemberRole(memberId, oid, args.newRole === 'OWNER' ? 'admin' : 'member', uid);
             return 'ok';
         }),
 
-        alphaOrganizationInviteMembers: withAccount<{ inviteRequests: { email: string, emailText?: string, firstName?: string, lastName?: string, role: 'OWNER' | 'MEMBER' }[], organizationId?: string }>(async (args, uid, oid) => {
+        alphaOrganizationInviteMembers: withAccount<{ inviteRequests: { email: string, emailText?: string, firstName?: string, lastName?: string, role: 'OWNER' | 'MEMBER' }[], organizationId?: string }>(async (ctx, args, uid, oid) => {
             oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
             await validate({ inviteRequests: [{ email: defined(emailValidator) }] }, args);
 
@@ -94,7 +94,7 @@ export default {
                 return 'ok';
             });
         }),
-        alphaOrganizationRefreshInviteLink: withAccount<{ expirationDays?: number, organizationId?: string }>(async (args, uid, oid) => {
+        alphaOrganizationRefreshInviteLink: withAccount<{ expirationDays?: number, organizationId?: string }>(async (ctx, args, uid, oid) => {
             return inTx(async () => {
                 oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
                 let isOwner = await Modules.Orgs.isUserAdmin(uid, oid);
@@ -107,7 +107,7 @@ export default {
             });
         }),
         // deperecated
-        alphaOrganizationCreatePublicInvite: withAccount<{ expirationDays?: number, organizationId?: string }>(async (args, uid, oid) => {
+        alphaOrganizationCreatePublicInvite: withAccount<{ expirationDays?: number, organizationId?: string }>(async (ctx, args, uid, oid) => {
             return inTx(async () => {
                 oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
                 let isOwner = await Modules.Orgs.isUserAdmin(uid, oid);
@@ -120,7 +120,7 @@ export default {
             });
         }),
         // deprecated
-        alphaOrganizationDeletePublicInvite: withAccount<{ organizationId?: string }>(async (args, uid, oid) => {
+        alphaOrganizationDeletePublicInvite: withAccount<{ organizationId?: string }>(async (ctx, args, uid, oid) => {
             // oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
             // return inTx(async () => {
             //     let isOwner = await Modules.Orgs.isUserAdmin(uid, oid);

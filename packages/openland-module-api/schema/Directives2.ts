@@ -11,21 +11,22 @@ import {
 } from 'graphql';
 import { GraphQLFieldResolver, GraphQLInputType, GraphQLOutputType } from 'graphql/type/definition';
 import { ValueNode } from 'graphql/language/ast';
-import { CallContext } from 'openland-module-api/CallContext';
 import { SecID } from 'openland-security/SecID';
 import { IDs } from 'openland-module-api/IDs';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { ErrorText } from 'openland-errors/ErrorText';
 import { withPermission } from 'openland-module-api/Resolvers';
+import { AuthContext } from 'openland-module-auth/AuthContext';
+import { AppContext } from 'openland-modules/AppContext';
 
 function createFieldDirective(
-    resolver: (root: any, args: any, context: CallContext, info: any, originalResolver: GraphQLFieldResolver<any, any, any>, directiveArgs: any) => any
+    resolver: (root: any, args: any, context: AppContext, info: any, originalResolver: GraphQLFieldResolver<any, any, any>, directiveArgs: any) => any
 ): typeof SchemaDirectiveVisitor {
     return class extends SchemaDirectiveVisitor {
         visitFieldDefinition(field: GraphQLField<any, any>) {
             const { resolve = defaultFieldResolver } = field;
 
-            field.resolve = async (root: any, args: any, context: CallContext, info: any) => {
+            field.resolve = async (root: any, args: any, context: AppContext, info: any) => {
                 return await resolver(root, args, context, info, resolve, this.args);
             };
         }
@@ -133,7 +134,7 @@ export function injectIDScalars(schema: string): string {
 
 export const Directives = {
     withAuth: createFieldDirective(async (root, args, ctx, info, resolve) => {
-        if (!ctx.uid) {
+        if (!AuthContext.get(ctx).uid) {
             throw new AccessDeniedError(ErrorText.permissionDenied);
         } else {
             return await resolve(root, args, ctx, info);

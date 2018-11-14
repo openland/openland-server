@@ -1,9 +1,9 @@
-import { CallContext } from 'openland-module-api/CallContext';
 import { IDs } from 'openland-module-api/IDs';
 import { FDB } from 'openland-module-db/FDB';
 import { FLiveStreamItem } from 'foundation-orm/FLiveStreamItem';
 import { UserDialogEvent } from 'openland-module-db/schema';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
+import { AppContext } from 'openland-modules/AppContext';
 
 export default {
     /* 
@@ -94,8 +94,8 @@ export default {
             resolve: async (msg: any) => {
                 return msg;
             },
-            subscribe: function (_: any, args: { fromState?: string }, context: CallContext) {
-                return FDB.UserDialogEvent.createUserLiveStream(context.uid!, 20, args.fromState);
+            subscribe: function (_: any, args: { fromState?: string }, ctx: AppContext) {
+                return FDB.UserDialogEvent.createUserLiveStream(ctx.auth.uid!, 20, args.fromState);
             }
         } as any,
     }

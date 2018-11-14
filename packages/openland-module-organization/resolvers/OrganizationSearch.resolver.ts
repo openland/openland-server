@@ -14,7 +14,7 @@ interface AlphaOrganizationsParams {
 
 export default {
     Query: {
-        alphaOrganizationByPrefix: withAny<{ query: string }>(async args => {
+        alphaOrganizationByPrefix: withAny<{ query: string }>(async (ctx, args) => {
 
             let hits = await Modules.Search.elastic.client.search({
                 index: 'organization',
@@ -42,7 +42,7 @@ export default {
 
             return res;
         }),
-        alphaComunityPrefixSearch: withAny<AlphaOrganizationsParams>(async args => {
+        alphaComunityPrefixSearch: withAny<AlphaOrganizationsParams>(async (ctx, args) => {
 
             let clauses: any[] = [];
             clauses.push({ term: { kind: 'community' } });
@@ -93,7 +93,7 @@ export default {
             // return await builder.findElastic(hits);
         }),
 
-        alphaOrganizations: withAny<AlphaOrganizationsParams>(async args => {
+        alphaOrganizations: withAny<AlphaOrganizationsParams>(async (ctx, args) => {
             let clauses: any[] = [];
             let sort: any[] | undefined = undefined;
             if (args.query || args.sort) {

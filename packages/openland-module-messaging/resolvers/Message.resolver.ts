@@ -1,18 +1,18 @@
 import { Message } from 'openland-module-db/schema';
 import { IDs } from 'openland-module-api/IDs';
-import { CallContext } from 'openland-module-api/CallContext';
 import { FDB } from 'openland-module-db/FDB';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
+import { AppContext } from 'openland-modules/AppContext';
 
 type MessageRoot = Message | number;
 
-function withMessage<T>(handler: (user: Message, context: CallContext) => T) {
-    return async (src: MessageRoot, _params: {}, context: CallContext) => {
+function withMessage<T>(handler: (ctx: AppContext, user: Message) => T) {
+    return async (src: MessageRoot, _params: {}, ctx: AppContext) => {
         if (typeof src === 'number') {
             let msg = (await (FDB.Message.findById(src)))!;
-            return handler(msg, context);
+            return handler(ctx, msg);
         } else {
-            return handler(src, context);
+            return handler(ctx, src);
         }
     };
 }
@@ -20,13 +20,13 @@ function withMessage<T>(handler: (user: Message, context: CallContext) => T) {
 export default {
     Message: {
         id: (src: MessageRoot) => IDs.Message.serialize(typeof src === 'number' ? src : src.id),
-        date: withMessage((src) => src.createdAt),
-        sender: withMessage((src) => src.uid),
-        edited: withMessage((src) => src.edited),
+        date: withMessage((ctx, src) => src.createdAt),
+        sender: withMessage((ctx, src) => src.uid),
+        edited: withMessage((ctx, src) => src.edited),
 
-        text: withMessage((src) => src.text),
-        quoted: withMessage((src) => src.replyMessages),
+        text: withMessage((ctx, src) => src.text),
+        quoted: withMessage((ctx, src) => src.replyMessages),
 
-        alphaReactions: withMessage((src) => src.reactions),
+        alphaReactions: withMessage((ctx, src) => src.reactions),
     }
 } as GQLResolver;

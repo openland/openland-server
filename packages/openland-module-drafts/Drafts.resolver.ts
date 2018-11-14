@@ -4,7 +4,7 @@ import { Modules } from 'openland-modules/Modules';
 
 export default {
     Mutation: {
-        conversationDraftUpdate: withUser<{ conversationId: string, message?: string }>(async (args, uid) => {
+        conversationDraftUpdate: withUser<{ conversationId: string, message?: string }>(async (ctx, args, uid) => {
             let conversationId = IDs.Conversation.parse(args.conversationId);
 
             if (!args.message) {
@@ -15,7 +15,7 @@ export default {
 
             return 'ok';
         }),
-        alphaSaveDraftMessage: withUser<{ conversationId: string, message?: string }>(async (args, uid) => {
+        alphaSaveDraftMessage: withUser<{ conversationId: string, message?: string }>(async (ctx, args, uid) => {
             let conversationId = IDs.Conversation.parse(args.conversationId);
 
             if (!args.message) {
@@ -28,11 +28,11 @@ export default {
         }),
     },
     Query: {
-        conversationDraft: withUser<{ conversationId: string }>(async (args, uid) => {
+        conversationDraft: withUser<{ conversationId: string }>(async (ctx, args, uid) => {
             let conversationId = IDs.Conversation.parse(args.conversationId);
             return await Modules.Drafts.findDraft(uid, conversationId);
         }),
-        alphaDraftMessage: withUser<{ conversationId: string }>(async (args, uid) => {
+        alphaDraftMessage: withUser<{ conversationId: string }>(async (ctx, args, uid) => {
             let conversationId = IDs.Conversation.parse(args.conversationId);
             return await Modules.Drafts.findDraft(uid, conversationId);
         }),

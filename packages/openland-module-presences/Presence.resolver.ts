@@ -1,8 +1,8 @@
 import { Modules } from 'openland-modules/Modules';
 import { withAny } from 'openland-module-api/Resolvers';
-import { CallContext } from 'openland-module-api/CallContext';
 import { IDs } from 'openland-module-api/IDs';
 import { OnlineEvent } from './PresenceModule';
+import { AppContext } from 'openland-modules/AppContext';
 
 export default {
     OnlineEvent: {
@@ -11,8 +11,8 @@ export default {
         timeout: (src: OnlineEvent) => src.timeout,
     },
     Mutation: {
-        presenceReportOnline: async (_: any, args: { timeout: number, platform?: string }, context: CallContext) => {
-            if (!context.uid) {
+        presenceReportOnline: async (_: any, args: { timeout: number, platform?: string }, ctx: AppContext) => {
+            if (!ctx.auth.uid) {
                 throw Error('Not authorized');
             }
             if (args.timeout <= 0) {
@@ -21,7 +21,7 @@ export default {
             if (args.timeout > 5000) {
                 throw Error('Invalid input');
             }
-            await Modules.Presence.setOnline(context.uid, context.tid!, args.timeout, args.platform || 'unknown');
+            await Modules.Presence.setOnline(ctx.auth.uid, ctx.auth.tid!, args.timeout, args.platform || 'unknown');
             return 'ok';
         },
         presenceReportOffline: withAny<{ platform?: string }>(async (args, ctx) => {
@@ -30,8 +30,8 @@ export default {
         }),
 
         // TODO: Move to Push Module
-        alphaReportActive: async (_: any, args: { timeout: number, platform?: string }, context: CallContext) => {
-            if (!context.uid) {
+        alphaReportActive: async (_: any, args: { timeout: number, platform?: string }, ctx: AppContext) => {
+            if (!ctx.auth.uid) {
                 throw Error('Not authorized');
             }
             if (args.timeout <= 0) {
@@ -55,10 +55,10 @@ export default {
             resolve: async (msg: any) => {
                 return msg;
             },
-            subscribe: async function (_: any, args: { conversations: string[] }, context: CallContext) {
+            subscribe: async function (_: any, args: { conversations: string[] }, ctx: AppContext) {
                 let conversationIds = args.conversations.map(c => IDs.Conversation.parse(c));
 
-                if (!context.uid) {
+                if (!ctx.auth.uid) {
                     throw Error('Not logged in');
                 }
 
@@ -68,20 +68,20 @@ export default {
                     uids.push(...await Modules.Messaging.room.findConversationMembers(chatId));
                 }
 
-                return Modules.Presence.createPresenceStream(context.uid, uids);
+                return Modules.Presence.createPresenceStream(ctx.auth.uid, uids);
             }
         },
         alphaSubscribeOnline: {
             resolve: async (msg: any) => {
                 return msg;
             },
-            subscribe: async function (_: any, args: { users: string[] }, context: CallContext) {
-                if (!context.uid) {
+            subscribe: async function (_: any, args: { users: string[] }, ctx: AppContext) {
+                if (!ctx.auth.uid) {
                     throw Error('Not logged in');
                 }
                 let userIds = args.users.map(c => IDs.User.parse(c));
 
-                return Modules.Presence.createPresenceStream(context.uid!, userIds);
+                return Modules.Presence.createPresenceStream(ctx.auth.uid!, userIds);
             }
         }
     }

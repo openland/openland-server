@@ -4,21 +4,21 @@ import { Modules } from 'openland-modules/Modules';
 import { IDMailformedError } from 'openland-errors/IDMailformedError';
 import { FDB } from 'openland-module-db/FDB';
 import { Conversation, RoomProfile, Message, RoomParticipant } from 'openland-module-db/schema';
-import { CallContext } from 'openland-module-api/CallContext';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { GQLResolver, GQL } from '../../openland-module-api/schema/SchemaSpec';
 import { Sanitizer } from 'openland-utils/Sanitizer';
 import { validate, defined, stringNotEmpty, enumString, optional, mustBeArray } from 'openland-utils/NewInputValidator';
 import { inTx } from 'foundation-orm/inTx';
+import { AppContext } from 'openland-modules/AppContext';
 
 type RoomRoot = Conversation | number;
 
-function withConverationId(handler: (src: number, context: CallContext) => any) {
-    return async (src: RoomRoot, args: {}, context: CallContext) => {
+function withConverationId(handler: (ctx: AppContext, src: number) => any) {
+    return async (src: RoomRoot, args: {}, ctx: AppContext) => {
         if (typeof src === 'number') {
-            return handler(src, context);
+            return handler(ctx, src);
         } else {
-            return handler(src.id, context);
+            return handler(ctx, src.id);
         }
     };
 }
@@ -51,11 +51,11 @@ export default {
     },
     PrivateRoom: {
         id: (root: RoomRoot) => IDs.Room.serialize(typeof root === 'number' ? root : root.id),
-        user: async (root: RoomRoot, args: {}, context: CallContext) => {
+        user: async (root: RoomRoot, args: {}, ctx: AppContext) => {
             let proom = (await FDB.ConversationPrivate.findById(typeof root === 'number' ? root : root.id))!;
-            if (proom.uid1 === context.uid!) {
+            if (proom.uid1 === ctx.auth.uid!) {
                 return proom.uid2;
-            } else if (proom.uid2 === context.uid!) {
+            } else if (proom.uid2 === ctx.auth.uid!) {
                 return proom.uid1;
             } else {
                 throw new AccessDeniedError();
@@ -64,7 +64,7 @@ export default {
     },
     SharedRoom: {
         id: (root: RoomRoot) => IDs.Room.serialize(typeof root === 'number' ? root : root.id),
-        kind: withConverationId(async (id) => {
+        kind: withConverationId(async (ctx, id) => {
             let room = (await FDB.ConversationRoom.findById(id))!;
             if (room.kind === 'group') {
                 return 'GROUP';
@@ -78,10 +78,10 @@ export default {
                 throw Error('Unknown room kind: ' + room.kind);
             }
         }),
-        title: withConverationId(async (id, context) => Modules.Messaging.room.resolveConversationTitle(id, context.uid!)),
-        listed: withConverationId(async (id, context) => !!(await FDB.ConversationRoom.findById(id))!.listed),
-        featured: withConverationId(async (id, context) => !!(await FDB.ConversationRoom.findById(id))!.featured),
-        photo: withConverationId(async (id, context) => Modules.Messaging.room.resolveConversationPhoto(id, context.uid!)),
+        title: withConverationId(async (ctx, id) => Modules.Messaging.room.resolveConversationTitle(id, ctx.auth.uid!)),
+        listed: withConverationId(async (ctx, id) => !!(await FDB.ConversationRoom.findById(id))!.listed),
+        featured: withConverationId(async (ctx, id) => !!(await FDB.ConversationRoom.findById(id))!.featured),
+        photo: withConverationId(async (ctx, id) => Modules.Messaging.room.resolveConversationPhoto(id, ctx.auth.uid!)),
         organization: async (root: RoomRoot) => {
             throw new Error('Not implemented');
         },
@@ -118,9 +118,9 @@ export default {
             }
         },
         filePreview: (src: Message) => null,
-        sender: (src: Message, _: any, context: CallContext) => FDB.User.findById(src.uid),
+        sender: (src: Message, _: any, context: AppContext) => FDB.User.findById(src.uid),
         date: (src: Message) => src.createdAt,
-        repeatKey: (src: Message, args: any, context: CallContext) => src.uid === context.uid ? src.repeatKey : null,
+        repeatKey: (src: Message, args: any, context: AppContext) => src.uid === context.auth.uid ? src.repeatKey : null,
         isService: (src: Message) => src.isService,
         serviceMetadata: (src: Message) => {
             if (src.serviceMetadata && (src.serviceMetadata as any).type) {
@@ -153,7 +153,7 @@ export default {
     },
 
     Query: {
-        room: withAccount<{ id: string }>(async (args, uid, oid) => {
+        room: withAccount<{ id: string }>(async (ctx, args, uid, oid) => {
             let id = IdsFactory.resolve(args.id);
             if (id.type === IDs.Room) {
                 return id.id;
@@ -169,7 +169,7 @@ export default {
                 throw new IDMailformedError('Invalid id');
             }
         }),
-        roomMessages: withUser<GQL.QueryRoomMessagesArgs>(async (args, uid) => {
+        roomMessages: withUser<GQL.QueryRoomMessagesArgs>(async (ctx, args, uid) => {
             let roomId = IDs.Room.parse(args.roomId);
 
             await Modules.Messaging.room.checkAccess(uid, roomId);
@@ -185,7 +185,7 @@ export default {
 
             return await FDB.Message.rangeFromChat(roomId, args.first!, true);
         }),
-        roomMembers: withUser<GQL.QueryRoomMembersArgs>(async (args, uid) => {
+        roomMembers: withUser<GQL.QueryRoomMembersArgs>(async (ctx, args, uid) => {
             let roomId = IDs.Room.parse(args.roomId);
             let res = await FDB.RoomParticipant.allFromActive(roomId);
             return res;
@@ -195,7 +195,7 @@ export default {
         //
         // Room mgmt
         //
-        betaRoomCreate: withAccount<GQL.MutationBetaRoomCreateArgs>(async (args, uid, oid) => {
+        betaRoomCreate: withAccount<GQL.MutationBetaRoomCreateArgs>(async (ctx, args, uid, oid) => {
             await validate({
                 title: optional(stringNotEmpty('Title can\'t be empty')),
                 kind: defined(enumString(['PUBLIC', 'GROUP'], 'kind expected to be PUBLIC or GROUP'))
@@ -209,7 +209,7 @@ export default {
                 image: imageRef
             }, args.message || '');
         }),
-        betaRoomUpdate: withUser<GQL.MutationBetaRoomUpdateArgs>(async (args, uid) => {
+        betaRoomUpdate: withUser<GQL.MutationBetaRoomUpdateArgs>(async (ctx, args, uid) => {
             await validate(
                 {
                     title: optional(stringNotEmpty('Title can\'t be empty!'))
@@ -240,7 +240,7 @@ export default {
         //
         // Members mgmt
         //
-        betaRoomInvite: withUser<GQL.MutationBetaRoomInviteArgs>(async (args, uid) => {
+        betaRoomInvite: withUser<GQL.MutationBetaRoomInviteArgs>(async (ctx, args, uid) => {
             await validate({
                 invites: mustBeArray({
                     userId: defined(stringNotEmpty()),
@@ -251,7 +251,7 @@ export default {
 
             return await Modules.Messaging.room.inviteToRoom(IDs.Room.parse(args.roomId), uid, members);
         }),
-        betaRoomKick: withUser<GQL.MutationBetaRoomKickArgs>(async (args, uid) => {
+        betaRoomKick: withUser<GQL.MutationBetaRoomKickArgs>(async (ctx, args, uid) => {
             let userId = IDs.User.parse(args.userId);
             return inTx(async () => {
                 if (uid === userId) {
@@ -261,7 +261,7 @@ export default {
                 }
             });
         }),
-        betaRoomChangeRole: withUser<GQL.MutationBetaRoomChangeRoleArgs>(async (args, uid) => {
+        betaRoomChangeRole: withUser<GQL.MutationBetaRoomChangeRoleArgs>(async (ctx, args, uid) => {
             let roleMap = {
                 'CREATOR': 'owner',
                 'ADMIN': 'admin',
@@ -270,14 +270,14 @@ export default {
             return await Modules.Messaging.room.updateMemberRole(IDs.Room.parse(args.roomId), uid, IDs.User.parse(args.userId), roleMap[args.newRole] as any);
         }),
 
-        betaRoomJoin: withUser<GQL.MutationBetaRoomJoinArgs>(async (args, uid) => {
+        betaRoomJoin: withUser<GQL.MutationBetaRoomJoinArgs>(async (ctx, args, uid) => {
             return await Modules.Messaging.room.joinRoom(IDs.Room.parse(args.roomId), uid);
         }),
 
         //
         // User setting
         //
-        betaRoomUpdateUserNotificationSettings: withUser<GQL.MutationBetaRoomUpdateUserNotificationSettingsArgs>(async (args, uid) => {
+        betaRoomUpdateUserNotificationSettings: withUser<GQL.MutationBetaRoomUpdateUserNotificationSettingsArgs>(async (ctx, args, uid) => {
             return await inTx(async () => {
                 let settings = await Modules.Messaging.getRoomSettings(uid, IDs.Room.parse(args.roomId));
                 if (args.settings.mute !== undefined && args.settings.mute !== null) {
@@ -290,11 +290,11 @@ export default {
         //
         // Admin tools
         //
-        betaRoomAlterFeatured: withPermission<GQL.MutationBetaRoomAlterFeaturedArgs>('super-admin', async (args) => {
+        betaRoomAlterFeatured: withPermission<GQL.MutationBetaRoomAlterFeaturedArgs>('super-admin', async (ctx, args) => {
             return await Modules.Messaging.room.setFeatured(IDs.Room.parse(args.roomId), args.featured);
         }),
 
-        betaRoomAlterListed: withPermission<GQL.MutationBetaRoomAlterListedArgs>('super-admin', async (args) => {
+        betaRoomAlterListed: withPermission<GQL.MutationBetaRoomAlterListedArgs>('super-admin', async (ctx, args) => {
             return await Modules.Messaging.room.setListed(IDs.Room.parse(args.roomId), args.listed);
         }),
 

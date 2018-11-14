@@ -1,10 +1,10 @@
 import { OrganizationInviteLink, OrganizationPublicInviteLink } from 'openland-module-db/schema';
 import { withUser, withAny, withAccount } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
-import { CallContext } from 'openland-module-api/CallContext';
 import { FDB } from 'openland-module-db/FDB';
 import { IDs } from 'openland-module-api/IDs';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
+import { AuthContext } from 'openland-module-auth/AuthContext';
 
 export default {
     Invite: {
@@ -16,7 +16,7 @@ export default {
         alphaInvites: withUser(async (args, uid) => {
             return [];
         }),
-        alphaInviteInfo: withAny<{ key: string }>(async (args, context: CallContext) => {
+        alphaInviteInfo: withAny<{ key: string }>(async (ctx, args) => {
             let orgInvite = await Modules.Invites.orgInvitesRepo.getOrganizationInviteNonJoined(args.key);
             let publicOrginvite = await Modules.Invites.orgInvitesRepo.getOrganizationInviteLinkByKey(args.key);
             let invite: { oid: number, uid: number, ttl?: number | null, role?: string, joined?: boolean, email?: string, firstName?: string | null } | null = orgInvite || publicOrginvite;
@@ -41,7 +41,7 @@ export default {
                 forName: invite.firstName,
             };
         }),
-        appInviteInfo: withAny<{ key: string }>(async (args, context: CallContext) => {
+        appInviteInfo: withAny<{ key: string }>(async (ctx, args) => {
             let invite = await Modules.Invites.orgInvitesRepo.getAppInvteLinkData(args.key);
             if (!invite) {
                 return null;
@@ -51,7 +51,7 @@ export default {
                 inviter: inviter,
             };
         }),
-        appInvite: withUser(async (args, uid) => {
+        appInvite: withUser(async (ctx, args, uid) => {
             return await Modules.Invites.orgInvitesRepo.getAppInviteLinkKey(uid);
         }),
         // deperecated
@@ -68,15 +68,15 @@ export default {
         }),
     },
     Mutation: {
-        alphaJoinInvite: withUser<{ key: string }>(async (args, uid) => {
+        alphaJoinInvite: withUser<{ key: string }>(async (ctx, args, uid) => {
             return await Modules.Invites.joinOrganizationInvite(uid, args.key);
         }),
-        joinAppInvite: withAny<{ key: string }>(async (args, context) => {
-            let uid = context.uid;
+        joinAppInvite: withAny<{ key: string }>(async (ctx, args) => {
+            let uid = AuthContext.get(ctx).uid;
             if (uid === undefined) {
                 return;
             }
-           return await Modules.Invites.joinAppInvite(uid, args.key);
+            return await Modules.Invites.joinAppInvite(uid, args.key);
         }),
 
         // deperecated

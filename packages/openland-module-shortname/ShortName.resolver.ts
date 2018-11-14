@@ -29,7 +29,7 @@ export default {
     },
 
     Query: {
-        alphaResolveShortName: withAccount<{ shortname: string }>(async (args, uid, orgId) => {
+        alphaResolveShortName: withAccount<{ shortname: string }>(async (ctx, args, uid, orgId) => {
             let shortname = await Modules.Shortnames.findShortname(args.shortname);
 
             if (!shortname) {
@@ -46,14 +46,14 @@ export default {
         }),
     },
     Mutation: {
-        alphaSetUserShortName: withAccount<{ shortname: string }>(async (args, uid, orgId) => {
+        alphaSetUserShortName: withAccount<{ shortname: string }>(async (ctx, args, uid, orgId) => {
             testShortName(args.shortname);
 
             await Modules.Shortnames.setShortnameToUser(args.shortname, uid);
 
             return 'ok';
         }),
-        alphaSetOrgShortName: withAccount<{ shortname: string, id: number }>(async (args, uid, orgId) => {
+        alphaSetOrgShortName: withAccount<{ shortname: string, id: number }>(async (ctx, args, uid, orgId) => {
             testShortName(args.shortname);
 
             let member = await FDB.OrganizationMember.findById(args.id, uid);

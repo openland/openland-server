@@ -5,9 +5,9 @@ import { GQL } from '../openland-module-api/schema/SchemaSpec';
 
 export default {
     Query: {
-        userSearch: withAny<GQL.QueryUserSearchArgs>(async (args, context) => {
+        userSearch: withAny<GQL.QueryUserSearchArgs>(async (ctx, args) => {
 
-            let uids = await Modules.Users.searchForUsers(args.query || '', { uid: context.uid });
+            let uids = await Modules.Users.searchForUsers(args.query || '', { uid: ctx.auth.uid });
 
             if (uids.length === 0) {
                 return {
@@ -53,9 +53,9 @@ export default {
                 },
             };
         }),
-        alphaProfiles: withAny<GQL.QueryAlphaProfilesArgs>(async (args, context) => {
+        alphaProfiles: withAny<GQL.QueryAlphaProfilesArgs>(async (ctx, args) => {
 
-            let uids = await Modules.Users.searchForUsers(args.query || '', { uid: context.uid });
+            let uids = await Modules.Users.searchForUsers(args.query || '', { uid: ctx.auth.uid });
 
             if (uids.length === 0) {
                 return {

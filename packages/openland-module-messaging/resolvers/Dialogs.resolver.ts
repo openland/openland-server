@@ -3,23 +3,25 @@ import { FDB } from 'openland-module-db/FDB';
 import { UserDialog } from 'openland-module-db/schema';
 import { IDs } from 'openland-module-api/IDs';
 import { Modules } from 'openland-modules/Modules';
-import { CallContext } from 'openland-module-api/CallContext';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
+import { AuthContext } from 'openland-module-auth/AuthContext';
+import { AppContext } from 'openland-modules/AppContext';
 
 export default {
     // should move to room ids?
     Dialog: {
         id: (src: UserDialog) => IDs.Dialog.serialize(src.cid),
         cid: (src: UserDialog) => IDs.Conversation.serialize(src.cid),
-        fid: async (src: UserDialog, args: {}, context: CallContext) => {
+        fid: async (src: UserDialog, args: {}, ctx: AppContext) => {
             let conv = (await FDB.Conversation.findById(src.cid))!;
             if (conv.kind === 'organization') {
                 return IDs.Organization.serialize((await FDB.ConversationOrganization.findById(src.cid))!.oid);
             } else if (conv.kind === 'private') {
                 let pc = (await FDB.ConversationPrivate.findById(conv.id))!;
-                if (pc.uid1 === context.uid) {
+                let auth = AuthContext.get(ctx);
+                if (pc.uid1 === auth.uid) {
                     return IDs.User.serialize(pc.uid2);
-                } else if (pc.uid2 === context.uid) {
+                } else if (pc.uid2 === auth.uid) {
                     return IDs.User.serialize(pc.uid2);
                 } else {
                     throw Error('Unknwon conversation type');
@@ -52,11 +54,11 @@ export default {
             }
         },
 
-        title: async (src: UserDialog, args: {}, context: CallContext) => {
-            return Modules.Messaging.room.resolveConversationTitle(src.cid, context.uid!);
+        title: async (src: UserDialog, args: {}, ctx: AppContext) => {
+            return Modules.Messaging.room.resolveConversationTitle(src.cid, ctx.auth.uid!);
         },
-        photo: async (src: UserDialog, args: {}, context: CallContext) => {
-            return await Modules.Messaging.room.resolveConversationPhoto(src.cid, context.uid!);
+        photo: async (src: UserDialog, args: {}, ctx: AppContext) => {
+            return await Modules.Messaging.room.resolveConversationPhoto(src.cid, ctx.auth.uid!);
         },
 
         unreadCount: async (src: UserDialog) => {
@@ -66,10 +68,10 @@ export default {
         topMessage: (src: UserDialog) => Modules.Messaging.findTopMessage(src.cid),
     },
     Query: {
-        dialogs: withUser<{ first: number, after?: string | null, seq?: number }>(async (args, uid) => {
+        dialogs: withUser<{ first: number, after?: string | null, seq?: number }>(async (ctx, args, uid) => {
             return FDB.UserDialog.rangeFromUserWithCursor(uid, args.first, args.after ? args.after : undefined, true);
         }),
-        alphaChats: withUser<{ first: number, after?: string | null, seq?: number }>(async (args, uid) => {
+        alphaChats: withUser<{ first: number, after?: string | null, seq?: number }>(async (ctx, args, uid) => {
             let global = await FDB.UserMessagingState.findById(uid);
             let seq = global ? global.seq : 0;
             let conversations = await FDB.UserDialog

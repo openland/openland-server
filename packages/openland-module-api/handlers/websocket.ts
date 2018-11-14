@@ -1,7 +1,11 @@
 import { IDs } from '../IDs';
-import { CallContext } from '../CallContext';
 import { Modules } from 'openland-modules/Modules';
 import { createTracer } from 'openland-log/createTracer';
+import { createEmptyContext } from 'openland-utils/Context';
+import { AuthContext } from 'openland-module-auth/AuthContext';
+import { TracingContext } from 'openland-log/TracingContext';
+import { CacheContext } from 'openland-module-api/CacheContext';
+import { AppContext } from 'openland-modules/AppContext';
 
 const tracer = createTracer('ws');
 
@@ -48,14 +52,14 @@ export async function fetchWebSocketParameters(args: any, websocket: any) {
 }
 
 export function buildWebSocketContext(args: any) {
-    let res = new CallContext();
+    let res = createEmptyContext();
     if (args.uid && args.tid) {
-        res.uid = args.uid;
-        res.tid = args.tid;
+        res = AuthContext.set(res, { uid: args.uid, tid: args.tid });
     }
     if (args.oid) {
-        res.oid = args.oid;
+        res = AuthContext.set(res, { ...AuthContext.get(res), oid: args.oid });
     }
-    res.span = tracer.startSpan('op');
-    return res;
+    res = TracingContext.set(res, { span: tracer.startSpan('op') });
+    res = CacheContext.set(res, new Map());
+    return new AppContext(res);
 }
