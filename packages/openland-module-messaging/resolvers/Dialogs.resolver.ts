@@ -7,6 +7,7 @@ import { CallContext } from 'openland-module-api/CallContext';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 
 export default {
+    // should move to room ids?
     Dialog: {
         id: (src: UserDialog) => IDs.Dialog.serialize(src.cid),
         cid: (src: UserDialog) => IDs.Conversation.serialize(src.cid),

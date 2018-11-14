@@ -73,7 +73,7 @@ export default {
         organization: async (src: Conversation, _: any, context: CallContext) => {
             return FDB.OrganizationProfile.findById((await FDB.ConversationOrganization.findById(src.id))!.oid);
         },
-        settings: (src: Conversation, _: any, context: CallContext) => Modules.Messaging.getConversationSettings(context.uid!!, src.id),
+        settings: (src: Conversation, _: any, context: CallContext) => Modules.Messaging.getRoomSettings(context.uid!!, src.id),
         organizations: () => []
     },
     PrivateConversation: {
@@ -144,7 +144,7 @@ export default {
             return FDB.User.findById(uid);
         },
         blocked: async (src: Conversation, _: any, context: CallContext) => false,
-        settings: (src: Conversation, _: any, context: CallContext) => Modules.Messaging.getConversationSettings(context.uid!!, src.id),
+        settings: (src: Conversation, _: any, context: CallContext) => Modules.Messaging.getRoomSettings(context.uid!!, src.id),
     },
     GroupConversation: {
         id: (src: Conversation) => IDs.Conversation.serialize(src.id),
@@ -208,7 +208,7 @@ export default {
             return Modules.Messaging.findTopMessage(src.id!);
         },
         membersCount: (src: Conversation) => Modules.Messaging.roomMembersCount(src.id),
-        settings: (src: Conversation, _: any, context: CallContext) => Modules.Messaging.getConversationSettings(context.uid!!, src.id),
+        settings: (src: Conversation, _: any, context: CallContext) => Modules.Messaging.getRoomSettings(context.uid!!, src.id),
 
         photo: async (src: Conversation) => buildBaseImageUrl((await FDB.RoomProfile.findById(src.id))!.image),
         photoRef: async (src: Conversation) => (await FDB.RoomProfile.findById(src.id))!.image,
@@ -496,6 +496,7 @@ export default {
             }
             return restored;
         }),
+        // keep it until web compose redesigned
         alphaChatSearch: withUser<GQL.QueryAlphaChatSearchArgs>(async (args, uid) => {
             let members = [...args.members.map((v) => IDs.User.parse(v)), uid];
             let groups = await FDB.RoomParticipant.allFromUserActive(uid);
@@ -823,7 +824,7 @@ export default {
         alphaUpdateConversationSettings: withUser<GQL.MutationAlphaUpdateConversationSettingsArgs>(async (args, uid) => {
             let cid = IDs.Conversation.parse(args.conversationId);
             return await inTx(async () => {
-                let settings = await Modules.Messaging.getConversationSettings(uid, cid);
+                let settings = await Modules.Messaging.getRoomSettings(uid, cid);
                 if (args.settings.mute !== undefined && args.settings.mute !== null) {
                     settings.mute = args.settings.mute;
                 }

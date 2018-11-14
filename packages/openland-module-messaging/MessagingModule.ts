@@ -53,12 +53,8 @@ export class MessagingModule {
     }
 
     //
-    // Conversation Settings
+    //  Settings
     //
-
-    async getConversationSettings(uid: number, cid: number) {
-        return await this.userState.getConversationSettings(uid, cid);
-    }
 
     async getUserNotificationState(uid: number) {
         return await this.userState.getUserNotificationState(uid);
@@ -102,6 +98,10 @@ export class MessagingModule {
 
     async roomMembersCount(conversationId: number, status?: string): Promise<number> {
         return await this.room.roomMembersCount(conversationId, status);
+    }
+
+    async getRoomSettings(uid: number, cid: number) {
+        return await this.userState.getRoomSettings(uid, cid);
     }
 
     //

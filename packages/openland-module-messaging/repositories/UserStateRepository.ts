@@ -10,7 +10,7 @@ export class UserStateRepository {
         this.entities = entities;
     }
 
-    async getConversationSettings(uid: number, cid: number) {
+    async getRoomSettings(uid: number, cid: number) {
         return await inTx(async () => {
             let res = await this.entities.UserDialogSettings.findById(uid, cid);
             if (res) {

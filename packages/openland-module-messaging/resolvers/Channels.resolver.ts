@@ -69,7 +69,7 @@ export default {
         },
         organization: async (src: Conversation) => FDB.Organization.findById((await FDB.ConversationRoom.findById(src.id))!.oid!),
         isRoot: (src: Conversation) => false,
-        settings: (src: Conversation, _: any, context: CallContext) => Modules.Messaging.getConversationSettings(context.uid!!, src.id),
+        settings: (src: Conversation, _: any, context: CallContext) => Modules.Messaging.getRoomSettings(context.uid!!, src.id),
 
         photo: async (src: Conversation) => buildBaseImageUrl((await FDB.RoomProfile.findById(src.id))!.image),
         photoRef: async (src: Conversation) => (await FDB.RoomProfile.findById(src.id))!.image,

@@ -19,6 +19,12 @@ enum SharedRoomMembershipStatus {
     NONE
 }
 
+enum RoomMemberRole {
+    CREATOR
+    ADMIN
+    MEMBER
+}
+
 type SharedRoom {
     id: ID!
     kind: SharedRoomKind!
@@ -29,8 +35,73 @@ type SharedRoom {
     organization: Organization!
     membership: SharedRoomMembershipStatus!
     membersCount: Int
+    members: [RoomMember!]!
 }
+
+input RoomUpdateInput {
+    title: String
+    photoRef: ImageRefInput
+    description: String
+    socialImageRef: ImageRefInput
+}
+
+type RoomMessage {
+    id: ID!
+    message: String
+    file: String
+    fileMetadata: FileMetadata
+    filePreview: String
+    sender: User!
+    date: Date!
+    repeatKey: String
+    isService: Boolean!
+    serviceMetadata: ServiceMetadata
+    urlAugmentation: UrlAugmentation
+    edited: Boolean!
+    reactions: [MessageReaction!]!
+    replyMessages: [RoomMessage!]
+    plainText: String
+    mentions: [User!]
+}
+
+type RoomMember {
+    user: User!
+    role: RoomMemberRole!
+}
+
+type RoomUserNotificaionSettings {
+    id: ID!
+    mute: Boolean
+}
+
+input RoomUserNotificaionSettingsInput {
+    mute: Boolean
+}
+
+input RoomInvite {
+    userId: ID!
+    role: RoomMemberRole!
+}
+
 
 extend type Query {
     room(id: ID!): Room
+    roomMessages(roomId: ID!, first: Int, before: ID): [RoomMessage!]!
+    roomMembers(roomId: ID!): [RoomMember!]!
+}
+
+extend type Mutation {
+    # Room mgmt
+    betaRoomCreate(kind: SharedRoomKind!, title: String, photoRef: ImageRefInput, members: [ID!]!, message: String): SharedRoom!
+    betaRoomUpdate(roomId: ID!, input: RoomUpdateInput!): Room!
+    
+    # Members mgmt
+    betaRoomInvite(roomId: ID!, invites: [RoomInvite!]!): Room!
+    betaRoomKick(roomId: ID!, userId: ID!): Room!
+    betaRoomChangeRole(roomId: ID!, userId: ID!, newRole: RoomMemberRole!): Room!
+
+    # Room user params
+    betaRoomUpdateUserNotificationSettings(settings: RoomUserNotificaionSettingsInput!, roomId: ID!): RoomUserNotificaionSettings!
+    
+   
 }

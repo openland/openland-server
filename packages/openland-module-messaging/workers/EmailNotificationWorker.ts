@@ -82,7 +82,7 @@ export function startEmailNotificationWorker() {
                             }
                         }
 
-                        let conversationSettings = await Modules.Messaging.getConversationSettings(u.uid, conversation.id);
+                        let conversationSettings = await Modules.Messaging.getRoomSettings(u.uid, conversation.id);
 
                         if (conversationSettings.mute) {
                             continue;
