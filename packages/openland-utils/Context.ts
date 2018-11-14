@@ -7,14 +7,6 @@ export interface ContextNamespace<T> {
     set(context: Context, value: T): Context;
 }
 
-export function createEmptyContext(): Context {
-    return new ContextHolder({});
-}
-
-export function createContextNamespace<T>(name: string, defaultValue?: T): ContextNamespace<T> {
-    return new ContextNamespaceHolder<T>(name, defaultValue);
-}
-
 class ContextHolder implements Context {
     readonly values: { [key: string]: any };
 
@@ -70,4 +62,12 @@ class ContextNamespaceHolder<T> implements ContextNamespace<T> {
         values[this.name] = value;
         return new ContextHolder(values);
     }
+}
+
+export function createEmptyContext(): Context {
+    return new ContextHolder({});
+}
+
+export function createContextNamespace<T>(name: string, defaultValue?: T): ContextNamespace<T> {
+    return new ContextNamespaceHolder<T>(name, defaultValue);
 }
