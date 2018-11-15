@@ -69,7 +69,7 @@ export class AugmentationMediator {
     }
 
     private resolveLinks = (message: Message) => {
-        if (!message || !message.text || message.augmentation === false) {
+        if (!message || !message.text || message.augmentation === false || (message.augmentation && message.augmentation.type === 'intro')) {
             return [];
         }
         let urls = linkifyInstance.match(message.text);

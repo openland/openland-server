@@ -7,7 +7,7 @@ import { injectable, inject } from 'inversify';
 import { Context } from 'openland-utils/Context';
 
 @injectable()
-export class InvitesChannelsRepository {
+export class InvitesRoomRepository {
     readonly entities: AllEntities;
 
     constructor(@inject('FDB') entities: AllEntities) {
@@ -26,7 +26,7 @@ export class InvitesChannelsRepository {
         return null;
     }
 
-    async createChannelInviteLink(parent: Context, channelId: number, uid: number) {
+    async createRoomInviteLink(parent: Context, channelId: number, uid: number) {
         return await inTx(parent, async (ctx) => {
             let existing = await this.entities.ChannelLink.allFromChannel(ctx, channelId);
             let ex = existing.find((v) => v.enabled && v.creatorId === uid);
@@ -42,7 +42,7 @@ export class InvitesChannelsRepository {
         });
     }
 
-    async refreshChannelInviteLink(parent: Context, channelId: number, uid: number) {
+    async refreshRoomInviteLink(parent: Context, channelId: number, uid: number) {
         return await inTx(parent, async (ctx) => {
             let existing = await this.entities.ChannelLink.allFromChannel(ctx, channelId);
             let ex = existing.find((v) => v.enabled && v.creatorId === uid);

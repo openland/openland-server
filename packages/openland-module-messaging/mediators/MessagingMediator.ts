@@ -77,6 +77,11 @@ export class MessagingMediator {
             let res = await this.repo.editMessage(ctx, mid, newMessage, markAsEdited);
             message = (await this.entities.Message.findById(ctx, mid!))!;
 
+            // how to test cases when entities not updated inside tx?
+            if (message.text !== newMessage.message) {
+                throw new Error('message not updated before delivery');
+            }
+
             // Delivery
             await this.delivery.onUpdateMessage(ctx, message);
 

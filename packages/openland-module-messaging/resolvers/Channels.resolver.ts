@@ -161,7 +161,7 @@ export default {
 
             await inTx(parent, async (ctx) => {
                 for (let inviteRequest of args.inviteRequests) {
-                    await Modules.Invites.createChannelInvite(
+                    await Modules.Invites.createRoomInvite(
                         ctx,
                         channelId,
                         uid,
@@ -177,14 +177,14 @@ export default {
         }),
         alphaChannelRenewInviteLink: withUser<{ channelId: string }>(async (ctx, args, uid) => {
             let channelId = IDs.Conversation.parse(args.channelId);
-            return await Modules.Invites.refreshChannelInviteLink(ctx, channelId, uid);
+            return await Modules.Invites.refreshRoomInviteLink(ctx, channelId, uid);
         }),
         alphaChannelJoinInvite: withAny<{ invite: string }>(async (ctx, args) => {
             let uid = ctx.auth.uid;
             if (uid === undefined) {
                 return;
             }
-            return await Modules.Invites.joinChannelInvite(ctx, uid, args.invite);
+            return IDs.Conversation.serialize(await Modules.Invites.joinRoomInvite(ctx, uid, args.invite));
         }),
     },
 
@@ -264,7 +264,7 @@ export default {
         }),
         alphaChannelInviteLink: withUser<{ channelId: string }>(async (ctx, args, uid) => {
             let channelId = IDs.Conversation.parse(args.channelId);
-            return await Modules.Invites.createChannelInviteLink(ctx, channelId, uid);
+            return await Modules.Invites.createRoomlInviteLink(ctx, channelId, uid);
         })
     }
 } as GQLResolver;

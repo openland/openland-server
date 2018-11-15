@@ -1,21 +1,21 @@
 import { injectable, inject } from 'inversify';
 import { InvitesMediator } from './mediators/InvitesMediator';
-import { InvitesChannelsRepository } from './repositories/InvitesChannelsRepository';
+import { InvitesRoomRepository } from './repositories/InvitesRoomRepository';
 import { InvitesOrganizationRepository } from './repositories/InvitesOrganizationRepository';
 import { Context } from 'openland-utils/Context';
 
 @injectable()
 export class InvitesModule {
-    readonly channelsInvitesRepo: InvitesChannelsRepository;
+    readonly roomInvitesRepo: InvitesRoomRepository;
     readonly invitesMediator: InvitesMediator;
     readonly orgInvitesRepo: InvitesOrganizationRepository;
 
     constructor(
-        @inject('InvitesChannelsRepository') channelsInvitesRepo: InvitesChannelsRepository,
+        @inject('InvitesRoomRepository') channelsInvitesRepo: InvitesRoomRepository,
         @inject('InvitesMediator') channelsInvitesMediator: InvitesMediator,
         @inject('InvitesOrganizationRepository') orgInvitesRepo: InvitesOrganizationRepository,
     ) {
-        this.channelsInvitesRepo = channelsInvitesRepo;
+        this.roomInvitesRepo = channelsInvitesRepo;
         this.invitesMediator = channelsInvitesMediator;
         this.orgInvitesRepo = orgInvitesRepo;
     }
@@ -33,24 +33,25 @@ export class InvitesModule {
     //
 
     async resolveInvite(ctx: Context, id: string) {
-        return await this.channelsInvitesRepo.resolveInvite(ctx, id);
+        return await this.roomInvitesRepo.resolveInvite(ctx, id);
     }
 
-    async createChannelInviteLink(ctx: Context, channelId: number, uid: number) {
-        return await this.channelsInvitesRepo.createChannelInviteLink(ctx, channelId, uid);
+    async createRoomlInviteLink(ctx: Context, channelId: number, uid: number) {
+        return await this.roomInvitesRepo.createRoomInviteLink(ctx, channelId, uid);
     }
 
-    async refreshChannelInviteLink(ctx: Context, channelId: number, uid: number) {
-        return await this.channelsInvitesRepo.refreshChannelInviteLink(ctx, channelId, uid);
+    async refreshRoomInviteLink(ctx: Context, channelId: number, uid: number) {
+        return await this.roomInvitesRepo.refreshRoomInviteLink(ctx, channelId, uid);
     }
 
-    async createChannelInvite(ctx: Context, channelId: number, uid: number, email: string, emailText?: string, firstName?: string, lastName?: string) {
-        return await this.invitesMediator.createChannelInvite(ctx, channelId, uid, email, emailText, firstName, lastName);
+    async createRoomInvite(ctx: Context, channelId: number, uid: number, email: string, emailText?: string, firstName?: string, lastName?: string) {
+        return await this.invitesMediator.createRoomInvite(ctx, channelId, uid, email, emailText, firstName, lastName);
     }
 
-    async joinChannelInvite(ctx: Context, uid: number, invite: string) {
-        return await this.invitesMediator.joinChannelInvite(ctx, uid, invite);
+    async joinRoomInvite(ctx: Context, uid: number, invite: string) {
+        return await this.invitesMediator.joinRoomInvite(ctx, uid, invite);
     }
+    
     async joinAppInvite(ctx: Context, uid: number, invite: string) {
         return await this.invitesMediator.joinAppInvite(ctx, uid, invite);
     }

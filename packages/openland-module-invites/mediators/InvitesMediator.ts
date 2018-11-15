@@ -1,6 +1,6 @@
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
-import { InvitesChannelsRepository } from '../repositories/InvitesChannelsRepository';
+import { InvitesRoomRepository } from '../repositories/InvitesRoomRepository';
 import { inTx } from 'foundation-orm/inTx';
 import { ChannelInviteEmails } from 'openland-module-messaging/emails/ChannelInviteEmails';
 import { RoomMediator } from 'openland-module-messaging/mediators/RoomMediator';
@@ -13,14 +13,14 @@ import { Context } from 'openland-utils/Context';
 
 @injectable()
 export class InvitesMediator {
-    @lazyInject('InvitesChannelsRepository')
-    private readonly repoChannels!: InvitesChannelsRepository;
+    @lazyInject('InvitesRoomRepository')
+    private readonly repoChannels!: InvitesRoomRepository;
     @lazyInject('InvitesOrganizationRepository')
     private readonly repoOrgs!: InvitesOrganizationRepository;
     @lazyInject('RoomMediator')
     private readonly rooms!: RoomMediator;
 
-    async createChannelInvite(parent: Context, channelId: number, uid: number, email: string, emailText?: string, firstName?: string, lastName?: string) {
+    async createRoomInvite(parent: Context, channelId: number, uid: number, email: string, emailText?: string, firstName?: string, lastName?: string) {
         return await inTx(parent, async (ctx) => {
             let invite = await this.repoChannels.createChannelInvite(ctx, channelId, uid, email, emailText, firstName, lastName);
             await ChannelInviteEmails.sendChannelInviteEmail(ctx, invite);
@@ -28,7 +28,7 @@ export class InvitesMediator {
         });
     }
 
-    async joinChannelInvite(parent: Context, uid: number, inviteStr: string) {
+    async joinRoomInvite(parent: Context, uid: number, inviteStr: string) {
         return await inTx(parent, async (ctx) => {
             let invite = await this.repoChannels.resolveInvite(ctx, inviteStr);
             if (!invite) {
@@ -38,7 +38,7 @@ export class InvitesMediator {
             await Modules.Users.activateUser(ctx, uid);
             await this.activateUserOrgs(ctx, uid);
 
-            return IDs.Conversation.serialize(invite.channelId);
+            return invite.channelId;
         });
     }
 

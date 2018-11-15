@@ -1,4 +1,4 @@
-import { withAccount, withUser, withPermission } from 'openland-module-api/Resolvers';
+import { withAccount, withUser, withPermission, withAny } from 'openland-module-api/Resolvers';
 import { IdsFactory, IDs } from 'openland-module-api/IDs';
 import { Modules } from 'openland-modules/Modules';
 import { IDMailformedError } from 'openland-errors/IDMailformedError';
@@ -7,9 +7,10 @@ import { Conversation, RoomProfile, Message, RoomParticipant } from 'openland-mo
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { GQLResolver, GQL } from '../../openland-module-api/schema/SchemaSpec';
 import { Sanitizer } from 'openland-utils/Sanitizer';
-import { validate, defined, stringNotEmpty, enumString, optional, mustBeArray } from 'openland-utils/NewInputValidator';
+import { validate, defined, stringNotEmpty, enumString, optional, mustBeArray, emailValidator } from 'openland-utils/NewInputValidator';
 import { inTx } from 'foundation-orm/inTx';
 import { AppContext } from 'openland-modules/AppContext';
+import { QueryParser } from 'openland-utils/QueryParser';
 
 type RoomRoot = Conversation | number;
 
@@ -149,7 +150,7 @@ export default {
     },
     RoomMember: {
         user: async (src: RoomParticipant, args: {}, ctx: AppContext) => await FDB.User.findById(ctx, src.uid),
-        role: async (src: RoomParticipant) => src.role === 'owner' ? 'CREATOR' : src.role === 'admin' ? 'ADMIN' : 'member',
+        role: async (src: RoomParticipant) => src.role.toUpperCase(),
     },
 
     Query: {
@@ -190,6 +191,77 @@ export default {
             let res = await FDB.RoomParticipant.allFromActive(ctx, roomId);
             return res;
         }),
+
+        betaRoomSearch: withUser<GQL.QueryBetaRoomSearchArgs>(async (ctx, args, uid) => {
+            let clauses: any[] = [];
+            let sort: any[] | undefined = undefined;
+
+            if (args.query || args.sort) {
+                let parser = new QueryParser();
+                parser.registerText('title', 'title');
+                parser.registerBoolean('featured', 'featured');
+                parser.registerText('createdAt', 'createdAt');
+                parser.registerText('updatedAt', 'updatedAt');
+                parser.registerText('membersCount', 'membersCount');
+
+                if (args.query) {
+                    clauses.push({ match_phrase_prefix: { title: args.query } });
+                } else {
+                    clauses.push({ term: { featured: true } });
+                }
+
+                if (args.sort) {
+                    sort = parser.parseSort(args.sort);
+                }
+            }
+
+            clauses.push({ term: { hidden: false } });
+
+            let hits = await Modules.Search.elastic.client.search({
+                index: 'channels',
+                type: 'channel',
+                size: args.first,
+                from: args.after ? parseInt(args.after, 10) : (args.page ? ((args.page - 1) * args.first) : 0),
+                body: {
+                    sort: sort,
+                    query: { bool: { must: clauses } }
+                }
+            });
+
+            let ids = hits.hits.hits.map((v) => parseInt(v._id, 10));
+            let rooms = await Promise.all(ids.map((v) => FDB.Conversation.findById(ctx, v)));
+            let offset = 0;
+            if (args.after) {
+                offset = parseInt(args.after, 10);
+            } else if (args.page) {
+                offset = (args.page - 1) * args.first;
+            }
+            let total = hits.hits.total;
+
+            return {
+                edges: rooms.map((p, i) => {
+                    return {
+                        node: p,
+                        cursor: (i + 1 + offset).toString()
+                    };
+                }),
+                pageInfo: {
+                    hasNextPage: (total - (offset + 1)) >= args.first, // ids.length === this.limitValue,
+                    hasPreviousPage: false,
+
+                    itemsCount: total,
+                    pagesCount: Math.min(Math.floor(8000 / args.first), Math.ceil(total / args.first)),
+                    currentPage: Math.floor(offset / args.first) + 1,
+                    openEnded: true
+                },
+            };
+        }),
+        betaRoomInviteInfo: withAny<GQL.QueryBetaRoomInviteInfoArgs>(async (ctx, args) => {
+            return await Modules.Invites.resolveInvite(ctx, args.invite);
+        }),
+        betaRoomInviteLink: withUser<GQL.QueryBetaRoomInviteLinkArgs>(async (ctx, args, uid) => {
+            return await Modules.Invites.createRoomlInviteLink(ctx, IDs.Room.parse(args.roomId), uid);
+        })
     },
     Mutation: {
         //
@@ -262,16 +334,41 @@ export default {
             });
         }),
         betaRoomChangeRole: withUser<GQL.MutationBetaRoomChangeRoleArgs>(async (ctx, args, uid) => {
-            let roleMap = {
-                'CREATOR': 'owner',
-                'ADMIN': 'admin',
-                'MEMBER': 'member',
-            };
-            return await Modules.Messaging.room.updateMemberRole(ctx, IDs.Room.parse(args.roomId), uid, IDs.User.parse(args.userId), roleMap[args.newRole] as any);
+            return await Modules.Messaging.room.updateMemberRole(ctx, IDs.Room.parse(args.roomId), uid, IDs.User.parse(args.userId), args.newRole.toLocaleLowerCase() as any);
         }),
 
         betaRoomJoin: withUser<GQL.MutationBetaRoomJoinArgs>(async (ctx, args, uid) => {
             return await Modules.Messaging.room.joinRoom(ctx, IDs.Room.parse(args.roomId), uid);
+        }),
+
+        // invite links
+        betaRoomInviteLinkSendEmail: withUser<GQL.MutationBetaRoomInviteLinkSendEmailArgs>(async (parent, args, uid) => {
+            await validate({
+                inviteRequests: [{ email: defined(emailValidator) }]
+            }, args);
+
+            await inTx(parent, async (ctx) => {
+                for (let inviteRequest of args.inviteRequests) {
+                    await Modules.Invites.createRoomInvite(
+                        ctx,
+                        IDs.Room.parse(args.roomId),
+                        uid,
+                        inviteRequest.email,
+                        inviteRequest.emailText || undefined,
+                        inviteRequest.firstName || undefined,
+                        inviteRequest.lastName || undefined
+                    );
+                }
+            });
+
+            return 'ok';
+        }),
+        betaRoomInviteLinkRenew: withUser<GQL.MutationBetaRoomInviteLinkRenewArgs>(async (ctx, args, uid) => {
+            let channelId = IDs.Conversation.parse(args.roomId);
+            return await Modules.Invites.refreshRoomInviteLink(ctx, channelId, uid);
+        }),
+        betaRoomInviteLinkJoin: withUser<GQL.MutationBetaRoomInviteLinkJoinArgs>(async (ctx, args, uid) => {
+            return await FDB.Conversation.findById(ctx, await Modules.Invites.joinRoomInvite(ctx, uid, args.invite));
         }),
 
         //
