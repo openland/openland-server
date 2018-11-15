@@ -30,7 +30,7 @@ export class OpenTracer implements STracer {
 
     async trace<T>(ctx: Context, op: string, handler: (ctx: Context) => Promise<T>): Promise<T> {
         let c = TracingContext.get(ctx);
-        let span = this.startSpan(op, c.span);
+        let span = this.startSpan(op, c.span ? c.span : undefined);
         ctx = TracingContext.set(ctx, { span });
         try {
             return await handler(ctx);
@@ -41,7 +41,7 @@ export class OpenTracer implements STracer {
 
     traceSync<T>(ctx: Context, op: string, handler: (ctx: Context) => T): T {
         let c = TracingContext.get(ctx);
-        let span = this.startSpan(op, c.span);
+        let span = this.startSpan(op, c.span ? c.span : undefined);
         ctx = TracingContext.set(ctx, { span });
         try {
             return handler(ctx);

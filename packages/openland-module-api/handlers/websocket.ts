@@ -1,14 +1,10 @@
 import { IDs } from '../IDs';
 import { Modules } from 'openland-modules/Modules';
-import { createTracer } from 'openland-log/createTracer';
 import { createEmptyContext } from 'openland-utils/Context';
 import { AuthContext } from 'openland-module-auth/AuthContext';
-import { TracingContext } from 'openland-log/src/TracingContext';
 import { CacheContext } from 'openland-module-api/CacheContext';
 import { AppContext } from 'openland-modules/AppContext';
 import { withCache } from 'foundation-orm/withCache';
-
-const tracer = createTracer('ws');
 
 export async function fetchWebSocketParameters(args: any, websocket: any) {
     let res: any = {};
@@ -60,7 +56,6 @@ export function buildWebSocketContext(args: any) {
     if (args.oid) {
         res = AuthContext.set(res, { ...AuthContext.get(res), oid: args.oid });
     }
-    res = TracingContext.set(res, { span: tracer.startSpan('op') });
     res = CacheContext.set(res, new Map());
     res = withCache(res);
     return new AppContext(res);
