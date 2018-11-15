@@ -710,7 +710,7 @@ export default {
         alphaDeleteMessageUrlAugmentation: withUser<GQL.MutationAlphaDeleteMessageUrlAugmentationArgs>(async (ctx, args, uid) => {
             return await Modules.Messaging.editMessage(ctx, IDs.ConversationMessage.parse(args.messageId), uid, {
                 urlAugmentation: false
-            }, true);
+            }, false);
         }),
         alphaDeleteMessage: withUser<GQL.MutationAlphaDeleteMessageArgs>(async (ctx, args, uid) => {
             let messageId = IDs.ConversationMessage.parse(args.messageId);

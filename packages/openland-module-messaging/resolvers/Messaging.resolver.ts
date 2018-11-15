@@ -80,7 +80,7 @@ export default {
         betaMessageDeleteAugmentation: withUser<GQL.MutationBetaMessageDeleteAugmentationArgs>(async (ctx, args, uid) => {
             await Modules.Messaging.editMessage(ctx, IDs.ConversationMessage.parse(args.mid), uid, {
                 urlAugmentation: false
-            }, true);
+            }, false);
             return true;
         }),
 
