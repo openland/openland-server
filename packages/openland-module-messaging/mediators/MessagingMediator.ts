@@ -10,6 +10,9 @@ import { AugmentationMediator } from './AugmentationMediator';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { RoomMediator } from './RoomMediator';
 import { Context } from 'openland-utils/Context';
+import { createTracer } from 'openland-log/createTracer';
+
+const trace = createTracer('messaging');
 
 @injectable()
 export class MessagingMediator {
@@ -26,7 +29,7 @@ export class MessagingMediator {
     private readonly room!: RoomMediator;
 
     sendMessage = async (parent: Context, uid: number, cid: number, message: MessageInput, skipAccessCheck?: boolean) => {
-        return await inTx(parent, async (ctx) => {
+        return trace.trace(parent, 'sendMessage', async (ctx2) => await inTx(ctx2, async (ctx) => {
 
             // Check for bad words. Useful for debug.
             if (message.message === 'fuck') {
@@ -57,7 +60,7 @@ export class MessagingMediator {
             await Modules.Drafts.clearDraft(ctx, uid, cid);
 
             return res.event;
-        });
+        }));
     }
 
     editMessage = async (parent: Context, mid: number, uid: number, newMessage: MessageInput, markAsEdited: boolean) => {
