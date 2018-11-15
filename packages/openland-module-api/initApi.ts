@@ -18,11 +18,13 @@ import { IDs } from './IDs';
 import { inTx } from 'foundation-orm/inTx';
 import { Modules } from 'openland-modules/Modules';
 import { schemaHandler } from './handlers/schema';
-import { withCache } from 'foundation-orm/withCache';
 import { createLogger } from 'openland-log/createLogger';
 import { createEmptyContext } from 'openland-utils/Context';
+import { AppContext } from 'openland-modules/AppContext';
+import { createTracer } from 'openland-log/createTracer';
 
 const logger = createLogger('ws');
+const ws = createTracer('ws');
 
 export async function initApi(isTest: boolean) {
 
@@ -116,17 +118,10 @@ export async function initApi(isTest: boolean) {
                 execute: async (schema: GraphQLSchema, document: DocumentNode, rootValue?: any, contextValue?: any, variableValues?: {
                     [key: string]: any;
                 }, operationName?: string, fieldResolver?: GraphQLFieldResolver<any, any>) => {
-                    if (contextValue!.span!) {
-                        try {
-                            return await execute(schema, document, rootValue, contextValue, variableValues, operationName, fieldResolver);
-                        } finally {
-                            contextValue!.span!.finish();
-                        }
-                    } else {
-                        return await withCache(async () => {
-                            return await execute(schema, document, rootValue, contextValue, variableValues, operationName, fieldResolver);
-                        });
-                    }
+                    let srcCtx = contextValue as AppContext;
+                    return await ws.trace(srcCtx, operationName || 'op', async (ctx) => {
+                        return await execute(schema, document, rootValue, new AppContext(ctx), variableValues, operationName, fieldResolver);
+                    });
                 },
                 subscribe,
                 keepAlive: 10000,
