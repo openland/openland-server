@@ -1,5 +1,5 @@
 import { exponentialBackoffDelay } from './exponentialBackoffDelay';
-import { createLogger } from 'openland-log/createLogger';
+// import { createLogger } from 'openland-log/createLogger';
 
 export function delayBreakable(ms: number) {
     // We can cancel delay from outer code
@@ -53,7 +53,7 @@ export function debounce(ms: number, func: (...args: any[]) => any) {
     };
 }
 
-const log = createLogger('backoff');
+// const log = createLogger('backoff');
 
 export async function backoff<T>(callback: () => Promise<T>): Promise<T> {
     let currentFailureCount = 0;
@@ -64,7 +64,7 @@ export async function backoff<T>(callback: () => Promise<T>): Promise<T> {
         try {
             return await callback();
         } catch (e) {
-            log.warn(e);
+            console.warn(e);
             if (currentFailureCount < maxFailureCount) {
                 currentFailureCount++;
             }
