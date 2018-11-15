@@ -94,7 +94,7 @@ export abstract class FEntityFactory<T extends FEntity> {
                 return await res;
             });
         }
-        
+
         // Uncached
         return await this.tracer.trace(parent, 'findById(' + key.join('.') + ')', async (ctx) => {
             let res = await this.namespace.get(ctx, this.connection, key);
@@ -105,13 +105,15 @@ export abstract class FEntityFactory<T extends FEntity> {
         });
     }
 
-    protected async _findFromIndex(ctx: Context, key: (string | number)[]) {
+    protected async _findFromIndex(parent: Context, key: (string | number)[]) {
         // let res = await this.directory.get(key);
-        let res = await this.namespace.get(ctx, this.connection, key);
-        if (res) {
-            return this.doCreateEntity(ctx, res, false);
-        }
-        return null;
+        return await this.tracer.trace(parent, 'findFromIndex(' + key.join('.') + ')', async (ctx) => {
+            let res = await this.namespace.get(ctx, this.connection, key);
+            if (res) {
+                return this.doCreateEntity(ctx, res, false);
+            }
+            return null;
+        });
     }
 
     protected async _findRangeAllAfter(ctx: Context, key: (string | number)[], after: any, reverse?: boolean) {

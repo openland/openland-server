@@ -7,7 +7,7 @@ import * as Auth2 from '../openland-module-auth/authV2';
 import * as Auth from '../openland-module-auth/providers/email';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { Schema } from './schema/Schema';
-import { execute, subscribe, GraphQLSchema, DocumentNode, GraphQLFieldResolver } from 'graphql';
+import { execute, subscribe, GraphQLSchema, DocumentNode, GraphQLFieldResolver, OperationDefinitionNode } from 'graphql';
 import { fetchWebSocketParameters, buildWebSocketContext } from './handlers/websocket';
 import { errorHandler } from '../openland-errors';
 // import { Rate } from '../utils/rateLimit';
@@ -22,6 +22,7 @@ import { createLogger } from 'openland-log/createLogger';
 import { createEmptyContext } from 'openland-utils/Context';
 import { AppContext } from 'openland-modules/AppContext';
 import { createTracer } from 'openland-log/createTracer';
+import { FCacheContextContext } from 'foundation-orm/utils/contexts';
 
 const logger = createLogger('ws');
 const ws = createTracer('ws');
@@ -118,7 +119,11 @@ export async function initApi(isTest: boolean) {
                 execute: async (schema: GraphQLSchema, document: DocumentNode, rootValue?: any, contextValue?: any, variableValues?: {
                     [key: string]: any;
                 }, operationName?: string, fieldResolver?: GraphQLFieldResolver<any, any>) => {
-                    let srcCtx = contextValue as AppContext;
+                    let ex = document.definitions.find((v) => v.kind === 'OperationDefinition');
+                    let srcCtx = (contextValue as AppContext).ctx;
+                    if (ex && (ex as OperationDefinitionNode).operation === 'subscription') {
+                        srcCtx = FCacheContextContext.set(srcCtx, null);
+                    }
                     return await ws.trace(srcCtx, operationName || 'op', async (ctx) => {
                         return await execute(schema, document, rootValue, new AppContext(ctx), variableValues, operationName, fieldResolver);
                     });
