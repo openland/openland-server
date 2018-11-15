@@ -1,9 +1,10 @@
 import { createLogger } from '../openland-log/createLogger';
-import { createEmptyContext } from './Context';
+import { createEmptyContext, Context } from './Context';
+import { withLogContext } from 'openland-log/withLogContext';
 
 interface StoppableWork {
     name: string;
-    shutdown(): Promise<void>;
+    shutdown(ctx: Context): Promise<void>;
 }
 
 const logger = createLogger('Shutdown');
@@ -21,10 +22,12 @@ class ShutdownImpl {
     }
 
     async shutdown() {
+        let ctx = createEmptyContext();
+        ctx = withLogContext(ctx, ['shutdow']);
         await Promise.all(this.works.map(w => {
             return (async () => {
                 logger.log(createEmptyContext(), 'stopping', w.name);
-                await w.shutdown();
+                await w.shutdown(ctx);
             })();
         }));
         this.subs.forEach(s => s());

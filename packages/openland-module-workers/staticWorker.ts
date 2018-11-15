@@ -67,7 +67,7 @@ export function staticWorker(config: { name: string, version?: number, delay?: n
         }
     });
 
-    const shutdown = async () => {
+    const shutdown = async (sctx: Context) => {
         if (!working) {
             throw new Error('Worker already stopped');
         }
@@ -78,7 +78,7 @@ export function staticWorker(config: { name: string, version?: number, delay?: n
         }
         await workLoop.stop();
         await await LockRepository.releaseLock(createEmptyContext(), 'worker_' + config.name, config.version);
-        logger.log(createEmptyContext(), 'worker_' + config.name, 'stopped');
+        logger.log(sctx, 'worker_' + config.name, 'stopped');
     };
 
     Shutdown.registerWork({ name: 'worker_' + config.name, shutdown });

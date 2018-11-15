@@ -131,14 +131,14 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
             }
         });
 
-        const shutdown = async () => {
+        const shutdown = async (ctx: Context) => {
             if (!working) {
                 throw new Error('Worker already stopped');
             }
 
             working = false;
             await workLoop.stop();
-            log.log(createEmptyContext(), this.taskType, 'stopped');
+            log.log(ctx, this.taskType, 'stopped');
         };
 
         Shutdown.registerWork({ name: this.taskType, shutdown });
