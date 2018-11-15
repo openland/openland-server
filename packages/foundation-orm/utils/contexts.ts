@@ -11,9 +11,9 @@ export function resolveContext(ctx: Context) {
     if (tx) {
         return tx;
     }
-    // let cache = FCacheContextContext.get(ctx);
-    // if (cache) {
-    //     return cache;
-    // }
+    let cache = FCacheContextContext.get(ctx);
+    if (cache) {
+        return cache;
+    }
     return FConnection.globalContext;
 }

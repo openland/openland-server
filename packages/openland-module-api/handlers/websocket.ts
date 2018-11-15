@@ -4,7 +4,7 @@ import { createEmptyContext } from 'openland-utils/Context';
 import { AuthContext } from 'openland-module-auth/AuthContext';
 import { CacheContext } from 'openland-module-api/CacheContext';
 import { AppContext } from 'openland-modules/AppContext';
-import { withCache } from 'foundation-orm/withCache';
+// import { withCache } from 'foundation-orm/withCache';
 
 export async function fetchWebSocketParameters(args: any, websocket: any) {
     let res: any = {};
@@ -57,6 +57,6 @@ export function buildWebSocketContext(args: any) {
         res = AuthContext.set(res, { ...AuthContext.get(res), oid: args.oid });
     }
     res = CacheContext.set(res, new Map());
-    res = withCache(res);
+    // res = withCache(res);
     return new AppContext(res);
 }

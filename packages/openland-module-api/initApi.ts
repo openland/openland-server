@@ -22,7 +22,7 @@ import { createLogger } from 'openland-log/createLogger';
 import { createEmptyContext } from 'openland-utils/Context';
 import { AppContext } from 'openland-modules/AppContext';
 import { createTracer } from 'openland-log/createTracer';
-import { FCacheContextContext } from 'foundation-orm/utils/contexts';
+import { withCache } from 'foundation-orm/withCache';
 
 const logger = createLogger('ws');
 const ws = createTracer('ws');
@@ -121,8 +121,8 @@ export async function initApi(isTest: boolean) {
                 }, operationName?: string, fieldResolver?: GraphQLFieldResolver<any, any>) => {
                     let ex = document.definitions.find((v) => v.kind === 'OperationDefinition');
                     let srcCtx = (contextValue as AppContext).ctx;
-                    if (ex && (ex as OperationDefinitionNode).operation === 'subscription') {
-                        srcCtx = FCacheContextContext.set(srcCtx, null);
+                    if (ex && (ex as OperationDefinitionNode).operation !== 'subscription') {
+                        srcCtx = withCache(srcCtx);
                     }
                     return await ws.trace(srcCtx, operationName || 'op', async (ctx) => {
                         return await execute(schema, document, rootValue, new AppContext(ctx), variableValues, operationName, fieldResolver);
