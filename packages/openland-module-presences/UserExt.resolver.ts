@@ -4,7 +4,7 @@ import { Modules } from 'openland-modules/Modules';
 
 export default {
     User: {
-        online: withUser(async (ctx, src: User) => await Modules.Presence.getLastSeen(src.id) === 'online'),
-        lastSeen: withUser((ctx, src: User) => Modules.Presence.getLastSeen(src.id)),
+        online: withUser(async (ctx, src: User) => await Modules.Presence.getLastSeen(ctx, src.id) === 'online'),
+        lastSeen: withUser((ctx, src: User) => Modules.Presence.getLastSeen(ctx, src.id)),
     }
 };

@@ -1,5 +1,6 @@
 import { inTx } from 'foundation-orm/inTx';
 import { FDB } from 'openland-module-db/FDB';
+import { Context } from 'openland-utils/Context';
 
 export class CacheRepository<T> {
 
@@ -9,19 +10,19 @@ export class CacheRepository<T> {
         this.service = service;
     }
 
-    async read(key: string): Promise<T | null> {
-        let ex = await FDB.ServiceCache.findById(this.service, key);
+    async read(ctx: Context, key: string): Promise<T | null> {
+        let ex = await FDB.ServiceCache.findById(ctx, this.service, key);
         if (ex) {
             return JSON.parse(ex.value) as any;
         }
         return null;
     }
 
-    async write(key: string, value: T) {
+    async write(ctx: Context, key: string, value: T) {
         await inTx(async () => {
-            let ex = await FDB.ServiceCache.findById(this.service, key);
+            let ex = await FDB.ServiceCache.findById(ctx, this.service, key);
             if (!ex) {
-                await FDB.ServiceCache.create(this.service, key, { value: JSON.stringify(value) });
+                await FDB.ServiceCache.create(ctx, this.service, key, { value: JSON.stringify(value) });
             }
         });
     }

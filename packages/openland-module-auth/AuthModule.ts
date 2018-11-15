@@ -2,6 +2,7 @@ import { FDB } from 'openland-module-db/FDB';
 import { AuthCodeRepository } from './repositories/AuthCodeRepository';
 import { injectable } from 'inversify';
 import { TokenRepository } from './repositories/TokenRepository';
+import { Context } from 'openland-utils/Context';
 
 @injectable()
 export class AuthModule {
@@ -12,19 +13,19 @@ export class AuthModule {
         //
     }
 
-    async findAuthSession(sessionKey: string) {
-        return await this.codeRepo.findSession(sessionKey);
+    async findAuthSession(ctx: Context, sessionKey: string) {
+        return await this.codeRepo.findSession(ctx, sessionKey);
     }
 
-    async createEmailAuthSession(email: string, code: string) {
-        return await this.codeRepo.createSession(email, code);
+    async createEmailAuthSession(ctx: Context, email: string, code: string) {
+        return await this.codeRepo.createSession(ctx, email, code);
     }
 
-    async createToken(uid: number) {
-        return await this.tokenRepo.createToken(uid);
+    async createToken(ctx: Context, uid: number) {
+        return await this.tokenRepo.createToken(ctx, uid);
     }
 
-    async findToken(token: string) {
+    async findToken(ctx: Context, token: string) {
         return await this.tokenRepo.findToken(token);
     }
 }

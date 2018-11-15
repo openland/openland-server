@@ -2,6 +2,7 @@ import geoIpv4 from './geo_ip_v4.json';
 import request from 'request';
 import countries from './countries.json';
 import { CacheRepository } from 'openland-module-cache/CacheRepository';
+import { createEmptyContext } from 'openland-utils/Context.js';
 
 // [fromIp, toIp, location_code, location_name]
 export type GeoIPRecord = [number, number, string, string];
@@ -23,7 +24,7 @@ export async function geoIP(ip: string): Promise<GeoIPResponse> {
 const IPStackCache = new CacheRepository<any>('ipstack');
 
 async function fetchIPStack(ip: string): Promise<any> {
-    let cached = await IPStackCache.read(ip);
+    let cached = await IPStackCache.read(createEmptyContext(), ip);
 
     if (cached) {
         return cached;
@@ -31,7 +32,7 @@ async function fetchIPStack(ip: string): Promise<any> {
 
     let data = await ipStackCall(ip);
 
-    await IPStackCache.write(ip, data);
+    await IPStackCache.write(createEmptyContext(), ip, data);
 
     return data;
 }
@@ -57,7 +58,7 @@ async function externalGeoIP(ip: string): Promise<GeoIPResponse> {
     return {
         location_code: data.country_code || 'Unknown',
         location_name: data.country_name || 'Unknown',
-        coordinates: data.latitude ?  {
+        coordinates: data.latitude ? {
             lat: data.latitude,
             long: data.longitude
         } : null
@@ -129,7 +130,7 @@ function ipInRange(ip: number, range: GeoIPRecord) {
     return 0;
 }
 
-function parseIp(ip: string): number|null {
+function parseIp(ip: string): number | null {
     // ::ffff:127.0.0.1
     if (ip.startsWith('::ffff:')) {
         ip = ip.replace('::ffff:', '');
@@ -141,5 +142,5 @@ function parseIp(ip: string): number|null {
 
     let nums = ip.split('.').map(p => parseInt(p, 10));
 
-    return ( (nums[3]) | (nums[2] << 8) | (nums[1] << 16) | (nums[0] << 24) ) >>> 0;
+    return ((nums[3]) | (nums[2] << 8) | (nums[1] << 16) | (nums[0] << 24)) >>> 0;
 }

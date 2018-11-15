@@ -21,11 +21,11 @@ export default {
 
                 let conversations = Modules.Messaging.search
                     .searchForRooms(args.query, { uid, limit: 20 })
-                    .then((r) => r.map((v) => FDB.Conversation.findById(v)));
+                    .then((r) => r.map((v) => FDB.Conversation.findById(ctx, v)));
 
                 // PERSONAL - search users first, then matching conversations with current user
-                let personal = Modules.Users.searchForUsers(args.query, { uid, limit: 20 })
-                    .then((r) => r.map((v) => Modules.Messaging.room.resolvePrivateChat(uid, v)));
+                let personal = Modules.Users.searchForUsers(ctx, args.query, { uid, limit: 20 })
+                    .then((r) => r.map((v) => Modules.Messaging.room.resolvePrivateChat(ctx, uid, v)));
 
                 // Organizations chats
                 // let matchingUserOrgProfiles = (await Promise.all((await Modules.Orgs.findUserOrganizations(uid)).map(uoid => FDB.OrganizationProfile.findById(uoid)))).filter(oc => !!oc && oc.name.toLocaleLowerCase().indexOf(args.query.toLowerCase()) >= 0).map(oc => oc!);

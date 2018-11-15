@@ -13,11 +13,11 @@ export default {
         id: (src: UserDialog) => IDs.Dialog.serialize(src.cid),
         cid: (src: UserDialog) => IDs.Conversation.serialize(src.cid),
         fid: async (src: UserDialog, args: {}, ctx: AppContext) => {
-            let conv = (await FDB.Conversation.findById(src.cid))!;
+            let conv = (await FDB.Conversation.findById(ctx, src.cid))!;
             if (conv.kind === 'organization') {
-                return IDs.Organization.serialize((await FDB.ConversationOrganization.findById(src.cid))!.oid);
+                return IDs.Organization.serialize((await FDB.ConversationOrganization.findById(ctx, src.cid))!.oid);
             } else if (conv.kind === 'private') {
-                let pc = (await FDB.ConversationPrivate.findById(conv.id))!;
+                let pc = (await FDB.ConversationPrivate.findById(ctx, conv.id))!;
                 let auth = AuthContext.get(ctx);
                 if (pc.uid1 === auth.uid) {
                     return IDs.User.serialize(pc.uid2);
@@ -32,14 +32,14 @@ export default {
                 throw Error('Unknwon conversation type');
             }
         },
-        kind: async (src: UserDialog) => {
-            let conv = (await FDB.Conversation.findById(src.cid))!;
+        kind: async (src: UserDialog, args: {}, ctx: AppContext) => {
+            let conv = (await FDB.Conversation.findById(ctx, src.cid))!;
             if (conv.kind === 'organization') {
                 return 'INTERNAL';
             } else if (conv.kind === 'private') {
                 return 'PRIVATE';
             } else if (conv.kind === 'room') {
-                let room = (await FDB.ConversationRoom.findById(src.cid))!;
+                let room = (await FDB.ConversationRoom.findById(ctx, src.cid))!;
                 if (room.kind === 'group') {
                     return 'GROUP';
                 } else if (room.kind === 'internal') {
@@ -55,28 +55,28 @@ export default {
         },
 
         title: async (src: UserDialog, args: {}, ctx: AppContext) => {
-            return Modules.Messaging.room.resolveConversationTitle(src.cid, ctx.auth.uid!);
+            return Modules.Messaging.room.resolveConversationTitle(ctx, src.cid, ctx.auth.uid!);
         },
         photo: async (src: UserDialog, args: {}, ctx: AppContext) => {
-            return await Modules.Messaging.room.resolveConversationPhoto(src.cid, ctx.auth.uid!);
+            return await Modules.Messaging.room.resolveConversationPhoto(ctx, src.cid, ctx.auth.uid!);
         },
 
         unreadCount: async (src: UserDialog) => {
             return src.unread;
         },
 
-        topMessage: (src: UserDialog) => Modules.Messaging.findTopMessage(src.cid),
+        topMessage: (src: UserDialog, args: {}, ctx: AppContext) => Modules.Messaging.findTopMessage(ctx, src.cid),
     },
     Query: {
         dialogs: withUser<{ first: number, after?: string | null, seq?: number }>(async (ctx, args, uid) => {
-            return FDB.UserDialog.rangeFromUserWithCursor(uid, args.first, args.after ? args.after : undefined, true);
+            return FDB.UserDialog.rangeFromUserWithCursor(ctx, uid, args.first, args.after ? args.after : undefined, true);
         }),
         alphaChats: withUser<{ first: number, after?: string | null, seq?: number }>(async (ctx, args, uid) => {
-            let global = await FDB.UserMessagingState.findById(uid);
+            let global = await FDB.UserMessagingState.findById(ctx, uid);
             let seq = global ? global.seq : 0;
             let conversations = await FDB.UserDialog
-                .rangeFromUserWithCursor(uid, args.first, args.after ? args.after : undefined, true);
-            let res = await Promise.all(conversations.items.map((v) => FDB.Conversation.findById(v.cid)));
+                .rangeFromUserWithCursor(ctx, uid, args.first, args.after ? args.after : undefined, true);
+            let res = await Promise.all(conversations.items.map((v) => FDB.Conversation.findById(ctx, v.cid)));
             let index = 0;
             for (let r of res) {
                 if (!r) {

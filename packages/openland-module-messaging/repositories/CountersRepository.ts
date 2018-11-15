@@ -3,6 +3,7 @@ import { AllEntities } from 'openland-module-db/schema';
 import { injectable } from 'inversify';
 import { UserStateRepository } from './UserStateRepository';
 import { lazyInject } from 'openland-modules/Modules.container';
+import { Context } from 'openland-utils/Context';
 
 @injectable()
 export class CountersRepository {
@@ -12,9 +13,9 @@ export class CountersRepository {
     @lazyInject('UserStateRepository')
     private readonly userState!: UserStateRepository;
 
-    onMessageReceived = async (uid: number, mid: number) => {
+    onMessageReceived = async (ctx: Context, uid: number, mid: number) => {
         return await inTx(async () => {
-            let message = (await this.entities.Message.findById(mid));
+            let message = (await this.entities.Message.findById(ctx, mid));
             if (!message) {
                 throw Error('Unable to find message');
             }
@@ -30,14 +31,14 @@ export class CountersRepository {
             }
 
             // Avoid double counter for same message
-            if (await this.entities.UserDialogHandledMessage.findById(uid, message.cid, mid)) {
+            if (await this.entities.UserDialogHandledMessage.findById(ctx, uid, message.cid, mid)) {
                 return 0;
             }
-            await this.entities.UserDialogHandledMessage.create(uid, message.cid, mid, {});
+            await this.entities.UserDialogHandledMessage.create(ctx, uid, message.cid, mid, {});
 
             // Updating counters if not read already
-            let local = await this.userState.getUserDialogState(uid, message.cid);
-            let global = await this.userState.getUserMessagingState(uid);
+            let local = await this.userState.getUserDialogState(ctx, uid, message.cid);
+            let global = await this.userState.getUserMessagingState(ctx, uid);
             if (!local.readMessageId || mid > local.readMessageId) {
                 local.unread++;
                 global.unread++;
@@ -49,16 +50,16 @@ export class CountersRepository {
         });
     }
 
-    onMessageDeleted = async (uid: number, mid: number) => {
+    onMessageDeleted = async (ctx: Context, uid: number, mid: number) => {
         return await inTx(async () => {
-            let message = (await this.entities.Message.findById(mid));
+            let message = (await this.entities.Message.findById(ctx, mid));
             if (!message) {
                 throw Error('Unable to find message');
             }
 
             // Updating counters if not read already
-            let local = await this.userState.getUserDialogState(uid, message.cid);
-            let global = await this.userState.getUserMessagingState(uid);
+            let local = await this.userState.getUserDialogState(ctx, uid, message.cid);
+            let global = await this.userState.getUserMessagingState(ctx, uid);
             if (message.uid !== uid && (!local.readMessageId || mid > local.readMessageId)) {
                 local.unread--;
                 global.unread--;
@@ -70,19 +71,19 @@ export class CountersRepository {
         });
     }
 
-    onMessageRead = async (uid: number, mid: number) => {
+    onMessageRead = async (ctx: Context, uid: number, mid: number) => {
         return await inTx(async () => {
-            let message = (await this.entities.Message.findById(mid));
+            let message = (await this.entities.Message.findById(ctx, mid));
             if (!message) {
                 throw Error('Unable to find message');
             }
-            let local = await this.userState.getUserDialogState(uid, message.cid);
-            let global = await this.userState.getUserMessagingState(uid);
+            let local = await this.userState.getUserDialogState(ctx, uid, message.cid);
+            let global = await this.userState.getUserMessagingState(ctx, uid);
             if (!local.readMessageId || local.readMessageId < mid) {
                 local.readMessageId = mid;
 
                 // Find all remaining messages
-                let remaining = (await this.entities.Message.allFromChatAfter(message.cid, mid)).filter((v) => v.uid !== uid && v.id !== mid).length;
+                let remaining = (await this.entities.Message.allFromChatAfter(ctx, message.cid, mid)).filter((v) => v.uid !== uid && v.id !== mid).length;
                 let delta: number;
                 if (remaining === 0) { // Just additional case for self-healing of a broken counters
                     delta = -local.unread;
@@ -107,10 +108,10 @@ export class CountersRepository {
         });
     }
 
-    onDialogDeleted = async (uid: number, cid: number) => {
+    onDialogDeleted = async (ctx: Context, uid: number, cid: number) => {
         return await inTx(async () => {
-            let local = await this.userState.getUserDialogState(uid, cid);
-            let global = await this.userState.getUserMessagingState(uid);
+            let local = await this.userState.getUserDialogState(ctx, uid, cid);
+            let global = await this.userState.getUserMessagingState(ctx, uid);
             if (local.unread > 0) {
                 let delta = -local.unread;
                 global.unread += delta;

@@ -21,7 +21,7 @@ async function context(src: express.Request): Promise<AppContext> {
     // User
     if (src.user !== null && src.user !== undefined) {
         if (typeof src.user.sub === 'string') {
-            uid = await Modules.Users.findUserByAuthId(src.user.sub);
+            uid = await Modules.Users.findUserByAuthId(createEmptyContext(), src.user.sub);
         } else if (typeof src.user.uid === 'number' && typeof src.user.tid === 'number') {
             uid = src.user.uid;
             tid = src.user.tid;
@@ -29,20 +29,20 @@ async function context(src: express.Request): Promise<AppContext> {
     }
     // Organization
     if (uid) {
-        let accounts = await Modules.Orgs.findUserOrganizations(uid);
+        let accounts = await Modules.Orgs.findUserOrganizations(createEmptyContext(), uid);
 
         // Default behaviour: pick the default one
         if (accounts.length >= 1) {
             oid = accounts[0];
 
-            let profile = await Modules.Users.profileById(uid);
+            let profile = await Modules.Users.profileById(createEmptyContext(), uid);
             oid = (profile && profile.primaryOrganization) || oid;
         }
     }
 
     // Auth Context
     res = AuthContext.set(res, { tid, uid, oid });
-    
+
     // Tracing Context
     res = TracingContext.set(res, { span: tracer.startSpan('http') });
     res = CacheContext.set(res, new Map());

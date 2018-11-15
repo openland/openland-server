@@ -1,6 +1,7 @@
 import { createEmailWorker } from './workers/EmailWorker';
 import { EmailTask } from './EmailTask';
 import { injectable } from 'inversify';
+import { Context } from 'openland-utils/Context';
 
 @injectable()
 export class EmailModuleImpl {
@@ -10,7 +11,7 @@ export class EmailModuleImpl {
         // Nothing to do
     }
 
-    enqueueEmail = async (args: EmailTask) => {
-        await this.worker.pushWork(args);
+    enqueueEmail = async (ctx: Context, args: EmailTask) => {
+        await this.worker.pushWork(ctx, args);
     }
 }

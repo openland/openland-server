@@ -9,6 +9,7 @@ import { ErrorText } from 'openland-errors/ErrorText';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { organizationProfileIndexer } from './workers/organizationProfileIndexer';
+import { Context } from 'openland-utils/Context';
 
 @injectable()
 export class OrganizationModule {
@@ -24,12 +25,12 @@ export class OrganizationModule {
         }
     }
 
-    async createOrganization(uid: number, input: OrganizatinProfileInput) {
+    async createOrganization(ctx: Context, uid: number, input: OrganizatinProfileInput) {
         return inTx(async () => {
 
             // 1. Resolve user status
             let status: 'activated' | 'pending' = 'pending';
-            let user = await Modules.DB.entities.User.findById(uid);
+            let user = await Modules.DB.entities.User.findById(ctx, uid);
             if (!user) {
                 throw Error('Unable to find user');
             }
@@ -40,16 +41,16 @@ export class OrganizationModule {
             }
 
             // 2. Check if profile created
-            let profile = await Modules.DB.entities.UserProfile.findById(uid);
+            let profile = await Modules.DB.entities.UserProfile.findById(ctx, uid);
             if (!profile) {
                 throw Error('Profile is not created');
             }
 
             // 3. Resolve editorial flag
-            let editorial = (await Modules.Super.findSuperRole(uid)) === 'editor';
+            let editorial = (await Modules.Super.findSuperRole(ctx, uid)) === 'editor';
 
             // 4. Create Organization
-            let res = await this.repo.createOrganization(uid, input, { editorial, status });
+            let res = await this.repo.createOrganization(ctx, uid, input, { editorial, status });
 
             // 5. Update primary organization if needed
             if (status === 'activated') {
@@ -59,64 +60,64 @@ export class OrganizationModule {
             }
 
             // 6. Invoke Hook
-            await Modules.Hooks.onOrganizationCreated(uid, res.id);
+            await Modules.Hooks.onOrganizationCreated(ctx, uid, res.id);
 
             return res;
         });
     }
 
-    async activateOrganization(id: number) {
+    async activateOrganization(ctx: Context, id: number) {
         return await inTx(async () => {
-            if (await this.repo.activateOrganization(id)) {
-                for (let m of await FDB.OrganizationMember.allFromOrganization('joined', id)) {
-                    await Modules.Users.activateUser(m.uid);
-                    let profile = await FDB.UserProfile.findById(m.uid);
+            if (await this.repo.activateOrganization(ctx, id)) {
+                for (let m of await FDB.OrganizationMember.allFromOrganization(ctx, 'joined', id)) {
+                    await Modules.Users.activateUser(ctx, m.uid);
+                    let profile = await FDB.UserProfile.findById(ctx, m.uid);
                     if (profile && !profile.primaryOrganization) {
                         profile.primaryOrganization = id;
                     }
                 }
             }
-            return (await FDB.Organization.findById(id))!;
+            return (await FDB.Organization.findById(ctx, id))!;
         });
     }
 
-    async suspendOrganization(id: number) {
+    async suspendOrganization(ctx: Context, id: number) {
         return await inTx(async () => {
-            if (await this.repo.suspendOrganization(id)) {
-                for (let m of await FDB.OrganizationMember.allFromOrganization('joined', id)) {
-                    let u = (await FDB.User.findById(m.uid))!;
+            if (await this.repo.suspendOrganization(ctx, id)) {
+                for (let m of await FDB.OrganizationMember.allFromOrganization(ctx, 'joined', id)) {
+                    let u = (await FDB.User.findById(ctx, m.uid))!;
                     if (u.status === 'activated') {
-                        await Emails.sendAccountDeactivatedEmail(u.id);
+                        await Emails.sendAccountDeactivatedEmail(ctx, u.id);
                     }
                 }
             }
-            return (await FDB.Organization.findById(id))!;
+            return (await FDB.Organization.findById(ctx, id))!;
         });
     }
 
-    async addUserToOrganization(uid: number, oid: number, by: number) {
+    async addUserToOrganization(ctx: Context, uid: number, oid: number, by: number) {
         return await inTx(async () => {
 
             // Check user state
-            let user = await Modules.DB.entities.User.findById(uid);
+            let user = await Modules.DB.entities.User.findById(ctx, uid);
             if (!user) {
                 throw Error('Unable to find user');
             }
             if (user.status === 'suspended') {
                 throw Error('User is suspended');
             }
-            let profile = await Modules.DB.entities.UserProfile.findById(uid);
+            let profile = await Modules.DB.entities.UserProfile.findById(ctx, uid);
             if (!profile) {
                 throw Error('Profile is not created');
             }
 
             // Add member
-            if (await this.repo.addUserToOrganization(uid, oid, by)) {
-                let org = (await Modules.DB.entities.Organization.findById(oid))!;
+            if (await this.repo.addUserToOrganization(ctx, uid, oid, by)) {
+                let org = (await Modules.DB.entities.Organization.findById(ctx, oid))!;
                 if (org.status === 'activated') {
 
                     // Activate user if organization is in activated state
-                    await Modules.Users.activateUser(uid);
+                    await Modules.Users.activateUser(ctx, uid);
 
                     // Update primary organization if needed
                     if (!profile.primaryOrganization) {
@@ -126,15 +127,15 @@ export class OrganizationModule {
                 return org;
             }
 
-            return await Modules.DB.entities.Organization.findById(oid);
+            return await Modules.DB.entities.Organization.findById(ctx, oid);
         });
     }
 
-    async removeUserFromOrganization(uid: number, oid: number, by: number) {
+    async removeUserFromOrganization(ctx: Context, uid: number, oid: number, by: number) {
         return await inTx(async () => {
 
             // Check current membership state
-            let member = await FDB.OrganizationMember.findById(oid, uid);
+            let member = await FDB.OrganizationMember.findById(ctx, oid, uid);
             if (!member) {
                 return false;
             }
@@ -143,7 +144,7 @@ export class OrganizationModule {
             }
 
             // Check permissions
-            let isAdmin = await this.isUserAdmin(by, oid);
+            let isAdmin = await this.isUserAdmin(ctx, by, oid);
             let invitedByUser = (member.invitedBy && (member.invitedBy === uid)) || false;
             if (!isAdmin && !invitedByUser) {
                 throw new AccessDeniedError(ErrorText.permissionDenied);
@@ -155,14 +156,14 @@ export class OrganizationModule {
             }
 
             // Disallow owner kick
-            if (await this.isUserOwner(uid, oid)) {
+            if (await this.isUserOwner(ctx, uid, oid)) {
                 throw new AccessDeniedError(ErrorText.permissionDenied);
             }
 
-            if (await this.repo.removeUserFromOrganization(uid, oid)) {
-                let profile = (await FDB.UserProfile.findById(uid))!;
+            if (await this.repo.removeUserFromOrganization(ctx, uid, oid)) {
+                let profile = (await FDB.UserProfile.findById(ctx, uid))!;
                 if (profile.primaryOrganization === oid) {
-                    let orgs = await this.repo.findUserOrganizations(uid);
+                    let orgs = await this.repo.findUserOrganizations(ctx, uid);
                     if (orgs.length === 0) {
                         profile.primaryOrganization = null;
                     } else {
@@ -181,65 +182,65 @@ export class OrganizationModule {
     // Permissions
     //
 
-    async updateMemberRole(uid: number, oid: number, role: 'admin' | 'member', by: number) {
+    async updateMemberRole(ctx: Context, uid: number, oid: number, role: 'admin' | 'member', by: number) {
         return await inTx(async () => {
-            let isOwner = await this.isUserOwner(by, oid);
+            let isOwner = await this.isUserOwner(ctx, by, oid);
             if (!isOwner) {
                 throw new AccessDeniedError('Only owners can change roles');
             }
-            if (await this.isUserOwner(uid, oid)) {
+            if (await this.isUserOwner(ctx, uid, oid)) {
                 throw new AccessDeniedError('Owner role can\'t be changed');
             }
 
-            return await this.repo.updateMembershipRole(uid, oid, role);
+            return await this.repo.updateMembershipRole(ctx, uid, oid, role);
         });
     }
 
-    async isUserMember(uid: number, orgId: number) {
-        return this.repo.isUserMember(uid, orgId);
+    async isUserMember(ctx: Context, uid: number, orgId: number) {
+        return this.repo.isUserMember(ctx, uid, orgId);
     }
 
-    async isUserAdmin(uid: number, oid: number) {
-        return this.repo.isUserAdmin(uid, oid);
+    async isUserAdmin(ctx: Context, uid: number, oid: number) {
+        return this.repo.isUserAdmin(ctx, uid, oid);
     }
 
-    async isUserOwner(uid: number, oid: number) {
-        return this.repo.isUserOwner(uid, oid);
+    async isUserOwner(ctx: Context, uid: number, oid: number) {
+        return this.repo.isUserOwner(ctx, uid, oid);
     }
 
     //
     // Queries
     //
 
-    async findOrganizationMembers(organizationId: number) {
-        return this.repo.findOrganizationMembers(organizationId);
+    async findOrganizationMembers(ctx: Context, organizationId: number) {
+        return this.repo.findOrganizationMembers(ctx, organizationId);
     }
 
-    async findUserOrganizations(uid: number) {
-        return this.repo.findUserOrganizations(uid);
+    async findUserOrganizations(ctx: Context, uid: number) {
+        return this.repo.findUserOrganizations(ctx, uid);
     }
 
-    async findOrganizationMembership(oid: number) {
-        return this.repo.findOrganizationMembership(oid);
+    async findOrganizationMembership(ctx: Context, oid: number) {
+        return this.repo.findOrganizationMembership(ctx, oid);
     }
 
-    async hasMemberWithEmail(oid: number, email: string) {
-        return this.repo.hasMemberWithEmail(oid, email);
+    async hasMemberWithEmail(ctx: Context, oid: number, email: string) {
+        return this.repo.hasMemberWithEmail(ctx, oid, email);
     }
 
-    async findUserMembership(uid: number, oid: number) {
-        return this.repo.findUserMembership(uid, oid);
+    async findUserMembership(ctx: Context, uid: number, oid: number) {
+        return this.repo.findUserMembership(ctx, uid, oid);
     }
 
-    async markForUndexing(oid: number) {
-        await this.repo.markForUndexing(oid);
+    async markForUndexing(ctx: Context, oid: number) {
+        await this.repo.markForUndexing(ctx, oid);
     }
 
     //
     // Deprecated
     //
 
-    async renameOrganization(id: number, title: string) {
-        return this.repo.renameOrganization(id, title);
+    async renameOrganization(ctx: Context, id: number, title: string) {
+        return this.repo.renameOrganization(ctx, id, title);
     }
 }

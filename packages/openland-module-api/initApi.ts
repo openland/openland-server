@@ -22,6 +22,7 @@ import { Modules } from 'openland-modules/Modules';
 import { schemaHandler } from './handlers/schema';
 import { withCache } from 'foundation-orm/withCache';
 import { createLogger } from 'openland-log/createLogger';
+import { createEmptyContext } from 'openland-utils/Context';
 
 const logger = createLogger('ws');
 
@@ -93,7 +94,7 @@ export async function initApi(isTest: boolean) {
             if (data.result === 'passed') {
                 let text = `${data.commit.author_name} ${data.event === 'deploy' ? 'deployed' : 'build'} :tada: - ${data.commit.message} to ${data.project_name}`;
 
-                await Modules.Messaging.sendMessage(chatId, botId, { message: text });
+                await Modules.Messaging.sendMessage(createEmptyContext(), chatId, botId, { message: text });
             }
         });
     }));

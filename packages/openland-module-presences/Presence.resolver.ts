@@ -21,7 +21,7 @@ export default {
             if (args.timeout > 5000) {
                 throw Error('Invalid input');
             }
-            await Modules.Presence.setOnline(ctx.auth.uid, ctx.auth.tid!, args.timeout, args.platform || 'unknown');
+            await Modules.Presence.setOnline(ctx, ctx.auth.uid, ctx.auth.tid!, args.timeout, args.platform || 'unknown');
             return 'ok';
         },
         presenceReportOffline: withAny<{ platform?: string }>(async (ctx, args) => {
@@ -65,7 +65,7 @@ export default {
                 let uids: number[] = [];
 
                 for (let chatId of conversationIds) {
-                    uids.push(...await Modules.Messaging.room.findConversationMembers(chatId));
+                    uids.push(...await Modules.Messaging.room.findConversationMembers(ctx, chatId));
                 }
 
                 return Modules.Presence.createPresenceStream(ctx.auth.uid, uids);

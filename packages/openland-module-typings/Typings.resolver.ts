@@ -16,7 +16,7 @@ export default {
     TypingEvent: {
         type: (src: TypingEvent) => src.type,
         cancel: (src: TypingEvent) => src.cancel,
-        conversation: (src: TypingEvent) => FDB.Conversation.findById(src.conversationId),
+        conversation: (src: TypingEvent, args: {}, ctx: AppContext) => FDB.Conversation.findById(ctx, src.conversationId),
         user: (src: TypingEvent) => src.userId,
     },
     Mutation: {
@@ -34,7 +34,7 @@ export default {
         }),
         typingCancel: withUser<GQL.MutationTypingCancelArgs>(async (ctx, args, uid) => {
             let chatId = IDs.Conversation.parse(args.conversationId);
-            let members = await Modules.Messaging.room.findConversationMembers(chatId);
+            let members = await Modules.Messaging.room.findConversationMembers(ctx, chatId);
             await Modules.Typings.cancelTyping(uid, chatId, members);
             return 'ok';
         }),

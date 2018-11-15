@@ -4,6 +4,7 @@ import { FConnection } from './FConnection';
 import { FEntityIndex } from './FEntityIndex';
 import { createLogger } from 'openland-log/createLogger';
 import { FDirectory } from './FDirectory';
+import { Context } from 'openland-utils/Context';
 
 export interface FEntityOptions {
     enableVersioning: boolean;
@@ -31,7 +32,7 @@ export abstract class FEntity {
     private isDirty: boolean = false;
     private isNew: boolean;
 
-    constructor(connection: FConnection, namespace: FNamespace, directory: FDirectory, id: (string | number)[], value: any, options: FEntityOptions, isNew: boolean, indexes: FEntityIndex[], name: string) {
+    constructor(ctx: Context, connection: FConnection, namespace: FNamespace, directory: FDirectory, id: (string | number)[], value: any, options: FEntityOptions, isNew: boolean, indexes: FEntityIndex[], name: string) {
         this.namespace = namespace;
         this.directory = directory;
         this.rawId = id;

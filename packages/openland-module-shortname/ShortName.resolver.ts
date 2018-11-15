@@ -30,16 +30,16 @@ export default {
 
     Query: {
         alphaResolveShortName: withAccount<{ shortname: string }>(async (ctx, args, uid, orgId) => {
-            let shortname = await Modules.Shortnames.findShortname(args.shortname);
+            let shortname = await Modules.Shortnames.findShortname(ctx, args.shortname);
 
             if (!shortname) {
                 return null;
             }
 
             if (shortname.ownerType === 'user') {
-                return await FDB.User.findById(shortname.ownerId);
+                return await FDB.User.findById(ctx, shortname.ownerId);
             } else if (shortname.ownerType === 'org') {
-                return await FDB.Organization.findById(shortname.ownerId);
+                return await FDB.Organization.findById(ctx, shortname.ownerId);
             }
 
             return null;
@@ -49,19 +49,19 @@ export default {
         alphaSetUserShortName: withAccount<{ shortname: string }>(async (ctx, args, uid, orgId) => {
             testShortName(args.shortname);
 
-            await Modules.Shortnames.setShortnameToUser(args.shortname, uid);
+            await Modules.Shortnames.setShortnameToUser(ctx, args.shortname, uid);
 
             return 'ok';
         }),
         alphaSetOrgShortName: withAccount<{ shortname: string, id: number }>(async (ctx, args, uid, orgId) => {
             testShortName(args.shortname);
 
-            let member = await FDB.OrganizationMember.findById(args.id, uid);
+            let member = await FDB.OrganizationMember.findById(ctx, args.id, uid);
             if (member === null || member.status !== 'joined' || member.role !== 'admin') {
                 throw new UserError(ErrorText.permissionOnlyOwner);
             }
 
-            await Modules.Shortnames.setShortnameToOrganization(args.shortname, args.id);
+            await Modules.Shortnames.setShortnameToOrganization(ctx, args.shortname, args.id);
 
             return 'ok';
         }),

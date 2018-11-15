@@ -34,11 +34,11 @@ export default {
     ChannelConversation: {
         id: (src: Conversation) => IDs.Conversation.serialize(src.id),
         flexibleId: (src: Conversation) => IDs.Conversation.serialize(src.id),
-        title: async (src: Conversation) => (await FDB.RoomProfile.findById(src.id))!.title,
+        title: async (src: Conversation, args: {}, ctx: AppContext) => (await FDB.RoomProfile.findById(ctx, src.id))!.title,
         photos: () => [],
         members: () => [],
         unreadCount: async (src: Conversation, _: any, ctx: AppContext) => {
-            let state = await FDB.UserDialog.findById(ctx.auth.uid!, src.id);
+            let state = await FDB.UserDialog.findById(ctx, ctx.auth.uid!, src.id);
             if (state) {
                 return state.unread;
             } else {
@@ -46,20 +46,20 @@ export default {
             }
         },
         topMessage: async (src: Conversation, _: any, ctx: AppContext) => {
-            if (!await Modules.Messaging.room.isRoomMember(ctx.auth.uid!, src.id!)) {
+            if (!await Modules.Messaging.room.isRoomMember(ctx, ctx.auth.uid!, src.id!)) {
                 return null;
             }
 
-            return Modules.Messaging.findTopMessage(src.id!);
+            return Modules.Messaging.findTopMessage(ctx, src.id!);
         },
-        membersCount: (src: Conversation) => Modules.Messaging.roomMembersCount(src.id),
-        memberRequestsCount: (src: Conversation) => Modules.Messaging.roomMembersCount(src.id, 'requested'),
-        featured: async (src: Conversation) => (await FDB.ConversationRoom.findById(src.id))!.featured || false,
-        hidden: async (src: Conversation) => !(await FDB.ConversationRoom.findById(src.id))!.listed || false,
-        description: async (src: Conversation) => (await FDB.RoomProfile.findById(src.id))!.description || '',
+        membersCount: (src: Conversation, _: any, ctx: AppContext) => Modules.Messaging.roomMembersCount(ctx, src.id),
+        memberRequestsCount: (src: Conversation, _: any, ctx: AppContext) => Modules.Messaging.roomMembersCount(ctx, src.id, 'requested'),
+        featured: async (src: Conversation, args: {}, ctx: AppContext) => (await FDB.ConversationRoom.findById(ctx, src.id))!.featured || false,
+        hidden: async (src: Conversation, args: {}, ctx: AppContext) => !(await FDB.ConversationRoom.findById(ctx, src.id))!.listed || false,
+        description: async (src: Conversation, args: {}, ctx: AppContext) => (await FDB.RoomProfile.findById(ctx, src.id))!.description || '',
         longDescription: (src: Conversation) => '',
         myStatus: async (src: Conversation, _: any, ctx: AppContext) => {
-            let member = ctx.auth.uid ? await Modules.Messaging.room.findMembershipStatus(ctx.auth.uid, src.id!) : undefined;
+            let member = ctx.auth.uid ? await Modules.Messaging.room.findMembershipStatus(ctx, ctx.auth.uid, src.id!) : undefined;
 
             if (!member || member.status === 'kicked') {
                 return 'left';
@@ -67,14 +67,14 @@ export default {
 
             return member.status;
         },
-        organization: async (src: Conversation) => FDB.Organization.findById((await FDB.ConversationRoom.findById(src.id))!.oid!),
+        organization: async (src: Conversation, args: {}, ctx: AppContext) => FDB.Organization.findById(ctx, (await FDB.ConversationRoom.findById(ctx, src.id))!.oid!),
         isRoot: (src: Conversation) => false,
-        settings: (src: Conversation, _: any, ctx: AppContext) => Modules.Messaging.getRoomSettings(ctx.auth.uid!, src.id),
+        settings: (src: Conversation, _: any, ctx: AppContext) => Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, src.id),
 
-        photo: async (src: Conversation) => buildBaseImageUrl((await FDB.RoomProfile.findById(src.id))!.image),
-        photoRef: async (src: Conversation) => (await FDB.RoomProfile.findById(src.id))!.image,
-        socialImage: async (src: Conversation) => buildBaseImageUrl((await FDB.RoomProfile.findById(src.id))!.socialImage),
-        socialImageRef: async (src: Conversation) => (await FDB.RoomProfile.findById(src.id))!.socialImage,
+        photo: async (src: Conversation, args: {}, ctx: AppContext) => buildBaseImageUrl((await FDB.RoomProfile.findById(ctx, src.id))!.image),
+        photoRef: async (src: Conversation, args: {}, ctx: AppContext) => (await FDB.RoomProfile.findById(ctx, src.id))!.image,
+        socialImage: async (src: Conversation, args: {}, ctx: AppContext) => buildBaseImageUrl((await FDB.RoomProfile.findById(ctx, src.id))!.socialImage),
+        socialImageRef: async (src: Conversation, args: {}, ctx: AppContext) => (await FDB.RoomProfile.findById(ctx, src.id))!.socialImage,
         pinnedMessage: (src: Conversation) => null,
         membersOnline: async (src: Conversation) => {
             // let res = await DB.ConversationGroupMembers.findAll({
@@ -98,18 +98,18 @@ export default {
             return 0;
         },
         myRole: async (src: Conversation, _: any, ctx: AppContext) => {
-            let member = await Modules.Messaging.room.findMembershipStatus(ctx.auth.uid!, src.id!);
+            let member = await Modules.Messaging.room.findMembershipStatus(ctx, ctx.auth.uid!, src.id!);
             return member && member.role;
         }
     },
     ChannelMember: {
         role: (src: RoomParticipant) => src.role,
         status: (src: RoomParticipant) => src.status === 'joined' ? 'member' : 'left',
-        user: (src: RoomParticipant) => FDB.User.findById(src.uid)
+        user: (src: RoomParticipant, args: {}, ctx: AppContext) => FDB.User.findById(ctx, src.uid)
     },
     ChannelInvite: {
-        channel: (src: ChannelInvitation | ChannelLink) => FDB.Conversation.findById(src.channelId),
-        invitedByUser: (src: ChannelInvitation | ChannelLink) => FDB.User.findById(src.creatorId)
+        channel: (src: ChannelInvitation | ChannelLink, args: {}, ctx: AppContext) => FDB.Conversation.findById(ctx, src.channelId),
+        invitedByUser: (src: ChannelInvitation | ChannelLink, args: {}, ctx: AppContext) => FDB.User.findById(ctx, src.creatorId)
     },
 
     Mutation: {
@@ -124,7 +124,7 @@ export default {
             if (imageRef) {
                 await Modules.Media.saveFile(imageRef.uuid);
             }
-            return Modules.Messaging.room.createRoom('public', oid, uid, [], {
+            return Modules.Messaging.room.createRoom(ctx, 'public', oid, uid, [], {
                 title: args.title,
                 image: imageRef,
                 description: args.description
@@ -133,22 +133,22 @@ export default {
 
         alphaChannelSetFeatured: withPermission<GQL.MutationAlphaChannelSetFeaturedArgs>('super-admin', async (ctx, args) => {
             let channelId = IDs.Conversation.parse(args.channelId);
-            return await Modules.Messaging.room.setFeatured(channelId, args.featured);
+            return await Modules.Messaging.room.setFeatured(ctx, channelId, args.featured);
         }),
 
         alphaChannelHideFromSearch: withPermission<GQL.MutationAlphaChannelHideFromSearchArgs>('super-admin', async (ctx, args) => {
             let channelId = IDs.Conversation.parse(args.channelId);
-            return await Modules.Messaging.room.setListed(channelId, !args.hidden);
+            return await Modules.Messaging.room.setListed(ctx, channelId, !args.hidden);
         }),
 
         alphaChannelInvite: withUser<GQL.MutationAlphaChannelInviteArgs>(async (ctx, args, uid) => {
             let channelId = IDs.Conversation.parse(args.channelId);
             let userId = IDs.User.parse(args.userId);
-            return Modules.Messaging.room.inviteToRoom(channelId, uid, [userId]);
+            return Modules.Messaging.room.inviteToRoom(ctx, channelId, uid, [userId]);
         }),
         alphaChannelJoin: withUser<GQL.MutationAlphaChannelJoinArgs>(async (ctx, args, uid) => {
             let channelId = IDs.Conversation.parse(args.channelId);
-            let chat = await Modules.Messaging.room.joinRoom(channelId, uid);
+            let chat = await Modules.Messaging.room.joinRoom(ctx, channelId, uid);
             return {
                 chat
             };
@@ -162,6 +162,7 @@ export default {
             await inTx(async () => {
                 for (let inviteRequest of args.inviteRequests) {
                     await Modules.Invites.createChannelInvite(
+                        ctx,
                         channelId,
                         uid,
                         inviteRequest.email,
@@ -176,14 +177,14 @@ export default {
         }),
         alphaChannelRenewInviteLink: withUser<{ channelId: string }>(async (ctx, args, uid) => {
             let channelId = IDs.Conversation.parse(args.channelId);
-            return await Modules.Invites.refreshChannelInviteLink(channelId, uid);
+            return await Modules.Invites.refreshChannelInviteLink(ctx, channelId, uid);
         }),
         alphaChannelJoinInvite: withAny<{ invite: string }>(async (ctx, args) => {
             let uid = ctx.auth.uid;
             if (uid === undefined) {
                 return;
             }
-            return await Modules.Invites.joinChannelInvite(uid, args.invite);
+            return await Modules.Invites.joinChannelInvite(ctx, uid, args.invite);
         }),
     },
 
@@ -191,7 +192,7 @@ export default {
         alphaChannelMembers: withUser<{ channelId: string }>(async (ctx, args, uid) => {
             let convId = IDs.Conversation.parse(args.channelId);
 
-            return await FDB.RoomParticipant.allFromActive(convId);
+            return await FDB.RoomParticipant.allFromActive(ctx, convId);
         }),
 
         alphaChannels: withUser<AlphaChannelsParams>(async (ctx, args, uid) => {
@@ -231,7 +232,7 @@ export default {
             });
 
             let ids = hits.hits.hits.map((v) => parseInt(v._id, 10));
-            let channels = await Promise.all(ids.map((v) => FDB.Conversation.findById(v)));
+            let channels = await Promise.all(ids.map((v) => FDB.Conversation.findById(ctx, v)));
             let offset = 0;
             if (args.after) {
                 offset = parseInt(args.after, 10);
@@ -259,11 +260,11 @@ export default {
             };
         }),
         alphaChannelInviteInfo: withAny<{ uuid: string }>(async (ctx, args) => {
-            return await Modules.Invites.resolveInvite(args.uuid);
+            return await Modules.Invites.resolveInvite(ctx, args.uuid);
         }),
         alphaChannelInviteLink: withUser<{ channelId: string }>(async (ctx, args, uid) => {
             let channelId = IDs.Conversation.parse(args.channelId);
-            return await Modules.Invites.createChannelInviteLink(channelId, uid);
+            return await Modules.Invites.createChannelInviteLink(ctx, channelId, uid);
         })
     }
 } as GQLResolver;

@@ -1,6 +1,7 @@
 import { AllEntities } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
 import { UserError } from 'openland-errors/UserError';
+import { Context } from 'openland-utils/Context';
 
 export class FeatureRepository {
     private entities: AllEntities;
@@ -9,45 +10,45 @@ export class FeatureRepository {
         this.entities = entities;
     }
 
-    async enableFeatureForOrganization(oid: number, featureKey: string) {
+    async enableFeatureForOrganization(ctx: Context, oid: number, featureKey: string) {
         await inTx(async () => {
-            if (!await this.entities.FeatureFlag.findById(featureKey)) {
+            if (!await this.entities.FeatureFlag.findById(ctx, featureKey)) {
                 throw new UserError('Unable to find feature');
             }
-            let ex = await this.entities.OrganizationFeatures.findFromOrganization(oid, featureKey);
+            let ex = await this.entities.OrganizationFeatures.findFromOrganization(ctx, oid, featureKey);
             if (ex) {
                 ex.enabled = true;
             } else {
-                await this.entities.OrganizationFeatures.create(await this.entities.connection.nextRandomId(), { organizationId: oid, featureKey, enabled: true });
+                await this.entities.OrganizationFeatures.create(ctx, await this.entities.connection.nextRandomId(), { organizationId: oid, featureKey, enabled: true });
             }
         });
     }
 
-    async disableFeatureForOrganization(oid: number, featureKey: string) {
+    async disableFeatureForOrganization(ctx: Context, oid: number, featureKey: string) {
         await inTx(async () => {
-            if (!await this.entities.FeatureFlag.findById(featureKey)) {
+            if (!await this.entities.FeatureFlag.findById(ctx, featureKey)) {
                 throw new UserError('Unable to find feature');
             }
-            let ex = await this.entities.OrganizationFeatures.findFromOrganization(oid, featureKey);
+            let ex = await this.entities.OrganizationFeatures.findFromOrganization(ctx, oid, featureKey);
             if (ex) {
                 ex.enabled = false;
             }
         });
     }
 
-    async findAllFeatures() {
-        return await this.entities.FeatureFlag.findAll();
+    async findAllFeatures(ctx: Context) {
+        return await this.entities.FeatureFlag.findAll(ctx);
     }
 
-    async findOrganizationFeatures(oid: number) {
-        return (await this.entities.OrganizationFeatures.allFromOrganization(oid)).filter((v) => v.enabled);
+    async findOrganizationFeatures(ctx: Context, oid: number) {
+        return (await this.entities.OrganizationFeatures.allFromOrganization(ctx, oid)).filter((v) => v.enabled);
     }
 
-    async findOrganizationFeatureFlags(oid: number) {
-        return (await this.findOrganizationFeatures(oid)).map(async orgFeature => await this.entities.FeatureFlag.findById(orgFeature.featureKey));
+    async findOrganizationFeatureFlags(ctx: Context, oid: number) {
+        return (await this.findOrganizationFeatures(ctx, oid)).map(async orgFeature => await this.entities.FeatureFlag.findById(ctx, orgFeature.featureKey));
     }
 
-    async createFeatureFlag(key: string, title: string) {
-        return await inTx(async () => await this.entities.FeatureFlag.create(key, { title }));
+    async createFeatureFlag(ctx: Context, key: string, title: string) {
+        return await inTx(async () => await this.entities.FeatureFlag.create(ctx, key, { title }));
     }
 }

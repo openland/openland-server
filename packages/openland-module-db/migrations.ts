@@ -4,12 +4,13 @@ import { FDB } from './FDB';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { inTx } from 'foundation-orm/inTx';
 import { Modules } from 'openland-modules/Modules';
+import { createEmptyContext } from 'openland-utils/Context';
 
 var migrations: FMigration[] = [];
 migrations.push({
     key: '21-create-notification-bot',
     migration: async (log) => {
-        await Modules.Users.createSystemBot('openbot', 'openbot', {
+        await Modules.Users.createSystemBot(createEmptyContext(), 'openbot', 'openbot', {
             uuid: 'db12b7df-6005-42d9-87d6-46f15dd5b880',
             crop: null
         });
@@ -18,10 +19,11 @@ migrations.push({
 migrations.push({
     key: '19-fix-profile',
     migration: async (log) => {
-        let user = await FDB.UserProfile.findAllKeys();
+        let ctx = createEmptyContext();
+        let user = await FDB.UserProfile.findAllKeys(ctx);
         for (let u of user) {
             await inTx(async () => {
-                let profile = await FDB.UserProfile.findById(u[u.length - 1]);
+                let profile = await FDB.UserProfile.findById(ctx, u[u.length - 1]);
                 profile!.markDirty();
                 await profile!.flush();
             });
@@ -32,13 +34,14 @@ migrations.push({
 migrations.push({
     key: '20-fix-primaryorganization',
     migration: async (log) => {
-        let user = await FDB.UserProfile.findAll();
+        let ctx = createEmptyContext();
+        let user = await FDB.UserProfile.findAll(ctx);
         for (let u of user) {
             log.log('Fixing primary organization for user ' + u.id);
             await inTx(async () => {
                 let primaryOrganization: number | null = null;
-                let profile = (await FDB.UserProfile.findById(u.id))!;
-                let orgs = await Modules.Orgs.findUserOrganizations(u.id);
+                let profile = (await FDB.UserProfile.findById(ctx, u.id))!;
+                let orgs = await Modules.Orgs.findUserOrganizations(ctx, u.id);
 
                 if (orgs.length === 0) {
                     log.log('No organizations for user ' + u.id);
@@ -52,7 +55,7 @@ migrations.push({
                         let existing = orgs.find((v) => v === profile.primaryOrganization);
                         if (existing) {
                             log.log('found existing ' + existing);
-                            let o = await FDB.Organization.findById(existing);
+                            let o = await FDB.Organization.findById(ctx, existing);
                             if (o && o.status === 'activated') {
                                 log.log('apply existing ' + existing);
                                 primaryOrganization = o.id;
@@ -73,7 +76,7 @@ migrations.push({
                     // If not present - try to find activated one
                     if (!primaryOrganization) {
                         for (let oid of orgs) {
-                            let o = await FDB.Organization.findById(oid);
+                            let o = await FDB.Organization.findById(ctx, oid);
                             if (o && o.status === 'activated') {
                                 primaryOrganization = oid;
                                 break;
@@ -100,9 +103,10 @@ migrations.push({
 migrations.push({
     key: '21-initial-index',
     migration: async (log) => {
-        let k = await FDB.Organization.findAll();
+        let ctx = createEmptyContext();
+        let k = await FDB.Organization.findAll(ctx);
         for (let o of k) {
-            await Modules.Orgs.markForUndexing(o.id);
+            await Modules.Orgs.markForUndexing(ctx, o.id);
         }
     }
 });
@@ -110,8 +114,9 @@ migrations.push({
 migrations.push({
     key: '22-enforce-dialog-update',
     migration: async (log) => {
+        let ctx = createEmptyContext();
         await inTx(async () => {
-            let k = await FDB.UserDialog.findAll();
+            let k = await FDB.UserDialog.findAll(ctx);
             for (let o of k) {
                 if (o.date) {
                     o.markDirty();
@@ -125,10 +130,11 @@ migrations.push({
 migrations.push({
     key: '23-fix-index',
     migration: async (log) => {
-        let k = await FDB.UserDialog.findAllKeys();
+        let ctx = createEmptyContext();
+        let k = await FDB.UserDialog.findAllKeys(ctx);
         for (let o of k) {
             await inTx(async () => {
-                let u = await FDB.UserDialog.findById(o[o.length - 2], o[o.length - 1]);
+                let u = await FDB.UserDialog.findById(ctx, o[o.length - 2], o[o.length - 1]);
                 if (u) {
                     u.markDirty();
                     await u.flush();

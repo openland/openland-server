@@ -2,6 +2,7 @@ import { AllEntities } from 'openland-module-db/schema';
 import * as base64 from '../../openland-utils/base64';
 import { randomBytes } from 'crypto';
 import { inTx } from 'foundation-orm/inTx';
+import { Context } from 'openland-utils/Context';
 
 export class AuthCodeRepository {
     private readonly entities: AllEntities;
@@ -10,8 +11,8 @@ export class AuthCodeRepository {
         this.entities = entities;
     }
 
-    async findSession(sessionKey: string) {
-        let res = await this.entities.AuthCodeSession.findById(sessionKey);
+    async findSession(ctx: Context, sessionKey: string) {
+        let res = await this.entities.AuthCodeSession.findById(ctx, sessionKey);
         if (res && res.enabled) {
             return res;
         } else {
@@ -19,9 +20,9 @@ export class AuthCodeRepository {
         }
     }
 
-    async createSession(email: string, code: string) {
+    async createSession(ctx: Context, email: string, code: string) {
         return await inTx(async () => {
-            return this.entities.AuthCodeSession.create(base64.encodeBuffer(randomBytes(64)), {
+            return this.entities.AuthCodeSession.create(ctx, base64.encodeBuffer(randomBytes(64)), {
                 code,
                 expires: Date.now() + 1000 * 60 * 5 /* 5 Minutes */,
                 email,

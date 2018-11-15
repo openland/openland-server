@@ -5,6 +5,7 @@ import { Sanitizer } from 'openland-utils/Sanitizer';
 import { ProfileInput } from 'openland-module-users/ProfileInput';
 import { NotFoundError } from 'openland-errors/NotFoundError';
 import { ImageRef } from 'openland-module-media/ImageRef';
+import { Context } from 'openland-utils/Context';
 
 export class UserRepository {
     private readonly userAuthIdCache = new Map<string, number | undefined>();
@@ -18,26 +19,26 @@ export class UserRepository {
      * User
      */
 
-    async createUser(authId: string, email: string) {
+    async createUser(ctx: Context, authId: string, email: string) {
         return await inTx(async () => {
 
             // Build next user id sequence number
-            let seq = (await this.entities.Sequence.findById('user-id'));
+            let seq = (await this.entities.Sequence.findById(ctx, 'user-id'));
             if (!seq) {
-                seq = await this.entities.Sequence.create('user-id', { value: 0 });
+                seq = await this.entities.Sequence.create(ctx, 'user-id', { value: 0 });
             }
             let id = ++seq.value;
             await seq.flush();
 
-            let res = (await this.entities.User.create(id, { authId: authId, email: email.toLowerCase(), isBot: false, status: 'pending' }));
+            let res = (await this.entities.User.create(ctx, id, { authId: authId, email: email.toLowerCase(), isBot: false, status: 'pending' }));
             await res.flush();
             return res;
         });
     }
 
-    async activateUser(uid: number) {
+    async activateUser(ctx: Context, uid: number) {
         return await inTx(async () => {
-            let user = (await this.entities.User.findById(uid))!;
+            let user = (await this.entities.User.findById(ctx, uid))!;
             if (!user) {
                 throw new NotFoundError('Unable to find user');
             }
@@ -50,9 +51,9 @@ export class UserRepository {
         });
     }
 
-    async suspendUser(uid: number) {
+    async suspendUser(ctx: Context, uid: number) {
         return await inTx(async () => {
-            let user = (await this.entities.User.findById(uid))!;
+            let user = (await this.entities.User.findById(ctx, uid))!;
             if (!user) {
                 throw new NotFoundError('Unable to find user');
             }
@@ -65,14 +66,14 @@ export class UserRepository {
      * Profile
      */
 
-    async findUserProfile(uid: number) {
-        return this.entities.UserProfile.findById(uid);
+    async findUserProfile(ctx: Context, uid: number) {
+        return this.entities.UserProfile.findById(ctx, uid);
     }
 
-    async createUserProfile(uid: number, input: ProfileInput) {
+    async createUserProfile(ctx: Context, uid: number, input: ProfileInput) {
         return await inTx(async () => {
-            let user = (await this.entities.User.findById(uid))!;
-            let existing = await this.entities.UserProfile.findById(user.id!);
+            let user = (await this.entities.User.findById(ctx, uid))!;
+            let existing = await this.entities.UserProfile.findById(ctx, user.id!);
             if (existing) {
                 return existing;
             }
@@ -84,7 +85,7 @@ export class UserRepository {
             );
 
             // Create pfofile
-            return await this.entities.UserProfile.create(user.id!, {
+            return await this.entities.UserProfile.create(ctx, user.id!, {
                 firstName: Sanitizer.sanitizeString(input.firstName)!,
                 lastName: Sanitizer.sanitizeString(input.lastName),
                 picture: Sanitizer.sanitizeImageRef(input.photoRef),
@@ -100,11 +101,11 @@ export class UserRepository {
     /*
      * Bots
      */
-    
-    async createSystemBot(key: string, name: string, photoRef: ImageRef) {
-        let user = await this.createUser('system-bot|' + key, 'hello@openland.com');
-        await this.createUserProfile(user.id, { firstName: name, photoRef: photoRef, email: 'hello@openland.com' });
-        await this.activateUser(user.id);
+
+    async createSystemBot(ctx: Context, key: string, name: string, photoRef: ImageRef) {
+        let user = await this.createUser(ctx, 'system-bot|' + key, 'hello@openland.com');
+        await this.createUserProfile(ctx, user.id, { firstName: name, photoRef: photoRef, email: 'hello@openland.com' });
+        await this.activateUser(ctx, user.id);
         return user.id;
     }
 
@@ -112,11 +113,11 @@ export class UserRepository {
      * User Settings
      */
 
-    async getUserSettings(uid: number) {
+    async getUserSettings(ctx: Context, uid: number) {
         return await inTx(async () => {
-            let settings = await this.entities.UserSettings.findById(uid);
+            let settings = await this.entities.UserSettings.findById(ctx, uid);
             if (!settings) {
-                settings = await this.entities.UserSettings.create(uid, {
+                settings = await this.entities.UserSettings.create(ctx, uid, {
                     emailFrequency: '1hour',
                     desktopNotifications: 'all',
                     mobileNotifications: 'all',
@@ -129,9 +130,9 @@ export class UserRepository {
         });
     }
 
-    async waitForNextSettings(uid: number) {
+    async waitForNextSettings(ctx: Context, uid: number) {
         await new Promise<number>((resolver) =>
-            this.entities.UserSettings.watch(uid, () => {
+            this.entities.UserSettings.watch(ctx, uid, () => {
                 resolver();
             })
         );
@@ -141,15 +142,15 @@ export class UserRepository {
      * Profile Prefill
      */
 
-    async findProfilePrefill(uid: number) {
-        return this.entities.UserProfilePrefil.findById(uid);
+    async findProfilePrefill(ctx: Context, uid: number) {
+        return this.entities.UserProfilePrefil.findById(ctx, uid);
     }
 
-    async saveProfilePrefill(uid: number, prefill: { firstName?: string, lastName?: string, picture?: string }) {
+    async saveProfilePrefill(ctx: Context, uid: number, prefill: { firstName?: string, lastName?: string, picture?: string }) {
         await inTx(async () => {
-            let existing = await this.entities.UserProfilePrefil.findById(uid);
+            let existing = await this.entities.UserProfilePrefil.findById(ctx, uid);
             if (!existing) {
-                await this.entities.UserProfilePrefil.create(uid, {
+                await this.entities.UserProfilePrefil.create(ctx, uid, {
                     firstName: prefill.firstName,
                     lastName: prefill.lastName,
                     picture: prefill.picture
@@ -161,11 +162,11 @@ export class UserRepository {
     /**
      * Queries
      */
-    async findUserByAuthId(authId: string): Promise<number | undefined> {
+    async findUserByAuthId(ctx: Context, authId: string): Promise<number | undefined> {
         if (this.userAuthIdCache.has(authId)) {
             return this.userAuthIdCache.get(authId);
         } else {
-            let exists = (await this.entities.User.findAll()).find((v) => v.authId === authId);
+            let exists = (await this.entities.User.findAll(ctx)).find((v) => v.authId === authId);
             if (exists != null) {
                 if (!this.userAuthIdCache.has(authId)) {
                     this.userAuthIdCache.set(authId, exists.id!!);

@@ -1,6 +1,7 @@
 import { AllEntities } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
 import { UserError } from 'openland-errors/UserError';
+import { Context } from 'continuation-local-storage';
 
 export class ShortnameRepository {
     private readonly entities: AllEntities;
@@ -9,12 +10,12 @@ export class ShortnameRepository {
         this.entities = entities;
     }
 
-    async findShortname(shortname: string) {
-        return await this.entities.ShortnameReservation.findById(this.normalizeShortname(shortname));
+    async findShortname(ctx: Context, shortname: string) {
+        return await this.entities.ShortnameReservation.findById(ctx, this.normalizeShortname(shortname));
     }
 
-    async findUserShortname(uid: number) {
-        let existing = await this.entities.ShortnameReservation.findFromUser(uid);
+    async findUserShortname(ctx: Context, uid: number) {
+        let existing = await this.entities.ShortnameReservation.findFromUser(ctx, uid);
         if (existing && existing.enabled) {
             return existing;
         } else {
@@ -22,8 +23,8 @@ export class ShortnameRepository {
         }
     }
 
-    async findOrganizationShortname(uid: number) {
-        let existing = await this.entities.ShortnameReservation.findFromOrg(uid);
+    async findOrganizationShortname(ctx: Context, uid: number) {
+        let existing = await this.entities.ShortnameReservation.findFromOrg(ctx, uid);
         if (existing && existing.enabled) {
             return existing;
         } else {
@@ -31,10 +32,10 @@ export class ShortnameRepository {
         }
     }
 
-    async setShortnameToUser(shortname: string, uid: number) {
+    async setShortnameToUser(ctx: Context, shortname: string, uid: number) {
         let normalized = this.normalizeShortname(shortname);
         await inTx(async () => {
-            let existing = await this.entities.ShortnameReservation.findFromUser(uid);
+            let existing = await this.entities.ShortnameReservation.findFromUser(ctx, uid);
             if (existing) {
                 if (existing.shortname !== normalized) {
                     existing.enabled = false;
@@ -43,7 +44,7 @@ export class ShortnameRepository {
                     return;
                 }
             } else {
-                let existingReservation = await this.entities.ShortnameReservation.findById(shortname);
+                let existingReservation = await this.entities.ShortnameReservation.findById(ctx, shortname);
                 if (existingReservation) {
                     if ((existingReservation.ownerId === uid && existingReservation.ownerType === 'user') || !existingReservation.enabled) {
                         existingReservation.enabled = true;
@@ -51,16 +52,16 @@ export class ShortnameRepository {
                         throw new UserError('This shortname is already used');
                     }
                 } else {
-                    await this.entities.ShortnameReservation.create(shortname, { ownerId: uid, ownerType: 'user', enabled: true });
+                    await this.entities.ShortnameReservation.create(ctx, shortname, { ownerId: uid, ownerType: 'user', enabled: true });
                 }
             }
         });
     }
 
-    async setShortnameToOrganization(shortname: string, oid: number) {
+    async setShortnameToOrganization(ctx: Context, shortname: string, oid: number) {
         let normalized = this.normalizeShortname(shortname);
         await inTx(async () => {
-            let existing = await this.entities.ShortnameReservation.findFromOrg(oid);
+            let existing = await this.entities.ShortnameReservation.findFromOrg(ctx, oid);
             if (existing) {
                 if (existing.shortname !== normalized) {
                     existing.enabled = false;
@@ -69,7 +70,7 @@ export class ShortnameRepository {
                     return;
                 }
             } else {
-                let existingReservation = await this.entities.ShortnameReservation.findById(shortname);
+                let existingReservation = await this.entities.ShortnameReservation.findById(ctx, shortname);
                 if (existingReservation) {
                     if ((existingReservation.ownerId === oid && existingReservation.ownerType === 'org') || !existingReservation.enabled) {
                         existingReservation.enabled = true;
@@ -77,7 +78,7 @@ export class ShortnameRepository {
                         throw new UserError('This shortname is already used');
                     }
                 } else {
-                    await this.entities.ShortnameReservation.create(shortname, { ownerId: oid, ownerType: 'org', enabled: true });
+                    await this.entities.ShortnameReservation.create(ctx, shortname, { ownerId: oid, ownerType: 'org', enabled: true });
                 }
             }
         });

@@ -27,7 +27,7 @@ export default {
     },
     Settings: {
         id: (src: UserSettings) => IDs.Settings.serialize(src.id),
-        primaryEmail: async (src: UserSettings) => (await FDB.User.findById(src.id))!!.email,
+        primaryEmail: async (src: UserSettings, args: {}, ctx: AppContext) => (await FDB.User.findById(ctx, src.id))!!.email,
         emailFrequency: (src: UserSettings) => src.emailFrequency,
         desktopNotifications: (src: UserSettings) => src.desktopNotifications,
         mobileNotifications: (src: UserSettings) => src.mobileNotifications,
@@ -37,13 +37,13 @@ export default {
     },
     Query: {
         settings: withUser(async (ctx, args, uid) => {
-            return Modules.Users.getUserSettings(uid);
+            return Modules.Users.getUserSettings(ctx, uid);
         }),
     },
     Mutation: {
         updateSettings: withUser<GQL.MutationUpdateSettingsArgs>(async (ctx, args, uid) => {
             return await inTx(async () => {
-                let settings = await Modules.Users.getUserSettings(uid);
+                let settings = await Modules.Users.getUserSettings(ctx, uid);
                 if (!args.settings) {
                     return settings;
                 }
@@ -70,7 +70,7 @@ export default {
         }),
         settingsUpdate: withUser<GQL.MutationSettingsUpdateArgs>(async (ctx, args, uid) => {
             return await inTx(async () => {
-                let settings = await Modules.Users.getUserSettings(uid);
+                let settings = await Modules.Users.getUserSettings(ctx, uid);
                 if (!args.settings) {
                     return settings;
                 }
@@ -106,9 +106,9 @@ export default {
                 return {
                     ...(async function* func() {
                         while (!ended) {
-                            let settings = await Modules.Users.getUserSettings(ctx.auth.uid!!);
+                            let settings = await Modules.Users.getUserSettings(ctx, ctx.auth.uid!!);
                             yield settings;
-                            await Modules.Users.waitForNextSettings(ctx.auth.uid!);
+                            await Modules.Users.waitForNextSettings(ctx, ctx.auth.uid!);
                         }
                     })(),
                     return: async () => {
@@ -127,9 +127,9 @@ export default {
                 return {
                     ...(async function* func() {
                         while (!ended) {
-                            let settings = await Modules.Users.getUserSettings(ctx.auth.uid!!);
+                            let settings = await Modules.Users.getUserSettings(ctx, ctx.auth.uid!!);
                             yield settings;
-                            await Modules.Users.waitForNextSettings(ctx.auth.uid!);
+                            await Modules.Users.waitForNextSettings(ctx, ctx.auth.uid!);
                         }
                     })(),
                     return: async () => {

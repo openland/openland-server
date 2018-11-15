@@ -1,5 +1,6 @@
 import { AllEntities } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
+import { Context } from 'openland-utils/Context';
 
 export class DraftsRepository {
     readonly entities: AllEntities;
@@ -8,8 +9,8 @@ export class DraftsRepository {
         this.entities = entities;
     }
 
-    findDraft = async (uid: number, conversationId: number) => {
-        let existing = await this.entities.MessageDraft.findById(uid, conversationId);
+    findDraft = async (ctx: Context, uid: number, conversationId: number) => {
+        let existing = await this.entities.MessageDraft.findById(ctx, uid, conversationId);
         if (existing && existing.contents !== '') {
             return existing.contents;
         } else {
@@ -17,20 +18,20 @@ export class DraftsRepository {
         }
     }
 
-    saveDraft = async (uid: number, conversationId: number, message: string) => {
+    saveDraft = async (ctx: Context, uid: number, conversationId: number, message: string) => {
         await inTx(async () => {
-            let existing = await this.entities.MessageDraft.findById(uid, conversationId);
+            let existing = await this.entities.MessageDraft.findById(ctx, uid, conversationId);
             if (existing) {
                 existing.contents = message;
             } else {
-                await this.entities.MessageDraft.create(uid, conversationId, { contents: message });
+                await this.entities.MessageDraft.create(ctx, uid, conversationId, { contents: message });
             }
         });
     }
 
-    clearDraft = async (uid: number, conversationId: number) => {
+    clearDraft = async (ctx: Context, uid: number, conversationId: number) => {
         await inTx(async () => {
-            let existing = await this.entities.MessageDraft.findById(uid, conversationId);
+            let existing = await this.entities.MessageDraft.findById(ctx, uid, conversationId);
             if (existing) {
                 existing.contents = '';
             }

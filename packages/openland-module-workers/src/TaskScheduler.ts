@@ -5,15 +5,17 @@ import { inTx } from 'foundation-orm/inTx';
 import { exponentialBackoffDelay } from 'openland-utils/exponentialBackoffDelay';
 import { withLogContext } from 'openland-log/withLogContext';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
+import { createEmptyContext } from 'openland-utils/Context';
 
 export class ModernScheduller {
     start = () => {
         if (serverRoleEnabled('workers')) {
             forever(async () => {
                 await withLogContext('modern-scheduler', async () => {
-
+                    let ctx = createEmptyContext();
+                    
                     // Prerequisites
-                    if (!(await LockRepository.tryLock('modern_work_scheduler', 1))) {
+                    if (!(await LockRepository.tryLock(ctx, 'modern_work_scheduler', 1))) {
                         await delay(15000);
                         return;
                     }
@@ -24,7 +26,7 @@ export class ModernScheduller {
                     // 
                     await inTx(async () => {
                         let now = Date.now();
-                        let failingTasks = await FDB.Task.rangeFromExecuting(100);
+                        let failingTasks = await FDB.Task.rangeFromExecuting(ctx, 100);
                         for (let f of failingTasks) {
                             if ((f.taskLockTimeout === null || f.taskLockTimeout <= now)) {
                                 if (f.taskFailureCount !== null && f.taskFailureCount >= 5) {
@@ -47,7 +49,7 @@ export class ModernScheduller {
                     ///
                     await inTx(async () => {
                         let now = Date.now();
-                        let failingTasks = await FDB.Task.rangeFromFailing(100);
+                        let failingTasks = await FDB.Task.rangeFromFailing(ctx, 100);
                         for (let f of failingTasks) {
                             if (f.taskFailureCount !== null && f.taskFailureCount >= 5) {
                                 f.taskStatus = 'failed';

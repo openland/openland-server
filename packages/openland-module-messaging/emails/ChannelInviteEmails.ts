@@ -1,11 +1,12 @@
 import { Modules } from 'openland-modules/Modules';
 import { ChannelInvitation } from 'openland-module-db/schema';
 import { FDB } from 'openland-module-db/FDB';
+import { Context } from 'openland-utils/Context';
 const TEMPLATE_INVITE = '024815a8-5602-4412-83f4-4be505c2026a';
 
 export const ChannelInviteEmails = {
-    async sendChannelInviteEmail(invite: ChannelInvitation) {
-        let channel = await FDB.RoomProfile.findById(invite.channelId);
+    async sendChannelInviteEmail(ctx: Context, invite: ChannelInvitation) {
+        let channel = await FDB.RoomProfile.findById(ctx, invite.channelId);
         if (!channel) {
             throw Error('Unable to find channel');
         }
@@ -17,7 +18,7 @@ export const ChannelInviteEmails = {
             'userLastName': invite.lastName || ''
         };
 
-        let profile = await Modules.Users.profileById(invite.creatorId);
+        let profile = await Modules.Users.profileById(ctx, invite.creatorId);
 
         if (!profile) {
             throw Error('Internal inconsistency');
@@ -25,7 +26,7 @@ export const ChannelInviteEmails = {
 
         let domain = process.env.APP_ENVIRONMENT === 'production' ? 'https://app.openland.com/joinChannel/' : 'http://localhost:3000/joinChannel/';
 
-        await Modules.Email.enqueueEmail({
+        await Modules.Email.enqueueEmail(ctx, {
             subject: `Join ${channel.title} at Openland`,
             templateId: TEMPLATE_INVITE,
             to: invite.email,

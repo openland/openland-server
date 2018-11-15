@@ -7,6 +7,7 @@ import { FNamespace } from 'foundation-orm/FNamespace';
 import { FEntityFactory } from 'foundation-orm/FEntityFactory';
 import { FConnection } from 'foundation-orm/FConnection';
 import { validators } from 'foundation-orm/utils/validators';
+import { Context } from 'openland-utils/Context';
 
 export interface SimpleEntityShape {
     data: string;
@@ -59,17 +60,17 @@ export class SimpleEntityFactory extends FEntityFactory<SimpleEntity> {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
-    async findById(id: number) {
-        return await this._findById([id]);
+    async findById(ctx: Context, id: number) {
+        return await this._findById(ctx, [id]);
     }
-    async create(id: number, shape: SimpleEntityShape) {
-        return await this._create([id], { id, ...shape });
+    async create(ctx: Context, id: number, shape: SimpleEntityShape) {
+        return await this._create(ctx, [id], { id, ...shape });
     }
-    watch(id: number, cb: () => void) {
-        return this._watch([id], cb);
+    watch(ctx: Context, id: number, cb: () => void) {
+        return this._watch(ctx, [id], cb);
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new SimpleEntity(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'SimpleEntity');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new SimpleEntity(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'SimpleEntity');
     }
 }
 export interface VersionedEntityShape {
@@ -123,17 +124,17 @@ export class VersionedEntityFactory extends FEntityFactory<VersionedEntity> {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
-    async findById(id: number) {
-        return await this._findById([id]);
+    async findById(ctx: Context, id: number) {
+        return await this._findById(ctx, [id]);
     }
-    async create(id: number, shape: VersionedEntityShape) {
-        return await this._create([id], { id, ...shape });
+    async create(ctx: Context, id: number, shape: VersionedEntityShape) {
+        return await this._create(ctx, [id], { id, ...shape });
     }
-    watch(id: number, cb: () => void) {
-        return this._watch([id], cb);
+    watch(ctx: Context, id: number, cb: () => void) {
+        return this._watch(ctx, [id], cb);
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new VersionedEntity(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'VersionedEntity');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new VersionedEntity(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'VersionedEntity');
     }
 }
 export interface TimestampedEntityShape {
@@ -187,17 +188,17 @@ export class TimestampedEntityFactory extends FEntityFactory<TimestampedEntity> 
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
-    async findById(id: number) {
-        return await this._findById([id]);
+    async findById(ctx: Context, id: number) {
+        return await this._findById(ctx, [id]);
     }
-    async create(id: number, shape: TimestampedEntityShape) {
-        return await this._create([id], { id, ...shape });
+    async create(ctx: Context, id: number, shape: TimestampedEntityShape) {
+        return await this._create(ctx, [id], { id, ...shape });
     }
-    watch(id: number, cb: () => void) {
-        return this._watch([id], cb);
+    watch(ctx: Context, id: number, cb: () => void) {
+        return this._watch(ctx, [id], cb);
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new TimestampedEntity(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'TimestampedEntity');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new TimestampedEntity(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'TimestampedEntity');
     }
 }
 export interface IndexedEntityShape {
@@ -278,38 +279,38 @@ export class IndexedEntityFactory extends FEntityFactory<IndexedEntity> {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
-    async findById(id: number) {
-        return await this._findById([id]);
+    async findById(ctx: Context, id: number) {
+        return await this._findById(ctx, [id]);
     }
-    async create(id: number, shape: IndexedEntityShape) {
-        return await this._create([id], { id, ...shape });
+    async create(ctx: Context, id: number, shape: IndexedEntityShape) {
+        return await this._create(ctx, [id], { id, ...shape });
     }
-    watch(id: number, cb: () => void) {
-        return this._watch([id], cb);
+    watch(ctx: Context, id: number, cb: () => void) {
+        return this._watch(ctx, [id], cb);
     }
-    async findFromDefault(data1: string, data2: string, id: number) {
-        return await this._findFromIndex(['__indexes', 'default', data1, data2, id]);
+    async findFromDefault(ctx: Context, data1: string, data2: string, id: number) {
+        return await this._findFromIndex(ctx, ['__indexes', 'default', data1, data2, id]);
     }
-    async allFromDefaultAfter(data1: string, data2: string, after: number) {
-        return await this._findRangeAllAfter(['__indexes', 'default', data1, data2], after);
+    async allFromDefaultAfter(ctx: Context, data1: string, data2: string, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'default', data1, data2], after);
     }
-    async rangeFromDefaultAfter(data1: string, data2: string, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(['__indexes', 'default', data1, data2], after, limit, reversed);
+    async rangeFromDefaultAfter(ctx: Context, data1: string, data2: string, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'default', data1, data2], after, limit, reversed);
     }
-    async rangeFromDefault(data1: string, data2: string, limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'default', data1, data2], limit, reversed);
+    async rangeFromDefault(ctx: Context, data1: string, data2: string, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'default', data1, data2], limit, reversed);
     }
-    async rangeFromDefaultWithCursor(data1: string, data2: string, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'default', data1, data2], limit, after, reversed);
+    async rangeFromDefaultWithCursor(ctx: Context, data1: string, data2: string, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'default', data1, data2], limit, after, reversed);
     }
-    async allFromDefault(data1: string, data2: string) {
-        return await this._findAll(['__indexes', 'default', data1, data2]);
+    async allFromDefault(ctx: Context, data1: string, data2: string) {
+        return await this._findAll(ctx, ['__indexes', 'default', data1, data2]);
     }
-    createDefaultStream(data1: string, data2: string, limit: number, after?: string) {
-        return this._createStream(['entity', 'indexedEntity', '__indexes', 'default', data1, data2], limit, after); 
+    createDefaultStream(ctx: Context, data1: string, data2: string, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'indexedEntity', '__indexes', 'default', data1, data2], limit, after); 
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new IndexedEntity(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'IndexedEntity');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new IndexedEntity(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'IndexedEntity');
     }
 }
 export interface IndexedRangeEntityShape {
@@ -390,35 +391,35 @@ export class IndexedRangeEntityFactory extends FEntityFactory<IndexedRangeEntity
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
-    async findById(id: number) {
-        return await this._findById([id]);
+    async findById(ctx: Context, id: number) {
+        return await this._findById(ctx, [id]);
     }
-    async create(id: number, shape: IndexedRangeEntityShape) {
-        return await this._create([id], { id, ...shape });
+    async create(ctx: Context, id: number, shape: IndexedRangeEntityShape) {
+        return await this._create(ctx, [id], { id, ...shape });
     }
-    watch(id: number, cb: () => void) {
-        return this._watch([id], cb);
+    watch(ctx: Context, id: number, cb: () => void) {
+        return this._watch(ctx, [id], cb);
     }
-    async allFromDefaultAfter(data1: string, after: string) {
-        return await this._findRangeAllAfter(['__indexes', 'default', data1], after);
+    async allFromDefaultAfter(ctx: Context, data1: string, after: string) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'default', data1], after);
     }
-    async rangeFromDefaultAfter(data1: string, after: string, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(['__indexes', 'default', data1], after, limit, reversed);
+    async rangeFromDefaultAfter(ctx: Context, data1: string, after: string, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'default', data1], after, limit, reversed);
     }
-    async rangeFromDefault(data1: string, limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'default', data1], limit, reversed);
+    async rangeFromDefault(ctx: Context, data1: string, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'default', data1], limit, reversed);
     }
-    async rangeFromDefaultWithCursor(data1: string, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'default', data1], limit, after, reversed);
+    async rangeFromDefaultWithCursor(ctx: Context, data1: string, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'default', data1], limit, after, reversed);
     }
-    async allFromDefault(data1: string) {
-        return await this._findAll(['__indexes', 'default', data1]);
+    async allFromDefault(ctx: Context, data1: string) {
+        return await this._findAll(ctx, ['__indexes', 'default', data1]);
     }
-    createDefaultStream(data1: string, limit: number, after?: string) {
-        return this._createStream(['entity', 'indexedRangeEntity', '__indexes', 'default', data1], limit, after); 
+    createDefaultStream(ctx: Context, data1: string, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'indexedRangeEntity', '__indexes', 'default', data1], limit, after); 
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new IndexedRangeEntity(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'IndexedRangeEntity');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new IndexedRangeEntity(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'IndexedRangeEntity');
     }
 }
 export interface IndexedPartialEntityShape {
@@ -499,38 +500,38 @@ export class IndexedPartialEntityFactory extends FEntityFactory<IndexedPartialEn
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
-    async findById(id: number) {
-        return await this._findById([id]);
+    async findById(ctx: Context, id: number) {
+        return await this._findById(ctx, [id]);
     }
-    async create(id: number, shape: IndexedPartialEntityShape) {
-        return await this._create([id], { id, ...shape });
+    async create(ctx: Context, id: number, shape: IndexedPartialEntityShape) {
+        return await this._create(ctx, [id], { id, ...shape });
     }
-    watch(id: number, cb: () => void) {
-        return this._watch([id], cb);
+    watch(ctx: Context, id: number, cb: () => void) {
+        return this._watch(ctx, [id], cb);
     }
-    async findFromDefault(data1: string, data2: string, id: number) {
-        return await this._findFromIndex(['__indexes', 'default', data1, data2, id]);
+    async findFromDefault(ctx: Context, data1: string, data2: string, id: number) {
+        return await this._findFromIndex(ctx, ['__indexes', 'default', data1, data2, id]);
     }
-    async allFromDefaultAfter(data1: string, data2: string, after: number) {
-        return await this._findRangeAllAfter(['__indexes', 'default', data1, data2], after);
+    async allFromDefaultAfter(ctx: Context, data1: string, data2: string, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'default', data1, data2], after);
     }
-    async rangeFromDefaultAfter(data1: string, data2: string, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(['__indexes', 'default', data1, data2], after, limit, reversed);
+    async rangeFromDefaultAfter(ctx: Context, data1: string, data2: string, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'default', data1, data2], after, limit, reversed);
     }
-    async rangeFromDefault(data1: string, data2: string, limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'default', data1, data2], limit, reversed);
+    async rangeFromDefault(ctx: Context, data1: string, data2: string, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'default', data1, data2], limit, reversed);
     }
-    async rangeFromDefaultWithCursor(data1: string, data2: string, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'default', data1, data2], limit, after, reversed);
+    async rangeFromDefaultWithCursor(ctx: Context, data1: string, data2: string, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'default', data1, data2], limit, after, reversed);
     }
-    async allFromDefault(data1: string, data2: string) {
-        return await this._findAll(['__indexes', 'default', data1, data2]);
+    async allFromDefault(ctx: Context, data1: string, data2: string) {
+        return await this._findAll(ctx, ['__indexes', 'default', data1, data2]);
     }
-    createDefaultStream(data1: string, data2: string, limit: number, after?: string) {
-        return this._createStream(['entity', 'indexedPartialEntity', '__indexes', 'default', data1, data2], limit, after); 
+    createDefaultStream(ctx: Context, data1: string, data2: string, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'indexedPartialEntity', '__indexes', 'default', data1, data2], limit, after); 
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new IndexedPartialEntity(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'IndexedPartialEntity');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new IndexedPartialEntity(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'IndexedPartialEntity');
     }
 }
 export interface NullableEntityShape {
@@ -585,17 +586,17 @@ export class NullableEntityFactory extends FEntityFactory<NullableEntity> {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
-    async findById(id: number) {
-        return await this._findById([id]);
+    async findById(ctx: Context, id: number) {
+        return await this._findById(ctx, [id]);
     }
-    async create(id: number, shape: NullableEntityShape) {
-        return await this._create([id], { id, ...shape });
+    async create(ctx: Context, id: number, shape: NullableEntityShape) {
+        return await this._create(ctx, [id], { id, ...shape });
     }
-    watch(id: number, cb: () => void) {
-        return this._watch([id], cb);
+    watch(ctx: Context, id: number, cb: () => void) {
+        return this._watch(ctx, [id], cb);
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new NullableEntity(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'NullableEntity');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new NullableEntity(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'NullableEntity');
     }
 }
 

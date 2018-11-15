@@ -8,6 +8,7 @@ import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { NativeValue } from 'foundationdb/dist/lib/native';
 import { NoOpBus } from './NoOpBus';
 import { FWatch } from '../FWatch';
+import { createEmptyContext } from 'openland-utils/Context';
 
 describe('FWatch', () => {
 
@@ -23,17 +24,18 @@ describe('FWatch', () => {
     });
 
     it('should call callback on entity change', async () => {
+        let ctx = createEmptyContext();
         await withLogDisabled(async () => {
             await inTx(async () => {
-                await testEntities.SimpleEntity.create(100, { data: 'test' });
+                await testEntities.SimpleEntity.create(ctx, 100, { data: 'test' });
             });
 
             let func = jest.fn();
 
-            testEntities.SimpleEntity.watch(100, () => func());
+            testEntities.SimpleEntity.watch(ctx, 100, () => func());
 
             await inTx(async () => {
-                let v = await testEntities.SimpleEntity.findById(100);
+                let v = await testEntities.SimpleEntity.findById(ctx, 100);
                 v!.data = 'test2';
             });
 
@@ -44,18 +46,19 @@ describe('FWatch', () => {
     });
 
     it('should call callback on entity change multiply times', async () => {
+        let ctx = createEmptyContext();
         await withLogDisabled(async () => {
             await inTx(async () => {
-                await testEntities.SimpleEntity.create(101, { data: 'test' });
+                await testEntities.SimpleEntity.create(ctx, 101, { data: 'test' });
             });
 
             let func = jest.fn();
 
-            testEntities.SimpleEntity.watch(101, () => func());
+            testEntities.SimpleEntity.watch(ctx, 101, () => func());
 
             for (let i = 0; i < 4; i++) {
                 await inTx(async () => {
-                    let v = await testEntities.SimpleEntity.findById(101);
+                    let v = await testEntities.SimpleEntity.findById(ctx, 101);
                     v!.data = i.toString(16);
                 });
                 await delay(200);
@@ -68,18 +71,19 @@ describe('FWatch', () => {
     });
 
     it('should not call callback if subscription was canceled', async () => {
+        let ctx = createEmptyContext();
         await withLogDisabled(async () => {
             await inTx(async () => {
-                await testEntities.SimpleEntity.create(103, { data: 'test' });
+                await testEntities.SimpleEntity.create(ctx, 103, { data: 'test' });
             });
 
             let func = jest.fn();
 
-            let sub = testEntities.SimpleEntity.watch(103, () => func());
+            let sub = testEntities.SimpleEntity.watch(ctx, 103, () => func());
 
             for (let i = 0; i < 4; i++) {
                 await inTx(async () => {
-                    let v = await testEntities.SimpleEntity.findById(103);
+                    let v = await testEntities.SimpleEntity.findById(ctx, 103);
                     v!.data = i.toString(16);
                 });
                 if (i === 1) {

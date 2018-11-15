@@ -6,6 +6,7 @@ import { withTracing } from 'openland-log/withTracing';
 import { createTracer } from 'openland-log/createTracer';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { Texts } from '../../openland-module-messaging/texts';
+import { createEmptyContext } from 'openland-utils/Context';
 
 export function doSimpleHash(key: string): number {
     var h = 0, l = key.length, i = 0;
@@ -38,15 +39,16 @@ export function createPushWorker(repo: PushRepository) {
     if (serverRoleEnabled('workers')) {
         for (let i = 0; i < 10; i++) {
             queue.addWorker(async (args) => {
+                let ctx = createEmptyContext();
                 return await withTracing(tracer, 'SORT #' + args.uid, async () => {
                     if (args.desktop) {
                         //
                         // Web Push
                         //
 
-                        let webTokens = await repo.getUserWebPushTokens(args.uid);
+                        let webTokens = await repo.getUserWebPushTokens(ctx, args.uid);
                         for (let wp of webTokens) {
-                            await Modules.Push.webWorker.pushWork({
+                            await Modules.Push.webWorker.pushWork(ctx, {
                                 uid: args.uid,
                                 tokenId: wp.id,
                                 title: args.title,
@@ -60,10 +62,10 @@ export function createPushWorker(repo: PushRepository) {
                         //
                         // iOS
                         //
-                        let iosTokens = await repo.getUserApplePushTokens(args.uid);
+                        let iosTokens = await repo.getUserApplePushTokens(ctx, args.uid);
                         for (let t of iosTokens) {
                             if (args.silent) {
-                                await Modules.Push.appleWorker.pushWork({
+                                await Modules.Push.appleWorker.pushWork(ctx, {
                                     uid: args.uid,
                                     tokenId: t.id,
                                     contentAvailable: true,
@@ -74,7 +76,7 @@ export function createPushWorker(repo: PushRepository) {
                                     }
                                 });
                             } else {
-                                await Modules.Push.appleWorker.pushWork({
+                                await Modules.Push.appleWorker.pushWork(ctx, {
                                     uid: args.uid,
                                     tokenId: t.id,
                                     sound: args.mobileAlert ? 'default' : undefined,
@@ -99,9 +101,9 @@ export function createPushWorker(repo: PushRepository) {
                         // Android
                         //
 
-                        let androidTokens = await repo.getUserAndroidPushTokens(args.uid);
+                        let androidTokens = await repo.getUserAndroidPushTokens(ctx, args.uid);
                         for (let token of androidTokens) {
-                            await Modules.Push.androidWorker.pushWork({
+                            await Modules.Push.androidWorker.pushWork(ctx, {
                                 uid: args.uid,
                                 tokenId: token.id,
                                 collapseKey: IDs.Conversation.serialize(args.conversationId),

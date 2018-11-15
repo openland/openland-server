@@ -7,6 +7,7 @@ import { NotFoundError } from 'openland-errors/NotFoundError';
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { RoomProfileInput } from 'openland-module-messaging/RoomProfileInput';
+import { Context } from 'openland-utils/Context';
 
 function doSimpleHash(key: string): number {
     var h = 0, l = key.length, i = 0;
@@ -22,24 +23,24 @@ function doSimpleHash(key: string): number {
 export class RoomRepository {
     @lazyInject('FDB') private readonly entities!: AllEntities;
 
-    async createRoom(kind: 'public' | 'group', oid: number, uid: number, members: number[], profile: RoomProfileInput) {
+    async createRoom(ctx: Context, kind: 'public' | 'group', oid: number, uid: number, members: number[], profile: RoomProfileInput) {
         return await inTx(async () => {
-            let id = await this.fetchNextConversationId();
-            let conv = await this.entities.Conversation.create(id, { kind: 'room' });
-            await this.entities.ConversationRoom.create(id, {
+            let id = await this.fetchNextConversationId(ctx);
+            let conv = await this.entities.Conversation.create(ctx, id, { kind: 'room' });
+            await this.entities.ConversationRoom.create(ctx, id, {
                 kind,
                 ownerId: uid,
                 oid: kind === 'public' ? oid : undefined,
                 featured: false,
                 listed: kind === 'public'
             });
-            await this.entities.RoomProfile.create(id, {
+            await this.entities.RoomProfile.create(ctx, id, {
                 title: profile.title,
                 image: profile.image,
                 description: profile.description,
                 socialImage: profile.socialImage
             });
-            await this.entities.RoomParticipant.create(id, uid, {
+            await this.entities.RoomParticipant.create(ctx, id, uid, {
                 role: 'owner',
                 invitedBy: uid,
                 status: 'joined'
@@ -48,7 +49,7 @@ export class RoomRepository {
                 if (m === uid) {
                     continue; // Just in case of bad input
                 }
-                await this.entities.RoomParticipant.create(id, m, {
+                await this.entities.RoomParticipant.create(ctx, id, m, {
                     role: 'member',
                     invitedBy: uid,
                     status: 'joined'
@@ -59,14 +60,14 @@ export class RoomRepository {
         });
     }
 
-    async addToRoom(cid: number, uid: number, by: number) {
+    async addToRoom(ctx: Context, cid: number, uid: number, by: number) {
         return await inTx(async () => {
 
             // Check if room exists
-            await this.checkRoomExists(cid);
+            await this.checkRoomExists(ctx, cid);
 
             // Create or update room participant
-            let p = await this.entities.RoomParticipant.findById(cid, uid);
+            let p = await this.entities.RoomParticipant.findById(ctx, cid, uid);
             if (p) {
                 if (p.status === 'joined') {
                     return false;
@@ -76,7 +77,7 @@ export class RoomRepository {
                     return true;
                 }
             } else {
-                await this.entities.RoomParticipant.create(cid, uid, {
+                await this.entities.RoomParticipant.create(ctx, cid, uid, {
                     status: 'joined',
                     invitedBy: by,
                     role: 'member'
@@ -86,13 +87,13 @@ export class RoomRepository {
         });
     }
 
-    async kickFromRoom(cid: number, uid: number) {
+    async kickFromRoom(ctx: Context, cid: number, uid: number) {
         return await inTx(async () => {
             // Check if room exists
-            await this.checkRoomExists(cid);
+            await this.checkRoomExists(ctx, cid);
 
             // Kick user from Room
-            let participant = await this.entities.RoomParticipant.findById(cid, uid);
+            let participant = await this.entities.RoomParticipant.findById(ctx, cid, uid);
             if (!participant || participant.status !== 'joined') {
                 return false;
             }
@@ -101,13 +102,13 @@ export class RoomRepository {
         });
     }
 
-    async leaveRoom(cid: number, uid: number) {
+    async leaveRoom(ctx: Context, cid: number, uid: number) {
         return await inTx(async () => {
 
             // Check if room exists
-            await this.checkRoomExists(cid);
+            await this.checkRoomExists(ctx, cid);
 
-            let p = await this.entities.RoomParticipant.findById(cid, uid);
+            let p = await this.entities.RoomParticipant.findById(ctx, cid, uid);
             if (!p || p.status !== 'joined') {
                 return false;
             }
@@ -116,12 +117,12 @@ export class RoomRepository {
         });
     }
 
-    async joinRoom(cid: number, uid: number) {
+    async joinRoom(ctx: Context, cid: number, uid: number) {
         return await inTx(async () => {
             // Check if room exists
-            await this.checkRoomExists(cid);
+            await this.checkRoomExists(ctx, cid);
 
-            let p = await this.entities.RoomParticipant.findById(cid, uid);
+            let p = await this.entities.RoomParticipant.findById(ctx, cid, uid);
             if (p) {
                 if (p.status === 'joined') {
                     return false;
@@ -131,7 +132,7 @@ export class RoomRepository {
                     return true;
                 }
             } else {
-                await this.entities.RoomParticipant.create(cid, uid, {
+                await this.entities.RoomParticipant.create(ctx, cid, uid, {
                     status: 'joined',
                     role: 'member',
                     invitedBy: uid
@@ -141,11 +142,11 @@ export class RoomRepository {
         });
     }
 
-    async updateRoomProfile(cid: number, profile: Partial<RoomProfileInput>) {
+    async updateRoomProfile(ctx: Context, cid: number, profile: Partial<RoomProfileInput>) {
         return await inTx(async () => {
-            await this.checkRoomExists(cid);
+            await this.checkRoomExists(ctx, cid);
 
-            let conv = await this.entities.RoomProfile.findById(cid);
+            let conv = await this.entities.RoomProfile.findById(ctx, cid);
             if (!conv) {
                 throw new Error('Room not found');
             }
@@ -204,18 +205,18 @@ export class RoomRepository {
         });
     }
 
-    async updateMemberRole(cid: number, uid: number, updatedUid: number, role: 'admin' | 'owner' | 'member') {
+    async updateMemberRole(ctx: Context, cid: number, uid: number, updatedUid: number, role: 'admin' | 'owner' | 'member') {
         return await inTx(async () => {
-            let conv = await this.entities.RoomProfile.findById(cid);
+            let conv = await this.entities.RoomProfile.findById(ctx, cid);
             if (!conv) {
                 throw new Error('Room not found');
             }
-            let p2 = await this.entities.RoomParticipant.findById(cid, updatedUid);
+            let p2 = await this.entities.RoomParticipant.findById(ctx, cid, updatedUid);
             if (!p2 || p2.status !== 'joined') {
                 throw new Error('User is not member of a room');
             }
             p2.role = role;
-            return (await this.entities.Conversation.findById(conv.id))!;
+            return (await this.entities.Conversation.findById(ctx, conv.id))!;
         });
     }
 
@@ -223,9 +224,9 @@ export class RoomRepository {
     // Editorial
     //
 
-    async setFeatured(cid: number, featued: boolean) {
+    async setFeatured(ctx: Context, cid: number, featued: boolean) {
         await inTx(async () => {
-            let room = await this.entities.ConversationRoom.findById(cid);
+            let room = await this.entities.ConversationRoom.findById(ctx, cid);
             if (!room) {
                 throw new AccessDeniedError();
             }
@@ -233,9 +234,9 @@ export class RoomRepository {
         });
     }
 
-    async setListed(cid: number, listed: boolean) {
+    async setListed(ctx: Context, cid: number, listed: boolean) {
         await inTx(async () => {
-            let room = await this.entities.ConversationRoom.findById(cid);
+            let room = await this.entities.ConversationRoom.findById(ctx, cid);
             if (!room) {
                 throw new AccessDeniedError();
             }
@@ -247,15 +248,15 @@ export class RoomRepository {
     // Queries
     //
 
-    async checkRoomExists(cid: number) {
-        let conv = await this.entities.ConversationRoom.findById(cid);
+    async checkRoomExists(ctx: Context, cid: number) {
+        let conv = await this.entities.ConversationRoom.findById(ctx, cid);
         if (!conv) {
             throw new Error('Room not found');
         }
     }
 
-    async isActiveMember(uid: number, cid: number) {
-        let p = await this.entities.RoomParticipant.findById(cid, uid);
+    async isActiveMember(ctx: Context, uid: number, cid: number) {
+        let p = await this.entities.RoomParticipant.findById(ctx, cid, uid);
         if (!p) {
             return false;
         }
@@ -266,76 +267,76 @@ export class RoomRepository {
         }
     }
 
-    async findMembershipStatus(uid: number, cid: number) {
-        let p = await this.entities.RoomParticipant.findById(cid, uid);
+    async findMembershipStatus(ctx: Context, uid: number, cid: number) {
+        let p = await this.entities.RoomParticipant.findById(ctx, cid, uid);
         if (!p) {
             return null;
         }
         return p;
     }
 
-    async findActiveMembers(cid: number) {
-        return this.entities.RoomParticipant.allFromActive(cid);
+    async findActiveMembers(ctx: Context, cid: number) {
+        return this.entities.RoomParticipant.allFromActive(ctx, cid);
     }
 
-    async roomMembersCount(conversationId: number, status?: string): Promise<number> {
-        return (await this.entities.RoomParticipant.allFromActive(conversationId)).filter(m => status === undefined || m.status === status).length;
+    async roomMembersCount(ctx: Context, conversationId: number, status?: string): Promise<number> {
+        return (await this.entities.RoomParticipant.allFromActive(ctx, conversationId)).filter(m => status === undefined || m.status === status).length;
     }
 
-    async resolvePrivateChat(uid1: number, uid2: number) {
-        let conv2 = await this.entities.ConversationPrivate.findFromUsers(Math.min(uid1, uid2), Math.max(uid1, uid2));
+    async resolvePrivateChat(ctx: Context, uid1: number, uid2: number) {
+        let conv2 = await this.entities.ConversationPrivate.findFromUsers(ctx, Math.min(uid1, uid2), Math.max(uid1, uid2));
         if (conv2) {
-            return (await this.entities.Conversation.findById(conv2.id))!;
+            return (await this.entities.Conversation.findById(ctx, conv2.id))!;
         }
         return await inTx(async () => {
-            let conv = await this.entities.ConversationPrivate.findFromUsers(Math.min(uid1, uid2), Math.max(uid1, uid2));
+            let conv = await this.entities.ConversationPrivate.findFromUsers(ctx, Math.min(uid1, uid2), Math.max(uid1, uid2));
             if (!conv) {
-                let id = await this.fetchNextConversationId();
-                await (await this.entities.Conversation.create(id, { kind: 'private' })).flush();
-                conv = await this.entities.ConversationPrivate.create(id, { uid1: Math.min(uid1, uid2), uid2: Math.max(uid1, uid2) });
+                let id = await this.fetchNextConversationId(ctx);
+                await (await this.entities.Conversation.create(ctx, id, { kind: 'private' })).flush();
+                conv = await this.entities.ConversationPrivate.create(ctx, id, { uid1: Math.min(uid1, uid2), uid2: Math.max(uid1, uid2) });
                 await conv.flush();
             }
-            return (await this.entities.Conversation.findById(conv.id))!;
+            return (await this.entities.Conversation.findById(ctx, conv.id))!;
         });
     }
 
-    async resolveOrganizationChat(oid: number) {
+    async resolveOrganizationChat(ctx: Context, oid: number) {
         return await inTx(async () => {
-            let conv = await this.entities.ConversationOrganization.findFromOrganization(oid);
+            let conv = await this.entities.ConversationOrganization.findFromOrganization(ctx, oid);
             if (!conv) {
-                let id = await this.fetchNextConversationId();
-                await (await this.entities.Conversation.create(id, { kind: 'organization' })).flush();
-                conv = await this.entities.ConversationOrganization.create(id, { oid });
+                let id = await this.fetchNextConversationId(ctx);
+                await (await this.entities.Conversation.create(ctx, id, { kind: 'organization' })).flush();
+                conv = await this.entities.ConversationOrganization.create(ctx, id, { oid });
                 await conv.flush();
             }
-            return (await this.entities.Conversation.findById(conv.id))!;
+            return (await this.entities.Conversation.findById(ctx, conv.id))!;
         });
     }
 
-    async findConversationMembers(cid: number): Promise<number[]> {
-        let conv = (await this.entities.Conversation.findById(cid))!;
+    async findConversationMembers(ctx: Context, cid: number): Promise<number[]> {
+        let conv = (await this.entities.Conversation.findById(ctx, cid))!;
         if (conv.kind === 'private') {
-            let p = (await this.entities.ConversationPrivate.findById(cid))!;
+            let p = (await this.entities.ConversationPrivate.findById(ctx, cid))!;
             return [p.uid1, p.uid2];
         } else if (conv.kind === 'room') {
-            return (await this.entities.RoomParticipant.rangeFromActive(cid, 1000)).map((v) => v.uid);
+            return (await this.entities.RoomParticipant.rangeFromActive(ctx, cid, 1000)).map((v) => v.uid);
         } else if (conv.kind === 'organization') {
-            let org = (await this.entities.ConversationOrganization.findById(cid))!;
-            return (await this.entities.OrganizationMember.allFromOrganization('joined', org.oid)).map((v) => v.uid);
+            let org = (await this.entities.ConversationOrganization.findById(ctx, cid))!;
+            return (await this.entities.OrganizationMember.allFromOrganization(ctx, 'joined', org.oid)).map((v) => v.uid);
         } else {
             throw new Error('Internal error');
         }
     }
 
-    async resolveConversationTitle(conversationId: number, uid: number): Promise<string> {
-        let conv = await this.entities.Conversation.findById(conversationId);
+    async resolveConversationTitle(ctx: Context, conversationId: number, uid: number): Promise<string> {
+        let conv = await this.entities.Conversation.findById(ctx, conversationId);
 
         if (!conv) {
             throw new NotFoundError('Conversation not found');
         }
 
         if (conv.kind === 'private') {
-            let p = (await this.entities.ConversationPrivate.findById(conv.id))!;
+            let p = (await this.entities.ConversationPrivate.findById(ctx, conv.id))!;
             let _uid;
             if (p.uid1 === uid) {
                 _uid = p.uid2;
@@ -344,22 +345,22 @@ export class RoomRepository {
             } else {
                 throw Error('Inconsistent Private Conversation resolver');
             }
-            let profile = (await this.entities.UserProfile.findById(_uid))!;
+            let profile = (await this.entities.UserProfile.findById(ctx, _uid))!;
             return [profile.firstName, profile.lastName].filter((v) => !!v).join(' ');
         } else if (conv.kind === 'organization') {
-            let o = await this.entities.ConversationOrganization.findById(conv.id);
-            return (await this.entities.OrganizationProfile.findById(o!.oid))!.name;
+            let o = await this.entities.ConversationOrganization.findById(ctx, conv.id);
+            return (await this.entities.OrganizationProfile.findById(ctx, o!.oid))!.name;
         } else {
-            let r = (await this.entities.ConversationRoom.findById(conv.id))!;
-            let p = (await this.entities.RoomProfile.findById(conv.id))!;
+            let r = (await this.entities.ConversationRoom.findById(ctx, conv.id))!;
+            let p = (await this.entities.RoomProfile.findById(ctx, conv.id))!;
             if (r.kind === 'group') {
                 if (p.title !== '') {
                     return p.title;
                 }
-                let res = (await this.entities.RoomParticipant.allFromActive(conv.id)).filter((v) => v.uid !== uid);
+                let res = (await this.entities.RoomParticipant.allFromActive(ctx, conv.id)).filter((v) => v.uid !== uid);
                 let name: string[] = [];
                 for (let r2 of res) {
-                    let p2 = (await this.entities.UserProfile.findById(r2.uid))!;
+                    let p2 = (await this.entities.UserProfile.findById(ctx, r2.uid))!;
                     name.push([p2.firstName, p2.lastName].filter((v) => !!v).join(' '));
                 }
                 return name.join(', ');
@@ -368,15 +369,15 @@ export class RoomRepository {
         }
     }
 
-    async resolveConversationPhoto(conversationId: number, uid: number): Promise<string | null> {
-        let conv = await this.entities.Conversation.findById(conversationId);
+    async resolveConversationPhoto(ctx: Context, conversationId: number, uid: number): Promise<string | null> {
+        let conv = await this.entities.Conversation.findById(ctx, conversationId);
 
         if (!conv) {
             throw new NotFoundError('Conversation not found');
         }
 
         if (conv.kind === 'private') {
-            let p = (await this.entities.ConversationPrivate.findById(conv.id))!;
+            let p = (await this.entities.ConversationPrivate.findById(ctx, conv.id))!;
             let _uid;
             if (p.uid1 === uid) {
                 _uid = p.uid2;
@@ -385,7 +386,7 @@ export class RoomRepository {
             } else {
                 throw Error('Inconsistent Private Conversation resolver');
             }
-            let profile = (await this.entities.UserProfile.findById(_uid))!;
+            let profile = (await this.entities.UserProfile.findById(ctx, _uid))!;
             let res = buildBaseImageUrl(profile.picture);
             if (res) {
                 return res;
@@ -393,15 +394,15 @@ export class RoomRepository {
                 return 'ph://' + doSimpleHash(IDs.User.serialize(_uid)) % 6;
             }
         } else if (conv.kind === 'organization') {
-            let o = await this.entities.ConversationOrganization.findById(conv.id);
-            let res = buildBaseImageUrl((await this.entities.OrganizationProfile.findById(o!.oid))!.photo);
+            let o = await this.entities.ConversationOrganization.findById(ctx, conv.id);
+            let res = buildBaseImageUrl((await this.entities.OrganizationProfile.findById(ctx, o!.oid))!.photo);
             if (res) {
                 return res;
             } else {
                 return 'ph://' + doSimpleHash(IDs.Organization.serialize(o!.oid)) % 6;
             }
         } else {
-            let p = (await this.entities.RoomProfile.findById(conv.id))!;
+            let p = (await this.entities.RoomProfile.findById(ctx, conv.id))!;
             let res = buildBaseImageUrl(p.image);
             if (res) {
                 return res;
@@ -411,13 +412,13 @@ export class RoomRepository {
         }
     }
 
-    async checkAccess(uid: number, cid: number) {
-        let conv = await this.entities.Conversation.findById(cid);
+    async checkAccess(ctx: Context, uid: number, cid: number) {
+        let conv = await this.entities.Conversation.findById(ctx, cid);
         if (!conv) {
             throw new AccessDeniedError();
         }
         if (conv.kind === 'private') {
-            let p = await this.entities.ConversationPrivate.findById(cid);
+            let p = await this.entities.ConversationPrivate.findById(ctx, cid);
             if (!p) {
                 throw new AccessDeniedError();
             }
@@ -425,16 +426,16 @@ export class RoomRepository {
                 throw new AccessDeniedError();
             }
         } else if (conv.kind === 'room') {
-            let member = await this.entities.RoomParticipant.findById(cid, uid);
+            let member = await this.entities.RoomParticipant.findById(ctx, cid, uid);
             if (!member || member.status !== 'joined') {
                 throw new AccessDeniedError();
             }
         } else if (conv.kind === 'organization') {
-            let org = await this.entities.ConversationOrganization.findById(cid);
+            let org = await this.entities.ConversationOrganization.findById(ctx, cid);
             if (!org) {
                 throw new AccessDeniedError();
             }
-            let member = await this.entities.OrganizationMember.findById(org.oid, uid);
+            let member = await this.entities.OrganizationMember.findById(ctx, org.oid, uid);
             if (!member || member.status !== 'joined') {
                 throw new AccessDeniedError();
             }
@@ -447,11 +448,11 @@ export class RoomRepository {
     // Internals
     //
 
-    private async fetchNextConversationId() {
+    private async fetchNextConversationId(ctx: Context) {
         return await inTx(async () => {
-            let sequence = await this.entities.Sequence.findById('conversation-id');
+            let sequence = await this.entities.Sequence.findById(ctx, 'conversation-id');
             if (!sequence) {
-                sequence = (await this.entities.Sequence.create('conversation-id', { value: 0 }));
+                sequence = (await this.entities.Sequence.create(ctx, 'conversation-id', { value: 0 }));
                 await sequence.flush();
             }
             return ++sequence.value;

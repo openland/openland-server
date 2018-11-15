@@ -8,6 +8,7 @@ import { handleFail } from './util/handleFail';
 import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
 import { inTx } from '../../foundation-orm/inTx';
 import { PushConfig } from 'openland-module-push/PushConfig';
+import { createEmptyContext } from 'openland-utils/Context';
 
 const log = createLogger('web_push');
 const pushSent = createHyperlogger<{ uid: number, tokenId: string }>('push_web_sent');
@@ -19,7 +20,8 @@ export function createWebWorker(repo: PushRepository) {
         if (serverRoleEnabled('workers')) {
             for (let i = 0; i < 10; i++) {
                 queue.addWorker(async (task) => {
-                    let token = (await repo.getWebToken(task.tokenId))!;
+                    let ctx = createEmptyContext();
+                    let token = (await repo.getWebToken(ctx, task.tokenId))!;
                     if (!token.enabled) {
                         return { result: 'skipped' };
                     }
@@ -31,14 +33,14 @@ export function createWebWorker(repo: PushRepository) {
                             picture: task.picture,
                             ...task.extras
                         }));
-                        await pushSent.event({ uid: token.uid, tokenId: token.id });
+                        await pushSent.event(ctx, { uid: token.uid, tokenId: token.id });
                         log.log('web_push', token.uid, JSON.stringify({ statusCode: res.statusCode, body: res.body }));
                     } catch (e) {
                         if (e.statusCode === 410) {
                             await inTx(async () => {
-                                let t = (await repo.getWebToken(task.tokenId))!;
+                                let t = (await repo.getWebToken(ctx, task.tokenId))!;
                                 await handleFail(t);
-                                await pushFail.event({ uid: t.uid, tokenId: t.id, failures: t.failures!, statusCode: e.statusCode, disabled: !t.enabled });
+                                await pushFail.event(ctx, { uid: t.uid, tokenId: t.id, failures: t.failures!, statusCode: e.statusCode, disabled: !t.enabled });
 
                             });
                         }

@@ -1,6 +1,7 @@
 import { Modules } from 'openland-modules/Modules';
 import { FDB } from 'openland-module-db/FDB';
 import { OrganizationMember } from 'openland-module-db/schema';
+import { Context } from 'openland-utils/Context';
 
 async function resolveRoleInOrganization(members: OrganizationMember[]): Promise<string[]> {
     let roles: string[] = [];
@@ -16,15 +17,15 @@ async function resolveRoleInOrganization(members: OrganizationMember[]): Promise
     return roles;
 }
 
-export async function resolveOrganizationJoinedMembers(orgId: number) {
-    let members = await Modules.Orgs.findOrganizationMembership(orgId);
+export async function resolveOrganizationJoinedMembers(ctx: Context, orgId: number) {
+    let members = await Modules.Orgs.findOrganizationMembership(ctx, orgId);
 
     let roles = await resolveRoleInOrganization(members);
 
     let result: any[] = [];
 
     for (let i = 0; i < members.length; i++) {
-        let member = (await FDB.User.findById(members[i].uid))!;
+        let member = (await FDB.User.findById(ctx, members[i].uid))!;
         result.push({
             _type: 'OrganizationJoinedMember',
             user: member,

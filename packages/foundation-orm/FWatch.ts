@@ -3,6 +3,7 @@ import { FKeyEncoding } from './utils/FKeyEncoding';
 import { delay } from '../openland-utils/timer';
 import { fastDeepEquals } from '../openland-utils/fastDeepEquals';
 import { createLogger } from 'openland-log/createLogger';
+import { Context } from 'openland-utils/Context';
 
 type Key = (string | number)[];
 type ChangeCallback = () => void;
@@ -29,7 +30,7 @@ export class FWatch {
 
     }
 
-    public watch(key: Key, cb: ChangeCallback, options?: WatchOptions): { cancel: () => void } {
+    public watch(ctx: Context, key: Key, cb: ChangeCallback, options?: WatchOptions): { cancel: () => void } {
         let encodedKey = FKeyEncoding.encodeKey(key);
         let subscription: FWatchSubscription = {
             cb,

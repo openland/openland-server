@@ -9,6 +9,7 @@ import { lazyInject } from 'openland-modules/Modules.container';
 import { CountersMediator } from './CountersMediator';
 import { inTx } from 'foundation-orm/inTx';
 import { RoomMediator } from './RoomMediator';
+import { Context, createEmptyContext } from 'openland-utils/Context';
 
 const tracer = createTracer('message-delivery');
 
@@ -25,115 +26,115 @@ export class DeliveryMediator {
         if (serverRoleEnabled('delivery')) {
             this.queue.addWorker(async (item) => {
                 await withTracing(tracer, 'delivery', async () => {
-                    await this.deliverNewMessage(item.messageId);
+                    await this.deliverNewMessage(createEmptyContext(), item.messageId);
                 });
                 return { result: 'ok' };
             });
         }
     }
 
-    onNewMessage = async (message: Message) => {
-        await this.queue.pushWork({ messageId: message.id });
+    onNewMessage = async (ctx: Context, message: Message) => {
+        await this.queue.pushWork(ctx, { messageId: message.id });
     }
 
-    onUpdateMessage = async (message: Message) => {
-        await this.deliverUpdateMessage(message.id);
+    onUpdateMessage = async (ctx: Context, message: Message) => {
+        await this.deliverUpdateMessage(ctx, message.id);
     }
 
-    onDeleteMessage = async (message: Message) => {
-        await this.deliverDeleteMessage(message.id);
+    onDeleteMessage = async (ctx: Context, message: Message) => {
+        await this.deliverDeleteMessage(ctx, message.id);
     }
 
-    onRoomRead = async (uid: number, mid: number) => {
-        await this.deliverMessageReadToUser(uid, mid);
+    onRoomRead = async (ctx: Context, uid: number, mid: number) => {
+        await this.deliverMessageReadToUser(ctx, uid, mid);
     }
 
-    onDialogDelete = async (uid: number, cid: number) => {
-        await this.deliverDialogDeleteToUser(uid, cid);
+    onDialogDelete = async (ctx: Context, uid: number, cid: number) => {
+        await this.deliverDialogDeleteToUser(ctx, uid, cid);
     }
 
-    onUserProfileUpdated = async (uid: number) => {
+    onUserProfileUpdated = async (ctx: Context, uid: number) => {
         //
     }
 
-    onOrganizationProfileUpdated = async (oid: number) => {
+    onOrganizationProfileUpdated = async (ctx: Context, oid: number) => {
         // await inTx(async () => {
         //     let org = await this.room.resolveOrganizationChat(oid);
         //     // let title =
         // });
     }
 
-    private async deliverNewMessage(mid: number) {
+    private async deliverNewMessage(ctx: Context, mid: number) {
         await inTx(async () => {
-            let message = (await this.entities.Message.findById(mid))!;
-            let members = await this.room.findConversationMembers(message.cid);
+            let message = (await this.entities.Message.findById(ctx, mid))!;
+            let members = await this.room.findConversationMembers(ctx, message.cid);
 
             // Deliver messages
             if (members.length > 0) {
                 await Promise.all(members.map(async (m) => {
-                    await this.deliverMessageToUser(m, mid);
+                    await this.deliverMessageToUser(ctx, m, mid);
                 }));
             }
         });
     }
 
-    private async deliverUpdateMessage(mid: number) {
+    private async deliverUpdateMessage(ctx: Context, mid: number) {
         await inTx(async () => {
-            let message = (await this.entities.Message.findById(mid))!;
-            let members = await this.room.findConversationMembers(message.cid);
+            let message = (await this.entities.Message.findById(ctx, mid))!;
+            let members = await this.room.findConversationMembers(ctx, message.cid);
 
             // Deliver messages
             if (members.length > 0) {
                 await Promise.all(members.map(async (m) => {
-                    await this.deliverMessageUpdateToUser(m, mid);
+                    await this.deliverMessageUpdateToUser(ctx, m, mid);
                 }));
             }
         });
     }
 
-    private async deliverDeleteMessage(mid: number) {
+    private async deliverDeleteMessage(ctx: Context, mid: number) {
         await inTx(async () => {
-            let message = (await this.entities.Message.findById(mid))!;
-            let members = await this.room.findConversationMembers(message.cid);
+            let message = (await this.entities.Message.findById(ctx, mid))!;
+            let members = await this.room.findConversationMembers(ctx, message.cid);
 
             // Deliver messages
             if (members.length > 0) {
                 await Promise.all(members.map(async (m) => {
-                    await this.deliverMessageDeleteToUser(m, mid);
+                    await this.deliverMessageDeleteToUser(ctx, m, mid);
                 }));
             }
         });
     }
 
-    private async deliverMessageReadToUser(uid: number, mid: number) {
+    private async deliverMessageReadToUser(ctx: Context, uid: number, mid: number) {
         await inTx(async () => {
-            let delta = await this.counters.onMessageRead(uid, mid);
-            await this.repo.deliverMessageReadToUser(uid, mid, delta);
+            let delta = await this.counters.onMessageRead(ctx, uid, mid);
+            await this.repo.deliverMessageReadToUser(ctx, uid, mid, delta);
         });
     }
 
-    private deliverMessageToUser = async (uid: number, mid: number) => {
+    private deliverMessageToUser = async (ctx: Context, uid: number, mid: number) => {
         await inTx(async () => {
-            await this.counters.onMessageReceived(uid, mid);
-            await this.repo.deliverMessageToUser(uid, mid);
+            await this.counters.onMessageReceived(ctx, uid, mid);
+            await this.repo.deliverMessageToUser(ctx, uid, mid);
         });
     }
 
-    private deliverMessageUpdateToUser = async (uid: number, mid: number) => {
-        await this.repo.deliverMessageUpdateToUser(uid, mid);
+    private deliverMessageUpdateToUser = async (ctx: Context, uid: number, mid: number) => {
+        await this.repo.deliverMessageUpdateToUser(ctx, uid, mid);
     }
 
-    private deliverMessageDeleteToUser = async (uid: number, mid: number) => {
+    private deliverMessageDeleteToUser = async (ctx: Context, uid: number, mid: number) => {
         await inTx(async () => {
-            await this.counters.onMessageDeleted(uid, mid);
-            await this.repo.deliverMessageDeleteToUser(uid, mid);
+            await this.counters.onMessageDeleted(ctx, uid, mid);
+            await this.repo.deliverMessageDeleteToUser(ctx, uid, mid);
         });
     }
 
-    private deliverDialogDeleteToUser = async (uid: number, cid: number) => {
+    private deliverDialogDeleteToUser = async (ctx: Context, uid: number, cid: number) => {
         await inTx(async () => {
-            await this.counters.onDialogDeleted(uid, cid);
-            await this.repo.deliverDialogDeleteToUser(uid, cid);
+            await this.counters.onDialogDeleted(ctx, uid, cid);
+            await this.repo.deliverDialogDeleteToUser(ctx, uid, cid);
         });
     }
 }

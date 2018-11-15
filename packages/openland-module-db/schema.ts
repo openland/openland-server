@@ -7,6 +7,7 @@ import { FNamespace } from 'foundation-orm/FNamespace';
 import { FEntityFactory } from 'foundation-orm/FEntityFactory';
 import { FConnection } from 'foundation-orm/FConnection';
 import { validators } from 'foundation-orm/utils/validators';
+import { Context } from 'openland-utils/Context';
 
 export interface OnlineShape {
     lastSeen: number;
@@ -59,17 +60,17 @@ export class OnlineFactory extends FEntityFactory<Online> {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'uid': rawId[0] };
     }
-    async findById(uid: number) {
-        return await this._findById([uid]);
+    async findById(ctx: Context, uid: number) {
+        return await this._findById(ctx, [uid]);
     }
-    async create(uid: number, shape: OnlineShape) {
-        return await this._create([uid], { uid, ...shape });
+    async create(ctx: Context, uid: number, shape: OnlineShape) {
+        return await this._create(ctx, [uid], { uid, ...shape });
     }
-    watch(uid: number, cb: () => void) {
-        return this._watch([uid], cb);
+    watch(ctx: Context, uid: number, cb: () => void) {
+        return this._watch(ctx, [uid], cb);
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new Online(this.connection, this.namespace, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'Online');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new Online(ctx, this.connection, this.namespace, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'Online');
     }
 }
 export interface PresenceShape {
@@ -153,17 +154,17 @@ export class PresenceFactory extends FEntityFactory<Presence> {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
         return { 'uid': rawId[0], 'tid': rawId[1] };
     }
-    async findById(uid: number, tid: string) {
-        return await this._findById([uid, tid]);
+    async findById(ctx: Context, uid: number, tid: string) {
+        return await this._findById(ctx, [uid, tid]);
     }
-    async create(uid: number, tid: string, shape: PresenceShape) {
-        return await this._create([uid, tid], { uid, tid, ...shape });
+    async create(ctx: Context, uid: number, tid: string, shape: PresenceShape) {
+        return await this._create(ctx, [uid, tid], { uid, tid, ...shape });
     }
-    watch(uid: number, tid: string, cb: () => void) {
-        return this._watch([uid, tid], cb);
+    watch(ctx: Context, uid: number, tid: string, cb: () => void) {
+        return this._watch(ctx, [uid, tid], cb);
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new Presence(this.connection, this.namespace, this.directory, [value.uid, value.tid], value, this.options, isNew, this.indexes, 'Presence');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new Presence(ctx, this.connection, this.namespace, this.directory, [value.uid, value.tid], value, this.options, isNew, this.indexes, 'Presence');
     }
 }
 export interface AuthTokenShape {
@@ -244,32 +245,32 @@ export class AuthTokenFactory extends FEntityFactory<AuthToken> {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'uuid': rawId[0] };
     }
-    async findById(uuid: string) {
-        return await this._findById([uuid]);
+    async findById(ctx: Context, uuid: string) {
+        return await this._findById(ctx, [uuid]);
     }
-    async create(uuid: string, shape: AuthTokenShape) {
-        return await this._create([uuid], { uuid, ...shape });
+    async create(ctx: Context, uuid: string, shape: AuthTokenShape) {
+        return await this._create(ctx, [uuid], { uuid, ...shape });
     }
-    watch(uuid: string, cb: () => void) {
-        return this._watch([uuid], cb);
+    watch(ctx: Context, uuid: string, cb: () => void) {
+        return this._watch(ctx, [uuid], cb);
     }
-    async findFromSalt(salt: string) {
-        return await this._findFromIndex(['__indexes', 'salt', salt]);
+    async findFromSalt(ctx: Context, salt: string) {
+        return await this._findFromIndex(ctx, ['__indexes', 'salt', salt]);
     }
-    async rangeFromSalt(limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'salt'], limit, reversed);
+    async rangeFromSalt(ctx: Context, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'salt'], limit, reversed);
     }
-    async rangeFromSaltWithCursor(limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'salt'], limit, after, reversed);
+    async rangeFromSaltWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'salt'], limit, after, reversed);
     }
-    async allFromSalt() {
-        return await this._findAll(['__indexes', 'salt']);
+    async allFromSalt(ctx: Context, ) {
+        return await this._findAll(ctx, ['__indexes', 'salt']);
     }
-    createSaltStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'authToken', '__indexes', 'salt'], limit, after); 
+    createSaltStream(ctx: Context, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'authToken', '__indexes', 'salt'], limit, after); 
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new AuthToken(this.connection, this.namespace, this.directory, [value.uuid], value, this.options, isNew, this.indexes, 'AuthToken');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new AuthToken(ctx, this.connection, this.namespace, this.directory, [value.uuid], value, this.options, isNew, this.indexes, 'AuthToken');
     }
 }
 export interface ServiceCacheShape {
@@ -327,17 +328,17 @@ export class ServiceCacheFactory extends FEntityFactory<ServiceCache> {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
         return { 'service': rawId[0], 'key': rawId[1] };
     }
-    async findById(service: string, key: string) {
-        return await this._findById([service, key]);
+    async findById(ctx: Context, service: string, key: string) {
+        return await this._findById(ctx, [service, key]);
     }
-    async create(service: string, key: string, shape: ServiceCacheShape) {
-        return await this._create([service, key], { service, key, ...shape });
+    async create(ctx: Context, service: string, key: string, shape: ServiceCacheShape) {
+        return await this._create(ctx, [service, key], { service, key, ...shape });
     }
-    watch(service: string, key: string, cb: () => void) {
-        return this._watch([service, key], cb);
+    watch(ctx: Context, service: string, key: string, cb: () => void) {
+        return this._watch(ctx, [service, key], cb);
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new ServiceCache(this.connection, this.namespace, this.directory, [value.service, value.key], value, this.options, isNew, this.indexes, 'ServiceCache');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new ServiceCache(ctx, this.connection, this.namespace, this.directory, [value.service, value.key], value, this.options, isNew, this.indexes, 'ServiceCache');
     }
 }
 export interface LockShape {
@@ -430,17 +431,17 @@ export class LockFactory extends FEntityFactory<Lock> {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'key': rawId[0] };
     }
-    async findById(key: string) {
-        return await this._findById([key]);
+    async findById(ctx: Context, key: string) {
+        return await this._findById(ctx, [key]);
     }
-    async create(key: string, shape: LockShape) {
-        return await this._create([key], { key, ...shape });
+    async create(ctx: Context, key: string, shape: LockShape) {
+        return await this._create(ctx, [key], { key, ...shape });
     }
-    watch(key: string, cb: () => void) {
-        return this._watch([key], cb);
+    watch(ctx: Context, key: string, cb: () => void) {
+        return this._watch(ctx, [key], cb);
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new Lock(this.connection, this.namespace, this.directory, [value.key], value, this.options, isNew, this.indexes, 'Lock');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new Lock(ctx, this.connection, this.namespace, this.directory, [value.key], value, this.options, isNew, this.indexes, 'Lock');
     }
 }
 export interface TaskShape {
@@ -596,59 +597,59 @@ export class TaskFactory extends FEntityFactory<Task> {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
         return { 'taskType': rawId[0], 'uid': rawId[1] };
     }
-    async findById(taskType: string, uid: string) {
-        return await this._findById([taskType, uid]);
+    async findById(ctx: Context, taskType: string, uid: string) {
+        return await this._findById(ctx, [taskType, uid]);
     }
-    async create(taskType: string, uid: string, shape: TaskShape) {
-        return await this._create([taskType, uid], { taskType, uid, ...shape });
+    async create(ctx: Context, taskType: string, uid: string, shape: TaskShape) {
+        return await this._create(ctx, [taskType, uid], { taskType, uid, ...shape });
     }
-    watch(taskType: string, uid: string, cb: () => void) {
-        return this._watch([taskType, uid], cb);
+    watch(ctx: Context, taskType: string, uid: string, cb: () => void) {
+        return this._watch(ctx, [taskType, uid], cb);
     }
-    async allFromPendingAfter(taskType: string, after: number) {
-        return await this._findRangeAllAfter(['__indexes', 'pending', taskType], after);
+    async allFromPendingAfter(ctx: Context, taskType: string, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'pending', taskType], after);
     }
-    async rangeFromPendingAfter(taskType: string, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(['__indexes', 'pending', taskType], after, limit, reversed);
+    async rangeFromPendingAfter(ctx: Context, taskType: string, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'pending', taskType], after, limit, reversed);
     }
-    async rangeFromPending(taskType: string, limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'pending', taskType], limit, reversed);
+    async rangeFromPending(ctx: Context, taskType: string, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'pending', taskType], limit, reversed);
     }
-    async rangeFromPendingWithCursor(taskType: string, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'pending', taskType], limit, after, reversed);
+    async rangeFromPendingWithCursor(ctx: Context, taskType: string, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'pending', taskType], limit, after, reversed);
     }
-    async allFromPending(taskType: string) {
-        return await this._findAll(['__indexes', 'pending', taskType]);
+    async allFromPending(ctx: Context, taskType: string) {
+        return await this._findAll(ctx, ['__indexes', 'pending', taskType]);
     }
-    createPendingStream(taskType: string, limit: number, after?: string) {
-        return this._createStream(['entity', 'task', '__indexes', 'pending', taskType], limit, after); 
+    createPendingStream(ctx: Context, taskType: string, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'task', '__indexes', 'pending', taskType], limit, after); 
     }
-    async rangeFromExecuting(limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'executing'], limit, reversed);
+    async rangeFromExecuting(ctx: Context, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'executing'], limit, reversed);
     }
-    async rangeFromExecutingWithCursor(limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'executing'], limit, after, reversed);
+    async rangeFromExecutingWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'executing'], limit, after, reversed);
     }
-    async allFromExecuting() {
-        return await this._findAll(['__indexes', 'executing']);
+    async allFromExecuting(ctx: Context, ) {
+        return await this._findAll(ctx, ['__indexes', 'executing']);
     }
-    createExecutingStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'task', '__indexes', 'executing'], limit, after); 
+    createExecutingStream(ctx: Context, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'task', '__indexes', 'executing'], limit, after); 
     }
-    async rangeFromFailing(limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'failing'], limit, reversed);
+    async rangeFromFailing(ctx: Context, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'failing'], limit, reversed);
     }
-    async rangeFromFailingWithCursor(limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'failing'], limit, after, reversed);
+    async rangeFromFailingWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'failing'], limit, after, reversed);
     }
-    async allFromFailing() {
-        return await this._findAll(['__indexes', 'failing']);
+    async allFromFailing(ctx: Context, ) {
+        return await this._findAll(ctx, ['__indexes', 'failing']);
     }
-    createFailingStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'task', '__indexes', 'failing'], limit, after); 
+    createFailingStream(ctx: Context, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'task', '__indexes', 'failing'], limit, after); 
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new Task(this.connection, this.namespace, this.directory, [value.taskType, value.uid], value, this.options, isNew, this.indexes, 'Task');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new Task(ctx, this.connection, this.namespace, this.directory, [value.taskType, value.uid], value, this.options, isNew, this.indexes, 'Task');
     }
 }
 export interface PushFirebaseShape {
@@ -825,50 +826,50 @@ export class PushFirebaseFactory extends FEntityFactory<PushFirebase> {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
-    async findById(id: string) {
-        return await this._findById([id]);
+    async findById(ctx: Context, id: string) {
+        return await this._findById(ctx, [id]);
     }
-    async create(id: string, shape: PushFirebaseShape) {
-        return await this._create([id], { id, ...shape });
+    async create(ctx: Context, id: string, shape: PushFirebaseShape) {
+        return await this._create(ctx, [id], { id, ...shape });
     }
-    watch(id: string, cb: () => void) {
-        return this._watch([id], cb);
+    watch(ctx: Context, id: string, cb: () => void) {
+        return this._watch(ctx, [id], cb);
     }
-    async allFromUserAfter(uid: number, after: string) {
-        return await this._findRangeAllAfter(['__indexes', 'user', uid], after);
+    async allFromUserAfter(ctx: Context, uid: number, after: string) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'user', uid], after);
     }
-    async rangeFromUserAfter(uid: number, after: string, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(['__indexes', 'user', uid], after, limit, reversed);
+    async rangeFromUserAfter(ctx: Context, uid: number, after: string, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'user', uid], after, limit, reversed);
     }
-    async rangeFromUser(uid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'user', uid], limit, reversed);
+    async rangeFromUser(ctx: Context, uid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'user', uid], limit, reversed);
     }
-    async rangeFromUserWithCursor(uid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'user', uid], limit, after, reversed);
+    async rangeFromUserWithCursor(ctx: Context, uid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'user', uid], limit, after, reversed);
     }
-    async allFromUser(uid: number) {
-        return await this._findAll(['__indexes', 'user', uid]);
+    async allFromUser(ctx: Context, uid: number) {
+        return await this._findAll(ctx, ['__indexes', 'user', uid]);
     }
-    createUserStream(uid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'pushFirebase', '__indexes', 'user', uid], limit, after); 
+    createUserStream(ctx: Context, uid: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'pushFirebase', '__indexes', 'user', uid], limit, after); 
     }
-    async findFromToken(token: string) {
-        return await this._findFromIndex(['__indexes', 'token', token]);
+    async findFromToken(ctx: Context, token: string) {
+        return await this._findFromIndex(ctx, ['__indexes', 'token', token]);
     }
-    async rangeFromToken(limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'token'], limit, reversed);
+    async rangeFromToken(ctx: Context, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'token'], limit, reversed);
     }
-    async rangeFromTokenWithCursor(limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'token'], limit, after, reversed);
+    async rangeFromTokenWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'token'], limit, after, reversed);
     }
-    async allFromToken() {
-        return await this._findAll(['__indexes', 'token']);
+    async allFromToken(ctx: Context, ) {
+        return await this._findAll(ctx, ['__indexes', 'token']);
     }
-    createTokenStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'pushFirebase', '__indexes', 'token'], limit, after); 
+    createTokenStream(ctx: Context, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'pushFirebase', '__indexes', 'token'], limit, after); 
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new PushFirebase(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'PushFirebase');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new PushFirebase(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'PushFirebase');
     }
 }
 export interface PushAppleShape {
@@ -1045,50 +1046,50 @@ export class PushAppleFactory extends FEntityFactory<PushApple> {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
-    async findById(id: string) {
-        return await this._findById([id]);
+    async findById(ctx: Context, id: string) {
+        return await this._findById(ctx, [id]);
     }
-    async create(id: string, shape: PushAppleShape) {
-        return await this._create([id], { id, ...shape });
+    async create(ctx: Context, id: string, shape: PushAppleShape) {
+        return await this._create(ctx, [id], { id, ...shape });
     }
-    watch(id: string, cb: () => void) {
-        return this._watch([id], cb);
+    watch(ctx: Context, id: string, cb: () => void) {
+        return this._watch(ctx, [id], cb);
     }
-    async allFromUserAfter(uid: number, after: string) {
-        return await this._findRangeAllAfter(['__indexes', 'user', uid], after);
+    async allFromUserAfter(ctx: Context, uid: number, after: string) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'user', uid], after);
     }
-    async rangeFromUserAfter(uid: number, after: string, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(['__indexes', 'user', uid], after, limit, reversed);
+    async rangeFromUserAfter(ctx: Context, uid: number, after: string, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'user', uid], after, limit, reversed);
     }
-    async rangeFromUser(uid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'user', uid], limit, reversed);
+    async rangeFromUser(ctx: Context, uid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'user', uid], limit, reversed);
     }
-    async rangeFromUserWithCursor(uid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'user', uid], limit, after, reversed);
+    async rangeFromUserWithCursor(ctx: Context, uid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'user', uid], limit, after, reversed);
     }
-    async allFromUser(uid: number) {
-        return await this._findAll(['__indexes', 'user', uid]);
+    async allFromUser(ctx: Context, uid: number) {
+        return await this._findAll(ctx, ['__indexes', 'user', uid]);
     }
-    createUserStream(uid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'pushApple', '__indexes', 'user', uid], limit, after); 
+    createUserStream(ctx: Context, uid: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'pushApple', '__indexes', 'user', uid], limit, after); 
     }
-    async findFromToken(token: string) {
-        return await this._findFromIndex(['__indexes', 'token', token]);
+    async findFromToken(ctx: Context, token: string) {
+        return await this._findFromIndex(ctx, ['__indexes', 'token', token]);
     }
-    async rangeFromToken(limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'token'], limit, reversed);
+    async rangeFromToken(ctx: Context, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'token'], limit, reversed);
     }
-    async rangeFromTokenWithCursor(limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'token'], limit, after, reversed);
+    async rangeFromTokenWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'token'], limit, after, reversed);
     }
-    async allFromToken() {
-        return await this._findAll(['__indexes', 'token']);
+    async allFromToken(ctx: Context, ) {
+        return await this._findAll(ctx, ['__indexes', 'token']);
     }
-    createTokenStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'pushApple', '__indexes', 'token'], limit, after); 
+    createTokenStream(ctx: Context, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'pushApple', '__indexes', 'token'], limit, after); 
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new PushApple(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'PushApple');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new PushApple(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'PushApple');
     }
 }
 export interface PushWebShape {
@@ -1239,50 +1240,50 @@ export class PushWebFactory extends FEntityFactory<PushWeb> {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
-    async findById(id: string) {
-        return await this._findById([id]);
+    async findById(ctx: Context, id: string) {
+        return await this._findById(ctx, [id]);
     }
-    async create(id: string, shape: PushWebShape) {
-        return await this._create([id], { id, ...shape });
+    async create(ctx: Context, id: string, shape: PushWebShape) {
+        return await this._create(ctx, [id], { id, ...shape });
     }
-    watch(id: string, cb: () => void) {
-        return this._watch([id], cb);
+    watch(ctx: Context, id: string, cb: () => void) {
+        return this._watch(ctx, [id], cb);
     }
-    async allFromUserAfter(uid: number, after: string) {
-        return await this._findRangeAllAfter(['__indexes', 'user', uid], after);
+    async allFromUserAfter(ctx: Context, uid: number, after: string) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'user', uid], after);
     }
-    async rangeFromUserAfter(uid: number, after: string, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(['__indexes', 'user', uid], after, limit, reversed);
+    async rangeFromUserAfter(ctx: Context, uid: number, after: string, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'user', uid], after, limit, reversed);
     }
-    async rangeFromUser(uid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'user', uid], limit, reversed);
+    async rangeFromUser(ctx: Context, uid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'user', uid], limit, reversed);
     }
-    async rangeFromUserWithCursor(uid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'user', uid], limit, after, reversed);
+    async rangeFromUserWithCursor(ctx: Context, uid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'user', uid], limit, after, reversed);
     }
-    async allFromUser(uid: number) {
-        return await this._findAll(['__indexes', 'user', uid]);
+    async allFromUser(ctx: Context, uid: number) {
+        return await this._findAll(ctx, ['__indexes', 'user', uid]);
     }
-    createUserStream(uid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'pushWeb', '__indexes', 'user', uid], limit, after); 
+    createUserStream(ctx: Context, uid: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'pushWeb', '__indexes', 'user', uid], limit, after); 
     }
-    async findFromEndpoint(endpoint: string) {
-        return await this._findFromIndex(['__indexes', 'endpoint', endpoint]);
+    async findFromEndpoint(ctx: Context, endpoint: string) {
+        return await this._findFromIndex(ctx, ['__indexes', 'endpoint', endpoint]);
     }
-    async rangeFromEndpoint(limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'endpoint'], limit, reversed);
+    async rangeFromEndpoint(ctx: Context, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'endpoint'], limit, reversed);
     }
-    async rangeFromEndpointWithCursor(limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'endpoint'], limit, after, reversed);
+    async rangeFromEndpointWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'endpoint'], limit, after, reversed);
     }
-    async allFromEndpoint() {
-        return await this._findAll(['__indexes', 'endpoint']);
+    async allFromEndpoint(ctx: Context, ) {
+        return await this._findAll(ctx, ['__indexes', 'endpoint']);
     }
-    createEndpointStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'pushWeb', '__indexes', 'endpoint'], limit, after); 
+    createEndpointStream(ctx: Context, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'pushWeb', '__indexes', 'endpoint'], limit, after); 
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new PushWeb(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'PushWeb');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new PushWeb(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'PushWeb');
     }
 }
 export interface UserProfilePrefilShape {
@@ -1365,17 +1366,17 @@ export class UserProfilePrefilFactory extends FEntityFactory<UserProfilePrefil> 
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
-    async findById(id: number) {
-        return await this._findById([id]);
+    async findById(ctx: Context, id: number) {
+        return await this._findById(ctx, [id]);
     }
-    async create(id: number, shape: UserProfilePrefilShape) {
-        return await this._create([id], { id, ...shape });
+    async create(ctx: Context, id: number, shape: UserProfilePrefilShape) {
+        return await this._create(ctx, [id], { id, ...shape });
     }
-    watch(id: number, cb: () => void) {
-        return this._watch([id], cb);
+    watch(ctx: Context, id: number, cb: () => void) {
+        return this._watch(ctx, [id], cb);
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new UserProfilePrefil(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserProfilePrefil');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new UserProfilePrefil(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserProfilePrefil');
     }
 }
 export interface UserShape {
@@ -1496,17 +1497,17 @@ export class UserFactory extends FEntityFactory<User> {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
-    async findById(id: number) {
-        return await this._findById([id]);
+    async findById(ctx: Context, id: number) {
+        return await this._findById(ctx, [id]);
     }
-    async create(id: number, shape: UserShape) {
-        return await this._create([id], { id, ...shape });
+    async create(ctx: Context, id: number, shape: UserShape) {
+        return await this._create(ctx, [id], { id, ...shape });
     }
-    watch(id: number, cb: () => void) {
-        return this._watch([id], cb);
+    watch(ctx: Context, id: number, cb: () => void) {
+        return this._watch(ctx, [id], cb);
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new User(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'User');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new User(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'User');
     }
 }
 export interface UserProfileShape {
@@ -1727,29 +1728,29 @@ export class UserProfileFactory extends FEntityFactory<UserProfile> {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
-    async findById(id: number) {
-        return await this._findById([id]);
+    async findById(ctx: Context, id: number) {
+        return await this._findById(ctx, [id]);
     }
-    async create(id: number, shape: UserProfileShape) {
-        return await this._create([id], { id, ...shape });
+    async create(ctx: Context, id: number, shape: UserProfileShape) {
+        return await this._create(ctx, [id], { id, ...shape });
     }
-    watch(id: number, cb: () => void) {
-        return this._watch([id], cb);
+    watch(ctx: Context, id: number, cb: () => void) {
+        return this._watch(ctx, [id], cb);
     }
-    async rangeFromByUpdatedAt(limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'byUpdatedAt'], limit, reversed);
+    async rangeFromByUpdatedAt(ctx: Context, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'byUpdatedAt'], limit, reversed);
     }
-    async rangeFromByUpdatedAtWithCursor(limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'byUpdatedAt'], limit, after, reversed);
+    async rangeFromByUpdatedAtWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'byUpdatedAt'], limit, after, reversed);
     }
-    async allFromByUpdatedAt() {
-        return await this._findAll(['__indexes', 'byUpdatedAt']);
+    async allFromByUpdatedAt(ctx: Context, ) {
+        return await this._findAll(ctx, ['__indexes', 'byUpdatedAt']);
     }
-    createByUpdatedAtStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'userProfile', '__indexes', 'byUpdatedAt'], limit, after); 
+    createByUpdatedAtStream(ctx: Context, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'userProfile', '__indexes', 'byUpdatedAt'], limit, after); 
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new UserProfile(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserProfile');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new UserProfile(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserProfile');
     }
 }
 export interface OrganizationShape {
@@ -1842,17 +1843,17 @@ export class OrganizationFactory extends FEntityFactory<Organization> {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
-    async findById(id: number) {
-        return await this._findById([id]);
+    async findById(ctx: Context, id: number) {
+        return await this._findById(ctx, [id]);
     }
-    async create(id: number, shape: OrganizationShape) {
-        return await this._create([id], { id, ...shape });
+    async create(ctx: Context, id: number, shape: OrganizationShape) {
+        return await this._create(ctx, [id], { id, ...shape });
     }
-    watch(id: number, cb: () => void) {
-        return this._watch([id], cb);
+    watch(ctx: Context, id: number, cb: () => void) {
+        return this._watch(ctx, [id], cb);
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new Organization(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Organization');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new Organization(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Organization');
     }
 }
 export interface OrganizationProfileShape {
@@ -1989,17 +1990,17 @@ export class OrganizationProfileFactory extends FEntityFactory<OrganizationProfi
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
-    async findById(id: number) {
-        return await this._findById([id]);
+    async findById(ctx: Context, id: number) {
+        return await this._findById(ctx, [id]);
     }
-    async create(id: number, shape: OrganizationProfileShape) {
-        return await this._create([id], { id, ...shape });
+    async create(ctx: Context, id: number, shape: OrganizationProfileShape) {
+        return await this._create(ctx, [id], { id, ...shape });
     }
-    watch(id: number, cb: () => void) {
-        return this._watch([id], cb);
+    watch(ctx: Context, id: number, cb: () => void) {
+        return this._watch(ctx, [id], cb);
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new OrganizationProfile(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationProfile');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new OrganizationProfile(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationProfile');
     }
 }
 export interface OrganizationEditorialShape {
@@ -2066,17 +2067,17 @@ export class OrganizationEditorialFactory extends FEntityFactory<OrganizationEdi
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
-    async findById(id: number) {
-        return await this._findById([id]);
+    async findById(ctx: Context, id: number) {
+        return await this._findById(ctx, [id]);
     }
-    async create(id: number, shape: OrganizationEditorialShape) {
-        return await this._create([id], { id, ...shape });
+    async create(ctx: Context, id: number, shape: OrganizationEditorialShape) {
+        return await this._create(ctx, [id], { id, ...shape });
     }
-    watch(id: number, cb: () => void) {
-        return this._watch([id], cb);
+    watch(ctx: Context, id: number, cb: () => void) {
+        return this._watch(ctx, [id], cb);
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new OrganizationEditorial(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationEditorial');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new OrganizationEditorial(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationEditorial');
     }
 }
 export interface OrganizationIndexingQueueShape {
@@ -2118,29 +2119,29 @@ export class OrganizationIndexingQueueFactory extends FEntityFactory<Organizatio
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
-    async findById(id: number) {
-        return await this._findById([id]);
+    async findById(ctx: Context, id: number) {
+        return await this._findById(ctx, [id]);
     }
-    async create(id: number, shape: OrganizationIndexingQueueShape) {
-        return await this._create([id], { id, ...shape });
+    async create(ctx: Context, id: number, shape: OrganizationIndexingQueueShape) {
+        return await this._create(ctx, [id], { id, ...shape });
     }
-    watch(id: number, cb: () => void) {
-        return this._watch([id], cb);
+    watch(ctx: Context, id: number, cb: () => void) {
+        return this._watch(ctx, [id], cb);
     }
-    async rangeFromUpdated(limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'updated'], limit, reversed);
+    async rangeFromUpdated(ctx: Context, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'updated'], limit, reversed);
     }
-    async rangeFromUpdatedWithCursor(limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'updated'], limit, after, reversed);
+    async rangeFromUpdatedWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'updated'], limit, after, reversed);
     }
-    async allFromUpdated() {
-        return await this._findAll(['__indexes', 'updated']);
+    async allFromUpdated(ctx: Context, ) {
+        return await this._findAll(ctx, ['__indexes', 'updated']);
     }
-    createUpdatedStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'organizationIndexingQueue', '__indexes', 'updated'], limit, after); 
+    createUpdatedStream(ctx: Context, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'organizationIndexingQueue', '__indexes', 'updated'], limit, after); 
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new OrganizationIndexingQueue(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationIndexingQueue');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new OrganizationIndexingQueue(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationIndexingQueue');
     }
 }
 export interface OrganizationMemberShape {
@@ -2228,74 +2229,74 @@ export class OrganizationMemberFactory extends FEntityFactory<OrganizationMember
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
         return { 'oid': rawId[0], 'uid': rawId[1] };
     }
-    async findById(oid: number, uid: number) {
-        return await this._findById([oid, uid]);
+    async findById(ctx: Context, oid: number, uid: number) {
+        return await this._findById(ctx, [oid, uid]);
     }
-    async create(oid: number, uid: number, shape: OrganizationMemberShape) {
-        return await this._create([oid, uid], { oid, uid, ...shape });
+    async create(ctx: Context, oid: number, uid: number, shape: OrganizationMemberShape) {
+        return await this._create(ctx, [oid, uid], { oid, uid, ...shape });
     }
-    watch(oid: number, uid: number, cb: () => void) {
-        return this._watch([oid, uid], cb);
+    watch(ctx: Context, oid: number, uid: number, cb: () => void) {
+        return this._watch(ctx, [oid, uid], cb);
     }
-    async findFromIds(oid: number, uid: number) {
-        return await this._findFromIndex(['__indexes', 'ids', oid, uid]);
+    async findFromIds(ctx: Context, oid: number, uid: number) {
+        return await this._findFromIndex(ctx, ['__indexes', 'ids', oid, uid]);
     }
-    async allFromIdsAfter(oid: number, after: number) {
-        return await this._findRangeAllAfter(['__indexes', 'ids', oid], after);
+    async allFromIdsAfter(ctx: Context, oid: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'ids', oid], after);
     }
-    async rangeFromIdsAfter(oid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(['__indexes', 'ids', oid], after, limit, reversed);
+    async rangeFromIdsAfter(ctx: Context, oid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'ids', oid], after, limit, reversed);
     }
-    async rangeFromIds(oid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'ids', oid], limit, reversed);
+    async rangeFromIds(ctx: Context, oid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'ids', oid], limit, reversed);
     }
-    async rangeFromIdsWithCursor(oid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'ids', oid], limit, after, reversed);
+    async rangeFromIdsWithCursor(ctx: Context, oid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'ids', oid], limit, after, reversed);
     }
-    async allFromIds(oid: number) {
-        return await this._findAll(['__indexes', 'ids', oid]);
+    async allFromIds(ctx: Context, oid: number) {
+        return await this._findAll(ctx, ['__indexes', 'ids', oid]);
     }
-    createIdsStream(oid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'organizationMember', '__indexes', 'ids', oid], limit, after); 
+    createIdsStream(ctx: Context, oid: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'organizationMember', '__indexes', 'ids', oid], limit, after); 
     }
-    async allFromOrganizationAfter(status: 'requested' | 'joined' | 'left', oid: number, after: number) {
-        return await this._findRangeAllAfter(['__indexes', 'organization', status, oid], after);
+    async allFromOrganizationAfter(ctx: Context, status: 'requested' | 'joined' | 'left', oid: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'organization', status, oid], after);
     }
-    async rangeFromOrganizationAfter(status: 'requested' | 'joined' | 'left', oid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(['__indexes', 'organization', status, oid], after, limit, reversed);
+    async rangeFromOrganizationAfter(ctx: Context, status: 'requested' | 'joined' | 'left', oid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'organization', status, oid], after, limit, reversed);
     }
-    async rangeFromOrganization(status: 'requested' | 'joined' | 'left', oid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'organization', status, oid], limit, reversed);
+    async rangeFromOrganization(ctx: Context, status: 'requested' | 'joined' | 'left', oid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'organization', status, oid], limit, reversed);
     }
-    async rangeFromOrganizationWithCursor(status: 'requested' | 'joined' | 'left', oid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'organization', status, oid], limit, after, reversed);
+    async rangeFromOrganizationWithCursor(ctx: Context, status: 'requested' | 'joined' | 'left', oid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'organization', status, oid], limit, after, reversed);
     }
-    async allFromOrganization(status: 'requested' | 'joined' | 'left', oid: number) {
-        return await this._findAll(['__indexes', 'organization', status, oid]);
+    async allFromOrganization(ctx: Context, status: 'requested' | 'joined' | 'left', oid: number) {
+        return await this._findAll(ctx, ['__indexes', 'organization', status, oid]);
     }
-    createOrganizationStream(status: 'requested' | 'joined' | 'left', oid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'organizationMember', '__indexes', 'organization', status, oid], limit, after); 
+    createOrganizationStream(ctx: Context, status: 'requested' | 'joined' | 'left', oid: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'organizationMember', '__indexes', 'organization', status, oid], limit, after); 
     }
-    async allFromUserAfter(status: 'requested' | 'joined' | 'left', uid: number, after: number) {
-        return await this._findRangeAllAfter(['__indexes', 'user', status, uid], after);
+    async allFromUserAfter(ctx: Context, status: 'requested' | 'joined' | 'left', uid: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'user', status, uid], after);
     }
-    async rangeFromUserAfter(status: 'requested' | 'joined' | 'left', uid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(['__indexes', 'user', status, uid], after, limit, reversed);
+    async rangeFromUserAfter(ctx: Context, status: 'requested' | 'joined' | 'left', uid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'user', status, uid], after, limit, reversed);
     }
-    async rangeFromUser(status: 'requested' | 'joined' | 'left', uid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'user', status, uid], limit, reversed);
+    async rangeFromUser(ctx: Context, status: 'requested' | 'joined' | 'left', uid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'user', status, uid], limit, reversed);
     }
-    async rangeFromUserWithCursor(status: 'requested' | 'joined' | 'left', uid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'user', status, uid], limit, after, reversed);
+    async rangeFromUserWithCursor(ctx: Context, status: 'requested' | 'joined' | 'left', uid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'user', status, uid], limit, after, reversed);
     }
-    async allFromUser(status: 'requested' | 'joined' | 'left', uid: number) {
-        return await this._findAll(['__indexes', 'user', status, uid]);
+    async allFromUser(ctx: Context, status: 'requested' | 'joined' | 'left', uid: number) {
+        return await this._findAll(ctx, ['__indexes', 'user', status, uid]);
     }
-    createUserStream(status: 'requested' | 'joined' | 'left', uid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'organizationMember', '__indexes', 'user', status, uid], limit, after); 
+    createUserStream(ctx: Context, status: 'requested' | 'joined' | 'left', uid: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'organizationMember', '__indexes', 'user', status, uid], limit, after); 
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new OrganizationMember(this.connection, this.namespace, this.directory, [value.oid, value.uid], value, this.options, isNew, this.indexes, 'OrganizationMember');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new OrganizationMember(ctx, this.connection, this.namespace, this.directory, [value.oid, value.uid], value, this.options, isNew, this.indexes, 'OrganizationMember');
     }
 }
 export interface FeatureFlagShape {
@@ -2349,17 +2350,17 @@ export class FeatureFlagFactory extends FEntityFactory<FeatureFlag> {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'key': rawId[0] };
     }
-    async findById(key: string) {
-        return await this._findById([key]);
+    async findById(ctx: Context, key: string) {
+        return await this._findById(ctx, [key]);
     }
-    async create(key: string, shape: FeatureFlagShape) {
-        return await this._create([key], { key, ...shape });
+    async create(ctx: Context, key: string, shape: FeatureFlagShape) {
+        return await this._create(ctx, [key], { key, ...shape });
     }
-    watch(key: string, cb: () => void) {
-        return this._watch([key], cb);
+    watch(ctx: Context, key: string, cb: () => void) {
+        return this._watch(ctx, [key], cb);
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new FeatureFlag(this.connection, this.namespace, this.directory, [value.key], value, this.options, isNew, this.indexes, 'FeatureFlag');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new FeatureFlag(ctx, this.connection, this.namespace, this.directory, [value.key], value, this.options, isNew, this.indexes, 'FeatureFlag');
     }
 }
 export interface OrganizationFeaturesShape {
@@ -2440,38 +2441,38 @@ export class OrganizationFeaturesFactory extends FEntityFactory<OrganizationFeat
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
-    async findById(id: string) {
-        return await this._findById([id]);
+    async findById(ctx: Context, id: string) {
+        return await this._findById(ctx, [id]);
     }
-    async create(id: string, shape: OrganizationFeaturesShape) {
-        return await this._create([id], { id, ...shape });
+    async create(ctx: Context, id: string, shape: OrganizationFeaturesShape) {
+        return await this._create(ctx, [id], { id, ...shape });
     }
-    watch(id: string, cb: () => void) {
-        return this._watch([id], cb);
+    watch(ctx: Context, id: string, cb: () => void) {
+        return this._watch(ctx, [id], cb);
     }
-    async findFromOrganization(organizationId: number, featureKey: string) {
-        return await this._findFromIndex(['__indexes', 'organization', organizationId, featureKey]);
+    async findFromOrganization(ctx: Context, organizationId: number, featureKey: string) {
+        return await this._findFromIndex(ctx, ['__indexes', 'organization', organizationId, featureKey]);
     }
-    async allFromOrganizationAfter(organizationId: number, after: string) {
-        return await this._findRangeAllAfter(['__indexes', 'organization', organizationId], after);
+    async allFromOrganizationAfter(ctx: Context, organizationId: number, after: string) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'organization', organizationId], after);
     }
-    async rangeFromOrganizationAfter(organizationId: number, after: string, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(['__indexes', 'organization', organizationId], after, limit, reversed);
+    async rangeFromOrganizationAfter(ctx: Context, organizationId: number, after: string, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'organization', organizationId], after, limit, reversed);
     }
-    async rangeFromOrganization(organizationId: number, limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'organization', organizationId], limit, reversed);
+    async rangeFromOrganization(ctx: Context, organizationId: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'organization', organizationId], limit, reversed);
     }
-    async rangeFromOrganizationWithCursor(organizationId: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'organization', organizationId], limit, after, reversed);
+    async rangeFromOrganizationWithCursor(ctx: Context, organizationId: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'organization', organizationId], limit, after, reversed);
     }
-    async allFromOrganization(organizationId: number) {
-        return await this._findAll(['__indexes', 'organization', organizationId]);
+    async allFromOrganization(ctx: Context, organizationId: number) {
+        return await this._findAll(ctx, ['__indexes', 'organization', organizationId]);
     }
-    createOrganizationStream(organizationId: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'organizationFeatures', '__indexes', 'organization', organizationId], limit, after); 
+    createOrganizationStream(ctx: Context, organizationId: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'organizationFeatures', '__indexes', 'organization', organizationId], limit, after); 
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new OrganizationFeatures(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationFeatures');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new OrganizationFeatures(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationFeatures');
     }
 }
 export interface ReaderStateShape {
@@ -2539,17 +2540,17 @@ export class ReaderStateFactory extends FEntityFactory<ReaderState> {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
-    async findById(id: string) {
-        return await this._findById([id]);
+    async findById(ctx: Context, id: string) {
+        return await this._findById(ctx, [id]);
     }
-    async create(id: string, shape: ReaderStateShape) {
-        return await this._create([id], { id, ...shape });
+    async create(ctx: Context, id: string, shape: ReaderStateShape) {
+        return await this._create(ctx, [id], { id, ...shape });
     }
-    watch(id: string, cb: () => void) {
-        return this._watch([id], cb);
+    watch(ctx: Context, id: string, cb: () => void) {
+        return this._watch(ctx, [id], cb);
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new ReaderState(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ReaderState');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new ReaderState(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ReaderState');
     }
 }
 export interface SuperAdminShape {
@@ -2616,17 +2617,17 @@ export class SuperAdminFactory extends FEntityFactory<SuperAdmin> {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
-    async findById(id: number) {
-        return await this._findById([id]);
+    async findById(ctx: Context, id: number) {
+        return await this._findById(ctx, [id]);
     }
-    async create(id: number, shape: SuperAdminShape) {
-        return await this._create([id], { id, ...shape });
+    async create(ctx: Context, id: number, shape: SuperAdminShape) {
+        return await this._create(ctx, [id], { id, ...shape });
     }
-    watch(id: number, cb: () => void) {
-        return this._watch([id], cb);
+    watch(ctx: Context, id: number, cb: () => void) {
+        return this._watch(ctx, [id], cb);
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new SuperAdmin(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'SuperAdmin');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new SuperAdmin(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'SuperAdmin');
     }
 }
 export interface UserSettingsShape {
@@ -2748,17 +2749,17 @@ export class UserSettingsFactory extends FEntityFactory<UserSettings> {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
-    async findById(id: number) {
-        return await this._findById([id]);
+    async findById(ctx: Context, id: number) {
+        return await this._findById(ctx, [id]);
     }
-    async create(id: number, shape: UserSettingsShape) {
-        return await this._create([id], { id, ...shape });
+    async create(ctx: Context, id: number, shape: UserSettingsShape) {
+        return await this._create(ctx, [id], { id, ...shape });
     }
-    watch(id: number, cb: () => void) {
-        return this._watch([id], cb);
+    watch(ctx: Context, id: number, cb: () => void) {
+        return this._watch(ctx, [id], cb);
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new UserSettings(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserSettings');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new UserSettings(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserSettings');
     }
 }
 export interface ShortnameReservationShape {
@@ -2840,47 +2841,47 @@ export class ShortnameReservationFactory extends FEntityFactory<ShortnameReserva
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'shortname': rawId[0] };
     }
-    async findById(shortname: string) {
-        return await this._findById([shortname]);
+    async findById(ctx: Context, shortname: string) {
+        return await this._findById(ctx, [shortname]);
     }
-    async create(shortname: string, shape: ShortnameReservationShape) {
-        return await this._create([shortname], { shortname, ...shape });
+    async create(ctx: Context, shortname: string, shape: ShortnameReservationShape) {
+        return await this._create(ctx, [shortname], { shortname, ...shape });
     }
-    watch(shortname: string, cb: () => void) {
-        return this._watch([shortname], cb);
+    watch(ctx: Context, shortname: string, cb: () => void) {
+        return this._watch(ctx, [shortname], cb);
     }
-    async findFromUser(ownerId: number) {
-        return await this._findFromIndex(['__indexes', 'user', ownerId]);
+    async findFromUser(ctx: Context, ownerId: number) {
+        return await this._findFromIndex(ctx, ['__indexes', 'user', ownerId]);
     }
-    async rangeFromUser(limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'user'], limit, reversed);
+    async rangeFromUser(ctx: Context, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'user'], limit, reversed);
     }
-    async rangeFromUserWithCursor(limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'user'], limit, after, reversed);
+    async rangeFromUserWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'user'], limit, after, reversed);
     }
-    async allFromUser() {
-        return await this._findAll(['__indexes', 'user']);
+    async allFromUser(ctx: Context, ) {
+        return await this._findAll(ctx, ['__indexes', 'user']);
     }
-    createUserStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'shortnameReservation', '__indexes', 'user'], limit, after); 
+    createUserStream(ctx: Context, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'shortnameReservation', '__indexes', 'user'], limit, after); 
     }
-    async findFromOrg(ownerId: number) {
-        return await this._findFromIndex(['__indexes', 'org', ownerId]);
+    async findFromOrg(ctx: Context, ownerId: number) {
+        return await this._findFromIndex(ctx, ['__indexes', 'org', ownerId]);
     }
-    async rangeFromOrg(limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'org'], limit, reversed);
+    async rangeFromOrg(ctx: Context, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'org'], limit, reversed);
     }
-    async rangeFromOrgWithCursor(limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'org'], limit, after, reversed);
+    async rangeFromOrgWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'org'], limit, after, reversed);
     }
-    async allFromOrg() {
-        return await this._findAll(['__indexes', 'org']);
+    async allFromOrg(ctx: Context, ) {
+        return await this._findAll(ctx, ['__indexes', 'org']);
     }
-    createOrgStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'shortnameReservation', '__indexes', 'org'], limit, after); 
+    createOrgStream(ctx: Context, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'shortnameReservation', '__indexes', 'org'], limit, after); 
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new ShortnameReservation(this.connection, this.namespace, this.directory, [value.shortname], value, this.options, isNew, this.indexes, 'ShortnameReservation');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new ShortnameReservation(ctx, this.connection, this.namespace, this.directory, [value.shortname], value, this.options, isNew, this.indexes, 'ShortnameReservation');
     }
 }
 export interface AuthCodeSessionShape {
@@ -2987,17 +2988,17 @@ export class AuthCodeSessionFactory extends FEntityFactory<AuthCodeSession> {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'uid': rawId[0] };
     }
-    async findById(uid: string) {
-        return await this._findById([uid]);
+    async findById(ctx: Context, uid: string) {
+        return await this._findById(ctx, [uid]);
     }
-    async create(uid: string, shape: AuthCodeSessionShape) {
-        return await this._create([uid], { uid, ...shape });
+    async create(ctx: Context, uid: string, shape: AuthCodeSessionShape) {
+        return await this._create(ctx, [uid], { uid, ...shape });
     }
-    watch(uid: string, cb: () => void) {
-        return this._watch([uid], cb);
+    watch(ctx: Context, uid: string, cb: () => void) {
+        return this._watch(ctx, [uid], cb);
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new AuthCodeSession(this.connection, this.namespace, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'AuthCodeSession');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new AuthCodeSession(ctx, this.connection, this.namespace, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'AuthCodeSession');
     }
 }
 export interface ConversationShape {
@@ -3051,17 +3052,17 @@ export class ConversationFactory extends FEntityFactory<Conversation> {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
-    async findById(id: number) {
-        return await this._findById([id]);
+    async findById(ctx: Context, id: number) {
+        return await this._findById(ctx, [id]);
     }
-    async create(id: number, shape: ConversationShape) {
-        return await this._create([id], { id, ...shape });
+    async create(ctx: Context, id: number, shape: ConversationShape) {
+        return await this._create(ctx, [id], { id, ...shape });
     }
-    watch(id: number, cb: () => void) {
-        return this._watch([id], cb);
+    watch(ctx: Context, id: number, cb: () => void) {
+        return this._watch(ctx, [id], cb);
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new Conversation(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Conversation');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new Conversation(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Conversation');
     }
 }
 export interface ConversationPrivateShape {
@@ -3129,38 +3130,38 @@ export class ConversationPrivateFactory extends FEntityFactory<ConversationPriva
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
-    async findById(id: number) {
-        return await this._findById([id]);
+    async findById(ctx: Context, id: number) {
+        return await this._findById(ctx, [id]);
     }
-    async create(id: number, shape: ConversationPrivateShape) {
-        return await this._create([id], { id, ...shape });
+    async create(ctx: Context, id: number, shape: ConversationPrivateShape) {
+        return await this._create(ctx, [id], { id, ...shape });
     }
-    watch(id: number, cb: () => void) {
-        return this._watch([id], cb);
+    watch(ctx: Context, id: number, cb: () => void) {
+        return this._watch(ctx, [id], cb);
     }
-    async findFromUsers(uid1: number, uid2: number) {
-        return await this._findFromIndex(['__indexes', 'users', uid1, uid2]);
+    async findFromUsers(ctx: Context, uid1: number, uid2: number) {
+        return await this._findFromIndex(ctx, ['__indexes', 'users', uid1, uid2]);
     }
-    async allFromUsersAfter(uid1: number, after: number) {
-        return await this._findRangeAllAfter(['__indexes', 'users', uid1], after);
+    async allFromUsersAfter(ctx: Context, uid1: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'users', uid1], after);
     }
-    async rangeFromUsersAfter(uid1: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(['__indexes', 'users', uid1], after, limit, reversed);
+    async rangeFromUsersAfter(ctx: Context, uid1: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'users', uid1], after, limit, reversed);
     }
-    async rangeFromUsers(uid1: number, limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'users', uid1], limit, reversed);
+    async rangeFromUsers(ctx: Context, uid1: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'users', uid1], limit, reversed);
     }
-    async rangeFromUsersWithCursor(uid1: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'users', uid1], limit, after, reversed);
+    async rangeFromUsersWithCursor(ctx: Context, uid1: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'users', uid1], limit, after, reversed);
     }
-    async allFromUsers(uid1: number) {
-        return await this._findAll(['__indexes', 'users', uid1]);
+    async allFromUsers(ctx: Context, uid1: number) {
+        return await this._findAll(ctx, ['__indexes', 'users', uid1]);
     }
-    createUsersStream(uid1: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'conversationPrivate', '__indexes', 'users', uid1], limit, after); 
+    createUsersStream(ctx: Context, uid1: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'conversationPrivate', '__indexes', 'users', uid1], limit, after); 
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new ConversationPrivate(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConversationPrivate');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new ConversationPrivate(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConversationPrivate');
     }
 }
 export interface ConversationOrganizationShape {
@@ -3215,32 +3216,32 @@ export class ConversationOrganizationFactory extends FEntityFactory<Conversation
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
-    async findById(id: number) {
-        return await this._findById([id]);
+    async findById(ctx: Context, id: number) {
+        return await this._findById(ctx, [id]);
     }
-    async create(id: number, shape: ConversationOrganizationShape) {
-        return await this._create([id], { id, ...shape });
+    async create(ctx: Context, id: number, shape: ConversationOrganizationShape) {
+        return await this._create(ctx, [id], { id, ...shape });
     }
-    watch(id: number, cb: () => void) {
-        return this._watch([id], cb);
+    watch(ctx: Context, id: number, cb: () => void) {
+        return this._watch(ctx, [id], cb);
     }
-    async findFromOrganization(oid: number) {
-        return await this._findFromIndex(['__indexes', 'organization', oid]);
+    async findFromOrganization(ctx: Context, oid: number) {
+        return await this._findFromIndex(ctx, ['__indexes', 'organization', oid]);
     }
-    async rangeFromOrganization(limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'organization'], limit, reversed);
+    async rangeFromOrganization(ctx: Context, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'organization'], limit, reversed);
     }
-    async rangeFromOrganizationWithCursor(limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'organization'], limit, after, reversed);
+    async rangeFromOrganizationWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'organization'], limit, after, reversed);
     }
-    async allFromOrganization() {
-        return await this._findAll(['__indexes', 'organization']);
+    async allFromOrganization(ctx: Context, ) {
+        return await this._findAll(ctx, ['__indexes', 'organization']);
     }
-    createOrganizationStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'conversationOrganization', '__indexes', 'organization'], limit, after); 
+    createOrganizationStream(ctx: Context, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'conversationOrganization', '__indexes', 'organization'], limit, after); 
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new ConversationOrganization(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConversationOrganization');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new ConversationOrganization(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConversationOrganization');
     }
 }
 export interface ConversationRoomShape {
@@ -3352,50 +3353,50 @@ export class ConversationRoomFactory extends FEntityFactory<ConversationRoom> {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
-    async findById(id: number) {
-        return await this._findById([id]);
+    async findById(ctx: Context, id: number) {
+        return await this._findById(ctx, [id]);
     }
-    async create(id: number, shape: ConversationRoomShape) {
-        return await this._create([id], { id, ...shape });
+    async create(ctx: Context, id: number, shape: ConversationRoomShape) {
+        return await this._create(ctx, [id], { id, ...shape });
     }
-    watch(id: number, cb: () => void) {
-        return this._watch([id], cb);
+    watch(ctx: Context, id: number, cb: () => void) {
+        return this._watch(ctx, [id], cb);
     }
-    async rangeFromOrganization(limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'organization'], limit, reversed);
+    async rangeFromOrganization(ctx: Context, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'organization'], limit, reversed);
     }
-    async rangeFromOrganizationWithCursor(limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'organization'], limit, after, reversed);
+    async rangeFromOrganizationWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'organization'], limit, after, reversed);
     }
-    async allFromOrganization() {
-        return await this._findAll(['__indexes', 'organization']);
+    async allFromOrganization(ctx: Context, ) {
+        return await this._findAll(ctx, ['__indexes', 'organization']);
     }
-    createOrganizationStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'conversationRoom', '__indexes', 'organization'], limit, after); 
+    createOrganizationStream(ctx: Context, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'conversationRoom', '__indexes', 'organization'], limit, after); 
     }
-    async findFromOrganizationPublicRooms(oid: number, id: number) {
-        return await this._findFromIndex(['__indexes', 'organizationPublicRooms', oid, id]);
+    async findFromOrganizationPublicRooms(ctx: Context, oid: number, id: number) {
+        return await this._findFromIndex(ctx, ['__indexes', 'organizationPublicRooms', oid, id]);
     }
-    async allFromOrganizationPublicRoomsAfter(oid: number, after: number) {
-        return await this._findRangeAllAfter(['__indexes', 'organizationPublicRooms', oid], after);
+    async allFromOrganizationPublicRoomsAfter(ctx: Context, oid: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'organizationPublicRooms', oid], after);
     }
-    async rangeFromOrganizationPublicRoomsAfter(oid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(['__indexes', 'organizationPublicRooms', oid], after, limit, reversed);
+    async rangeFromOrganizationPublicRoomsAfter(ctx: Context, oid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'organizationPublicRooms', oid], after, limit, reversed);
     }
-    async rangeFromOrganizationPublicRooms(oid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'organizationPublicRooms', oid], limit, reversed);
+    async rangeFromOrganizationPublicRooms(ctx: Context, oid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'organizationPublicRooms', oid], limit, reversed);
     }
-    async rangeFromOrganizationPublicRoomsWithCursor(oid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'organizationPublicRooms', oid], limit, after, reversed);
+    async rangeFromOrganizationPublicRoomsWithCursor(ctx: Context, oid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'organizationPublicRooms', oid], limit, after, reversed);
     }
-    async allFromOrganizationPublicRooms(oid: number) {
-        return await this._findAll(['__indexes', 'organizationPublicRooms', oid]);
+    async allFromOrganizationPublicRooms(ctx: Context, oid: number) {
+        return await this._findAll(ctx, ['__indexes', 'organizationPublicRooms', oid]);
     }
-    createOrganizationPublicRoomsStream(oid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'conversationRoom', '__indexes', 'organizationPublicRooms', oid], limit, after); 
+    createOrganizationPublicRoomsStream(ctx: Context, oid: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'conversationRoom', '__indexes', 'organizationPublicRooms', oid], limit, after); 
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new ConversationRoom(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConversationRoom');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new ConversationRoom(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConversationRoom');
     }
 }
 export interface RoomProfileShape {
@@ -3489,17 +3490,17 @@ export class RoomProfileFactory extends FEntityFactory<RoomProfile> {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
-    async findById(id: number) {
-        return await this._findById([id]);
+    async findById(ctx: Context, id: number) {
+        return await this._findById(ctx, [id]);
     }
-    async create(id: number, shape: RoomProfileShape) {
-        return await this._create([id], { id, ...shape });
+    async create(ctx: Context, id: number, shape: RoomProfileShape) {
+        return await this._create(ctx, [id], { id, ...shape });
     }
-    watch(id: number, cb: () => void) {
-        return this._watch([id], cb);
+    watch(ctx: Context, id: number, cb: () => void) {
+        return this._watch(ctx, [id], cb);
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new RoomProfile(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'RoomProfile');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new RoomProfile(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'RoomProfile');
     }
 }
 export interface RoomParticipantShape {
@@ -3586,80 +3587,80 @@ export class RoomParticipantFactory extends FEntityFactory<RoomParticipant> {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
         return { 'cid': rawId[0], 'uid': rawId[1] };
     }
-    async findById(cid: number, uid: number) {
-        return await this._findById([cid, uid]);
+    async findById(ctx: Context, cid: number, uid: number) {
+        return await this._findById(ctx, [cid, uid]);
     }
-    async create(cid: number, uid: number, shape: RoomParticipantShape) {
-        return await this._create([cid, uid], { cid, uid, ...shape });
+    async create(ctx: Context, cid: number, uid: number, shape: RoomParticipantShape) {
+        return await this._create(ctx, [cid, uid], { cid, uid, ...shape });
     }
-    watch(cid: number, uid: number, cb: () => void) {
-        return this._watch([cid, uid], cb);
+    watch(ctx: Context, cid: number, uid: number, cb: () => void) {
+        return this._watch(ctx, [cid, uid], cb);
     }
-    async findFromActive(cid: number, uid: number) {
-        return await this._findFromIndex(['__indexes', 'active', cid, uid]);
+    async findFromActive(ctx: Context, cid: number, uid: number) {
+        return await this._findFromIndex(ctx, ['__indexes', 'active', cid, uid]);
     }
-    async allFromActiveAfter(cid: number, after: number) {
-        return await this._findRangeAllAfter(['__indexes', 'active', cid], after);
+    async allFromActiveAfter(ctx: Context, cid: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'active', cid], after);
     }
-    async rangeFromActiveAfter(cid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(['__indexes', 'active', cid], after, limit, reversed);
+    async rangeFromActiveAfter(ctx: Context, cid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'active', cid], after, limit, reversed);
     }
-    async rangeFromActive(cid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'active', cid], limit, reversed);
+    async rangeFromActive(ctx: Context, cid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'active', cid], limit, reversed);
     }
-    async rangeFromActiveWithCursor(cid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'active', cid], limit, after, reversed);
+    async rangeFromActiveWithCursor(ctx: Context, cid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'active', cid], limit, after, reversed);
     }
-    async allFromActive(cid: number) {
-        return await this._findAll(['__indexes', 'active', cid]);
+    async allFromActive(ctx: Context, cid: number) {
+        return await this._findAll(ctx, ['__indexes', 'active', cid]);
     }
-    createActiveStream(cid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'roomParticipant', '__indexes', 'active', cid], limit, after); 
+    createActiveStream(ctx: Context, cid: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'roomParticipant', '__indexes', 'active', cid], limit, after); 
     }
-    async findFromRequests(cid: number, uid: number) {
-        return await this._findFromIndex(['__indexes', 'requests', cid, uid]);
+    async findFromRequests(ctx: Context, cid: number, uid: number) {
+        return await this._findFromIndex(ctx, ['__indexes', 'requests', cid, uid]);
     }
-    async allFromRequestsAfter(cid: number, after: number) {
-        return await this._findRangeAllAfter(['__indexes', 'requests', cid], after);
+    async allFromRequestsAfter(ctx: Context, cid: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'requests', cid], after);
     }
-    async rangeFromRequestsAfter(cid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(['__indexes', 'requests', cid], after, limit, reversed);
+    async rangeFromRequestsAfter(ctx: Context, cid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'requests', cid], after, limit, reversed);
     }
-    async rangeFromRequests(cid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'requests', cid], limit, reversed);
+    async rangeFromRequests(ctx: Context, cid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'requests', cid], limit, reversed);
     }
-    async rangeFromRequestsWithCursor(cid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'requests', cid], limit, after, reversed);
+    async rangeFromRequestsWithCursor(ctx: Context, cid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'requests', cid], limit, after, reversed);
     }
-    async allFromRequests(cid: number) {
-        return await this._findAll(['__indexes', 'requests', cid]);
+    async allFromRequests(ctx: Context, cid: number) {
+        return await this._findAll(ctx, ['__indexes', 'requests', cid]);
     }
-    createRequestsStream(cid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'roomParticipant', '__indexes', 'requests', cid], limit, after); 
+    createRequestsStream(ctx: Context, cid: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'roomParticipant', '__indexes', 'requests', cid], limit, after); 
     }
-    async findFromUserActive(uid: number, cid: number) {
-        return await this._findFromIndex(['__indexes', 'userActive', uid, cid]);
+    async findFromUserActive(ctx: Context, uid: number, cid: number) {
+        return await this._findFromIndex(ctx, ['__indexes', 'userActive', uid, cid]);
     }
-    async allFromUserActiveAfter(uid: number, after: number) {
-        return await this._findRangeAllAfter(['__indexes', 'userActive', uid], after);
+    async allFromUserActiveAfter(ctx: Context, uid: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'userActive', uid], after);
     }
-    async rangeFromUserActiveAfter(uid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(['__indexes', 'userActive', uid], after, limit, reversed);
+    async rangeFromUserActiveAfter(ctx: Context, uid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'userActive', uid], after, limit, reversed);
     }
-    async rangeFromUserActive(uid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'userActive', uid], limit, reversed);
+    async rangeFromUserActive(ctx: Context, uid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'userActive', uid], limit, reversed);
     }
-    async rangeFromUserActiveWithCursor(uid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'userActive', uid], limit, after, reversed);
+    async rangeFromUserActiveWithCursor(ctx: Context, uid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'userActive', uid], limit, after, reversed);
     }
-    async allFromUserActive(uid: number) {
-        return await this._findAll(['__indexes', 'userActive', uid]);
+    async allFromUserActive(ctx: Context, uid: number) {
+        return await this._findAll(ctx, ['__indexes', 'userActive', uid]);
     }
-    createUserActiveStream(uid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'roomParticipant', '__indexes', 'userActive', uid], limit, after); 
+    createUserActiveStream(ctx: Context, uid: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'roomParticipant', '__indexes', 'userActive', uid], limit, after); 
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new RoomParticipant(this.connection, this.namespace, this.directory, [value.cid, value.uid], value, this.options, isNew, this.indexes, 'RoomParticipant');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new RoomParticipant(ctx, this.connection, this.namespace, this.directory, [value.cid, value.uid], value, this.options, isNew, this.indexes, 'RoomParticipant');
     }
 }
 export interface ConversationReceiverShape {
@@ -3718,38 +3719,38 @@ export class ConversationReceiverFactory extends FEntityFactory<ConversationRece
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
         return { 'cid': rawId[0], 'uid': rawId[1] };
     }
-    async findById(cid: number, uid: number) {
-        return await this._findById([cid, uid]);
+    async findById(ctx: Context, cid: number, uid: number) {
+        return await this._findById(ctx, [cid, uid]);
     }
-    async create(cid: number, uid: number, shape: ConversationReceiverShape) {
-        return await this._create([cid, uid], { cid, uid, ...shape });
+    async create(ctx: Context, cid: number, uid: number, shape: ConversationReceiverShape) {
+        return await this._create(ctx, [cid, uid], { cid, uid, ...shape });
     }
-    watch(cid: number, uid: number, cb: () => void) {
-        return this._watch([cid, uid], cb);
+    watch(ctx: Context, cid: number, uid: number, cb: () => void) {
+        return this._watch(ctx, [cid, uid], cb);
     }
-    async findFromConversation(cid: number, uid: number) {
-        return await this._findFromIndex(['__indexes', 'conversation', cid, uid]);
+    async findFromConversation(ctx: Context, cid: number, uid: number) {
+        return await this._findFromIndex(ctx, ['__indexes', 'conversation', cid, uid]);
     }
-    async allFromConversationAfter(cid: number, after: number) {
-        return await this._findRangeAllAfter(['__indexes', 'conversation', cid], after);
+    async allFromConversationAfter(ctx: Context, cid: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'conversation', cid], after);
     }
-    async rangeFromConversationAfter(cid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(['__indexes', 'conversation', cid], after, limit, reversed);
+    async rangeFromConversationAfter(ctx: Context, cid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'conversation', cid], after, limit, reversed);
     }
-    async rangeFromConversation(cid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'conversation', cid], limit, reversed);
+    async rangeFromConversation(ctx: Context, cid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'conversation', cid], limit, reversed);
     }
-    async rangeFromConversationWithCursor(cid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'conversation', cid], limit, after, reversed);
+    async rangeFromConversationWithCursor(ctx: Context, cid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'conversation', cid], limit, after, reversed);
     }
-    async allFromConversation(cid: number) {
-        return await this._findAll(['__indexes', 'conversation', cid]);
+    async allFromConversation(ctx: Context, cid: number) {
+        return await this._findAll(ctx, ['__indexes', 'conversation', cid]);
     }
-    createConversationStream(cid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'conversationReceiver', '__indexes', 'conversation', cid], limit, after); 
+    createConversationStream(ctx: Context, cid: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'conversationReceiver', '__indexes', 'conversation', cid], limit, after); 
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new ConversationReceiver(this.connection, this.namespace, this.directory, [value.cid, value.uid], value, this.options, isNew, this.indexes, 'ConversationReceiver');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new ConversationReceiver(ctx, this.connection, this.namespace, this.directory, [value.cid, value.uid], value, this.options, isNew, this.indexes, 'ConversationReceiver');
     }
 }
 export interface SequenceShape {
@@ -3803,17 +3804,17 @@ export class SequenceFactory extends FEntityFactory<Sequence> {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'sequence': rawId[0] };
     }
-    async findById(sequence: string) {
-        return await this._findById([sequence]);
+    async findById(ctx: Context, sequence: string) {
+        return await this._findById(ctx, [sequence]);
     }
-    async create(sequence: string, shape: SequenceShape) {
-        return await this._create([sequence], { sequence, ...shape });
+    async create(ctx: Context, sequence: string, shape: SequenceShape) {
+        return await this._create(ctx, [sequence], { sequence, ...shape });
     }
-    watch(sequence: string, cb: () => void) {
-        return this._watch([sequence], cb);
+    watch(ctx: Context, sequence: string, cb: () => void) {
+        return this._watch(ctx, [sequence], cb);
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new Sequence(this.connection, this.namespace, this.directory, [value.sequence], value, this.options, isNew, this.indexes, 'Sequence');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new Sequence(ctx, this.connection, this.namespace, this.directory, [value.sequence], value, this.options, isNew, this.indexes, 'Sequence');
     }
 }
 export interface MessageShape {
@@ -4069,35 +4070,35 @@ export class MessageFactory extends FEntityFactory<Message> {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
-    async findById(id: number) {
-        return await this._findById([id]);
+    async findById(ctx: Context, id: number) {
+        return await this._findById(ctx, [id]);
     }
-    async create(id: number, shape: MessageShape) {
-        return await this._create([id], { id, ...shape });
+    async create(ctx: Context, id: number, shape: MessageShape) {
+        return await this._create(ctx, [id], { id, ...shape });
     }
-    watch(id: number, cb: () => void) {
-        return this._watch([id], cb);
+    watch(ctx: Context, id: number, cb: () => void) {
+        return this._watch(ctx, [id], cb);
     }
-    async allFromChatAfter(cid: number, after: number) {
-        return await this._findRangeAllAfter(['__indexes', 'chat', cid], after);
+    async allFromChatAfter(ctx: Context, cid: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'chat', cid], after);
     }
-    async rangeFromChatAfter(cid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(['__indexes', 'chat', cid], after, limit, reversed);
+    async rangeFromChatAfter(ctx: Context, cid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'chat', cid], after, limit, reversed);
     }
-    async rangeFromChat(cid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'chat', cid], limit, reversed);
+    async rangeFromChat(ctx: Context, cid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'chat', cid], limit, reversed);
     }
-    async rangeFromChatWithCursor(cid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'chat', cid], limit, after, reversed);
+    async rangeFromChatWithCursor(ctx: Context, cid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'chat', cid], limit, after, reversed);
     }
-    async allFromChat(cid: number) {
-        return await this._findAll(['__indexes', 'chat', cid]);
+    async allFromChat(ctx: Context, cid: number) {
+        return await this._findAll(ctx, ['__indexes', 'chat', cid]);
     }
-    createChatStream(cid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'message', '__indexes', 'chat', cid], limit, after); 
+    createChatStream(ctx: Context, cid: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'message', '__indexes', 'chat', cid], limit, after); 
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new Message(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Message');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new Message(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Message');
     }
 }
 export interface ConversationSeqShape {
@@ -4151,17 +4152,17 @@ export class ConversationSeqFactory extends FEntityFactory<ConversationSeq> {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'cid': rawId[0] };
     }
-    async findById(cid: number) {
-        return await this._findById([cid]);
+    async findById(ctx: Context, cid: number) {
+        return await this._findById(ctx, [cid]);
     }
-    async create(cid: number, shape: ConversationSeqShape) {
-        return await this._create([cid], { cid, ...shape });
+    async create(ctx: Context, cid: number, shape: ConversationSeqShape) {
+        return await this._create(ctx, [cid], { cid, ...shape });
     }
-    watch(cid: number, cb: () => void) {
-        return this._watch([cid], cb);
+    watch(ctx: Context, cid: number, cb: () => void) {
+        return this._watch(ctx, [cid], cb);
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new ConversationSeq(this.connection, this.namespace, this.directory, [value.cid], value, this.options, isNew, this.indexes, 'ConversationSeq');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new ConversationSeq(ctx, this.connection, this.namespace, this.directory, [value.cid], value, this.options, isNew, this.indexes, 'ConversationSeq');
     }
 }
 export interface ConversationEventShape {
@@ -4248,38 +4249,38 @@ export class ConversationEventFactory extends FEntityFactory<ConversationEvent> 
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
         return { 'cid': rawId[0], 'seq': rawId[1] };
     }
-    async findById(cid: number, seq: number) {
-        return await this._findById([cid, seq]);
+    async findById(ctx: Context, cid: number, seq: number) {
+        return await this._findById(ctx, [cid, seq]);
     }
-    async create(cid: number, seq: number, shape: ConversationEventShape) {
-        return await this._create([cid, seq], { cid, seq, ...shape });
+    async create(ctx: Context, cid: number, seq: number, shape: ConversationEventShape) {
+        return await this._create(ctx, [cid, seq], { cid, seq, ...shape });
     }
-    watch(cid: number, seq: number, cb: () => void) {
-        return this._watch([cid, seq], cb);
+    watch(ctx: Context, cid: number, seq: number, cb: () => void) {
+        return this._watch(ctx, [cid, seq], cb);
     }
-    async allFromUserAfter(cid: number, after: number) {
-        return await this._findRangeAllAfter(['__indexes', 'user', cid], after);
+    async allFromUserAfter(ctx: Context, cid: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'user', cid], after);
     }
-    async rangeFromUserAfter(cid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(['__indexes', 'user', cid], after, limit, reversed);
+    async rangeFromUserAfter(ctx: Context, cid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'user', cid], after, limit, reversed);
     }
-    async rangeFromUser(cid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'user', cid], limit, reversed);
+    async rangeFromUser(ctx: Context, cid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'user', cid], limit, reversed);
     }
-    async rangeFromUserWithCursor(cid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'user', cid], limit, after, reversed);
+    async rangeFromUserWithCursor(ctx: Context, cid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'user', cid], limit, after, reversed);
     }
-    async allFromUser(cid: number) {
-        return await this._findAll(['__indexes', 'user', cid]);
+    async allFromUser(ctx: Context, cid: number) {
+        return await this._findAll(ctx, ['__indexes', 'user', cid]);
     }
-    createUserStream(cid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'conversationEvent', '__indexes', 'user', cid], limit, after); 
+    createUserStream(ctx: Context, cid: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'conversationEvent', '__indexes', 'user', cid], limit, after); 
     }
-    createUserLiveStream(cid: number, limit: number, after?: string) {
-        return this._createLiveStream(['entity', 'conversationEvent', '__indexes', 'user', cid], limit, after); 
+    createUserLiveStream(ctx: Context, cid: number, limit: number, after?: string) {
+        return this._createLiveStream(ctx, ['entity', 'conversationEvent', '__indexes', 'user', cid], limit, after); 
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new ConversationEvent(this.connection, this.namespace, this.directory, [value.cid, value.seq], value, this.options, isNew, this.indexes, 'ConversationEvent');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new ConversationEvent(ctx, this.connection, this.namespace, this.directory, [value.cid, value.seq], value, this.options, isNew, this.indexes, 'ConversationEvent');
     }
 }
 export interface UserDialogShape {
@@ -4395,68 +4396,68 @@ export class UserDialogFactory extends FEntityFactory<UserDialog> {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
         return { 'uid': rawId[0], 'cid': rawId[1] };
     }
-    async findById(uid: number, cid: number) {
-        return await this._findById([uid, cid]);
+    async findById(ctx: Context, uid: number, cid: number) {
+        return await this._findById(ctx, [uid, cid]);
     }
-    async create(uid: number, cid: number, shape: UserDialogShape) {
-        return await this._create([uid, cid], { uid, cid, ...shape });
+    async create(ctx: Context, uid: number, cid: number, shape: UserDialogShape) {
+        return await this._create(ctx, [uid, cid], { uid, cid, ...shape });
     }
-    watch(uid: number, cid: number, cb: () => void) {
-        return this._watch([uid, cid], cb);
+    watch(ctx: Context, uid: number, cid: number, cb: () => void) {
+        return this._watch(ctx, [uid, cid], cb);
     }
-    async allFromUserAfter(uid: number, after: number) {
-        return await this._findRangeAllAfter(['__indexes', 'user', uid], after);
+    async allFromUserAfter(ctx: Context, uid: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'user', uid], after);
     }
-    async rangeFromUserAfter(uid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(['__indexes', 'user', uid], after, limit, reversed);
+    async rangeFromUserAfter(ctx: Context, uid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'user', uid], after, limit, reversed);
     }
-    async rangeFromUser(uid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'user', uid], limit, reversed);
+    async rangeFromUser(ctx: Context, uid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'user', uid], limit, reversed);
     }
-    async rangeFromUserWithCursor(uid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'user', uid], limit, after, reversed);
+    async rangeFromUserWithCursor(ctx: Context, uid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'user', uid], limit, after, reversed);
     }
-    async allFromUser(uid: number) {
-        return await this._findAll(['__indexes', 'user', uid]);
+    async allFromUser(ctx: Context, uid: number) {
+        return await this._findAll(ctx, ['__indexes', 'user', uid]);
     }
-    createUserStream(uid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'userDialog', '__indexes', 'user', uid], limit, after); 
+    createUserStream(ctx: Context, uid: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'userDialog', '__indexes', 'user', uid], limit, after); 
     }
-    async findFromConversation(cid: number, uid: number) {
-        return await this._findFromIndex(['__indexes', 'conversation', cid, uid]);
+    async findFromConversation(ctx: Context, cid: number, uid: number) {
+        return await this._findFromIndex(ctx, ['__indexes', 'conversation', cid, uid]);
     }
-    async allFromConversationAfter(cid: number, after: number) {
-        return await this._findRangeAllAfter(['__indexes', 'conversation', cid], after);
+    async allFromConversationAfter(ctx: Context, cid: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'conversation', cid], after);
     }
-    async rangeFromConversationAfter(cid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(['__indexes', 'conversation', cid], after, limit, reversed);
+    async rangeFromConversationAfter(ctx: Context, cid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'conversation', cid], after, limit, reversed);
     }
-    async rangeFromConversation(cid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'conversation', cid], limit, reversed);
+    async rangeFromConversation(ctx: Context, cid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'conversation', cid], limit, reversed);
     }
-    async rangeFromConversationWithCursor(cid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'conversation', cid], limit, after, reversed);
+    async rangeFromConversationWithCursor(ctx: Context, cid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'conversation', cid], limit, after, reversed);
     }
-    async allFromConversation(cid: number) {
-        return await this._findAll(['__indexes', 'conversation', cid]);
+    async allFromConversation(ctx: Context, cid: number) {
+        return await this._findAll(ctx, ['__indexes', 'conversation', cid]);
     }
-    createConversationStream(cid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'userDialog', '__indexes', 'conversation', cid], limit, after); 
+    createConversationStream(ctx: Context, cid: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'userDialog', '__indexes', 'conversation', cid], limit, after); 
     }
-    async rangeFromUpdated(limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'updated'], limit, reversed);
+    async rangeFromUpdated(ctx: Context, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'updated'], limit, reversed);
     }
-    async rangeFromUpdatedWithCursor(limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'updated'], limit, after, reversed);
+    async rangeFromUpdatedWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'updated'], limit, after, reversed);
     }
-    async allFromUpdated() {
-        return await this._findAll(['__indexes', 'updated']);
+    async allFromUpdated(ctx: Context, ) {
+        return await this._findAll(ctx, ['__indexes', 'updated']);
     }
-    createUpdatedStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'userDialog', '__indexes', 'updated'], limit, after); 
+    createUpdatedStream(ctx: Context, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'userDialog', '__indexes', 'updated'], limit, after); 
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new UserDialog(this.connection, this.namespace, this.directory, [value.uid, value.cid], value, this.options, isNew, this.indexes, 'UserDialog');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new UserDialog(ctx, this.connection, this.namespace, this.directory, [value.uid, value.cid], value, this.options, isNew, this.indexes, 'UserDialog');
     }
 }
 export interface UserDialogHandledMessageShape {
@@ -4505,17 +4506,17 @@ export class UserDialogHandledMessageFactory extends FEntityFactory<UserDialogHa
         if (rawId.length !== 3) { throw Error('Invalid key length!'); }
         return { 'uid': rawId[0], 'cid': rawId[1], 'mid': rawId[2] };
     }
-    async findById(uid: number, cid: number, mid: number) {
-        return await this._findById([uid, cid, mid]);
+    async findById(ctx: Context, uid: number, cid: number, mid: number) {
+        return await this._findById(ctx, [uid, cid, mid]);
     }
-    async create(uid: number, cid: number, mid: number, shape: UserDialogHandledMessageShape) {
-        return await this._create([uid, cid, mid], { uid, cid, mid, ...shape });
+    async create(ctx: Context, uid: number, cid: number, mid: number, shape: UserDialogHandledMessageShape) {
+        return await this._create(ctx, [uid, cid, mid], { uid, cid, mid, ...shape });
     }
-    watch(uid: number, cid: number, mid: number, cb: () => void) {
-        return this._watch([uid, cid, mid], cb);
+    watch(ctx: Context, uid: number, cid: number, mid: number, cb: () => void) {
+        return this._watch(ctx, [uid, cid, mid], cb);
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new UserDialogHandledMessage(this.connection, this.namespace, this.directory, [value.uid, value.cid, value.mid], value, this.options, isNew, this.indexes, 'UserDialogHandledMessage');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new UserDialogHandledMessage(ctx, this.connection, this.namespace, this.directory, [value.uid, value.cid, value.mid], value, this.options, isNew, this.indexes, 'UserDialogHandledMessage');
     }
 }
 export interface UserDialogSettingsShape {
@@ -4573,17 +4574,17 @@ export class UserDialogSettingsFactory extends FEntityFactory<UserDialogSettings
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
         return { 'uid': rawId[0], 'cid': rawId[1] };
     }
-    async findById(uid: number, cid: number) {
-        return await this._findById([uid, cid]);
+    async findById(ctx: Context, uid: number, cid: number) {
+        return await this._findById(ctx, [uid, cid]);
     }
-    async create(uid: number, cid: number, shape: UserDialogSettingsShape) {
-        return await this._create([uid, cid], { uid, cid, ...shape });
+    async create(ctx: Context, uid: number, cid: number, shape: UserDialogSettingsShape) {
+        return await this._create(ctx, [uid, cid], { uid, cid, ...shape });
     }
-    watch(uid: number, cid: number, cb: () => void) {
-        return this._watch([uid, cid], cb);
+    watch(ctx: Context, uid: number, cid: number, cb: () => void) {
+        return this._watch(ctx, [uid, cid], cb);
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new UserDialogSettings(this.connection, this.namespace, this.directory, [value.uid, value.cid], value, this.options, isNew, this.indexes, 'UserDialogSettings');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new UserDialogSettings(ctx, this.connection, this.namespace, this.directory, [value.uid, value.cid], value, this.options, isNew, this.indexes, 'UserDialogSettings');
     }
 }
 export interface UserDialogEventShape {
@@ -4712,38 +4713,38 @@ export class UserDialogEventFactory extends FEntityFactory<UserDialogEvent> {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
         return { 'uid': rawId[0], 'seq': rawId[1] };
     }
-    async findById(uid: number, seq: number) {
-        return await this._findById([uid, seq]);
+    async findById(ctx: Context, uid: number, seq: number) {
+        return await this._findById(ctx, [uid, seq]);
     }
-    async create(uid: number, seq: number, shape: UserDialogEventShape) {
-        return await this._create([uid, seq], { uid, seq, ...shape });
+    async create(ctx: Context, uid: number, seq: number, shape: UserDialogEventShape) {
+        return await this._create(ctx, [uid, seq], { uid, seq, ...shape });
     }
-    watch(uid: number, seq: number, cb: () => void) {
-        return this._watch([uid, seq], cb);
+    watch(ctx: Context, uid: number, seq: number, cb: () => void) {
+        return this._watch(ctx, [uid, seq], cb);
     }
-    async allFromUserAfter(uid: number, after: number) {
-        return await this._findRangeAllAfter(['__indexes', 'user', uid], after);
+    async allFromUserAfter(ctx: Context, uid: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'user', uid], after);
     }
-    async rangeFromUserAfter(uid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(['__indexes', 'user', uid], after, limit, reversed);
+    async rangeFromUserAfter(ctx: Context, uid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'user', uid], after, limit, reversed);
     }
-    async rangeFromUser(uid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'user', uid], limit, reversed);
+    async rangeFromUser(ctx: Context, uid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'user', uid], limit, reversed);
     }
-    async rangeFromUserWithCursor(uid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'user', uid], limit, after, reversed);
+    async rangeFromUserWithCursor(ctx: Context, uid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'user', uid], limit, after, reversed);
     }
-    async allFromUser(uid: number) {
-        return await this._findAll(['__indexes', 'user', uid]);
+    async allFromUser(ctx: Context, uid: number) {
+        return await this._findAll(ctx, ['__indexes', 'user', uid]);
     }
-    createUserStream(uid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'userDialogEvent', '__indexes', 'user', uid], limit, after); 
+    createUserStream(ctx: Context, uid: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'userDialogEvent', '__indexes', 'user', uid], limit, after); 
     }
-    createUserLiveStream(uid: number, limit: number, after?: string) {
-        return this._createLiveStream(['entity', 'userDialogEvent', '__indexes', 'user', uid], limit, after); 
+    createUserLiveStream(ctx: Context, uid: number, limit: number, after?: string) {
+        return this._createLiveStream(ctx, ['entity', 'userDialogEvent', '__indexes', 'user', uid], limit, after); 
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new UserDialogEvent(this.connection, this.namespace, this.directory, [value.uid, value.seq], value, this.options, isNew, this.indexes, 'UserDialogEvent');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new UserDialogEvent(ctx, this.connection, this.namespace, this.directory, [value.uid, value.seq], value, this.options, isNew, this.indexes, 'UserDialogEvent');
     }
 }
 export interface UserMessagingStateShape {
@@ -4811,29 +4812,29 @@ export class UserMessagingStateFactory extends FEntityFactory<UserMessagingState
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'uid': rawId[0] };
     }
-    async findById(uid: number) {
-        return await this._findById([uid]);
+    async findById(ctx: Context, uid: number) {
+        return await this._findById(ctx, [uid]);
     }
-    async create(uid: number, shape: UserMessagingStateShape) {
-        return await this._create([uid], { uid, ...shape });
+    async create(ctx: Context, uid: number, shape: UserMessagingStateShape) {
+        return await this._create(ctx, [uid], { uid, ...shape });
     }
-    watch(uid: number, cb: () => void) {
-        return this._watch([uid], cb);
+    watch(ctx: Context, uid: number, cb: () => void) {
+        return this._watch(ctx, [uid], cb);
     }
-    async rangeFromHasUnread(limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'hasUnread'], limit, reversed);
+    async rangeFromHasUnread(ctx: Context, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'hasUnread'], limit, reversed);
     }
-    async rangeFromHasUnreadWithCursor(limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'hasUnread'], limit, after, reversed);
+    async rangeFromHasUnreadWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'hasUnread'], limit, after, reversed);
     }
-    async allFromHasUnread() {
-        return await this._findAll(['__indexes', 'hasUnread']);
+    async allFromHasUnread(ctx: Context, ) {
+        return await this._findAll(ctx, ['__indexes', 'hasUnread']);
     }
-    createHasUnreadStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'userMessagingState', '__indexes', 'hasUnread'], limit, after); 
+    createHasUnreadStream(ctx: Context, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'userMessagingState', '__indexes', 'hasUnread'], limit, after); 
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new UserMessagingState(this.connection, this.namespace, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'UserMessagingState');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new UserMessagingState(ctx, this.connection, this.namespace, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'UserMessagingState');
     }
 }
 export interface UserNotificationsStateShape {
@@ -4944,17 +4945,17 @@ export class UserNotificationsStateFactory extends FEntityFactory<UserNotificati
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'uid': rawId[0] };
     }
-    async findById(uid: number) {
-        return await this._findById([uid]);
+    async findById(ctx: Context, uid: number) {
+        return await this._findById(ctx, [uid]);
     }
-    async create(uid: number, shape: UserNotificationsStateShape) {
-        return await this._create([uid], { uid, ...shape });
+    async create(ctx: Context, uid: number, shape: UserNotificationsStateShape) {
+        return await this._create(ctx, [uid], { uid, ...shape });
     }
-    watch(uid: number, cb: () => void) {
-        return this._watch([uid], cb);
+    watch(ctx: Context, uid: number, cb: () => void) {
+        return this._watch(ctx, [uid], cb);
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new UserNotificationsState(this.connection, this.namespace, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'UserNotificationsState');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new UserNotificationsState(ctx, this.connection, this.namespace, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'UserNotificationsState');
     }
 }
 export interface HyperLogShape {
@@ -5034,29 +5035,29 @@ export class HyperLogFactory extends FEntityFactory<HyperLog> {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
-    async findById(id: string) {
-        return await this._findById([id]);
+    async findById(ctx: Context, id: string) {
+        return await this._findById(ctx, [id]);
     }
-    async create(id: string, shape: HyperLogShape) {
-        return await this._create([id], { id, ...shape });
+    async create(ctx: Context, id: string, shape: HyperLogShape) {
+        return await this._create(ctx, [id], { id, ...shape });
     }
-    watch(id: string, cb: () => void) {
-        return this._watch([id], cb);
+    watch(ctx: Context, id: string, cb: () => void) {
+        return this._watch(ctx, [id], cb);
     }
-    async rangeFromCreated(limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'created'], limit, reversed);
+    async rangeFromCreated(ctx: Context, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'created'], limit, reversed);
     }
-    async rangeFromCreatedWithCursor(limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'created'], limit, after, reversed);
+    async rangeFromCreatedWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'created'], limit, after, reversed);
     }
-    async allFromCreated() {
-        return await this._findAll(['__indexes', 'created']);
+    async allFromCreated(ctx: Context, ) {
+        return await this._findAll(ctx, ['__indexes', 'created']);
     }
-    createCreatedStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'hyperLog', '__indexes', 'created'], limit, after); 
+    createCreatedStream(ctx: Context, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'hyperLog', '__indexes', 'created'], limit, after); 
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new HyperLog(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'HyperLog');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new HyperLog(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'HyperLog');
     }
 }
 export interface MessageDraftShape {
@@ -5114,17 +5115,17 @@ export class MessageDraftFactory extends FEntityFactory<MessageDraft> {
         if (rawId.length !== 2) { throw Error('Invalid key length!'); }
         return { 'uid': rawId[0], 'cid': rawId[1] };
     }
-    async findById(uid: number, cid: number) {
-        return await this._findById([uid, cid]);
+    async findById(ctx: Context, uid: number, cid: number) {
+        return await this._findById(ctx, [uid, cid]);
     }
-    async create(uid: number, cid: number, shape: MessageDraftShape) {
-        return await this._create([uid, cid], { uid, cid, ...shape });
+    async create(ctx: Context, uid: number, cid: number, shape: MessageDraftShape) {
+        return await this._create(ctx, [uid, cid], { uid, cid, ...shape });
     }
-    watch(uid: number, cid: number, cb: () => void) {
-        return this._watch([uid, cid], cb);
+    watch(ctx: Context, uid: number, cid: number, cb: () => void) {
+        return this._watch(ctx, [uid, cid], cb);
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new MessageDraft(this.connection, this.namespace, this.directory, [value.uid, value.cid], value, this.options, isNew, this.indexes, 'MessageDraft');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new MessageDraft(ctx, this.connection, this.namespace, this.directory, [value.uid, value.cid], value, this.options, isNew, this.indexes, 'MessageDraft');
     }
 }
 export interface ChannelInvitationShape {
@@ -5274,35 +5275,35 @@ export class ChannelInvitationFactory extends FEntityFactory<ChannelInvitation> 
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
-    async findById(id: string) {
-        return await this._findById([id]);
+    async findById(ctx: Context, id: string) {
+        return await this._findById(ctx, [id]);
     }
-    async create(id: string, shape: ChannelInvitationShape) {
-        return await this._create([id], { id, ...shape });
+    async create(ctx: Context, id: string, shape: ChannelInvitationShape) {
+        return await this._create(ctx, [id], { id, ...shape });
     }
-    watch(id: string, cb: () => void) {
-        return this._watch([id], cb);
+    watch(ctx: Context, id: string, cb: () => void) {
+        return this._watch(ctx, [id], cb);
     }
-    async allFromChannelAfter(createdAt: number, after: number) {
-        return await this._findRangeAllAfter(['__indexes', 'channel', createdAt], after);
+    async allFromChannelAfter(ctx: Context, createdAt: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'channel', createdAt], after);
     }
-    async rangeFromChannelAfter(createdAt: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(['__indexes', 'channel', createdAt], after, limit, reversed);
+    async rangeFromChannelAfter(ctx: Context, createdAt: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'channel', createdAt], after, limit, reversed);
     }
-    async rangeFromChannel(createdAt: number, limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'channel', createdAt], limit, reversed);
+    async rangeFromChannel(ctx: Context, createdAt: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'channel', createdAt], limit, reversed);
     }
-    async rangeFromChannelWithCursor(createdAt: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'channel', createdAt], limit, after, reversed);
+    async rangeFromChannelWithCursor(ctx: Context, createdAt: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'channel', createdAt], limit, after, reversed);
     }
-    async allFromChannel(createdAt: number) {
-        return await this._findAll(['__indexes', 'channel', createdAt]);
+    async allFromChannel(ctx: Context, createdAt: number) {
+        return await this._findAll(ctx, ['__indexes', 'channel', createdAt]);
     }
-    createChannelStream(createdAt: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'channelInvitation', '__indexes', 'channel', createdAt], limit, after); 
+    createChannelStream(ctx: Context, createdAt: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'channelInvitation', '__indexes', 'channel', createdAt], limit, after); 
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new ChannelInvitation(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ChannelInvitation');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new ChannelInvitation(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ChannelInvitation');
     }
 }
 export interface ChannelLinkShape {
@@ -5383,35 +5384,35 @@ export class ChannelLinkFactory extends FEntityFactory<ChannelLink> {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
-    async findById(id: string) {
-        return await this._findById([id]);
+    async findById(ctx: Context, id: string) {
+        return await this._findById(ctx, [id]);
     }
-    async create(id: string, shape: ChannelLinkShape) {
-        return await this._create([id], { id, ...shape });
+    async create(ctx: Context, id: string, shape: ChannelLinkShape) {
+        return await this._create(ctx, [id], { id, ...shape });
     }
-    watch(id: string, cb: () => void) {
-        return this._watch([id], cb);
+    watch(ctx: Context, id: string, cb: () => void) {
+        return this._watch(ctx, [id], cb);
     }
-    async allFromChannelAfter(createdAt: number, after: number) {
-        return await this._findRangeAllAfter(['__indexes', 'channel', createdAt], after);
+    async allFromChannelAfter(ctx: Context, createdAt: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'channel', createdAt], after);
     }
-    async rangeFromChannelAfter(createdAt: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(['__indexes', 'channel', createdAt], after, limit, reversed);
+    async rangeFromChannelAfter(ctx: Context, createdAt: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'channel', createdAt], after, limit, reversed);
     }
-    async rangeFromChannel(createdAt: number, limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'channel', createdAt], limit, reversed);
+    async rangeFromChannel(ctx: Context, createdAt: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'channel', createdAt], limit, reversed);
     }
-    async rangeFromChannelWithCursor(createdAt: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'channel', createdAt], limit, after, reversed);
+    async rangeFromChannelWithCursor(ctx: Context, createdAt: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'channel', createdAt], limit, after, reversed);
     }
-    async allFromChannel(createdAt: number) {
-        return await this._findAll(['__indexes', 'channel', createdAt]);
+    async allFromChannel(ctx: Context, createdAt: number) {
+        return await this._findAll(ctx, ['__indexes', 'channel', createdAt]);
     }
-    createChannelStream(createdAt: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'channelLink', '__indexes', 'channel', createdAt], limit, after); 
+    createChannelStream(ctx: Context, createdAt: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'channelLink', '__indexes', 'channel', createdAt], limit, after); 
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new ChannelLink(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ChannelLink');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new ChannelLink(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ChannelLink');
     }
 }
 export interface AppInviteLinkShape {
@@ -5466,32 +5467,32 @@ export class AppInviteLinkFactory extends FEntityFactory<AppInviteLink> {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
-    async findById(id: string) {
-        return await this._findById([id]);
+    async findById(ctx: Context, id: string) {
+        return await this._findById(ctx, [id]);
     }
-    async create(id: string, shape: AppInviteLinkShape) {
-        return await this._create([id], { id, ...shape });
+    async create(ctx: Context, id: string, shape: AppInviteLinkShape) {
+        return await this._create(ctx, [id], { id, ...shape });
     }
-    watch(id: string, cb: () => void) {
-        return this._watch([id], cb);
+    watch(ctx: Context, id: string, cb: () => void) {
+        return this._watch(ctx, [id], cb);
     }
-    async findFromUser(uid: number) {
-        return await this._findFromIndex(['__indexes', 'user', uid]);
+    async findFromUser(ctx: Context, uid: number) {
+        return await this._findFromIndex(ctx, ['__indexes', 'user', uid]);
     }
-    async rangeFromUser(limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'user'], limit, reversed);
+    async rangeFromUser(ctx: Context, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'user'], limit, reversed);
     }
-    async rangeFromUserWithCursor(limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'user'], limit, after, reversed);
+    async rangeFromUserWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'user'], limit, after, reversed);
     }
-    async allFromUser() {
-        return await this._findAll(['__indexes', 'user']);
+    async allFromUser(ctx: Context, ) {
+        return await this._findAll(ctx, ['__indexes', 'user']);
     }
-    createUserStream(limit: number, after?: string) {
-        return this._createStream(['entity', 'appInviteLink', '__indexes', 'user'], limit, after); 
+    createUserStream(ctx: Context, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'appInviteLink', '__indexes', 'user'], limit, after); 
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new AppInviteLink(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'AppInviteLink');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new AppInviteLink(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'AppInviteLink');
     }
 }
 export interface SampleEntityShape {
@@ -5545,17 +5546,17 @@ export class SampleEntityFactory extends FEntityFactory<SampleEntity> {
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
-    async findById(id: string) {
-        return await this._findById([id]);
+    async findById(ctx: Context, id: string) {
+        return await this._findById(ctx, [id]);
     }
-    async create(id: string, shape: SampleEntityShape) {
-        return await this._create([id], { id, ...shape });
+    async create(ctx: Context, id: string, shape: SampleEntityShape) {
+        return await this._create(ctx, [id], { id, ...shape });
     }
-    watch(id: string, cb: () => void) {
-        return this._watch([id], cb);
+    watch(ctx: Context, id: string, cb: () => void) {
+        return this._watch(ctx, [id], cb);
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new SampleEntity(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'SampleEntity');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new SampleEntity(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'SampleEntity');
     }
 }
 export interface OrganizationPublicInviteLinkShape {
@@ -5636,38 +5637,38 @@ export class OrganizationPublicInviteLinkFactory extends FEntityFactory<Organiza
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
-    async findById(id: string) {
-        return await this._findById([id]);
+    async findById(ctx: Context, id: string) {
+        return await this._findById(ctx, [id]);
     }
-    async create(id: string, shape: OrganizationPublicInviteLinkShape) {
-        return await this._create([id], { id, ...shape });
+    async create(ctx: Context, id: string, shape: OrganizationPublicInviteLinkShape) {
+        return await this._create(ctx, [id], { id, ...shape });
     }
-    watch(id: string, cb: () => void) {
-        return this._watch([id], cb);
+    watch(ctx: Context, id: string, cb: () => void) {
+        return this._watch(ctx, [id], cb);
     }
-    async findFromUserInOrganization(uid: number, oid: number) {
-        return await this._findFromIndex(['__indexes', 'userInOrganization', uid, oid]);
+    async findFromUserInOrganization(ctx: Context, uid: number, oid: number) {
+        return await this._findFromIndex(ctx, ['__indexes', 'userInOrganization', uid, oid]);
     }
-    async allFromUserInOrganizationAfter(uid: number, after: number) {
-        return await this._findRangeAllAfter(['__indexes', 'userInOrganization', uid], after);
+    async allFromUserInOrganizationAfter(ctx: Context, uid: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'userInOrganization', uid], after);
     }
-    async rangeFromUserInOrganizationAfter(uid: number, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(['__indexes', 'userInOrganization', uid], after, limit, reversed);
+    async rangeFromUserInOrganizationAfter(ctx: Context, uid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'userInOrganization', uid], after, limit, reversed);
     }
-    async rangeFromUserInOrganization(uid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'userInOrganization', uid], limit, reversed);
+    async rangeFromUserInOrganization(ctx: Context, uid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'userInOrganization', uid], limit, reversed);
     }
-    async rangeFromUserInOrganizationWithCursor(uid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'userInOrganization', uid], limit, after, reversed);
+    async rangeFromUserInOrganizationWithCursor(ctx: Context, uid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'userInOrganization', uid], limit, after, reversed);
     }
-    async allFromUserInOrganization(uid: number) {
-        return await this._findAll(['__indexes', 'userInOrganization', uid]);
+    async allFromUserInOrganization(ctx: Context, uid: number) {
+        return await this._findAll(ctx, ['__indexes', 'userInOrganization', uid]);
     }
-    createUserInOrganizationStream(uid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'organizationPublicInviteLink', '__indexes', 'userInOrganization', uid], limit, after); 
+    createUserInOrganizationStream(ctx: Context, uid: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'organizationPublicInviteLink', '__indexes', 'userInOrganization', uid], limit, after); 
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new OrganizationPublicInviteLink(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationPublicInviteLink');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new OrganizationPublicInviteLink(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationPublicInviteLink');
     }
 }
 export interface OrganizationInviteLinkShape {
@@ -5844,59 +5845,59 @@ export class OrganizationInviteLinkFactory extends FEntityFactory<OrganizationIn
         if (rawId.length !== 1) { throw Error('Invalid key length!'); }
         return { 'id': rawId[0] };
     }
-    async findById(id: string) {
-        return await this._findById([id]);
+    async findById(ctx: Context, id: string) {
+        return await this._findById(ctx, [id]);
     }
-    async create(id: string, shape: OrganizationInviteLinkShape) {
-        return await this._create([id], { id, ...shape });
+    async create(ctx: Context, id: string, shape: OrganizationInviteLinkShape) {
+        return await this._create(ctx, [id], { id, ...shape });
     }
-    watch(id: string, cb: () => void) {
-        return this._watch([id], cb);
+    watch(ctx: Context, id: string, cb: () => void) {
+        return this._watch(ctx, [id], cb);
     }
-    async findFromOrganization(oid: number, id: string) {
-        return await this._findFromIndex(['__indexes', 'organization', oid, id]);
+    async findFromOrganization(ctx: Context, oid: number, id: string) {
+        return await this._findFromIndex(ctx, ['__indexes', 'organization', oid, id]);
     }
-    async allFromOrganizationAfter(oid: number, after: string) {
-        return await this._findRangeAllAfter(['__indexes', 'organization', oid], after);
+    async allFromOrganizationAfter(ctx: Context, oid: number, after: string) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'organization', oid], after);
     }
-    async rangeFromOrganizationAfter(oid: number, after: string, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(['__indexes', 'organization', oid], after, limit, reversed);
+    async rangeFromOrganizationAfter(ctx: Context, oid: number, after: string, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'organization', oid], after, limit, reversed);
     }
-    async rangeFromOrganization(oid: number, limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'organization', oid], limit, reversed);
+    async rangeFromOrganization(ctx: Context, oid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'organization', oid], limit, reversed);
     }
-    async rangeFromOrganizationWithCursor(oid: number, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'organization', oid], limit, after, reversed);
+    async rangeFromOrganizationWithCursor(ctx: Context, oid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'organization', oid], limit, after, reversed);
     }
-    async allFromOrganization(oid: number) {
-        return await this._findAll(['__indexes', 'organization', oid]);
+    async allFromOrganization(ctx: Context, oid: number) {
+        return await this._findAll(ctx, ['__indexes', 'organization', oid]);
     }
-    createOrganizationStream(oid: number, limit: number, after?: string) {
-        return this._createStream(['entity', 'organizationInviteLink', '__indexes', 'organization', oid], limit, after); 
+    createOrganizationStream(ctx: Context, oid: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'organizationInviteLink', '__indexes', 'organization', oid], limit, after); 
     }
-    async findFromEmailInOrganization(email: string, oid: number) {
-        return await this._findFromIndex(['__indexes', 'emailInOrganization', email, oid]);
+    async findFromEmailInOrganization(ctx: Context, email: string, oid: number) {
+        return await this._findFromIndex(ctx, ['__indexes', 'emailInOrganization', email, oid]);
     }
-    async allFromEmailInOrganizationAfter(email: string, after: number) {
-        return await this._findRangeAllAfter(['__indexes', 'emailInOrganization', email], after);
+    async allFromEmailInOrganizationAfter(ctx: Context, email: string, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'emailInOrganization', email], after);
     }
-    async rangeFromEmailInOrganizationAfter(email: string, after: number, limit: number, reversed?: boolean) {
-        return await this._findRangeAfter(['__indexes', 'emailInOrganization', email], after, limit, reversed);
+    async rangeFromEmailInOrganizationAfter(ctx: Context, email: string, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'emailInOrganization', email], after, limit, reversed);
     }
-    async rangeFromEmailInOrganization(email: string, limit: number, reversed?: boolean) {
-        return await this._findRange(['__indexes', 'emailInOrganization', email], limit, reversed);
+    async rangeFromEmailInOrganization(ctx: Context, email: string, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'emailInOrganization', email], limit, reversed);
     }
-    async rangeFromEmailInOrganizationWithCursor(email: string, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(['__indexes', 'emailInOrganization', email], limit, after, reversed);
+    async rangeFromEmailInOrganizationWithCursor(ctx: Context, email: string, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'emailInOrganization', email], limit, after, reversed);
     }
-    async allFromEmailInOrganization(email: string) {
-        return await this._findAll(['__indexes', 'emailInOrganization', email]);
+    async allFromEmailInOrganization(ctx: Context, email: string) {
+        return await this._findAll(ctx, ['__indexes', 'emailInOrganization', email]);
     }
-    createEmailInOrganizationStream(email: string, limit: number, after?: string) {
-        return this._createStream(['entity', 'organizationInviteLink', '__indexes', 'emailInOrganization', email], limit, after); 
+    createEmailInOrganizationStream(ctx: Context, email: string, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'organizationInviteLink', '__indexes', 'emailInOrganization', email], limit, after); 
     }
-    protected _createEntity(value: any, isNew: boolean) {
-        return new OrganizationInviteLink(this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationInviteLink');
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new OrganizationInviteLink(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationInviteLink');
     }
 }
 

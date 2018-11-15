@@ -9,6 +9,7 @@ import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { execute, subscribe } from 'graphql';
 import * as url from 'url';
 import { Modules } from 'openland-modules/Modules';
+import { createEmptyContext } from 'openland-utils/Context';
 
 export function startAdminInterface() {
     console.log('Starting Admin Interface...');
@@ -23,7 +24,7 @@ export function startAdminInterface() {
     app.use(compression());
 
     app.get('/', (req, res) => res.send('Welcome to Closedland API!'));
-    app.get('/stats', async (req, res) => res.json(await Modules.Super.calculateStats()));
+    app.get('/stats', async (req, res) => res.json(await Modules.Super.calculateStats(createEmptyContext())));
 
     let gqlMiddleware = graphqlExpress({ schema: FDBGraphqlSchema });
     app.use('/api', bodyParser.json({ limit: '5mb' }), gqlMiddleware);

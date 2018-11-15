@@ -9,7 +9,7 @@ type MessageRoot = Message | number;
 function withMessage<T>(handler: (ctx: AppContext, user: Message) => T) {
     return async (src: MessageRoot, _params: {}, ctx: AppContext) => {
         if (typeof src === 'number') {
-            let msg = (await (FDB.Message.findById(src)))!;
+            let msg = (await (FDB.Message.findById(ctx, src)))!;
             return handler(ctx, msg);
         } else {
             return handler(ctx, src);

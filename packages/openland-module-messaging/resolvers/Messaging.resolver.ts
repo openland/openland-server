@@ -11,7 +11,7 @@ export default {
         roomRead: withUser<GQL.MutationRoomReadArgs>(async (ctx, args, uid) => {
             let cid = IDs.Conversation.parse(args.id);
             let mid = IDs.ConversationMessage.parse(args.mid);
-            await Modules.Messaging.readRoom(uid, cid, mid);
+            await Modules.Messaging.readRoom(ctx, uid, cid, mid);
             return true;
         }),
 
@@ -33,7 +33,7 @@ export default {
             }
 
             // Send message
-            await Modules.Messaging.sendMessage(cid, uid!, {
+            await Modules.Messaging.sendMessage(ctx, cid, uid!, {
                 message: args.message,
                 file: args.file,
                 fileMetadata,
@@ -62,7 +62,7 @@ export default {
                 }
             }
 
-            await Modules.Messaging.editMessage(mid, uid, {
+            await Modules.Messaging.editMessage(ctx, mid, uid, {
                 message: args.message,
                 file: args.file,
                 fileMetadata,
@@ -74,22 +74,22 @@ export default {
         }),
         betaMessageDelete: withUser<GQL.MutationBetaMessageDeleteArgs>(async (ctx, args, uid) => {
             let messageId = IDs.ConversationMessage.parse(args.mid);
-            await Modules.Messaging.deleteMessage(messageId, uid);
+            await Modules.Messaging.deleteMessage(ctx, messageId, uid);
             return true;
         }),
         betaMessageDeleteAugmentation: withUser<GQL.MutationBetaMessageDeleteAugmentationArgs>(async (ctx, args, uid) => {
-            await Modules.Messaging.editMessage(IDs.ConversationMessage.parse(args.mid), uid, {
+            await Modules.Messaging.editMessage(ctx, IDs.ConversationMessage.parse(args.mid), uid, {
                 urlAugmentation: false
             }, true);
             return true;
         }),
 
         betaReactionSet: withUser<GQL.MutationBetaReactionSetArgs>(async (ctx, args, uid) => {
-            await Modules.Messaging.setReaction(IDs.ConversationMessage.parse(args.mid), uid, args.reaction);
+            await Modules.Messaging.setReaction(ctx, IDs.ConversationMessage.parse(args.mid), uid, args.reaction);
             return true;
         }),
         betaReactionRemove: withUser<GQL.MutationBetaReactionRemoveArgs>(async (ctx, args, uid) => {
-            await Modules.Messaging.setReaction(IDs.ConversationMessage.parse(args.mid), uid, args.reaction, true);
+            await Modules.Messaging.setReaction(ctx, IDs.ConversationMessage.parse(args.mid), uid, args.reaction, true);
             return true;
         }),
 
@@ -114,12 +114,12 @@ export default {
                 }
             }
 
-            let profile = (await Modules.Users.profileById(userId))!;
+            let profile = (await Modules.Users.profileById(ctx, userId))!;
             if (!profile) {
                 throw new NotFoundError();
             }
 
-            return (await Modules.Messaging.sendMessage(cid, uid!, {
+            return (await Modules.Messaging.sendMessage(ctx, cid, uid!, {
                 message: args.message,
                 file: args.file,
                 fileMetadata,
@@ -162,13 +162,13 @@ export default {
                 }
             }
 
-            let profile = (await Modules.Users.profileById(userId))!;
+            let profile = (await Modules.Users.profileById(ctx, userId))!;
 
             if (!profile) {
                 throw new NotFoundError();
             }
 
-            return await Modules.Messaging.editMessage(messageId, uid!, {
+            return await Modules.Messaging.editMessage(ctx, messageId, uid!, {
                 message: args.message,
                 file: args.file,
                 fileMetadata,

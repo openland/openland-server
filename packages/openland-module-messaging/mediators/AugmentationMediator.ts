@@ -7,6 +7,7 @@ import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import UrlInfoService from 'openland-module-messaging/workers/UrlInfoService';
 import { MessagingRepository } from 'openland-module-messaging/repositories/MessagingRepository';
 import { lazyInject } from 'openland-modules/Modules.container';
+import { createEmptyContext, Context } from 'openland-utils/Context';
 
 const linkifyInstance = linkify()
     .tlds(tlds)
@@ -30,7 +31,7 @@ export class AugmentationMediator {
         if (serverRoleEnabled('workers')) {
             let service = new UrlInfoService();
             this.queue.addWorker(async (item) => {
-                let message = await this.entities.Message.findById(item.messageId);
+                let message = await this.entities.Message.findById(createEmptyContext(), item.messageId);
 
                 if (!message || !message.text) {
                     return { result: 'ok' };
@@ -48,22 +49,22 @@ export class AugmentationMediator {
                 let firstUrl = urls[0];
                 let urlInfo = await service.fetchURLInfo(firstUrl.url);
                 if (urlInfo.title) {
-                    await this.messaging.editMessage(item.messageId, { urlAugmentation: urlInfo }, false);
+                    await this.messaging.editMessage(createEmptyContext(), item.messageId, { urlAugmentation: urlInfo }, false);
                 }
                 return { result: 'ok' };
             });
         }
     }
 
-    onNewMessage = async (message: Message) => {
+    onNewMessage = async (ctx: Context, message: Message) => {
         if (this.resolveLinks(message).length > 0) {
-            await this.queue.pushWork({ messageId: message.id });
+            await this.queue.pushWork(ctx, { messageId: message.id });
         }
     }
 
-    onMessageUpdated = async (message: Message) => {
+    onMessageUpdated = async (ctx: Context, message: Message) => {
         if (this.resolveLinks(message).length > 0) {
-            await this.queue.pushWork({ messageId: message.id });
+            await this.queue.pushWork(ctx, { messageId: message.id });
         }
     }
 

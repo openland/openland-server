@@ -4,40 +4,41 @@ import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { startAdminInterface } from './startAdminInterface';
 import { PermissionsRepository } from './repositories/PermissionsRepository';
 import { injectable } from 'inversify';
+import { Context } from 'continuation-local-storage';
 
 @injectable()
 export class SuperModule {
     private readonly repo = new SuperRepository(FDB);
     private readonly permissionsRepo = new PermissionsRepository(FDB);
 
-    async findAllSuperAdmins() {
-        return this.repo.findAllSuperAdmins();
+    async findAllSuperAdmins(ctx: Context) {
+        return this.repo.findAllSuperAdmins(ctx);
     }
 
-    async findSuperRole(uid: number) {
-        return this.repo.findSuperRole(uid);
+    async findSuperRole(ctx: Context, uid: number) {
+        return this.repo.findSuperRole(ctx, uid);
     }
 
-    async makeSuperAdmin(uid: number, role: string) {
-        await this.repo.makeSuperAdmin(uid, role);
+    async makeSuperAdmin(ctx: Context, uid: number, role: string) {
+        await this.repo.makeSuperAdmin(ctx, uid, role);
     }
 
-    async makeNormalUser(uid: number) {
-        await this.repo.makeNormalUser(uid);
+    async makeNormalUser(ctx: Context, uid: number) {
+        await this.repo.makeNormalUser(ctx, uid);
     }
 
-    async calculateStats() {
+    async calculateStats(ctx: Context) {
         return ({
-            messages: (await FDB.Sequence.findById('message-id'))!.value
+            messages: (await FDB.Sequence.findById(ctx, 'message-id'))!.value
         });
     }
 
-    async resolvePermissions(args: { uid: number | null | undefined, oid: number | null | undefined }) {
-        return this.permissionsRepo.resolvePermissions(args);
+    async resolvePermissions(ctx: Context, args: { uid: number | null | undefined, oid: number | null | undefined }) {
+        return this.permissionsRepo.resolvePermissions(ctx, args);
     }
 
-    async superRole(userId: number | null | undefined) {
-        return this.permissionsRepo.superRole(userId);
+    async superRole(ctx: Context, userId: number | null | undefined) {
+        return this.permissionsRepo.superRole(ctx, userId);
     }
 
     start = () => {

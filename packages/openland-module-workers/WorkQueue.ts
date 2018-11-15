@@ -11,6 +11,7 @@ import { FTransaction } from 'foundation-orm/FTransaction';
 import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent';
 import { Shutdown } from '../openland-utils/Shutdown';
 import { SafeContext } from 'openland-utils/SafeContext';
+import { Context, createEmptyContext } from 'openland-utils/Context';
 
 const workCompleted = createHyperlogger<{ taskId: string, taskType: string, duration: number }>('task_completed');
 const workScheduled = createHyperlogger<{ taskId: string, taskType: string, duration: number }>('task_scheduled');
@@ -23,12 +24,12 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
         this.pubSubTopic = 'modern_work_added' + this.taskType;
     }
 
-    pushWork = async (work: ARGS) => {
+    pushWork = async (ctx: Context, work: ARGS) => {
         return await inTx(async () => {
             FTransaction.context!!.value!.afterTransaction(() => {
                 EventBus.publish(this.pubSubTopic, {});
             });
-            return await FDB.Task.create(this.taskType, uuid(), {
+            return await FDB.Task.create(ctx, this.taskType, uuid(), {
                 arguments: work,
                 taskStatus: 'pending',
                 taskFailureCount: 0,
@@ -57,8 +58,9 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
         };
         let workLoop = SafeContext.inNewContext(() => foreverBreakable(async () => {
             await withLogContext(['worker', this.taskType], async () => {
+                let ctx = createEmptyContext();
                 let task = await inTx(async () => {
-                    let pend = await FDB.Task.rangeFromPending(this.taskType, 1);
+                    let pend = await FDB.Task.rangeFromPending(ctx, this.taskType, 1);
                     if (pend.length === 0) {
                         return null;
                     }
@@ -66,7 +68,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                     res.taskLockSeed = lockSeed;
                     res.taskLockTimeout = Date.now() + 15000;
                     res.taskStatus = 'executing';
-                    await workScheduled.event({ taskId: res.uid, taskType: res.taskType, duration: Date.now() - res.createdAt });
+                    await workScheduled.event(ctx, { taskId: res.uid, taskType: res.taskType, duration: Date.now() - res.createdAt });
                     return res;
                 });
                 if (task) {
@@ -77,7 +79,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                     } catch (e) {
                         console.warn(e);
                         await inTx(async () => {
-                            let res2 = await FDB.Task.findById(task!!.taskType, task!!.uid);
+                            let res2 = await FDB.Task.findById(ctx, task!!.taskType, task!!.uid);
                             if (res2) {
                                 if (res2.taskLockSeed === lockSeed && res2.taskStatus === 'executing') {
                                     res2.taskStatus = 'failing';
@@ -108,12 +110,12 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
 
                     // Commiting
                     let commited = await inTx(async () => {
-                        let res2 = await FDB.Task.findById(task!!.taskType, task!!.uid);
+                        let res2 = await FDB.Task.findById(ctx, task!!.taskType, task!!.uid);
                         if (res2) {
                             if (res2.taskLockSeed === lockSeed && res2.taskStatus === 'executing') {
                                 res2.taskStatus = 'completed';
                                 res2.result = res;
-                                await workCompleted.event({ taskId: res2.uid, taskType: res2.taskType, duration: Date.now() - res2.createdAt });
+                                await workCompleted.event(ctx, { taskId: res2.uid, taskType: res2.taskType, duration: Date.now() - res2.createdAt });
                                 return true;
                             }
                         }

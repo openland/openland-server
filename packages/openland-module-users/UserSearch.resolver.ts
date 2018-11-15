@@ -7,7 +7,7 @@ export default {
     Query: {
         userSearch: withAny<GQL.QueryUserSearchArgs>(async (ctx, args) => {
 
-            let uids = await Modules.Users.searchForUsers(args.query || '', { uid: ctx.auth.uid });
+            let uids = await Modules.Users.searchForUsers(ctx, args.query || '', { uid: ctx.auth.uid });
 
             if (uids.length === 0) {
                 return {
@@ -25,7 +25,7 @@ export default {
             }
 
             // Fetch profiles
-            let users = uids.map((v) => FDB.User.findById(v));
+            let users = uids.map((v) => FDB.User.findById(ctx, v));
 
             let offset = 0;
             if (args.after) {
@@ -55,7 +55,7 @@ export default {
         }),
         alphaProfiles: withAny<GQL.QueryAlphaProfilesArgs>(async (ctx, args) => {
 
-            let uids = await Modules.Users.searchForUsers(args.query || '', { uid: ctx.auth.uid });
+            let uids = await Modules.Users.searchForUsers(ctx, args.query || '', { uid: ctx.auth.uid });
 
             if (uids.length === 0) {
                 return {
@@ -73,7 +73,7 @@ export default {
             }
 
             // Fetch profiles
-            let users = uids.map((v) => FDB.User.findById(v));
+            let users = uids.map((v) => FDB.User.findById(ctx, v));
 
             let offset = 0;
             if (args.after) {

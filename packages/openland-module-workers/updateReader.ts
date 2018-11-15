@@ -3,11 +3,12 @@ import { FStream } from 'foundation-orm/FStream';
 import { staticWorker } from './staticWorker';
 import { FDB } from 'openland-module-db/FDB';
 import { inTx } from 'foundation-orm/inTx';
+import { createEmptyContext } from 'openland-utils/Context';
 
 export function updateReader<T extends FEntity>(name: string, version: number, stream: FStream<T>, handler: (items: T[], first: boolean) => Promise<void>, args?: { delay: number }) {
     staticWorker({ name: 'update_reader_' + name, version, delay: args && args.delay }, async () => {
-
-        let existing = await FDB.ReaderState.findById(name);
+        let ctx = createEmptyContext();
+        let existing = await FDB.ReaderState.findById(ctx, name);
         let first = false;
         if (existing) {
             if (existing.version === null || existing.version < version) {
@@ -29,7 +30,7 @@ export function updateReader<T extends FEntity>(name: string, version: number, s
 
             // Commit offset
             await inTx(async () => {
-                let latest = await FDB.ReaderState.findById(name);
+                let latest = await FDB.ReaderState.findById(ctx, name);
                 if (existing && latest) {
                     // Update if not changed
                     if (existing.versionCode === latest.versionCode) {
@@ -37,7 +38,7 @@ export function updateReader<T extends FEntity>(name: string, version: number, s
                         latest.version = version;
                     }
                 } else if (!latest) {
-                    await FDB.ReaderState.create(name, { cursor: stream.cursor, version: version });
+                    await FDB.ReaderState.create(ctx, name, { cursor: stream.cursor, version: version });
                 }
             });
             return true;

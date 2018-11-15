@@ -4,6 +4,7 @@ import { Organization } from 'openland-module-db/schema';
 import { FDB } from 'openland-module-db/FDB';
 import { Modules } from 'openland-modules/Modules';
 import { UserError } from 'openland-errors/UserError';
+import { AppContext } from 'openland-modules/AppContext';
 
 export default {
     SuperAccountState: {
@@ -14,44 +15,44 @@ export default {
     SuperAccount: {
         id: (src: Organization) => IDs.SuperAccount.serialize(src.id),
         orgId: (src: Organization) => IDs.Organization.serialize(src.id),
-        title: async (src: Organization) => (await FDB.OrganizationProfile.findById(src.id))!.name,
-        name: async (src: Organization) => (await FDB.OrganizationProfile.findById(src.id))!.name,
+        title: async (src: Organization, args: {}, ctx: AppContext) => (await FDB.OrganizationProfile.findById(ctx, src.id))!.name,
+        name: async (src: Organization, args: {}, ctx: AppContext) => (await FDB.OrganizationProfile.findById(ctx, src.id))!.name,
         state: (src: Organization) => src.status,
-        members: (src: Organization) => Modules.Orgs.findOrganizationMembers(src.id),
-        features: async (src: Organization) => (await Modules.Features.repo.findOrganizationFeatureFlags(src.id)),
-        alphaPublished: async (src: Organization) => (await FDB.OrganizationEditorial.findById(src.id))!.listed,
-        createdAt: (src: Organization) => (src as any).createdAt,
-        createdBy: async (src: Organization) => await FDB.User.findById(src.ownerId),
+        members: (src: Organization, args: {}, ctx: AppContext) => Modules.Orgs.findOrganizationMembers(ctx, src.id),
+        features: async (src: Organization, args: {}, ctx: AppContext) => (await Modules.Features.repo.findOrganizationFeatureFlags(ctx, src.id)),
+        alphaPublished: async (src: Organization, args: {}, ctx: AppContext) => (await FDB.OrganizationEditorial.findById(ctx, src.id))!.listed,
+        createdAt: (src: Organization) => src.createdAt,
+        createdBy: async (src: Organization, args: {}, ctx: AppContext) => await FDB.User.findById(ctx, src.ownerId),
     },
     Query: {
-        superAccounts: withPermission('super-admin', () => {
-            return FDB.Organization.findAll();
+        superAccounts: withPermission('super-admin', (ctx) => {
+            return FDB.Organization.findAll(ctx);
         }),
         superAccount: withPermission<{ id: string, viaOrgId?: boolean }>('super-admin', (ctx, args) => {
-            return FDB.Organization.findById(args.viaOrgId ? IDs.Organization.parse(args.id) : IDs.SuperAccount.parse(args.id));
+            return FDB.Organization.findById(ctx, args.viaOrgId ? IDs.Organization.parse(args.id) : IDs.SuperAccount.parse(args.id));
         }),
     },
     Mutation: {
         superAccountRename: withPermission<{ id: string, title: string }>('super-admin', (ctx, args) => {
-            return Modules.Orgs.renameOrganization(IDs.SuperAccount.parse(args.id), args.title);
+            return Modules.Orgs.renameOrganization(ctx, IDs.SuperAccount.parse(args.id), args.title);
         }),
         superAccountActivate: withPermission<{ id: string }>('super-admin', (ctx, args) => {
-            return Modules.Orgs.activateOrganization(IDs.SuperAccount.parse(args.id));
+            return Modules.Orgs.activateOrganization(ctx, IDs.SuperAccount.parse(args.id));
         }),
         superAccountPend: withPermission<{ id: string }>('super-admin', (ctx, args) => {
             throw new UserError('Pend is unsupported');
         }),
         superAccountSuspend: withPermission<{ id: string }>('super-admin', (ctx, args) => {
-            return Modules.Orgs.suspendOrganization(IDs.SuperAccount.parse(args.id));
+            return Modules.Orgs.suspendOrganization(ctx, IDs.SuperAccount.parse(args.id));
         }),
         superAccountMemberAdd: withPermission<{ id: string, userId: string }>('super-admin', (ctx, args) => {
-            return Modules.Orgs.addUserToOrganization(IDs.User.parse(args.userId), IDs.SuperAccount.parse(args.id), IDs.User.parse(args.userId));
+            return Modules.Orgs.addUserToOrganization(ctx, IDs.User.parse(args.userId), IDs.SuperAccount.parse(args.id), IDs.User.parse(args.userId));
         }),
         superAccountMemberRemove: withPermission<{ id: string, userId: string }>('super-admin', (ctx, args) => {
-            return Modules.Orgs.removeUserFromOrganization(IDs.User.parse(args.userId), IDs.SuperAccount.parse(args.id), IDs.User.parse(args.userId));
+            return Modules.Orgs.removeUserFromOrganization(ctx, IDs.User.parse(args.userId), IDs.SuperAccount.parse(args.id), IDs.User.parse(args.userId));
         }),
         superAccountChannelMemberAdd: withPermission<{ id: string, userId: string }>('super-admin', async (ctx, args) => {
-            await Modules.Messaging.room.joinRoom(IDs.Conversation.parse(args.id), IDs.User.parse(args.userId));
+            await Modules.Messaging.room.joinRoom(ctx, IDs.Conversation.parse(args.id), IDs.User.parse(args.userId));
             return 'ok';
         }),
     }

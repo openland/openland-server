@@ -29,41 +29,41 @@ export default {
         alphaLinkedin: (src: UserProfile) => src.linkedin,
         alphaTwitter: (src: UserProfile) => src.twitter,
         alphaJoinedAt: (src: UserProfile) => src.createdAt,
-        alphaInvitedBy: async (src: UserProfile) => {
-            let user = await FDB.User.findById(src.id);
+        alphaInvitedBy: async (src: UserProfile, args: {}, ctx: AppContext) => {
+            let user = await FDB.User.findById(ctx, src.id);
             if (user && user.invitedBy) {
-                return await FDB.User.findById(user.invitedBy);
+                return await FDB.User.findById(ctx, user.invitedBy);
             }
             return null;
         },
     },
     Query: {
-        myProfile: async function (_obj: any, _params: {}, ctx: AppContext) {
+        myProfile: async function (_obj: any, args: {}, ctx: AppContext) {
             if (ctx.auth.uid == null) {
                 return null;
             }
-            return Modules.Users.profileById(ctx.auth.uid);
+            return Modules.Users.profileById(ctx, ctx.auth.uid);
         },
     },
     Mutation: {
         profileCreate: withUser<GQL.MutationProfileCreateArgs>(async (ctx, args, uid) => {
-            return await Modules.Users.createUserProfile(uid, args.input);
+            return await Modules.Users.createUserProfile(ctx, uid, args.input);
         }),
         profileUpdate: withUser<GQL.MutationProfileUpdateArgs>(async (ctx, args, uid) => {
             return await inTx(async () => {
                 if (args.uid) {
-                    let role = await Modules.Super.superRole(uid);
+                    let role = await Modules.Super.superRole(ctx, uid);
                     if (!(role === 'super-admin')) {
                         throw new AccessDeniedError();
                     }
                     uid = IDs.User.parse(args.uid);
                 }
-                let user = await FDB.User.findById(uid);
+                let user = await FDB.User.findById(ctx, uid);
                 if (!user) {
                     throw Error('Unable to find user');
                 }
                 await inTx(async () => {
-                    let profile = await Modules.Users.profileById(uid);
+                    let profile = await Modules.Users.profileById(ctx, uid);
                     if (!profile) {
                         throw Error('Unable to find profile');
                     }
@@ -118,13 +118,13 @@ export default {
 
         // Deprecated
         createProfile: withUser<GQL.MutationCreateProfileArgs>(async (ctx, args, uid) => {
-            return await Modules.Users.createUserProfile(uid, args.input);
+            return await Modules.Users.createUserProfile(ctx, uid, args.input);
         }),
         // Deprecated
         alphaCreateUserProfileAndOrganization: withUser<GQL.MutationAlphaCreateUserProfileAndOrganizationArgs>(async (ctx, args, uid) => {
             return await inTx(async () => {
-                let userProfile = await Modules.Users.createUserProfile(uid, args.user);
-                let organization = await Modules.Orgs.createOrganization(uid, { ...args.organization, personal: false });
+                let userProfile = await Modules.Users.createUserProfile(ctx, uid, args.user);
+                let organization = await Modules.Orgs.createOrganization(ctx, uid, { ...args.organization, personal: false });
 
                 return {
                     user: userProfile,
@@ -135,18 +135,18 @@ export default {
         updateProfile: withUser<GQL.MutationUpdateProfileArgs>(async (ctx, args, uid) => {
             return await inTx(async () => {
                 if (args.uid) {
-                    let role = await Modules.Super.superRole(uid);
+                    let role = await Modules.Super.superRole(ctx, uid);
                     if (!(role === 'super-admin')) {
                         throw new AccessDeniedError();
                     }
                     uid = IDs.User.parse(args.uid);
                 }
-                let user = await FDB.User.findById(uid);
+                let user = await FDB.User.findById(ctx, uid);
                 if (!user) {
                     throw Error('Unable to find user');
                 }
                 await inTx(async () => {
-                    let profile = await Modules.Users.profileById(uid);
+                    let profile = await Modules.Users.profileById(ctx, uid);
                     if (!profile) {
                         throw Error('Unable to find profile');
                     }
@@ -205,7 +205,7 @@ export default {
 
                     // Call hook
                     await profile.flush();
-                    await Modules.Hooks.onUserProfileUpdated(profile.id);
+                    await Modules.Hooks.onUserProfileUpdated(ctx, profile.id);
                 });
                 return user;
             });

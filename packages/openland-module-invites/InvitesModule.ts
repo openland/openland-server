@@ -2,6 +2,7 @@ import { injectable, inject } from 'inversify';
 import { InvitesMediator } from './mediators/InvitesMediator';
 import { InvitesChannelsRepository } from './repositories/InvitesChannelsRepository';
 import { InvitesOrganizationRepository } from './repositories/InvitesOrganizationRepository';
+import { Context } from 'openland-utils/Context';
 
 @injectable()
 export class InvitesModule {
@@ -23,38 +24,38 @@ export class InvitesModule {
         // Nothing to do
     }
 
-    async getInviteLinkKey(uid: number) {
-        return this.orgInvitesRepo.getAppInviteLinkKey(uid);
+    async getInviteLinkKey(ctx: Context, uid: number) {
+        return this.orgInvitesRepo.getAppInviteLinkKey(ctx, uid);
     }
 
     //
     // Channels
     //
 
-    async resolveInvite(id: string) {
-        return await this.channelsInvitesRepo.resolveInvite(id);
+    async resolveInvite(ctx: Context, id: string) {
+        return await this.channelsInvitesRepo.resolveInvite(ctx, id);
     }
 
-    async createChannelInviteLink(channelId: number, uid: number) {
-        return await this.channelsInvitesRepo.createChannelInviteLink(channelId, uid);
+    async createChannelInviteLink(ctx: Context, channelId: number, uid: number) {
+        return await this.channelsInvitesRepo.createChannelInviteLink(ctx, channelId, uid);
     }
 
-    async refreshChannelInviteLink(channelId: number, uid: number) {
-        return await this.channelsInvitesRepo.refreshChannelInviteLink(channelId, uid);
+    async refreshChannelInviteLink(ctx: Context, channelId: number, uid: number) {
+        return await this.channelsInvitesRepo.refreshChannelInviteLink(ctx, channelId, uid);
     }
 
-    async createChannelInvite(channelId: number, uid: number, email: string, emailText?: string, firstName?: string, lastName?: string) {
-        return await this.invitesMediator.createChannelInvite(channelId, uid, email, emailText, firstName, lastName);
+    async createChannelInvite(ctx: Context, channelId: number, uid: number, email: string, emailText?: string, firstName?: string, lastName?: string) {
+        return await this.invitesMediator.createChannelInvite(ctx, channelId, uid, email, emailText, firstName, lastName);
     }
 
-    async joinChannelInvite(uid: number, invite: string) {
-        return await this.invitesMediator.joinChannelInvite(uid, invite);
+    async joinChannelInvite(ctx: Context, uid: number, invite: string) {
+        return await this.invitesMediator.joinChannelInvite(ctx, uid, invite);
     }
-    async joinAppInvite(uid: number, invite: string) {
-        return await this.invitesMediator.joinAppInvite(uid, invite);
+    async joinAppInvite(ctx: Context, uid: number, invite: string) {
+        return await this.invitesMediator.joinAppInvite(ctx, uid, invite);
     }
 
-    async joinOrganizationInvite(uid: number, invite: string) {
-        return await this.invitesMediator.joinOrganizationInvite(uid, invite);
+    async joinOrganizationInvite(ctx: Context, uid: number, invite: string) {
+        return await this.invitesMediator.joinOrganizationInvite(ctx, uid, invite);
     }
 }

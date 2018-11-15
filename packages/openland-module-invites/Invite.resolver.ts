@@ -17,17 +17,17 @@ export default {
             return [];
         }),
         alphaInviteInfo: withAny<{ key: string }>(async (ctx, args) => {
-            let orgInvite = await Modules.Invites.orgInvitesRepo.getOrganizationInviteNonJoined(args.key);
-            let publicOrginvite = await Modules.Invites.orgInvitesRepo.getOrganizationInviteLinkByKey(args.key);
+            let orgInvite = await Modules.Invites.orgInvitesRepo.getOrganizationInviteNonJoined(ctx, args.key);
+            let publicOrginvite = await Modules.Invites.orgInvitesRepo.getOrganizationInviteLinkByKey(ctx, args.key);
             let invite: { oid: number, uid: number, ttl?: number | null, role?: string, joined?: boolean, email?: string, firstName?: string | null } | null = orgInvite || publicOrginvite;
             if (!invite) {
                 return null;
             }
-            let org = await FDB.Organization.findById(invite.oid);
+            let org = await FDB.Organization.findById(ctx, invite.oid);
             if (!org) {
                 return null;
             }
-            let profile = (await FDB.OrganizationProfile.findById(invite.oid))!;
+            let profile = (await FDB.OrganizationProfile.findById(ctx, invite.oid))!;
             return {
                 id: args.key,
                 key: args.key,
@@ -36,23 +36,23 @@ export default {
                 photo: profile.photo ? buildBaseImageUrl(profile.photo) : null,
                 photoRef: profile.photo,
                 joined: !!invite.joined,
-                creator: invite.uid ? await FDB.User.findById(invite.uid) : null,
+                creator: invite.uid ? await FDB.User.findById(ctx, invite.uid) : null,
                 forEmail: invite.email,
                 forName: invite.firstName,
             };
         }),
         appInviteInfo: withAny<{ key: string }>(async (ctx, args) => {
-            let invite = await Modules.Invites.orgInvitesRepo.getAppInvteLinkData(args.key);
+            let invite = await Modules.Invites.orgInvitesRepo.getAppInvteLinkData(ctx, args.key);
             if (!invite) {
                 return null;
             }
-            let inviter = await FDB.User.findById(invite.uid);
+            let inviter = await FDB.User.findById(ctx, invite.uid);
             return {
                 inviter: inviter,
             };
         }),
         appInvite: withUser(async (ctx, args, uid) => {
-            return await Modules.Invites.orgInvitesRepo.getAppInviteLinkKey(uid);
+            return await Modules.Invites.orgInvitesRepo.getAppInviteLinkKey(ctx, uid);
         }),
         // deperecated
         alphaInvitesHistory: withUser(async (ctx, args, uid) => {
@@ -69,14 +69,14 @@ export default {
     },
     Mutation: {
         alphaJoinInvite: withUser<{ key: string }>(async (ctx, args, uid) => {
-            return await Modules.Invites.joinOrganizationInvite(uid, args.key);
+            return await Modules.Invites.joinOrganizationInvite(ctx, uid, args.key);
         }),
         joinAppInvite: withAny<{ key: string }>(async (ctx, args) => {
             let uid = AuthContext.get(ctx).uid;
             if (uid === undefined) {
                 return;
             }
-            return await Modules.Invites.joinAppInvite(uid, args.key);
+            return await Modules.Invites.joinAppInvite(ctx, uid, args.key);
         }),
 
         // deperecated

@@ -7,6 +7,7 @@ import { withLogDisabled } from 'openland-log/withLogDisabled';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { NativeValue } from 'foundationdb/dist/lib/native';
 import { NoOpBus } from './NoOpBus';
+import { createEmptyContext } from 'openland-utils/Context';
 
 describe('FEntity', () => {
 
@@ -21,9 +22,10 @@ describe('FEntity', () => {
     });
 
     it('should be able to create items', async () => {
+        let ctx = createEmptyContext();
         await withLogDisabled(async () => {
             let res = await inTx(async () => {
-                return await testEntities.SimpleEntity.create(14, { data: 'hello world' });
+                return await testEntities.SimpleEntity.create(ctx, 14, { data: 'hello world' });
             });
             expect(res.data).toEqual('hello world');
             expect(res.id).toEqual(14);
@@ -33,45 +35,52 @@ describe('FEntity', () => {
         });
     });
     it('should crash on create if exists', async () => {
+        let ctx = createEmptyContext();
         await withLogDisabled(async () => {
             // First create
             await inTx(async () => {
-                await testEntities.SimpleEntity.create(12, { data: 'hello world' });
+                await testEntities.SimpleEntity.create(ctx, 12, { data: 'hello world' });
             });
             // Double create
             let res = inTx(async () => {
-                return await testEntities.SimpleEntity.create(12, { data: 'hello world' });
+                return await testEntities.SimpleEntity.create(ctx, 12, { data: 'hello world' });
             });
             expect(res).rejects.toThrowError('Object with id entity.simpleEntity.12 already exists');
         });
     });
 
     it('should update values', async () => {
+        let ctx = createEmptyContext();
         await withLogDisabled(async () => {
             await inTx(async () => {
-                await testEntities.SimpleEntity.create(3, { data: 'hello world' });
+                await testEntities.SimpleEntity.create(ctx, 3, { data: 'hello world' });
             });
             await inTx(async () => {
-                let entity = await testEntities.SimpleEntity.findById(3);
+                let entity = await testEntities.SimpleEntity.findById(ctx, 3);
                 entity!.data = 'bye world';
             });
             let res = await inTx(async () => {
-                return await testEntities.SimpleEntity.findById(3);
+                return await testEntities.SimpleEntity.findById(ctx, 3);
             });
             expect(res!.data).toEqual('bye world');
         });
     });
 
     it('should read nullable falsy fields correctly', async () => {
+        let ctx = createEmptyContext();
         await withLogDisabled(async () => {
             await inTx(async () => {
-                await testEntities.NullableEntity.create(0, { flag: true });
-                await testEntities.NullableEntity.create(1, { flag: false });
-                await testEntities.NullableEntity.create(2, { flag: null });
+                await testEntities.NullableEntity.create(ctx, 0, { flag: true });
+                await testEntities.NullableEntity.create(ctx, 1, { flag: false });
+                await testEntities.NullableEntity.create(ctx, 2, { flag: null });
             });
 
             let { res0, res1, res2 } = await inTx(async () => {
-                return { res0: await testEntities.NullableEntity.findById(0), res1: await testEntities.NullableEntity.findById(1), res2: await testEntities.NullableEntity.findById(2) };
+                return {
+                    res0: await testEntities.NullableEntity.findById(ctx, 0),
+                    res1: await testEntities.NullableEntity.findById(ctx, 1),
+                    res2: await testEntities.NullableEntity.findById(ctx, 2)
+                };
             });
             expect(res0!.flag).toEqual(true);
             expect(res1!.flag).toEqual(false);
@@ -80,47 +89,52 @@ describe('FEntity', () => {
     });
 
     it('should update values when read outside transaction', async () => {
+        let ctx = createEmptyContext();
         await withLogDisabled(async () => {
             await inTx(async () => {
-                await testEntities.SimpleEntity.create(6, { data: 'hello world' });
+                await testEntities.SimpleEntity.create(ctx, 6, { data: 'hello world' });
             });
             await inTx(async () => {
-                let entity = await testEntities.SimpleEntity.findById(6);
+                let entity = await testEntities.SimpleEntity.findById(ctx, 6);
                 entity!.data = 'bye world';
             });
-            let res = await testEntities.SimpleEntity.findById(6);
+            let res = await testEntities.SimpleEntity.findById(ctx, 6);
             expect(res!.data).toEqual('bye world');
         });
     });
 
     it('should crash when trying to change read-only instance', async () => {
+        let ctx = createEmptyContext();
         await withLogDisabled(async () => {
-            await inTx(async () => { await testEntities.SimpleEntity.create(4, { data: 'hello world' }); });
-            let res = (await testEntities.SimpleEntity.findById(4))!;
+            await inTx(async () => { await testEntities.SimpleEntity.create(ctx, 4, { data: 'hello world' }); });
+            let res = (await testEntities.SimpleEntity.findById(ctx, 4))!;
             expect(() => { res.data = 'bye world'; }).toThrowError();
         });
     });
 
     it('should crash when trying to change instance after transaction completed', async () => {
+        let ctx = createEmptyContext();
         await withLogDisabled(async () => {
-            await inTx(async () => { await testEntities.SimpleEntity.create(5, { data: 'hello world' }); });
-            let res = await inTx(async () => { return (await testEntities.SimpleEntity.findById(5))!; });
+            await inTx(async () => { await testEntities.SimpleEntity.create(ctx, 5, { data: 'hello world' }); });
+            let res = await inTx(async () => { return (await testEntities.SimpleEntity.findById(ctx, 5))!; });
             expect(() => { res.data = 'bye world'; }).toThrowError();
         });
     });
 
     it('should be able to read values from entity even when transaction is completed', async () => {
+        let ctx = createEmptyContext();
         await withLogDisabled(async () => {
-            await inTx(async () => { await testEntities.SimpleEntity.create(7, { data: 'hello world' }); });
-            let res = await inTx(async () => { return (await testEntities.SimpleEntity.findById(7))!; });
+            await inTx(async () => { await testEntities.SimpleEntity.create(ctx, 7, { data: 'hello world' }); });
+            let res = await inTx(async () => { return (await testEntities.SimpleEntity.findById(ctx, 7))!; });
             expect(res.data).toEqual('hello world');
         });
     });
 
     it('double flush should work', async () => {
+        let ctx = createEmptyContext();
         await withLogDisabled(async () => {
             await inTx(async () => {
-                let res = await testEntities.SimpleEntity.create(10, { data: 'hello world' });
+                let res = await testEntities.SimpleEntity.create(ctx, 10, { data: 'hello world' });
                 await res.flush();
                 await res.flush();
             });

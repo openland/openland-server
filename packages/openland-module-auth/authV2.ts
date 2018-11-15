@@ -7,6 +7,7 @@ import { fetchKeyFromRequest } from '../openland-utils/fetchKeyFromRequest';
 import { inTx } from 'foundation-orm/inTx';
 import { FDB } from 'openland-module-db/FDB';
 import { Modules } from 'openland-modules/Modules';
+import { createEmptyContext } from 'openland-utils/Context';
 
 //
 // Main JWT verifier
@@ -40,7 +41,7 @@ export const TokenChecker = async function (req: express.Request, response: expr
     try {
         let accessToken = fetchKeyFromRequest(req, 'x-openland-token');
         if (accessToken) {
-            let uid = await Modules.Auth.findToken(accessToken as string);
+            let uid = await Modules.Auth.findToken(createEmptyContext(), accessToken as string);
             if (uid !== null) {
                 req.user = { uid: uid.uid, tid: uid.uid };
             }
@@ -97,13 +98,13 @@ export const Authenticator = async function (req: express.Request, response: exp
             let userKey = req.user.sub;
 
             // Account
-            let user = (await FDB.User.findAll()).find((v) => v.email === profile.email.toLowerCase() || v.authId === userKey);
+            let user = (await FDB.User.findAll(createEmptyContext())).find((v) => v.email === profile.email.toLowerCase() || v.authId === userKey);
             if (!user) {
-                user = await Modules.Users.createUser(userKey, profile.email);
+                user = await Modules.Users.createUser(createEmptyContext(), userKey, profile.email);
             }
 
             // Prefill
-            await Modules.Users.saveProfilePrefill(user!.id, {
+            await Modules.Users.saveProfilePrefill(createEmptyContext(), user!.id, {
                 firstName: firstName ? firstName : undefined,
                 lastName: lastName ? lastName : undefined,
                 picture: profile.picture
@@ -116,7 +117,7 @@ export const Authenticator = async function (req: express.Request, response: exp
         // Create New Token
         //
 
-        let token = await Modules.Auth.createToken(uid);
+        let token = await Modules.Auth.createToken(createEmptyContext(), uid);
 
         response.json({ ok: true, token: token.salt });
     } catch (e) {

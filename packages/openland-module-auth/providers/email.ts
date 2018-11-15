@@ -8,6 +8,7 @@ import { inTx } from 'foundation-orm/inTx';
 import { AuthCodeSession } from 'openland-module-db/schema';
 import { calculateBase64len } from '../../openland-utils/base64';
 import { FDB } from 'openland-module-db/FDB';
+import { createEmptyContext } from 'openland-utils/Context';
 
 const Errors = {
     wrong_arg: { code: 0, text: 'Wrong arguments passed' },
@@ -87,7 +88,7 @@ export async function sendCode(req: express.Request, response: express.Response)
         phone,
         session
     } = req.body;
-
+    let ctx = createEmptyContext();
     await inTx(async () => {
         let authSession: AuthCodeSession | undefined;
         if (session) {
@@ -96,7 +97,7 @@ export async function sendCode(req: express.Request, response: express.Response)
                 return;
             }
 
-            let existing = await Modules.Auth.findAuthSession(session);
+            let existing = await Modules.Auth.findAuthSession(ctx, session);
             if (!existing) {
                 sendError(response, Errors.session_not_found);
                 return;
@@ -120,13 +121,13 @@ export async function sendCode(req: express.Request, response: express.Response)
             let isTest = isTestEmail(email);
 
             if (!isTest) {
-                await Emails.sendActivationCodeEmail(email, code);
+                await Emails.sendActivationCodeEmail(ctx, email, code);
             } else {
                 code = testEmailCode(email);
             }
 
             if (!authSession) {
-                authSession = await Modules.Auth.createEmailAuthSession(email, code);
+                authSession = await Modules.Auth.createEmailAuthSession(ctx, email, code);
             } else {
                 authSession.code = code;
             }
@@ -160,9 +161,9 @@ export async function checkCode(req: express.Request, response: express.Response
         sendError(response, Errors.wrong_code);
         return;
     }
-
+    let ctx = createEmptyContext();
     let res = await inTx(async () => {
-        let authSession = await Modules.Auth.findAuthSession(session);
+        let authSession = await Modules.Auth.findAuthSession(ctx, session);
 
         // No session found
         if (!authSession) {
@@ -212,8 +213,10 @@ export async function getAccessToken(req: express.Request, response: express.Res
         return;
     }
 
+    let ctx = createEmptyContext();
+
     await inTx(async () => {
-        let authSession = await Modules.Auth.findAuthSession(session);
+        let authSession = await Modules.Auth.findAuthSession(ctx, session);
 
         // No session found
         if (!authSession) {
@@ -232,17 +235,17 @@ export async function getAccessToken(req: express.Request, response: express.Res
         }
 
         if (authSession.email) {
-            let existing = (await FDB.User.findAll())
+            let existing = (await FDB.User.findAll(ctx))
                 .find((v) => v.email === authSession!.email || v.authId === 'email|' + authSession!.email as any);
 
             if (existing) {
-                let token = await Modules.Auth.createToken(existing.id!);
+                let token = await Modules.Auth.createToken(ctx, existing.id!);
                 response.json({ ok: true, accessToken: token.salt });
                 authSession.enabled = false;
                 return;
             } else {
-                let user = await Modules.Users.createUser('email|' + authSession.email, authSession.email as string);
-                let token = await Modules.Auth.createToken(user.id!);
+                let user = await Modules.Users.createUser(ctx, 'email|' + authSession.email, authSession.email as string);
+                let token = await Modules.Auth.createToken(ctx, user.id!);
                 response.json({ ok: true, accessToken: token });
                 authSession.enabled = false;
                 return;

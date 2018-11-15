@@ -6,6 +6,7 @@ import { createLogger } from 'openland-log/createLogger';
 import { FDB } from 'openland-module-db/FDB';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { Texts } from '../texts';
+import { createEmptyContext } from 'openland-utils/Context';
 
 const Delays = {
     'none': 10 * 1000,
@@ -17,18 +18,19 @@ const log = createLogger('push');
 
 export function startPushNotificationWorker() {
     staticWorker({ name: 'push_notifications', delay: 3000, startDelay: 3000 }, async () => {
-        let unreadUsers = await FDB.UserMessagingState.allFromHasUnread();
+        let ctx = createEmptyContext();
+        let unreadUsers = await FDB.UserMessagingState.allFromHasUnread(ctx);
         log.debug('unread users: ' + unreadUsers.length);
         for (let u of unreadUsers) {
             await inTx(async () => {
                 await withLogContext(['user', '' + u.uid], async () => {
                     // Loading user's settings and state
-                    let settings = await Modules.Users.getUserSettings(u.uid);
-                    let state = await Modules.Messaging.getUserNotificationState(u.uid);
+                    let settings = await Modules.Users.getUserSettings(ctx, u.uid);
+                    let state = await Modules.Messaging.getUserNotificationState(ctx, u.uid);
 
                     let now = Date.now();
 
-                    let lastSeen = await Modules.Presence.getLastSeen(u.uid);
+                    let lastSeen = await Modules.Presence.getLastSeen(ctx, u.uid);
 
                     // Ignore never-online users
                     if (lastSeen === 'never_online') {
@@ -79,7 +81,7 @@ export function startPushNotificationWorker() {
                     // Scanning updates
                     let afterSec = Math.max(state.lastEmailSeq ? state.lastEmailSeq : 0, state.readSeq, state.lastPushSeq || 0);
 
-                    let remainingUpdates = await FDB.UserDialogEvent.allFromUserAfter(u.uid, afterSec);
+                    let remainingUpdates = await FDB.UserDialogEvent.allFromUserAfter(ctx, u.uid, afterSec);
                     let messages = remainingUpdates.filter((v) => v.kind === 'message_received');
 
                     // Handling unread messages
@@ -90,7 +92,7 @@ export function startPushNotificationWorker() {
                         }
 
                         let messageId = m.mid!;
-                        let message = await FDB.Message.findById(messageId);
+                        let message = await FDB.Message.findById(ctx, messageId);
                         if (!message) {
                             continue;
                         }
@@ -101,15 +103,15 @@ export function startPushNotificationWorker() {
                         if (senderId === u.uid) {
                             continue;
                         }
-                        let sender = await Modules.Users.profileById(senderId);
+                        let sender = await Modules.Users.profileById(ctx, senderId);
                         if (!sender) {
                             continue;
                         }
-                        let receiver = await Modules.Users.profileById(u.uid);
+                        let receiver = await Modules.Users.profileById(ctx, u.uid);
                         if (!receiver) {
                             continue;
                         }
-                        let conversation = await FDB.Conversation.findById(message.cid);
+                        let conversation = await FDB.Conversation.findById(ctx, message.cid);
                         if (!conversation) {
                             continue;
                         }
@@ -131,7 +133,7 @@ export function startPushNotificationWorker() {
                             }
                         }
 
-                        let conversationSettings = await Modules.Messaging.getRoomSettings(u.uid, conversation.id);
+                        let conversationSettings = await Modules.Messaging.getRoomSettings(ctx, u.uid, conversation.id);
                         if (conversationSettings.mute && !userMentioned) {
                             continue;
                         }
@@ -145,7 +147,7 @@ export function startPushNotificationWorker() {
                             continue;
                         }
 
-                        let chatTitle = await Modules.Messaging.room.resolveConversationTitle(conversation.id, u.uid);
+                        let chatTitle = await Modules.Messaging.room.resolveConversationTitle(ctx, conversation.id, u.uid);
 
                         hasMessage = true;
                         let senderName = [sender.firstName, sender.lastName].filter((v) => !!v).join(' ');
@@ -184,7 +186,7 @@ export function startPushNotificationWorker() {
                         };
 
                         log.debug('new_push', JSON.stringify(push));
-                        await Modules.Push.worker.pushWork(push);
+                        await Modules.Push.worker.pushWork(ctx, push);
                     }
 
                     // Save state

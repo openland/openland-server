@@ -1,9 +1,10 @@
 import { FDB } from 'openland-module-db/FDB';
 import { declareSearchIndexer } from 'openland-module-search/declareSearchIndexer';
 import { Modules } from 'openland-modules/Modules';
+import { createEmptyContext } from 'openland-utils/Context';
 
 export function userProfileIndexer() {
-    declareSearchIndexer('user-profile-index', 6, 'user_profile', FDB.UserProfile.createByUpdatedAtStream(50))
+    declareSearchIndexer('user-profile-index', 6, 'user_profile', FDB.UserProfile.createByUpdatedAtStream(createEmptyContext(), 50))
         .withProperties({
             primaryOrganization: {
                 type: 'keyword'
@@ -37,8 +38,8 @@ export function userProfileIndexer() {
             },
         })
         .start(async (item) => {
-            let shortName = await Modules.Shortnames.findUserShortname(item.id);
-            let orgs = await Modules.Orgs.findUserOrganizations(item.id);
+            let shortName = await Modules.Shortnames.findUserShortname(createEmptyContext(), item.id);
+            let orgs = await Modules.Orgs.findUserOrganizations(createEmptyContext(), item.id);
 
             let searchData: (string | undefined | null)[] = [];
             searchData.push(item.firstName);

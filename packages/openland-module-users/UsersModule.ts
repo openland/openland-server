@@ -9,6 +9,7 @@ import { injectable } from 'inversify';
 import { inTx } from 'foundation-orm/inTx';
 import { Emails } from 'openland-module-email/Emails';
 import { ImageRef } from 'openland-module-media/ImageRef';
+import { Context } from 'openland-utils/Context';
 
 @injectable()
 export class UsersModule {
@@ -22,51 +23,51 @@ export class UsersModule {
         }
     }
 
-    async createUser(authId: string, email: string) {
-        return this.repo.createUser(authId, email);
+    async createUser(ctx: Context, authId: string, email: string) {
+        return this.repo.createUser(ctx, authId, email);
     }
 
-    async activateUser(uid: number) {
+    async activateUser(ctx: Context, uid: number) {
         await inTx(async () => {
-            if (await this.repo.activateUser(uid)) {
-                await Emails.sendWelcomeEmail(uid);
+            if (await this.repo.activateUser(ctx, uid)) {
+                await Emails.sendWelcomeEmail(ctx, uid);
             }
         });
     }
 
-    async profileById(uid: number) {
-        return this.repo.findUserProfile(uid);
+    async profileById(ctx: Context, uid: number) {
+        return this.repo.findUserProfile(ctx, uid);
     }
 
-    async findUserByAuthId(authId: string): Promise<number | undefined> {
-        return this.repo.findUserByAuthId(authId);
+    async findUserByAuthId(ctx: Context, authId: string): Promise<number | undefined> {
+        return this.repo.findUserByAuthId(ctx, authId);
     }
 
-    async createSystemBot(key: string, name: string, photoRef: ImageRef) {
-        return await this.repo.createSystemBot(key, name, photoRef);
+    async createSystemBot(ctx: Context, key: string, name: string, photoRef: ImageRef) {
+        return await this.repo.createSystemBot(ctx, key, name, photoRef);
     }
 
-    async createUserProfile(uid: number, input: ProfileInput) {
-        return await this.repo.createUserProfile(uid, input);
+    async createUserProfile(ctx: Context, uid: number, input: ProfileInput) {
+        return await this.repo.createUserProfile(ctx, uid, input);
     }
 
-    async findProfilePrefill(uid: number) {
-        return this.repo.findProfilePrefill(uid);
+    async findProfilePrefill(ctx: Context, uid: number) {
+        return this.repo.findProfilePrefill(ctx, uid);
     }
 
-    async saveProfilePrefill(uid: number, prefill: { firstName?: string, lastName?: string, picture?: string }) {
-        return this.repo.saveProfilePrefill(uid, prefill);
+    async saveProfilePrefill(ctx: Context, uid: number, prefill: { firstName?: string, lastName?: string, picture?: string }) {
+        return this.repo.saveProfilePrefill(ctx, uid, prefill);
     }
 
-    async getUserSettings(uid: number) {
-        return await this.repo.getUserSettings(uid);
+    async getUserSettings(ctx: Context, uid: number) {
+        return await this.repo.getUserSettings(ctx, uid);
     }
 
-    async waitForNextSettings(uid: number) {
-        await this.repo.waitForNextSettings(uid);
+    async waitForNextSettings(ctx: Context, uid: number) {
+        await this.repo.waitForNextSettings(ctx, uid);
     }
 
-    async searchForUsers(query: string, options?: { uid?: number, limit?: number }) {
-        return await this.search.searchForUsers(query, options);
+    async searchForUsers(ctx: Context, query: string, options?: { uid?: number, limit?: number }) {
+        return await this.search.searchForUsers(ctx, query, options);
     }
 }

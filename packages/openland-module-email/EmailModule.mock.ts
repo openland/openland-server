@@ -1,4 +1,5 @@
 import { EmailTask } from './EmailTask';
+import { Context } from 'openland-utils/Context';
 
 export class EmailModuleMock {
 
@@ -6,7 +7,7 @@ export class EmailModuleMock {
         // Nothing to do
     }
 
-    enqueueEmail = async (args: EmailTask) => {
-        // await this.worker.pushWork(args);
+    enqueueEmail = async (ctx: Context, args: EmailTask) => {
+        // Nothing to do
     }
 }

@@ -3,6 +3,7 @@ import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { EmailTask } from 'openland-module-email/EmailTask';
+import { createEmptyContext } from 'openland-utils/Context';
 
 export const SENDGRID_KEY = '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';
 
@@ -47,10 +48,10 @@ export function createEmailWorker() {
                         subject: args.subject
                     });
                 } catch (e) {
-                    await emailFailed.event({ templateId: args.templateId, to: args.to });
+                    await emailFailed.event(createEmptyContext(), { templateId: args.templateId, to: args.to });
                     throw e;
                 }
-                await emailSent.event({ templateId: args.templateId, to: args.to });
+                await emailSent.event(createEmptyContext(), { templateId: args.templateId, to: args.to });
             }
             return {
                 result: 'ok'

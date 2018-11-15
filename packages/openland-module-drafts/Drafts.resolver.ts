@@ -8,9 +8,9 @@ export default {
             let conversationId = IDs.Conversation.parse(args.conversationId);
 
             if (!args.message) {
-                await Modules.Drafts.clearDraft(uid, conversationId);
+                await Modules.Drafts.clearDraft(ctx, uid, conversationId);
             } else {
-                await Modules.Drafts.saveDraft(uid, conversationId, args.message);
+                await Modules.Drafts.saveDraft(ctx, uid, conversationId, args.message);
             }
 
             return 'ok';
@@ -19,9 +19,9 @@ export default {
             let conversationId = IDs.Conversation.parse(args.conversationId);
 
             if (!args.message) {
-                await Modules.Drafts.clearDraft(uid, conversationId);
+                await Modules.Drafts.clearDraft(ctx, uid, conversationId);
             } else {
-                await Modules.Drafts.saveDraft(uid, conversationId, args.message);
+                await Modules.Drafts.saveDraft(ctx, uid, conversationId, args.message);
             }
 
             return 'ok';
@@ -30,11 +30,11 @@ export default {
     Query: {
         conversationDraft: withUser<{ conversationId: string }>(async (ctx, args, uid) => {
             let conversationId = IDs.Conversation.parse(args.conversationId);
-            return await Modules.Drafts.findDraft(uid, conversationId);
+            return await Modules.Drafts.findDraft(ctx, uid, conversationId);
         }),
         alphaDraftMessage: withUser<{ conversationId: string }>(async (ctx, args, uid) => {
             let conversationId = IDs.Conversation.parse(args.conversationId);
-            return await Modules.Drafts.findDraft(uid, conversationId);
+            return await Modules.Drafts.findDraft(ctx, uid, conversationId);
         }),
     }
 };

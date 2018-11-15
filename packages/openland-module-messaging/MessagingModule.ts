@@ -11,6 +11,7 @@ import { MessagingMediator } from './mediators/MessagingMediator';
 import { RoomMediator } from './mediators/RoomMediator';
 import { dialogSearchIndexer } from './workers/dialogSearchIndexer';
 import { RoomSearch } from './search/RoomSearch';
+import { Context } from 'openland-utils/Context';
 
 @injectable()
 export class MessagingModule {
@@ -56,63 +57,63 @@ export class MessagingModule {
     //  Settings
     //
 
-    async getUserNotificationState(uid: number) {
-        return await this.userState.getUserNotificationState(uid);
+    async getUserNotificationState(ctx: Context, uid: number) {
+        return await this.userState.getUserNotificationState(ctx, uid);
     }
 
     //
     // Messaging
     //
 
-    async findTopMessage(cid: number) {
-        return await this.messaging.findTopMessage(cid);
+    async findTopMessage(ctx: Context, cid: number) {
+        return await this.messaging.findTopMessage(ctx, cid);
     }
 
-    async sendMessage(cid: number, uid: number, message: MessageInput): Promise<ConversationEvent> {
-        return await this.messaging.sendMessage(uid, cid, message);
+    async sendMessage(ctx: Context, cid: number, uid: number, message: MessageInput): Promise<ConversationEvent> {
+        return await this.messaging.sendMessage(ctx, uid, cid, message);
     }
 
-    async editMessage(mid: number, uid: number, newMessage: MessageInput, markAsEdited: boolean): Promise<ConversationEvent> {
-        return await this.messaging.editMessage(mid, uid, newMessage, markAsEdited);
+    async editMessage(ctx: Context, mid: number, uid: number, newMessage: MessageInput, markAsEdited: boolean): Promise<ConversationEvent> {
+        return await this.messaging.editMessage(ctx, mid, uid, newMessage, markAsEdited);
     }
 
-    async setReaction(mid: number, uid: number, reaction: string, reset: boolean = false) {
-        return await this.messaging.setReaction(mid, uid, reaction, reset);
+    async setReaction(ctx: Context, mid: number, uid: number, reaction: string, reset: boolean = false) {
+        return await this.messaging.setReaction(ctx, mid, uid, reaction, reset);
     }
 
-    async deleteMessage(mid: number, uid: number): Promise<ConversationEvent> {
-        return await this.messaging.deleteMessage(mid, uid);
+    async deleteMessage(ctx: Context, mid: number, uid: number): Promise<ConversationEvent> {
+        return await this.messaging.deleteMessage(ctx, mid, uid);
     }
 
-    async readRoom(uid: number, cid: number, mid: number) {
-        return await this.messaging.readRoom(uid, cid, mid);
+    async readRoom(ctx: Context, uid: number, cid: number, mid: number) {
+        return await this.messaging.readRoom(ctx, uid, cid, mid);
     }
 
-    async markAsSeqRead(uid: number, toSeq: number) {
-        return await this.userState.markAsSeqRead(uid, toSeq);
+    async markAsSeqRead(ctx: Context, uid: number, toSeq: number) {
+        return await this.userState.markAsSeqRead(ctx, uid, toSeq);
     }
 
     //
     // Rooms
     //
 
-    async roomMembersCount(conversationId: number, status?: string): Promise<number> {
-        return await this.room.roomMembersCount(conversationId, status);
+    async roomMembersCount(ctx: Context, conversationId: number, status?: string): Promise<number> {
+        return await this.room.roomMembersCount(ctx, conversationId, status);
     }
 
-    async getRoomSettings(uid: number, cid: number) {
-        return await this.userState.getRoomSettings(uid, cid);
+    async getRoomSettings(ctx: Context, uid: number, cid: number) {
+        return await this.userState.getRoomSettings(ctx, uid, cid);
     }
 
     //
     // Hooks handler
     //
-    
-    onUserProfileUpdated = async (uid: number) => {
-        await this.delivery.onUserProfileUpdated(uid);
+
+    onUserProfileUpdated = async (ctx: Context, uid: number) => {
+        await this.delivery.onUserProfileUpdated(ctx, uid);
     }
 
-    onOrganizationProfileUpdated = async (oid: number) => {
-        await this.delivery.onOrganizationProfileUpdated(oid);
+    onOrganizationProfileUpdated = async (ctx: Context, oid: number) => {
+        await this.delivery.onOrganizationProfileUpdated(ctx, oid);
     }
 }

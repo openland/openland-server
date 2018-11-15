@@ -2,6 +2,7 @@ import { AllEntities, OrganizationInviteLink, OrganizationPublicInviteLink } fro
 import { inTx } from 'foundation-orm/inTx';
 import { randomGlobalInviteKey } from 'openland-utils/random';
 import { injectable, inject } from 'inversify';
+import { Context } from 'openland-utils/Context';
 
 @injectable()
 export class InvitesOrganizationRepository {
@@ -11,22 +12,23 @@ export class InvitesOrganizationRepository {
         this.entities = entities;
     }
 
-    async getAppInviteLinkKey(uid: number) {
+    async getAppInviteLinkKey(ctx: Context, uid: number) {
         return await inTx(async () => {
-            let existing = await this.entities.AppInviteLink.findFromUser(uid);
+            let existing = await this.entities.AppInviteLink.findFromUser(ctx, uid);
             if (existing) {
                 return existing.id;
             }
-            let res = await this.entities.AppInviteLink.create(randomGlobalInviteKey(), { uid });
+            let res = await this.entities.AppInviteLink.create(ctx, randomGlobalInviteKey(), { uid });
             return res.id;
         });
     }
 
-    async getAppInvteLinkData(key: string) {
-        return this.entities.AppInviteLink.findById(key);
+    async getAppInvteLinkData(ctx: Context, key: string) {
+        return this.entities.AppInviteLink.findById(ctx, key);
     }
 
     public async createOrganizationInvite(
+        ctx: Context,
         oid: number,
         uid: number,
         firstName: string,
@@ -36,50 +38,50 @@ export class InvitesOrganizationRepository {
         role: 'MEMBER' | 'OWNER',
     ): Promise<OrganizationInviteLink> {
         return await inTx(async () => {
-            let existing = await this.entities.OrganizationInviteLink.findFromEmailInOrganization(email, oid);
+            let existing = await this.entities.OrganizationInviteLink.findFromEmailInOrganization(ctx, email, oid);
             if (existing) {
                 existing.enabled = false;
             }
-            let res = await this.entities.OrganizationInviteLink.create(randomGlobalInviteKey(), { oid, email, uid, firstName, lastName, text, enabled: true, joined: false, role, ttl: new Date().getTime() + 1000 * 60 * 60 * 24 * 7 });
+            let res = await this.entities.OrganizationInviteLink.create(ctx, randomGlobalInviteKey(), { oid, email, uid, firstName, lastName, text, enabled: true, joined: false, role, ttl: new Date().getTime() + 1000 * 60 * 60 * 24 * 7 });
             return res;
         });
     }
 
-    public async getOrganizationInvite(id: string) {
-        let res = await this.entities.OrganizationInviteLink.findById(id);
+    public async getOrganizationInvite(ctx: Context, id: string) {
+        let res = await this.entities.OrganizationInviteLink.findById(ctx, id);
         return res && (res.enabled) ? res : null;
     }
 
-    public async getOrganizationInviteNonJoined(id: string) {
-        let res = await this.entities.OrganizationInviteLink.findById(id);
+    public async getOrganizationInviteNonJoined(ctx: Context, id: string) {
+        let res = await this.entities.OrganizationInviteLink.findById(ctx, id);
         return res && (res.enabled && !res.joined) ? res : null;
     }
 
-    public async getOrganizationInvitesForOrganization(orgId: number): Promise<OrganizationInviteLink[]> {
-        return this.entities.OrganizationInviteLink.allFromOrganization(orgId);
+    public async getOrganizationInvitesForOrganization(ctx: Context, orgId: number): Promise<OrganizationInviteLink[]> {
+        return this.entities.OrganizationInviteLink.allFromOrganization(ctx, orgId);
     }
 
-    public async getOrganizationInviteLink(oid: number, uid: number): Promise<OrganizationPublicInviteLink> {
+    public async getOrganizationInviteLink(ctx: Context, oid: number, uid: number): Promise<OrganizationPublicInviteLink> {
         return await inTx(async () => {
-            let existing = await this.entities.OrganizationPublicInviteLink.findFromUserInOrganization(uid, oid);
+            let existing = await this.entities.OrganizationPublicInviteLink.findFromUserInOrganization(ctx, uid, oid);
             if (!existing) {
-                existing = await this.entities.OrganizationPublicInviteLink.create(randomGlobalInviteKey(), { uid, oid, enabled: true });
+                existing = await this.entities.OrganizationPublicInviteLink.create(ctx, randomGlobalInviteKey(), { uid, oid, enabled: true });
             }
             return existing;
         });
     }
 
-    public async getOrganizationInviteLinkByKey(key: string): Promise<OrganizationPublicInviteLink | null> {
-        return await this.entities.OrganizationPublicInviteLink.findById(key);
+    public async getOrganizationInviteLinkByKey(ctx: Context, key: string): Promise<OrganizationPublicInviteLink | null> {
+        return await this.entities.OrganizationPublicInviteLink.findById(ctx, key);
     }
 
-    public async refreshOrganizationInviteLink(oid: number, uid: number): Promise<OrganizationPublicInviteLink> {
+    public async refreshOrganizationInviteLink(ctx: Context, oid: number, uid: number): Promise<OrganizationPublicInviteLink> {
         return await inTx(async () => {
-            let existing = await this.entities.OrganizationPublicInviteLink.findFromUserInOrganization(uid, oid);
+            let existing = await this.entities.OrganizationPublicInviteLink.findFromUserInOrganization(ctx, uid, oid);
             if (existing) {
                 existing.enabled = false;
             }
-            let res = await this.entities.OrganizationPublicInviteLink.create(randomGlobalInviteKey(), { uid, oid, enabled: true });
+            let res = await this.entities.OrganizationPublicInviteLink.create(ctx, randomGlobalInviteKey(), { uid, oid, enabled: true });
             return res;
         });
     }

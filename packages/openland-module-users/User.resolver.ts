@@ -12,12 +12,12 @@ type UserRoot = User | UserProfile | number;
 export function withUser(handler: (ctx: AppContext, user: User) => any) {
     return async (src: UserRoot, _params: {}, ctx: AppContext) => {
         if (typeof src === 'number') {
-            let user = (await (FDB.User.findById(src)))!;
+            let user = (await (FDB.User.findById(ctx, src)))!;
             return handler(ctx, user);
         } else if (src.entityName === 'User') {
             return handler(ctx, src);
         } else {
-            let user = (await (FDB.User.findById(src.id)))!;
+            let user = (await (FDB.User.findById(ctx, src.id)))!;
             return handler(ctx, user);
         }
     };
@@ -26,14 +26,14 @@ export function withUser(handler: (ctx: AppContext, user: User) => any) {
 export function withProfile(handler: (ctx: AppContext, user: User, profile: UserProfile | null) => any) {
     return async (src: UserRoot, _params: {}, ctx: AppContext) => {
         if (typeof src === 'number') {
-            let user = (await (FDB.User.findById(src)))!;
-            let profile = (await (FDB.UserProfile.findById(src)))!;
+            let user = (await (FDB.User.findById(ctx, src)))!;
+            let profile = (await (FDB.UserProfile.findById(ctx, src)))!;
             return handler(ctx, user, profile);
         } else if (src.entityName === 'User') {
-            let profile = (await (FDB.UserProfile.findById(src.id)))!;
+            let profile = (await (FDB.UserProfile.findById(ctx, src.id)))!;
             return handler(ctx, src, profile);
         } else {
-            let user = (await (FDB.User.findById(src.id)))!;
+            let user = (await (FDB.User.findById(ctx, src.id)))!;
             return handler(ctx, user, src);
         }
 
@@ -61,7 +61,7 @@ export default {
         location: withProfile((ctx, src, profile) => profile ? profile.location : null),
 
         shortname: withUser(async (ctx, src) => {
-            let shortname = await Modules.Shortnames.findUserShortname(src.id);
+            let shortname = await Modules.Shortnames.findUserShortname(ctx, src.id);
             if (shortname) {
                 return shortname.shortname;
             }
@@ -85,16 +85,16 @@ export default {
             if (ctx.auth.uid == null) {
                 return null;
             } else {
-                let profile = await FDB.User.findById(ctx.auth.uid);
+                let profile = await FDB.User.findById(ctx, ctx.auth.uid);
                 if (profile === null) {
                     return null;
                 }
 
-                return FDB.User.findById(ctx.auth.uid);
+                return FDB.User.findById(ctx, ctx.auth.uid);
             }
         },
         user: withAny<{ id: string }>((ctx, args) => {
-            return FDB.User.findById(IDs.User.parse(args.id));
+            return FDB.User.findById(ctx, IDs.User.parse(args.id));
         }),
     }
 } as GQLResolver;

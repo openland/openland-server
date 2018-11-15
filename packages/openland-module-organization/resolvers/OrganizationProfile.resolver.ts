@@ -15,19 +15,19 @@ import { AppContext } from 'openland-modules/AppContext';
 export default {
     OrganizationProfile: {
         id: (src: Organization) => IDs.Organization.serialize(src.id),
-        name: async (src: Organization) => ((await FDB.OrganizationProfile.findById(src.id)))!.name,
-        photoRef: async (src: Organization) => ((await FDB.OrganizationProfile.findById(src.id)))!.photo,
+        name: async (src: Organization, args: {}, ctx: AppContext) => ((await FDB.OrganizationProfile.findById(ctx, src.id)))!.name,
+        photoRef: async (src: Organization, args: {}, ctx: AppContext) => ((await FDB.OrganizationProfile.findById(ctx, src.id)))!.photo,
 
-        website: async (src: Organization) => ((await FDB.OrganizationProfile.findById(src.id)))!.website,
-        websiteTitle: (src: Organization) => null,
-        about: async (src: Organization) => ((await FDB.OrganizationProfile.findById(src.id)))!.about,
-        twitter: async (src: Organization) => ((await FDB.OrganizationProfile.findById(src.id)))!.twitter,
-        facebook: async (src: Organization) => ((await FDB.OrganizationProfile.findById(src.id)))!.facebook,
-        linkedin: async (src: Organization) => ((await FDB.OrganizationProfile.findById(src.id)))!.linkedin,
+        website: async (src: Organization, args: {}, ctx: AppContext) => ((await FDB.OrganizationProfile.findById(ctx, src.id)))!.website,
+        websiteTitle: (src: Organization, args: {}, ctx: AppContext) => null,
+        about: async (src: Organization, args: {}, ctx: AppContext) => ((await FDB.OrganizationProfile.findById(ctx, src.id)))!.about,
+        twitter: async (src: Organization, args: {}, ctx: AppContext) => ((await FDB.OrganizationProfile.findById(ctx, src.id)))!.twitter,
+        facebook: async (src: Organization, args: {}, ctx: AppContext) => ((await FDB.OrganizationProfile.findById(ctx, src.id)))!.facebook,
+        linkedin: async (src: Organization, args: {}, ctx: AppContext) => ((await FDB.OrganizationProfile.findById(ctx, src.id)))!.linkedin,
 
-        alphaPublished: async (src: Organization) => ((await FDB.OrganizationEditorial.findById(src.id)))!.listed,
+        alphaPublished: async (src: Organization, args: {}, ctx: AppContext) => ((await FDB.OrganizationEditorial.findById(ctx, src.id)))!.listed,
         alphaEditorial: (src: Organization) => src.editorial,
-        alphaFeatured: async (src: Organization) => ((await FDB.OrganizationEditorial.findById(src.id)))!.featured,
+        alphaFeatured: async (src: Organization, args: {}, ctx: AppContext) => ((await FDB.OrganizationEditorial.findById(ctx, src.id)))!.featured,
         alphaIsCommunity: (src: Organization) => src.kind === 'community',
 
         alphaOrganizationType: (src: Organization) => [],
@@ -42,13 +42,13 @@ export default {
     Query: {
         myOrganizationProfile: async (_: any, args: {}, ctx: AppContext) => {
             if (ctx.auth.oid) {
-                return await FDB.Organization.findById(ctx.auth.oid);
+                return await FDB.Organization.findById(ctx, ctx.auth.oid);
             }
             return null;
         },
         organizationProfile: withAny<GQL.QueryOrganizationProfileArgs>(async (ctx, args) => {
             // TODO: Fix permissions!11
-            let res = await FDB.Organization.findById(IDs.Organization.parse(args.id));
+            let res = await FDB.Organization.findById(ctx, IDs.Organization.parse(args.id));
             if (!res) {
                 throw new NotFoundError('Unable to find organization');
             }
@@ -57,31 +57,31 @@ export default {
     },
     Mutation: {
         createOrganization: withUser<GQL.MutationCreateOrganizationArgs>(async (ctx, args, uid) => {
-            return await Modules.Orgs.createOrganization(uid, args.input);
+            return await Modules.Orgs.createOrganization(ctx, uid, args.input);
         }),
         updateOrganizationProfile: withAccount<GQL.MutationUpdateOrganizationProfileArgs>(async (ctx, args, uid, oid) => {
 
             let orgId = oid;
             if (args.id) {
-                let role = await Modules.Super.superRole(uid);
+                let role = await Modules.Super.superRole(ctx, uid);
                 if (!(role === 'super-admin' || role === 'editor')) {
                     throw new UserError(ErrorText.permissionOnlyOwner);
                 }
                 orgId = IDs.Organization.parse(args.id);
             } else {
-                let member = await FDB.OrganizationMember.findById(oid, uid);
+                let member = await FDB.OrganizationMember.findById(ctx, oid, uid);
                 if (member === null || member.status !== 'joined' || member.role !== 'admin') {
                     throw new UserError(ErrorText.permissionOnlyOwner);
                 }
             }
 
             return await inTx(async () => {
-                let existing = await FDB.Organization.findById(orgId);
+                let existing = await FDB.Organization.findById(ctx, orgId);
                 if (!existing) {
                     throw new UserError(ErrorText.unableToFindOrganization);
                 }
 
-                let profile = (await FDB.OrganizationProfile.findById(orgId))!;
+                let profile = (await FDB.OrganizationProfile.findById(ctx, orgId))!;
 
                 if (args.input.name !== undefined) {
                     await validate(
@@ -114,7 +114,7 @@ export default {
                     profile.about = Sanitizer.sanitizeString(args.input.about);
                 }
 
-                let editorial = (await FDB.OrganizationEditorial.findById(oid))!;
+                let editorial = (await FDB.OrganizationEditorial.findById(ctx, oid))!;
 
                 if (args.input.alphaPublished !== undefined) {
                     editorial.listed = Sanitizer.sanitizeAny(args.input.alphaPublished) ? true : false;
@@ -129,12 +129,12 @@ export default {
                 }
 
                 // Schedule indexing
-                await Modules.Orgs.markForUndexing(profile.id);
+                await Modules.Orgs.markForUndexing(ctx, profile.id);
 
                 // Call hook
                 await editorial.flush();
                 await profile.flush();
-                await Modules.Hooks.onOrganizationProfileUpdated(profile.id);
+                await Modules.Hooks.onOrganizationProfileUpdated(ctx, profile.id);
 
                 return existing;
             });

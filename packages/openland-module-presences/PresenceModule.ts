@@ -7,6 +7,7 @@ import { AllEntities } from '../openland-module-db/schema';
 import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent';
 import { injectable } from 'inversify';
 import { createLogger } from 'openland-log/createLogger';
+import { Context, createEmptyContext } from 'openland-utils/Context';
 
 const presenceEvent = createHyperlogger<{ uid: number, online: boolean }>('presence');
 const log = createLogger('presences');
@@ -31,33 +32,33 @@ export class PresenceModule {
         }
     }
 
-    public async setOnline(uid: number, tid: string, timeout: number, platform: string) {
+    public async setOnline(ctx: Context, uid: number, tid: string, timeout: number, platform: string) {
         return await inTx(async () => {
             let expires = Date.now() + timeout;
-            let ex = await this.FDB.Presence.findById(uid, tid);
+            let ex = await this.FDB.Presence.findById(ctx, uid, tid);
             if (ex) {
                 ex.lastSeen = Date.now();
                 ex.lastSeenTimeout = timeout;
                 ex.platform = platform;
             } else {
-                await this.FDB.Presence.create(uid, tid, { lastSeen: Date.now(), lastSeenTimeout: timeout, platform });
+                await this.FDB.Presence.create(ctx, uid, tid, { lastSeen: Date.now(), lastSeenTimeout: timeout, platform });
             }
 
-            let online = await this.FDB.Online.findById(uid);
+            let online = await this.FDB.Online.findById(ctx, uid);
 
             if (!online) {
-                await this.FDB.Online.create(uid, { lastSeen: expires });
+                await this.FDB.Online.create(ctx, uid, { lastSeen: expires });
             } else if (online.lastSeen < expires) {
                 online.lastSeen = expires;
             }
 
-            await presenceEvent.event({ uid, online: true });
+            await presenceEvent.event(ctx, { uid, online: true });
         });
     }
 
-    public async getLastSeen(uid: number): Promise<'online' | 'never_online' | number> {
+    public async getLastSeen(ctx: Context, uid: number): Promise<'online' | 'never_online' | number> {
         log.debug('get last seen');
-        let res = await this.FDB.Online.findById(uid);
+        let res = await this.FDB.Online.findById(ctx, uid);
         if (res) {
             if (res.lastSeen > Date.now()) {
                 return 'online';
@@ -97,8 +98,8 @@ export class PresenceModule {
         return iterator;
     }
 
-    private async handleOnlineChange(userId: number) {
-        let onlineValue = await this.FDB.Online.findById(userId);
+    private async handleOnlineChange(uid: number) {
+        let onlineValue = await this.FDB.Online.findById(createEmptyContext(), uid);
 
         let timeout = 0;
         let online = false;
@@ -108,7 +109,7 @@ export class PresenceModule {
             timeout = onlineValue.lastSeen - Date.now();
         }
 
-        let prev = this.onlines.get(userId);
+        let prev = this.onlines.get(uid);
 
         let isChanged = online ? (!prev || !prev.online) : (prev && prev.online);
 
@@ -118,17 +119,17 @@ export class PresenceModule {
 
         if (online) {
             let timer = setTimeout(async () => {
-                await this.localSub.publish(userId.toString(10), { userId, timeout: 0, online: false });
-                this.onlines.set(userId, { online: false });
+                await this.localSub.publish(uid.toString(10), { userId: uid, timeout: 0, online: false });
+                this.onlines.set(uid, { online: false });
             }, timeout);
-            this.onlines.set(userId, { online, timer });
+            this.onlines.set(uid, { online, timer });
 
         } else {
-            this.onlines.set(userId, { online });
+            this.onlines.set(uid, { online });
         }
 
         if (isChanged) {
-            await this.localSub.publish(userId.toString(10), { userId, timeout, online });
+            await this.localSub.publish(uid.toString(10), { userId: uid, timeout, online });
         }
     }
 
@@ -137,7 +138,7 @@ export class PresenceModule {
             return;
         } else {
             // tslint:disable-next-line:no-floating-promises
-            let sub = this.FDB.Online.watch(uid, () => {
+            let sub = this.FDB.Online.watch(createEmptyContext(), uid, () => {
                 log.debug('presence watch fired for ' + uid);
                 // tslint:disable-next-line:no-floating-promises
                 this.handleOnlineChange(uid);

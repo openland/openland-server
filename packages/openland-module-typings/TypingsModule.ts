@@ -4,6 +4,7 @@ import { PubsubSubcription, Pubsub } from 'openland-module-pubsub/pubsub';
 import { debouncer } from 'openland-utils/timer';
 import { Modules } from 'openland-modules/Modules';
 import { injectable } from 'inversify';
+import { createEmptyContext } from 'openland-utils/Context';
 
 @injectable()
 export class TypingsModule {
@@ -68,7 +69,7 @@ export class TypingsModule {
         if (this.cache.has(chatId)) {
             return this.cache.get(chatId)!;
         } else {
-            let members = await Modules.Messaging.room.findConversationMembers(chatId);
+            let members = await Modules.Messaging.room.findConversationMembers(createEmptyContext(), chatId);
 
             this.cache.set(chatId, members);
 

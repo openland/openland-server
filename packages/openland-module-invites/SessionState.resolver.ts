@@ -25,7 +25,7 @@ export default {
             }
 
             // User unknown?! Just softly ignore errors
-            let res = await FDB.User.findById(auth.uid);
+            let res = await FDB.User.findById(ctx, auth.uid);
             if (res === null) {
                 return {
                     isLoggedIn: false,
@@ -44,17 +44,17 @@ export default {
             let isLoggedIn = true; // Checked in previous steps
 
             // Stage 1: Create Profile
-            let profile = auth.uid ? (await Modules.Users.profileById(auth.uid)) : null;
+            let profile = auth.uid ? (await Modules.Users.profileById(ctx, auth.uid)) : null;
             let isProfileCreated = !!profile;
 
             // Stage 2: Pick organization or create a new one (if there are no exists)
-            let organization = !!auth.oid ? await FDB.Organization.findById(auth.oid) : null;
+            let organization = !!auth.oid ? await FDB.Organization.findById(ctx, auth.oid) : null;
             let isOrganizationPicked = organization !== null;
-            let orgsIDs = auth.uid ? await Modules.Orgs.findUserOrganizations(auth.uid) : [];
+            let orgsIDs = auth.uid ? await Modules.Orgs.findUserOrganizations(ctx, auth.uid) : [];
             let isOrganizationExists = orgsIDs.length > 0;
 
             // Stage 3: Activation Status
-            let orgs = await Promise.all(orgsIDs.map((v) => FDB.Organization.findById(v)));
+            let orgs = await Promise.all(orgsIDs.map((v) => FDB.Organization.findById(ctx, v)));
             let isAllOrganizationsSuspended = orgs.length > 0 && orgs.filter(o => o!.status === 'suspended').length === orgs.length;
             let isActivated = orgs.filter(o => o!.status === 'activated').length > 0;
             // depricated

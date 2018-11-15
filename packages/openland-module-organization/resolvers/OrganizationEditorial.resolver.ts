@@ -10,15 +10,15 @@ export default {
     Mutation: {
         alphaAlterPublished: withPermission<{ id: string, published: boolean }>(['super-admin', 'editor'], async (ctx, args) => {
             return await inTx(async () => {
-                let org = await FDB.Organization.findById(IDs.Organization.parse(args.id));
+                let org = await FDB.Organization.findById(ctx, IDs.Organization.parse(args.id));
                 if (!org) {
                     throw new UserError(ErrorText.unableToFindOrganization);
                 }
-                let editorial = await FDB.OrganizationEditorial.findById(org.id);
+                let editorial = await FDB.OrganizationEditorial.findById(ctx, org.id);
                 editorial!.listed = args.published;
 
                 // Schedule for indexing
-                await Modules.Orgs.markForUndexing(org.id);
+                await Modules.Orgs.markForUndexing(ctx, org.id);
 
                 return org;
             });

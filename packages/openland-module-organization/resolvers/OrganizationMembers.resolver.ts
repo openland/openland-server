@@ -19,7 +19,7 @@ export default {
         alphaOrganizationMembers: withAccount<{ orgId: string }>(async (ctx, args, uid, orgId) => {
             let targetOrgId = IDs.Organization.parse(args.orgId);
 
-            let isMember = await Modules.Orgs.isUserMember(uid, targetOrgId);
+            let isMember = await Modules.Orgs.isUserMember(ctx, uid, targetOrgId);
 
             if (!isMember) {
                 throw new AccessDeniedError(ErrorText.permissionDenied);
@@ -27,9 +27,9 @@ export default {
 
             let result: any[] = [];
 
-            result.push(... await resolveOrganizationJoinedMembers(targetOrgId));
+            result.push(... await resolveOrganizationJoinedMembers(ctx, targetOrgId));
 
-            let invites = await Modules.Invites.orgInvitesRepo.getOrganizationInvitesForOrganization(targetOrgId);
+            let invites = await Modules.Invites.orgInvitesRepo.getOrganizationInvitesForOrganization(ctx, targetOrgId);
 
             for (let invite of invites) {
                 result.push({
@@ -46,25 +46,25 @@ export default {
         }),
         alphaOrganizationInviteLink: withAccount<{ organizationId?: string }>(async (ctx, args, uid, organizationId) => {
             organizationId = args.organizationId ? IDs.Organization.parse(args.organizationId) : organizationId;
-            return await Modules.Invites.orgInvitesRepo.getOrganizationInviteLink(organizationId, uid);
+            return await Modules.Invites.orgInvitesRepo.getOrganizationInviteLink(ctx, organizationId, uid);
         }),
         // deperecated
         alphaOrganizationPublicInvite: withAccount<{ organizationId?: string }>(async (ctx, args, uid, organizationId) => {
             organizationId = args.organizationId ? IDs.Organization.parse(args.organizationId) : organizationId;
-            return await Modules.Invites.orgInvitesRepo.getOrganizationInviteLink(organizationId, uid);
+            return await Modules.Invites.orgInvitesRepo.getOrganizationInviteLink(ctx, organizationId, uid);
         }),
     },
     Mutation: {
         alphaOrganizationRemoveMember: withAccount<{ memberId: string, organizationId: string }>(async (ctx, args, uid) => {
             let oid = IDs.Organization.parse(args.organizationId);
             let memberId = IDs.User.parse(args.memberId);
-            await Modules.Orgs.removeUserFromOrganization(memberId, oid, uid);
+            await Modules.Orgs.removeUserFromOrganization(ctx, memberId, oid, uid);
             return 'ok';
         }),
         alphaOrganizationChangeMemberRole: withAccount<{ memberId: string, newRole: 'OWNER' | 'MEMBER', organizationId: string }>(async (ctx, args, uid) => {
             let oid = IDs.Organization.parse(args.organizationId);
             let memberId = IDs.User.parse(args.memberId);
-            await Modules.Orgs.updateMemberRole(memberId, oid, args.newRole === 'OWNER' ? 'admin' : 'member', uid);
+            await Modules.Orgs.updateMemberRole(ctx, memberId, oid, args.newRole === 'OWNER' ? 'admin' : 'member', uid);
             return 'ok';
         }),
 
@@ -74,12 +74,13 @@ export default {
 
             return await inTx(async () => {
                 for (let inviteRequest of args.inviteRequests) {
-                    let isMemberDuplicate = await Modules.Orgs.hasMemberWithEmail(oid, inviteRequest.email);
+                    let isMemberDuplicate = await Modules.Orgs.hasMemberWithEmail(ctx, oid, inviteRequest.email);
                     if (isMemberDuplicate) {
                         throw new UserError(ErrorText.memberWithEmailAlreadyExists);
                     }
 
                     let invite = await Modules.Invites.orgInvitesRepo.createOrganizationInvite(
+                        ctx,
                         oid,
                         uid,
                         inviteRequest.firstName || '',
@@ -89,7 +90,7 @@ export default {
                         inviteRequest.role,
                     );
 
-                    await Emails.sendInviteEmail(oid, invite);
+                    await Emails.sendInviteEmail(ctx, oid, invite);
                 }
                 return 'ok';
             });
@@ -97,26 +98,26 @@ export default {
         alphaOrganizationRefreshInviteLink: withAccount<{ expirationDays?: number, organizationId?: string }>(async (ctx, args, uid, oid) => {
             return inTx(async () => {
                 oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
-                let isOwner = await Modules.Orgs.isUserAdmin(uid, oid);
+                let isOwner = await Modules.Orgs.isUserAdmin(ctx, uid, oid);
 
                 if (!isOwner) {
                     throw new UserError(ErrorText.permissionOnlyOwner);
                 }
 
-                return await Modules.Invites.orgInvitesRepo.refreshOrganizationInviteLink(oid, uid);
+                return await Modules.Invites.orgInvitesRepo.refreshOrganizationInviteLink(ctx, oid, uid);
             });
         }),
         // deperecated
         alphaOrganizationCreatePublicInvite: withAccount<{ expirationDays?: number, organizationId?: string }>(async (ctx, args, uid, oid) => {
             return inTx(async () => {
                 oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
-                let isOwner = await Modules.Orgs.isUserAdmin(uid, oid);
+                let isOwner = await Modules.Orgs.isUserAdmin(ctx, uid, oid);
 
                 if (!isOwner) {
                     throw new UserError(ErrorText.permissionOnlyOwner);
                 }
 
-                return await Modules.Invites.orgInvitesRepo.refreshOrganizationInviteLink(oid, uid);
+                return await Modules.Invites.orgInvitesRepo.refreshOrganizationInviteLink(ctx, oid, uid);
             });
         }),
         // deprecated

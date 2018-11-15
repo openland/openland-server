@@ -8,6 +8,7 @@ import { handleFail } from './util/handleFail';
 import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
 import { inTx } from '../../foundation-orm/inTx';
 import { PushConfig } from 'openland-module-push/PushConfig';
+import { createEmptyContext } from 'openland-utils/Context';
 
 let providers = new Map<boolean, Map<string, APN.Provider>>();
 const log = createLogger('apns');
@@ -20,7 +21,8 @@ export function createAppleWorker(repo: PushRepository) {
         if (serverRoleEnabled('workers')) {
             // for (let i = 0; i < 10; i++) {
             queue.addWorker(async (task) => {
-                let token = (await repo.getAppleToken(task.tokenId))!;
+                let ctx = createEmptyContext();
+                let token = (await repo.getAppleToken(ctx, task.tokenId))!;
                 if (!token.enabled) {
                     return { result: 'skipped' };
                 }
@@ -70,13 +72,13 @@ export function createAppleWorker(repo: PushRepository) {
 
                             if (reason === 'BadDeviceToken' || reason === 'Unregistered') {
                                 await inTx(async () => {
-                                    let t = (await repo.getAppleToken(task.tokenId))!;
+                                    let t = (await repo.getAppleToken(ctx, task.tokenId))!;
                                     await handleFail(t);
-                                    await pushFail.event({ uid: t.uid, tokenId: t.id, failures: t.failures!, reason: reason!, disabled: !t.enabled });
+                                    await pushFail.event(ctx, { uid: t.uid, tokenId: t.id, failures: t.failures!, reason: reason!, disabled: !t.enabled });
                                 });
                             }
                         } else {
-                            await pushSent.event({ uid: token.uid, tokenId: token.id });
+                            await pushSent.event(ctx, { uid: token.uid, tokenId: token.id });
                         }
 
                         return { result: 'ok' };

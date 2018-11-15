@@ -2,6 +2,7 @@ import { AllEntities, ConversationEvent, Message } from 'openland-module-db/sche
 import { inTx } from 'foundation-orm/inTx';
 import { MessageInput } from 'openland-module-messaging/MessageInput';
 import { injectable, inject } from 'inversify';
+import { Context } from 'openland-utils/Context';
 
 @injectable()
 export class MessagingRepository {
@@ -11,15 +12,15 @@ export class MessagingRepository {
         this.entities = entities;
     }
 
-    async createMessage(cid: number, uid: number, message: MessageInput): Promise<{ event: ConversationEvent, message: Message }> {
+    async createMessage(ctx: Context, cid: number, uid: number, message: MessageInput): Promise<{ event: ConversationEvent, message: Message }> {
         return await inTx(async () => {
 
             // 
             // Persist Messages
             //
 
-            let mid = await this.fetchNextMessageId();
-            let msg = await this.entities.Message.create(mid, {
+            let mid = await this.fetchNextMessageId(ctx);
+            let msg = await this.entities.Message.create(ctx, mid, {
                 cid: cid,
                 uid: uid,
                 isMuted: message.isMuted || false,
@@ -40,8 +41,8 @@ export class MessagingRepository {
             // Write Event
             //
 
-            let seq = await this.fetchConversationNextSeq(cid);
-            let res = await this.entities.ConversationEvent.create(cid, seq, {
+            let seq = await this.fetchConversationNextSeq(ctx, cid);
+            let res = await this.entities.ConversationEvent.create(ctx, cid, seq, {
                 kind: 'message_received',
                 uid: uid,
                 mid: mid
@@ -53,9 +54,9 @@ export class MessagingRepository {
         });
     }
 
-    async editMessage(mid: number, newMessage: MessageInput, markAsEdited: boolean): Promise<ConversationEvent> {
+    async editMessage(ctx: Context, mid: number, newMessage: MessageInput, markAsEdited: boolean): Promise<ConversationEvent> {
         return await inTx(async () => {
-            let message = await this.entities.Message.findById(mid);
+            let message = await this.entities.Message.findById(ctx, mid);
             if (!message) {
                 throw new Error('Message not found');
             }
@@ -93,8 +94,8 @@ export class MessagingRepository {
             // Write Event
             //
 
-            let seq = await this.fetchConversationNextSeq(message!.cid);
-            let res = await this.entities.ConversationEvent.create(message!.cid, seq, {
+            let seq = await this.fetchConversationNextSeq(ctx, message!.cid);
+            let res = await this.entities.ConversationEvent.create(ctx, message!.cid, seq, {
                 kind: 'message_updated',
                 mid: message!.id
             });
@@ -103,9 +104,9 @@ export class MessagingRepository {
         });
     }
 
-    async deleteMessage(mid: number): Promise<ConversationEvent> {
+    async deleteMessage(ctx: Context, mid: number): Promise<ConversationEvent> {
         return await inTx(async () => {
-            let message = (await this.entities.Message.findById(mid));
+            let message = (await this.entities.Message.findById(ctx, mid));
 
             if (!message) {
                 throw new Error('Message not found');
@@ -121,8 +122,8 @@ export class MessagingRepository {
             // Write Event
             //
 
-            let seq = await this.fetchConversationNextSeq(message.cid);
-            let res = await this.entities.ConversationEvent.create(message.cid, seq, {
+            let seq = await this.fetchConversationNextSeq(ctx, message.cid);
+            let res = await this.entities.ConversationEvent.create(ctx, message.cid, seq, {
                 kind: 'message_deleted',
                 mid: message!.id
             });
@@ -131,9 +132,9 @@ export class MessagingRepository {
         });
     }
 
-    async setReaction(mid: number, uid: number, reaction: string, reset: boolean = false) {
+    async setReaction(ctx: Context, mid: number, uid: number, reaction: string, reset: boolean = false) {
         return await inTx(async () => {
-            let message = await this.entities.Message.findById(mid);
+            let message = await this.entities.Message.findById(ctx, mid);
 
             if (!message) {
                 throw new Error('Message not found');
@@ -160,8 +161,8 @@ export class MessagingRepository {
             // Write Event
             //
 
-            let seq = await this.fetchConversationNextSeq(message!.cid);
-            let res = await this.entities.ConversationEvent.create(message!.cid, seq, {
+            let seq = await this.fetchConversationNextSeq(ctx, message!.cid);
+            let res = await this.entities.ConversationEvent.create(ctx, message!.cid, seq, {
                 kind: 'message_updated',
                 mid: message!.id
             });
@@ -174,8 +175,8 @@ export class MessagingRepository {
      * @deprecated top message should be persisted in dialog list
      * @param cid conversation id
      */
-    async findTopMessage(cid: number) {
-        let res = await this.entities.Message.rangeFromChat(cid, 1, true);
+    async findTopMessage(ctx: Context, cid: number) {
+        let res = await this.entities.Message.rangeFromChat(ctx, cid, 1, true);
         if (res.length === 0) {
             return null;
         } else {
@@ -183,12 +184,12 @@ export class MessagingRepository {
         }
     }
 
-    private async fetchConversationNextSeq(cid: number) {
+    private async fetchConversationNextSeq(ctx: Context, cid: number) {
         return await inTx(async () => {
-            let existing = await this.entities.ConversationSeq.findById(cid);
+            let existing = await this.entities.ConversationSeq.findById(ctx, cid);
             let seq = 1;
             if (!existing) {
-                await (await this.entities.ConversationSeq.create(cid, { seq: 1 })).flush();
+                await (await this.entities.ConversationSeq.create(ctx, cid, { seq: 1 })).flush();
             } else {
                 seq = ++existing.seq;
                 await existing.flush();
@@ -197,15 +198,15 @@ export class MessagingRepository {
         });
     }
 
-    private async fetchNextMessageId() {
+    private async fetchNextMessageId(ctx: Context) {
         return await inTx(async () => {
-            let ex = await this.entities.Sequence.findById('message-id');
+            let ex = await this.entities.Sequence.findById(ctx, 'message-id');
             if (ex) {
                 let res = ++ex.value;
                 await ex.flush();
                 return res;
             } else {
-                await this.entities.Sequence.create('message-id', { value: 1 });
+                await this.entities.Sequence.create(ctx, 'message-id', { value: 1 });
                 return 1;
             }
         });

@@ -13,11 +13,11 @@ export async function fetchWebSocketParameters(args: any, websocket: any) {
     let res: any = {};
     if ('x-openland-token' in args) {
         let token = args['x-openland-token'] as string;
-        let uid = await Modules.Auth.findToken(token);
+        let uid = await Modules.Auth.findToken(createEmptyContext(), token);
         if (uid !== null) {
             res.uid = uid.uid;
             res.tid = uid.uuid;
-            let accounts = await Modules.Orgs.findUserOrganizations(res.uid);
+            let accounts = await Modules.Orgs.findUserOrganizations(createEmptyContext(), res.uid);
             if (accounts.length === 1) {
                 res.oid = accounts[0];
             }
@@ -42,7 +42,7 @@ export async function fetchWebSocketParameters(args: any, websocket: any) {
                 if (accounts.length >= 1) {
                     res.oid = accounts[0];
 
-                    let profile = await Modules.Users.profileById(res.uid);
+                    let profile = await Modules.Users.profileById(createEmptyContext(), res.uid);
                     res.oid = (profile && profile.primaryOrganization) || res.oid;
                 }
             }

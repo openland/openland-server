@@ -38,7 +38,7 @@ export default {
                 }
             });
 
-            let res = hits.hits.hits.map((v) => FDB.Organization.findById(parseInt(v._id, 10)));
+            let res = hits.hits.hits.map((v) => FDB.Organization.findById(ctx, parseInt(v._id, 10)));
 
             return res;
         }),
@@ -59,7 +59,7 @@ export default {
                 }
             });
 
-            let orgs = hits.hits.hits.map((v) => FDB.Organization.findById(parseInt(v._id, 10)));
+            let orgs = hits.hits.hits.map((v) => FDB.Organization.findById(ctx, parseInt(v._id, 10)));
             let offset = 0;
             if (args.after) {
                 offset = parseInt(args.after, 10);
@@ -136,7 +136,7 @@ export default {
                 }
             });
 
-            let orgs = hits.hits.hits.map((v) => FDB.Organization.findById(parseInt(v._id, 10)));
+            let orgs = hits.hits.hits.map((v) => FDB.Organization.findById(ctx, parseInt(v._id, 10)));
             let offset = 0;
             if (args.after) {
                 offset = parseInt(args.after, 10);

@@ -47,13 +47,13 @@ export default {
     },
 
     ConversationMessageReceived: {
-        message: (src: ConversationEvent) => FDB.Message.findById(src.mid!)
+        message: (src: ConversationEvent, args: {}, ctx: AppContext) => FDB.Message.findById(ctx, src.mid!)
     },
     ConversationMessageUpdated: {
-        message: (src: ConversationEvent) => FDB.Message.findById(src.mid!)
+        message: (src: ConversationEvent, args: {}, ctx: AppContext) => FDB.Message.findById(ctx, src.mid!)
     },
     ConversationMessageDeleted: {
-        message: (src: ConversationEvent) => FDB.Message.findById(src.mid!)
+        message: (src: ConversationEvent, args: {}, ctx: AppContext) => FDB.Message.findById(ctx, src.mid!)
     },
 
     Subscription: {
@@ -63,7 +63,7 @@ export default {
             },
             subscribe: function (_: any, args: { conversationId: string, fromState?: string }, ctx: AppContext) {
                 let conversationId = IDs.Conversation.parse(args.conversationId);
-                return FDB.ConversationEvent.createUserLiveStream(conversationId, 20, args.fromState);
+                return FDB.ConversationEvent.createUserLiveStream(ctx, conversationId, 20, args.fromState);
             }
         } as any,
     },
@@ -71,7 +71,7 @@ export default {
     //
     // Deprecated
     //
-    
+
     ConversationEvent: {
         __resolveType(obj: ConversationEvent) {
             if (obj.kind === 'message_received') {
@@ -85,11 +85,11 @@ export default {
         },
     },
     ConversationEventMessage: {
-        message: (src: ConversationEvent) => FDB.Message.findById(src.mid!),
+        message: (src: ConversationEvent, args: {}, ctx: AppContext) => FDB.Message.findById(ctx, src.mid!),
         seq: (src: ConversationEvent) => src.seq
     },
     ConversationEventEditMessage: {
-        message: (src: ConversationEvent) => FDB.Message.findById(src.mid!),
+        message: (src: ConversationEvent, args: {}, ctx: AppContext) => FDB.Message.findById(ctx, src.mid!),
         seq: (src: ConversationEvent) => src.seq
     },
     ConversationEventDelete: {

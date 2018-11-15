@@ -9,6 +9,7 @@ import { Modules } from 'openland-modules/Modules';
 import { AugmentationMediator } from './AugmentationMediator';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { RoomMediator } from './RoomMediator';
+import { Context } from 'openland-utils/Context';
 
 @injectable()
 export class MessagingMediator {
@@ -24,7 +25,7 @@ export class MessagingMediator {
     @lazyInject('RoomMediator')
     private readonly room!: RoomMediator;
 
-    sendMessage = async (uid: number, cid: number, message: MessageInput, skipAccessCheck?: boolean) => {
+    sendMessage = async (ctx: Context, uid: number, cid: number, message: MessageInput, skipAccessCheck?: boolean) => {
         return await inTx(async () => {
 
             // Check for bad words. Useful for debug.
@@ -34,97 +35,97 @@ export class MessagingMediator {
 
             // Permissions
             if (!skipAccessCheck) {
-                await this.room.checkAccess(uid, cid);
+                await this.room.checkAccess(ctx, uid, cid);
             }
 
             // Create
-            let res = await this.repo.createMessage(cid, uid, message);
+            let res = await this.repo.createMessage(ctx, cid, uid, message);
 
             // Delivery
-            await this.delivery.onNewMessage(res.message);
+            await this.delivery.onNewMessage(ctx, res.message);
 
             // Augment
-            await this.augmentation.onNewMessage(res.message);
+            await this.augmentation.onNewMessage(ctx, res.message);
 
             // Cancel typings
             // TODO: Remove
-            let members = await this.room.findConversationMembers(cid);
+            let members = await this.room.findConversationMembers(ctx, cid);
             await Modules.Typings.cancelTyping(uid, cid, members);
 
             // Clear draft
             // TODO: Move
-            await Modules.Drafts.clearDraft(uid, cid);
+            await Modules.Drafts.clearDraft(ctx, uid, cid);
 
             return res.event;
         });
     }
 
-    editMessage = async (mid: number, uid: number, newMessage: MessageInput, markAsEdited: boolean) => {
+    editMessage = async (ctx: Context, mid: number, uid: number, newMessage: MessageInput, markAsEdited: boolean) => {
         return await inTx(async () => {
             // Permissions
-            let message = (await this.entities.Message.findById(mid!))!;
+            let message = (await this.entities.Message.findById(ctx, mid!))!;
             if (message.uid !== uid) {
-                if (await Modules.Super.superRole(uid) !== 'super-admin') {
+                if (await Modules.Super.superRole(ctx, uid) !== 'super-admin') {
                     throw new AccessDeniedError();
                 }
             }
 
             // Update
-            let res = await this.repo.editMessage(mid, newMessage, markAsEdited);
-            message = (await this.entities.Message.findById(mid!))!;
+            let res = await this.repo.editMessage(ctx, mid, newMessage, markAsEdited);
+            message = (await this.entities.Message.findById(ctx, mid!))!;
 
             // Delivery
-            await this.delivery.onUpdateMessage(message);
+            await this.delivery.onUpdateMessage(ctx, message);
 
             // Augment
-            await this.augmentation.onMessageUpdated(message);
+            await this.augmentation.onMessageUpdated(ctx, message);
 
             return res;
         });
     }
 
-    setReaction = async (mid: number, uid: number, reaction: string, reset: boolean = false) => {
+    setReaction = async (ctx: Context, mid: number, uid: number, reaction: string, reset: boolean = false) => {
         return await inTx(async () => {
 
             // Update
-            let res = await this.repo.setReaction(mid, uid, reaction, reset);
+            let res = await this.repo.setReaction(ctx, mid, uid, reaction, reset);
 
             // Delivery
-            let message = (await this.entities.Message.findById(res!.mid!))!;
-            await this.delivery.onUpdateMessage(message);
+            let message = (await this.entities.Message.findById(ctx, res!.mid!))!;
+            await this.delivery.onUpdateMessage(ctx, message);
 
             return res;
         });
     }
 
-    deleteMessage = async (mid: number, uid: number) => {
+    deleteMessage = async (ctx: Context, mid: number, uid: number) => {
         return await inTx(async () => {
 
-            let message = (await this.entities.Message.findById(mid!))!;
+            let message = (await this.entities.Message.findById(ctx, mid!))!;
             if (message.uid !== uid) {
-                if (await Modules.Super.superRole(uid) !== 'super-admin') {
+                if (await Modules.Super.superRole(ctx, uid) !== 'super-admin') {
                     throw new AccessDeniedError();
                 }
             }
 
             // Delete
-            let res = await this.repo.deleteMessage(mid);
+            let res = await this.repo.deleteMessage(ctx, mid);
 
             // Delivery
-            message = (await this.entities.Message.findById(res!.mid!))!;
-            await this.delivery.onDeleteMessage(message);
+            message = (await this.entities.Message.findById(ctx, res!.mid!))!;
+            await this.delivery.onDeleteMessage(ctx, message);
 
             return res;
         });
     }
 
-    readRoom = async (uid: number, cid: number, mid: number) => {
+    readRoom = async (ctx: Context, uid: number, cid: number, mid: number) => {
         return await inTx(async () => {
-            let msg = await this.entities.Message.findById(mid);
+            let msg = await this.entities.Message.findById(ctx, mid);
             if (!msg || msg.cid !== cid) {
                 throw Error('Invalid request');
             }
-            await this.delivery.onRoomRead(uid, mid);
+            await this.delivery.onRoomRead(ctx, uid, mid);
         });
     }
 
@@ -132,7 +133,7 @@ export class MessagingMediator {
     // Queries
     //
 
-    findTopMessage = async (cid: number) => {
-        return await this.repo.findTopMessage(cid);
+    findTopMessage = async (ctx: Context, cid: number) => {
+        return await this.repo.findTopMessage(ctx, cid);
     }
 }

@@ -9,7 +9,7 @@ async function fetchPermissions(ctx: AppContext) {
     if (ctx.cache.has('permissions')) {
         return (await ctx.cache.get('permissions')) as Set<string>;
     }
-    let res = Modules.Super.resolvePermissions({ uid: ctx.auth.uid, oid: ctx.auth.oid });
+    let res = Modules.Super.resolvePermissions(ctx, { uid: ctx.auth.uid, oid: ctx.auth.oid });
     ctx.cache.set('permissions', res);
     return await res;
 }
@@ -65,8 +65,8 @@ export function withAny<T = {}>(resolver: (ctx: AppContext, args: T) => any) {
 }
 
 export function resolveUser<T extends { userId: number }>() {
-    return function (src: T) {
-        return FDB.User.findById(src.userId);
+    return function (src: T, args: T, ctx: AppContext) {
+        return FDB.User.findById(ctx, src.userId);
     };
 }
 

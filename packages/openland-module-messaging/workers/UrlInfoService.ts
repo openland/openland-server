@@ -6,6 +6,7 @@ import { FDB } from 'openland-module-db/FDB';
 import { fetchURLInfo } from './UrlInfo';
 import { FileInfo } from 'openland-module-media/FileInfo';
 import { ImageRef } from 'openland-module-media/ImageRef';
+import { createEmptyContext } from 'openland-utils/Context';
 
 export interface URLAugmentation {
     url: string;
@@ -30,7 +31,8 @@ export default class UrlInfoService {
     private cache = new CacheRepository<URLAugmentation>('url_info');
 
     public async fetchURLInfo(url: string): Promise<URLAugmentation> {
-        let existing = await this.cache.read(url);
+        let ctx = createEmptyContext();
+        let existing = await this.cache.read(ctx, url);
 
         if (existing) {
             return existing;
@@ -39,7 +41,7 @@ export default class UrlInfoService {
         if (this.userRegexp.test(url)) {
             let info = await this.parseUserUrl(url);
 
-            await this.cache.write(url, info);
+            await this.cache.write(ctx, url, info);
 
             return info;
         }
@@ -47,7 +49,7 @@ export default class UrlInfoService {
         if (this.orgRegexp.test(url)) {
             let info = await this.parseOrgUrl(url);
 
-            await this.cache.write(url, info);
+            await this.cache.write(ctx, url, info);
 
             return info;
         }
@@ -56,7 +58,7 @@ export default class UrlInfoService {
             let info = await this.parseChannelUrl(url);
 
             if (info) {
-                await this.cache.write(url, info);
+                await this.cache.write(ctx, url, info);
 
                 return info;
             }
@@ -65,7 +67,7 @@ export default class UrlInfoService {
         try {
             let info = await fetchURLInfo(url);
 
-            await this.cache.write(url, {
+            await this.cache.write(ctx, url, {
                 ...info,
                 type: 'url'
             });
@@ -97,7 +99,7 @@ export default class UrlInfoService {
 
         let userId = IDs.User.parse(_userId);
 
-        let user = await Modules.Users.profileById(userId);
+        let user = await Modules.Users.profileById(createEmptyContext(), userId);
 
         return {
             url,
@@ -121,7 +123,7 @@ export default class UrlInfoService {
 
         let orgId = IDs.Organization.parse(_orgId);
 
-        let org = await FDB.OrganizationProfile.findById(orgId);
+        let org = await FDB.OrganizationProfile.findById(createEmptyContext(), orgId);
 
         return {
             url,
@@ -145,13 +147,13 @@ export default class UrlInfoService {
 
         let channelId = IDs.Conversation.parse(_channelId);
 
-        let channel = await FDB.ConversationRoom.findById(channelId);
+        let channel = await FDB.ConversationRoom.findById(createEmptyContext(), channelId);
 
         if (!channel || channel!.kind !== 'public') {
             return null;
         }
 
-        let profile = (await FDB.RoomProfile.findById(channelId));
+        let profile = (await FDB.RoomProfile.findById(createEmptyContext(), channelId));
 
         return {
             url,

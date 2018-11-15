@@ -10,6 +10,7 @@ import { DeliveryMediator } from './DeliveryMediator';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { NotFoundError } from 'openland-errors/NotFoundError';
 import { UserError } from 'openland-errors/UserError';
+import { Context } from 'openland-utils/Context';
 
 @injectable()
 export class RoomMediator {
@@ -23,28 +24,28 @@ export class RoomMediator {
     @lazyInject('DeliveryMediator')
     private readonly delivery!: DeliveryMediator;
 
-    async isRoomMember(uid: number, cid: number) {
-        return await this.repo.isActiveMember(uid, cid);
+    async isRoomMember(ctx: Context, uid: number, cid: number) {
+        return await this.repo.isActiveMember(ctx, uid, cid);
     }
 
-    async createRoom(kind: 'public' | 'group', oid: number, uid: number, members: number[], profile: RoomProfileInput, message?: string) {
+    async createRoom(ctx: Context, kind: 'public' | 'group', oid: number, uid: number, members: number[], profile: RoomProfileInput, message?: string) {
         return await inTx(async () => {
             // Create room
-            let res = await this.repo.createRoom(kind, oid, uid, members, profile);
+            let res = await this.repo.createRoom(ctx, kind, oid, uid, members, profile);
             // Send initial messages
-            await this.messaging.sendMessage(uid, res.id, { message: kind === 'group' ? 'Group created' : 'Room created', isService: true });
+            await this.messaging.sendMessage(ctx, uid, res.id, { message: kind === 'group' ? 'Group created' : 'Room created', isService: true });
             if (message) {
-                await this.messaging.sendMessage(uid, res.id, { message: message });
+                await this.messaging.sendMessage(ctx, uid, res.id, { message: message });
             }
             return res;
         });
     }
 
-    async joinRoom(cid: number, uid: number) {
+    async joinRoom(ctx: Context, cid: number, uid: number) {
         return await inTx(async () => {
 
             // Check Room
-            let conv = await this.entities.ConversationRoom.findById(cid);
+            let conv = await this.entities.ConversationRoom.findById(ctx, cid);
             if (!conv) {
                 throw new NotFoundError();
             }
@@ -53,16 +54,16 @@ export class RoomMediator {
             }
 
             // Check if was kicked
-            let participant = await this.entities.RoomParticipant.findById(cid, uid);
+            let participant = await this.entities.RoomParticipant.findById(ctx, cid, uid);
             if (participant && participant.status === 'kicked') {
                 throw new UserError('You was kicked from this room');
             }
 
             // Join room
-            if (await this.repo.joinRoom(cid, uid)) {
+            if (await this.repo.joinRoom(ctx, cid, uid)) {
                 // Send message
-                let name = (await this.entities.UserProfile.findById(uid))!.firstName;
-                await this.messaging.sendMessage(uid, cid, {
+                let name = (await this.entities.UserProfile.findById(ctx, uid))!.firstName;
+                await this.messaging.sendMessage(ctx, uid, cid, {
                     message: `${name} has joined the room!`,
                     isService: true,
                     isMuted: true,
@@ -74,17 +75,17 @@ export class RoomMediator {
                 });
             }
 
-            return (await this.entities.Conversation.findById(cid))!;
+            return (await this.entities.Conversation.findById(ctx, cid))!;
         });
     }
 
-    async inviteToRoom(cid: number, uid: number, invites: number[]) {
+    async inviteToRoom(ctx: Context, cid: number, uid: number, invites: number[]) {
         return await inTx(async () => {
 
             if (invites.length > 0) {
                 // Invite to room
                 let res = (await Promise.all(invites.map(async (v) => {
-                    if (await this.repo.addToRoom(cid, v, uid)) {
+                    if (await this.repo.addToRoom(ctx, cid, v, uid)) {
                         return v;
                     } else {
                         return null;
@@ -93,8 +94,8 @@ export class RoomMediator {
 
                 // Send message about joining the room
                 if (res.length > 0) {
-                    let users = res.map((v) => this.entities.UserProfile.findById(v));
-                    await this.messaging.sendMessage(uid, cid, {
+                    let users = res.map((v) => this.entities.UserProfile.findById(ctx, v));
+                    await this.messaging.sendMessage(ctx, uid, cid, {
                         message: `${(await Promise.all(users)).map(u => u!.firstName).join(', ')} joined the room`,
                         isService: true,
                         isMuted: true,
@@ -107,11 +108,11 @@ export class RoomMediator {
                 }
             }
 
-            return (await this.entities.Conversation.findById(cid))!;
+            return (await this.entities.Conversation.findById(ctx, cid))!;
         });
     }
 
-    async kickFromRoom(cid: number, uid: number, kickedUid: number) {
+    async kickFromRoom(ctx: Context, cid: number, uid: number, kickedUid: number) {
         return await inTx(async () => {
             if (uid === kickedUid) {
                 throw new UserError('Unable to kick yourself');
@@ -119,11 +120,11 @@ export class RoomMediator {
 
             // Permissions
             // TODO: Implement better
-            let isSuperAdmin = (await Modules.Super.superRole(uid)) === 'super-admin';
-            if (!isSuperAdmin && !(await this.repo.isActiveMember(uid, cid))) {
+            let isSuperAdmin = (await Modules.Super.superRole(ctx, uid)) === 'super-admin';
+            if (!isSuperAdmin && !(await this.repo.isActiveMember(ctx, uid, cid))) {
                 throw new UserError('You are not member of a room');
             }
-            let existingMembership = await this.repo.findMembershipStatus(kickedUid, cid);
+            let existingMembership = await this.repo.findMembershipStatus(ctx, kickedUid, cid);
             if (!existingMembership || existingMembership.status !== 'joined') {
                 throw new UserError('User are not member of a room');
             }
@@ -133,11 +134,11 @@ export class RoomMediator {
             }
 
             // Kick from group
-            if (await this.repo.kickFromRoom(cid, uid)) {
+            if (await this.repo.kickFromRoom(ctx, cid, uid)) {
 
                 // Send message
-                let profile = (await this.entities.UserProfile.findById(kickedUid))!;
-                await this.messaging.sendMessage(uid, cid, {
+                let profile = (await this.entities.UserProfile.findById(ctx, kickedUid))!;
+                await this.messaging.sendMessage(ctx, uid, cid, {
                     message: `${profile!.firstName} was kicked from the room`,
                     isService: true,
                     isMuted: true,
@@ -149,22 +150,22 @@ export class RoomMediator {
                 }, false);
 
                 // Deliver dialog deletion
-                await this.delivery.onDialogDelete(kickedUid, cid);
+                await this.delivery.onDialogDelete(ctx, kickedUid, cid);
             }
 
-            return (await this.entities.Conversation.findById(cid))!;
+            return (await this.entities.Conversation.findById(ctx, cid))!;
         });
     }
 
-    async leaveRoom(cid: number, uid: number) {
+    async leaveRoom(ctx: Context, cid: number, uid: number) {
         return await inTx(async () => {
 
-            if (await this.repo.leaveRoom(cid, uid)) {
+            if (await this.repo.leaveRoom(ctx, cid, uid)) {
                 console.log('exited');
 
                 // Send message
-                let profile = await this.entities.UserProfile.findById(uid);
-                await this.messaging.sendMessage(uid, cid, {
+                let profile = await this.entities.UserProfile.findById(ctx, uid);
+                await this.messaging.sendMessage(ctx, uid, cid, {
                     message: `${profile!.firstName} has left the room`,
                     isService: true,
                     isMuted: true,
@@ -176,24 +177,24 @@ export class RoomMediator {
                 }, true);
 
                 // Deliver dialog deletion
-                await this.delivery.onDialogDelete(uid, cid);
+                await this.delivery.onDialogDelete(ctx, uid, cid);
             }
 
-            return (await this.entities.Conversation.findById(cid))!;
+            return (await this.entities.Conversation.findById(ctx, cid))!;
         });
     }
 
-    async updateRoomProfile(cid: number, uid: number, profile: Partial<RoomProfileInput>) {
+    async updateRoomProfile(ctx: Context, cid: number, uid: number, profile: Partial<RoomProfileInput>) {
         return await inTx(async () => {
-            let conv = await this.entities.RoomProfile.findById(cid);
+            let conv = await this.entities.RoomProfile.findById(ctx, cid);
             if (!conv) {
                 throw new Error('Room not found');
             }
             // TODO: Check Access
-            let res = await this.repo.updateRoomProfile(cid, profile);
-            let roomProfile = (await this.entities.RoomProfile.findById(cid))!;
+            let res = await this.repo.updateRoomProfile(ctx, cid, profile);
+            let roomProfile = (await this.entities.RoomProfile.findById(ctx, cid))!;
             if (res.updatedPhoto) {
-                await this.messaging.sendMessage(uid, cid, {
+                await this.messaging.sendMessage(ctx, uid, cid, {
                     message: `Updated room photo`,
                     isService: true,
                     isMuted: true,
@@ -204,7 +205,7 @@ export class RoomMediator {
                 });
             }
             if (res.updatedTitle) {
-                await this.messaging.sendMessage(uid, cid, {
+                await this.messaging.sendMessage(ctx, uid, cid, {
                     message: `Updated room name to "${roomProfile.title}"`,
                     isService: true,
                     isMuted: true,
@@ -215,18 +216,18 @@ export class RoomMediator {
                 });
             }
 
-            return (await this.entities.Conversation.findById(cid))!;
+            return (await this.entities.Conversation.findById(ctx, cid))!;
         });
     }
 
-    async updateMemberRole(cid: number, uid: number, updatedUid: number, role: 'admin' | 'owner' | 'member') {
+    async updateMemberRole(ctx: Context, cid: number, uid: number, updatedUid: number, role: 'admin' | 'owner' | 'member') {
         return await inTx(async () => {
-            let p = await this.entities.RoomParticipant.findById(cid, uid);
+            let p = await this.entities.RoomParticipant.findById(ctx, cid, uid);
             if (!p || p.status !== 'joined') {
                 throw new Error('User is not member of a room');
             }
 
-            let p2 = await this.entities.RoomParticipant.findById(cid, updatedUid);
+            let p2 = await this.entities.RoomParticipant.findById(ctx, cid, updatedUid);
             if (!p2 || p2.status !== 'joined') {
                 throw new Error('User is not member of a room');
             }
@@ -236,7 +237,7 @@ export class RoomMediator {
             if (!canChangeRole) {
                 throw new AccessDeniedError();
             }
-            return await this.repo.updateMemberRole(cid, uid, updatedUid, role);
+            return await this.repo.updateMemberRole(ctx, cid, uid, updatedUid, role);
         });
     }
 
@@ -244,43 +245,43 @@ export class RoomMediator {
     // Queries
     //
 
-    async resolvePrivateChat(uid1: number, uid2: number) {
-        return await this.repo.resolvePrivateChat(uid1, uid2);
+    async resolvePrivateChat(ctx: Context, uid1: number, uid2: number) {
+        return await this.repo.resolvePrivateChat(ctx, uid1, uid2);
     }
 
-    async resolveOrganizationChat(oid: number) {
-        return await this.repo.resolveOrganizationChat(oid);
+    async resolveOrganizationChat(ctx: Context, oid: number) {
+        return await this.repo.resolveOrganizationChat(ctx, oid);
     }
 
-    async findConversationMembers(cid: number): Promise<number[]> {
-        return await this.repo.findConversationMembers(cid);
+    async findConversationMembers(ctx: Context, cid: number): Promise<number[]> {
+        return await this.repo.findConversationMembers(ctx, cid);
     }
 
-    async resolveConversationTitle(conversationId: number, uid: number): Promise<string> {
-        return await this.repo.resolveConversationTitle(conversationId, uid);
+    async resolveConversationTitle(ctx: Context, conversationId: number, uid: number): Promise<string> {
+        return await this.repo.resolveConversationTitle(ctx, conversationId, uid);
     }
 
-    async resolveConversationPhoto(conversationId: number, uid: number): Promise<string | null> {
-        return await this.repo.resolveConversationPhoto(conversationId, uid);
+    async resolveConversationPhoto(ctx: Context, conversationId: number, uid: number): Promise<string | null> {
+        return await this.repo.resolveConversationPhoto(ctx, conversationId, uid);
     }
 
-    async checkAccess(uid: number, cid: number) {
-        return await this.repo.checkAccess(uid, cid);
+    async checkAccess(ctx: Context, uid: number, cid: number) {
+        return await this.repo.checkAccess(ctx, uid, cid);
     }
 
-    async setFeatured(cid: number, featued: boolean) {
-        return await this.repo.setFeatured(cid, featued);
+    async setFeatured(ctx: Context, cid: number, featued: boolean) {
+        return await this.repo.setFeatured(ctx, cid, featued);
     }
 
-    async setListed(cid: number, listed: boolean) {
-        return await this.repo.setListed(cid, listed);
+    async setListed(ctx: Context, cid: number, listed: boolean) {
+        return await this.repo.setListed(ctx, cid, listed);
     }
 
-    async roomMembersCount(conversationId: number, status?: string): Promise<number> {
-        return await this.repo.roomMembersCount(conversationId, status);
+    async roomMembersCount(ctx: Context, conversationId: number, status?: string): Promise<number> {
+        return await this.repo.roomMembersCount(ctx, conversationId, status);
     }
 
-    async findMembershipStatus(uid: number, cid: number) {
-        return await this.repo.findMembershipStatus(uid, cid);
+    async findMembershipStatus(ctx: Context, uid: number, cid: number) {
+        return await this.repo.findMembershipStatus(ctx, uid, cid);
     }
 }

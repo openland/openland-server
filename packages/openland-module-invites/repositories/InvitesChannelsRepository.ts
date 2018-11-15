@@ -4,6 +4,7 @@ import { ErrorText } from 'openland-errors/ErrorText';
 import { UserError } from 'openland-errors/UserError';
 import { randomInviteKey } from 'openland-utils/random';
 import { injectable, inject } from 'inversify';
+import { Context } from 'openland-utils/Context';
 
 @injectable()
 export class InvitesChannelsRepository {
@@ -13,26 +14,26 @@ export class InvitesChannelsRepository {
         this.entities = entities;
     }
 
-    async resolveInvite(id: string) {
-        let ex = await this.entities.ChannelInvitation.findById(id);
+    async resolveInvite(ctx: Context, id: string) {
+        let ex = await this.entities.ChannelInvitation.findById(ctx, id);
         if (ex && ex.enabled && !ex.acceptedById) {
             return ex;
         }
-        let ex2 = await this.entities.ChannelLink.findById(id);
+        let ex2 = await this.entities.ChannelLink.findById(ctx, id);
         if (ex2 && ex2.enabled) {
             return ex2;
         }
         return null;
     }
 
-    async createChannelInviteLink(channelId: number, uid: number) {
+    async createChannelInviteLink(ctx: Context, channelId: number, uid: number) {
         return await inTx(async () => {
-            let existing = await this.entities.ChannelLink.allFromChannel(channelId);
+            let existing = await this.entities.ChannelLink.allFromChannel(ctx, channelId);
             let ex = existing.find((v) => v.enabled && v.creatorId === uid);
             if (ex) {
                 return ex.id;
             }
-            let res = await this.entities.ChannelLink.create(randomInviteKey(), {
+            let res = await this.entities.ChannelLink.create(ctx, randomInviteKey(), {
                 channelId,
                 creatorId: uid,
                 enabled: true
@@ -41,14 +42,14 @@ export class InvitesChannelsRepository {
         });
     }
 
-    async refreshChannelInviteLink(channelId: number, uid: number) {
+    async refreshChannelInviteLink(ctx: Context, channelId: number, uid: number) {
         return await inTx(async () => {
-            let existing = await this.entities.ChannelLink.allFromChannel(channelId);
+            let existing = await this.entities.ChannelLink.allFromChannel(ctx, channelId);
             let ex = existing.find((v) => v.enabled && v.creatorId === uid);
             if (ex) {
                 ex.enabled = false;
             }
-            let res = await this.entities.ChannelLink.create(randomInviteKey(), {
+            let res = await this.entities.ChannelLink.create(ctx, randomInviteKey(), {
                 channelId,
                 creatorId: uid,
                 enabled: true
@@ -57,16 +58,16 @@ export class InvitesChannelsRepository {
         });
     }
 
-    async createChannelInvite(channelId: number, uid: number, email: string, emailText?: string, firstName?: string, lastName?: string) {
+    async createChannelInvite(ctx: Context, channelId: number, uid: number, email: string, emailText?: string, firstName?: string, lastName?: string) {
         return await inTx(async () => {
-            let existing = await this.entities.ChannelInvitation.allFromChannel(channelId);
+            let existing = await this.entities.ChannelInvitation.allFromChannel(ctx, channelId);
             let isDuplicate = !!existing.find((v) => v.email === email && v.enabled);
             if (isDuplicate) {
                 // TODO: Remove
                 throw new UserError(ErrorText.inviteAlreadyExists);
             }
 
-            let invite = await this.entities.ChannelInvitation.create(randomInviteKey(), {
+            let invite = await this.entities.ChannelInvitation.create(ctx, randomInviteKey(), {
                 channelId,
                 creatorId: uid,
                 firstName: firstName,

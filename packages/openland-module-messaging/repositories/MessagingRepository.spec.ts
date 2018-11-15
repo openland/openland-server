@@ -2,6 +2,7 @@ import { testEnvironmentStart, testEnvironmentEnd } from 'openland-modules/testE
 import { container } from 'openland-modules/Modules.container';
 import { MessagingRepository } from './MessagingRepository';
 import { AllEntities } from 'openland-module-db/schema';
+import { createEmptyContext } from 'openland-utils/Context';
 
 describe('MessagingRepository', () => {
     beforeAll(async () => {
@@ -13,9 +14,10 @@ describe('MessagingRepository', () => {
     });
 
     it('should create message and event', async () => {
+        let ctx = createEmptyContext();
         let repo = container.get<MessagingRepository>('MessagingRepository');
         let entities = container.get<AllEntities>('FDB');
-        let res = (await repo.createMessage(1, 2, { message: 'text' }));
+        let res = (await repo.createMessage(ctx, 1, 2, { message: 'text' }));
         expect(res).not.toBeNull();
         expect(res).not.toBeUndefined();
         expect(res.event.cid).toBe(1);
@@ -26,7 +28,7 @@ describe('MessagingRepository', () => {
         expect(res.message.uid).toBe(2);
         expect(res.message.text).toBe('text');
 
-        let events = await entities.ConversationEvent.allFromUser(1);
+        let events = await entities.ConversationEvent.allFromUser(ctx, 1);
         expect(events.length).toBe(1);
         expect(events[0].seq).toBe(res.event.seq);
         expect(events[0].mid).toBe(res.message.id);

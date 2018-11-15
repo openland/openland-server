@@ -4,6 +4,7 @@ import { withLogContext } from 'openland-log/withLogContext';
 import { createLogger } from 'openland-log/createLogger';
 import { Shutdown } from '../openland-utils/Shutdown';
 import { SafeContext } from 'openland-utils/SafeContext';
+import { createEmptyContext } from 'openland-utils/Context';
 
 const logger = createLogger('loop');
 
@@ -12,6 +13,7 @@ export function staticWorker(config: { name: string, version?: number, delay?: n
     let awaiter: (() => void) | undefined;
     let wasStarted = false;
     let workLoop = SafeContext.inNewContext(() => foreverBreakable(async () => {
+        let ctx = createEmptyContext();
         if (!wasStarted && config.startDelay) {
             await delay(config.startDelay);
         }
@@ -20,7 +22,7 @@ export function staticWorker(config: { name: string, version?: number, delay?: n
             await withLogContext(['static-worker', config.name], async () => {
 
                 // Locking
-                if (!(await LockRepository.tryLock('worker_' + config.name, config.version))) {
+                if (!(await LockRepository.tryLock(ctx, 'worker_' + config.name, config.version))) {
                     return false;
                 }
 
@@ -31,7 +33,7 @@ export function staticWorker(config: { name: string, version?: number, delay?: n
                 (async () => {
                     while (locked) {
                         await delay(5000);
-                        if (!(await LockRepository.tryLock('worker_' + config.name, config.version))) {
+                        if (!(await LockRepository.tryLock(ctx, 'worker_' + config.name, config.version))) {
                             locked = false;
                             break;
                         }
@@ -77,7 +79,7 @@ export function staticWorker(config: { name: string, version?: number, delay?: n
             awaiter = undefined;
         }
         await workLoop.stop();
-        await await LockRepository.releaseLock('worker_' + config.name, config.version);
+        await await LockRepository.releaseLock(createEmptyContext(), 'worker_' + config.name, config.version);
         logger.log('worker_' + config.name, 'stopped');
     };
 

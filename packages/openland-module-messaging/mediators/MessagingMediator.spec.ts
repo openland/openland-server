@@ -6,6 +6,7 @@ import { loadMessagingTestModule } from 'openland-module-messaging/Messaging.con
 import { UsersModule } from 'openland-module-users/UsersModule';
 import { MessagingMediator } from './MessagingMediator';
 import *  as ChatResolver from '../resolvers/Chat.resolver';
+import { createEmptyContext } from 'openland-utils/Context';
 
 describe('MessagingMediator', () => {
     beforeAll(async () => {
@@ -18,14 +19,15 @@ describe('MessagingMediator', () => {
     });
 
     it('should send message', async () => {
+        let ctx = createEmptyContext();
         let roooms = container.get<RoomMediator>('RoomMediator');
         let users = container.get<UsersModule>(UsersModule);
         let mediator = container.get<MessagingMediator>('MessagingMediator');
-        let USER_ID = (await users.createUser('user_test_messages_1', 'email_user_test_messages_1')).id;
-        let room = await roooms.createRoom('public', 1, USER_ID, [], { title: 'Room' });
+        let USER_ID = (await users.createUser(ctx, 'user_test_messages_1', 'email_user_test_messages_1')).id;
+        let room = await roooms.createRoom(ctx, 'public', 1, USER_ID, [], { title: 'Room' });
 
         let text = 'boom';
-        let message = (await FDB.Message.findById((await mediator.sendMessage(USER_ID, room.id, { message: text })).mid!))!;
+        let message = (await FDB.Message.findById(ctx, (await mediator.sendMessage(ctx, USER_ID, room.id, { message: text })).mid!))!;
 
         let textResolved = await ChatResolver.default.ConversationMessage!.message!(message);
 
@@ -34,66 +36,69 @@ describe('MessagingMediator', () => {
     });
 
     it('should set and reset reaction', async () => {
+        let ctx = createEmptyContext();
         let roooms = container.get<RoomMediator>('RoomMediator');
         let users = container.get<UsersModule>(UsersModule);
         let mediator = container.get<MessagingMediator>('MessagingMediator');
-        let USER_ID = (await users.createUser('user_test_messages_2', 'email_user_test_messages_2')).id;
-        let room = await roooms.createRoom('public', 1, USER_ID, [], { title: 'Room' });
+        let USER_ID = (await users.createUser(ctx, 'user_test_messages_2', 'email_user_test_messages_2')).id;
+        let room = await roooms.createRoom(ctx, 'public', 1, USER_ID, [], { title: 'Room' });
 
         let text = 'boom';
-        let MSG_ID = (await mediator.sendMessage(USER_ID, room.id, { message: text })).mid!;
+        let MSG_ID = (await mediator.sendMessage(ctx, USER_ID, room.id, { message: text })).mid!;
 
-        await mediator.setReaction(MSG_ID, USER_ID, '❤️');
-        let message = (await FDB.Message.findById(MSG_ID))!;
+        await mediator.setReaction(ctx, MSG_ID, USER_ID, '❤️');
+        let message = (await FDB.Message.findById(ctx, MSG_ID))!;
 
         let reactionsResolved = await ChatResolver.default.ConversationMessage!.reactions!(message);
         expect(reactionsResolved[0].reaction).toEqual('❤️');
 
-        await mediator.setReaction(MSG_ID, USER_ID, '❤️', true);
-        message = (await FDB.Message.findById(MSG_ID))!;
+        await mediator.setReaction(ctx, MSG_ID, USER_ID, '❤️', true);
+        message = (await FDB.Message.findById(ctx, MSG_ID))!;
 
         reactionsResolved = await ChatResolver.default.ConversationMessage!.reactions!(message);
         expect(reactionsResolved.length).toEqual(0);
     });
 
     it('should edit message', async () => {
+        let ctx = createEmptyContext();
         let roooms = container.get<RoomMediator>('RoomMediator');
         let users = container.get<UsersModule>(UsersModule);
         let mediator = container.get<MessagingMediator>('MessagingMediator');
-        let USER_ID = (await users.createUser('user_test_messages_edit_message', 'email_user_test_messages_edit_message')).id;
-        let room = await roooms.createRoom('public', 1, USER_ID, [], { title: 'Room' });
+        let USER_ID = (await users.createUser(ctx, 'user_test_messages_edit_message', 'email_user_test_messages_edit_message')).id;
+        let room = await roooms.createRoom(ctx, 'public', 1, USER_ID, [], { title: 'Room' });
 
-        let MSG_ID = (await mediator.sendMessage(USER_ID, room.id, { message: 'boom' })).mid!;
+        let MSG_ID = (await mediator.sendMessage(ctx, USER_ID, room.id, { message: 'boom' })).mid!;
 
-        let message = (await FDB.Message.findById(MSG_ID))!;
+        let message = (await FDB.Message.findById(ctx, MSG_ID))!;
         let textResolved = await ChatResolver.default.ConversationMessage!.message!(message);
         expect(textResolved).toEqual('boom');
 
-        await mediator.editMessage(MSG_ID, USER_ID, { message: 'boom shakalaka' }, false);
+        await mediator.editMessage(ctx, MSG_ID, USER_ID, { message: 'boom shakalaka' }, false);
 
-        message = (await FDB.Message.findById(MSG_ID))!;
+        message = (await FDB.Message.findById(ctx, MSG_ID))!;
         textResolved = await ChatResolver.default.ConversationMessage!.message!(message);
         expect(textResolved).toEqual('boom shakalaka');
 
     });
 
     it('should delete url augmentation', async () => {
+        let ctx = createEmptyContext();
         let roooms = container.get<RoomMediator>('RoomMediator');
         let users = container.get<UsersModule>(UsersModule);
         let mediator = container.get<MessagingMediator>('MessagingMediator');
-        let USER_ID = (await users.createUser('user_test_messages_del_aug', 'email_user_test_messages_del_aug')).id;
-        let room = await roooms.createRoom('public', 1, USER_ID, [], { title: 'Room' });
+        let USER_ID = (await users.createUser(ctx, 'user_test_messages_del_aug', 'email_user_test_messages_del_aug')).id;
+        let room = await roooms.createRoom(ctx, 'public', 1, USER_ID, [], { title: 'Room' });
 
         let augmentation = { url: 'openland.com', title: 'openland' };
-        let MSG_ID = (await mediator.sendMessage(USER_ID, room.id, { message: 'boom', urlAugmentation: augmentation as any })).mid!;
+        let MSG_ID = (await mediator.sendMessage(ctx, USER_ID, room.id, { message: 'boom', urlAugmentation: augmentation as any })).mid!;
 
-        let message = (await FDB.Message.findById(MSG_ID))!;
+        let message = (await FDB.Message.findById(ctx, MSG_ID))!;
         let augmentationResolved = await ChatResolver.default.ConversationMessage!.urlAugmentation!(message);
         expect(augmentationResolved).toEqual(augmentation);
 
-        await mediator.editMessage(MSG_ID, USER_ID, { urlAugmentation: false }, false);
+        await mediator.editMessage(ctx, MSG_ID, USER_ID, { urlAugmentation: false }, false);
 
-        message = (await FDB.Message.findById(MSG_ID))!;
+        message = (await FDB.Message.findById(ctx, MSG_ID))!;
         augmentationResolved = await ChatResolver.default.ConversationMessage!.urlAugmentation!(message);
         expect(augmentationResolved).toBeNull();
 

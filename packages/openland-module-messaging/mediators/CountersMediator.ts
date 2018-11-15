@@ -5,6 +5,7 @@ import { Modules } from 'openland-modules/Modules';
 import { inTx } from 'foundation-orm/inTx';
 import { AllEntities } from 'openland-module-db/schema';
 import { UserStateRepository } from 'openland-module-messaging/repositories/UserStateRepository';
+import { Context } from 'openland-utils/Context';
 
 @injectable()
 export class CountersMediator {
@@ -16,60 +17,60 @@ export class CountersMediator {
     @lazyInject('UserStateRepository')
     private readonly userState!: UserStateRepository;
 
-    onMessageReceived = async (uid: number, mid: number) => {
+    onMessageReceived = async (ctx: Context, uid: number, mid: number) => {
         return await inTx(async () => {
-            let res = await this.repo.onMessageReceived(uid, mid);
+            let res = await this.repo.onMessageReceived(ctx, uid, mid);
             if (res !== 0) {
-                let message = (await this.entities.Message.findById(mid));
+                let message = (await this.entities.Message.findById(ctx, mid));
                 if (!message) {
                     throw Error('Unable to find message');
                 }
-                await this.deliverCounterPush(uid, message.cid);
+                await this.deliverCounterPush(ctx, uid, message.cid);
             }
             return res;
         });
     }
 
-    onMessageDeleted = async (uid: number, mid: number) => {
+    onMessageDeleted = async (ctx: Context, uid: number, mid: number) => {
         return await inTx(async () => {
-            let res = await this.repo.onMessageDeleted(uid, mid);
+            let res = await this.repo.onMessageDeleted(ctx, uid, mid);
             if (res !== 0) {
-                let message = (await this.entities.Message.findById(mid));
+                let message = (await this.entities.Message.findById(ctx, mid));
                 if (!message) {
                     throw Error('Unable to find message');
                 }
-                await this.deliverCounterPush(uid, message.cid);
+                await this.deliverCounterPush(ctx, uid, message.cid);
             }
             return res;
         });
     }
 
-    onMessageRead = async (uid: number, mid: number) => {
+    onMessageRead = async (ctx: Context, uid: number, mid: number) => {
         return await inTx(async () => {
-            let res = await this.repo.onMessageRead(uid, mid);
+            let res = await this.repo.onMessageRead(ctx, uid, mid);
             if (res !== 0) {
-                let message = (await this.entities.Message.findById(mid));
+                let message = (await this.entities.Message.findById(ctx, mid));
                 if (!message) {
                     throw Error('Unable to find message');
                 }
-                await this.deliverCounterPush(uid, message.cid);
+                await this.deliverCounterPush(ctx, uid, message.cid);
             }
             return res;
         });
     }
 
-    onDialogDeleted = async (uid: number, cid: number) => {
+    onDialogDeleted = async (ctx: Context, uid: number, cid: number) => {
         return await inTx(async () => {
-            let res = await this.repo.onDialogDeleted(uid, cid);
+            let res = await this.repo.onDialogDeleted(ctx, uid, cid);
             if (res !== 0) {
-                await this.deliverCounterPush(uid, cid);
+                await this.deliverCounterPush(ctx, uid, cid);
             }
             return res;
         });
     }
 
-    private deliverCounterPush = async (uid: number, cid: number) => {
-        let global = await this.userState.getUserMessagingState(uid);
-        await Modules.Push.sendCounterPush(uid, cid, global.unread);
+    private deliverCounterPush = async (ctx: Context, uid: number, cid: number) => {
+        let global = await this.userState.getUserMessagingState(ctx, uid);
+        await Modules.Push.sendCounterPush(ctx, uid, cid, global.unread);
     }
 }

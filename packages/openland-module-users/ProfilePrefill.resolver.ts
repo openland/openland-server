@@ -8,7 +8,7 @@ export default {
             if (!ctx.auth.uid) {
                 return {};
             }
-            let prefill = await Modules.Users.findProfilePrefill(ctx.auth.uid);
+            let prefill = await Modules.Users.findProfilePrefill(ctx, ctx.auth.uid);
             if (prefill) {
                 return {
                     firstName: prefill.firstName,
