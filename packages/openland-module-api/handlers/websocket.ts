@@ -6,6 +6,7 @@ import { AuthContext } from 'openland-module-auth/AuthContext';
 import { TracingContext } from 'openland-log/src/TracingContext';
 import { CacheContext } from 'openland-module-api/CacheContext';
 import { AppContext } from 'openland-modules/AppContext';
+import { withCache } from 'foundation-orm/withCache';
 
 const tracer = createTracer('ws');
 
@@ -61,5 +62,6 @@ export function buildWebSocketContext(args: any) {
     }
     res = TracingContext.set(res, { span: tracer.startSpan('op') });
     res = CacheContext.set(res, new Map());
+    res = withCache(res);
     return new AppContext(res);
 }
