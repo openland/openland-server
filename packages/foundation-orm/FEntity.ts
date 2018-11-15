@@ -5,6 +5,7 @@ import { FEntityIndex } from './FEntityIndex';
 import { createLogger } from 'openland-log/createLogger';
 import { FDirectory } from './FDirectory';
 import { Context, createEmptyContext } from 'openland-utils/Context';
+import { resolveContext } from './utils/contexts';
 
 export interface FEntityOptions {
     enableVersioning: boolean;
@@ -22,6 +23,7 @@ export abstract class FEntity {
     readonly rawId: (string | number)[];
     readonly connection: FConnection;
     readonly isReadOnly: boolean;
+    readonly ctx: Context;
     readonly context: FContext;
 
     protected _valueInitial: any;
@@ -33,12 +35,13 @@ export abstract class FEntity {
     private isNew: boolean;
 
     constructor(ctx: Context, connection: FConnection, namespace: FNamespace, directory: FDirectory, id: (string | number)[], value: any, options: FEntityOptions, isNew: boolean, indexes: FEntityIndex[], name: string) {
+        this.ctx = ctx;
         this.namespace = namespace;
         this.directory = directory;
         this.rawId = id;
         this.connection = connection;
-        this.context = connection.currentContext;
-        this.isReadOnly = connection.currentContext.isReadOnly;
+        this.context = resolveContext(ctx);
+        this.isReadOnly = this.context.isReadOnly;
         this.options = options;
         this.isNew = isNew;
         this.indexes = indexes;
@@ -137,8 +140,8 @@ export abstract class FEntity {
             }
 
             // Write to the store
-            this.namespace.set(this.connection, this.rawId, value);
-            this.directory.set(this.rawId, value);
+            this.namespace.set(this.ctx, this.connection, this.rawId, value);
+            this.directory.set(this.ctx, this.rawId, value);
 
             // Create or Update indexes
             if (this.isNew) {
@@ -157,13 +160,13 @@ export abstract class FEntity {
                     }
                     let key = index.fields.map((v) => value[v]);
                     if (index.unique) {
-                        let ex = await this.namespace.get(this.connection, ['__indexes', index.name, ...key]);
+                        let ex = await this.namespace.get(this.ctx, this.connection, ['__indexes', index.name, ...key]);
                         if (ex) {
                             throw Error('Unique index constraint failed for index ' + index.name + ', at ' + key.join('.') + ', got: ' + JSON.stringify(ex));
                         }
-                        this.namespace.set(this.connection, ['__indexes', index.name, ...key], value);
+                        this.namespace.set(this.ctx, this.connection, ['__indexes', index.name, ...key], value);
                     } else {
-                        this.namespace.set(this.connection, ['__indexes', index.name, ...key, ...this.rawId], value);
+                        this.namespace.set(this.ctx, this.connection, ['__indexes', index.name, ...key, ...this.rawId], value);
                     }
                 }
             } else {
@@ -204,25 +207,25 @@ export abstract class FEntity {
 
                     if (index.unique) {
                         if (needToDeleteOld) {
-                            this.namespace.delete(this.connection, ['__indexes', index.name, ...oldkey]);
+                            this.namespace.delete(this.ctx, this.connection, ['__indexes', index.name, ...oldkey]);
                         }
                         if (needToCreateNew) {
-                            if (await this.namespace.get(this.connection, ['__indexes', index.name, ...key])) {
+                            if (await this.namespace.get(this.ctx, this.connection, ['__indexes', index.name, ...key])) {
                                 throw Error('Unique index constraint failed for index ' + index.name);
                             }
                         }
                         if (needToCreateNew || needToUpdateNew) {
-                            this.namespace.set(this.connection, ['__indexes', index.name, ...key], value);
+                            this.namespace.set(this.ctx, this.connection, ['__indexes', index.name, ...key], value);
                         }
                     } else {
                         if (needToDeleteOld) {
-                            this.namespace.delete(this.connection, ['__indexes', index.name, ...oldkey, ...this.rawId]);
+                            this.namespace.delete(this.ctx, this.connection, ['__indexes', index.name, ...oldkey, ...this.rawId]);
                         }
                         if (needToCreateNew) {
-                            this.namespace.set(this.connection, ['__indexes', index.name, ...key, ...this.rawId], value);
+                            this.namespace.set(this.ctx, this.connection, ['__indexes', index.name, ...key, ...this.rawId], value);
                         }
                         if (needToCreateNew || needToUpdateNew) {
-                            this.namespace.set(this.connection, ['__indexes', index.name, ...key, ...this.rawId], value);
+                            this.namespace.set(this.ctx, this.connection, ['__indexes', index.name, ...key, ...this.rawId], value);
                         }
                     }
                 }

@@ -26,7 +26,7 @@ import { AppContext } from 'openland-modules/AppContext';
 
 export default {
     Conversation: {
-        __resolveType: async (src: Conversation, args: {}, ctx: AppContext) => {
+        __resolveType: async (src: Conversation, ctx: AppContext) => {
             if (src.kind === 'private') {
                 return 'PrivateConversation';
             } else if (src.kind === 'organization') {
@@ -549,35 +549,34 @@ export default {
             await Modules.Messaging.markAsSeqRead(ctx, uid, args.toSeq);
             return 'ok';
         }),
-        alphaSendMessage: withUser<GQL.MutationAlphaSendMessageArgs>(async (ctx, args, uid) => {
+        alphaSendMessage: withUser<GQL.MutationAlphaSendMessageArgs>(async (parent, args, uid) => {
             // validate({ message: stringNotEmpty() }, args);
-            return await withLogContext('send-message', async () => {
-                let conversationId = IDs.Conversation.parse(args.conversationId);
+            let ctx = withLogContext(parent, 'send-message');
+            let conversationId = IDs.Conversation.parse(args.conversationId);
 
-                let fileMetadata: JsonMap | null = null;
-                let filePreview: string | null = null;
+            let fileMetadata: JsonMap | null = null;
+            let filePreview: string | null = null;
 
-                if (args.file) {
-                    let fileInfo = await Modules.Media.saveFile(args.file);
-                    fileMetadata = fileInfo as any;
+            if (args.file) {
+                let fileInfo = await Modules.Media.saveFile(args.file);
+                fileMetadata = fileInfo as any;
 
-                    if (fileInfo.isImage) {
-                        filePreview = await Modules.Media.fetchLowResPreview(args.file);
-                    }
+                if (fileInfo.isImage) {
+                    filePreview = await Modules.Media.fetchLowResPreview(args.file);
                 }
+            }
 
-                let replyMessages = args.replyMessages && args.replyMessages.map(id => IDs.ConversationMessage.parse(id));
-                let mentions = args.mentions && args.mentions.map(id => IDs.User.parse(id));
+            let replyMessages = args.replyMessages && args.replyMessages.map(id => IDs.ConversationMessage.parse(id));
+            let mentions = args.mentions && args.mentions.map(id => IDs.User.parse(id));
 
-                return Modules.Messaging.sendMessage(ctx, conversationId, uid!, {
-                    message: args.message,
-                    file: args.file,
-                    fileMetadata,
-                    repeatKey: args.repeatKey,
-                    filePreview,
-                    replyMessages,
-                    mentions
-                });
+            return Modules.Messaging.sendMessage(ctx, conversationId, uid!, {
+                message: args.message,
+                file: args.file,
+                fileMetadata,
+                repeatKey: args.repeatKey,
+                filePreview,
+                replyMessages,
+                mentions
             });
         }),
         alphaSendIntro: withUser<GQL.MutationAlphaSendIntroArgs>(async (ctx, args, uid) => {

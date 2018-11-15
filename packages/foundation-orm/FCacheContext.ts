@@ -2,10 +2,11 @@ import { SafeContext } from 'openland-utils/SafeContext';
 import { FBaseTransaction } from './utils/FBaseTransaction';
 import { FEntity } from './FEntity';
 import { FConnection } from './FConnection';
+import { Context } from 'openland-utils/Context';
 
 export class FCacheContext extends FBaseTransaction {
     static readonly context = new SafeContext<FCacheContext>();
-    
+
     readonly isReadOnly = true;
     readonly isCompleted = false;
     private cache = new Map<string, any>();
@@ -25,10 +26,10 @@ export class FCacheContext extends FBaseTransaction {
     markDirty(entity: FEntity, callback: (connection: FConnection) => Promise<void>) {
         throw Error('Trying to write to read-only context');
     }
-    set(connection: FConnection, key: Buffer, value: any) {
+    set(context: Context, connection: FConnection, key: Buffer, value: any) {
         throw Error('Trying to write to read-only context');
     }
-    delete(connection: FConnection, key: Buffer) {
+    delete(context: Context, connection: FConnection, key: Buffer) {
         throw Error('Trying to write to read-only context');
     }
     afterTransaction(callback: () => void) {

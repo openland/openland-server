@@ -1,18 +1,15 @@
 import { FConnection } from './FConnection';
 import { FEntity } from './FEntity';
-import { SafeContext } from 'openland-utils/SafeContext';
 import { currentTime } from 'openland-utils/timer';
 import { createLogger } from 'openland-log/createLogger';
 import { trace, traceSync } from 'openland-log/trace';
 import { tracer, logger } from './utils/tracer';
 import { FBaseTransaction } from './utils/FBaseTransaction';
-import { createEmptyContext } from 'openland-utils/Context';
+import { createEmptyContext, Context } from 'openland-utils/Context';
 
 const log = createLogger('tx');
 
 export class FTransaction extends FBaseTransaction {
-
-    static readonly context = new SafeContext<FTransaction>();
 
     readonly isReadOnly: boolean = false;
     private _pending = new Map<string, (connection: FConnection) => Promise<void>>();
@@ -31,7 +28,7 @@ export class FTransaction extends FBaseTransaction {
         this.pendingCallbacks.push(callback);
     }
 
-    set(connection: FConnection, key: Buffer, value: any) {
+    set(context: Context, connection: FConnection, key: Buffer, value: any) {
         this.prepare(connection);
         traceSync(tracer, 'set', () => {
             logger.debug(createEmptyContext(), 'set');
@@ -39,7 +36,7 @@ export class FTransaction extends FBaseTransaction {
         });
     }
 
-    delete(connection: FConnection, key: Buffer) {
+    delete(context: Context, connection: FConnection, key: Buffer) {
         this.prepare(connection);
         traceSync(tracer, 'delete', () => {
             logger.debug(createEmptyContext(), 'delete');

@@ -35,7 +35,7 @@ function withRoomProfile(handler: (ctx: AppContext, src: RoomProfile) => any) {
 
 export default {
     Room: {
-        __resolveType: async (src: Conversation | number, args: {}, ctx: AppContext) => {
+        __resolveType: async (src: Conversation | number, ctx: AppContext) => {
             let conv: Conversation;
             if (typeof src === 'number') {
                 conv = (await FDB.Conversation.findById(ctx, src))!;

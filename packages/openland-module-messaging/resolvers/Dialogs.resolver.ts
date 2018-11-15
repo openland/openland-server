@@ -72,6 +72,7 @@ export default {
             return FDB.UserDialog.rangeFromUserWithCursor(ctx, uid, args.first, args.after ? args.after : undefined, true);
         }),
         alphaChats: withUser<{ first: number, after?: string | null, seq?: number }>(async (ctx, args, uid) => {
+            console.log(ctx);
             let global = await FDB.UserMessagingState.findById(ctx, uid);
             let seq = global ? global.seq : 0;
             let conversations = await FDB.UserDialog

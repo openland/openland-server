@@ -9,7 +9,7 @@ import { trace } from 'openland-log/trace';
 import { tracer } from './tracer';
 import { SLog } from 'openland-log/SLog';
 import { FKeyEncoding } from './FKeyEncoding';
-import { createEmptyContext } from 'openland-utils/Context';
+import { createEmptyContext, Context } from 'openland-utils/Context';
 
 const log = createLogger('tx');
 
@@ -24,14 +24,14 @@ export abstract class FBaseTransaction implements FContext {
     protected readonly log: SLog = log;
     protected connection: FConnection | null = null;
 
-    async get(connection: FConnection, key: Buffer): Promise<any | null> {
+    async get(context: Context, connection: FConnection, key: Buffer): Promise<any | null> {
         this.prepare(connection);
         return await trace(tracer, 'get', async () => {
             this.log.debug(createEmptyContext(), 'get');
             return await (this.isReadOnly ? this.tx!.snapshot() : this.tx!).get(key);
         });
     }
-    async range(connection: FConnection, key: Buffer, options?: RangeOptions): Promise<{ item: any, key: Buffer }[]> {
+    async range(context: Context, connection: FConnection, key: Buffer, options?: RangeOptions): Promise<{ item: any, key: Buffer }[]> {
         this.prepare(connection);
         return await trace(tracer, 'range', async () => {
             this.log.debug(createEmptyContext(), 'get-range');
@@ -39,7 +39,7 @@ export abstract class FBaseTransaction implements FContext {
             return res.map((v) => ({ item: v[1] as any, key: v[0] }));
         });
     }
-    async rangeAll(connection: FConnection, key: Buffer, options?: RangeOptions): Promise<any[]> {
+    async rangeAll(context: Context, connection: FConnection, key: Buffer, options?: RangeOptions): Promise<any[]> {
         this.prepare(connection);
         return await trace(tracer, 'range', async () => {
             this.log.debug(createEmptyContext(), 'get-range-all');
@@ -47,7 +47,7 @@ export abstract class FBaseTransaction implements FContext {
             return res.map((v) => v[1] as any);
         });
     }
-    async rangeAfter(connection: FConnection, prefix: (string | number)[], afterKey: (string | number)[], options?: RangeOptions): Promise<{ item: any, key: Buffer }[]> {
+    async rangeAfter(context: Context, connection: FConnection, prefix: (string | number)[], afterKey: (string | number)[], options?: RangeOptions): Promise<{ item: any, key: Buffer }[]> {
         this.prepare(connection);
         return await trace(tracer, 'rangeAfter', async () => {
             this.log.debug(createEmptyContext(), 'get-range-after');
@@ -62,8 +62,8 @@ export abstract class FBaseTransaction implements FContext {
     protected abstract createTransaction(connection: FConnection): Transaction;
 
     abstract markDirty(entity: FEntity, callback: (connection: FConnection) => Promise<void>): void;
-    abstract set(connection: FConnection, key: Buffer, value: any): void;
-    abstract delete(connection: FConnection, key: Buffer): void;
+    abstract set(context: Context, connection: FConnection, key: Buffer, value: any): void;
+    abstract delete(context: Context, connection: FConnection, key: Buffer): void;
     abstract afterTransaction(callback: () => void): void;
 
     protected prepare(connection: FConnection) {

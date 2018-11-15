@@ -1,18 +1,7 @@
-// import { SLogContext } from './src/SLogContext';
+import { Context } from 'openland-utils/Context';
+import { SLogContext } from './src/SLogContext';
 
-export function withLogContext<T>(path: string | string[], callback: () => T): T {
-    // if (SLogContext.value) {
-    //     if (typeof path === 'string') {
-    //         return SLogContext.withContext({ path: [...SLogContext.value.path, path], disabled: SLogContext.value.disabled }, callback);
-    //     } else {
-    //         return SLogContext.withContext({ path: [...SLogContext.value.path, ...path], disabled: SLogContext.value.disabled }, callback);
-    //     }
-    // } else {
-    //     if (typeof path === 'string') {
-    //         return SLogContext.withContext({ path: [path], disabled: false }, callback);
-    //     } else {
-    //         return SLogContext.withContext({ path: path, disabled: false }, callback);
-    //     }
-    // }
-    return callback();
+export function withLogContext(ctx: Context, path: string | string[]): Context {
+    let existing = SLogContext.get(ctx);
+    return SLogContext.set(ctx, { path: [...existing.path, ...path], disabled: existing.disabled });
 }

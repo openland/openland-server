@@ -10,7 +10,6 @@ import { errorHandler } from '../../openland-errors';
 // import { delay } from '../../openland-utils/timer';
 import { withTracing } from 'openland-log/withTracing';
 import { gqlTracer } from 'openland-graphql/gqlTracer';
-import { withLogContext } from 'openland-log/withLogContext';
 
 // function getClientId(req: express.Request, res: express.Response) {
 //     if (res.locals.ctx) {
@@ -70,9 +69,7 @@ export function schemaHandler(isTest: boolean, withEngine: boolean) {
     let gqlMiddleware = graphqlExpress(handleRequest(withEngine));
     let contestMiddleware = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         return await withTracing(gqlTracer, 'http', async () => {
-            return await withLogContext('http', async () => {
-                return await callContextMiddleware(isTest, req, res, next);
-            });
+            return await callContextMiddleware(isTest, req, res, next);
         });
     };
 

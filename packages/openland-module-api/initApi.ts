@@ -15,7 +15,6 @@ import { Server as HttpServer } from 'http';
 // import { delay } from '../utils/timer';
 import { withAudit } from '../openland-module-auth/providers/email';
 import { IDs } from './IDs';
-import { withLogContext } from 'openland-log/withLogContext';
 import { withTracingSpan } from 'openland-log/withTracing';
 import { inTx } from 'foundation-orm/inTx';
 import { Modules } from 'openland-modules/Modules';
@@ -121,10 +120,8 @@ export async function initApi(isTest: boolean) {
                     if (contextValue!.span!) {
                         try {
                             return await withCache(async () => {
-                                return await withLogContext('ws', async () => {
-                                    return await withTracingSpan(contextValue!.span!, async () => {
-                                        return await execute(schema, document, rootValue, contextValue, variableValues, operationName, fieldResolver);
-                                    });
+                                return await withTracingSpan(contextValue!.span!, async () => {
+                                    return await execute(schema, document, rootValue, contextValue, variableValues, operationName, fieldResolver);
                                 });
                             });
                         } finally {
@@ -132,9 +129,7 @@ export async function initApi(isTest: boolean) {
                         }
                     } else {
                         return await withCache(async () => {
-                            return await withLogContext('ws', async () => {
-                                return await execute(schema, document, rootValue, contextValue, variableValues, operationName, fieldResolver);
-                            });
+                            return await execute(schema, document, rootValue, contextValue, variableValues, operationName, fieldResolver);
                         });
                     }
                 },

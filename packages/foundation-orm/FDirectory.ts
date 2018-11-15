@@ -1,6 +1,8 @@
 import { FConnection } from './FConnection';
 import { DirectoryAllocator } from './utils/DirectoryAllocator';
 import { FKeyEncoding } from './utils/FKeyEncoding';
+import { Context } from 'openland-utils/Context';
+import { resolveContext } from './utils/contexts';
 
 export class FDirectory {
     readonly connection: FConnection;
@@ -24,22 +26,22 @@ export class FDirectory {
         await this.allocatorProcess;
     }
 
-    get = async (key: (string | number)[]) => {
+    get = async (ctx: Context, key: (string | number)[]) => {
         if (!this.isAllocated) {
             await this.allocatorProcess;
         }
-        return this.connection.currentContext.get(this.connection, Buffer.concat([this.allocatedKey!, FKeyEncoding.encodeKey(key)]));
+        return resolveContext(ctx).get(ctx, this.connection, Buffer.concat([this.allocatedKey!, FKeyEncoding.encodeKey(key)]));
     }
 
-    range = async (key: (string | number)[]) => {
+    range = async (ctx: Context, key: (string | number)[]) => {
         if (!this.isAllocated) {
             await this.allocatorProcess;
         }
-        return this.connection.currentContext.rangeAll(this.connection, Buffer.concat([this.allocatedKey!, FKeyEncoding.encodeKey(key)]));
+        return resolveContext(ctx).rangeAll(ctx, this.connection, Buffer.concat([this.allocatedKey!, FKeyEncoding.encodeKey(key)]));
     }
 
-    set = (key: (string | number)[], value: any) => {
-        this.connection.currentContext.set(this.connection, Buffer.concat([this.allocatedKey!, FKeyEncoding.encodeKey(key)]), value);
+    set = (ctx: Context, key: (string | number)[], value: any) => {
+        resolveContext(ctx).set(ctx, this.connection, Buffer.concat([this.allocatedKey!, FKeyEncoding.encodeKey(key)]), value);
     }
 
     private onAllocated(key: Buffer) {

@@ -41,6 +41,9 @@ class ContextNamespaceHolder<T> implements ContextNamespace<T> {
         } else {
             raw = (context as ContextWrapper).ctx as ContextHolder;
         }
+        if (!raw) {
+            console.log(context);
+        }
         let val = raw.values[this.name];
         if (val) {
             return val as T;

@@ -1,6 +1,5 @@
 import * as fdb from 'foundationdb';
 import { FContext, FGlobalContext } from './FContext';
-import { FTransaction } from './FTransaction';
 import * as fs from 'fs';
 import { FNodeRegistrator } from './utils/FNodeRegistrator';
 import { RandomIDFactory } from 'openland-security/RandomIDFactory';
@@ -8,13 +7,12 @@ import { NativeValue } from 'foundationdb/dist/lib/native';
 import { FPubsub } from './FPubsub';
 import { DirectoryAllocator } from './utils/DirectoryAllocator';
 import { FDirectory } from './FDirectory';
-import { FCacheContext } from './FCacheContext';
 
 export class FConnection {
+    static readonly globalContext: FContext = new FGlobalContext();
     readonly fdb: fdb.Database<NativeValue, any>;
     readonly pubsub: FPubsub;
     private readonly directoryAllocator: DirectoryAllocator;
-    private readonly globalContext: FContext;
     private readonly nodeRegistrator: FNodeRegistrator;
     private randomFactory: RandomIDFactory | null = null;
     private test?: boolean;
@@ -35,7 +33,6 @@ export class FConnection {
     constructor(connection: fdb.Database<NativeValue, any>, pubsub: FPubsub, test?: boolean) {
         this.fdb = connection;
         this.pubsub = pubsub;
-        this.globalContext = new FGlobalContext();
         this.nodeRegistrator = new FNodeRegistrator(this);
         this.test = test;
         this.directoryAllocator = new DirectoryAllocator(this);
@@ -62,17 +59,5 @@ export class FConnection {
             this.randomFactory = new RandomIDFactory(nid);
         }
         return await this.randomFactory.next();
-    }
-
-    get currentContext(): FContext {
-        let tx = FTransaction.context.value;
-        if (tx) {
-            return tx;
-        }
-        let rtx = FCacheContext.context.value;
-        if (rtx) {
-            return rtx;
-        }
-        return this.globalContext;
     }
 }

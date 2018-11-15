@@ -1,6 +1,8 @@
 import { FConnection } from './FConnection';
 import { RangeOptions } from 'foundationdb/dist/lib/transaction';
 import { FKeyEncoding } from './utils/FKeyEncoding';
+import { Context } from 'openland-utils/Context';
+import { resolveContext } from './utils/contexts';
 
 export class FNamespace {
     readonly namespace: (string | number)[];
@@ -9,23 +11,23 @@ export class FNamespace {
         this.namespace = namespace;
     }
 
-    get = async (connection: FConnection, key: (string | number)[]) => {
-        return connection.currentContext.get(connection, FKeyEncoding.encodeKey([...this.namespace, ...key]));
+    get = async (ctx: Context, connection: FConnection, key: (string | number)[]) => {
+        return resolveContext(ctx).get(ctx, connection, FKeyEncoding.encodeKey([...this.namespace, ...key]));
     }
 
-    range = async (connection: FConnection, key: (string | number)[], options?: RangeOptions) => {
-        return connection.currentContext.range(connection, FKeyEncoding.encodeKey([...this.namespace, ...key]), options);
+    range = async (ctx: Context, connection: FConnection, key: (string | number)[], options?: RangeOptions) => {
+        return resolveContext(ctx).range(ctx, connection, FKeyEncoding.encodeKey([...this.namespace, ...key]), options);
     }
 
-    rangeAfter = async (connection: FConnection, key: (string | number)[], after: (string | number)[], options?: RangeOptions) => {
-        return connection.currentContext.rangeAfter(connection, [...this.namespace, ...key], [...after], options);
+    rangeAfter = async (ctx: Context, connection: FConnection, key: (string | number)[], after: (string | number)[], options?: RangeOptions) => {
+        return resolveContext(ctx).rangeAfter(ctx, connection, [...this.namespace, ...key], [...after], options);
     }
 
-    set = (connection: FConnection, key: (string | number)[], value: any) => {
-        connection.currentContext.set(connection, FKeyEncoding.encodeKey([...this.namespace, ...key]), value);
+    set = (ctx: Context, connection: FConnection, key: (string | number)[], value: any) => {
+        resolveContext(ctx).set(ctx, connection, FKeyEncoding.encodeKey([...this.namespace, ...key]), value);
     }
 
-    delete = (connection: FConnection, key: (string | number)[]) => {
-        connection.currentContext.delete(connection, FKeyEncoding.encodeKey([...this.namespace, ...key]));
+    delete = (ctx: Context, connection: FConnection, key: (string | number)[]) => {
+        resolveContext(ctx).delete(ctx, connection, FKeyEncoding.encodeKey([...this.namespace, ...key]));
     }
 }

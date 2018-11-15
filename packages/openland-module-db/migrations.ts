@@ -4,13 +4,13 @@ import { FDB } from './FDB';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { inTx } from 'foundation-orm/inTx';
 import { Modules } from 'openland-modules/Modules';
-import { createEmptyContext } from 'openland-utils/Context';
+// import { createEmptyContext } from 'openland-utils/Context';
 
 var migrations: FMigration[] = [];
 migrations.push({
     key: '21-create-notification-bot',
-    migration: async (log) => {
-        await Modules.Users.createSystemBot(createEmptyContext(), 'openbot', 'openbot', {
+    migration: async (root, log) => {
+        await Modules.Users.createSystemBot(root, 'openbot', 'openbot', {
             uuid: 'db12b7df-6005-42d9-87d6-46f15dd5b880',
             crop: null
         });
@@ -18,8 +18,7 @@ migrations.push({
 });
 migrations.push({
     key: '19-fix-profile',
-    migration: async (log) => {
-        let root = createEmptyContext();
+    migration: async (root, log) => {
         let user = await FDB.UserProfile.findAllKeys(root);
         for (let u of user) {
             await inTx(root, async (ctx) => {
@@ -33,8 +32,7 @@ migrations.push({
 
 migrations.push({
     key: '20-fix-primaryorganization',
-    migration: async (log) => {
-        let root = createEmptyContext();
+    migration: async (root, log) => {
         let user = await FDB.UserProfile.findAll(root);
         for (let u of user) {
             log.log(root, 'Fixing primary organization for user ' + u.id);
@@ -102,19 +100,17 @@ migrations.push({
 
 migrations.push({
     key: '21-initial-index',
-    migration: async (log) => {
-        let ctx = createEmptyContext();
-        let k = await FDB.Organization.findAll(ctx);
+    migration: async (root, log) => {
+        let k = await FDB.Organization.findAll(root);
         for (let o of k) {
-            await Modules.Orgs.markForUndexing(ctx, o.id);
+            await Modules.Orgs.markForUndexing(root, o.id);
         }
     }
 });
 
 migrations.push({
     key: '22-enforce-dialog-update',
-    migration: async (log) => {
-        let root = createEmptyContext();
+    migration: async (root, log) => {
         await inTx(root, async (ctx) => {
             let k = await FDB.UserDialog.findAll(ctx);
             for (let o of k) {
@@ -129,8 +125,7 @@ migrations.push({
 
 migrations.push({
     key: '23-fix-index',
-    migration: async (log) => {
-        let root = createEmptyContext();
+    migration: async (root, log) => {
         let k = await FDB.UserDialog.findAllKeys(root);
         for (let o of k) {
             await inTx(root, async (ctx) => {
@@ -146,8 +141,8 @@ migrations.push({
 
 export function startMigrationsWorker() {
     if (serverRoleEnabled('workers')) {
-        staticWorker({ name: 'foundation-migrator' }, async () => {
-            await performMigrations(FDB.connection, migrations);
+        staticWorker({ name: 'foundation-migrator' }, async (ctx) => {
+            await performMigrations(ctx, FDB.connection, migrations);
             return false;
         });
     }

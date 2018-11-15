@@ -1,7 +1,8 @@
 import { FEntity } from './FEntity';
 import { FKeyEncoding } from './utils/FKeyEncoding';
 import { FEntityFactory } from './FEntityFactory';
-import { withLogContext } from 'openland-log/withLogContext';
+import { createEmptyContext } from 'openland-utils/Context';
+import { resolveContext } from './utils/contexts';
 
 export class FStream<T extends FEntity> {
     readonly factory: FEntityFactory<T>;
@@ -9,6 +10,7 @@ export class FStream<T extends FEntity> {
     private readonly builder: (val: any) => T;
     private _subspace: any[];
     private _cursor: string;
+    private ctx = createEmptyContext();
 
     constructor(factory: FEntityFactory<T>, subspace: any[], limit: number, builder: (val: any) => T, after?: string) {
         this._subspace = subspace;
@@ -31,7 +33,7 @@ export class FStream<T extends FEntity> {
     }
 
     async tail() {
-        let res = await this.factory.connection.currentContext.range(this.factory.connection, FKeyEncoding.encodeKey(this._subspace), { limit: 1, reverse: true });
+        let res = await resolveContext(this.ctx).range(this.ctx, this.factory.connection, FKeyEncoding.encodeKey(this._subspace), { limit: 1, reverse: true });
         if (res.length === 1) {
             return FKeyEncoding.encodeKeyToString(FKeyEncoding.decodeKey(res[0].key) as any);
         } else {
@@ -40,24 +42,22 @@ export class FStream<T extends FEntity> {
     }
 
     async next(): Promise<T[]> {
-        return await withLogContext('stream-' + this.factory.name, async () => {
-            if (this._cursor && this._cursor !== '') {
-                let res = await this.factory.connection.currentContext.rangeAfter(this.factory.connection, this._subspace, FKeyEncoding.decodeFromString(this._cursor) as any, { limit: this.limit });
-                let d: T[] = [];
-                for (let r of res) {
-                    d.push(this.builder(r.item));
-                    this._cursor = FKeyEncoding.encodeKeyToString(FKeyEncoding.decodeKey(r.key) as any);
-                }
-                return d;
-            } else {
-                let res = await this.factory.connection.currentContext.range(this.factory.connection, FKeyEncoding.encodeKey(this._subspace), { limit: this.limit });
-                let d: T[] = [];
-                for (let r of res) {
-                    d.push(this.builder(r.item));
-                    this._cursor = FKeyEncoding.encodeKeyToString(FKeyEncoding.decodeKey(r.key) as any);
-                }
-                return d;
+        if (this._cursor && this._cursor !== '') {
+            let res = await resolveContext(this.ctx).rangeAfter(this.ctx, this.factory.connection, this._subspace, FKeyEncoding.decodeFromString(this._cursor) as any, { limit: this.limit });
+            let d: T[] = [];
+            for (let r of res) {
+                d.push(this.builder(r.item));
+                this._cursor = FKeyEncoding.encodeKeyToString(FKeyEncoding.decodeKey(r.key) as any);
             }
-        });
+            return d;
+        } else {
+            let res = await resolveContext(this.ctx).range(this.ctx, this.factory.connection, FKeyEncoding.encodeKey(this._subspace), { limit: this.limit });
+            let d: T[] = [];
+            for (let r of res) {
+                d.push(this.builder(r.item));
+                this._cursor = FKeyEncoding.encodeKeyToString(FKeyEncoding.decodeKey(r.key) as any);
+            }
+            return d;
+        }
     }
 }
