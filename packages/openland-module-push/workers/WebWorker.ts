@@ -34,7 +34,7 @@ export function createWebWorker(repo: PushRepository) {
                             ...task.extras
                         }));
                         await pushSent.event(root, { uid: token.uid, tokenId: token.id });
-                        log.log('web_push', token.uid, JSON.stringify({ statusCode: res.statusCode, body: res.body }));
+                        log.log(root, 'web_push', token.uid, JSON.stringify({ statusCode: res.statusCode, body: res.body }));
                     } catch (e) {
                         if (e.statusCode === 410) {
                             await inTx(root, async (ctx) => {
@@ -44,7 +44,7 @@ export function createWebWorker(repo: PushRepository) {
 
                             });
                         }
-                        log.log('web_push failed', token.uid, JSON.stringify({ statusCode: e.statusCode, body: e.body }));
+                        log.log(root, 'web_push failed', token.uid, JSON.stringify({ statusCode: e.statusCode, body: e.body }));
                         return { result: 'failed' };
                     }
                     return { result: 'ok' };

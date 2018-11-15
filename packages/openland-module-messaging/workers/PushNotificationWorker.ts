@@ -20,7 +20,7 @@ export function startPushNotificationWorker() {
     staticWorker({ name: 'push_notifications', delay: 3000, startDelay: 3000 }, async () => {
         let parent = createEmptyContext();
         let unreadUsers = await FDB.UserMessagingState.allFromHasUnread(parent);
-        log.debug('unread users: ' + unreadUsers.length);
+        log.debug(parent, 'unread users: ' + unreadUsers.length);
         for (let u of unreadUsers) {
             await inTx(parent, async (ctx) => {
                 await withLogContext(['user', '' + u.uid], async () => {
@@ -34,7 +34,7 @@ export function startPushNotificationWorker() {
 
                     // Ignore never-online users
                     if (lastSeen === 'never_online') {
-                        log.log('skip never-online');
+                        log.log(ctx, 'skip never-online');
                         state.lastPushSeq = u.seq;
                         return;
                     }
@@ -43,38 +43,38 @@ export function startPushNotificationWorker() {
                     // if (settings.notificationsDelay !== 'none') {
                     // Ignore online
                     if (lastSeen === 'online') {
-                        log.log('skip online');
+                        log.log(ctx, 'skip online');
                         return;
                     }
 
                     // Pause notifications till 1 minute passes from last active timeout
                     if (lastSeen > (now - Delays[settings.notificationsDelay || 'none'])) {
-                        log.log('skip delay');
+                        log.log(ctx, 'skip delay');
                         return;
                     }
 
                     // Ignore read updates
                     if (state.readSeq === u.seq) {
-                        log.log('ignore read updates');
+                        log.log(ctx, 'ignore read updates');
                         return;
                     }
 
                     // Ignore never opened apps
                     if (state.readSeq === null) {
-                        log.log('ignore never opened apps');
+                        log.log(ctx, 'ignore never opened apps');
                         return;
                     }
 
                     // Ignore user's with disabled notifications
                     if (settings.mobileNotifications === 'none' && settings.desktopNotifications === 'none') {
                         state.lastPushSeq = u.seq;
-                        log.log('ignore user\'s with disabled notifications');
+                        log.log(ctx, 'ignore user\'s with disabled notifications');
                         return;
                     }
 
                     // Ignore already processed updates
                     if (state.lastPushSeq !== null && state.lastPushSeq >= u.seq) {
-                        log.log('ignore already processed updates');
+                        log.log(ctx, 'ignore already processed updates');
                         return;
                     }
 
@@ -185,7 +185,7 @@ export function startPushNotificationWorker() {
                             silent: null
                         };
 
-                        log.debug('new_push', JSON.stringify(push));
+                        log.debug(ctx, 'new_push', JSON.stringify(push));
                         await Modules.Push.worker.pushWork(ctx, push);
                     }
 
@@ -194,7 +194,7 @@ export function startPushNotificationWorker() {
                         state.lastPushNotification = Date.now();
                     }
 
-                    log.debug('updated ' + state.lastPushSeq + '->' + u.seq);
+                    log.debug(ctx, 'updated ' + state.lastPushSeq + '->' + u.seq);
 
                     state.lastPushSeq = u.seq;
                 });

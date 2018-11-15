@@ -2,6 +2,7 @@ import { FConnection } from 'foundation-orm/FConnection';
 import { FKeyEncoding } from './FKeyEncoding';
 import { createLogger } from 'openland-log/createLogger';
 import { backoff } from 'openland-utils/timer';
+import { createEmptyContext } from 'openland-utils/Context';
 
 const rootPrefix = Buffer.from('f0', 'hex');
 const dataPrefix = Buffer.concat([rootPrefix, Buffer.from('02', 'hex')]);
@@ -24,7 +25,7 @@ export class DirectoryAllocator {
     }
 
     async allocateDirectory(key: (string | number | boolean)[]) {
-        logger.debug('Allocating for key: ' + JSON.stringify(key));
+        logger.debug(createEmptyContext(), 'Allocating for key: ' + JSON.stringify(key));
         let destKey = Buffer.concat([regsPrefix, FKeyEncoding.encodeKey([...key])]);
         try {
             return await backoff(async () => await this.connection.fdb.doTransaction(async (tx) => {
@@ -44,7 +45,7 @@ export class DirectoryAllocator {
                     throw Error('Key space overflowed');
                 }
                 tx.set(destKey, { value: nextCounter });
-                logger.debug('Allocated ' + nextCounter + ' for key: ' + JSON.stringify(key));
+                logger.debug(createEmptyContext(), 'Allocated ' + nextCounter + ' for key: ' + JSON.stringify(key));
                 return buildDataPrefix(nextCounter);
             }));
         } catch (e) {

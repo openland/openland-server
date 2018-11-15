@@ -144,11 +144,12 @@ export async function initApi(isTest: boolean) {
                     webSocket.__params = await fetchWebSocketParameters(args, webSocket);
                 },
                 onOperation: async (message: any, params: any, webSocket: any) => {
+                    let ctx = buildWebSocketContext(webSocket.__params);
                     if (!isTest) {
                         if (webSocket.__params.uid) {
-                            logger.log('GraphQL [#' + webSocket.__params.uid + ']: ' + JSON.stringify(message.payload));
+                            logger.log(ctx, 'GraphQL [#' + webSocket.__params.uid + ']: ' + JSON.stringify(message.payload));
                         } else {
-                            logger.log('WS GraphQL [#ANON]: ' + JSON.stringify(message.payload));
+                            logger.log(ctx, 'WS GraphQL [#ANON]: ' + JSON.stringify(message.payload));
                         }
                     }
 
@@ -175,7 +176,7 @@ export async function initApi(isTest: boolean) {
 
                     return {
                         ...params,
-                        context: buildWebSocketContext(webSocket.__params),
+                        context: ctx,
                         formatResponse: (value: any) => ({
                             ...value,
                             errors: value.errors && value.errors.map(formatError),

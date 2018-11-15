@@ -187,7 +187,7 @@ export abstract class FEntityFactory<T extends FEntity> {
             this.options.validator(value);
             return this._createEntity(ctx, value, isNew);
         } catch (e) {
-            log.warn('Unable to create entity from ', JSON.stringify(value), e);
+            log.warn(ctx, 'Unable to create entity from ', JSON.stringify(value), e);
             throw e;
         }
     }

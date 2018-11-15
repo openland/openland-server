@@ -1,5 +1,5 @@
 export interface Context {
-
+    readonly isContext: true;
 }
 
 export interface ContextNamespace<T> {
@@ -8,6 +8,7 @@ export interface ContextNamespace<T> {
 }
 
 class ContextHolder implements Context {
+    readonly isContext: true = true;
     readonly values: { [key: string]: any };
 
     constructor(values: { [key: string]: any }) {
@@ -16,6 +17,7 @@ class ContextHolder implements Context {
 }
 
 export abstract class ContextWrapper implements Context {
+    readonly isContext: true = true;
     readonly ctx: Context;
 
     constructor(src: Context) {

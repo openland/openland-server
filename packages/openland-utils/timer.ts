@@ -165,7 +165,7 @@ export class AsyncLock {
             if (nextResolver) {
                 setTimeout(() => {
                     nextResolver(true);
-                });
+                }, 0);
             }
         }
     }

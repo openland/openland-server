@@ -1,7 +1,7 @@
 import { AllEntities } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
 import { UserError } from 'openland-errors/UserError';
-import { Context } from 'continuation-local-storage';
+import { Context } from 'openland-utils/Context';
 
 export class ShortnameRepository {
     private readonly entities: AllEntities;

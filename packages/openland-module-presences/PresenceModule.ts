@@ -57,7 +57,7 @@ export class PresenceModule {
     }
 
     public async getLastSeen(ctx: Context, uid: number): Promise<'online' | 'never_online' | number> {
-        log.debug('get last seen');
+        log.debug(ctx, 'get last seen');
         let res = await this.FDB.Online.findById(ctx, uid);
         if (res) {
             if (res.lastSeen > Date.now()) {
@@ -139,7 +139,7 @@ export class PresenceModule {
         } else {
             // tslint:disable-next-line:no-floating-promises
             let sub = this.FDB.Online.watch(createEmptyContext(), uid, () => {
-                log.debug('presence watch fired for ' + uid);
+                log.debug(createEmptyContext(), 'presence watch fired for ' + uid);
                 // tslint:disable-next-line:no-floating-promises
                 this.handleOnlineChange(uid);
             });

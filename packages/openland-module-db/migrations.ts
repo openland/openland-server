@@ -37,38 +37,38 @@ migrations.push({
         let root = createEmptyContext();
         let user = await FDB.UserProfile.findAll(root);
         for (let u of user) {
-            log.log('Fixing primary organization for user ' + u.id);
+            log.log(root, 'Fixing primary organization for user ' + u.id);
             await inTx(root, async (ctx) => {
                 let primaryOrganization: number | null = null;
                 let profile = (await FDB.UserProfile.findById(ctx, u.id))!;
                 let orgs = await Modules.Orgs.findUserOrganizations(ctx, u.id);
 
                 if (orgs.length === 0) {
-                    log.log('No organizations for user ' + u.id);
+                    log.log(ctx, 'No organizations for user ' + u.id);
                     // If no active organizations - no primary one
                     primaryOrganization = null;
                 } else {
 
                     // If there are one existing check if it is activated
                     if (profile.primaryOrganization) {
-                        log.log('Checking existing for user ' + u.id + ', ' + profile.primaryOrganization);
+                        log.log(ctx, 'Checking existing for user ' + u.id + ', ' + profile.primaryOrganization);
                         let existing = orgs.find((v) => v === profile.primaryOrganization);
                         if (existing) {
-                            log.log('found existing ' + existing);
+                            log.log(ctx, 'found existing ' + existing);
                             let o = await FDB.Organization.findById(ctx, existing);
                             if (o && o.status === 'activated') {
-                                log.log('apply existing ' + existing);
+                                log.log(ctx, 'apply existing ' + existing);
                                 primaryOrganization = o.id;
                             } else {
                                 if (!o) {
-                                    log.log('organization not found ' + existing);
+                                    log.log(ctx, 'organization not found ' + existing);
                                 } else {
-                                    log.log('organization not activated ' + existing);
+                                    log.log(ctx, 'organization not activated ' + existing);
                                 }
                                 primaryOrganization = null;
                             }
                         } else {
-                            log.log('organization not found2 ' + existing);
+                            log.log(ctx, 'organization not found2 ' + existing);
                             primaryOrganization = null;
                         }
                     }
@@ -82,9 +82,9 @@ migrations.push({
                                 break;
                             } else {
                                 if (!o) {
-                                    log.log('organization not found2 ' + oid);
+                                    log.log(ctx, 'organization not found2 ' + oid);
                                 } else {
-                                    log.log('organization not activated ' + o!.id);
+                                    log.log(ctx, 'organization not activated ' + o!.id);
                                 }
                             }
                         }
@@ -92,7 +92,7 @@ migrations.push({
                 }
 
                 if (profile.primaryOrganization !== primaryOrganization) {
-                    log.log('Update primary organization for user ' + profile.id + '. Was: ' + profile.primaryOrganization + ', new: ' + primaryOrganization);
+                    log.log(ctx, 'Update primary organization for user ' + profile.id + '. Was: ' + profile.primaryOrganization + ', new: ' + primaryOrganization);
                     profile.primaryOrganization = primaryOrganization;
                 }
             });

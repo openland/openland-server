@@ -4,6 +4,7 @@ import { delay } from 'openland-utils/timer';
 import { withLogContext } from 'openland-log/withLogContext';
 import { createLogger } from 'openland-log/createLogger';
 import { FKeyEncoding } from './FKeyEncoding';
+import { createEmptyContext } from 'openland-utils/Context';
 
 export class FNodeRegistrator {
     private readonly connection: FConnection;
@@ -23,7 +24,7 @@ export class FNodeRegistrator {
                     while (true) {
                         let candidate = Math.round(Math.random() * 1023);
                         let now = Date.now();
-                        this.log.log('Check if ' + candidate + ' is available');
+                        this.log.log(createEmptyContext(), 'Check if ' + candidate + ' is available');
                         let res = await this.connection.fdb.doTransaction(async (tn) => {
                             let existing = await tn.get(FKeyEncoding.encodeKey(['__system', '__nodeid', candidate]));
                             if (!existing || ((existing.timeout as number) < now)) {

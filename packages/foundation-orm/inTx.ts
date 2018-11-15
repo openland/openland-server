@@ -32,7 +32,7 @@ export async function inTx<T>(ctx: Context, callback: (ctx: Context) => Promise<
                     } catch (err) {
                         if (err instanceof FDBError) {
                             await tx.tx!.rawOnError(err.code);
-                            log.debug('retry with code ' + err.code);
+                            log.debug(ctx, 'retry with code ' + err.code);
                             isRetry = true;
                         } else {
                             throw err;
@@ -40,7 +40,7 @@ export async function inTx<T>(ctx: Context, callback: (ctx: Context) => Promise<
                     }
                 } while (true);
             } finally {
-                log.debug('full tx time: ' + (currentTime() - start) + ' ms');
+                log.debug(ctx, 'full tx time: ' + (currentTime() - start) + ' ms');
             }
         });
     });

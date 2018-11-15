@@ -59,9 +59,9 @@ export async function callContextMiddleware(isTest: boolean, req: express.Reques
     }
     if (!isTest) {
         if (AuthContext.get(ctx).uid) {
-            logger.log('GraphQL [#' + AuthContext.get(ctx).uid + ']: ' + JSON.stringify(req.body));
+            logger.log(ctx, 'GraphQL [#' + AuthContext.get(ctx).uid + ']: ' + JSON.stringify(req.body));
         } else {
-            logger.log('GraphQL [#ANON]: ' + JSON.stringify(req.body));
+            logger.log(ctx, 'GraphQL [#ANON]: ' + JSON.stringify(req.body));
         }
     }
     res.locals.ctx = ctx;

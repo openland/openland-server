@@ -23,8 +23,8 @@ export class SuperRepository {
         }
     }
 
-    async makeSuperAdmin(ctx: Context, uid: number, role: string) {
-        await inTx(parent, async () => {
+    async makeSuperAdmin(parent: Context, uid: number, role: string) {
+        await inTx(parent, async (ctx) => {
             let existing = await this.entities.SuperAdmin.findById(ctx, uid);
             if (existing) {
                 existing.enabled = true;

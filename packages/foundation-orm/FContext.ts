@@ -5,6 +5,7 @@ import { RangeOptions } from 'foundationdb/dist/lib/transaction';
 import { FKeyEncoding } from './utils/FKeyEncoding';
 import { trace } from 'openland-log/trace';
 import { tracer, logger } from './utils/tracer';
+import { createEmptyContext } from 'openland-utils/Context';
 
 export interface FContext {
     readonly isReadOnly: boolean;
@@ -24,27 +25,27 @@ export class FGlobalContext implements FContext {
     readonly isCompleted: boolean = false;
     async get(connection: FConnection, key: Buffer) {
         return await trace(tracer, 'get', async () => {
-            logger.debug('get');
+            logger.debug(createEmptyContext(), 'get');
             return await connection.fdb.get(key);
         });
     }
     async range(connection: FConnection, key: Buffer, options?: RangeOptions) {
         return await trace(tracer, 'range', async () => {
-            logger.debug('get-range');
+            logger.debug(createEmptyContext(), 'get-range');
             let res = await connection.fdb.getRangeAll(key, undefined, options);
             return res.map((v) => ({ item: v[1] as any, key: v[0] }));
         });
     }
     async rangeAll(connection: FConnection, key: Buffer, options?: RangeOptions) {
         return await trace(tracer, 'range', async () => {
-            logger.debug('get-range-all');
+            logger.debug(createEmptyContext(), 'get-range-all');
             let res = await connection.fdb.getRangeAll(key, undefined, options);
             return res.map((v) => (v[1] as any));
         });
     }
     async rangeAfter(connection: FConnection, prefix: (string | number)[], afterKey: (string | number)[], options?: RangeOptions) {
         return await trace(tracer, 'rangeAfter', async () => {
-            logger.debug('get-range-after');
+            logger.debug(createEmptyContext(), 'get-range-after');
             let reversed = (options && options.reverse) ? true : false;
             let start = reversed ? FKeyEncoding.firstKeyInSubspace(prefix) : keySelector.firstGreaterThan(FKeyEncoding.encodeKey(afterKey));
             let end = reversed ? FKeyEncoding.encodeKey(afterKey) : FKeyEncoding.lastKeyInSubspace(prefix);

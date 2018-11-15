@@ -3,7 +3,7 @@ import { FKeyEncoding } from './utils/FKeyEncoding';
 import { delay } from '../openland-utils/timer';
 import { fastDeepEquals } from '../openland-utils/fastDeepEquals';
 import { createLogger } from 'openland-log/createLogger';
-import { Context } from 'openland-utils/Context';
+import { Context, createEmptyContext } from 'openland-utils/Context';
 
 type Key = (string | number)[];
 type ChangeCallback = () => void;
@@ -57,10 +57,10 @@ export class FWatch {
             log.warn(e);
             // fallback to polling
             try {
-                log.debug('fallback to pooling');
+                log.debug(createEmptyContext(), 'fallback to pooling');
                 await this.doPolling(key);
             } catch (e) {
-                log.debug('something happend');
+                log.debug(createEmptyContext(), 'something happend');
                 log.warn(e);
                 // notify subscribers about end
                 let subs = this.subscriptions.get(key);
@@ -92,7 +92,7 @@ export class FWatch {
     private async doWatch(key: Buffer) {
         while (true) {
             let subscription = await this.connection.fdb.getAndWatch(key);
-            log.debug('subscribe');
+            log.debug(createEmptyContext(), 'subscribe');
 
             let res = await subscription.promise;
 

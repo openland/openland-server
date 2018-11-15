@@ -72,7 +72,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                     return res;
                 });
                 if (task) {
-                    log.log('Task ' + task.uid + ' found');
+                    log.log(root, 'Task ' + task.uid + ' found');
                     let res: RES;
                     try {
                         res = await handler(task.arguments, task.uid);
@@ -106,7 +106,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                         return;
                     }
 
-                    log.log('Task ' + task.uid + ' completed', JSON.stringify(res));
+                    log.log(root, 'Task ' + task.uid + ' completed', JSON.stringify(res));
 
                     // Commiting
                     let commited = await inTx(root, async (ctx) => {
@@ -122,13 +122,13 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                         return false;
                     });
                     if (commited) {
-                        log.log('Commited');
+                        log.log(root, 'Commited');
                     } else {
-                        log.log('Not commited');
+                        log.log(root, 'Not commited');
                         await awaitTask();
                     }
                 } else {
-                    log.debug('Task not found');
+                    log.debug(root, 'Task not found');
                     await awaitTask();
                 }
             });
@@ -141,7 +141,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
 
             working = false;
             await workLoop.stop();
-            log.log(this.taskType, 'stopped');
+            log.log(createEmptyContext(), this.taskType, 'stopped');
         };
 
         Shutdown.registerWork({ name: this.taskType, shutdown });

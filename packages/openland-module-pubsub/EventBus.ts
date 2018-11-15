@@ -4,6 +4,7 @@ import { backoff } from 'openland-utils/timer';
 import { createTracer } from 'openland-log/createTracer';
 import { withTracing } from 'openland-log/withTracing';
 import { createLogger } from 'openland-log/createLogger';
+import { createEmptyContext } from 'openland-utils/Context';
 
 const tracer = createTracer('eventbus');
 const logger = createLogger('eventbus');
@@ -55,7 +56,7 @@ class EventBusImpl implements FPubsub {
                         r.listener(data);
                     }
                 }
-            });
+            }, 0);
         }
     }
 
@@ -78,7 +79,7 @@ class EventBusImpl implements FPubsub {
                 let index = subs.findIndex(s => s.listener === receiver);
 
                 if (index === -1) {
-                    logger.warn('Double unsubscribe from event bus for topic ' + topic);
+                    logger.warn(createEmptyContext(), 'Double unsubscribe from event bus for topic ' + topic);
                 } else {
                     subs.splice(index, 1);
                 }

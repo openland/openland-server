@@ -1,5 +1,6 @@
 import { encoders } from 'foundationdb';
 import { createLogger } from 'openland-log/createLogger';
+import { createEmptyContext } from 'openland-utils/Context';
 // import { pack } from './TupleEncoder';
 
 const byteFF = Buffer.alloc(1);
@@ -17,7 +18,7 @@ export const FKeyEncoding = {
         try {
             return encoders.tuple.pack(key) as Buffer;
         } catch (e) {
-            log.warn('Unable to encode key', key, e);
+            log.warn(createEmptyContext(), 'Unable to encode key', key, e);
             throw e;
         }
     },

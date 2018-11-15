@@ -80,7 +80,7 @@ export function staticWorker(config: { name: string, version?: number, delay?: n
         }
         await workLoop.stop();
         await await LockRepository.releaseLock(createEmptyContext(), 'worker_' + config.name, config.version);
-        logger.log('worker_' + config.name, 'stopped');
+        logger.log(createEmptyContext(), 'worker_' + config.name, 'stopped');
     };
 
     Shutdown.registerWork({ name: 'worker_' + config.name, shutdown });

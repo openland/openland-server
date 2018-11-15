@@ -1,5 +1,6 @@
 import { EventBus } from './EventBus';
 import { createLogger } from 'openland-log/createLogger';
+import { createEmptyContext } from 'openland-utils/Context';
 
 export type PubsubSubcription = { cancel(): void };
 
@@ -24,11 +25,11 @@ export class Pubsub<T> {
                 let subscribers = this.subscribers.get(topic);
                 if (subscribers) {
                     for (let r of [...subscribers]) {
-                        log.debug('local fire for ' + topic);
+                        log.debug(createEmptyContext(), 'local fire for ' + topic);
                         r.listener(data);
                     }
                 }
-            });
+            }, 0);
         }
     }
 

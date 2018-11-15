@@ -3,6 +3,7 @@ import { FEntity } from 'foundation-orm/FEntity';
 import { updateReader } from 'openland-module-workers/updateReader';
 import { Modules } from 'openland-modules/Modules';
 import { createLogger } from 'openland-log/createLogger';
+import { createEmptyContext } from 'openland-utils/Context';
 
 const log = createLogger('indexer');
 
@@ -50,10 +51,10 @@ export class SearchIndexer<T extends FEntity> {
                     }
                 }
             }
-
+            let ctx = createEmptyContext();
             let converted: any[] = [];
             for (let i of items) {
-                log.log('Indexing ' + i.rawId.join('.'));
+                log.log(ctx, 'Indexing ' + i.rawId.join('.'));
                 let c = await handler(i);
                 if (c) {
                     converted.push({
@@ -72,7 +73,7 @@ export class SearchIndexer<T extends FEntity> {
                         body: converted,
                     });
                     if (res.errors) {
-                        log.warn(JSON.stringify(res));
+                        log.warn(ctx, JSON.stringify(res));
                         throw new Error('Error during indexing');
                     }
                 } catch (e) {

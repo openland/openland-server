@@ -25,7 +25,7 @@ export default {
                 throw Error('Unable to register push for non-registered user');
             }
             return await withLogContext('push', async () => {
-                pushLog.log('Received push token: ' + JSON.stringify(args.endpoint));
+                pushLog.log(ctx, 'Received push token: ' + JSON.stringify(args.endpoint));
                 if (args.type === 'IOS') {
                     let parsed = JSON.parse(args.endpoint);
                     await Modules.Push.registerPushApple(ctx, ctx.auth.uid!, ctx.auth.tid!, parsed.token, parsed.bundleId, parsed.sandbox);

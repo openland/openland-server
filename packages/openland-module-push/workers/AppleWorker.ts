@@ -65,7 +65,7 @@ export function createAppleWorker(repo: PushRepository) {
 
                     try {
                         let res = await (provs.get(team.teamId)!!).send(not, token.token);
-                        log.log('ios_push', token.uid, JSON.stringify(res));
+                        log.log(root, 'ios_push', token.uid, JSON.stringify(res));
 
                         if (res.failed.length > 0) {
                             let reason = res.failed[0].response && res.failed[0].response!.reason;
@@ -83,8 +83,8 @@ export function createAppleWorker(repo: PushRepository) {
 
                         return { result: 'ok' };
                     } catch (e) {
-                        console.log('ios_push exception', e);
-                        log.log('ios_push failed', token.uid);
+                        log.warn(root, 'ios_push exception', e);
+                        log.log(root, 'ios_push failed', token.uid);
                         return { result: 'failed' };
                     }
 

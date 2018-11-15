@@ -6,6 +6,7 @@ import { createLogger } from 'openland-log/createLogger';
 import { trace, traceSync } from 'openland-log/trace';
 import { tracer, logger } from './utils/tracer';
 import { FBaseTransaction } from './utils/FBaseTransaction';
+import { createEmptyContext } from 'openland-utils/Context';
 
 const log = createLogger('tx');
 
@@ -33,7 +34,7 @@ export class FTransaction extends FBaseTransaction {
     set(connection: FConnection, key: Buffer, value: any) {
         this.prepare(connection);
         traceSync(tracer, 'set', () => {
-            logger.debug('set');
+            logger.debug(createEmptyContext(), 'set');
             this.tx!.set(key, value);
         });
     }
@@ -41,13 +42,13 @@ export class FTransaction extends FBaseTransaction {
     delete(connection: FConnection, key: Buffer) {
         this.prepare(connection);
         traceSync(tracer, 'delete', () => {
-            logger.debug('delete');
+            logger.debug(createEmptyContext(), 'delete');
             this.tx!.clear(key);
         });
     }
 
     markDirty(entity: FEntity, callback: (connection: FConnection) => Promise<void>) {
-        logger.debug('markDirty');
+        logger.debug(createEmptyContext(), 'markDirty');
         this.prepare(entity.connection);
         let key = [...entity.namespace.namespace, ...entity.rawId].join('.');
         this._pending.set(key, callback);
@@ -81,7 +82,7 @@ export class FTransaction extends FBaseTransaction {
                 await p(this.connection!);
             }
         });
-        log.debug('flush time: ' + (currentTime() - t) + ' ms');
+        log.debug(createEmptyContext(), 'flush time: ' + (currentTime() - t) + ' ms');
     }
 
     async flush() {
@@ -99,7 +100,7 @@ export class FTransaction extends FBaseTransaction {
                 await p(this.connection!);
             }
         });
-        log.debug('flush time: ' + (currentTime() - t) + ' ms');
+        log.debug(createEmptyContext(), 'flush time: ' + (currentTime() - t) + ' ms');
         t = currentTime();
         await trace(tracer, 'commit', async () => {
             await this.tx!!.rawCommit();
@@ -113,7 +114,7 @@ export class FTransaction extends FBaseTransaction {
         }
         this._isCompleted = true;
         // if (this._hadMutations) {
-        log.debug('commit time: ' + (currentTime() - t) + ' ms');
+        log.debug(createEmptyContext(), 'commit time: ' + (currentTime() - t) + ' ms');
         // }
     }
 
