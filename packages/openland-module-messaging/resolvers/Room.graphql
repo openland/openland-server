@@ -20,7 +20,7 @@ enum SharedRoomMembershipStatus {
 }
 
 enum RoomMemberRole {
-    CREATOR
+    OWNER
     ADMIN
     MEMBER
 }
@@ -80,16 +80,36 @@ input RoomUserNotificaionSettingsInput {
     mute: Boolean
 }
 
-input RoomInvite {
+input RoomInviteInput {
     userId: ID!
     role: RoomMemberRole!
 }
 
+input RoomInviteEmailRequest {
+    email: String!,
+    emailText: String,
+    firstName: String,
+    lastName: String
+}
 
 extend type Query {
     room(id: ID!): Room
     roomMessages(roomId: ID!, first: Int, before: ID): [RoomMessage!]!
     roomMembers(roomId: ID!): [RoomMember!]!
+    betaRoomSearch(
+        query: String,
+        first: Int!,
+        after: String,
+        page: Int,
+        sort: String
+    ): ChannelConversationConnection!
+    betaRoomInviteInfo(invite: String!): ChannelInvite
+    betaRoomInviteLink(roomId: ID!): String!
+}
+
+type RoomInvite {
+    room: SharedRoom!
+    invitedByUser: User!
 }
 
 extend type Mutation {
@@ -98,10 +118,15 @@ extend type Mutation {
     betaRoomUpdate(roomId: ID!, input: RoomUpdateInput!): Room!
     
     # Members mgmt
-    betaRoomInvite(roomId: ID!, invites: [RoomInvite!]!): Room!
+    betaRoomInvite(roomId: ID!, invites: [RoomInviteInput!]!): Room!
     betaRoomKick(roomId: ID!, userId: ID!): Room!
     betaRoomChangeRole(roomId: ID!, userId: ID!, newRole: RoomMemberRole!): Room!
     betaRoomJoin(roomId: ID!): Room!
+
+    # Invite links
+    betaRoomInviteLinkSendEmail(roomId: ID!, inviteRequests: [RoomInviteEmailRequest!]!): String!
+    betaRoomInviteLinkJoin(invite: String!): Room!
+    betaRoomInviteLinkRenew(roomId: ID!): String!
 
     # User settings
     betaRoomUpdateUserNotificationSettings(settings: RoomUserNotificaionSettingsInput!, roomId: ID!): RoomUserNotificaionSettings!

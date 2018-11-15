@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { InvitesChannelsRepository } from 'openland-module-invites/repositories/InvitesChannelsRepository';
+import { InvitesRoomRepository } from 'openland-module-invites/repositories/InvitesRoomRepository';
 import { testEnvironmentStart, testEnvironmentEnd } from 'openland-modules/testEnvironment';
 import { loadMessagingTestModule } from 'openland-module-messaging/Messaging.container.test';
 import { container } from 'openland-modules/Modules.container';
@@ -52,12 +52,12 @@ describe('InvitesMediator', () => {
         let roomMediator = container.get<RoomMediator>('RoomMediator');
         let channel = await roomMediator.createRoom(ctx, 'public', 1, USER_ID, [], { title: 'channel' });
 
-        let repo = container.get<InvitesChannelsRepository>('InvitesChannelsRepository');
-        let invite = await repo.createChannelInviteLink(ctx, channel.id, USER_ID);
+        let repo = container.get<InvitesRoomRepository>('InvitesRoomRepository');
+        let invite = await repo.createRoomInviteLink(ctx, channel.id, USER_ID);
 
         let mediator = container.get<InvitesMediator>('InvitesMediator');
 
-        await mediator.joinChannelInvite(ctx, USER2_ID, invite);
+        await mediator.joinRoomInvite(ctx, USER2_ID, invite);
         let members = await roomMediator.findConversationMembers(ctx, channel.id);
         expect(members).toContain(USER2_ID);
 

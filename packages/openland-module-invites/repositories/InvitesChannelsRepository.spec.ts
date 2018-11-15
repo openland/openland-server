@@ -4,7 +4,7 @@ import { FConnection } from 'foundation-orm/FConnection';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { AllEntities, AllEntitiesDirect } from 'openland-module-db/schema';
 import { NativeValue } from 'foundationdb/dist/lib/native';
-import { InvitesChannelsRepository } from './InvitesChannelsRepository';
+import { InvitesRoomRepository } from './InvitesRoomRepository';
 import { NoOpBus } from 'foundation-orm/tests/NoOpBus';
 import { createEmptyContext } from 'openland-utils/Context';
 
@@ -22,8 +22,8 @@ describe('ChannelRepository', () => {
 
     it('should create links', async () => {
         let ctx = createEmptyContext();
-        let repo = new InvitesChannelsRepository(entities);
-        let uuid = await repo.createChannelInviteLink(ctx, 1, 1);
+        let repo = new InvitesRoomRepository(entities);
+        let uuid = await repo.createRoomInviteLink(ctx, 1, 1);
         let res = await repo.resolveInvite(ctx, uuid);
         expect(res).not.toBeNull();
     });
