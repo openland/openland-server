@@ -86,7 +86,7 @@ export async function initApi(isTest: boolean) {
     app.post('/auth/getAccessToken', bodyParser.json(), withAudit(Auth.getAccessToken));
 
     app.post('/semaphorebot', bodyParser.json(), (async (req, res) => {
-        await inTx(async () => {
+        await inTx(createEmptyContext(), async (ctx) => {
             let chatId = IDs.Conversation.parse('zoqLwdzr6VHelWZOR6JatW4aak');
             let botId = IDs.User.parse('vmM5pE5lQ4udYLr6AOLBhdQDJK');
             let data = req.body;
@@ -94,7 +94,7 @@ export async function initApi(isTest: boolean) {
             if (data.result === 'passed') {
                 let text = `${data.commit.author_name} ${data.event === 'deploy' ? 'deployed' : 'build'} :tada: - ${data.commit.message} to ${data.project_name}`;
 
-                await Modules.Messaging.sendMessage(createEmptyContext(), chatId, botId, { message: text });
+                await Modules.Messaging.sendMessage(ctx, chatId, botId, { message: text });
             }
         });
     }));

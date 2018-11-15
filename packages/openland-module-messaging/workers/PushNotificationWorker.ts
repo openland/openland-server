@@ -18,11 +18,11 @@ const log = createLogger('push');
 
 export function startPushNotificationWorker() {
     staticWorker({ name: 'push_notifications', delay: 3000, startDelay: 3000 }, async () => {
-        let ctx = createEmptyContext();
-        let unreadUsers = await FDB.UserMessagingState.allFromHasUnread(ctx);
+        let parent = createEmptyContext();
+        let unreadUsers = await FDB.UserMessagingState.allFromHasUnread(parent);
         log.debug('unread users: ' + unreadUsers.length);
         for (let u of unreadUsers) {
-            await inTx(async () => {
+            await inTx(parent, async (ctx) => {
                 await withLogContext(['user', '' + u.uid], async () => {
                     // Loading user's settings and state
                     let settings = await Modules.Users.getUserSettings(ctx, u.uid);

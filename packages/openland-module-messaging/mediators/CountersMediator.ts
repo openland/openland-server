@@ -17,8 +17,8 @@ export class CountersMediator {
     @lazyInject('UserStateRepository')
     private readonly userState!: UserStateRepository;
 
-    onMessageReceived = async (ctx: Context, uid: number, mid: number) => {
-        return await inTx(async () => {
+    onMessageReceived = async (parent: Context, uid: number, mid: number) => {
+        return await inTx(parent, async (ctx) => {
             let res = await this.repo.onMessageReceived(ctx, uid, mid);
             if (res !== 0) {
                 let message = (await this.entities.Message.findById(ctx, mid));
@@ -31,8 +31,8 @@ export class CountersMediator {
         });
     }
 
-    onMessageDeleted = async (ctx: Context, uid: number, mid: number) => {
-        return await inTx(async () => {
+    onMessageDeleted = async (parent: Context, uid: number, mid: number) => {
+        return await inTx(parent, async (ctx) => {
             let res = await this.repo.onMessageDeleted(ctx, uid, mid);
             if (res !== 0) {
                 let message = (await this.entities.Message.findById(ctx, mid));
@@ -45,8 +45,8 @@ export class CountersMediator {
         });
     }
 
-    onMessageRead = async (ctx: Context, uid: number, mid: number) => {
-        return await inTx(async () => {
+    onMessageRead = async (parent: Context, uid: number, mid: number) => {
+        return await inTx(parent, async (ctx) => {
             let res = await this.repo.onMessageRead(ctx, uid, mid);
             if (res !== 0) {
                 let message = (await this.entities.Message.findById(ctx, mid));
@@ -59,8 +59,8 @@ export class CountersMediator {
         });
     }
 
-    onDialogDeleted = async (ctx: Context, uid: number, cid: number) => {
-        return await inTx(async () => {
+    onDialogDeleted = async (parent: Context, uid: number, cid: number) => {
+        return await inTx(parent, async (ctx) => {
             let res = await this.repo.onDialogDeleted(ctx, uid, cid);
             if (res !== 0) {
                 await this.deliverCounterPush(ctx, uid, cid);

@@ -13,8 +13,8 @@ export class CountersRepository {
     @lazyInject('UserStateRepository')
     private readonly userState!: UserStateRepository;
 
-    onMessageReceived = async (ctx: Context, uid: number, mid: number) => {
-        return await inTx(async () => {
+    onMessageReceived = async (parent: Context, uid: number, mid: number) => {
+        return await inTx(parent, async (ctx) => {
             let message = (await this.entities.Message.findById(ctx, mid));
             if (!message) {
                 throw Error('Unable to find message');
@@ -50,8 +50,8 @@ export class CountersRepository {
         });
     }
 
-    onMessageDeleted = async (ctx: Context, uid: number, mid: number) => {
-        return await inTx(async () => {
+    onMessageDeleted = async (parent: Context, uid: number, mid: number) => {
+        return await inTx(parent, async (ctx) => {
             let message = (await this.entities.Message.findById(ctx, mid));
             if (!message) {
                 throw Error('Unable to find message');
@@ -71,8 +71,8 @@ export class CountersRepository {
         });
     }
 
-    onMessageRead = async (ctx: Context, uid: number, mid: number) => {
-        return await inTx(async () => {
+    onMessageRead = async (parent: Context, uid: number, mid: number) => {
+        return await inTx(parent, async (ctx) => {
             let message = (await this.entities.Message.findById(ctx, mid));
             if (!message) {
                 throw Error('Unable to find message');
@@ -108,8 +108,8 @@ export class CountersRepository {
         });
     }
 
-    onDialogDeleted = async (ctx: Context, uid: number, cid: number) => {
-        return await inTx(async () => {
+    onDialogDeleted = async (parent: Context, uid: number, cid: number) => {
+        return await inTx(parent, async (ctx) => {
             let local = await this.userState.getUserDialogState(ctx, uid, cid);
             let global = await this.userState.getUserMessagingState(ctx, uid);
             if (local.unread > 0) {

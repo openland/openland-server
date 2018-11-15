@@ -6,8 +6,8 @@ import { Context } from 'openland-utils/Context';
 class LockRepositoryImpl {
     private lockSeed = Crypto.randomBytes(32).toString('hex');
 
-    tryLock = async (ctx: Context, key: string, version: number = 0) => {
-        return inTx(async () => {
+    tryLock = async (parent: Context, key: string, version: number = 0) => {
+        return inTx(parent, async (ctx) => {
             let existing = await FDB.Lock.findById(ctx, key);
             let now = Date.now();
             let currentTimeout = now + 30 * 1000;
@@ -37,8 +37,8 @@ class LockRepositoryImpl {
         });
     }
 
-    releaseLock = async (ctx: Context, key: string, version: number = 0) => {
-        return inTx(async () => {
+    releaseLock = async (parent: Context, key: string, version: number = 0) => {
+        return inTx(parent, async (ctx) => {
             if ((await this.tryLock(ctx, key, version))) {
                 let existing = await FDB.Lock.findById(ctx, key);
                 if (!existing) {

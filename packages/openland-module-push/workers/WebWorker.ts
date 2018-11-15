@@ -20,8 +20,8 @@ export function createWebWorker(repo: PushRepository) {
         if (serverRoleEnabled('workers')) {
             for (let i = 0; i < 10; i++) {
                 queue.addWorker(async (task) => {
-                    let ctx = createEmptyContext();
-                    let token = (await repo.getWebToken(ctx, task.tokenId))!;
+                    let root = createEmptyContext();
+                    let token = (await repo.getWebToken(root, task.tokenId))!;
                     if (!token.enabled) {
                         return { result: 'skipped' };
                     }
@@ -33,11 +33,11 @@ export function createWebWorker(repo: PushRepository) {
                             picture: task.picture,
                             ...task.extras
                         }));
-                        await pushSent.event(ctx, { uid: token.uid, tokenId: token.id });
+                        await pushSent.event(root, { uid: token.uid, tokenId: token.id });
                         log.log('web_push', token.uid, JSON.stringify({ statusCode: res.statusCode, body: res.body }));
                     } catch (e) {
                         if (e.statusCode === 410) {
-                            await inTx(async () => {
+                            await inTx(root, async (ctx) => {
                                 let t = (await repo.getWebToken(ctx, task.tokenId))!;
                                 await handleFail(t);
                                 await pushFail.event(ctx, { uid: t.uid, tokenId: t.id, failures: t.failures!, statusCode: e.statusCode, disabled: !t.enabled });

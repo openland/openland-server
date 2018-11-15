@@ -23,8 +23,8 @@ function doSimpleHash(key: string): number {
 export class RoomRepository {
     @lazyInject('FDB') private readonly entities!: AllEntities;
 
-    async createRoom(ctx: Context, kind: 'public' | 'group', oid: number, uid: number, members: number[], profile: RoomProfileInput) {
-        return await inTx(async () => {
+    async createRoom(parent: Context, kind: 'public' | 'group', oid: number, uid: number, members: number[], profile: RoomProfileInput) {
+        return await inTx(parent, async (ctx) => {
             let id = await this.fetchNextConversationId(ctx);
             let conv = await this.entities.Conversation.create(ctx, id, { kind: 'room' });
             await this.entities.ConversationRoom.create(ctx, id, {
@@ -60,8 +60,8 @@ export class RoomRepository {
         });
     }
 
-    async addToRoom(ctx: Context, cid: number, uid: number, by: number) {
-        return await inTx(async () => {
+    async addToRoom(parent: Context, cid: number, uid: number, by: number) {
+        return await inTx(parent, async (ctx) => {
 
             // Check if room exists
             await this.checkRoomExists(ctx, cid);
@@ -87,8 +87,8 @@ export class RoomRepository {
         });
     }
 
-    async kickFromRoom(ctx: Context, cid: number, uid: number) {
-        return await inTx(async () => {
+    async kickFromRoom(parent: Context, cid: number, uid: number) {
+        return await inTx(parent, async (ctx) => {
             // Check if room exists
             await this.checkRoomExists(ctx, cid);
 
@@ -102,8 +102,8 @@ export class RoomRepository {
         });
     }
 
-    async leaveRoom(ctx: Context, cid: number, uid: number) {
-        return await inTx(async () => {
+    async leaveRoom(parent: Context, cid: number, uid: number) {
+        return await inTx(parent, async (ctx) => {
 
             // Check if room exists
             await this.checkRoomExists(ctx, cid);
@@ -117,8 +117,8 @@ export class RoomRepository {
         });
     }
 
-    async joinRoom(ctx: Context, cid: number, uid: number) {
-        return await inTx(async () => {
+    async joinRoom(parent: Context, cid: number, uid: number) {
+        return await inTx(parent, async (ctx) => {
             // Check if room exists
             await this.checkRoomExists(ctx, cid);
 
@@ -142,8 +142,8 @@ export class RoomRepository {
         });
     }
 
-    async updateRoomProfile(ctx: Context, cid: number, profile: Partial<RoomProfileInput>) {
-        return await inTx(async () => {
+    async updateRoomProfile(parent: Context, cid: number, profile: Partial<RoomProfileInput>) {
+        return await inTx(parent, async (ctx) => {
             await this.checkRoomExists(ctx, cid);
 
             let conv = await this.entities.RoomProfile.findById(ctx, cid);
@@ -205,8 +205,8 @@ export class RoomRepository {
         });
     }
 
-    async updateMemberRole(ctx: Context, cid: number, uid: number, updatedUid: number, role: 'admin' | 'owner' | 'member') {
-        return await inTx(async () => {
+    async updateMemberRole(parent: Context, cid: number, uid: number, updatedUid: number, role: 'admin' | 'owner' | 'member') {
+        return await inTx(parent, async (ctx) => {
             let conv = await this.entities.RoomProfile.findById(ctx, cid);
             if (!conv) {
                 throw new Error('Room not found');
@@ -224,8 +224,8 @@ export class RoomRepository {
     // Editorial
     //
 
-    async setFeatured(ctx: Context, cid: number, featued: boolean) {
-        await inTx(async () => {
+    async setFeatured(parent: Context, cid: number, featued: boolean) {
+        await inTx(parent, async (ctx) => {
             let room = await this.entities.ConversationRoom.findById(ctx, cid);
             if (!room) {
                 throw new AccessDeniedError();
@@ -234,8 +234,8 @@ export class RoomRepository {
         });
     }
 
-    async setListed(ctx: Context, cid: number, listed: boolean) {
-        await inTx(async () => {
+    async setListed(parent: Context, cid: number, listed: boolean) {
+        await inTx(parent, async (ctx) => {
             let room = await this.entities.ConversationRoom.findById(ctx, cid);
             if (!room) {
                 throw new AccessDeniedError();
@@ -283,12 +283,12 @@ export class RoomRepository {
         return (await this.entities.RoomParticipant.allFromActive(ctx, conversationId)).filter(m => status === undefined || m.status === status).length;
     }
 
-    async resolvePrivateChat(ctx: Context, uid1: number, uid2: number) {
-        let conv2 = await this.entities.ConversationPrivate.findFromUsers(ctx, Math.min(uid1, uid2), Math.max(uid1, uid2));
+    async resolvePrivateChat(parent: Context, uid1: number, uid2: number) {
+        let conv2 = await this.entities.ConversationPrivate.findFromUsers(parent, Math.min(uid1, uid2), Math.max(uid1, uid2));
         if (conv2) {
-            return (await this.entities.Conversation.findById(ctx, conv2.id))!;
+            return (await this.entities.Conversation.findById(parent, conv2.id))!;
         }
-        return await inTx(async () => {
+        return await inTx(parent, async (ctx) => {
             let conv = await this.entities.ConversationPrivate.findFromUsers(ctx, Math.min(uid1, uid2), Math.max(uid1, uid2));
             if (!conv) {
                 let id = await this.fetchNextConversationId(ctx);
@@ -300,8 +300,8 @@ export class RoomRepository {
         });
     }
 
-    async resolveOrganizationChat(ctx: Context, oid: number) {
-        return await inTx(async () => {
+    async resolveOrganizationChat(parent: Context, oid: number) {
+        return await inTx(parent, async (ctx) => {
             let conv = await this.entities.ConversationOrganization.findFromOrganization(ctx, oid);
             if (!conv) {
                 let id = await this.fetchNextConversationId(ctx);
@@ -448,8 +448,8 @@ export class RoomRepository {
     // Internals
     //
 
-    private async fetchNextConversationId(ctx: Context) {
-        return await inTx(async () => {
+    private async fetchNextConversationId(parent: Context) {
+        return await inTx(parent, async (ctx) => {
             let sequence = await this.entities.Sequence.findById(ctx, 'conversation-id');
             if (!sequence) {
                 sequence = (await this.entities.Sequence.create(ctx, 'conversation-id', { value: 0 }));

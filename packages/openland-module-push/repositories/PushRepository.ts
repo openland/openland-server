@@ -33,8 +33,8 @@ export class PushRepository {
         return (await this.entites.PushApple.allFromUser(ctx, uid)).filter((v) => v.enabled);
     }
 
-    async registerPushApple(ctx: Context, uid: number, tid: string, token: string, bundleId: string, sandbox: boolean) {
-        await inTx(async () => {
+    async registerPushApple(parent: Context, uid: number, tid: string, token: string, bundleId: string, sandbox: boolean) {
+        await inTx(parent, async (ctx) => {
             let existing = await this.entites.PushApple.findFromToken(ctx, token);
             if (existing) {
                 if (existing.uid === uid && existing.tid === tid) {
@@ -51,8 +51,8 @@ export class PushRepository {
         });
     }
 
-    async registerPushAndroid(ctx: Context, uid: number, tid: string, token: string, packageId: string, sandbox: boolean) {
-        await inTx(async () => {
+    async registerPushAndroid(parent: Context, uid: number, tid: string, token: string, packageId: string, sandbox: boolean) {
+        await inTx(parent, async (ctx) => {
             let existing = await this.entites.PushFirebase.findFromToken(ctx, token);
             if (existing) {
                 if (existing.uid === uid && existing.tid === tid) {
@@ -68,8 +68,8 @@ export class PushRepository {
         });
     }
 
-    async registerPushWeb(ctx: Context, uid: number, tid: string, endpoint: string) {
-        await inTx(async () => {
+    async registerPushWeb(parent: Context, uid: number, tid: string, endpoint: string) {
+        await inTx(parent, async (ctx) => {
             let existing = await this.entites.PushWeb.findFromEndpoint(ctx, endpoint);
             if (existing) {
                 if (existing.uid === uid && existing.tid === tid) {

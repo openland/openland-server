@@ -22,12 +22,12 @@ describe('FEntity with unique index', () => {
     });
 
     it('should create indexes', async () => {
-        let ctx = createEmptyContext();
+        let parent = createEmptyContext();
         await withLogDisabled(async () => {
-            let res1 = await inTx(async () => { return await testEntities.IndexedEntity.create(ctx, 0, { data1: 'hello', data2: 'world', data3: '' }); });
+            let res1 = await inTx(parent, async (ctx) => { return await testEntities.IndexedEntity.create(ctx, 0, { data1: 'hello', data2: 'world', data3: '' }); });
             expect(res1.data1).toEqual('hello');
             expect(res1.data2).toEqual('world');
-            let res2 = (await testEntities.IndexedEntity.findFromDefault(ctx, 'hello', 'world', 0))!;
+            let res2 = (await testEntities.IndexedEntity.findFromDefault(parent, 'hello', 'world', 0))!;
             expect(res2.rawId[0]).toEqual(0);
             expect(res2.data1).toEqual('hello');
             expect(res2.data2).toEqual('world');
@@ -35,17 +35,17 @@ describe('FEntity with unique index', () => {
     });
 
     it('should update indexes', async () => {
-        let ctx = createEmptyContext();
+        let parent = createEmptyContext();
         await withLogDisabled(async () => {
-            await inTx(async () => { return await testEntities.IndexedEntity.create(ctx, 1, { data1: 'hello', data2: 'world', data3: '' }); });
-            await inTx(async () => {
+            await inTx(parent, async (ctx) => { return await testEntities.IndexedEntity.create(ctx, 1, { data1: 'hello', data2: 'world', data3: '' }); });
+            await inTx(parent, async (ctx) => {
                 let res = (await testEntities.IndexedEntity.findFromDefault(ctx, 'hello', 'world', 1))!;
                 res.data1 = 'bye';
             });
-            let res2 = (await testEntities.IndexedEntity.findFromDefault(ctx, 'hello', 'world', 1));
+            let res2 = (await testEntities.IndexedEntity.findFromDefault(parent, 'hello', 'world', 1));
             expect(res2).toBeNull();
 
-            let res3 = (await testEntities.IndexedEntity.findFromDefault(ctx, 'bye', 'world', 1))!;
+            let res3 = (await testEntities.IndexedEntity.findFromDefault(parent, 'bye', 'world', 1))!;
             expect(res3.id).toEqual(1);
             expect(res3.data1).toEqual('bye');
             expect(res3.data2).toEqual('world');
@@ -53,14 +53,14 @@ describe('FEntity with unique index', () => {
     });
 
     it('should update content', async () => {
-        let ctx = createEmptyContext();
+        let parent = createEmptyContext();
         await withLogDisabled(async () => {
-            await inTx(async () => { return await testEntities.IndexedEntity.create(ctx, 3, { data1: 'hello', data2: 'world', data3: '' }); });
-            await inTx(async () => {
+            await inTx(parent, async (ctx) => { return await testEntities.IndexedEntity.create(ctx, 3, { data1: 'hello', data2: 'world', data3: '' }); });
+            await inTx(parent, async (ctx) => {
                 let res = (await testEntities.IndexedEntity.findFromDefault(ctx, 'hello', 'world', 3))!;
                 res.data3 = 'yo';
             });
-            expect((await testEntities.IndexedEntity.findFromDefault(ctx, 'hello', 'world', 3))!.data3).toBe('yo');
+            expect((await testEntities.IndexedEntity.findFromDefault(parent, 'hello', 'world', 3))!.data3).toBe('yo');
         });
     });
 });

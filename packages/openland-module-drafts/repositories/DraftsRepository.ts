@@ -18,8 +18,8 @@ export class DraftsRepository {
         }
     }
 
-    saveDraft = async (ctx: Context, uid: number, conversationId: number, message: string) => {
-        await inTx(async () => {
+    saveDraft = async (parent: Context, uid: number, conversationId: number, message: string) => {
+        await inTx(parent, async (ctx) => {
             let existing = await this.entities.MessageDraft.findById(ctx, uid, conversationId);
             if (existing) {
                 existing.contents = message;
@@ -29,8 +29,8 @@ export class DraftsRepository {
         });
     }
 
-    clearDraft = async (ctx: Context, uid: number, conversationId: number) => {
-        await inTx(async () => {
+    clearDraft = async (parent: Context, uid: number, conversationId: number) => {
+        await inTx(parent, async (ctx) => {
             let existing = await this.entities.MessageDraft.findById(ctx, uid, conversationId);
             if (existing) {
                 existing.contents = '';

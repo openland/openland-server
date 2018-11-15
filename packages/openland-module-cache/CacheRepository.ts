@@ -18,8 +18,8 @@ export class CacheRepository<T> {
         return null;
     }
 
-    async write(ctx: Context, key: string, value: T) {
-        await inTx(async () => {
+    async write(parent: Context, key: string, value: T) {
+        await inTx(parent, async (ctx) => {
             let ex = await FDB.ServiceCache.findById(ctx, this.service, key);
             if (!ex) {
                 await FDB.ServiceCache.create(ctx, this.service, key, { value: JSON.stringify(value) });

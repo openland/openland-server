@@ -4,9 +4,9 @@ import { Context } from 'openland-utils/Context';
 
 export function createHyperlogger<T>(type: string) {
     return {
-        event: async (ctx: Context, event: T) => {
+        event: async (parent: Context, event: T) => {
             try {
-                await inTx(async () => {
+                await inTx(parent, async (ctx) => {
                     await FDB.HyperLog.create(ctx, await FDB.HyperLog.connection.nextRandomId(), {
                         type: type,
                         date: Date.now(),

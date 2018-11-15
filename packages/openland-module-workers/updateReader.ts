@@ -7,8 +7,8 @@ import { createEmptyContext } from 'openland-utils/Context';
 
 export function updateReader<T extends FEntity>(name: string, version: number, stream: FStream<T>, handler: (items: T[], first: boolean) => Promise<void>, args?: { delay: number }) {
     staticWorker({ name: 'update_reader_' + name, version, delay: args && args.delay }, async () => {
-        let ctx = createEmptyContext();
-        let existing = await FDB.ReaderState.findById(ctx, name);
+        let root = createEmptyContext();
+        let existing = await FDB.ReaderState.findById(root, name);
         let first = false;
         if (existing) {
             if (existing.version === null || existing.version < version) {
@@ -29,7 +29,7 @@ export function updateReader<T extends FEntity>(name: string, version: number, s
             await handler(res, first);
 
             // Commit offset
-            await inTx(async () => {
+            await inTx(root, async (ctx) => {
                 let latest = await FDB.ReaderState.findById(ctx, name);
                 if (existing && latest) {
                     // Update if not changed

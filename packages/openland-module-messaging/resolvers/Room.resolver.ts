@@ -251,9 +251,9 @@ export default {
 
             return await Modules.Messaging.room.inviteToRoom(ctx, IDs.Room.parse(args.roomId), uid, members);
         }),
-        betaRoomKick: withUser<GQL.MutationBetaRoomKickArgs>(async (ctx, args, uid) => {
+        betaRoomKick: withUser<GQL.MutationBetaRoomKickArgs>(async (parent, args, uid) => {
             let userId = IDs.User.parse(args.userId);
-            return inTx(async () => {
+            return inTx(parent, async (ctx) => {
                 if (uid === userId) {
                     return await Modules.Messaging.room.leaveRoom(ctx, IDs.Room.parse(args.roomId), uid);
                 } else {
@@ -277,8 +277,8 @@ export default {
         //
         // User setting
         //
-        betaRoomUpdateUserNotificationSettings: withUser<GQL.MutationBetaRoomUpdateUserNotificationSettingsArgs>(async (ctx, args, uid) => {
-            return await inTx(async () => {
+        betaRoomUpdateUserNotificationSettings: withUser<GQL.MutationBetaRoomUpdateUserNotificationSettingsArgs>(async (parent, args, uid) => {
+            return await inTx(parent, async (ctx) => {
                 let settings = await Modules.Messaging.getRoomSettings(ctx, uid, IDs.Room.parse(args.roomId));
                 if (args.settings.mute !== undefined && args.settings.mute !== null) {
                     settings.mute = args.settings.mute;

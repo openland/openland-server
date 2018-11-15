@@ -11,8 +11,8 @@ export class UserStateRepository {
         this.entities = entities;
     }
 
-    async getRoomSettings(ctx: Context, uid: number, cid: number) {
-        return await inTx(async () => {
+    async getRoomSettings(parent: Context, uid: number, cid: number) {
+        return await inTx(parent, async (ctx) => {
             let res = await this.entities.UserDialogSettings.findById(ctx, uid, cid);
             if (res) {
                 return res;
@@ -21,8 +21,8 @@ export class UserStateRepository {
         });
     }
 
-    async markAsSeqRead(ctx: Context, uid: number, toSeq: number) {
-        await inTx(async () => {
+    async markAsSeqRead(parent: Context, uid: number, toSeq: number) {
+        await inTx(parent, async (ctx) => {
             let state = await this.getUserNotificationState(ctx, uid);
             let global = await this.getUserMessagingState(ctx, uid);
             if (toSeq > global.seq) {
@@ -34,8 +34,8 @@ export class UserStateRepository {
         });
     }
 
-    async getUserNotificationState(ctx: Context, uid: number) {
-        return await inTx(async () => {
+    async getUserNotificationState(parent: Context, uid: number) {
+        return await inTx(parent, async (ctx) => {
             let existing = await this.entities.UserNotificationsState.findById(ctx, uid);
             if (!existing) {
                 let created = await this.entities.UserNotificationsState.create(ctx, uid, {});
@@ -47,8 +47,8 @@ export class UserStateRepository {
         });
     }
 
-    async getUserMessagingState(ctx: Context, uid: number) {
-        return await inTx(async () => {
+    async getUserMessagingState(parent: Context, uid: number) {
+        return await inTx(parent, async (ctx) => {
             let existing = await this.entities.UserMessagingState.findById(ctx, uid);
             if (!existing) {
                 let created = await this.entities.UserMessagingState.create(ctx, uid, { seq: 0, unread: 0 });
@@ -60,8 +60,8 @@ export class UserStateRepository {
         });
     }
 
-    async getUserDialogState(ctx: Context, uid: number, cid: number) {
-        return await inTx(async () => {
+    async getUserDialogState(parent: Context, uid: number, cid: number) {
+        return await inTx(parent, async (ctx) => {
             let existing = await this.entities.UserDialog.findById(ctx, uid, cid);
             if (!existing) {
                 let created = await this.entities.UserDialog.create(ctx, uid, cid, { unread: 0 });

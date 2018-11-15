@@ -8,8 +8,8 @@ import { Modules } from 'openland-modules/Modules';
 
 export default {
     Mutation: {
-        alphaAlterPublished: withPermission<{ id: string, published: boolean }>(['super-admin', 'editor'], async (ctx, args) => {
-            return await inTx(async () => {
+        alphaAlterPublished: withPermission<{ id: string, published: boolean }>(['super-admin', 'editor'], async (parent, args) => {
+            return await inTx(parent, async (ctx) => {
                 let org = await FDB.Organization.findById(ctx, IDs.Organization.parse(args.id));
                 if (!org) {
                     throw new UserError(ErrorText.unableToFindOrganization);

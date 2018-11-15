@@ -59,23 +59,23 @@ export default {
         createOrganization: withUser<GQL.MutationCreateOrganizationArgs>(async (ctx, args, uid) => {
             return await Modules.Orgs.createOrganization(ctx, uid, args.input);
         }),
-        updateOrganizationProfile: withAccount<GQL.MutationUpdateOrganizationProfileArgs>(async (ctx, args, uid, oid) => {
+        updateOrganizationProfile: withAccount<GQL.MutationUpdateOrganizationProfileArgs>(async (parent, args, uid, oid) => {
 
             let orgId = oid;
             if (args.id) {
-                let role = await Modules.Super.superRole(ctx, uid);
+                let role = await Modules.Super.superRole(parent, uid);
                 if (!(role === 'super-admin' || role === 'editor')) {
                     throw new UserError(ErrorText.permissionOnlyOwner);
                 }
                 orgId = IDs.Organization.parse(args.id);
             } else {
-                let member = await FDB.OrganizationMember.findById(ctx, oid, uid);
+                let member = await FDB.OrganizationMember.findById(parent, oid, uid);
                 if (member === null || member.status !== 'joined' || member.role !== 'admin') {
                     throw new UserError(ErrorText.permissionOnlyOwner);
                 }
             }
 
-            return await inTx(async () => {
+            return await inTx(parent, async (ctx) => {
                 let existing = await FDB.Organization.findById(ctx, orgId);
                 if (!existing) {
                     throw new UserError(ErrorText.unableToFindOrganization);

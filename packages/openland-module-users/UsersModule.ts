@@ -27,8 +27,8 @@ export class UsersModule {
         return this.repo.createUser(ctx, authId, email);
     }
 
-    async activateUser(ctx: Context, uid: number) {
-        await inTx(async () => {
+    async activateUser(parent: Context, uid: number) {
+        await inTx(parent, async (ctx) => {
             if (await this.repo.activateUser(ctx, uid)) {
                 await Emails.sendWelcomeEmail(ctx, uid);
             }

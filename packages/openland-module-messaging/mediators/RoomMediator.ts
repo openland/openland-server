@@ -28,8 +28,8 @@ export class RoomMediator {
         return await this.repo.isActiveMember(ctx, uid, cid);
     }
 
-    async createRoom(ctx: Context, kind: 'public' | 'group', oid: number, uid: number, members: number[], profile: RoomProfileInput, message?: string) {
-        return await inTx(async () => {
+    async createRoom(parent: Context, kind: 'public' | 'group', oid: number, uid: number, members: number[], profile: RoomProfileInput, message?: string) {
+        return await inTx(parent, async (ctx) => {
             // Create room
             let res = await this.repo.createRoom(ctx, kind, oid, uid, members, profile);
             // Send initial messages
@@ -41,8 +41,8 @@ export class RoomMediator {
         });
     }
 
-    async joinRoom(ctx: Context, cid: number, uid: number) {
-        return await inTx(async () => {
+    async joinRoom(parent: Context, cid: number, uid: number) {
+        return await inTx(parent, async (ctx) => {
 
             // Check Room
             let conv = await this.entities.ConversationRoom.findById(ctx, cid);
@@ -79,8 +79,8 @@ export class RoomMediator {
         });
     }
 
-    async inviteToRoom(ctx: Context, cid: number, uid: number, invites: number[]) {
-        return await inTx(async () => {
+    async inviteToRoom(parent: Context, cid: number, uid: number, invites: number[]) {
+        return await inTx(parent, async (ctx) => {
 
             if (invites.length > 0) {
                 // Invite to room
@@ -112,8 +112,8 @@ export class RoomMediator {
         });
     }
 
-    async kickFromRoom(ctx: Context, cid: number, uid: number, kickedUid: number) {
-        return await inTx(async () => {
+    async kickFromRoom(parent: Context, cid: number, uid: number, kickedUid: number) {
+        return await inTx(parent, async (ctx) => {
             if (uid === kickedUid) {
                 throw new UserError('Unable to kick yourself');
             }
@@ -157,8 +157,8 @@ export class RoomMediator {
         });
     }
 
-    async leaveRoom(ctx: Context, cid: number, uid: number) {
-        return await inTx(async () => {
+    async leaveRoom(parent: Context, cid: number, uid: number) {
+        return await inTx(parent, async (ctx) => {
 
             if (await this.repo.leaveRoom(ctx, cid, uid)) {
                 console.log('exited');
@@ -184,8 +184,8 @@ export class RoomMediator {
         });
     }
 
-    async updateRoomProfile(ctx: Context, cid: number, uid: number, profile: Partial<RoomProfileInput>) {
-        return await inTx(async () => {
+    async updateRoomProfile(parent: Context, cid: number, uid: number, profile: Partial<RoomProfileInput>) {
+        return await inTx(parent, async (ctx) => {
             let conv = await this.entities.RoomProfile.findById(ctx, cid);
             if (!conv) {
                 throw new Error('Room not found');
@@ -220,8 +220,8 @@ export class RoomMediator {
         });
     }
 
-    async updateMemberRole(ctx: Context, cid: number, uid: number, updatedUid: number, role: 'admin' | 'owner' | 'member') {
-        return await inTx(async () => {
+    async updateMemberRole(parent: Context, cid: number, uid: number, updatedUid: number, role: 'admin' | 'owner' | 'member') {
+        return await inTx(parent, async (ctx) => {
             let p = await this.entities.RoomParticipant.findById(ctx, cid, uid);
             if (!p || p.status !== 'joined') {
                 throw new Error('User is not member of a room');

@@ -25,8 +25,8 @@ export class OrganizationModule {
         }
     }
 
-    async createOrganization(ctx: Context, uid: number, input: OrganizatinProfileInput) {
-        return inTx(async () => {
+    async createOrganization(parent: Context, uid: number, input: OrganizatinProfileInput) {
+        return inTx(parent, async (ctx) => {
 
             // 1. Resolve user status
             let status: 'activated' | 'pending' = 'pending';
@@ -66,8 +66,8 @@ export class OrganizationModule {
         });
     }
 
-    async activateOrganization(ctx: Context, id: number) {
-        return await inTx(async () => {
+    async activateOrganization(parent: Context, id: number) {
+        return await inTx(parent, async (ctx) => {
             if (await this.repo.activateOrganization(ctx, id)) {
                 for (let m of await FDB.OrganizationMember.allFromOrganization(ctx, 'joined', id)) {
                     await Modules.Users.activateUser(ctx, m.uid);
@@ -81,8 +81,8 @@ export class OrganizationModule {
         });
     }
 
-    async suspendOrganization(ctx: Context, id: number) {
-        return await inTx(async () => {
+    async suspendOrganization(parent: Context, id: number) {
+        return await inTx(parent, async (ctx) => {
             if (await this.repo.suspendOrganization(ctx, id)) {
                 for (let m of await FDB.OrganizationMember.allFromOrganization(ctx, 'joined', id)) {
                     let u = (await FDB.User.findById(ctx, m.uid))!;
@@ -95,8 +95,8 @@ export class OrganizationModule {
         });
     }
 
-    async addUserToOrganization(ctx: Context, uid: number, oid: number, by: number) {
-        return await inTx(async () => {
+    async addUserToOrganization(parent: Context, uid: number, oid: number, by: number) {
+        return await inTx(parent, async (ctx) => {
 
             // Check user state
             let user = await Modules.DB.entities.User.findById(ctx, uid);
@@ -131,8 +131,8 @@ export class OrganizationModule {
         });
     }
 
-    async removeUserFromOrganization(ctx: Context, uid: number, oid: number, by: number) {
-        return await inTx(async () => {
+    async removeUserFromOrganization(parent: Context, uid: number, oid: number, by: number) {
+        return await inTx(parent, async (ctx) => {
 
             // Check current membership state
             let member = await FDB.OrganizationMember.findById(ctx, oid, uid);
@@ -182,8 +182,8 @@ export class OrganizationModule {
     // Permissions
     //
 
-    async updateMemberRole(ctx: Context, uid: number, oid: number, role: 'admin' | 'member', by: number) {
-        return await inTx(async () => {
+    async updateMemberRole(parent: Context, uid: number, oid: number, role: 'admin' | 'member', by: number) {
+        return await inTx(parent, async (ctx) => {
             let isOwner = await this.isUserOwner(ctx, by, oid);
             if (!isOwner) {
                 throw new AccessDeniedError('Only owners can change roles');

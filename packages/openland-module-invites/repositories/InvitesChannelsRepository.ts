@@ -26,8 +26,8 @@ export class InvitesChannelsRepository {
         return null;
     }
 
-    async createChannelInviteLink(ctx: Context, channelId: number, uid: number) {
-        return await inTx(async () => {
+    async createChannelInviteLink(parent: Context, channelId: number, uid: number) {
+        return await inTx(parent, async (ctx) => {
             let existing = await this.entities.ChannelLink.allFromChannel(ctx, channelId);
             let ex = existing.find((v) => v.enabled && v.creatorId === uid);
             if (ex) {
@@ -42,8 +42,8 @@ export class InvitesChannelsRepository {
         });
     }
 
-    async refreshChannelInviteLink(ctx: Context, channelId: number, uid: number) {
-        return await inTx(async () => {
+    async refreshChannelInviteLink(parent: Context, channelId: number, uid: number) {
+        return await inTx(parent, async (ctx) => {
             let existing = await this.entities.ChannelLink.allFromChannel(ctx, channelId);
             let ex = existing.find((v) => v.enabled && v.creatorId === uid);
             if (ex) {
@@ -58,8 +58,8 @@ export class InvitesChannelsRepository {
         });
     }
 
-    async createChannelInvite(ctx: Context, channelId: number, uid: number, email: string, emailText?: string, firstName?: string, lastName?: string) {
-        return await inTx(async () => {
+    async createChannelInvite(parent: Context, channelId: number, uid: number, email: string, emailText?: string, firstName?: string, lastName?: string) {
+        return await inTx(parent, async (ctx) => {
             let existing = await this.entities.ChannelInvitation.allFromChannel(ctx, channelId);
             let isDuplicate = !!existing.find((v) => v.email === email && v.enabled);
             if (isDuplicate) {

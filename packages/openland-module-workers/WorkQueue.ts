@@ -24,8 +24,8 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
         this.pubSubTopic = 'modern_work_added' + this.taskType;
     }
 
-    pushWork = async (ctx: Context, work: ARGS) => {
-        return await inTx(async () => {
+    pushWork = async (parent: Context, work: ARGS) => {
+        return await inTx(parent, async (ctx) => {
             FTransaction.context!!.value!.afterTransaction(() => {
                 EventBus.publish(this.pubSubTopic, {});
             });
@@ -58,8 +58,8 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
         };
         let workLoop = SafeContext.inNewContext(() => foreverBreakable(async () => {
             await withLogContext(['worker', this.taskType], async () => {
-                let ctx = createEmptyContext();
-                let task = await inTx(async () => {
+                let root = createEmptyContext();
+                let task = await inTx(root, async (ctx) => {
                     let pend = await FDB.Task.rangeFromPending(ctx, this.taskType, 1);
                     if (pend.length === 0) {
                         return null;
@@ -78,7 +78,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                         res = await handler(task.arguments, task.uid);
                     } catch (e) {
                         console.warn(e);
-                        await inTx(async () => {
+                        await inTx(root, async (ctx) => {
                             let res2 = await FDB.Task.findById(ctx, task!!.taskType, task!!.uid);
                             if (res2) {
                                 if (res2.taskLockSeed === lockSeed && res2.taskStatus === 'executing') {
@@ -109,7 +109,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                     log.log('Task ' + task.uid + ' completed', JSON.stringify(res));
 
                     // Commiting
-                    let commited = await inTx(async () => {
+                    let commited = await inTx(root, async (ctx) => {
                         let res2 = await FDB.Task.findById(ctx, task!!.taskType, task!!.uid);
                         if (res2) {
                             if (res2.taskLockSeed === lockSeed && res2.taskStatus === 'executing') {

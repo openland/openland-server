@@ -10,8 +10,8 @@ export class FeatureRepository {
         this.entities = entities;
     }
 
-    async enableFeatureForOrganization(ctx: Context, oid: number, featureKey: string) {
-        await inTx(async () => {
+    async enableFeatureForOrganization(parent: Context, oid: number, featureKey: string) {
+        await inTx(parent, async (ctx) => {
             if (!await this.entities.FeatureFlag.findById(ctx, featureKey)) {
                 throw new UserError('Unable to find feature');
             }
@@ -24,8 +24,8 @@ export class FeatureRepository {
         });
     }
 
-    async disableFeatureForOrganization(ctx: Context, oid: number, featureKey: string) {
-        await inTx(async () => {
+    async disableFeatureForOrganization(parent: Context, oid: number, featureKey: string) {
+        await inTx(parent, async (ctx) => {
             if (!await this.entities.FeatureFlag.findById(ctx, featureKey)) {
                 throw new UserError('Unable to find feature');
             }
@@ -48,7 +48,7 @@ export class FeatureRepository {
         return (await this.findOrganizationFeatures(ctx, oid)).map(async orgFeature => await this.entities.FeatureFlag.findById(ctx, orgFeature.featureKey));
     }
 
-    async createFeatureFlag(ctx: Context, key: string, title: string) {
-        return await inTx(async () => await this.entities.FeatureFlag.create(ctx, key, { title }));
+    async createFeatureFlag(parent: Context, key: string, title: string) {
+        return await inTx(parent, async (ctx) => await this.entities.FeatureFlag.create(ctx, key, { title }));
     }
 }

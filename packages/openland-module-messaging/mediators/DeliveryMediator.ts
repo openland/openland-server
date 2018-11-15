@@ -64,8 +64,8 @@ export class DeliveryMediator {
         // });
     }
 
-    private async deliverNewMessage(ctx: Context, mid: number) {
-        await inTx(async () => {
+    private async deliverNewMessage(parent: Context, mid: number) {
+        await inTx(parent, async (ctx) => {
             let message = (await this.entities.Message.findById(ctx, mid))!;
             let members = await this.room.findConversationMembers(ctx, message.cid);
 
@@ -78,8 +78,8 @@ export class DeliveryMediator {
         });
     }
 
-    private async deliverUpdateMessage(ctx: Context, mid: number) {
-        await inTx(async () => {
+    private async deliverUpdateMessage(parent: Context, mid: number) {
+        await inTx(parent, async (ctx) => {
             let message = (await this.entities.Message.findById(ctx, mid))!;
             let members = await this.room.findConversationMembers(ctx, message.cid);
 
@@ -92,8 +92,8 @@ export class DeliveryMediator {
         });
     }
 
-    private async deliverDeleteMessage(ctx: Context, mid: number) {
-        await inTx(async () => {
+    private async deliverDeleteMessage(parent: Context, mid: number) {
+        await inTx(parent, async (ctx) => {
             let message = (await this.entities.Message.findById(ctx, mid))!;
             let members = await this.room.findConversationMembers(ctx, message.cid);
 
@@ -106,15 +106,15 @@ export class DeliveryMediator {
         });
     }
 
-    private async deliverMessageReadToUser(ctx: Context, uid: number, mid: number) {
-        await inTx(async () => {
+    private async deliverMessageReadToUser(parent: Context, uid: number, mid: number) {
+        await inTx(parent, async (ctx) => {
             let delta = await this.counters.onMessageRead(ctx, uid, mid);
             await this.repo.deliverMessageReadToUser(ctx, uid, mid, delta);
         });
     }
 
-    private deliverMessageToUser = async (ctx: Context, uid: number, mid: number) => {
-        await inTx(async () => {
+    private deliverMessageToUser = async (parent: Context, uid: number, mid: number) => {
+        await inTx(parent, async (ctx) => {
             await this.counters.onMessageReceived(ctx, uid, mid);
             await this.repo.deliverMessageToUser(ctx, uid, mid);
         });
@@ -124,15 +124,15 @@ export class DeliveryMediator {
         await this.repo.deliverMessageUpdateToUser(ctx, uid, mid);
     }
 
-    private deliverMessageDeleteToUser = async (ctx: Context, uid: number, mid: number) => {
-        await inTx(async () => {
+    private deliverMessageDeleteToUser = async (parent: Context, uid: number, mid: number) => {
+        await inTx(parent, async (ctx) => {
             await this.counters.onMessageDeleted(ctx, uid, mid);
             await this.repo.deliverMessageDeleteToUser(ctx, uid, mid);
         });
     }
 
-    private deliverDialogDeleteToUser = async (ctx: Context, uid: number, cid: number) => {
-        await inTx(async () => {
+    private deliverDialogDeleteToUser = async (parent: Context, uid: number, cid: number) => {
+        await inTx(parent, async (ctx) => {
             await this.counters.onDialogDeleted(ctx, uid, cid);
             await this.repo.deliverDialogDeleteToUser(ctx, uid, cid);
         });

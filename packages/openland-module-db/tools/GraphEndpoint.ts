@@ -19,6 +19,7 @@ import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { IdsFactory } from 'openland-module-api/IDs';
 import { FConnection } from 'foundation-orm/FConnection';
 import { EventBus } from 'openland-module-pubsub/EventBus';
+import { createEmptyContext } from 'openland-utils/Context';
 
 let FDB = new AllEntitiesDirect(new FConnection(FConnection.create(), EventBus));
 let entitiesMap: any = {};
@@ -235,8 +236,8 @@ for (let e of AllEntitiesDirect.schema) {
     mutations[Case.camelCase(e.name) + 'Rebuild'] = {
         type: GraphQLString,
         resolve: async (_: any, arg: any) => {
-            await inTx(async () => {
-                let all = await (FDB as any)[e.name].findAll();
+            await inTx(createEmptyContext(), async (ctx) => {
+                let all = await (FDB as any)[e.name].findAll(ctx);
                 for (let a of all) {
                     a.markDirty();
                     await a.flush();
@@ -256,8 +257,8 @@ for (let e of AllEntitiesDirect.schema) {
                 for (let f of e.primaryKeys) {
                     ids.push(a[f.name]);
                 }
-                return inTx(async () => {
-                    return await (FDB as any)[e.name].create(...ids, a.input);
+                return inTx(createEmptyContext(), async (ctx) => {
+                    return await (FDB as any)[e.name].create(ctx, ...ids, a.input);
                 });
             }
         };
@@ -270,8 +271,8 @@ for (let e of AllEntitiesDirect.schema) {
                 for (let f of e.primaryKeys) {
                     ids.push(a[f.name]);
                 }
-                return inTx(async () => {
-                    let item = await (FDB as any)[e.name].findById(...ids);
+                return inTx(createEmptyContext(), async (ctx) => {
+                    let item = await (FDB as any)[e.name].findById(ctx, ...ids);
                     if (!item) {
                         throw Error('Not found');
                     }

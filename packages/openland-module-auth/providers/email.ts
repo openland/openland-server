@@ -88,8 +88,7 @@ export async function sendCode(req: express.Request, response: express.Response)
         phone,
         session
     } = req.body;
-    let ctx = createEmptyContext();
-    await inTx(async () => {
+    await inTx(createEmptyContext(), async (ctx) => {
         let authSession: AuthCodeSession | undefined;
         if (session) {
             if (!checkSession(session)) {
@@ -161,8 +160,7 @@ export async function checkCode(req: express.Request, response: express.Response
         sendError(response, Errors.wrong_code);
         return;
     }
-    let ctx = createEmptyContext();
-    let res = await inTx(async () => {
+    let res = await inTx(createEmptyContext(), async (ctx) => {
         let authSession = await Modules.Auth.findAuthSession(ctx, session);
 
         // No session found
@@ -213,9 +211,7 @@ export async function getAccessToken(req: express.Request, response: express.Res
         return;
     }
 
-    let ctx = createEmptyContext();
-
-    await inTx(async () => {
+    await inTx(createEmptyContext(), async (ctx) => {
         let authSession = await Modules.Auth.findAuthSession(ctx, session);
 
         // No session found

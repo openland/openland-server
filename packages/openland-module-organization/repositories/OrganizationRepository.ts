@@ -14,14 +14,14 @@ export class OrganizationRepository {
         this.entities = entities;
     }
 
-    async createOrganization(ctx: Context, uid: number, input: OrganizatinProfileInput, opts: { editorial: boolean, status: 'activated' | 'pending' | 'suspended' }) {
+    async createOrganization(parent: Context, uid: number, input: OrganizatinProfileInput, opts: { editorial: boolean, status: 'activated' | 'pending' | 'suspended' }) {
         await validate(
             stringNotEmpty('Name can\'t be empty!'),
             input.name,
             'input.name'
         );
 
-        return await inTx(async () => {
+        return await inTx(parent, async (ctx) => {
 
             // Fetch Organization Number
             let seq = (await this.entities.Sequence.findById(ctx, 'org-id'));
@@ -62,8 +62,8 @@ export class OrganizationRepository {
         });
     }
 
-    async activateOrganization(ctx: Context, id: number) {
-        return await inTx(async () => {
+    async activateOrganization(parent: Context, id: number) {
+        return await inTx(parent, async (ctx) => {
             let org = (await this.entities.Organization.findById(ctx, id))!;
             if (org.status !== 'activated') {
                 org.status = 'activated';
@@ -74,8 +74,8 @@ export class OrganizationRepository {
         });
     }
 
-    async suspendOrganization(ctx: Context, id: number) {
-        return await inTx(async () => {
+    async suspendOrganization(parent: Context, id: number) {
+        return await inTx(parent, async (ctx) => {
             let org = (await this.entities.Organization.findById(ctx, id))!;
             if (org.status !== 'suspended') {
                 org.status = 'suspended';
@@ -87,8 +87,8 @@ export class OrganizationRepository {
         });
     }
 
-    async addUserToOrganization(ctx: Context, uid: number, oid: number, by: number) {
-        return await inTx(async () => {
+    async addUserToOrganization(parent: Context, uid: number, oid: number, by: number) {
+        return await inTx(parent, async (ctx) => {
             let org = await this.entities.Organization.findById(ctx, oid);
             if (!org) {
                 throw Error('Unable to find organization');
@@ -106,8 +106,8 @@ export class OrganizationRepository {
         });
     }
 
-    async removeUserFromOrganization(ctx: Context, uid: number, oid: number) {
-        return await inTx(async () => {
+    async removeUserFromOrganization(parent: Context, uid: number, oid: number) {
+        return await inTx(parent, async (ctx) => {
             let org = await this.entities.Organization.findById(ctx, oid);
             if (!org) {
                 throw Error('Unable to find organization');
@@ -127,8 +127,8 @@ export class OrganizationRepository {
         });
     }
 
-    async updateMembershipRole(ctx: Context, uid: number, oid: number, role: 'admin' | 'member') {
-        return await inTx(async () => {
+    async updateMembershipRole(parent: Context, uid: number, oid: number, role: 'admin' | 'member') {
+        return await inTx(parent, async (ctx) => {
             let member = await this.entities.OrganizationMember.findById(ctx, oid, uid);
             if (!member || member.status !== 'joined') {
                 throw Error('User is not a member of organization');
@@ -191,8 +191,8 @@ export class OrganizationRepository {
     //
     // Tools
     //
-    async markForUndexing(ctx: Context, oid: number) {
-        await inTx(async () => {
+    async markForUndexing(parent: Context, oid: number) {
+        await inTx(parent, async (ctx) => {
             let existing = await this.entities.OrganizationIndexingQueue.findById(ctx, oid);
             if (existing) {
                 existing.markDirty();
@@ -207,8 +207,8 @@ export class OrganizationRepository {
     // Deprecated
     //
 
-    async renameOrganization(ctx: Context, id: number, title: string) {
-        return await inTx(async () => {
+    async renameOrganization(parent: Context, id: number, title: string) {
+        return await inTx(parent, async (ctx) => {
             let org = await this.entities.Organization.findById(ctx, id);
             let profile = await this.entities.OrganizationProfile.findById(ctx, id);
             profile!.name = title;

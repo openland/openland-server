@@ -21,8 +21,8 @@ export function createAppleWorker(repo: PushRepository) {
         if (serverRoleEnabled('workers')) {
             // for (let i = 0; i < 10; i++) {
             queue.addWorker(async (task) => {
-                let ctx = createEmptyContext();
-                let token = (await repo.getAppleToken(ctx, task.tokenId))!;
+                let root = createEmptyContext();
+                let token = (await repo.getAppleToken(root, task.tokenId))!;
                 if (!token.enabled) {
                     return { result: 'skipped' };
                 }
@@ -71,14 +71,14 @@ export function createAppleWorker(repo: PushRepository) {
                             let reason = res.failed[0].response && res.failed[0].response!.reason;
 
                             if (reason === 'BadDeviceToken' || reason === 'Unregistered') {
-                                await inTx(async () => {
+                                await inTx(root, async (ctx) => {
                                     let t = (await repo.getAppleToken(ctx, task.tokenId))!;
                                     await handleFail(t);
                                     await pushFail.event(ctx, { uid: t.uid, tokenId: t.id, failures: t.failures!, reason: reason!, disabled: !t.enabled });
                                 });
                             }
                         } else {
-                            await pushSent.event(ctx, { uid: token.uid, tokenId: token.id });
+                            await pushSent.event(root, { uid: token.uid, tokenId: token.id });
                         }
 
                         return { result: 'ok' };

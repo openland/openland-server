@@ -32,9 +32,9 @@ export class ShortnameRepository {
         }
     }
 
-    async setShortnameToUser(ctx: Context, shortname: string, uid: number) {
+    async setShortnameToUser(parent: Context, shortname: string, uid: number) {
         let normalized = this.normalizeShortname(shortname);
-        await inTx(async () => {
+        await inTx(parent, async (ctx) => {
             let existing = await this.entities.ShortnameReservation.findFromUser(ctx, uid);
             if (existing) {
                 if (existing.shortname !== normalized) {
@@ -58,9 +58,9 @@ export class ShortnameRepository {
         });
     }
 
-    async setShortnameToOrganization(ctx: Context, shortname: string, oid: number) {
+    async setShortnameToOrganization(parent: Context, shortname: string, oid: number) {
         let normalized = this.normalizeShortname(shortname);
-        await inTx(async () => {
+        await inTx(parent, async (ctx) => {
             let existing = await this.entities.ShortnameReservation.findFromOrg(ctx, oid);
             if (existing) {
                 if (existing.shortname !== normalized) {

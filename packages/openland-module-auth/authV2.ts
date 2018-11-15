@@ -94,17 +94,17 @@ export const Authenticator = async function (req: express.Request, response: exp
         //
         // Get Or Create User
         //
-        let uid = await inTx(async () => {
+        let uid = await inTx(createEmptyContext(), async (ctx) => {
             let userKey = req.user.sub;
 
             // Account
-            let user = (await FDB.User.findAll(createEmptyContext())).find((v) => v.email === profile.email.toLowerCase() || v.authId === userKey);
+            let user = (await FDB.User.findAll(ctx)).find((v) => v.email === profile.email.toLowerCase() || v.authId === userKey);
             if (!user) {
-                user = await Modules.Users.createUser(createEmptyContext(), userKey, profile.email);
+                user = await Modules.Users.createUser(ctx, userKey, profile.email);
             }
 
             // Prefill
-            await Modules.Users.saveProfilePrefill(createEmptyContext(), user!.id, {
+            await Modules.Users.saveProfilePrefill(ctx, user!.id, {
                 firstName: firstName ? firstName : undefined,
                 lastName: lastName ? lastName : undefined,
                 picture: profile.picture

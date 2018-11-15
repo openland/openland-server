@@ -32,8 +32,8 @@ export class PresenceModule {
         }
     }
 
-    public async setOnline(ctx: Context, uid: number, tid: string, timeout: number, platform: string) {
-        return await inTx(async () => {
+    public async setOnline(parent: Context, uid: number, tid: string, timeout: number, platform: string) {
+        return await inTx(parent, async (ctx) => {
             let expires = Date.now() + timeout;
             let ex = await this.FDB.Presence.findById(ctx, uid, tid);
             if (ex) {

@@ -12,8 +12,8 @@ export class InvitesOrganizationRepository {
         this.entities = entities;
     }
 
-    async getAppInviteLinkKey(ctx: Context, uid: number) {
-        return await inTx(async () => {
+    async getAppInviteLinkKey(parent: Context, uid: number) {
+        return await inTx(parent, async (ctx) => {
             let existing = await this.entities.AppInviteLink.findFromUser(ctx, uid);
             if (existing) {
                 return existing.id;
@@ -28,7 +28,7 @@ export class InvitesOrganizationRepository {
     }
 
     public async createOrganizationInvite(
-        ctx: Context,
+        parent: Context,
         oid: number,
         uid: number,
         firstName: string,
@@ -37,7 +37,7 @@ export class InvitesOrganizationRepository {
         text: string,
         role: 'MEMBER' | 'OWNER',
     ): Promise<OrganizationInviteLink> {
-        return await inTx(async () => {
+        return await inTx(parent, async (ctx) => {
             let existing = await this.entities.OrganizationInviteLink.findFromEmailInOrganization(ctx, email, oid);
             if (existing) {
                 existing.enabled = false;
@@ -61,8 +61,8 @@ export class InvitesOrganizationRepository {
         return this.entities.OrganizationInviteLink.allFromOrganization(ctx, orgId);
     }
 
-    public async getOrganizationInviteLink(ctx: Context, oid: number, uid: number): Promise<OrganizationPublicInviteLink> {
-        return await inTx(async () => {
+    public async getOrganizationInviteLink(parent: Context, oid: number, uid: number): Promise<OrganizationPublicInviteLink> {
+        return await inTx(parent, async (ctx) => {
             let existing = await this.entities.OrganizationPublicInviteLink.findFromUserInOrganization(ctx, uid, oid);
             if (!existing) {
                 existing = await this.entities.OrganizationPublicInviteLink.create(ctx, randomGlobalInviteKey(), { uid, oid, enabled: true });
@@ -75,8 +75,8 @@ export class InvitesOrganizationRepository {
         return await this.entities.OrganizationPublicInviteLink.findById(ctx, key);
     }
 
-    public async refreshOrganizationInviteLink(ctx: Context, oid: number, uid: number): Promise<OrganizationPublicInviteLink> {
-        return await inTx(async () => {
+    public async refreshOrganizationInviteLink(parent: Context, oid: number, uid: number): Promise<OrganizationPublicInviteLink> {
+        return await inTx(parent, async (ctx) => {
             let existing = await this.entities.OrganizationPublicInviteLink.findFromUserInOrganization(ctx, uid, oid);
             if (existing) {
                 existing.enabled = false;

@@ -68,11 +68,11 @@ export default {
             return 'ok';
         }),
 
-        alphaOrganizationInviteMembers: withAccount<{ inviteRequests: { email: string, emailText?: string, firstName?: string, lastName?: string, role: 'OWNER' | 'MEMBER' }[], organizationId?: string }>(async (ctx, args, uid, oid) => {
+        alphaOrganizationInviteMembers: withAccount<{ inviteRequests: { email: string, emailText?: string, firstName?: string, lastName?: string, role: 'OWNER' | 'MEMBER' }[], organizationId?: string }>(async (parent, args, uid, oid) => {
             oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
             await validate({ inviteRequests: [{ email: defined(emailValidator) }] }, args);
 
-            return await inTx(async () => {
+            return await inTx(parent, async (ctx) => {
                 for (let inviteRequest of args.inviteRequests) {
                     let isMemberDuplicate = await Modules.Orgs.hasMemberWithEmail(ctx, oid, inviteRequest.email);
                     if (isMemberDuplicate) {
@@ -95,8 +95,8 @@ export default {
                 return 'ok';
             });
         }),
-        alphaOrganizationRefreshInviteLink: withAccount<{ expirationDays?: number, organizationId?: string }>(async (ctx, args, uid, oid) => {
-            return inTx(async () => {
+        alphaOrganizationRefreshInviteLink: withAccount<{ expirationDays?: number, organizationId?: string }>(async (parent, args, uid, oid) => {
+            return inTx(parent, async (ctx) => {
                 oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
                 let isOwner = await Modules.Orgs.isUserAdmin(ctx, uid, oid);
 
@@ -108,8 +108,8 @@ export default {
             });
         }),
         // deperecated
-        alphaOrganizationCreatePublicInvite: withAccount<{ expirationDays?: number, organizationId?: string }>(async (ctx, args, uid, oid) => {
-            return inTx(async () => {
+        alphaOrganizationCreatePublicInvite: withAccount<{ expirationDays?: number, organizationId?: string }>(async (parent, args, uid, oid) => {
+            return inTx(parent, async (ctx) => {
                 oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
                 let isOwner = await Modules.Orgs.isUserAdmin(ctx, uid, oid);
 

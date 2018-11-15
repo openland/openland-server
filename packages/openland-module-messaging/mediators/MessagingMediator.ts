@@ -25,8 +25,8 @@ export class MessagingMediator {
     @lazyInject('RoomMediator')
     private readonly room!: RoomMediator;
 
-    sendMessage = async (ctx: Context, uid: number, cid: number, message: MessageInput, skipAccessCheck?: boolean) => {
-        return await inTx(async () => {
+    sendMessage = async (parent: Context, uid: number, cid: number, message: MessageInput, skipAccessCheck?: boolean) => {
+        return await inTx(parent, async (ctx) => {
 
             // Check for bad words. Useful for debug.
             if (message.message === 'fuck') {
@@ -60,8 +60,8 @@ export class MessagingMediator {
         });
     }
 
-    editMessage = async (ctx: Context, mid: number, uid: number, newMessage: MessageInput, markAsEdited: boolean) => {
-        return await inTx(async () => {
+    editMessage = async (parent: Context, mid: number, uid: number, newMessage: MessageInput, markAsEdited: boolean) => {
+        return await inTx(parent, async (ctx) => {
             // Permissions
             let message = (await this.entities.Message.findById(ctx, mid!))!;
             if (message.uid !== uid) {
@@ -84,8 +84,8 @@ export class MessagingMediator {
         });
     }
 
-    setReaction = async (ctx: Context, mid: number, uid: number, reaction: string, reset: boolean = false) => {
-        return await inTx(async () => {
+    setReaction = async (parent: Context, mid: number, uid: number, reaction: string, reset: boolean = false) => {
+        return await inTx(parent, async (ctx) => {
 
             // Update
             let res = await this.repo.setReaction(ctx, mid, uid, reaction, reset);
@@ -98,8 +98,8 @@ export class MessagingMediator {
         });
     }
 
-    deleteMessage = async (ctx: Context, mid: number, uid: number) => {
-        return await inTx(async () => {
+    deleteMessage = async (parent: Context, mid: number, uid: number) => {
+        return await inTx(parent, async (ctx) => {
 
             let message = (await this.entities.Message.findById(ctx, mid!))!;
             if (message.uid !== uid) {
@@ -119,8 +119,8 @@ export class MessagingMediator {
         });
     }
 
-    readRoom = async (ctx: Context, uid: number, cid: number, mid: number) => {
-        return await inTx(async () => {
+    readRoom = async (parent: Context, uid: number, cid: number, mid: number) => {
+        return await inTx(parent, async (ctx) => {
             let msg = await this.entities.Message.findById(ctx, mid);
             if (!msg || msg.cid !== cid) {
                 throw Error('Invalid request');

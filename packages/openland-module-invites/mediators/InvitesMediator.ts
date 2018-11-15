@@ -20,16 +20,16 @@ export class InvitesMediator {
     @lazyInject('RoomMediator')
     private readonly rooms!: RoomMediator;
 
-    async createChannelInvite(ctx: Context, channelId: number, uid: number, email: string, emailText?: string, firstName?: string, lastName?: string) {
-        return await inTx(async () => {
+    async createChannelInvite(parent: Context, channelId: number, uid: number, email: string, emailText?: string, firstName?: string, lastName?: string) {
+        return await inTx(parent, async (ctx) => {
             let invite = await this.repoChannels.createChannelInvite(ctx, channelId, uid, email, emailText, firstName, lastName);
             await ChannelInviteEmails.sendChannelInviteEmail(ctx, invite);
             return invite;
         });
     }
 
-    async joinChannelInvite(ctx: Context, uid: number, inviteStr: string) {
-        return await inTx(async () => {
+    async joinChannelInvite(parent: Context, uid: number, inviteStr: string) {
+        return await inTx(parent, async (ctx) => {
             let invite = await this.repoChannels.resolveInvite(ctx, inviteStr);
             if (!invite) {
                 throw new NotFoundError('Invite not found');
@@ -52,8 +52,8 @@ export class InvitesMediator {
         return 'ok';
     }
 
-    async joinOrganizationInvite(ctx: Context, uid: number, inviteString: string) {
-        return await inTx(async () => {
+    async joinOrganizationInvite(parent: Context, uid: number, inviteString: string) {
+        return await inTx(parent, async (ctx) => {
             let orgInvite = await Modules.Invites.orgInvitesRepo.getOrganizationInviteNonJoined(ctx, inviteString);
             let publicOrginvite = await Modules.Invites.orgInvitesRepo.getOrganizationInviteLinkByKey(ctx, inviteString);
             let invite: { oid: number, uid: number, ttl?: number | null, role?: string } | null = orgInvite || publicOrginvite;

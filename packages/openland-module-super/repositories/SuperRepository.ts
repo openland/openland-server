@@ -24,7 +24,7 @@ export class SuperRepository {
     }
 
     async makeSuperAdmin(ctx: Context, uid: number, role: string) {
-        await inTx(async () => {
+        await inTx(parent, async () => {
             let existing = await this.entities.SuperAdmin.findById(ctx, uid);
             if (existing) {
                 existing.enabled = true;
@@ -35,8 +35,8 @@ export class SuperRepository {
         });
     }
 
-    async makeNormalUser(ctx: Context, uid: number) {
-        await inTx(async () => {
+    async makeNormalUser(parent: Context, uid: number) {
+        await inTx(parent, async (ctx) => {
             if ((await this.findAllSuperAdmins(ctx)).length === 1) {
                 throw new UserError('Unable to remove last Super User');
             }

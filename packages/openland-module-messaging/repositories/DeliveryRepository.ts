@@ -17,8 +17,8 @@ export class DeliveryRepository {
         this.userState = userState;
     }
 
-    async deliverMessageToUser(ctx: Context, uid: number, mid: number) {
-        await inTx(async () => {
+    async deliverMessageToUser(parent: Context, uid: number, mid: number) {
+        await inTx(parent, async (ctx) => {
             let message = (await this.entities.Message.findById(ctx, mid));
             if (!message) {
                 throw Error('Message not found');
@@ -39,8 +39,8 @@ export class DeliveryRepository {
         });
     }
 
-    async deliverMessageUpdateToUser(ctx: Context, uid: number, mid: number) {
-        await inTx(async () => {
+    async deliverMessageUpdateToUser(parent: Context, uid: number, mid: number) {
+        await inTx(parent, async (ctx) => {
             let message = (await this.entities.Message.findById(ctx, mid));
             if (!message) {
                 throw Error('Message not found');
@@ -55,8 +55,8 @@ export class DeliveryRepository {
         });
     }
 
-    async deliverMessageDeleteToUser(ctx: Context, uid: number, mid: number) {
-        await inTx(async () => {
+    async deliverMessageDeleteToUser(parent: Context, uid: number, mid: number) {
+        await inTx(parent, async (ctx) => {
             let message = (await this.entities.Message.findById(ctx, mid));
             if (!message) {
                 throw Error('Message not found');
@@ -76,8 +76,8 @@ export class DeliveryRepository {
         });
     }
 
-    async deliverDialogDeleteToUser(ctx: Context, uid: number, cid: number) {
-        return await inTx(async () => {
+    async deliverDialogDeleteToUser(parent: Context, uid: number, cid: number) {
+        return await inTx(parent, async (ctx) => {
             let local = await this.userState.getUserDialogState(ctx, uid, cid);
             let global = await this.userState.getUserMessagingState(ctx, uid);
             global.seq++;
@@ -91,8 +91,8 @@ export class DeliveryRepository {
         });
     }
 
-    async deliverMessageReadToUser(ctx: Context, uid: number, mid: number, delta: number) {
-        await inTx(async () => {
+    async deliverMessageReadToUser(parent: Context, uid: number, mid: number, delta: number) {
+        await inTx(parent, async (ctx) => {
             let msg = await this.entities.Message.findById(ctx, mid);
             if (!msg) {
                 throw Error('Unable to find message');

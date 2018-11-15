@@ -7,11 +7,11 @@ import { createEmptyContext } from 'openland-utils/Context';
 
 export function startEmailNotificationWorker() {
     staticWorker({ name: 'email_notifications', delay: 15000, startDelay: 3000 }, async () => {
-        let ctx = createEmptyContext();
-        let unreadUsers = await FDB.UserMessagingState.allFromHasUnread(ctx);
+        let parent = createEmptyContext();
+        let unreadUsers = await FDB.UserMessagingState.allFromHasUnread(parent);
         let now = Date.now();
         for (let u of unreadUsers) {
-            await inTx(async () => {
+            await inTx(parent, async (ctx) => {
                 let state = await Modules.Messaging.getUserNotificationState(ctx, u.uid);
                 let lastSeen = await Modules.Presence.getLastSeen(ctx, u.uid);
                 let tag = 'email_notifications ' + u.uid;

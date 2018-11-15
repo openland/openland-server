@@ -19,8 +19,8 @@ export class UserRepository {
      * User
      */
 
-    async createUser(ctx: Context, authId: string, email: string) {
-        return await inTx(async () => {
+    async createUser(parent: Context, authId: string, email: string) {
+        return await inTx(parent, async (ctx) => {
 
             // Build next user id sequence number
             let seq = (await this.entities.Sequence.findById(ctx, 'user-id'));
@@ -36,8 +36,8 @@ export class UserRepository {
         });
     }
 
-    async activateUser(ctx: Context, uid: number) {
-        return await inTx(async () => {
+    async activateUser(parent: Context, uid: number) {
+        return await inTx(parent, async (ctx) => {
             let user = (await this.entities.User.findById(ctx, uid))!;
             if (!user) {
                 throw new NotFoundError('Unable to find user');
@@ -51,8 +51,8 @@ export class UserRepository {
         });
     }
 
-    async suspendUser(ctx: Context, uid: number) {
-        return await inTx(async () => {
+    async suspendUser(parent: Context, uid: number) {
+        return await inTx(parent, async (ctx) => {
             let user = (await this.entities.User.findById(ctx, uid))!;
             if (!user) {
                 throw new NotFoundError('Unable to find user');
@@ -70,8 +70,8 @@ export class UserRepository {
         return this.entities.UserProfile.findById(ctx, uid);
     }
 
-    async createUserProfile(ctx: Context, uid: number, input: ProfileInput) {
-        return await inTx(async () => {
+    async createUserProfile(parent: Context, uid: number, input: ProfileInput) {
+        return await inTx(parent, async (ctx) => {
             let user = (await this.entities.User.findById(ctx, uid))!;
             let existing = await this.entities.UserProfile.findById(ctx, user.id!);
             if (existing) {
@@ -113,8 +113,8 @@ export class UserRepository {
      * User Settings
      */
 
-    async getUserSettings(ctx: Context, uid: number) {
-        return await inTx(async () => {
+    async getUserSettings(parent: Context, uid: number) {
+        return await inTx(parent, async (ctx) => {
             let settings = await this.entities.UserSettings.findById(ctx, uid);
             if (!settings) {
                 settings = await this.entities.UserSettings.create(ctx, uid, {
@@ -146,8 +146,8 @@ export class UserRepository {
         return this.entities.UserProfilePrefil.findById(ctx, uid);
     }
 
-    async saveProfilePrefill(ctx: Context, uid: number, prefill: { firstName?: string, lastName?: string, picture?: string }) {
-        await inTx(async () => {
+    async saveProfilePrefill(parent: Context, uid: number, prefill: { firstName?: string, lastName?: string, picture?: string }) {
+        await inTx(parent, async (ctx) => {
             let existing = await this.entities.UserProfilePrefil.findById(ctx, uid);
             if (!existing) {
                 await this.entities.UserProfilePrefil.create(ctx, uid, {

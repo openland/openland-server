@@ -782,10 +782,10 @@ export default {
                 chat
             };
         }),
-        alphaChatKickFromGroup: withUser<GQL.MutationAlphaChatKickFromGroupArgs>(async (ctx, args, uid) => {
+        alphaChatKickFromGroup: withUser<GQL.MutationAlphaChatKickFromGroupArgs>(async (parent, args, uid) => {
             let conversationId = IDs.Conversation.parse(args.conversationId);
             let userId = IDs.User.parse(args.userId);
-            return inTx(async () => {
+            return inTx(parent, async (ctx) => {
                 if (uid === userId) {
                     let chat = await Modules.Messaging.room.leaveRoom(ctx, conversationId, uid);
                     return {
@@ -821,9 +821,9 @@ export default {
         alphaUnblockUser: withUser<GQL.MutationAlphaUnblockUserArgs>(async (ctx, args, uid) => {
             return 'ok';
         }),
-        alphaUpdateConversationSettings: withUser<GQL.MutationAlphaUpdateConversationSettingsArgs>(async (ctx, args, uid) => {
+        alphaUpdateConversationSettings: withUser<GQL.MutationAlphaUpdateConversationSettingsArgs>(async (parent, args, uid) => {
             let cid = IDs.Conversation.parse(args.conversationId);
-            return await inTx(async () => {
+            return await inTx(parent, async (ctx) => {
                 let settings = await Modules.Messaging.getRoomSettings(ctx, uid, cid);
                 if (args.settings.mute !== undefined && args.settings.mute !== null) {
                     settings.mute = args.settings.mute;
@@ -831,8 +831,8 @@ export default {
                 return settings;
             });
         }),
-        alphaChatLeave: withAccount<GQL.MutationAlphaChatLeaveArgs>(async (ctx, args, uid) => {
-            return inTx(async () => {
+        alphaChatLeave: withAccount<GQL.MutationAlphaChatLeaveArgs>(async (parent, args, uid) => {
+            return inTx(parent, async (ctx) => {
                 let conversationId = IDs.Conversation.parse(args.conversationId);
 
                 let res = await Modules.Messaging.room.leaveRoom(ctx, conversationId, uid);

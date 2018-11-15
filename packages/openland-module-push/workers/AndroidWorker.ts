@@ -33,8 +33,8 @@ export function createAndroidWorker(repo: PushRepository) {
             }
             for (let i = 0; i < 10; i++) {
                 queue.addWorker(async (task) => {
-                    let ctx = createEmptyContext();
-                    let token = (await repo.getAndroidToken(ctx, task.tokenId))!;
+                    let root = createEmptyContext();
+                    let token = (await repo.getAndroidToken(root, task.tokenId))!;
                     if (!token.enabled) {
                         return { result: 'skipped' };
                     }
@@ -51,13 +51,13 @@ export function createAndroidWorker(repo: PushRepository) {
                             });
                             log.log('android_push', token.uid, res);
                             if (res.includes('messaging/invalid-registration-token') || res.includes('messaging/registration-token-not-registered')) {
-                                await inTx(async () => {
+                                await inTx(root, async (ctx) => {
                                     let t = (await repo.getAndroidToken(ctx, task.tokenId))!;
                                     await handleFail(t);
                                     await pushFail.event(ctx, { uid: t.uid, tokenId: t.id, failures: t.failures!, error: res, disabled: !t.enabled });
                                 });
                             } else {
-                                await pushSent.event(ctx, { uid: token.uid, tokenId: token.id });
+                                await pushSent.event(root, { uid: token.uid, tokenId: token.id });
                             }
                             return { result: 'ok' };
                         } catch (e) {

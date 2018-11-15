@@ -153,13 +153,13 @@ export default {
                 chat
             };
         }),
-        alphaChannelInviteMembers: withUser<GQL.MutationAlphaChannelInviteMembersArgs>(async (ctx, args, uid) => {
+        alphaChannelInviteMembers: withUser<GQL.MutationAlphaChannelInviteMembersArgs>(async (parent, args, uid) => {
             let channelId = IDs.Conversation.parse(args.channelId);
             await validate({
                 inviteRequests: [{ email: defined(emailValidator) }]
             }, args);
 
-            await inTx(async () => {
+            await inTx(parent, async (ctx) => {
                 for (let inviteRequest of args.inviteRequests) {
                     await Modules.Invites.createChannelInvite(
                         ctx,

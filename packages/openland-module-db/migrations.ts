@@ -19,10 +19,10 @@ migrations.push({
 migrations.push({
     key: '19-fix-profile',
     migration: async (log) => {
-        let ctx = createEmptyContext();
-        let user = await FDB.UserProfile.findAllKeys(ctx);
+        let root = createEmptyContext();
+        let user = await FDB.UserProfile.findAllKeys(root);
         for (let u of user) {
-            await inTx(async () => {
+            await inTx(root, async (ctx) => {
                 let profile = await FDB.UserProfile.findById(ctx, u[u.length - 1]);
                 profile!.markDirty();
                 await profile!.flush();
@@ -34,11 +34,11 @@ migrations.push({
 migrations.push({
     key: '20-fix-primaryorganization',
     migration: async (log) => {
-        let ctx = createEmptyContext();
-        let user = await FDB.UserProfile.findAll(ctx);
+        let root = createEmptyContext();
+        let user = await FDB.UserProfile.findAll(root);
         for (let u of user) {
             log.log('Fixing primary organization for user ' + u.id);
-            await inTx(async () => {
+            await inTx(root, async (ctx) => {
                 let primaryOrganization: number | null = null;
                 let profile = (await FDB.UserProfile.findById(ctx, u.id))!;
                 let orgs = await Modules.Orgs.findUserOrganizations(ctx, u.id);
@@ -114,8 +114,8 @@ migrations.push({
 migrations.push({
     key: '22-enforce-dialog-update',
     migration: async (log) => {
-        let ctx = createEmptyContext();
-        await inTx(async () => {
+        let root = createEmptyContext();
+        await inTx(root, async (ctx) => {
             let k = await FDB.UserDialog.findAll(ctx);
             for (let o of k) {
                 if (o.date) {
@@ -130,10 +130,10 @@ migrations.push({
 migrations.push({
     key: '23-fix-index',
     migration: async (log) => {
-        let ctx = createEmptyContext();
-        let k = await FDB.UserDialog.findAllKeys(ctx);
+        let root = createEmptyContext();
+        let k = await FDB.UserDialog.findAllKeys(root);
         for (let o of k) {
-            await inTx(async () => {
+            await inTx(root, async (ctx) => {
                 let u = await FDB.UserDialog.findById(ctx, o[o.length - 2], o[o.length - 1]);
                 if (u) {
                     u.markDirty();

@@ -12,10 +12,10 @@ export class ModernScheduller {
         if (serverRoleEnabled('workers')) {
             forever(async () => {
                 await withLogContext('modern-scheduler', async () => {
-                    let ctx = createEmptyContext();
-                    
+                    let root = createEmptyContext();
+
                     // Prerequisites
-                    if (!(await LockRepository.tryLock(ctx, 'modern_work_scheduler', 1))) {
+                    if (!(await LockRepository.tryLock(root, 'modern_work_scheduler', 1))) {
                         await delay(15000);
                         return;
                     }
@@ -24,7 +24,7 @@ export class ModernScheduller {
                     // Timeout tasks in executing state
                     // If failureCount >= 5 then mark task as failed else mark as failing and increment failure count
                     // 
-                    await inTx(async () => {
+                    await inTx(root, async (ctx) => {
                         let now = Date.now();
                         let failingTasks = await FDB.Task.rangeFromExecuting(ctx, 100);
                         for (let f of failingTasks) {
@@ -47,7 +47,7 @@ export class ModernScheduller {
                     //
                     // Retry failing tasks
                     ///
-                    await inTx(async () => {
+                    await inTx(root, async (ctx) => {
                         let now = Date.now();
                         let failingTasks = await FDB.Task.rangeFromFailing(ctx, 100);
                         for (let f of failingTasks) {

@@ -20,8 +20,8 @@ export class TokenRepository {
         this.entities = entities;
     }
 
-    async createToken(ctx: Context, uid: number) {
-        return await inTx(async () => {
+    async createToken(parent: Context, uid: number) {
+        return await inTx(parent, async (ctx) => {
             return await this.entities.AuthToken.create(ctx, uuid(), {
                 uid,
                 salt: base64.encodeBuffer(randomBytes(64)),

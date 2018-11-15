@@ -22,32 +22,32 @@ describe('FEntity Versioned', () => {
     });
 
     it('should create with version number eq to one', async () => {
-        let ctx = createEmptyContext();
+        let parent = createEmptyContext();
         await withLogDisabled(async () => {
-            await inTx(async () => { await testEntities.VersionedEntity.create(ctx, 0, { data: 'hello world' }); });
-            let res = (await testEntities.VersionedEntity.findById(ctx, 0))!;
+            await inTx(parent, async (ctx) => { await testEntities.VersionedEntity.create(ctx, 0, { data: 'hello world' }); });
+            let res = (await testEntities.VersionedEntity.findById(parent, 0))!;
             expect(res.versionCode).toEqual(1);
         });
     });
 
     it('should update version number by one', async () => {
-        let ctx = createEmptyContext();
+        let parent = createEmptyContext();
         await withLogDisabled(async () => {
-            await inTx(async () => { await testEntities.VersionedEntity.create(ctx, 1, { data: 'hello world' }); });
-            await inTx(async () => {
+            await inTx(parent, async (ctx) => { await testEntities.VersionedEntity.create(ctx, 1, { data: 'hello world' }); });
+            await inTx(parent, async (ctx) => {
                 let ex = (await testEntities.VersionedEntity.findById(ctx, 1))!;
                 ex.data = 'bye world';
             });
-            let res = (await testEntities.VersionedEntity.findById(ctx, 1))!;
+            let res = (await testEntities.VersionedEntity.findById(parent, 1))!;
             expect(res.versionCode).toEqual(2);
         });
     });
 
     it('should create with version number eq to one', async () => {
-        let ctx = createEmptyContext();
+        let parent = createEmptyContext();
         await withLogDisabled(async () => {
-            await inTx(async () => { await testEntities.VersionedEntity.create(ctx, 2, { data: 'hello world' }); });
-            let res = (await testEntities.VersionedEntity.findById(ctx, 2))!;
+            await inTx(parent, async (ctx) => { await testEntities.VersionedEntity.create(ctx, 2, { data: 'hello world' }); });
+            let res = (await testEntities.VersionedEntity.findById(parent, 2))!;
             expect(res.versionCode).toEqual(1);
         });
     });

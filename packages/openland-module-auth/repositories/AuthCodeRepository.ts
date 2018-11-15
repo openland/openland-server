@@ -20,8 +20,8 @@ export class AuthCodeRepository {
         }
     }
 
-    async createSession(ctx: Context, email: string, code: string) {
-        return await inTx(async () => {
+    async createSession(parent: Context, email: string, code: string) {
+        return await inTx(parent, async (ctx) => {
             return this.entities.AuthCodeSession.create(ctx, base64.encodeBuffer(randomBytes(64)), {
                 code,
                 expires: Date.now() + 1000 * 60 * 5 /* 5 Minutes */,

@@ -67,8 +67,8 @@ export const Emails = {
             }
         });
     },
-    async sendAccountActivatedEmail(ctx: Context, oid: number) {
-        await inTx(async () => {
+    async sendAccountActivatedEmail(parent: Context, oid: number) {
+        await inTx(parent, async (ctx) => {
             let org = await FDB.Organization.findById(ctx, oid);
             if (!org) {
                 throw Error('Unable to find organization');
@@ -89,8 +89,8 @@ export const Emails = {
             }
         });
     },
-    async sendAccountDeactivatedEmail(ctx: Context, oid: number) {
-        await inTx(async () => {
+    async sendAccountDeactivatedEmail(parent: Context, oid: number) {
+        await inTx(parent, async (ctx) => {
             let org = await FDB.Organization.findById(ctx, oid);
             if (!org) {
                 throw Error('Unable to find organization');
@@ -112,8 +112,8 @@ export const Emails = {
         });
     },
 
-    async sendMemberRemovedEmail(ctx: Context, oid: number, uid: number) {
-        await inTx(async () => {
+    async sendMemberRemovedEmail(parent: Context, oid: number, uid: number) {
+        await inTx(parent, async (ctx) => {
             let org = await FDB.Organization.findById(ctx, oid);
             if (!org) {
                 throw Error('Unable to find organization');
@@ -134,8 +134,8 @@ export const Emails = {
         });
     },
 
-    async sendMembershipLevelChangedEmail(ctx: Context, oid: number, uid: number) {
-        await inTx(async () => {
+    async sendMembershipLevelChangedEmail(parent: Context, oid: number, uid: number) {
+        await inTx(parent, async (ctx) => {
             let org = await FDB.Organization.findById(ctx, oid);
             if (!org) {
                 throw Error('Unable to find organization');
@@ -166,8 +166,8 @@ export const Emails = {
         });
     },
 
-    async sendInviteEmail(ctx: Context, oid: number, invite: OrganizationInviteLink) {
-        await inTx(async () => {
+    async sendInviteEmail(parent: Context, oid: number, invite: OrganizationInviteLink) {
+        await inTx(parent, async (ctx) => {
             let org = await FDB.Organization.findById(ctx, oid);
             if (!org) {
                 throw Error('Unable to find organization');
@@ -241,8 +241,8 @@ export const Emails = {
     //     });
     // },
 
-    async sendMemberJoinedEmails(ctx: Context, oid: number, memberId: number) {
-        await inTx(async () => {
+    async sendMemberJoinedEmails(parent: Context, oid: number, memberId: number) {
+        await inTx(parent, async (ctx) => {
             let org = await FDB.Organization.findById(ctx, oid);
             if (!org) {
                 throw Error('Unable to find organization');

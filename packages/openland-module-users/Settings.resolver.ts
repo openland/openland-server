@@ -41,8 +41,8 @@ export default {
         }),
     },
     Mutation: {
-        updateSettings: withUser<GQL.MutationUpdateSettingsArgs>(async (ctx, args, uid) => {
-            return await inTx(async () => {
+        updateSettings: withUser<GQL.MutationUpdateSettingsArgs>(async (parent, args, uid) => {
+            return await inTx(parent, async (ctx) => {
                 let settings = await Modules.Users.getUserSettings(ctx, uid);
                 if (!args.settings) {
                     return settings;
@@ -68,8 +68,8 @@ export default {
                 return settings;
             });
         }),
-        settingsUpdate: withUser<GQL.MutationSettingsUpdateArgs>(async (ctx, args, uid) => {
-            return await inTx(async () => {
+        settingsUpdate: withUser<GQL.MutationSettingsUpdateArgs>(async (parent, args, uid) => {
+            return await inTx(parent, async (ctx) => {
                 let settings = await Modules.Users.getUserSettings(ctx, uid);
                 if (!args.settings) {
                     return settings;
