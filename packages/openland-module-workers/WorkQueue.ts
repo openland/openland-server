@@ -9,7 +9,6 @@ import { exponentialBackoffDelay } from 'openland-utils/exponentialBackoffDelay'
 import { EventBus } from 'openland-module-pubsub/EventBus';
 import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent';
 import { Shutdown } from '../openland-utils/Shutdown';
-import { SafeContext } from 'openland-utils/SafeContext';
 import { Context, createEmptyContext } from 'openland-utils/Context';
 import { resolveContext } from 'foundation-orm/utils/contexts';
 
@@ -57,7 +56,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
             await w.promise;
         };
         let root = withLogContext(createEmptyContext(), ['worker', this.taskType]);
-        let workLoop = SafeContext.inNewContext(() => foreverBreakable(async () => {
+        let workLoop = foreverBreakable(async () => {
             let task = await inTx(root, async (ctx) => {
                 let pend = await FDB.Task.rangeFromPending(ctx, this.taskType, 1);
                 if (pend.length === 0) {
@@ -130,7 +129,7 @@ export class WorkQueue<ARGS, RES extends JsonMap> {
                 log.debug(root, 'Task not found');
                 await awaitTask();
             }
-        }));
+        });
 
         const shutdown = async () => {
             if (!working) {

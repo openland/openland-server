@@ -8,8 +8,8 @@ import { errorHandler } from '../../openland-errors';
 // import { CallContext } from '../../openland-module-api/CallContext';
 // import { Rate } from '../../openland-utils/rateLimit';
 // import { delay } from '../../openland-utils/timer';
-import { withTracing } from 'openland-log/withTracing';
-import { gqlTracer } from 'openland-graphql/gqlTracer';
+// import { gqlTracer } from 'openland-graphql/gqlTracer';
+// import { createEmptyContext } from 'openland-utils/Context';
 
 // function getClientId(req: express.Request, res: express.Response) {
 //     if (res.locals.ctx) {
@@ -68,9 +68,9 @@ function handleRequest(withEngine: boolean) {
 export function schemaHandler(isTest: boolean, withEngine: boolean) {
     let gqlMiddleware = graphqlExpress(handleRequest(withEngine));
     let contestMiddleware = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-        return await withTracing(gqlTracer, 'http', async () => {
-            return await callContextMiddleware(isTest, req, res, next);
-        });
+        // return await gqlTracer.trace(createEmptyContext(), 'http', async () => {
+        return await callContextMiddleware(isTest, req, res, next);
+        // });
     };
 
     return Compose.compose(contestMiddleware as any, gqlMiddleware as any);

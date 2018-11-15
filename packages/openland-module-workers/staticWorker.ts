@@ -3,7 +3,6 @@ import { LockRepository } from 'openland-module-sync/LockRepository';
 import { withLogContext } from 'openland-log/withLogContext';
 import { createLogger } from 'openland-log/createLogger';
 import { Shutdown } from '../openland-utils/Shutdown';
-import { SafeContext } from 'openland-utils/SafeContext';
 import { createEmptyContext, Context } from 'openland-utils/Context';
 
 const logger = createLogger('loop');
@@ -13,7 +12,7 @@ export function staticWorker(config: { name: string, version?: number, delay?: n
     let awaiter: (() => void) | undefined;
     let wasStarted = false;
     let ctx = withLogContext(createEmptyContext(), ['static-worker', config.name]);
-    let workLoop = SafeContext.inNewContext(() => foreverBreakable(async () => {
+    let workLoop = foreverBreakable(async () => {
         if (!wasStarted && config.startDelay) {
             await delay(config.startDelay);
         }
@@ -66,7 +65,7 @@ export function staticWorker(config: { name: string, version?: number, delay?: n
         } else {
             await delay(100);
         }
-    }));
+    });
 
     const shutdown = async () => {
         if (!working) {

@@ -2,10 +2,9 @@ import { FConnection } from './FConnection';
 import { FEntity } from './FEntity';
 import { currentTime } from 'openland-utils/timer';
 import { createLogger } from 'openland-log/createLogger';
-import { trace, traceSync } from 'openland-log/trace';
 import { tracer, logger } from './utils/tracer';
 import { FBaseTransaction } from './utils/FBaseTransaction';
-import { createEmptyContext, Context } from 'openland-utils/Context';
+import { Context } from 'openland-utils/Context';
 
 const log = createLogger('tx');
 
@@ -28,25 +27,25 @@ export class FTransaction extends FBaseTransaction {
         this.pendingCallbacks.push(callback);
     }
 
-    set(context: Context, connection: FConnection, key: Buffer, value: any) {
-        this.prepare(connection);
-        traceSync(tracer, 'set', () => {
-            logger.debug(createEmptyContext(), 'set');
+    set(parent: Context, connection: FConnection, key: Buffer, value: any) {
+        this.prepare(parent, connection);
+        tracer.traceSync(parent, 'set', (ctx) => {
+            logger.debug(ctx, 'set');
             this.tx!.set(key, value);
         });
     }
 
-    delete(context: Context, connection: FConnection, key: Buffer) {
-        this.prepare(connection);
-        traceSync(tracer, 'delete', () => {
-            logger.debug(createEmptyContext(), 'delete');
+    delete(parent: Context, connection: FConnection, key: Buffer) {
+        this.prepare(parent, connection);
+        tracer.traceSync(parent, 'delete', (ctx) => {
+            logger.debug(ctx, 'delete');
             this.tx!.clear(key);
         });
     }
 
-    markDirty(entity: FEntity, callback: (connection: FConnection) => Promise<void>) {
-        logger.debug(createEmptyContext(), 'markDirty');
-        this.prepare(entity.connection);
+    markDirty(parent: Context, entity: FEntity, callback: (connection: FConnection) => Promise<void>) {
+        logger.debug(parent, 'markDirty');
+        this.prepare(parent, entity.connection);
         let key = [...entity.namespace.namespace, ...entity.rawId].join('.');
         this._pending.set(key, callback);
     }
@@ -63,7 +62,7 @@ export class FTransaction extends FBaseTransaction {
         await this.tx!!.rawCancel();
     }
 
-    async flushPending() {
+    async flushPending(parent: Context) {
         if (this._isCompleted) {
             return;
         }
@@ -72,17 +71,17 @@ export class FTransaction extends FBaseTransaction {
         }
 
         let t = currentTime();
-        await trace(tracer, 'flush', async () => {
+        await tracer.trace(parent, 'flush', async () => {
             let pend = [...this._pending.values()];
             this._pending.clear();
             for (let p of pend) {
                 await p(this.connection!);
             }
         });
-        log.debug(createEmptyContext(), 'flush time: ' + (currentTime() - t) + ' ms');
+        log.debug(parent, 'flush time: ' + (currentTime() - t) + ' ms');
     }
 
-    async flush() {
+    async flush(parent: Context) {
         if (this._isCompleted) {
             return;
         }
@@ -92,18 +91,18 @@ export class FTransaction extends FBaseTransaction {
 
         // Do not need to parallel things since client will batch everything for us
         let t = currentTime();
-        await trace(tracer, 'flush', async () => {
+        await tracer.trace(parent, 'flush', async () => {
             for (let p of this._pending.values()) {
                 await p(this.connection!);
             }
         });
-        log.debug(createEmptyContext(), 'flush time: ' + (currentTime() - t) + ' ms');
+        log.debug(parent, 'flush time: ' + (currentTime() - t) + ' ms');
         t = currentTime();
-        await trace(tracer, 'commit', async () => {
+        await tracer.trace(parent, 'commit', async () => {
             await this.tx!!.rawCommit();
         });
         if (this.pendingCallbacks.length > 0) {
-            await trace(tracer, 'hooks', async () => {
+            await tracer.trace(parent, 'hooks', async () => {
                 for (let p of this.pendingCallbacks) {
                     p();
                 }
@@ -111,7 +110,7 @@ export class FTransaction extends FBaseTransaction {
         }
         this._isCompleted = true;
         // if (this._hadMutations) {
-        log.debug(createEmptyContext(), 'commit time: ' + (currentTime() - t) + ' ms');
+        log.debug(parent, 'commit time: ' + (currentTime() - t) + ' ms');
         // }
     }
 

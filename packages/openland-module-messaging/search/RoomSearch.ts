@@ -1,11 +1,11 @@
 import { Modules } from 'openland-modules/Modules';
 import { createTracer } from 'openland-log/createTracer';
-import { withTracing } from 'openland-log/withTracing';
+import { Context } from 'openland-utils/Context';
 
 const tracer = createTracer('room-search');
 
 export class RoomSearch {
-    async searchForRooms(query: string, options: { uid: number, limit?: number }) {
+    async searchForRooms(ctx: Context, query: string, options: { uid: number, limit?: number }) {
         let normalized = query.trim();
 
         let mainQuery: any = {
@@ -18,7 +18,7 @@ export class RoomSearch {
             }
         };
 
-        return await withTracing(tracer, 'search-dialog', async () => {
+        return await tracer.trace(ctx, 'search-dialog', async () => {
             let hits = await Modules.Search.elastic.client.search({
                 index: 'dialog',
                 type: 'dialog',

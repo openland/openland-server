@@ -15,7 +15,6 @@ import { Server as HttpServer } from 'http';
 // import { delay } from '../utils/timer';
 import { withAudit } from '../openland-module-auth/providers/email';
 import { IDs } from './IDs';
-import { withTracingSpan } from 'openland-log/withTracing';
 import { inTx } from 'foundation-orm/inTx';
 import { Modules } from 'openland-modules/Modules';
 import { schemaHandler } from './handlers/schema';
@@ -119,11 +118,7 @@ export async function initApi(isTest: boolean) {
                 }, operationName?: string, fieldResolver?: GraphQLFieldResolver<any, any>) => {
                     if (contextValue!.span!) {
                         try {
-                            return await withCache(async () => {
-                                return await withTracingSpan(contextValue!.span!, async () => {
-                                    return await execute(schema, document, rootValue, contextValue, variableValues, operationName, fieldResolver);
-                                });
-                            });
+                            return await execute(schema, document, rootValue, contextValue, variableValues, operationName, fieldResolver);
                         } finally {
                             contextValue!.span!.finish();
                         }

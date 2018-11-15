@@ -1,7 +1,10 @@
-var initTracer = require('jaeger-client').initTracer;
+import { STracer } from './STracer';
+import { OpenTracer } from './src/OpenTracer';
+import { NoOpTracer } from './src/NoOpTracer';
 
-import { STracer, OpenTracer, NoOpTracer } from './src/STracer';
+var initTracer = require('jaeger-client').initTracer;
 const enabled = true;
+
 export function createTracer(name: string): STracer {
     var tracer: STracer;
     if (enabled && (process.env.TRACING_ENDPOINT || process.env.NODE_ENV !== 'production')) {

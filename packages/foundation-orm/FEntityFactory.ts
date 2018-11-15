@@ -11,7 +11,6 @@ import { FLiveStreamItem } from './FLiveStreamItem';
 import { FDirectory } from './FDirectory';
 import { createTracer } from 'openland-log/createTracer';
 import { STracer } from 'openland-log/STracer';
-import { withTracing } from 'openland-log/withTracing';
 import { Context } from 'openland-utils/Context';
 
 const log = createLogger('entity-factory');
@@ -101,7 +100,7 @@ export abstract class FEntityFactory<T extends FEntity> {
         //         return null;
         //     });
         // }
-        return await withTracing(this.tracer, 'findById', async () => {
+        return await this.tracer.trace(ctx, 'findById', async () => {
             let res = await this.namespace.get(ctx, this.connection, key);
             if (res) {
                 return this.doCreateEntity(ctx, res, false);

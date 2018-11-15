@@ -106,7 +106,7 @@ export abstract class FEntity {
     markDirty() {
         if (!this.isDirty) {
             this.isDirty = true;
-            this.context.markDirty(this, async (connection: FConnection) => {
+            this.context.markDirty(this.ctx, this, async (connection: FConnection) => {
                 await this._doFlush();
             });
         }

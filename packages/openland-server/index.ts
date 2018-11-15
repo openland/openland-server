@@ -1,5 +1,3 @@
-global.Promise = require('bluebird');
-
 // Reflection support
 import 'reflect-metadata';
 

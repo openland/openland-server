@@ -1,16 +1,14 @@
 import { FDB } from 'openland-module-db/FDB';
 import { withAccount } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
-// import { Message } from 'openland-module-db/schema';
 import { createTracer } from 'openland-log/createTracer';
-import { withTracing } from 'openland-log/withTracing';
 
 const tracer = createTracer('chat-text-search');
 
 export default {
     Query: {
-        alphaChatTextSearch: withAccount<{ query: string }>(async (ctx, args, uid, oid) => {
-            return await withTracing(tracer, 'chat-text-search', async () => {
+        alphaChatTextSearch: withAccount<{ query: string }>(async (parent, args, uid, oid) => {
+            return await tracer.trace(parent, 'chat-text-search', async (ctx) => {
                 // Group Search
                 // let searchableConversations = Promise.all((await FDB.RoomParticipant.allFromUserActive(uid))
                 //     .map((v) => FDB.Conversation.findById(v.cid)));
@@ -20,7 +18,7 @@ export default {
                 //     .map((v) => v!);
 
                 let conversations = Modules.Messaging.search
-                    .searchForRooms(args.query, { uid, limit: 20 })
+                    .searchForRooms(ctx, args.query, { uid, limit: 20 })
                     .then((r) => r.map((v) => FDB.Conversation.findById(ctx, v)));
 
                 // PERSONAL - search users first, then matching conversations with current user

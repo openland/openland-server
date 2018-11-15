@@ -1,12 +1,9 @@
 import { FPubsub } from 'foundation-orm/FPubsub';
 import { createRedisClient, isRedisConfigured } from './redis/createRedisClient';
 import { backoff } from 'openland-utils/timer';
-import { createTracer } from 'openland-log/createTracer';
-import { withTracing } from 'openland-log/withTracing';
 import { createLogger } from 'openland-log/createLogger';
 import { createEmptyContext } from 'openland-utils/Context';
 
-const tracer = createTracer('eventbus');
 const logger = createLogger('eventbus');
 
 class EventBusImpl implements FPubsub {
@@ -24,21 +21,18 @@ class EventBusImpl implements FPubsub {
                     return;
                 }
 
-                // tslint:disable-next-line:no-floating-promises
-                withTracing(tracer, 'receive', () => {
-                    // Parsing data
-                    let parsed: any;
-                    try {
-                        parsed = JSON.parse(message);
-                    } catch (e) {
-                        return;
-                    }
+                // Parsing data
+                let parsed: any;
+                try {
+                    parsed = JSON.parse(message);
+                } catch (e) {
+                    return;
+                }
 
-                    // Delivering notifications
-                    for (let r of this.subscribers.get(topic)!!) {
-                        r.listener(parsed);
-                    }
-                });
+                // Delivering notifications
+                for (let r of this.subscribers.get(topic)!!) {
+                    r.listener(parsed);
+                }
             });
         }
     }

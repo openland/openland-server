@@ -1,13 +1,12 @@
 import { Modules } from 'openland-modules/Modules';
 import { FDB } from 'openland-module-db/FDB';
 import { createTracer } from 'openland-log/createTracer';
-import { withTracing } from 'openland-log/withTracing';
 import { Context } from 'openland-utils/Context';
 
 const tracer = createTracer('user-search');
 export class UserSearch {
-    async searchForUsers(ctx: Context, query: string, options?: { uid?: number, limit?: number }) {
-        return await withTracing(tracer, 'search', async () => {
+    async searchForUsers(parent: Context, query: string, options?: { uid?: number, limit?: number }) {
+        return await tracer.trace(parent, 'search', async (ctx) => {
 
             let normalized = query.trim();
 
@@ -58,7 +57,7 @@ export class UserSearch {
                 }
             }
 
-            return await withTracing(tracer, 'elastic', async () => {
+            return await tracer.trace(ctx, 'elastic', async () => {
                 let hits = await Modules.Search.elastic.client.search({
                     index: 'user_profile',
                     type: 'user_profile',

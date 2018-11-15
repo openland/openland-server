@@ -76,6 +76,9 @@
       "openland-utils": [
         "openland-utils"
       ],
+      "openland-log": [
+        "openland-log"
+      ],
       "openland-server": [
         "openland-server"
       ],

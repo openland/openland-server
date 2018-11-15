@@ -2,11 +2,9 @@ import { IDs } from 'openland-module-api/IDs';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { PushRepository } from 'openland-module-push/repositories/PushRepository';
 import { Modules } from 'openland-modules/Modules';
-import { withTracing } from 'openland-log/withTracing';
 import { createTracer } from 'openland-log/createTracer';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { Texts } from '../../openland-module-messaging/texts';
-import { createEmptyContext } from 'openland-utils/Context';
 
 export function doSimpleHash(key: string): number {
     var h = 0, l = key.length, i = 0;
@@ -38,9 +36,8 @@ export function createPushWorker(repo: PushRepository) {
     let queue = new WorkQueue<Push, { result: string }>('push_sender');
     if (serverRoleEnabled('workers')) {
         for (let i = 0; i < 10; i++) {
-            queue.addWorker(async (args) => {
-                let ctx = createEmptyContext();
-                return await withTracing(tracer, 'SORT #' + args.uid, async () => {
+            queue.addWorker(async (args, parent) => {
+                return tracer.trace(parent, 'sorting', async (ctx) => {
                     if (args.desktop) {
                         //
                         // Web Push

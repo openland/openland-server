@@ -2,14 +2,13 @@ import { injectable } from 'inversify';
 import { createTracer } from 'openland-log/createTracer';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
-import { withTracing } from 'openland-log/withTracing';
 import { DeliveryRepository } from 'openland-module-messaging/repositories/DeliveryRepository';
 import { Message, AllEntities } from 'openland-module-db/schema';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { CountersMediator } from './CountersMediator';
 import { inTx } from 'foundation-orm/inTx';
 import { RoomMediator } from './RoomMediator';
-import { Context, createEmptyContext } from 'openland-utils/Context';
+import { Context } from 'openland-utils/Context';
 
 const tracer = createTracer('message-delivery');
 
@@ -24,9 +23,9 @@ export class DeliveryMediator {
 
     start = () => {
         if (serverRoleEnabled('delivery')) {
-            this.queue.addWorker(async (item) => {
-                await withTracing(tracer, 'delivery', async () => {
-                    await this.deliverNewMessage(createEmptyContext(), item.messageId);
+            this.queue.addWorker(async (item, parent) => {
+                await tracer.trace(parent, 'delivery', async (ctx) => {
+                    await this.deliverNewMessage(ctx, item.messageId);
                 });
                 return { result: 'ok' };
             });

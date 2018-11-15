@@ -3,7 +3,7 @@ import { Modules } from 'openland-modules/Modules';
 import { createTracer } from 'openland-log/createTracer';
 import { createEmptyContext } from 'openland-utils/Context';
 import { AuthContext } from 'openland-module-auth/AuthContext';
-import { TracingContext } from 'openland-log/TracingContext';
+import { TracingContext } from 'openland-log/src/TracingContext';
 import { CacheContext } from 'openland-module-api/CacheContext';
 import { AppContext } from 'openland-modules/AppContext';
 
