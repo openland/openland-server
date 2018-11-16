@@ -10,7 +10,7 @@ export default {
         members: (src: ConferenceRoom, args: {}, ctx: Context) => []
     },
     Query: {
-        conference: withUser<{ id: string }>(async (ctx, args, uid) => {
+        conference: withUser<{ id: string }, any>(async (ctx, args, uid) => {
             return Modules.Calls.repo.findConference(ctx, IDs.Conversation.parse(args.id));
         })
     }
