@@ -72,8 +72,8 @@ type GroupConversation implements Conversation {
 
     photo: String
     photoRef: ImageRef
-    description: String!
-    longDescription: String!
+    description: String
+    longDescription: String
     pinnedMessage: ConversationMessage
 
     membersOnline: Int!
