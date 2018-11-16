@@ -5900,6 +5900,138 @@ export class OrganizationInviteLinkFactory extends FEntityFactory<OrganizationIn
         return new OrganizationInviteLink(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'OrganizationInviteLink');
     }
 }
+export interface ConferenceRoomShape {
+}
+
+export class ConferenceRoom extends FEntity {
+    readonly entityName: 'ConferenceRoom' = 'ConferenceRoom';
+    get id(): number { return this._value.id; }
+}
+
+export class ConferenceRoomFactory extends FEntityFactory<ConferenceRoom> {
+    static schema: FEntitySchema = {
+        name: 'ConferenceRoom',
+        editable: false,
+        primaryKeys: [
+            { name: 'id', type: 'number' },
+        ],
+        fields: [
+        ],
+        indexes: [
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isNumber('id', src.id);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'conferenceRoom'),
+            { enableVersioning: true, enableTimestamps: true, validator: ConferenceRoomFactory.validate, hasLiveStreams: false },
+            [],
+            'ConferenceRoom'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
+        return { 'id': rawId[0] };
+    }
+    async findById(ctx: Context, id: number) {
+        return await this._findById(ctx, [id]);
+    }
+    async create(ctx: Context, id: number, shape: ConferenceRoomShape) {
+        return await this._create(ctx, [id], { id, ...shape });
+    }
+    watch(ctx: Context, id: number, cb: () => void) {
+        return this._watch(ctx, [id], cb);
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new ConferenceRoom(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConferenceRoom');
+    }
+}
+export interface ConferenceRoomParticipantShape {
+    keepAliveTimeout: number;
+    enabled: boolean;
+}
+
+export class ConferenceRoomParticipant extends FEntity {
+    readonly entityName: 'ConferenceRoomParticipant' = 'ConferenceRoomParticipant';
+    get cid(): number { return this._value.cid; }
+    get uid(): number { return this._value.uid; }
+    get keepAliveTimeout(): number {
+        return this._value.keepAliveTimeout;
+    }
+    set keepAliveTimeout(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.keepAliveTimeout) { return; }
+        this._value.keepAliveTimeout = value;
+        this.markDirty();
+    }
+    get enabled(): boolean {
+        return this._value.enabled;
+    }
+    set enabled(value: boolean) {
+        this._checkIsWritable();
+        if (value === this._value.enabled) { return; }
+        this._value.enabled = value;
+        this.markDirty();
+    }
+}
+
+export class ConferenceRoomParticipantFactory extends FEntityFactory<ConferenceRoomParticipant> {
+    static schema: FEntitySchema = {
+        name: 'ConferenceRoomParticipant',
+        editable: false,
+        primaryKeys: [
+            { name: 'cid', type: 'number' },
+            { name: 'uid', type: 'number' },
+        ],
+        fields: [
+            { name: 'keepAliveTimeout', type: 'number' },
+            { name: 'enabled', type: 'boolean' },
+        ],
+        indexes: [
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('cid', src.cid);
+        validators.isNumber('cid', src.cid);
+        validators.notNull('uid', src.uid);
+        validators.isNumber('uid', src.uid);
+        validators.notNull('keepAliveTimeout', src.keepAliveTimeout);
+        validators.isNumber('keepAliveTimeout', src.keepAliveTimeout);
+        validators.notNull('enabled', src.enabled);
+        validators.isBoolean('enabled', src.enabled);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'conferenceRoomParticipant'),
+            { enableVersioning: true, enableTimestamps: true, validator: ConferenceRoomParticipantFactory.validate, hasLiveStreams: false },
+            [],
+            'ConferenceRoomParticipant'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 2) { throw Error('Invalid key length!'); }
+        return { 'cid': rawId[0], 'uid': rawId[1] };
+    }
+    async findById(ctx: Context, cid: number, uid: number) {
+        return await this._findById(ctx, [cid, uid]);
+    }
+    async create(ctx: Context, cid: number, uid: number, shape: ConferenceRoomParticipantShape) {
+        return await this._create(ctx, [cid, uid], { cid, uid, ...shape });
+    }
+    watch(ctx: Context, cid: number, uid: number, cb: () => void) {
+        return this._watch(ctx, [cid, uid], cb);
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new ConferenceRoomParticipant(ctx, this.connection, this.namespace, this.directory, [value.cid, value.uid], value, this.options, isNew, this.indexes, 'ConferenceRoomParticipant');
+    }
+}
 
 export interface AllEntities {
     readonly connection: FConnection;
@@ -5952,6 +6084,8 @@ export interface AllEntities {
     readonly SampleEntity: SampleEntityFactory;
     readonly OrganizationPublicInviteLink: OrganizationPublicInviteLinkFactory;
     readonly OrganizationInviteLink: OrganizationInviteLinkFactory;
+    readonly ConferenceRoom: ConferenceRoomFactory;
+    readonly ConferenceRoomParticipant: ConferenceRoomParticipantFactory;
 }
 export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     static readonly schema: FEntitySchema[] = [
@@ -6004,6 +6138,8 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         SampleEntityFactory.schema,
         OrganizationPublicInviteLinkFactory.schema,
         OrganizationInviteLinkFactory.schema,
+        ConferenceRoomFactory.schema,
+        ConferenceRoomParticipantFactory.schema,
     ];
     allEntities: FEntityFactory<FEntity>[] = [];
     Online: OnlineFactory;
@@ -6055,6 +6191,8 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     SampleEntity: SampleEntityFactory;
     OrganizationPublicInviteLink: OrganizationPublicInviteLinkFactory;
     OrganizationInviteLink: OrganizationInviteLinkFactory;
+    ConferenceRoom: ConferenceRoomFactory;
+    ConferenceRoomParticipant: ConferenceRoomParticipantFactory;
 
     constructor(connection: FConnection) {
         super(connection);
@@ -6156,6 +6294,10 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         this.allEntities.push(this.OrganizationPublicInviteLink);
         this.OrganizationInviteLink = new OrganizationInviteLinkFactory(connection);
         this.allEntities.push(this.OrganizationInviteLink);
+        this.ConferenceRoom = new ConferenceRoomFactory(connection);
+        this.allEntities.push(this.ConferenceRoom);
+        this.ConferenceRoomParticipant = new ConferenceRoomParticipantFactory(connection);
+        this.allEntities.push(this.ConferenceRoomParticipant);
     }
 }
 export class AllEntitiesProxy implements AllEntities {
@@ -6308,6 +6450,12 @@ export class AllEntitiesProxy implements AllEntities {
     }
     get OrganizationInviteLink(): OrganizationInviteLinkFactory {
         return this.resolver().OrganizationInviteLink;
+    }
+    get ConferenceRoom(): ConferenceRoomFactory {
+        return this.resolver().ConferenceRoom;
+    }
+    get ConferenceRoomParticipant(): ConferenceRoomParticipantFactory {
+        return this.resolver().ConferenceRoomParticipant;
     }
     private resolver: () => AllEntities;
     constructor(resolver: () => AllEntities) {

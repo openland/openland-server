@@ -20,6 +20,7 @@ import { MediaModule } from 'openland-module-media/MediaModule';
 import { ApiModule } from 'openland-module-api/ApiModule';
 import { HooksModule } from 'openland-module-hooks/HooksModule';
 import { container } from './Modules.container';
+import { CallsModule } from 'openland-module-calls/CallsModule';
 
 class ModulesImpl {
 
@@ -85,6 +86,9 @@ class ModulesImpl {
     }
     get API() {
         return container.get(ApiModule);
+    }
+    get Calls() {
+        return container.get(CallsModule);
     }
 }
 

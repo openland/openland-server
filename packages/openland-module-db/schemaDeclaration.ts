@@ -567,6 +567,30 @@ const Schema = declareSchema(() => {
         enableTimestamps();
     });
 
+    entity('ConferenceRoom', () => {
+        primaryKey('id', 'number');
+        enableTimestamps();
+        enableVersioning();
+    });
+
+    // entity('ConferenceRoomLink', () => {
+    //     primaryKey('id', 'string');
+    //     primaryKey('cid', 'number');
+    //     primaryKey('uid1', 'number');
+    //     primaryKey('uid2', 'number');
+    //     field('enabled', 'boolean');
+    //     enableTimestamps();
+    //     enableVersioning();
+    // });
+
+    entity('ConferenceRoomParticipant', () => {
+        primaryKey('cid', 'number');
+        primaryKey('uid', 'number');
+        field('keepAliveTimeout', 'number');
+        field('enabled', 'boolean');
+        enableTimestamps();
+        enableVersioning();
+    });
 });
 
 generate(Schema, __dirname + '/../openland-module-db/schema.ts');

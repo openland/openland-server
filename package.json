@@ -197,6 +197,7 @@
     "openland-module-media": "build/openland-module-media",
     "openland-module-api": "build/openland-module-api",
     "openland-module-hooks": "build/openland-module-hooks",
+    "openland-module-calls": "build/openland-module-calls",
     "openland-graphql": "build/openland-graphql",
     "openland-errors": "build/openland-errors"
   }

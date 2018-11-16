@@ -28,6 +28,8 @@ import { FConnection } from 'foundation-orm/FConnection';
 import { EventBus } from 'openland-module-pubsub/EventBus';
 import { loadMessagingModule } from 'openland-module-messaging/Messaging.container';
 import { loadInvitesModule } from 'openland-module-invites/Invites.container';
+import { CallsModule } from 'openland-module-calls/CallsModule';
+import { loadCallsModule } from 'openland-module-calls/Calls.container';
 
 export async function loadAllModules() {
 
@@ -59,6 +61,7 @@ export async function loadAllModules() {
     loadInvitesModule();
     container.bind(PubsubModule).toSelf().inSingletonScope();
     container.bind(ApiModule).toSelf().inSingletonScope();
+    loadCallsModule();
 
     await container.get<HooksModule>('HooksModule').start();
     await container.get(DBModule).start();
@@ -80,4 +83,5 @@ export async function loadAllModules() {
     await container.get(InvitesModule).start();
     await container.get(PubsubModule).start();
     await container.get(ApiModule).start();
+    await container.get(CallsModule).start();
 }

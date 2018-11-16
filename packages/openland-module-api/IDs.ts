@@ -42,4 +42,5 @@ export const IDs = {
     Dialog: IdsFactory.createId('Dialog'),
     Message: IdsFactory.createId('Message'),
     Room: IdsFactory.createId('Room'),
+    Conference: IdsFactory.createId('Conference'),
 };

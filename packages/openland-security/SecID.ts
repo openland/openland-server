@@ -76,7 +76,7 @@ function encrypt(value: number, typeId: number, encryptionKey: Buffer, encryptio
     return res;
 }
 
-function decrypt(value: Buffer, type: number | Set<number>, encryptionKey: Buffer, encryptionIv: Buffer, hmacKey: Buffer) {
+function decrypt(valuestr: string, value: Buffer, type: number | Set<number>, encryptionKey: Buffer, encryptionIv: Buffer, hmacKey: Buffer) {
     // This code need to have constant time
     let decipher = Crypto.createDecipheriv('aes-128-ctr', encryptionKey, encryptionIv);
 
@@ -107,7 +107,7 @@ function decrypt(value: Buffer, type: number | Set<number>, encryptionKey: Buffe
     if (correctType && correctVersion && hmacCorrect) {
         return { id: valueRes, type: valueTypeId };
     }
-    throw new IDMailformedError('Invalid id');
+    throw new IDMailformedError('Invalid id: ' + valuestr);
 }
 
 export class SecID {
@@ -149,7 +149,7 @@ export class SecID {
             throw new IDMailformedError('Invalid id');
         }
 
-        return decrypt(source, this.typeId, this.encryptionKey, this.encryptionIv, this.hmacKey).id;
+        return decrypt(value, source, this.typeId, this.encryptionKey, this.encryptionIv, this.hmacKey).id;
     }
 }
 
@@ -204,7 +204,7 @@ export class SecIDFactory {
         if (source.length !== KEY_LENGTH) {
             throw new IDMailformedError('Invalid id');
         }
-        let res = decrypt(source, this.knownTypes, this.encryptionKey, this.encryptionIv, this.hmacKey);
+        let res = decrypt(value, source, this.knownTypes, this.encryptionKey, this.encryptionIv, this.hmacKey);
         return {
             id: res.id,
             type: this.knownSecIDS.get(res.type)!!

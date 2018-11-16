@@ -1,0 +1,28 @@
+type Conference {
+    id: ID!
+    members: [User!]!
+}
+
+union ConferenceUpdate = Conference | ConferenceMemberJoined | ConferenceMemberLeft
+
+type ConferenceMemberJoined {
+    user: User!
+}
+
+type ConferenceMemberLeft {
+    user: User!
+}
+
+extend type Query {
+    conference(id: ID!): Conference!
+}
+
+extend type Mutation {
+    conferenceJoin(id: ID!): Conference!
+    conferenceKeepAlive(id: ID!): Boolean!
+    conferenceLeave(id: ID!): Conference!
+}
+
+extend type Subscription {
+    conferenceWatch(id: ID!): ConferenceUpdate!
+}
