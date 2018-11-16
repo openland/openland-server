@@ -24,6 +24,13 @@ type OrganizationJoinedMember implements OrganizationMember {
     showInContacts: Boolean!
 }
 
+type OrganizationRequestedMember implements OrganizationMember {
+    email: String!
+    role: OrganizationMemberRole!
+    user: User!
+    joinedAt: String
+}
+
 input InviteRequest {
     email: String!
     emailText: String

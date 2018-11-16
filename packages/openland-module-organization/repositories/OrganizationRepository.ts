@@ -169,6 +169,10 @@ export class OrganizationRepository {
         return await this.entities.OrganizationMember.allFromOrganization(ctx, 'joined', oid);
     }
 
+    async findOrganizationMembersWithStatus(ctx: Context, oid: number, status: 'requested' | 'joined' | 'left') {
+        return await this.entities.OrganizationMember.allFromOrganization(ctx, status, oid);
+    }
+
     async findOrganizationMembers(ctx: Context, oid: number) {
         return (await Promise.all((await this.findOrganizationMembership(ctx, oid))
             .map((v) => this.entities.User.findById(ctx, v.uid))))

@@ -224,6 +224,10 @@ export class OrganizationModule {
         return this.repo.findOrganizationMembership(ctx, oid);
     }
 
+    async findOrganizationMembersWithStatus(ctx: Context, oid: number, status: 'requested' | 'joined' | 'left') {
+        return this.repo.findOrganizationMembersWithStatus(ctx, oid, status);
+    }
+
     async hasMemberWithEmail(ctx: Context, oid: number, email: string) {
         return this.repo.hasMemberWithEmail(ctx, oid, email);
     }

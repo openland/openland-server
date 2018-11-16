@@ -38,3 +38,25 @@ export async function resolveOrganizationJoinedMembers(ctx: Context, orgId: numb
 
     return result;
 }
+
+export async function resolveOrganizationMembersWithStatus(ctx: Context, orgId: number, status: 'requested' | 'joined' | 'left') {
+    let members = await Modules.Orgs.findOrganizationMembersWithStatus(ctx, orgId, status);
+
+    let roles = await resolveRoleInOrganization(members);
+
+    let result: any[] = [];
+
+    for (let i = 0; i < members.length; i++) {
+        let member = (await FDB.User.findById(ctx, members[i].uid))!;
+        result.push({
+            _type: 'OrganizationJoinedMember',
+            user: member,
+            joinedAt: members[i].createdAt,
+            email: member.email,
+            showInContacts: false,
+            role: roles[i]
+        });
+    }
+
+    return result;
+}

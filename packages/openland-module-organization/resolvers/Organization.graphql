@@ -26,6 +26,7 @@ type Organization {
     superAccountId: ID!
     alphaIsOwner: Boolean!
     alphaOrganizationMembers: [OrganizationJoinedMember!]!
+    alphaOrganizationMemberRequests: [OrganizationRequestedMember!]!
     alphaFeatured: Boolean!
     alphaIsCommunity: Boolean!
     alphaCreatedChannels: [ChannelConversation]!
