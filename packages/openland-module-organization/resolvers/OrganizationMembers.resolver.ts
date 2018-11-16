@@ -9,6 +9,7 @@ import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { Emails } from 'openland-module-email/Emails';
 import { resolveOrganizationJoinedMembers } from './utils/resolveOrganizationJoinedMembers';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
+import { FDB } from 'openland-module-db/FDB';
 
 export default {
     OrganizationMember: {
@@ -56,6 +57,14 @@ export default {
         }),
     },
     Mutation: {
+        betaOrganizationMemberRequestApprove: withAccount(async (ctx, args, uid) => {
+            return await Modules.Orgs.addUserToOrganization(ctx, IDs.User.parse(args.userId), IDs.Organization.parse(args.organizationId), uid);
+        }),
+        betaOrganizationMemberRemove: withAccount(async (ctx, args, uid) => {
+            await Modules.Orgs.removeUserFromOrganization(ctx, IDs.User.parse(args.userId), IDs.Organization.parse(args.organizationId), uid)
+            return await FDB.Organization.findById(ctx, IDs.Organization.parse(args.organizationId));
+        }),
+        // depricated
         alphaOrganizationRemoveMember: withAccount(async (ctx, args, uid) => {
             let oid = IDs.Organization.parse(args.organizationId);
             let memberId = IDs.User.parse(args.memberId);

@@ -47,12 +47,15 @@ extend type Query {
 }
 
 extend type Mutation {
-    alphaOrganizationRemoveMember(memberId: ID!, organizationId: ID!): String!
+    betaOrganizationMemberRequestApprove(userId: ID!, organizationId: ID!): Organization!
+    betaOrganizationMemberRemove(userId: ID!, organizationId: ID!): Organization!
+
     alphaOrganizationChangeMemberRole(memberId: ID!, newRole: OrganizationMemberRole!, organizationId: ID!): String!
     
     alphaOrganizationInviteMembers(inviteRequests: [InviteRequest!]!, organizationId: ID): String!
     alphaOrganizationRefreshInviteLink(expirationDays: Int, organizationId: ID): Invite!
     # deprecated
     alphaOrganizationCreatePublicInvite(expirationDays: Int, organizationId: ID): Invite!
+    alphaOrganizationRemoveMember(memberId: ID!, organizationId: ID!): String!
     alphaOrganizationDeletePublicInvite(organizationId: ID): String!
 }

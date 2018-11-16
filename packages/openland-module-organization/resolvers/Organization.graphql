@@ -32,6 +32,8 @@ type Organization {
     alphaCreatedChannels: [ChannelConversation]!
 
     shortname: String
+
+    betaPublicRooms: [SharedRoom!]!
 }
 
 extend type Query {

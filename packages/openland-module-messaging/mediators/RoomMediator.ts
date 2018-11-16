@@ -28,10 +28,10 @@ export class RoomMediator {
         return await this.repo.isActiveMember(ctx, uid, cid);
     }
 
-    async createRoom(parent: Context, kind: 'public' | 'group', oid: number, uid: number, members: number[], profile: RoomProfileInput, message?: string) {
+    async createRoom(parent: Context, kind: 'public' | 'group', oid: number, uid: number, members: number[], profile: RoomProfileInput, message?: string, listed?: boolean) {
         return await inTx(parent, async (ctx) => {
             // Create room
-            let res = await this.repo.createRoom(ctx, kind, oid, uid, members, profile);
+            let res = await this.repo.createRoom(ctx, kind, oid, uid, members, profile, listed);
             // Send initial messages
             await this.messaging.sendMessage(ctx, uid, res.id, { message: kind === 'group' ? 'Group created' : 'Room created', isService: true });
             if (message) {
@@ -284,4 +284,9 @@ export class RoomMediator {
     async findMembershipStatus(ctx: Context, uid: number, cid: number) {
         return await this.repo.findMembershipStatus(ctx, uid, cid);
     }
+
+    async resolveUserMembershipStatus(ctx: Context, uid: number, cid: number) {
+        return await this.repo.resolveUserMembershipStatus(ctx, uid, cid);
+    }
+
 }

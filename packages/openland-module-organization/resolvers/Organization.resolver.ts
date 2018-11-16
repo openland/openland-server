@@ -42,6 +42,10 @@ export default {
             }
 
             return null;
+        },
+        betaPublicRooms: async (src: Organization, args: {}, ctx: AppContext) => {
+            let isMember = ctx.auth.uid && ctx.auth.oid && await Modules.Orgs.isUserMember(ctx, ctx.auth.uid, ctx.auth.oid);
+            return (await FDB.ConversationRoom.allFromOrganizationPublicRooms(ctx, src.id)).filter(r => isMember || r.listed);
         }
     },
     Query: {

@@ -51,7 +51,7 @@ export default {
         }
     },
     PrivateRoom: {
-        id: (root: RoomRoot) => IDs.Room.serialize(typeof root === 'number' ? root : root.id),
+        id: (root: RoomRoot) => IDs.Conversation.serialize(typeof root === 'number' ? root : root.id),
         user: async (root: RoomRoot, args: {}, ctx: AppContext) => {
             let proom = (await FDB.ConversationPrivate.findById(ctx, typeof root === 'number' ? root : root.id))!;
             if (proom.uid1 === ctx.auth.uid!) {
@@ -63,8 +63,15 @@ export default {
             }
         }
     },
+    SharedRoomMembershipStatus: {
+        MEMBER: 'joined',
+        REQUESTED: 'requested',
+        LEFT: 'left',
+        KICKED: 'kicked',
+        NONE: 'none',
+    },
     SharedRoom: {
-        id: (root: RoomRoot) => IDs.Room.serialize(typeof root === 'number' ? root : root.id),
+        id: (root: RoomRoot) => IDs.Conversation.serialize(typeof root === 'number' ? root : root.id),
         kind: withConverationId(async (ctx, id) => {
             let room = (await FDB.ConversationRoom.findById(ctx, id))!;
             if (room.kind === 'group') {
@@ -91,11 +98,9 @@ export default {
             return profile.description;
         }),
 
-        membership: async (root: RoomRoot) => {
-            throw new Error('Not implemented');
-        },
+        membership: withConverationId(async (ctx, id) => await Modules.Messaging.room.resolveUserMembershipStatus(ctx, ctx.auth.uid!, id)),
         membersCount: async (root: RoomRoot, args: {}, ctx: AppContext) => (await FDB.RoomParticipant.allFromActive(ctx, (typeof root === 'number' ? root : root.id))).length,
-        members: async (root: RoomRoot, args: {}, ctx: AppContext) => await FDB.RoomParticipant.allFromActive(ctx, (typeof root === 'number' ? root : root.id)),
+        members: withConverationId(async (ctx, id) => await FDB.RoomParticipant.allFromActive(ctx, id)),
     },
     RoomMessage: {
         id: (src: Message) => {
@@ -156,7 +161,7 @@ export default {
     Query: {
         room: withAccount(async (ctx, args, uid, oid) => {
             let id = IdsFactory.resolve(args.id);
-            if (id.type === IDs.Room) {
+            if (id.type === IDs.Conversation) {
                 return id.id;
             } else if (id.type === IDs.User) {
                 return Modules.Messaging.room.resolvePrivateChat(ctx, id.id, uid);
@@ -171,7 +176,7 @@ export default {
             }
         }),
         roomMessages: withUser(async (ctx, args, uid) => {
-            let roomId = IDs.Room.parse(args.roomId);
+            let roomId = IDs.Conversation.parse(args.roomId);
 
             await Modules.Messaging.room.checkAccess(ctx, uid, roomId);
 
@@ -187,7 +192,7 @@ export default {
             return await FDB.Message.rangeFromChat(ctx, roomId, args.first!, true);
         }),
         roomMembers: withUser(async (ctx, args, uid) => {
-            let roomId = IDs.Room.parse(args.roomId);
+            let roomId = IDs.Conversation.parse(args.roomId);
             let res = await FDB.RoomParticipant.allFromActive(ctx, roomId);
             return res;
         }),
@@ -260,7 +265,7 @@ export default {
             return await Modules.Invites.resolveInvite(ctx, args.invite);
         }),
         betaRoomInviteLink: withUser(async (ctx, args, uid) => {
-            return await Modules.Invites.createRoomlInviteLink(ctx, IDs.Room.parse(args.roomId), uid);
+            return await Modules.Invites.createRoomlInviteLink(ctx, IDs.Conversation.parse(args.roomId), uid);
         })
     },
     Mutation: {
@@ -279,7 +284,7 @@ export default {
             return Modules.Messaging.room.createRoom(ctx, (args.kind).toLowerCase() as 'group' | 'public', oid, uid, args.members.map((v) => IDs.User.parse(v)), {
                 title: args.title!,
                 image: imageRef
-            }, args.message || '');
+            }, args.message || '', args.listed || undefined);
         }),
         betaRoomUpdate: withUser(async (ctx, args, uid) => {
             await validate(
@@ -299,7 +304,7 @@ export default {
                 await Modules.Media.saveFile(args.input.socialImageRef.uuid);
             }
 
-            let room = await Modules.Messaging.room.updateRoomProfile(ctx, IDs.Room.parse(args.roomId), uid, {
+            let room = await Modules.Messaging.room.updateRoomProfile(ctx, IDs.Conversation.parse(args.roomId), uid, {
                 title: args.input.title!,
                 description: Sanitizer.sanitizeString(args.input.description),
                 image: imageRef,
@@ -321,24 +326,24 @@ export default {
 
             let members = args.invites.map((v) => IDs.User.parse(v.userId));
 
-            return await Modules.Messaging.room.inviteToRoom(ctx, IDs.Room.parse(args.roomId), uid, members);
+            return await Modules.Messaging.room.inviteToRoom(ctx, IDs.Conversation.parse(args.roomId), uid, members);
         }),
         betaRoomKick: withUser(async (parent, args, uid) => {
             let userId = IDs.User.parse(args.userId);
             return inTx(parent, async (ctx) => {
                 if (uid === userId) {
-                    return await Modules.Messaging.room.leaveRoom(ctx, IDs.Room.parse(args.roomId), uid);
+                    return await Modules.Messaging.room.leaveRoom(ctx, IDs.Conversation.parse(args.roomId), uid);
                 } else {
-                    return await Modules.Messaging.room.kickFromRoom(ctx, IDs.Room.parse(args.roomId), uid, userId);
+                    return await Modules.Messaging.room.kickFromRoom(ctx, IDs.Conversation.parse(args.roomId), uid, userId);
                 }
             });
         }),
         betaRoomChangeRole: withUser(async (ctx, args, uid) => {
-            return await Modules.Messaging.room.updateMemberRole(ctx, IDs.Room.parse(args.roomId), uid, IDs.User.parse(args.userId), args.newRole.toLocaleLowerCase() as any);
+            return await Modules.Messaging.room.updateMemberRole(ctx, IDs.Conversation.parse(args.roomId), uid, IDs.User.parse(args.userId), args.newRole.toLocaleLowerCase() as any);
         }),
 
         betaRoomJoin: withUser(async (ctx, args, uid) => {
-            return await Modules.Messaging.room.joinRoom(ctx, IDs.Room.parse(args.roomId), uid);
+            return await Modules.Messaging.room.joinRoom(ctx, IDs.Conversation.parse(args.roomId), uid);
         }),
 
         // invite links
@@ -351,7 +356,7 @@ export default {
                 for (let inviteRequest of args.inviteRequests) {
                     await Modules.Invites.createRoomInvite(
                         ctx,
-                        IDs.Room.parse(args.roomId),
+                        IDs.Conversation.parse(args.roomId),
                         uid,
                         inviteRequest.email,
                         inviteRequest.emailText || undefined,
@@ -376,7 +381,7 @@ export default {
         //
         betaRoomUpdateUserNotificationSettings: withUser(async (parent, args, uid) => {
             return await inTx(parent, async (ctx) => {
-                let settings = await Modules.Messaging.getRoomSettings(ctx, uid, IDs.Room.parse(args.roomId));
+                let settings = await Modules.Messaging.getRoomSettings(ctx, uid, IDs.Conversation.parse(args.roomId));
                 if (args.settings.mute !== undefined && args.settings.mute !== null) {
                     settings.mute = args.settings.mute;
                 }
@@ -388,11 +393,11 @@ export default {
         // Admin tools
         //
         betaRoomAlterFeatured: withPermission('super-admin', async (ctx, args) => {
-            return await Modules.Messaging.room.setFeatured(ctx, IDs.Room.parse(args.roomId), args.featured);
+            return await Modules.Messaging.room.setFeatured(ctx, IDs.Conversation.parse(args.roomId), args.featured);
         }),
 
         betaRoomAlterListed: withPermission('super-admin', async (ctx, args) => {
-            return await Modules.Messaging.room.setListed(ctx, IDs.Room.parse(args.roomId), args.listed);
+            return await Modules.Messaging.room.setListed(ctx, IDs.Conversation.parse(args.roomId), args.listed);
         }),
 
     }

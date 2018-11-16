@@ -129,4 +129,5 @@ export namespace GQLRoots {
     export type RoomUserNotificaionSettingsRoot = any;
     export type RoomInviteEmailRequest = any;
     export type RoomInviteRoot = any;
+    export type OrganizationRequestedMemberRoot = any;
 }

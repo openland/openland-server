@@ -23,7 +23,7 @@ function doSimpleHash(key: string): number {
 export class RoomRepository {
     @lazyInject('FDB') private readonly entities!: AllEntities;
 
-    async createRoom(parent: Context, kind: 'public' | 'group', oid: number, uid: number, members: number[], profile: RoomProfileInput) {
+    async createRoom(parent: Context, kind: 'public' | 'group', oid: number, uid: number, members: number[], profile: RoomProfileInput, listed?: boolean) {
         return await inTx(parent, async (ctx) => {
             let id = await this.fetchNextConversationId(ctx);
             let conv = await this.entities.Conversation.create(ctx, id, { kind: 'room' });
@@ -32,7 +32,7 @@ export class RoomRepository {
                 ownerId: uid,
                 oid: kind === 'public' ? oid : undefined,
                 featured: false,
-                listed: kind === 'public'
+                listed: kind === 'public' && listed !== false
             });
             await this.entities.RoomProfile.create(ctx, id, {
                 title: profile.title,
@@ -275,6 +275,11 @@ export class RoomRepository {
             return null;
         }
         return p;
+    }
+
+    async resolveUserMembershipStatus(ctx: Context, uid: number, cid: number) {
+        let participant = await this.entities.RoomParticipant.findById(ctx, uid, cid);
+        return participant ? participant.status : 'none';
     }
 
     async findActiveMembers(ctx: Context, cid: number) {
