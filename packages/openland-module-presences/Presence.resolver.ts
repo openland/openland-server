@@ -25,7 +25,7 @@ export default {
             await Modules.Presence.setOnline(ctx, ctx.auth.uid, ctx.auth.tid!, args.timeout, args.platform || 'unknown');
             return 'ok';
         },
-        presenceReportOffline: withAny<{ platform?: string }>(async (ctx, args) => {
+        presenceReportOffline: withAny(async (ctx, args) => {
             // TODO: Implement
             return 'ok';
         }),

@@ -59,8 +59,8 @@ export function withUser<T, R>(resolver: (ctx: AppContext, args: T, uid: number)
     };
 }
 
-export function withAny<T = {}>(resolver: (ctx: AppContext, args: T) => any) {
-    return async function (_: any, args: T, ctx: AppContext) {
+export function withAny<T, R>(resolver: (ctx: AppContext, args: T) => R): (_: any, args: T, ctx: AppContext) => MaybePromise<R>  {
+    return async (_: any, args: T, ctx: AppContext) => {
         return resolver(ctx, args);
     };
 }
@@ -109,7 +109,6 @@ export type FieldResolver<T> = (...args: any[]) => MaybePromise<T>;
 export type FieldResolverWithRoot<T, R> = (root: R, ...args: any[]) => MaybePromise<T>;
 
 export type Resolver<Root, Args, Context, ReturnType> = (root: Root, args: Args, context: Context) => MaybePromise<ReturnType>;
-// export type FieldResolverWithRoot<T, R, C> = C extends TypeName<T> ? (root: R, ...args: any[]) => MaybePromise<T> : never;
 
 type Nullable<T> = undefined | null | T;
 export type TypedResolver<T> = { [P in keyof T]: FieldResolver<T[P]> };
@@ -129,15 +128,3 @@ export type SameType<A, B> = TypeName<A> extends TypeName<B> ? (A extends B ? tr
 export type ComplexTypedResolver<T, Root, ReturnTypesMap extends any, ArgTypesMap extends any> = {
     [P in keyof T]: (T[P] extends Nullable<object | object[]> ? Resolver<Root, ArgTypesMap[P], AppContext, ReturnTypesMap[P]> : Resolver<Root, ArgTypesMap[P], AppContext, T[P]>)
 };
-
-// export type ComplexTypedResolver<T, M extends any, R> = {
-//     [P in keyof T]: (T[P] extends Nullable<object | object[]> ? FieldResolverWithRoot<M[P], R> : FieldResolverWithRoot<T[P], R>)
-// };
-
-export function typed<T>(resolver: { [P in keyof T]: FieldResolver<T[P]> }) {
-    return resolver;
-}
-
-export function typedSoftly<T>(resolver: { [P in keyof T]: (T[P] extends Nullable<object | object[]> ? FieldResolver<any> : FieldResolver<T[P]>) }) {
-    return resolver;
-}
