@@ -6,5 +6,6 @@ export function buildSchema(rootPath: string) {
         .map((f) => fs.readFileSync(f, 'utf-8'))
         .sort()
         .join('\n');
+
     return schema;
 }
