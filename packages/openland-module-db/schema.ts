@@ -5996,6 +5996,7 @@ export class ConferenceRoomParticipantFactory extends FEntityFactory<ConferenceR
         ],
         indexes: [
             { name: 'conference', type: 'range', fields: ['cid', 'keepAliveTimeout'] },
+            { name: 'active', type: 'range', fields: ['keepAliveTimeout'] },
         ],
     };
 
@@ -6016,7 +6017,7 @@ export class ConferenceRoomParticipantFactory extends FEntityFactory<ConferenceR
         super(connection,
             new FNamespace('entity', 'conferenceRoomParticipant'),
             { enableVersioning: true, enableTimestamps: true, validator: ConferenceRoomParticipantFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('conference', ['cid', 'keepAliveTimeout'], false, (src) => src.enabled)],
+            [new FEntityIndex('conference', ['cid', 'keepAliveTimeout'], false, (src) => src.enabled), new FEntityIndex('active', ['keepAliveTimeout'], false, (src) => src.enabled)],
             'ConferenceRoomParticipant'
         );
     }
@@ -6050,6 +6051,18 @@ export class ConferenceRoomParticipantFactory extends FEntityFactory<ConferenceR
     }
     createConferenceStream(ctx: Context, cid: number, limit: number, after?: string) {
         return this._createStream(ctx, ['entity', 'conferenceRoomParticipant', '__indexes', 'conference', cid], limit, after); 
+    }
+    async rangeFromActive(ctx: Context, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'active'], limit, reversed);
+    }
+    async rangeFromActiveWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'active'], limit, after, reversed);
+    }
+    async allFromActive(ctx: Context, ) {
+        return await this._findAll(ctx, ['__indexes', 'active']);
+    }
+    createActiveStream(ctx: Context, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'conferenceRoomParticipant', '__indexes', 'active'], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new ConferenceRoomParticipant(ctx, this.connection, this.namespace, this.directory, [value.cid, value.uid, value.tid], value, this.options, isNew, this.indexes, 'ConferenceRoomParticipant');

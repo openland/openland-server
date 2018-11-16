@@ -590,6 +590,7 @@ const Schema = declareSchema(() => {
         field('keepAliveTimeout', 'number');
         field('enabled', 'boolean');
         rangeIndex('conference', ['cid', 'keepAliveTimeout']).withCondition((src) => src.enabled);
+        rangeIndex('active', ['keepAliveTimeout']).withCondition((src) => src.enabled);
         enableTimestamps();
         enableVersioning();
     });
