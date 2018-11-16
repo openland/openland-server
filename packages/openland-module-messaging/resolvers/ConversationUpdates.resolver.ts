@@ -61,11 +61,11 @@ export default {
             resolve: async (msg: any) => {
                 return msg;
             },
-            subscribe: function (_: any, args: { conversationId: string, fromState?: string }, ctx: AppContext) {
+            subscribe: (r, args, ctx) => {
                 let conversationId = IDs.Conversation.parse(args.conversationId);
-                return FDB.ConversationEvent.createUserLiveStream(ctx, conversationId, 20, args.fromState);
+                return FDB.ConversationEvent.createUserLiveStream(ctx, conversationId, 20, args.fromState || undefined);
             }
-        } as any,
+        },
     },
 
     //

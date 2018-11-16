@@ -4,15 +4,6 @@ import { withAny } from 'openland-module-api/Resolvers';
 import { QueryParser, buildElasticQuery } from 'openland-utils/QueryParser';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 
-interface AlphaOrganizationsParams {
-    query?: string;
-    prefix?: string;
-    first: number;
-    after?: string;
-    page?: number;
-    sort?: string;
-}
-
 export default {
     Query: {
         alphaOrganizationByPrefix: withAny(async (ctx, args) => {

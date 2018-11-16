@@ -3,6 +3,7 @@ import { Modules } from 'openland-modules/Modules';
 import { IDs } from 'openland-module-api/IDs';
 import { ConferenceRoom, ConferenceParticipant } from 'openland-module-db/schema';
 import { Context } from 'openland-utils/Context';
+import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 
 export default {
     Conference: {
@@ -32,4 +33,4 @@ export default {
             return Modules.Calls.repo.findConference(ctx, IDs.Conversation.parse(args.id));
         })
     }
-};
+} as GQLResolver;
