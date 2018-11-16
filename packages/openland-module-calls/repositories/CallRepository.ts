@@ -2,6 +2,9 @@ import { injectable, inject } from 'inversify';
 import { AllEntities } from 'openland-module-db/schema';
 import { Context } from 'openland-utils/Context';
 import { inTx } from 'foundation-orm/inTx';
+import { createLogger } from 'openland-log/createLogger';
+
+let log = createLogger('call-repo');
 
 @injectable()
 export class CallRepository {
@@ -20,29 +23,28 @@ export class CallRepository {
     }
 
     findActiveMembers = async (parent: Context, cid: number) => {
-        let res = await this.entities.ConferenceRoomParticipant.allFromConference(parent, cid);
-        let dt = Date.now();
-        res = res.filter((v) => v.keepAliveTimeout > dt);
-        let res2 = res.map((v) => v.uid);
-        let res3: number[] = [];
-        for (let r of res2) {
-            if (!res3.find((v) => v === r)) {
-                res3.push(r);
-            }
-        }
-        return res3;
+        return await this.entities.ConferenceParticipant.allFromConference(parent, cid);
     }
 
     conferenceJoin = async (parent: Context, cid: number, uid: number, tid: string, timeout: number) => {
         return await inTx(parent, async (ctx) => {
-            let res = (await this.entities.ConferenceRoomParticipant.findById(ctx, cid, uid, tid));
+            let res = (await this.entities.ConferenceParticipant.findById(ctx, cid, uid, tid));
             if (res) {
                 res.keepAliveTimeout = Date.now() + timeout;
                 res.enabled = true;
+                await this.bumpVersion(ctx, cid);
             } else {
-                res = await this.entities.ConferenceRoomParticipant.create(ctx, cid, uid, tid, {
+                let seq = (await this.entities.Sequence.findById(ctx, 'conference-participant-id'));
+                if (!seq) {
+                    seq = await this.entities.Sequence.create(ctx, 'conference-participant-id', { value: 0 });
+                }
+                let id = ++seq.value;
+                await seq.flush();
+                res = await this.entities.ConferenceParticipant.create(ctx, cid, uid, tid, {
+                    id,
                     keepAliveTimeout: Date.now() + timeout, enabled: true
                 });
+                await this.bumpVersion(ctx, cid);
             }
             return res;
         });
@@ -50,10 +52,32 @@ export class CallRepository {
 
     conferenceLeave = async (parent: Context, cid: number, uid: number, tid: string) => {
         await inTx(parent, async (ctx) => {
-            let res = (await this.entities.ConferenceRoomParticipant.findById(ctx, cid, uid, tid));
+            let res = (await this.entities.ConferenceParticipant.findById(ctx, cid, uid, tid));
             if (res) {
                 res.enabled = false;
             }
+            await this.bumpVersion(ctx, cid);
+        });
+    }
+
+    checkTimeouts = async (parent: Context) => {
+        await inTx(parent, async (ctx) => {
+            let active = await this.entities.ConferenceParticipant.allFromActive(ctx);
+            let now = Date.now();
+            for (let a of active) {
+                if (a.keepAliveTimeout < now) {
+                    log.log(ctx, 'Call Participant Reaped: ' + a.uid + ' from ' + a.cid);
+                    a.enabled = false;
+                    await this.bumpVersion(ctx, a.cid);
+                }
+            }
+        });
+    }
+
+    private bumpVersion = async (parent: Context, cid: number) => {
+        await inTx(parent, async (ctx) => {
+            let conf = await this.findConference(ctx, cid);
+            conf.markDirty();
         });
     }
 }

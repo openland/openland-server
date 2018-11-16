@@ -573,22 +573,15 @@ const Schema = declareSchema(() => {
         enableVersioning();
     });
 
-    // entity('ConferenceRoomLink', () => {
-    //     primaryKey('id', 'string');
-    //     primaryKey('cid', 'number');
-    //     primaryKey('uid1', 'number');
-    //     primaryKey('uid2', 'number');
-    //     field('enabled', 'boolean');
-    //     enableTimestamps();
-    //     enableVersioning();
-    // });
-
-    entity('ConferenceRoomParticipant', () => {
+    entity('ConferenceParticipant', () => {
+        field('id', 'number');
         primaryKey('cid', 'number');
         primaryKey('uid', 'number');
         primaryKey('tid', 'string');
+
         field('keepAliveTimeout', 'number');
         field('enabled', 'boolean');
+        uniqueIndex('id', ['id']);
         rangeIndex('conference', ['cid', 'keepAliveTimeout']).withCondition((src) => src.enabled);
         rangeIndex('active', ['keepAliveTimeout']).withCondition((src) => src.enabled);
         enableTimestamps();

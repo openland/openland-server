@@ -1,13 +1,17 @@
 import { withUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { IDs } from 'openland-module-api/IDs';
-import { ConferenceRoom } from 'openland-module-db/schema';
+import { ConferenceRoom, ConferenceParticipant } from 'openland-module-db/schema';
 import { Context } from 'openland-utils/Context';
 
 export default {
     Conference: {
         id: (src: ConferenceRoom) => IDs.Conference.serialize(src.id),
-        members: (src: ConferenceRoom, args: {}, ctx: Context) => Modules.Calls.repo.findActiveMembers(ctx, src.id)
+        participants: (src: ConferenceRoom, args: {}, ctx: Context) => Modules.Calls.repo.findActiveMembers(ctx, src.id)
+    },
+    ConferenceParticipant: {
+        id: (src: ConferenceParticipant) => IDs.ConferenceParticipant.serialize(src.id),
+        user: (src: ConferenceParticipant) => src.uid,
     },
     Query: {
         conference: withUser<{ id: string }, any>(async (ctx, args, uid) => {
