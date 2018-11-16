@@ -586,8 +586,10 @@ const Schema = declareSchema(() => {
     entity('ConferenceRoomParticipant', () => {
         primaryKey('cid', 'number');
         primaryKey('uid', 'number');
+        primaryKey('tid', 'string');
         field('keepAliveTimeout', 'number');
         field('enabled', 'boolean');
+        rangeIndex('conference', ['cid', 'keepAliveTimeout']).withCondition((src) => src.enabled);
         enableTimestamps();
         enableVersioning();
     });

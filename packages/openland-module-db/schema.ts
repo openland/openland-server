@@ -5960,6 +5960,7 @@ export class ConferenceRoomParticipant extends FEntity {
     readonly entityName: 'ConferenceRoomParticipant' = 'ConferenceRoomParticipant';
     get cid(): number { return this._value.cid; }
     get uid(): number { return this._value.uid; }
+    get tid(): string { return this._value.tid; }
     get keepAliveTimeout(): number {
         return this._value.keepAliveTimeout;
     }
@@ -5987,12 +5988,14 @@ export class ConferenceRoomParticipantFactory extends FEntityFactory<ConferenceR
         primaryKeys: [
             { name: 'cid', type: 'number' },
             { name: 'uid', type: 'number' },
+            { name: 'tid', type: 'string' },
         ],
         fields: [
             { name: 'keepAliveTimeout', type: 'number' },
             { name: 'enabled', type: 'boolean' },
         ],
         indexes: [
+            { name: 'conference', type: 'range', fields: ['cid', 'keepAliveTimeout'] },
         ],
     };
 
@@ -6001,6 +6004,8 @@ export class ConferenceRoomParticipantFactory extends FEntityFactory<ConferenceR
         validators.isNumber('cid', src.cid);
         validators.notNull('uid', src.uid);
         validators.isNumber('uid', src.uid);
+        validators.notNull('tid', src.tid);
+        validators.isString('tid', src.tid);
         validators.notNull('keepAliveTimeout', src.keepAliveTimeout);
         validators.isNumber('keepAliveTimeout', src.keepAliveTimeout);
         validators.notNull('enabled', src.enabled);
@@ -6011,25 +6016,43 @@ export class ConferenceRoomParticipantFactory extends FEntityFactory<ConferenceR
         super(connection,
             new FNamespace('entity', 'conferenceRoomParticipant'),
             { enableVersioning: true, enableTimestamps: true, validator: ConferenceRoomParticipantFactory.validate, hasLiveStreams: false },
-            [],
+            [new FEntityIndex('conference', ['cid', 'keepAliveTimeout'], false, (src) => src.enabled)],
             'ConferenceRoomParticipant'
         );
     }
     extractId(rawId: any[]) {
-        if (rawId.length !== 2) { throw Error('Invalid key length!'); }
-        return { 'cid': rawId[0], 'uid': rawId[1] };
+        if (rawId.length !== 3) { throw Error('Invalid key length!'); }
+        return { 'cid': rawId[0], 'uid': rawId[1], 'tid': rawId[2] };
     }
-    async findById(ctx: Context, cid: number, uid: number) {
-        return await this._findById(ctx, [cid, uid]);
+    async findById(ctx: Context, cid: number, uid: number, tid: string) {
+        return await this._findById(ctx, [cid, uid, tid]);
     }
-    async create(ctx: Context, cid: number, uid: number, shape: ConferenceRoomParticipantShape) {
-        return await this._create(ctx, [cid, uid], { cid, uid, ...shape });
+    async create(ctx: Context, cid: number, uid: number, tid: string, shape: ConferenceRoomParticipantShape) {
+        return await this._create(ctx, [cid, uid, tid], { cid, uid, tid, ...shape });
     }
-    watch(ctx: Context, cid: number, uid: number, cb: () => void) {
-        return this._watch(ctx, [cid, uid], cb);
+    watch(ctx: Context, cid: number, uid: number, tid: string, cb: () => void) {
+        return this._watch(ctx, [cid, uid, tid], cb);
+    }
+    async allFromConferenceAfter(ctx: Context, cid: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'conference', cid], after);
+    }
+    async rangeFromConferenceAfter(ctx: Context, cid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'conference', cid], after, limit, reversed);
+    }
+    async rangeFromConference(ctx: Context, cid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'conference', cid], limit, reversed);
+    }
+    async rangeFromConferenceWithCursor(ctx: Context, cid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'conference', cid], limit, after, reversed);
+    }
+    async allFromConference(ctx: Context, cid: number) {
+        return await this._findAll(ctx, ['__indexes', 'conference', cid]);
+    }
+    createConferenceStream(ctx: Context, cid: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'conferenceRoomParticipant', '__indexes', 'conference', cid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new ConferenceRoomParticipant(ctx, this.connection, this.namespace, this.directory, [value.cid, value.uid], value, this.options, isNew, this.indexes, 'ConferenceRoomParticipant');
+        return new ConferenceRoomParticipant(ctx, this.connection, this.namespace, this.directory, [value.cid, value.uid, value.tid], value, this.options, isNew, this.indexes, 'ConferenceRoomParticipant');
     }
 }
 
