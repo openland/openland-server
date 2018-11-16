@@ -9,8 +9,8 @@ import { ErrorText } from 'openland-errors/ErrorText';
 import { inTx } from 'foundation-orm/inTx';
 import { stringNotEmpty, validate } from 'openland-utils/NewInputValidator';
 import { Sanitizer } from 'openland-utils/Sanitizer';
-import { GQL, GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
+import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 
 export default {
     OrganizationProfile: {
@@ -46,7 +46,7 @@ export default {
             }
             return null;
         },
-        organizationProfile: withAny<GQL.QueryOrganizationProfileArgs>(async (ctx, args) => {
+        organizationProfile: withAny(async (ctx, args) => {
             // TODO: Fix permissions!11
             let res = await FDB.Organization.findById(ctx, IDs.Organization.parse(args.id));
             if (!res) {

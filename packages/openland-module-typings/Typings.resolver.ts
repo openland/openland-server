@@ -44,7 +44,7 @@ export default {
             resolve: async (msg: any) => {
                 return msg;
             },
-            subscribe: async function (_: any, args: any, ctx: AppContext) {
+            subscribe: async (r, args, ctx) => {
                 if (!ctx.auth.uid) {
                     throw Error('Not logged in');
                 }
@@ -56,7 +56,7 @@ export default {
             resolve: async (msg: any) => {
                 return msg;
             },
-            subscribe: async function (_: any, args: { conversationId: string }, ctx: AppContext) {
+            subscribe: async (r, args, ctx) => {
                 let conversationId = IDs.Conversation.parse(args.conversationId);
 
                 if (!ctx.auth.uid) {
@@ -70,7 +70,7 @@ export default {
             resolve: async (msg: any) => {
                 return msg;
             },
-            subscribe: async function (_: any, args: any, ctx: AppContext) {
+            subscribe: async (r, args, ctx) => {
                 if (!ctx.auth.uid) {
                     throw Error('Not logged in');
                 }
@@ -82,7 +82,7 @@ export default {
             resolve: async (msg: any) => {
                 return msg;
             },
-            subscribe: async function (_: any, args: { conversationId: string }, ctx: AppContext) {
+            subscribe: async (r, args, ctx) => {
                 let conversationId = IDs.Conversation.parse(args.conversationId);
 
                 if (!ctx.auth.uid) {
@@ -92,5 +92,5 @@ export default {
                 return Modules.Typings.createTypingStream(ctx.auth.uid, conversationId);
             }
         },
-    } as any
+    }
 } as GQLResolver;

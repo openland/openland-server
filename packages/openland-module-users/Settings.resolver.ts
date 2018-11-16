@@ -101,7 +101,7 @@ export default {
             resolve: async (msg: any) => {
                 return msg;
             },
-            subscribe: async function (_: any, args: any, ctx: AppContext) {
+            subscribe: async (_: any, args, ctx) => {
                 let ended = false;
                 return {
                     ...(async function* func() {
@@ -122,7 +122,7 @@ export default {
             resolve: async (msg: any) => {
                 return msg;
             },
-            subscribe: async function (_: any, args: any, ctx: AppContext) {
+            subscribe: async (r, args, ctx) => {
                 let ended = false;
                 return {
                     ...(async function* func() {
@@ -139,5 +139,5 @@ export default {
                 };
             }
         }
-    } as any
+    }
 } as GQLResolver;

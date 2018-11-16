@@ -17,7 +17,7 @@ export default {
         alphaInvites: withUser(async (ctx, args, uid) => {
             return [];
         }),
-        alphaInviteInfo: withAny<{ key: string }>(async (ctx, args) => {
+        alphaInviteInfo: withAny(async (ctx, args) => {
             let orgInvite = await Modules.Invites.orgInvitesRepo.getOrganizationInviteNonJoined(ctx, args.key);
             let publicOrginvite = await Modules.Invites.orgInvitesRepo.getOrganizationInviteLinkByKey(ctx, args.key);
             let invite: { oid: number, uid: number, ttl?: number | null, role?: string, joined?: boolean, email?: string, firstName?: string | null } | null = orgInvite || publicOrginvite;
@@ -42,7 +42,7 @@ export default {
                 forName: invite.firstName,
             };
         }),
-        appInviteInfo: withAny<{ key: string }>(async (ctx, args) => {
+        appInviteInfo: withAny(async (ctx, args) => {
             let invite = await Modules.Invites.orgInvitesRepo.getAppInvteLinkData(ctx, args.key);
             if (!invite) {
                 return null;
@@ -72,7 +72,7 @@ export default {
         alphaJoinInvite: withUser(async (ctx, args, uid) => {
             return await Modules.Invites.joinOrganizationInvite(ctx, uid, args.key);
         }),
-        joinAppInvite: withAny<{ key: string }>(async (ctx, args) => {
+        joinAppInvite: withAny(async (ctx, args) => {
             let uid = AuthContext.get(ctx).uid;
             if (uid === undefined) {
                 return;

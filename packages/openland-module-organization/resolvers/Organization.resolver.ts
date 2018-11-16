@@ -57,7 +57,7 @@ export default {
             }
             return [];
         },
-        organization: withAny<{ id: string }>(async (ctx, args) => {
+        organization: withAny(async (ctx, args) => {
             let res = await FDB.Organization.findById(ctx, IDs.Organization.parse(args.id));
             if (!res) {
                 throw new NotFoundError('Unable to find organization');

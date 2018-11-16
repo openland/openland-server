@@ -5,6 +5,7 @@ import { ConferenceRoom, ConferenceParticipant } from 'openland-module-db/schema
 import { Context } from 'openland-utils/Context';
 import { AppContext } from 'openland-modules/AppContext';
 import { FDB } from 'openland-module-db/FDB';
+import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 
 export default {
     Conference: {
@@ -16,16 +17,16 @@ export default {
         user: (src: ConferenceParticipant) => src.uid,
     },
     Query: {
-        conference: withUser<{ id: string }, any>(async (ctx, args, uid) => {
+        conference: withUser(async (ctx, args, uid) => {
             return Modules.Calls.repo.findConference(ctx, IDs.Conversation.parse(args.id));
         })
     },
     Mutation: {
-        conferenceJoin: withUser<{ id: string }, any>(async (ctx, args, uid) => {
+        conferenceJoin: withUser(async (ctx, args, uid) => {
             await Modules.Calls.repo.conferenceJoin(ctx, IDs.Conversation.parse(args.id), uid, ctx.auth.tid!, 15000);
             return Modules.Calls.repo.findConference(ctx, IDs.Conversation.parse(args.id));
         }),
-        conferenceLeave: withUser<{ id: string }, any>(async (ctx, args, uid) => {
+        conferenceLeave: withUser(async (ctx, args, uid) => {
             await Modules.Calls.repo.conferenceLeave(ctx, IDs.Conversation.parse(args.id), uid, ctx.auth.tid!);
             return Modules.Calls.repo.findConference(ctx, IDs.Conversation.parse(args.id));
         }),
@@ -60,4 +61,4 @@ export default {
             }
         }
     }
-};
+} as GQLResolver;

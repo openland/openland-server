@@ -93,7 +93,7 @@ export default {
                 return FDB.User.findById(ctx, ctx.auth.uid);
             }
         },
-        user: withAny<{ id: string }>((ctx, args) => {
+        user: withAny((ctx, args) => {
             return FDB.User.findById(ctx, IDs.User.parse(args.id));
         }),
     }

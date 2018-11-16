@@ -130,4 +130,5 @@ export namespace GQLRoots {
     export type RoomInviteEmailRequest = any;
     export type RoomInviteRoot = any;
     export type OrganizationRequestedMemberRoot = any;
+    export type ConferenceParticipantRoot = any;
 }

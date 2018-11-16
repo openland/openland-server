@@ -94,9 +94,9 @@ export default {
             resolve: async (msg: any) => {
                 return msg;
             },
-            subscribe: function (_: any, args: { fromState?: string }, ctx: AppContext) {
-                return FDB.UserDialogEvent.createUserLiveStream(ctx, ctx.auth.uid!, 20, args.fromState);
+            subscribe: (r, args, ctx) => {
+                return FDB.UserDialogEvent.createUserLiveStream(ctx, ctx.auth.uid!, 20, args.fromState || undefined);
             }
-        } as any,
+        },
     }
 } as GQLResolver;

@@ -25,7 +25,7 @@ export default {
             await Modules.Presence.setOnline(ctx, ctx.auth.uid, ctx.auth.tid!, args.timeout, args.platform || 'unknown');
             return 'ok';
         },
-        presenceReportOffline: withAny<{ platform?: string }>(async (ctx, args) => {
+        presenceReportOffline: withAny(async (ctx, args) => {
             // TODO: Implement
             return 'ok';
         }),
@@ -56,7 +56,7 @@ export default {
             resolve: async (msg: any) => {
                 return msg;
             },
-            subscribe: async function (_: any, args: { conversations: string[] }, ctx: AppContext) {
+            subscribe: async (r, args, ctx) => {
                 let conversationIds = args.conversations.map(c => IDs.Conversation.parse(c));
 
                 if (!ctx.auth.uid) {
@@ -76,7 +76,7 @@ export default {
             resolve: async (msg: any) => {
                 return msg;
             },
-            subscribe: async function (_: any, args: { users: string[] }, ctx: AppContext) {
+            subscribe: async (r, args, ctx) => {
                 if (!ctx.auth.uid) {
                     throw Error('Not logged in');
                 }
@@ -85,5 +85,5 @@ export default {
                 return Modules.Presence.createPresenceStream(ctx.auth.uid!, userIds);
             }
         }
-    } as any
+    }
 } as GQLResolver;
