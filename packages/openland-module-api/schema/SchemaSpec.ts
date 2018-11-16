@@ -1765,8 +1765,6 @@ export namespace GQL {
         title?: string;
         photo?: string;
         description?: string;
-        listed?: boolean;
-        featured?: boolean;
         organization?: Organization;
         membership?: SharedRoomMembershipStatus;
         membersCount?: Nullable<number>;

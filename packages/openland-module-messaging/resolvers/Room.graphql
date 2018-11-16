@@ -31,8 +31,6 @@ type SharedRoom {
     title: String!
     photo: String!
     description: String!
-    listed: Boolean!
-    featured: Boolean!
     
     organization: Organization!
     membership: SharedRoomMembershipStatus!

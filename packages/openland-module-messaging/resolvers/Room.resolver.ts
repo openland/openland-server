@@ -87,8 +87,6 @@ export default {
             }
         }),
         title: withConverationId(async (ctx, id) => Modules.Messaging.room.resolveConversationTitle(ctx, id, ctx.auth.uid!)),
-        listed: withConverationId(async (ctx, id) => !!(await FDB.ConversationRoom.findById(ctx, id))!.listed),
-        featured: withConverationId(async (ctx, id) => !!(await FDB.ConversationRoom.findById(ctx, id))!.featured),
         photo: withConverationId(async (ctx, id) => Modules.Messaging.room.resolveConversationPhoto(ctx, id, ctx.auth.uid!)),
         organization: async (root: RoomRoot) => {
             throw new Error('Not implemented');
