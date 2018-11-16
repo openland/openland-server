@@ -5,6 +5,7 @@ import { withProfile, withUser } from 'openland-module-users/User.resolver';
 import { UserProfile } from 'openland-module-db/schema';
 import { IDs } from 'openland-module-api/IDs';
 import { AppContext } from 'openland-modules/AppContext';
+import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 
 export default {
     User: {
@@ -21,4 +22,4 @@ export default {
         alphaPrimaryOrganizationId: (src: UserProfile) => src.primaryOrganization ? IDs.Organization.serialize(src.primaryOrganization) : null,
         alphaPrimaryOrganization: async (src: UserProfile, args: {}, ctx: AppContext) => src.primaryOrganization ? FDB.Organization.findById(ctx, src.primaryOrganization) : null,
     }
-};
+} as GQLResolver;

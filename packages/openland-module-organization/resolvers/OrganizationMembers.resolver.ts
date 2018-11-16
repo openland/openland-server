@@ -8,6 +8,7 @@ import { Modules } from 'openland-modules/Modules';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { Emails } from 'openland-module-email/Emails';
 import { resolveOrganizationJoinedMembers } from './utils/resolveOrganizationJoinedMembers';
+import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 
 export default {
     OrganizationMember: {
@@ -16,7 +17,7 @@ export default {
         }
     },
     Query: {
-        alphaOrganizationMembers: withAccount<{ orgId: string }>(async (ctx, args, uid, orgId) => {
+        alphaOrganizationMembers: withAccount(async (ctx, args, uid, orgId) => {
             let targetOrgId = IDs.Organization.parse(args.orgId);
 
             let isMember = await Modules.Orgs.isUserMember(ctx, uid, targetOrgId);
@@ -44,31 +45,31 @@ export default {
 
             return result;
         }),
-        alphaOrganizationInviteLink: withAccount<{ organizationId?: string }>(async (ctx, args, uid, organizationId) => {
+        alphaOrganizationInviteLink: withAccount(async (ctx, args, uid, organizationId) => {
             organizationId = args.organizationId ? IDs.Organization.parse(args.organizationId) : organizationId;
             return await Modules.Invites.orgInvitesRepo.getOrganizationInviteLink(ctx, organizationId, uid);
         }),
         // deperecated
-        alphaOrganizationPublicInvite: withAccount<{ organizationId?: string }>(async (ctx, args, uid, organizationId) => {
+        alphaOrganizationPublicInvite: withAccount(async (ctx, args, uid, organizationId) => {
             organizationId = args.organizationId ? IDs.Organization.parse(args.organizationId) : organizationId;
             return await Modules.Invites.orgInvitesRepo.getOrganizationInviteLink(ctx, organizationId, uid);
         }),
     },
     Mutation: {
-        alphaOrganizationRemoveMember: withAccount<{ memberId: string, organizationId: string }>(async (ctx, args, uid) => {
+        alphaOrganizationRemoveMember: withAccount(async (ctx, args, uid) => {
             let oid = IDs.Organization.parse(args.organizationId);
             let memberId = IDs.User.parse(args.memberId);
             await Modules.Orgs.removeUserFromOrganization(ctx, memberId, oid, uid);
             return 'ok';
         }),
-        alphaOrganizationChangeMemberRole: withAccount<{ memberId: string, newRole: 'OWNER' | 'MEMBER', organizationId: string }>(async (ctx, args, uid) => {
+        alphaOrganizationChangeMemberRole: withAccount(async (ctx, args, uid) => {
             let oid = IDs.Organization.parse(args.organizationId);
             let memberId = IDs.User.parse(args.memberId);
             await Modules.Orgs.updateMemberRole(ctx, memberId, oid, args.newRole === 'OWNER' ? 'admin' : 'member', uid);
             return 'ok';
         }),
 
-        alphaOrganizationInviteMembers: withAccount<{ inviteRequests: { email: string, emailText?: string, firstName?: string, lastName?: string, role: 'OWNER' | 'MEMBER' }[], organizationId?: string }>(async (parent, args, uid, oid) => {
+        alphaOrganizationInviteMembers: withAccount(async (parent, args, uid, oid) => {
             oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
             await validate({ inviteRequests: [{ email: defined(emailValidator) }] }, args);
 
@@ -95,7 +96,7 @@ export default {
                 return 'ok';
             });
         }),
-        alphaOrganizationRefreshInviteLink: withAccount<{ expirationDays?: number, organizationId?: string }>(async (parent, args, uid, oid) => {
+        alphaOrganizationRefreshInviteLink: withAccount(async (parent, args, uid, oid) => {
             return inTx(parent, async (ctx) => {
                 oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
                 let isOwner = await Modules.Orgs.isUserAdmin(ctx, uid, oid);
@@ -108,7 +109,7 @@ export default {
             });
         }),
         // deperecated
-        alphaOrganizationCreatePublicInvite: withAccount<{ expirationDays?: number, organizationId?: string }>(async (parent, args, uid, oid) => {
+        alphaOrganizationCreatePublicInvite: withAccount(async (parent, args, uid, oid) => {
             return inTx(parent, async (ctx) => {
                 oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
                 let isOwner = await Modules.Orgs.isUserAdmin(ctx, uid, oid);
@@ -121,7 +122,7 @@ export default {
             });
         }),
         // deprecated
-        alphaOrganizationDeletePublicInvite: withAccount<{ organizationId?: string }>(async (ctx, args, uid, oid) => {
+        alphaOrganizationDeletePublicInvite: withAccount(async (ctx, args, uid, oid) => {
             // oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
             // return inTx(async () => {
             //     let isOwner = await Modules.Orgs.isUserAdmin(uid, oid);
@@ -135,4 +136,4 @@ export default {
             // });
         })
     }
-};
+} as GQLResolver;

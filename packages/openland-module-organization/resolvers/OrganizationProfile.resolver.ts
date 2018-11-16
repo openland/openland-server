@@ -9,7 +9,7 @@ import { ErrorText } from 'openland-errors/ErrorText';
 import { inTx } from 'foundation-orm/inTx';
 import { stringNotEmpty, validate } from 'openland-utils/NewInputValidator';
 import { Sanitizer } from 'openland-utils/Sanitizer';
-import { GQL } from '../../openland-module-api/schema/SchemaSpec';
+import { GQL, GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
 
 export default {
@@ -56,10 +56,10 @@ export default {
         }),
     },
     Mutation: {
-        createOrganization: withUser<GQL.MutationCreateOrganizationArgs>(async (ctx, args, uid) => {
+        createOrganization: withUser(async (ctx, args, uid) => {
             return await Modules.Orgs.createOrganization(ctx, uid, args.input);
         }),
-        updateOrganizationProfile: withAccount<GQL.MutationUpdateOrganizationProfileArgs>(async (parent, args, uid, oid) => {
+        updateOrganizationProfile: withAccount(async (parent, args, uid, oid) => {
 
             let orgId = oid;
             if (args.id) {
@@ -140,4 +140,4 @@ export default {
             });
         }),
     }
-};
+} as GQLResolver;

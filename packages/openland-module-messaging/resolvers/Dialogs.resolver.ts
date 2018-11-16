@@ -68,10 +68,10 @@ export default {
         topMessage: (src: UserDialog, args: {}, ctx: AppContext) => Modules.Messaging.findTopMessage(ctx, src.cid),
     },
     Query: {
-        dialogs: withUser<{ first: number, after?: string | null, seq?: number }>(async (ctx, args, uid) => {
+        dialogs: withUser(async (ctx, args, uid) => {
             return FDB.UserDialog.rangeFromUserWithCursor(ctx, uid, args.first, args.after ? args.after : undefined, true);
         }),
-        alphaChats: withUser<{ first: number, after?: string | null, seq?: number }>(async (ctx, args, uid) => {
+        alphaChats: withUser(async (ctx, args, uid) => {
             let global = await FDB.UserMessagingState.findById(ctx, uid);
             let seq = global ? global.seq : 0;
             let conversations = await FDB.UserDialog

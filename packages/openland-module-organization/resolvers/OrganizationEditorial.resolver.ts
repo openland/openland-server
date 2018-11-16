@@ -5,10 +5,11 @@ import { UserError } from 'openland-errors/UserError';
 import { ErrorText } from 'openland-errors/ErrorText';
 import { IDs } from 'openland-module-api/IDs';
 import { Modules } from 'openland-modules/Modules';
+import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 
 export default {
     Mutation: {
-        alphaAlterPublished: withPermission<{ id: string, published: boolean }>(['super-admin', 'editor'], async (parent, args) => {
+        alphaAlterPublished: withPermission(['super-admin', 'editor'], async (parent, args) => {
             return await inTx(parent, async (ctx) => {
                 let org = await FDB.Organization.findById(ctx, IDs.Organization.parse(args.id));
                 if (!org) {
@@ -24,4 +25,4 @@ export default {
             });
         }),
     }
-};
+} as GQLResolver;

@@ -45,7 +45,7 @@ export class FeatureRepository {
     }
 
     async findOrganizationFeatureFlags(ctx: Context, oid: number) {
-        return (await this.findOrganizationFeatures(ctx, oid)).map(async orgFeature => await this.entities.FeatureFlag.findById(ctx, orgFeature.featureKey));
+        return Promise.all((await this.findOrganizationFeatures(ctx, oid)).map(async orgFeature => await this.entities.FeatureFlag.findById(ctx, orgFeature.featureKey)));
     }
 
     async createFeatureFlag(parent: Context, key: string, title: string) {

@@ -3,6 +3,8 @@ import { UserError } from '../openland-errors/UserError';
 import { ErrorText } from '../openland-errors/ErrorText';
 import { Modules } from 'openland-modules/Modules';
 import { FDB } from 'openland-module-db/FDB';
+import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
+import { IDs } from '../openland-module-api/IDs';
 
 function testShortName(name: string) {
     if (!/^\w*$/.test(name)) {
@@ -29,7 +31,7 @@ export default {
     },
 
     Query: {
-        alphaResolveShortName: withAccount<{ shortname: string }>(async (ctx, args, uid, orgId) => {
+        alphaResolveShortName: withAccount(async (ctx, args, uid, orgId) => {
             let shortname = await Modules.Shortnames.findShortname(ctx, args.shortname);
 
             if (!shortname) {
@@ -46,24 +48,25 @@ export default {
         }),
     },
     Mutation: {
-        alphaSetUserShortName: withAccount<{ shortname: string }>(async (ctx, args, uid, orgId) => {
+        alphaSetUserShortName: withAccount(async (ctx, args, uid, orgId) => {
             testShortName(args.shortname);
 
             await Modules.Shortnames.setShortnameToUser(ctx, args.shortname, uid);
 
             return 'ok';
         }),
-        alphaSetOrgShortName: withAccount<{ shortname: string, id: number }>(async (ctx, args, uid, orgId) => {
+        alphaSetOrgShortName: withAccount(async (ctx, args, uid) => {
+            let orgId = IDs.Organization.parse(args.id);
             testShortName(args.shortname);
 
-            let member = await FDB.OrganizationMember.findById(ctx, args.id, uid);
+            let member = await FDB.OrganizationMember.findById(ctx, orgId, uid);
             if (member === null || member.status !== 'joined' || member.role !== 'admin') {
                 throw new UserError(ErrorText.permissionOnlyOwner);
             }
 
-            await Modules.Shortnames.setShortnameToOrganization(ctx, args.shortname, args.id);
+            await Modules.Shortnames.setShortnameToOrganization(ctx, args.shortname, orgId);
 
             return 'ok';
         }),
     },
-};
+} as GQLResolver;

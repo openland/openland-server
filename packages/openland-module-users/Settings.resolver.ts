@@ -4,7 +4,7 @@ import { FDB } from 'openland-module-db/FDB';
 import { withUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { inTx } from 'foundation-orm/inTx';
-import { GQL } from '../openland-module-api/schema/SchemaSpec';
+import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
 
 export default {
@@ -28,12 +28,12 @@ export default {
     Settings: {
         id: (src: UserSettings) => IDs.Settings.serialize(src.id),
         primaryEmail: async (src: UserSettings, args: {}, ctx: AppContext) => (await FDB.User.findById(ctx, src.id))!!.email,
-        emailFrequency: (src: UserSettings) => src.emailFrequency,
-        desktopNotifications: (src: UserSettings) => src.desktopNotifications,
-        mobileNotifications: (src: UserSettings) => src.mobileNotifications,
+        emailFrequency: (src: UserSettings) => src.emailFrequency as any,
+        desktopNotifications: (src: UserSettings) => src.desktopNotifications as any,
+        mobileNotifications: (src: UserSettings) => src.mobileNotifications as any,
         mobileAlert: (src: UserSettings) => src.mobileAlert !== null && src.mobileAlert !== undefined ? src.mobileAlert : true,
         mobileIncludeText: (src: UserSettings) => src.mobileIncludeText !== null && src.mobileAlert !== undefined ? src.mobileIncludeText : true,
-        notificationsDelay: (src: UserSettings) => src.notificationsDelay,
+        notificationsDelay: (src: UserSettings) => src.notificationsDelay as any,
     },
     Query: {
         settings: withUser(async (ctx, args, uid) => {
@@ -41,7 +41,7 @@ export default {
         }),
     },
     Mutation: {
-        updateSettings: withUser<GQL.MutationUpdateSettingsArgs>(async (parent, args, uid) => {
+        updateSettings: withUser(async (parent, args, uid) => {
             return await inTx(parent, async (ctx) => {
                 let settings = await Modules.Users.getUserSettings(ctx, uid);
                 if (!args.settings) {
@@ -68,7 +68,7 @@ export default {
                 return settings;
             });
         }),
-        settingsUpdate: withUser<GQL.MutationSettingsUpdateArgs>(async (parent, args, uid) => {
+        settingsUpdate: withUser(async (parent, args, uid) => {
             return await inTx(parent, async (ctx) => {
                 let settings = await Modules.Users.getUserSettings(ctx, uid);
                 if (!args.settings) {
@@ -139,5 +139,5 @@ export default {
                 };
             }
         }
-    }
-};
+    } as any
+} as GQLResolver;

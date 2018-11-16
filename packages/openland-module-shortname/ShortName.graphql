@@ -6,5 +6,5 @@ extend type Query {
 
 extend type Mutation {
     alphaSetUserShortName(shortname: String!): String
-    alphaSetOrgShortName(id: ID! @organizationID, shortname: String!): String
+    alphaSetOrgShortName(id: ID!, shortname: String!): String
 }

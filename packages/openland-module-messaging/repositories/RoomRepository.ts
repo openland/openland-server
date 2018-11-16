@@ -225,22 +225,24 @@ export class RoomRepository {
     //
 
     async setFeatured(parent: Context, cid: number, featued: boolean) {
-        await inTx(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             let room = await this.entities.ConversationRoom.findById(ctx, cid);
             if (!room) {
                 throw new AccessDeniedError();
             }
             room.featured = featued;
+            return (await this.entities.Conversation.findById(ctx, cid))!;
         });
     }
 
     async setListed(parent: Context, cid: number, listed: boolean) {
-        await inTx(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             let room = await this.entities.ConversationRoom.findById(ctx, cid);
             if (!room) {
                 throw new AccessDeniedError();
             }
             room.listed = listed;
+            return (await this.entities.Conversation.findById(ctx, cid))!;
         });
     }
 

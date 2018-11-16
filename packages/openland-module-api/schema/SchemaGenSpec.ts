@@ -135,10 +135,24 @@ export function genResolverInterface(ast: DocumentNode) {
             //     }
             // }
             // out += genTab(1) + `${def.name.value}?: SoftlyTypedResolver<GQL.${def.name.value}>;\n`;
-            let fields = (def.fields || []).filter(f => !isPrimitiveType(f.type));
+            // let fields = (def.fields || []).filter(f => !isPrimitiveType(f.type));
             // let fieldsRendered = fields.map(f => `${f.name.value}: ResolverRootType<AllTypes['${fetchType(f.type)}']>`).join(', ');
-            let fieldsRendered = fields.map(f => `${f.name.value}: ${fetchType(f.type)}`).join(', ');
-            out += genTab(1) + `${def.name.value}?: ComplexTypedResolver<GQL.${def.name.value}, {${fieldsRendered}}, GQLRoots.${def.name.value}Root>;\n`;
+            // let fieldsRendered = fields.map(f => `${f.name.value}: ${fetchType(f.type)}`).join(', ');
+
+            let returnTypesMap = (def.fields || [])
+                .filter(f => !isPrimitiveType(f.type))
+                .map(f => `${f.name.value}: ${fetchType(f.type)}`)
+                .join(', ');
+
+            let argsMap = (def.fields || [])
+                .map(f => f.arguments && f.arguments.length > 0 ? `${f.name.value}: GQL.${argumentsInterfaceName(def as any, f)}` : undefined)
+                .filter(d => !!d)
+                .join(', ');
+
+            // console.log(argsMap);
+
+            // out += genTab(1) + `${def.name.value}?: ComplexTypedResolver<GQL.${def.name.value}, {${fieldsRendered}}, GQLRoots.${def.name.value}Root>;\n`;
+            out += genTab(1) + `${def.name.value}?: ComplexTypedResolver<GQL.${def.name.value}, GQLRoots.${def.name.value}Root, {${returnTypesMap}}, {${argsMap}}>;\n`;
         }
     }
     out += '}\n';
@@ -204,10 +218,14 @@ function genType(ast: GenericTypeNode, genFuncs: boolean = false): string {
     return out + '\n' + extraTypes;
 }
 
+function argumentsInterfaceName(type: GenericTypeNode | ObjectTypeExtensionNode, field: FieldDefinitionNode): string {
+    return `${type.name.value}${capitalize(field.name.value)}Args`;
+}
+
 function genFunctionArguments(type: GenericTypeNode | ObjectTypeExtensionNode, field: FieldDefinitionNode): string {
     let out = ``;
 
-    out += `export interface ${type.name.value}${capitalize(field.name.value)}Args {\n`;
+    out += `export interface ${argumentsInterfaceName(type, field)} {\n`;
 
     for (let argument of field.arguments!) {
         out += `${genTab(1)}${argument.name.value}: ${renderType(applyIDsDirective(argument).type)};\n`;

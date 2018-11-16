@@ -18,7 +18,7 @@ async function fetchOrganizationId(ctx: AppContext) {
     return ctx.auth.oid;
 }
 
-export function withPermission<T = {}>(permission: string | string[], resolver: (ctx: AppContext, args: T) => any) {
+export function withPermission<T, R>(permission: string | string[], resolver: (ctx: AppContext, args: T) => R): (_: any, args: T, ctx: AppContext) => MaybePromise<R> {
     return async function (_: any, args: T, ctx: AppContext) {
         let permissions = await fetchPermissions(ctx);
         if (Array.isArray(permission)) {
@@ -32,10 +32,11 @@ export function withPermission<T = {}>(permission: string | string[], resolver: 
         } else {
             throw new AccessDeniedError(ErrorText.permissionDenied);
         }
+        throw new AccessDeniedError(ErrorText.permissionDenied);
     };
 }
 
-export function withAccount<T = {}>(resolver: (ctx: AppContext, args: T, uid: number, org: number) => any) {
+export function withAccount<T, R>(resolver: (ctx: AppContext, args: T, uid: number, org: number) => R): (_: any, args: T, ctx: AppContext) => MaybePromise<R> {
     return async function (_: any, args: T, ctx: AppContext) {
         if (!ctx.auth.uid) {
             throw new AccessDeniedError(ErrorText.permissionDenied);
@@ -49,7 +50,7 @@ export function withAccount<T = {}>(resolver: (ctx: AppContext, args: T, uid: nu
     };
 }
 
-export function withUser<T = {}>(resolver: (ctx: AppContext, args: T, uid: number) => any) {
+export function withUser<T, R>(resolver: (ctx: AppContext, args: T, uid: number) => R): (_: any, args: T, ctx: AppContext) => MaybePromise<R> {
     return async function (_: any, args: T, ctx: AppContext) {
         if (!ctx.auth.uid) {
             throw new AccessDeniedError(ErrorText.permissionDenied);
@@ -106,11 +107,14 @@ export function wrapAllResolvers(schema: GraphQLSchema, f: FieldHandler) {
 export type MaybePromise<T> = Promise<T> | T;
 export type FieldResolver<T> = (...args: any[]) => MaybePromise<T>;
 export type FieldResolverWithRoot<T, R> = (root: R, ...args: any[]) => MaybePromise<T>;
+
+export type Resolver<Root, Args, Context, ReturnType> = (root: Root, args: Args, context: Context) => MaybePromise<ReturnType>;
 // export type FieldResolverWithRoot<T, R, C> = C extends TypeName<T> ? (root: R, ...args: any[]) => MaybePromise<T> : never;
 
 type Nullable<T> = undefined | null | T;
 export type TypedResolver<T> = { [P in keyof T]: FieldResolver<T[P]> };
 export type SoftlyTypedResolver<T> = { [P in keyof T]: (T[P] extends Nullable<object | object[]> ? FieldResolver<any> : FieldResolver<T[P]>) };
+export type ResolverRootType<T> = { [K in keyof T]: T[K] extends (root: infer R, ...args: any[]) => any ? R : any }[keyof T];
 
 export type TypeName<T> =
     T extends string ? 'string' :
@@ -122,9 +126,13 @@ export type TypeName<T> =
 
 export type SameType<A, B> = TypeName<A> extends TypeName<B> ? (A extends B ? true : false) : false;
 
-export type ComplexTypedResolver<T, M extends any, R> = {
-    [P in keyof T]: (T[P] extends Nullable<object | object[]> ? FieldResolverWithRoot<M[P], R> : FieldResolverWithRoot<T[P], R>)
+export type ComplexTypedResolver<T, Root, ReturnTypesMap extends any, ArgTypesMap extends any> = {
+    [P in keyof T]: (T[P] extends Nullable<object | object[]> ? Resolver<Root, ArgTypesMap[P], AppContext, ReturnTypesMap[P]> : Resolver<Root, ArgTypesMap[P], AppContext, T[P]>)
 };
+
+// export type ComplexTypedResolver<T, M extends any, R> = {
+//     [P in keyof T]: (T[P] extends Nullable<object | object[]> ? FieldResolverWithRoot<M[P], R> : FieldResolverWithRoot<T[P], R>)
+// };
 
 export function typed<T>(resolver: { [P in keyof T]: FieldResolver<T[P]> }) {
     return resolver;

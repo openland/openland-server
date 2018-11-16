@@ -2,6 +2,7 @@ import { FDB } from 'openland-module-db/FDB';
 import { Modules } from 'openland-modules/Modules';
 import { withAny } from 'openland-module-api/Resolvers';
 import { QueryParser, buildElasticQuery } from 'openland-utils/QueryParser';
+import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 
 interface AlphaOrganizationsParams {
     query?: string;
@@ -164,4 +165,4 @@ export default {
             };
         })
     }
-};
+} as GQLResolver;

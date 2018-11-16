@@ -5,6 +5,7 @@ import { FDB } from 'openland-module-db/FDB';
 import { Modules } from 'openland-modules/Modules';
 import { UserError } from 'openland-errors/UserError';
 import { AppContext } from 'openland-modules/AppContext';
+import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 
 export default {
     SuperAccountState: {
@@ -17,43 +18,43 @@ export default {
         orgId: (src: Organization) => IDs.Organization.serialize(src.id),
         title: async (src: Organization, args: {}, ctx: AppContext) => (await FDB.OrganizationProfile.findById(ctx, src.id))!.name,
         name: async (src: Organization, args: {}, ctx: AppContext) => (await FDB.OrganizationProfile.findById(ctx, src.id))!.name,
-        state: (src: Organization) => src.status,
+        state: (src: Organization) => src.status as any,
         members: (src: Organization, args: {}, ctx: AppContext) => Modules.Orgs.findOrganizationMembers(ctx, src.id),
-        features: async (src: Organization, args: {}, ctx: AppContext) => (await Modules.Features.repo.findOrganizationFeatureFlags(ctx, src.id)),
+        features: async (src: Organization, args: {}, ctx: AppContext) => (await Modules.Features.repo.findOrganizationFeatureFlags(ctx, src.id)).filter(f => !!f),
         alphaPublished: async (src: Organization, args: {}, ctx: AppContext) => (await FDB.OrganizationEditorial.findById(ctx, src.id))!.listed,
-        createdAt: (src: Organization) => src.createdAt,
+        createdAt: (src: Organization) => src.createdAt + '',
         createdBy: async (src: Organization, args: {}, ctx: AppContext) => await FDB.User.findById(ctx, src.ownerId),
     },
     Query: {
         superAccounts: withPermission('super-admin', (ctx) => {
             return FDB.Organization.findAll(ctx);
         }),
-        superAccount: withPermission<{ id: string, viaOrgId?: boolean }>('super-admin', (ctx, args) => {
+        superAccount: withPermission('super-admin', (ctx, args) => {
             return FDB.Organization.findById(ctx, args.viaOrgId ? IDs.Organization.parse(args.id) : IDs.SuperAccount.parse(args.id));
         }),
     },
     Mutation: {
-        superAccountRename: withPermission<{ id: string, title: string }>('super-admin', (ctx, args) => {
+        superAccountRename: withPermission('super-admin', (ctx, args) => {
             return Modules.Orgs.renameOrganization(ctx, IDs.SuperAccount.parse(args.id), args.title);
         }),
-        superAccountActivate: withPermission<{ id: string }>('super-admin', (ctx, args) => {
+        superAccountActivate: withPermission('super-admin', (ctx, args) => {
             return Modules.Orgs.activateOrganization(ctx, IDs.SuperAccount.parse(args.id));
         }),
-        superAccountPend: withPermission<{ id: string }>('super-admin', (ctx, args) => {
+        superAccountPend: withPermission('super-admin', (ctx, args) => {
             throw new UserError('Pend is unsupported');
         }),
-        superAccountSuspend: withPermission<{ id: string }>('super-admin', (ctx, args) => {
+        superAccountSuspend: withPermission('super-admin', (ctx, args) => {
             return Modules.Orgs.suspendOrganization(ctx, IDs.SuperAccount.parse(args.id));
         }),
-        superAccountMemberAdd: withPermission<{ id: string, userId: string }>('super-admin', (ctx, args) => {
+        superAccountMemberAdd: withPermission('super-admin', (ctx, args) => {
             return Modules.Orgs.addUserToOrganization(ctx, IDs.User.parse(args.userId), IDs.SuperAccount.parse(args.id), IDs.User.parse(args.userId));
         }),
-        superAccountMemberRemove: withPermission<{ id: string, userId: string }>('super-admin', (ctx, args) => {
+        superAccountMemberRemove: withPermission('super-admin', (ctx, args) => {
             return Modules.Orgs.removeUserFromOrganization(ctx, IDs.User.parse(args.userId), IDs.SuperAccount.parse(args.id), IDs.User.parse(args.userId));
         }),
-        superAccountChannelMemberAdd: withPermission<{ id: string, userId: string }>('super-admin', async (ctx, args) => {
+        superAccountChannelMemberAdd: withPermission('super-admin', async (ctx, args) => {
             await Modules.Messaging.room.joinRoom(ctx, IDs.Conversation.parse(args.id), IDs.User.parse(args.userId));
             return 'ok';
         }),
     }
-};
+} as GQLResolver;

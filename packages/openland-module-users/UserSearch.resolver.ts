@@ -1,7 +1,7 @@
 import { withAny } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { FDB } from 'openland-module-db/FDB';
-import { GQL } from '../openland-module-api/schema/SchemaSpec';
+import { GQL, GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 
 export default {
     Query: {
@@ -102,4 +102,4 @@ export default {
             };
         })
     }
-};
+} as GQLResolver;
