@@ -5,7 +5,7 @@ import { IDMailformedError } from 'openland-errors/IDMailformedError';
 import { FDB } from 'openland-module-db/FDB';
 import { Conversation, RoomProfile, Message, RoomParticipant } from 'openland-module-db/schema';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
-import { GQLResolver, GQL } from '../../openland-module-api/schema/SchemaSpec';
+import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { Sanitizer } from 'openland-utils/Sanitizer';
 import { validate, defined, stringNotEmpty, enumString, optional, mustBeArray, emailValidator } from 'openland-utils/NewInputValidator';
 import { inTx } from 'foundation-orm/inTx';
@@ -154,7 +154,7 @@ export default {
     },
 
     Query: {
-        room: withAccount<{ id: string }>(async (ctx, args, uid, oid) => {
+        room: withAccount(async (ctx, args, uid, oid) => {
             let id = IdsFactory.resolve(args.id);
             if (id.type === IDs.Room) {
                 return id.id;
@@ -170,7 +170,7 @@ export default {
                 throw new IDMailformedError('Invalid id');
             }
         }),
-        roomMessages: withUser<GQL.QueryRoomMessagesArgs>(async (ctx, args, uid) => {
+        roomMessages: withUser(async (ctx, args, uid) => {
             let roomId = IDs.Room.parse(args.roomId);
 
             await Modules.Messaging.room.checkAccess(ctx, uid, roomId);
@@ -186,13 +186,13 @@ export default {
 
             return await FDB.Message.rangeFromChat(ctx, roomId, args.first!, true);
         }),
-        roomMembers: withUser<GQL.QueryRoomMembersArgs>(async (ctx, args, uid) => {
+        roomMembers: withUser(async (ctx, args, uid) => {
             let roomId = IDs.Room.parse(args.roomId);
             let res = await FDB.RoomParticipant.allFromActive(ctx, roomId);
             return res;
         }),
 
-        betaRoomSearch: withUser<GQL.QueryBetaRoomSearchArgs>(async (ctx, args, uid) => {
+        betaRoomSearch: withUser(async (ctx, args, uid) => {
             let clauses: any[] = [];
             let sort: any[] | undefined = undefined;
 
@@ -256,10 +256,10 @@ export default {
                 },
             };
         }),
-        betaRoomInviteInfo: withAny<GQL.QueryBetaRoomInviteInfoArgs>(async (ctx, args) => {
+        betaRoomInviteInfo: withAny(async (ctx, args) => {
             return await Modules.Invites.resolveInvite(ctx, args.invite);
         }),
-        betaRoomInviteLink: withUser<GQL.QueryBetaRoomInviteLinkArgs>(async (ctx, args, uid) => {
+        betaRoomInviteLink: withUser(async (ctx, args, uid) => {
             return await Modules.Invites.createRoomlInviteLink(ctx, IDs.Room.parse(args.roomId), uid);
         })
     },
@@ -267,7 +267,7 @@ export default {
         //
         // Room mgmt
         //
-        betaRoomCreate: withAccount<GQL.MutationBetaRoomCreateArgs>(async (ctx, args, uid, oid) => {
+        betaRoomCreate: withAccount(async (ctx, args, uid, oid) => {
             await validate({
                 title: optional(stringNotEmpty('Title can\'t be empty')),
                 kind: defined(enumString(['PUBLIC', 'GROUP'], 'kind expected to be PUBLIC or GROUP'))
@@ -281,7 +281,7 @@ export default {
                 image: imageRef
             }, args.message || '');
         }),
-        betaRoomUpdate: withUser<GQL.MutationBetaRoomUpdateArgs>(async (ctx, args, uid) => {
+        betaRoomUpdate: withUser(async (ctx, args, uid) => {
             await validate(
                 {
                     title: optional(stringNotEmpty('Title can\'t be empty!'))
@@ -312,7 +312,7 @@ export default {
         //
         // Members mgmt
         //
-        betaRoomInvite: withUser<GQL.MutationBetaRoomInviteArgs>(async (ctx, args, uid) => {
+        betaRoomInvite: withUser(async (ctx, args, uid) => {
             await validate({
                 invites: mustBeArray({
                     userId: defined(stringNotEmpty()),
@@ -323,7 +323,7 @@ export default {
 
             return await Modules.Messaging.room.inviteToRoom(ctx, IDs.Room.parse(args.roomId), uid, members);
         }),
-        betaRoomKick: withUser<GQL.MutationBetaRoomKickArgs>(async (parent, args, uid) => {
+        betaRoomKick: withUser(async (parent, args, uid) => {
             let userId = IDs.User.parse(args.userId);
             return inTx(parent, async (ctx) => {
                 if (uid === userId) {
@@ -333,16 +333,16 @@ export default {
                 }
             });
         }),
-        betaRoomChangeRole: withUser<GQL.MutationBetaRoomChangeRoleArgs>(async (ctx, args, uid) => {
+        betaRoomChangeRole: withUser(async (ctx, args, uid) => {
             return await Modules.Messaging.room.updateMemberRole(ctx, IDs.Room.parse(args.roomId), uid, IDs.User.parse(args.userId), args.newRole.toLocaleLowerCase() as any);
         }),
 
-        betaRoomJoin: withUser<GQL.MutationBetaRoomJoinArgs>(async (ctx, args, uid) => {
+        betaRoomJoin: withUser(async (ctx, args, uid) => {
             return await Modules.Messaging.room.joinRoom(ctx, IDs.Room.parse(args.roomId), uid);
         }),
 
         // invite links
-        betaRoomInviteLinkSendEmail: withUser<GQL.MutationBetaRoomInviteLinkSendEmailArgs>(async (parent, args, uid) => {
+        betaRoomInviteLinkSendEmail: withUser(async (parent, args, uid) => {
             await validate({
                 inviteRequests: [{ email: defined(emailValidator) }]
             }, args);
@@ -363,18 +363,18 @@ export default {
 
             return 'ok';
         }),
-        betaRoomInviteLinkRenew: withUser<GQL.MutationBetaRoomInviteLinkRenewArgs>(async (ctx, args, uid) => {
+        betaRoomInviteLinkRenew: withUser(async (ctx, args, uid) => {
             let channelId = IDs.Conversation.parse(args.roomId);
             return await Modules.Invites.refreshRoomInviteLink(ctx, channelId, uid);
         }),
-        betaRoomInviteLinkJoin: withUser<GQL.MutationBetaRoomInviteLinkJoinArgs>(async (ctx, args, uid) => {
+        betaRoomInviteLinkJoin: withUser(async (ctx, args, uid) => {
             return await FDB.Conversation.findById(ctx, await Modules.Invites.joinRoomInvite(ctx, uid, args.invite));
         }),
 
         //
         // User setting
         //
-        betaRoomUpdateUserNotificationSettings: withUser<GQL.MutationBetaRoomUpdateUserNotificationSettingsArgs>(async (parent, args, uid) => {
+        betaRoomUpdateUserNotificationSettings: withUser(async (parent, args, uid) => {
             return await inTx(parent, async (ctx) => {
                 let settings = await Modules.Messaging.getRoomSettings(ctx, uid, IDs.Room.parse(args.roomId));
                 if (args.settings.mute !== undefined && args.settings.mute !== null) {
@@ -387,11 +387,11 @@ export default {
         //
         // Admin tools
         //
-        betaRoomAlterFeatured: withPermission<GQL.MutationBetaRoomAlterFeaturedArgs>('super-admin', async (ctx, args) => {
+        betaRoomAlterFeatured: withPermission('super-admin', async (ctx, args) => {
             return await Modules.Messaging.room.setFeatured(ctx, IDs.Room.parse(args.roomId), args.featured);
         }),
 
-        betaRoomAlterListed: withPermission<GQL.MutationBetaRoomAlterListedArgs>('super-admin', async (ctx, args) => {
+        betaRoomAlterListed: withPermission('super-admin', async (ctx, args) => {
             return await Modules.Messaging.room.setListed(ctx, IDs.Room.parse(args.roomId), args.listed);
         }),
 

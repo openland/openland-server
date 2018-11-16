@@ -2,12 +2,13 @@ import { FDB } from 'openland-module-db/FDB';
 import { withAccount } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { createTracer } from 'openland-log/createTracer';
+import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 
 const tracer = createTracer('chat-text-search');
 
 export default {
     Query: {
-        alphaChatTextSearch: withAccount<{ query: string }>(async (parent, args, uid, oid) => {
+        alphaChatTextSearch: withAccount(async (parent, args, uid, oid) => {
             return await tracer.trace(parent, 'chat-text-search', async (ctx) => {
                 // Group Search
                 // let searchableConversations = Promise.all((await FDB.RoomParticipant.allFromUserActive(uid))
@@ -59,4 +60,4 @@ export default {
             });
         }),
     }
-};
+} as GQLResolver;

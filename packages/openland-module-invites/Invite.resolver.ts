@@ -5,6 +5,7 @@ import { FDB } from 'openland-module-db/FDB';
 import { IDs } from 'openland-module-api/IDs';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { AuthContext } from 'openland-module-auth/AuthContext';
+import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 
 export default {
     Invite: {
@@ -68,7 +69,7 @@ export default {
         }),
     },
     Mutation: {
-        alphaJoinInvite: withUser<{ key: string }>(async (ctx, args, uid) => {
+        alphaJoinInvite: withUser(async (ctx, args, uid) => {
             return await Modules.Invites.joinOrganizationInvite(ctx, uid, args.key);
         }),
         joinAppInvite: withAny<{ key: string }>(async (ctx, args) => {
@@ -89,7 +90,7 @@ export default {
         }),
 
         // deperecated
-        alphaDeleteInvite: withAccount<{ id: string }>(async (ctx, args, uid, oid) => {
+        alphaDeleteInvite: withAccount(async (ctx, args, uid, oid) => {
             // await DB.OrganizationInvite.destroy({
             //     where: {
             //         orgId: oid,
@@ -99,4 +100,4 @@ export default {
             // return 'ok';
         })
     }
-};
+} as GQLResolver;

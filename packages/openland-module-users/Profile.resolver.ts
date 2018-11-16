@@ -7,7 +7,7 @@ import { inTx } from 'foundation-orm/inTx';
 import { Sanitizer } from 'openland-utils/Sanitizer';
 import { withUser } from 'openland-module-api/Resolvers';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
-import { GQL } from '../openland-module-api/schema/SchemaSpec';
+import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
 
 export default {
@@ -28,7 +28,7 @@ export default {
         alphaLocations: (src: UserProfile) => src.locations,
         alphaLinkedin: (src: UserProfile) => src.linkedin,
         alphaTwitter: (src: UserProfile) => src.twitter,
-        alphaJoinedAt: (src: UserProfile) => src.createdAt,
+        alphaJoinedAt: (src: UserProfile) => src.createdAt + '',
         alphaInvitedBy: async (src: UserProfile, args: {}, ctx: AppContext) => {
             let user = await FDB.User.findById(ctx, src.id);
             if (user && user.invitedBy) {
@@ -46,10 +46,10 @@ export default {
         },
     },
     Mutation: {
-        profileCreate: withUser<GQL.MutationProfileCreateArgs>(async (ctx, args, uid) => {
+        profileCreate: withUser(async (ctx, args, uid) => {
             return await Modules.Users.createUserProfile(ctx, uid, args.input);
         }),
-        profileUpdate: withUser<GQL.MutationProfileUpdateArgs>(async (parent, args, uid) => {
+        profileUpdate: withUser(async (parent, args, uid) => {
             return await inTx(parent, async (ctx) => {
                 if (args.uid) {
                     let role = await Modules.Super.superRole(ctx, uid);
@@ -115,11 +115,11 @@ export default {
         }),
 
         // Deprecated
-        createProfile: withUser<GQL.MutationCreateProfileArgs>(async (ctx, args, uid) => {
+        createProfile: withUser(async (ctx, args, uid) => {
             return await Modules.Users.createUserProfile(ctx, uid, args.input);
         }),
         // Deprecated
-        alphaCreateUserProfileAndOrganization: withUser<GQL.MutationAlphaCreateUserProfileAndOrganizationArgs>(async (parent, args, uid) => {
+        alphaCreateUserProfileAndOrganization: withUser(async (parent, args, uid) => {
             return await inTx(parent, async (ctx) => {
                 let userProfile = await Modules.Users.createUserProfile(ctx, uid, args.user);
                 let organization = await Modules.Orgs.createOrganization(ctx, uid, { ...args.organization, personal: false });
@@ -130,7 +130,7 @@ export default {
                 };
             });
         }),
-        updateProfile: withUser<GQL.MutationUpdateProfileArgs>(async (parent, args, uid) => {
+        updateProfile: withUser(async (parent, args, uid) => {
             return await inTx(parent, async (ctx) => {
                 if (args.uid) {
                     let role = await Modules.Super.superRole(ctx, uid);
@@ -209,4 +209,4 @@ export default {
             });
         }),
     }
-};
+} as GQLResolver;

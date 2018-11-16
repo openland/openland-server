@@ -4,7 +4,7 @@ import { withUser } from 'openland-module-api/Resolvers';
 import { validate, optional, enumString } from 'openland-utils/NewInputValidator';
 import { TypingEvent } from './TypingEvent';
 import { FDB } from 'openland-module-db/FDB';
-import { GQL } from '../openland-module-api/schema/SchemaSpec';
+import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
 
 export default {
@@ -20,19 +20,19 @@ export default {
         user: (src: TypingEvent) => src.userId,
     },
     Mutation: {
-        alphaSetTyping: withUser<GQL.MutationAlphaSetTypingArgs>(async (ctx, args, uid) => {
+        alphaSetTyping: withUser(async (ctx, args, uid) => {
             await validate({ type: optional(enumString(['text', 'photo'])) }, args);
             let conversationId = IDs.Conversation.parse(args.conversationId);
             await Modules.Typings.setTyping(uid, conversationId, args.type || 'text');
             return 'ok';
         }),
-        typingSend: withUser<GQL.MutationTypingSendArgs>(async (ctx, args, uid) => {
+        typingSend: withUser(async (ctx, args, uid) => {
             await validate({ type: optional(enumString(['text', 'photo'])) }, args);
             let conversationId = IDs.Conversation.parse(args.conversationId);
             await Modules.Typings.setTyping(uid, conversationId, args.type || 'text');
             return 'ok';
         }),
-        typingCancel: withUser<GQL.MutationTypingCancelArgs>(async (ctx, args, uid) => {
+        typingCancel: withUser(async (ctx, args, uid) => {
             let chatId = IDs.Conversation.parse(args.conversationId);
             let members = await Modules.Messaging.room.findConversationMembers(ctx, chatId);
             await Modules.Typings.cancelTyping(uid, chatId, members);
@@ -92,5 +92,5 @@ export default {
                 return Modules.Typings.createTypingStream(ctx.auth.uid, conversationId);
             }
         },
-    }
-};
+    } as any
+} as GQLResolver;

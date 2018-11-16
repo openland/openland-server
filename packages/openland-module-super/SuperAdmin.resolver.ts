@@ -4,6 +4,7 @@ import { withPermission } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { IDs } from 'openland-module-api/IDs';
 import { AppContext } from 'openland-modules/AppContext';
+import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 
 export default {
     SuperAdmin: {
@@ -25,7 +26,7 @@ export default {
         }),
     },
     Mutation: {
-        superAdminAdd: withPermission<{ userId: string, role: 'SUPER_ADMIN' | 'SOFTWARE_DEVELOPER' | 'EDITOR' }>('super-admin', async (ctx, args) => {
+        superAdminAdd: withPermission('super-admin', async (ctx, args) => {
             let uid = IDs.User.parse(args.userId);
             let role = 'editor';
             if (args.role === 'SUPER_ADMIN') {
@@ -36,10 +37,10 @@ export default {
             await Modules.Super.makeSuperAdmin(ctx, uid, role);
             return 'ok';
         }),
-        superAdminRemove: withPermission<{ userId: string }>('super-admin', async (ctx, args) => {
+        superAdminRemove: withPermission('super-admin', async (ctx, args) => {
             let uid = IDs.User.parse(args.userId);
             await Modules.Super.makeNormalUser(ctx, uid);
             return 'ok';
         })
     }
-};
+} as GQLResolver;

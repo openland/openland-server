@@ -3,6 +3,7 @@ import { withAny } from 'openland-module-api/Resolvers';
 import { IDs } from 'openland-module-api/IDs';
 import { OnlineEvent } from './PresenceModule';
 import { AppContext } from 'openland-modules/AppContext';
+import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 
 export default {
     OnlineEvent: {
@@ -84,5 +85,5 @@ export default {
                 return Modules.Presence.createPresenceStream(ctx.auth.uid!, userIds);
             }
         }
-    }
-};
+    } as any
+} as GQLResolver;

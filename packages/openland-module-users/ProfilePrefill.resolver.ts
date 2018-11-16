@@ -1,10 +1,9 @@
 import { Modules } from 'openland-modules/Modules';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
-import { AppContext } from 'openland-modules/AppContext';
 
 export default {
     Query: {
-        myProfilePrefill: async function (_: any, args: {}, ctx: AppContext) {
+        myProfilePrefill: async (r, args, ctx) => {
             if (!ctx.auth.uid) {
                 return {};
             }
@@ -13,7 +12,7 @@ export default {
                 return {
                     firstName: prefill.firstName,
                     lastName: prefill.lastName,
-                    picture: prefill.picture
+                    picture: prefill.picture,
                 };
             } else {
                 return {};

@@ -7,6 +7,7 @@ import { withAny } from 'openland-module-api/Resolvers';
 import { NotFoundError } from 'openland-errors/NotFoundError';
 import { resolveOrganizationJoinedMembers } from './utils/resolveOrganizationJoinedMembers';
 import { AppContext } from 'openland-modules/AppContext';
+import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 
 export default {
     Organization: {
@@ -59,4 +60,4 @@ export default {
             return res;
         }),
     }
-};
+} as GQLResolver;

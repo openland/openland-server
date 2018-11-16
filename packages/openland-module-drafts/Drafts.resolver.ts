@@ -1,10 +1,11 @@
 import { withUser } from 'openland-module-api/Resolvers';
 import { IDs } from 'openland-module-api/IDs';
 import { Modules } from 'openland-modules/Modules';
+import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 
 export default {
     Mutation: {
-        conversationDraftUpdate: withUser<{ conversationId: string, message?: string }>(async (ctx, args, uid) => {
+        conversationDraftUpdate: withUser(async (ctx, args, uid) => {
             let conversationId = IDs.Conversation.parse(args.conversationId);
 
             if (!args.message) {
@@ -15,7 +16,7 @@ export default {
 
             return 'ok';
         }),
-        alphaSaveDraftMessage: withUser<{ conversationId: string, message?: string }>(async (ctx, args, uid) => {
+        alphaSaveDraftMessage: withUser(async (ctx, args, uid) => {
             let conversationId = IDs.Conversation.parse(args.conversationId);
 
             if (!args.message) {
@@ -28,13 +29,13 @@ export default {
         }),
     },
     Query: {
-        conversationDraft: withUser<{ conversationId: string }>(async (ctx, args, uid) => {
+        conversationDraft: withUser(async (ctx, args, uid) => {
             let conversationId = IDs.Conversation.parse(args.conversationId);
             return await Modules.Drafts.findDraft(ctx, uid, conversationId);
         }),
-        alphaDraftMessage: withUser<{ conversationId: string }>(async (ctx, args, uid) => {
+        alphaDraftMessage: withUser(async (ctx, args, uid) => {
             let conversationId = IDs.Conversation.parse(args.conversationId);
             return await Modules.Drafts.findDraft(ctx, uid, conversationId);
         }),
     }
-};
+} as GQLResolver;
