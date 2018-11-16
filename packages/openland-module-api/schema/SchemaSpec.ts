@@ -737,12 +737,10 @@ export namespace GQL {
         replyMessages: Nullable<string[]>;
         mentions: Nullable<string[]>;
     }
-    export type MutationAlphaSendMessageResult = ConversationEventMessage;
     export interface MutationAlphaReadChatArgs {
         conversationId: string;
         messageId: string;
     }
-    export type MutationAlphaReadChatResult = ChatReadResult;
     export interface MutationAlphaEditMessageArgs {
         messageId: string;
         message: Nullable<string>;
@@ -750,7 +748,6 @@ export namespace GQL {
         replyMessages: Nullable<string[]>;
         mentions: Nullable<string[]>;
     }
-    export type MutationAlphaEditMessageResult = ConversationEventEditMessage;
     export interface MutationAlphaSendIntroArgs {
         conversationId: string;
         userId: string;
@@ -759,7 +756,6 @@ export namespace GQL {
         file: Nullable<string>;
         repeatKey: Nullable<string>;
     }
-    export type MutationAlphaSendIntroResult = ConversationEventMessage;
     export interface MutationAlphaEditIntroArgs {
         messageId: string;
         userId: string;
@@ -767,239 +763,189 @@ export namespace GQL {
         message: Nullable<string>;
         file: Nullable<string>;
     }
-    export type MutationAlphaEditIntroResult = ConversationEventMessage;
     export interface MutationAlphaDeleteMessageUrlAugmentationArgs {
         messageId: string;
     }
-    export type MutationAlphaDeleteMessageUrlAugmentationResult = ConversationEventMessage;
     export interface MutationAlphaDeleteMessageArgs {
         messageId: string;
     }
-    export type MutationAlphaDeleteMessageResult = ConversationEventDelete;
     export interface MutationAlphaChatSetReactionArgs {
         messageId: string;
         reaction: string;
     }
-    export type MutationAlphaChatSetReactionResult = string;
     export interface MutationAlphaChatUnsetReactionArgs {
         messageId: string;
         reaction: string;
     }
-    export type MutationAlphaChatUnsetReactionResult = string;
     export interface MutationAlphaGlobalReadArgs {
         toSeq: number;
     }
-    export type MutationAlphaGlobalReadResult = string;
     export interface MutationAlphaBlockUserArgs {
         userId: string;
     }
-    export type MutationAlphaBlockUserResult = string;
     export interface MutationAlphaUnblockUserArgs {
         userId: string;
         conversationId: Nullable<string>;
     }
-    export type MutationAlphaUnblockUserResult = string;
     export interface MutationAlphaChatCreateGroupArgs {
         title: Nullable<string>;
         photoRef: Nullable<ImageRefInput>;
         members: string[];
         message: Nullable<string>;
     }
-    export type MutationAlphaChatCreateGroupResult = Conversation;
     export interface MutationAlphaChatUpdateGroupArgs {
         conversationId: string;
         input: UpdateGroupInput;
     }
-    export type MutationAlphaChatUpdateGroupResult = ConversationUpdateResponse;
     export interface MutationAlphaChatChangeGroupTitleArgs {
         conversationId: string;
         title: string;
     }
-    export type MutationAlphaChatChangeGroupTitleResult = GroupChatUpdateResponse;
     export interface MutationAlphaChatInviteToGroupArgs {
         conversationId: string;
         invites: GroupConversationInvite[];
     }
-    export type MutationAlphaChatInviteToGroupResult = GroupChatUpdateResponse;
     export interface MutationAlphaChatKickFromGroupArgs {
         conversationId: string;
         userId: string;
     }
-    export type MutationAlphaChatKickFromGroupResult = GroupChatUpdateResponse;
     export interface MutationAlphaChatChangeRoleInGroupArgs {
         conversationId: string;
         userId: string;
         newRole: string;
     }
-    export type MutationAlphaChatChangeRoleInGroupResult = GroupChatUpdateResponse;
     export interface MutationAlphaChatCopyGroupArgs {
         conversationId: string;
         title: Nullable<string>;
         extraMembers: Nullable<string[]>;
         message: string;
     }
-    export type MutationAlphaChatCopyGroupResult = GroupChatUpdateResponse;
     export interface MutationAlphaChatLeaveArgs {
         conversationId: string;
     }
-    export type MutationAlphaChatLeaveResult = ConversationUpdateResponse;
     export interface MutationAlphaUpdateConversationSettingsArgs {
         settings: UpdateConversationSettingsInput;
         conversationId: string;
     }
-    export type MutationAlphaUpdateConversationSettingsResult = ConversationSettings;
     export interface MutationProfileCreateArgs {
         input: ProfileInput;
     }
-    export type MutationProfileCreateResult = Profile;
     export interface MutationProfileUpdateArgs {
         input: ProfileInput;
         uid: Nullable<string>;
     }
-    export type MutationProfileUpdateResult = Profile;
     export interface MutationCreateProfileArgs {
         input: CreateProfileInput;
     }
-    export type MutationCreateProfileResult = Profile;
     export interface MutationUpdateProfileArgs {
         input: UpdateProfileInput;
         uid: Nullable<string>;
     }
-    export type MutationUpdateProfileResult = Profile;
     export interface MutationAlphaCreateUserProfileAndOrganizationArgs {
         user: ProfileInput;
         organization: CreateOrganizationInput;
     }
-    export type MutationAlphaCreateUserProfileAndOrganizationResult = AlphaSignupData;
     export interface MutationAlphaDeleteInviteArgs {
         id: string;
     }
-    export type MutationAlphaDeleteInviteResult = string;
     export interface MutationAlphaJoinInviteArgs {
         key: string;
     }
-    export type MutationAlphaJoinInviteResult = string;
     export interface MutationJoinAppInviteArgs {
         key: string;
     }
-    export type MutationJoinAppInviteResult = string;
     export interface MutationSettingsUpdateArgs {
         settings: Nullable<UpdateSettingsInput>;
     }
-    export type MutationSettingsUpdateResult = Settings;
     export interface MutationUpdateSettingsArgs {
         settings: Nullable<UpdateSettingsInput>;
     }
-    export type MutationUpdateSettingsResult = Settings;
     export interface MutationBetaOrganizationMemberRequestApproveArgs {
         userId: string;
         organizationId: string;
     }
-    export type MutationBetaOrganizationMemberRequestApproveResult = Organization;
     export interface MutationBetaOrganizationMemberRemoveArgs {
         userId: string;
         organizationId: string;
     }
-    export type MutationBetaOrganizationMemberRemoveResult = Organization;
     export interface MutationAlphaOrganizationChangeMemberRoleArgs {
         memberId: string;
         newRole: OrganizationMemberRole;
         organizationId: string;
     }
-    export type MutationAlphaOrganizationChangeMemberRoleResult = string;
     export interface MutationAlphaOrganizationInviteMembersArgs {
         inviteRequests: InviteRequest[];
         organizationId: Nullable<string>;
     }
-    export type MutationAlphaOrganizationInviteMembersResult = string;
     export interface MutationAlphaOrganizationRefreshInviteLinkArgs {
         expirationDays: Nullable<number>;
         organizationId: Nullable<string>;
     }
-    export type MutationAlphaOrganizationRefreshInviteLinkResult = Invite;
     export interface MutationAlphaOrganizationCreatePublicInviteArgs {
         expirationDays: Nullable<number>;
         organizationId: Nullable<string>;
     }
-    export type MutationAlphaOrganizationCreatePublicInviteResult = Invite;
     export interface MutationAlphaOrganizationRemoveMemberArgs {
         memberId: string;
         organizationId: string;
     }
-    export type MutationAlphaOrganizationRemoveMemberResult = string;
     export interface MutationAlphaOrganizationDeletePublicInviteArgs {
         organizationId: Nullable<string>;
     }
-    export type MutationAlphaOrganizationDeletePublicInviteResult = string;
     export interface MutationPresenceReportOnlineArgs {
         timeout: number;
         platform: Nullable<Platform>;
     }
-    export type MutationPresenceReportOnlineResult = string;
     export interface MutationPresenceReportOfflineArgs {
         platform: Nullable<Platform>;
     }
-    export type MutationPresenceReportOfflineResult = string;
     export interface MutationAlphaReportActiveArgs {
         timeout: number;
         platform: Nullable<Platform>;
     }
-    export type MutationAlphaReportActiveResult = string;
     export interface MutationSuperAccountAddArgs {
         title: string;
     }
-    export type MutationSuperAccountAddResult = SuperAccount;
     export interface MutationSuperAccountRenameArgs {
         id: string;
         title: string;
     }
-    export type MutationSuperAccountRenameResult = SuperAccount;
     export interface MutationSuperAccountActivateArgs {
         id: string;
     }
-    export type MutationSuperAccountActivateResult = SuperAccount;
     export interface MutationSuperAccountSuspendArgs {
         id: string;
     }
-    export type MutationSuperAccountSuspendResult = SuperAccount;
     export interface MutationSuperAccountPendArgs {
         id: string;
     }
-    export type MutationSuperAccountPendResult = SuperAccount;
     export interface MutationSuperAccountMemberAddArgs {
         id: string;
         userId: string;
     }
-    export type MutationSuperAccountMemberAddResult = SuperAccount;
     export interface MutationSuperAccountMemberRemoveArgs {
         id: string;
         userId: string;
     }
-    export type MutationSuperAccountMemberRemoveResult = SuperAccount;
     export interface MutationSuperAccountChannelMemberAddArgs {
         id: string;
         userId: string;
     }
-    export type MutationSuperAccountChannelMemberAddResult = string;
     export interface MutationSuperAdminAddArgs {
         userId: string;
         role: SuperAdminRole;
     }
-    export type MutationSuperAdminAddResult = string;
     export interface MutationSuperAdminRemoveArgs {
         userId: string;
     }
-    export type MutationSuperAdminRemoveResult = string;
     export interface MutationAlphaAlterPublishedArgs {
         id: string;
         published: boolean;
     }
-    export type MutationAlphaAlterPublishedResult = Organization;
     export interface MutationRoomReadArgs {
         id: string;
         mid: string;
     }
-    export type MutationRoomReadResult = boolean;
     export interface MutationBetaMessageSendArgs {
         message: Nullable<string>;
         file: Nullable<string>;
@@ -1008,7 +954,6 @@ export namespace GQL {
         mentions: Nullable<string[]>;
         room: string;
     }
-    export type MutationBetaMessageSendResult = boolean;
     export interface MutationBetaMessageEditArgs {
         mid: string;
         message: Nullable<string>;
@@ -1016,25 +961,20 @@ export namespace GQL {
         replyMessages: Nullable<string[]>;
         mentions: Nullable<string[]>;
     }
-    export type MutationBetaMessageEditResult = boolean;
     export interface MutationBetaMessageDeleteAugmentationArgs {
         mid: string;
     }
-    export type MutationBetaMessageDeleteAugmentationResult = boolean;
     export interface MutationBetaMessageDeleteArgs {
         mid: string;
     }
-    export type MutationBetaMessageDeleteResult = boolean;
     export interface MutationBetaReactionSetArgs {
         mid: string;
         reaction: string;
     }
-    export type MutationBetaReactionSetResult = boolean;
     export interface MutationBetaReactionRemoveArgs {
         mid: string;
         reaction: string;
     }
-    export type MutationBetaReactionRemoveResult = boolean;
     export interface MutationBetaIntroSendArgs {
         room: string;
         uid: string;
@@ -1043,7 +983,6 @@ export namespace GQL {
         file: Nullable<string>;
         repeatKey: Nullable<string>;
     }
-    export type MutationBetaIntroSendResult = boolean;
     export interface MutationBetaIntroEditArgs {
         mid: string;
         uid: string;
@@ -1051,17 +990,14 @@ export namespace GQL {
         message: Nullable<string>;
         file: Nullable<string>;
     }
-    export type MutationBetaIntroEditResult = boolean;
     export interface MutationConversationDraftUpdateArgs {
         conversationId: string;
         message: Nullable<string>;
     }
-    export type MutationConversationDraftUpdateResult = string;
     export interface MutationAlphaSaveDraftMessageArgs {
         conversationId: string;
         message: Nullable<string>;
     }
-    export type MutationAlphaSaveDraftMessageResult = string;
     export interface MutationAlphaChannelCreateArgs {
         title: string;
         photoRef: Nullable<ImageRefInput>;
@@ -1069,107 +1005,84 @@ export namespace GQL {
         description: Nullable<string>;
         oid: Nullable<string>;
     }
-    export type MutationAlphaChannelCreateResult = Conversation;
     export interface MutationAlphaChannelSetFeaturedArgs {
         channelId: string;
         featured: boolean;
     }
-    export type MutationAlphaChannelSetFeaturedResult = Conversation;
     export interface MutationAlphaChannelHideFromSearchArgs {
         channelId: string;
         hidden: boolean;
     }
-    export type MutationAlphaChannelHideFromSearchResult = Conversation;
     export interface MutationAlphaChannelInviteArgs {
         channelId: string;
         userId: string;
     }
-    export type MutationAlphaChannelInviteResult = ConversationUpdateResponse;
     export interface MutationAlphaChannelJoinArgs {
         channelId: string;
     }
-    export type MutationAlphaChannelJoinResult = ConversationUpdateResponse;
     export interface MutationAlphaChannelRevokeInviteArgs {
         channelId: string;
         userId: string;
     }
-    export type MutationAlphaChannelRevokeInviteResult = string;
     export interface MutationAlphaChannelCancelRequestArgs {
         channelId: string;
     }
-    export type MutationAlphaChannelCancelRequestResult = Nullable<string>;
     export interface MutationAlphaChannelInviteMembersArgs {
         channelId: string;
         inviteRequests: ChannelInviteRequest[];
     }
-    export type MutationAlphaChannelInviteMembersResult = string;
     export interface MutationAlphaChannelJoinInviteArgs {
         invite: string;
     }
-    export type MutationAlphaChannelJoinInviteResult = string;
     export interface MutationAlphaChannelRenewInviteLinkArgs {
         channelId: string;
     }
-    export type MutationAlphaChannelRenewInviteLinkResult = string;
     export interface MutationConferenceJoinArgs {
         id: string;
     }
-    export type MutationConferenceJoinResult = Conference;
     export interface MutationConferenceKeepAliveArgs {
         id: string;
     }
-    export type MutationConferenceKeepAliveResult = Conference;
     export interface MutationConferenceLeaveArgs {
         id: string;
     }
-    export type MutationConferenceLeaveResult = Conference;
     export interface MutationFeatureFlagAddArgs {
         key: string;
         title: string;
     }
-    export type MutationFeatureFlagAddResult = FeatureFlag;
     export interface MutationSuperAccountFeatureAddArgs {
         id: string;
         featureId: string;
     }
-    export type MutationSuperAccountFeatureAddResult = SuperAccount;
     export interface MutationSuperAccountFeatureRemoveArgs {
         id: string;
         featureId: string;
     }
-    export type MutationSuperAccountFeatureRemoveResult = SuperAccount;
     export interface MutationCreateOrganizationArgs {
         input: CreateOrganizationInput;
     }
-    export type MutationCreateOrganizationResult = OrganizationProfile;
     export interface MutationUpdateOrganizationProfileArgs {
         input: UpdateOrganizationProfileInput;
         id: Nullable<string>;
     }
-    export type MutationUpdateOrganizationProfileResult = OrganizationProfile;
     export interface MutationRegisterWebPushArgs {
         endpoint: string;
     }
-    export type MutationRegisterWebPushResult = string;
     export interface MutationRegisterPushArgs {
         endpoint: string;
         type: PushType;
     }
-    export type MutationRegisterPushResult = string;
     export interface MutationTypingSendArgs {
         conversationId: string;
         type: TypingType;
     }
-    export type MutationTypingSendResult = string;
     export interface MutationTypingCancelArgs {
         conversationId: string;
     }
-    export type MutationTypingCancelResult = string;
     export interface MutationAlphaSetTypingArgs {
         conversationId: string;
         type: Nullable<string>;
     }
-    export type MutationAlphaSetTypingResult = string;
     export interface MutationBetaRoomCreateArgs {
         kind: SharedRoomKind;
         title: Nullable<string>;
@@ -1178,69 +1091,55 @@ export namespace GQL {
         message: Nullable<string>;
         listed: Nullable<boolean>;
     }
-    export type MutationBetaRoomCreateResult = SharedRoom;
     export interface MutationBetaRoomUpdateArgs {
         roomId: string;
         input: RoomUpdateInput;
     }
-    export type MutationBetaRoomUpdateResult = Room;
     export interface MutationBetaRoomInviteArgs {
         roomId: string;
         invites: RoomInviteInput[];
     }
-    export type MutationBetaRoomInviteResult = Room;
     export interface MutationBetaRoomKickArgs {
         roomId: string;
         userId: string;
     }
-    export type MutationBetaRoomKickResult = Room;
     export interface MutationBetaRoomChangeRoleArgs {
         roomId: string;
         userId: string;
         newRole: RoomMemberRole;
     }
-    export type MutationBetaRoomChangeRoleResult = Room;
     export interface MutationBetaRoomJoinArgs {
         roomId: string;
     }
-    export type MutationBetaRoomJoinResult = Room;
     export interface MutationBetaRoomInviteLinkSendEmailArgs {
         roomId: string;
         inviteRequests: RoomInviteEmailRequest[];
     }
-    export type MutationBetaRoomInviteLinkSendEmailResult = string;
     export interface MutationBetaRoomInviteLinkJoinArgs {
         invite: string;
     }
-    export type MutationBetaRoomInviteLinkJoinResult = Room;
     export interface MutationBetaRoomInviteLinkRenewArgs {
         roomId: string;
     }
-    export type MutationBetaRoomInviteLinkRenewResult = string;
     export interface MutationBetaRoomUpdateUserNotificationSettingsArgs {
         settings: RoomUserNotificaionSettingsInput;
         roomId: string;
     }
-    export type MutationBetaRoomUpdateUserNotificationSettingsResult = RoomUserNotificaionSettings;
     export interface MutationBetaRoomAlterFeaturedArgs {
         roomId: string;
         featured: boolean;
     }
-    export type MutationBetaRoomAlterFeaturedResult = Room;
     export interface MutationBetaRoomAlterListedArgs {
         roomId: string;
         listed: boolean;
     }
-    export type MutationBetaRoomAlterListedResult = Room;
     export interface MutationAlphaSetUserShortNameArgs {
         shortname: string;
     }
-    export type MutationAlphaSetUserShortNameResult = Nullable<string>;
     export interface MutationAlphaSetOrgShortNameArgs {
         id: string;
         shortname: string;
     }
-    export type MutationAlphaSetOrgShortNameResult = Nullable<string>;
     export interface OrganizationContact {
         name?: string;
         photo?: Nullable<string>;
@@ -1461,88 +1360,69 @@ export namespace GQL {
         conversationId: Nullable<string>;
         shortName: Nullable<string>;
     }
-    export type QueryAlphaChatResult = Conversation;
     export interface QueryAlphaLoadMessagesArgs {
         conversationId: string;
         first: Nullable<number>;
         before: Nullable<string>;
         after: Nullable<string>;
     }
-    export type QueryAlphaLoadMessagesResult = ConversationState;
     export interface QueryAlphaChatsSearchForComposeArgs {
         query: Nullable<string>;
         organizations: Nullable<boolean>;
         limit: Nullable<number>;
     }
-    export type QueryAlphaChatsSearchForComposeResult = ComposeSearchResult[];
     export interface QueryAlphaChatSearchArgs {
         members: string[];
     }
-    export type QueryAlphaChatSearchResult = Nullable<Conversation>;
     export interface QueryAlphaGroupConversationMembersArgs {
         conversationId: string;
     }
-    export type QueryAlphaGroupConversationMembersResult = GroupConversationMember[];
     export interface QueryAlphaChatTextSearchArgs {
         query: string;
     }
-    export type QueryAlphaChatTextSearchResult = Conversation[];
     export interface QueryAlphaInviteInfoArgs {
         key: string;
     }
-    export type QueryAlphaInviteInfoResult = Nullable<InviteInfo>;
     export interface QueryAppInviteInfoArgs {
         key: string;
     }
-    export type QueryAppInviteInfoResult = Nullable<AppInvite>;
     export interface QueryAlphaAppInviteInfoArgs {
         key: string;
     }
-    export type QueryAlphaAppInviteInfoResult = Nullable<AppInviteInfo>;
     export interface QueryAlphaChatsArgs {
         first: number;
         after: Nullable<string>;
     }
-    export type QueryAlphaChatsResult = ConversationConnection;
     export interface QueryDialogsArgs {
         first: number;
         after: Nullable<string>;
     }
-    export type QueryDialogsResult = DialogsConnection;
     export interface QueryAlphaOrganizationMembersArgs {
         orgId: string;
     }
-    export type QueryAlphaOrganizationMembersResult = OrganizationMember[];
     export interface QueryAlphaOrganizationInviteLinkArgs {
         organizationId: Nullable<string>;
     }
-    export type QueryAlphaOrganizationInviteLinkResult = Nullable<Invite>;
     export interface QueryAlphaOrganizationPublicInviteArgs {
         organizationId: Nullable<string>;
     }
-    export type QueryAlphaOrganizationPublicInviteResult = Nullable<Invite>;
     export interface QuerySuperAccountArgs {
         id: string;
         viaOrgId: Nullable<boolean>;
     }
-    export type QuerySuperAccountResult = SuperAccount;
     export interface QueryConversationDraftArgs {
         conversationId: string;
     }
-    export type QueryConversationDraftResult = Nullable<string>;
     export interface QueryAlphaDraftMessageArgs {
         conversationId: string;
     }
-    export type QueryAlphaDraftMessageResult = Nullable<string>;
     export interface QueryAlphaChannelsListArgs {
         first: number;
         after: Nullable<string>;
     }
-    export type QueryAlphaChannelsListResult = ConversationConnection;
     export interface QueryAlphaChannelMembersArgs {
         channelId: string;
     }
-    export type QueryAlphaChannelMembersResult = ChannelMember[];
     export interface QueryAlphaChannelsArgs {
         query: Nullable<string>;
         first: number;
@@ -1550,27 +1430,21 @@ export namespace GQL {
         page: Nullable<number>;
         sort: Nullable<string>;
     }
-    export type QueryAlphaChannelsResult = ChannelConversationConnection;
     export interface QueryAlphaChannelInviteInfoArgs {
         uuid: string;
     }
-    export type QueryAlphaChannelInviteInfoResult = Nullable<ChannelInvite>;
     export interface QueryAlphaChannelInviteLinkArgs {
         channelId: string;
     }
-    export type QueryAlphaChannelInviteLinkResult = string;
     export interface QueryConferenceArgs {
         id: string;
     }
-    export type QueryConferenceResult = Conference;
     export interface QueryOrganizationArgs {
         id: string;
     }
-    export type QueryOrganizationResult = Organization;
     export interface QueryOrganizationProfileArgs {
         id: string;
     }
-    export type QueryOrganizationProfileResult = OrganizationProfile;
     export interface QueryAlphaOrganizationsArgs {
         query: Nullable<string>;
         prefix: Nullable<string>;
@@ -1579,11 +1453,9 @@ export namespace GQL {
         after: Nullable<string>;
         page: Nullable<number>;
     }
-    export type QueryAlphaOrganizationsResult = OrganizationsConnection;
     export interface QueryAlphaOrganizationByPrefixArgs {
         query: Nullable<string>;
     }
-    export type QueryAlphaOrganizationByPrefixResult = Nullable<Organization>;
     export interface QueryAlphaComunityPrefixSearchArgs {
         query: Nullable<string>;
         sort: Nullable<string>;
@@ -1591,15 +1463,12 @@ export namespace GQL {
         after: Nullable<string>;
         page: Nullable<number>;
     }
-    export type QueryAlphaComunityPrefixSearchResult = OrganizationsConnection;
     export interface QueryUsersArgs {
         query: string;
     }
-    export type QueryUsersResult = User[];
     export interface QueryUserArgs {
         id: string;
     }
-    export type QueryUserResult = User;
     export interface QueryUserSearchArgs {
         query: Nullable<string>;
         first: number;
@@ -1607,7 +1476,6 @@ export namespace GQL {
         page: Nullable<number>;
         sort: Nullable<string>;
     }
-    export type QueryUserSearchResult = UserConnection;
     export interface QueryAlphaProfilesArgs {
         query: Nullable<string>;
         first: number;
@@ -1615,21 +1483,17 @@ export namespace GQL {
         page: Nullable<number>;
         sort: Nullable<string>;
     }
-    export type QueryAlphaProfilesResult = UserConnection;
     export interface QueryRoomArgs {
         id: string;
     }
-    export type QueryRoomResult = Nullable<Room>;
     export interface QueryRoomMessagesArgs {
         roomId: string;
         first: Nullable<number>;
         before: Nullable<string>;
     }
-    export type QueryRoomMessagesResult = RoomMessage[];
     export interface QueryRoomMembersArgs {
         roomId: string;
     }
-    export type QueryRoomMembersResult = RoomMember[];
     export interface QueryBetaRoomSearchArgs {
         query: Nullable<string>;
         first: number;
@@ -1637,19 +1501,15 @@ export namespace GQL {
         page: Nullable<number>;
         sort: Nullable<string>;
     }
-    export type QueryBetaRoomSearchResult = ChannelConversationConnection;
     export interface QueryBetaRoomInviteInfoArgs {
         invite: string;
     }
-    export type QueryBetaRoomInviteInfoResult = Nullable<ChannelInvite>;
     export interface QueryBetaRoomInviteLinkArgs {
         roomId: string;
     }
-    export type QueryBetaRoomInviteLinkResult = string;
     export interface QueryAlphaResolveShortNameArgs {
         shortname: string;
     }
-    export type QueryAlphaResolveShortNameResult = Nullable<ShortNameDestination>;
     export interface SessionState {
         isLoggedIn?: boolean;
         isProfileCreated?: boolean;
@@ -1677,32 +1537,25 @@ export namespace GQL {
     export interface SubscriptionAlphaSubscribeChatOnlineArgs {
         conversations: string[];
     }
-    export type SubscriptionAlphaSubscribeChatOnlineResult = OnlineEvent;
     export interface SubscriptionAlphaSubscribeOnlineArgs {
         users: string[];
     }
-    export type SubscriptionAlphaSubscribeOnlineResult = OnlineEvent;
     export interface SubscriptionAlphaConferenceWatchArgs {
         id: string;
     }
-    export type SubscriptionAlphaConferenceWatchResult = Conference;
     export interface SubscriptionConversationUpdatesArgs {
         conversationId: string;
         fromState: Nullable<string>;
     }
-    export type SubscriptionConversationUpdatesResult = ConversationUpdateContainer;
     export interface SubscriptionDialogsUpdatesArgs {
         fromState: Nullable<string>;
     }
-    export type SubscriptionDialogsUpdatesResult = DialogUpdateContainer;
     export interface SubscriptionConversationTypingsArgs {
         conversationId: string;
     }
-    export type SubscriptionConversationTypingsResult = TypingEvent;
     export interface SubscriptionAlphaSubscribeChatTypingsArgs {
         conversationId: string;
     }
-    export type SubscriptionAlphaSubscribeChatTypingsResult = TypingEvent;
     export interface TypingEvent {
         conversation?: Conversation;
         user?: User;

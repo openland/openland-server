@@ -1,6 +1,10 @@
 import {
+    DefinitionNode,
     DirectiveNode,
-    FieldDefinitionNode, InputObjectTypeDefinitionNode, InterfaceTypeDefinitionNode, ObjectTypeDefinitionNode,
+    FieldDefinitionNode,
+    InputObjectTypeDefinitionNode,
+    InterfaceTypeDefinitionNode,
+    ObjectTypeDefinitionNode,
     ObjectTypeExtensionNode,
     parse, TypeNode, UnionTypeDefinitionNode
 } from 'graphql';
@@ -44,9 +48,6 @@ function gen(ast: DocumentNode): string {
             ENUMS.add(definition.name.value);
             types += genEnum(definition) + '\n';
         }
-        if (definition.kind === 'ObjectTypeExtension') {
-            // types += genExtension(definition) + '\n';
-        }
         if (definition.kind === 'UnionTypeDefinition') {
             types += genUnion(definition) + '\n';
         }
@@ -61,21 +62,17 @@ function gen(ast: DocumentNode): string {
     out += tab(1, types) + '\n';
     out += `}`;
     out += '\n\n';
-    // for (let def of ast.definitions) {
-    //     if (def.kind === 'ObjectTypeDefinition' || def.kind === 'InterfaceTypeDefinition' || def.kind === 'UnionTypeDefinition') {
-    //         console.log(`export type ${def.name.value}Root = any;`);
-    //     }
-    // }
     out += genResolverInterface(ast);
+
     return out;
 }
 
 function applyExtensions(ast: DocumentNode) {
-    let out = { ...ast };
+    let out = {...ast};
 
     for (let definition of ast.definitions) {
         if (definition.kind === 'ObjectTypeExtension') {
-            let obj: ObjectTypeDefinitionNode|undefined = out.definitions.find(d => d.kind === 'ObjectTypeDefinition' && d.name.value === (definition as ObjectTypeExtensionNode).name.value) as ObjectTypeDefinitionNode;
+            let obj: ObjectTypeDefinitionNode | undefined = out.definitions.find(d => d.kind === 'ObjectTypeDefinition' && d.name.value === (definition as ObjectTypeExtensionNode).name.value) as ObjectTypeDefinitionNode;
             if (!obj) {
                 throw new Error('Extension of non-declared type');
             }
@@ -86,58 +83,37 @@ function applyExtensions(ast: DocumentNode) {
     return out;
 }
 
-export function genResolverInterface(ast: DocumentNode) {
+function genResolverInterface(ast: DocumentNode) {
+    function fetchType(type: TypeNode, nullable: boolean = true): string {
+        switch (type.kind) {
+            case 'NamedType':
+                let typeName = PRIMITIVE_TYPES[type.name.value] || type.name.value;
+
+                if (nullable) {
+                    return `Nullable<GQLRoots.${typeName}Root>`;
+                } else {
+                    return `GQLRoots.${typeName}Root`;
+                }
+            case 'NonNullType':
+                return fetchType(type.type, false);
+
+            case 'ListType':
+                if (nullable) {
+                    return `Nullable<${fetchType(type.type)}[]>`;
+                } else {
+                    return `${fetchType(type.type)}[]`;
+                }
+
+            default:
+                return 'UnknownType';
+        }
+    }
+
     let out = '';
 
     out += 'export interface GQLResolver {\n';
     for (let def of ast.definitions) {
-        if (def.kind === 'ObjectTypeDefinition') {
-            // // TODO: Support Query, Mutation and Subscription
-            // if (def.name.value === 'Query' || def.name.value === 'Mutation' || def.name.value === 'Subscription') {
-            //     continue;
-            // }
-            function fetchType(type: TypeNode, nullable: boolean = true): string {
-                switch (type.kind) {
-                    case 'NamedType':
-                        let typeName = PRIMITIVE_TYPES[type.name.value] || type.name.value;
-
-                        if (nullable) {
-                            return `Nullable<GQLRoots.${typeName}Root>`;
-                        } else {
-                            return `GQLRoots.${typeName}Root`;
-                        }
-                    case 'NonNullType':
-                        return fetchType(type.type, false);
-
-                    case 'ListType':
-                        if (nullable) {
-                            return `Nullable<${fetchType(type.type)}[]>`;
-                        } else {
-                            return `${fetchType(type.type)}[]`;
-                        }
-
-                    default:
-                        return 'UnknownType';
-                }
-            }
-            // function fetcRootType(type: TypeNode): string {
-            //     switch (type.kind) {
-            //         case 'NamedType':
-            //             return type.name.value;
-            //         case 'NonNullType':
-            //             return fetchType(type.type);
-            //
-            //         case 'ListType':
-            //             return fetchType(type.type);
-            //
-            //         default:
-            //             throw new Error('Unknown type');
-            //     }
-            // }
-            // out += genTab(1) + `${def.name.value}?: SoftlyTypedResolver<GQL.${def.name.value}>;\n`;
-            // let fields = (def.fields || []).filter(f => !isPrimitiveType(f.type));
-            // let fieldsRendered = fields.map(f => `${f.name.value}: ResolverRootType<AllTypes['${fetchType(f.type)}']>`).join(', ');
-            // let fieldsRendered = fields.map(f => `${f.name.value}: ${fetchType(f.type)}`).join(', ');
+        if (isObjectTypeDefinitionNode(def)) {
 
             let returnTypesMap = (def.fields || [])
                 .filter(f => !isPrimitiveType(f.type))
@@ -150,8 +126,8 @@ export function genResolverInterface(ast: DocumentNode) {
                 .join(', ');
 
             let isSubscription = def.name.value === 'Subscription';
+
             out += genTab(1) + `${def.name.value}?: ${isSubscription ? 'ComplexTypedSubscriptionResolver' : 'ComplexTypedResolver'}<GQL.${def.name.value}, GQLRoots.${def.name.value}Root, {${returnTypesMap}}, {${argsMap}}>;\n`;
-            // out += genTab(1) + `${def.name.value}?: ComplexTypedResolver<GQL.${def.name.value}, {${fieldsRendered}}, GQLRoots.${def.name.value}Root>;\n`;
         }
     }
     out += '}\n';
@@ -159,7 +135,7 @@ export function genResolverInterface(ast: DocumentNode) {
     return out;
 }
 
-function isObjectTypeDefinitionNode(ast: GenericTypeNode): ast is ObjectTypeDefinitionNode {
+function isObjectTypeDefinitionNode(ast: GenericTypeNode | DefinitionNode): ast is ObjectTypeDefinitionNode {
     return ast.kind === 'ObjectTypeDefinition';
 }
 
@@ -177,7 +153,7 @@ function genInputType(ast: InputObjectTypeDefinitionNode): string {
     return out;
 }
 
-function genType(ast: GenericTypeNode, genFuncs: boolean = false): string {
+function genType(ast: GenericTypeNode): string {
     let out = ``;
 
     let extendsInterface = '';
@@ -191,25 +167,11 @@ function genType(ast: GenericTypeNode, genFuncs: boolean = false): string {
     let extraTypes = ``;
 
     for (let field of ast.fields || []) {
-        if (field.arguments && field.arguments.length > 0) {
-            let args: string[] = [];
-
-            for (let argument of field.arguments) {
-                args.push(`${argument.name.value}: ${renderType(argument.type)}`);
-            }
-
-            if (genFuncs) {
-                out += `${genTab(1)}${field.name.value}(${args.join(', ')}): ${renderType(field.type)};\n`;
-            } else {
-                out += `${genTab(1)}${field.name.value}?: ${renderType(field.type)};\n`;
-            }
-
-            extraTypes += genFunctionArguments(ast, field) + '\n';
-            extraTypes += genFunctionReturnType(ast, field) + '\n';
-
-            continue;
-        }
         out += `${genTab(1)}${field.name.value}?: ${renderType(field.type)};\n`;
+
+        if (field.arguments && field.arguments.length > 0) {
+            extraTypes += genFunctionArguments(ast, field) + '\n';
+        }
     }
 
     out += `}`;
@@ -254,10 +216,6 @@ function applyIDsDirective(node: { type: TypeNode, directives?: ReadonlyArray<Di
     // return node;
 }
 
-function genFunctionReturnType(type: GenericTypeNode | ObjectTypeExtensionNode, field: FieldDefinitionNode): string {
-    return `export type ${type.name.value}${capitalize(field.name.value)}Result = ${renderType(field.type)};`;
-}
-
 function genEnum(type: EnumTypeDefinitionNode): string {
     let out = ``;
 
@@ -267,22 +225,6 @@ function genEnum(type: EnumTypeDefinitionNode): string {
 
     out += `${values.join(' | ')};`;
 
-    return out;
-}
-
-export function genExtension(type: ObjectTypeExtensionNode): string {
-    let out = ``;
-
-    if (!type.fields) {
-        return out;
-    }
-
-    for (let field of type.fields) {
-        if (field.arguments && field.arguments.length > 0) {
-            out += genFunctionArguments(type, field) + '\n';
-            out += genFunctionReturnType(type, field) + '\n';
-        }
-    }
     return out;
 }
 
