@@ -12,6 +12,7 @@ import { GQL } from './SchemaSpec';
 //  Root types
 //
 export namespace GQLRoots {
+    export type ConferencePeerRoot = any;
     export type ConferenceJoinResultRoot = any;
     export type ConferenceUpdateRoot = any;
     export type ConferenceMemberLeftRoot = any;
