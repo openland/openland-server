@@ -29,7 +29,7 @@ export default {
                 let state: 'READY' | 'WAIT_OFFER' | 'NEED_OFFER' | 'WAIT_ANSWER' | 'NEED_ANSWER' = 'READY';
                 let sdp: string | null = null;
                 let isPrimary = src.id < outgoing.id;
-                let ice: string[] = isPrimary ? connection.ice2 : connection.ice1;
+                let ice: string[] = isPrimary ? connection.ice1 : connection.ice2;
                 if (connection.state === 'wait-offer') {
                     if (isPrimary) {
                         state = 'WAIT_OFFER';
