@@ -23,46 +23,60 @@ export class CallRepository {
     }
 
     findActiveMembers = async (parent: Context, cid: number) => {
-        return await this.entities.ConferenceParticipant.allFromConference(parent, cid);
+        return await this.entities.ConferencePeer.allFromConference(parent, cid);
     }
 
     conferenceJoin = async (parent: Context, cid: number, uid: number, tid: string, timeout: number) => {
         return await inTx(parent, async (ctx) => {
-            let res = (await this.entities.ConferenceParticipant.findById(ctx, cid, uid, tid));
-            if (res) {
-                res.keepAliveTimeout = Date.now() + timeout;
-                res.enabled = true;
-                await this.bumpVersion(ctx, cid);
-            } else {
-                let seq = (await this.entities.Sequence.findById(ctx, 'conference-participant-id'));
-                if (!seq) {
-                    seq = await this.entities.Sequence.create(ctx, 'conference-participant-id', { value: 0 });
-                }
-                let id = ++seq.value;
-                await seq.flush();
-                res = await this.entities.ConferenceParticipant.create(ctx, cid, uid, tid, {
-                    id,
-                    keepAliveTimeout: Date.now() + timeout, enabled: true
-                });
-                await this.bumpVersion(ctx, cid);
+            let seq = (await this.entities.Sequence.findById(ctx, 'conference-peer-id'));
+            if (!seq) {
+                seq = await this.entities.Sequence.create(ctx, 'conference-peer-id', { value: 0 });
             }
+            let id = ++seq.value;
+            await seq.flush();
+            let res = await this.entities.ConferencePeer.create(ctx, id, {
+                cid, uid, tid,
+                keepAliveTimeout: Date.now() + timeout,
+                enabled: true
+            });
+            await this.bumpVersion(ctx, cid);
             return res;
         });
     }
 
-    conferenceLeave = async (parent: Context, cid: number, uid: number, tid: string) => {
-        await inTx(parent, async (ctx) => {
-            let res = (await this.entities.ConferenceParticipant.findById(ctx, cid, uid, tid));
-            if (res) {
-                res.enabled = false;
+    conferenceKeepAlive = async (parent: Context, cid: number, pid: number, timeout: number) => {
+        return await inTx(parent, async (ctx) => {
+            let peer = await this.entities.ConferencePeer.findById(ctx, pid);
+            if (!peer) {
+                return false;
             }
-            await this.bumpVersion(ctx, cid);
+            if (peer.cid !== cid) {
+                throw Error('Conference id mismatch');
+            }
+            if (!peer.enabled) {
+                return false;
+            }
+            peer.keepAliveTimeout = Date.now() + timeout;
+            return true;
+        });
+    }
+
+    conferenceLeave = async (parent: Context, cid: number, pid: number) => {
+        await inTx(parent, async (ctx) => {
+            let res = (await this.entities.ConferencePeer.findById(ctx, pid));
+            if (res) {
+                if (res.cid !== cid) {
+                    throw Error('Conference id mismatch');
+                }
+                res.enabled = false;
+                await this.bumpVersion(ctx, res.cid);
+            }
         });
     }
 
     checkTimeouts = async (parent: Context) => {
         await inTx(parent, async (ctx) => {
-            let active = await this.entities.ConferenceParticipant.allFromActive(ctx);
+            let active = await this.entities.ConferencePeer.allFromActive(ctx);
             let now = Date.now();
             for (let a of active) {
                 if (a.keepAliveTimeout < now) {

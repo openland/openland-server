@@ -1,11 +1,16 @@
 type Conference {
     id: ID!
-    participants: [ConferenceParticipant!]!
+    peers: [ConferencePeer!]!
 }
 
-type ConferenceParticipant {
+type ConferencePeer {
     id: ID!
     user: User!
+}
+
+type ConferenceJoinResult {
+    peerId: ID!
+    conference: Conference!
 }
 
 extend type Query {
@@ -13,9 +18,9 @@ extend type Query {
 }
 
 extend type Mutation {
-    conferenceJoin(id: ID!): Conference!
-    conferenceKeepAlive(id: ID!): Conference!
-    conferenceLeave(id: ID!): Conference!
+    conferenceJoin(id: ID!): ConferenceJoinResult!
+    conferenceKeepAlive(id: ID!, peerId: ID!): Conference!
+    conferenceLeave(id: ID!, peerId: ID!): Conference!
 }
 
 extend type Subscription {

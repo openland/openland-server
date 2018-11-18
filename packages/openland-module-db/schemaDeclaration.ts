@@ -573,15 +573,13 @@ const Schema = declareSchema(() => {
         enableVersioning();
     });
 
-    entity('ConferenceParticipant', () => {
-        field('id', 'number');
-        primaryKey('cid', 'number');
-        primaryKey('uid', 'number');
-        primaryKey('tid', 'string');
-
+    entity('ConferencePeer', () => {
+        primaryKey('id', 'number');
+        field('cid', 'number');
+        field('uid', 'number');
+        field('tid', 'string');
         field('keepAliveTimeout', 'number');
         field('enabled', 'boolean');
-        uniqueIndex('id', ['id']);
         rangeIndex('conference', ['cid', 'keepAliveTimeout']).withCondition((src) => src.enabled);
         rangeIndex('active', ['keepAliveTimeout']).withCondition((src) => src.enabled);
         enableTimestamps();
