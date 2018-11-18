@@ -13,8 +13,54 @@ export default {
         peers: (src: ConferenceRoom, args: {}, ctx: Context) => Modules.Calls.repo.findActiveMembers(ctx, src.id)
     },
     ConferencePeer: {
-        id: (src: ConferencePeer) => IDs.ConferenceParticipant.serialize(src.id),
+        id: (src: ConferencePeer) => IDs.ConferencePeer.serialize(src.id),
         user: (src: ConferencePeer) => src.uid,
+        connection: async (src: ConferencePeer, args: {}, ctx: AppContext) => {
+            let outgoing = await FDB.ConferencePeer.findFromAuth(ctx, src.cid, ctx.auth.uid!, ctx.auth.tid!);
+            if (outgoing) {
+                let connection = await FDB.ConferenceConnection.findById(ctx, Math.min(src.id, outgoing!.id), Math.max(src.id, outgoing!.id));
+                if (!connection) {
+                    return null;
+                }
+                if (connection.state === 'completed') {
+                    return null;
+                }
+
+                let state: 'READY' | 'WAIT_OFFER' | 'NEED_OFFER' | 'WAIT_ANSWER' | 'NEED_ANSWER' = 'READY';
+                let sdp: string | null = null;
+                let isPrimary = src.id < outgoing.id;
+                let ice: string[] = isPrimary ? connection.ice2 : connection.ice1;
+                if (connection.state === 'wait-offer') {
+                    if (isPrimary) {
+                        state = 'WAIT_OFFER';
+                    } else {
+                        state = 'NEED_OFFER';
+                    }
+                } else if (connection.state === 'wait-answer') {
+                    if (isPrimary) {
+                        state = 'NEED_ANSWER';
+                        sdp = connection.offer;
+                    } else {
+                        state = 'WAIT_ANSWER';
+                    }
+                } else if (connection.state === 'online') {
+                    if (isPrimary) {
+                        sdp = connection.offer;
+                    } else {
+                        sdp = connection.answer;
+                    }
+                } else {
+                    throw Error('Unkown state: ' + connection.state);
+                }
+                return {
+                    state,
+                    sdp,
+                    ice
+                };
+            } else {
+                return null;
+            }
+        }
     },
     Query: {
         conference: withUser(async (ctx, args, uid) => {
@@ -41,6 +87,27 @@ export default {
             let pid = IDs.ConferencePeer.parse(args.peerId);
             await Modules.Calls.repo.conferenceKeepAlive(ctx, coid, pid, 15000);
             return Modules.Calls.repo.findConference(ctx, coid);
+        }),
+        peerConnectionOffer: withUser(async (ctx, args, uid) => {
+            let coid = IDs.Conference.parse(args.id);
+            let srcPid = IDs.ConferencePeer.parse(args.ownPeerId);
+            let dstPid = IDs.ConferencePeer.parse(args.peerId);
+            await Modules.Calls.repo.connectionOffer(ctx, coid, srcPid, dstPid, args.offer);
+            return Modules.Calls.repo.findConference(ctx, coid);
+        }),
+        peerConnectionAnswer: withUser(async (ctx, args, uid) => {
+            let coid = IDs.Conference.parse(args.id);
+            let srcPid = IDs.ConferencePeer.parse(args.ownPeerId);
+            let dstPid = IDs.ConferencePeer.parse(args.peerId);
+            await Modules.Calls.repo.connectionAnswer(ctx, coid, srcPid, dstPid, args.answer);
+            return Modules.Calls.repo.findConference(ctx, coid);
+        }),
+        peerConnectionCandidate: withUser(async (ctx, args, uid) => {
+            let coid = IDs.Conference.parse(args.id);
+            let srcPid = IDs.ConferencePeer.parse(args.ownPeerId);
+            let dstPid = IDs.ConferencePeer.parse(args.peerId);
+            await Modules.Calls.repo.peerConnectionCandidate(ctx, coid, srcPid, dstPid, args.candidate);
+            return Modules.Calls.repo.findConference(ctx, coid);
         })
     },
     Subscription: {
@@ -49,7 +116,7 @@ export default {
                 return msg;
             },
             subscribe: async function (_: any, args: { id: string }, ctx: AppContext) {
-                let cid = IDs.Conversation.parse(args.id);
+                let cid = IDs.Conference.parse(args.id);
                 let ended = false;
                 return {
                     ...(async function* func() {

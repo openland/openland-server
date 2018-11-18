@@ -6,6 +6,21 @@ type Conference {
 type ConferencePeer {
     id: ID!
     user: User!
+    connection: ConferencePeerConnection
+}
+
+enum ConferencePeerConnectionState {
+    WAIT_OFFER
+    NEED_OFFER
+    WAIT_ANSWER
+    NEED_ANSWER
+    READY
+}
+
+type ConferencePeerConnection {
+    state: ConferencePeerConnectionState!
+    sdp: String
+    ice: [String!]!
 }
 
 type ConferenceJoinResult {
@@ -21,6 +36,10 @@ extend type Mutation {
     conferenceJoin(id: ID!): ConferenceJoinResult!
     conferenceKeepAlive(id: ID!, peerId: ID!): Conference!
     conferenceLeave(id: ID!, peerId: ID!): Conference!
+
+    peerConnectionOffer(id: ID!, ownPeerId: ID!, peerId: ID!, offer: String!): Conference!
+    peerConnectionAnswer(id: ID!, ownPeerId: ID!, peerId: ID!, answer: String!): Conference!
+    peerConnectionCandidate(id: ID!, ownPeerId: ID!, peerId: ID!, candidate: String!): Conference!
 }
 
 extend type Subscription {
