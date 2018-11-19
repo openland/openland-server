@@ -61,7 +61,8 @@ export default {
             } else {
                 throw new AccessDeniedError();
             }
-        }
+        },
+        settings: async (root: RoomRoot, args: {}, ctx: AppContext) => await Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, (typeof root === 'number' ? root : root.id))
     },
     SharedRoomMembershipStatus: {
         MEMBER: 'joined',
@@ -98,6 +99,7 @@ export default {
         role: withConverationId(async (ctx, id) => await Modules.Messaging.room.resolveUserRole(ctx, ctx.auth.uid!, id)),
         membersCount: async (root: RoomRoot, args: {}, ctx: AppContext) => (await FDB.RoomParticipant.allFromActive(ctx, (typeof root === 'number' ? root : root.id))).length,
         members: withConverationId(async (ctx, id) => await FDB.RoomParticipant.allFromActive(ctx, id)),
+        settings: async (root: RoomRoot, args: {}, ctx: AppContext) => await Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, (typeof root === 'number' ? root : root.id))
     },
     RoomMessage: {
         id: (src: Message) => {

@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, Nullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'ca0e9122014030fad19e3a99999227d2';
+export const GQL_SPEC_VERSION = 'a0ef0c084f097de3ed6f9d1c27781949';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1653,6 +1653,7 @@ export namespace GQL {
     export interface PrivateRoom {
         id?: string;
         user?: User;
+        settings?: RoomUserNotificaionSettings;
     }
     export type SharedRoomKind = 'INTERNAL' | 'PUBLIC' | 'GROUP';
     export type SharedRoomMembershipStatus = 'MEMBER' | 'REQUESTED' | 'LEFT' | 'KICKED' | 'NONE';
@@ -1664,10 +1665,11 @@ export namespace GQL {
         photo?: string;
         description?: Nullable<string>;
         organization?: Nullable<Organization>;
-        membership?: SharedRoomMembershipStatus;
         membersCount?: Nullable<number>;
         members?: RoomMember[];
+        membership?: SharedRoomMembershipStatus;
         role?: RoomMemberRole;
+        settings?: RoomUserNotificaionSettings;
     }
     export interface RoomUpdateInput {
         title: Nullable<string>;
@@ -1823,8 +1825,8 @@ export interface GQLResolver {
     User?: ComplexTypedResolver<GQL.User, GQLRoots.UserRoot, {channelsJoined: GQLRoots.ChannelConversationRoot[], photoRef: Nullable<GQLRoots.ImageRefRoot>, pictureRef: Nullable<GQLRoots.ImageRefRoot>, organizations: GQLRoots.OrganizationRoot[], primaryOrganization: Nullable<GQLRoots.OrganizationRoot>, alphaPrimaryOrganization: Nullable<GQLRoots.OrganizationRoot>}, {}>;
     UserEdge?: ComplexTypedResolver<GQL.UserEdge, GQLRoots.UserEdgeRoot, {node: GQLRoots.UserRoot}, {}>;
     UserConnection?: ComplexTypedResolver<GQL.UserConnection, GQLRoots.UserConnectionRoot, {edges: GQLRoots.UserEdgeRoot[], pageInfo: GQLRoots.PageInfoRoot}, {}>;
-    PrivateRoom?: ComplexTypedResolver<GQL.PrivateRoom, GQLRoots.PrivateRoomRoot, {user: GQLRoots.UserRoot}, {}>;
-    SharedRoom?: ComplexTypedResolver<GQL.SharedRoom, GQLRoots.SharedRoomRoot, {organization: Nullable<GQLRoots.OrganizationRoot>, members: GQLRoots.RoomMemberRoot[]}, {}>;
+    PrivateRoom?: ComplexTypedResolver<GQL.PrivateRoom, GQLRoots.PrivateRoomRoot, {user: GQLRoots.UserRoot, settings: GQLRoots.RoomUserNotificaionSettingsRoot}, {}>;
+    SharedRoom?: ComplexTypedResolver<GQL.SharedRoom, GQLRoots.SharedRoomRoot, {organization: Nullable<GQLRoots.OrganizationRoot>, members: GQLRoots.RoomMemberRoot[], settings: GQLRoots.RoomUserNotificaionSettingsRoot}, {}>;
     RoomMessage?: ComplexTypedResolver<GQL.RoomMessage, GQLRoots.RoomMessageRoot, {fileMetadata: Nullable<GQLRoots.FileMetadataRoot>, sender: GQLRoots.UserRoot, serviceMetadata: Nullable<GQLRoots.ServiceMetadataRoot>, urlAugmentation: Nullable<GQLRoots.UrlAugmentationRoot>, reactions: GQLRoots.MessageReactionRoot[], replyMessages: Nullable<GQLRoots.RoomMessageRoot[]>, mentions: Nullable<GQLRoots.UserRoot[]>}, {}>;
     RoomMember?: ComplexTypedResolver<GQL.RoomMember, GQLRoots.RoomMemberRoot, {user: GQLRoots.UserRoot}, {}>;
     RoomUserNotificaionSettings?: ComplexTypedResolver<GQL.RoomUserNotificaionSettings, GQLRoots.RoomUserNotificaionSettingsRoot, {}, {}>;
