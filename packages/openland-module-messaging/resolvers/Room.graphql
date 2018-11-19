@@ -3,6 +3,7 @@ union Room = PrivateRoom | SharedRoom
 type PrivateRoom {
     id: ID!
     user: User!
+    settings: RoomUserNotificaionSettings!
 }
 
 enum SharedRoomKind {
@@ -33,10 +34,14 @@ type SharedRoom {
     description: String
     
     organization: Organization
-    membership: SharedRoomMembershipStatus!
+  
     membersCount: Int
     members: [RoomMember!]!
+
+    membership: SharedRoomMembershipStatus!
     role: RoomMemberRole!
+
+    settings: RoomUserNotificaionSettings!
 }
 
 input RoomUpdateInput {
