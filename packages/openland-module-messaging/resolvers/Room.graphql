@@ -36,6 +36,7 @@ type SharedRoom {
     membership: SharedRoomMembershipStatus!
     membersCount: Int
     members: [RoomMember!]!
+    role: RoomMemberRole!
 }
 
 input RoomUpdateInput {

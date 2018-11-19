@@ -95,6 +95,7 @@ export default {
         }),
 
         membership: withConverationId(async (ctx, id) => await Modules.Messaging.room.resolveUserMembershipStatus(ctx, ctx.auth.uid!, id)),
+        role: withConverationId(async (ctx, id) => await Modules.Messaging.room.resolveUserRole(ctx, ctx.auth.uid!, id)),
         membersCount: async (root: RoomRoot, args: {}, ctx: AppContext) => (await FDB.RoomParticipant.allFromActive(ctx, (typeof root === 'number' ? root : root.id))).length,
         members: withConverationId(async (ctx, id) => await FDB.RoomParticipant.allFromActive(ctx, id)),
     },

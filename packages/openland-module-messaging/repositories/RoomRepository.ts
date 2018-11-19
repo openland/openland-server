@@ -282,6 +282,11 @@ export class RoomRepository {
         return participant ? participant.status : 'none';
     }
 
+    async resolveUserRole(ctx: Context, uid: number, cid: number) {
+        let participant = await this.entities.RoomParticipant.findById(ctx, uid, cid);
+        return participant ? participant.role : 'MEMBER';
+    }
+
     async findActiveMembers(ctx: Context, cid: number) {
         return this.entities.RoomParticipant.allFromActive(ctx, cid);
     }

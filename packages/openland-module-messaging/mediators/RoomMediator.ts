@@ -293,4 +293,8 @@ export class RoomMediator {
         return await this.repo.resolveUserMembershipStatus(ctx, uid, cid);
     }
 
+    async resolveUserRole(ctx: Context, uid: number, cid: number) {
+        return await this.repo.resolveUserRole(ctx, uid, cid);
+    }
+
 }
