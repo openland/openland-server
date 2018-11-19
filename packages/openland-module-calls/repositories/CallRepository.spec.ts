@@ -21,10 +21,11 @@ describe('CallRepository', () => {
     });
 
     it('should add peers', async () => {
+        let ctx = createEmptyContext();
         let CID = 2;
         let repo = container.get(CallRepository);
-        let peer = await repo.addNewPeer(createEmptyContext(), CID, 3, 'tid1', 5000);
-        let peers = await FDB.ConferencePeer.allFromConference(createEmptyContext(), CID);
+        let peer = await repo.addPeer(ctx, CID, 3, 'tid1', 5000);
+        let peers = await FDB.ConferencePeer.allFromConference(ctx, CID);
         expect(peers.length).toBe(1);
         expect(peer.uid).toBe(3);
         expect(peer.cid).toBe(CID);
@@ -33,20 +34,102 @@ describe('CallRepository', () => {
         expect(peers[0].uid).toBe(peer.uid);
         expect(peers[0].cid).toBe(peer.cid);
         expect(peers[0].tid).toBe(peer.tid);
+        let connections = await FDB.ConferenceConnection.allFromConference(ctx, CID);
+        expect(connections.length).toBe(0);
     });
 
     it('should automatically connect peers', async () => {
+        let ctx = createEmptyContext();
         let CID = 3;
         let repo = container.get(CallRepository);
-        let peer1 = await repo.addNewPeer(createEmptyContext(), CID, 3, 'tid1', 5000);
-        let peer2 = await repo.addNewPeer(createEmptyContext(), CID, 4, 'tid2', 5000);
-        let peers = await FDB.ConferencePeer.allFromConference(createEmptyContext(), CID);
+        let peer1 = await repo.addPeer(createEmptyContext(), CID, 3, 'tid1', 5000);
+        let peer2 = await repo.addPeer(createEmptyContext(), CID, 4, 'tid2', 5000);
+        let peers = await FDB.ConferencePeer.allFromConference(ctx, CID);
         expect(peer1.id).toBeLessThan(peer2.id);
         expect(peer1.uid).toBe(3);
         expect(peer2.uid).toBe(4);
         expect(peers.length).toBe(2);
-        let connection = await FDB.ConferenceConnection.findById(createEmptyContext(), peer1.id, peer2.id);
+        let connections = await FDB.ConferenceConnection.allFromConference(ctx, CID);
+        expect(connections.length).toBe(1);
+        expect(connections[0].cid).toBe(CID);
+        expect(connections[0].state).toBe('wait-offer');
+    });
+
+    it('should remove peers and related connections', async () => {
+        let ctx = createEmptyContext();
+        let CID = 4;
+        let repo = container.get(CallRepository);
+        let peer1 = await repo.addPeer(ctx, CID, 3, 'tid1', 5000);
+        let peer2 = await repo.addPeer(ctx, CID, 4, 'tid2', 5000);
+        await repo.removePeer(ctx, peer1.id);
+        let peers = await FDB.ConferencePeer.allFromConference(ctx, CID);
+        expect(peers.length).toBe(1);
+        expect(peers[0].id).toBe(peer2.id);
+        let connections = await FDB.ConferenceConnection.allFromConference(ctx, CID);
+        expect(connections.length).toBe(0);
+    });
+
+    it('should accept offers', async () => {
+        let ctx = createEmptyContext();
+        let CID = 5;
+        let repo = container.get(CallRepository);
+        let peer1 = await repo.addPeer(ctx, CID, 3, 'tid1', 5000);
+        let peer2 = await repo.addPeer(ctx, CID, 4, 'tid2', 5000);
+        await repo.connectionOffer(ctx, CID, peer1.id, peer2.id, 'offer-value');
+        let connection = (await FDB.ConferenceConnection.findById(ctx, peer1.id, peer2.id))!;
         expect(connection).not.toBeNull();
         expect(connection).not.toBeUndefined();
+        expect(connection.state).toEqual('wait-answer');
+        expect(connection.offer).toEqual('offer-value');
+        expect(connection.answer).toBeNull();
+    });
+
+    it('should crash if offer came from the wrong side', async () => {
+        let ctx = createEmptyContext();
+        let CID = 6;
+        let repo = container.get(CallRepository);
+        let peer1 = await repo.addPeer(ctx, CID, 3, 'tid1', 5000);
+        let peer2 = await repo.addPeer(ctx, CID, 4, 'tid2', 5000);
+        await expect(repo.connectionOffer(ctx, CID, peer2.id, peer1.id, 'offer-value')).rejects.toThrowError();
+        let connection = (await FDB.ConferenceConnection.findById(ctx, peer1.id, peer2.id))!;
+        expect(connection).not.toBeNull();
+        expect(connection).not.toBeUndefined();
+        expect(connection.state).toEqual('wait-offer');
+        expect(connection.offer).toBeNull();
+        expect(connection.answer).toBeNull();
+    });
+
+    it('should accept answer', async () => {
+        let ctx = createEmptyContext();
+        let CID = 7;
+        let repo = container.get(CallRepository);
+        let peer1 = await repo.addPeer(ctx, CID, 3, 'tid1', 5000);
+        let peer2 = await repo.addPeer(ctx, CID, 4, 'tid2', 5000);
+        await repo.connectionOffer(ctx, CID, peer1.id, peer2.id, 'offer-value');
+        await repo.connectionAnswer(ctx, CID, peer2.id, peer1.id, 'answer-value');
+        let connection = (await FDB.ConferenceConnection.findById(ctx, peer1.id, peer2.id))!;
+        expect(connection).not.toBeNull();
+        expect(connection).not.toBeUndefined();
+        expect(connection.state).toEqual('online');
+        expect(connection.offer).toEqual('offer-value');
+        expect(connection.answer).toEqual('answer-value');
+    });
+
+    it('should accept ICE', async () => {
+        let ctx = createEmptyContext();
+        let CID = 7;
+        let repo = container.get(CallRepository);
+        let peer1 = await repo.addPeer(ctx, CID, 3, 'tid1', 5000);
+        let peer2 = await repo.addPeer(ctx, CID, 4, 'tid2', 5000);
+        await repo.connectionCandidate(ctx, CID, peer1.id, peer2.id, 'candidate-1');
+        await repo.connectionCandidate(ctx, CID, peer1.id, peer2.id, 'candidate-2');
+        await repo.connectionCandidate(ctx, CID, peer1.id, peer2.id, 'candidate-3');
+        let connection = (await FDB.ConferenceConnection.findById(ctx, peer1.id, peer2.id))!;
+        expect(connection).not.toBeNull();
+        expect(connection).not.toBeUndefined();
+        expect(connection.ice1.length).toBe(3);
+        expect(connection.ice1[0]).toEqual('candidate-1');
+        expect(connection.ice1[1]).toEqual('candidate-2');
+        expect(connection.ice1[2]).toEqual('candidate-3');
     });
 });

@@ -596,6 +596,7 @@ const Schema = declareSchema(() => {
         field('answer', 'string').nullable();
         field('ice1', 'json');
         field('ice2', 'json');
+        rangeIndex('conference', ['cid', 'createdAt']).withCondition((src) => src.state !== 'completed');
         enableTimestamps();
         enableVersioning();
     });

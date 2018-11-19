@@ -6211,6 +6211,7 @@ export class ConferenceConnectionFactory extends FEntityFactory<ConferenceConnec
             { name: 'ice2', type: 'json' },
         ],
         indexes: [
+            { name: 'conference', type: 'range', fields: ['cid', 'createdAt'] },
         ],
     };
 
@@ -6233,7 +6234,7 @@ export class ConferenceConnectionFactory extends FEntityFactory<ConferenceConnec
         super(connection,
             new FNamespace('entity', 'conferenceConnection'),
             { enableVersioning: true, enableTimestamps: true, validator: ConferenceConnectionFactory.validate, hasLiveStreams: false },
-            [],
+            [new FEntityIndex('conference', ['cid', 'createdAt'], false, (src) => src.state !== 'completed')],
             'ConferenceConnection'
         );
     }
@@ -6249,6 +6250,24 @@ export class ConferenceConnectionFactory extends FEntityFactory<ConferenceConnec
     }
     watch(ctx: Context, peer1: number, peer2: number, cb: () => void) {
         return this._watch(ctx, [peer1, peer2], cb);
+    }
+    async allFromConferenceAfter(ctx: Context, cid: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'conference', cid], after);
+    }
+    async rangeFromConferenceAfter(ctx: Context, cid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'conference', cid], after, limit, reversed);
+    }
+    async rangeFromConference(ctx: Context, cid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'conference', cid], limit, reversed);
+    }
+    async rangeFromConferenceWithCursor(ctx: Context, cid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'conference', cid], limit, after, reversed);
+    }
+    async allFromConference(ctx: Context, cid: number) {
+        return await this._findAll(ctx, ['__indexes', 'conference', cid]);
+    }
+    createConferenceStream(ctx: Context, cid: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'conferenceConnection', '__indexes', 'conference', cid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new ConferenceConnection(ctx, this.connection, this.namespace, this.directory, [value.peer1, value.peer2], value, this.options, isNew, this.indexes, 'ConferenceConnection');

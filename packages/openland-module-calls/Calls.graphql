@@ -9,6 +9,27 @@ type ConferencePeer {
     connection: ConferencePeerConnection
 }
 
+type MediaSession {
+    id: ID!
+    conference: Conference!
+    streams: [MediaStream!]!
+}
+
+enum MediaStreamState {
+    WAIT_OFFER
+    NEED_OFFER
+    WAIT_ANSWER
+    NEED_ANSWER
+    READY
+}
+
+type MediaStream {
+    id: ID!
+    state: MediaStreamState!
+    sdp: String
+    ice: [String!]!
+}
+
 enum ConferencePeerConnectionState {
     WAIT_OFFER
     NEED_OFFER

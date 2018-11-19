@@ -70,7 +70,7 @@ export default {
     Mutation: {
         conferenceJoin: withUser(async (ctx, args, uid) => {
             let cid = IDs.Conference.parse(args.id);
-            let res = await Modules.Calls.repo.conferenceJoin(ctx, cid, uid, ctx.auth.tid!, 15000);
+            let res = await Modules.Calls.repo.addPeer(ctx, cid, uid, ctx.auth.tid!, 15000);
             return {
                 peerId: IDs.ConferencePeer.serialize(res.id),
                 conference: Modules.Calls.repo.getOrCreateConference(ctx, cid)
@@ -79,13 +79,13 @@ export default {
         conferenceLeave: withUser(async (ctx, args, uid) => {
             let coid = IDs.Conference.parse(args.id);
             let pid = IDs.ConferencePeer.parse(args.peerId);
-            await Modules.Calls.repo.conferenceLeave(ctx, coid, pid);
+            await Modules.Calls.repo.removePeer(ctx, pid);
             return Modules.Calls.repo.getOrCreateConference(ctx, coid);
         }),
         conferenceKeepAlive: withUser(async (ctx, args, uid) => {
             let coid = IDs.Conference.parse(args.id);
             let pid = IDs.ConferencePeer.parse(args.peerId);
-            await Modules.Calls.repo.conferenceKeepAlive(ctx, coid, pid, 15000);
+            await Modules.Calls.repo.peerKeepAlive(ctx, coid, pid, 15000);
             return Modules.Calls.repo.getOrCreateConference(ctx, coid);
         }),
         peerConnectionOffer: withUser(async (ctx, args, uid) => {
@@ -106,7 +106,7 @@ export default {
             let coid = IDs.Conference.parse(args.id);
             let srcPid = IDs.ConferencePeer.parse(args.ownPeerId);
             let dstPid = IDs.ConferencePeer.parse(args.peerId);
-            await Modules.Calls.repo.peerConnectionCandidate(ctx, coid, srcPid, dstPid, args.candidate);
+            await Modules.Calls.repo.connectionCandidate(ctx, coid, srcPid, dstPid, args.candidate);
             return Modules.Calls.repo.getOrCreateConference(ctx, coid);
         })
     },

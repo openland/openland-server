@@ -22,13 +22,13 @@ export class CallRepository {
         });
     }
 
-    addNewPeer = async (parent: Context, cid: number, uid: number, tid: string, timeout: number) => {
+    addPeer = async (parent: Context, cid: number, uid: number, tid: string, timeout: number) => {
         return await inTx(parent, async (ctx) => {
 
             // Disable existing for this auth
             let existing = await this.entities.ConferencePeer.findFromAuth(ctx, cid, uid, tid);
             if (existing) {
-                await this.disablePeer(ctx, existing.id);
+                await this.removePeer(ctx, existing.id);
             }
 
             // Create new peer
@@ -62,59 +62,62 @@ export class CallRepository {
         });
     }
 
-    disablePeer = async (parent: Context, pid: number) => {
+    removePeer = async (parent: Context, pid: number) => {
         await inTx(parent, async (ctx) => {
-
+            
             // Disable peer itself
             let existing = await this.entities.ConferencePeer.findById(ctx, pid);
-            if (existing) {
-                existing.enabled = false;
+            if (!existing) {
+                throw Error('Unable to find peer: ' + pid);
             }
+            existing.enabled = false;
 
-            // TODO: Disable connections
-        });
-    }
-
-    conferenceJoin = async (parent: Context, cid: number, uid: number, tid: string, timeout: number) => {
-        return await inTx(parent, async (ctx) => {
-
-            // Disable existing for this auth
-            let existing = await this.entities.ConferencePeer.findFromAuth(ctx, cid, uid, tid);
-            if (existing) {
-                await this.disablePeer(ctx, existing.id);
-            }
-
-            // Create new peer
-            let seq = (await this.entities.Sequence.findById(ctx, 'conference-peer-id'));
-            if (!seq) {
-                seq = await this.entities.Sequence.create(ctx, 'conference-peer-id', { value: 0 });
-            }
-            let id = ++seq.value;
-            await seq.flush();
-            let res = await this.entities.ConferencePeer.create(ctx, id, {
-                cid, uid, tid,
-                keepAliveTimeout: Date.now() + timeout,
-                enabled: true
-            });
-
-            // Create connections
-            let confPeers = await this.entities.ConferencePeer.allFromConference(ctx, cid);
-            for (let cp of confPeers) {
-                if (cp.id === id) {
-                    continue;
+            // Kill all connections
+            let connections = await this.entities.ConferenceConnection.allFromConference(ctx, existing.cid);
+            for (let c of connections) {
+                if (c.peer1 === pid || c.peer2 === pid) {
+                    c.state = 'completed';
                 }
-                await this.entities.ConferenceConnection.create(ctx, Math.min(cp.id, id), Math.max(cp.id, id), {
-                    cid: cid,
-                    state: 'wait-offer',
-                    ice1: [],
-                    ice2: []
-                });
             }
 
-            await this.bumpVersion(ctx, cid);
-            return res;
+            await this.bumpVersion(ctx, existing.cid);
         });
     }
+
+    peerKeepAlive = async (parent: Context, cid: number, pid: number, timeout: number) => {
+        return await inTx(parent, async (ctx) => {
+            let peer = await this.entities.ConferencePeer.findById(ctx, pid);
+            if (!peer) {
+                return false;
+            }
+            if (peer.cid !== cid) {
+                throw Error('Conference id mismatch');
+            }
+            if (!peer.enabled) {
+                return false;
+            }
+            peer.keepAliveTimeout = Date.now() + timeout;
+            return true;
+        });
+    }
+
+    checkTimeouts = async (parent: Context) => {
+        await inTx(parent, async (ctx) => {
+            let active = await this.entities.ConferencePeer.allFromActive(ctx);
+            let now = Date.now();
+            for (let a of active) {
+                if (a.keepAliveTimeout < now) {
+                    log.log(ctx, 'Call Participant Reaped: ' + a.uid + ' from ' + a.cid);
+                    await this.removePeer(ctx, a.id);
+                    await this.bumpVersion(ctx, a.cid);
+                }
+            }
+        });
+    }
+
+    //
+    // Connections
+    //
 
     connectionOffer = async (parent: Context, cid: number, sourcePeerId: number, destPeerId: number, offer: string) => {
         await inTx(parent, async (ctx) => {
@@ -170,7 +173,7 @@ export class CallRepository {
         });
     }
 
-    peerConnectionCandidate = async (parent: Context, cid: number, sourcePeerId: number, destPeerId: number, candidate: string) => {
+    connectionCandidate = async (parent: Context, cid: number, sourcePeerId: number, destPeerId: number, candidate: string) => {
         await inTx(parent, async (ctx) => {
             let sourcePeer = await this.entities.ConferencePeer.findById(ctx, sourcePeerId);
             let destPeer = await this.entities.ConferencePeer.findById(ctx, destPeerId);
@@ -194,49 +197,9 @@ export class CallRepository {
         });
     }
 
-    conferenceKeepAlive = async (parent: Context, cid: number, pid: number, timeout: number) => {
-        return await inTx(parent, async (ctx) => {
-            let peer = await this.entities.ConferencePeer.findById(ctx, pid);
-            if (!peer) {
-                return false;
-            }
-            if (peer.cid !== cid) {
-                throw Error('Conference id mismatch');
-            }
-            if (!peer.enabled) {
-                return false;
-            }
-            peer.keepAliveTimeout = Date.now() + timeout;
-            return true;
-        });
-    }
-
-    conferenceLeave = async (parent: Context, cid: number, pid: number) => {
-        await inTx(parent, async (ctx) => {
-            let res = (await this.entities.ConferencePeer.findById(ctx, pid));
-            if (res) {
-                if (res.cid !== cid) {
-                    throw Error('Conference id mismatch');
-                }
-                await this.disablePeer(ctx, res.id);
-                await this.bumpVersion(ctx, res.cid);
-            }
-        });
-    }
-
-    checkTimeouts = async (parent: Context) => {
-        await inTx(parent, async (ctx) => {
-            let active = await this.entities.ConferencePeer.allFromActive(ctx);
-            let now = Date.now();
-            for (let a of active) {
-                if (a.keepAliveTimeout < now) {
-                    log.log(ctx, 'Call Participant Reaped: ' + a.uid + ' from ' + a.cid);
-                    await this.disablePeer(ctx, a.id);
-                    await this.bumpVersion(ctx, a.cid);
-                }
-            }
-        });
-    }
+    //
+    // Queries
+    //
 
     findActiveMembers = async (parent: Context, cid: number) => {
         return await this.entities.ConferencePeer.allFromConference(parent, cid);
