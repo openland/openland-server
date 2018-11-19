@@ -112,7 +112,7 @@ type RoomInvite {
 
 extend type Mutation {
     # Room mgmt
-    betaRoomCreate(kind: SharedRoomKind!, title: String, photoRef: ImageRefInput, members: [ID!]!, message: String, listed: Boolean): SharedRoom!
+    betaRoomCreate(kind: SharedRoomKind!, title: String, photoRef: ImageRefInput, members: [ID!]!, message: String, listed: Boolean, organizationId: ID): SharedRoom!
     betaRoomUpdate(roomId: ID!, input: RoomUpdateInput!): Room!
     
     # Members mgmt

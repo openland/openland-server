@@ -271,6 +271,7 @@ export default {
         // Room mgmt
         //
         betaRoomCreate: withAccount(async (ctx, args, uid, oid) => {
+            oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
             await validate({
                 title: optional(stringNotEmpty('Title can\'t be empty')),
                 kind: defined(enumString(['PUBLIC', 'GROUP'], 'kind expected to be PUBLIC or GROUP'))

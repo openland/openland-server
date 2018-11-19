@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, Nullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '089de9536089150f995753e6e0592c3a';
+export const GQL_SPEC_VERSION = 'ae29fca40d6f06bb985457d90057b781';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1137,6 +1137,7 @@ export namespace GQL {
         members: string[];
         message: Nullable<string>;
         listed: Nullable<boolean>;
+        organizationId: Nullable<string>;
     }
     export interface MutationBetaRoomUpdateArgs {
         roomId: string;
