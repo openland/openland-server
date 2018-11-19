@@ -30,7 +30,7 @@ type SharedRoom {
     kind: SharedRoomKind!
     title: String!
     photo: String!
-    description: String!
+    description: String
     
     organization: Organization
     membership: SharedRoomMembershipStatus!
