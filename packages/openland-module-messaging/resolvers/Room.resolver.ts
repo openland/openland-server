@@ -153,6 +153,7 @@ export default {
     RoomMember: {
         user: async (src: RoomParticipant, args: {}, ctx: AppContext) => await FDB.User.findById(ctx, src.uid),
         role: async (src: RoomParticipant) => src.role.toUpperCase(),
+        membership: async (src: RoomParticipant, args: {}, ctx: AppContext) => await Modules.Messaging.room.resolveUserMembershipStatus(ctx, src.uid, src.cid) as any,
     },
 
     Query: {

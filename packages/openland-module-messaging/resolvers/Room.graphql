@@ -68,6 +68,7 @@ type RoomMessage {
 type RoomMember {
     user: User!
     role: RoomMemberRole!
+    membership: SharedRoomMembershipStatus!
 }
 
 type RoomUserNotificaionSettings {
