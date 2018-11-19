@@ -796,7 +796,6 @@ export default {
                         chat
                     };
                 }
-
             });
         }),
         alphaChatChangeRoleInGroup: withUser(async (ctx, args, uid) => {

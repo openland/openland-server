@@ -134,7 +134,7 @@ export class RoomMediator {
             }
 
             // Kick from group
-            if (await this.repo.kickFromRoom(ctx, cid, uid)) {
+            if (await this.repo.kickFromRoom(ctx, cid, kickedUid)) {
 
                 // Send message
                 let profile = (await this.entities.UserProfile.findById(ctx, kickedUid))!;
@@ -147,7 +147,7 @@ export class RoomMediator {
                         userId: kickedUid,
                         kickedById: uid
                     }
-                }, false);
+                }, true);
 
                 // Deliver dialog deletion
                 await this.delivery.onDialogDelete(ctx, kickedUid, cid);
