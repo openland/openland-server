@@ -11,6 +11,8 @@ export class ApiModule {
     start = async () => {
         console.log('start API Module');
         if (serverRoleEnabled('api')) {
+            console.log(GQL_SPEC_VERSION, getSchemeVersion(buildSchema(__dirname + '/../')));
+
             if (GQL_SPEC_VERSION !== getSchemeVersion(buildSchema(__dirname + '/../'))) {
                 throw new Error('Schema version mismatch, did you forgot to run yarn schema:gen ?');
             }
