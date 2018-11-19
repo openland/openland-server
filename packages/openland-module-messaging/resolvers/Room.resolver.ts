@@ -88,9 +88,7 @@ export default {
         }),
         title: withConverationId(async (ctx, id) => Modules.Messaging.room.resolveConversationTitle(ctx, id, ctx.auth.uid!)),
         photo: withConverationId(async (ctx, id) => Modules.Messaging.room.resolveConversationPhoto(ctx, id, ctx.auth.uid!)),
-        organization: async (root: RoomRoot) => {
-            throw new Error('Not implemented');
-        },
+        organization: withConverationId(async (ctx, id) => Modules.Messaging.room.resolveConversationOrganization(ctx, id)),
 
         description: withRoomProfile((ctx, profile) => {
             return profile.description;

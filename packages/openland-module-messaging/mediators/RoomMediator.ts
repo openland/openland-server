@@ -265,6 +265,10 @@ export class RoomMediator {
         return await this.repo.resolveConversationPhoto(ctx, conversationId, uid);
     }
 
+    async resolveConversationOrganization(ctx: Context, cid: number) {
+        return await this.repo.resolveConversationOrganization(ctx, cid);
+    }
+
     async checkAccess(ctx: Context, uid: number, cid: number) {
         return await this.repo.checkAccess(ctx, uid, cid);
     }

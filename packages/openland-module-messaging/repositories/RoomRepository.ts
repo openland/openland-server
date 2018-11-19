@@ -320,6 +320,13 @@ export class RoomRepository {
         });
     }
 
+    async resolveConversationOrganization(parent: Context, cid: number) {
+        return await inTx(parent, async (ctx) => {
+            let conversationOrganization = await this.entities.ConversationOrganization.findById(ctx, cid);
+            return conversationOrganization ? await this.entities.Organization.findById(ctx, conversationOrganization.oid) : null;
+        });
+    }
+
     async findConversationMembers(ctx: Context, cid: number): Promise<number[]> {
         let conv = (await this.entities.Conversation.findById(ctx, cid))!;
         if (conv.kind === 'private') {

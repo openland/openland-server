@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, Nullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'ae29fca40d6f06bb985457d90057b781';
+export const GQL_SPEC_VERSION = '8a71df3dbf78babf6dd38a7db018d81a';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1663,7 +1663,7 @@ export namespace GQL {
         title?: string;
         photo?: string;
         description?: string;
-        organization?: Organization;
+        organization?: Nullable<Organization>;
         membership?: SharedRoomMembershipStatus;
         membersCount?: Nullable<number>;
         members?: RoomMember[];
@@ -1822,7 +1822,7 @@ export interface GQLResolver {
     UserEdge?: ComplexTypedResolver<GQL.UserEdge, GQLRoots.UserEdgeRoot, {node: GQLRoots.UserRoot}, {}>;
     UserConnection?: ComplexTypedResolver<GQL.UserConnection, GQLRoots.UserConnectionRoot, {edges: GQLRoots.UserEdgeRoot[], pageInfo: GQLRoots.PageInfoRoot}, {}>;
     PrivateRoom?: ComplexTypedResolver<GQL.PrivateRoom, GQLRoots.PrivateRoomRoot, {user: GQLRoots.UserRoot}, {}>;
-    SharedRoom?: ComplexTypedResolver<GQL.SharedRoom, GQLRoots.SharedRoomRoot, {organization: GQLRoots.OrganizationRoot, members: GQLRoots.RoomMemberRoot[]}, {}>;
+    SharedRoom?: ComplexTypedResolver<GQL.SharedRoom, GQLRoots.SharedRoomRoot, {organization: Nullable<GQLRoots.OrganizationRoot>, members: GQLRoots.RoomMemberRoot[]}, {}>;
     RoomMessage?: ComplexTypedResolver<GQL.RoomMessage, GQLRoots.RoomMessageRoot, {fileMetadata: Nullable<GQLRoots.FileMetadataRoot>, sender: GQLRoots.UserRoot, serviceMetadata: Nullable<GQLRoots.ServiceMetadataRoot>, urlAugmentation: Nullable<GQLRoots.UrlAugmentationRoot>, reactions: GQLRoots.MessageReactionRoot[], replyMessages: Nullable<GQLRoots.RoomMessageRoot[]>, mentions: Nullable<GQLRoots.UserRoot[]>}, {}>;
     RoomMember?: ComplexTypedResolver<GQL.RoomMember, GQLRoots.RoomMemberRoot, {user: GQLRoots.UserRoot}, {}>;
     RoomUserNotificaionSettings?: ComplexTypedResolver<GQL.RoomUserNotificaionSettings, GQLRoots.RoomUserNotificaionSettingsRoot, {}, {}>;

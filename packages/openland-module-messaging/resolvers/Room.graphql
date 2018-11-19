@@ -32,7 +32,7 @@ type SharedRoom {
     photo: String!
     description: String!
     
-    organization: Organization!
+    organization: Organization
     membership: SharedRoomMembershipStatus!
     membersCount: Int
     members: [RoomMember!]!
