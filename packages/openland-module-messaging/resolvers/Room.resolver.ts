@@ -61,7 +61,8 @@ export default {
             } else {
                 throw new AccessDeniedError();
             }
-        }
+        },
+        settings: async (root: RoomRoot, args: {}, ctx: AppContext) => await Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, (typeof root === 'number' ? root : root.id))
     },
     SharedRoomMembershipStatus: {
         MEMBER: 'joined',
@@ -88,17 +89,17 @@ export default {
         }),
         title: withConverationId(async (ctx, id) => Modules.Messaging.room.resolveConversationTitle(ctx, id, ctx.auth.uid!)),
         photo: withConverationId(async (ctx, id) => Modules.Messaging.room.resolveConversationPhoto(ctx, id, ctx.auth.uid!)),
-        organization: async (root: RoomRoot) => {
-            throw new Error('Not implemented');
-        },
+        organization: withConverationId(async (ctx, id) => Modules.Messaging.room.resolveConversationOrganization(ctx, id)),
 
         description: withRoomProfile((ctx, profile) => {
             return profile.description;
         }),
 
         membership: withConverationId(async (ctx, id) => await Modules.Messaging.room.resolveUserMembershipStatus(ctx, ctx.auth.uid!, id)),
+        role: withConverationId(async (ctx, id) => await Modules.Messaging.room.resolveUserRole(ctx, ctx.auth.uid!, id)),
         membersCount: async (root: RoomRoot, args: {}, ctx: AppContext) => (await FDB.RoomParticipant.allFromActive(ctx, (typeof root === 'number' ? root : root.id))).length,
         members: withConverationId(async (ctx, id) => await FDB.RoomParticipant.allFromActive(ctx, id)),
+        settings: async (root: RoomRoot, args: {}, ctx: AppContext) => await Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, (typeof root === 'number' ? root : root.id))
     },
     RoomMessage: {
         id: (src: Message) => {
@@ -154,6 +155,7 @@ export default {
     RoomMember: {
         user: async (src: RoomParticipant, args: {}, ctx: AppContext) => await FDB.User.findById(ctx, src.uid),
         role: async (src: RoomParticipant) => src.role.toUpperCase(),
+        membership: async (src: RoomParticipant, args: {}, ctx: AppContext) => await Modules.Messaging.room.resolveUserMembershipStatus(ctx, src.uid, src.cid) as any,
     },
 
     Query: {
@@ -271,6 +273,7 @@ export default {
         // Room mgmt
         //
         betaRoomCreate: withAccount(async (ctx, args, uid, oid) => {
+            oid = args.organizationId ? IDs.Organization.parse(args.organizationId) : oid;
             await validate({
                 title: optional(stringNotEmpty('Title can\'t be empty')),
                 kind: defined(enumString(['PUBLIC', 'GROUP'], 'kind expected to be PUBLIC or GROUP'))

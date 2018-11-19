@@ -43,4 +43,5 @@ export const IDs = {
     Message: IdsFactory.createId('Message'),
     Conference: IdsFactory.createId('Conference'),
     ConferenceParticipant: IdsFactory.createId('ConferenceParticipant'),
+    ConferencePeer: IdsFactory.createId('ConferencePeer'),
 };

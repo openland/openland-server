@@ -282,6 +282,11 @@ export class RoomRepository {
         return participant ? participant.status : 'none';
     }
 
+    async resolveUserRole(ctx: Context, uid: number, cid: number) {
+        let participant = await this.entities.RoomParticipant.findById(ctx, uid, cid);
+        return participant ? participant.role : 'MEMBER';
+    }
+
     async findActiveMembers(ctx: Context, cid: number) {
         return this.entities.RoomParticipant.allFromActive(ctx, cid);
     }
@@ -317,6 +322,13 @@ export class RoomRepository {
                 await conv.flush();
             }
             return (await this.entities.Conversation.findById(ctx, conv.id))!;
+        });
+    }
+
+    async resolveConversationOrganization(parent: Context, cid: number) {
+        return await inTx(parent, async (ctx) => {
+            let conversationOrganization = await this.entities.ConversationOrganization.findById(ctx, cid);
+            return conversationOrganization ? await this.entities.Organization.findById(ctx, conversationOrganization.oid) : null;
         });
     }
 

@@ -3,6 +3,7 @@ union Room = PrivateRoom | SharedRoom
 type PrivateRoom {
     id: ID!
     user: User!
+    settings: RoomUserNotificaionSettings!
 }
 
 enum SharedRoomKind {
@@ -30,12 +31,17 @@ type SharedRoom {
     kind: SharedRoomKind!
     title: String!
     photo: String!
-    description: String!
+    description: String
     
-    organization: Organization!
-    membership: SharedRoomMembershipStatus!
+    organization: Organization
+  
     membersCount: Int
     members: [RoomMember!]!
+
+    membership: SharedRoomMembershipStatus!
+    role: RoomMemberRole!
+
+    settings: RoomUserNotificaionSettings!
 }
 
 input RoomUpdateInput {
@@ -67,6 +73,7 @@ type RoomMessage {
 type RoomMember {
     user: User!
     role: RoomMemberRole!
+    membership: SharedRoomMembershipStatus!
 }
 
 type RoomUserNotificaionSettings {
@@ -112,7 +119,7 @@ type RoomInvite {
 
 extend type Mutation {
     # Room mgmt
-    betaRoomCreate(kind: SharedRoomKind!, title: String, photoRef: ImageRefInput, members: [ID!]!, message: String, listed: Boolean): SharedRoom!
+    betaRoomCreate(kind: SharedRoomKind!, title: String, photoRef: ImageRefInput, members: [ID!]!, message: String, listed: Boolean, organizationId: ID): SharedRoom!
     betaRoomUpdate(roomId: ID!, input: RoomUpdateInput!): Room!
     
     # Members mgmt

@@ -573,17 +573,30 @@ const Schema = declareSchema(() => {
         enableVersioning();
     });
 
-    entity('ConferenceParticipant', () => {
-        field('id', 'number');
-        primaryKey('cid', 'number');
-        primaryKey('uid', 'number');
-        primaryKey('tid', 'string');
-
+    entity('ConferencePeer', () => {
+        primaryKey('id', 'number');
+        field('cid', 'number');
+        field('uid', 'number');
+        field('tid', 'string');
         field('keepAliveTimeout', 'number');
         field('enabled', 'boolean');
-        uniqueIndex('id', ['id']);
+        uniqueIndex('auth', ['cid', 'uid', 'tid']).withCondition((src) => src.enabled);
         rangeIndex('conference', ['cid', 'keepAliveTimeout']).withCondition((src) => src.enabled);
         rangeIndex('active', ['keepAliveTimeout']).withCondition((src) => src.enabled);
+        enableTimestamps();
+        enableVersioning();
+    });
+
+    entity('ConferenceConnection', () => {
+        primaryKey('peer1', 'number');
+        primaryKey('peer2', 'number');
+        field('cid', 'number');
+        enumField('state', ['wait-offer', 'wait-answer', 'online', 'completed']);
+        field('offer', 'string').nullable();
+        field('answer', 'string').nullable();
+        field('ice1', 'json');
+        field('ice2', 'json');
+        rangeIndex('conference', ['cid', 'createdAt']).withCondition((src) => src.state !== 'completed');
         enableTimestamps();
         enableVersioning();
     });

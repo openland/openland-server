@@ -5951,24 +5951,42 @@ export class ConferenceRoomFactory extends FEntityFactory<ConferenceRoom> {
         return new ConferenceRoom(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConferenceRoom');
     }
 }
-export interface ConferenceParticipantShape {
-    id: number;
+export interface ConferencePeerShape {
+    cid: number;
+    uid: number;
+    tid: string;
     keepAliveTimeout: number;
     enabled: boolean;
 }
 
-export class ConferenceParticipant extends FEntity {
-    readonly entityName: 'ConferenceParticipant' = 'ConferenceParticipant';
-    get cid(): number { return this._value.cid; }
-    get uid(): number { return this._value.uid; }
-    get tid(): string { return this._value.tid; }
-    get id(): number {
-        return this._value.id;
+export class ConferencePeer extends FEntity {
+    readonly entityName: 'ConferencePeer' = 'ConferencePeer';
+    get id(): number { return this._value.id; }
+    get cid(): number {
+        return this._value.cid;
     }
-    set id(value: number) {
+    set cid(value: number) {
         this._checkIsWritable();
-        if (value === this._value.id) { return; }
-        this._value.id = value;
+        if (value === this._value.cid) { return; }
+        this._value.cid = value;
+        this.markDirty();
+    }
+    get uid(): number {
+        return this._value.uid;
+    }
+    set uid(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.uid) { return; }
+        this._value.uid = value;
+        this.markDirty();
+    }
+    get tid(): string {
+        return this._value.tid;
+    }
+    set tid(value: string) {
+        this._checkIsWritable();
+        if (value === this._value.tid) { return; }
+        this._value.tid = value;
         this.markDirty();
     }
     get keepAliveTimeout(): number {
@@ -5991,36 +6009,36 @@ export class ConferenceParticipant extends FEntity {
     }
 }
 
-export class ConferenceParticipantFactory extends FEntityFactory<ConferenceParticipant> {
+export class ConferencePeerFactory extends FEntityFactory<ConferencePeer> {
     static schema: FEntitySchema = {
-        name: 'ConferenceParticipant',
+        name: 'ConferencePeer',
         editable: false,
         primaryKeys: [
+            { name: 'id', type: 'number' },
+        ],
+        fields: [
             { name: 'cid', type: 'number' },
             { name: 'uid', type: 'number' },
             { name: 'tid', type: 'string' },
-        ],
-        fields: [
-            { name: 'id', type: 'number' },
             { name: 'keepAliveTimeout', type: 'number' },
             { name: 'enabled', type: 'boolean' },
         ],
         indexes: [
-            { name: 'id', type: 'unique', fields: ['id'] },
+            { name: 'auth', type: 'unique', fields: ['cid', 'uid', 'tid'] },
             { name: 'conference', type: 'range', fields: ['cid', 'keepAliveTimeout'] },
             { name: 'active', type: 'range', fields: ['keepAliveTimeout'] },
         ],
     };
 
     private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isNumber('id', src.id);
         validators.notNull('cid', src.cid);
         validators.isNumber('cid', src.cid);
         validators.notNull('uid', src.uid);
         validators.isNumber('uid', src.uid);
         validators.notNull('tid', src.tid);
         validators.isString('tid', src.tid);
-        validators.notNull('id', src.id);
-        validators.isNumber('id', src.id);
         validators.notNull('keepAliveTimeout', src.keepAliveTimeout);
         validators.isNumber('keepAliveTimeout', src.keepAliveTimeout);
         validators.notNull('enabled', src.enabled);
@@ -6029,39 +6047,45 @@ export class ConferenceParticipantFactory extends FEntityFactory<ConferenceParti
 
     constructor(connection: FConnection) {
         super(connection,
-            new FNamespace('entity', 'conferenceParticipant'),
-            { enableVersioning: true, enableTimestamps: true, validator: ConferenceParticipantFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('id', ['id'], true), new FEntityIndex('conference', ['cid', 'keepAliveTimeout'], false, (src) => src.enabled), new FEntityIndex('active', ['keepAliveTimeout'], false, (src) => src.enabled)],
-            'ConferenceParticipant'
+            new FNamespace('entity', 'conferencePeer'),
+            { enableVersioning: true, enableTimestamps: true, validator: ConferencePeerFactory.validate, hasLiveStreams: false },
+            [new FEntityIndex('auth', ['cid', 'uid', 'tid'], true, (src) => src.enabled), new FEntityIndex('conference', ['cid', 'keepAliveTimeout'], false, (src) => src.enabled), new FEntityIndex('active', ['keepAliveTimeout'], false, (src) => src.enabled)],
+            'ConferencePeer'
         );
     }
     extractId(rawId: any[]) {
-        if (rawId.length !== 3) { throw Error('Invalid key length!'); }
-        return { 'cid': rawId[0], 'uid': rawId[1], 'tid': rawId[2] };
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
+        return { 'id': rawId[0] };
     }
-    async findById(ctx: Context, cid: number, uid: number, tid: string) {
-        return await this._findById(ctx, [cid, uid, tid]);
+    async findById(ctx: Context, id: number) {
+        return await this._findById(ctx, [id]);
     }
-    async create(ctx: Context, cid: number, uid: number, tid: string, shape: ConferenceParticipantShape) {
-        return await this._create(ctx, [cid, uid, tid], { cid, uid, tid, ...shape });
+    async create(ctx: Context, id: number, shape: ConferencePeerShape) {
+        return await this._create(ctx, [id], { id, ...shape });
     }
-    watch(ctx: Context, cid: number, uid: number, tid: string, cb: () => void) {
-        return this._watch(ctx, [cid, uid, tid], cb);
+    watch(ctx: Context, id: number, cb: () => void) {
+        return this._watch(ctx, [id], cb);
     }
-    async findFromId(ctx: Context, id: number) {
-        return await this._findFromIndex(ctx, ['__indexes', 'id', id]);
+    async findFromAuth(ctx: Context, cid: number, uid: number, tid: string) {
+        return await this._findFromIndex(ctx, ['__indexes', 'auth', cid, uid, tid]);
     }
-    async rangeFromId(ctx: Context, limit: number, reversed?: boolean) {
-        return await this._findRange(ctx, ['__indexes', 'id'], limit, reversed);
+    async allFromAuthAfter(ctx: Context, cid: number, uid: number, after: string) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'auth', cid, uid], after);
     }
-    async rangeFromIdWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
-        return await this._findRangeWithCursor(ctx, ['__indexes', 'id'], limit, after, reversed);
+    async rangeFromAuthAfter(ctx: Context, cid: number, uid: number, after: string, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'auth', cid, uid], after, limit, reversed);
     }
-    async allFromId(ctx: Context, ) {
-        return await this._findAll(ctx, ['__indexes', 'id']);
+    async rangeFromAuth(ctx: Context, cid: number, uid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'auth', cid, uid], limit, reversed);
     }
-    createIdStream(ctx: Context, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'conferenceParticipant', '__indexes', 'id'], limit, after); 
+    async rangeFromAuthWithCursor(ctx: Context, cid: number, uid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'auth', cid, uid], limit, after, reversed);
+    }
+    async allFromAuth(ctx: Context, cid: number, uid: number) {
+        return await this._findAll(ctx, ['__indexes', 'auth', cid, uid]);
+    }
+    createAuthStream(ctx: Context, cid: number, uid: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'conferencePeer', '__indexes', 'auth', cid, uid], limit, after); 
     }
     async allFromConferenceAfter(ctx: Context, cid: number, after: number) {
         return await this._findRangeAllAfter(ctx, ['__indexes', 'conference', cid], after);
@@ -6079,7 +6103,7 @@ export class ConferenceParticipantFactory extends FEntityFactory<ConferenceParti
         return await this._findAll(ctx, ['__indexes', 'conference', cid]);
     }
     createConferenceStream(ctx: Context, cid: number, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'conferenceParticipant', '__indexes', 'conference', cid], limit, after); 
+        return this._createStream(ctx, ['entity', 'conferencePeer', '__indexes', 'conference', cid], limit, after); 
     }
     async rangeFromActive(ctx: Context, limit: number, reversed?: boolean) {
         return await this._findRange(ctx, ['__indexes', 'active'], limit, reversed);
@@ -6091,10 +6115,162 @@ export class ConferenceParticipantFactory extends FEntityFactory<ConferenceParti
         return await this._findAll(ctx, ['__indexes', 'active']);
     }
     createActiveStream(ctx: Context, limit: number, after?: string) {
-        return this._createStream(ctx, ['entity', 'conferenceParticipant', '__indexes', 'active'], limit, after); 
+        return this._createStream(ctx, ['entity', 'conferencePeer', '__indexes', 'active'], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
-        return new ConferenceParticipant(ctx, this.connection, this.namespace, this.directory, [value.cid, value.uid, value.tid], value, this.options, isNew, this.indexes, 'ConferenceParticipant');
+        return new ConferencePeer(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConferencePeer');
+    }
+}
+export interface ConferenceConnectionShape {
+    cid: number;
+    state: 'wait-offer' | 'wait-answer' | 'online' | 'completed';
+    offer?: string| null;
+    answer?: string| null;
+    ice1: any;
+    ice2: any;
+}
+
+export class ConferenceConnection extends FEntity {
+    readonly entityName: 'ConferenceConnection' = 'ConferenceConnection';
+    get peer1(): number { return this._value.peer1; }
+    get peer2(): number { return this._value.peer2; }
+    get cid(): number {
+        return this._value.cid;
+    }
+    set cid(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.cid) { return; }
+        this._value.cid = value;
+        this.markDirty();
+    }
+    get state(): 'wait-offer' | 'wait-answer' | 'online' | 'completed' {
+        return this._value.state;
+    }
+    set state(value: 'wait-offer' | 'wait-answer' | 'online' | 'completed') {
+        this._checkIsWritable();
+        if (value === this._value.state) { return; }
+        this._value.state = value;
+        this.markDirty();
+    }
+    get offer(): string | null {
+        let res = this._value.offer;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set offer(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.offer) { return; }
+        this._value.offer = value;
+        this.markDirty();
+    }
+    get answer(): string | null {
+        let res = this._value.answer;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set answer(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.answer) { return; }
+        this._value.answer = value;
+        this.markDirty();
+    }
+    get ice1(): any {
+        return this._value.ice1;
+    }
+    set ice1(value: any) {
+        this._checkIsWritable();
+        if (value === this._value.ice1) { return; }
+        this._value.ice1 = value;
+        this.markDirty();
+    }
+    get ice2(): any {
+        return this._value.ice2;
+    }
+    set ice2(value: any) {
+        this._checkIsWritable();
+        if (value === this._value.ice2) { return; }
+        this._value.ice2 = value;
+        this.markDirty();
+    }
+}
+
+export class ConferenceConnectionFactory extends FEntityFactory<ConferenceConnection> {
+    static schema: FEntitySchema = {
+        name: 'ConferenceConnection',
+        editable: false,
+        primaryKeys: [
+            { name: 'peer1', type: 'number' },
+            { name: 'peer2', type: 'number' },
+        ],
+        fields: [
+            { name: 'cid', type: 'number' },
+            { name: 'state', type: 'enum', enumValues: ['wait-offer', 'wait-answer', 'online', 'completed'] },
+            { name: 'offer', type: 'string' },
+            { name: 'answer', type: 'string' },
+            { name: 'ice1', type: 'json' },
+            { name: 'ice2', type: 'json' },
+        ],
+        indexes: [
+            { name: 'conference', type: 'range', fields: ['cid', 'createdAt'] },
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('peer1', src.peer1);
+        validators.isNumber('peer1', src.peer1);
+        validators.notNull('peer2', src.peer2);
+        validators.isNumber('peer2', src.peer2);
+        validators.notNull('cid', src.cid);
+        validators.isNumber('cid', src.cid);
+        validators.notNull('state', src.state);
+        validators.isEnum('state', src.state, ['wait-offer', 'wait-answer', 'online', 'completed']);
+        validators.isString('offer', src.offer);
+        validators.isString('answer', src.answer);
+        validators.notNull('ice1', src.ice1);
+        validators.notNull('ice2', src.ice2);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'conferenceConnection'),
+            { enableVersioning: true, enableTimestamps: true, validator: ConferenceConnectionFactory.validate, hasLiveStreams: false },
+            [new FEntityIndex('conference', ['cid', 'createdAt'], false, (src) => src.state !== 'completed')],
+            'ConferenceConnection'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 2) { throw Error('Invalid key length!'); }
+        return { 'peer1': rawId[0], 'peer2': rawId[1] };
+    }
+    async findById(ctx: Context, peer1: number, peer2: number) {
+        return await this._findById(ctx, [peer1, peer2]);
+    }
+    async create(ctx: Context, peer1: number, peer2: number, shape: ConferenceConnectionShape) {
+        return await this._create(ctx, [peer1, peer2], { peer1, peer2, ...shape });
+    }
+    watch(ctx: Context, peer1: number, peer2: number, cb: () => void) {
+        return this._watch(ctx, [peer1, peer2], cb);
+    }
+    async allFromConferenceAfter(ctx: Context, cid: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'conference', cid], after);
+    }
+    async rangeFromConferenceAfter(ctx: Context, cid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'conference', cid], after, limit, reversed);
+    }
+    async rangeFromConference(ctx: Context, cid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'conference', cid], limit, reversed);
+    }
+    async rangeFromConferenceWithCursor(ctx: Context, cid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'conference', cid], limit, after, reversed);
+    }
+    async allFromConference(ctx: Context, cid: number) {
+        return await this._findAll(ctx, ['__indexes', 'conference', cid]);
+    }
+    createConferenceStream(ctx: Context, cid: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'conferenceConnection', '__indexes', 'conference', cid], limit, after); 
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new ConferenceConnection(ctx, this.connection, this.namespace, this.directory, [value.peer1, value.peer2], value, this.options, isNew, this.indexes, 'ConferenceConnection');
     }
 }
 
@@ -6150,7 +6326,8 @@ export interface AllEntities {
     readonly OrganizationPublicInviteLink: OrganizationPublicInviteLinkFactory;
     readonly OrganizationInviteLink: OrganizationInviteLinkFactory;
     readonly ConferenceRoom: ConferenceRoomFactory;
-    readonly ConferenceParticipant: ConferenceParticipantFactory;
+    readonly ConferencePeer: ConferencePeerFactory;
+    readonly ConferenceConnection: ConferenceConnectionFactory;
 }
 export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     static readonly schema: FEntitySchema[] = [
@@ -6204,7 +6381,8 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         OrganizationPublicInviteLinkFactory.schema,
         OrganizationInviteLinkFactory.schema,
         ConferenceRoomFactory.schema,
-        ConferenceParticipantFactory.schema,
+        ConferencePeerFactory.schema,
+        ConferenceConnectionFactory.schema,
     ];
     allEntities: FEntityFactory<FEntity>[] = [];
     Online: OnlineFactory;
@@ -6257,7 +6435,8 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     OrganizationPublicInviteLink: OrganizationPublicInviteLinkFactory;
     OrganizationInviteLink: OrganizationInviteLinkFactory;
     ConferenceRoom: ConferenceRoomFactory;
-    ConferenceParticipant: ConferenceParticipantFactory;
+    ConferencePeer: ConferencePeerFactory;
+    ConferenceConnection: ConferenceConnectionFactory;
 
     constructor(connection: FConnection) {
         super(connection);
@@ -6361,8 +6540,10 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         this.allEntities.push(this.OrganizationInviteLink);
         this.ConferenceRoom = new ConferenceRoomFactory(connection);
         this.allEntities.push(this.ConferenceRoom);
-        this.ConferenceParticipant = new ConferenceParticipantFactory(connection);
-        this.allEntities.push(this.ConferenceParticipant);
+        this.ConferencePeer = new ConferencePeerFactory(connection);
+        this.allEntities.push(this.ConferencePeer);
+        this.ConferenceConnection = new ConferenceConnectionFactory(connection);
+        this.allEntities.push(this.ConferenceConnection);
     }
 }
 export class AllEntitiesProxy implements AllEntities {
@@ -6519,8 +6700,11 @@ export class AllEntitiesProxy implements AllEntities {
     get ConferenceRoom(): ConferenceRoomFactory {
         return this.resolver().ConferenceRoom;
     }
-    get ConferenceParticipant(): ConferenceParticipantFactory {
-        return this.resolver().ConferenceParticipant;
+    get ConferencePeer(): ConferencePeerFactory {
+        return this.resolver().ConferencePeer;
+    }
+    get ConferenceConnection(): ConferenceConnectionFactory {
+        return this.resolver().ConferenceConnection;
     }
     private resolver: () => AllEntities;
     constructor(resolver: () => AllEntities) {
