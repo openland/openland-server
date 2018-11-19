@@ -28,26 +28,26 @@ export default {
 
                 let state: 'READY' | 'WAIT_OFFER' | 'NEED_OFFER' | 'WAIT_ANSWER' | 'NEED_ANSWER' = 'READY';
                 let sdp: string | null = null;
-                let isPrimary = src.id < outgoing.id;
-                let ice: string[] = isPrimary ? connection.ice1 : connection.ice2;
+                let isPrimary = src.id > outgoing.id;
+                let ice: string[] = isPrimary ? connection.ice2 : connection.ice1;
                 if (connection.state === 'wait-offer') {
                     if (isPrimary) {
-                        state = 'WAIT_OFFER';
-                    } else {
                         state = 'NEED_OFFER';
+                    } else {
+                        state = 'WAIT_OFFER';
                     }
                 } else if (connection.state === 'wait-answer') {
                     if (isPrimary) {
+                        state = 'WAIT_ANSWER';
+                    } else {
                         state = 'NEED_ANSWER';
                         sdp = connection.offer;
-                    } else {
-                        state = 'WAIT_ANSWER';
                     }
                 } else if (connection.state === 'online') {
                     if (isPrimary) {
-                        sdp = connection.offer;
-                    } else {
                         sdp = connection.answer;
+                    } else {
+                        sdp = connection.offer;
                     }
                 } else {
                     throw Error('Unkown state: ' + connection.state);
@@ -64,7 +64,7 @@ export default {
     },
     Query: {
         conference: withUser(async (ctx, args, uid) => {
-            return Modules.Calls.repo.findConference(ctx, IDs.Conversation.parse(args.id));
+            return Modules.Calls.repo.getOrCreateConference(ctx, IDs.Conversation.parse(args.id));
         })
     },
     Mutation: {
@@ -73,41 +73,41 @@ export default {
             let res = await Modules.Calls.repo.conferenceJoin(ctx, cid, uid, ctx.auth.tid!, 15000);
             return {
                 peerId: IDs.ConferencePeer.serialize(res.id),
-                conference: Modules.Calls.repo.findConference(ctx, cid)
+                conference: Modules.Calls.repo.getOrCreateConference(ctx, cid)
             };
         }),
         conferenceLeave: withUser(async (ctx, args, uid) => {
             let coid = IDs.Conference.parse(args.id);
             let pid = IDs.ConferencePeer.parse(args.peerId);
             await Modules.Calls.repo.conferenceLeave(ctx, coid, pid);
-            return Modules.Calls.repo.findConference(ctx, coid);
+            return Modules.Calls.repo.getOrCreateConference(ctx, coid);
         }),
         conferenceKeepAlive: withUser(async (ctx, args, uid) => {
             let coid = IDs.Conference.parse(args.id);
             let pid = IDs.ConferencePeer.parse(args.peerId);
             await Modules.Calls.repo.conferenceKeepAlive(ctx, coid, pid, 15000);
-            return Modules.Calls.repo.findConference(ctx, coid);
+            return Modules.Calls.repo.getOrCreateConference(ctx, coid);
         }),
         peerConnectionOffer: withUser(async (ctx, args, uid) => {
             let coid = IDs.Conference.parse(args.id);
             let srcPid = IDs.ConferencePeer.parse(args.ownPeerId);
             let dstPid = IDs.ConferencePeer.parse(args.peerId);
             await Modules.Calls.repo.connectionOffer(ctx, coid, srcPid, dstPid, args.offer);
-            return Modules.Calls.repo.findConference(ctx, coid);
+            return Modules.Calls.repo.getOrCreateConference(ctx, coid);
         }),
         peerConnectionAnswer: withUser(async (ctx, args, uid) => {
             let coid = IDs.Conference.parse(args.id);
             let srcPid = IDs.ConferencePeer.parse(args.ownPeerId);
             let dstPid = IDs.ConferencePeer.parse(args.peerId);
             await Modules.Calls.repo.connectionAnswer(ctx, coid, srcPid, dstPid, args.answer);
-            return Modules.Calls.repo.findConference(ctx, coid);
+            return Modules.Calls.repo.getOrCreateConference(ctx, coid);
         }),
         peerConnectionCandidate: withUser(async (ctx, args, uid) => {
             let coid = IDs.Conference.parse(args.id);
             let srcPid = IDs.ConferencePeer.parse(args.ownPeerId);
             let dstPid = IDs.ConferencePeer.parse(args.peerId);
             await Modules.Calls.repo.peerConnectionCandidate(ctx, coid, srcPid, dstPid, args.candidate);
-            return Modules.Calls.repo.findConference(ctx, coid);
+            return Modules.Calls.repo.getOrCreateConference(ctx, coid);
         })
     },
     Subscription: {

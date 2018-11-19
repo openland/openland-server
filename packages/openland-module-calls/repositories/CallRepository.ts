@@ -12,6 +12,69 @@ export class CallRepository {
     @inject('FDB')
     entities!: AllEntities;
 
+    getOrCreateConference = async (parent: Context, cid: number) => {
+        return await inTx(parent, async (ctx) => {
+            let res = await this.entities.ConferenceRoom.findById(ctx, cid);
+            if (!res) {
+                res = await this.entities.ConferenceRoom.create(ctx, cid, {});
+            }
+            return res;
+        });
+    }
+
+    addNewPeer = async (parent: Context, cid: number, uid: number, tid: string, timeout: number) => {
+        return await inTx(parent, async (ctx) => {
+
+            // Disable existing for this auth
+            let existing = await this.entities.ConferencePeer.findFromAuth(ctx, cid, uid, tid);
+            if (existing) {
+                await this.disablePeer(ctx, existing.id);
+            }
+
+            // Create new peer
+            let seq = (await this.entities.Sequence.findById(ctx, 'conference-peer-id'));
+            if (!seq) {
+                seq = await this.entities.Sequence.create(ctx, 'conference-peer-id', { value: 0 });
+            }
+            let id = ++seq.value;
+            await seq.flush();
+            let res = await this.entities.ConferencePeer.create(ctx, id, {
+                cid, uid, tid,
+                keepAliveTimeout: Date.now() + timeout,
+                enabled: true
+            });
+
+            // Create connections
+            let confPeers = await this.entities.ConferencePeer.allFromConference(ctx, cid);
+            for (let cp of confPeers) {
+                if (cp.id === id) {
+                    continue;
+                }
+                await this.entities.ConferenceConnection.create(ctx, Math.min(cp.id, id), Math.max(cp.id, id), {
+                    cid: cid,
+                    state: 'wait-offer',
+                    ice1: [],
+                    ice2: []
+                });
+            }
+            await this.bumpVersion(ctx, cid);
+            return res;
+        });
+    }
+
+    disablePeer = async (parent: Context, pid: number) => {
+        await inTx(parent, async (ctx) => {
+
+            // Disable peer itself
+            let existing = await this.entities.ConferencePeer.findById(ctx, pid);
+            if (existing) {
+                existing.enabled = false;
+            }
+
+            // TODO: Disable connections
+        });
+    }
+
     conferenceJoin = async (parent: Context, cid: number, uid: number, tid: string, timeout: number) => {
         return await inTx(parent, async (ctx) => {
 
@@ -175,36 +238,13 @@ export class CallRepository {
         });
     }
 
-    disablePeer = async (parent: Context, pid: number) => {
-        await inTx(parent, async (ctx) => {
-
-            // Disable peer itself
-            let existing = await this.entities.ConferencePeer.findById(ctx, pid);
-            if (existing) {
-                existing.enabled = false;
-            }
-
-            // TODO: Disable connections
-        });
-    }
-
-    findConference = async (parent: Context, cid: number) => {
-        return await inTx(parent, async (ctx) => {
-            let res = await this.entities.ConferenceRoom.findById(ctx, cid);
-            if (!res) {
-                res = await this.entities.ConferenceRoom.create(ctx, cid, {});
-            }
-            return res;
-        });
-    }
-
     findActiveMembers = async (parent: Context, cid: number) => {
         return await this.entities.ConferencePeer.allFromConference(parent, cid);
     }
 
     private bumpVersion = async (parent: Context, cid: number) => {
         await inTx(parent, async (ctx) => {
-            let conf = await this.findConference(ctx, cid);
+            let conf = await this.getOrCreateConference(ctx, cid);
             conf.markDirty();
         });
     }
