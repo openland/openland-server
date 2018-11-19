@@ -12,6 +12,8 @@ import { GQL } from './SchemaSpec';
 //  Root types
 //
 export namespace GQLRoots {
+    export type MediaSessionRoot = any;
+    export type MediaStreamRoot = any;
     export type ConferencePeerConnectionRoot = any;
     export type ConferencePeerRoot = any;
     export type ConferenceJoinResultRoot = any;
