@@ -62,11 +62,13 @@ export function createPushWorker(repo: PushRepository) {
                         let iosTokens = await repo.getUserApplePushTokens(ctx, args.uid);
                         for (let t of iosTokens) {
                             if (args.silent) {
+                                let unread = (await Modules.Messaging.getUserMessagingState(ctx, args.uid)).unread;
+
                                 await Modules.Push.appleWorker.pushWork(ctx, {
                                     uid: args.uid,
                                     tokenId: t.id,
                                     contentAvailable: true,
-                                    badge: args.counter,
+                                    badge: unread,
                                     payload: {
                                         ['conversationId']: IDs.Conversation.serialize(args.conversationId),
                                         ['id']: doSimpleHash(IDs.Conversation.serialize(args.conversationId)).toString()

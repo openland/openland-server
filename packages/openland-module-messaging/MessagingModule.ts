@@ -93,6 +93,10 @@ export class MessagingModule {
         return await this.userState.markAsSeqRead(ctx, uid, toSeq);
     }
 
+    async getUserMessagingState(parent: Context, uid: number) {
+        return await this.userState.getUserMessagingState(parent, uid);
+    }
+
     //
     // Rooms
     //

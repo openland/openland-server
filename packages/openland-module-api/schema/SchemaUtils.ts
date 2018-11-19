@@ -13,7 +13,7 @@ export type SubscriptionResolver<Root, Args, Context, ReturnType> = {
 export type Nullable<T> = undefined | null | T;
 export type TypedResolver<T> = { [P in keyof T]: FieldResolver<T[P]> };
 export type SoftlyTypedResolver<T> = { [P in keyof T]: (T[P] extends Nullable<object | object[]> ? FieldResolver<any> : FieldResolver<T[P]>) };
-export type ResolverRootType<T> = { [K in keyof T]: T[K] extends (root: infer R, ...args: any[]) => any ? R : any }[keyof T];
+export type ResolverRootType<T> = { [K in keyof T]: T[K] extends (root: infer R, ...args: any[]) => any ? R : T[K] }[keyof T];
 
 export type TypeName<T> =
     T extends string ? 'string' :
