@@ -59,5 +59,30 @@ export default {
                 return res;
             });
         }),
+        betaDialogTextSearch: withAccount(async (parent, args, uid, oid) => {
+            return await tracer.trace(parent, 'chat-text-search', async (ctx) => {
+
+                let conversations = Modules.Messaging.search
+                    .searchForRooms(ctx, args.query, { uid, limit: 20 })
+                    .then((r) => r.map((v) => FDB.Conversation.findById(ctx, v)));
+
+                // PERSONAL - search users first, then matching conversations with current user
+                let personal = Modules.Users.searchForUsers(ctx, args.query, { uid, limit: 20 })
+                    .then((r) => r.map((v) => Modules.Messaging.room.resolvePrivateChat(ctx, uid, v)));
+
+                let res = [...await Promise.all(await conversations), ...await Promise.all((await personal))];
+                res = res.filter((v) => !!v).reduce(
+                    (p, x) => {
+                        if (!p.find(c => c.id === x!.id)) {
+                            p.push(x);
+                        }
+                        return p;
+                    },
+                    [] as any[]
+                );
+                let dialogs = (await Promise.all(res.map(c => c!).map(async c => await FDB.UserDialog.findFromConversation(parent, c.id, uid)))).filter(d => !!d).map(d => d!);
+                return dialogs;
+            });
+        }),
     }
 } as GQLResolver;

@@ -8,7 +8,6 @@ import { AuthContext } from 'openland-module-auth/AuthContext';
 import { AppContext } from 'openland-modules/AppContext';
 
 export default {
-    // should move to room ids?
     Dialog: {
         id: (src: UserDialog) => IDs.Dialog.serialize(src.cid),
         cid: (src: UserDialog) => IDs.Conversation.serialize(src.cid),
