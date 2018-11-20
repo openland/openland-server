@@ -128,7 +128,8 @@ export class RoomMediator {
             if (!existingMembership || existingMembership.status !== 'joined') {
                 throw new UserError('User are not member of a room');
             }
-            let canKick = isSuperAdmin || existingMembership.invitedBy === uid;
+            let kickerRole = await this.repo.resolveUserRole(ctx, uid, cid);
+            let canKick = isSuperAdmin || existingMembership.invitedBy === uid || (kickerRole === 'owner' || kickerRole === 'admin');
             if (!canKick) {
                 throw new UserError('Insufficient rights');
             }

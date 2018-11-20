@@ -5,12 +5,15 @@ import { FDB } from 'openland-module-db/FDB';
 import { loadMessagingTestModule } from 'openland-module-messaging/Messaging.container.test';
 import { UsersModule } from 'openland-module-users/UsersModule';
 import { createEmptyContext } from 'openland-utils/Context';
+import { SuperModule } from '../../openland-module-super/SuperModule';
 
 describe('RoomMediator', () => {
     beforeAll(async () => {
         await testEnvironmentStart('room-mediator');
         loadMessagingTestModule();
         container.bind(UsersModule).toSelf().inSingletonScope();
+        container.bind(SuperModule).toSelf().inSingletonScope();
+
     });
     afterAll(() => {
         testEnvironmentEnd();
@@ -60,5 +63,38 @@ describe('RoomMediator', () => {
                 expect(m.invitedBy).toBe(USER2_ID);
             }
         }
+    });
+
+    it('should be able to kick from room', async () => {
+        let ctx = createEmptyContext();
+        let mediator = container.get<RoomMediator>('RoomMediator');
+        let users = container.get<UsersModule>(UsersModule);
+        let USER_ID = (await users.createUser(ctx, 'user111', 'email111')).id;
+        let USER2_ID = (await users.createUser(ctx, 'user112', 'email112')).id;
+        await users.createUserProfile(ctx, USER_ID, { firstName: 'User Name' });
+        await users.createUserProfile(ctx, USER2_ID, { firstName: 'User Name 2' });
+        let room = await mediator.createRoom(ctx, 'public', 1, USER_ID, [], { title: 'Room' });
+        await mediator.joinRoom(ctx, room.id, USER2_ID);
+        let messages = await FDB.Message.allFromChat(ctx, room.id);
+        expect(messages.length).toBe(2);
+        expect(messages[0].uid).toBe(USER_ID);
+        expect(messages[1].uid).toBe(USER2_ID);
+        let members = await FDB.RoomParticipant.allFromActive(ctx, room.id);
+        expect(members.length).toBe(2);
+        for (let m of members) {
+            expect(m.status).toBe('joined');
+            if (m.uid === USER_ID) {
+                expect(m.role).toEqual('owner');
+                expect(m.invitedBy).toBe(USER_ID);
+            } else {
+                expect(m.role).toEqual('member');
+                expect(m.invitedBy).toBe(USER2_ID);
+            }
+        }
+
+        await mediator.kickFromRoom(ctx, room.id, USER_ID, USER2_ID);
+        members = await FDB.RoomParticipant.allFromActive(ctx, room.id);
+        expect(members.length).toBe(1);
+        expect(members[0].uid).toBe(USER_ID);
     });
 });
