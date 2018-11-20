@@ -97,6 +97,16 @@ input RoomInviteEmailRequest {
     lastName: String
 }
 
+type RoomConnectionEdge {
+    node: SharedRoom!
+    cursor: String!
+}
+
+type RoomConnection {
+    edges: [RoomConnectionEdge!]!
+    pageInfo: PageInfo!
+}
+
 extend type Query {
     room(id: ID!): Room
     roomMessages(roomId: ID!, first: Int, before: ID): [RoomMessage!]!
@@ -107,8 +117,8 @@ extend type Query {
         after: String,
         page: Int,
         sort: String
-    ): ChannelConversationConnection!
-    betaRoomInviteInfo(invite: String!): ChannelInvite
+    ): RoomConnection!
+    betaRoomInviteInfo(invite: String!): RoomInvite
     betaRoomInviteLink(roomId: ID!): String!
 }
 

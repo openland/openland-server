@@ -3,7 +3,7 @@ import { IdsFactory, IDs } from 'openland-module-api/IDs';
 import { Modules } from 'openland-modules/Modules';
 import { IDMailformedError } from 'openland-errors/IDMailformedError';
 import { FDB } from 'openland-module-db/FDB';
-import { Conversation, RoomProfile, Message, RoomParticipant } from 'openland-module-db/schema';
+import { Conversation, RoomProfile, Message, RoomParticipant, ChannelInvitation, ChannelLink } from 'openland-module-db/schema';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { Sanitizer } from 'openland-utils/Sanitizer';
@@ -96,7 +96,7 @@ export default {
         }),
 
         membership: withConverationId(async (ctx, id) => await Modules.Messaging.room.resolveUserMembershipStatus(ctx, ctx.auth.uid!, id)),
-        role: withConverationId(async (ctx, id) => await Modules.Messaging.room.resolveUserRole(ctx, ctx.auth.uid!, id)),
+        role: withConverationId(async (ctx, id) => (await Modules.Messaging.room.resolveUserRole(ctx, ctx.auth.uid!, id)).toUpperCase()),
         membersCount: async (root: RoomRoot, args: {}, ctx: AppContext) => (await FDB.RoomParticipant.allFromActive(ctx, (typeof root === 'number' ? root : root.id))).length,
         members: withConverationId(async (ctx, id) => await FDB.RoomParticipant.allFromActive(ctx, id)),
         settings: async (root: RoomRoot, args: {}, ctx: AppContext) => await Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, (typeof root === 'number' ? root : root.id))
@@ -156,6 +156,11 @@ export default {
         user: async (src: RoomParticipant, args: {}, ctx: AppContext) => await FDB.User.findById(ctx, src.uid),
         role: async (src: RoomParticipant) => src.role.toUpperCase(),
         membership: async (src: RoomParticipant, args: {}, ctx: AppContext) => await Modules.Messaging.room.resolveUserMembershipStatus(ctx, src.uid, src.cid) as any,
+    },
+
+    RoomInvite: {
+        room: (src: ChannelInvitation | ChannelLink, args: {}, ctx: AppContext) => FDB.Conversation.findById(ctx, src.channelId),
+        invitedByUser: (src: ChannelInvitation | ChannelLink, args: {}, ctx: AppContext) => FDB.User.findById(ctx, src.creatorId)
     },
 
     Query: {
