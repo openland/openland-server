@@ -1,5 +1,5 @@
 import {
-    Conversation, FeatureFlag,
+    Conversation, ConversationRoom, FeatureFlag,
     Message,
     Organization,
     User,
@@ -82,7 +82,7 @@ export namespace GQLRoots {
     export type ImageCropRoot = any;
     export type ImageRefRoot = any;
     export type RangeRoot = any;
-    export type ChannelConversationRoot = any;
+    export type ChannelConversationRoot = Conversation | ConversationRoom;
     export type ChannelMemberOrgRoot = any;
     export type ChannelMemberRoot = any;
     export type ChannelInviteRoot = any;

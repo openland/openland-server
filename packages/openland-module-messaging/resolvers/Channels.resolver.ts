@@ -5,7 +5,12 @@ import { defined, emailValidator, stringNotEmpty, validate } from '../../openlan
 import { Sanitizer } from '../../openland-utils/Sanitizer';
 import { Modules } from 'openland-modules/Modules';
 import { inTx } from 'foundation-orm/inTx';
-import { ChannelInvitation, ChannelLink, RoomParticipant, Conversation } from 'openland-module-db/schema';
+import {
+    ChannelInvitation,
+    ChannelLink,
+    RoomParticipant,
+    Conversation,
+} from 'openland-module-db/schema';
 import { FDB } from 'openland-module-db/FDB';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
@@ -68,26 +73,10 @@ export default {
         socialImage: async (src: Conversation, args: {}, ctx: AppContext) => buildBaseImageUrl((await FDB.RoomProfile.findById(ctx, src.id))!.socialImage),
         socialImageRef: async (src: Conversation, args: {}, ctx: AppContext) => (await FDB.RoomProfile.findById(ctx, src.id))!.socialImage,
         pinnedMessage: (src: Conversation) => null,
-        membersOnline: async (src: Conversation) => {
-            // let res = await DB.ConversationGroupMembers.findAll({
-            //     where: {
-            //         conversationId: src.id
-            //     },
-            //     order: ['userId']
-            // });
-            // let users = await Promise.all(res.map((v) => DB.User.findById(v.userId)));
-
-            // let now = Date.now();
-            // let online = users.map(user => {
-            //     if (user!.lastSeen) {
-            //         return user!.lastSeen!.getTime() > now;
-            //     } else {
-            //         return false;
-            //     }
-            // });
-
-            // return online.filter(o => o === true).length;
-            return 0;
+        membersOnline: async (src, args, ctx) => {
+            let members = await Modules.Messaging.room.findConversationMembers(ctx, src.id);
+            let onlines = await Promise.all(members.map(m => Modules.Presence.getLastSeen(ctx, m)));
+            return onlines.filter(s => s === 'online').length;
         },
         myRole: async (src: Conversation, _: any, ctx: AppContext) => {
             let member = await Modules.Messaging.room.findMembershipStatus(ctx, ctx.auth.uid!, src.id!);

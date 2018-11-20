@@ -215,26 +215,10 @@ export default {
         description: async (src: Conversation, args: {}, ctx: AppContext) => (await FDB.RoomProfile.findById(ctx, src.id))!.description as string,
         longDescription: (src: Conversation) => '',
         pinnedMessage: (src: Conversation) => null,
-        membersOnline: async (src: Conversation) => {
-            // let res = await DB.ConversationGroupMembers.findAll({
-            //     where: {
-            //         conversationId: src.id
-            //     },
-            //     order: ['userId']
-            // });
-            // let users = await Promise.all(res.map((v) => DB.User.findById(v.userId)));
-
-            // let now = Date.now();
-            // let online = users.map(user => {
-            //     // if (user!.lastSeen) {
-            //     //     return user!.lastSeen!.getTime() > now;
-            //     // } else {
-            //     //     return false;
-            //     // }
-            // });
-
-            // return online.filter(o => o === true).length;
-            return 0;
+        membersOnline: async (src, args, ctx) => {
+            let members = await Modules.Messaging.room.findConversationMembers(ctx, src.id);
+            let onlines = await Promise.all(members.map(m => Modules.Presence.getLastSeen(ctx, m)));
+            return onlines.filter(s => s === 'online').length;
         },
         myRole: async (src: Conversation, _: any, ctx: AppContext) => {
             let member = await Modules.Messaging.room.findMembershipStatus(ctx, ctx.auth.uid!, src.id);
