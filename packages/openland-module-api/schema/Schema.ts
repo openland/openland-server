@@ -2,7 +2,7 @@ import { merge } from 'lodash';
 import { makeExecutableSchema } from 'graphql-tools';
 import * as Basics from './Date';
 
-import { Directives, IDScalars, injectIDScalars } from './Directives2';
+import { Directives } from './Directives2';
 import { GraphQLField, GraphQLFieldResolver } from 'graphql';
 import { wrapAllResolvers } from '../Resolvers';
 import { withLogContext } from '../../openland-log/withLogContext';
@@ -15,15 +15,14 @@ import { gqlTracer } from 'openland-graphql/gqlTracer';
 // import { withTracingSpan } from 'openland-log/withTracing';
 // import { withCache } from 'foundation-orm/withCache';
 
-export const Schema = () => {
+export const Schema = (forTest: boolean = false) => {
     let schema = buildSchema(__dirname + '/../../');
-    let resolvers = buildResolvers(__dirname + '/../../');
+    let resolvers = buildResolvers(__dirname + '/../../', forTest);
 
     let executableSchema = makeExecutableSchema({
-        typeDefs: injectIDScalars(schema),
+        typeDefs: schema,
         resolvers: merge(
             Basics.Resolvers,
-            IDScalars,
             ...resolvers
         ),
         schemaDirectives: Directives
