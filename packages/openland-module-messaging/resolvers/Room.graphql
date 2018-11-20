@@ -118,7 +118,7 @@ extend type Query {
         page: Int,
         sort: String
     ): RoomConnection!
-    betaRoomInviteInfo(invite: String!): ChannelInvite
+    betaRoomInviteInfo(invite: String!): RoomInvite
     betaRoomInviteLink(roomId: ID!): String!
 }
 
