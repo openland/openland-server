@@ -65,6 +65,7 @@ export default {
         },
 
         topMessage: (src: UserDialog, args: {}, ctx: AppContext) => Modules.Messaging.findTopMessage(ctx, src.cid),
+        betaTopMessage: (src: UserDialog, args: {}, ctx: AppContext) => Modules.Messaging.findTopMessage(ctx, src.cid),
     },
     Query: {
         dialogs: withUser(async (ctx, args, uid) => {

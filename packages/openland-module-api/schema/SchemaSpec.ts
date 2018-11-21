@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, Nullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'dab85a2ff04c7bb65d8ea2e8f1d0ec7a';
+export const GQL_SPEC_VERSION = 'cb29fcae75f90b138502876e9ab557ca';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -353,6 +353,7 @@ export namespace GQL {
         photo?: string;
         unreadCount?: number;
         topMessage?: Nullable<Message>;
+        betaTopMessage?: Nullable<RoomMessage>;
     }
     export interface DialogsConnection {
         items?: Dialog[];
@@ -1778,7 +1779,7 @@ export interface GQLResolver {
     InviteHistotyInfo?: ComplexTypedResolver<GQL.InviteHistotyInfo, GQLRoots.InviteHistotyInfoRoot, {acceptedBy: Nullable<GQLRoots.UserRoot>}, {}>;
     Reaction?: ComplexTypedResolver<GQL.Reaction, GQLRoots.ReactionRoot, {user: GQLRoots.UserRoot}, {}>;
     Message?: ComplexTypedResolver<GQL.Message, GQLRoots.MessageRoot, {sender: GQLRoots.UserRoot, quoted: GQLRoots.MessageRoot[], alphaReactions: GQLRoots.ReactionRoot[]}, {}>;
-    Dialog?: ComplexTypedResolver<GQL.Dialog, GQLRoots.DialogRoot, {topMessage: Nullable<GQLRoots.MessageRoot>}, {}>;
+    Dialog?: ComplexTypedResolver<GQL.Dialog, GQLRoots.DialogRoot, {topMessage: Nullable<GQLRoots.MessageRoot>, betaTopMessage: Nullable<GQLRoots.RoomMessageRoot>}, {}>;
     DialogsConnection?: ComplexTypedResolver<GQL.DialogsConnection, GQLRoots.DialogsConnectionRoot, {items: GQLRoots.DialogRoot[]}, {}>;
     Settings?: ComplexTypedResolver<GQL.Settings, GQLRoots.SettingsRoot, {}, {}>;
     OrganizationIvitedMember?: ComplexTypedResolver<GQL.OrganizationIvitedMember, GQLRoots.OrganizationIvitedMemberRoot, {}, {}>;
