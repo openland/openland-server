@@ -289,6 +289,7 @@ export default {
             }
             return Modules.Messaging.room.createRoom(ctx, (args.kind).toLowerCase() as 'group' | 'public', oid, uid, args.members.map((v) => IDs.User.parse(v)), {
                 title: args.title!,
+                description: args.description,
                 image: imageRef
             }, args.message || '', args.listed || undefined);
         }),
