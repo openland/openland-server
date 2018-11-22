@@ -345,6 +345,10 @@ export default {
                 }
             });
         }),
+        betaRoomLeave: withUser(async (parent, args, uid) => {
+            return await Modules.Messaging.room.leaveRoom(parent, IDs.Conversation.parse(args.roomId), uid);
+
+        }),
         betaRoomChangeRole: withUser(async (ctx, args, uid) => {
             return await Modules.Messaging.room.updateMemberRole(ctx, IDs.Conversation.parse(args.roomId), uid, IDs.User.parse(args.userId), args.newRole.toLocaleLowerCase() as any);
         }),
