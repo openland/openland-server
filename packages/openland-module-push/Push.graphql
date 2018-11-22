@@ -3,7 +3,7 @@ type PushSettings {
 }
 
 enum PushType {
-    WEB_PUSH, IOS, ANDROID
+    WEB_PUSH, IOS, ANDROID, SAFARI
 }
 
 extend type Query {

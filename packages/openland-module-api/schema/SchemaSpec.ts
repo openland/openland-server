@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, Nullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '0924ca4c10bfcdde39844070e0aaacca';
+export const GQL_SPEC_VERSION = '1cb0a02517dcaab213f29b7daf6e9222';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1348,7 +1348,7 @@ export namespace GQL {
     export interface PushSettings {
         webPushKey?: Nullable<string>;
     }
-    export type PushType = 'WEB_PUSH' | 'IOS' | 'ANDROID';
+    export type PushType = 'WEB_PUSH' | 'IOS' | 'ANDROID' | 'SAFARI';
     export interface Query {
         lifecheck?: Nullable<string>;
         alphaNotificationCounter?: NotificationCounter;

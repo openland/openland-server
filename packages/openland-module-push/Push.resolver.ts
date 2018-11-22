@@ -2,6 +2,7 @@ import { Modules } from 'openland-modules/Modules';
 import { createLogger } from 'openland-log/createLogger';
 import { PushConfig } from './PushConfig';
 import { AppContext } from 'openland-modules/AppContext';
+import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 
 const pushLog = createLogger('push');
 
@@ -19,7 +20,7 @@ export default {
             await Modules.Push.registerPushWeb(ctx, ctx.auth.uid!, ctx.auth.tid!, args.endpoint);
             return 'ok';
         },
-        registerPush: async (_: any, args: { endpoint: string, type: 'WEB_PUSH' | 'IOS' | 'ANDROID' }, ctx: AppContext) => {
+        registerPush: async (_: any, args, ctx) => {
             if (!ctx.auth.uid || !ctx.auth.tid) {
                 throw Error('Unable to register push for non-registered user');
             }
@@ -38,7 +39,10 @@ export default {
                 await Modules.Push.registerPushWeb(ctx, ctx.auth.uid!, ctx.auth.tid!, args.endpoint);
                 return 'ok';
             }
+            if (args.type === 'SAFARI') {
+                return 'ok';
+            }
             throw Error('Unknown type: ' + args.type);
         }
     }
-};
+} as GQLResolver;
