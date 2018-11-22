@@ -4,6 +4,7 @@ import WebPush from 'web-push';
 class PushConfigFile {
     webPush: { private: string, public: string } | undefined;
     apple: { teamId: string, key: string, keyId: string, bundles: string[] }[] | undefined;
+    safari: { teamId: string, key: string, keyId: string, bundles: string[] }[] | undefined;
     google: { privateKey: string, projectId: string, clientEmail: string, databaseURL: string, packages: string[] }[] | undefined;
 }
 

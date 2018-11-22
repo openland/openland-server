@@ -53,6 +53,24 @@ export function createPushWorker(repo: PushRepository) {
                                 picture: args.picture ? args.picture : undefined,
                             });
                         }
+
+                        let safariTokens = await repo.getUserSafariPushTokens(ctx, args.uid);
+                        for (let t of safariTokens) {
+                            await Modules.Push.appleWorker.pushWork(ctx, {
+                                uid: args.uid,
+                                tokenId: t.id,
+                                contentAvailable: true,
+                                alert: {
+                                    title: args.title,
+                                    body: args.body,
+                                },
+                                payload: {
+                                    ['conversationId']: IDs.Conversation.serialize(args.conversationId),
+                                    ['id']: doSimpleHash(IDs.Conversation.serialize(args.conversationId)).toString(),
+                                    ...(args.picture ? { ['picture']: args.picture! } : {}),
+                                }
+                            });
+                        }
                     }
                     if (args.mobile) {
                         let mobileBody = args.mobileIncludeText ? args.body : Texts.Notifications.NEW_MESSAGE_ANONYMOUS;
