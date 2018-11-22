@@ -21,6 +21,10 @@ export class PushRepository {
         return await this.entites.PushWeb.findById(ctx, id);
     }
 
+    async getSafariToken(ctx: Context, id: string) {
+        return await this.entites.PushSafari.findById(ctx, id);
+    }
+
     async getUserWebPushTokens(ctx: Context, uid: number) {
         return (await this.entites.PushWeb.allFromUser(ctx, uid)).filter((v) => v.enabled);
     }
@@ -31,6 +35,10 @@ export class PushRepository {
 
     async getUserApplePushTokens(ctx: Context, uid: number) {
         return (await this.entites.PushApple.allFromUser(ctx, uid)).filter((v) => v.enabled);
+    }
+
+    async getUserSafariPushTokens(ctx: Context, uid: number) {
+        return (await this.entites.PushSafari.allFromUser(ctx, uid)).filter((v) => v.enabled);
     }
 
     async registerPushApple(parent: Context, uid: number, tid: string, token: string, bundleId: string, sandbox: boolean) {
@@ -84,4 +92,19 @@ export class PushRepository {
         });
     }
 
+    async registerPushSafari(parent: Context, uid: number, tid: string, token: string) {
+        await inTx(parent, async (ctx) => {
+            let existing = await this.entites.PushSafari.findFromToken(ctx, token);
+            if (existing) {
+                if (existing.uid === uid && existing.tid === tid) {
+                    existing.token = token;
+                    return;
+                } else {
+                    existing.enabled = false;
+                    await existing.flush();
+                }
+            }
+            await this.entites.PushSafari.create(ctx, await this.entites.connection.nextRandomId(), { uid, tid, token, enabled: true });
+        });
+    }
 }

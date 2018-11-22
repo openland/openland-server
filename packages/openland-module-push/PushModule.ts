@@ -32,6 +32,10 @@ export class PushModule {
         await this.repository.registerPushWeb(ctx, uid, tid, endpoint);
     }
 
+    async registerPushSafari(ctx: Context, uid: number, tid: string, token: string) {
+        await this.repository.registerPushSafari(ctx, uid, tid, token);
+    }
+
     sendCounterPush(ctx: Context, uid: number, conversationId: number, counter: number) {
         return this.worker.pushWork(ctx, {
             uid: uid,
