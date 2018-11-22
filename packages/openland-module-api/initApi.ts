@@ -23,6 +23,7 @@ import { createEmptyContext } from 'openland-utils/Context';
 import { AppContext } from 'openland-modules/AppContext';
 import { createTracer } from 'openland-log/createTracer';
 import { withCache } from 'foundation-orm/withCache';
+import { initSafariPush } from '../openland-module-push/safari/handlers';
 
 const logger = createLogger('ws');
 const ws = createTracer('ws');
@@ -86,6 +87,14 @@ export async function initApi(isTest: boolean) {
     app.post('/auth/checkCode', bodyParser.json(), withAudit(Auth.checkCode));
     app.post('/auth/getAccessToken', bodyParser.json(), withAudit(Auth.getAccessToken));
 
+    //
+    //  Safari push
+    //
+    initSafariPush(app);
+
+    //
+    // Semaphore bot
+    //
     app.post('/semaphorebot', bodyParser.json(), (async (req, res) => {
         await inTx(createEmptyContext(), async (ctx) => {
             let chatId = IDs.Conversation.parse('zoqLwdzr6VHelWZOR6JatW4aak');
