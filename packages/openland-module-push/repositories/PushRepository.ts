@@ -108,4 +108,13 @@ export class PushRepository {
             await this.entites.PushSafari.create(ctx, await this.entites.connection.nextRandomId(), { uid, tid, token, bundleId, enabled: true });
         });
     }
+
+    async disablePushSafari(parent: Context, token: string, bundleId: string) {
+        await inTx(parent, async (ctx) => {
+            let existing = await this.entites.PushSafari.findFromToken(ctx, token);
+            if (existing) {
+                existing.enabled = false;
+            }
+        });
+    }
 }

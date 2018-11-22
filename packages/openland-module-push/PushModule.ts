@@ -36,6 +36,10 @@ export class PushModule {
         await this.repository.registerPushSafari(ctx, uid, tid, token, bundleId);
     }
 
+    async disablePushSafari(ctx: Context, token: string, bundleId: string) {
+        await this.repository.disablePushSafari(ctx, token, bundleId);
+    }
+
     sendCounterPush(ctx: Context, uid: number, conversationId: number, counter: number) {
         return this.worker.pushWork(ctx, {
             uid: uid,

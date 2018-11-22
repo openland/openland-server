@@ -2,6 +2,7 @@ import { Express } from 'express';
 import express from 'express';
 import { createLogger } from '../../openland-log/createLogger';
 import { createEmptyContext } from '../../openland-utils/Context';
+import { Modules } from '../../openland-modules/Modules';
 
 let log = createLogger('safari push');
 let ctx = createEmptyContext();
@@ -21,11 +22,14 @@ function handleRegister(req: express.Request, response: express.Response) {
         response.status(400).send();
         return;
     }
+    // Registration should be handled on client side via registerPush()
 }
 
-function handleDelete(req: express.Request, response: express.Response) {
+async function handleDelete(req: express.Request, response: express.Response) {
     if (req.params.websitePushID !== 'web.com.openland') {
         response.status(400).send();
         return;
     }
+    await Modules.Push.disablePushSafari(ctx, req.params.deviceToken, 'web.com.openland');
+    response.send('ok');
 }
