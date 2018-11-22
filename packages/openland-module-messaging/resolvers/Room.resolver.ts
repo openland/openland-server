@@ -3,7 +3,7 @@ import { IdsFactory, IDs } from 'openland-module-api/IDs';
 import { Modules } from 'openland-modules/Modules';
 import { IDMailformedError } from 'openland-errors/IDMailformedError';
 import { FDB } from 'openland-module-db/FDB';
-import { Conversation, RoomProfile, Message, RoomParticipant, ChannelInvitation, ChannelLink } from 'openland-module-db/schema';
+import { Conversation, RoomProfile, Message, RoomParticipant, ChannelInvitation, ChannelLink, UserDialogSettings } from 'openland-module-db/schema';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { Sanitizer } from 'openland-utils/Sanitizer';
@@ -161,6 +161,11 @@ export default {
     RoomInvite: {
         room: (src: ChannelInvitation | ChannelLink, args: {}, ctx: AppContext) => FDB.Conversation.findById(ctx, src.channelId),
         invitedByUser: (src: ChannelInvitation | ChannelLink, args: {}, ctx: AppContext) => FDB.User.findById(ctx, src.creatorId)
+    },
+
+    RoomUserNotificaionSettings: {
+        id: (src: UserDialogSettings) => IDs.ConversationSettings.serialize(src.cid),
+        mute: (src: UserDialogSettings) => src.mute
     },
 
     Query: {
