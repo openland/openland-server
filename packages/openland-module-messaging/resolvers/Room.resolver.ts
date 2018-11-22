@@ -191,7 +191,7 @@ export default {
             }
 
             if (beforeMessage) {
-                await FDB.Message.rangeFromChatAfter(ctx, roomId, beforeMessage.id, args.first!, true);
+                return await FDB.Message.rangeFromChatAfter(ctx, roomId, beforeMessage.id, args.first!, true);
             }
 
             return await FDB.Message.rangeFromChat(ctx, roomId, args.first!, true);
