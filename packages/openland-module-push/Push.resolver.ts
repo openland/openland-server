@@ -40,7 +40,8 @@ export default {
                 return 'ok';
             }
             if (args.type === 'SAFARI') {
-                await Modules.Push.registerPushSafari(ctx, ctx.auth.uid!, ctx.auth.tid!, args.endpoint);
+                let parsed = JSON.parse(args.endpoint);
+                await Modules.Push.registerPushSafari(ctx, ctx.auth.uid!, ctx.auth.tid!, parsed.token, parsed.bundleId);
                 return 'ok';
             }
             throw Error('Unknown type: ' + args.type);

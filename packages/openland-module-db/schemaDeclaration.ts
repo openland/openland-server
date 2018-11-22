@@ -131,6 +131,7 @@ const Schema = declareSchema(() => {
         field('uid', 'number');
         field('tid', 'string');
         field('token', 'string').secure();
+        field('bundleId', 'string');
         field('enabled', 'boolean');
         field('failures', 'number').nullable();
         field('failedFirstAt', 'number').nullable();

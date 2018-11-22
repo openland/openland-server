@@ -1290,6 +1290,7 @@ export interface PushSafariShape {
     uid: number;
     tid: string;
     token: string;
+    bundleId: string;
     enabled: boolean;
     failures?: number| null;
     failedFirstAt?: number| null;
@@ -1325,6 +1326,15 @@ export class PushSafari extends FEntity {
         this._checkIsWritable();
         if (value === this._value.token) { return; }
         this._value.token = value;
+        this.markDirty();
+    }
+    get bundleId(): string {
+        return this._value.bundleId;
+    }
+    set bundleId(value: string) {
+        this._checkIsWritable();
+        if (value === this._value.bundleId) { return; }
+        this._value.bundleId = value;
         this.markDirty();
     }
     get enabled(): boolean {
@@ -1393,6 +1403,7 @@ export class PushSafariFactory extends FEntityFactory<PushSafari> {
             { name: 'uid', type: 'number' },
             { name: 'tid', type: 'string' },
             { name: 'token', type: 'string', secure: true },
+            { name: 'bundleId', type: 'string' },
             { name: 'enabled', type: 'boolean' },
             { name: 'failures', type: 'number' },
             { name: 'failedFirstAt', type: 'number' },
@@ -1414,6 +1425,8 @@ export class PushSafariFactory extends FEntityFactory<PushSafari> {
         validators.isString('tid', src.tid);
         validators.notNull('token', src.token);
         validators.isString('token', src.token);
+        validators.notNull('bundleId', src.bundleId);
+        validators.isString('bundleId', src.bundleId);
         validators.notNull('enabled', src.enabled);
         validators.isBoolean('enabled', src.enabled);
         validators.isNumber('failures', src.failures);

@@ -92,11 +92,12 @@ export class PushRepository {
         });
     }
 
-    async registerPushSafari(parent: Context, uid: number, tid: string, token: string) {
+    async registerPushSafari(parent: Context, uid: number, tid: string, token: string, bundleId: string) {
         await inTx(parent, async (ctx) => {
             let existing = await this.entites.PushSafari.findFromToken(ctx, token);
             if (existing) {
                 if (existing.uid === uid && existing.tid === tid) {
+                    existing.bundleId = bundleId;
                     existing.token = token;
                     return;
                 } else {
@@ -104,7 +105,7 @@ export class PushRepository {
                     await existing.flush();
                 }
             }
-            await this.entites.PushSafari.create(ctx, await this.entites.connection.nextRandomId(), { uid, tid, token, enabled: true });
+            await this.entites.PushSafari.create(ctx, await this.entites.connection.nextRandomId(), { uid, tid, token, bundleId, enabled: true });
         });
     }
 }
