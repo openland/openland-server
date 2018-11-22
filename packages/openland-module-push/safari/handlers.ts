@@ -23,6 +23,7 @@ function handleRegister(req: express.Request, response: express.Response) {
         return;
     }
     // Registration should be handled on client side via registerPush()
+    response.send('ok');
 }
 
 async function handleDelete(req: express.Request, response: express.Response) {
