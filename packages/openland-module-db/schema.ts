@@ -1286,6 +1286,200 @@ export class PushWebFactory extends FEntityFactory<PushWeb> {
         return new PushWeb(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'PushWeb');
     }
 }
+export interface PushSafariShape {
+    uid: number;
+    tid: string;
+    token: string;
+    enabled: boolean;
+    failures?: number| null;
+    failedFirstAt?: number| null;
+    failedLastAt?: number| null;
+    disabledAt?: number| null;
+}
+
+export class PushSafari extends FEntity {
+    readonly entityName: 'PushSafari' = 'PushSafari';
+    get id(): string { return this._value.id; }
+    get uid(): number {
+        return this._value.uid;
+    }
+    set uid(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.uid) { return; }
+        this._value.uid = value;
+        this.markDirty();
+    }
+    get tid(): string {
+        return this._value.tid;
+    }
+    set tid(value: string) {
+        this._checkIsWritable();
+        if (value === this._value.tid) { return; }
+        this._value.tid = value;
+        this.markDirty();
+    }
+    get token(): string {
+        return this._value.token;
+    }
+    set token(value: string) {
+        this._checkIsWritable();
+        if (value === this._value.token) { return; }
+        this._value.token = value;
+        this.markDirty();
+    }
+    get enabled(): boolean {
+        return this._value.enabled;
+    }
+    set enabled(value: boolean) {
+        this._checkIsWritable();
+        if (value === this._value.enabled) { return; }
+        this._value.enabled = value;
+        this.markDirty();
+    }
+    get failures(): number | null {
+        let res = this._value.failures;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set failures(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.failures) { return; }
+        this._value.failures = value;
+        this.markDirty();
+    }
+    get failedFirstAt(): number | null {
+        let res = this._value.failedFirstAt;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set failedFirstAt(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.failedFirstAt) { return; }
+        this._value.failedFirstAt = value;
+        this.markDirty();
+    }
+    get failedLastAt(): number | null {
+        let res = this._value.failedLastAt;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set failedLastAt(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.failedLastAt) { return; }
+        this._value.failedLastAt = value;
+        this.markDirty();
+    }
+    get disabledAt(): number | null {
+        let res = this._value.disabledAt;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set disabledAt(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.disabledAt) { return; }
+        this._value.disabledAt = value;
+        this.markDirty();
+    }
+}
+
+export class PushSafariFactory extends FEntityFactory<PushSafari> {
+    static schema: FEntitySchema = {
+        name: 'PushSafari',
+        editable: false,
+        primaryKeys: [
+            { name: 'id', type: 'string' },
+        ],
+        fields: [
+            { name: 'uid', type: 'number' },
+            { name: 'tid', type: 'string' },
+            { name: 'token', type: 'string', secure: true },
+            { name: 'enabled', type: 'boolean' },
+            { name: 'failures', type: 'number' },
+            { name: 'failedFirstAt', type: 'number' },
+            { name: 'failedLastAt', type: 'number' },
+            { name: 'disabledAt', type: 'number' },
+        ],
+        indexes: [
+            { name: 'user', type: 'range', fields: ['uid', 'id'] },
+            { name: 'token', type: 'unique', fields: ['token'] },
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isString('id', src.id);
+        validators.notNull('uid', src.uid);
+        validators.isNumber('uid', src.uid);
+        validators.notNull('tid', src.tid);
+        validators.isString('tid', src.tid);
+        validators.notNull('token', src.token);
+        validators.isString('token', src.token);
+        validators.notNull('enabled', src.enabled);
+        validators.isBoolean('enabled', src.enabled);
+        validators.isNumber('failures', src.failures);
+        validators.isNumber('failedFirstAt', src.failedFirstAt);
+        validators.isNumber('failedLastAt', src.failedLastAt);
+        validators.isNumber('disabledAt', src.disabledAt);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'pushSafari'),
+            { enableVersioning: true, enableTimestamps: true, validator: PushSafariFactory.validate, hasLiveStreams: false },
+            [new FEntityIndex('user', ['uid', 'id'], false), new FEntityIndex('token', ['token'], true, src => src.enabled)],
+            'PushSafari'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
+        return { 'id': rawId[0] };
+    }
+    async findById(ctx: Context, id: string) {
+        return await this._findById(ctx, [id]);
+    }
+    async create(ctx: Context, id: string, shape: PushSafariShape) {
+        return await this._create(ctx, [id], { id, ...shape });
+    }
+    watch(ctx: Context, id: string, cb: () => void) {
+        return this._watch(ctx, [id], cb);
+    }
+    async allFromUserAfter(ctx: Context, uid: number, after: string) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'user', uid], after);
+    }
+    async rangeFromUserAfter(ctx: Context, uid: number, after: string, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'user', uid], after, limit, reversed);
+    }
+    async rangeFromUser(ctx: Context, uid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'user', uid], limit, reversed);
+    }
+    async rangeFromUserWithCursor(ctx: Context, uid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'user', uid], limit, after, reversed);
+    }
+    async allFromUser(ctx: Context, uid: number) {
+        return await this._findAll(ctx, ['__indexes', 'user', uid]);
+    }
+    createUserStream(ctx: Context, uid: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'pushSafari', '__indexes', 'user', uid], limit, after); 
+    }
+    async findFromToken(ctx: Context, token: string) {
+        return await this._findFromIndex(ctx, ['__indexes', 'token', token]);
+    }
+    async rangeFromToken(ctx: Context, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'token'], limit, reversed);
+    }
+    async rangeFromTokenWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'token'], limit, after, reversed);
+    }
+    async allFromToken(ctx: Context, ) {
+        return await this._findAll(ctx, ['__indexes', 'token']);
+    }
+    createTokenStream(ctx: Context, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'pushSafari', '__indexes', 'token'], limit, after); 
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new PushSafari(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'PushSafari');
+    }
+}
 export interface UserProfilePrefilShape {
     firstName?: string| null;
     lastName?: string| null;
@@ -6285,6 +6479,7 @@ export interface AllEntities {
     readonly PushFirebase: PushFirebaseFactory;
     readonly PushApple: PushAppleFactory;
     readonly PushWeb: PushWebFactory;
+    readonly PushSafari: PushSafariFactory;
     readonly UserProfilePrefil: UserProfilePrefilFactory;
     readonly User: UserFactory;
     readonly UserProfile: UserProfileFactory;
@@ -6340,6 +6535,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         PushFirebaseFactory.schema,
         PushAppleFactory.schema,
         PushWebFactory.schema,
+        PushSafariFactory.schema,
         UserProfilePrefilFactory.schema,
         UserFactory.schema,
         UserProfileFactory.schema,
@@ -6394,6 +6590,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     PushFirebase: PushFirebaseFactory;
     PushApple: PushAppleFactory;
     PushWeb: PushWebFactory;
+    PushSafari: PushSafariFactory;
     UserProfilePrefil: UserProfilePrefilFactory;
     User: UserFactory;
     UserProfile: UserProfileFactory;
@@ -6458,6 +6655,8 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         this.allEntities.push(this.PushApple);
         this.PushWeb = new PushWebFactory(connection);
         this.allEntities.push(this.PushWeb);
+        this.PushSafari = new PushSafariFactory(connection);
+        this.allEntities.push(this.PushSafari);
         this.UserProfilePrefil = new UserProfilePrefilFactory(connection);
         this.allEntities.push(this.UserProfilePrefil);
         this.User = new UserFactory(connection);
@@ -6576,6 +6775,9 @@ export class AllEntitiesProxy implements AllEntities {
     }
     get PushWeb(): PushWebFactory {
         return this.resolver().PushWeb;
+    }
+    get PushSafari(): PushSafariFactory {
+        return this.resolver().PushSafari;
     }
     get UserProfilePrefil(): UserProfilePrefilFactory {
         return this.resolver().UserProfilePrefil;
