@@ -3,7 +3,7 @@ import { IdsFactory, IDs } from 'openland-module-api/IDs';
 import { Modules } from 'openland-modules/Modules';
 import { IDMailformedError } from 'openland-errors/IDMailformedError';
 import { FDB } from 'openland-module-db/FDB';
-import { Conversation, RoomProfile, Message, RoomParticipant, ChannelInvitation, ChannelLink } from 'openland-module-db/schema';
+import { Conversation, RoomProfile, Message, RoomParticipant, ChannelInvitation, ChannelLink, UserDialogSettings } from 'openland-module-db/schema';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { Sanitizer } from 'openland-utils/Sanitizer';
@@ -95,7 +95,7 @@ export default {
             return profile.description;
         }),
 
-        membership: withConverationId(async (ctx, id) => await Modules.Messaging.room.resolveUserMembershipStatus(ctx, ctx.auth.uid!, id)),
+        membership: withConverationId(async (ctx, id) => ctx.auth.uid ? await Modules.Messaging.room.resolveUserMembershipStatus(ctx, ctx.auth.uid, id) : 'none'),
         role: withConverationId(async (ctx, id) => (await Modules.Messaging.room.resolveUserRole(ctx, ctx.auth.uid!, id)).toUpperCase()),
         membersCount: async (root: RoomRoot, args: {}, ctx: AppContext) => (await FDB.RoomParticipant.allFromActive(ctx, (typeof root === 'number' ? root : root.id))).length,
         members: withConverationId(async (ctx, id) => await FDB.RoomParticipant.allFromActive(ctx, id)),
@@ -163,6 +163,11 @@ export default {
         invitedByUser: (src: ChannelInvitation | ChannelLink, args: {}, ctx: AppContext) => FDB.User.findById(ctx, src.creatorId)
     },
 
+    RoomUserNotificaionSettings: {
+        id: (src: UserDialogSettings) => IDs.ConversationSettings.serialize(src.cid),
+        mute: (src: UserDialogSettings) => src.mute
+    },
+
     Query: {
         room: withAccount(async (ctx, args, uid, oid) => {
             let id = IdsFactory.resolve(args.id);
@@ -191,7 +196,7 @@ export default {
             }
 
             if (beforeMessage) {
-                await FDB.Message.rangeFromChatAfter(ctx, roomId, beforeMessage.id, args.first!, true);
+                return await FDB.Message.rangeFromChatAfter(ctx, roomId, beforeMessage.id, args.first!, true);
             }
 
             return await FDB.Message.rangeFromChat(ctx, roomId, args.first!, true);
@@ -289,6 +294,7 @@ export default {
             }
             return Modules.Messaging.room.createRoom(ctx, (args.kind).toLowerCase() as 'group' | 'public', oid, uid, args.members.map((v) => IDs.User.parse(v)), {
                 title: args.title!,
+                description: args.description,
                 image: imageRef
             }, args.message || '', args.listed || undefined);
         }),
@@ -343,6 +349,10 @@ export default {
                     return await Modules.Messaging.room.kickFromRoom(ctx, IDs.Conversation.parse(args.roomId), uid, userId);
                 }
             });
+        }),
+        betaRoomLeave: withUser(async (parent, args, uid) => {
+            return await Modules.Messaging.room.leaveRoom(parent, IDs.Conversation.parse(args.roomId), uid);
+
         }),
         betaRoomChangeRole: withUser(async (ctx, args, uid) => {
             return await Modules.Messaging.room.updateMemberRole(ctx, IDs.Conversation.parse(args.roomId), uid, IDs.User.parse(args.userId), args.newRole.toLocaleLowerCase() as any);
