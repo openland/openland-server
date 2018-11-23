@@ -431,6 +431,18 @@ export class RoomRepository {
         }
     }
 
+    async resolveConversationSocialImage(ctx: Context, conversationId: number): Promise<string | null> {
+        let conv = await this.entities.Conversation.findById(ctx, conversationId);
+
+        if (!conv) {
+            throw new NotFoundError('Conversation not found');
+        }
+
+        let p = (await this.entities.RoomProfile.findById(ctx, conv.id))!;
+        let res = buildBaseImageUrl(p.socialImage);
+        return res;
+    }
+
     async checkAccess(ctx: Context, uid: number, cid: number) {
         let conv = await this.entities.Conversation.findById(ctx, cid);
         if (!conv) {

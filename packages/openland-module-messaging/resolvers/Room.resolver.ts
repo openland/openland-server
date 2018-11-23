@@ -89,6 +89,7 @@ export default {
         }),
         title: withConverationId(async (ctx, id) => Modules.Messaging.room.resolveConversationTitle(ctx, id, ctx.auth.uid!)),
         photo: withConverationId(async (ctx, id) => Modules.Messaging.room.resolveConversationPhoto(ctx, id, ctx.auth.uid!)),
+        socialImage: withConverationId(async (ctx, id) => Modules.Messaging.room.resolveConversationSocialImage(ctx, id)),
         organization: withConverationId(async (ctx, id) => Modules.Messaging.room.resolveConversationOrganization(ctx, id)),
 
         description: withRoomProfile((ctx, profile) => {
@@ -319,8 +320,8 @@ export default {
             let room = await Modules.Messaging.room.updateRoomProfile(ctx, IDs.Conversation.parse(args.roomId), uid, {
                 title: args.input.title!,
                 description: Sanitizer.sanitizeString(args.input.description),
-                image: imageRef,
-                socialImage: socialImageRef
+                image: args.input.photoRef === undefined ? undefined : imageRef,
+                socialImage: args.input.socialImageRef === undefined ? undefined : socialImageRef
             });
 
             return room;

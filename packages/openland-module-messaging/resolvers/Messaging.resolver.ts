@@ -96,7 +96,7 @@ export default {
         betaIntroSend: withUser(async (ctx, args, uid) => {
             await validate({
                 about: defined(stringNotEmpty(`About can't be empty!`)),
-                userId: defined(isNumber('Select user'))
+                uid: defined(isNumber('Select user'))
             }, args);
 
             let userId = IDs.User.parse(args.uid);
@@ -145,7 +145,7 @@ export default {
         betaIntroEdit: withUser(async (ctx, args, uid) => {
             await validate({
                 about: defined(stringNotEmpty(`About can't be empty!`)),
-                userId: defined(isNumber('Select user'))
+                uid: defined(isNumber('Select user'))
             }, args);
 
             let userId = IDs.User.parse(args.uid);
