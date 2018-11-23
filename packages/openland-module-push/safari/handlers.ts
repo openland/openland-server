@@ -9,7 +9,7 @@ let log = createLogger('safari push');
 let ctx = createEmptyContext();
 
 export function initSafariPush(app: Express) {
-    app.post('/push/safari/v2/log', handleLog);
+    app.post('/push/safari/v1/log', handleLog);
     app.post('/push/safari/v2/devices/:deviceToken/registrations/:websitePushID', handleRegister);
     app.delete('/push/safari/v2/devices/:deviceToken/registrations/:websitePushID', handleDelete);
     app.get('/push/safari/v2/pushPackages/web.com.openland', handlePushPackage);
