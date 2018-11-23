@@ -23,6 +23,7 @@ import { FEntity } from 'foundation-orm/FEntity';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
+import { relative } from 'path';
 
 export default {
     Conversation: {
@@ -502,15 +503,13 @@ export default {
             if (suitableGroups.length === 0) {
                 return null;
             }
-            // return await FDB.Conversation.find({
-            //     where: {
-            //         id: {
-            //             $in: suitableGroups
-            //         }
-            //     },
-            //     order: [['updatedAt', 'DESC']],
-            //     transaction: tx
-            // });
+
+            for (let cid of suitableGroups) {
+                let res = await FDB.Conversation.findById(ctx, cid);
+                if (res) {
+                    return res;
+                }
+            }
             return null;
         }),
         alphaGroupConversationMembers: withUser(async (ctx, args, uid) => {
