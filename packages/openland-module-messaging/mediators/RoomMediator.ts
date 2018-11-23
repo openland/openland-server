@@ -266,6 +266,10 @@ export class RoomMediator {
         return await this.repo.resolveConversationPhoto(ctx, conversationId, uid);
     }
 
+    async resolveConversationSocialImage(ctx: Context, conversationId: number): Promise<string | null> {
+        return await this.repo.resolveConversationSocialImage(ctx, conversationId);
+    }
+
     async resolveConversationOrganization(ctx: Context, cid: number) {
         return await this.repo.resolveConversationOrganization(ctx, cid);
     }
