@@ -237,10 +237,10 @@ for (let e of AllEntitiesDirect.schema) {
         type: GraphQLString,
         resolve: async (_: any, arg: any) => {
             await inTx(createEmptyContext(), async (ctx) => {
-                let all = await (FDB as any)[e.name].findAll(ctx);
+                let all = await (FDB as any)[e.name].findAllWithIds(ctx);
                 for (let a of all) {
-                    a.markDirty();
-                    await a.flush();
+                    a.item.markDirty();
+                    await a.item.flush();
                 }
             });
             return 'ok';

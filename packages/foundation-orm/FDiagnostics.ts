@@ -26,7 +26,7 @@ export class FDiagnostics {
         // Check equality
         if (nskeys.length !== dirkeys.length) {
             diag += '\n';
-            diag += '[' + src.name + '] Number of entities mismatched';
+            diag += '[' + src.name + '] Number of entities mismatched: ' + nskeys.length + ' vs ' + dirkeys.length;
         }
         for (let nsk of nskeys) {
             let found = false;
