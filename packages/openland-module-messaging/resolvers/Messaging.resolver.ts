@@ -97,7 +97,7 @@ export default {
             await validate({
                 about: defined(stringNotEmpty(`About can't be empty!`)),
                 uid: defined(isNumber('Select user'))
-            }, args);
+            }, { ...args, uid: IDs.User.parse(args.uid) });
 
             let userId = IDs.User.parse(args.uid);
             let cid = IDs.Conversation.parse(args.room);
@@ -146,7 +146,7 @@ export default {
             await validate({
                 about: defined(stringNotEmpty(`About can't be empty!`)),
                 uid: defined(isNumber('Select user'))
-            }, args);
+            }, { ...args, uid: IDs.User.parse(args.uid) });
 
             let userId = IDs.User.parse(args.uid);
             let messageId = IDs.ConversationMessage.parse(args.mid);
