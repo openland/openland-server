@@ -301,6 +301,13 @@ mutations.diagnoseAll = {
     type: GraphQLString,
     resolve: async (_: any, arg: any) => {
         for (let e of FDB.allEntities) {
+            if (e.name === 'Task') {
+                continue;
+            }
+            if (e.name === 'HyperLog') {
+                continue;
+            }
+            console.log(e.name);
             await FDB.connection.diagnostics.runEntityDiagnostics(e);
         }
     }
