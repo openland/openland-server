@@ -236,13 +236,15 @@ for (let e of AllEntitiesDirect.schema) {
     mutations[Case.camelCase(e.name) + 'Rebuild'] = {
         type: GraphQLString,
         resolve: async (_: any, arg: any) => {
-            await inTx(createEmptyContext(), async (ctx) => {
-                let all = await (FDB as any)[e.name].findAllWithIds(ctx);
-                for (let a of all) {
-                    a.item.markDirty();
-                    await a.item.flush();
-                }
-            });
+            let all = await (FDB as any)[e.name].findAllKeys(createEmptyContext());
+            for (let a of all) {
+                await inTx(createEmptyContext(), async (ctx) => {
+                    let k = FKeyEncoding.decodeKey(a);
+                    k.splice(0, 2);
+                    let itm = await (FDB as any)[e.name].findByRawId(ctx, k);
+                    itm.markDirty();
+                });
+            }
             return 'ok';
         }
     };
