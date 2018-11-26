@@ -150,7 +150,7 @@ for (let e of AllEntitiesDirect.schema) {
             for (let f of e.primaryKeys) {
                 ids.push(a[f.name]);
             }
-            return (FDB as any)[e.name].findById(...ids);
+            return (FDB as any)[e.name].findById(createEmptyContext(), ...ids);
         }
     };
 
@@ -167,7 +167,7 @@ for (let e of AllEntitiesDirect.schema) {
                 for (let f of e.primaryKeys) {
                     ids.push(a[f.name]);
                 }
-                yield (FDB as any)[e.name].findById(...ids);
+                yield (FDB as any)[e.name].findById(createEmptyContext(), ...ids);
                 await delay(1000);
             }
         },
@@ -180,7 +180,7 @@ for (let e of AllEntitiesDirect.schema) {
     queries[Case.camelCase(e.name) + 'All'] = {
         type: new GraphQLList(obj),
         resolve() {
-            return (FDB as any)[e.name].findAll();
+            return (FDB as any)[e.name].findAll(createEmptyContext());
         }
     };
 
@@ -195,7 +195,7 @@ for (let e of AllEntitiesDirect.schema) {
                     },
                     resolve: async (_: any, arg: any) => {
                         // let argm = extractArguments(arg, e, i, 0);
-                        let res = await (FDB as any)[e.name]['rangeFrom' + Case.pascalCase(i.name) + 'WithCursor'](arg.first, arg.after, arg.reversed);
+                        let res = await (FDB as any)[e.name]['rangeFrom' + Case.pascalCase(i.name) + 'WithCursor'](createEmptyContext(), arg.first, arg.after, arg.reversed);
                         console.log(res);
                         return res;
                     }
@@ -226,7 +226,7 @@ for (let e of AllEntitiesDirect.schema) {
                     },
                     resolve: async (_: any, arg: any) => {
                         let argm = extractArguments(arg, e, i, 1);
-                        return await (FDB as any)[e.name]['rangeFrom' + Case.pascalCase(i.name) + 'WithCursor'](...argm, arg.first, arg.after, arg.reversed);
+                        return await (FDB as any)[e.name]['rangeFrom' + Case.pascalCase(i.name) + 'WithCursor'](createEmptyContext(), ...argm, arg.first, arg.after, arg.reversed);
                     }
                 };
             }

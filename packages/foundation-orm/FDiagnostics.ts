@@ -1,0 +1,29 @@
+import { FConnection } from './FConnection';
+import { FEntityFactory } from './FEntityFactory';
+import { createEmptyContext } from 'openland-utils/Context';
+import { FKeyEncoding } from './utils/FKeyEncoding';
+
+export class FDiagnostics {
+    private connection: FConnection;
+
+    constructor(connection: FConnection) {
+        this.connection = connection;
+    }
+
+    async runEntityDiagnostics(src: FEntityFactory<any>) {
+        let ctx = createEmptyContext();
+
+        // Load all keys from namespace
+        let res = await src.namespace.range(ctx, this.connection, []);
+        res = res.filter((v) => !FKeyEncoding.decodeKey(v.key).find((k) => k === '__indexes'));
+        let nskeys = res.map((v) => FKeyEncoding.encodeKeyToString(FKeyEncoding.decodeKey(v.key) as any));
+
+        // Load all keys from directory
+        let res2 = await src.directory.range2(ctx, []);
+        let dirkeys = res2.map((v) => FKeyEncoding.encodeKeyToString(FKeyEncoding.decodeKey(v.key) as any));
+
+        if (nskeys.length !== dirkeys.length) {
+            throw Error('Number of entities mismatched');
+        }
+    }
+}

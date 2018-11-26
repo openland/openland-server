@@ -40,6 +40,13 @@ export class FDirectory {
         return resolveContext(ctx).rangeAll(ctx, this.connection, Buffer.concat([this.allocatedKey!, FKeyEncoding.encodeKey(key)]));
     }
 
+    range2 = async (ctx: Context, key: (string | number)[]) => {
+        if (!this.isAllocated) {
+            await this.allocatorProcess;
+        }
+        return resolveContext(ctx).range(ctx, this.connection, Buffer.concat([this.allocatedKey!, FKeyEncoding.encodeKey(key)]));
+    }
+
     set = (ctx: Context, key: (string | number)[], value: any) => {
         resolveContext(ctx).set(ctx, this.connection, Buffer.concat([this.allocatedKey!, FKeyEncoding.encodeKey(key)]), value);
     }

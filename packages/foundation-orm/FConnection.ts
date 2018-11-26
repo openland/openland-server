@@ -7,11 +7,13 @@ import { NativeValue } from 'foundationdb/dist/lib/native';
 import { FPubsub } from './FPubsub';
 import { DirectoryAllocator } from './utils/DirectoryAllocator';
 import { FDirectory } from './FDirectory';
+import { FDiagnostics } from './FDiagnostics';
 
 export class FConnection {
     static readonly globalContext: FContext = new FGlobalContext();
     readonly fdb: fdb.Database<NativeValue, any>;
     readonly pubsub: FPubsub;
+    readonly diagnostics: FDiagnostics;
     private readonly directoryAllocator: DirectoryAllocator;
     private readonly nodeRegistrator: FNodeRegistrator;
     private randomFactory: RandomIDFactory | null = null;
@@ -36,6 +38,7 @@ export class FConnection {
         this.nodeRegistrator = new FNodeRegistrator(this);
         this.test = test;
         this.directoryAllocator = new DirectoryAllocator(this);
+        this.diagnostics = new FDiagnostics(this);
     }
 
     getDirectory(key: (string | number | boolean)[]) {
