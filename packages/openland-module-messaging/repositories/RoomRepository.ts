@@ -438,9 +438,8 @@ export class RoomRepository {
             throw new NotFoundError('Conversation not found');
         }
 
-        let p = (await this.entities.RoomProfile.findById(ctx, conv.id))!;
-        let res = buildBaseImageUrl(p.socialImage);
-        return res;
+        let profile = await this.entities.RoomProfile.findById(ctx, conv.id);
+        return profile ? buildBaseImageUrl(profile.socialImage) : null;
     }
 
     async checkAccess(ctx: Context, uid: number, cid: number) {
