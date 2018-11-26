@@ -300,6 +300,7 @@ for (let e of AllEntitiesDirect.schema) {
 mutations.diagnoseAll = {
     type: GraphQLString,
     resolve: async (_: any, arg: any) => {
+        let diag = '';
         for (let e of FDB.allEntities) {
             if (e.name === 'Task') {
                 continue;
@@ -307,9 +308,16 @@ mutations.diagnoseAll = {
             if (e.name === 'HyperLog') {
                 continue;
             }
+            if (e.name === 'UserDialogEvent') {
+                continue;
+            }
+            if (e.name === 'ConversationEvent') {
+                continue;
+            }
             console.log(e.name);
-            await FDB.connection.diagnostics.runEntityDiagnostics(e);
+            diag += await FDB.connection.diagnostics.runEntityDiagnostics(e);
         }
+        return diag;
     }
 };
 

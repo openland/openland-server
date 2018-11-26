@@ -11,6 +11,7 @@ export class FDiagnostics {
     }
 
     async runEntityDiagnostics(src: FEntityFactory<any>) {
+        let diag = '';
         let ctx = createEmptyContext();
 
         // Load all keys from namespace
@@ -24,7 +25,8 @@ export class FDiagnostics {
 
         // Check equality
         if (nskeys.length !== dirkeys.length) {
-            throw Error('[' + src.name + '] Number of entities mismatched');
+            diag += '\n';
+            diag += '[' + src.name + '] Number of entities mismatched';
         }
         for (let nsk of nskeys) {
             let found = false;
@@ -35,7 +37,8 @@ export class FDiagnostics {
                 }
             }
             if (!found) {
-                throw Error('[' + src.name + '] Namespace key not found in directory: ' + JSON.stringify(FKeyEncoding.decodeFromString(nsk)));
+                diag += '\n';
+                diag += '[' + src.name + '] Namespace key not found in directory: ' + JSON.stringify(FKeyEncoding.decodeFromString(nsk));
             }
         }
         for (let dsk of dirkeys) {
@@ -47,8 +50,10 @@ export class FDiagnostics {
                 }
             }
             if (!found) {
-                throw Error('[' + src.name + '] Directory key not found in namespace: ' + JSON.stringify(FKeyEncoding.decodeFromString(dsk)));
+                diag += '\n';
+                diag += '[' + src.name + '] Directory key not found in namespace: ' + JSON.stringify(FKeyEncoding.decodeFromString(dsk));
             }
         }
+        return diag;
     }
 }
