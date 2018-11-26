@@ -297,6 +297,15 @@ for (let e of AllEntitiesDirect.schema) {
     }
 }
 
+mutations.diagnoseAll = {
+    type: GraphQLString,
+    resolve: async (_: any, arg: any) => {
+        for (let e of FDB.allEntities) {
+            await FDB.connection.diagnostics.runEntityDiagnostics(e);
+        }
+    }
+};
+
 queries.metaAllDirectories = {
     type: new GraphQLList(new GraphQLObjectType({
         name: 'MetaDirectoryConnection',

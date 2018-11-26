@@ -24,7 +24,7 @@ export class FDiagnostics {
 
         // Check equality
         if (nskeys.length !== dirkeys.length) {
-            throw Error('Number of entities mismatched');
+            throw Error('[' + src.name + '] Number of entities mismatched');
         }
         for (let nsk of nskeys) {
             let found = false;
@@ -35,7 +35,7 @@ export class FDiagnostics {
                 }
             }
             if (!found) {
-                throw Error('Namespace key not found in directory: ' + JSON.stringify(FKeyEncoding.decodeFromString(nsk)));
+                throw Error('[' + src.name + '] Namespace key not found in directory: ' + JSON.stringify(FKeyEncoding.decodeFromString(nsk)));
             }
         }
         for (let dsk of dirkeys) {
@@ -47,7 +47,7 @@ export class FDiagnostics {
                 }
             }
             if (!found) {
-                throw Error('Directory key not found in namespace: ' + JSON.stringify(FKeyEncoding.decodeFromString(dsk)));
+                throw Error('[' + src.name + '] Directory key not found in namespace: ' + JSON.stringify(FKeyEncoding.decodeFromString(dsk)));
             }
         }
     }
