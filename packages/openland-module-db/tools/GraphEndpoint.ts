@@ -247,6 +247,13 @@ for (let e of AllEntitiesDirect.schema) {
         }
     };
 
+    mutations[Case.camelCase(e.name) + 'Diagnose'] = {
+        type: GraphQLString,
+        resolve: async (_: any, arg: any) => {
+            return await FDB.connection.diagnostics.runEntityDiagnostics((FDB as any)[e.name]);
+        }
+    };
+
     // Creation
     if (e.editable) {
         mutations[Case.camelCase(e.name) + 'Create'] = {

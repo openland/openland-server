@@ -44,7 +44,8 @@ export class FDirectory {
         if (!this.isAllocated) {
             await this.allocatorProcess;
         }
-        return resolveContext(ctx).range(ctx, this.connection, Buffer.concat([this.allocatedKey!, FKeyEncoding.encodeKey(key)]));
+        let res = await resolveContext(ctx).range(ctx, this.connection, Buffer.concat([this.allocatedKey!, FKeyEncoding.encodeKey(key)]));
+        return res.map((v) => ({ key: v.key.slice(this.allocatedKey!.length), item: v.item }));
     }
 
     set = (ctx: Context, key: (string | number)[], value: any) => {
