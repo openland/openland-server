@@ -60,21 +60,8 @@ export class RoomMediator {
             }
 
             // Join room
-            if (await this.repo.joinRoom(ctx, cid, uid)) {
-                // Send message
-                let name = (await this.entities.UserProfile.findById(ctx, uid))!.firstName;
-                await this.messaging.sendMessage(ctx, uid, cid, {
-                    message: `${name} has joined the room!`,
-                    isService: true,
-                    isMuted: true,
-                    serviceMetadata: {
-                        type: 'user_invite',
-                        userIds: [uid],
-                        invitedById: uid
-                    }
-                });
-            }
-
+            await this.repo.joinRoom(ctx, cid, uid);
+            
             return (await this.entities.Conversation.findById(ctx, cid))!;
         });
     }

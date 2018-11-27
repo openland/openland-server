@@ -128,12 +128,12 @@ export class RoomRepository {
                     return false;
                 } else {
                     p.invitedBy = uid;
-                    p.status = 'joined';
+                    p.status = 'requested';
                     return true;
                 }
             } else {
                 await this.entities.RoomParticipant.create(ctx, cid, uid, {
-                    status: 'joined',
+                    status: 'requested',
                     role: 'member',
                     invitedBy: uid
                 });
