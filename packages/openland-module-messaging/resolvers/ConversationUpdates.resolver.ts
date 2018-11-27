@@ -4,6 +4,7 @@ import { FDB } from 'openland-module-db/FDB';
 import { FLiveStreamItem } from 'foundation-orm/FLiveStreamItem';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
+import { withUser } from 'openland-module-api/Resolvers';
 
 export default {
     /* 
@@ -54,6 +55,16 @@ export default {
     },
     ConversationMessageDeleted: {
         message: (src: ConversationEvent, args: {}, ctx: AppContext) => FDB.Message.findById(ctx, src.mid!)
+    },
+
+    Query: {
+        conversationState: withUser(async (ctx, args, uid) => {
+            let id = IDs.Conversation.parse(args.id);
+            let tail = await FDB.ConversationEvent.createUserStream(ctx, id, 1).tail();
+            return {
+                state: tail
+            };
+        })
     },
 
     Subscription: {

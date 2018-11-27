@@ -27,6 +27,14 @@ type ConversationMessageDeleted {
     message: ConversationMessage!
 }
 
+type ConversationUpdateState {
+    state: String
+}
+
+extend type Query {
+    conversationState(id: ID!): ConversationUpdateState!
+}
+
 extend type Subscription {
     conversationUpdates(conversationId: ID!, fromState: String): ConversationUpdateContainer!
 }
