@@ -38,6 +38,7 @@ type SharedRoom {
   
     membersCount: Int
     members: [RoomMember!]!
+    requests: [RoomMember!]
 
     membership: SharedRoomMembershipStatus!
     role: RoomMemberRole!

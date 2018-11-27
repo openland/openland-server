@@ -302,4 +302,13 @@ export class RoomMediator {
         return await this.repo.resolveUserRole(ctx, uid, cid);
     }
 
+    async resolveRequests(ctx: Context, uid: number, cid: number) {
+        let role = await Modules.Messaging.room.resolveUserRole(ctx, uid, cid);
+        let isSuperAdmin = (await Modules.Super.superRole(ctx, uid)) === 'super-admin';
+        if (role === 'admin' || role === 'owner' || isSuperAdmin) {
+            return await this.entities.RoomParticipant.allFromRequests(ctx, cid);
+        }
+        return null;
+    }
+
 }

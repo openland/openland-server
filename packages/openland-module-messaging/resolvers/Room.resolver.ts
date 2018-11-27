@@ -106,6 +106,7 @@ export default {
         role: withConverationId(async (ctx, id) => (await Modules.Messaging.room.resolveUserRole(ctx, ctx.auth.uid!, id)).toUpperCase()),
         membersCount: async (root: RoomRoot, args: {}, ctx: AppContext) => (await FDB.RoomParticipant.allFromActive(ctx, (typeof root === 'number' ? root : root.id))).length,
         members: withConverationId(async (ctx, id) => await FDB.RoomParticipant.allFromActive(ctx, id)),
+        requests: withConverationId(async (ctx, id) => ctx.auth.uid && await Modules.Messaging.room.resolveRequests(ctx, ctx.auth.uid, id)),
         settings: async (root: RoomRoot, args: {}, ctx: AppContext) => await Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, (typeof root === 'number' ? root : root.id))
     },
     RoomMessage: {
