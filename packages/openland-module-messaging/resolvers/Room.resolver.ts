@@ -366,7 +366,7 @@ export default {
         }),
 
         betaRoomJoin: withUser(async (ctx, args, uid) => {
-            return await Modules.Messaging.room.joinRoom(ctx, IDs.Conversation.parse(args.roomId), uid);
+            return await Modules.Messaging.room.joinRoom(ctx, IDs.Conversation.parse(args.roomId), uid, true);
         }),
 
         // invite links

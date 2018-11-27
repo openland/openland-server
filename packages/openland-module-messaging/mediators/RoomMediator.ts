@@ -41,7 +41,7 @@ export class RoomMediator {
         });
     }
 
-    async joinRoom(parent: Context, cid: number, uid: number) {
+    async joinRoom(parent: Context, cid: number, uid: number, request?: boolean) {
         return await inTx(parent, async (ctx) => {
 
             // Check Room
@@ -60,8 +60,21 @@ export class RoomMediator {
             }
 
             // Join room
-            await this.repo.joinRoom(ctx, cid, uid);
-            
+            if (await this.repo.joinRoom(ctx, cid, uid, request) && !request) {
+                // Send message
+                let name = (await this.entities.UserProfile.findById(ctx, uid))!.firstName;
+                await this.messaging.sendMessage(ctx, uid, cid, {
+                    message: `${name} has joined the room!`,
+                    isService: true,
+                    isMuted: true,
+                    serviceMetadata: {
+                        type: 'user_invite',
+                        userIds: [uid],
+                        invitedById: uid
+                    }
+                });
+            }
+
             return (await this.entities.Conversation.findById(ctx, cid))!;
         });
     }

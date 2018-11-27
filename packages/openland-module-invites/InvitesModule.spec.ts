@@ -42,22 +42,33 @@ describe('RoomMediator', () => {
         await users.createUserProfile(ctx, USER_ID, { firstName: 'User Name' });
         await users.createUserProfile(ctx, USER2_ID, { firstName: 'User Name' });
         let room = await mediator.createRoom(ctx, 'public', 1, USER_ID, [], { title: 'Room' });
-        await mediator.joinRoom(ctx, room.id, USER2_ID);
-        let messages = await FDB.Message.allFromChat(ctx, room.id);
-        expect(messages.length).toBe(2);
-        expect(messages[0].uid).toBe(USER_ID);
-        expect(messages[1].uid).toBe(USER2_ID);
+        await mediator.joinRoom(ctx, room.id, USER2_ID, true);
         let members = await FDB.RoomParticipant.allFromActive(ctx, room.id);
-        expect(members.length).toBe(2);
+        expect(members.length).toBe(1);
         for (let m of members) {
-            expect(m.status).toBe('joined');
             if (m.uid === USER_ID) {
+                expect(m.status).toBe('joined');
                 expect(m.role).toEqual('owner');
                 expect(m.invitedBy).toBe(USER_ID);
             } else {
+                expect(m.status).toBe('requested');
                 expect(m.role).toEqual('member');
                 expect(m.invitedBy).toBe(USER2_ID);
             }
         }
+        await mediator.inviteToRoom(ctx, room.id, USER_ID, [USER2_ID]);
+        let messages = await FDB.Message.allFromChat(ctx, room.id);
+        expect(messages.length).toBe(2);
+        expect(messages[0].uid).toBe(USER_ID);
+        expect(messages[1].uid).toBe(USER_ID);
+        members = await FDB.RoomParticipant.allFromActive(ctx, room.id);
+        expect(members.length).toBe(2);
+        for (let m of members) {
+            if (m.uid === USER2_ID) {
+                expect(m.status).toBe('joined');
+                expect(m.invitedBy).toBe(USER_ID);
+            }
+        }
+
     });
 });

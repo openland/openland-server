@@ -117,23 +117,24 @@ export class RoomRepository {
         });
     }
 
-    async joinRoom(parent: Context, cid: number, uid: number) {
+    async joinRoom(parent: Context, cid: number, uid: number, request?: boolean) {
         return await inTx(parent, async (ctx) => {
             // Check if room exists
             await this.checkRoomExists(ctx, cid);
 
+            let targetStatus: 'requested' | 'joined' = request ? 'requested' : 'joined';
             let p = await this.entities.RoomParticipant.findById(ctx, cid, uid);
             if (p) {
-                if (p.status === 'joined') {
+                if ((p.status === targetStatus) || (p.status === 'joined')) {
                     return false;
                 } else {
                     p.invitedBy = uid;
-                    p.status = 'requested';
+                    p.status = targetStatus;
                     return true;
                 }
             } else {
                 await this.entities.RoomParticipant.create(ctx, cid, uid, {
-                    status: 'requested',
+                    status: targetStatus,
                     role: 'member',
                     invitedBy: uid
                 });
