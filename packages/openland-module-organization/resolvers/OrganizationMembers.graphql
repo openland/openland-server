@@ -49,6 +49,7 @@ extend type Query {
 extend type Mutation {
     betaOrganizationMemberRequestApprove(userId: ID!, organizationId: ID!): Organization!
     betaOrganizationMemberRemove(userId: ID!, organizationId: ID!): Organization!
+    betaOrganizationMemberAdd(userId: ID!, organizationId: ID!): Organization!
 
     alphaOrganizationChangeMemberRole(memberId: ID!, newRole: OrganizationMemberRole!, organizationId: ID!): String!
     

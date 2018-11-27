@@ -111,6 +111,13 @@ export class OrganizationModule {
                 throw Error('Profile is not created');
             }
 
+            let member = await Modules.DB.entities.OrganizationMember.findById(ctx, oid, by);
+            let isSuperAdmin = (await Modules.Super.superRole(ctx, by)) === 'super-admin';
+            let canAdd = (member && member.status === 'joined') || isSuperAdmin;
+            if (!canAdd) {
+                throw new AccessDeniedError('Only members can add members');
+            }
+
             // Add member
             if (await this.repo.addUserToOrganization(ctx, uid, oid, by)) {
                 let org = (await Modules.DB.entities.Organization.findById(ctx, oid))!;
