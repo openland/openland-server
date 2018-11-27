@@ -24,12 +24,12 @@ function withConverationId(handler: (ctx: AppContext, src: number) => any) {
     };
 }
 
-function withRoomProfile(handler: (ctx: AppContext, src: RoomProfile) => any) {
+function withRoomProfile(handler: (ctx: AppContext, src: RoomProfile | null) => any) {
     return async (src: RoomRoot, args: {}, ctx: AppContext) => {
         if (typeof src === 'number') {
-            return handler(ctx, (await FDB.RoomProfile.findById(ctx, src))!);
+            return handler(ctx, (await FDB.RoomProfile.findById(ctx, src)));
         } else {
-            return handler(ctx, (await FDB.RoomProfile.findById(ctx, src.id))!);
+            return handler(ctx, (await FDB.RoomProfile.findById(ctx, src.id)));
         }
     };
 }
@@ -75,6 +75,12 @@ export default {
         id: (root: RoomRoot) => IDs.Conversation.serialize(typeof root === 'number' ? root : root.id),
         kind: withConverationId(async (ctx, id) => {
             let room = (await FDB.ConversationRoom.findById(ctx, id))!;
+            // temp fix resolve openland internal chat
+            let conveOrg = (await FDB.ConversationOrganization.findById(ctx, id))!;
+            if (!room && conveOrg) {
+                return 'INTERNAL';
+            }
+
             if (room.kind === 'group') {
                 return 'GROUP';
             } else if (room.kind === 'internal') {
@@ -93,7 +99,7 @@ export default {
         organization: withConverationId(async (ctx, id) => Modules.Messaging.room.resolveConversationOrganization(ctx, id)),
 
         description: withRoomProfile((ctx, profile) => {
-            return profile.description;
+            return profile && profile.description;
         }),
 
         membership: withConverationId(async (ctx, id) => ctx.auth.uid ? await Modules.Messaging.room.resolveUserMembershipStatus(ctx, ctx.auth.uid, id) : 'none'),
