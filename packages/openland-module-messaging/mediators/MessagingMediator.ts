@@ -53,7 +53,9 @@ export class MessagingMediator {
             // Cancel typings
             // TODO: Remove
             let members = await this.room.findConversationMembers(ctx, cid);
-            await Modules.Typings.cancelTyping(uid, cid, members);
+            if (!message.isService && !message.isMuted) {
+                await Modules.Typings.cancelTyping(uid, cid, members);
+            }
 
             // Clear draft
             // TODO: Move
