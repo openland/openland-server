@@ -140,4 +140,6 @@ export namespace GQLRoots {
 
     export type RoomConnectionRoot = any;
     export type RoomConnectionEdgeRoot = any;
+    
+    export type RoomSuperRoot = any;
 }
