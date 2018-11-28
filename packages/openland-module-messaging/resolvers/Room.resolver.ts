@@ -180,11 +180,11 @@ export default {
         id: (root: RoomRoot) => IDs.Conversation.serialize(typeof root === 'number' ? root : root.id),
         featured: withConverationId(async (ctx, id) => {
             let room = await FDB.ConversationRoom.findById(ctx, id);
-            return room && room.featured;
+            return !!(room && room.featured);
         }),
         listed: withConverationId(async (ctx, id) => {
             let room = await FDB.ConversationRoom.findById(ctx, id);
-            return room && room.listed;
+            return !!(room && room.listed);
         }),
     },
 
