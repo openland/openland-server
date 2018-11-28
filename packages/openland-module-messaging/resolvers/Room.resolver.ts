@@ -358,6 +358,13 @@ export default {
                 }
             });
         }),
+        betaRoomDeclineJoinRequest: withUser(async (parent, args, uid) => {
+            let userId = IDs.User.parse(args.userId);
+            return inTx(parent, async (ctx) => {
+                return await Modules.Messaging.room.declineJoinRoomRequest(ctx, IDs.Conversation.parse(args.roomId), uid, userId);
+
+            });
+        }),
         betaRoomLeave: withUser(async (parent, args, uid) => {
             return await Modules.Messaging.room.leaveRoom(parent, IDs.Conversation.parse(args.roomId), uid);
 

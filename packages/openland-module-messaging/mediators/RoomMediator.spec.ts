@@ -65,6 +65,42 @@ describe('RoomMediator', () => {
         }
     });
 
+    it('should be able to manage join requests', async () => {
+        let ctx = createEmptyContext();
+        let mediator = container.get<RoomMediator>('RoomMediator');
+        let users = container.get<UsersModule>(UsersModule);
+        await users.createUser(ctx, 'user110', 'email1110');
+        let USER_ID = (await users.createUser(ctx, 'user111', 'email111')).id;
+        let USER2_ID = (await users.createUser(ctx, 'user112', 'email112')).id;
+        let USER3_ID = (await users.createUser(ctx, 'user113', 'email113')).id;
+        await users.createUserProfile(ctx, USER_ID, { firstName: 'User Name' });
+        await users.createUserProfile(ctx, USER2_ID, { firstName: 'User Name' });
+        await users.createUserProfile(ctx, USER3_ID, { firstName: 'User Name' });
+        let room = await mediator.createRoom(ctx, 'public', 1, USER_ID, [], { title: 'Room' });
+        await mediator.joinRoom(ctx, room.id, USER2_ID, true);
+        await mediator.joinRoom(ctx, room.id, USER3_ID, true);
+        let members = await FDB.RoomParticipant.allFromRequests(ctx, room.id);
+        expect(members.length).toBe(2);
+        for (let m of members) {
+            if (m.uid === USER2_ID) {
+                expect(m.status).toEqual('requested');
+            } else if (m.uid === USER3_ID) {
+                expect(m.status).toBe('requested');
+            }
+        }
+        await mediator.declineJoinRoomRequest(ctx, room.id, USER_ID, USER2_ID);
+        await mediator.inviteToRoom(ctx, room.id, USER_ID, [USER3_ID]);
+        let messages = await FDB.Message.allFromChat(ctx, room.id);
+        expect(messages.length).toBe(2);
+        expect(messages[0].uid).toBe(USER_ID);
+        expect(messages[1].uid).toBe(USER_ID);
+        members = await FDB.RoomParticipant.allFromActive(ctx, room.id);
+        expect(members.length).toBe(2);
+        for (let m of members) {
+            expect(m.status).toEqual('joined');
+        }
+    });
+
     it('should be able to kick from room', async () => {
         let ctx = createEmptyContext();
         let mediator = container.get<RoomMediator>('RoomMediator');

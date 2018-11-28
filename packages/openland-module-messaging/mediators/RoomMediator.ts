@@ -158,6 +158,31 @@ export class RoomMediator {
         });
     }
 
+    async declineJoinRoomRequest(parent: Context, cid: number, by: number, requestedUid: number) {
+        return await inTx(parent, async (ctx) => {
+            // Permissions
+            // TODO: Implement better
+            let isSuperAdmin = (await Modules.Super.superRole(ctx, by)) === 'super-admin';
+            if (!isSuperAdmin && !(await this.repo.isActiveMember(ctx, by, cid))) {
+                throw new UserError('You are not member of a room');
+            }
+            let existingMembership = await this.repo.findMembershipStatus(ctx, requestedUid, cid);
+            if (!existingMembership || existingMembership.status !== 'requested') {
+                throw new UserError('User are not in requested status');
+            }
+            let kickerRole = await this.repo.resolveUserRole(ctx, by, cid);
+            let canKick = isSuperAdmin || kickerRole === 'owner' || kickerRole === 'admin';
+            if (!canKick) {
+                throw new UserError('Insufficient rights');
+            }
+
+            // decline request
+            await this.repo.declineJoinRoomRequest(ctx, cid, requestedUid);
+
+            return (await this.entities.Conversation.findById(ctx, cid))!;
+        });
+    }
+
     async leaveRoom(parent: Context, cid: number, uid: number) {
         return await inTx(parent, async (ctx) => {
 

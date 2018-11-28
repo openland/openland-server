@@ -102,6 +102,21 @@ export class RoomRepository {
         });
     }
 
+    async declineJoinRoomRequest(parent: Context, cid: number, uid: number) {
+        return await inTx(parent, async (ctx) => {
+            // Check if room exists
+            await this.checkRoomExists(ctx, cid);
+
+            // Decline request
+            let participant = await this.entities.RoomParticipant.findById(ctx, cid, uid);
+            if (!participant || participant.status !== 'requested') {
+                return false;
+            }
+            participant.status = 'kicked';
+            return true;
+        });
+    }
+
     async leaveRoom(parent: Context, cid: number, uid: number) {
         return await inTx(parent, async (ctx) => {
 
