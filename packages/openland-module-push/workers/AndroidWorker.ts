@@ -65,7 +65,12 @@ export function createAndroidWorker(repo: PushRepository) {
                             return { result: 'failed' };
                         }
                     } else {
-                        throw Error('');
+                        await inTx(root, async (ctx) => {
+                            let t = (await repo.getAndroidToken(ctx, task.tokenId))!;
+                            await handleFail(t);
+                            await pushFail.event(ctx, { uid: t.uid, tokenId: t.id, failures: t.failures!, error: 'package not found', disabled: !t.enabled });
+                        });
+                        return { result: 'failed' };
                     }
                 });
             }
