@@ -85,6 +85,10 @@ export class MessagingModule {
         return await this.messaging.deleteMessage(ctx, mid, uid);
     }
 
+    async deleteMessages(ctx: Context, mids: number[], uid: number) {
+        return await this.messaging.deleteMessages(ctx, mids, uid);
+    }
+
     async readRoom(ctx: Context, uid: number, cid: number, mid: number) {
         return await this.messaging.readRoom(ctx, uid, cid, mid);
     }

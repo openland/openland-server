@@ -103,6 +103,7 @@ export class MessagingMediator {
         });
     }
 
+    // deprecated
     deleteMessage = async (parent: Context, mid: number, uid: number) => {
         return await inTx(parent, async (ctx) => {
 
@@ -121,6 +122,26 @@ export class MessagingMediator {
             await this.delivery.onDeleteMessage(ctx, message);
 
             return res;
+        });
+    }
+
+    deleteMessages = async (parent: Context, mids: number[], uid: number) => {
+        return await inTx(parent, async (ctx) => {
+            mids.map(async mid => {
+                let message = (await this.entities.Message.findById(ctx, mid!))!;
+                if (message.uid !== uid) {
+                    if (await Modules.Super.superRole(ctx, uid) !== 'super-admin') {
+                        throw new AccessDeniedError();
+                    }
+                }
+
+                // Delete
+                let res = await this.repo.deleteMessage(ctx, mid);
+
+                // Delivery
+                message = (await this.entities.Message.findById(ctx, res!.mid!))!;
+                await this.delivery.onDeleteMessage(ctx, message);
+            });
         });
     }
 

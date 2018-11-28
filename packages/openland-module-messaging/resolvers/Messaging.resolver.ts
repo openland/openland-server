@@ -73,9 +73,17 @@ export default {
             return true;
         }),
         betaMessageDelete: withUser(async (ctx, args, uid) => {
-            let messageId = IDs.ConversationMessage.parse(args.mid);
-            await Modules.Messaging.deleteMessage(ctx, messageId, uid);
-            return true;
+            if (args.mid) {
+                let messageId = IDs.ConversationMessage.parse(args.mid);
+                await Modules.Messaging.deleteMessage(ctx, messageId, uid);
+                return true;
+            } else if (args.mids) {
+                let messageIds = args.mids.map(mid => IDs.ConversationMessage.parse(mid));
+                await Modules.Messaging.deleteMessages(ctx, messageIds, uid);
+                return true;
+            }
+            return false;
+
         }),
         betaMessageDeleteAugmentation: withUser(async (ctx, args, uid) => {
             await Modules.Messaging.editMessage(ctx, IDs.ConversationMessage.parse(args.mid), uid, {
