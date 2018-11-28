@@ -205,6 +205,9 @@ export default {
                 throw new IDMailformedError('Invalid id');
             }
         }),
+        roomSuper: withPermission('super-admin', async (ctx, args) => {
+            return IdsFactory.resolve(args.id);
+        }),
         roomMessages: withUser(async (ctx, args, uid) => {
             let roomId = IDs.Conversation.parse(args.roomId);
 
