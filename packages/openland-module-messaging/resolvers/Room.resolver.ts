@@ -163,7 +163,7 @@ export default {
     RoomMember: {
         user: async (src: RoomParticipant, args: {}, ctx: AppContext) => await FDB.User.findById(ctx, src.uid),
         role: async (src: RoomParticipant) => src.role.toUpperCase(),
-        membership: async (src: RoomParticipant, args: {}, ctx: AppContext) => await Modules.Messaging.room.resolveUserMembershipStatus(ctx, src.uid, src.cid) as any,
+        membership: async (src: RoomParticipant, args: {}, ctx: AppContext) => src.status as any,
     },
 
     RoomInvite: {
@@ -211,8 +211,22 @@ export default {
         }),
         roomMembers: withUser(async (ctx, args, uid) => {
             let roomId = IDs.Conversation.parse(args.roomId);
-            let res = await FDB.RoomParticipant.allFromActive(ctx, roomId);
-            return res;
+            let conversation = await FDB.Conversation.findById(ctx, roomId);
+            if (!conversation) {
+                throw new Error('Room not found');
+            }
+            if (conversation.kind === 'organization') {
+                let convOrg = await FDB.ConversationOrganization.findById(ctx, roomId);
+                let members = await FDB.OrganizationMember.allFromOrganization(ctx, 'joined', convOrg!.oid);
+                return members.map(m => ({
+                    uid: m.uid,
+                    role: 'member',
+                    status: 'joined',
+                }));
+            } else {
+                return await FDB.RoomParticipant.allFromActive(ctx, roomId);
+            }
+
         }),
 
         betaRoomSearch: withUser(async (ctx, args, uid) => {
