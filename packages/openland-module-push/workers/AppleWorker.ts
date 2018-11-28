@@ -89,7 +89,12 @@ export function createAppleWorker(repo: PushRepository) {
                     }
 
                 } else {
-                    throw Error('Unable to find team for bundleId: ' + token.bundleId);
+                    await inTx(root, async (ctx) => {
+                        let t = (await repo.getAppleToken(ctx, task.tokenId))!;
+                        await handleFail(t);
+                        await pushFail.event(ctx, { uid: t.uid, tokenId: t.id, failures: t.failures!, reason: 'Unable to find team for bundleId: ' + token.bundleId, disabled: !t.enabled });
+                    });
+                    return { result: 'failed' };
                 }
             });
             // }
