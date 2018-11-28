@@ -47,10 +47,11 @@ export default {
             return Modules.Orgs.suspendOrganization(ctx, IDs.SuperAccount.parse(args.id));
         }),
         superAccountMemberAdd: withPermission('super-admin', (ctx, args) => {
-            return Modules.Orgs.addUserToOrganization(ctx, IDs.User.parse(args.userId), IDs.SuperAccount.parse(args.id), IDs.User.parse(args.userId));
+            return Modules.Orgs.addUserToOrganization(ctx, IDs.User.parse(args.userId), IDs.SuperAccount.parse(args.id), ctx.auth.uid!);
         }),
-        superAccountMemberRemove: withPermission('super-admin', (ctx, args) => {
-            return Modules.Orgs.removeUserFromOrganization(ctx, IDs.User.parse(args.userId), IDs.SuperAccount.parse(args.id), IDs.User.parse(args.userId));
+        superAccountMemberRemove: withPermission('super-admin', async (ctx, args) => {
+            await Modules.Orgs.removeUserFromOrganization(ctx, IDs.User.parse(args.userId), IDs.SuperAccount.parse(args.id), ctx.auth.uid!);
+            return await Modules.DB.entities.Organization.findById(ctx, IDs.SuperAccount.parse(args.id));
         }),
         superAccountChannelMemberAdd: withPermission('super-admin', async (ctx, args) => {
             await Modules.Messaging.room.joinRoom(ctx, IDs.Conversation.parse(args.id), IDs.User.parse(args.userId));
