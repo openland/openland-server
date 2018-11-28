@@ -55,7 +55,7 @@ export class RoomMediator {
 
             // Check if was kicked
             let participant = await this.entities.RoomParticipant.findById(ctx, cid, uid);
-            if (participant && participant.status === 'kicked') {
+            if (participant && participant.status === 'kicked' && !request) {
                 throw new UserError('You was kicked from this room');
             }
 
