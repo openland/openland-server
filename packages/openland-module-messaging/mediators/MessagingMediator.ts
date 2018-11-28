@@ -126,9 +126,9 @@ export class MessagingMediator {
 
     deleteMessages = async (parent: Context, mids: number[], uid: number) => {
         return await inTx(parent, async (ctx) => {
-            mids.map(async mid => {
+            for (let mid of mids) {
                 await this.deleteMessage(ctx, mid, uid);
-            });
+            }
         });
     }
 
