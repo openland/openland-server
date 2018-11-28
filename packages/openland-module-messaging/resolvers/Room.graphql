@@ -46,6 +46,12 @@ type SharedRoom {
     settings: RoomUserNotificaionSettings!
 }
 
+type RoomSuper {
+    id: ID!
+    featured: Boolean!
+    listed: Boolean!
+}
+
 input RoomUpdateInput {
     title: String
     photoRef: ImageRefInput
@@ -111,6 +117,7 @@ type RoomConnection {
 
 extend type Query {
     room(id: ID!): Room
+    roomSuper(id: ID!): RoomSuper
     roomMessages(roomId: ID!, first: Int, before: ID): [RoomMessage!]!
     roomMembers(roomId: ID!): [RoomMember!]!
     betaRoomSearch(
@@ -151,7 +158,7 @@ extend type Mutation {
     betaRoomUpdateUserNotificationSettings(settings: RoomUserNotificaionSettingsInput!, roomId: ID!): RoomUserNotificaionSettings!
     
     # Admin tools
-    betaRoomAlterFeatured(roomId: ID!, featured: Boolean!): Room!
-    betaRoomAlterListed(roomId: ID!, listed: Boolean!): Room!
+    betaRoomAlterFeatured(roomId: ID!, featured: Boolean!): RoomSuper!
+    betaRoomAlterListed(roomId: ID!, listed: Boolean!): RoomSuper!
     
 }
