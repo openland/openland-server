@@ -21,7 +21,7 @@ export default {
                 if (pc.uid1 === auth.uid) {
                     return IDs.User.serialize(pc.uid2);
                 } else if (pc.uid2 === auth.uid) {
-                    return IDs.User.serialize(pc.uid2);
+                    return IDs.User.serialize(pc.uid1);
                 } else {
                     throw Error('Unknwon conversation type');
                 }
