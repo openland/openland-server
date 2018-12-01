@@ -23,6 +23,7 @@ const Errors = {
     invalid_email: { code: 9, text: 'Invalid email' },
     invalid_auth_token: { code: 10, text: 'Invalid auth token' },
     session_expired: { code: 11, text: 'Session expired' },
+    wrong_code_length: { code: 4, text: 'Wrong code length' },
 };
 
 const CODE_LEN = 5;
@@ -56,8 +57,6 @@ const checkEmail = (email: any) => typeof email === 'string' && email.length <= 
 const checkSession = (session: any) => typeof session === 'string' && session.length === calculateBase64len(64);
 
 const checkAuthToken = (session: any) => typeof session === 'string' && session.length === calculateBase64len(64);
-
-const validateCode = (code: any) => typeof code === 'string' && code.length === CODE_LEN;
 
 export function withAudit(handler: (req: express.Request, response: express.Response) => void) {
     return async (req: express.Request, response: express.Response) => {
@@ -116,7 +115,7 @@ export async function sendCode(req: express.Request, response: express.Response)
                 sendError(response, Errors.invalid_email);
             }
 
-            email = (email as string).toLowerCase();
+            email = (email as string).toLowerCase().trim();
             let isTest = isTestEmail(email);
 
             if (!isTest) {
@@ -156,10 +155,19 @@ export async function checkCode(req: express.Request, response: express.Response
     if (!code) {
         sendError(response, Errors.no_code);
         return;
-    } else if (!validateCode(code)) {
+    }
+
+    if (typeof code !== 'string') {
         sendError(response, Errors.wrong_code);
         return;
     }
+
+    code = code.trim();
+    if (code.length !== CODE_LEN) {
+        sendError(response, Errors.wrong_code_length);
+        return;
+    }
+
     let res = await inTx(createEmptyContext(), async (ctx) => {
         let authSession = await Modules.Auth.findAuthSession(ctx, session);
 
