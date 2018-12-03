@@ -239,9 +239,12 @@ for (let e of AllEntitiesDirect.schema) {
         resolve: async (_: any, arg: any) => {
             let all: any[] = await (FDB as any)[e.name].findAllKeys(createEmptyContext());
             let batches = batch(all, 100);
+            console.warn('rebuilding_index_' + Case.camelCase(e.name));
 
+            let count = 0;
             try {
                 for (let b of batches) {
+                    console.warn('rebuilding_index_' + Case.camelCase(e.name) + ' batch ' + count + '...');
                     await inTx(createEmptyContext(), async (ctx) => {
                         for (let a of b) {
                             let k = FKeyEncoding.decodeKey(a);
@@ -250,6 +253,7 @@ for (let e of AllEntitiesDirect.schema) {
                             itm.markDirty();
                         }
                     });
+                    console.warn('rebuilding_index_' + Case.camelCase(e.name) + ' batch ' + count++ + ' done');
                 }
             } catch (e) {
                 console.warn(Case.camelCase(e.name) + 'Rebuild error', e);
