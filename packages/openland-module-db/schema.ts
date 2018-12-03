@@ -4038,6 +4038,7 @@ export interface MessageShape {
     serviceMetadata?: any| null;
     reactions?: any| null;
     edited?: boolean| null;
+    attachments?: any| null;
     isMuted: boolean;
     isService: boolean;
     deleted?: boolean| null;
@@ -4185,6 +4186,17 @@ export class Message extends FEntity {
         this._value.edited = value;
         this.markDirty();
     }
+    get attachments(): any | null {
+        let res = this._value.attachments;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set attachments(value: any | null) {
+        this._checkIsWritable();
+        if (value === this._value.attachments) { return; }
+        this._value.attachments = value;
+        this.markDirty();
+    }
     get isMuted(): boolean {
         return this._value.isMuted;
     }
@@ -4237,6 +4249,7 @@ export class MessageFactory extends FEntityFactory<Message> {
             { name: 'serviceMetadata', type: 'json' },
             { name: 'reactions', type: 'json', secure: true },
             { name: 'edited', type: 'boolean' },
+            { name: 'attachments', type: 'json' },
             { name: 'isMuted', type: 'boolean' },
             { name: 'isService', type: 'boolean' },
             { name: 'deleted', type: 'boolean' },

@@ -21,8 +21,9 @@ import { withLogContext } from 'openland-log/withLogContext';
 import { FDB } from 'openland-module-db/FDB';
 import { FEntity } from 'foundation-orm/FEntity';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
-import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
+import { GQL, GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
+import MessageAttachment = GQL.MessageAttachment;
 
 export default {
     Conversation: {
@@ -322,7 +323,20 @@ export default {
             // return src.replyMessages ? (src.replyMessages as number[]).map(id => FDB.Message.findById(id)).filter(m => !!m) : [];
         },
         plainText: async (src: Message) => null,
-        mentions: async (src: Message, args: {}, ctx: AppContext) => src.mentions ? (src.mentions as number[]).map(id => FDB.User.findById(ctx, id)) : null
+        mentions: async (src: Message, args: {}, ctx: AppContext) => src.mentions ? (src.mentions as number[]).map(id => FDB.User.findById(ctx, id)) : null,
+        attachments: async (src: Message) => {
+            let attachments: MessageAttachment[] = [];
+
+            if (src.fileId) {
+                attachments.push({
+                    fileId: src.fileId,
+                    fileMetadata: src.fileMetadata,
+                    filePreview: src.filePreview
+                });
+            }
+
+            return attachments;
+        }
     },
     InviteServiceMetadata: {
         users: (src: any, args: {}, ctx: AppContext) => src.userIds.map((id: number) => FDB.User.findById(ctx, id)),

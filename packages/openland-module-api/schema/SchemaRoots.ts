@@ -142,4 +142,5 @@ export namespace GQLRoots {
     export type RoomConnectionEdgeRoot = any;
     
     export type RoomSuperRoot = any;
+    export type MessageAttachmentRoot = GQL.MessageAttachment;
 }
