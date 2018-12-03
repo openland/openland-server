@@ -263,7 +263,7 @@ for (let e of AllEntitiesDirect.schema) {
                             itm.markDirty();
                         }
                     });
-                    log.debug(lctx, 'batch ' + count + '/' + batches.length + ' ✅');
+                    log.debug(lctx, 'batch ' + count++ + '/' + batches.length + ' ✅');
                 }
             } catch (e) {
                 log.warn(e);
