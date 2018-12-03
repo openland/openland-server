@@ -247,7 +247,7 @@ for (let e of AllEntitiesDirect.schema) {
             lctx = withLogContext(lctx, [Case.camelCase(e.name) + 'Rebuild', uuid()]);
 
             log.debug(lctx, 'fetching keys...');
-            let all: any[] = await (FDB as any)[e.name].findAllKeys(createEmptyContext());
+            let all: any[] = await (FDB as any)[e.name].findAllKeys(lctx);
             log.debug(lctx, 'got ' + all.length + ' keys');
             let batches = batch(all, 100);
 
@@ -255,7 +255,7 @@ for (let e of AllEntitiesDirect.schema) {
             try {
                 for (let b of batches) {
                     log.debug(lctx, 'batch ' + count + '/' + batches.length + '...');
-                    await inTx(createEmptyContext(), async (ctx) => {
+                    await inTx(lctx, async (ctx) => {
                         for (let a of b) {
                             let k = FKeyEncoding.decodeKey(a);
                             k.splice(0, 2);
@@ -263,7 +263,7 @@ for (let e of AllEntitiesDirect.schema) {
                             itm.markDirty();
                         }
                     });
-                    log.debug(lctx, 'batch ' + count + '/' + batches.length + ' ✅');
+                    log.debug(lctx, 'batch ' + count++ + '/' + batches.length + ' ✅');
                 }
             } catch (e) {
                 log.warn(e);
