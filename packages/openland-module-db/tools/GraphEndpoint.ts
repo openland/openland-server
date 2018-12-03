@@ -240,16 +240,22 @@ for (let e of AllEntitiesDirect.schema) {
             let all: any[] = await (FDB as any)[e.name].findAllKeys(createEmptyContext());
             let batches = batch(all, 100);
 
-            for (let b of batches) {
-                await inTx(createEmptyContext(), async (ctx) => {
-                    for (let a of b) {
-                        let k = FKeyEncoding.decodeKey(a);
-                        k.splice(0, 2);
-                        let itm = await (FDB as any)[e.name].findByRawId(ctx, k);
-                        itm.markDirty();
-                    }
-                });
+            try {
+                for (let b of batches) {
+                    await inTx(createEmptyContext(), async (ctx) => {
+                        for (let a of b) {
+                            let k = FKeyEncoding.decodeKey(a);
+                            k.splice(0, 2);
+                            let itm = await (FDB as any)[e.name].findByRawId(ctx, k);
+                            itm.markDirty();
+                        }
+                    });
+                }
+            } catch (e) {
+                console.warn(Case.camelCase(e.name) + 'Rebuild error', e);
+                throw e;
             }
+
             return 'ok';
         }
     };
