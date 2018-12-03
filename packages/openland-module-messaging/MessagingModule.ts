@@ -12,6 +12,7 @@ import { RoomMediator } from './mediators/RoomMediator';
 import { dialogSearchIndexer } from './workers/dialogSearchIndexer';
 import { RoomSearch } from './search/RoomSearch';
 import { Context } from 'openland-utils/Context';
+import { messagesIndexer } from './workers/messagesIndexer';
 
 @injectable()
 export class MessagingModule {
@@ -51,6 +52,10 @@ export class MessagingModule {
         if (serverRoleEnabled('workers')) {
             dialogSearchIndexer();
         }
+        if (serverRoleEnabled('workers')) {
+            messagesIndexer();
+        }
+
     }
 
     //

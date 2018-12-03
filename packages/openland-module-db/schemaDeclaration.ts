@@ -408,6 +408,7 @@ const Schema = declareSchema(() => {
         field('isService', 'boolean');
         field('deleted', 'boolean').nullable();
         rangeIndex('chat', ['cid', 'id']).withCondition((src) => !src.deleted);
+        rangeIndex('updated', ['updatedAt']);
         enableVersioning();
         enableTimestamps();
     });

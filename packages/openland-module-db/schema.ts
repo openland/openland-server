@@ -4243,6 +4243,7 @@ export class MessageFactory extends FEntityFactory<Message> {
         ],
         indexes: [
             { name: 'chat', type: 'range', fields: ['cid', 'id'] },
+            { name: 'updated', type: 'range', fields: ['updatedAt'] },
         ],
     };
 
@@ -4269,7 +4270,7 @@ export class MessageFactory extends FEntityFactory<Message> {
         super(connection,
             new FNamespace('entity', 'message'),
             { enableVersioning: true, enableTimestamps: true, validator: MessageFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('chat', ['cid', 'id'], false, (src) => !src.deleted)],
+            [new FEntityIndex('chat', ['cid', 'id'], false, (src) => !src.deleted), new FEntityIndex('updated', ['updatedAt'], false)],
             'Message'
         );
     }
@@ -4303,6 +4304,18 @@ export class MessageFactory extends FEntityFactory<Message> {
     }
     createChatStream(ctx: Context, cid: number, limit: number, after?: string) {
         return this._createStream(ctx, ['entity', 'message', '__indexes', 'chat', cid], limit, after); 
+    }
+    async rangeFromUpdated(ctx: Context, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'updated'], limit, reversed);
+    }
+    async rangeFromUpdatedWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'updated'], limit, after, reversed);
+    }
+    async allFromUpdated(ctx: Context, ) {
+        return await this._findAll(ctx, ['__indexes', 'updated']);
+    }
+    createUpdatedStream(ctx: Context, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'message', '__indexes', 'updated'], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new Message(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Message');

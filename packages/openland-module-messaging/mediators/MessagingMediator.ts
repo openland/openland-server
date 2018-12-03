@@ -11,11 +11,8 @@ import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { RoomMediator } from './RoomMediator';
 import { Context } from 'openland-utils/Context';
 import { createTracer } from 'openland-log/createTracer';
-import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent';
 
 const trace = createTracer('messaging');
-
-const messageSent = createHyperlogger<{ uid: number, name: string, isService: boolean }>('message-sent');
 
 @injectable()
 export class MessagingMediator {
@@ -49,11 +46,6 @@ export class MessagingMediator {
 
             // Delivery
             await this.delivery.onNewMessage(ctx, res.message);
-
-            // Hyperlog
-            let profile = await this.entities.UserProfile.findById(ctx, uid);
-            let name = profile ? ((profile.firstName + ' ' + profile.lastName).trim()) : ('#' + uid);
-            await messageSent.event(ctx, { uid: uid, isService: !!message.isService, name: name });
 
             // Augment
             await this.augmentation.onNewMessage(ctx, res.message);
