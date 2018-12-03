@@ -20,6 +20,7 @@ import { IdsFactory } from 'openland-module-api/IDs';
 import { FConnection } from 'foundation-orm/FConnection';
 import { EventBus } from 'openland-module-pubsub/EventBus';
 import { createEmptyContext } from 'openland-utils/Context';
+import { batch } from 'openland-utils/batch';
 
 let FDB = new AllEntitiesDirect(new FConnection(FConnection.create(), EventBus));
 let entitiesMap: any = {};
@@ -236,13 +237,17 @@ for (let e of AllEntitiesDirect.schema) {
     mutations[Case.camelCase(e.name) + 'Rebuild'] = {
         type: GraphQLString,
         resolve: async (_: any, arg: any) => {
-            let all = await (FDB as any)[e.name].findAllKeys(createEmptyContext());
-            for (let a of all) {
+            let all: any[] = await (FDB as any)[e.name].findAllKeys(createEmptyContext());
+            let batches = batch(all, 100);
+
+            for (let b of batches) {
                 await inTx(createEmptyContext(), async (ctx) => {
-                    let k = FKeyEncoding.decodeKey(a);
-                    k.splice(0, 2);
-                    let itm = await (FDB as any)[e.name].findByRawId(ctx, k);
-                    itm.markDirty();
+                    for (let a of b) {
+                        let k = FKeyEncoding.decodeKey(a);
+                        k.splice(0, 2);
+                        let itm = await (FDB as any)[e.name].findByRawId(ctx, k);
+                        itm.markDirty();
+                    }
                 });
             }
             return 'ok';
