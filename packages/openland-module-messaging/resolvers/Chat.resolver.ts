@@ -335,8 +335,13 @@ export default {
                 });
             }
 
+            if (src.attachments) {
+                attachments.push(...src.attachments);
+            }
+
             return attachments;
-        }
+        },
+        buttons: async (src: Message) => src.buttons ? src.buttons : []
     },
     InviteServiceMetadata: {
         users: (src: any, args: {}, ctx: AppContext) => src.userIds.map((id: number) => FDB.User.findById(ctx, id)),

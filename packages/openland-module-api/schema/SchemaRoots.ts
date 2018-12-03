@@ -143,4 +143,5 @@ export namespace GQLRoots {
     
     export type RoomSuperRoot = any;
     export type MessageAttachmentRoot = GQL.MessageAttachment;
+    export type MessageButtonRoot = GQL.MessageButton;
 }

@@ -134,6 +134,16 @@ type MessageAttachment {
     filePreview: String
 }
 
+enum MessageButtonStyle {
+    DEFAULT
+}
+
+type MessageButton {
+    title: String!
+    style: MessageButtonStyle!
+    data: String!
+}
+
 type ConversationMessage {
     id: ID!
     message: String
@@ -151,7 +161,9 @@ type ConversationMessage {
     replyMessages: [ConversationMessage!]
     plainText: String
     mentions: [User!]
+
     attachments: [MessageAttachment!]!
+    buttons: [[MessageButton!]]!
 }
 
 type FileMetadata {

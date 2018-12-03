@@ -4039,6 +4039,7 @@ export interface MessageShape {
     reactions?: any| null;
     edited?: boolean| null;
     attachments?: any| null;
+    buttons?: any| null;
     isMuted: boolean;
     isService: boolean;
     deleted?: boolean| null;
@@ -4197,6 +4198,17 @@ export class Message extends FEntity {
         this._value.attachments = value;
         this.markDirty();
     }
+    get buttons(): any | null {
+        let res = this._value.buttons;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set buttons(value: any | null) {
+        this._checkIsWritable();
+        if (value === this._value.buttons) { return; }
+        this._value.buttons = value;
+        this.markDirty();
+    }
     get isMuted(): boolean {
         return this._value.isMuted;
     }
@@ -4250,6 +4262,7 @@ export class MessageFactory extends FEntityFactory<Message> {
             { name: 'reactions', type: 'json', secure: true },
             { name: 'edited', type: 'boolean' },
             { name: 'attachments', type: 'json' },
+            { name: 'buttons', type: 'json' },
             { name: 'isMuted', type: 'boolean' },
             { name: 'isService', type: 'boolean' },
             { name: 'deleted', type: 'boolean' },

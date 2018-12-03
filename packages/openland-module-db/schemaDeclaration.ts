@@ -404,6 +404,7 @@ const Schema = declareSchema(() => {
         field('reactions', 'json').nullable().secure();
         field('edited', 'boolean').nullable();
         field('attachments', 'json').nullable();
+        field('buttons', 'json').nullable();
 
         field('isMuted', 'boolean');
         field('isService', 'boolean');
