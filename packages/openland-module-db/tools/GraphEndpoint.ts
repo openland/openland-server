@@ -21,12 +21,17 @@ import { FConnection } from 'foundation-orm/FConnection';
 import { EventBus } from 'openland-module-pubsub/EventBus';
 import { createEmptyContext } from 'openland-utils/Context';
 import { batch } from 'openland-utils/batch';
+import { withLogContext } from 'openland-log/withLogContext';
+import { uuid } from 'openland-utils/uuid';
+import { createLogger } from 'openland-log/createLogger';
 
 let FDB = new AllEntitiesDirect(new FConnection(FConnection.create(), EventBus));
 let entitiesMap: any = {};
 let queries: any = {};
 let mutations: any = {};
 let subscriptions: any = {};
+
+const log = createLogger('rebuild_index');
 
 subscriptions.healthCheck = {
     type: GraphQLString,
@@ -237,14 +242,19 @@ for (let e of AllEntitiesDirect.schema) {
     mutations[Case.camelCase(e.name) + 'Rebuild'] = {
         type: GraphQLString,
         resolve: async (_: any, arg: any) => {
+
+            let lctx = createEmptyContext();
+            lctx = withLogContext(lctx, [Case.camelCase(e.name) + 'Rebuild', uuid()]);
+
+            log.debug(lctx, 'fetching keys...');
             let all: any[] = await (FDB as any)[e.name].findAllKeys(createEmptyContext());
+            log.debug(lctx, 'got ' + all.length + ' keys');
             let batches = batch(all, 100);
-            console.warn('rebuilding_index_' + Case.camelCase(e.name));
 
             let count = 0;
             try {
                 for (let b of batches) {
-                    console.warn('rebuilding_index_' + Case.camelCase(e.name) + ' batch ' + count + '...');
+                    log.debug(lctx, 'batch ' + count + '/' + batches.length + '...');
                     await inTx(createEmptyContext(), async (ctx) => {
                         for (let a of b) {
                             let k = FKeyEncoding.decodeKey(a);
@@ -253,10 +263,10 @@ for (let e of AllEntitiesDirect.schema) {
                             itm.markDirty();
                         }
                     });
-                    console.warn('rebuilding_index_' + Case.camelCase(e.name) + ' batch ' + count++ + ' done');
+                    log.debug(lctx, 'batch ' + count + '/' + batches.length + ' ✅');
                 }
             } catch (e) {
-                console.warn(Case.camelCase(e.name) + 'Rebuild error', e);
+                log.warn(e);
                 throw e;
             }
 
