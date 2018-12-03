@@ -51,8 +51,9 @@ export class MessagingMediator {
             await this.delivery.onNewMessage(ctx, res.message);
 
             // Hyperlog
-            let profile = (await this.entities.UserProfile.findById(ctx, uid))!;
-            await messageSent.event(ctx, { uid: uid, isService: !!message.isService, name: (profile.firstName + ' ' + profile.lastName).trim() });
+            let profile = await this.entities.UserProfile.findById(ctx, uid);
+            let name = profile ? ((profile.firstName + ' ' + profile.lastName).trim()) : ('#' + uid);
+            await messageSent.event(ctx, { uid: uid, isService: !!message.isService, name: name });
 
             // Augment
             await this.augmentation.onNewMessage(ctx, res.message);
