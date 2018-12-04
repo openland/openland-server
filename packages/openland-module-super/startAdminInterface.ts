@@ -3,13 +3,13 @@ import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import compression from 'compression';
-import { graphqlExpress, graphiqlExpress } from 'apollo-server-express';
+import { graphqlExpress } from 'apollo-server-express';
 import { FDBGraphqlSchema } from 'openland-module-db/tools/GraphEndpoint';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { execute, subscribe } from 'graphql';
-import * as url from 'url';
 import { Modules } from 'openland-modules/Modules';
 import { createEmptyContext } from 'openland-utils/Context';
+import expressPlayground from 'graphql-playground-middleware-express';
 
 export function startAdminInterface() {
     console.log('Starting Admin Interface...');
@@ -28,15 +28,16 @@ export function startAdminInterface() {
 
     let gqlMiddleware = graphqlExpress({ schema: FDBGraphqlSchema });
     app.use('/api', bodyParser.json({ limit: '5mb' }), gqlMiddleware);
-    app.use('/sandbox', bodyParser.json({ limit: '5mb' }),
-        graphiqlExpress((req) => ({
-            endpointURL: '/api',
-            subscriptionsEndpoint: url.format({
-                host: req!!.get('host'),
-                protocol: req!!.get('host') !== 'localhost' ? 'wss' : 'ws',
-                pathname: '/api'
-            })
-        })));
+    // app.use('/sandbox', bodyParser.json({ limit: '5mb' }),
+    //     graphiqlExpress((req) => ({
+    //         endpointURL: '/api',
+    //         subscriptionsEndpoint: url.format({
+    //             host: req!!.get('host'),
+    //             protocol: req!!.get('host') !== 'localhost' ? 'wss' : 'ws',
+    //             pathname: '/api'
+    //         })
+    //     })));
+    app.use('/sandbox', expressPlayground({ endpoint: '/api' }));
 
     // Start listening
 
