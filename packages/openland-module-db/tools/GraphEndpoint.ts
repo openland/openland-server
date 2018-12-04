@@ -238,17 +238,15 @@ for (let e of AllEntitiesDirect.schema) {
     mutations[Case.camelCase(e.name) + 'Rebuild'] = {
         type: GraphQLString,
         resolve: async (_: any, arg: any) => {
-
             let tag = Case.camelCase(e.name) + ' Rebuild ' + uuid();
-
+            let context = createEmptyContext();
             console.log(tag, 'fetching keys...');
-            let all: any[] = await (FDB as any)[e.name].findAllKeys(tag);
+            let all: any[] = await (FDB as any)[e.name].findAllKeys(context);
             console.log(tag, 'got ' + all.length + ' keys');
             let batches = batch(all, 100);
 
             let count = 0;
             try {
-                let context = createEmptyContext();
                 for (let b of batches) {
                     console.log(tag, 'batch ' + count + '/' + batches.length + '...');
                     await inTx(context, async (ctx) => {
