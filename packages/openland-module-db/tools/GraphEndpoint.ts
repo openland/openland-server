@@ -266,7 +266,7 @@ for (let e of AllEntitiesDirect.schema) {
                     log.debug(lctx, 'batch ' + count++ + '/' + batches.length + ' ✅');
                 }
             } catch (e) {
-                log.warn(e);
+                log.warn(lctx, e);
                 throw e;
             }
 

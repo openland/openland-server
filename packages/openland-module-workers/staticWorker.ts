@@ -48,7 +48,7 @@ export function staticWorker(config: { name: string, version?: number, delay?: n
                     }
                 } catch (e) {
                     locked = false;
-                    logger.warn(e);
+                    logger.warn(ctx, e);
                     throw e;
                 }
                 await delay(100);
