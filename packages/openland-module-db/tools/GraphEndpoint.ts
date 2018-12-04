@@ -21,17 +21,13 @@ import { FConnection } from 'foundation-orm/FConnection';
 import { EventBus } from 'openland-module-pubsub/EventBus';
 import { createEmptyContext } from 'openland-utils/Context';
 import { batch } from 'openland-utils/batch';
-import { withLogContext } from 'openland-log/withLogContext';
 import { uuid } from 'openland-utils/uuid';
-import { createLogger } from 'openland-log/createLogger';
 
 let FDB = new AllEntitiesDirect(new FConnection(FConnection.create(), EventBus));
 let entitiesMap: any = {};
 let queries: any = {};
 let mutations: any = {};
 let subscriptions: any = {};
-
-const log = createLogger('rebuild_index');
 
 subscriptions.healthCheck = {
     type: GraphQLString,
