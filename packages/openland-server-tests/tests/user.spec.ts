@@ -14,11 +14,18 @@ describe('User', () => {
             query Me {
                 me {
                     id
+                    isBot
+                    isYou
                     firstName
                     lastName
                     about
                     phone
                     email
+                    website
+                    linkedin
+                    twitter
+                    location
+                    shortname
                 }
             }
         ` })).data as any;

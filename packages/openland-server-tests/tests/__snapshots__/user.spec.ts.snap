@@ -7,7 +7,14 @@ Object {
   "email": "test1111@openland.com",
   "firstName": "Maurine",
   "id": "GvNrAkJ7rbFGQmJJJJdyhKaBr4",
+  "isBot": false,
+  "isYou": true,
   "lastName": "Rath",
+  "linkedin": null,
+  "location": null,
   "phone": "(426) 577-4479",
+  "shortname": null,
+  "twitter": null,
+  "website": "http://marlen.name",
 }
 `;
