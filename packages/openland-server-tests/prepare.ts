@@ -25,6 +25,7 @@ async function createUser(ctx: Context, email: string) {
         website: faker.internet.url(),
         about: faker.name.jobTitle()
     });
+    await Modules.Auth.createToken(ctx, user.id);
 }
 
 export async function prepare() {
