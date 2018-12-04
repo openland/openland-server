@@ -412,6 +412,9 @@ const Schema = declareSchema(() => {
         field('edited', 'boolean').nullable();
         field('attachments', 'json').nullable();
         field('buttons', 'json').nullable();
+        field('type', 'string').nullable();
+        field('title', 'string').nullable();
+        field('templateName', 'string').nullable();
 
         field('isMuted', 'boolean');
         field('isService', 'boolean');

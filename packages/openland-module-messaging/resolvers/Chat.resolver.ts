@@ -21,9 +21,9 @@ import { withLogContext } from 'openland-log/withLogContext';
 import { FDB } from 'openland-module-db/FDB';
 import { FEntity } from 'foundation-orm/FEntity';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
-import { GQL, GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
+import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
-import MessageAttachment = GQL.MessageAttachment;
+import { MessageAttachment } from '../MessageInput';
 
 export default {
     Conversation: {
@@ -324,7 +324,7 @@ export default {
         },
         plainText: async (src: Message) => null,
         mentions: async (src: Message, args: {}, ctx: AppContext) => src.mentions ? (src.mentions as number[]).map(id => FDB.User.findById(ctx, id)) : null,
-        attachments: async (src: Message) => {
+        alphaAttachments: async (src: Message) => {
             let attachments: MessageAttachment[] = [];
 
             if (src.fileId) {
@@ -341,7 +341,10 @@ export default {
 
             return attachments;
         },
-        buttons: async (src: Message) => src.buttons ? src.buttons : []
+        alphaButtons: async (src: Message) => src.buttons ? src.buttons : [],
+        alphaType: async (src: Message) => src.type ? src.type : 'MESSAGE',
+        alphaTemplateName: async (src: Message) => src.templateName,
+        alphaTitle: async (src: Message) => src.title,
     },
     InviteServiceMetadata: {
         users: (src: any, args: {}, ctx: AppContext) => src.userIds.map((id: number) => FDB.User.findById(ctx, id)),
@@ -716,6 +719,39 @@ export default {
         alphaDeleteMessage: withUser(async (ctx, args, uid) => {
             let messageId = IDs.ConversationMessage.parse(args.messageId);
             return await Modules.Messaging.deleteMessage(ctx, messageId, uid);
+        }),
+
+        // Message Posts
+        alphaSendPostMessage: withUser(async (parent, args, uid) => {
+            let ctx = withLogContext(parent, 'send-post-message');
+            let conversationId = IDs.Conversation.parse(args.conversationId);
+
+            let attachments: MessageAttachment[] = [];
+
+            if (args.attachments) {
+                for (let file of args.attachments) {
+                    let fileMetadata: JsonMap | null = null;
+                    let filePreview: string | null = null;
+
+                    let fileInfo = await Modules.Media.saveFile(file);
+                    fileMetadata = fileInfo as any;
+
+                    if (fileInfo.isImage) {
+                        filePreview = await Modules.Media.fetchLowResPreview(file);
+                    }
+
+                    attachments.push({ fileId: file, filePreview, fileMetadata: fileMetadata || null });
+                }
+            }
+
+            return Modules.Messaging.sendMessage(ctx, conversationId, uid!, {
+                title: args.title,
+                message: args.text,
+                attachments: attachments,
+                buttons: args.buttons,
+                repeatKey: args.repeatKey,
+                type: 'POST'
+            });
         }),
 
         //
