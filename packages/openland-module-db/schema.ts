@@ -10,11 +10,21 @@ import { validators } from 'foundation-orm/utils/validators';
 import { Context } from 'openland-utils/Context';
 
 export interface EnvironmentShape {
+    comment: string;
 }
 
 export class Environment extends FEntity {
     readonly entityName: 'Environment' = 'Environment';
     get production(): number { return this._value.production; }
+    get comment(): string {
+        return this._value.comment;
+    }
+    set comment(value: string) {
+        this._checkIsWritable();
+        if (value === this._value.comment) { return; }
+        this._value.comment = value;
+        this.markDirty();
+    }
 }
 
 export class EnvironmentFactory extends FEntityFactory<Environment> {
@@ -25,6 +35,7 @@ export class EnvironmentFactory extends FEntityFactory<Environment> {
             { name: 'production', type: 'number' },
         ],
         fields: [
+            { name: 'comment', type: 'string' },
         ],
         indexes: [
         ],
@@ -33,6 +44,8 @@ export class EnvironmentFactory extends FEntityFactory<Environment> {
     private static validate(src: any) {
         validators.notNull('production', src.production);
         validators.isNumber('production', src.production);
+        validators.notNull('comment', src.comment);
+        validators.isString('comment', src.comment);
     }
 
     constructor(connection: FConnection) {

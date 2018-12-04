@@ -5,6 +5,7 @@ const Schema = declareSchema(() => {
 
     entity('Environment', () => {
         primaryKey('production', 'number');
+        field('comment', 'string');
         allowAdminEdit();
     });
 
