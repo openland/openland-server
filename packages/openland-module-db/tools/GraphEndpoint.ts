@@ -243,19 +243,19 @@ for (let e of AllEntitiesDirect.schema) {
         type: GraphQLString,
         resolve: async (_: any, arg: any) => {
 
-            let lctx = createEmptyContext();
-            lctx = withLogContext(lctx, [Case.camelCase(e.name) + 'Rebuild', uuid()]);
+            let tag = Case.camelCase(e.name) + ' Rebuild ' + uuid();
 
-            log.debug(lctx, 'fetching keys...');
-            let all: any[] = await (FDB as any)[e.name].findAllKeys(lctx);
-            log.debug(lctx, 'got ' + all.length + ' keys');
+            console.log(tag, 'fetching keys...');
+            let all: any[] = await (FDB as any)[e.name].findAllKeys(tag);
+            console.log(tag, 'got ' + all.length + ' keys');
             let batches = batch(all, 100);
 
             let count = 0;
             try {
+                let context = createEmptyContext();
                 for (let b of batches) {
-                    log.debug(lctx, 'batch ' + count + '/' + batches.length + '...');
-                    await inTx(lctx, async (ctx) => {
+                    console.log(tag, 'batch ' + count + '/' + batches.length + '...');
+                    await inTx(context, async (ctx) => {
                         for (let a of b) {
                             let k = FKeyEncoding.decodeKey(a);
                             k.splice(0, 2);
@@ -263,10 +263,10 @@ for (let e of AllEntitiesDirect.schema) {
                             itm.markDirty();
                         }
                     });
-                    log.debug(lctx, 'batch ' + count++ + '/' + batches.length + ' ✅');
+                    console.log(tag, 'batch ' + count++ + '/' + batches.length + ' ✅');
                 }
             } catch (e) {
-                log.warn(e);
+                console.warn(e);
                 throw e;
             }
 
