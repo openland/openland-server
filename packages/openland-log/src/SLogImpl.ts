@@ -2,6 +2,7 @@ import { SLog } from '../SLog';
 import winston from 'winston';
 import { Context } from 'openland-utils/Context';
 import { SLogContext } from './SLogContext';
+import { AnyFighter } from 'openland-utils/anyfighter';
 
 const logger = winston.createLogger({
     level: 'debug',
