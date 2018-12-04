@@ -34,7 +34,13 @@ export class MessagingRepository {
                 replyMessages: message.replyMessages,
                 mentions: message.mentions,
                 repeatKey: message.repeatKey,
-                deleted: false
+                deleted: false,
+
+                type: message.type || 'MESSAGE',
+                title: message.title,
+                buttons: message.buttons,
+                templateName: message.templateName,
+                attachments: message.attachments
             });
 
             //

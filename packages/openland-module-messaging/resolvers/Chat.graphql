@@ -144,6 +144,12 @@ type MessageButton {
     id: ID!
 }
 
+input MessageButtonInput {
+    title: String!
+    style: MessageButtonStyle!
+    id: ID!
+}
+
 enum MessageType {
     MESSAGE,
     POST
@@ -345,6 +351,11 @@ extend type Mutation {
     #
     # [END] Deprecated
     #
+
+    #
+    # Message Posts
+    #
+    alphaSendPostMessage(conversationId: ID!, title: String, text: String!, attachments: [String!], buttons: [[MessageButtonInput!]!], repeatKey: String): ConversationEventMessage!
 
     #
     # Groups

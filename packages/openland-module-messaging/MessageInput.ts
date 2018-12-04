@@ -7,6 +7,22 @@ export type ServiceMessageMetadataType =
     'title_change' |
     'photo_change';
 
+type MessageType = 'MESSAGE' | 'POST';
+
+export type MessageButtonStyle = 'DEFAULT';
+
+export type MessageButton = {
+    title: string;
+    style: MessageButtonStyle;
+    id: string;
+};
+
+export type MessageAttachment = {
+    fileId: string;
+    fileMetadata: JsonMap | null;
+    filePreview?: string | null;
+};
+
 export interface MessageInput {
     message?: string | null;
     file?: string | null;
@@ -19,4 +35,10 @@ export interface MessageInput {
     urlAugmentation?: URLAugmentation | null | false;
     replyMessages?: number[] | null;
     mentions?: number[] | null;
+
+    type?: MessageType;
+    title?: string | null;
+    buttons?: MessageButton[][] | null;
+    templateName?: string | null;
+    attachments?: MessageAttachment[] | null;
 }
