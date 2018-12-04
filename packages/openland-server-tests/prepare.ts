@@ -49,8 +49,8 @@ export async function prepare() {
         await createUser(ctx, 'test1112@openland.com');
         await createUser(ctx, 'test1113@openland.com');
         await createUser(ctx, 'test1114@openland.com');
-    }
-    finally {
+        process.exit();
+    } catch (e) {
         process.abort();
     }
 }
