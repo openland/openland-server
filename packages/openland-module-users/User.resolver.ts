@@ -82,14 +82,9 @@ export default {
     },
     Query: {
         me: async function (_obj: any, _params: {}, ctx: AppContext) {
-            if (ctx.auth.uid == null) {
+            if (!ctx.auth.uid) {
                 return null;
             } else {
-                let profile = await FDB.User.findById(ctx, ctx.auth.uid);
-                if (profile === null) {
-                    return null;
-                }
-
                 return FDB.User.findById(ctx, ctx.auth.uid);
             }
         },
