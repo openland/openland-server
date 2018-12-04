@@ -2,6 +2,7 @@ import { SLog } from '../SLog';
 import winston from 'winston';
 import { Context } from 'openland-utils/Context';
 import { SLogContext } from './SLogContext';
+import { AnyFighter } from 'openland-utils/anyfighter';
 
 const logger = winston.createLogger({
     level: 'debug',
@@ -20,7 +21,7 @@ export class SLogImpl implements SLog {
         this.name = name;
     }
 
-    log = (ctx: Context, message?: any, ...optionalParams: any[]) => {
+    log = <C extends AnyFighter<C, never, Context>>(ctx: C, message?: any, ...optionalParams: any[]) => {
         let v = SLogContext.get(ctx);
         if (this.enabled) {
             if (v.disabled) {
@@ -30,7 +31,7 @@ export class SLogImpl implements SLog {
         }
     }
 
-    debug = (ctx: Context, message?: any, ...optionalParams: any[]) => {
+    debug = <C extends AnyFighter<C, never, Context>>(ctx: C, message?: any, ...optionalParams: any[]) => {
         let v = SLogContext.get(ctx);
         if (this.enabled) {
             if (this.production) {
@@ -41,7 +42,7 @@ export class SLogImpl implements SLog {
             }
         }
     }
-    warn = (ctx: Context, message?: any, ...optionalParams: any[]) => {
+    warn = <C extends AnyFighter<C, never, Context>>(ctx: C, message?: any, ...optionalParams: any[]) => {
         let v = SLogContext.get(ctx);
         if (this.enabled) {
             if (v.disabled) {

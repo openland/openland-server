@@ -77,7 +77,7 @@ export class SearchIndexer<T extends FEntity> {
                         throw new Error('Error during indexing');
                     }
                 } catch (e) {
-                    log.warn(e);
+                    log.warn(ctx, e);
                     throw e;
                 }
             }

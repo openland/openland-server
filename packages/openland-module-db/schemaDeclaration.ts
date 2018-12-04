@@ -2,6 +2,13 @@ import { generate } from '../foundation-orm-gen/generate';
 import { declareSchema, entity, field, primaryKey, enableTimestamps, enableVersioning, enumField, rangeIndex, uniqueIndex, allowAdminEdit } from '../foundation-orm-gen';
 
 const Schema = declareSchema(() => {
+
+    entity('Environment', () => {
+        primaryKey('production', 'number');
+        field('comment', 'string');
+        allowAdminEdit();
+    });
+
     entity('Online', () => {
         primaryKey('uid', 'number');
         field('lastSeen', 'number');

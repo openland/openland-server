@@ -15,6 +15,7 @@ module.exports = {
         'node_modules',
         'packages'
     ],
+    testResultsProcessor: 'jest-teamcity-reporter',
     testRegex: '.*\\.spec\\.(ts)x?$',
     testPathIgnorePatterns: ['/node_modules/'],
     coverageDirectory: 'coverage',
@@ -35,6 +36,8 @@ module.exports = {
         'foundation-orm-gen': '<rootDir>/packages/foundation-orm-gen',
         'foundation-orm/(.*)': '<rootDir>/packages/foundation-orm/$1',
         'foundation-orm': '<rootDir>/packages/foundation-orm',
+        'openland-server-tests/(.*)': '<rootDir>/packages/openland-server-tests/$1',
+        'openland-server-tests': '<rootDir>/packages/openland-server-tests',
         // 'openland-server/(.*)': '<rootDir>/packages/openland-server/$1',
         // 'openland-server': '<rootDir>/packages/openland-server',
         'openland-modules/(.*)': '<rootDir>/packages/openland-modules/$1',

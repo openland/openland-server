@@ -251,7 +251,7 @@ for (let e of AllEntitiesDirect.schema) {
             log.debug(lctx, 'got ' + all.length + ' keys');
             let batches = batch(all, 100);
 
-            let count = 0;
+            let count = 1;
             try {
                 for (let b of batches) {
                     log.debug(lctx, 'batch ' + count + '/' + batches.length + '...');
@@ -266,7 +266,7 @@ for (let e of AllEntitiesDirect.schema) {
                     log.debug(lctx, 'batch ' + count++ + '/' + batches.length + ' ✅');
                 }
             } catch (e) {
-                log.warn(e);
+                log.warn(lctx, e);
                 throw e;
             }
 

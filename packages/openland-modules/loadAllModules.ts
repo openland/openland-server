@@ -31,11 +31,13 @@ import { loadInvitesModule } from 'openland-module-invites/Invites.container';
 import { CallsModule } from 'openland-module-calls/CallsModule';
 import { loadCallsModule } from 'openland-module-calls/Calls.container';
 
-export async function loadAllModules() {
+export function loadAllModules(loadDb: boolean = true) {
 
-    container.bind<AllEntities>('FDB')
-        .toDynamicValue(() => new AllEntitiesDirect(new FConnection(FConnection.create(), EventBus)))
-        .inSingletonScope();
+    if (loadDb) {
+        container.bind<AllEntities>('FDB')
+            .toDynamicValue(() => new AllEntitiesDirect(new FConnection(FConnection.create(), EventBus)))
+            .inSingletonScope();
+    }
 
     loadMessagingModule();
 
@@ -62,7 +64,9 @@ export async function loadAllModules() {
     container.bind(PubsubModule).toSelf().inSingletonScope();
     container.bind(ApiModule).toSelf().inSingletonScope();
     loadCallsModule();
+}
 
+export async function startAllModules() {
     await container.get<HooksModule>('HooksModule').start();
     await container.get(DBModule).start();
     await container.get(MediaModule).start();

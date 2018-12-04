@@ -3,7 +3,7 @@ import { FDB } from 'openland-module-db/FDB';
 import { createEmptyContext } from 'openland-utils/Context';
 
 export function messagesIndexer() {
-    declareSearchIndexer('message-index', 2, 'mesage', FDB.Message.createUpdatedStream(createEmptyContext(), 50))
+    declareSearchIndexer('message-index', 3, 'mesage', FDB.Message.createUpdatedStream(createEmptyContext(), 50))
         .withProperties({
             id: {
                 type: 'integer'
@@ -32,14 +32,14 @@ export function messagesIndexer() {
 
         })
         .start(async (item) => {
-            let room = (await FDB.Conversation.findById(createEmptyContext(), item.cid))!;
+            let room = (await FDB.Conversation.findById(createEmptyContext(), item.cid));
             return {
                 id: item.id,
                 doc: {
                     id: item.id,
                     cid: item.cid,
                     uid: item.uid,
-                    roomKind: room.kind,
+                    roomKind: room ? room.kind : 'unknown',
                     isService: !!item.isService,
                     deleted: !!item.deleted,
                     createdAt: item.createdAt,

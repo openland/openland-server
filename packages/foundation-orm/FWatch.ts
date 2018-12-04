@@ -51,17 +51,18 @@ export class FWatch {
     }
 
     private async startWatching(key: Buffer) {
+        let ctx = createEmptyContext();
         try {
             await this.doWatch(key);
         } catch (e) {
-            log.warn(e);
+            log.warn(ctx, e);
             // fallback to polling
             try {
-                log.debug(createEmptyContext(), 'fallback to pooling');
+                log.debug(ctx, 'fallback to pooling');
                 await this.doPolling(key);
             } catch (e) {
-                log.debug(createEmptyContext(), 'something happend');
-                log.warn(e);
+                log.debug(ctx, 'something happend');
+                log.warn(ctx, e);
                 // notify subscribers about end
                 let subs = this.subscriptions.get(key);
                 if (subs && subs.length > 0) {
