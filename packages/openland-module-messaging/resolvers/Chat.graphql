@@ -141,7 +141,12 @@ enum MessageButtonStyle {
 type MessageButton {
     title: String!
     style: MessageButtonStyle!
-    data: String!
+    id: ID!
+}
+
+enum MessageType {
+    MESSAGE,
+    POST
 }
 
 type ConversationMessage {
@@ -162,8 +167,11 @@ type ConversationMessage {
     plainText: String
     mentions: [User!]
 
-    attachments: [MessageAttachment!]!
-    buttons: [[MessageButton!]]!
+    alphaAttachments: [MessageAttachment!]!
+    alphaButtons: [[MessageButton!]]!
+    alphaType: MessageType!
+    alphaTitle: String
+    alphaTemplateName: String
 }
 
 type FileMetadata {

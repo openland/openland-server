@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, Nullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '3d0e06bd29d8f189fe79563e2c8f3a28';
+export const GQL_SPEC_VERSION = 'f416ed49eb5d930eaf550b96e566aa28';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -117,8 +117,9 @@ export namespace GQL {
     export interface MessageButton {
         title?: string;
         style?: MessageButtonStyle;
-        data?: string;
+        id?: string;
     }
+    export type MessageType = 'MESSAGE' | 'POST';
     export interface ConversationMessage {
         id?: string;
         message?: Nullable<string>;
@@ -136,8 +137,11 @@ export namespace GQL {
         replyMessages?: Nullable<ConversationMessage[]>;
         plainText?: Nullable<string>;
         mentions?: Nullable<User[]>;
-        attachments?: MessageAttachment[];
-        buttons?: Nullable<MessageButton[]>[];
+        alphaAttachments?: MessageAttachment[];
+        alphaButtons?: Nullable<MessageButton[]>[];
+        alphaType?: MessageType;
+        alphaTitle?: Nullable<string>;
+        alphaTemplateName?: Nullable<string>;
     }
     export interface FileMetadata {
         name?: string;
@@ -1798,7 +1802,7 @@ export interface GQLResolver {
     MessageReaction?: ComplexTypedResolver<GQL.MessageReaction, GQLRoots.MessageReactionRoot, {user: GQLRoots.UserRoot}, {}>;
     MessageAttachment?: ComplexTypedResolver<GQL.MessageAttachment, GQLRoots.MessageAttachmentRoot, {fileMetadata: Nullable<GQLRoots.FileMetadataRoot>}, {}>;
     MessageButton?: ComplexTypedResolver<GQL.MessageButton, GQLRoots.MessageButtonRoot, {}, {}>;
-    ConversationMessage?: ComplexTypedResolver<GQL.ConversationMessage, GQLRoots.ConversationMessageRoot, {fileMetadata: Nullable<GQLRoots.FileMetadataRoot>, sender: GQLRoots.UserRoot, serviceMetadata: Nullable<GQLRoots.ServiceMetadataRoot>, urlAugmentation: Nullable<GQLRoots.UrlAugmentationRoot>, reactions: GQLRoots.MessageReactionRoot[], replyMessages: Nullable<GQLRoots.ConversationMessageRoot[]>, mentions: Nullable<GQLRoots.UserRoot[]>, attachments: GQLRoots.MessageAttachmentRoot[], buttons: Nullable<GQLRoots.MessageButtonRoot[]>[]}, {}>;
+    ConversationMessage?: ComplexTypedResolver<GQL.ConversationMessage, GQLRoots.ConversationMessageRoot, {fileMetadata: Nullable<GQLRoots.FileMetadataRoot>, sender: GQLRoots.UserRoot, serviceMetadata: Nullable<GQLRoots.ServiceMetadataRoot>, urlAugmentation: Nullable<GQLRoots.UrlAugmentationRoot>, reactions: GQLRoots.MessageReactionRoot[], replyMessages: Nullable<GQLRoots.ConversationMessageRoot[]>, mentions: Nullable<GQLRoots.UserRoot[]>, alphaAttachments: GQLRoots.MessageAttachmentRoot[], alphaButtons: Nullable<GQLRoots.MessageButtonRoot[]>[]}, {}>;
     FileMetadata?: ComplexTypedResolver<GQL.FileMetadata, GQLRoots.FileMetadataRoot, {}, {}>;
     StickerPack?: ComplexTypedResolver<GQL.StickerPack, GQLRoots.StickerPackRoot, {stickers: Nullable<GQLRoots.StickerRoot[]>}, {}>;
     Sticker?: ComplexTypedResolver<GQL.Sticker, GQLRoots.StickerRoot, {meta: GQLRoots.FileMetadataRoot}, {}>;

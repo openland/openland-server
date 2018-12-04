@@ -4040,6 +4040,9 @@ export interface MessageShape {
     edited?: boolean| null;
     attachments?: any| null;
     buttons?: any| null;
+    type?: string| null;
+    title?: string| null;
+    templateName?: string| null;
     isMuted: boolean;
     isService: boolean;
     deleted?: boolean| null;
@@ -4209,6 +4212,39 @@ export class Message extends FEntity {
         this._value.buttons = value;
         this.markDirty();
     }
+    get type(): string | null {
+        let res = this._value.type;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set type(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.type) { return; }
+        this._value.type = value;
+        this.markDirty();
+    }
+    get title(): string | null {
+        let res = this._value.title;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set title(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.title) { return; }
+        this._value.title = value;
+        this.markDirty();
+    }
+    get templateName(): string | null {
+        let res = this._value.templateName;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set templateName(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.templateName) { return; }
+        this._value.templateName = value;
+        this.markDirty();
+    }
     get isMuted(): boolean {
         return this._value.isMuted;
     }
@@ -4263,6 +4299,9 @@ export class MessageFactory extends FEntityFactory<Message> {
             { name: 'edited', type: 'boolean' },
             { name: 'attachments', type: 'json' },
             { name: 'buttons', type: 'json' },
+            { name: 'type', type: 'string' },
+            { name: 'title', type: 'string' },
+            { name: 'templateName', type: 'string' },
             { name: 'isMuted', type: 'boolean' },
             { name: 'isService', type: 'boolean' },
             { name: 'deleted', type: 'boolean' },
@@ -4285,6 +4324,9 @@ export class MessageFactory extends FEntityFactory<Message> {
         validators.isString('fileId', src.fileId);
         validators.isString('filePreview', src.filePreview);
         validators.isBoolean('edited', src.edited);
+        validators.isString('type', src.type);
+        validators.isString('title', src.title);
+        validators.isString('templateName', src.templateName);
         validators.notNull('isMuted', src.isMuted);
         validators.isBoolean('isMuted', src.isMuted);
         validators.notNull('isService', src.isService);
