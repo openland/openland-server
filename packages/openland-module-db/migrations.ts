@@ -4,6 +4,8 @@ import { FDB } from './FDB';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { inTx } from 'foundation-orm/inTx';
 import { Modules } from 'openland-modules/Modules';
+import { batch } from 'openland-utils/batch';
+import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 // import { createEmptyContext } from 'openland-utils/Context';
 
 var migrations: FMigration[] = [];
@@ -136,6 +138,30 @@ migrations.push({
                 }
             });
         }
+    }
+});
+
+migrations.push({
+    key: '24-fix-messages-index',
+    migration: async (root, log) => {
+        log.debug(root, 'fetching keys');
+        let allKeys = await FDB.Message.findAllKeys(root);
+        log.debug(root, 'fetched ' + allKeys.length + ' keys');
+        let keyBatches = batch(allKeys, 100);
+        log.debug(root, keyBatches.length + 'batches');
+        let count = 0;
+        for (let kb of keyBatches) {
+            await inTx(root, async (ctx) => {
+                for (let a of kb) {
+                    let k = FKeyEncoding.decodeKey(a);
+                    k.splice(0, 2);
+                    let itm = await (FDB as any)[FDB.Message.name].findByRawId(ctx, k);
+                    itm.markDirty();
+                }
+            });
+            log.debug(root, 'batch ' + ++count + '/' + keyBatches.length + ' ✅');
+        }
+        log.debug(root, '24-fix-messages-index ✅');
     }
 });
 
