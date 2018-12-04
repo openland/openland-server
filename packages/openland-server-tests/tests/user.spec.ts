@@ -2,21 +2,26 @@ import { prepareServer } from './utils/prepareServer';
 import { ApiModule } from 'openland-module-api/ApiModule';
 import gql from 'graphql-tag';
 
-describe('Authentication', () => {
+describe('User', () => {
     let api: ApiModule;
     beforeAll(async () => {
         api = await prepareServer();
     });
-    it('should work', async () => {
+    it('should return own profile', async () => {
         let client = await api.createClientForUser('test1111@openland.com');
         let res = (await client.query({
             query: gql`
-            query Status {
+            query Me {
                 me {
                     id
+                    firstName
+                    lastName
+                    about
+                    phone
+                    email
                 }
             }
         ` })).data as any;
-        expect(res.me).toBeNull();
+        expect(res.me).toMatchSnapshot();
     });
 });

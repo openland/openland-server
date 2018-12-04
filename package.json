@@ -53,6 +53,7 @@
     "apn": "^2.2.0",
     "apollo-cache-inmemory": "^1.3.11",
     "apollo-client": "^2.4.7",
+    "apollo-link": "^1.2.4",
     "apollo-link-schema": "^1.1.2",
     "apollo-server-express": "^1.3.6",
     "base-64": "^0.1.0",

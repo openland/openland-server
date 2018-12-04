@@ -13,10 +13,11 @@ import { createEmptyContext } from 'openland-utils/Context';
 import { AuthContext } from 'openland-module-auth/AuthContext';
 import { CacheContext } from './CacheContext';
 import { FDB } from 'openland-module-db/FDB';
+import { AppContext } from 'openland-modules/AppContext';
 
 @injectable()
 export class ApiModule {
-    private schema = Schema();
+    private schema = Schema(true);
 
     start = async () => {
         console.log('start API Module');
@@ -48,7 +49,7 @@ export class ApiModule {
         ctx = CacheContext.set(ctx, new Map());
         return new ApolloClient({
             cache: new InMemoryCache(),
-            link: new SchemaLink({ schema: this.schema, rootValue: ctx }) as any
+            link: new SchemaLink({ schema: this.schema, context: new AppContext(ctx) })
         });
     }
 }

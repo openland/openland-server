@@ -1,0 +1,13 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`User should return own profile 1`] = `
+Object {
+  "__typename": "User",
+  "about": "Central Marketing Coordinator",
+  "email": "test1111@openland.com",
+  "firstName": "Maurine",
+  "id": "GvNrAkJ7rbFGQmJJJJdyhKaBr4",
+  "lastName": "Rath",
+  "phone": "(426) 577-4479",
+}
+`;

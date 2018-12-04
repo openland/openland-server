@@ -27,7 +27,10 @@ export const Schema = (forTest: boolean = false) => {
         ),
         schemaDirectives: Directives
     });
-    // return executableSchema;
+
+    if (forTest) {
+        return executableSchema;
+    }
 
     return wrapAllResolvers(executableSchema,
         async (
