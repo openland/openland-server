@@ -31,11 +31,13 @@ import { loadInvitesModule } from 'openland-module-invites/Invites.container';
 import { CallsModule } from 'openland-module-calls/CallsModule';
 import { loadCallsModule } from 'openland-module-calls/Calls.container';
 
-export function loadAllModules() {
+export function loadAllModules(loadDb: boolean = true) {
 
-    container.bind<AllEntities>('FDB')
-        .toDynamicValue(() => new AllEntitiesDirect(new FConnection(FConnection.create(), EventBus)))
-        .inSingletonScope();
+    if (loadDb) {
+        container.bind<AllEntities>('FDB')
+            .toDynamicValue(() => new AllEntitiesDirect(new FConnection(FConnection.create(), EventBus)))
+            .inSingletonScope();
+    }
 
     loadMessagingModule();
 

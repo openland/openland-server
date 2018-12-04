@@ -9,6 +9,57 @@ import { FConnection } from 'foundation-orm/FConnection';
 import { validators } from 'foundation-orm/utils/validators';
 import { Context } from 'openland-utils/Context';
 
+export interface EnvironmentShape {
+}
+
+export class Environment extends FEntity {
+    readonly entityName: 'Environment' = 'Environment';
+    get production(): number { return this._value.production; }
+}
+
+export class EnvironmentFactory extends FEntityFactory<Environment> {
+    static schema: FEntitySchema = {
+        name: 'Environment',
+        editable: true,
+        primaryKeys: [
+            { name: 'production', type: 'number' },
+        ],
+        fields: [
+        ],
+        indexes: [
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('production', src.production);
+        validators.isNumber('production', src.production);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'environment'),
+            { enableVersioning: false, enableTimestamps: false, validator: EnvironmentFactory.validate, hasLiveStreams: false },
+            [],
+            'Environment'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
+        return { 'production': rawId[0] };
+    }
+    async findById(ctx: Context, production: number) {
+        return await this._findById(ctx, [production]);
+    }
+    async create(ctx: Context, production: number, shape: EnvironmentShape) {
+        return await this._create(ctx, [production], { production, ...shape });
+    }
+    watch(ctx: Context, production: number, cb: () => void) {
+        return this._watch(ctx, [production], cb);
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new Environment(ctx, this.connection, this.namespace, this.directory, [value.production], value, this.options, isNew, this.indexes, 'Environment');
+    }
+}
 export interface OnlineShape {
     lastSeen: number;
 }
@@ -6522,6 +6573,7 @@ export class ConferenceConnectionFactory extends FEntityFactory<ConferenceConnec
 
 export interface AllEntities {
     readonly connection: FConnection;
+    readonly Environment: EnvironmentFactory;
     readonly Online: OnlineFactory;
     readonly Presence: PresenceFactory;
     readonly AuthToken: AuthTokenFactory;
@@ -6578,6 +6630,7 @@ export interface AllEntities {
 }
 export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     static readonly schema: FEntitySchema[] = [
+        EnvironmentFactory.schema,
         OnlineFactory.schema,
         PresenceFactory.schema,
         AuthTokenFactory.schema,
@@ -6633,6 +6686,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         ConferenceConnectionFactory.schema,
     ];
     allEntities: FEntityFactory<FEntity>[] = [];
+    Environment: EnvironmentFactory;
     Online: OnlineFactory;
     Presence: PresenceFactory;
     AuthToken: AuthTokenFactory;
@@ -6689,6 +6743,8 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
 
     constructor(connection: FConnection) {
         super(connection);
+        this.Environment = new EnvironmentFactory(connection);
+        this.allEntities.push(this.Environment);
         this.Online = new OnlineFactory(connection);
         this.allEntities.push(this.Online);
         this.Presence = new PresenceFactory(connection);
@@ -6800,6 +6856,9 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
 export class AllEntitiesProxy implements AllEntities {
     get connection(): FConnection {
         return this.resolver().connection;
+    }
+    get Environment(): EnvironmentFactory {
+        return this.resolver().Environment;
     }
     get Online(): OnlineFactory {
         return this.resolver().Online;
