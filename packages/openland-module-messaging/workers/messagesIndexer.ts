@@ -3,7 +3,7 @@ import { FDB } from 'openland-module-db/FDB';
 import { createEmptyContext } from 'openland-utils/Context';
 
 export function messagesIndexer() {
-    declareSearchIndexer('message-index', 2, 'mesage', FDB.Message.createUpdatedStream(createEmptyContext(), 50))
+    declareSearchIndexer('message-index', 3, 'mesage', FDB.Message.createUpdatedStream(createEmptyContext(), 50))
         .withProperties({
             id: {
                 type: 'integer'
