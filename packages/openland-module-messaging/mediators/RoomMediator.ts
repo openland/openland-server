@@ -41,7 +41,7 @@ export class RoomMediator {
         });
     }
 
-    async joinRoom(parent: Context, cid: number, uid: number, request?: boolean) {
+    async joinRoom(parent: Context, cid: number, uid: number, request?: boolean, invited?: boolean) {
         return await inTx(parent, async (ctx) => {
 
             // Check Room
@@ -49,7 +49,7 @@ export class RoomMediator {
             if (!conv) {
                 throw new NotFoundError();
             }
-            if (conv.kind !== 'public') {
+            if (conv.kind !== 'public' && !invited) {
                 throw new UserError('You can\'t join non-public room');
             }
 
