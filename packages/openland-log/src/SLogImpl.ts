@@ -15,7 +15,7 @@ const logger = winston.createLogger({
 export class SLogImpl implements SLog {
     private readonly name: String;
     private readonly enabled: boolean = true;
-    private readonly production = process.env.NODE_ENV === 'production';
+    // private readonly production = process.env.NODE_ENV === 'production';
 
     constructor(name: String) {
         this.name = name;
@@ -32,15 +32,15 @@ export class SLogImpl implements SLog {
     }
 
     debug = <C extends AnyFighter<C, never, Context>>(ctx: C, message?: any, ...optionalParams: any[]) => {
-        let v = SLogContext.get(ctx);
-        if (this.enabled) {
-            if (this.production) {
-                if (v.disabled) {
-                    return;
-                }
-                logger.debug([...v.path, this.name, message, ...optionalParams].join(' '));
-            }
-        }
+        // let v = SLogContext.get(ctx);
+        // if (this.enabled) {
+        //     if (this.production) {
+        //         if (v.disabled) {
+        //             return;
+        //         }
+        //         logger.debug([...v.path, this.name, message, ...optionalParams].join(' '));
+        //     }
+        // }
     }
     warn = <C extends AnyFighter<C, never, Context>>(ctx: C, message?: any, ...optionalParams: any[]) => {
         let v = SLogContext.get(ctx);
