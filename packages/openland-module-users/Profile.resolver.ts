@@ -88,7 +88,7 @@ export default {
                 }
                 if (args.input.photoRef !== undefined) {
                     if (args.input.photoRef !== null) {
-                        await Modules.Media.saveFile(args.input.photoRef.uuid);
+                        await Modules.Media.saveFile(ctx, args.input.photoRef.uuid);
                     }
                     profile.picture = Sanitizer.sanitizeImageRef(args.input.photoRef);
                 }
@@ -170,7 +170,7 @@ export default {
                 }
                 if (args.input.photoRef !== undefined) {
                     if (args.input.photoRef !== null) {
-                        await Modules.Media.saveFile(args.input.photoRef.uuid);
+                        await Modules.Media.saveFile(ctx, args.input.photoRef.uuid);
                     }
                     profile.picture = Sanitizer.sanitizeImageRef(args.input.photoRef);
                 }

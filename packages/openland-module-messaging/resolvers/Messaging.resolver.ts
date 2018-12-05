@@ -24,11 +24,11 @@ export default {
             let fileMetadata: JsonMap | null = null;
             let filePreview: string | null = null;
             if (args.file) {
-                let fileInfo = await Modules.Media.saveFile(args.file);
+                let fileInfo = await Modules.Media.saveFile(ctx, args.file);
                 fileMetadata = fileInfo as any;
 
                 if (fileInfo.isImage) {
-                    filePreview = await Modules.Media.fetchLowResPreview(args.file);
+                    filePreview = await Modules.Media.fetchLowResPreview(ctx, args.file);
                 }
             }
 
@@ -54,11 +54,11 @@ export default {
             let fileMetadata: JsonMap | null = null;
             let filePreview: string | null = null;
             if (args.file) {
-                let fileInfo = await Modules.Media.saveFile(args.file);
+                let fileInfo = await Modules.Media.saveFile(ctx, args.file);
                 fileMetadata = fileInfo as any;
 
                 if (fileInfo.isImage) {
-                    filePreview = await Modules.Media.fetchLowResPreview(args.file);
+                    filePreview = await Modules.Media.fetchLowResPreview(ctx, args.file);
                 }
             }
 
@@ -114,11 +114,11 @@ export default {
             let filePreview: string | null = null;
 
             if (args.file) {
-                let fileInfo = await Modules.Media.saveFile(args.file);
+                let fileInfo = await Modules.Media.saveFile(ctx, args.file);
                 fileMetadata = fileInfo as any;
 
                 if (fileInfo.isImage) {
-                    filePreview = await Modules.Media.fetchLowResPreview(args.file);
+                    filePreview = await Modules.Media.fetchLowResPreview(ctx, args.file);
                 }
             }
 
@@ -163,11 +163,11 @@ export default {
             let filePreview: string | null = null;
 
             if (args.file) {
-                let fileInfo = await Modules.Media.saveFile(args.file);
+                let fileInfo = await Modules.Media.saveFile(ctx, args.file);
                 fileMetadata = fileInfo as any;
 
                 if (fileInfo.isImage) {
-                    filePreview = await Modules.Media.fetchLowResPreview(args.file);
+                    filePreview = await Modules.Media.fetchLowResPreview(ctx, args.file);
                 }
             }
 

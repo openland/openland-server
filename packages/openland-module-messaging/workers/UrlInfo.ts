@@ -4,6 +4,7 @@ import * as URL from 'url';
 import { Modules } from 'openland-modules/Modules';
 import { FileInfo } from 'openland-module-media/FileInfo';
 import { ImageRef } from 'openland-module-media/ImageRef';
+import { createEmptyContext } from 'openland-utils/Context';
 
 export interface URLInfo {
     url: string;
@@ -71,9 +72,9 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
 
     if (imageURL) {
         try {
-            let { file } = await Modules.Media.uploadFromUrl(imageURL);
+            let { file } = await Modules.Media.uploadFromUrl(createEmptyContext(), imageURL);
             imageRef = { uuid: file, crop: undefined };
-            imageInfo = await Modules.Media.fetchFileInfo(file);
+            imageInfo = await Modules.Media.fetchFileInfo(createEmptyContext(), file);
         } catch (e) {
             console.warn('Cant fetch image ' + imageURL);
         }
@@ -92,9 +93,9 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
     let iconRef: ImageRef | null = null;
 
     try {
-        let { file } = await Modules.Media.uploadFromUrl(iconUrl);
+        let { file } = await Modules.Media.uploadFromUrl(createEmptyContext(), iconUrl);
         iconRef = { uuid: file, crop: undefined };
-        iconInfo = await Modules.Media.fetchFileInfo(file);
+        iconInfo = await Modules.Media.fetchFileInfo(createEmptyContext(), file);
     } catch (e) {
         console.warn('Cant fetch image ' + imageURL);
     }

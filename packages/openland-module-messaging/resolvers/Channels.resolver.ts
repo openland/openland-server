@@ -103,7 +103,7 @@ export default {
             let imageRef = Sanitizer.sanitizeImageRef(args.photoRef);
 
             if (imageRef) {
-                await Modules.Media.saveFile(imageRef.uuid);
+                await Modules.Media.saveFile(ctx, imageRef.uuid);
             }
             return Modules.Messaging.room.createRoom(ctx, 'public', oid, uid, [], {
                 title: args.title,

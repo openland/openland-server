@@ -10,9 +10,12 @@ import { extname } from 'path';
 import { randomString } from 'openland-utils/random';
 import { FileInfo } from './FileInfo';
 import { injectable } from 'inversify';
+import { Context } from 'openland-utils/Context';
+import { createTracer } from 'openland-log/createTracer';
 
 const writeFileAsync = promisify(writeFile);
 const unlinkFile = promisify(unlink);
+const tracer = createTracer('uploadcare');
 
 @injectable()
 export class MediaModule {
@@ -23,8 +26,8 @@ export class MediaModule {
         // Nothing to do
     }
 
-    async fetchFileInfo(uuid: string): Promise<FileInfo> {
-        let res = await this.call('files/' + uuid + '/');
+    async fetchFileInfo(ctx: Context, uuid: string): Promise<FileInfo> {
+        let res = await this.call(ctx, 'files/' + uuid + '/');
 
         let isImage = (!!(res.is_image) || res.image_info);
         let imageWidth = isImage ? res.image_info.width as number : null;
@@ -47,18 +50,18 @@ export class MediaModule {
         };
     }
 
-    async saveFile(uuid: string): Promise<FileInfo> {
-        let fileInfo = await this.fetchFileInfo(uuid);
+    async saveFile(ctx: Context, uuid: string): Promise<FileInfo> {
+        let fileInfo = await this.fetchFileInfo(ctx, uuid);
 
         if (!fileInfo.isStored) {
-            await this.call('/files/' + uuid + '/storage', 'PUT');
+            await this.call(ctx, '/files/' + uuid + '/storage', 'PUT');
             fileInfo.isStored = true;
         }
 
         return fileInfo;
     }
 
-    async fetchLowResPreview(uuid: string): Promise<string> {
+    async fetchLowResPreview(ctx: Context, uuid: string): Promise<string> {
         console.log(`https://ucarecdn.com/${uuid}/-/preview/20x20/-/format/jpeg/-/quality/lightest/`);
         let res = await new Promise<any>((resolve, reject) => {
             request({
@@ -81,7 +84,7 @@ export class MediaModule {
         return `data:image/jpeg;base64,${res.toString('base64')}`;
     }
 
-    async upload(imgData: Buffer, ext?: string): Promise<{ file: string }> {
+    async upload(ctx: Context, imgData: Buffer, ext?: string): Promise<{ file: string }> {
 
         let tmpPath = Path.join(tmpdir(), `${randomString(7)}${ext ? ext : '.dat'}`);
         await writeFileAsync(tmpPath, imgData);
@@ -101,28 +104,30 @@ export class MediaModule {
         return res.json();
     }
 
-    async uploadFromUrl(url: string) {
+    async uploadFromUrl(ctx: Context, url: string) {
         let data = await (await fetch(url)).buffer();
 
-        return this.upload(data, (extname(url).length > 0) ? extname(url) : undefined);
+        return this.upload(ctx, data, (extname(url).length > 0) ? extname(url) : undefined);
     }
 
-    private async call(path: string, method: string = 'GET'): Promise<any> {
-        return new Promise<any>((resolve, reject) => {
-            request({
-                method,
-                url: 'https://api.uploadcare.com/' + path,
-                headers: {
-                    'Authorization': MediaModule.UPLOAD_CARE_AUTH
-                }
-            }, (error, response, body) => {
-                if (!error && response.statusCode === 200) {
-                    resolve(JSON.parse(body));
-                } else {
-                    console.warn(error);
-                    reject(new Error('File error'));
-                    // reject(error);
-                }
+    private async call(ctx: Context, path: string, method: string = 'GET'): Promise<any> {
+        return await tracer.trace(ctx, 'call', async () => {
+            return await new Promise<any>((resolve, reject) => {
+                request({
+                    method,
+                    url: 'https://api.uploadcare.com/' + path,
+                    headers: {
+                        'Authorization': MediaModule.UPLOAD_CARE_AUTH
+                    }
+                }, (error, response, body) => {
+                    if (!error && response.statusCode === 200) {
+                        resolve(JSON.parse(body));
+                    } else {
+                        console.warn(error);
+                        reject(new Error('File error'));
+                        // reject(error);
+                    }
+                });
             });
         });
     }

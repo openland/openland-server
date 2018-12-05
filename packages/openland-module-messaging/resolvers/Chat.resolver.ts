@@ -562,11 +562,11 @@ export default {
             let filePreview: string | null = null;
 
             if (args.file) {
-                let fileInfo = await Modules.Media.saveFile(args.file);
+                let fileInfo = await Modules.Media.saveFile(ctx, args.file);
                 fileMetadata = fileInfo as any;
 
                 if (fileInfo.isImage) {
-                    filePreview = await Modules.Media.fetchLowResPreview(args.file);
+                    filePreview = await Modules.Media.fetchLowResPreview(ctx, args.file);
                 }
             }
 
@@ -597,11 +597,11 @@ export default {
             let filePreview: string | null = null;
 
             if (args.file) {
-                let fileInfo = await Modules.Media.saveFile(args.file);
+                let fileInfo = await Modules.Media.saveFile(ctx, args.file);
                 fileMetadata = fileInfo as any;
 
                 if (fileInfo.isImage) {
-                    filePreview = await Modules.Media.fetchLowResPreview(args.file);
+                    filePreview = await Modules.Media.fetchLowResPreview(ctx, args.file);
                 }
             }
 
@@ -649,11 +649,11 @@ export default {
             let filePreview: string | null = null;
 
             if (args.file) {
-                let fileInfo = await Modules.Media.saveFile(args.file);
+                let fileInfo = await Modules.Media.saveFile(ctx, args.file);
                 fileMetadata = fileInfo as any;
 
                 if (fileInfo.isImage) {
-                    filePreview = await Modules.Media.fetchLowResPreview(args.file);
+                    filePreview = await Modules.Media.fetchLowResPreview(ctx, args.file);
                 }
             }
 
@@ -689,11 +689,11 @@ export default {
             let filePreview: string | null = null;
 
             if (args.file) {
-                let fileInfo = await Modules.Media.saveFile(args.file);
+                let fileInfo = await Modules.Media.saveFile(ctx, args.file);
                 fileMetadata = fileInfo as any;
 
                 if (fileInfo.isImage) {
-                    filePreview = await Modules.Media.fetchLowResPreview(args.file);
+                    filePreview = await Modules.Media.fetchLowResPreview(ctx, args.file);
                 }
             }
 
@@ -733,11 +733,11 @@ export default {
                     let fileMetadata: JsonMap | null = null;
                     let filePreview: string | null = null;
 
-                    let fileInfo = await Modules.Media.saveFile(file);
+                    let fileInfo = await Modules.Media.saveFile(ctx, file);
                     fileMetadata = fileInfo as any;
 
                     if (fileInfo.isImage) {
-                        filePreview = await Modules.Media.fetchLowResPreview(file);
+                        filePreview = await Modules.Media.fetchLowResPreview(ctx, file);
                     }
 
                     attachments.push({ fileId: file, filePreview, fileMetadata: fileMetadata || null });
@@ -762,7 +762,7 @@ export default {
             let title = args.title ? args.title!! : '';
             let imageRef = Sanitizer.sanitizeImageRef(args.photoRef);
             if (imageRef) {
-                await Modules.Media.saveFile(imageRef.uuid);
+                await Modules.Media.saveFile(ctx, imageRef.uuid);
             }
             return Modules.Messaging.room.createRoom(ctx, 'group', oid, uid, args.members.map((v) => IDs.User.parse(v)), {
                 title: title,
@@ -781,12 +781,12 @@ export default {
 
             let imageRef = Sanitizer.sanitizeImageRef(args.input.photoRef);
             if (args.input.photoRef) {
-                await Modules.Media.saveFile(args.input.photoRef.uuid);
+                await Modules.Media.saveFile(ctx, args.input.photoRef.uuid);
             }
 
             let socialImageRef = Sanitizer.sanitizeImageRef(args.input.socialImageRef);
             if (args.input.socialImageRef) {
-                await Modules.Media.saveFile(args.input.socialImageRef.uuid);
+                await Modules.Media.saveFile(ctx, args.input.socialImageRef.uuid);
             }
 
             let conv = await Modules.Messaging.room.updateRoomProfile(ctx, conversationId, uid, {
