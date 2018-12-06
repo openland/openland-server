@@ -14,14 +14,45 @@ describe('User', () => {
             query Me {
                 me {
                     id
+                    isBot
+                    isYou
                     firstName
                     lastName
                     about
                     phone
                     email
+                    website
+                    linkedin
+                    twitter
+                    location
+                    shortname
                 }
             }
         ` })).data as any;
         expect(res.me).toMatchSnapshot();
+    });
+    it('should return null for non-logged in user', async () => {
+        let client = await api.createClient({});
+        let res = (await client.query({
+            query: gql`
+            query Me {
+                me {
+                    id
+                    isBot
+                    isYou
+                    firstName
+                    lastName
+                    about
+                    phone
+                    email
+                    website
+                    linkedin
+                    twitter
+                    location
+                    shortname
+                }
+            }
+        ` })).data as any;
+        expect(res.me).toBeNull();
     });
 });

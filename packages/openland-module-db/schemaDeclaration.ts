@@ -543,6 +543,7 @@ const Schema = declareSchema(() => {
         field('acceptedById', 'number').nullable();
         field('enabled', 'boolean');
         rangeIndex('channel', ['createdAt', 'channelId']);
+        rangeIndex('updated', ['updatedAt']);
         enableVersioning();
         enableTimestamps();
     });

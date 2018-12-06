@@ -3,7 +3,7 @@ import { FDB } from 'openland-module-db/FDB';
 import { createEmptyContext } from 'openland-utils/Context';
 
 export function messagesIndexer() {
-    declareSearchIndexer('message-index', 3, 'mesage', FDB.Message.createUpdatedStream(createEmptyContext(), 50))
+    declareSearchIndexer('message-index', 4, 'mesage', FDB.Message.createUpdatedStream(createEmptyContext(), 50))
         .withProperties({
             id: {
                 type: 'integer'
@@ -16,6 +16,9 @@ export function messagesIndexer() {
             },
             uid: {
                 type: 'integer'
+            },
+            name: {
+                type: 'text'
             },
             isService: {
                 type: 'boolean'
@@ -32,13 +35,16 @@ export function messagesIndexer() {
 
         })
         .start(async (item) => {
-            let room = (await FDB.Conversation.findById(createEmptyContext(), item.cid));
+            let ctx = createEmptyContext();
+            let room = await FDB.Conversation.findById(ctx, item.cid);
+            let user = await FDB.UserProfile.findById(ctx, item.uid);
             return {
                 id: item.id,
                 doc: {
                     id: item.id,
                     cid: item.cid,
                     uid: item.uid,
+                    name: user ? ((user.firstName || '') + ' ' + (user.lastName || '')) : 'unknown',
                     roomKind: room ? room.kind : 'unknown',
                     isService: !!item.isService,
                     deleted: !!item.deleted,

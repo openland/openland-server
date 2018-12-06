@@ -34,7 +34,7 @@ export class InvitesMediator {
             if (!invite) {
                 throw new NotFoundError('Invite not found');
             }
-            await this.rooms.joinRoom(ctx, invite.channelId, uid);
+            await this.rooms.joinRoom(ctx, invite.channelId, uid, false, true);
             await Modules.Users.activateUser(ctx, uid);
             await this.activateUserOrgs(ctx, uid);
 

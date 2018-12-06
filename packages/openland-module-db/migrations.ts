@@ -165,6 +165,44 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '25-reindex-invites',
+    migration: async (root, log) => {
+        let allKeys = await FDB.ChannelInvitation.findAllKeys(root);
+        let keyBatches = batch(allKeys, 100);
+        for (let kb of keyBatches) {
+            await inTx(root, async (ctx) => {
+                for (let a of kb) {
+                    let k = FKeyEncoding.decodeKey(a);
+                    k.splice(0, 2);
+                    let itm = await (FDB as any)[FDB.ChannelInvitation.name].findByRawId(ctx, k);
+                    itm.markDirty();
+                }
+            });
+        }
+        log.debug(root, '24-fix-messages-index ✅');
+    }
+});
+
+migrations.push({
+    key: '26-reindex-invites',
+    migration: async (root, log) => {
+        let allKeys = await FDB.ChannelInvitation.findAllKeys(root);
+        let keyBatches = batch(allKeys, 100);
+        for (let kb of keyBatches) {
+            await inTx(root, async (ctx) => {
+                for (let a of kb) {
+                    let k = FKeyEncoding.decodeKey(a);
+                    k.splice(0, 2);
+                    let itm = await (FDB as any)[FDB.ChannelInvitation.name].findByRawId(ctx, k);
+                    itm.markDirty();
+                }
+            });
+        }
+        log.debug(root, '24-fix-messages-index ✅');
+    }
+});
+
 export function startMigrationsWorker() {
     if (serverRoleEnabled('workers')) {
         staticWorker({ name: 'foundation-migrator' }, async (ctx) => {

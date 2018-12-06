@@ -350,7 +350,7 @@ export default {
             }, args);
             let imageRef = Sanitizer.sanitizeImageRef(args.photoRef);
             if (imageRef) {
-                await Modules.Media.saveFile(imageRef.uuid);
+                await Modules.Media.saveFile(ctx, imageRef.uuid);
             }
             return Modules.Messaging.room.createRoom(ctx, (args.kind).toLowerCase() as 'group' | 'public', oid, uid, args.members.map((v) => IDs.User.parse(v)), {
                 title: args.title!,
@@ -368,12 +368,12 @@ export default {
 
             let imageRef = Sanitizer.sanitizeImageRef(args.input.photoRef);
             if (args.input.photoRef) {
-                await Modules.Media.saveFile(args.input.photoRef.uuid);
+                await Modules.Media.saveFile(ctx, args.input.photoRef.uuid);
             }
 
             let socialImageRef = Sanitizer.sanitizeImageRef(args.input.socialImageRef);
             if (args.input.socialImageRef) {
-                await Modules.Media.saveFile(args.input.socialImageRef.uuid);
+                await Modules.Media.saveFile(ctx, args.input.socialImageRef.uuid);
             }
 
             let room = await Modules.Messaging.room.updateRoomProfile(ctx, IDs.Conversation.parse(args.roomId), uid, {

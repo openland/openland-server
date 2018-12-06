@@ -3,6 +3,8 @@ import { InvitesMediator } from './mediators/InvitesMediator';
 import { InvitesRoomRepository } from './repositories/InvitesRoomRepository';
 import { InvitesOrganizationRepository } from './repositories/InvitesOrganizationRepository';
 import { Context } from 'openland-utils/Context';
+import { invitesIndexer } from './workers/invitesIndexer';
+import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 
 @injectable()
 export class InvitesModule {
@@ -21,7 +23,9 @@ export class InvitesModule {
     }
 
     start = () => {
-        // Nothing to do
+        if (serverRoleEnabled('workers')) {
+            invitesIndexer();
+        }
     }
 
     async getInviteLinkKey(ctx: Context, uid: number) {
@@ -51,7 +55,7 @@ export class InvitesModule {
     async joinRoomInvite(ctx: Context, uid: number, invite: string) {
         return await this.invitesMediator.joinRoomInvite(ctx, uid, invite);
     }
-    
+
     async joinAppInvite(ctx: Context, uid: number, invite: string) {
         return await this.invitesMediator.joinAppInvite(ctx, uid, invite);
     }

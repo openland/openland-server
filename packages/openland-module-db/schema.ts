@@ -5595,6 +5595,7 @@ export class ChannelInvitationFactory extends FEntityFactory<ChannelInvitation> 
         ],
         indexes: [
             { name: 'channel', type: 'range', fields: ['createdAt', 'channelId'] },
+            { name: 'updated', type: 'range', fields: ['updatedAt'] },
         ],
     };
 
@@ -5619,7 +5620,7 @@ export class ChannelInvitationFactory extends FEntityFactory<ChannelInvitation> 
         super(connection,
             new FNamespace('entity', 'channelInvitation'),
             { enableVersioning: true, enableTimestamps: true, validator: ChannelInvitationFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('channel', ['createdAt', 'channelId'], false)],
+            [new FEntityIndex('channel', ['createdAt', 'channelId'], false), new FEntityIndex('updated', ['updatedAt'], false)],
             'ChannelInvitation'
         );
     }
@@ -5653,6 +5654,18 @@ export class ChannelInvitationFactory extends FEntityFactory<ChannelInvitation> 
     }
     createChannelStream(ctx: Context, createdAt: number, limit: number, after?: string) {
         return this._createStream(ctx, ['entity', 'channelInvitation', '__indexes', 'channel', createdAt], limit, after); 
+    }
+    async rangeFromUpdated(ctx: Context, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'updated'], limit, reversed);
+    }
+    async rangeFromUpdatedWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'updated'], limit, after, reversed);
+    }
+    async allFromUpdated(ctx: Context, ) {
+        return await this._findAll(ctx, ['__indexes', 'updated']);
+    }
+    createUpdatedStream(ctx: Context, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'channelInvitation', '__indexes', 'updated'], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new ChannelInvitation(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ChannelInvitation');
