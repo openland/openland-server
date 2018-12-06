@@ -10,7 +10,38 @@ import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 export default {
     Conference: {
         id: (src: ConferenceRoom) => IDs.Conference.serialize(src.id),
-        peers: (src: ConferenceRoom, args: {}, ctx: Context) => Modules.Calls.repo.findActiveMembers(ctx, src.id)
+        peers: async (src: ConferenceRoom, args: {}, ctx: Context) => {
+            let res = (await Modules.Calls.repo.findActiveMembers(ctx, src.id));
+            res.sort((a, b) => a.createdAt - b.createdAt);
+            return res;
+        },
+        iceServers: () => {
+            return [{
+                urls: ['turn:35.237.41.98:443?transport=tcp'],
+                username: 'somecalluser',
+                credential: 'samplepassword',
+            }, {
+                urls: ['stun:35.237.41.98:443?transport=tcp'],
+                username: 'somecalluser',
+                credential: 'samplepassword',
+            }, {
+                urls: ['turn:35.228.111.16:443?transport=tcp'],
+                username: 'somecalluser',
+                credential: 'samplepassword',
+            }, {
+                urls: ['stun:35.228.111.16:443?transport=tcp'],
+                username: 'somecalluser',
+                credential: 'samplepassword',
+            }, {
+                urls: ['turn:35.241.89.108:443?transport=tcp'],
+                username: 'somecalluser',
+                credential: 'samplepassword',
+            }, {
+                urls: ['stun:35.241.89.108:443?transport=tcp'],
+                username: 'somecalluser',
+                credential: 'samplepassword',
+            }];
+        }
     },
     ConferencePeer: {
         id: (src: ConferencePeer) => IDs.ConferencePeer.serialize(src.id),
