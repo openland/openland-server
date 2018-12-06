@@ -1,6 +1,13 @@
+type ICEServer {
+    urls: [String!]!
+    username: String
+    credential: String
+}
+
 type Conference {
     id: ID!
     peers: [ConferencePeer!]!
+    iceServers: [ICEServer!]!
 }
 
 type ConferencePeer {
