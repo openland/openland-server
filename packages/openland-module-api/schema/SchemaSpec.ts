@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, Nullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '00b6290e896d87f3668770136d7aec27';
+export const GQL_SPEC_VERSION = 'd0cd9d8fef11e851852bc7705deb72ab';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -680,7 +680,7 @@ export namespace GQL {
         id: string;
     }
     export type MessageType = 'MESSAGE' | 'POST';
-    export type PostMessageType = 'BLANK' | 'JOB_OPPORTUNITT' | 'OFFICE_HOURS' | 'REQUEST_FOR_STARTUPS';
+    export type PostMessageType = 'BLANK' | 'JOB_OPPORTUNITY' | 'OFFICE_HOURS' | 'REQUEST_FOR_STARTUPS';
     export interface Mutation {
         lifecheck?: Nullable<string>;
         alphaSendMessage?: ConversationEventMessage;

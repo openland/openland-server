@@ -211,6 +211,26 @@ export default {
         }),
     },
 
+    MessageAttachment: {
+        fileId: src => src.fileId,
+        filePreview: src => src.filePreview,
+        fileMetadata: src => {
+            if (src.fileId && src.fileMetadata) {
+                return {
+                    name: src.fileMetadata.name,
+                    mimeType: src.fileMetadata.mimeType,
+                    isImage: !!(src.fileMetadata.isImage),
+                    imageWidth: src.fileMetadata.imageWidth,
+                    imageHeight: src.fileMetadata.imageHeight,
+                    imageFormat: src.fileMetadata.imageFormat,
+                    size: src.fileMetadata.size
+                };
+            } else {
+                return null;
+            }
+        }
+    },
+
     Query: {
         room: withAccount(async (ctx, args, uid, oid) => {
             let id = IdsFactory.resolve(args.id);
