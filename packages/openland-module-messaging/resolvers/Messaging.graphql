@@ -1,3 +1,43 @@
+type MessageReaction {
+    user: User!,
+    reaction: String!
+}
+
+type MessageAttachment {
+    fileId: String!
+    fileMetadata: FileMetadata
+    filePreview: String
+}
+
+enum MessageButtonStyle {
+    DEFAULT,
+    LIGHT
+}
+
+type MessageButton {
+    title: String!
+    style: MessageButtonStyle!
+    id: ID!
+}
+
+input MessageButtonInput {
+    title: String!
+    style: MessageButtonStyle!
+    id: ID!
+}
+
+enum MessageType {
+    MESSAGE,
+    POST
+}
+
+enum PostMessageType {
+    BLANK,
+    JOB_OPPORTUNITT,
+    OFFICE_HOURS,
+    REQUEST_FOR_STARTUPS
+}
+
 extend type Mutation {
     roomRead(id: ID!, mid: ID!): Boolean!
 

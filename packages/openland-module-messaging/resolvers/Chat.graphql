@@ -123,45 +123,6 @@ type UrlAugmentation {
 
 union ServiceMetadata = InviteServiceMetadata | KickServiceMetadata | TitleChangeServiceMetadata | PhotoChangeServiceMetadata
 
-type MessageReaction {
-    user: User!,
-    reaction: String!
-}
-
-type MessageAttachment {
-    fileId: String!
-    fileMetadata: FileMetadata
-    filePreview: String
-}
-
-enum MessageButtonStyle {
-    DEFAULT
-}
-
-type MessageButton {
-    title: String!
-    style: MessageButtonStyle!
-    id: ID!
-}
-
-input MessageButtonInput {
-    title: String!
-    style: MessageButtonStyle!
-    id: ID!
-}
-
-enum MessageType {
-    MESSAGE,
-    POST
-}
-
-enum PostMessageType {
-    BLANK,
-    JOB_OPPORTUNITT,
-    OFFICE_HOURS,
-    REQUEST_FOR_STARTUPS
-}
-
 type ConversationMessage {
     id: ID!
     message: String

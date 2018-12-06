@@ -14,6 +14,6 @@ type PostTemplateInterface = {
 export const PostTemplates = {
     BLANK: {
         buttons: RespondKeyboard,
-        RESPOND_TEXT: templated<PostTemplateInterface>('🙌 {{post_author}} — {{responder}} is responding to your post “{{post_title}}” in {{chat}}. Now you can chat!')
+        RESPOND_TEXT: templated<PostTemplateInterface>('🙌 {{post_author}} — {{responder}} is responding to your post “{{post_title}}” in {{chat}}.')
     }
 };

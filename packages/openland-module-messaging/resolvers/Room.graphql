@@ -81,7 +81,7 @@ type RoomMessage {
     alphaButtons: [[MessageButton!]]!
     alphaType: MessageType!
     alphaTitle: String
-    alphaPostType: String
+    alphaPostType: PostMessageType
 }
 
 type RoomMember {

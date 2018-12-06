@@ -123,7 +123,6 @@ export class MessagingRepository {
             //
 
             message.deleted = true;
-
             //
             // Write Event
             //
