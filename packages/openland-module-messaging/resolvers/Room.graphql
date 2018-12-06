@@ -76,6 +76,12 @@ type RoomMessage {
     replyMessages: [RoomMessage!]
     plainText: String
     mentions: [User!]
+
+    alphaAttachments: [MessageAttachment!]!
+    alphaButtons: [[MessageButton!]]!
+    alphaType: MessageType!
+    alphaTitle: String
+    alphaPostType: String
 }
 
 type RoomMember {

@@ -4106,7 +4106,7 @@ export interface MessageShape {
     buttons?: any| null;
     type?: string| null;
     title?: string| null;
-    templateName?: string| null;
+    postType?: string| null;
     isMuted: boolean;
     isService: boolean;
     deleted?: boolean| null;
@@ -4298,15 +4298,15 @@ export class Message extends FEntity {
         this._value.title = value;
         this.markDirty();
     }
-    get templateName(): string | null {
-        let res = this._value.templateName;
+    get postType(): string | null {
+        let res = this._value.postType;
         if (res !== null && res !== undefined) { return res; }
         return null;
     }
-    set templateName(value: string | null) {
+    set postType(value: string | null) {
         this._checkIsWritable();
-        if (value === this._value.templateName) { return; }
-        this._value.templateName = value;
+        if (value === this._value.postType) { return; }
+        this._value.postType = value;
         this.markDirty();
     }
     get isMuted(): boolean {
@@ -4365,7 +4365,7 @@ export class MessageFactory extends FEntityFactory<Message> {
             { name: 'buttons', type: 'json' },
             { name: 'type', type: 'string' },
             { name: 'title', type: 'string' },
-            { name: 'templateName', type: 'string' },
+            { name: 'postType', type: 'string' },
             { name: 'isMuted', type: 'boolean' },
             { name: 'isService', type: 'boolean' },
             { name: 'deleted', type: 'boolean' },
@@ -4390,7 +4390,7 @@ export class MessageFactory extends FEntityFactory<Message> {
         validators.isBoolean('edited', src.edited);
         validators.isString('type', src.type);
         validators.isString('title', src.title);
-        validators.isString('templateName', src.templateName);
+        validators.isString('postType', src.postType);
         validators.notNull('isMuted', src.isMuted);
         validators.isBoolean('isMuted', src.isMuted);
         validators.notNull('isService', src.isService);

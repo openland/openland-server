@@ -5,6 +5,11 @@ import { IDs } from 'openland-module-api/IDs';
 import { JsonMap } from 'openland-utils/json';
 import { validate, defined, stringNotEmpty, isNumber } from 'openland-utils/NewInputValidator';
 import { NotFoundError } from 'openland-errors/NotFoundError';
+import { withLogContext } from '../../openland-log/withLogContext';
+import { MessageAttachment } from '../MessageInput';
+import { PostTemplates, PostTextTemplate } from '../texts/PostTemplates';
+import { inTx } from '../../foundation-orm/inTx';
+import { FDB } from '../../openland-module-db/FDB';
 
 export default {
     Mutation: {
@@ -198,6 +203,123 @@ export default {
                 }
             }, true);
             return true;
-        })
+        }),
+
+        //
+        // Message Posts
+        //
+
+        alphaSendPostMessage: withUser(async (parent, args, uid) => {
+            let ctx = withLogContext(parent, 'send-post-message');
+            let conversationId = IDs.Conversation.parse(args.conversationId);
+
+            let attachments: MessageAttachment[] = [];
+
+            if (args.attachments) {
+                for (let file of args.attachments) {
+                    let fileMetadata: JsonMap | null = null;
+                    let filePreview: string | null = null;
+
+                    let fileInfo = await Modules.Media.saveFile(file);
+                    fileMetadata = fileInfo as any;
+
+                    if (fileInfo.isImage) {
+                        filePreview = await Modules.Media.fetchLowResPreview(file);
+                    }
+
+                    attachments.push({ fileId: file, filePreview, fileMetadata: fileMetadata || null });
+                }
+            }
+
+            let postTemplate = (PostTemplates as any)[args.postType];
+            if (!postTemplate) {
+                throw new Error('Invalid post type');
+            }
+
+            return Modules.Messaging.sendMessage(ctx, conversationId, uid!, {
+                title: args.title,
+                message: args.text,
+                attachments: attachments,
+                postType: args.postType,
+                repeatKey: args.repeatKey,
+                buttons: postTemplate.buttons,
+                type: 'POST'
+            });
+        }),
+        alphaEditPostMessage: withUser(async (parent, args, uid) => {
+            let ctx = withLogContext(parent, 'send-post-message');
+            let messageId = IDs.ConversationMessage.parse(args.messageId);
+
+            let attachments: MessageAttachment[] = [];
+
+            if (args.attachments) {
+                for (let file of args.attachments) {
+                    let fileMetadata: JsonMap | null = null;
+                    let filePreview: string | null = null;
+
+                    let fileInfo = await Modules.Media.saveFile(file);
+                    fileMetadata = fileInfo as any;
+
+                    if (fileInfo.isImage) {
+                        filePreview = await Modules.Media.fetchLowResPreview(file);
+                    }
+
+                    attachments.push({ fileId: file, filePreview, fileMetadata: fileMetadata || null });
+                }
+            }
+
+            let postTemplate = (PostTemplates as any)[args.postType];
+            if (!postTemplate) {
+                throw new Error('Invalid post type');
+            }
+
+            return Modules.Messaging.editMessage(ctx, messageId, uid!, {
+                title: args.title,
+                message: args.text,
+                attachments: attachments,
+                postType: args.postType,
+                buttons: postTemplate.buttons,
+                type: 'POST'
+            }, true);
+        }),
+        alphaRespondPostMessage: withUser(async (parent, args, uid) => {
+            return inTx(parent, async ctx => {
+                let messageId = IDs.ConversationMessage.parse(args.messageId);
+                let message = await FDB.Message.findById(ctx, messageId);
+
+                if (!message) {
+                    throw new Error('Post not found');
+                }
+                if (message.type !== 'POST') {
+                    throw new Error('Message is not a post');
+                }
+
+                let postTemplate = (PostTemplates as any)[message.postType!];
+                let postText: PostTextTemplate = postTemplate[args.buttonId + '_TEXT'];
+
+                if (!postTemplate || !postText) {
+                    throw new Error('invalid buttonId');
+                }
+
+                let room = await Modules.Messaging.room.resolvePrivateChat(ctx, uid, message.uid);
+
+                let postAuthor = await Modules.Users.profileById(ctx, message.uid);
+                let responder = await Modules.Users.profileById(ctx, uid!);
+
+                let textVars =  {
+                    post_author: postAuthor!.firstName + ' ' + postAuthor!.lastName,
+                    post_title: message.title!,
+                    chat: '',
+                    responder: responder!.firstName + ' ' + responder!.lastName,
+                };
+
+                await Modules.Messaging.sendMessage(ctx, room.id, uid!, {
+                    message: postText(textVars),
+                    isService: true
+                });
+
+                return true;
+            });
+        }),
     }
 } as GQLResolver;

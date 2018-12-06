@@ -39,7 +39,7 @@ export class MessagingRepository {
                 type: message.type || 'MESSAGE',
                 title: message.title,
                 buttons: message.buttons,
-                templateName: message.templateName,
+                postType: message.postType,
                 attachments: message.attachments
             });
 

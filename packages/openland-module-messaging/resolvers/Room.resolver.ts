@@ -11,6 +11,7 @@ import { validate, defined, stringNotEmpty, enumString, optional, mustBeArray, e
 import { inTx } from 'foundation-orm/inTx';
 import { AppContext } from 'openland-modules/AppContext';
 import { QueryParser } from 'openland-utils/QueryParser';
+import { MessageAttachment } from '../MessageInput';
 
 type RoomRoot = Conversation | number;
 
@@ -158,7 +159,29 @@ export default {
             // return src.replyMessages ? (src.replyMessages as number[]).map(id => FDB.Message.findById(id)).filter(m => !!m) : [];
         },
         plainText: async (src: Message) => null,
-        mentions: async (src: Message, args: {}, ctx: AppContext) => src.mentions ? (src.mentions as number[]).map(id => FDB.User.findById(ctx, id)) : null
+        mentions: async (src: Message, args: {}, ctx: AppContext) => src.mentions ? (src.mentions as number[]).map(id => FDB.User.findById(ctx, id)) : null,
+
+        alphaAttachments: async (src: Message) => {
+            let attachments: MessageAttachment[] = [];
+
+            if (src.fileId) {
+                attachments.push({
+                    fileId: src.fileId,
+                    fileMetadata: src.fileMetadata,
+                    filePreview: src.filePreview
+                });
+            }
+
+            if (src.attachments) {
+                attachments.push(...src.attachments);
+            }
+
+            return attachments;
+        },
+        alphaButtons: async (src: Message) => src.buttons ? src.buttons : [],
+        alphaType: async (src: Message) => src.type ? src.type : 'MESSAGE',
+        alphaPostType: async (src: Message) => src.postType,
+        alphaTitle: async (src: Message) => src.title,
     },
     RoomMember: {
         user: async (src: RoomParticipant, args: {}, ctx: AppContext) => await FDB.User.findById(ctx, src.uid),

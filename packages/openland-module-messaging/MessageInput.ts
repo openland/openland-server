@@ -39,6 +39,6 @@ export interface MessageInput {
     type?: MessageType;
     title?: string | null;
     buttons?: MessageButton[][] | null;
-    templateName?: string | null;
     attachments?: MessageAttachment[] | null;
+    postType?: string | null;
 }

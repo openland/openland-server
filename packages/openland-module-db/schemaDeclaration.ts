@@ -414,7 +414,7 @@ const Schema = declareSchema(() => {
         field('buttons', 'json').nullable();
         field('type', 'string').nullable();
         field('title', 'string').nullable();
-        field('templateName', 'string').nullable();
+        field('postType', 'string').nullable();
 
         field('isMuted', 'boolean');
         field('isService', 'boolean');

@@ -343,7 +343,7 @@ export default {
         },
         alphaButtons: async (src: Message) => src.buttons ? src.buttons : [],
         alphaType: async (src: Message) => src.type ? src.type : 'MESSAGE',
-        alphaTemplateName: async (src: Message) => src.templateName,
+        postType: async (src: Message) => src.postType,
         alphaTitle: async (src: Message) => src.title,
     },
     InviteServiceMetadata: {
@@ -719,72 +719,6 @@ export default {
         alphaDeleteMessage: withUser(async (ctx, args, uid) => {
             let messageId = IDs.ConversationMessage.parse(args.messageId);
             return await Modules.Messaging.deleteMessage(ctx, messageId, uid);
-        }),
-
-        //
-        // Message Posts
-        //
-        alphaSendPostMessage: withUser(async (parent, args, uid) => {
-            let ctx = withLogContext(parent, 'send-post-message');
-            let conversationId = IDs.Conversation.parse(args.conversationId);
-
-            let attachments: MessageAttachment[] = [];
-
-            if (args.attachments) {
-                for (let file of args.attachments) {
-                    let fileMetadata: JsonMap | null = null;
-                    let filePreview: string | null = null;
-
-                    let fileInfo = await Modules.Media.saveFile(file);
-                    fileMetadata = fileInfo as any;
-
-                    if (fileInfo.isImage) {
-                        filePreview = await Modules.Media.fetchLowResPreview(file);
-                    }
-
-                    attachments.push({ fileId: file, filePreview, fileMetadata: fileMetadata || null });
-                }
-            }
-
-            return Modules.Messaging.sendMessage(ctx, conversationId, uid!, {
-                title: args.title,
-                message: args.text,
-                attachments: attachments,
-                buttons: args.buttons,
-                repeatKey: args.repeatKey,
-                type: 'POST'
-            });
-        }),
-        alphaEditPostMessage: withUser(async (parent, args, uid) => {
-            let ctx = withLogContext(parent, 'send-post-message');
-            let messageId = IDs.Conversation.parse(args.messageId);
-
-            let attachments: MessageAttachment[] = [];
-
-            if (args.attachments) {
-                for (let file of args.attachments) {
-                    let fileMetadata: JsonMap | null = null;
-                    let filePreview: string | null = null;
-
-                    let fileInfo = await Modules.Media.saveFile(file);
-                    fileMetadata = fileInfo as any;
-
-                    if (fileInfo.isImage) {
-                        filePreview = await Modules.Media.fetchLowResPreview(file);
-                    }
-
-                    attachments.push({ fileId: file, filePreview, fileMetadata: fileMetadata || null });
-                }
-            }
-
-            return Modules.Messaging.editMessage(ctx, messageId, uid!, {
-                title: args.title,
-                message: args.text,
-                attachments: attachments,
-                buttons: args.buttons,
-                repeatKey: args.repeatKey,
-                type: 'POST'
-            }, true);
         }),
 
         //
