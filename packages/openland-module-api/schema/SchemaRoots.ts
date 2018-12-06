@@ -12,6 +12,7 @@ import { GQL } from './SchemaSpec';
 //  Root types
 //
 export namespace GQLRoots {
+    export type ICEServerRoot = any;
     export type ConversationUpdateStateRoot = any;
     export type MediaSessionRoot = any;
     export type MediaStreamRoot = any;
