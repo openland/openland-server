@@ -33,7 +33,7 @@ enum MessageType {
 
 enum PostMessageType {
     BLANK,
-    JOB_OPPORTUNITT,
+    JOB_OPPORTUNITY,
     OFFICE_HOURS,
     REQUEST_FOR_STARTUPS
 }

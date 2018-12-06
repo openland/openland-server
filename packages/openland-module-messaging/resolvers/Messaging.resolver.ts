@@ -307,13 +307,15 @@ export default {
                 let responder = await Modules.Users.profileById(ctx, uid!);
                 let chatTitle = await Modules.Messaging.room.resolveConversationTitle(ctx, message.cid, uid!);
 
-                let isNewChat = (await FDB.Message.rangeFromChat(ctx, room.id, 1, true)).length === 0;
+                // let isNewChat = (await FDB.Message.rangeFromChat(ctx, room.id, 1, true)).length === 0;
 
                 let textVars =  {
                     post_author: postAuthor!.firstName + ' ' + postAuthor!.lastName,
                     post_title: message.title!,
                     chat: chatTitle,
                     responder: responder!.firstName + ' ' + responder!.lastName,
+                    post_author_name: postAuthor!.firstName,
+                    responder_name: responder!.firstName
                 };
 
                 await Modules.Messaging.sendMessage(ctx, room.id, uid!, {
@@ -321,15 +323,15 @@ export default {
                     isService: true
                 });
 
-                if (isNewChat) {
-                    await Modules.Messaging.sendMessage(ctx, room.id, uid!, {
-                        message: 'Now you can chat!',
-                        isService: true
-                    });
-                }
+                // if (isNewChat) {
+                //     await Modules.Messaging.sendMessage(ctx, room.id, uid!, {
+                //         message: 'Now you can chat!',
+                //         isService: true
+                //     });
+                // }
 
                 return true;
             });
-        }),
+        })
     }
 } as GQLResolver;
