@@ -220,11 +220,11 @@ export default {
                     let fileMetadata: JsonMap | null = null;
                     let filePreview: string | null = null;
 
-                    let fileInfo = await Modules.Media.saveFile(file);
+                    let fileInfo = await Modules.Media.saveFile(ctx, file);
                     fileMetadata = fileInfo as any;
 
                     if (fileInfo.isImage) {
-                        filePreview = await Modules.Media.fetchLowResPreview(file);
+                        filePreview = await Modules.Media.fetchLowResPreview(ctx, file);
                     }
 
                     attachments.push({ fileId: file, filePreview, fileMetadata: fileMetadata || null });
@@ -257,11 +257,11 @@ export default {
                     let fileMetadata: JsonMap | null = null;
                     let filePreview: string | null = null;
 
-                    let fileInfo = await Modules.Media.saveFile(file);
+                    let fileInfo = await Modules.Media.saveFile(ctx, file);
                     fileMetadata = fileInfo as any;
 
                     if (fileInfo.isImage) {
-                        filePreview = await Modules.Media.fetchLowResPreview(file);
+                        filePreview = await Modules.Media.fetchLowResPreview(ctx, file);
                     }
 
                     attachments.push({ fileId: file, filePreview, fileMetadata: fileMetadata || null });

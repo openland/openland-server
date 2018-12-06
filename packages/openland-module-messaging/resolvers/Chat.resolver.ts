@@ -721,39 +721,6 @@ export default {
             return await Modules.Messaging.deleteMessage(ctx, messageId, uid);
         }),
 
-        // Message Posts
-        alphaSendPostMessage: withUser(async (parent, args, uid) => {
-            let ctx = withLogContext(parent, 'send-post-message');
-            let conversationId = IDs.Conversation.parse(args.conversationId);
-
-            let attachments: MessageAttachment[] = [];
-
-            if (args.attachments) {
-                for (let file of args.attachments) {
-                    let fileMetadata: JsonMap | null = null;
-                    let filePreview: string | null = null;
-
-                    let fileInfo = await Modules.Media.saveFile(ctx, file);
-                    fileMetadata = fileInfo as any;
-
-                    if (fileInfo.isImage) {
-                        filePreview = await Modules.Media.fetchLowResPreview(ctx, file);
-                    }
-
-                    attachments.push({ fileId: file, filePreview, fileMetadata: fileMetadata || null });
-                }
-            }
-
-            return Modules.Messaging.sendMessage(ctx, conversationId, uid!, {
-                title: args.title,
-                message: args.text,
-                attachments: attachments,
-                buttons: args.buttons,
-                repeatKey: args.repeatKey,
-                type: 'POST'
-            });
-        }),
-
         //
         // Group Management
         //
