@@ -15,6 +15,7 @@ const TEMPLATE_MEMBER_JOINED = 'c76321cb-5560-4311-bdbf-e0fe337fa2cf';
 const TEMPLATE_UNREAD_MESSAGES = '02787351-db1c-49b5-afbf-3d63a3b7fd76';
 const TEMPLATE_UNREAD_MESSAGE = 'd3c583e1-9418-48ba-b719-4230e1e1d43d';
 const TEMPLATE_SIGNUP_CODE = '69496416-42cc-441d-912f-a918b968e34a';
+const TEMPLATE_SIGIN_CODE = '89aa70e4-5ac2-449f-b3ee-35df0df86cbe';
 
 const loadUserState = async (ctx: Context, uid: number) => {
     let user = await FDB.User.findById(ctx, uid);
@@ -208,42 +209,6 @@ export const Emails = {
         });
     },
 
-    // async sendOrganizationInviteEmail(oid: number, invite: OrganizationInvite, tx: Transaction) {
-    //     let org = await DB.Organization.findById(oid, { transaction: tx });
-    //     if (!org) {
-    //         throw Error('Unable to find organization');
-    //     }
-
-    //     let userWelcome = {
-    //         'userWelcome': invite.memberFirstName ? 'Hi, ' + invite.memberFirstName : 'Hi',
-    //         'userName': [invite.memberFirstName, invite.memberLastName].filter((v) => v).join(' '),
-    //         'userFirstName': invite.memberFirstName || '',
-    //         'userLastName': invite.memberLastName || ''
-    //     };
-
-    //     let profile = await Modules.Users.profileById(invite.creatorId);
-
-    //     if (!profile) {
-    //         throw Error('Internal inconsistency');
-    //     }
-
-    //     let domain = process.env.APP_ENVIRONMENT === 'production' ? 'https://app.openland.com/invite/' : 'http://localhost:3000/invite/';
-
-    //     await Modules.Email.Worker.pushWork({
-    //         subject: 'Invitation for Openland',
-    //         templateId: TEMPLATE_INVITE_ORGANIZATION,
-    //         to: invite.forEmail,
-    //         args: {
-    //             firstName: profile.firstName || '',
-    //             lastName: profile.lastName || '',
-    //             customText: invite.emailText || '',
-    //             link: domain + invite.uuid,
-    //             'organizationName': org.name!!,
-    //             ...userWelcome
-    //         }
-    //     });
-    // },
-
     async sendMemberJoinedEmails(parent: Context, oid: number, memberId: number) {
         await inTx(parent, async (ctx) => {
             let org = await FDB.Organization.findById(ctx, oid);
@@ -291,10 +256,10 @@ export const Emails = {
             }
         });
     },
-    async sendActivationCodeEmail(ctx: Context, email: string, code: string) {
+    async sendActivationCodeEmail(ctx: Context, email: string, code: string, existingAccount: boolean) {
         await Modules.Email.enqueueEmail(ctx, {
             subject: `Activation code: ` + code,
-            templateId: TEMPLATE_SIGNUP_CODE,
+            templateId: existingAccount ? TEMPLATE_SIGIN_CODE : TEMPLATE_SIGNUP_CODE,
             to: email,
             args: {
                 code

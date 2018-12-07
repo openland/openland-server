@@ -119,13 +119,17 @@ export async function sendCode(req: express.Request, response: express.Response)
             let isTest = isTestEmail(email);
 
             if (!isTest) {
-                await Emails.sendActivationCodeEmail(ctx, email, code);
+                let existing = (await FDB.User.findAll(ctx))
+                    .find((v) => v.email === email || v.authId === 'email|' + email as any);
+
+
+                await Emails.sendActivationCodeEmail(ctx, email, code, !!existing);
             } else {
                 code = testEmailCode(email);
             }
 
             if (!authSession) {
-                authSession = await Modules.Auth.createEmailAuthSession(ctx, email, code);
+                 authSession = await Modules.Auth.createEmailAuthSession(ctx, email, code);
             } else {
                 authSession.code = code;
             }
