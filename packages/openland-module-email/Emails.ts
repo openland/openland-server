@@ -1,5 +1,5 @@
 import { Modules } from 'openland-modules/Modules';
-import { ChannelInvitation, OrganizationInviteLink } from 'openland-module-db/schema';
+import { ChannelInvitation, Message, OrganizationInviteLink, UserProfile } from 'openland-module-db/schema';
 import { IDs } from 'openland-module-api/IDs';
 import { FDB } from 'openland-module-db/FDB';
 import { inTx } from 'foundation-orm/inTx';
@@ -75,6 +75,77 @@ export const Emails = {
                 ...user.args
             }
         });
+    },
+    async sendUnreadMessages(ctx: Context, uid: number, messages: Message[]) {
+        let user = await loadUserState(ctx, uid);
+
+        if (messages.length > 1) {
+            let senderIds: Set<number> = new Set();
+
+            messages.forEach(msg => {
+                senderIds.add(msg.uid);
+            });
+
+            let senderIdsArr = [...senderIds];
+            let header = '';
+
+            let avatars: string[] = [];
+            for (let senderId of senderIdsArr) {
+                avatars.push(await genAvatar(ctx, senderId));
+            }
+
+            header += avatars.slice(0, 3);
+
+            if (senderIdsArr.length > 3) {
+                header += `<span style="display: inline-block; vertical-align: top; color: #000000; font-size: 13px; line-height: 15px; font-weight: 600; padding-top: 12px; padding-left: 3px; padding-right: 12px;">+${senderIdsArr.length - 3} more</span>`;
+            }
+
+            let senders: (UserProfile|null)[] = await Promise.all(senderIdsArr.map(id => Modules.Users.profileById(ctx, id)));
+
+            let text = 'You have messages from ';
+
+            let names: string[] = [];
+            for (let sender of senders.slice(0, 3)) {
+                let name = sender!.firstName + ' ' + (sender!.lastName ? sender!.lastName! : '');
+
+                names.push(`<strong>${name}</strong>`);
+            }
+
+            text += names.join(', ');
+
+            if (senders.length > 3) {
+                text += `and ${senders.length - 3} more`;
+            }
+
+            text += '.';
+
+            await Modules.Email.enqueueEmail(ctx, {
+                subject: 'You’ve got new messages',
+                templateId: TEMPLATE_UNREAD_MESSAGES,
+                to: user.email,
+                args: {
+                    usersHeader: header,
+                    messageCount: `${messages.length}`,
+                    text,
+                }
+            });
+        } else if (messages.length === 1) {
+            let senderId = messages[0].uid;
+            let userProfile = await Modules.Users.profileById(ctx, senderId);
+            let avatar = await genAvatar(ctx, senderId);
+
+            await Modules.Email.enqueueEmail(ctx, {
+                subject: 'You’ve got a new message',
+                templateId: TEMPLATE_UNREAD_MESSAGE,
+                to: user.email,
+                args: {
+                    firstName: userProfile!.firstName,
+                    lastName: userProfile!.lastName || '',
+                    avatar,
+                    messageCount: `${messages.length}`,
+                }
+            });
+        }
     },
     async sendAccountActivatedEmail(parent: Context, oid: number) {
         await inTx(parent, async (ctx) => {
@@ -286,7 +357,7 @@ export const Emails = {
             to: email,
             args: {
                 link: domain + invite.id,
-                avatar: avatar,
+                avatar,
                 roomDescription: roomProfile!.description || '',
                 firstName: userProfile!.firstName,
                 lastName: userProfile!.lastName || '',
@@ -306,7 +377,7 @@ export const Emails = {
         let roomId = invite.channelId;
         let roomTitle = await Modules.Messaging.room.resolveConversationTitle(ctx, roomId, uid);
         let userProfile = await Modules.Users.profileById(ctx, uid);
-        let userName = userProfile!.firstName + (userProfile!.lastName ? userProfile!.lastName : '');
+        let userName = userProfile!.firstName + ' ' + (userProfile!.lastName ? userProfile!.lastName : '');
 
         await Modules.Email.enqueueEmail(ctx, {
             subject: `${userName} has accepted your invitation`,
