@@ -29,7 +29,10 @@ const loadUserState = async (ctx: Context, uid: number) => {
                 'userWelcome': 'Hi, ' + profile.firstName,
                 'userName': [profile.firstName, profile.lastName].filter((v) => v).join(' '),
                 'userFirstName': profile.firstName,
-                'userLastName': profile.lastName || ''
+                'userLastName': profile.lastName || '',
+
+                'firstName': profile.firstName,
+                'lastName': profile.lastName || ''
             }
         };
     } else {
@@ -39,7 +42,9 @@ const loadUserState = async (ctx: Context, uid: number) => {
                 'userWelcome': 'Hi',
                 'userName': '',
                 'userFirstName': '',
-                'userLastName': ''
+                'userLastName': '',
+                'firstName': '',
+                'lastName': ''
             }
         };
     }
@@ -133,7 +138,6 @@ export const Emails = {
             });
         });
     },
-
     async sendMembershipLevelChangedEmail(parent: Context, oid: number, uid: number) {
         await inTx(parent, async (ctx) => {
             let org = await FDB.Organization.findById(ctx, oid);
@@ -165,7 +169,6 @@ export const Emails = {
             });
         });
     },
-
     async sendInviteEmail(parent: Context, oid: number, invite: OrganizationInviteLink) {
         await inTx(parent, async (ctx) => {
             let org = await FDB.Organization.findById(ctx, oid);
@@ -193,13 +196,13 @@ export const Emails = {
                 templateId: TEMPLATE_INVITE,
                 to: invite.email,
                 args: {
+                    ...userWelcome,
                     firstName: profile.firstName || '',
                     lastName: profile.lastName || '',
                     customText: invite.text || '',
                     inviteLink: domain + invite.id,
                     link: domain + invite.id,
                     organizationName: orgProfile.name!!,
-                    ...userWelcome
                 }
             });
         });
@@ -264,18 +267,17 @@ export const Emails = {
                     templateId: TEMPLATE_MEMBER_JOINED,
                     to: user.email,
                     args: {
+                        ...(user.args),
                         memberName: memberProfile.firstName || '',
                         firstName: memberProfile.firstName || '',
                         lastName: memberProfile.lastName || '',
                         link: 'https://app.openland.com/mail/' + IDs.User.serialize(memberId),
                         'organizationName': orgProfile.name!!,
-                        ...(user.args)
                     }
                 });
             }
         });
     },
-
     async sendDebugEmail(ctx: Context, email: string, text: string) {
         await Modules.Email.enqueueEmail(ctx, {
             subject: 'Debug email',
@@ -289,7 +291,6 @@ export const Emails = {
             }
         });
     },
-
     async sendActivationCodeEmail(ctx: Context, email: string, code: string) {
         await Modules.Email.enqueueEmail(ctx, {
             subject: `Activation code: ` + code,

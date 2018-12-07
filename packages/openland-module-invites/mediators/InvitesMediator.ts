@@ -10,6 +10,7 @@ import { Modules } from 'openland-modules/Modules';
 import { ErrorText } from 'openland-errors/ErrorText';
 import { InvitesOrganizationRepository } from 'openland-module-invites/repositories/InvitesOrganizationRepository';
 import { Context } from 'openland-utils/Context';
+import { Emails } from '../../openland-module-email/Emails';
 
 @injectable()
 export class InvitesMediator {
@@ -72,6 +73,8 @@ export class InvitesMediator {
             if (orgInvite) {
                 orgInvite.joined = true;
             }
+            await Emails.sendMemberJoinedEmails(ctx, invite.oid, uid);
+
             return IDs.Organization.serialize(invite.oid);
 
         });

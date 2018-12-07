@@ -40,7 +40,7 @@ export class HooksModule {
      */
 
     onUserJoined = async (ctx: Context, uid: number, oid: number) => {
-        // await Emails.sendMemberJoinedEmails(oid, uid, tx);
+        // await Emails.sendMemberJoinedEmails(ctx, oid, uid);
         let chat = await Modules.Messaging.room.resolveOrganizationChat(ctx, oid);
         let profile = await Modules.Users.profileById(ctx, uid);
         await Modules.Messaging.sendMessage(ctx, chat.id, uid, { message: `${profile!.firstName} has joined organization`, isService: true, isMuted: true });

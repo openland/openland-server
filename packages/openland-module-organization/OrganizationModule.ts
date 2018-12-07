@@ -71,6 +71,7 @@ export class OrganizationModule {
             if (await this.repo.activateOrganization(ctx, id)) {
                 for (let m of await FDB.OrganizationMember.allFromOrganization(ctx, 'joined', id)) {
                     await Modules.Users.activateUser(ctx, m.uid);
+                    await Emails.sendAccountActivatedEmail(ctx, id);
                     let profile = await FDB.UserProfile.findById(ctx, m.uid);
                     if (profile && !profile.primaryOrganization) {
                         profile.primaryOrganization = id;
@@ -178,6 +179,8 @@ export class OrganizationModule {
                     }
                     await profile.flush();
                 }
+
+                await Emails.sendMemberRemovedEmail(ctx, oid, uid);
                 return true;
             }
 
@@ -198,7 +201,7 @@ export class OrganizationModule {
             if (await this.isUserOwner(ctx, uid, oid)) {
                 throw new AccessDeniedError('Owner role can\'t be changed');
             }
-
+            await Emails.sendMembershipLevelChangedEmail(ctx, oid, uid);
             return await this.repo.updateMembershipRole(ctx, uid, oid, role);
         });
     }
