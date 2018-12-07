@@ -265,5 +265,18 @@ export const Emails = {
                 code
             }
         });
-    }
+    },
+    async sendRoomInviteEmail(ctx: Context, email: string) {
+        // await Modules.Email.enqueueEmail(ctx, {
+        //     subject: 'Debug email',
+        //     templateId: TEMPLATE_INVITE,
+        //     to: email,
+        //     args: {
+        //         customText: 'hello',
+        //         inviteLink: 'http://test.com/',
+        //         'organizationName': 'Debug',
+        //         'userWelcome': 'hello'
+        //     }
+        // });
+    },
 };
