@@ -27,11 +27,11 @@ export const PostTemplates = {
     },
     OFFICE_HOURS: {
         buttons: ApplyKeyboard,
-        APPLY_TEXT: templated<PostTemplateInterface>('🙌  {{post_author}} — {{responder}} is responding to your post “{{post_title}}” in {{chat}}.'),
+        APPLY_TEXT: templated<PostTemplateInterface>('🙌  {{post_author}} — {{responder}} is responding to your post “{{post_title}}” in {{chat}}.\nNow you can chat!'),
     },
     REQUEST_FOR_STARTUPS: {
         buttons: ApplyRecommendKeyboard,
-        APPLY_TEXT: templated<PostTemplateInterface>('🙌  {{Post author Full name}} — {{Responder Full name}} is responding to your post “{{Post title}}” in {{Chat name+link}}.'),
-        RECOMMEND_TEXT: templated<PostTemplateInterface>('🙌  {{Post author Full name}} — {{Responder Full name}} is responding to your post “{{Post title}}” in {{Chat name+link}}.'),
+        APPLY_TEXT: templated<PostTemplateInterface>('🙌  {{post_author}} — {{responder}} is responding to your post “{{post_title}}” in {{chat}}.\nNow you can chat!'),
+        RECOMMEND_TEXT: templated<PostTemplateInterface>('🙌  {{post_author}} — {{responder}} is interested to make a recommendation following up to your post “{{post_title}}” in {{chat}}.'),
     }
 };

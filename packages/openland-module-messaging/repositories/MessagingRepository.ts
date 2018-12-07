@@ -40,7 +40,8 @@ export class MessagingRepository {
                 title: message.title,
                 buttons: message.buttons,
                 postType: message.postType,
-                attachments: message.attachments
+                attachments: message.attachments,
+                complexMentions: message.complexMentions
             });
 
             //

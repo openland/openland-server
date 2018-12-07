@@ -3,7 +3,15 @@ import { IdsFactory, IDs } from 'openland-module-api/IDs';
 import { Modules } from 'openland-modules/Modules';
 import { IDMailformedError } from 'openland-errors/IDMailformedError';
 import { FDB } from 'openland-module-db/FDB';
-import { Conversation, RoomProfile, Message, RoomParticipant, ChannelInvitation, ChannelLink, UserDialogSettings } from 'openland-module-db/schema';
+import {
+    Conversation,
+    RoomProfile,
+    Message,
+    RoomParticipant,
+    ChannelInvitation,
+    ChannelLink,
+    UserDialogSettings,
+} from '../../openland-module-db/schema';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { Sanitizer } from 'openland-utils/Sanitizer';
@@ -11,7 +19,7 @@ import { validate, defined, stringNotEmpty, enumString, optional, mustBeArray, e
 import { inTx } from 'foundation-orm/inTx';
 import { AppContext } from 'openland-modules/AppContext';
 import { QueryParser } from 'openland-utils/QueryParser';
-import { MessageAttachment } from '../MessageInput';
+import { MessageAttachment, MessageMention } from '../MessageInput';
 
 type RoomRoot = Conversation | number;
 
@@ -182,6 +190,7 @@ export default {
         alphaType: async (src: Message) => src.type ? src.type : 'MESSAGE',
         alphaPostType: async (src: Message) => src.postType,
         alphaTitle: async (src: Message) => src.title,
+        alphaMentions: async (src: Message) => src.complexMentions
     },
     RoomMember: {
         user: async (src: RoomParticipant, args: {}, ctx: AppContext) => await FDB.User.findById(ctx, src.uid),
@@ -229,6 +238,26 @@ export default {
                 return null;
             }
         }
+    },
+
+    Mention: {
+        __resolveType(obj: MessageMention) {
+            if (obj.type === 'User') {
+                return 'UserMention';
+            } else if (obj.type === 'SharedRoom') {
+                return 'SharedRoomMention';
+            }
+
+            throw new Error('Unknown mention type');
+        }
+    },
+
+    UserMention: {
+        user: (src, _, ctx) => Modules.Users.profileById(ctx, src.id)
+    },
+
+    SharedRoomMention: {
+        sharedRoom: (src, _, ctx) => FDB.ConversationRoom.findById(ctx, src.id)
     },
 
     Query: {

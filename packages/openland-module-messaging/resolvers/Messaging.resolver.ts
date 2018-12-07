@@ -320,7 +320,12 @@ export default {
 
                 await Modules.Messaging.sendMessage(ctx, room.id, uid!, {
                     message: postText(textVars),
-                    isService: true
+                    isService: true,
+                    complexMentions: [
+                        { type: 'User', id: postAuthor!.id },
+                        { type: 'User', id: responder!.id },
+                        { type: 'SharedRoom', id: message.cid },
+                    ]
                 });
 
                 // if (isNewChat) {

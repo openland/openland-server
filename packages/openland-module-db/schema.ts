@@ -4107,6 +4107,7 @@ export interface MessageShape {
     type?: string| null;
     title?: string| null;
     postType?: string| null;
+    complexMentions?: any| null;
     isMuted: boolean;
     isService: boolean;
     deleted?: boolean| null;
@@ -4309,6 +4310,17 @@ export class Message extends FEntity {
         this._value.postType = value;
         this.markDirty();
     }
+    get complexMentions(): any | null {
+        let res = this._value.complexMentions;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set complexMentions(value: any | null) {
+        this._checkIsWritable();
+        if (value === this._value.complexMentions) { return; }
+        this._value.complexMentions = value;
+        this.markDirty();
+    }
     get isMuted(): boolean {
         return this._value.isMuted;
     }
@@ -4366,6 +4378,7 @@ export class MessageFactory extends FEntityFactory<Message> {
             { name: 'type', type: 'string' },
             { name: 'title', type: 'string' },
             { name: 'postType', type: 'string' },
+            { name: 'complexMentions', type: 'json' },
             { name: 'isMuted', type: 'boolean' },
             { name: 'isService', type: 'boolean' },
             { name: 'deleted', type: 'boolean' },

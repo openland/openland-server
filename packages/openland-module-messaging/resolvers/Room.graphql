@@ -59,6 +59,16 @@ input RoomUpdateInput {
     socialImageRef: ImageRefInput
 }
 
+type UserMention {
+    user: User!
+}
+
+type SharedRoomMention {
+    sharedRoom: SharedRoom!
+}
+
+union Mention = UserMention | SharedRoomMention
+
 type RoomMessage {
     id: ID!
     message: String
@@ -82,6 +92,7 @@ type RoomMessage {
     alphaType: MessageType!
     alphaTitle: String
     alphaPostType: PostMessageType
+    alphaMentions: [Mention!]
 }
 
 type RoomMember {

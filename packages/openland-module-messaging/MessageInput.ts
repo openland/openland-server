@@ -23,6 +23,11 @@ export type MessageAttachment = {
     filePreview?: string | null;
 };
 
+export type MessageMention = {
+    type: 'User' | 'SharedRoom'
+    id: number;
+};
+
 export interface MessageInput {
     message?: string | null;
     file?: string | null;
@@ -41,4 +46,5 @@ export interface MessageInput {
     buttons?: MessageButton[][] | null;
     attachments?: MessageAttachment[] | null;
     postType?: string | null;
+    complexMentions?: MessageMention[] | null;
 }

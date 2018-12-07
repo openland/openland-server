@@ -7,6 +7,7 @@ import {
     UserProfile
 } from '../../openland-module-db/schema';
 import { GQL } from './SchemaSpec';
+import { MessageMention } from '../../openland-module-messaging/MessageInput';
 
 //
 //  Root types
@@ -145,4 +146,7 @@ export namespace GQLRoots {
     export type RoomSuperRoot = any;
     export type MessageAttachmentRoot = GQL.MessageAttachment;
     export type MessageButtonRoot = GQL.MessageButton;
+    export type MentionRoot = any;
+    export type UserMentionRoot = MessageMention;
+    export type SharedRoomMentionRoot = MessageMention;
 }

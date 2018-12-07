@@ -415,6 +415,7 @@ const Schema = declareSchema(() => {
         field('type', 'string').nullable();
         field('title', 'string').nullable();
         field('postType', 'string').nullable();
+        field('complexMentions', 'json').nullable();
 
         field('isMuted', 'boolean');
         field('isService', 'boolean');
