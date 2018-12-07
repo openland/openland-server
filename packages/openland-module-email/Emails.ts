@@ -1,5 +1,5 @@
 import { Modules } from 'openland-modules/Modules';
-import { OrganizationInviteLink } from 'openland-module-db/schema';
+import { ChannelInvitation, OrganizationInviteLink } from 'openland-module-db/schema';
 import { IDs } from 'openland-module-api/IDs';
 import { FDB } from 'openland-module-db/FDB';
 import { inTx } from 'foundation-orm/inTx';
@@ -16,6 +16,9 @@ const TEMPLATE_UNREAD_MESSAGES = '02787351-db1c-49b5-afbf-3d63a3b7fd76';
 const TEMPLATE_UNREAD_MESSAGE = 'd3c583e1-9418-48ba-b719-4230e1e1d43d';
 const TEMPLATE_SIGNUP_CODE = '69496416-42cc-441d-912f-a918b968e34a';
 const TEMPLATE_SIGIN_CODE = '89aa70e4-5ac2-449f-b3ee-35df0df86cbe';
+const TEMPLATE_ROOM_INVITE = '3650c0cb-af99-403d-ad30-0b68af21f5ef';
+const TEMPLATE_PRIVATE_ROOM_INVITE = 'e988e7dd-ad37-4adc-9de9-cd55e012720f';
+const TEMPLATE_ROOM_INVITE_ACCEPTED = '5de5b56b-ebec-40b8-aeaf-360af17c213b';
 
 const loadUserState = async (ctx: Context, uid: number) => {
     let user = await FDB.User.findById(ctx, uid);
@@ -192,6 +195,7 @@ export const Emails = {
 
             let domain = process.env.APP_ENVIRONMENT === 'production' ? 'https://app.openland.com/join/' : 'http://localhost:3000/join/';
             let orgProfile = (await FDB.OrganizationProfile.findById(ctx, oid))!;
+
             await Modules.Email.enqueueEmail(ctx, {
                 subject: `Join ${orgProfile.name!} at Openland`,
                 templateId: TEMPLATE_INVITE,
@@ -266,17 +270,86 @@ export const Emails = {
             }
         });
     },
-    async sendRoomInviteEmail(ctx: Context, email: string) {
-        // await Modules.Email.enqueueEmail(ctx, {
-        //     subject: 'Debug email',
-        //     templateId: TEMPLATE_INVITE,
-        //     to: email,
-        //     args: {
-        //         customText: 'hello',
-        //         inviteLink: 'http://test.com/',
-        //         'organizationName': 'Debug',
-        //         'userWelcome': 'hello'
-        //     }
-        // });
+    async sendRoomInviteEmail(ctx: Context, uid: number, email: string, roomId: number, invite: ChannelInvitation) {
+        let avatar = await genAvatar(ctx, uid);
+        let room = await FDB.ConversationRoom.findById(ctx, roomId);
+        let roomProfile = await FDB.RoomProfile.findById(ctx, roomId);
+        let roomTitle = await Modules.Messaging.room.resolveConversationTitle(ctx, roomId, uid);
+        let userProfile = await Modules.Users.profileById(ctx, uid);
+
+        let org = userProfile!.primaryOrganization ? await FDB.OrganizationProfile.findById(ctx, userProfile!.primaryOrganization!) : null;
+        let domain = process.env.APP_ENVIRONMENT === 'production' ? 'https://app.openland.com/joinChannel/' : 'http://localhost:3000/joinChannel/';
+
+        await Modules.Email.enqueueEmail(ctx, {
+            subject: `Join ${roomTitle} room at Openland`,
+            templateId: room!.kind === 'public' ? TEMPLATE_ROOM_INVITE : TEMPLATE_PRIVATE_ROOM_INVITE,
+            to: email,
+            args: {
+                link: domain + invite.id,
+                avatar: avatar,
+                roomDescription: roomProfile!.description || '',
+                firstName: userProfile!.firstName,
+                lastName: userProfile!.lastName || '',
+                organizationName: org ? org.name : '',
+                roomName: roomTitle
+            }
+        });
+    },
+    async sendRoomInviteAcceptedEmail(ctx: Context, uid: number, invite: ChannelInvitation) {
+
+        let inviteCreator = await Modules.Users.profileById(ctx, invite.creatorId);
+        if (!inviteCreator!.email) {
+            return;
+        }
+
+        let avatar = await genAvatar(ctx, uid);
+        let roomId = invite.channelId;
+        let roomTitle = await Modules.Messaging.room.resolveConversationTitle(ctx, roomId, uid);
+        let userProfile = await Modules.Users.profileById(ctx, uid);
+        let userName = userProfile!.firstName + (userProfile!.lastName ? userProfile!.lastName : '');
+
+        await Modules.Email.enqueueEmail(ctx, {
+            subject: `${userName} has accepted your invitation`,
+            templateId: TEMPLATE_ROOM_INVITE_ACCEPTED,
+            to: inviteCreator!.email!,
+            args: {
+                link: `https://next.openland.com/mail/${IDs.User.serialize(uid)}`,
+                avatar: avatar,
+                firstName: userProfile!.firstName,
+                lastName: userProfile!.lastName || '',
+                roomName: roomTitle
+            }
+        });
     },
 };
+
+const AvatarColorusArr = [
+    'linear-gradient(138deg, #ffb600, #ff8d00)',
+    'linear-gradient(138deg, #ff655d, #ff3d33)',
+    'linear-gradient(138deg, #59d23c, #21ac00)',
+    'linear-gradient(138deg, #11b2ff, #1970ff)',
+    'linear-gradient(138deg, #00d1d4, #00afc8)',
+    'linear-gradient(138deg, #aa22ff, #8e00e6)'
+];
+
+function doSimpleHash(key: string): number {
+    var h = 0, l = key.length, i = 0;
+    if (l > 0) {
+        while (i < l) {
+            h = (h << 5) - h + key.charCodeAt(i++) | 0;
+        }
+    }
+    return Math.abs(h);
+}
+
+async function genAvatar(ctx: Context, uid: number) {
+    let profile = await Modules.Users.profileById(ctx, uid);
+    if (profile!.picture) {
+        let url = `https://ucarecdn.com/${profile!.picture.uuid}/-/preview/100x100/`;
+        return `<img style="display: inline-block; vertical-align: top; width: 26px; height: 26px; margin-top: 6px; border-radius: 13px; margin-right: 6px;" src="${url}" />`;
+    } else {
+        let name = profile!.firstName[0] + (profile!.lastName ? profile!.lastName![0] : '');
+        let color = AvatarColorusArr[Math.abs(doSimpleHash(IDs.User.serialize(uid))) % AvatarColorusArr.length];
+        return `<span style="display: inline-block; vertical-align: top; width: 26px; height: 26px; margin-top: 6px; border-radius: 13px; margin-right: 6px; background-image: ${color}; color: #ffffff; text-align: center; font-size: 11px; font-weight: 600; line-height: 26px;">${name}</span>`;
+    }
+}

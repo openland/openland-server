@@ -122,7 +122,6 @@ export async function sendCode(req: express.Request, response: express.Response)
                 let existing = (await FDB.User.findAll(ctx))
                     .find((v) => v.email === email || v.authId === 'email|' + email as any);
 
-
                 await Emails.sendActivationCodeEmail(ctx, email, code, !!existing);
             } else {
                 code = testEmailCode(email);

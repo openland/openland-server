@@ -2,7 +2,7 @@ import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { InvitesRoomRepository } from '../repositories/InvitesRoomRepository';
 import { inTx } from 'foundation-orm/inTx';
-import { ChannelInviteEmails } from 'openland-module-messaging/emails/ChannelInviteEmails';
+// import { ChannelInviteEmails } from 'openland-module-messaging/emails/ChannelInviteEmails';
 import { RoomMediator } from 'openland-module-messaging/mediators/RoomMediator';
 import { NotFoundError } from 'openland-errors/NotFoundError';
 import { IDs } from 'openland-module-api/IDs';
@@ -24,7 +24,8 @@ export class InvitesMediator {
     async createRoomInvite(parent: Context, channelId: number, uid: number, email: string, emailText?: string, firstName?: string, lastName?: string) {
         return await inTx(parent, async (ctx) => {
             let invite = await this.repoChannels.createChannelInvite(ctx, channelId, uid, email, emailText, firstName, lastName);
-            await ChannelInviteEmails.sendChannelInviteEmail(ctx, invite);
+            // await ChannelInviteEmails.sendChannelInviteEmail(ctx, invite);
+            await Emails.sendRoomInviteEmail(ctx, uid, invite.email, channelId, invite);
             return invite;
         });
     }
@@ -38,7 +39,9 @@ export class InvitesMediator {
             await this.rooms.joinRoom(ctx, invite.channelId, uid, false, true);
             await Modules.Users.activateUser(ctx, uid);
             await this.activateUserOrgs(ctx, uid);
-
+            if (invite.entityName === 'ChannelInvitation') {
+                await Emails.sendRoomInviteAcceptedEmail(ctx, uid, invite);
+            }
             return invite.channelId;
         });
     }
