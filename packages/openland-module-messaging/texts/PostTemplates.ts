@@ -18,20 +18,20 @@ type PostTemplateInterface = {
 export const PostTemplates = {
     BLANK: {
         buttons: RespondKeyboard,
-        RESPOND_TEXT: templated<PostTemplateInterface>('🙌 {{post_author}} — {{responder}} is responding to your post “{{post_title}}” in {{chat}}.\nNow you can chat!'),
+        RESPOND_TEXT: templated<PostTemplateInterface>('🙌 @{{post_author}} — @{{responder}} is responding to your post “{{post_title}}” in @{{chat}}.\nNow you can chat!'),
     },
     JOB_OPPORTUNITY: {
         buttons: ApplyRecommendKeyboard,
-        APPLY_TEXT: templated<PostTemplateInterface>('🙌 {{post_author}} — {{responder}} is interested in your job opportunity “{{post_title}}” in {{chat}}.\n{{responder_name}} — as the next step, please, tell {{post_author_name}} a little bit about yourself.'),
-        RECOMMEND_TEXT: templated<PostTemplateInterface>('🙌  {{post_author}} — {{responder}} is looking to recommend a startup in response to your post “{{post_title}}” in {{chat}}.\n{{responder_name}} — as the next step, please, describe a startup, tell how well you know the founders, and express the strength of your recommendation'),
+        APPLY_TEXT: templated<PostTemplateInterface>('🙌 @{{post_author}} — @{{responder}} is interested in your job opportunity “{{post_title}}” in @{{chat}}.\n{{responder_name}} — as the next step, please, tell {{post_author_name}} a little bit about yourself.'),
+        RECOMMEND_TEXT: templated<PostTemplateInterface>('🙌  @{{post_author}} — @{{responder}} is looking to recommend a startup in response to your post “{{post_title}}” in @{{chat}}.\n{{responder_name}} — as the next step, please, describe a startup, tell how well you know the founders, and express the strength of your recommendation'),
     },
     OFFICE_HOURS: {
         buttons: ApplyKeyboard,
-        APPLY_TEXT: templated<PostTemplateInterface>('🙌  {{post_author}} — {{responder}} is responding to your post “{{post_title}}” in {{chat}}.\nNow you can chat!'),
+        APPLY_TEXT: templated<PostTemplateInterface>('🙌  @{{post_author}} — @{{responder}} is responding to your post “{{post_title}}” in @{{chat}}.\nNow you can chat!'),
     },
     REQUEST_FOR_STARTUPS: {
         buttons: ApplyRecommendKeyboard,
-        APPLY_TEXT: templated<PostTemplateInterface>('🙌  {{post_author}} — {{responder}} is responding to your post “{{post_title}}” in {{chat}}.\nNow you can chat!'),
-        RECOMMEND_TEXT: templated<PostTemplateInterface>('🙌  {{post_author}} — {{responder}} is interested to make a recommendation following up to your post “{{post_title}}” in {{chat}}.'),
+        APPLY_TEXT: templated<PostTemplateInterface>('🙌  @{{post_author}} — @{{responder}} is responding to your post “{{post_title}}” in {{chat}}.\nNow you can chat!'),
+        RECOMMEND_TEXT: templated<PostTemplateInterface>('🙌  @{{post_author}} — @{{responder}} is interested to make a recommendation following up to your post “{{post_title}}” in @{{chat}}.'),
     }
 };
