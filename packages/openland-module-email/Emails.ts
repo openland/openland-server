@@ -392,7 +392,7 @@ export const Emails = {
     },
     async sendRoomInviteAcceptedEmail(ctx: Context, uid: number, invite: ChannelInvitation) {
 
-        let inviteCreator = await Modules.Users.profileById(ctx, invite.creatorId);
+        let inviteCreator = await FDB.User.findById(ctx, invite.creatorId);
         if (!inviteCreator!.email) {
             return;
         }
