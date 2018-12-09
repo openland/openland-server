@@ -1,7 +1,6 @@
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { withPermission } from '../openland-module-api/Resolvers';
 import { Emails } from '../openland-module-email/Emails';
-import { Modules } from '../openland-modules/Modules';
 import { FDB } from '../openland-module-db/FDB';
 import { Message } from '../openland-module-db/schema';
 import { IDs } from '../openland-module-api/IDs';
@@ -12,7 +11,8 @@ export default {
             let uid = ctx.auth.uid!;
             let oid = ctx.auth.oid!;
             let type = args.type;
-            let profile = await Modules.Users.profileById(ctx, uid);
+            let user = await FDB.User.findById(ctx, uid);
+            let email = user!.email!;
             let isProd = process.env.APP_ENVIRONMENT === 'production';
 
             if (type === 'WELCOME') {
@@ -30,7 +30,7 @@ export default {
                     firstName: 'Test',
                     lastName: 'Test',
                     uid,
-                    email: profile!.email,
+                    email: email,
                     entityName: '',
                     id: -1,
                     oid,
@@ -45,9 +45,9 @@ export default {
             } else if (type === 'MEMBER_JOINED') {
                 await Emails.sendMemberJoinedEmails(ctx, oid, uid, uid);
             } else if (type === 'SIGNUP_CODE') {
-                await Emails.sendActivationCodeEmail(ctx, profile!.email!, '00000', false);
+                await Emails.sendActivationCodeEmail(ctx, email, '00000', false);
             } else if (type === 'SIGIN_CODE') {
-                await Emails.sendActivationCodeEmail(ctx, profile!.email!, '00000', true);
+                await Emails.sendActivationCodeEmail(ctx, email, '00000', true);
             } else if (type === 'UNREAD_MESSAGE') {
                 let dialogs = await FDB.UserDialog.rangeFromUserWithCursor(ctx, uid, 10, undefined, true);
                 let dialog = dialogs.items[0];
@@ -67,11 +67,11 @@ export default {
             } else if (type === 'PUBLIC_ROOM_INVITE') {
                 let cid = IDs.Conversation.parse(isProd ? 'AL1ZPXB9Y0iq3yp4rx03cvMk9d' : 'd5z2ppJy6JSXx4OA00lxSJXmp6');
 
-                await Emails.sendRoomInviteEmail(ctx, uid, profile!.email!, cid, { id: 'xxxxx'} as any);
+                await Emails.sendRoomInviteEmail(ctx, uid, email, cid, { id: 'xxxxx'} as any);
             } else if (type === 'PRIVATE_ROOM_INVITE') {
                 let cid = IDs.Conversation.parse(isProd ? 'qljZr9WbMKSRlBZWbDo5U9qZW4' : 'vBDpxxEQREhQyOBB6l7LUDMwPE');
 
-                await Emails.sendRoomInviteEmail(ctx, uid, profile!.email!, cid, { id: 'xxxxx'} as any);
+                await Emails.sendRoomInviteEmail(ctx, uid, email, cid, { id: 'xxxxx'} as any);
             } else if (type === 'ROOM_INVITE_ACCEPTED') {
                 let cid = IDs.Conversation.parse(isProd ? 'AL1ZPXB9Y0iq3yp4rx03cvMk9d' : 'd5z2ppJy6JSXx4OA00lxSJXmp6');
 
