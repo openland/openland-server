@@ -147,16 +147,24 @@ export const Emails = {
             });
         }
     },
-    async sendAccountActivatedEmail(parent: Context, oid: number) {
+    async sendAccountActivatedEmail(parent: Context, oid: number, uid?: number) {
         await inTx(parent, async (ctx) => {
             let org = await FDB.Organization.findById(ctx, oid);
             if (!org) {
                 throw Error('Unable to find organization');
             }
+
             let orgProfile = await FDB.OrganizationProfile.findById(ctx, oid);
-            let members = await FDB.OrganizationMember.allFromOrganization(ctx, 'joined', oid);
+            let members: number[] = [];
+
+            if (uid) {
+                members = [uid];
+            } else {
+                members = (await FDB.OrganizationMember.allFromOrganization(ctx, 'joined', oid)).map(m => m.uid);
+            }
+
             for (let m of members) {
-                let user = await loadUserState(ctx, m.uid);
+                let user = await loadUserState(ctx, m);
                 await Modules.Email.enqueueEmail(ctx, {
                     subject: 'Organization account activated',
                     templateId: TEMPLATE_ACTIVATEED,
@@ -169,16 +177,23 @@ export const Emails = {
             }
         });
     },
-    async sendAccountDeactivatedEmail(parent: Context, oid: number) {
+    async sendAccountDeactivatedEmail(parent: Context, oid: number, uid?: number) {
         await inTx(parent, async (ctx) => {
             let org = await FDB.Organization.findById(ctx, oid);
             if (!org) {
                 throw Error('Unable to find organization');
             }
             let orgProfile = (await FDB.OrganizationProfile.findById(ctx, oid))!;
-            let members = await FDB.OrganizationMember.allFromOrganization(ctx, 'joined', oid);
+            let members: number[] = [];
+
+            if (uid) {
+                members = [uid];
+            } else {
+                members = (await FDB.OrganizationMember.allFromOrganization(ctx, 'joined', oid)).map(m => m.uid);
+            }
+
             for (let m of members) {
-                let user = await loadUserState(ctx, m.uid);
+                let user = await loadUserState(ctx, m);
                 await Modules.Email.enqueueEmail(ctx, {
                     subject: 'Organization account deactivated',
                     templateId: TEMPLATE_DEACTIVATED,
@@ -233,7 +248,7 @@ export const Emails = {
             let orgProfile = (await FDB.OrganizationProfile.findById(ctx, oid))!;
 
             await Modules.Email.enqueueEmail(ctx, {
-                subject: `Your role at ${orgProfile.name!}} was updated`,
+                subject: `Your role at ${orgProfile.name!} was updated`,
                 templateId: TEMPLATE_MEMBERSHIP_LEVEL_CHANGED,
                 to: user.email,
                 args: {
@@ -266,6 +281,7 @@ export const Emails = {
 
             let domain = process.env.APP_ENVIRONMENT === 'production' ? 'https://app.openland.com/join/' : 'http://localhost:3000/join/';
             let orgProfile = (await FDB.OrganizationProfile.findById(ctx, oid))!;
+            let avatar = await genAvatar(ctx, invite.uid);
 
             await Modules.Email.enqueueEmail(ctx, {
                 subject: `Join ${orgProfile.name!} at Openland`,
@@ -279,12 +295,13 @@ export const Emails = {
                     inviteLink: domain + invite.id,
                     link: domain + invite.id,
                     organizationName: orgProfile.name!!,
+                    avatar
                 }
             });
         });
     },
 
-    async sendMemberJoinedEmails(parent: Context, oid: number, memberId: number) {
+    async sendMemberJoinedEmails(parent: Context, oid: number, memberId: number, uid?: number) {
         await inTx(parent, async (ctx) => {
             let org = await FDB.Organization.findById(ctx, oid);
             if (!org) {
@@ -297,10 +314,17 @@ export const Emails = {
                 throw Error('Internal inconsistency');
             }
 
-            let organizationMembers = await Modules.Orgs.findOrganizationMembers(ctx, oid);
+            let members: number[] = [];
+
+            if (uid) {
+                members = [uid];
+            } else {
+                members  =  (await Modules.Orgs.findOrganizationMembers(ctx, oid)).map(m => m.id);
+            }
+
             let orgProfile = (await FDB.OrganizationProfile.findById(ctx, oid))!;
-            for (let member of organizationMembers) {
-                let user = await loadUserState(ctx, member.id);
+            for (let member of members) {
+                let user = await loadUserState(ctx, member);
 
                 await Modules.Email.enqueueEmail(ctx, {
                     subject: 'Invitation accepted',
