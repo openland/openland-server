@@ -114,7 +114,7 @@ export const Emails = {
             text += names.join(', ');
 
             if (senders.length > 3) {
-                text += `and ${senders.length - 3} more`;
+                text += ` and ${senders.length - 3} more`;
             }
 
             text += '.';
