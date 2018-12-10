@@ -52,6 +52,7 @@ type OrganizationProfile {
 }
 
 input CreateOrganizationInput {
+    id: ID
     name: String!
     website: String
     personal: Boolean!

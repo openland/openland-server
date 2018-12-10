@@ -1,6 +1,7 @@
 import { ImageRef } from 'openland-module-media/ImageRef';
 
 export interface OrganizatinProfileInput {
+    id?: number | null | undefined;
     name?: string | null | undefined;
     website?: string | null | undefined;
     personal?: boolean | null | undefined;

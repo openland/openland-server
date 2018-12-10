@@ -31,32 +31,45 @@ export class OrganizationRepository {
             let orgId = ++seq.value;
             await seq.flush();
 
-            // Create organization
-            let organization = await this.entities.Organization.create(ctx, orgId, {
-                kind: input.isCommunity ? 'community' : 'organization',
-                ownerId: uid,
-                status: opts.status,
-                editorial: opts.editorial,
-            });
+            let organization;
 
-            // Create organization profile
-            await this.entities.OrganizationProfile.create(ctx, orgId, {
-                name: Sanitizer.sanitizeString(input.name)!,
-                website: Sanitizer.sanitizeString(input.website),
-                photo: Sanitizer.sanitizeImageRef(input.photoRef),
-                about: Sanitizer.sanitizeString(input.about)
-            });
+            if (input.id) {
+                // find organization
+                organization = await this.entities.Organization.findById(ctx, input.id);
 
-            // Create editorial data
-            await this.entities.OrganizationEditorial.create(ctx, orgId, {
-                listed: true,
-                featured: false
-            });
+                if (!organization) {
+                    throw Error(`Did not found organization with id ${input.id}`);
+                }
 
-            // Add owner to organization
-            await this.entities.OrganizationMember.create(ctx, organization.id, uid, {
-                status: 'joined', role: 'admin', invitedBy: uid
-            });
+                await this.addUserToOrganization(ctx, uid, organization.id, null);
+            } else {
+                // Create organization
+                organization = await this.entities.Organization.create(ctx, orgId, {
+                    kind: input.isCommunity ? 'community' : 'organization',
+                    ownerId: uid,
+                    status: opts.status,
+                    editorial: opts.editorial,
+                });
+
+                // Create organization profile
+                await this.entities.OrganizationProfile.create(ctx, orgId, {
+                    name: Sanitizer.sanitizeString(input.name)!,
+                    website: Sanitizer.sanitizeString(input.website),
+                    photo: Sanitizer.sanitizeImageRef(input.photoRef),
+                    about: Sanitizer.sanitizeString(input.about)
+                });
+
+                // Create editorial data
+                await this.entities.OrganizationEditorial.create(ctx, orgId, {
+                    listed: true,
+                    featured: false
+                });
+
+                // Add owner to organization
+                await this.entities.OrganizationMember.create(ctx, organization.id, uid, {
+                    status: 'joined', role: 'admin', invitedBy: uid
+                });
+            }
 
             return organization;
         });
@@ -87,7 +100,7 @@ export class OrganizationRepository {
         });
     }
 
-    async addUserToOrganization(parent: Context, uid: number, oid: number, by: number) {
+    async addUserToOrganization(parent: Context, uid: number, oid: number, by: number | null) {
         return await inTx(parent, async (ctx) => {
             let org = await this.entities.Organization.findById(ctx, oid);
             if (!org) {
