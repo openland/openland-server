@@ -1,5 +1,5 @@
 import { Modules } from 'openland-modules/Modules';
-import { ChannelInvitation, Message, OrganizationInviteLink, UserProfile } from 'openland-module-db/schema';
+import { ChannelInvitation, Message, OrganizationInviteLink } from 'openland-module-db/schema';
 import { IDs } from 'openland-module-api/IDs';
 import { FDB } from 'openland-module-db/FDB';
 import { inTx } from 'foundation-orm/inTx';
@@ -64,57 +64,26 @@ export const Emails = {
             args: user.args
         });
     },
-    async sendUnreadMesages(ctx: Context, uid: number, count: number) {
-        let user = await loadUserState(ctx, uid);
-        await Modules.Email.enqueueEmail(ctx, {
-            subject: count === 1 ? 'You’ve got a new message' : 'You’ve got new messages',
-            templateId: count === 1 ? TEMPLATE_UNREAD_MESSAGE : TEMPLATE_UNREAD_MESSAGES,
-            to: user.email,
-            args: {
-                messageCount: `${count}`,
-                ...user.args
-            }
-        });
-    },
     async sendUnreadMessages(ctx: Context, uid: number, messages: Message[]) {
         let user = await loadUserState(ctx, uid);
 
         if (messages.length > 1) {
-            let senderIds: Set<number> = new Set();
 
-            messages.forEach(msg => {
-                senderIds.add(msg.uid);
-            });
+            let chatNames = new Set<string>();
 
-            let senderIdsArr = [...senderIds];
-            let header = '';
-
-            let avatars: string[] = [];
-            for (let senderId of senderIdsArr) {
-                avatars.push(await genAvatar(ctx, senderId));
+            for (let msg of messages) {
+                let chatName = await Modules.Messaging.room.resolveConversationTitle(ctx, msg.cid, uid);
+                chatNames.add(`<strong>${chatName}</strong>`);
             }
 
-            header += avatars.slice(0, 3);
-
-            if (senderIdsArr.length > 3) {
-                header += `<span style="display: inline-block; vertical-align: top; color: #000000; font-size: 13px; line-height: 15px; font-weight: 600; padding-top: 12px; padding-left: 3px; padding-right: 12px;">+${senderIdsArr.length - 3} more</span>`;
-            }
-
-            let senders: (UserProfile|null)[] = await Promise.all(senderIdsArr.map(id => Modules.Users.profileById(ctx, id)));
+            let chatNamesArr = [...chatNames];
 
             let text = 'You have messages from ';
 
-            let names: string[] = [];
-            for (let sender of senders.slice(0, 3)) {
-                let name = sender!.firstName + ' ' + (sender!.lastName ? sender!.lastName! : '');
+            text += chatNamesArr.slice(0, 3).join(', ');
 
-                names.push(`<strong>${name}</strong>`);
-            }
-
-            text += names.join(', ');
-
-            if (senders.length > 3) {
-                text += ` and ${senders.length - 3} more`;
+            if (chatNamesArr.length > 3) {
+                text += ` and ${chatNamesArr.length - 3} more`;
             }
 
             text += '.';
@@ -124,7 +93,6 @@ export const Emails = {
                 templateId: TEMPLATE_UNREAD_MESSAGES,
                 to: user.email,
                 args: {
-                    usersHeader: header,
                     messageCount: `${messages.length}`,
                     text,
                 }
@@ -132,7 +100,6 @@ export const Emails = {
         } else if (messages.length === 1) {
             let senderId = messages[0].uid;
             let userProfile = await Modules.Users.profileById(ctx, senderId);
-            let avatar = await genAvatar(ctx, senderId);
 
             await Modules.Email.enqueueEmail(ctx, {
                 subject: 'You’ve got a new message',
@@ -141,7 +108,6 @@ export const Emails = {
                 args: {
                     firstName: userProfile!.firstName,
                     lastName: userProfile!.lastName || '',
-                    avatar,
                     messageCount: `${messages.length}`,
                 }
             });
