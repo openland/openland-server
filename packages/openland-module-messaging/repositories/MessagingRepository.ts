@@ -96,6 +96,12 @@ export class MessagingRepository {
             if (markAsEdited) {
                 message.edited = true;
             }
+            if (newMessage.title) {
+                message.title = newMessage.title;
+            }
+            if (newMessage.attachments) {
+                message.attachments = newMessage.attachments;
+            }
 
             //
             // Write Event
