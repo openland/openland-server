@@ -23,7 +23,7 @@ export const PostTemplates = {
     JOB_OPPORTUNITY: {
         buttons: ApplyRecommendKeyboard,
         APPLY_TEXT: templated<PostTemplateInterface>('🙌 @{{post_author}} — @{{responder}} is interested in your job opportunity “{{post_title}}” in @{{chat}}.\n{{responder_name}} — as the next step, please, tell {{post_author_name}} a little bit about yourself.'),
-        RECOMMEND_TEXT: templated<PostTemplateInterface>('🙌  @{{post_author}} — @{{responder}} is looking to recommend a startup in response to your post “{{post_title}}” in @{{chat}}.\n{{responder_name}} — as the next step, please, describe a startup, tell how well you know the founders, and express the strength of your recommendation'),
+        RECOMMEND_TEXT: templated<PostTemplateInterface>('🙌  @{{post_author}} — @{{responder}} is looking to recommend a candidate in response to your post “{{post_title}}” in {{chat}}.\n{{post_author_name}} — as the next step, please, describe your recommended candidate, how well do you know them, and share any relevant links.'),
     },
     OFFICE_HOURS: {
         buttons: ApplyKeyboard,
