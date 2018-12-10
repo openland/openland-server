@@ -5,7 +5,7 @@ import { OrganizatinProfileInput } from 'openland-module-organization/Organizati
 import { validate, stringNotEmpty } from 'openland-utils/NewInputValidator';
 import { injectable } from 'inversify';
 import { Context } from 'openland-utils/Context';
-
+import { IDs } from 'openland-module-api/IDs';
 @injectable()
 export class OrganizationRepository {
     readonly entities: AllEntities;
@@ -35,7 +35,7 @@ export class OrganizationRepository {
 
             if (input.id) {
                 // find organization
-                organization = await this.entities.Organization.findById(ctx, input.id);
+                organization = await this.entities.Organization.findById(ctx, IDs.Organization.parse(input.id));
 
                 if (!organization) {
                     throw Error(`Did not found organization with id ${input.id}`);
