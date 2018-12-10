@@ -11,6 +11,7 @@ type OrganizationsConnection {
 extend type Query {
     alphaOrganizations(
         query: String,
+        all: Boolean,
         prefix: String,
         sort: String,
         first: Int!,

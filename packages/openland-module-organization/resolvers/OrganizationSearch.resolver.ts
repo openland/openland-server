@@ -113,7 +113,9 @@ export default {
                 }
             }
 
-            clauses.push({ term: { listed: true } });
+            if (!args.all) {
+                clauses.push({ term: { listed: true } });
+            }
             clauses.push({ term: { kind: 'organization' } });
 
             let hits = await Modules.Search.elastic.client.search({
