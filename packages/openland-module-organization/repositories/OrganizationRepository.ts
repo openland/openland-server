@@ -6,6 +6,7 @@ import { validate, stringNotEmpty } from 'openland-utils/NewInputValidator';
 import { injectable } from 'inversify';
 import { Context } from 'openland-utils/Context';
 import { IDs } from 'openland-module-api/IDs';
+import { FDB } from 'openland-module-db/FDB';
 @injectable()
 export class OrganizationRepository {
     readonly entities: AllEntities;
@@ -42,6 +43,11 @@ export class OrganizationRepository {
                 }
 
                 await this.addUserToOrganization(ctx, uid, organization.id, null);
+                let profile = await FDB.UserProfile.findById(ctx, uid);
+                if (!profile) {
+                    throw Error(`User ${uid} does not have profile`);
+                }
+                profile.primaryOrganization = organization.id;
             } else {
                 // Create organization
                 organization = await this.entities.Organization.create(ctx, orgId, {
