@@ -17,4 +17,5 @@ enum DebugEmailType {
 
 extend type Mutation {
     debugSendEmail(type: DebugEmailType!): Boolean
+    debugCreateTestUser(key: String!, name: String!): Boolean
 }

@@ -4,6 +4,7 @@ import { Emails } from '../openland-module-email/Emails';
 import { FDB } from '../openland-module-db/FDB';
 import { Message } from '../openland-module-db/schema';
 import { IDs } from '../openland-module-api/IDs';
+import { Modules } from '../openland-modules/Modules';
 
 export default {
     Mutation: {
@@ -83,6 +84,10 @@ export default {
                 await Emails.sendRoomInviteAcceptedEmail(ctx, uid, invite as any);
             }
 
+            return true;
+        }),
+        debugCreateTestUser: withPermission('super-admin', async (ctx, args) => {
+            await Modules.Users.createTestUser(ctx, args.key, args.name);
             return true;
         }),
     }

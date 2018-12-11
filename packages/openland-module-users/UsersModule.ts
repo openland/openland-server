@@ -47,6 +47,10 @@ export class UsersModule {
         return await this.repo.createSystemBot(ctx, key, name, photoRef);
     }
 
+    async createTestUser(ctx: Context, key: string, name: string) {
+        return await this.repo.createTestUser(ctx, key, name);
+    }
+
     async createUserProfile(ctx: Context, uid: number, input: ProfileInput) {
         return await this.repo.createUserProfile(ctx, uid, input);
     }

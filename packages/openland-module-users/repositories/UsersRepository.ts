@@ -109,6 +109,13 @@ export class UserRepository {
         return user.id;
     }
 
+    async createTestUser(ctx: Context, key: string, name: string) {
+        let user = await this.createUser(ctx, 'test-user|' + key, 'hello@openland.com');
+        await this.createUserProfile(ctx, user.id, { firstName: name, email: 'hello@openland.com' });
+        await this.activateUser(ctx, user.id);
+        return user.id;
+    }
+
     /*
      * User Settings
      */

@@ -4,7 +4,6 @@ import { Modules } from 'openland-modules/Modules';
 import { inTx } from 'foundation-orm/inTx';
 import { FDB } from 'openland-module-db/FDB';
 import { Message } from '../../openland-module-db/schema';
-import { IDs } from '../../openland-module-api/IDs';
 
 export function startEmailNotificationWorker() {
     staticWorker({ name: 'email_notifications', delay: 15000, startDelay: 3000 }, async (parent) => {
@@ -15,7 +14,6 @@ export function startEmailNotificationWorker() {
                 let state = await Modules.Messaging.getUserNotificationState(ctx, u.uid);
                 let lastSeen = await Modules.Presence.getLastSeen(ctx, u.uid);
                 let tag = 'email_notifications ' + u.uid;
-                console.log('lol', IDs.User.serialize(u.uid), state.readSeq, state.lastEmailSeq, u.seq);
 
                 // Ignore online or never-online users
                 if (lastSeen === null) {
