@@ -10,7 +10,6 @@ import { inTx } from 'foundation-orm/inTx';
 import { Emails } from 'openland-module-email/Emails';
 import { ImageRef } from 'openland-module-media/ImageRef';
 import { Context } from 'openland-utils/Context';
-import { errors } from 'elasticsearch';
 import { NotFoundError } from '../openland-errors/NotFoundError';
 
 @injectable()
