@@ -18,6 +18,7 @@ type Dialog {
 
     topMessage: Message
     betaTopMessage: RoomMessage
+    isMuted: Boolean!
 }
 
 type DialogsConnection {
