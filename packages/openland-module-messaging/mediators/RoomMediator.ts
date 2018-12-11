@@ -4,13 +4,14 @@ import { RoomRepository } from 'openland-module-messaging/repositories/RoomRepos
 import { RoomProfileInput } from 'openland-module-messaging/RoomProfileInput';
 import { inTx } from 'foundation-orm/inTx';
 import { MessagingMediator } from './MessagingMediator';
-import { AllEntities } from 'openland-module-db/schema';
+import { AllEntities, ConversationRoom } from 'openland-module-db/schema';
 import { Modules } from 'openland-modules/Modules';
 import { DeliveryMediator } from './DeliveryMediator';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { NotFoundError } from 'openland-errors/NotFoundError';
 import { UserError } from 'openland-errors/UserError';
 import { Context } from 'openland-utils/Context';
+import { MessageInput } from '../MessageInput';
 
 @injectable()
 export class RoomMediator {
@@ -61,18 +62,17 @@ export class RoomMediator {
 
             // Join room
             if (await this.repo.joinRoom(ctx, cid, uid, request) && !request) {
-                // Send message
-                let name = (await this.entities.UserProfile.findById(ctx, uid))!.firstName;
-                await this.messaging.sendMessage(ctx, uid, cid, {
-                    message: `${name} has joined the room!`,
-                    isService: true,
-                    isMuted: true,
-                    serviceMetadata: {
-                        type: 'user_invite',
-                        userIds: [uid],
-                        invitedById: uid
-                    }
-                });
+
+                let prevMessage = await Modules.Messaging.findTopMessage(ctx, cid);
+
+                if (prevMessage && prevMessage.serviceMetadata && prevMessage.serviceMetadata.type === 'user_invite') {
+                    let uids: number[] = prevMessage.serviceMetadata.userIds;
+                    uids.push(uid);
+
+                    await this.messaging.editMessage(ctx, prevMessage.id, prevMessage.uid, await this.roomJoinMessage(ctx, conv, uid, uids), false);
+                } else {
+                    await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, [uid]));
+                }
             }
 
             return (await this.entities.Conversation.findById(ctx, cid))!;
@@ -81,6 +81,10 @@ export class RoomMediator {
 
     async inviteToRoom(parent: Context, cid: number, uid: number, invites: number[]) {
         return await inTx(parent, async (ctx) => {
+            let conv = await this.entities.ConversationRoom.findById(ctx, cid);
+            if (!conv) {
+                throw new NotFoundError();
+            }
 
             if (invites.length > 0) {
                 // Invite to room
@@ -94,17 +98,17 @@ export class RoomMediator {
 
                 // Send message about joining the room
                 if (res.length > 0) {
-                    let users = res.map((v) => this.entities.UserProfile.findById(ctx, v));
-                    await this.messaging.sendMessage(ctx, uid, cid, {
-                        message: `${(await Promise.all(users)).map(u => u!.firstName).join(', ')} joined the room`,
-                        isService: true,
-                        isMuted: true,
-                        serviceMetadata: {
-                            type: 'user_invite',
-                            userIds: invites,
-                            invitedById: uid
-                        }
-                    });
+
+                    let prevMessage = await Modules.Messaging.findTopMessage(ctx, cid);
+
+                    if (prevMessage && prevMessage.serviceMetadata && prevMessage.serviceMetadata.type === 'user_invite') {
+                        let uids: number[] = prevMessage.serviceMetadata.userIds;
+                        uids.push(...res);
+
+                        await this.messaging.editMessage(ctx, prevMessage.id, prevMessage.uid, await this.roomJoinMessage(ctx, conv, uid, uids), false);
+                    } else {
+                        await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, res));
+                    }
                 }
             }
 
@@ -336,4 +340,32 @@ export class RoomMediator {
         return null;
     }
 
+    private async roomJoinMessageText(parent: Context, room: ConversationRoom, uids: number[]) {
+        let typeName = room.kind === 'group' ? 'group' : 'room';
+
+        if (uids.length === 1) {
+            let name = await Modules.Users.getUserFullName(parent, uids[0]);
+            return `@${name} joined the ${typeName}`;
+        } else if (uids.length === 2) {
+            let name1 = await Modules.Users.getUserFullName(parent, uids[0]);
+            let name2 = await Modules.Users.getUserFullName(parent, uids[1]);
+            return `@${name1} joined the ${typeName} along with @${name2}`;
+        } else {
+            let name = await Modules.Users.getUserFullName(parent, uids[0]);
+            return `@${name} joined the ${typeName} along with ${uids.length - 1} others`;
+        }
+    }
+
+    private async roomJoinMessage(parent: Context, room: ConversationRoom, uid: number, uids: number[]): Promise<MessageInput> {
+        return {
+            message: await this.roomJoinMessageText(parent, room, uids),
+            isService: true,
+            isMuted: true,
+            serviceMetadata: {
+                type: 'user_invite',
+                userIds: uids,
+                invitedById: uid
+            }
+        };
+    }
 }

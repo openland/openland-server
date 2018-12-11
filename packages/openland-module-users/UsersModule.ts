@@ -10,6 +10,8 @@ import { inTx } from 'foundation-orm/inTx';
 import { Emails } from 'openland-module-email/Emails';
 import { ImageRef } from 'openland-module-media/ImageRef';
 import { Context } from 'openland-utils/Context';
+import { errors } from 'elasticsearch';
+import { NotFoundError } from '../openland-errors/NotFoundError';
 
 @injectable()
 export class UsersModule {
@@ -73,5 +75,19 @@ export class UsersModule {
 
     async searchForUsers(ctx: Context, query: string, options?: { uid?: number, limit?: number }) {
         return await this.search.searchForUsers(ctx, query, options);
+    }
+
+    async getUserFullName(ctx: Context, uid: number) {
+        let profile = await this.profileById(ctx, uid);
+
+        if (!profile) {
+            throw new NotFoundError();
+        }
+
+        if (profile.lastName) {
+            return profile.firstName + ' ' + profile.lastName;
+        } else {
+            return profile.firstName;
+        }
     }
 }

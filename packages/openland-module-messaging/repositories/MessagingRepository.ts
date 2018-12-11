@@ -102,6 +102,9 @@ export class MessagingRepository {
             if (newMessage.attachments) {
                 message.attachments = newMessage.attachments;
             }
+            if (newMessage.serviceMetadata) {
+                message.serviceMetadata = newMessage.serviceMetadata;
+            }
 
             //
             // Write Event
