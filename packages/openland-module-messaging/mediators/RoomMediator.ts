@@ -216,16 +216,18 @@ export class RoomMediator {
 
     async updateRoomProfile(parent: Context, cid: number, uid: number, profile: Partial<RoomProfileInput>) {
         return await inTx(parent, async (ctx) => {
-            let conv = await this.entities.RoomProfile.findById(ctx, cid);
+            let conv = await this.entities.ConversationRoom.findById(ctx, cid);
             if (!conv) {
                 throw new Error('Room not found');
             }
+            let typeName = conv.kind === 'group' ? 'group' : 'room';
+
             // TODO: Check Access
             let res = await this.repo.updateRoomProfile(ctx, cid, profile);
             let roomProfile = (await this.entities.RoomProfile.findById(ctx, cid))!;
             if (res.updatedPhoto) {
                 await this.messaging.sendMessage(ctx, uid, cid, {
-                    message: `Updated room photo`,
+                    message: `New ${typeName} photo`,
                     isService: true,
                     isMuted: true,
                     serviceMetadata: {
@@ -236,7 +238,7 @@ export class RoomMediator {
             }
             if (res.updatedTitle) {
                 await this.messaging.sendMessage(ctx, uid, cid, {
-                    message: `Updated room name to "${roomProfile.title}"`,
+                    message: `New ${typeName} name: ${roomProfile.title}`,
                     isService: true,
                     isMuted: true,
                     serviceMetadata: {
