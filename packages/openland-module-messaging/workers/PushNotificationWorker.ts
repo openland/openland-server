@@ -33,7 +33,7 @@ export function startPushNotificationWorker() {
 
                 // Ignore never-online users
                 if (lastSeen === 'never_online') {
-                    log.log(ctx, 'skip never-online');
+                    log.debug(ctx, 'skip never-online');
                     state.lastPushSeq = u.seq;
                     return;
                 }
@@ -42,38 +42,38 @@ export function startPushNotificationWorker() {
                 // if (settings.notificationsDelay !== 'none') {
                 // Ignore online
                 if (lastSeen === 'online') {
-                    log.log(ctx, 'skip online');
+                    log.debug(ctx, 'skip online');
                     return;
                 }
 
                 // Pause notifications till 1 minute passes from last active timeout
                 if (lastSeen > (now - Delays[settings.notificationsDelay || 'none'])) {
-                    log.log(ctx, 'skip delay');
+                    log.debug(ctx, 'skip delay');
                     return;
                 }
 
                 // Ignore read updates
                 if (state.readSeq === u.seq) {
-                    log.log(ctx, 'ignore read updates');
+                    log.debug(ctx, 'ignore read updates');
                     return;
                 }
 
                 // Ignore never opened apps
                 if (state.readSeq === null) {
-                    log.log(ctx, 'ignore never opened apps');
+                    log.debug(ctx, 'ignore never opened apps');
                     return;
                 }
 
                 // Ignore user's with disabled notifications
                 if (settings.mobileNotifications === 'none' && settings.desktopNotifications === 'none') {
                     state.lastPushSeq = u.seq;
-                    log.log(ctx, 'ignore user\'s with disabled notifications');
+                    log.debug(ctx, 'ignore user\'s with disabled notifications');
                     return;
                 }
 
                 // Ignore already processed updates
                 if (state.lastPushSeq !== null && state.lastPushSeq >= u.seq) {
-                    log.log(ctx, 'ignore already processed updates');
+                    log.debug(ctx, 'ignore already processed updates');
                     return;
                 }
 
