@@ -425,11 +425,24 @@ export default {
                 await Modules.Media.saveFile(ctx, args.input.socialImageRef.uuid);
             }
 
+            let kind: 'internal' | 'public' | 'group' | undefined;
+
+            if (args.input.kind) {
+                if (args.input.kind === 'INTERNAL') {
+                    kind = 'internal';
+                } else if (args.input.kind === 'PUBLIC') {
+                    kind = 'public';
+                } else if (args.input.kind === 'GROUP') {
+                    kind = 'group';
+                }
+            }
+
             let room = await Modules.Messaging.room.updateRoomProfile(ctx, IDs.Conversation.parse(args.roomId), uid, {
                 title: args.input.title!,
                 description: Sanitizer.sanitizeString(args.input.description),
                 image: args.input.photoRef === undefined ? undefined : imageRef,
-                socialImage: args.input.socialImageRef === undefined ? undefined : socialImageRef
+                socialImage: args.input.socialImageRef === undefined ? undefined : socialImageRef,
+                kind: kind
             });
 
             return room;

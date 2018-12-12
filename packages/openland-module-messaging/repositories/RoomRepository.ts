@@ -217,6 +217,11 @@ export class RoomRepository {
                 }
             }
 
+            if (profile.kind !== undefined && profile.kind !== null) {
+                let room = await this.entities.ConversationRoom.findById(ctx, cid);
+                room!.kind = profile.kind!;
+            }
+
             return { updatedTitle, updatedPhoto };
         });
     }

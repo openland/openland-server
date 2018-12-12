@@ -57,6 +57,7 @@ input RoomUpdateInput {
     photoRef: ImageRefInput
     description: String
     socialImageRef: ImageRefInput
+    kind: SharedRoomKind
 }
 
 type UserMention {
