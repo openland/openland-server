@@ -50,7 +50,7 @@ export class RoomMediator {
             if (!conv) {
                 throw new NotFoundError();
             }
-            if (conv.kind !== 'public' && !invited) {
+            if (conv.kind !== 'public' && conv.kind !== 'group' && !invited) {
                 throw new UserError('You can\'t join non-public room');
             }
 

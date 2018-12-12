@@ -41,7 +41,7 @@ describe('RoomMediator', () => {
         let USER2_ID = (await users.createUser(ctx, 'user112', 'email112')).id;
         await users.createUserProfile(ctx, USER_ID, { firstName: 'User Name' });
         await users.createUserProfile(ctx, USER2_ID, { firstName: 'User Name' });
-        let room = await mediator.createRoom(ctx, 'public', 1, USER_ID, [], { title: 'Room' });
+        let room = await mediator.createRoom(ctx, 'group', 1, USER_ID, [], { title: 'Room' });
         await mediator.joinRoom(ctx, room.id, USER2_ID, true);
         let members = await FDB.RoomParticipant.allFromActive(ctx, room.id);
         expect(members.length).toBe(1);
