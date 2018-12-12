@@ -23,7 +23,17 @@ export class CacheRepository<T> {
             let ex = await FDB.ServiceCache.findById(ctx, this.service, key);
             if (!ex) {
                 await FDB.ServiceCache.create(ctx, this.service, key, { value: JSON.stringify(value) });
+            } else {
+                ex.value = JSON.stringify(value);
             }
         });
+    }
+
+    async getCreationTime(ctx: Context, key: string): Promise<number | null> {
+        let ex = await FDB.ServiceCache.findById(ctx, this.service, key);
+        if (ex) {
+            return ex.updatedAt;
+        }
+        return null;
     }
 }

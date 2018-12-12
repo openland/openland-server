@@ -33,8 +33,9 @@ export default class UrlInfoService {
     public async fetchURLInfo(url: string): Promise<URLAugmentation> {
         let ctx = createEmptyContext();
         let existing = await this.cache.read(ctx, url);
+        let creationTime = await this.cache.getCreationTime(ctx, url);
 
-        if (existing) {
+        if (existing && creationTime! < 1000 * 60 * 60 * 24 * 7) {
             return existing;
         }
 
