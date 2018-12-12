@@ -4533,7 +4533,7 @@ export class ConversationSeqFactory extends FEntityFactory<ConversationSeq> {
 export interface ConversationEventShape {
     uid?: number| null;
     mid?: number| null;
-    kind: 'message_received' | 'message_updated' | 'message_deleted';
+    kind: 'message_received' | 'message_updated' | 'message_deleted' | 'dialog_update';
 }
 
 export class ConversationEvent extends FEntity {
@@ -4562,10 +4562,10 @@ export class ConversationEvent extends FEntity {
         this._value.mid = value;
         this.markDirty();
     }
-    get kind(): 'message_received' | 'message_updated' | 'message_deleted' {
+    get kind(): 'message_received' | 'message_updated' | 'message_deleted' | 'dialog_update' {
         return this._value.kind;
     }
-    set kind(value: 'message_received' | 'message_updated' | 'message_deleted') {
+    set kind(value: 'message_received' | 'message_updated' | 'message_deleted' | 'dialog_update') {
         this._checkIsWritable();
         if (value === this._value.kind) { return; }
         this._value.kind = value;
@@ -4584,7 +4584,7 @@ export class ConversationEventFactory extends FEntityFactory<ConversationEvent> 
         fields: [
             { name: 'uid', type: 'number' },
             { name: 'mid', type: 'number' },
-            { name: 'kind', type: 'enum', enumValues: ['message_received', 'message_updated', 'message_deleted'] },
+            { name: 'kind', type: 'enum', enumValues: ['message_received', 'message_updated', 'message_deleted', 'dialog_update'] },
         ],
         indexes: [
             { name: 'user', type: 'range', fields: ['cid', 'seq'] },
@@ -4599,7 +4599,7 @@ export class ConversationEventFactory extends FEntityFactory<ConversationEvent> 
         validators.isNumber('uid', src.uid);
         validators.isNumber('mid', src.mid);
         validators.notNull('kind', src.kind);
-        validators.isEnum('kind', src.kind, ['message_received', 'message_updated', 'message_deleted']);
+        validators.isEnum('kind', src.kind, ['message_received', 'message_updated', 'message_deleted', 'dialog_update']);
     }
 
     constructor(connection: FConnection) {
@@ -4652,6 +4652,7 @@ export interface UserDialogShape {
     unread: number;
     readMessageId?: number| null;
     date?: number| null;
+    haveMention?: boolean| null;
     title?: string| null;
     photo?: any| null;
 }
@@ -4691,6 +4692,17 @@ export class UserDialog extends FEntity {
         this._value.date = value;
         this.markDirty();
     }
+    get haveMention(): boolean | null {
+        let res = this._value.haveMention;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set haveMention(value: boolean | null) {
+        this._checkIsWritable();
+        if (value === this._value.haveMention) { return; }
+        this._value.haveMention = value;
+        this.markDirty();
+    }
     get title(): string | null {
         let res = this._value.title;
         if (res !== null && res !== undefined) { return res; }
@@ -4727,6 +4739,7 @@ export class UserDialogFactory extends FEntityFactory<UserDialog> {
             { name: 'unread', type: 'number' },
             { name: 'readMessageId', type: 'number' },
             { name: 'date', type: 'number' },
+            { name: 'haveMention', type: 'boolean' },
             { name: 'title', type: 'string' },
             { name: 'photo', type: 'json' },
         ],
@@ -4746,6 +4759,7 @@ export class UserDialogFactory extends FEntityFactory<UserDialog> {
         validators.isNumber('unread', src.unread);
         validators.isNumber('readMessageId', src.readMessageId);
         validators.isNumber('date', src.date);
+        validators.isBoolean('haveMention', src.haveMention);
         validators.isString('title', src.title);
     }
 

@@ -4,6 +4,8 @@ import { injectable } from 'inversify';
 import { UserStateRepository } from './UserStateRepository';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { Context } from 'openland-utils/Context';
+import { MessageMention } from '../MessageInput';
+import { Modules } from '../../openland-modules/Modules';
 
 @injectable()
 export class CountersRepository {
@@ -78,6 +80,7 @@ export class CountersRepository {
                 throw Error('Unable to find message');
             }
             let local = await this.userState.getUserDialogState(ctx, uid, message.cid);
+            let prevReadMessageId = local.readMessageId;
             let global = await this.userState.getUserMessagingState(ctx, uid);
             if (!local.readMessageId || local.readMessageId < mid) {
                 local.readMessageId = mid;
@@ -100,6 +103,24 @@ export class CountersRepository {
                     local.unread += delta;
                     global.unread += delta;
                 }
+
+                if (prevReadMessageId && local.haveMention) {
+                    let readMessages = (await this.entities.Message.allFromChatAfter(ctx, message.cid, prevReadMessageId)).filter((v) => v.uid !== uid && v.id !== prevReadMessageId && v.id <= mid);
+                    let mentionRead = false;
+                    for (let readMessage of readMessages) {
+                        if (readMessage.mentions && readMessage.mentions.indexOf(uid) > -1) {
+                            mentionRead = true;
+                        } else if (readMessage.complexMentions && readMessage.complexMentions.find((m: MessageMention) => m.type === 'User' && m.id === uid)) {
+                            mentionRead = true;
+                        }
+                    }
+                    
+                    if (mentionRead) {
+                        local.haveMention = false;
+                        await Modules.Messaging.sendDialogUpdateEvent(ctx, uid, message.cid);
+                    }
+                }
+
                 await global.flush();
                 await local.flush();
                 return delta;

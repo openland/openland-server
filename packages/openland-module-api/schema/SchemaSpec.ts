@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, Nullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'ed440e1b8648a61f58922183fe60f78d';
+export const GQL_SPEC_VERSION = 'd5fc64630ae150d58e1b11df2487a424';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -357,6 +357,7 @@ export namespace GQL {
         topMessage?: Nullable<Message>;
         betaTopMessage?: Nullable<RoomMessage>;
         isMuted?: boolean;
+        haveMention?: boolean;
     }
     export interface DialogsConnection {
         items?: Dialog[];
@@ -560,7 +561,10 @@ export namespace GQL {
         state?: string;
     }
     export type ConversationUpdateContainer = ConversationUpdateSingle | ConversationUpdateBatch;
-    export type ConversationUpdate = ConversationMessageReceived | ConversationMessageUpdated | ConversationMessageDeleted;
+    export type ConversationUpdate = ConversationMessageReceived | ConversationMessageUpdated | ConversationMessageDeleted | ConversationDialogUpdate;
+    export interface ConversationDialogUpdate {
+        dialog?: Dialog;
+    }
     export interface ConversationMessageReceived {
         message?: ConversationMessage;
     }
@@ -1914,6 +1918,7 @@ export interface GQLResolver {
     ChannelConversationConnection?: ComplexTypedResolver<GQL.ChannelConversationConnection, GQLRoots.ChannelConversationConnectionRoot, {edges: GQLRoots.ChannelConversationConnectionEdgeRoot[], pageInfo: GQLRoots.PageInfoRoot}, {}>;
     ConversationUpdateSingle?: ComplexTypedResolver<GQL.ConversationUpdateSingle, GQLRoots.ConversationUpdateSingleRoot, {update: GQLRoots.ConversationUpdateRoot}, {}>;
     ConversationUpdateBatch?: ComplexTypedResolver<GQL.ConversationUpdateBatch, GQLRoots.ConversationUpdateBatchRoot, {updates: GQLRoots.ConversationUpdateRoot[]}, {}>;
+    ConversationDialogUpdate?: ComplexTypedResolver<GQL.ConversationDialogUpdate, GQLRoots.ConversationDialogUpdateRoot, {dialog: GQLRoots.DialogRoot}, {}>;
     ConversationMessageReceived?: ComplexTypedResolver<GQL.ConversationMessageReceived, GQLRoots.ConversationMessageReceivedRoot, {message: GQLRoots.ConversationMessageRoot}, {}>;
     ConversationMessageUpdated?: ComplexTypedResolver<GQL.ConversationMessageUpdated, GQLRoots.ConversationMessageUpdatedRoot, {message: GQLRoots.ConversationMessageRoot}, {}>;
     ConversationMessageDeleted?: ComplexTypedResolver<GQL.ConversationMessageDeleted, GQLRoots.ConversationMessageDeletedRoot, {message: GQLRoots.ConversationMessageRoot}, {}>;

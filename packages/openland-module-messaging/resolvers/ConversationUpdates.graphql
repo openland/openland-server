@@ -13,7 +13,11 @@ type ConversationUpdateBatch {
 
 union ConversationUpdateContainer = ConversationUpdateSingle | ConversationUpdateBatch
 
-union ConversationUpdate = ConversationMessageReceived | ConversationMessageUpdated | ConversationMessageDeleted 
+union ConversationUpdate = ConversationMessageReceived | ConversationMessageUpdated | ConversationMessageDeleted | ConversationDialogUpdate
+
+type ConversationDialogUpdate {
+    dialog: Dialog!
+}
 
 type ConversationMessageReceived {
     message: ConversationMessage!
@@ -23,6 +27,7 @@ type ConversationMessageUpdated {
     message: ConversationMessage!
 }
 
+# Sent when haveMention changed or isMuted changed
 type ConversationMessageDeleted {
     message: ConversationMessage!
 }

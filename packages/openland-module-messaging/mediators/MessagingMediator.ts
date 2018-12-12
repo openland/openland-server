@@ -142,6 +142,10 @@ export class MessagingMediator {
         });
     }
 
+    sendDialogUpdateEvent = async (parent: Context, uid: number, cid: number) => {
+        return await this.repo.sendDialogUpdateEvent(parent, uid, cid);
+    }
+
     //
     // Queries
     //

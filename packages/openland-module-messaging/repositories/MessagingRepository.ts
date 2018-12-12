@@ -186,6 +186,17 @@ export class MessagingRepository {
         });
     }
 
+    async sendDialogUpdateEvent(parent: Context, uid: number, cid: number) {
+        return await inTx(parent, async (ctx) => {
+            let seq = await this.fetchConversationNextSeq(ctx, cid);
+            let res = await this.entities.ConversationEvent.create(ctx, cid, seq, {
+                kind: 'dialog_update',
+                uid: uid,
+            });
+            return res;
+        });
+    }
+
     /**
      * @deprecated top message should be persisted in dialog list
      * @param cid conversation id

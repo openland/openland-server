@@ -513,9 +513,11 @@ export default {
         //
         betaRoomUpdateUserNotificationSettings: withUser(async (parent, args, uid) => {
             return await inTx(parent, async (ctx) => {
-                let settings = await Modules.Messaging.getRoomSettings(ctx, uid, IDs.Conversation.parse(args.roomId));
+                let cid = IDs.Conversation.parse(args.roomId);
+                let settings = await Modules.Messaging.getRoomSettings(ctx, uid, cid);
                 if (args.settings.mute !== undefined && args.settings.mute !== null) {
                     settings.mute = args.settings.mute;
+                    await Modules.Messaging.sendDialogUpdateEvent(ctx, uid, cid);
                 }
                 return settings;
             });

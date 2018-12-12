@@ -3,6 +3,8 @@ import { inTx } from 'foundation-orm/inTx';
 import { injectable, inject } from 'inversify';
 import { UserStateRepository } from './UserStateRepository';
 import { Context } from 'openland-utils/Context';
+import { MessageMention } from '../MessageInput';
+import { Modules } from '../../openland-modules/Modules';
 
 @injectable()
 export class DeliveryRepository {
@@ -29,6 +31,21 @@ export class DeliveryRepository {
             let global = await this.userState.getUserMessagingState(ctx, uid);
             local.date = message.createdAt;
             global.seq++;
+
+            let haveMention = false;
+            if (message.uid !== uid) {
+                if (message.mentions && message.mentions.indexOf(uid) > -1) {
+                    haveMention = true;
+                } else if (message.complexMentions && message.complexMentions.find((m: MessageMention) => m.type === 'User' && m.id === uid)) {
+                    haveMention = true;
+                }
+            }
+
+            if (!local.haveMention && haveMention) {
+                local.haveMention = haveMention;
+                await Modules.Messaging.sendDialogUpdateEvent(ctx, uid, message.cid);
+            }
+
             await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
                 kind: 'message_received',
                 cid: message.cid,

@@ -69,7 +69,11 @@ export default {
         isMuted: async (src: UserDialog, _, ctx) => {
             let settings = await Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, src.cid);
             return settings.mute;
-        }
+        },
+        haveMention: async (src: UserDialog, _, ctx) => {
+            let local = await Modules.Messaging.getUserDialogState(ctx, ctx.auth.uid!, src.cid);
+            return local.haveMention || false;
+        },
     },
     Query: {
         dialogs: withUser(async (ctx, args, uid) => {
