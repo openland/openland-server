@@ -54,6 +54,11 @@ export class RoomMediator {
                 throw new UserError('You can\'t join non-public room');
             }
 
+            if (conv.kind === 'public') {
+                // Any one can join public rooms
+                request = false;
+            }
+
             // Check if was kicked
             let participant = await this.entities.RoomParticipant.findById(ctx, cid, uid);
             if (participant && participant.status === 'kicked' && !request) {
