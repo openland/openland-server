@@ -491,6 +491,7 @@ const Schema = declareSchema(() => {
         field('allUnread', 'number').nullable();
         field('unread', 'number').nullable();
         field('title', 'string').nullable();
+        field('photo', 'json').nullable();
         enumField('kind', ['message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated', 'dialog_deleted', 'photo_updated']);
         rangeIndex('user', ['uid', 'seq']).withStreaming();
         enableVersioning();

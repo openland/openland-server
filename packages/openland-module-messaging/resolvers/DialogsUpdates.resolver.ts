@@ -76,17 +76,11 @@ export default {
     },
     DialogTitleUpdated: {
         cid: (src: UserDialogEvent) => IDs.Conversation.serialize(src.cid!),
-        title: async (src: UserDialogEvent, args: {}, ctx: AppContext) => {
-            let profile = await FDB.RoomProfile.findById(ctx, src.cid!);
-            return profile ? profile.title : '';
-        },
+        title: (src: UserDialogEvent) => src.title,
     },
     DialogPhotoUpdated: {
         cid: (src: UserDialogEvent) => IDs.Conversation.serialize(src.cid!),
-        photo: async (src: UserDialogEvent, args: {}, ctx: AppContext) => {
-            let profile = await FDB.RoomProfile.findById(ctx, src.cid!);
-            return profile && profile.image && buildBaseImageUrl(profile.image);
-        },
+        photo: async (src: UserDialogEvent) => src.photo && buildBaseImageUrl(src.photo),
     },
     DialogDeleted: {
         cid: (src: UserDialogEvent) => IDs.Conversation.serialize(src.cid!),

@@ -5,6 +5,7 @@ import { UserStateRepository } from './UserStateRepository';
 import { Context } from 'openland-utils/Context';
 import { MessageMention } from '../MessageInput';
 import { Modules } from '../../openland-modules/Modules';
+import { ImageRef } from 'openland-module-media/ImageRef';
 
 @injectable()
 export class DeliveryRepository {
@@ -93,7 +94,7 @@ export class DeliveryRepository {
         });
     }
 
-    async deliverDialogTitleUpadtedToUser(parent: Context, uid: number, cid: number) {
+    async deliverDialogTitleUpadtedToUser(parent: Context, uid: number, cid: number, title: string) {
         await inTx(parent, async (ctx) => {
 
             let global = await this.userState.getUserMessagingState(ctx, uid);
@@ -101,11 +102,12 @@ export class DeliveryRepository {
             await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
                 kind: 'title_updated',
                 cid: cid,
+                title: title,
             });
         });
     }
 
-    async deliverDialogPhotoUpadtedToUser(parent: Context, uid: number, cid: number) {
+    async deliverDialogPhotoUpadtedToUser(parent: Context, uid: number, cid: number, photo?: ImageRef) {
         await inTx(parent, async (ctx) => {
 
             let global = await this.userState.getUserMessagingState(ctx, uid);
@@ -113,6 +115,7 @@ export class DeliveryRepository {
             await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
                 kind: 'photo_updated',
                 cid: cid,
+                photo: photo,
             });
         });
     }

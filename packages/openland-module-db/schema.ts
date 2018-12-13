@@ -4972,6 +4972,7 @@ export interface UserDialogEventShape {
     allUnread?: number| null;
     unread?: number| null;
     title?: string| null;
+    photo?: any| null;
     kind: 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' | 'dialog_deleted' | 'photo_updated';
 }
 
@@ -5034,6 +5035,17 @@ export class UserDialogEvent extends FEntity {
         this._value.title = value;
         this.markDirty();
     }
+    get photo(): any | null {
+        let res = this._value.photo;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set photo(value: any | null) {
+        this._checkIsWritable();
+        if (value === this._value.photo) { return; }
+        this._value.photo = value;
+        this.markDirty();
+    }
     get kind(): 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' | 'dialog_deleted' | 'photo_updated' {
         return this._value.kind;
     }
@@ -5059,6 +5071,7 @@ export class UserDialogEventFactory extends FEntityFactory<UserDialogEvent> {
             { name: 'allUnread', type: 'number' },
             { name: 'unread', type: 'number' },
             { name: 'title', type: 'string' },
+            { name: 'photo', type: 'json' },
             { name: 'kind', type: 'enum', enumValues: ['message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated', 'dialog_deleted', 'photo_updated'] },
         ],
         indexes: [

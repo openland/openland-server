@@ -9,6 +9,7 @@ import { CountersMediator } from './CountersMediator';
 import { inTx } from 'foundation-orm/inTx';
 import { RoomMediator } from './RoomMediator';
 import { Context } from 'openland-utils/Context';
+import { ImageRef } from 'openland-module-media/ImageRef';
 
 const tracer = createTracer('message-delivery');
 
@@ -52,12 +53,12 @@ export class DeliveryMediator {
         await this.deliverDialogDeleteToUser(ctx, uid, cid);
     }
 
-    onDialogTitleUpdate = async (ctx: Context, uid: number, cid: number) => {
-        await this.repo.deliverDialogTitleUpadtedToUser(ctx, uid, cid);
+    onDialogTitleUpdate = async (ctx: Context, uid: number, cid: number, title: string) => {
+        await this.repo.deliverDialogTitleUpadtedToUser(ctx, uid, cid, title);
     }
 
-    onDialogPhotoUpdate = async (ctx: Context, uid: number, cid: number) => {
-        await this.repo.deliverDialogTitleUpadtedToUser(ctx, uid, cid);
+    onDialogPhotoUpdate = async (ctx: Context, uid: number, cid: number, photo?: ImageRef) => {
+        await this.repo.deliverDialogPhotoUpadtedToUser(ctx, uid, cid, photo);
     }
 
     onUserProfileUpdated = async (ctx: Context, uid: number) => {
