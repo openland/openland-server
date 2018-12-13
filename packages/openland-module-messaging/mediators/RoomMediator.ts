@@ -147,17 +147,17 @@ export class RoomMediator {
             if (await this.repo.kickFromRoom(ctx, cid, kickedUid)) {
 
                 // Send message
-                // let profile = (await this.entities.UserProfile.findById(ctx, kickedUid))!;
-                // await this.messaging.sendMessage(ctx, uid, cid, {
-                //     message: `${profile!.firstName} was kicked from the room`,
-                //     isService: true,
-                //     isMuted: true,
-                //     serviceMetadata: {
-                //         type: 'user_kick',
-                //         userId: kickedUid,
-                //         kickedById: uid
-                //     }
-                // }, true);
+                let profile = (await this.entities.UserProfile.findById(ctx, kickedUid))!;
+                await this.messaging.sendMessage(ctx, uid, cid, {
+                    message: `${profile!.firstName} was kicked from the room`,
+                    isService: true,
+                    isMuted: true,
+                    serviceMetadata: {
+                        type: 'user_kick',
+                        userId: kickedUid,
+                        kickedById: uid
+                    }
+                }, true);
 
                 // Deliver dialog deletion
                 await this.delivery.onDialogDelete(ctx, kickedUid, cid);
