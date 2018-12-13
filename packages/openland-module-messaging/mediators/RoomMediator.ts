@@ -11,7 +11,7 @@ import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { NotFoundError } from 'openland-errors/NotFoundError';
 import { UserError } from 'openland-errors/UserError';
 import { Context } from 'openland-utils/Context';
-import { MessageInput } from '../MessageInput';
+import { MessageInput, MessageMention } from '../MessageInput';
 
 @injectable()
 export class RoomMediator {
@@ -380,7 +380,10 @@ export class RoomMediator {
                 type: 'user_invite',
                 userIds: uids,
                 invitedById: uid
-            }
+            },
+            complexMentions: uids.map(id => {
+                return { type: 'User', id: id } as MessageMention;
+            })
         };
     }
 }
