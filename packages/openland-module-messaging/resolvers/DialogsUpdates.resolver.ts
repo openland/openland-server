@@ -4,7 +4,6 @@ import { FLiveStreamItem } from 'foundation-orm/FLiveStreamItem';
 import { UserDialogEvent } from 'openland-module-db/schema';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
-import { Modules } from 'openland-modules/Modules';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 
 export default {
