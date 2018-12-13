@@ -127,6 +127,11 @@ export class RoomMediator {
                 throw new UserError('Unable to kick yourself');
             }
 
+            let conv = await this.entities.ConversationRoom.findById(ctx, cid);
+            if (!conv) {
+                throw new NotFoundError();
+            }
+
             // Permissions
             // TODO: Implement better
             let isSuperAdmin = (await Modules.Super.superRole(ctx, uid)) === 'super-admin';
@@ -148,8 +153,9 @@ export class RoomMediator {
 
                 // Send message
                 let profile = (await this.entities.UserProfile.findById(ctx, kickedUid))!;
+                let typeName = conv.kind === 'group' ? 'group' : 'room';
                 await this.messaging.sendMessage(ctx, uid, cid, {
-                    message: `${profile!.firstName} was kicked from the room`,
+                    message: `${profile!.firstName} was kicked from the ${typeName}`,
                     isService: true,
                     isMuted: true,
                     serviceMetadata: {
