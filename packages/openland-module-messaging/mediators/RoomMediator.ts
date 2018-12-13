@@ -240,7 +240,10 @@ export class RoomMediator {
                         picture: roomProfile.image
                     }
                 });
-                await this.delivery.onDialogPhotoUpdate(parent, uid, cid);
+                let members = await this.entities.RoomParticipant.allFromActive(parent, cid);
+                for (let m of members) {
+                    await this.delivery.onDialogPhotoUpdate(parent, m.uid, cid);
+                }
             }
             if (res.updatedTitle) {
                 await this.messaging.sendMessage(ctx, uid, cid, {
@@ -252,7 +255,10 @@ export class RoomMediator {
                         title: roomProfile.title
                     }
                 });
-                await this.delivery.onDialogTitleUpdate(parent, uid, cid);
+                let members = await this.entities.RoomParticipant.allFromActive(parent, cid);
+                for (let m of members) {
+                    await this.delivery.onDialogTitleUpdate(parent, m.uid, cid);
+                }
             }
 
             return (await this.entities.Conversation.findById(ctx, cid))!;
