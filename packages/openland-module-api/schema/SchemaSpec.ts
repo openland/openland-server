@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, Nullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '6c16f92a9ec2063f00ef733686831a42';
+export const GQL_SPEC_VERSION = '3013c44fcb9cbe3baffaf9ca0c6f4830';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -617,7 +617,7 @@ export namespace GQL {
     }
     export interface DialogPhotoUpdated {
         cid?: string;
-        photoRef?: Nullable<ImageRef>;
+        photo?: Nullable<string>;
     }
     export interface DialogDeleted {
         cid?: string;
@@ -1931,7 +1931,7 @@ export interface GQLResolver {
     DialogMessageDeleted?: ComplexTypedResolver<GQL.DialogMessageDeleted, GQLRoots.DialogMessageDeletedRoot, {message: GQLRoots.ConversationMessageRoot}, {}>;
     DialogMessageRead?: ComplexTypedResolver<GQL.DialogMessageRead, GQLRoots.DialogMessageReadRoot, {}, {}>;
     DialogTitleUpdated?: ComplexTypedResolver<GQL.DialogTitleUpdated, GQLRoots.DialogTitleUpdatedRoot, {}, {}>;
-    DialogPhotoUpdated?: ComplexTypedResolver<GQL.DialogPhotoUpdated, GQLRoots.DialogPhotoUpdatedRoot, {photoRef: Nullable<GQLRoots.ImageRefRoot>}, {}>;
+    DialogPhotoUpdated?: ComplexTypedResolver<GQL.DialogPhotoUpdated, GQLRoots.DialogPhotoUpdatedRoot, {}, {}>;
     DialogDeleted?: ComplexTypedResolver<GQL.DialogDeleted, GQLRoots.DialogDeletedRoot, {}, {}>;
     FeatureFlag?: ComplexTypedResolver<GQL.FeatureFlag, GQLRoots.FeatureFlagRoot, {}, {}>;
     ICEServer?: ComplexTypedResolver<GQL.ICEServer, GQLRoots.ICEServerRoot, {}, {}>;

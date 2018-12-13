@@ -47,7 +47,7 @@ type DialogTitleUpdated {
 
 type DialogPhotoUpdated {
     cid: ID!
-    photoRef: ImageRef
+    photo: String
 }
 
 type DialogDeleted {

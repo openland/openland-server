@@ -4972,7 +4972,7 @@ export interface UserDialogEventShape {
     allUnread?: number| null;
     unread?: number| null;
     title?: string| null;
-    kind: 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' | 'dialog_deleted';
+    kind: 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' | 'dialog_deleted' | 'photo_updated';
 }
 
 export class UserDialogEvent extends FEntity {
@@ -5034,10 +5034,10 @@ export class UserDialogEvent extends FEntity {
         this._value.title = value;
         this.markDirty();
     }
-    get kind(): 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' | 'dialog_deleted' {
+    get kind(): 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' | 'dialog_deleted' | 'photo_updated' {
         return this._value.kind;
     }
-    set kind(value: 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' | 'dialog_deleted') {
+    set kind(value: 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' | 'dialog_deleted' | 'photo_updated') {
         this._checkIsWritable();
         if (value === this._value.kind) { return; }
         this._value.kind = value;
@@ -5059,7 +5059,7 @@ export class UserDialogEventFactory extends FEntityFactory<UserDialogEvent> {
             { name: 'allUnread', type: 'number' },
             { name: 'unread', type: 'number' },
             { name: 'title', type: 'string' },
-            { name: 'kind', type: 'enum', enumValues: ['message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated', 'dialog_deleted'] },
+            { name: 'kind', type: 'enum', enumValues: ['message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated', 'dialog_deleted', 'photo_updated'] },
         ],
         indexes: [
             { name: 'user', type: 'range', fields: ['uid', 'seq'] },
@@ -5077,7 +5077,7 @@ export class UserDialogEventFactory extends FEntityFactory<UserDialogEvent> {
         validators.isNumber('unread', src.unread);
         validators.isString('title', src.title);
         validators.notNull('kind', src.kind);
-        validators.isEnum('kind', src.kind, ['message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated', 'dialog_deleted']);
+        validators.isEnum('kind', src.kind, ['message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated', 'dialog_deleted', 'photo_updated']);
     }
 
     constructor(connection: FConnection) {

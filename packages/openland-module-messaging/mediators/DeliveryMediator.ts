@@ -52,6 +52,14 @@ export class DeliveryMediator {
         await this.deliverDialogDeleteToUser(ctx, uid, cid);
     }
 
+    onDialogTitleUpdate = async (ctx: Context, uid: number, cid: number) => {
+        await this.repo.deliverDialogTitleUpadtedToUser(ctx, uid, cid);
+    }
+
+    onDialogPhotoUpdate = async (ctx: Context, uid: number, cid: number) => {
+        await this.repo.deliverDialogTitleUpadtedToUser(ctx, uid, cid);
+    }
+
     onUserProfileUpdated = async (ctx: Context, uid: number) => {
         //
     }

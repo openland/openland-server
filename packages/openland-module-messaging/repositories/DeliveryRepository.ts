@@ -93,6 +93,30 @@ export class DeliveryRepository {
         });
     }
 
+    async deliverDialogTitleUpadtedToUser(parent: Context, uid: number, cid: number) {
+        await inTx(parent, async (ctx) => {
+
+            let global = await this.userState.getUserMessagingState(ctx, uid);
+            global.seq++;
+            await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
+                kind: 'title_updated',
+                cid: cid,
+            });
+        });
+    }
+
+    async deliverDialogPhotoUpadtedToUser(parent: Context, uid: number, cid: number) {
+        await inTx(parent, async (ctx) => {
+
+            let global = await this.userState.getUserMessagingState(ctx, uid);
+            global.seq++;
+            await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
+                kind: 'photo_updated',
+                cid: cid,
+            });
+        });
+    }
+
     async deliverDialogDeleteToUser(parent: Context, uid: number, cid: number) {
         return await inTx(parent, async (ctx) => {
             let local = await this.userState.getUserDialogState(ctx, uid, cid);

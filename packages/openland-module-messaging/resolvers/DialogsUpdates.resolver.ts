@@ -4,6 +4,8 @@ import { FLiveStreamItem } from 'foundation-orm/FLiveStreamItem';
 import { UserDialogEvent } from 'openland-module-db/schema';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
+import { Modules } from 'openland-modules/Modules';
+import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 
 export default {
     /* 
@@ -44,12 +46,11 @@ export default {
                 return 'DialogMessageRead';
             } else if (obj.kind === 'title_updated') {
                 return 'DialogTitleUpdated';
+            } else if (obj.kind === 'photo_updated') {
+                return 'DialogPhotoUpdated';
             } else if (obj.kind === 'dialog_deleted') {
                 return 'DialogDeleted';
             }
-            // } else if (obj.eventType === 'chat_update') {
-            //     return 'DialogPhotoUpdated';
-            // }
             throw Error('Unknown dialog update type: ' + obj.kind);
         }
     },
@@ -76,11 +77,18 @@ export default {
     },
     DialogTitleUpdated: {
         cid: (src: UserDialogEvent) => IDs.Conversation.serialize(src.cid!),
-        title: (src: UserDialogEvent) => src.title,
+        title: async (src: UserDialogEvent, args: {}, ctx: AppContext) => {
+            let profile = await FDB.RoomProfile.findById(ctx, src.cid!);
+            return profile ? profile.title : '';
+        },
     },
-    // DialogPhotoUpdated: {
-    //     photoRef: async (src: ConversationUserEvents) => (await DB.Conversation.findById(src.event.conversationId as any))!.,
-    // },
+    DialogPhotoUpdated: {
+        cid: (src: UserDialogEvent) => IDs.Conversation.serialize(src.cid!),
+        photo: async (src: UserDialogEvent, args: {}, ctx: AppContext) => {
+            let profile = await FDB.RoomProfile.findById(ctx, src.cid!);
+            return profile && profile.image && buildBaseImageUrl(profile.image);
+        },
+    },
     DialogDeleted: {
         cid: (src: UserDialogEvent) => IDs.Conversation.serialize(src.cid!),
         globalUnread: (src: UserDialogEvent) => src.allUnread || 0
