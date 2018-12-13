@@ -104,6 +104,9 @@ export class CountersRepository {
                     global.unread += delta;
                 }
 
+                await global.flush();
+                await local.flush();
+
                 if (prevReadMessageId && local.haveMention) {
                     let readMessages = (await this.entities.Message.allFromChatAfter(ctx, message.cid, prevReadMessageId)).filter((v) => v.uid !== uid && v.id !== prevReadMessageId && v.id <= mid);
                     let mentionRead = false;
@@ -114,15 +117,13 @@ export class CountersRepository {
                             mentionRead = true;
                         }
                     }
-                    
+
                     if (mentionRead) {
                         local.haveMention = false;
                         await Modules.Messaging.room.onDialogMentionedChanged(ctx, uid, message.cid, false);
                     }
                 }
 
-                await global.flush();
-                await local.flush();
                 return delta;
             }
             return 0;

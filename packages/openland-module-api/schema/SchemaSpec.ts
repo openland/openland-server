@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, Nullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '3891b28c5097225e4fc1dc2d04a4db2a';
+export const GQL_SPEC_VERSION = '6a24906083b26e0532da725630f834bc';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -586,7 +586,7 @@ export namespace GQL {
         state?: string;
     }
     export type DialogUpdateContainer = DialogUpdateSingle | DialogUpdateBatch;
-    export type DialogUpdate = DialogMessageReceived | DialogMessageUpdated | DialogMessageDeleted | DialogMessageRead | DialogTitleUpdated | DialogDeleted | DialogMuteChanged | DialogMentionedChanged;
+    export type DialogUpdate = DialogMessageReceived | DialogMessageUpdated | DialogMessageDeleted | DialogMessageRead | DialogTitleUpdated | DialogDeleted | DialogPhotoUpdated | DialogMuteChanged | DialogMentionedChanged;
     export interface DialogMessageReceived {
         cid?: string;
         message?: ConversationMessage;
