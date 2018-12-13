@@ -110,10 +110,6 @@ export class MessagingModule {
         return await this.userState.getUserDialogState(parent, uid, cid);
     }
 
-    async sendDialogUpdateEvent(parent: Context, uid: number, cid: number) {
-        return await this.messaging.sendDialogUpdateEvent(parent, uid, cid);
-    }
-
     //
     // Rooms
     //

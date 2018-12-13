@@ -286,6 +286,14 @@ export class RoomMediator {
         });
     }
 
+    async onDialogMuteChanged(ctx: Context, uid: number, cid: number, mute: boolean) {
+        await this.delivery.onDialogMuteChanged(ctx, uid, cid, mute);
+    }
+
+    async onDialogMentionedChanged(ctx: Context, uid: number, cid: number, haveMention: boolean) {
+        await this.delivery.onDialogMentionedChanged(ctx, uid, cid, haveMention);
+    }
+
     //
     // Queries
     //

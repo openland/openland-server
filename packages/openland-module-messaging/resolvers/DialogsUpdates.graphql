@@ -13,7 +13,7 @@ type DialogUpdateBatch {
 
 union DialogUpdateContainer = DialogUpdateSingle | DialogUpdateBatch
 
-union DialogUpdate = DialogMessageReceived | DialogMessageUpdated | DialogMessageDeleted | DialogMessageRead | DialogTitleUpdated | DialogDeleted
+union DialogUpdate = DialogMessageReceived | DialogMessageUpdated | DialogMessageDeleted | DialogMessageRead | DialogTitleUpdated | DialogDeleted | DialogMuteChanged | DialogMentionedChanged
 
 type DialogMessageReceived {
     cid: ID!
@@ -54,6 +54,17 @@ type DialogDeleted {
     cid: ID!
     globalUnread: Int!
 }
+
+type DialogMuteChanged {
+    cid: ID!
+    mute: Boolean!
+}
+
+type DialogMentionedChanged {
+    cid: ID!
+    haveMention: Boolean!
+}
+
 
 extend type Subscription {
     dialogsUpdates(fromState: String): DialogUpdateContainer!

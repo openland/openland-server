@@ -2,7 +2,7 @@ import {
     Conversation, ConversationRoom, FeatureFlag,
     Message,
     Organization,
-    User,
+    User, UserDialogEvent,
     UserDialogSettings,
     UserProfile
 } from '../../openland-module-db/schema';
@@ -104,12 +104,14 @@ export namespace GQLRoots {
     export type DialogUpdateBatchRoot = any;
     export type DialogUpdateContainerRoot = any;
     export type DialogUpdateRoot = any;
-    export type DialogMessageReceivedRoot = any;
-    export type DialogMessageUpdatedRoot = any;
-    export type DialogMessageDeletedRoot = any;
-    export type DialogMessageReadRoot = any;
-    export type DialogTitleUpdatedRoot = any;
-    export type DialogPhotoUpdatedRoot = any;
+    export type DialogMessageReceivedRoot = UserDialogEvent;
+    export type DialogMessageUpdatedRoot = UserDialogEvent;
+    export type DialogMessageDeletedRoot = UserDialogEvent;
+    export type DialogMessageReadRoot = UserDialogEvent;
+    export type DialogTitleUpdatedRoot = UserDialogEvent;
+    export type DialogPhotoUpdatedRoot = UserDialogEvent;
+    export type DialogMuteChangedRoot = UserDialogEvent;
+    export type DialogMentionedChangedRoot = UserDialogEvent;
     export type FeatureFlagRoot = FeatureFlag;
     export type MutationRoot = any;
     export type OrganizationContactRoot = any;
@@ -149,5 +151,4 @@ export namespace GQLRoots {
     export type MentionRoot = any;
     export type UserMentionRoot = MessageMention;
     export type SharedRoomMentionRoot = MessageMention;
-    export type ConversationDialogUpdateRoot = any;
 }

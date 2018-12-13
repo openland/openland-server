@@ -42,8 +42,6 @@ export default {
                 return 'ConversationMessageUpdated';
             } else if (obj.kind === 'message_deleted') {
                 return 'ConversationMessageDeleted';
-            } else if (obj.kind === 'dialog_update') {
-                return 'ConversationDialogUpdate';
             }
             throw Error('Unknown conversation update type: ' + obj.kind);
         }
@@ -57,9 +55,6 @@ export default {
     },
     ConversationMessageDeleted: {
         message: (src: ConversationEvent, args: {}, ctx: AppContext) => FDB.Message.findById(ctx, src.mid!)
-    },
-    ConversationDialogUpdate: {
-        dialog: (src: ConversationEvent, args: {}, ctx: AppContext) => FDB.UserDialog.findFromConversation(ctx, src.cid, src.uid!)
     },
 
     Query: {

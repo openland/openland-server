@@ -4533,7 +4533,7 @@ export class ConversationSeqFactory extends FEntityFactory<ConversationSeq> {
 export interface ConversationEventShape {
     uid?: number| null;
     mid?: number| null;
-    kind: 'message_received' | 'message_updated' | 'message_deleted' | 'dialog_update';
+    kind: 'message_received' | 'message_updated' | 'message_deleted';
 }
 
 export class ConversationEvent extends FEntity {
@@ -4562,10 +4562,10 @@ export class ConversationEvent extends FEntity {
         this._value.mid = value;
         this.markDirty();
     }
-    get kind(): 'message_received' | 'message_updated' | 'message_deleted' | 'dialog_update' {
+    get kind(): 'message_received' | 'message_updated' | 'message_deleted' {
         return this._value.kind;
     }
-    set kind(value: 'message_received' | 'message_updated' | 'message_deleted' | 'dialog_update') {
+    set kind(value: 'message_received' | 'message_updated' | 'message_deleted') {
         this._checkIsWritable();
         if (value === this._value.kind) { return; }
         this._value.kind = value;
@@ -4584,7 +4584,7 @@ export class ConversationEventFactory extends FEntityFactory<ConversationEvent> 
         fields: [
             { name: 'uid', type: 'number' },
             { name: 'mid', type: 'number' },
-            { name: 'kind', type: 'enum', enumValues: ['message_received', 'message_updated', 'message_deleted', 'dialog_update'] },
+            { name: 'kind', type: 'enum', enumValues: ['message_received', 'message_updated', 'message_deleted'] },
         ],
         indexes: [
             { name: 'user', type: 'range', fields: ['cid', 'seq'] },
@@ -4599,7 +4599,7 @@ export class ConversationEventFactory extends FEntityFactory<ConversationEvent> 
         validators.isNumber('uid', src.uid);
         validators.isNumber('mid', src.mid);
         validators.notNull('kind', src.kind);
-        validators.isEnum('kind', src.kind, ['message_received', 'message_updated', 'message_deleted', 'dialog_update']);
+        validators.isEnum('kind', src.kind, ['message_received', 'message_updated', 'message_deleted']);
     }
 
     constructor(connection: FConnection) {
@@ -4973,7 +4973,9 @@ export interface UserDialogEventShape {
     unread?: number| null;
     title?: string| null;
     photo?: any| null;
-    kind: 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' | 'dialog_deleted' | 'photo_updated';
+    mute?: boolean| null;
+    haveMention?: boolean| null;
+    kind: 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' | 'dialog_deleted' | 'photo_updated' | 'dialog_mute_changed' | 'dialog_mentioned_changed';
 }
 
 export class UserDialogEvent extends FEntity {
@@ -5046,10 +5048,32 @@ export class UserDialogEvent extends FEntity {
         this._value.photo = value;
         this.markDirty();
     }
-    get kind(): 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' | 'dialog_deleted' | 'photo_updated' {
+    get mute(): boolean | null {
+        let res = this._value.mute;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set mute(value: boolean | null) {
+        this._checkIsWritable();
+        if (value === this._value.mute) { return; }
+        this._value.mute = value;
+        this.markDirty();
+    }
+    get haveMention(): boolean | null {
+        let res = this._value.haveMention;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set haveMention(value: boolean | null) {
+        this._checkIsWritable();
+        if (value === this._value.haveMention) { return; }
+        this._value.haveMention = value;
+        this.markDirty();
+    }
+    get kind(): 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' | 'dialog_deleted' | 'photo_updated' | 'dialog_mute_changed' | 'dialog_mentioned_changed' {
         return this._value.kind;
     }
-    set kind(value: 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' | 'dialog_deleted' | 'photo_updated') {
+    set kind(value: 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' | 'dialog_deleted' | 'photo_updated' | 'dialog_mute_changed' | 'dialog_mentioned_changed') {
         this._checkIsWritable();
         if (value === this._value.kind) { return; }
         this._value.kind = value;
@@ -5072,7 +5096,9 @@ export class UserDialogEventFactory extends FEntityFactory<UserDialogEvent> {
             { name: 'unread', type: 'number' },
             { name: 'title', type: 'string' },
             { name: 'photo', type: 'json' },
-            { name: 'kind', type: 'enum', enumValues: ['message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated', 'dialog_deleted', 'photo_updated'] },
+            { name: 'mute', type: 'boolean' },
+            { name: 'haveMention', type: 'boolean' },
+            { name: 'kind', type: 'enum', enumValues: ['message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated', 'dialog_deleted', 'photo_updated', 'dialog_mute_changed', 'dialog_mentioned_changed'] },
         ],
         indexes: [
             { name: 'user', type: 'range', fields: ['uid', 'seq'] },
@@ -5089,8 +5115,10 @@ export class UserDialogEventFactory extends FEntityFactory<UserDialogEvent> {
         validators.isNumber('allUnread', src.allUnread);
         validators.isNumber('unread', src.unread);
         validators.isString('title', src.title);
+        validators.isBoolean('mute', src.mute);
+        validators.isBoolean('haveMention', src.haveMention);
         validators.notNull('kind', src.kind);
-        validators.isEnum('kind', src.kind, ['message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated', 'dialog_deleted', 'photo_updated']);
+        validators.isEnum('kind', src.kind, ['message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated', 'dialog_deleted', 'photo_updated', 'dialog_mute_changed', 'dialog_mentioned_changed']);
     }
 
     constructor(connection: FConnection) {

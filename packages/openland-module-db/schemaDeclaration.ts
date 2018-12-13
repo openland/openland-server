@@ -436,7 +436,7 @@ const Schema = declareSchema(() => {
         primaryKey('seq', 'number');
         field('uid', 'number').nullable();
         field('mid', 'number').nullable();
-        enumField('kind', ['message_received', 'message_updated', 'message_deleted', 'dialog_update']);
+        enumField('kind', ['message_received', 'message_updated', 'message_deleted']);
         rangeIndex('user', ['cid', 'seq']).withStreaming();
         enableVersioning();
         enableTimestamps();
@@ -492,7 +492,9 @@ const Schema = declareSchema(() => {
         field('unread', 'number').nullable();
         field('title', 'string').nullable();
         field('photo', 'json').nullable();
-        enumField('kind', ['message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated', 'dialog_deleted', 'photo_updated']);
+        field('mute', 'boolean').nullable();
+        field('haveMention', 'boolean').nullable();
+        enumField('kind', ['message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated', 'dialog_deleted', 'photo_updated', 'dialog_mute_changed', 'dialog_mentioned_changed']);
         rangeIndex('user', ['uid', 'seq']).withStreaming();
         enableVersioning();
         enableTimestamps();

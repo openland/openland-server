@@ -4,7 +4,6 @@ import { injectable, inject } from 'inversify';
 import { UserStateRepository } from './UserStateRepository';
 import { Context } from 'openland-utils/Context';
 import { MessageMention } from '../MessageInput';
-import { Modules } from '../../openland-modules/Modules';
 import { ImageRef } from 'openland-module-media/ImageRef';
 
 @injectable()
@@ -42,11 +41,6 @@ export class DeliveryRepository {
                 }
             }
 
-            if (!local.haveMention && haveMention) {
-                local.haveMention = haveMention;
-                await Modules.Messaging.sendDialogUpdateEvent(ctx, uid, message.cid);
-            }
-
             await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
                 kind: 'message_received',
                 cid: message.cid,
@@ -54,6 +48,11 @@ export class DeliveryRepository {
                 allUnread: global.unread,
                 unread: local.unread
             });
+
+            if (!local.haveMention && haveMention) {
+                local.haveMention = haveMention;
+                await this.deliverDialogMentionedChangedToUser(ctx, uid, message.cid, haveMention);
+            }
         });
     }
 
@@ -116,6 +115,32 @@ export class DeliveryRepository {
                 kind: 'photo_updated',
                 cid: cid,
                 photo: photo,
+            });
+        });
+    }
+
+    async deliverDialogMuteChangedToUser(parent: Context, uid: number, cid: number, mute: boolean) {
+        await inTx(parent, async (ctx) => {
+
+            let global = await this.userState.getUserMessagingState(ctx, uid);
+            global.seq++;
+            await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
+                kind: 'dialog_mute_changed',
+                cid,
+                mute
+            });
+        });
+    }
+
+    async deliverDialogMentionedChangedToUser(parent: Context, uid: number, cid: number, haveMention: boolean) {
+        await inTx(parent, async (ctx) => {
+
+            let global = await this.userState.getUserMessagingState(ctx, uid);
+            global.seq++;
+            await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
+                kind: 'dialog_mentioned_changed',
+                cid,
+                haveMention
             });
         });
     }

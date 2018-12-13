@@ -49,6 +49,10 @@ export default {
                 return 'DialogPhotoUpdated';
             } else if (obj.kind === 'dialog_deleted') {
                 return 'DialogDeleted';
+            } else if (obj.kind === 'dialog_mute_changed') {
+                return 'DialogMuteChanged';
+            } else if (obj.kind === 'dialog_mentioned_changed') {
+                return 'DialogMentionedChanged';
             }
             throw Error('Unknown dialog update type: ' + obj.kind);
         }
@@ -83,8 +87,16 @@ export default {
         photo: async (src: UserDialogEvent) => src.photo && buildBaseImageUrl(src.photo),
     },
     DialogDeleted: {
+        cid: src => IDs.Conversation.serialize(src.cid!),
+        globalUnread: src => src.allUnread || 0
+    },
+    DialogMuteChanged: {
+        cid: src => IDs.Conversation.serialize(src.cid!),
+        mute: src => src.mute,
+    },
+    DialogMentionedChanged: {
         cid: (src: UserDialogEvent) => IDs.Conversation.serialize(src.cid!),
-        globalUnread: (src: UserDialogEvent) => src.allUnread || 0
+        haveMention: (src: UserDialogEvent) => src.haveMention,
     },
 
     /*

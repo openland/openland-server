@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, Nullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '3013c44fcb9cbe3baffaf9ca0c6f4830';
+export const GQL_SPEC_VERSION = '3891b28c5097225e4fc1dc2d04a4db2a';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -561,10 +561,7 @@ export namespace GQL {
         state?: string;
     }
     export type ConversationUpdateContainer = ConversationUpdateSingle | ConversationUpdateBatch;
-    export type ConversationUpdate = ConversationMessageReceived | ConversationMessageUpdated | ConversationMessageDeleted | ConversationDialogUpdate;
-    export interface ConversationDialogUpdate {
-        dialog?: Dialog;
-    }
+    export type ConversationUpdate = ConversationMessageReceived | ConversationMessageUpdated | ConversationMessageDeleted;
     export interface ConversationMessageReceived {
         message?: ConversationMessage;
     }
@@ -589,7 +586,7 @@ export namespace GQL {
         state?: string;
     }
     export type DialogUpdateContainer = DialogUpdateSingle | DialogUpdateBatch;
-    export type DialogUpdate = DialogMessageReceived | DialogMessageUpdated | DialogMessageDeleted | DialogMessageRead | DialogTitleUpdated | DialogDeleted;
+    export type DialogUpdate = DialogMessageReceived | DialogMessageUpdated | DialogMessageDeleted | DialogMessageRead | DialogTitleUpdated | DialogDeleted | DialogMuteChanged | DialogMentionedChanged;
     export interface DialogMessageReceived {
         cid?: string;
         message?: ConversationMessage;
@@ -622,6 +619,14 @@ export namespace GQL {
     export interface DialogDeleted {
         cid?: string;
         globalUnread?: number;
+    }
+    export interface DialogMuteChanged {
+        cid?: string;
+        mute?: boolean;
+    }
+    export interface DialogMentionedChanged {
+        cid?: string;
+        haveMention?: boolean;
     }
     export interface FeatureFlag {
         id?: string;
@@ -1919,7 +1924,6 @@ export interface GQLResolver {
     ChannelConversationConnection?: ComplexTypedResolver<GQL.ChannelConversationConnection, GQLRoots.ChannelConversationConnectionRoot, {edges: GQLRoots.ChannelConversationConnectionEdgeRoot[], pageInfo: GQLRoots.PageInfoRoot}, {}>;
     ConversationUpdateSingle?: ComplexTypedResolver<GQL.ConversationUpdateSingle, GQLRoots.ConversationUpdateSingleRoot, {update: GQLRoots.ConversationUpdateRoot}, {}>;
     ConversationUpdateBatch?: ComplexTypedResolver<GQL.ConversationUpdateBatch, GQLRoots.ConversationUpdateBatchRoot, {updates: GQLRoots.ConversationUpdateRoot[]}, {}>;
-    ConversationDialogUpdate?: ComplexTypedResolver<GQL.ConversationDialogUpdate, GQLRoots.ConversationDialogUpdateRoot, {dialog: GQLRoots.DialogRoot}, {}>;
     ConversationMessageReceived?: ComplexTypedResolver<GQL.ConversationMessageReceived, GQLRoots.ConversationMessageReceivedRoot, {message: GQLRoots.ConversationMessageRoot}, {}>;
     ConversationMessageUpdated?: ComplexTypedResolver<GQL.ConversationMessageUpdated, GQLRoots.ConversationMessageUpdatedRoot, {message: GQLRoots.ConversationMessageRoot}, {}>;
     ConversationMessageDeleted?: ComplexTypedResolver<GQL.ConversationMessageDeleted, GQLRoots.ConversationMessageDeletedRoot, {message: GQLRoots.ConversationMessageRoot}, {}>;
@@ -1933,6 +1937,8 @@ export interface GQLResolver {
     DialogTitleUpdated?: ComplexTypedResolver<GQL.DialogTitleUpdated, GQLRoots.DialogTitleUpdatedRoot, {}, {}>;
     DialogPhotoUpdated?: ComplexTypedResolver<GQL.DialogPhotoUpdated, GQLRoots.DialogPhotoUpdatedRoot, {}, {}>;
     DialogDeleted?: ComplexTypedResolver<GQL.DialogDeleted, GQLRoots.DialogDeletedRoot, {}, {}>;
+    DialogMuteChanged?: ComplexTypedResolver<GQL.DialogMuteChanged, GQLRoots.DialogMuteChangedRoot, {}, {}>;
+    DialogMentionedChanged?: ComplexTypedResolver<GQL.DialogMentionedChanged, GQLRoots.DialogMentionedChangedRoot, {}, {}>;
     FeatureFlag?: ComplexTypedResolver<GQL.FeatureFlag, GQLRoots.FeatureFlagRoot, {}, {}>;
     ICEServer?: ComplexTypedResolver<GQL.ICEServer, GQLRoots.ICEServerRoot, {}, {}>;
     Conference?: ComplexTypedResolver<GQL.Conference, GQLRoots.ConferenceRoot, {peers: GQLRoots.ConferencePeerRoot[], iceServers: GQLRoots.ICEServerRoot[]}, {}>;

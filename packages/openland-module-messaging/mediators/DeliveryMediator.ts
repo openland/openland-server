@@ -65,6 +65,14 @@ export class DeliveryMediator {
         //
     }
 
+    onDialogMuteChanged = async (ctx: Context, uid: number, cid: number, mute: boolean) => {
+        await this.repo.deliverDialogMuteChangedToUser(ctx, uid, cid, mute);
+    }
+
+    onDialogMentionedChanged = async (ctx: Context, uid: number, cid: number, haveMention: boolean) => {
+        await this.repo.deliverDialogMentionedChangedToUser(ctx, uid, cid, haveMention);
+    }
+
     onOrganizationProfileUpdated = async (ctx: Context, oid: number) => {
         // await inTx(async () => {
         //     let org = await this.room.resolveOrganizationChat(oid);

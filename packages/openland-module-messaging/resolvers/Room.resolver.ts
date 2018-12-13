@@ -530,7 +530,7 @@ export default {
                 let settings = await Modules.Messaging.getRoomSettings(ctx, uid, cid);
                 if (args.settings.mute !== undefined && args.settings.mute !== null) {
                     settings.mute = args.settings.mute;
-                    await Modules.Messaging.sendDialogUpdateEvent(ctx, uid, cid);
+                    await Modules.Messaging.room.onDialogMuteChanged(ctx, uid, cid, args.settings.mute);
                 }
                 return settings;
             });

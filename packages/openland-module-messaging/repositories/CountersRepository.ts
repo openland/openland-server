@@ -117,7 +117,7 @@ export class CountersRepository {
                     
                     if (mentionRead) {
                         local.haveMention = false;
-                        await Modules.Messaging.sendDialogUpdateEvent(ctx, uid, message.cid);
+                        await Modules.Messaging.room.onDialogMentionedChanged(ctx, uid, message.cid, false);
                     }
                 }
 
