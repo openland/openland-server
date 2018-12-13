@@ -222,7 +222,7 @@ export class RoomRepository {
                 room!.kind = profile.kind!;
             }
 
-            conv.flush();
+            await conv.flush();
 
             return { updatedTitle, updatedPhoto };
         });
