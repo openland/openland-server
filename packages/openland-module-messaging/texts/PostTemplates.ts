@@ -31,7 +31,7 @@ export const PostTemplates = {
     },
     REQUEST_FOR_STARTUPS: {
         buttons: ApplyRecommendKeyboard,
-        APPLY_TEXT: templated<PostTemplateInterface>('🙌  @{{post_author}} — @{{responder}} is responding to your post “{{post_title}}” in {{chat}}.\nNow you can chat!'),
+        APPLY_TEXT: templated<PostTemplateInterface>('🙌  @{{post_author}} — @{{responder}} is responding to your post “{{post_title}}” in @{{chat}}.\nNow you can chat!'),
         RECOMMEND_TEXT: templated<PostTemplateInterface>('🙌  @{{post_author}} — @{{responder}} is interested to make a recommendation following up to your post “{{post_title}}” in @{{chat}}.'),
     }
 };
