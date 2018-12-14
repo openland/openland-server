@@ -146,6 +146,7 @@ type ConversationMessage {
     alphaType: MessageType!
     alphaTitle: String
     postType: String
+    alphaMentions: [Mention!]
 }
 
 type FileMetadata {

@@ -345,6 +345,7 @@ export default {
         alphaType: async (src: Message) => src.type ? src.type : 'MESSAGE',
         postType: async (src: Message) => src.postType,
         alphaTitle: async (src: Message) => src.title,
+        alphaMentions: async (src: Message) => src.complexMentions
     },
     InviteServiceMetadata: {
         users: (src: any, args: {}, ctx: AppContext) => src.userIds.map((id: number) => FDB.User.findById(ctx, id)),
