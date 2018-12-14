@@ -15,7 +15,7 @@ export class FixerRepository {
     }
 
     async fixForUser(parent: Context, uid: number) {
-        await inTx(parent, async (ctx) => {
+        return await inTx(parent, async (ctx) => {
             logger.debug(ctx, '[' + uid + '] fixing counters for #' + uid);
             let all = await this.entities.UserDialog.allFromUser(ctx, uid);
             let totalUnread = 0;
