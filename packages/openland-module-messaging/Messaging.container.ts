@@ -10,6 +10,7 @@ import { AugmentationMediator } from './mediators/AugmentationMediator';
 import { DeliveryMediator } from './mediators/DeliveryMediator';
 import { CountersMediator } from './mediators/CountersMediator';
 import { RoomMediator } from './mediators/RoomMediator';
+import { FixerRepository } from './repositories/Fixer';
 
 export function loadMessagingModule() {
     container.bind(MessagingModule).toSelf().inSingletonScope();
@@ -23,4 +24,5 @@ export function loadMessagingModule() {
     container.bind('DeliveryMediator').to(DeliveryMediator).inSingletonScope();
     container.bind('CountersMediator').to(CountersMediator).inSingletonScope();
     container.bind('RoomMediator').to(RoomMediator).inSingletonScope();
+    container.bind('FixerRepository').to(FixerRepository).inSingletonScope();
 }
