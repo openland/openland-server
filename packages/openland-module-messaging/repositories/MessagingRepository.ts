@@ -105,6 +105,9 @@ export class MessagingRepository {
             if (newMessage.serviceMetadata) {
                 message.serviceMetadata = newMessage.serviceMetadata;
             }
+            if (newMessage.complexMentions) {
+                message.complexMentions = newMessage.complexMentions;
+            }
 
             //
             // Write Event
