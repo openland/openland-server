@@ -8,5 +8,8 @@ export default {
         betaFixCounter: withPermission('super-admin', async (ctx, args) => {
             return await Modules.Messaging.fixer.fixForUser(ctx, IDs.User.parse(args.uid));
         }),
+        betaFixCountersForAll: withPermission('super-admin', async (ctx, args) => {
+            return await Modules.Messaging.fixer.fixForAllUsers(ctx);
+        }),
     }
 } as GQLResolver;

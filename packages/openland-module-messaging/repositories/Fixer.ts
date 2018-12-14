@@ -50,4 +50,16 @@ export class FixerRepository {
             return true;
         });
     }
+
+    async fixForAllUsers(parent: Context) {
+        await inTx(parent, async (ctx) => {
+            let users = await this.entities.User.findAll(ctx);
+
+            for (let user of users) {
+                await this.fixForUser(ctx, user.id);
+            }
+
+            return true;
+        });
+    }
 } 
