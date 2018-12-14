@@ -13,11 +13,13 @@ import { dialogSearchIndexer } from './workers/dialogSearchIndexer';
 import { RoomSearch } from './search/RoomSearch';
 import { Context } from 'openland-utils/Context';
 import { messagesIndexer } from './workers/messagesIndexer';
+import { FixerRepository } from './repositories/Fixer';
 
 @injectable()
 export class MessagingModule {
     readonly room: RoomMediator;
     readonly search: RoomSearch = new RoomSearch();
+    readonly fixer: FixerRepository;
     private readonly delivery: DeliveryMediator;
     private readonly messaging: MessagingMediator;
     private readonly augmentation: AugmentationMediator;
@@ -26,6 +28,7 @@ export class MessagingModule {
     constructor(
         @inject('MessagingMediator') messaging: MessagingMediator,
         @inject('UserStateRepository') userState: UserStateRepository,
+        @inject('FixerRepository') fixer: FixerRepository,
         @inject('AugmentationMediator') augmentation: AugmentationMediator,
         @inject('DeliveryMediator') delivery: DeliveryMediator,
         @inject('RoomMediator') room: RoomMediator,
@@ -35,6 +38,7 @@ export class MessagingModule {
         this.messaging = messaging;
         this.room = room;
         this.augmentation = augmentation;
+        this.fixer = fixer;
     }
 
     //
