@@ -21,6 +21,10 @@ export class FixerRepository {
             let totalUnread = 0;
             for (let a of all) {
                 let conv = (await this.entities.Conversation.findById(ctx, a.cid))!;
+                if (!conv) {
+                    a.unread = 0;
+                    continue;
+                }
                 if (conv.kind === 'room') {
                     let pat = await this.entities.RoomParticipant.findById(ctx, a.cid, uid);
                     if (!pat || pat.status !== 'joined') {
