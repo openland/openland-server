@@ -47,6 +47,7 @@ export class FixerRepository {
             } else {
                 await this.entities.UserMessagingState.create(ctx, uid, { seq: 1, unread: totalUnread });
             }
+            return true;
         });
     }
 } 
