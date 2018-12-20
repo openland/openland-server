@@ -169,6 +169,7 @@ const Schema = declareSchema(() => {
         enumField('status', ['pending', 'activated', 'suspended', 'deleted']);
 
         uniqueIndex('authId', ['authId']).withCondition(src => src.status !== 'deleted');
+        uniqueIndex('email', ['email']).withCondition(src => src.status !== 'deleted');
     });
 
     entity('UserProfile', () => {

@@ -325,6 +325,28 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '33-reindex-users',
+    migration: async (root, log) => {
+        let allKeys = await FDB.User.findAllKeys(root);
+        let keyBatches = batch(allKeys, 100);
+        for (let kb of keyBatches) {
+            await inTx(root, async (ctx) => {
+                for (let a of kb) {
+                    let k = FKeyEncoding.decodeKey(a);
+                    k.splice(0, 2);
+                    let u = (await FDB.User.findById(ctx, k[0] as number));
+                    if (!u) {
+                        log.warn(ctx, 'no user found! ' + JSON.stringify(k));
+                    } else {
+                        u.markDirty();
+                    }
+                }
+            });
+        }
+    }
+});
+
 export function startMigrationsWorker() {
     if (serverRoleEnabled('workers')) {
         staticWorker({ name: 'foundation-migrator' }, async (ctx) => {
