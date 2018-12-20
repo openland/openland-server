@@ -235,6 +235,21 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '30-delete-accounts-without-emails',
+    migration: async (root, log) => {
+        await inTx(root, async (ctx) => {
+            let users = await FDB.User.findAll(ctx);
+            for (let u of users) {
+                if (u.email === '') {
+                    u.status = 'deleted';
+                    log.log(ctx, 'Delete user #' + u.id);
+                }
+            }
+        });
+    }
+});
+
 export function startMigrationsWorker() {
     if (serverRoleEnabled('workers')) {
         staticWorker({ name: 'foundation-migrator' }, async (ctx) => {
