@@ -4,7 +4,7 @@ import { FConnection } from './FConnection';
 import { FEntityIndex } from './FEntityIndex';
 import { createLogger } from 'openland-log/createLogger';
 import { FDirectory } from './FDirectory';
-import { Context, createEmptyContext } from 'openland-utils/Context';
+import { Context } from 'openland-utils/Context';
 import { resolveContext } from './utils/contexts';
 
 export interface FEntityOptions {
@@ -152,7 +152,7 @@ export abstract class FEntity {
                     });
                 }
 
-                log.debug(createEmptyContext(), 'created', JSON.stringify({ entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: value }));
+                log.debug(this.ctx, 'created', JSON.stringify({ entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: value }));
                 for (let index of this.indexes) {
                     // Check index condition if applicable
                     if (index.condition && !index.condition(value)) {
@@ -170,7 +170,7 @@ export abstract class FEntity {
                     }
                 }
             } else {
-                log.debug(createEmptyContext(), 'updated', JSON.stringify({ entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: value }));
+                log.debug(this.ctx, 'updated', JSON.stringify({ entityId: [...this.namespace.namespace, ...this.rawId].join('.'), value: value }));
                 for (let index of this.indexes) {
                     let key = index.fields.map((v) => value[v]);
                     let oldkey = index.fields.map((v) => this._valueInitial[v]);
@@ -238,7 +238,7 @@ export abstract class FEntity {
                 ...value
             };
         } catch (e) {
-            log.warn(createEmptyContext(), 'Unable to flush entity', JSON.stringify(this._value), e);
+            log.warn(this.ctx, 'Unable to flush entity', JSON.stringify(this._value), e);
             throw e;
         }
     }
