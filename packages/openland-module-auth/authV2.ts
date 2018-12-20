@@ -98,7 +98,7 @@ export const Authenticator = async function (req: express.Request, response: exp
             let userKey = req.user.sub;
 
             // Account
-            let user = (await FDB.User.findAll(ctx)).find((v) => v.email === profile.email.toLowerCase() || v.authId === userKey);
+            let user = await FDB.User.findFromEmail(ctx, profile.email.toLowerCase());
             if (!user) {
                 user = await Modules.Users.createUser(ctx, userKey, profile.email);
             }

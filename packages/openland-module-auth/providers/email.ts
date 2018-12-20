@@ -128,7 +128,7 @@ export async function sendCode(req: express.Request, response: express.Response)
             }
 
             if (!authSession) {
-                 authSession = await Modules.Auth.createEmailAuthSession(ctx, email, code);
+                authSession = await Modules.Auth.createEmailAuthSession(ctx, email, code);
             } else {
                 authSession.code = code;
             }
@@ -242,9 +242,7 @@ export async function getAccessToken(req: express.Request, response: express.Res
         }
 
         if (authSession.email) {
-            let existing = (await FDB.User.findAll(ctx))
-                .find((v) => v.email === authSession!.email || v.authId === 'email|' + authSession!.email as any);
-
+            let existing = await FDB.User.findFromEmail(ctx, authSession.email.toLowerCase());
             if (existing) {
                 let token = await Modules.Auth.createToken(ctx, existing.id!);
                 response.json({ ok: true, accessToken: token.salt });
