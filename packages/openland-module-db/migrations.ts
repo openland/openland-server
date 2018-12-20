@@ -225,6 +225,16 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '29-fix-apple-account',
+    migration: async (root, log) => {
+        await inTx(root, async (ctx) => {
+            let u = (await FDB.User.findFromAuthId(ctx, 'email|appstore@apple.com'))!;
+            u.email = 'appstore@apple.com';
+        });
+    }
+});
+
 export function startMigrationsWorker() {
     if (serverRoleEnabled('workers')) {
         staticWorker({ name: 'foundation-migrator' }, async (ctx) => {
