@@ -210,7 +210,7 @@ export default {
         //
 
         alphaSendPostMessage: withUser(async (parent, args, uid) => {
-            let ctx = withLogContext(parent, 'send-post-message');
+            let ctx = withLogContext(parent, ['send-post-message']);
             let conversationId = IDs.Conversation.parse(args.conversationId);
 
             let attachments: MessageAttachment[] = [];
@@ -247,7 +247,7 @@ export default {
             });
         }),
         alphaEditPostMessage: withUser(async (parent, args, uid) => {
-            let ctx = withLogContext(parent, 'send-post-message');
+            let ctx = withLogContext(parent, ['send-post-message']);
             let messageId = IDs.ConversationMessage.parse(args.messageId);
 
             let attachments: MessageAttachment[] = [];

@@ -23,7 +23,7 @@ export async function performMigrations(parent: Context, connection: FConnection
             log.log(parent, 'Remaining migrations: ' + remaining.length);
             for (let m of remaining) {
                 log.log(parent, 'Starting migration: ' + m.key);
-                let ctx = withLogContext(parent, m.key);
+                let ctx = withLogContext(parent, [m.key]);
                 await m.migration(ctx, log);
                 await connection.fdb.set(FKeyEncoding.encodeKey(['__meta', 'migrations', m.key]), { key: m.key });
                 log.log(parent, 'Completed migration: ' + m.key);

@@ -556,7 +556,7 @@ export default {
         }),
         alphaSendMessage: withUser(async (parent, args, uid) => {
             // validate({ message: stringNotEmpty() }, args);
-            let ctx = withLogContext(parent, 'send-message');
+            let ctx = withLogContext(parent, ['send-message']);
             let conversationId = IDs.Conversation.parse(args.conversationId);
 
             let fileMetadata: JsonMap | null = null;

@@ -10,7 +10,7 @@ import { createEmptyContext } from 'openland-utils/Context';
 export class ModernScheduller {
     start = () => {
         if (serverRoleEnabled('workers')) {
-            let root = withLogContext(createEmptyContext(), 'modern-scheduler');
+            let root = withLogContext(createEmptyContext(), ['modern-scheduler']);
             forever(async () => {
 
                 // Prerequisites
