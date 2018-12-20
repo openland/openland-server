@@ -1739,6 +1739,7 @@ export class UserFactory extends FEntityFactory<User> {
         ],
         indexes: [
             { name: 'authId', type: 'unique', fields: ['authId'] },
+            { name: 'email', type: 'unique', fields: ['email'] },
         ],
     };
 
@@ -1761,7 +1762,7 @@ export class UserFactory extends FEntityFactory<User> {
         super(connection,
             new FNamespace('entity', 'user'),
             { enableVersioning: false, enableTimestamps: false, validator: UserFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('authId', ['authId'], true, src => src.status !== 'deleted')],
+            [new FEntityIndex('authId', ['authId'], true, src => src.status !== 'deleted'), new FEntityIndex('email', ['email'], true, src => src.status !== 'deleted')],
             'User'
         );
     }
@@ -1792,6 +1793,21 @@ export class UserFactory extends FEntityFactory<User> {
     }
     createAuthIdStream(ctx: Context, limit: number, after?: string) {
         return this._createStream(ctx, ['entity', 'user', '__indexes', 'authId'], limit, after); 
+    }
+    async findFromEmail(ctx: Context, email: string) {
+        return await this._findFromIndex(ctx, ['__indexes', 'email', email]);
+    }
+    async rangeFromEmail(ctx: Context, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'email'], limit, reversed);
+    }
+    async rangeFromEmailWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'email'], limit, after, reversed);
+    }
+    async allFromEmail(ctx: Context, ) {
+        return await this._findAll(ctx, ['__indexes', 'email']);
+    }
+    createEmailStream(ctx: Context, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'user', '__indexes', 'email'], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new User(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'User');

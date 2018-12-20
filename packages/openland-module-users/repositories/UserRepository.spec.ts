@@ -14,16 +14,23 @@ describe('UserRepository', () => {
     });
     it('should create users', async () => {
         let repo = container.get<UserRepository>('UserRepository');
-        let res = await repo.createUser(createEmptyContext(), 'usertestauth1', 'someemail@open.com');
+        let res = await repo.createUser(createEmptyContext(), 'usertestauth1', 'someemail4411@open.com');
         expect(res.authId).toEqual('usertestauth1');
-        expect(res.email).toEqual('someemail@open.com');
+        expect(res.email).toEqual('someemail4411@open.com');
         expect(res.status).toEqual('pending');
     });
 
     it('should crash on duplicate authId', async () => {
         let repo = container.get<UserRepository>('UserRepository');
-        await repo.createUser(createEmptyContext(), 'usertestauth2', 'someemail@open.com');
+        await repo.createUser(createEmptyContext(), 'usertestauth2', 'someemail44@open.com');
         await expect(repo.createUser(createEmptyContext(), 'usertestauth2', 'someemail3@open.com'))
+            .rejects.toThrowError();
+    });
+
+    it('should crash on duplicate email', async () => {
+        let repo = container.get<UserRepository>('UserRepository');
+        await repo.createUser(createEmptyContext(), 'usertestauth244', 'someemail22@open.com');
+        await expect(repo.createUser(createEmptyContext(), 'usertestauth2445', 'someemail22@open.com'))
             .rejects.toThrowError();
     });
 
