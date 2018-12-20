@@ -213,7 +213,12 @@ migrations.push({
                 for (let a of kb) {
                     let k = FKeyEncoding.decodeKey(a);
                     k.splice(0, 2);
-                    (await FDB.ChannelInvitation.findByRawId(ctx, k as any))!.markDirty();
+                    let u = (await FDB.ChannelInvitation.findByRawId(ctx, k as any));
+                    if (!u) {
+                        log.warn(ctx, 'no user found! ' + JSON.stringify(k));
+                    } else {
+                        u.markDirty();
+                    }
                 }
             });
         }
