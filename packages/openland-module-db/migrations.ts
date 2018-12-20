@@ -204,7 +204,7 @@ migrations.push({
 });
 
 migrations.push({
-    key: '27-reindex-users',
+    key: '28-reindex-users',
     migration: async (root, log) => {
         let allKeys = await FDB.User.findAllKeys(root);
         let keyBatches = batch(allKeys, 100);
@@ -213,7 +213,7 @@ migrations.push({
                 for (let a of kb) {
                     let k = FKeyEncoding.decodeKey(a);
                     k.splice(0, 2);
-                    let u = (await FDB.ChannelInvitation.findByRawId(ctx, k as any));
+                    let u = (await FDB.User.findById(ctx, k[0] as number));
                     if (!u) {
                         log.warn(ctx, 'no user found! ' + JSON.stringify(k));
                     } else {
