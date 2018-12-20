@@ -27,7 +27,7 @@ describe('OrganizationModule', () => {
     });
 
     async function createUser(ctx: Context, index: number) {
-        let user = await Modules.Users.createUser(ctx, 'test' + index, index + 'some@email.comn');
+        let user = await Modules.Users.createUser(ctx, 'testtoken' + index, index + 'some@email.comn');
         await Modules.Users.createUserProfile(ctx, user.id, { firstName: 'Some Name' });
         return user;
     }
@@ -289,7 +289,7 @@ describe('OrganizationModule', () => {
         let user1 = await createUser(ctx, 18);
         let user2 = await createUser(ctx, 19);
         let user3 = await createUser(ctx, 20);
-        let user4 = await createUser(ctx, 20);
+        let user4 = await createUser(ctx, 21);
         await Modules.Users.activateUser(ctx, user1.id);
         await Modules.Users.activateUser(ctx, user2.id);
         await Modules.Users.activateUser(ctx, user3.id);
@@ -313,10 +313,10 @@ describe('OrganizationModule', () => {
 
     it('should handle kicking securely', async () => {
         let ctx = createEmptyContext();
-        let user1 = await createUser(ctx, 21);
-        let user2 = await createUser(ctx, 22);
-        let user3 = await createUser(ctx, 23);
-        let user4 = await createUser(ctx, 24);
+        let user1 = await createUser(ctx, 22);
+        let user2 = await createUser(ctx, 23);
+        let user3 = await createUser(ctx, 24);
+        let user4 = await createUser(ctx, 25);
         await Modules.Users.activateUser(ctx, user1.id);
         await Modules.Users.activateUser(ctx, user2.id);
         await Modules.Users.activateUser(ctx, user3.id);

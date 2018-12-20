@@ -69,10 +69,10 @@ describe('RoomMediator', () => {
         let ctx = createEmptyContext();
         let mediator = container.get<RoomMediator>('RoomMediator');
         let users = container.get<UsersModule>(UsersModule);
-        await users.createUser(ctx, 'user110', 'email1110');
-        let USER_ID = (await users.createUser(ctx, 'user111', 'email111')).id;
-        let USER2_ID = (await users.createUser(ctx, 'user112', 'email112')).id;
-        let USER3_ID = (await users.createUser(ctx, 'user113', 'email113')).id;
+        await users.createUser(ctx, 'user3110', 'email1110');
+        let USER_ID = (await users.createUser(ctx, 'user3111', 'email111')).id;
+        let USER2_ID = (await users.createUser(ctx, 'user3112', 'email112')).id;
+        let USER3_ID = (await users.createUser(ctx, 'user3113', 'email113')).id;
         await users.createUserProfile(ctx, USER_ID, { firstName: 'User Name' });
         await users.createUserProfile(ctx, USER2_ID, { firstName: 'User Name' });
         await users.createUserProfile(ctx, USER3_ID, { firstName: 'User Name' });
@@ -105,8 +105,8 @@ describe('RoomMediator', () => {
         let ctx = createEmptyContext();
         let mediator = container.get<RoomMediator>('RoomMediator');
         let users = container.get<UsersModule>(UsersModule);
-        let USER_ID = (await users.createUser(ctx, 'user111', 'email111')).id;
-        let USER2_ID = (await users.createUser(ctx, 'user112', 'email112')).id;
+        let USER_ID = (await users.createUser(ctx, 'user2111', 'email111')).id;
+        let USER2_ID = (await users.createUser(ctx, 'user2112', 'email112')).id;
         await users.createUserProfile(ctx, USER_ID, { firstName: 'User Name' });
         await users.createUserProfile(ctx, USER2_ID, { firstName: 'User Name 2' });
         let room = await mediator.createRoom(ctx, 'public', 1, USER_ID, [], { title: 'Room' });
