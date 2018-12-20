@@ -6,12 +6,14 @@ import { loadMessagingTestModule } from 'openland-module-messaging/Messaging.con
 import { UsersModule } from 'openland-module-users/UsersModule';
 import { createEmptyContext } from 'openland-utils/Context';
 import { SuperModule } from '../../openland-module-super/SuperModule';
+import { UserRepository } from 'openland-module-users/repositories/UserRepository';
 
 describe('RoomMediator', () => {
     beforeAll(async () => {
         await testEnvironmentStart('room-mediator');
         loadMessagingTestModule();
         container.bind(UsersModule).toSelf().inSingletonScope();
+        container.bind('UserRepository').to(UserRepository).inSingletonScope();
         container.bind(SuperModule).toSelf().inSingletonScope();
 
     });

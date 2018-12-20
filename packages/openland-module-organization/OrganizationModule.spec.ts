@@ -9,6 +9,7 @@ import { SuperModule } from 'openland-module-super/SuperModule';
 import { HooksModule } from 'openland-module-hooks/HooksModule';
 import { FDB } from 'openland-module-db/FDB';
 import { createEmptyContext, Context } from 'openland-utils/Context';
+import { UserRepository } from 'openland-module-users/repositories/UserRepository';
 // console.log('imported in ' + (Date.now() - start) + ' ms');
 
 describe('OrganizationModule', () => {
@@ -18,6 +19,7 @@ describe('OrganizationModule', () => {
         container.bind(OrganizationRepository).toSelf().inSingletonScope();
         container.bind(OrganizationModule).toSelf().inSingletonScope();
         container.bind(UsersModule).toSelf().inSingletonScope();
+        container.bind('UserRepository').to(UserRepository).inSingletonScope();
         container.bind(SuperModule).toSelf().inSingletonScope();
         container.bind(HooksModule).toSelf().inSingletonScope();
         // console.log('loaded in ' + (Date.now() - start) + ' ms');

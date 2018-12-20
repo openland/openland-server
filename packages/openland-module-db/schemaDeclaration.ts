@@ -166,9 +166,9 @@ const Schema = declareSchema(() => {
         field('isBot', 'boolean');
         field('invitedBy', 'number').nullable();
         field('botOwner', 'number').nullable();
-        enumField('status', ['pending', 'activated', 'suspended']);
+        enumField('status', ['pending', 'activated', 'suspended', 'deleted']);
 
-        uniqueIndex('authId', ['authId']);
+        uniqueIndex('authId', ['authId']).withCondition(src => src.status !== 'deleted');
     });
 
     entity('UserProfile', () => {

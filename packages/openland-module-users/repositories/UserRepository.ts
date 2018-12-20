@@ -6,14 +6,15 @@ import { ProfileInput } from 'openland-module-users/ProfileInput';
 import { NotFoundError } from 'openland-errors/NotFoundError';
 import { ImageRef } from 'openland-module-media/ImageRef';
 import { Context } from 'openland-utils/Context';
+import { injectable } from 'inversify';
+import { lazyInject } from 'openland-modules/Modules.container';
 
+@injectable()
 export class UserRepository {
     private readonly userAuthIdCache = new Map<string, number | undefined>();
-    private entities: AllEntities;
-
-    constructor(entities: AllEntities) {
-        this.entities = entities;
-    }
+    
+    @lazyInject('FDB')
+    private readonly entities!: AllEntities;
 
     /*
      * User
@@ -58,6 +59,17 @@ export class UserRepository {
                 throw new NotFoundError('Unable to find user');
             }
             user.status = 'suspended';
+            return user;
+        });
+    }
+
+    async deleteUser(parent: Context, uid: number) {
+        return await inTx(parent, async (ctx) => {
+            let user = (await this.entities.User.findById(ctx, uid))!;
+            if (!user) {
+                throw new NotFoundError('Unable to find user');
+            }
+            user.status = 'deleted';
             return user;
         });
     }

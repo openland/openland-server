@@ -7,12 +7,14 @@ import { UsersModule } from 'openland-module-users/UsersModule';
 import { MessagingMediator } from './MessagingMediator';
 import *  as ChatResolver from '../resolvers/Chat.resolver';
 import { createEmptyContext } from 'openland-utils/Context';
+import { UserRepository } from 'openland-module-users/repositories/UserRepository';
 
 describe('MessagingMediator', () => {
     beforeAll(async () => {
         await testEnvironmentStart('messaging-mediator');
         loadMessagingTestModule();
         container.bind(UsersModule).toSelf().inSingletonScope();
+        container.bind('UserRepository').to(UserRepository).inSingletonScope();
     });
     afterAll(() => {
         testEnvironmentEnd();

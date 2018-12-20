@@ -1656,7 +1656,7 @@ export interface UserShape {
     isBot: boolean;
     invitedBy?: number| null;
     botOwner?: number| null;
-    status: 'pending' | 'activated' | 'suspended';
+    status: 'pending' | 'activated' | 'suspended' | 'deleted';
 }
 
 export class User extends FEntity {
@@ -1711,10 +1711,10 @@ export class User extends FEntity {
         this._value.botOwner = value;
         this.markDirty();
     }
-    get status(): 'pending' | 'activated' | 'suspended' {
+    get status(): 'pending' | 'activated' | 'suspended' | 'deleted' {
         return this._value.status;
     }
-    set status(value: 'pending' | 'activated' | 'suspended') {
+    set status(value: 'pending' | 'activated' | 'suspended' | 'deleted') {
         this._checkIsWritable();
         if (value === this._value.status) { return; }
         this._value.status = value;
@@ -1735,7 +1735,7 @@ export class UserFactory extends FEntityFactory<User> {
             { name: 'isBot', type: 'boolean' },
             { name: 'invitedBy', type: 'number' },
             { name: 'botOwner', type: 'number' },
-            { name: 'status', type: 'enum', enumValues: ['pending', 'activated', 'suspended'] },
+            { name: 'status', type: 'enum', enumValues: ['pending', 'activated', 'suspended', 'deleted'] },
         ],
         indexes: [
             { name: 'authId', type: 'unique', fields: ['authId'] },
@@ -1754,14 +1754,14 @@ export class UserFactory extends FEntityFactory<User> {
         validators.isNumber('invitedBy', src.invitedBy);
         validators.isNumber('botOwner', src.botOwner);
         validators.notNull('status', src.status);
-        validators.isEnum('status', src.status, ['pending', 'activated', 'suspended']);
+        validators.isEnum('status', src.status, ['pending', 'activated', 'suspended', 'deleted']);
     }
 
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'user'),
             { enableVersioning: false, enableTimestamps: false, validator: UserFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('authId', ['authId'], true)],
+            [new FEntityIndex('authId', ['authId'], true, src => src.status !== 'deleted')],
             'User'
         );
     }

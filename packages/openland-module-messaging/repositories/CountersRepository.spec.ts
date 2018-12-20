@@ -4,6 +4,7 @@ import { UserStateRepository } from './UserStateRepository';
 import { CountersRepository } from './CountersRepository';
 import { MessagingRepository } from './MessagingRepository';
 import { createEmptyContext } from 'openland-utils/Context';
+import { UserRepository } from 'openland-module-users/repositories/UserRepository';
 
 describe('CountersRepository', () => {
     beforeAll(async () => {
@@ -11,6 +12,7 @@ describe('CountersRepository', () => {
         container.bind('UserStateRepository').to(UserStateRepository).inSingletonScope();
         container.bind('CountersRepository').to(CountersRepository).inSingletonScope();
         container.bind('MessagingRepository').to(MessagingRepository).inSingletonScope();
+        container.bind('UserRepository').to(UserRepository).inSingletonScope();
     });
     afterAll(() => {
         testEnvironmentEnd();

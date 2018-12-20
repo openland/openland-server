@@ -1,11 +1,10 @@
 
-import { FDB } from 'openland-module-db/FDB';
-import { UserRepository } from './repositories/UsersRepository';
+import { UserRepository } from './repositories/UserRepository';
 import { userProfileIndexer } from './workers/userProfileIndexer';
 import { UserSearch } from './search/UserSearch';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { ProfileInput } from './ProfileInput';
-import { injectable } from 'inversify';
+import { injectable, inject } from 'inversify';
 import { inTx } from 'foundation-orm/inTx';
 import { Emails } from 'openland-module-email/Emails';
 import { ImageRef } from 'openland-module-media/ImageRef';
@@ -15,8 +14,12 @@ import { NotFoundError } from '../openland-errors/NotFoundError';
 @injectable()
 export class UsersModule {
 
-    private readonly repo = new UserRepository(FDB);
+    private readonly repo: UserRepository;
     private readonly search = new UserSearch();
+
+    constructor(@inject('UserRepository') userRepo: UserRepository) {
+        this.repo = userRepo;
+    }
 
     start = () => {
         if (serverRoleEnabled('workers')) {
