@@ -1738,6 +1738,7 @@ export class UserFactory extends FEntityFactory<User> {
             { name: 'status', type: 'enum', enumValues: ['pending', 'activated', 'suspended'] },
         ],
         indexes: [
+            { name: 'authId', type: 'unique', fields: ['authId'] },
         ],
     };
 
@@ -1760,7 +1761,7 @@ export class UserFactory extends FEntityFactory<User> {
         super(connection,
             new FNamespace('entity', 'user'),
             { enableVersioning: false, enableTimestamps: false, validator: UserFactory.validate, hasLiveStreams: false },
-            [],
+            [new FEntityIndex('authId', ['authId'], true)],
             'User'
         );
     }
@@ -1776,6 +1777,21 @@ export class UserFactory extends FEntityFactory<User> {
     }
     watch(ctx: Context, id: number, cb: () => void) {
         return this._watch(ctx, [id], cb);
+    }
+    async findFromAuthId(ctx: Context, authId: string) {
+        return await this._findFromIndex(ctx, ['__indexes', 'authId', authId]);
+    }
+    async rangeFromAuthId(ctx: Context, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'authId'], limit, reversed);
+    }
+    async rangeFromAuthIdWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'authId'], limit, after, reversed);
+    }
+    async allFromAuthId(ctx: Context, ) {
+        return await this._findAll(ctx, ['__indexes', 'authId']);
+    }
+    createAuthIdStream(ctx: Context, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'user', '__indexes', 'authId'], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new User(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'User');

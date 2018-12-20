@@ -203,6 +203,23 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '27-reindex-users',
+    migration: async (root, log) => {
+        let allKeys = await FDB.User.findAllKeys(root);
+        let keyBatches = batch(allKeys, 100);
+        for (let kb of keyBatches) {
+            await inTx(root, async (ctx) => {
+                for (let a of kb) {
+                    let k = FKeyEncoding.decodeKey(a);
+                    k.splice(0, 2);
+                    (await FDB.ChannelInvitation.findByRawId(ctx, k as any))!.markDirty();
+                }
+            });
+        }
+    }
+});
+
 export function startMigrationsWorker() {
     if (serverRoleEnabled('workers')) {
         staticWorker({ name: 'foundation-migrator' }, async (ctx) => {
