@@ -279,6 +279,40 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '31-delete-duplicated-pending',
+    migration: async (root, log) => {
+        await inTx(root, async (ctx) => {
+            let users = await FDB.User.findAll(ctx);
+            let emails = new Set<string>();
+            for (let u of users) {
+                if (u.status !== 'deleted') {
+                    emails.add(u.email);
+                }
+            }
+            for (let e of emails) {
+                let us = users.filter((v) => v.status !== 'deleted' && v.email === e);
+                if (us.length > 1) {
+                    let allPending = !us.find((v) => v.status !== 'pending');
+                    if (allPending) {
+                        let primary = us.find((v) => v.authId.startsWith('google-oauth2|'))!;
+                        if (!primary) {
+                            primary = us[0];
+                        }
+                        for (let u of us) {
+                            if (u.id === primary.id) {
+                                continue;
+                            }
+                            u.status = 'deleted';
+                            log.log(ctx, 'Delete user #' + u.id);
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+
 export function startMigrationsWorker() {
     if (serverRoleEnabled('workers')) {
         staticWorker({ name: 'foundation-migrator' }, async (ctx) => {
