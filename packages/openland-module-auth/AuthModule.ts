@@ -1,13 +1,19 @@
 import { FDB } from 'openland-module-db/FDB';
 import { AuthCodeRepository } from './repositories/AuthCodeRepository';
-import { injectable } from 'inversify';
+import { injectable, inject } from 'inversify';
 import { TokenRepository } from './repositories/TokenRepository';
 import { Context } from 'openland-utils/Context';
 
 @injectable()
 export class AuthModule {
     private readonly codeRepo = new AuthCodeRepository(FDB);
-    private readonly tokenRepo = new TokenRepository(FDB);
+    private readonly tokenRepo!: TokenRepository;
+
+    constructor(
+        @inject('TokenRepository') tokenRepo: TokenRepository
+    ) {
+        this.tokenRepo = tokenRepo;
+    }
 
     start = () => {
         //

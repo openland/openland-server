@@ -30,6 +30,7 @@ import { loadMessagingModule } from 'openland-module-messaging/Messaging.contain
 import { loadInvitesModule } from 'openland-module-invites/Invites.container';
 import { CallsModule } from 'openland-module-calls/CallsModule';
 import { loadCallsModule } from 'openland-module-calls/Calls.container';
+import { loadAuthModule } from 'openland-module-auth/AuthModule.container';
 
 export function loadAllModules(loadDb: boolean = true) {
 
@@ -40,6 +41,7 @@ export function loadAllModules(loadDb: boolean = true) {
     }
 
     loadMessagingModule();
+    loadAuthModule();
 
     container.bind(DBModule).toSelf().inSingletonScope();
     container.bind('HooksModule').to(HooksModule).inSingletonScope();

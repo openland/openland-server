@@ -5,9 +5,15 @@ import { randomBytes } from 'crypto';
 import * as base64 from 'openland-utils/base64';
 import { inTx } from 'foundation-orm/inTx';
 import { Context, createEmptyContext } from 'openland-utils/Context';
+import { injectable } from 'inversify';
+import { lazyInject } from 'openland-modules/Modules.container';
 
+@injectable()
 export class TokenRepository {
-    private readonly entities: AllEntities;
+
+    @lazyInject('FDB')
+    private readonly entities!: AllEntities;
+    
     private readonly loader = new DataLoader<string, AuthToken | null>(async (tokens) => {
         let res: (AuthToken | null)[] = [];
         for (let i of tokens) {
@@ -15,10 +21,6 @@ export class TokenRepository {
         }
         return res;
     });
-
-    constructor(entities: AllEntities) {
-        this.entities = entities;
-    }
 
     async createToken(parent: Context, uid: number) {
         return await inTx(parent, async (ctx) => {
