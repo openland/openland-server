@@ -250,6 +250,35 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '30-delete-duplicated',
+    migration: async (root, log) => {
+        await inTx(root, async (ctx) => {
+            let users = await FDB.User.findAll(ctx);
+            let emails = new Set<string>();
+            for (let u of users) {
+                if (u.status !== 'deleted') {
+                    emails.add(u.email);
+                }
+            }
+            for (let e of emails) {
+                let us = users.filter((v) => v.status !== 'deleted' && v.email === e);
+                if (us.length > 1) {
+                    let hasActivated = !!us.find((v) => v.status === 'activated');
+                    if (hasActivated) {
+                        for (let u of us) {
+                            if (u.status !== 'activated') {
+                                u.status = 'deleted';
+                                log.log(ctx, 'Delete user #' + u.id);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+
 export function startMigrationsWorker() {
     if (serverRoleEnabled('workers')) {
         staticWorker({ name: 'foundation-migrator' }, async (ctx) => {
