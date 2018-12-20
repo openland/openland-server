@@ -313,6 +313,18 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '31-delete-duplicated-manual',
+    migration: async (root, log) => {
+        await inTx(root, async (ctx) => {
+            let users = [1076, 176, 535, 577, 748, 728, 754, 868, 1079, 1118, 1103];
+            for (let u of users) {
+                (await FDB.User.findById(ctx, u))!.status = 'deleted';
+            }
+        });
+    }
+});
+
 export function startMigrationsWorker() {
     if (serverRoleEnabled('workers')) {
         staticWorker({ name: 'foundation-migrator' }, async (ctx) => {
