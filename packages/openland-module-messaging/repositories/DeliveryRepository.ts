@@ -31,6 +31,7 @@ export class DeliveryRepository {
             let global = await this.userState.getUserMessagingState(ctx, uid);
             local.date = message.createdAt;
             global.seq++;
+            await global.flush(); // Fix for delivery crashing
 
             let haveMention = false;
             if (message.uid !== uid) {
