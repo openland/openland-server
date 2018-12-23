@@ -20,7 +20,7 @@ export class CountersMediator {
     onMessageReceived = async (parent: Context, uid: number, mid: number) => {
         return await inTx(parent, async (ctx) => {
             let res = await this.repo.onMessageReceived(ctx, uid, mid);
-            if (res !== 0) {
+            if (res.delta !== 0) {
                 let message = (await this.entities.Message.findById(ctx, mid));
                 if (!message) {
                     throw Error('Unable to find message');

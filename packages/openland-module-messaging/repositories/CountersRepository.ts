@@ -1,5 +1,5 @@
 import { inTx } from 'foundation-orm/inTx';
-import { AllEntities } from 'openland-module-db/schema';
+import { AllEntities, Message } from 'openland-module-db/schema';
 import { injectable } from 'inversify';
 import { UserStateRepository } from './UserStateRepository';
 import { lazyInject } from 'openland-modules/Modules.container';
@@ -23,17 +23,17 @@ export class CountersRepository {
 
             // Ignore already deleted messages
             if (message.deleted) {
-                return 0;
+                return { delta: 0, setMention: false };
             }
 
             // Ignore own messages
             if (message.uid === uid) {
-                return 0;
+                return { delta: 0, setMention: false };
             }
 
             // Avoid double counter for same message
             if (await this.entities.UserDialogHandledMessage.findById(ctx, uid, message.cid, mid)) {
-                return 0;
+                return { delta: 0, setMention: false };
             }
             await this.entities.UserDialogHandledMessage.create(ctx, uid, message.cid, mid, {});
 
@@ -41,13 +41,20 @@ export class CountersRepository {
             let local = await this.userState.getUserDialogState(ctx, uid, message.cid);
             let global = await this.userState.getUserMessagingState(ctx, uid);
             if (!local.readMessageId || mid > local.readMessageId) {
+
+                // Mark dialog as having mention
+                let setMention = false;
+                if (!local.haveMention && this.hasMention(message, uid)) {
+                    local.haveMention = true;
+                    setMention = true;
+                }
+
+                // Update Counters
                 local.unread++;
                 global.unread++;
-                await global.flush();
-                await local.flush();
-                return 1;
+                return { delta: 1, setMention };
             }
-            return 0;
+            return { delta: 0, setMention: false };
         });
     }
 
@@ -64,8 +71,21 @@ export class CountersRepository {
             if (message.uid !== uid && (!local.readMessageId || mid > local.readMessageId)) {
                 local.unread--;
                 global.unread--;
-                await global.flush();
-                await local.flush();
+
+                // TODO: Optimize
+                if (local.haveMention) {
+                    let mentionReset = true;
+                    let remaining = (await this.entities.Message.allFromChatAfter(ctx, message.cid, mid)).filter((v) => v.uid !== uid && v.id !== mid);
+                    for (let m of remaining) {
+                        if (this.hasMention(m, uid)) {
+                            mentionReset = false;
+                            break;
+                        }
+                    }
+                    if (mentionReset) {
+                        local.haveMention = false;
+                    }
+                }
                 return -1;
             }
             return 0;
@@ -85,12 +105,14 @@ export class CountersRepository {
                 local.readMessageId = mid;
 
                 // Find all remaining messages
-                let remaining = (await this.entities.Message.allFromChatAfter(ctx, message.cid, mid)).filter((v) => v.uid !== uid && v.id !== mid).length;
+                // TODO: Optimize (remove query)
+                let remaining = (await this.entities.Message.allFromChatAfter(ctx, message.cid, mid)).filter((v) => v.uid !== uid && v.id !== mid);
+                let remainingCount = remaining.length;
                 let delta: number;
-                if (remaining === 0) { // Just additional case for self-healing of a broken counters
+                if (remainingCount === 0) { // Just additional case for self-healing of a broken counters
                     delta = -local.unread;
                 } else {
-                    delta = - (remaining - local.unread);
+                    delta = - (remainingCount - local.unread);
                 }
                 // Crazy hack to avoid -0 values
                 if (delta === 0) {
@@ -103,23 +125,18 @@ export class CountersRepository {
                     global.unread += delta;
                 }
 
-                await global.flush();
-                await local.flush();
-
                 let mentionReset = false;
                 if (prevReadMessageId && local.haveMention) {
-                    let readMessages = (await this.entities.Message.allFromChatAfter(ctx, message.cid, prevReadMessageId)).filter((v) => v.uid !== uid && v.id !== prevReadMessageId && v.id <= mid);
-                    for (let readMessage of readMessages) {
-                        if (readMessage.mentions && readMessage.mentions.indexOf(uid) > -1) {
-                            mentionReset = true;
-                        } else if (readMessage.complexMentions && readMessage.complexMentions.find((m: MessageMention) => m.type === 'User' && m.id === uid)) {
-                            mentionReset = true;
+                    mentionReset = true;
+                    for (let m of remaining) {
+                        if (this.hasMention(m, uid)) {
+                            mentionReset = false;
+                            break;
                         }
                     }
 
                     if (mentionReset) {
                         local.haveMention = false;
-                        // await Modules.Messaging.room.onDialogMentionedChanged(ctx, uid, message.cid, false);
                     }
                 }
 
@@ -137,11 +154,19 @@ export class CountersRepository {
                 let delta = -local.unread;
                 global.unread += delta;
                 local.unread = 0;
-                await global.flush();
-                await local.flush();
+                local.haveMention = false;
                 return delta;
             }
             return 0;
         });
+    }
+
+    private hasMention(message: Message, uid: number) {
+        if (message.mentions && message.mentions.indexOf(uid) > -1) {
+            return true;
+        } else if (message.complexMentions && message.complexMentions.find((m: MessageMention) => m.type === 'User' && m.id === uid)) {
+            return true;
+        }
+        return false;
     }
 }

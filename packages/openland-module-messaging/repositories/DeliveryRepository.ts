@@ -3,7 +3,6 @@ import { inTx } from 'foundation-orm/inTx';
 import { injectable, inject } from 'inversify';
 import { UserStateRepository } from './UserStateRepository';
 import { Context } from 'openland-utils/Context';
-import { MessageMention } from '../MessageInput';
 import { ImageRef } from 'openland-module-media/ImageRef';
 
 @injectable()
@@ -33,15 +32,6 @@ export class DeliveryRepository {
             global.seq++;
             await global.flush(); // Fix for delivery crashing
 
-            let haveMention = false;
-            if (message.uid !== uid) {
-                if (message.mentions && message.mentions.indexOf(uid) > -1) {
-                    haveMention = true;
-                } else if (message.complexMentions && message.complexMentions.find((m: MessageMention) => m.type === 'User' && m.id === uid)) {
-                    haveMention = true;
-                }
-            }
-
             await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
                 kind: 'message_received',
                 cid: message.cid,
@@ -49,11 +39,6 @@ export class DeliveryRepository {
                 allUnread: global.unread,
                 unread: local.unread
             });
-
-            if (!local.haveMention && haveMention) {
-                local.haveMention = haveMention;
-                await this.deliverDialogMentionedChangedToUser(ctx, uid, message.cid, haveMention);
-            }
         });
     }
 

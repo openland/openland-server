@@ -13,7 +13,9 @@ export async function inTx<T>(ctx: Context, callback: (ctx: Context) => Promise<
     if (ex) {
         let res = await callback(ctx);
         await ex.flushPending(ctx); // Flush all pending operations to avoid nasty bugs during compose
-        return res;
+        let r2 = res;
+        await ex.flushPending(ctx); // Flush all pending operations to avoid nasty bugs during compose
+        return r2;
     }
 
     let tx = new FTransaction();

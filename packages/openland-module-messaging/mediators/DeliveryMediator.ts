@@ -69,10 +69,6 @@ export class DeliveryMediator {
         await this.repo.deliverDialogMuteChangedToUser(ctx, uid, cid, mute);
     }
 
-    onDialogMentionedChanged = async (ctx: Context, uid: number, cid: number, haveMention: boolean) => {
-        await this.repo.deliverDialogMentionedChangedToUser(ctx, uid, cid, haveMention);
-    }
-
     onOrganizationProfileUpdated = async (ctx: Context, oid: number) => {
         // await inTx(async () => {
         //     let org = await this.room.resolveOrganizationChat(oid);
@@ -128,15 +124,19 @@ export class DeliveryMediator {
             await this.repo.deliverMessageReadToUser(ctx, uid, mid, res.delta);
             if (res.mentionReset) {
                 let message = (await this.entities.Message.findById(ctx, mid));
-                await this.onDialogMentionedChanged(ctx, uid, message!.cid, false);
+                await this.repo.deliverDialogMentionedChangedToUser(ctx, uid, message!.cid, false);
             }
         });
     }
 
     private deliverMessageToUser = async (parent: Context, uid: number, mid: number) => {
         await inTx(parent, async (ctx) => {
-            await this.counters.onMessageReceived(ctx, uid, mid);
+            let res = await this.counters.onMessageReceived(ctx, uid, mid);
             await this.repo.deliverMessageToUser(ctx, uid, mid);
+            if (res.setMention) {
+                let message = (await this.entities.Message.findById(ctx, mid));
+                await this.repo.deliverDialogMentionedChangedToUser(ctx, uid, message!.cid, true);
+            }
         });
     }
 
