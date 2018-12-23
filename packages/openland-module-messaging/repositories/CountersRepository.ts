@@ -5,7 +5,6 @@ import { UserStateRepository } from './UserStateRepository';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { Context } from 'openland-utils/Context';
 import { MessageMention } from '../MessageInput';
-import { Modules } from '../../openland-modules/Modules';
 
 @injectable()
 export class CountersRepository {
@@ -107,26 +106,26 @@ export class CountersRepository {
                 await global.flush();
                 await local.flush();
 
+                let mentionReset = false;
                 if (prevReadMessageId && local.haveMention) {
                     let readMessages = (await this.entities.Message.allFromChatAfter(ctx, message.cid, prevReadMessageId)).filter((v) => v.uid !== uid && v.id !== prevReadMessageId && v.id <= mid);
-                    let mentionRead = false;
                     for (let readMessage of readMessages) {
                         if (readMessage.mentions && readMessage.mentions.indexOf(uid) > -1) {
-                            mentionRead = true;
+                            mentionReset = true;
                         } else if (readMessage.complexMentions && readMessage.complexMentions.find((m: MessageMention) => m.type === 'User' && m.id === uid)) {
-                            mentionRead = true;
+                            mentionReset = true;
                         }
                     }
 
-                    if (mentionRead) {
+                    if (mentionReset) {
                         local.haveMention = false;
-                        await Modules.Messaging.room.onDialogMentionedChanged(ctx, uid, message.cid, false);
+                        // await Modules.Messaging.room.onDialogMentionedChanged(ctx, uid, message.cid, false);
                     }
                 }
 
-                return delta;
+                return { delta: delta, mentionReset: mentionReset };
             }
-            return 0;
+            return { delta: 0, mentionReset: false };
         });
     }
 

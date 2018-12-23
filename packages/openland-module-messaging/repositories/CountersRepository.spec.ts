@@ -46,8 +46,8 @@ describe('CountersRepository', () => {
         expect(receiverGlobal.unread).toBe(3);
 
         // Read
-        expect(await repo.onMessageRead(ctx, 2, mid3)).toBe(-3);
-        expect(await repo.onMessageRead(ctx, 1, mid3)).toBe(0);
+        expect((await repo.onMessageRead(ctx, 2, mid3)).delta).toBe(-3);
+        expect((await repo.onMessageRead(ctx, 1, mid3)).delta).toBe(0);
     });
 
     it('should be order-independent', async () => {
@@ -61,7 +61,7 @@ describe('CountersRepository', () => {
         let mid3 = (await mrepo.createMessage(ctx, 2, 1, { message: '1' })).message.id!;
 
         expect(await repo.onMessageReceived(ctx, 2, mid1)).toBe(1);
-        expect(await repo.onMessageRead(ctx, 2, mid3)).toBe(-1);
+        expect((await repo.onMessageRead(ctx, 2, mid3)).delta).toBe(-1);
         expect(await repo.onMessageReceived(ctx, 2, mid2)).toBe(0);
         expect(await repo.onMessageReceived(ctx, 2, mid3)).toBe(0);
 
@@ -82,7 +82,7 @@ describe('CountersRepository', () => {
 
         expect(await repo.onMessageReceived(ctx, 3, mid1)).toBe(1);
         expect(await repo.onMessageReceived(ctx, 3, mid1)).toBe(0);
-        expect(await repo.onMessageRead(ctx, 3, mid3)).toBe(-1);
+        expect((await repo.onMessageRead(ctx, 3, mid3)).delta).toBe(-1);
         expect(await repo.onMessageReceived(ctx, 3, mid2)).toBe(0);
         expect(await repo.onMessageReceived(ctx, 3, mid3)).toBe(0);
 
@@ -101,7 +101,7 @@ describe('CountersRepository', () => {
         let mid3 = (await mrepo.createMessage(ctx, 4, 1, { message: '1' })).message.id!;
 
         expect(await repo.onMessageReceived(ctx, 3, mid1)).toBe(1);
-        expect(await repo.onMessageRead(ctx, 3, mid1)).toBe(-1);
+        expect((await repo.onMessageRead(ctx, 3, mid1)).delta).toBe(-1);
         expect(await repo.onMessageDeleted(ctx, 3, mid1)).toBe(0); // Should ignore if already read
 
         expect(await repo.onMessageReceived(ctx, 3, mid2)).toBe(1);

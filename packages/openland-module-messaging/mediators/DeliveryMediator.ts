@@ -124,8 +124,12 @@ export class DeliveryMediator {
 
     private async deliverMessageReadToUser(parent: Context, uid: number, mid: number) {
         await inTx(parent, async (ctx) => {
-            let delta = await this.counters.onMessageRead(ctx, uid, mid);
-            await this.repo.deliverMessageReadToUser(ctx, uid, mid, delta);
+            let res = await this.counters.onMessageRead(ctx, uid, mid);
+            await this.repo.deliverMessageReadToUser(ctx, uid, mid, res.delta);
+            if (res.mentionReset) {
+                let message = (await this.entities.Message.findById(ctx, mid));
+                await this.onDialogMentionedChanged(ctx, uid, message!.cid, false);
+            }
         });
     }
 
