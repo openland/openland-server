@@ -298,10 +298,6 @@ export class RoomMediator {
         await this.delivery.onDialogMuteChanged(ctx, uid, cid, mute);
     }
 
-    async onDialogMentionedChanged(ctx: Context, uid: number, cid: number, haveMention: boolean) {
-        await this.delivery.onDialogMentionedChanged(ctx, uid, cid, haveMention);
-    }
-
     //
     // Queries
     //
