@@ -44,7 +44,7 @@ export class CountersRepository {
 
                 // Mark dialog as having mention
                 let setMention = false;
-                if (!local.haveMention && this.hasMention(message, uid)) {
+                if (!local.haveMention && !message.isService && this.hasMention(message, uid)) {
                     local.haveMention = true;
                     setMention = true;
                 }
