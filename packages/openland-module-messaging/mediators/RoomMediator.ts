@@ -69,11 +69,11 @@ export class RoomMediator {
             if (await this.repo.joinRoom(ctx, cid, uid, request) && !request) {
 
                 // let prevMessage = await Modules.Messaging.findTopMessage(ctx, cid);
-
+                //
                 // if (prevMessage && prevMessage.serviceMetadata && prevMessage.serviceMetadata.type === 'user_invite') {
                 //     let uids: number[] = prevMessage.serviceMetadata.userIds;
                 //     uids.push(uid);
-
+                //
                 //     await this.messaging.editMessage(ctx, prevMessage.id, prevMessage.uid, await this.roomJoinMessage(ctx, conv, uid, uids), false);
                 // } else {
                 //     await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, [uid]));
@@ -106,11 +106,11 @@ export class RoomMediator {
                 if (res.length > 0) {
 
                     // let prevMessage = await Modules.Messaging.findTopMessage(ctx, cid);
-
+                    //
                     // if (prevMessage && prevMessage.serviceMetadata && prevMessage.serviceMetadata.type === 'user_invite') {
                     //     let uids: number[] = prevMessage.serviceMetadata.userIds;
                     //     uids.push(...res);
-
+                    //
                     //     await this.messaging.editMessage(ctx, prevMessage.id, prevMessage.uid, await this.roomJoinMessage(ctx, conv, uid, uids), false);
                     // } else {
                     //     await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, res));

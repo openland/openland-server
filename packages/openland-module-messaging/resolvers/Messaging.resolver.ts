@@ -189,7 +189,7 @@ export default {
                 filePreview,
                 urlAugmentation: {
                     type: 'intro',
-                    extra: args.uid,
+                    extra: IDs.User.parse(args.uid),
                     url: `https://next.openland.com/mail/u/${IDs.User.serialize(userId)}`,
                     title: profile.firstName + ' ' + profile.lastName,
                     subtitle: 'intro',
