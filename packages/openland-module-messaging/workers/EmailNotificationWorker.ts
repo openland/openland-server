@@ -13,12 +13,18 @@ export function startEmailNotificationWorker() {
             await inTx(parent, async (ctx) => {
                 let state = await Modules.Messaging.getUserNotificationState(ctx, u.uid);
                 let lastSeen = await Modules.Presence.getLastSeen(ctx, u.uid);
+                let isActive = await Modules.Presence.isActive(ctx, u.uid);
                 let tag = 'email_notifications ' + u.uid;
 
-                // Ignore online or never-online users
-                if (lastSeen === null) {
+                // Ignore active users
+                if (isActive) {
                     return;
                 }
+
+                // // Ignore online or never-online users
+                // if (lastSeen === null) {
+                //     return;
+                // }
 
                 // Ignore recently online users
                 if (lastSeen > now - 5 * 60 * 1000) {

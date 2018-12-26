@@ -30,6 +30,7 @@ export function startPushNotificationWorker() {
                 let now = Date.now();
 
                 let lastSeen = await Modules.Presence.getLastSeen(ctx, u.uid);
+                let isActive = await Modules.Presence.isActive(ctx, u.uid);
 
                 // Ignore never-online users
                 if (lastSeen === 'never_online') {
@@ -38,11 +39,17 @@ export function startPushNotificationWorker() {
                     return;
                 }
 
-                // Pause notifications only if delay was set
-                // if (settings.notificationsDelay !== 'none') {
-                // Ignore online
-                if (lastSeen === 'online') {
-                    log.debug(ctx, 'skip online');
+                // // Pause notifications only if delay was set
+                // // if (settings.notificationsDelay !== 'none') {
+                // // Ignore online
+                // if (lastSeen === 'online') {
+                //     log.debug(ctx, 'skip online');
+                //     return;
+                // }
+
+                // Ignore active users
+                if (isActive) {
+                    log.debug(ctx, 'skip active');
                     return;
                 }
 
