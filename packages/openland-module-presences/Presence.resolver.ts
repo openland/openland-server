@@ -12,7 +12,7 @@ export default {
         timeout: (src: OnlineEvent) => src.timeout,
     },
     Mutation: {
-        presenceReportOnline: async (_: any, args: { timeout: number, platform?: string }, ctx: AppContext) => {
+        presenceReportOnline: async (_, args, ctx) => {
             if (!ctx.auth.uid) {
                 throw Error('Not authorized');
             }
@@ -22,11 +22,13 @@ export default {
             if (args.timeout > 5000) {
                 throw Error('Invalid input');
             }
-            await Modules.Presence.setOnline(ctx, ctx.auth.uid, ctx.auth.tid!, args.timeout, args.platform || 'unknown');
+            let active = (args.active !== undefined && args.active !== null) ? args.active! : true;
+
+            await Modules.Presence.setOnline(ctx, ctx.auth.uid, ctx.auth.tid!, args.timeout, args.platform || 'unknown', active);
             return 'ok';
         },
         presenceReportOffline: withAny(async (ctx, args) => {
-            // TODO: Implement
+            await Modules.Presence.setOffline(ctx, ctx.auth.uid!);
             return 'ok';
         }),
 

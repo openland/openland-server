@@ -32,7 +32,7 @@ export class PresenceModule {
         }
     }
 
-    public async setOnline(parent: Context, uid: number, tid: string, timeout: number, platform: string) {
+    public async setOnline(parent: Context, uid: number, tid: string, timeout: number, platform: string, active: boolean) {
         return await inTx(parent, async (ctx) => {
             let expires = Date.now() + timeout;
             let ex = await this.FDB.Presence.findById(ctx, uid, tid);
@@ -47,12 +47,24 @@ export class PresenceModule {
             let online = await this.FDB.Online.findById(ctx, uid);
 
             if (!online) {
-                await this.FDB.Online.create(ctx, uid, { lastSeen: expires });
+                await this.FDB.Online.create(ctx, uid, { lastSeen: expires, active });
             } else if (online.lastSeen < expires) {
                 online.lastSeen = expires;
+                online.active = active;
             }
 
             await presenceEvent.event(ctx, { uid, online: true });
+        });
+    }
+
+    public async setOffline(parent: Context, uid: number) {
+        return await inTx(parent, async (ctx) => {
+            let online = await this.FDB.Online.findById(ctx, uid);
+            if (online) {
+                online.lastSeen = Date.now();
+                online.active = false;
+            }
+            await presenceEvent.event(ctx, { uid, online: false });
         });
     }
 
@@ -67,6 +79,19 @@ export class PresenceModule {
             }
         } else {
             return 'never_online';
+        }
+    }
+
+    public async isActive(ctx: Context, uid: number): Promise<boolean> {
+        let res = await this.FDB.Online.findById(ctx, uid);
+        if (res) {
+            if (res.lastSeen > Date.now()) {
+                return res.active || false;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
         }
     }
 

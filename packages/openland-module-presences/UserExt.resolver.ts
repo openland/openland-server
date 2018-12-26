@@ -7,5 +7,6 @@ export default {
     User: {
         online: withUser(async (ctx, src: User) => await Modules.Presence.getLastSeen(ctx, src.id) === 'online'),
         lastSeen: withUser((ctx, src: User) => Modules.Presence.getLastSeen(ctx, src.id)),
+        active: withUser((ctx, src: User) => Modules.Presence.isActive(ctx, src.id)),
     }
 } as GQLResolver;

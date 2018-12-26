@@ -20,7 +20,7 @@ describe('PresenceModule', () => {
     it('should setOnline', async () => {
         let ctx = createEmptyContext();
         await withLogDisabled(async () => {
-            await Modules.Presence.setOnline(ctx, 9, '1', 5000, 'test');
+            await Modules.Presence.setOnline(ctx, 9, '1', 5000, 'test', true);
             let p = await FDB.Presence.findById(ctx, 9, '1');
             expect(p).not.toBeNull();
             expect(p!.lastSeenTimeout).toEqual(5000);
@@ -36,7 +36,7 @@ describe('PresenceModule', () => {
         let ctx = createEmptyContext();
         await withLogDisabled(async () => {
             // online
-            await Modules.Presence.setOnline(ctx, 2, '1', 1000, 'test');
+            await Modules.Presence.setOnline(ctx, 2, '1', 1000, 'test', true);
             let lastSeen = await Modules.Presence.getLastSeen(ctx, 2);
             expect(lastSeen).toEqual('online');
 
@@ -50,17 +50,44 @@ describe('PresenceModule', () => {
         });
     });
 
+    it('should setOffline', async () => {
+        let ctx = createEmptyContext();
+        await withLogDisabled(async () => {
+            await Modules.Presence.setOnline(ctx, 7, '1', 5000, 'test', true);
+            let lastSeen = await Modules.Presence.getLastSeen(ctx, 7);
+            expect(lastSeen).toEqual('online');
+            await Modules.Presence.setOffline(ctx, 7);
+            lastSeen = await Modules.Presence.getLastSeen(ctx, 7);
+            expect(lastSeen).toBeLessThanOrEqual(Date.now());
+        });
+    });
+
+    it('should return active status', async () => {
+        let ctx = createEmptyContext();
+        await withLogDisabled(async () => {
+            await Modules.Presence.setOnline(ctx, 7, '1', 5000, 'test', true);
+            let active = await Modules.Presence.isActive(ctx, 7);
+            expect(active).toEqual(true);
+            await Modules.Presence.setOffline(ctx, 7);
+            active = await Modules.Presence.isActive(ctx, 7);
+            expect(active).toEqual(false);
+            await Modules.Presence.setOnline(ctx, 7, '1', 5000, 'test', false);
+            active = await Modules.Presence.isActive(ctx, 7);
+            expect(active).toEqual(false);
+        });
+    });
+
     it('should return events', async () => {
         let ctx = createEmptyContext();
         await withLogDisabled(async () => {
             let stream = await Modules.Presence.createPresenceStream(0, [1, 2, 3, 4, 5]);
             // tslint:disable-next-line:no-floating-promises
             (async () => {
-                await Modules.Presence.setOnline(ctx, 1, '1', 100, 'test');
-                await Modules.Presence.setOnline(ctx, 2, '1', 100, 'test');
-                await Modules.Presence.setOnline(ctx, 3, '1', 100, 'test');
-                await Modules.Presence.setOnline(ctx, 4, '1', 100, 'test');
-                await Modules.Presence.setOnline(ctx, 5, '1', 100, 'test');
+                await Modules.Presence.setOnline(ctx, 1, '1', 100, 'test', true);
+                await Modules.Presence.setOnline(ctx, 2, '1', 100, 'test', true);
+                await Modules.Presence.setOnline(ctx, 3, '1', 100, 'test', true);
+                await Modules.Presence.setOnline(ctx, 4, '1', 100, 'test', true);
+                await Modules.Presence.setOnline(ctx, 5, '1', 100, 'test', true);
             })();
 
             let onlineState = [false, false, false, false, false, false];

@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, Nullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '6231200261a6425068abf482da1dc70b';
+export const GQL_SPEC_VERSION = '6bb927d85789ba87ff5b75f62be8500f';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -988,6 +988,7 @@ export namespace GQL {
     export interface MutationPresenceReportOnlineArgs {
         timeout: number;
         platform: Nullable<Platform>;
+        active: Nullable<boolean>;
     }
     export interface MutationPresenceReportOfflineArgs {
         platform: Nullable<Platform>;
@@ -1748,6 +1749,7 @@ export namespace GQL {
         alphaTwitter?: Nullable<string>;
         alphaLocations?: Nullable<string[]>;
         online?: boolean;
+        active?: boolean;
         lastSeen?: Nullable<string>;
         organizations?: Organization[];
         primaryOrganization?: Nullable<Organization>;
