@@ -325,7 +325,14 @@ export default {
                         { type: 'User', id: postAuthor!.id },
                         { type: 'User', id: responder!.id },
                         { type: 'SharedRoom', id: message.cid },
-                    ]
+                    ],
+                    serviceMetadata: {
+                        type: 'post_respond',
+                        postId: messageId,
+                        postRoomId: message.cid,
+                        responderId: uid!,
+                        respondType: args.buttonId
+                    }
                 });
 
                 // if (isNewChat) {

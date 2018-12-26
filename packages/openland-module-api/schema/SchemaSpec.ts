@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, Nullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '6bb927d85789ba87ff5b75f62be8500f';
+export const GQL_SPEC_VERSION = '1f9e3bd422b00e31657b2ce73887c379';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -87,6 +87,12 @@ export namespace GQL {
         photo?: Nullable<string>;
         photoRef?: Nullable<ImageRef>;
     }
+    export interface PostRespondServiceMetadata {
+        post?: ConversationMessage;
+        postRoom?: Room;
+        responder?: User;
+        respondType?: string;
+    }
     export type UrlAugmentationExtra = User | Organization | ChannelConversation;
     export interface UrlAugmentation {
         url?: string;
@@ -103,7 +109,7 @@ export namespace GQL {
         type?: Nullable<string>;
         extra?: Nullable<UrlAugmentationExtra>;
     }
-    export type ServiceMetadata = InviteServiceMetadata | KickServiceMetadata | TitleChangeServiceMetadata | PhotoChangeServiceMetadata;
+    export type ServiceMetadata = InviteServiceMetadata | KickServiceMetadata | TitleChangeServiceMetadata | PhotoChangeServiceMetadata | PostRespondServiceMetadata;
     export interface ConversationMessage {
         id?: string;
         message?: Nullable<string>;
@@ -1877,6 +1883,7 @@ export interface GQLResolver {
     KickServiceMetadata?: ComplexTypedResolver<GQL.KickServiceMetadata, GQLRoots.KickServiceMetadataRoot, {user: GQLRoots.UserRoot, kickedBy: GQLRoots.UserRoot}, {}>;
     TitleChangeServiceMetadata?: ComplexTypedResolver<GQL.TitleChangeServiceMetadata, GQLRoots.TitleChangeServiceMetadataRoot, {}, {}>;
     PhotoChangeServiceMetadata?: ComplexTypedResolver<GQL.PhotoChangeServiceMetadata, GQLRoots.PhotoChangeServiceMetadataRoot, {photoRef: Nullable<GQLRoots.ImageRefRoot>}, {}>;
+    PostRespondServiceMetadata?: ComplexTypedResolver<GQL.PostRespondServiceMetadata, GQLRoots.PostRespondServiceMetadataRoot, {post: GQLRoots.ConversationMessageRoot, postRoom: GQLRoots.RoomRoot, responder: GQLRoots.UserRoot}, {}>;
     UrlAugmentation?: ComplexTypedResolver<GQL.UrlAugmentation, GQLRoots.UrlAugmentationRoot, {photo: Nullable<GQLRoots.ImageRefRoot>, imageInfo: Nullable<GQLRoots.FileMetadataRoot>, iconRef: Nullable<GQLRoots.ImageRefRoot>, iconInfo: Nullable<GQLRoots.FileMetadataRoot>, extra: Nullable<GQLRoots.UrlAugmentationExtraRoot>}, {}>;
     ConversationMessage?: ComplexTypedResolver<GQL.ConversationMessage, GQLRoots.ConversationMessageRoot, {fileMetadata: Nullable<GQLRoots.FileMetadataRoot>, sender: GQLRoots.UserRoot, serviceMetadata: Nullable<GQLRoots.ServiceMetadataRoot>, urlAugmentation: Nullable<GQLRoots.UrlAugmentationRoot>, reactions: GQLRoots.MessageReactionRoot[], replyMessages: Nullable<GQLRoots.ConversationMessageRoot[]>, mentions: Nullable<GQLRoots.UserRoot[]>, alphaAttachments: GQLRoots.MessageAttachmentRoot[], alphaButtons: Nullable<GQLRoots.MessageButtonRoot[]>[], alphaMentions: Nullable<GQLRoots.MentionRoot[]>}, {}>;
     FileMetadata?: ComplexTypedResolver<GQL.FileMetadata, GQLRoots.FileMetadataRoot, {}, {}>;

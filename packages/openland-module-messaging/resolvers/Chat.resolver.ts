@@ -355,6 +355,12 @@ export default {
         user: resolveUser(),
         kickedBy: (src: any, args: {}, ctx: AppContext) => FDB.User.findById(ctx, src.kickedById)
     },
+    PostRespondServiceMetadata: {
+        post: (src: any, _, ctx) => FDB.Message.findById(ctx, src.postId),
+        postRoom: (src: any) => src.postRoomId,
+        responder: (src: any) => src.responderId,
+        respondType: (src: any) => src.respondType
+    },
     ServiceMetadata: {
         __resolveType(src: any) {
             if (src.type === 'user_invite') {
@@ -365,6 +371,8 @@ export default {
                 return 'TitleChangeServiceMetadata';
             } else if (src.type === 'photo_change') {
                 return 'PhotoChangeServiceMetadata';
+            }  else if (src.type === 'post_respond') {
+                return 'PostRespondServiceMetadata';
             }
 
             throw new Error('Unknown type');

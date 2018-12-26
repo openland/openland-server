@@ -103,6 +103,13 @@ type PhotoChangeServiceMetadata {
     photoRef: ImageRef
 }
 
+type PostRespondServiceMetadata {
+    post: ConversationMessage!
+    postRoom: Room!
+    responder: User!
+    respondType: ID!
+}
+
 union UrlAugmentationExtra = User | Organization | ChannelConversation
 
 type UrlAugmentation {
@@ -121,7 +128,7 @@ type UrlAugmentation {
     extra: UrlAugmentationExtra
 }
 
-union ServiceMetadata = InviteServiceMetadata | KickServiceMetadata | TitleChangeServiceMetadata | PhotoChangeServiceMetadata
+union ServiceMetadata = InviteServiceMetadata | KickServiceMetadata | TitleChangeServiceMetadata | PhotoChangeServiceMetadata | PostRespondServiceMetadata
 
 type ConversationMessage {
     id: ID!
