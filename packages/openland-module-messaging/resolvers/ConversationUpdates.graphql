@@ -17,14 +17,17 @@ union ConversationUpdate = ConversationMessageReceived | ConversationMessageUpda
 
 type ConversationMessageReceived {
     message: ConversationMessage!
+    betaMessage: RoomMessage!
 }
 
 type ConversationMessageUpdated {
     message: ConversationMessage!
+    betaMessage: RoomMessage!
 }
 
 type ConversationMessageDeleted {
     message: ConversationMessage!
+    betaMessage: RoomMessage!
 }
 
 type ConversationUpdateState {
