@@ -60,16 +60,19 @@ export default {
     DialogMessageReceived: {
         cid: (src: UserDialogEvent) => IDs.Conversation.serialize(src.cid!),
         message: (src: UserDialogEvent, args: {}, ctx: AppContext) => FDB.Message.findById(ctx, src.mid!),
+        betaMessage: (src: UserDialogEvent, args: {}, ctx: AppContext) => FDB.Message.findById(ctx, src.mid!),
         unread: (src: UserDialogEvent) => src.unread || 0,
         globalUnread: (src: UserDialogEvent) => src.allUnread || 0
     },
     DialogMessageUpdated: {
         cid: async (src: UserDialogEvent, args: {}, ctx: AppContext) => IDs.Conversation.serialize(src.cid || (await FDB.Message.findById(ctx, src.mid!))!.cid),
         message: (src: UserDialogEvent, args: {}, ctx: AppContext) => FDB.Message.findById(ctx, src.mid!),
+        betaMessage: (src: UserDialogEvent, args: {}, ctx: AppContext) => FDB.Message.findById(ctx, src.mid!),
     },
     DialogMessageDeleted: {
         cid: async (src: UserDialogEvent, args: {}, ctx: AppContext) => IDs.Conversation.serialize(src.cid || (await FDB.Message.findById(ctx, src.mid!))!.cid),
         message: (src: UserDialogEvent, args: {}, ctx: AppContext) => FDB.Message.findById(ctx, src.mid!),
+        betaMessage: (src: UserDialogEvent, args: {}, ctx: AppContext) => FDB.Message.findById(ctx, src.mid!),
         unread: (src: UserDialogEvent) => src.unread || 0,
         globalUnread: (src: UserDialogEvent) => src.allUnread || 0
     },

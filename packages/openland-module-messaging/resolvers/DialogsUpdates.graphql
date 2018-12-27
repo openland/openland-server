@@ -18,6 +18,7 @@ union DialogUpdate = DialogMessageReceived | DialogMessageUpdated | DialogMessag
 type DialogMessageReceived {
     cid: ID!
     message: ConversationMessage!
+    betaMessage: RoomMessage!
     unread: Int!
     globalUnread: Int!
 }
@@ -25,11 +26,13 @@ type DialogMessageReceived {
 type DialogMessageUpdated {
     cid: ID!
     message: ConversationMessage!
+    betaMessage: RoomMessage!
 }
 
 type DialogMessageDeleted {
     cid: ID!
     message: ConversationMessage!
+    betaMessage: RoomMessage!
     unread: Int!
     globalUnread: Int!
 }
