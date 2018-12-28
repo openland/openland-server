@@ -6,8 +6,8 @@ RUN chmod +x /tini
 ENTRYPOINT ["/tini", "-e", "2", "--"]
 
 WORKDIR /
-ADD https://www.foundationdb.org/downloads/5.2.5/ubuntu/installers/foundationdb-clients_5.2.5-1_amd64.deb ./foundationdb-clients_5.2.5-1_amd64.deb
-RUN apt-get update && dpkg -i foundationdb-clients_5.2.5-1_amd64.deb foundationdb-clients_5.2.5-1_amd64.deb && apt-get install python && rm -rf /var/lib/apt/lists/*
+ADD https://www.foundationdb.org/downloads/6.0.15/ubuntu/installers/foundationdb-clients_6.0.15-1_amd64.deb ./foundationdb-clients_6.0.15-1_amd64.deb
+RUN apt-get update && dpkg -i foundationdb-clients_6.0.15-1_amd64.deb foundationdb-clients_6.0.15-1_amd64.deb && apt-get install python && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 ADD package.json /app/
