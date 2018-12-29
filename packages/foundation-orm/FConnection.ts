@@ -26,9 +26,9 @@ export class FConnection {
         let dcId = process.env.FOUNDATION_DC_ID ? process.env.FOUNDATION_DC_ID : undefined;
         if (process.env.FOUNDATION_DB) {
             fs.writeFileSync('foundation.clusterfile', process.env.FOUNDATION_DB);
-            db = fdb.openSync('foundation.clusterfile', { datacenter_id: dcId });
+            db = fdb.openSync('foundation.clusterfile', dcId ? { datacenter_id: dcId } : undefined);
         } else {
-            db = fdb.openSync(undefined, { datacenter_id: dcId });
+            db = fdb.openSync(undefined, dcId ? { datacenter_id: dcId } : undefined);
         }
         return db.withValueEncoding(fdb.encoders.json) as fdb.Database<NativeValue, any>;
     }
