@@ -352,6 +352,31 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '34-users',
+    migration: async (root, log) => {
+        await inTx(root, async (ctx) => {
+            let edges = await FDB.UserEdge.findAll(ctx);
+            let counters = new Map<number, number>();
+            for (let e of edges) {
+                if (counters.has(e.uid2)) {
+                    counters.set(e.uid2, counters.get(e.uid2)! + 1);
+                } else {
+                    counters.set(e.uid2, 1);
+                }
+            }
+            for (let k of counters.keys()) {
+                let e = await FDB.UserInfluencerUserIndex.findById(ctx, k);
+                if (e) {
+                    e.value = counters.get(k)!;
+                } else {
+                    await FDB.UserInfluencerUserIndex.create(ctx, k, { value: counters.get(k)! });
+                }
+            }
+        });
+    }
+});
+
 export function startMigrationsWorker() {
     if (serverRoleEnabled('workers')) {
         staticWorker({ name: 'foundation-migrator' }, async (ctx) => {
