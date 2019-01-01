@@ -6753,32 +6753,12 @@ export class ConferenceConnectionFactory extends FEntityFactory<ConferenceConnec
     }
 }
 export interface UserEdgeShape {
-    messagesSent: number;
-    messagesLiked: number;
 }
 
 export class UserEdge extends FEntity {
     readonly entityName: 'UserEdge' = 'UserEdge';
     get uid1(): number { return this._value.uid1; }
     get uid2(): number { return this._value.uid2; }
-    get messagesSent(): number {
-        return this._value.messagesSent;
-    }
-    set messagesSent(value: number) {
-        this._checkIsWritable();
-        if (value === this._value.messagesSent) { return; }
-        this._value.messagesSent = value;
-        this.markDirty();
-    }
-    get messagesLiked(): number {
-        return this._value.messagesLiked;
-    }
-    set messagesLiked(value: number) {
-        this._checkIsWritable();
-        if (value === this._value.messagesLiked) { return; }
-        this._value.messagesLiked = value;
-        this.markDirty();
-    }
 }
 
 export class UserEdgeFactory extends FEntityFactory<UserEdge> {
@@ -6790,10 +6770,10 @@ export class UserEdgeFactory extends FEntityFactory<UserEdge> {
             { name: 'uid2', type: 'number' },
         ],
         fields: [
-            { name: 'messagesSent', type: 'number' },
-            { name: 'messagesLiked', type: 'number' },
         ],
         indexes: [
+            { name: 'forward', type: 'range', fields: ['uid1', 'uid2'] },
+            { name: 'reverse', type: 'range', fields: ['uid2', 'uid1'] },
         ],
     };
 
@@ -6802,17 +6782,13 @@ export class UserEdgeFactory extends FEntityFactory<UserEdge> {
         validators.isNumber('uid1', src.uid1);
         validators.notNull('uid2', src.uid2);
         validators.isNumber('uid2', src.uid2);
-        validators.notNull('messagesSent', src.messagesSent);
-        validators.isNumber('messagesSent', src.messagesSent);
-        validators.notNull('messagesLiked', src.messagesLiked);
-        validators.isNumber('messagesLiked', src.messagesLiked);
     }
 
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'userEdge'),
             { enableVersioning: true, enableTimestamps: true, validator: UserEdgeFactory.validate, hasLiveStreams: false },
-            [],
+            [new FEntityIndex('forward', ['uid1', 'uid2'], false), new FEntityIndex('reverse', ['uid2', 'uid1'], false)],
             'UserEdge'
         );
     }
@@ -6829,8 +6805,108 @@ export class UserEdgeFactory extends FEntityFactory<UserEdge> {
     watch(ctx: Context, uid1: number, uid2: number, cb: () => void) {
         return this._watch(ctx, [uid1, uid2], cb);
     }
+    async allFromForwardAfter(ctx: Context, uid1: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'forward', uid1], after);
+    }
+    async rangeFromForwardAfter(ctx: Context, uid1: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'forward', uid1], after, limit, reversed);
+    }
+    async rangeFromForward(ctx: Context, uid1: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'forward', uid1], limit, reversed);
+    }
+    async rangeFromForwardWithCursor(ctx: Context, uid1: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'forward', uid1], limit, after, reversed);
+    }
+    async allFromForward(ctx: Context, uid1: number) {
+        return await this._findAll(ctx, ['__indexes', 'forward', uid1]);
+    }
+    createForwardStream(ctx: Context, uid1: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'userEdge', '__indexes', 'forward', uid1], limit, after); 
+    }
+    async allFromReverseAfter(ctx: Context, uid2: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'reverse', uid2], after);
+    }
+    async rangeFromReverseAfter(ctx: Context, uid2: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'reverse', uid2], after, limit, reversed);
+    }
+    async rangeFromReverse(ctx: Context, uid2: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'reverse', uid2], limit, reversed);
+    }
+    async rangeFromReverseWithCursor(ctx: Context, uid2: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'reverse', uid2], limit, after, reversed);
+    }
+    async allFromReverse(ctx: Context, uid2: number) {
+        return await this._findAll(ctx, ['__indexes', 'reverse', uid2]);
+    }
+    createReverseStream(ctx: Context, uid2: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'userEdge', '__indexes', 'reverse', uid2], limit, after); 
+    }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new UserEdge(ctx, this.connection, this.namespace, this.directory, [value.uid1, value.uid2], value, this.options, isNew, this.indexes, 'UserEdge');
+    }
+}
+export interface UserInfluencerUserIndexShape {
+    value: number;
+}
+
+export class UserInfluencerUserIndex extends FEntity {
+    readonly entityName: 'UserInfluencerUserIndex' = 'UserInfluencerUserIndex';
+    get uid(): number { return this._value.uid; }
+    get value(): number {
+        return this._value.value;
+    }
+    set value(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.value) { return; }
+        this._value.value = value;
+        this.markDirty();
+    }
+}
+
+export class UserInfluencerUserIndexFactory extends FEntityFactory<UserInfluencerUserIndex> {
+    static schema: FEntitySchema = {
+        name: 'UserInfluencerUserIndex',
+        editable: false,
+        primaryKeys: [
+            { name: 'uid', type: 'number' },
+        ],
+        fields: [
+            { name: 'value', type: 'number' },
+        ],
+        indexes: [
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('uid', src.uid);
+        validators.isNumber('uid', src.uid);
+        validators.notNull('value', src.value);
+        validators.isNumber('value', src.value);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'userInfluencerUserIndex'),
+            { enableVersioning: true, enableTimestamps: true, validator: UserInfluencerUserIndexFactory.validate, hasLiveStreams: false },
+            [],
+            'UserInfluencerUserIndex'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
+        return { 'uid': rawId[0] };
+    }
+    async findById(ctx: Context, uid: number) {
+        return await this._findById(ctx, [uid]);
+    }
+    async create(ctx: Context, uid: number, shape: UserInfluencerUserIndexShape) {
+        return await this._create(ctx, [uid], { uid, ...shape });
+    }
+    watch(ctx: Context, uid: number, cb: () => void) {
+        return this._watch(ctx, [uid], cb);
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new UserInfluencerUserIndex(ctx, this.connection, this.namespace, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'UserInfluencerUserIndex');
     }
 }
 export interface UserInfluencerIndexShape {
@@ -6955,6 +7031,7 @@ export interface AllEntities {
     readonly ConferencePeer: ConferencePeerFactory;
     readonly ConferenceConnection: ConferenceConnectionFactory;
     readonly UserEdge: UserEdgeFactory;
+    readonly UserInfluencerUserIndex: UserInfluencerUserIndexFactory;
     readonly UserInfluencerIndex: UserInfluencerIndexFactory;
 }
 export class AllEntitiesDirect extends FDBInstance implements AllEntities {
@@ -7014,6 +7091,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         ConferencePeerFactory.schema,
         ConferenceConnectionFactory.schema,
         UserEdgeFactory.schema,
+        UserInfluencerUserIndexFactory.schema,
         UserInfluencerIndexFactory.schema,
     ];
     allEntities: FEntityFactory<FEntity>[] = [];
@@ -7072,6 +7150,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     ConferencePeer: ConferencePeerFactory;
     ConferenceConnection: ConferenceConnectionFactory;
     UserEdge: UserEdgeFactory;
+    UserInfluencerUserIndex: UserInfluencerUserIndexFactory;
     UserInfluencerIndex: UserInfluencerIndexFactory;
 
     constructor(connection: FConnection) {
@@ -7186,6 +7265,8 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         this.allEntities.push(this.ConferenceConnection);
         this.UserEdge = new UserEdgeFactory(connection);
         this.allEntities.push(this.UserEdge);
+        this.UserInfluencerUserIndex = new UserInfluencerUserIndexFactory(connection);
+        this.allEntities.push(this.UserInfluencerUserIndex);
         this.UserInfluencerIndex = new UserInfluencerIndexFactory(connection);
         this.allEntities.push(this.UserInfluencerIndex);
     }
@@ -7358,6 +7439,9 @@ export class AllEntitiesProxy implements AllEntities {
     }
     get UserEdge(): UserEdgeFactory {
         return this.resolver().UserEdge;
+    }
+    get UserInfluencerUserIndex(): UserInfluencerUserIndexFactory {
+        return this.resolver().UserInfluencerUserIndex;
     }
     get UserInfluencerIndex(): UserInfluencerIndexFactory {
         return this.resolver().UserInfluencerIndex;
