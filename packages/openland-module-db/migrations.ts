@@ -230,7 +230,9 @@ migrations.push({
     migration: async (root, log) => {
         await inTx(root, async (ctx) => {
             let u = (await FDB.User.findFromAuthId(ctx, 'email|appstore@apple.com'))!;
-            u.email = 'appstore@apple.com';
+            if (u) {
+                u.email = 'appstore@apple.com';
+            }
         });
     }
 });
@@ -319,7 +321,10 @@ migrations.push({
         await inTx(root, async (ctx) => {
             let users = [1076, 176, 535, 577, 748, 728, 754, 868, 1079, 1118, 1103];
             for (let u of users) {
-                (await FDB.User.findById(ctx, u))!.status = 'deleted';
+                let u2 = (await FDB.User.findById(ctx, u));
+                if (u2) {
+                    u2!.status = 'deleted';
+                }
             }
         });
     }

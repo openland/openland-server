@@ -644,6 +644,25 @@ const Schema = declareSchema(() => {
         enableTimestamps();
         enableVersioning();
     });
+
+    //
+    // Social Connections
+    //
+    entity('UserEdge', () => {
+        primaryKey('uid1', 'number');
+        primaryKey('uid2', 'number');
+        field('messagesSent', 'number');
+        field('messagesLiked', 'number');
+        enableTimestamps();
+        enableVersioning();
+    });
+
+    entity('UserInfluencerIndex', () => {
+        primaryKey('uid', 'number');
+        field('value', 'number');
+        enableTimestamps();
+        enableVersioning();
+    });
 });
 
 generate(Schema, __dirname + '/../openland-module-db/schema.ts');

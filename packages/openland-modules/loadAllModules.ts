@@ -32,6 +32,8 @@ import { CallsModule } from 'openland-module-calls/CallsModule';
 import { loadCallsModule } from 'openland-module-calls/Calls.container';
 import { loadAuthModule } from 'openland-module-auth/AuthModule.container';
 import { loadUsersModule } from 'openland-module-users/UsersModule.container';
+import { SocialModule } from 'openland-module-social/SocialModule';
+import { loadSocialModule } from 'openland-module-social/SocialModule.container';
 
 export function loadAllModules(loadDb: boolean = true) {
 
@@ -44,6 +46,7 @@ export function loadAllModules(loadDb: boolean = true) {
     loadMessagingModule();
     loadAuthModule();
     loadUsersModule();
+    loadSocialModule();
 
     container.bind(DBModule).toSelf().inSingletonScope();
     container.bind('HooksModule').to(HooksModule).inSingletonScope();
@@ -83,6 +86,7 @@ export async function startAllModules() {
     await container.get(FeaturesModule).start();
     await container.get(SearchModule).start();
     await container.get(SuperModule).start();
+    await container.get(SocialModule).start();
     await container.get(ShortnameModule).start();
     await container.get(HyperlogModule).start();
     await container.get(DraftsModule).start();

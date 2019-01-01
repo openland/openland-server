@@ -6752,6 +6752,151 @@ export class ConferenceConnectionFactory extends FEntityFactory<ConferenceConnec
         return new ConferenceConnection(ctx, this.connection, this.namespace, this.directory, [value.peer1, value.peer2], value, this.options, isNew, this.indexes, 'ConferenceConnection');
     }
 }
+export interface UserEdgeShape {
+    messagesSent: number;
+    messagesLiked: number;
+}
+
+export class UserEdge extends FEntity {
+    readonly entityName: 'UserEdge' = 'UserEdge';
+    get uid1(): number { return this._value.uid1; }
+    get uid2(): number { return this._value.uid2; }
+    get messagesSent(): number {
+        return this._value.messagesSent;
+    }
+    set messagesSent(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.messagesSent) { return; }
+        this._value.messagesSent = value;
+        this.markDirty();
+    }
+    get messagesLiked(): number {
+        return this._value.messagesLiked;
+    }
+    set messagesLiked(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.messagesLiked) { return; }
+        this._value.messagesLiked = value;
+        this.markDirty();
+    }
+}
+
+export class UserEdgeFactory extends FEntityFactory<UserEdge> {
+    static schema: FEntitySchema = {
+        name: 'UserEdge',
+        editable: false,
+        primaryKeys: [
+            { name: 'uid1', type: 'number' },
+            { name: 'uid2', type: 'number' },
+        ],
+        fields: [
+            { name: 'messagesSent', type: 'number' },
+            { name: 'messagesLiked', type: 'number' },
+        ],
+        indexes: [
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('uid1', src.uid1);
+        validators.isNumber('uid1', src.uid1);
+        validators.notNull('uid2', src.uid2);
+        validators.isNumber('uid2', src.uid2);
+        validators.notNull('messagesSent', src.messagesSent);
+        validators.isNumber('messagesSent', src.messagesSent);
+        validators.notNull('messagesLiked', src.messagesLiked);
+        validators.isNumber('messagesLiked', src.messagesLiked);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'userEdge'),
+            { enableVersioning: true, enableTimestamps: true, validator: UserEdgeFactory.validate, hasLiveStreams: false },
+            [],
+            'UserEdge'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 2) { throw Error('Invalid key length!'); }
+        return { 'uid1': rawId[0], 'uid2': rawId[1] };
+    }
+    async findById(ctx: Context, uid1: number, uid2: number) {
+        return await this._findById(ctx, [uid1, uid2]);
+    }
+    async create(ctx: Context, uid1: number, uid2: number, shape: UserEdgeShape) {
+        return await this._create(ctx, [uid1, uid2], { uid1, uid2, ...shape });
+    }
+    watch(ctx: Context, uid1: number, uid2: number, cb: () => void) {
+        return this._watch(ctx, [uid1, uid2], cb);
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new UserEdge(ctx, this.connection, this.namespace, this.directory, [value.uid1, value.uid2], value, this.options, isNew, this.indexes, 'UserEdge');
+    }
+}
+export interface UserInfluencerIndexShape {
+    value: number;
+}
+
+export class UserInfluencerIndex extends FEntity {
+    readonly entityName: 'UserInfluencerIndex' = 'UserInfluencerIndex';
+    get uid(): number { return this._value.uid; }
+    get value(): number {
+        return this._value.value;
+    }
+    set value(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.value) { return; }
+        this._value.value = value;
+        this.markDirty();
+    }
+}
+
+export class UserInfluencerIndexFactory extends FEntityFactory<UserInfluencerIndex> {
+    static schema: FEntitySchema = {
+        name: 'UserInfluencerIndex',
+        editable: false,
+        primaryKeys: [
+            { name: 'uid', type: 'number' },
+        ],
+        fields: [
+            { name: 'value', type: 'number' },
+        ],
+        indexes: [
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('uid', src.uid);
+        validators.isNumber('uid', src.uid);
+        validators.notNull('value', src.value);
+        validators.isNumber('value', src.value);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'userInfluencerIndex'),
+            { enableVersioning: true, enableTimestamps: true, validator: UserInfluencerIndexFactory.validate, hasLiveStreams: false },
+            [],
+            'UserInfluencerIndex'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
+        return { 'uid': rawId[0] };
+    }
+    async findById(ctx: Context, uid: number) {
+        return await this._findById(ctx, [uid]);
+    }
+    async create(ctx: Context, uid: number, shape: UserInfluencerIndexShape) {
+        return await this._create(ctx, [uid], { uid, ...shape });
+    }
+    watch(ctx: Context, uid: number, cb: () => void) {
+        return this._watch(ctx, [uid], cb);
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new UserInfluencerIndex(ctx, this.connection, this.namespace, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'UserInfluencerIndex');
+    }
+}
 
 export interface AllEntities {
     readonly connection: FConnection;
@@ -6809,6 +6954,8 @@ export interface AllEntities {
     readonly ConferenceRoom: ConferenceRoomFactory;
     readonly ConferencePeer: ConferencePeerFactory;
     readonly ConferenceConnection: ConferenceConnectionFactory;
+    readonly UserEdge: UserEdgeFactory;
+    readonly UserInfluencerIndex: UserInfluencerIndexFactory;
 }
 export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     static readonly schema: FEntitySchema[] = [
@@ -6866,6 +7013,8 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         ConferenceRoomFactory.schema,
         ConferencePeerFactory.schema,
         ConferenceConnectionFactory.schema,
+        UserEdgeFactory.schema,
+        UserInfluencerIndexFactory.schema,
     ];
     allEntities: FEntityFactory<FEntity>[] = [];
     Environment: EnvironmentFactory;
@@ -6922,6 +7071,8 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     ConferenceRoom: ConferenceRoomFactory;
     ConferencePeer: ConferencePeerFactory;
     ConferenceConnection: ConferenceConnectionFactory;
+    UserEdge: UserEdgeFactory;
+    UserInfluencerIndex: UserInfluencerIndexFactory;
 
     constructor(connection: FConnection) {
         super(connection);
@@ -7033,6 +7184,10 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         this.allEntities.push(this.ConferencePeer);
         this.ConferenceConnection = new ConferenceConnectionFactory(connection);
         this.allEntities.push(this.ConferenceConnection);
+        this.UserEdge = new UserEdgeFactory(connection);
+        this.allEntities.push(this.UserEdge);
+        this.UserInfluencerIndex = new UserInfluencerIndexFactory(connection);
+        this.allEntities.push(this.UserInfluencerIndex);
     }
 }
 export class AllEntitiesProxy implements AllEntities {
@@ -7200,6 +7355,12 @@ export class AllEntitiesProxy implements AllEntities {
     }
     get ConferenceConnection(): ConferenceConnectionFactory {
         return this.resolver().ConferenceConnection;
+    }
+    get UserEdge(): UserEdgeFactory {
+        return this.resolver().UserEdge;
+    }
+    get UserInfluencerIndex(): UserInfluencerIndexFactory {
+        return this.resolver().UserInfluencerIndex;
     }
     private resolver: () => AllEntities;
     constructor(resolver: () => AllEntities) {
