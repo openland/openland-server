@@ -151,15 +151,18 @@ export class OrganizationModule {
                 return false;
             }
 
+            //
+            let superRoles = await Modules.Super.superRole(ctx, by);
+
             // Check permissions
             let isAdmin = await this.isUserAdmin(ctx, by, oid);
             let invitedByUser = (member.invitedBy && (member.invitedBy === uid)) || false;
-            if (!isAdmin && !invitedByUser) {
+            if (!isAdmin && !invitedByUser && superRoles !== 'super-admin') {
                 throw new AccessDeniedError(ErrorText.permissionDenied);
             }
 
             // Disallow kicking admins by non-admins
-            if (member.role === 'admin' && !isAdmin) {
+            if (member.role === 'admin' && !isAdmin && superRoles !== 'super-admin') {
                 throw new AccessDeniedError(ErrorText.permissionDenied);
             }
 
