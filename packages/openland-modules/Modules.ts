@@ -22,6 +22,7 @@ import { HooksModule } from 'openland-module-hooks/HooksModule';
 import { container } from './Modules.container';
 import { CallsModule } from 'openland-module-calls/CallsModule';
 import { SocialModule } from 'openland-module-social/SocialModule';
+import { FeedModule } from 'openland-module-feed/FeedModule';
 
 class ModulesImpl {
 
@@ -93,6 +94,9 @@ class ModulesImpl {
     }
     get Social() {
         return container.get(SocialModule);
+    }
+    get Feed() {
+        return container.get(FeedModule);
     }
 }
 
