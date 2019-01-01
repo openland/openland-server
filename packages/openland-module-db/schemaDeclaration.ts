@@ -644,6 +644,33 @@ const Schema = declareSchema(() => {
         enableTimestamps();
         enableVersioning();
     });
+
+    //
+    // Social Connections
+    //
+
+    entity('UserEdge', () => {
+        primaryKey('uid1', 'number');
+        primaryKey('uid2', 'number');
+        rangeIndex('forward', ['uid1', 'uid2']);
+        rangeIndex('reverse', ['uid2', 'uid1']);
+        enableTimestamps();
+        enableVersioning();
+    });
+
+    entity('UserInfluencerUserIndex', () => {
+        primaryKey('uid', 'number');
+        field('value', 'number');
+        enableTimestamps();
+        enableVersioning();
+    });
+
+    entity('UserInfluencerIndex', () => {
+        primaryKey('uid', 'number');
+        field('value', 'number');
+        enableTimestamps();
+        enableVersioning();
+    });
 });
 
 generate(Schema, __dirname + '/../openland-module-db/schema.ts');

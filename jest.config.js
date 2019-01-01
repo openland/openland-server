@@ -56,6 +56,8 @@ module.exports = {
         'openland-module-media': '<rootDir>/packages/openland-module-media',
         'openland-module-api/(.*)': '<rootDir>/packages/openland-module-api/$1',
         'openland-module-api': '<rootDir>/packages/openland-module-api',
+        'openland-module-social/(.*)': '<rootDir>/packages/openland-module-social/$1',
+        'openland-module-social': '<rootDir>/packages/openland-module-social',
         'openland-module-hooks/(.*)': '<rootDir>/packages/openland-module-hooks/$1',
         'openland-module-hooks': '<rootDir>/packages/openland-module-hooks',
         'openland-repositories/(.*)': '<rootDir>/packages/openland-repositories/$1',

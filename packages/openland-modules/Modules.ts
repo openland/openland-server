@@ -21,6 +21,7 @@ import { ApiModule } from 'openland-module-api/ApiModule';
 import { HooksModule } from 'openland-module-hooks/HooksModule';
 import { container } from './Modules.container';
 import { CallsModule } from 'openland-module-calls/CallsModule';
+import { SocialModule } from 'openland-module-social/SocialModule';
 
 class ModulesImpl {
 
@@ -89,6 +90,9 @@ class ModulesImpl {
     }
     get Calls() {
         return container.get(CallsModule);
+    }
+    get Social() {
+        return container.get(SocialModule);
     }
 }
 
