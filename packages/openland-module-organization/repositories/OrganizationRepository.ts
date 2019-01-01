@@ -5,8 +5,7 @@ import { OrganizatinProfileInput } from 'openland-module-organization/Organizati
 import { validate, stringNotEmpty } from 'openland-utils/NewInputValidator';
 import { injectable } from 'inversify';
 import { Context } from 'openland-utils/Context';
-import { IDs } from 'openland-module-api/IDs';
-import { FDB } from 'openland-module-db/FDB';
+
 @injectable()
 export class OrganizationRepository {
     readonly entities: AllEntities;
@@ -34,50 +33,32 @@ export class OrganizationRepository {
 
             let organization;
 
-            if (input.id) {
-                // find organization
-                organization = await this.entities.Organization.findById(ctx, IDs.Organization.parse(input.id));
+            // Create organization
+            organization = await this.entities.Organization.create(ctx, orgId, {
+                kind: input.isCommunity ? 'community' : 'organization',
+                ownerId: uid,
+                status: opts.status,
+                editorial: opts.editorial,
+            });
 
-                if (!organization) {
-                    throw Error(`Did not found organization with id ${input.id}`);
-                }
+            // Create organization profile
+            await this.entities.OrganizationProfile.create(ctx, orgId, {
+                name: Sanitizer.sanitizeString(input.name)!,
+                website: Sanitizer.sanitizeString(input.website),
+                photo: Sanitizer.sanitizeImageRef(input.photoRef),
+                about: Sanitizer.sanitizeString(input.about)
+            });
 
-                await this.addUserToOrganization(ctx, uid, organization.id, null);
-                let profile = await FDB.UserProfile.findById(ctx, uid);
-                if (!profile) {
-                    throw Error(`User ${uid} does not have profile`);
-                }
-                profile.primaryOrganization = organization.id;
-            } else {
-                // Create organization
-                organization = await this.entities.Organization.create(ctx, orgId, {
-                    kind: input.isCommunity ? 'community' : 'organization',
-                    ownerId: uid,
-                    status: opts.status,
-                    editorial: opts.editorial,
-                });
+            // Create editorial data
+            await this.entities.OrganizationEditorial.create(ctx, orgId, {
+                listed: true,
+                featured: false
+            });
 
-                // Create organization profile
-                await this.entities.OrganizationProfile.create(ctx, orgId, {
-                    name: Sanitizer.sanitizeString(input.name)!,
-                    website: Sanitizer.sanitizeString(input.website),
-                    photo: Sanitizer.sanitizeImageRef(input.photoRef),
-                    about: Sanitizer.sanitizeString(input.about)
-                });
-
-                // Create editorial data
-                await this.entities.OrganizationEditorial.create(ctx, orgId, {
-                    listed: true,
-                    featured: false
-                });
-
-                // Add owner to organization
-                await this.entities.OrganizationMember.create(ctx, organization.id, uid, {
-                    status: 'joined', role: 'admin', invitedBy: uid
-                });
-            }
-
-            return organization;
+            // Add owner to organization
+            await this.entities.OrganizationMember.create(ctx, organization.id, uid, {
+                status: 'joined', role: 'admin', invitedBy: uid
+            });
         });
     }
 
