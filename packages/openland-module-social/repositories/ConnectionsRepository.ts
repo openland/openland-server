@@ -16,7 +16,7 @@ export class ConnectionsRepository {
                 if (infind) {
                     infind.value++;
                 } else {
-                    await FDB.UserInfluencerUserIndex.create(ctx, fromUid, { value: 1 });
+                    await FDB.UserInfluencerUserIndex.create(ctx, toUid, { value: 1 });
                 }
             }
         });

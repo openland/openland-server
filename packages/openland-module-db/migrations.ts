@@ -353,7 +353,7 @@ migrations.push({
 });
 
 migrations.push({
-    key: '34-users',
+    key: '35-user-influencer',
     migration: async (root, log) => {
         await inTx(root, async (ctx) => {
             let edges = await FDB.UserEdge.findAll(ctx);
