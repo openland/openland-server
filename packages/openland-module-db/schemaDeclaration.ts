@@ -671,6 +671,50 @@ const Schema = declareSchema(() => {
         enableTimestamps();
         enableVersioning();
     });
+
+    /* 
+     * Feed
+     */
+
+    entity('FeedSubscriber', () => {
+        primaryKey('id', 'number');
+        field('key', 'string');
+        enableTimestamps();
+        enableVersioning();
+
+        uniqueIndex('key', ['key']);
+    });
+
+    entity('FeedSubscription', () => {
+        primaryKey('sid', 'number');
+        primaryKey('tid', 'number');
+        field('enabled', 'boolean');
+
+        rangeIndex('subscriber', ['sid', 'tid']).withCondition((state) => state.enabled);
+        rangeIndex('topic', ['tid', 'sid']).withCondition((state) => state.enabled);
+    });
+
+    entity('FeedTopic', () => {
+        primaryKey('id', 'number');
+        field('key', 'string');
+        enableTimestamps();
+        enableVersioning();
+
+        uniqueIndex('key', ['key']);
+    });
+    entity('FeedEvent', () => {
+        primaryKey('id', 'number');
+        field('tid', 'number');
+
+        field('type', 'string');
+        field('content', 'json');
+
+        enableTimestamps();
+        enableVersioning();
+
+        rangeIndex('topic', ['tid', 'createdAt']);
+        rangeIndex('updated', ['updatedAt']);
+    });
 });
 
 generate(Schema, __dirname + '/../openland-module-db/schema.ts');

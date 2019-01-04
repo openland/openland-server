@@ -6973,6 +6973,393 @@ export class UserInfluencerIndexFactory extends FEntityFactory<UserInfluencerInd
         return new UserInfluencerIndex(ctx, this.connection, this.namespace, this.directory, [value.uid], value, this.options, isNew, this.indexes, 'UserInfluencerIndex');
     }
 }
+export interface FeedSubscriberShape {
+    key: string;
+}
+
+export class FeedSubscriber extends FEntity {
+    readonly entityName: 'FeedSubscriber' = 'FeedSubscriber';
+    get id(): number { return this._value.id; }
+    get key(): string {
+        return this._value.key;
+    }
+    set key(value: string) {
+        this._checkIsWritable();
+        if (value === this._value.key) { return; }
+        this._value.key = value;
+        this.markDirty();
+    }
+}
+
+export class FeedSubscriberFactory extends FEntityFactory<FeedSubscriber> {
+    static schema: FEntitySchema = {
+        name: 'FeedSubscriber',
+        editable: false,
+        primaryKeys: [
+            { name: 'id', type: 'number' },
+        ],
+        fields: [
+            { name: 'key', type: 'string' },
+        ],
+        indexes: [
+            { name: 'key', type: 'unique', fields: ['key'] },
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isNumber('id', src.id);
+        validators.notNull('key', src.key);
+        validators.isString('key', src.key);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'feedSubscriber'),
+            { enableVersioning: true, enableTimestamps: true, validator: FeedSubscriberFactory.validate, hasLiveStreams: false },
+            [new FEntityIndex('key', ['key'], true)],
+            'FeedSubscriber'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
+        return { 'id': rawId[0] };
+    }
+    async findById(ctx: Context, id: number) {
+        return await this._findById(ctx, [id]);
+    }
+    async create(ctx: Context, id: number, shape: FeedSubscriberShape) {
+        return await this._create(ctx, [id], { id, ...shape });
+    }
+    watch(ctx: Context, id: number, cb: () => void) {
+        return this._watch(ctx, [id], cb);
+    }
+    async findFromKey(ctx: Context, key: string) {
+        return await this._findFromIndex(ctx, ['__indexes', 'key', key]);
+    }
+    async rangeFromKey(ctx: Context, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'key'], limit, reversed);
+    }
+    async rangeFromKeyWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'key'], limit, after, reversed);
+    }
+    async allFromKey(ctx: Context, ) {
+        return await this._findAll(ctx, ['__indexes', 'key']);
+    }
+    createKeyStream(ctx: Context, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'feedSubscriber', '__indexes', 'key'], limit, after); 
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new FeedSubscriber(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'FeedSubscriber');
+    }
+}
+export interface FeedSubscriptionShape {
+    enabled: boolean;
+}
+
+export class FeedSubscription extends FEntity {
+    readonly entityName: 'FeedSubscription' = 'FeedSubscription';
+    get sid(): number { return this._value.sid; }
+    get tid(): number { return this._value.tid; }
+    get enabled(): boolean {
+        return this._value.enabled;
+    }
+    set enabled(value: boolean) {
+        this._checkIsWritable();
+        if (value === this._value.enabled) { return; }
+        this._value.enabled = value;
+        this.markDirty();
+    }
+}
+
+export class FeedSubscriptionFactory extends FEntityFactory<FeedSubscription> {
+    static schema: FEntitySchema = {
+        name: 'FeedSubscription',
+        editable: false,
+        primaryKeys: [
+            { name: 'sid', type: 'number' },
+            { name: 'tid', type: 'number' },
+        ],
+        fields: [
+            { name: 'enabled', type: 'boolean' },
+        ],
+        indexes: [
+            { name: 'subscriber', type: 'range', fields: ['sid', 'tid'] },
+            { name: 'topic', type: 'range', fields: ['tid', 'sid'] },
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('sid', src.sid);
+        validators.isNumber('sid', src.sid);
+        validators.notNull('tid', src.tid);
+        validators.isNumber('tid', src.tid);
+        validators.notNull('enabled', src.enabled);
+        validators.isBoolean('enabled', src.enabled);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'feedSubscription'),
+            { enableVersioning: false, enableTimestamps: false, validator: FeedSubscriptionFactory.validate, hasLiveStreams: false },
+            [new FEntityIndex('subscriber', ['sid', 'tid'], false, (state) => state.enabled), new FEntityIndex('topic', ['tid', 'sid'], false, (state) => state.enabled)],
+            'FeedSubscription'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 2) { throw Error('Invalid key length!'); }
+        return { 'sid': rawId[0], 'tid': rawId[1] };
+    }
+    async findById(ctx: Context, sid: number, tid: number) {
+        return await this._findById(ctx, [sid, tid]);
+    }
+    async create(ctx: Context, sid: number, tid: number, shape: FeedSubscriptionShape) {
+        return await this._create(ctx, [sid, tid], { sid, tid, ...shape });
+    }
+    watch(ctx: Context, sid: number, tid: number, cb: () => void) {
+        return this._watch(ctx, [sid, tid], cb);
+    }
+    async allFromSubscriberAfter(ctx: Context, sid: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'subscriber', sid], after);
+    }
+    async rangeFromSubscriberAfter(ctx: Context, sid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'subscriber', sid], after, limit, reversed);
+    }
+    async rangeFromSubscriber(ctx: Context, sid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'subscriber', sid], limit, reversed);
+    }
+    async rangeFromSubscriberWithCursor(ctx: Context, sid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'subscriber', sid], limit, after, reversed);
+    }
+    async allFromSubscriber(ctx: Context, sid: number) {
+        return await this._findAll(ctx, ['__indexes', 'subscriber', sid]);
+    }
+    createSubscriberStream(ctx: Context, sid: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'feedSubscription', '__indexes', 'subscriber', sid], limit, after); 
+    }
+    async allFromTopicAfter(ctx: Context, tid: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'topic', tid], after);
+    }
+    async rangeFromTopicAfter(ctx: Context, tid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'topic', tid], after, limit, reversed);
+    }
+    async rangeFromTopic(ctx: Context, tid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'topic', tid], limit, reversed);
+    }
+    async rangeFromTopicWithCursor(ctx: Context, tid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'topic', tid], limit, after, reversed);
+    }
+    async allFromTopic(ctx: Context, tid: number) {
+        return await this._findAll(ctx, ['__indexes', 'topic', tid]);
+    }
+    createTopicStream(ctx: Context, tid: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'feedSubscription', '__indexes', 'topic', tid], limit, after); 
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new FeedSubscription(ctx, this.connection, this.namespace, this.directory, [value.sid, value.tid], value, this.options, isNew, this.indexes, 'FeedSubscription');
+    }
+}
+export interface FeedTopicShape {
+    key: string;
+}
+
+export class FeedTopic extends FEntity {
+    readonly entityName: 'FeedTopic' = 'FeedTopic';
+    get id(): number { return this._value.id; }
+    get key(): string {
+        return this._value.key;
+    }
+    set key(value: string) {
+        this._checkIsWritable();
+        if (value === this._value.key) { return; }
+        this._value.key = value;
+        this.markDirty();
+    }
+}
+
+export class FeedTopicFactory extends FEntityFactory<FeedTopic> {
+    static schema: FEntitySchema = {
+        name: 'FeedTopic',
+        editable: false,
+        primaryKeys: [
+            { name: 'id', type: 'number' },
+        ],
+        fields: [
+            { name: 'key', type: 'string' },
+        ],
+        indexes: [
+            { name: 'key', type: 'unique', fields: ['key'] },
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isNumber('id', src.id);
+        validators.notNull('key', src.key);
+        validators.isString('key', src.key);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'feedTopic'),
+            { enableVersioning: true, enableTimestamps: true, validator: FeedTopicFactory.validate, hasLiveStreams: false },
+            [new FEntityIndex('key', ['key'], true)],
+            'FeedTopic'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
+        return { 'id': rawId[0] };
+    }
+    async findById(ctx: Context, id: number) {
+        return await this._findById(ctx, [id]);
+    }
+    async create(ctx: Context, id: number, shape: FeedTopicShape) {
+        return await this._create(ctx, [id], { id, ...shape });
+    }
+    watch(ctx: Context, id: number, cb: () => void) {
+        return this._watch(ctx, [id], cb);
+    }
+    async findFromKey(ctx: Context, key: string) {
+        return await this._findFromIndex(ctx, ['__indexes', 'key', key]);
+    }
+    async rangeFromKey(ctx: Context, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'key'], limit, reversed);
+    }
+    async rangeFromKeyWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'key'], limit, after, reversed);
+    }
+    async allFromKey(ctx: Context, ) {
+        return await this._findAll(ctx, ['__indexes', 'key']);
+    }
+    createKeyStream(ctx: Context, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'feedTopic', '__indexes', 'key'], limit, after); 
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new FeedTopic(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'FeedTopic');
+    }
+}
+export interface FeedEventShape {
+    tid: number;
+    type: string;
+    content: any;
+}
+
+export class FeedEvent extends FEntity {
+    readonly entityName: 'FeedEvent' = 'FeedEvent';
+    get id(): number { return this._value.id; }
+    get tid(): number {
+        return this._value.tid;
+    }
+    set tid(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.tid) { return; }
+        this._value.tid = value;
+        this.markDirty();
+    }
+    get type(): string {
+        return this._value.type;
+    }
+    set type(value: string) {
+        this._checkIsWritable();
+        if (value === this._value.type) { return; }
+        this._value.type = value;
+        this.markDirty();
+    }
+    get content(): any {
+        return this._value.content;
+    }
+    set content(value: any) {
+        this._checkIsWritable();
+        if (value === this._value.content) { return; }
+        this._value.content = value;
+        this.markDirty();
+    }
+}
+
+export class FeedEventFactory extends FEntityFactory<FeedEvent> {
+    static schema: FEntitySchema = {
+        name: 'FeedEvent',
+        editable: false,
+        primaryKeys: [
+            { name: 'id', type: 'number' },
+        ],
+        fields: [
+            { name: 'tid', type: 'number' },
+            { name: 'type', type: 'string' },
+            { name: 'content', type: 'json' },
+        ],
+        indexes: [
+            { name: 'topic', type: 'range', fields: ['tid', 'createdAt'] },
+            { name: 'updated', type: 'range', fields: ['updatedAt'] },
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isNumber('id', src.id);
+        validators.notNull('tid', src.tid);
+        validators.isNumber('tid', src.tid);
+        validators.notNull('type', src.type);
+        validators.isString('type', src.type);
+        validators.notNull('content', src.content);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'feedEvent'),
+            { enableVersioning: true, enableTimestamps: true, validator: FeedEventFactory.validate, hasLiveStreams: false },
+            [new FEntityIndex('topic', ['tid', 'createdAt'], false), new FEntityIndex('updated', ['updatedAt'], false)],
+            'FeedEvent'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
+        return { 'id': rawId[0] };
+    }
+    async findById(ctx: Context, id: number) {
+        return await this._findById(ctx, [id]);
+    }
+    async create(ctx: Context, id: number, shape: FeedEventShape) {
+        return await this._create(ctx, [id], { id, ...shape });
+    }
+    watch(ctx: Context, id: number, cb: () => void) {
+        return this._watch(ctx, [id], cb);
+    }
+    async allFromTopicAfter(ctx: Context, tid: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'topic', tid], after);
+    }
+    async rangeFromTopicAfter(ctx: Context, tid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'topic', tid], after, limit, reversed);
+    }
+    async rangeFromTopic(ctx: Context, tid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'topic', tid], limit, reversed);
+    }
+    async rangeFromTopicWithCursor(ctx: Context, tid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'topic', tid], limit, after, reversed);
+    }
+    async allFromTopic(ctx: Context, tid: number) {
+        return await this._findAll(ctx, ['__indexes', 'topic', tid]);
+    }
+    createTopicStream(ctx: Context, tid: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'feedEvent', '__indexes', 'topic', tid], limit, after); 
+    }
+    async rangeFromUpdated(ctx: Context, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'updated'], limit, reversed);
+    }
+    async rangeFromUpdatedWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'updated'], limit, after, reversed);
+    }
+    async allFromUpdated(ctx: Context, ) {
+        return await this._findAll(ctx, ['__indexes', 'updated']);
+    }
+    createUpdatedStream(ctx: Context, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'feedEvent', '__indexes', 'updated'], limit, after); 
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new FeedEvent(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'FeedEvent');
+    }
+}
 
 export interface AllEntities {
     readonly connection: FConnection;
@@ -7033,6 +7420,10 @@ export interface AllEntities {
     readonly UserEdge: UserEdgeFactory;
     readonly UserInfluencerUserIndex: UserInfluencerUserIndexFactory;
     readonly UserInfluencerIndex: UserInfluencerIndexFactory;
+    readonly FeedSubscriber: FeedSubscriberFactory;
+    readonly FeedSubscription: FeedSubscriptionFactory;
+    readonly FeedTopic: FeedTopicFactory;
+    readonly FeedEvent: FeedEventFactory;
 }
 export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     static readonly schema: FEntitySchema[] = [
@@ -7093,6 +7484,10 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         UserEdgeFactory.schema,
         UserInfluencerUserIndexFactory.schema,
         UserInfluencerIndexFactory.schema,
+        FeedSubscriberFactory.schema,
+        FeedSubscriptionFactory.schema,
+        FeedTopicFactory.schema,
+        FeedEventFactory.schema,
     ];
     allEntities: FEntityFactory<FEntity>[] = [];
     Environment: EnvironmentFactory;
@@ -7152,6 +7547,10 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     UserEdge: UserEdgeFactory;
     UserInfluencerUserIndex: UserInfluencerUserIndexFactory;
     UserInfluencerIndex: UserInfluencerIndexFactory;
+    FeedSubscriber: FeedSubscriberFactory;
+    FeedSubscription: FeedSubscriptionFactory;
+    FeedTopic: FeedTopicFactory;
+    FeedEvent: FeedEventFactory;
 
     constructor(connection: FConnection) {
         super(connection);
@@ -7269,6 +7668,14 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         this.allEntities.push(this.UserInfluencerUserIndex);
         this.UserInfluencerIndex = new UserInfluencerIndexFactory(connection);
         this.allEntities.push(this.UserInfluencerIndex);
+        this.FeedSubscriber = new FeedSubscriberFactory(connection);
+        this.allEntities.push(this.FeedSubscriber);
+        this.FeedSubscription = new FeedSubscriptionFactory(connection);
+        this.allEntities.push(this.FeedSubscription);
+        this.FeedTopic = new FeedTopicFactory(connection);
+        this.allEntities.push(this.FeedTopic);
+        this.FeedEvent = new FeedEventFactory(connection);
+        this.allEntities.push(this.FeedEvent);
     }
 }
 export class AllEntitiesProxy implements AllEntities {
@@ -7445,6 +7852,18 @@ export class AllEntitiesProxy implements AllEntities {
     }
     get UserInfluencerIndex(): UserInfluencerIndexFactory {
         return this.resolver().UserInfluencerIndex;
+    }
+    get FeedSubscriber(): FeedSubscriberFactory {
+        return this.resolver().FeedSubscriber;
+    }
+    get FeedSubscription(): FeedSubscriptionFactory {
+        return this.resolver().FeedSubscription;
+    }
+    get FeedTopic(): FeedTopicFactory {
+        return this.resolver().FeedTopic;
+    }
+    get FeedEvent(): FeedEventFactory {
+        return this.resolver().FeedEvent;
     }
     private resolver: () => AllEntities;
     constructor(resolver: () => AllEntities) {
