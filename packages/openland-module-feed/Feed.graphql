@@ -1,0 +1,14 @@
+type FeedItem {
+    id: ID!
+    text: String!
+    date: Date!
+    alphaBy: User!
+}
+
+extend type Query {
+    alphaHomeFeed: [FeedItem!]!
+}
+
+extend type Mutation {
+    alphaCreateFeedPost(message: String!): FeedItem!
+}

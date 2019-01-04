@@ -4,7 +4,8 @@ import {
     Organization,
     User, UserDialogEvent,
     UserDialogSettings,
-    UserProfile
+    UserProfile,
+    FeedEvent
 } from '../../openland-module-db/schema';
 import { GQL } from './SchemaSpec';
 import { MessageMention } from '../../openland-module-messaging/MessageInput';
@@ -13,6 +14,7 @@ import { MessageMention } from '../../openland-module-messaging/MessageInput';
 //  Root types
 //
 export namespace GQLRoots {
+    export type FeedItemRoot = FeedEvent;
     export type ICEServerRoot = any;
     export type ConversationUpdateStateRoot = any;
     export type MediaSessionRoot = any;

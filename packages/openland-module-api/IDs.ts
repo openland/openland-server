@@ -44,4 +44,5 @@ export const IDs = {
     Conference: IdsFactory.createId('Conference'),
     ConferenceParticipant: IdsFactory.createId('ConferenceParticipant'),
     ConferencePeer: IdsFactory.createId('ConferencePeer'),
+    FeedItem: IdsFactory.createId('FeedItem'),
 };
