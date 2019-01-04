@@ -21,7 +21,7 @@ export default {
                     allEvents.push(t);
                 }
             }
-            allEvents = allEvents.sort((a, b) => a.id - b.id);
+            allEvents = allEvents.sort((a, b) => b.id - a.id);
             return allEvents;
         })
     },
