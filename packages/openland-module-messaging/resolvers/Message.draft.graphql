@@ -1,0 +1,87 @@
+type Message {
+    id: ID!
+    date: Date!
+    sender: User!
+    room: SharedRoom!
+    repeatKey: String!
+    edited: Boolean!
+    mentioned: Boolean!
+
+    #
+    #   Content
+    #
+    message: String!
+    media: [MessageMedia!]
+    keyboard: MessageKeyboard
+    forwardMessages: [Message!]
+    mentions: [Mention!]
+    textDescription: String!
+
+    #
+    #   Service metadata
+    #
+    service: Boolean!
+    serviceMetadata: ServiceMetadata
+
+    reactions: [MessageReaction!]
+}
+
+extend type Mutation {
+    sendMessage(room: ID!, message: String, repeatKey: String, forwardMessages: [ID!], mentions: [ID!], media: [MessageMediaInput!]): Boolean!
+}
+
+#
+#   Media
+#
+union MessageMedia = MessageMediaFile | UrlAugmentation
+
+type MessageMediaFile {
+    fileId: String!
+    fileMetadata: FileMetadata!
+    filePreview: String
+}
+
+union MessageMediaInput = MessageMediaFileInput
+
+input MessageMediaFileInput {
+    uuid: String!
+}
+
+#
+#   Keyboard
+#
+type MessageKeyboard {
+    buttons: [[MessageButton!]]
+}
+
+type MessageButton {
+    title: String!
+    style: MessageButtonStyle!
+    id: ID!
+}
+
+enum MessageButtonStyle {
+    DEFAULT,
+    LIGHT
+}
+
+#
+#   Mentions
+#
+type UserMention {
+    user: User!
+}
+
+type SharedRoomMention {
+    sharedRoom: SharedRoom!
+}
+
+union Mention = UserMention | SharedRoomMention
+
+#
+#   Reactions
+#
+type MessageReaction {
+    user: User!,
+    reaction: String!
+}
