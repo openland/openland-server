@@ -10,7 +10,7 @@ type Message {
     #
     #   Content
     #
-    message: String!
+    message: String
     media: [MessageMedia!]
     keyboard: MessageKeyboard
     forwardMessages: [Message!]
