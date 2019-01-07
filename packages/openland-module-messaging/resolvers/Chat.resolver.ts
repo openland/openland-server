@@ -250,7 +250,7 @@ export default {
         title: (src: URLAugmentation) => src.title,
         subtitle: (src: URLAugmentation) => src.subtitle,
         description: (src: URLAugmentation) => src.description,
-        imageURL: (src: URLAugmentation) => src.imageURL,
+        imageURL: (src: URLAugmentation) => buildBaseImageUrl(src.photo),
         imageInfo: (src: URLAugmentation) => src.imageInfo,
         photo: (src: URLAugmentation) => src.photo,
         iconRef: (src: URLAugmentation) => src.iconRef,
