@@ -14,8 +14,9 @@ export default {
     },
     Query: {
         alphaHomeFeed: withUser(async (ctx, args, uid) => {
-            let allUids = await FDB.UserEdge.allFromForward(ctx, uid);
-            let subscriptions = await Promise.all(allUids.map((v) => Modules.Feed.resolveTopic(ctx, 'user-' + v.uid2)));
+            let allUids = Array.from(new Set(['user-' + uid, ...(await FDB.UserEdge.allFromForward(ctx, uid)).map((v) => 'user-' + v.uid2)]));
+
+            let subscriptions = await Promise.all(allUids.map((v) => Modules.Feed.resolveTopic(ctx, 'user-' + v)));
             // let subscriptions = await Modules.Feed.findSubscriptions(ctx, 'user-' + uid);
             let allEvents: FeedEvent[] = [];
             for (let s of subscriptions) {
