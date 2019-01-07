@@ -14,10 +14,12 @@ export default {
     },
     Query: {
         alphaHomeFeed: withUser(async (ctx, args, uid) => {
-            let subscriptions = await Modules.Feed.findSubscriptions(ctx, 'user-' + uid);
+            let allUids = await FDB.UserEdge.allFromForward(ctx, uid);
+            let subscriptions = await Promise.all(allUids.map((v) => Modules.Feed.resolveTopic(ctx, 'user-' + v.uid2)));
+            // let subscriptions = await Modules.Feed.findSubscriptions(ctx, 'user-' + uid);
             let allEvents: FeedEvent[] = [];
             for (let s of subscriptions) {
-                for (let t of await FDB.FeedEvent.allFromTopic(ctx, s)) {
+                for (let t of await FDB.FeedEvent.allFromTopic(ctx, s.id)) {
                     allEvents.push(t);
                 }
             }
