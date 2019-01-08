@@ -1,22 +1,37 @@
-union Message = ServiceMessage | UserMessage
-
-type ServiceMessage  {
+interface BaseMessage {
     #
     #   State
     #
     id: ID!
     date: Date!
+    sender: User!
 
     #
     #   Content
     #
     message: String
-    parts: [MessagePart!]
+    spans: [MessageSpan!]!
     fallback: String!
-    serviceMetadata: ServiceMetadata
 }
 
-type UserMessage {
+type ServiceMessage implements Message  {
+    #
+    #   State
+    #
+    id: ID!
+    date: Date!
+    sender: User!
+
+    #
+    #   Content
+    #
+    message: String
+    spans: [MessageSpan!]!
+    serviceMetadata: ServiceMetadata
+    fallback: String!
+}
+
+type Message implements Message {
     #
     #   State
     #
@@ -24,79 +39,89 @@ type UserMessage {
     date: Date!
     sender: User!
     edited: Boolean!
-    reactions: [MessageReaction!]
+    reactions: [MessageReaction!]!
 
     #
     #   Content
     #
     message: String
-    attachments: [MessageAttachment!]
-    quotedMessages: [Message!]
-    parts: [MessagePart!]
+    spans: [MessageSpan!]!
+    attachments: [MessageAttachment!]!
+    quotedMessages: [Message!]!
     fallback: String!
 }
 
 extend type Mutation {
-    sendMessage(room: ID!, message: String, repeatKey: String, forwardMessages: [ID!], parts: [MessagePartInput!], attachments: [MessageAttachmentInput!]): Boolean!
+    sendMessage(room: ID!, message: String, repeatKey: String, forwardMessages: [ID!], spans: [MessageSpanInput!], attachments: [MessageAttachmentInput!]): Boolean!
 }
 
 #
 #   Attachments
 #
 
-union MessageAttachment = MessageRichAttachment | MessageAttachmentFile | MessageAttachmentPost
-
-type MessageRichAttachment {
+interface MessageAttachment {
+    id: ID!
     fallback: String!
-    title: String!
-    titleLink: String!
-    text: String!
-    icon: String!
-    image: String!
-    keyboard: MessageKeyboard!
 }
 
-type MessageAttachmentFile {
+type MessageRichAttachment implements MessageAttachment {
+    id: ID!
+    title: String
+    titleLink: String
+    text: String
+    icon: String
+    image: String
+    keyboard: MessageKeyboard
+    fallback: String!
+}
+
+type MessageAttachmentFile implements MessageAttachment {
+    id: ID!
     fileId: String!
     fileMetadata: FileMetadata!
     filePreview: String
+    fallback: String!
 }
 
-type MessageAttachmentPost {
+type MessageAttachmentPost implements MessageAttachment {
+    id: ID!
     post: FeedItem!
+    fallback: String!
 }
 
 union MessageAttachmentInput = MessageRichAttachmentInput | MessageAttachmentFileInput | MessageAttachmentPostInput
 
 input MessageRichAttachmentInput {
-    fallback: String
     title: String
     titleLink: String
     text: String
     icon: String
     image: String
     keyboard: MessageKeyboardInput
+    fallback: String
 }
 
 type MessageAttachmentFileInput {
     fileId: String!
+    fallback: String
 }
 
 type MessageAttachmentPostInput {
     postId: ID!
+    fallback: String
 }
 
 #
 #   Keyboard
 #
 type MessageKeyboard {
-    buttons: [[MessageButton!]]
+    buttons: [[MessageButton!]]!
 }
 
 type MessageButton {
+    id: ID!
     title: String!
     style: MessageButtonStyle!
-    id: ID!
 }
 
 enum MessageButtonStyle {
@@ -105,13 +130,13 @@ enum MessageButtonStyle {
 }
 
 input MessageKeyboardInput {
-    buttons: [[MessageButton!]]
+    buttons: [[MessageButton!]]!
 }
 
 input MessageButtonInput {
+    id: ID!
     title: String!
     style: MessageButtonStyle!
-    id: ID!
 }
 
 #
@@ -135,29 +160,32 @@ type MessageReaction {
 #   Rich text
 #
 
-union MessagePart = MessagePartMention | MessagePartRoomMention
+interface MessageSpan {
+    offset: Int!
+    length: Int!
+}
 
-type MessagePartUserMention {
+type MessageSpanUserMention implements MessageSpan {
     offset: Int!
     length: Int!
     user: User!
 }
 
-type MessagePartRoomMention {
+type MessageSpanRoomMention implements MessageSpan {
     offset: Int!
     length: Int!
     room: Room!
 }
 
-union MessagePartInput = MessagePartUserMentionInput | MessagePartRoomMentionInput
+union MessageSpanInput = MessageSpanUserMentionInput | MessageSpanRoomMentionInput
 
-input MessagePartUserMentionInput {
+input MessageSpanUserMentionInput {
     offset: Int!
     length: Int!
     userId: ID!
 }
 
-input MessagePartRoomMentionInput {
+input MessageSpanRoomMentionInput {
     offset: Int!
     length: Int!
     roomId: ID!
