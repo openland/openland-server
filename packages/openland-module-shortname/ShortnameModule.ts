@@ -1,11 +1,14 @@
 import { ShortnameRepository } from './repositories/ShortnameRepository';
-import { FDB } from 'openland-module-db/FDB';
-import { injectable } from 'inversify';
+import { inject, injectable } from 'inversify';
 import { Context } from 'openland-utils/Context';
 
 @injectable()
 export class ShortnameModule {
-    private readonly repo = new ShortnameRepository(FDB);
+    private readonly repo: ShortnameRepository;
+
+    constructor(@inject('ShortnameRepository') repo: ShortnameRepository) {
+        this.repo = repo;
+    }
 
     async findShortname(ctx: Context, shortname: string) {
         return this.repo.findShortname(ctx, shortname);
@@ -23,8 +26,8 @@ export class ShortnameModule {
         return this.repo.setShortnameToUser(ctx, shortname, uid);
     }
 
-    async setShortnameToOrganization(ctx: Context, shortname: string, oid: number) {
-        return this.repo.setShortnameToOrganization(ctx, shortname, oid);
+    async setShortnameToOrganization(ctx: Context, shortname: string, oid: number, uid: number) {
+        return this.repo.setShortnameToOrganization(ctx, shortname, oid, uid);
     }
 
     start = () => {

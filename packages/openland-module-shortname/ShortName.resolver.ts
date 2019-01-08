@@ -6,16 +6,6 @@ import { FDB } from 'openland-module-db/FDB';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { IDs } from '../openland-module-api/IDs';
 
-function testShortName(name: string) {
-    if (!/^\w*$/.test(name)) {
-        throw new UserError('Invalid shortname');
-    }
-
-    if (name.length < 5) {
-        throw new UserError('Too short');
-    }
-}
-
 export default {
     ShortNameDestination: {
         __resolveType(src: any) {
@@ -49,7 +39,6 @@ export default {
     },
     Mutation: {
         alphaSetUserShortName: withAccount(async (ctx, args, uid, orgId) => {
-            testShortName(args.shortname);
 
             await Modules.Shortnames.setShortnameToUser(ctx, args.shortname, uid);
 
@@ -57,14 +46,13 @@ export default {
         }),
         alphaSetOrgShortName: withAccount(async (ctx, args, uid) => {
             let orgId = IDs.Organization.parse(args.id);
-            testShortName(args.shortname);
 
             let member = await FDB.OrganizationMember.findById(ctx, orgId, uid);
             if (member === null || member.status !== 'joined' || member.role !== 'admin') {
                 throw new UserError(ErrorText.permissionOnlyOwner);
             }
 
-            await Modules.Shortnames.setShortnameToOrganization(ctx, args.shortname, orgId);
+            await Modules.Shortnames.setShortnameToOrganization(ctx, args.shortname, orgId, uid);
 
             return 'ok';
         }),

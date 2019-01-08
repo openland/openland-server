@@ -36,6 +36,7 @@ import { SocialModule } from 'openland-module-social/SocialModule';
 import { loadSocialModule } from 'openland-module-social/SocialModule.container';
 import { loadFeedModule } from 'openland-module-feed/FeedModule.container';
 import { FeedModule } from 'openland-module-feed/FeedModule';
+import { loadShortnameModule } from '../openland-module-shortname/ShortnameModule.container';
 
 export function loadAllModules(loadDb: boolean = true) {
 
@@ -49,6 +50,7 @@ export function loadAllModules(loadDb: boolean = true) {
     loadAuthModule();
     loadUsersModule();
     loadSocialModule();
+    loadShortnameModule();
 
     container.bind(DBModule).toSelf().inSingletonScope();
     container.bind('HooksModule').to(HooksModule).inSingletonScope();
