@@ -59,7 +59,16 @@ export default {
             return [];
         },
         organization: withAny(async (ctx, args) => {
-            let res = await FDB.Organization.findById(ctx, IDs.Organization.parse(args.id));
+            let shortname = await Modules.Shortnames.findShortname(ctx, args.id);
+            let orgId: number;
+
+            if (shortname && shortname.enabled && shortname.ownerType === 'org') {
+                orgId = shortname.ownerId;
+            }  else {
+                orgId = IDs.Organization.parse(args.id);
+            }
+
+            let res = await FDB.Organization.findById(ctx, orgId);
             if (!res) {
                 throw new NotFoundError('Unable to find organization');
             }

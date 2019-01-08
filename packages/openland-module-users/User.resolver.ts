@@ -88,8 +88,14 @@ export default {
                 return FDB.User.findById(ctx, ctx.auth.uid);
             }
         },
-        user: withAny((ctx, args) => {
-            return FDB.User.findById(ctx, IDs.User.parse(args.id));
+        user: withAny(async (ctx, args) => {
+            let shortname = await Modules.Shortnames.findShortname(ctx, args.id);
+
+            if (shortname && shortname.enabled && shortname.ownerType === 'user') {
+                return FDB.User.findById(ctx, shortname.ownerId);
+            }  else {
+                return FDB.User.findById(ctx, IDs.User.parse(args.id));
+            }
         }),
     }
 } as GQLResolver;
