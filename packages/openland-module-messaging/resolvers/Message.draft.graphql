@@ -1,50 +1,89 @@
-type Message {
+union Message = ServiceMessage | UserMessage
+
+type ServiceMessage  {
+    #
+    #   State
+    #
     id: ID!
     date: Date!
-    sender: User!
-    room: SharedRoom!
-    repeatKey: String!
-    edited: Boolean!
-    mentioned: Boolean!
 
     #
     #   Content
     #
     message: String
-    media: [MessageMedia!]
-    keyboard: MessageKeyboard
-    forwardMessages: [Message!]
-    mentions: [Mention!]
-    textDescription: String!
-
-    #
-    #   Service metadata
-    #
-    service: Boolean!
+    parts: [MessagePart!]
+    fallback: String!
     serviceMetadata: ServiceMetadata
+}
 
+type UserMessage {
+    #
+    #   State
+    #
+    id: ID!
+    date: Date!
+    sender: User!
+    edited: Boolean!
     reactions: [MessageReaction!]
+
+    #
+    #   Content
+    #
+    message: String
+    attachments: [MessageAttachment!]
+    quotedMessages: [Message!]
+    parts: [MessagePart!]
+    fallback: String!
 }
 
 extend type Mutation {
-    sendMessage(room: ID!, message: String, repeatKey: String, forwardMessages: [ID!], mentions: [ID!], media: [MessageMediaInput!]): Boolean!
+    sendMessage(room: ID!, message: String, repeatKey: String, forwardMessages: [ID!], parts: [MessagePartInput!], attachments: [MessageAttachmentInput!]): Boolean!
 }
 
 #
-#   Media
+#   Attachments
 #
-union MessageMedia = MessageMediaFile | UrlAugmentation
 
-type MessageMediaFile {
+union MessageAttachment = MessageRichAttachment | MessageAttachmentFile | MessageAttachmentPost
+
+type MessageRichAttachment {
+    fallback: String!
+    title: String!
+    titleLink: String!
+    text: String!
+    icon: String!
+    image: String!
+    keyboard: MessageKeyboard!
+}
+
+type MessageAttachmentFile {
     fileId: String!
     fileMetadata: FileMetadata!
     filePreview: String
 }
 
-union MessageMediaInput = MessageMediaFileInput
+type MessageAttachmentPost {
+    post: FeedItem!
+}
 
-input MessageMediaFileInput {
-    uuid: String!
+union MessageAttachmentInput = MessageRichAttachmentInput | MessageAttachmentFileInput | MessageAttachmentPostInput
+
+input MessageRichAttachmentInput {
+    fallback: String
+    title: String
+    titleLink: String
+    text: String
+    icon: String
+    image: String
+    keyboard: MessageKeyboardInput
+}
+
+type MessageAttachmentFileInput {
+    fileId: String!
+}
+
+type MessageAttachmentPostInput {
+    postId: ID!
 }
 
 #
@@ -65,23 +104,61 @@ enum MessageButtonStyle {
     LIGHT
 }
 
-#
-#   Mentions
-#
-type UserMention {
-    user: User!
+input MessageKeyboardInput {
+    buttons: [[MessageButton!]]
 }
 
-type SharedRoomMention {
-    sharedRoom: SharedRoom!
+input MessageButtonInput {
+    title: String!
+    style: MessageButtonStyle!
+    id: ID!
 }
-
-union Mention = UserMention | SharedRoomMention
 
 #
 #   Reactions
 #
+
+enum MessageReactionType {
+    LIKE,
+    THUMB_UP,
+    JOY,
+    SCREAM,
+    ANGRY
+}
+
 type MessageReaction {
     user: User!,
-    reaction: String!
+    reaction: MessageReactionType!
+}
+
+#
+#   Rich text
+#
+
+union MessagePart = MessagePartMention | MessagePartRoomMention
+
+type MessagePartUserMention {
+    offset: Int!
+    length: Int!
+    user: User!
+}
+
+type MessagePartRoomMention {
+    offset: Int!
+    length: Int!
+    room: Room!
+}
+
+union MessagePartInput = MessagePartUserMentionInput | MessagePartRoomMentionInput
+
+input MessagePartUserMentionInput {
+    offset: Int!
+    length: Int!
+    userId: ID!
+}
+
+input MessagePartRoomMentionInput {
+    offset: Int!
+    length: Int!
+    roomId: ID!
 }
