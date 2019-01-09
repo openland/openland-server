@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, Nullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'd66c2d8795df2bb13fe71bd038f65b3f';
+export const GQL_SPEC_VERSION = 'afe24f5790d5287154c20534d69aea29';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1080,6 +1080,7 @@ export namespace GQL {
     }
     export interface MutationCreateBotArgs {
         name: string;
+        shortname: string;
     }
     export interface MutationRefreshBotTokenArgs {
         botId: string;

@@ -21,7 +21,7 @@ export default {
 
     Mutation: {
         createBot: withAccount(async (ctx, args, uid, orgId) => {
-            return await Modules.Bots.createBot(ctx, uid, args.name);
+            return await Modules.Bots.createBot(ctx, uid, args.name, args.shortname);
         }),
         refreshBotToken: withAccount(async (ctx, args, uid, orgId) => {
             let botId = IDs.User.parse(args.botId);
