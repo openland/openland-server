@@ -34,15 +34,6 @@ export default {
             return FDB.ConversationRoom.allFromOrganizationPublicRooms(ctx, src.id);
         },
 
-        shortname: async (src: Organization, args: {}, ctx: AppContext) => {
-            let shortName = await Modules.Shortnames.findOrganizationShortname(ctx, src.id);
-
-            if (shortName) {
-                return shortName.shortname;
-            }
-
-            return null;
-        },
         betaPublicRooms: async (src: Organization, args: {}, ctx: AppContext) => {
             let isMember = ctx.auth.uid && ctx.auth.oid && await Modules.Orgs.isUserMember(ctx, ctx.auth.uid, ctx.auth.oid);
             return (await FDB.ConversationRoom.allFromOrganizationPublicRooms(ctx, src.id)).filter(r => isMember || r.listed);

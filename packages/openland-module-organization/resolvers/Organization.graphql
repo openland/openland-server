@@ -31,8 +31,6 @@ type Organization {
     alphaIsCommunity: Boolean!
     alphaCreatedChannels: [ChannelConversation]!
 
-    shortname: String
-
     betaPublicRooms: [SharedRoom!]!
     status: String!
 }

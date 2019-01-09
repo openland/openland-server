@@ -14,9 +14,6 @@ type User {
     linkedin: String
     twitter: String
 
-    # TODO: Move to extensions
-    shortname: String
-
     # TODO: Refactor
     channelsJoined: [ChannelConversation!]!
 

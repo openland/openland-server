@@ -60,14 +60,6 @@ export default {
         twitter: withProfile((ctx, src, profile) => profile && profile.twitter),
         location: withProfile((ctx, src, profile) => profile ? profile.location : null),
 
-        shortname: withUser(async (ctx, src) => {
-            let shortname = await Modules.Shortnames.findUserShortname(ctx, src.id);
-            if (shortname) {
-                return shortname.shortname;
-            }
-            return null;
-        }),
-
         // Deprecated
         picture: withProfile((ctx, src, profile) => profile && profile.picture ? buildBaseImageUrl(profile.picture) : null),
         pictureRef: withProfile((ctx, src, profile) => profile && profile.picture),

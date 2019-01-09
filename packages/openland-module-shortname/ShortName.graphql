@@ -8,3 +8,19 @@ extend type Mutation {
     alphaSetUserShortName(shortname: String!): String
     alphaSetOrgShortName(id: ID!, shortname: String!): String
 }
+
+extend type User {
+    shortname: String
+}
+
+extend type Profile {
+    shortname: String
+}
+
+extend type Organization {
+    shortname: String
+}
+
+extend type OrganizationProfile {
+    shortname: String
+}

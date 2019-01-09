@@ -6,6 +6,8 @@ import { FDB } from 'openland-module-db/FDB';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { IDs } from '../openland-module-api/IDs';
 import { Organization, User } from '../openland-module-db/schema';
+import { withUser } from '../openland-module-users/User.resolver';
+import { AppContext } from '../openland-modules/AppContext';
 
 export default {
     ShortNameDestination: {
@@ -57,4 +59,45 @@ export default {
             return 'ok';
         }),
     },
+
+    User: {
+        shortname: withUser(async (ctx, src) => {
+            let shortname = await Modules.Shortnames.findUserShortname(ctx, src.id);
+            if (shortname) {
+                return shortname.shortname;
+            }
+            return null;
+        }),
+    },
+    Profile: {
+        shortname: withUser(async (ctx, src) => {
+            let shortname = await Modules.Shortnames.findUserShortname(ctx, src.id);
+            if (shortname) {
+                return shortname.shortname;
+            }
+            return null;
+        }),
+    },
+    Organization: {
+        shortname: async (src: Organization, args: {}, ctx: AppContext) => {
+            let shortName = await Modules.Shortnames.findOrganizationShortname(ctx, src.id);
+
+            if (shortName) {
+                return shortName.shortname;
+            }
+
+            return null;
+        },
+    },
+    OrganizationProfile: {
+        shortname: async (src: Organization, args: {}, ctx: AppContext) => {
+            let shortName = await Modules.Shortnames.findOrganizationShortname(ctx, src.id);
+
+            if (shortName) {
+                return shortName.shortname;
+            }
+
+            return null;
+        },
+    }
 } as GQLResolver;

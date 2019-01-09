@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, Nullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '9afb9ca66ce9402edce84a80f95cacd3';
+export const GQL_SPEC_VERSION = 'e535590950e06bd1ee2e7b0a07a1881b';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -261,6 +261,7 @@ export namespace GQL {
         primaryOrganization?: Nullable<Organization>;
         alphaPrimaryOrganizationId?: Nullable<string>;
         alphaPrimaryOrganization?: Nullable<Organization>;
+        shortname?: Nullable<string>;
     }
     export interface ProfileInput {
         firstName: Nullable<string>;
@@ -1340,9 +1341,9 @@ export namespace GQL {
         alphaFeatured?: boolean;
         alphaIsCommunity?: boolean;
         alphaCreatedChannels?: Nullable<ChannelConversation>[];
-        shortname?: Nullable<string>;
         betaPublicRooms?: SharedRoom[];
         status?: string;
+        shortname?: Nullable<string>;
     }
     export interface OrganizationProfile {
         id?: string;
@@ -1388,6 +1389,7 @@ export namespace GQL {
         alphaARLandUse?: Nullable<string[]>;
         alphaJoinedChannels?: Nullable<ChannelConversation>[];
         alphaCreatedChannels?: Nullable<ChannelConversation>[];
+        shortname?: Nullable<string>;
     }
     export interface CreateOrganizationInput {
         id: Nullable<string>;
@@ -1766,7 +1768,6 @@ export namespace GQL {
         location?: Nullable<string>;
         linkedin?: Nullable<string>;
         twitter?: Nullable<string>;
-        shortname?: Nullable<string>;
         channelsJoined?: ChannelConversation[];
         photoRef?: Nullable<ImageRef>;
         picture?: Nullable<string>;
@@ -1781,6 +1782,7 @@ export namespace GQL {
         organizations?: Organization[];
         primaryOrganization?: Nullable<Organization>;
         alphaPrimaryOrganization?: Nullable<Organization>;
+        shortname?: Nullable<string>;
     }
     export interface UserEdge {
         node?: User;
