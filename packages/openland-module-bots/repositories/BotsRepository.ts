@@ -63,6 +63,14 @@ export class BotsRepository {
         });
     }
 
+    async isBotOwner(parent: Context, uid: number, botId: number) {
+        return await inTx(parent, async (ctx) => {
+            let bot = await this.entities.User.findById(ctx, botId);
+
+            return bot && bot.botOwner === uid;
+        });
+    }
+
     private async canCreateBot(parent: Context, uid: number) {
         return await inTx(parent, async (ctx) => {
             let user = await this.entities.User.findById(ctx, uid);
@@ -72,14 +80,6 @@ export class BotsRepository {
             }
 
             return true;
-        });
-    }
-
-    private async isBotOwner(parent: Context, uid: number, botId: number) {
-        return await inTx(parent, async (ctx) => {
-            let bot = await this.entities.User.findById(ctx, botId);
-
-            return bot && bot.botOwner === uid;
         });
     }
 }

@@ -11,7 +11,15 @@ extend type Query {
     myBots: [Bot!]!
 }
 
+input BotProfileInput {
+    name: String
+    shortname: String
+    photoRef: ImageRefInput
+    about: String
+}
+
 extend type Mutation {
     createBot(name: String!, shortname: String!): Bot!
     refreshBotToken(botId: ID!): Bot!
+    updateBotProfile(botId: ID!, input: BotProfileInput!): Bot!
 }

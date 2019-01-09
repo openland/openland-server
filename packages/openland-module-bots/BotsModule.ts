@@ -28,4 +28,8 @@ export class BotsModule {
     async refreshBotToken(ctx: Context, uid: number, botId: number) {
         return this.repo.refreshBotToken(ctx, uid, botId);
     }
+
+    async isBotOwner(ctx: Context, uid: number, botId: number) {
+        return this.repo.isBotOwner(ctx, uid, botId);
+    }
 }
