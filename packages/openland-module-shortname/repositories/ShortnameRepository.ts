@@ -11,6 +11,53 @@ export class ShortnameRepository {
     @lazyInject('FDB')
     private readonly entities!: AllEntities;
 
+    private reservedNames = new Set([
+        'signup',
+        'root',
+        'init',
+        'invite',
+        'channel',
+        'joinChannel',
+        'need_info',
+        'activation',
+        'waitlist',
+        'suspended',
+        'createProfile',
+        'createOrganization',
+        'join',
+        '404',
+        'acceptChannelInvite',
+        'map',
+        'settings',
+        'profile',
+        'notifications',
+        'invites',
+        'dev',
+        'organization',
+        'new',
+        'feed',
+        'directory',
+        'main',
+        'people',
+        'organizations',
+        'communities',
+        'marketplace',
+        'mail',
+        'support',
+        'super',
+        'compatibility',
+        'performance',
+        'landing',
+        'auth',
+        'login',
+        'logout',
+        'complete',
+        'privacy',
+        'terms',
+        'about',
+        'users'
+    ]);
+
     async findShortname(ctx: Context, shortname: string) {
         return await this.entities.ShortnameReservation.findById(ctx, shortname);
     }
@@ -63,9 +110,9 @@ export class ShortnameRepository {
                 await oldShortname.flush();
             }
 
-            let existing = await this.entities.ShortnameReservation.findById(ctx, shortname);
+            let existing = await this.entities.ShortnameReservation.findById(ctx, normalized);
 
-            if (existing && existing.enabled) {
+            if ((existing && existing.enabled) || this.reservedNames.has(normalized)) {
                 throw new UserError('This shortname is already used');
             } else if (existing) {
                 existing.ownerId = ownerId;
