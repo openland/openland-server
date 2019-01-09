@@ -5,6 +5,7 @@ import { UserDialogEvent } from 'openland-module-db/schema';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
+import { withUser } from 'openland-module-api/Resolvers';
 
 export default {
     /* 
@@ -100,6 +101,15 @@ export default {
     DialogMentionedChanged: {
         cid: (src: UserDialogEvent) => IDs.Conversation.serialize(src.cid!),
         haveMention: (src: UserDialogEvent) => src.haveMention,
+    },
+
+    Query: {
+        dialogsState: withUser(async (ctx, args, uid) => {
+            let tail = await FDB.UserDialogEvent.createUserStream(ctx, uid, 1).tail();
+            return {
+                state: tail
+            };
+        })
     },
 
     /*

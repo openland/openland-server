@@ -14,6 +14,7 @@ import { MessageMention } from '../../openland-module-messaging/MessageInput';
 //  Root types
 //
 export namespace GQLRoots {
+    export type DialogUpdateStateRoot = any;
     export type FeedItemRoot = FeedEvent;
     export type ICEServerRoot = any;
     export type ConversationUpdateStateRoot = any;

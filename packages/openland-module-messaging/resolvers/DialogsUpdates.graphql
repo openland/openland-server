@@ -68,6 +68,13 @@ type DialogMentionedChanged {
     haveMention: Boolean!
 }
 
+type DialogUpdateState {
+    state: String
+}
+
+extend type Query {
+    dialogsState: DialogUpdateState!
+}
 
 extend type Subscription {
     dialogsUpdates(fromState: String): DialogUpdateContainer!
