@@ -121,7 +121,7 @@ export class ShortnameRepository {
                 await existing.flush();
                 return true;
             } else {
-                await this.entities.ShortnameReservation.create(ctx, normalized, { ownerId: uid, ownerType: ownerType, enabled: true });
+                await this.entities.ShortnameReservation.create(ctx, normalized, { ownerId, ownerType, enabled: true });
                 return true;
             }
         });
