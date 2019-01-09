@@ -5,16 +5,16 @@ import { Modules } from 'openland-modules/Modules';
 import { FDB } from 'openland-module-db/FDB';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { IDs } from '../openland-module-api/IDs';
+import { Organization, User } from '../openland-module-db/schema';
 
 export default {
     ShortNameDestination: {
         __resolveType(src: any) {
-            // TODO: Implement
-            // if (src instanceof (DB.User as any)) {
-            //     return 'User';
-            // } else if (src instanceof (DB.Organization as any)) {
-            //     return 'Organization';
-            // }
+            if (src instanceof User) {
+                return 'User';
+            } else if (src instanceof Organization) {
+                return 'Organization';
+            }
 
             throw new Error('Unknown shortname type');
         }
