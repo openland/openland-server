@@ -1,0 +1,17 @@
+type Bot {
+    bot: User!
+    token: BotToken!
+}
+
+type BotToken {
+    salt: String!
+}
+
+extend type Query {
+    myBots: [Bot!]!
+}
+
+extend type Mutation {
+    createBot(name: String!): Bot!
+    refreshBotToken(botId: ID!): Bot!
+}

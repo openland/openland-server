@@ -20,4 +20,12 @@ export class BotsModule {
     async findBotsCreatedByUser(ctx: Context, uid: number) {
         return this.repo.findBotsCreatedByUser(ctx, uid);
     }
+
+    async getBotToken(ctx: Context, botId: number) {
+        return this.repo.getBotToken(ctx, botId);
+    }
+
+    async refreshBotToken(ctx: Context, uid: number, botId: number) {
+        return this.repo.refreshBotToken(ctx, uid, botId);
+    }
 }

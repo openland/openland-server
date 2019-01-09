@@ -28,8 +28,11 @@ const Schema = declareSchema(() => {
         field('salt', 'string');
         field('uid', 'number');
         field('lastIp', 'string');
+        field('enabled', 'boolean');
         uniqueIndex('salt', ['salt'])
             .withDisplayName('authTokenBySalt');
+        rangeIndex('user', ['uid', 'uuid'])
+            .withCondition(src => src.enabled !== false);
         enableTimestamps();
         enableVersioning();
     });
@@ -171,7 +174,7 @@ const Schema = declareSchema(() => {
 
         uniqueIndex('authId', ['authId']).withCondition(src => src.status !== 'deleted');
         uniqueIndex('email', ['email']).withCondition(src => src.status !== 'deleted');
-        rangeIndex('owner', ['botOwner', 'id']);
+        rangeIndex('owner', ['botOwner', 'id']).withCondition(src => src.botOwner);
     });
 
     entity('UserProfile', () => {

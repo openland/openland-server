@@ -5,6 +5,8 @@ import { Context } from '../../openland-utils/Context';
 import { inTx } from '../../foundation-orm/inTx';
 import { Modules } from '../../openland-modules/Modules';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
+import { errors } from 'elasticsearch';
+import InternalServerError = errors.InternalServerError;
 
 @injectable()
 export class BotsRepository {
@@ -31,8 +33,32 @@ export class BotsRepository {
 
     async findBotsCreatedByUser(parent: Context, uid: number) {
         return await inTx(parent, async (ctx) => {
-            let bots = await this.entities.User.allFromOwner(ctx, uid);
-            return bots;
+            return await this.entities.User.allFromOwner(ctx, uid);
+        });
+    }
+
+    async getBotToken(parent: Context, botId: number) {
+        return await inTx(parent, async (ctx) => {
+            let tokens = await this.entities.AuthToken.allFromUser(ctx, botId);
+
+            console.log('bot tokens:', botId, tokens.length);
+
+            if (tokens.length === 0) {
+                throw new InternalServerError();
+            }
+
+            return tokens[0];
+        });
+    }
+
+    async refreshBotToken(parent: Context, uid: number, botId: number) {
+        return await inTx(parent, async (ctx) => {
+            if (!this.isBotOwner(ctx,  uid, botId)) {
+                throw new AccessDeniedError();
+            }
+            let token = await this.getBotToken(ctx, botId);
+            await Modules.Auth.revokeToken(ctx, token.salt);
+            await Modules.Auth.createToken(ctx, botId);
         });
     }
 
@@ -45,6 +71,14 @@ export class BotsRepository {
             }
 
             return true;
+        });
+    }
+
+    private async isBotOwner(parent: Context, uid: number, botId: number) {
+        return await inTx(parent, async (ctx) => {
+            let bot = await this.entities.User.findById(ctx, botId);
+
+            return bot && bot.botOwner === uid;
         });
     }
 }

@@ -249,6 +249,7 @@ export interface AuthTokenShape {
     salt: string;
     uid: number;
     lastIp: string;
+    enabled?: boolean| null;
 }
 
 export class AuthToken extends FEntity {
@@ -281,6 +282,17 @@ export class AuthToken extends FEntity {
         this._value.lastIp = value;
         this.markDirty();
     }
+    get enabled(): boolean | null {
+        let res = this._value.enabled;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set enabled(value: boolean | null) {
+        this._checkIsWritable();
+        if (value === this._value.enabled) { return; }
+        this._value.enabled = value;
+        this.markDirty();
+    }
 }
 
 export class AuthTokenFactory extends FEntityFactory<AuthToken> {
@@ -294,9 +306,11 @@ export class AuthTokenFactory extends FEntityFactory<AuthToken> {
             { name: 'salt', type: 'string' },
             { name: 'uid', type: 'number' },
             { name: 'lastIp', type: 'string' },
+            { name: 'enabled', type: 'boolean' },
         ],
         indexes: [
             { name: 'salt', type: 'unique', fields: ['salt'], displayName: 'authTokenBySalt' },
+            { name: 'user', type: 'range', fields: ['uid', 'uuid'] },
         ],
     };
 
@@ -309,13 +323,14 @@ export class AuthTokenFactory extends FEntityFactory<AuthToken> {
         validators.isNumber('uid', src.uid);
         validators.notNull('lastIp', src.lastIp);
         validators.isString('lastIp', src.lastIp);
+        validators.isBoolean('enabled', src.enabled);
     }
 
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'authToken'),
             { enableVersioning: true, enableTimestamps: true, validator: AuthTokenFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('salt', ['salt'], true)],
+            [new FEntityIndex('salt', ['salt'], true), new FEntityIndex('user', ['uid', 'uuid'], false, src => src.enabled)],
             'AuthToken'
         );
     }
@@ -346,6 +361,24 @@ export class AuthTokenFactory extends FEntityFactory<AuthToken> {
     }
     createSaltStream(ctx: Context, limit: number, after?: string) {
         return this._createStream(ctx, ['entity', 'authToken', '__indexes', 'salt'], limit, after); 
+    }
+    async allFromUserAfter(ctx: Context, uid: number, after: string) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'user', uid], after);
+    }
+    async rangeFromUserAfter(ctx: Context, uid: number, after: string, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'user', uid], after, limit, reversed);
+    }
+    async rangeFromUser(ctx: Context, uid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'user', uid], limit, reversed);
+    }
+    async rangeFromUserWithCursor(ctx: Context, uid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'user', uid], limit, after, reversed);
+    }
+    async allFromUser(ctx: Context, uid: number) {
+        return await this._findAll(ctx, ['__indexes', 'user', uid]);
+    }
+    createUserStream(ctx: Context, uid: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'authToken', '__indexes', 'user', uid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new AuthToken(ctx, this.connection, this.namespace, this.directory, [value.uuid], value, this.options, isNew, this.indexes, 'AuthToken');
@@ -1777,7 +1810,7 @@ export class UserFactory extends FEntityFactory<User> {
         super(connection,
             new FNamespace('entity', 'user'),
             { enableVersioning: false, enableTimestamps: false, validator: UserFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('authId', ['authId'], true, src => src.status !== 'deleted'), new FEntityIndex('email', ['email'], true, src => src.status !== 'deleted'), new FEntityIndex('owner', ['botOwner', 'id'], false)],
+            [new FEntityIndex('authId', ['authId'], true, src => src.status !== 'deleted'), new FEntityIndex('email', ['email'], true, src => src.status !== 'deleted'), new FEntityIndex('owner', ['botOwner', 'id'], false, src => src.botOwner)],
             'User'
         );
     }

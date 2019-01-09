@@ -155,4 +155,7 @@ export namespace GQLRoots {
     export type UserMentionRoot = MessageMention;
     export type SharedRoomMentionRoot = MessageMention;
     export type PostRespondServiceMetadataRoot = any;
+
+    export type BotRoot = User;
+    export type BotTokenRoot = any;
 }

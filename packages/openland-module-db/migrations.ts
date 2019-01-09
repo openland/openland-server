@@ -377,6 +377,30 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '36-authTokens-add-enabled',
+    migration: async (root, log) => {
+        let allKeys = await FDB.AuthToken.findAllKeys(root);
+        let keyBatches = batch(allKeys, 100);
+        for (let kb of keyBatches) {
+            await inTx(root, async (ctx) => {
+                for (let a of kb) {
+                    let k = FKeyEncoding.decodeKey(a);
+                    k.splice(0, 2);
+                    let t = (await FDB.AuthToken.findById(ctx, k[0] as string));
+                    if (!t) {
+                        log.warn(ctx, 'no token found! ' + JSON.stringify(k));
+                    } else {
+                        t.enabled = true;
+                        t.markDirty();
+                        await t.flush();
+                    }
+                }
+            });
+        }
+    }
+});
+
 export function startMigrationsWorker() {
     if (serverRoleEnabled('workers')) {
         staticWorker({ name: 'foundation-migrator' }, async (ctx) => {
