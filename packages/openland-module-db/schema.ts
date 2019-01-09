@@ -1754,6 +1754,7 @@ export class UserFactory extends FEntityFactory<User> {
         indexes: [
             { name: 'authId', type: 'unique', fields: ['authId'] },
             { name: 'email', type: 'unique', fields: ['email'] },
+            { name: 'owner', type: 'range', fields: ['botOwner', 'id'] },
         ],
     };
 
@@ -1776,7 +1777,7 @@ export class UserFactory extends FEntityFactory<User> {
         super(connection,
             new FNamespace('entity', 'user'),
             { enableVersioning: false, enableTimestamps: false, validator: UserFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('authId', ['authId'], true, src => src.status !== 'deleted'), new FEntityIndex('email', ['email'], true, src => src.status !== 'deleted')],
+            [new FEntityIndex('authId', ['authId'], true, src => src.status !== 'deleted'), new FEntityIndex('email', ['email'], true, src => src.status !== 'deleted'), new FEntityIndex('owner', ['botOwner', 'id'], false)],
             'User'
         );
     }
@@ -1822,6 +1823,24 @@ export class UserFactory extends FEntityFactory<User> {
     }
     createEmailStream(ctx: Context, limit: number, after?: string) {
         return this._createStream(ctx, ['entity', 'user', '__indexes', 'email'], limit, after); 
+    }
+    async allFromOwnerAfter(ctx: Context, botOwner: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'owner', botOwner], after);
+    }
+    async rangeFromOwnerAfter(ctx: Context, botOwner: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'owner', botOwner], after, limit, reversed);
+    }
+    async rangeFromOwner(ctx: Context, botOwner: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'owner', botOwner], limit, reversed);
+    }
+    async rangeFromOwnerWithCursor(ctx: Context, botOwner: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'owner', botOwner], limit, after, reversed);
+    }
+    async allFromOwner(ctx: Context, botOwner: number) {
+        return await this._findAll(ctx, ['__indexes', 'owner', botOwner]);
+    }
+    createOwnerStream(ctx: Context, botOwner: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'user', '__indexes', 'owner', botOwner], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new User(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'User');

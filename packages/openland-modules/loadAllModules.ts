@@ -37,6 +37,8 @@ import { loadSocialModule } from 'openland-module-social/SocialModule.container'
 import { loadFeedModule } from 'openland-module-feed/FeedModule.container';
 import { FeedModule } from 'openland-module-feed/FeedModule';
 import { loadShortnameModule } from '../openland-module-shortname/ShortnameModule.container';
+import { loadBotsModule } from '../openland-module-bots/BotsModule.container';
+import { BotsModule } from '../openland-module-bots/BotsModule';
 
 export function loadAllModules(loadDb: boolean = true) {
 
@@ -51,6 +53,7 @@ export function loadAllModules(loadDb: boolean = true) {
     loadUsersModule();
     loadSocialModule();
     loadShortnameModule();
+    loadBotsModule();
 
     container.bind(DBModule).toSelf().inSingletonScope();
     container.bind('HooksModule').to(HooksModule).inSingletonScope();
@@ -68,6 +71,7 @@ export function loadAllModules(loadDb: boolean = true) {
     container.bind(HyperlogModule).toSelf().inSingletonScope();
     container.bind(DraftsModule).toSelf().inSingletonScope();
     container.bind(TypingsModule).toSelf().inSingletonScope();
+    container.bind(BotsModule).toSelf().inSingletonScope();
 
     container.bind(OrganizationModule).toSelf().inSingletonScope();
     container.bind(OrganizationRepository).toSelf();
@@ -102,4 +106,5 @@ export async function startAllModules() {
     await container.get(ApiModule).start();
     await container.get(CallsModule).start();
     await container.get(FeedModule).start();
+    await container.get(BotsModule).start();
 }

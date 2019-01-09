@@ -171,6 +171,7 @@ const Schema = declareSchema(() => {
 
         uniqueIndex('authId', ['authId']).withCondition(src => src.status !== 'deleted');
         uniqueIndex('email', ['email']).withCondition(src => src.status !== 'deleted');
+        rangeIndex('owner', ['botOwner', 'id']);
     });
 
     entity('UserProfile', () => {
