@@ -12,6 +12,6 @@ extend type Query {
 }
 
 extend type Mutation {
-    createBot(name: String!): Bot!
+    createBot(name: String!, shortname: String!): Bot!
     refreshBotToken(botId: ID!): Bot!
 }

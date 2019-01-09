@@ -13,7 +13,7 @@ export class BotsRepository {
     @lazyInject('FDB')
     private readonly entities!: AllEntities;
 
-    async createBot(parent: Context, uid: number, name: string) {
+    async createBot(parent: Context, uid: number, name: string, shortname: string) {
         return await inTx(parent, async (ctx) => {
             if (!await this.canCreateBot(ctx, uid)) {
                 throw new AccessDeniedError();
@@ -26,6 +26,7 @@ export class BotsRepository {
 
             await Modules.Users.createUserProfile(ctx, botUser.id, { firstName: name, email: 'bots@openland.com' });
             await Modules.Auth.createToken(ctx, botUser.id);
+            await Modules.Shortnames.setShortnameToUser(ctx, shortname, botUser.id);
 
             return botUser;
         });

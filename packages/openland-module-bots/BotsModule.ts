@@ -13,8 +13,8 @@ export class BotsModule {
         // Nothing to do
     }
 
-    async createBot(ctx: Context, uid: number, name: string) {
-        return this.repo.createBot(ctx, uid, name);
+    async createBot(ctx: Context, uid: number, name: string, shortname: string) {
+        return this.repo.createBot(ctx, uid, name, shortname);
     }
 
     async findBotsCreatedByUser(ctx: Context, uid: number) {
