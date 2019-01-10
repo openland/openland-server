@@ -7,14 +7,25 @@ import { stringNotEmpty, validate } from '../openland-utils/NewInputValidator';
 import { Sanitizer } from '../openland-utils/Sanitizer';
 import { UserError } from '../openland-errors/UserError';
 import { inTx } from '../foundation-orm/inTx';
+import { withProfile } from '../openland-module-users/User.resolver';
+import { NotFoundError } from '../openland-errors/NotFoundError';
 
 export default {
-    App: {
-        bot: root => root,
-        token: async (root, args, ctx) => {
-            let token = await Modules.Bots.getAppToken(ctx, root.id);
+    AppToken: {
+        salt: src => src.salt
+    },
 
-            return { salt: token.salt };
+    AppProfile: {
+        id: src => IDs.User.serialize(src.id),
+        name: withProfile((ctx, src, profile) => profile!.firstName),
+        shortname: async (src, args, ctx) => {
+            let shortname = await Modules.Shortnames.findUserShortname(ctx, src.id);
+            return shortname!.shortname;
+        },
+        photoRef: withProfile((ctx, src, profile) => profile && profile.picture),
+        about: withProfile((ctx, src, profile) => profile && profile.about),
+        token: async (src, args, ctx) => {
+            return await Modules.Bots.getAppToken(ctx, src.id);
         }
     },
 
@@ -75,5 +86,16 @@ export default {
                 return Modules.DB.entities.User.findById(ctx, botId);
             });
         }),
+        deleteApp: async (root, args, parent) => {
+            // 8LxoAkd0obIkBL9wP0vkiwlBbk
+            return await inTx(parent, async (ctx) => {
+                let user = (await Modules.DB.entities.User.findById(ctx, IDs.User.parse(args.appId)))!;
+                if (!user) {
+                    throw new NotFoundError('Unable to find user');
+                }
+                user.status = 'deleted';
+                return true;
+            });
+        }
     },
 } as GQLResolver;

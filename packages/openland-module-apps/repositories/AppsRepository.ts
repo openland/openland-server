@@ -37,7 +37,8 @@ export class AppsRepository {
 
     async findAppsCreatedByUser(parent: Context, uid: number) {
         return await inTx(parent, async (ctx) => {
-            return await this.entities.User.allFromOwner(ctx, uid);
+            let apps = await this.entities.User.allFromOwner(ctx, uid);
+            return apps.filter(app => app.status !== 'deleted');
         });
     }
 

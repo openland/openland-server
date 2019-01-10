@@ -1,14 +1,12 @@
-type App {
-    bot: User!
+type AppProfile {
+    id: ID!
+
+    name: String!
+    shortname: String!
+    photoRef: ImageRef
+    about: String
+
     token: AppToken!
-}
-
-type AppToken {
-    salt: String!
-}
-
-extend type Query {
-    myApps: [App!]!
 }
 
 input AppProfileInput {
@@ -18,8 +16,17 @@ input AppProfileInput {
     about: String
 }
 
+type AppToken {
+    salt: String!
+}
+
+extend type Query {
+    myApps: [AppProfile!]!
+}
+
 extend type Mutation {
-    createApp(name: String!, shortname: String!): App!
-    refreshAppToken(appId: ID!): App!
-    updateAppProfile(appId: ID!, input: AppProfileInput!): App!
+    createApp(name: String!, shortname: String!): AppProfile!
+    refreshAppToken(appId: ID!): AppProfile!
+    updateAppProfile(appId: ID!, input: AppProfileInput!): AppProfile!
+    deleteApp(appId: ID!): Boolean
 }

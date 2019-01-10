@@ -249,7 +249,7 @@ export interface AuthTokenShape {
     salt: string;
     uid: number;
     lastIp: string;
-    enabled?: boolean| null;
+    enabled: boolean;
 }
 
 export class AuthToken extends FEntity {
@@ -282,12 +282,10 @@ export class AuthToken extends FEntity {
         this._value.lastIp = value;
         this.markDirty();
     }
-    get enabled(): boolean | null {
-        let res = this._value.enabled;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
+    get enabled(): boolean {
+        return this._value.enabled;
     }
-    set enabled(value: boolean | null) {
+    set enabled(value: boolean) {
         this._checkIsWritable();
         if (value === this._value.enabled) { return; }
         this._value.enabled = value;
@@ -323,6 +321,7 @@ export class AuthTokenFactory extends FEntityFactory<AuthToken> {
         validators.isNumber('uid', src.uid);
         validators.notNull('lastIp', src.lastIp);
         validators.isString('lastIp', src.lastIp);
+        validators.notNull('enabled', src.enabled);
         validators.isBoolean('enabled', src.enabled);
     }
 
@@ -330,7 +329,7 @@ export class AuthTokenFactory extends FEntityFactory<AuthToken> {
         super(connection,
             new FNamespace('entity', 'authToken'),
             { enableVersioning: true, enableTimestamps: true, validator: AuthTokenFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('salt', ['salt'], true), new FEntityIndex('user', ['uid', 'uuid'], false, src => src.enabled)],
+            [new FEntityIndex('salt', ['salt'], true), new FEntityIndex('user', ['uid', 'uuid'], false, src => src.enabled !== false)],
             'AuthToken'
         );
     }
@@ -1810,7 +1809,7 @@ export class UserFactory extends FEntityFactory<User> {
         super(connection,
             new FNamespace('entity', 'user'),
             { enableVersioning: false, enableTimestamps: false, validator: UserFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('authId', ['authId'], true, src => src.status !== 'deleted'), new FEntityIndex('email', ['email'], true, src => src.status !== 'deleted'), new FEntityIndex('owner', ['botOwner', 'id'], false, src => src.botOwner)],
+            [new FEntityIndex('authId', ['authId'], true, src => src.status !== 'deleted'), new FEntityIndex('email', ['email'], true, src => src.status !== 'deleted'), new FEntityIndex('owner', ['botOwner', 'id'], false, src => src.botOwner && src.status !== 'deleted')],
             'User'
         );
     }
