@@ -42,8 +42,11 @@ export class AppsRepository {
         });
     }
 
-    async getAppToken(parent: Context, appId: number) {
+    async getAppToken(parent: Context, uid: number, appId: number) {
         return await inTx(parent, async (ctx) => {
+            if (!this.isAppOwner(ctx,  uid, appId)) {
+                throw new AccessDeniedError();
+            }
             let tokens = await this.entities.AuthToken.allFromUser(ctx, appId);
 
             if (tokens.length === 0) {
@@ -63,7 +66,7 @@ export class AppsRepository {
             if (!this.isAppOwner(ctx,  uid, appId)) {
                 throw new AccessDeniedError();
             }
-            let token = await this.getAppToken(ctx, appId);
+            let token = await this.getAppToken(ctx, uid, appId);
             await Modules.Auth.revokeToken(ctx, token.salt);
             await Modules.Auth.createToken(ctx, appId);
         });

@@ -21,8 +21,8 @@ export class AppsModule {
         return this.repo.findAppsCreatedByUser(ctx, uid);
     }
 
-    async getAppToken(ctx: Context, appId: number) {
-        return this.repo.getAppToken(ctx, appId);
+    async getAppToken(ctx: Context, uid: number, appId: number) {
+        return this.repo.getAppToken(ctx, uid, appId);
     }
 
     async refreshAppToken(ctx: Context, uid: number, appId: number) {
