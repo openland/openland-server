@@ -155,6 +155,10 @@ export function startPushNotificationWorker() {
 
                     let chatTitle = await Modules.Messaging.room.resolveConversationTitle(ctx, conversation.id, u.uid);
 
+                    if (chatTitle.startsWith('@')) {
+                        chatTitle = chatTitle.slice(1);
+                    }
+
                     hasMessage = true;
                     let senderName = [sender.firstName, sender.lastName].filter((v) => !!v).join(' ');
 
