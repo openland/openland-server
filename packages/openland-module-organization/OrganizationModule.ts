@@ -191,6 +191,10 @@ export class OrganizationModule {
         });
     }
 
+    async deleteOrganization(parent: Context, uid: number, oid: number) {
+        return await this.repo.deleteOrganization(parent, uid, oid);
+    }
+
     //
     // Permissions
     //

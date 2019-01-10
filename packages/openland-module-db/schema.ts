@@ -2124,7 +2124,7 @@ export class UserProfileFactory extends FEntityFactory<UserProfile> {
 }
 export interface OrganizationShape {
     ownerId: number;
-    status: 'pending' | 'activated' | 'suspended';
+    status: 'pending' | 'activated' | 'suspended' | 'deleted';
     kind: 'organization' | 'community';
     editorial: boolean;
 }
@@ -2141,10 +2141,10 @@ export class Organization extends FEntity {
         this._value.ownerId = value;
         this.markDirty();
     }
-    get status(): 'pending' | 'activated' | 'suspended' {
+    get status(): 'pending' | 'activated' | 'suspended' | 'deleted' {
         return this._value.status;
     }
-    set status(value: 'pending' | 'activated' | 'suspended') {
+    set status(value: 'pending' | 'activated' | 'suspended' | 'deleted') {
         this._checkIsWritable();
         if (value === this._value.status) { return; }
         this._value.status = value;
@@ -2179,7 +2179,7 @@ export class OrganizationFactory extends FEntityFactory<Organization> {
         ],
         fields: [
             { name: 'ownerId', type: 'number' },
-            { name: 'status', type: 'enum', enumValues: ['pending', 'activated', 'suspended'] },
+            { name: 'status', type: 'enum', enumValues: ['pending', 'activated', 'suspended', 'deleted'] },
             { name: 'kind', type: 'enum', enumValues: ['organization', 'community'] },
             { name: 'editorial', type: 'boolean' },
         ],
@@ -2193,7 +2193,7 @@ export class OrganizationFactory extends FEntityFactory<Organization> {
         validators.notNull('ownerId', src.ownerId);
         validators.isNumber('ownerId', src.ownerId);
         validators.notNull('status', src.status);
-        validators.isEnum('status', src.status, ['pending', 'activated', 'suspended']);
+        validators.isEnum('status', src.status, ['pending', 'activated', 'suspended', 'deleted']);
         validators.notNull('kind', src.kind);
         validators.isEnum('kind', src.kind, ['organization', 'community']);
         validators.notNull('editorial', src.editorial);

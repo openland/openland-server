@@ -139,5 +139,8 @@ export default {
                 return existing;
             });
         }),
+        deleteOrganization: withAccount(async (parent, args, uid, oid) => {
+            return Modules.Orgs.deleteOrganization(parent, uid, IDs.Organization.parse(args.id));
+        })
     }
 } as GQLResolver;

@@ -5,6 +5,10 @@ import { OrganizatinProfileInput } from 'openland-module-organization/Organizati
 import { validate, stringNotEmpty } from 'openland-utils/NewInputValidator';
 import { injectable } from 'inversify';
 import { Context } from 'openland-utils/Context';
+import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
+import { UserError } from '../../openland-errors/UserError';
+import { NotFoundError } from '../../openland-errors/NotFoundError';
+import { Modules } from '../../openland-modules/Modules';
 @injectable()
 export class OrganizationRepository {
     readonly entities: AllEntities;
@@ -155,6 +159,45 @@ export class OrganizationRepository {
             }
             member.role = role;
             await member.flush();
+            return true;
+        });
+    }
+
+    async deleteOrganization(parent: Context, uid: number, oid: number) {
+        return await inTx(parent, async (ctx) => {
+            let organization = await this.entities.Organization.findById(ctx, oid);
+
+            if (!organization) {
+                throw new NotFoundError();
+            }
+
+            if (!await this.isUserAdmin(ctx, uid, oid)) {
+                throw new AccessDeniedError();
+            }
+            let members = await this.findOrganizationMembers(ctx, oid);
+
+            if (members.length > 1) {
+                throw new UserError('Can\'t delete organization with active members');
+            }
+
+            let userOrganizations = await this.findUserOrganizations(ctx, uid);
+
+            if (userOrganizations.length === 1) {
+                throw new UserError('Can\'t delete last organization');
+            }
+
+            // Mark deleted
+            organization.status = 'deleted';
+
+            let userProfile = await Modules.Users.profileById(ctx, uid);
+
+            if (!userProfile) {
+                throw new NotFoundError();
+            }
+
+            // Change primary organization to other one
+            userProfile.primaryOrganization = userOrganizations.filter(o => o !== oid)[0];
+
             return true;
         });
     }

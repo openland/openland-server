@@ -200,7 +200,7 @@ const Schema = declareSchema(() => {
     entity('Organization', () => {
         primaryKey('id', 'number');
         field('ownerId', 'number');
-        enumField('status', ['pending', 'activated', 'suspended']);
+        enumField('status', ['pending', 'activated', 'suspended', 'deleted']);
         enumField('kind', ['organization', 'community']);
         field('editorial', 'boolean');
         enableTimestamps();
