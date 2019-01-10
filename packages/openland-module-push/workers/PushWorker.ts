@@ -120,6 +120,10 @@ export function createPushWorker(repo: PushRepository) {
 
                         let androidTokens = await repo.getUserAndroidPushTokens(ctx, args.uid);
                         for (let token of androidTokens) {
+                            if (args.silent) {
+                                // ignore counter pushes for android
+                                continue;
+                            }
                             await Modules.Push.androidWorker.pushWork(ctx, {
                                 uid: args.uid,
                                 tokenId: token.id,
