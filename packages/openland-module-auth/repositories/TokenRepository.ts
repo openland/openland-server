@@ -20,6 +20,8 @@ export class TokenRepository {
             let token = await this.entities.AuthToken.findFromSalt(createEmptyContext(), i);
             if (token && token.enabled !== false) {
                 res.push(token);
+            } else {
+                res.push(null);
             }
         }
         return res;
