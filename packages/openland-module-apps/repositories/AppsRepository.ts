@@ -7,6 +7,7 @@ import { Modules } from '../../openland-modules/Modules';
 import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { errors } from 'elasticsearch';
 import InternalServerError = errors.InternalServerError;
+import { randomKey } from '../../openland-utils/random';
 
 @injectable()
 export class AppsRepository {
@@ -19,12 +20,14 @@ export class AppsRepository {
                 throw new AccessDeniedError();
             }
 
-            let appUser = await Modules.Users.createUser(ctx, 'user-bot', 'bots@openland.com');
+            let email = `app-${randomKey()}@openland.com`;
+
+            let appUser = await Modules.Users.createUser(ctx, 'user-app', email);
             await Modules.Users.activateUser(ctx, appUser.id);
             appUser.isBot = true;
             appUser.botOwner = uid;
 
-            await Modules.Users.createUserProfile(ctx, appUser.id, { firstName: name, email: 'bots@openland.com' });
+            await Modules.Users.createUserProfile(ctx, appUser.id, { firstName: name, email: email });
             await Modules.Auth.createToken(ctx, appUser.id);
             await Modules.Shortnames.setShortnameToUser(ctx, shortname, appUser.id);
 
@@ -46,6 +49,7 @@ export class AppsRepository {
                 throw new InternalServerError();
             } else if (tokens.length > 1) {
                 // internal inconsistency
+                // app should have only one active token
                 throw new InternalServerError();
             }
 
