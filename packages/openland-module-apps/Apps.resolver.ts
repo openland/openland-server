@@ -9,37 +9,37 @@ import { UserError } from '../openland-errors/UserError';
 import { inTx } from '../foundation-orm/inTx';
 
 export default {
-    Bot: {
+    App: {
         bot: root => root,
         token: async (root, args, ctx) => {
-            let token = await Modules.Bots.getBotToken(ctx, root.id);
+            let token = await Modules.Bots.getAppToken(ctx, root.id);
 
             return { salt: token.salt };
         }
     },
 
     Query: {
-        myBots: withAccount(async (ctx, args, uid, orgId) => {
-            return await Modules.Bots.findBotsCreatedByUser(ctx, uid);
+        myApps: withAccount(async (ctx, args, uid, orgId) => {
+            return await Modules.Bots.findAppsCreatedByUser(ctx, uid);
         })
     },
 
     Mutation: {
-        createBot: withAccount(async (ctx, args, uid, orgId) => {
-            return await Modules.Bots.createBot(ctx, uid, args.name, args.shortname);
+        createApp: withAccount(async (ctx, args, uid, orgId) => {
+            return await Modules.Bots.createApp(ctx, uid, args.name, args.shortname);
         }),
-        refreshBotToken: withAccount(async (ctx, args, uid, orgId) => {
-            let botId = IDs.User.parse(args.botId);
+        refreshAppToken: withAccount(async (ctx, args, uid, orgId) => {
+            let botId = IDs.User.parse(args.appId);
 
-            await Modules.Bots.refreshBotToken(ctx, uid, botId);
+            await Modules.Bots.refreshAppToken(ctx, uid, botId);
 
             return Modules.DB.entities.User.findById(ctx, botId);
         }),
-        updateBotProfile: withAccount(async (parent, args, uid, orgId) => {
+        updateAppProfile: withAccount(async (parent, args, uid, orgId) => {
             return await inTx(parent, async (ctx) => {
-                let botId = IDs.User.parse(args.botId);
+                let botId = IDs.User.parse(args.appId);
 
-                if (!await Modules.Bots.isBotOwner(ctx, uid, botId)) {
+                if (!await Modules.Bots.isAppOwner(ctx, uid, botId)) {
                     throw new AccessDeniedError();
                 }
                 let profile = await Modules.Users.profileById(ctx, botId);

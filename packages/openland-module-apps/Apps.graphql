@@ -1,0 +1,25 @@
+type App {
+    bot: User!
+    token: AppToken!
+}
+
+type AppToken {
+    salt: String!
+}
+
+extend type Query {
+    myApps: [App!]!
+}
+
+input AppProfileInput {
+    name: String
+    shortname: String
+    photoRef: ImageRefInput
+    about: String
+}
+
+extend type Mutation {
+    createApp(name: String!, shortname: String!): App!
+    refreshAppToken(appId: ID!): App!
+    updateAppProfile(appId: ID!, input: AppProfileInput!): App!
+}

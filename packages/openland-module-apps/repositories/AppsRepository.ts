@@ -9,42 +9,43 @@ import { errors } from 'elasticsearch';
 import InternalServerError = errors.InternalServerError;
 
 @injectable()
-export class BotsRepository {
+export class AppsRepository {
     @lazyInject('FDB')
     private readonly entities!: AllEntities;
 
-    async createBot(parent: Context, uid: number, name: string, shortname: string) {
+    async createApp(parent: Context, uid: number, name: string, shortname: string) {
         return await inTx(parent, async (ctx) => {
-            if (!await this.canCreateBot(ctx, uid)) {
+            if (!await this.canCreateApp(ctx, uid)) {
                 throw new AccessDeniedError();
             }
 
-            let botUser = await Modules.Users.createUser(ctx, 'user-bot', 'bots@openland.com');
-            await Modules.Users.activateUser(ctx, botUser.id);
-            botUser.isBot = true;
-            botUser.botOwner = uid;
+            let appUser = await Modules.Users.createUser(ctx, 'user-bot', 'bots@openland.com');
+            await Modules.Users.activateUser(ctx, appUser.id);
+            appUser.isBot = true;
+            appUser.botOwner = uid;
 
-            await Modules.Users.createUserProfile(ctx, botUser.id, { firstName: name, email: 'bots@openland.com' });
-            await Modules.Auth.createToken(ctx, botUser.id);
-            await Modules.Shortnames.setShortnameToUser(ctx, shortname, botUser.id);
+            await Modules.Users.createUserProfile(ctx, appUser.id, { firstName: name, email: 'bots@openland.com' });
+            await Modules.Auth.createToken(ctx, appUser.id);
+            await Modules.Shortnames.setShortnameToUser(ctx, shortname, appUser.id);
 
-            return botUser;
+            return appUser;
         });
     }
 
-    async findBotsCreatedByUser(parent: Context, uid: number) {
+    async findAppsCreatedByUser(parent: Context, uid: number) {
         return await inTx(parent, async (ctx) => {
             return await this.entities.User.allFromOwner(ctx, uid);
         });
     }
 
-    async getBotToken(parent: Context, botId: number) {
+    async getAppToken(parent: Context, appId: number) {
         return await inTx(parent, async (ctx) => {
-            let tokens = await this.entities.AuthToken.allFromUser(ctx, botId);
-
-            console.log('bot tokens:', botId, tokens.length);
+            let tokens = await this.entities.AuthToken.allFromUser(ctx, appId);
 
             if (tokens.length === 0) {
+                throw new InternalServerError();
+            } else if (tokens.length > 1) {
+                // internal inconsistency
                 throw new InternalServerError();
             }
 
@@ -52,26 +53,26 @@ export class BotsRepository {
         });
     }
 
-    async refreshBotToken(parent: Context, uid: number, botId: number) {
+    async refreshAppToken(parent: Context, uid: number, appId: number) {
         return await inTx(parent, async (ctx) => {
-            if (!this.isBotOwner(ctx,  uid, botId)) {
+            if (!this.isAppOwner(ctx,  uid, appId)) {
                 throw new AccessDeniedError();
             }
-            let token = await this.getBotToken(ctx, botId);
+            let token = await this.getAppToken(ctx, appId);
             await Modules.Auth.revokeToken(ctx, token.salt);
-            await Modules.Auth.createToken(ctx, botId);
+            await Modules.Auth.createToken(ctx, appId);
         });
     }
 
-    async isBotOwner(parent: Context, uid: number, botId: number) {
+    async isAppOwner(parent: Context, uid: number, appId: number) {
         return await inTx(parent, async (ctx) => {
-            let bot = await this.entities.User.findById(ctx, botId);
+            let appUser = await this.entities.User.findById(ctx, appId);
 
-            return bot && bot.botOwner === uid;
+            return appUser && appUser.botOwner === uid;
         });
     }
 
-    private async canCreateBot(parent: Context, uid: number) {
+    private async canCreateApp(parent: Context, uid: number) {
         return await inTx(parent, async (ctx) => {
             let user = await this.entities.User.findById(ctx, uid);
 

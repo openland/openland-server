@@ -23,7 +23,7 @@ import { container } from './Modules.container';
 import { CallsModule } from 'openland-module-calls/CallsModule';
 import { SocialModule } from 'openland-module-social/SocialModule';
 import { FeedModule } from 'openland-module-feed/FeedModule';
-import { BotsModule } from '../openland-module-bots/BotsModule';
+import { AppsModule } from '../openland-module-apps/AppsModule';
 
 class ModulesImpl {
 
@@ -100,7 +100,7 @@ class ModulesImpl {
         return container.get(FeedModule);
     }
     get Bots() {
-        return container.get(BotsModule);
+        return container.get(AppsModule);
     }
 }
 
