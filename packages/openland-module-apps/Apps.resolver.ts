@@ -8,7 +8,6 @@ import { Sanitizer } from '../openland-utils/Sanitizer';
 import { UserError } from '../openland-errors/UserError';
 import { inTx } from '../foundation-orm/inTx';
 import { withProfile } from '../openland-module-users/User.resolver';
-import { NotFoundError } from '../openland-errors/NotFoundError';
 
 export default {
     AppToken: {
@@ -86,16 +85,5 @@ export default {
                 return Modules.DB.entities.User.findById(ctx, botId);
             });
         }),
-        deleteApp: async (root, args, parent) => {
-            // 8LxoAkd0obIkBL9wP0vkiwlBbk
-            return await inTx(parent, async (ctx) => {
-                let user = (await Modules.DB.entities.User.findById(ctx, IDs.User.parse(args.appId)))!;
-                if (!user) {
-                    throw new NotFoundError('Unable to find user');
-                }
-                user.status = 'deleted';
-                return true;
-            });
-        }
     },
 } as GQLResolver;
