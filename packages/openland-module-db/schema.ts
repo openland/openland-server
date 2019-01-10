@@ -249,7 +249,7 @@ export interface AuthTokenShape {
     salt: string;
     uid: number;
     lastIp: string;
-    enabled: boolean;
+    enabled?: boolean| null;
 }
 
 export class AuthToken extends FEntity {
@@ -282,10 +282,12 @@ export class AuthToken extends FEntity {
         this._value.lastIp = value;
         this.markDirty();
     }
-    get enabled(): boolean {
-        return this._value.enabled;
+    get enabled(): boolean | null {
+        let res = this._value.enabled;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
     }
-    set enabled(value: boolean) {
+    set enabled(value: boolean | null) {
         this._checkIsWritable();
         if (value === this._value.enabled) { return; }
         this._value.enabled = value;
@@ -321,7 +323,6 @@ export class AuthTokenFactory extends FEntityFactory<AuthToken> {
         validators.isNumber('uid', src.uid);
         validators.notNull('lastIp', src.lastIp);
         validators.isString('lastIp', src.lastIp);
-        validators.notNull('enabled', src.enabled);
         validators.isBoolean('enabled', src.enabled);
     }
 
@@ -1809,7 +1810,7 @@ export class UserFactory extends FEntityFactory<User> {
         super(connection,
             new FNamespace('entity', 'user'),
             { enableVersioning: false, enableTimestamps: false, validator: UserFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('authId', ['authId'], true, src => src.status !== 'deleted'), new FEntityIndex('email', ['email'], true, src => src.status !== 'deleted'), new FEntityIndex('owner', ['botOwner', 'id'], false, src => src.botOwner && src.status !== 'deleted')],
+            [new FEntityIndex('authId', ['authId'], true, src => src.status !== 'deleted'), new FEntityIndex('email', ['email'], true, src => src.status !== 'deleted'), new FEntityIndex('owner', ['botOwner', 'id'], false, src => src.botOwner)],
             'User'
         );
     }

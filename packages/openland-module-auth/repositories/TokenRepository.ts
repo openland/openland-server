@@ -17,7 +17,10 @@ export class TokenRepository {
     private readonly loader = new DataLoader<string, AuthToken | null>(async (tokens) => {
         let res: (AuthToken | null)[] = [];
         for (let i of tokens) {
-            res.push(await this.entities.AuthToken.findFromSalt(createEmptyContext(), i));
+            let token = await this.entities.AuthToken.findFromSalt(createEmptyContext(), i);
+            if (token && token.enabled !== false) {
+                res.push(token);
+            }
         }
         return res;
     });

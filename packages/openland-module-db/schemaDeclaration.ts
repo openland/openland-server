@@ -28,7 +28,7 @@ const Schema = declareSchema(() => {
         field('salt', 'string');
         field('uid', 'number');
         field('lastIp', 'string');
-        field('enabled', 'boolean');
+        field('enabled', 'boolean').nullable();
         uniqueIndex('salt', ['salt'])
             .withDisplayName('authTokenBySalt');
         rangeIndex('user', ['uid', 'uuid'])
