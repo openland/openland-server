@@ -1,38 +1,41 @@
 import 'reflect-metadata';
-import * as fdb from 'foundationdb';
-import { NativeValue } from 'foundationdb/dist/lib/native';
-import { AllEntities, AllEntitiesDirect } from 'openland-module-db/schema';
 import { OrganizationRepository } from './OrganizationRepository';
-import { FConnection } from 'foundation-orm/FConnection';
-import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
-import { NoOpBus } from 'foundation-orm/tests/NoOpBus';
-import { FWatch } from 'foundation-orm/FWatch';
-import { createEmptyContext } from 'openland-utils/Context';
+import { Context, createEmptyContext } from 'openland-utils/Context';
+import { testEnvironmentEnd, testEnvironmentStart } from '../../openland-modules/testEnvironment';
+import { container } from '../../openland-modules/Modules.container';
+import { DBModule } from '../../openland-module-db/DBModule';
+import { UsersModule } from '../../openland-module-users/UsersModule';
+import { UserRepository } from '../../openland-module-users/repositories/UserRepository';
+import { Modules } from '../../openland-modules/Modules';
 
 describe('OrganizationRepository', () => {
-    // Database Init
-    let db: fdb.Database<NativeValue, any>;
-    let FDB: AllEntities;
-    let repo: OrganizationRepository;
+    async function createUser(ctx: Context, index: number) {
+        let user = await Modules.Users.createUser(ctx, 'testtoken' + index, index + 'some@email.comn');
+        await Modules.Users.createUserProfile(ctx, user.id, { firstName: 'Some Name' });
+        return user;
+    }
 
     beforeAll(async () => {
-        db = FConnection.create()
-            .at(FKeyEncoding.encodeKey(['_tests_orgs']));
-        await db.clearRange(FKeyEncoding.encodeKey([]));
-        FDB = new AllEntitiesDirect(new FConnection(db, NoOpBus));
-        FWatch.POOL_TIMEOUT = 10;
-
-        repo = new OrganizationRepository(FDB);
+        await testEnvironmentStart('organization_repo');
+        container.bind('OrganizationRepository').to(OrganizationRepository).inSingletonScope();
+        container.bind('DBModule').to(DBModule).inSingletonScope();
+        container.bind(UsersModule).toSelf().inSingletonScope();
+        container.bind('UserRepository').to(UserRepository).inSingletonScope();
+    });
+    afterAll(() => {
+        testEnvironmentEnd();
     });
 
     it('should create pending organization correctly', async () => {
+        let repo = container.get<OrganizationRepository>('OrganizationRepository');
+        let db = container.get<DBModule>('DBModule');
         let ctx = createEmptyContext();
 
         // Create Organization
         let id = (await repo.createOrganization(ctx, 1, { name: 'my nice org ' }, { editorial: false, status: 'pending' })).id;
 
         // Check Result
-        let org = await FDB.Organization.findById(ctx, id);
+        let org = await db.entities.Organization.findById(ctx, id);
         expect(org).not.toBeNull();
         expect(org).not.toBeUndefined();
         expect(org!.ownerId).toEqual(1);
@@ -40,11 +43,11 @@ describe('OrganizationRepository', () => {
         expect(org!.status).toEqual('pending');
 
         // Check profile
-        let orgp = await FDB.OrganizationProfile.findById(ctx, org!.id);
+        let orgp = await db.entities.OrganizationProfile.findById(ctx, org!.id);
         expect(orgp!.name).toEqual('my nice org');
 
         // Check editorial
-        let edit = (await FDB.OrganizationEditorial.findById(ctx, id))!;
+        let edit = (await db.entities.OrganizationEditorial.findById(ctx, id))!;
         expect(edit).not.toBeNull();
         expect(edit).not.toBeUndefined();
         expect(edit.featured).toEqual(false);
@@ -59,23 +62,52 @@ describe('OrganizationRepository', () => {
     });
 
     it('should respect status', async () => {
+        let repo = container.get<OrganizationRepository>('OrganizationRepository');
+        let db = container.get<DBModule>('DBModule');
+
         let ctx = createEmptyContext();
         let id = (await repo.createOrganization(ctx, 1, { name: 'title' }, { editorial: false, status: 'activated' })).id;
-        let org = await FDB.Organization.findById(ctx, id);
+        let org = await db.entities.Organization.findById(ctx, id);
         expect(org).not.toBeNull();
         expect(org).not.toBeUndefined();
         expect(org!.status).toEqual('activated');
 
         let id2 = (await repo.createOrganization(ctx, 1, { name: 'title' }, { editorial: false, status: 'suspended' })).id;
-        let org2 = await FDB.Organization.findById(ctx, id2);
+        let org2 = await db.entities.Organization.findById(ctx, id2);
         expect(org2).not.toBeNull();
         expect(org2).not.toBeUndefined();
         expect(org2!.status).toEqual('suspended');
 
         let id3 = (await repo.createOrganization(ctx, 1, { name: 'title' }, { editorial: false, status: 'pending' })).id;
-        let org3 = await FDB.Organization.findById(ctx, id3);
+        let org3 = await db.entities.Organization.findById(ctx, id3);
         expect(org3).not.toBeNull();
         expect(org3).not.toBeUndefined();
         expect(org3!.status).toEqual('pending');
+    });
+
+    it('should delete organization', async () => {
+        let repo = container.get<OrganizationRepository>('OrganizationRepository');
+        let db = container.get<DBModule>('DBModule');
+        let userRepo = container.get<UserRepository>('UserRepository');
+
+        let ctx = createEmptyContext();
+
+        let user = await createUser(ctx, 1);
+
+        let id = (await repo.createOrganization(ctx, user.id, { name: 'title' }, { editorial: false, status: 'activated' })).id;
+        (await repo.createOrganization(ctx, user.id, { name: 'title2' }, { editorial: false, status: 'activated' })).id;
+
+        let org = await db.entities.Organization.findById(ctx, id);
+        expect(org).not.toBeNull();
+        expect(org).not.toBeUndefined();
+        expect(org!.status).toEqual('activated');
+
+        await repo.deleteOrganization(ctx, user.id, id);
+
+        org = await db.entities.Organization.findById(ctx, id);
+        expect(org!.status).toEqual('deleted');
+
+        let profile = await userRepo.findUserProfile(ctx, user.id);
+        expect(profile!.primaryOrganization).not.toEqual(id);
     });
 });

@@ -12,6 +12,7 @@ describe('UserRepository', () => {
     afterAll(() => {
         testEnvironmentEnd();
     });
+
     it('should create users', async () => {
         let repo = container.get<UserRepository>('UserRepository');
         let res = await repo.createUser(createEmptyContext(), 'usertestauth1', 'someemail4411@open.com');

@@ -16,7 +16,7 @@ describe('OrganizationModule', () => {
     beforeAll(async () => {
         // let start = Date.now();
         await testEnvironmentStart('orgs');
-        container.bind(OrganizationRepository).toSelf().inSingletonScope();
+        container.bind('OrganizationRepository').to(OrganizationRepository).inSingletonScope();
         container.bind(OrganizationModule).toSelf().inSingletonScope();
         container.bind(UsersModule).toSelf().inSingletonScope();
         container.bind('UserRepository').to(UserRepository).inSingletonScope();

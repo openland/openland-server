@@ -9,13 +9,12 @@ import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { UserError } from '../../openland-errors/UserError';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { Modules } from '../../openland-modules/Modules';
+import { lazyInject } from '../../openland-modules/Modules.container';
+
 @injectable()
 export class OrganizationRepository {
-    readonly entities: AllEntities;
-
-    constructor(entities: AllEntities) {
-        this.entities = entities;
-    }
+    @lazyInject('FDB')
+    private readonly entities!: AllEntities;
 
     async createOrganization(parent: Context, uid: number, input: OrganizatinProfileInput, opts: { editorial: boolean, status: 'activated' | 'pending' | 'suspended' }) {
         await validate(

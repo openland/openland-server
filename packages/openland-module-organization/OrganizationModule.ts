@@ -10,14 +10,12 @@ import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { organizationProfileIndexer } from './workers/organizationProfileIndexer';
 import { Context } from 'openland-utils/Context';
+import { lazyInject } from '../openland-modules/Modules.container';
 
 @injectable()
 export class OrganizationModule {
-    private readonly repo: OrganizationRepository;
-
-    constructor() {
-        this.repo = new OrganizationRepository(Modules.DB.entities);
-    }
+    @lazyInject('OrganizationRepository')
+    private readonly repo!: OrganizationRepository;
 
     start = () => {
         if (serverRoleEnabled('workers')) {

@@ -28,7 +28,7 @@ describe('InvitesMediator', () => {
         loadInvitesModule();
         container.bind(SuperModule).toSelf().inSingletonScope();
         container.bind(HooksModule).toSelf().inSingletonScope();
-        container.bind(OrganizationRepository).toSelf().inSingletonScope();
+        container.bind('OrganizationRepository').to(OrganizationRepository).inSingletonScope();
         container.bind(OrganizationModule).toSelf().inSingletonScope();
         container.bind(UsersModule).toSelf().inSingletonScope();
         container.bind('UserRepository').to(UserRepository).inSingletonScope();
