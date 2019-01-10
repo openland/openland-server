@@ -45,7 +45,8 @@ export function createAndroidWorker(repo: PushRepository) {
                                 android: {
                                     collapseKey: task.collapseKey,
                                     notification: task.notification,
-                                    data: task.data
+                                    data: task.data,
+                                    priority: 'high'
                                 },
                                 token: token.token
                             });
