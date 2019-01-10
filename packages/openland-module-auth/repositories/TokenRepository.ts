@@ -27,12 +27,24 @@ export class TokenRepository {
             return await this.entities.AuthToken.create(ctx, uuid(), {
                 uid,
                 salt: base64.encodeBuffer(randomBytes(64)),
-                lastIp: ''
+                lastIp: '',
+                enabled: true
             });
         });
     }
 
     async findToken(token: string) {
         return this.loader.load(token);
+    }
+
+    async revokeToken(parent: Context, token: string) {
+        return await inTx(parent, async (ctx) => {
+            let authToken = await this.entities.AuthToken.findFromSalt(ctx, token);
+
+            if (authToken) {
+                authToken.enabled = false;
+            }
+            this.loader.clear(token);
+        });
     }
 }

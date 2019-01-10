@@ -249,6 +249,7 @@ export interface AuthTokenShape {
     salt: string;
     uid: number;
     lastIp: string;
+    enabled: boolean;
 }
 
 export class AuthToken extends FEntity {
@@ -281,6 +282,15 @@ export class AuthToken extends FEntity {
         this._value.lastIp = value;
         this.markDirty();
     }
+    get enabled(): boolean {
+        return this._value.enabled;
+    }
+    set enabled(value: boolean) {
+        this._checkIsWritable();
+        if (value === this._value.enabled) { return; }
+        this._value.enabled = value;
+        this.markDirty();
+    }
 }
 
 export class AuthTokenFactory extends FEntityFactory<AuthToken> {
@@ -294,9 +304,11 @@ export class AuthTokenFactory extends FEntityFactory<AuthToken> {
             { name: 'salt', type: 'string' },
             { name: 'uid', type: 'number' },
             { name: 'lastIp', type: 'string' },
+            { name: 'enabled', type: 'boolean' },
         ],
         indexes: [
             { name: 'salt', type: 'unique', fields: ['salt'], displayName: 'authTokenBySalt' },
+            { name: 'user', type: 'range', fields: ['uid', 'uuid'] },
         ],
     };
 
@@ -309,13 +321,15 @@ export class AuthTokenFactory extends FEntityFactory<AuthToken> {
         validators.isNumber('uid', src.uid);
         validators.notNull('lastIp', src.lastIp);
         validators.isString('lastIp', src.lastIp);
+        validators.notNull('enabled', src.enabled);
+        validators.isBoolean('enabled', src.enabled);
     }
 
     constructor(connection: FConnection) {
         super(connection,
             new FNamespace('entity', 'authToken'),
             { enableVersioning: true, enableTimestamps: true, validator: AuthTokenFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('salt', ['salt'], true)],
+            [new FEntityIndex('salt', ['salt'], true), new FEntityIndex('user', ['uid', 'uuid'], false, src => src.enabled !== false)],
             'AuthToken'
         );
     }
@@ -346,6 +360,24 @@ export class AuthTokenFactory extends FEntityFactory<AuthToken> {
     }
     createSaltStream(ctx: Context, limit: number, after?: string) {
         return this._createStream(ctx, ['entity', 'authToken', '__indexes', 'salt'], limit, after); 
+    }
+    async allFromUserAfter(ctx: Context, uid: number, after: string) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'user', uid], after);
+    }
+    async rangeFromUserAfter(ctx: Context, uid: number, after: string, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'user', uid], after, limit, reversed);
+    }
+    async rangeFromUser(ctx: Context, uid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'user', uid], limit, reversed);
+    }
+    async rangeFromUserWithCursor(ctx: Context, uid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'user', uid], limit, after, reversed);
+    }
+    async allFromUser(ctx: Context, uid: number) {
+        return await this._findAll(ctx, ['__indexes', 'user', uid]);
+    }
+    createUserStream(ctx: Context, uid: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'authToken', '__indexes', 'user', uid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new AuthToken(ctx, this.connection, this.namespace, this.directory, [value.uuid], value, this.options, isNew, this.indexes, 'AuthToken');
@@ -1754,6 +1786,7 @@ export class UserFactory extends FEntityFactory<User> {
         indexes: [
             { name: 'authId', type: 'unique', fields: ['authId'] },
             { name: 'email', type: 'unique', fields: ['email'] },
+            { name: 'owner', type: 'range', fields: ['botOwner', 'id'] },
         ],
     };
 
@@ -1776,7 +1809,7 @@ export class UserFactory extends FEntityFactory<User> {
         super(connection,
             new FNamespace('entity', 'user'),
             { enableVersioning: false, enableTimestamps: false, validator: UserFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('authId', ['authId'], true, src => src.status !== 'deleted'), new FEntityIndex('email', ['email'], true, src => src.status !== 'deleted')],
+            [new FEntityIndex('authId', ['authId'], true, src => src.status !== 'deleted'), new FEntityIndex('email', ['email'], true, src => src.status !== 'deleted'), new FEntityIndex('owner', ['botOwner', 'id'], false, src => src.botOwner && src.status !== 'deleted')],
             'User'
         );
     }
@@ -1822,6 +1855,24 @@ export class UserFactory extends FEntityFactory<User> {
     }
     createEmailStream(ctx: Context, limit: number, after?: string) {
         return this._createStream(ctx, ['entity', 'user', '__indexes', 'email'], limit, after); 
+    }
+    async allFromOwnerAfter(ctx: Context, botOwner: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'owner', botOwner], after);
+    }
+    async rangeFromOwnerAfter(ctx: Context, botOwner: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'owner', botOwner], after, limit, reversed);
+    }
+    async rangeFromOwner(ctx: Context, botOwner: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'owner', botOwner], limit, reversed);
+    }
+    async rangeFromOwnerWithCursor(ctx: Context, botOwner: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'owner', botOwner], limit, after, reversed);
+    }
+    async allFromOwner(ctx: Context, botOwner: number) {
+        return await this._findAll(ctx, ['__indexes', 'owner', botOwner]);
+    }
+    createOwnerStream(ctx: Context, botOwner: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'user', '__indexes', 'owner', botOwner], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new User(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'User');

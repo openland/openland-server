@@ -34,4 +34,8 @@ export class AuthModule {
     async findToken(ctx: Context, token: string) {
         return await this.tokenRepo.findToken(token);
     }
+
+    async revokeToken(ctx: Context, token: string) {
+        return await this.tokenRepo.revokeToken(ctx, token);
+    }
 }

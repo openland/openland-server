@@ -5,7 +5,7 @@ import {
     User, UserDialogEvent,
     UserDialogSettings,
     UserProfile,
-    FeedEvent
+    FeedEvent, AuthToken
 } from '../../openland-module-db/schema';
 import { GQL } from './SchemaSpec';
 import { MessageMention } from '../../openland-module-messaging/MessageInput';
@@ -155,4 +155,7 @@ export namespace GQLRoots {
     export type UserMentionRoot = MessageMention;
     export type SharedRoomMentionRoot = MessageMention;
     export type PostRespondServiceMetadataRoot = any;
+
+    export type AppProfileRoot = User;
+    export type AppTokenRoot = AuthToken;
 }

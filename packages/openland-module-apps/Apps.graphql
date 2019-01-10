@@ -1,0 +1,31 @@
+type AppProfile {
+    id: ID!
+
+    name: String!
+    shortname: String!
+    photoRef: ImageRef
+    about: String
+
+    token: AppToken!
+}
+
+input AppProfileInput {
+    name: String
+    shortname: String
+    photoRef: ImageRefInput
+    about: String
+}
+
+type AppToken {
+    salt: String!
+}
+
+extend type Query {
+    myApps: [AppProfile!]!
+}
+
+extend type Mutation {
+    createApp(name: String!, shortname: String!): AppProfile!
+    refreshAppToken(appId: ID!): AppProfile!
+    updateAppProfile(appId: ID!, input: AppProfileInput!): AppProfile!
+}
