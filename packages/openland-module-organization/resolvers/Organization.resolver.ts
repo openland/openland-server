@@ -45,7 +45,7 @@ export default {
             if (ctx.auth.uid) {
                 return (await Promise.all((await FDB.OrganizationMember.allFromUser(ctx, 'joined', ctx.auth.uid))
                     .map((v) => FDB.Organization.findById(ctx, v.oid))))
-                    .filter((v) => v!.status !== 'suspended');
+                    .filter((v) => v!.status !== 'suspended' && v!.status !== 'deleted');
             }
             return [];
         },
