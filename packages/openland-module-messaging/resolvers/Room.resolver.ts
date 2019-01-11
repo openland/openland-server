@@ -385,7 +385,10 @@ export default {
         }),
         betaRoomInviteLink: withUser(async (ctx, args, uid) => {
             return await Modules.Invites.createRoomlInviteLink(ctx, IDs.Conversation.parse(args.roomId), uid);
-        })
+        }),
+        betaAvailableRooms: withUser(async (ctx, args, uid) => {
+            return await Modules.Messaging.room.findAvailableRooms(ctx, uid);
+        }),
     },
     Mutation: {
         //

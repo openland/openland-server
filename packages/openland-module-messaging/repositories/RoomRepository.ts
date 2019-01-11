@@ -8,6 +8,7 @@ import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { RoomProfileInput } from 'openland-module-messaging/RoomProfileInput';
 import { Context } from 'openland-utils/Context';
+import { Modules } from '../../openland-modules/Modules';
 
 function doSimpleHash(key: string): number {
     var h = 0, l = key.length, i = 0;
@@ -493,6 +494,48 @@ export class RoomRepository {
         } else {
             throw new AccessDeniedError();
         }
+    }
+
+    //
+    //  Returns all rooms from all organizations/communities user joined
+    //
+    async findAvailableRooms(parent: Context, uid: number) {
+        return await inTx(parent, async (ctx) => {
+            let organizations = new Set<number>();
+
+            //
+            //  Organizations with membership
+            //
+            let userOrgs = await Modules.Orgs.findUserOrganizations(ctx, uid);
+            userOrgs.forEach(o => organizations.add(o));
+
+            //
+            //  Organizations in which chats user exists
+            //
+            let userDialogs = await this.entities.UserDialog.allFromUser(ctx, uid);
+            for (let dialog of userDialogs) {
+                let room = await this.entities.ConversationRoom.findById(ctx, dialog.cid);
+                if (room && room.oid) {
+                    organizations.add(room.oid);
+                }
+            }
+
+            let availableRooms: number[] = [];
+
+            for (let org of organizations) {
+                let rooms = await this.entities.ConversationRoom.allFromOrganizationPublicRooms(ctx, org);
+                for (let room of rooms) {
+                    if (room.kind === 'public') {
+                        availableRooms.push(room.id);
+                    } else if (await Modules.Orgs.isUserMember(ctx, uid, org)) {
+                        availableRooms.push(room.id);
+                    }
+                }
+                availableRooms.push(...rooms.map(r => r.id));
+            }
+
+            return availableRooms;
+        });
     }
 
     //

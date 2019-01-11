@@ -367,6 +367,10 @@ export class RoomMediator {
         return null;
     }
 
+    async findAvailableRooms(ctx: Context, uid: number) {
+        return await this.repo.findAvailableRooms(ctx, uid);
+    }
+
     private async roomJoinMessageText(parent: Context, room: ConversationRoom, uids: number[]) {
         let typeName = room.kind === 'group' ? 'group' : 'room';
 

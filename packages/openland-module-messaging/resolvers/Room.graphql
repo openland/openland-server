@@ -147,6 +147,7 @@ extend type Query {
     ): RoomConnection!
     betaRoomInviteInfo(invite: String!): RoomInvite
     betaRoomInviteLink(roomId: ID!): String!
+    betaAvailableRooms: [Room!]!
 }
 
 type RoomInvite {
