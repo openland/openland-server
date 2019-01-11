@@ -527,7 +527,7 @@ export class RoomRepository {
                 for (let room of rooms) {
                     if (room.kind === 'public') {
                         availableRooms.push(room.id);
-                    } else if (await Modules.Orgs.isUserMember(ctx, uid, org)) {
+                    } else if (userOrgs.indexOf(org) > -1) {
                         availableRooms.push(room.id);
                     }
                 }
