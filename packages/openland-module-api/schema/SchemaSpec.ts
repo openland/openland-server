@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, Nullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '95df2ed331b9263e0fa2184944562727';
+export const GQL_SPEC_VERSION = '25a05cb814f1aa4d625390825c2989b8';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -432,7 +432,7 @@ export namespace GQL {
         type?: string;
         timeout?: number;
     }
-    export type SuperAccountState = 'PENDING' | 'ACTIVATED' | 'SUSPENDED';
+    export type SuperAccountState = 'PENDING' | 'ACTIVATED' | 'SUSPENDED' | 'DELETED';
     export interface SuperAccount {
         id?: string;
         orgId?: string;

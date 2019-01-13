@@ -1,7 +1,8 @@
 enum SuperAccountState {
     PENDING,
     ACTIVATED,
-    SUSPENDED
+    SUSPENDED,
+    DELETED
 }
 
 type SuperAccount {

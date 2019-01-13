@@ -11,7 +11,8 @@ export default {
     SuperAccountState: {
         PENDING: 'pending',
         ACTIVATED: 'activated',
-        SUSPENDED: 'suspended'
+        SUSPENDED: 'suspended',
+        DELETED: 'deleted'
     },
     SuperAccount: {
         id: (src: Organization) => IDs.SuperAccount.serialize(src.id),
