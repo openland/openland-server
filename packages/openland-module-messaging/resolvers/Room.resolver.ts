@@ -18,7 +18,6 @@ import { Sanitizer } from 'openland-utils/Sanitizer';
 import { validate, defined, stringNotEmpty, enumString, optional, mustBeArray, emailValidator } from 'openland-utils/NewInputValidator';
 import { inTx } from 'foundation-orm/inTx';
 import { AppContext } from 'openland-modules/AppContext';
-import { QueryParser } from 'openland-utils/QueryParser';
 import { MessageAttachment, MessageMention } from '../MessageInput';
 
 type RoomRoot = Conversation | number;
@@ -317,68 +316,7 @@ export default {
         }),
 
         betaRoomSearch: withUser(async (ctx, args, uid) => {
-            let clauses: any[] = [];
-            let sort: any[] | undefined = undefined;
-
-            if (args.query || args.sort) {
-                let parser = new QueryParser();
-                parser.registerText('title', 'title');
-                parser.registerBoolean('featured', 'featured');
-                parser.registerText('createdAt', 'createdAt');
-                parser.registerText('updatedAt', 'updatedAt');
-                parser.registerText('membersCount', 'membersCount');
-
-                if (args.query) {
-                    clauses.push({ match_phrase_prefix: { title: args.query } });
-                } else {
-                    clauses.push({ term: { featured: true } });
-                }
-
-                if (args.sort) {
-                    sort = parser.parseSort(args.sort);
-                }
-            }
-
-            clauses.push({ term: { listed: true} });
-
-            let hits = await Modules.Search.elastic.client.search({
-                index: 'room',
-                type: 'room',
-                size: args.first,
-                from: args.after ? parseInt(args.after, 10) : (args.page ? ((args.page - 1) * args.first) : 0),
-                body: {
-                    sort: sort,
-                    query: { bool: { must: clauses } }
-                }
-            });
-
-            let ids = hits.hits.hits.map((v) => parseInt(v._id, 10));
-            let rooms = await Promise.all(ids.map((v) => FDB.Conversation.findById(ctx, v)));
-            let offset = 0;
-            if (args.after) {
-                offset = parseInt(args.after, 10);
-            } else if (args.page) {
-                offset = (args.page - 1) * args.first;
-            }
-            let total = hits.hits.total;
-
-            return {
-                edges: rooms.map((p, i) => {
-                    return {
-                        node: p,
-                        cursor: (i + 1 + offset).toString()
-                    };
-                }),
-                pageInfo: {
-                    hasNextPage: (total - (offset + 1)) >= args.first, // ids.length === this.limitValue,
-                    hasPreviousPage: false,
-
-                    itemsCount: total,
-                    pagesCount: Math.min(Math.floor(8000 / args.first), Math.ceil(total / args.first)),
-                    currentPage: Math.floor(offset / args.first) + 1,
-                    openEnded: true
-                },
-            };
+           return Modules.Messaging.search.globalSearchForRooms(ctx, args.query || '', { first: args.first, after: args.after || undefined, page: args.page || undefined, sort: args.sort || undefined });
         }),
         betaRoomInviteInfo: withAny(async (ctx, args) => {
             return await Modules.Invites.resolveInvite(ctx, args.invite);

@@ -1,6 +1,8 @@
 import { Modules } from 'openland-modules/Modules';
 import { createTracer } from 'openland-log/createTracer';
 import { Context } from 'openland-utils/Context';
+import { QueryParser } from '../../openland-utils/QueryParser';
+import { FDB } from '../../openland-module-db/FDB';
 
 const tracer = createTracer('room-search');
 
@@ -28,5 +30,70 @@ export class RoomSearch {
             let uids = hits.hits.hits.map((v) => parseInt((v._source as any).cid, 10));
             return uids;
         });
+    }
+
+    async globalSearchForRooms(ctx: Context, query: string, options: { first: number, after?: string, page?: number, sort?: string }) {
+        let clauses: any[] = [];
+        let sort: any[] | undefined = undefined;
+
+        if (query || options.sort) {
+            let parser = new QueryParser();
+            parser.registerText('title', 'title');
+            parser.registerBoolean('featured', 'featured');
+            parser.registerText('createdAt', 'createdAt');
+            parser.registerText('updatedAt', 'updatedAt');
+            parser.registerText('membersCount', 'membersCount');
+
+            if (query) {
+                clauses.push({ match_phrase_prefix: { title: query } });
+            } else {
+                clauses.push({ term: { featured: true } });
+            }
+
+            if (options.sort) {
+                sort = parser.parseSort(options.sort);
+            }
+        }
+
+        clauses.push({ term: { listed: true} });
+
+        let hits = await Modules.Search.elastic.client.search({
+            index: 'room',
+            type: 'room',
+            size: options.first,
+            from: options.after ? parseInt(options.after, 10) : (options.page ? ((options.page - 1) * options.first) : 0),
+            body: {
+                sort: sort,
+                query: { bool: { must: clauses } }
+            }
+        });
+
+        let ids = hits.hits.hits.map((v) => parseInt(v._id, 10));
+        let rooms = await Promise.all(ids.map((v) => FDB.Conversation.findById(ctx, v)));
+        let offset = 0;
+        if (options.after) {
+            offset = parseInt(options.after, 10);
+        } else if (options.page) {
+            offset = (options.page - 1) * options.first;
+        }
+        let total = hits.hits.total;
+
+        return {
+            edges: rooms.map((p, i) => {
+                return {
+                    node: p,
+                    cursor: (i + 1 + offset).toString()
+                };
+            }),
+            pageInfo: {
+                hasNextPage: (total - (offset + 1)) >= options.first,
+                hasPreviousPage: false,
+
+                itemsCount: total,
+                pagesCount: Math.min(Math.floor(8000 / options.first), Math.ceil(total / options.first)),
+                currentPage: Math.floor(offset / options.first) + 1,
+                openEnded: true
+            },
+        };
     }
 }

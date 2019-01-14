@@ -33,7 +33,6 @@ export function roomsSearchIndexer() {
             let room = await FDB.ConversationRoom.findById(ctx, item.id);
 
             if (!room) {
-                console.log('PIZDA');
                 throw new Error('Room not found');
             }
 
