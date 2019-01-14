@@ -253,6 +253,8 @@ export class RoomRepository {
                 throw new AccessDeniedError();
             }
             room.featured = featued;
+            let profile = await this.entities.RoomProfile.findById(ctx, cid);
+            profile!.markDirty(); // Update profile for reindexing
             return (await this.entities.Conversation.findById(ctx, cid))!;
         });
     }
@@ -264,6 +266,8 @@ export class RoomRepository {
                 throw new AccessDeniedError();
             }
             room.listed = listed;
+            let profile = await this.entities.RoomProfile.findById(ctx, cid);
+            profile!.markDirty(); // Update profile for reindexing
             return (await this.entities.Conversation.findById(ctx, cid))!;
         });
     }

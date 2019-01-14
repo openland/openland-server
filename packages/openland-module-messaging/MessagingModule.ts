@@ -14,6 +14,7 @@ import { RoomSearch } from './search/RoomSearch';
 import { Context } from 'openland-utils/Context';
 import { messagesIndexer } from './workers/messagesIndexer';
 import { FixerRepository } from './repositories/Fixer';
+import { roomsSearchIndexer } from './workers/roomsSerachIndexer';
 
 @injectable()
 export class MessagingModule {
@@ -58,6 +59,9 @@ export class MessagingModule {
         }
         if (serverRoleEnabled('workers')) {
             messagesIndexer();
+        }
+        if (serverRoleEnabled('workers')) {
+            roomsSearchIndexer();
         }
 
     }

@@ -367,6 +367,7 @@ const Schema = declareSchema(() => {
         field('description', 'string').nullable();
         field('socialImage', 'json').nullable();
 
+        rangeIndex('updated', ['updatedAt']);
         enableVersioning();
         enableTimestamps();
     });

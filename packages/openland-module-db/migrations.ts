@@ -401,6 +401,53 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '35-user-influencer',
+    migration: async (root, log) => {
+        await inTx(root, async (ctx) => {
+            let edges = await FDB.UserEdge.findAll(ctx);
+            let counters = new Map<number, number>();
+            for (let e of edges) {
+                if (counters.has(e.uid2)) {
+                    counters.set(e.uid2, counters.get(e.uid2)! + 1);
+                } else {
+                    counters.set(e.uid2, 1);
+                }
+            }
+            for (let k of counters.keys()) {
+                let e = await FDB.UserInfluencerUserIndex.findById(ctx, k);
+                if (e) {
+                    e.value = counters.get(k)!;
+                } else {
+                    await FDB.UserInfluencerUserIndex.create(ctx, k, { value: counters.get(k)! });
+                }
+            }
+        });
+    }
+});
+
+migrations.push({
+    key: '37-reindex-room-profiles',
+    migration: async (root, log) => {
+        let allKeys = await FDB.RoomProfile.findAllKeys(root);
+        let keyBatches = batch(allKeys, 100);
+        for (let kb of keyBatches) {
+            await inTx(root, async (ctx) => {
+                for (let a of kb) {
+                    let k = FKeyEncoding.decodeKey(a);
+                    k.splice(0, 2);
+                    let r = (await FDB.RoomProfile.findById(ctx, k[0] as number));
+                    if (!r) {
+                        log.warn(ctx, 'no room profile found! ' + JSON.stringify(k));
+                    } else {
+                        r.markDirty();
+                    }
+                }
+            });
+        }
+    }
+});
+
 export function startMigrationsWorker() {
     if (serverRoleEnabled('workers')) {
         staticWorker({ name: 'foundation-migrator' }, async (ctx) => {

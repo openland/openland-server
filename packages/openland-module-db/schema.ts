@@ -3836,6 +3836,7 @@ export class RoomProfileFactory extends FEntityFactory<RoomProfile> {
             { name: 'socialImage', type: 'json' },
         ],
         indexes: [
+            { name: 'updated', type: 'range', fields: ['updatedAt'] },
         ],
     };
 
@@ -3851,7 +3852,7 @@ export class RoomProfileFactory extends FEntityFactory<RoomProfile> {
         super(connection,
             new FNamespace('entity', 'roomProfile'),
             { enableVersioning: true, enableTimestamps: true, validator: RoomProfileFactory.validate, hasLiveStreams: false },
-            [],
+            [new FEntityIndex('updated', ['updatedAt'], false)],
             'RoomProfile'
         );
     }
@@ -3867,6 +3868,18 @@ export class RoomProfileFactory extends FEntityFactory<RoomProfile> {
     }
     watch(ctx: Context, id: number, cb: () => void) {
         return this._watch(ctx, [id], cb);
+    }
+    async rangeFromUpdated(ctx: Context, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'updated'], limit, reversed);
+    }
+    async rangeFromUpdatedWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'updated'], limit, after, reversed);
+    }
+    async allFromUpdated(ctx: Context, ) {
+        return await this._findAll(ctx, ['__indexes', 'updated']);
+    }
+    createUpdatedStream(ctx: Context, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'roomProfile', '__indexes', 'updated'], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new RoomProfile(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'RoomProfile');

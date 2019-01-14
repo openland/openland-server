@@ -339,11 +339,11 @@ export default {
                 }
             }
 
-            clauses.push({ term: { hidden: false } });
+            clauses.push({ term: { listed: true} });
 
             let hits = await Modules.Search.elastic.client.search({
-                index: 'channels',
-                type: 'channel',
+                index: 'room',
+                type: 'room',
                 size: args.first,
                 from: args.after ? parseInt(args.after, 10) : (args.page ? ((args.page - 1) * args.first) : 0),
                 body: {
