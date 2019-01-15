@@ -45,6 +45,8 @@ export default {
             let hits = await Modules.Search.elastic.client.search({
                 index: 'organization',
                 type: 'organization',
+                size: args.first,
+                from: args.after ? parseInt(args.after, 10) : (args.page ? ((args.page - 1) * args.first) : 0),
                 body: {
                     query: { bool: { must: clauses } }
                 }
