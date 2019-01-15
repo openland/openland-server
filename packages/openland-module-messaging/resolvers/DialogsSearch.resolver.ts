@@ -24,7 +24,7 @@ export default {
 
                 // PERSONAL - search users first, then matching conversations with current user
                 let personal = Modules.Users.searchForUsers(ctx, args.query, { uid, limit: 20 })
-                    .then((r) => r.map((v) => Modules.Messaging.room.resolvePrivateChat(ctx, uid, v)));
+                    .then((r) => r.uids.map((v) => Modules.Messaging.room.resolvePrivateChat(ctx, uid, v)));
 
                 // Organizations chats
                 // let matchingUserOrgProfiles = (await Promise.all((await Modules.Orgs.findUserOrganizations(uid)).map(uoid => FDB.OrganizationProfile.findById(uoid)))).filter(oc => !!oc && oc.name.toLocaleLowerCase().indexOf(args.query.toLowerCase()) >= 0).map(oc => oc!);
@@ -68,7 +68,7 @@ export default {
 
                 // PERSONAL - search users first, then matching conversations with current user
                 let personal = Modules.Users.searchForUsers(ctx, args.query, { uid, limit: 20 })
-                    .then((r) => r.map((v) => Modules.Messaging.room.resolvePrivateChat(ctx, uid, v)));
+                    .then((r) => r.uids.map((v) => Modules.Messaging.room.resolvePrivateChat(ctx, uid, v)));
 
                 let res = [...await Promise.all(await conversations), ...await Promise.all((await personal))];
                 res = res.filter((v) => !!v).reduce(

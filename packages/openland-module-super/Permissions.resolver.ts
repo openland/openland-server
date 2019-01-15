@@ -11,7 +11,7 @@ export default {
             };
         },
         users: withPermission('super-admin', async (ctx, args) => {
-            let uids = await Modules.Users.searchForUsers(ctx, args.query, { limit: 10 });
+            let {uids} = await Modules.Users.searchForUsers(ctx, args.query, { limit: 10 });
 
             if (uids.length === 0) {
                 return [];

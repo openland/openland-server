@@ -491,7 +491,7 @@ export default {
         alphaChatsSearchForCompose: withAccount(async (ctx, args, uid, oid) => {
 
             // Do search
-            let uids = await Modules.Users.searchForUsers(ctx, args.query || '', {
+            let {uids} = await Modules.Users.searchForUsers(ctx, args.query || '', {
                 uid,
                 limit: args.limit || 10
             });
