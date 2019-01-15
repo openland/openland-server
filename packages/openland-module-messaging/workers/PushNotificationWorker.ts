@@ -122,6 +122,13 @@ export function startPushNotificationWorker() {
                         continue;
                     }
 
+                    // Ignore service messages for big rooms
+                    if (message.isService) {
+                        if (await Modules.Messaging.roomMembersCount(ctx, message.cid) > 50) {
+                            continue;
+                        }
+                    }
+
                     let userMentioned = message.mentions && (message.mentions as number[]).indexOf(u.uid) > -1;
 
                     let sendDesktop = settings.desktopNotifications !== 'none';

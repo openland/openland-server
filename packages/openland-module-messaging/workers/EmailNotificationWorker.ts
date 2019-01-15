@@ -95,6 +95,13 @@ export function startEmailNotificationWorker() {
                             }
                         }
 
+                        // Ignore service messages for big rooms
+                        if (message.isService) {
+                            if (await Modules.Messaging.roomMembersCount(ctx, message.cid) > 50) {
+                                continue;
+                            }
+                        }
+
                         let conversationSettings = await Modules.Messaging.getRoomSettings(ctx, u.uid, conversation.id);
 
                         if (conversationSettings.mute) {
