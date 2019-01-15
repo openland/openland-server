@@ -114,18 +114,18 @@ export default {
                     profile.about = Sanitizer.sanitizeString(args.input.about);
                 }
 
-                let editorial = (await FDB.OrganizationEditorial.findById(ctx, oid))!;
+                let editorial = (await FDB.OrganizationEditorial.findById(ctx, orgId))!;
 
                 if (args.input.alphaPublished !== undefined) {
-                    editorial.listed = Sanitizer.sanitizeAny(args.input.alphaPublished) ? true : false;
+                    editorial.listed = !!Sanitizer.sanitizeAny(args.input.alphaPublished);
                 }
 
                 if (args.input.alphaEditorial !== undefined) {
-                    existing.editorial = Sanitizer.sanitizeAny(args.input.alphaEditorial) ? true : false;
+                    existing.editorial = !!Sanitizer.sanitizeAny(args.input.alphaEditorial);
                 }
 
                 if (args.input.alphaFeatured !== undefined) {
-                    editorial.featured = Sanitizer.sanitizeAny(args.input.alphaFeatured) || false;
+                    editorial.featured = !!Sanitizer.sanitizeAny(args.input.alphaFeatured);
                 }
 
                 // Schedule indexing
