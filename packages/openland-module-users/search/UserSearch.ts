@@ -5,7 +5,7 @@ import { Context } from 'openland-utils/Context';
 
 const tracer = createTracer('user-search');
 export class UserSearch {
-    async searchForUsers(parent: Context, query: string, options?: { uid?: number, limit?: number }) {
+    async searchForUsers(parent: Context, query: string, options?: { uid?: number, limit?: number, after?: string, page?: number }) {
         return await tracer.trace(parent, 'search', async (ctx) => {
 
             let normalized = query.trim();
@@ -62,7 +62,8 @@ export class UserSearch {
                     index: 'user_profile',
                     type: 'user_profile',
                     size: options && options.limit ? options.limit : 20,
-                    body: { query: mainQuery }
+                    body: { query: mainQuery },
+                    from: options && options.after ? parseInt(options.after, 10) : (options && options.page ? ((options.page - 1) * (options && options.limit ? options.limit : 20)) : 0),
                 });
                 let uids = hits.hits.hits.map((v) => parseInt(v._id, 10));
                 return uids;

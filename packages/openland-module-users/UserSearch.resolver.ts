@@ -7,7 +7,7 @@ export default {
     Query: {
         userSearch: withAny(async (ctx, args) => {
 
-            let uids = await Modules.Users.searchForUsers(ctx, args.query || '', { uid: ctx.auth.uid });
+            let uids = await Modules.Users.searchForUsers(ctx, args.query || '', { uid: ctx.auth.uid, limit: args.first, page: (args.page || undefined), after: (args.after || undefined) });
 
             if (uids.length === 0) {
                 return {
