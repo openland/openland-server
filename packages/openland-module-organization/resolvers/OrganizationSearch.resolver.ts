@@ -136,7 +136,7 @@ export default {
             } else if (args.page) {
                 offset = (args.page - 1) * args.first;
             }
-            let total = orgs.length;
+            let total = hits.hits.total;
 
             return {
                 edges: orgs.map((p, i) => {
