@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, Nullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '25a05cb814f1aa4d625390825c2989b8';
+export const GQL_SPEC_VERSION = '31ab4803b0ab1323ae2fb9c4cca82ea1';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -496,9 +496,9 @@ export namespace GQL {
     export interface AppProfile {
         id?: string;
         name?: string;
-        shortname?: string;
         photoRef?: Nullable<ImageRef>;
         about?: Nullable<string>;
+        shortname?: Nullable<string>;
         token?: AppToken;
     }
     export interface AppProfileInput {
@@ -1093,7 +1093,8 @@ export namespace GQL {
     }
     export interface MutationCreateAppArgs {
         name: string;
-        shortname: string;
+        photoRef: ImageRefInput;
+        about: string;
     }
     export interface MutationRefreshAppTokenArgs {
         appId: string;

@@ -19,7 +19,7 @@ export default {
         name: withProfile((ctx, src, profile) => profile!.firstName),
         shortname: async (src, args, ctx) => {
             let shortname = await Modules.Shortnames.findUserShortname(ctx, src.id);
-            return shortname!.shortname;
+            return shortname && shortname.shortname;
         },
         photoRef: withProfile((ctx, src, profile) => profile && profile.picture),
         about: withProfile((ctx, src, profile) => profile && profile.about),
@@ -36,7 +36,7 @@ export default {
 
     Mutation: {
         createApp: withAccount(async (ctx, args, uid, orgId) => {
-            return await Modules.Bots.createApp(ctx, uid, args.name, args.shortname);
+            return await Modules.Bots.createApp(ctx, uid, args.name, Sanitizer.sanitizeImageRef(args.photoRef)!, args.about);
         }),
         refreshAppToken: withAccount(async (ctx, args, uid, orgId) => {
             let botId = IDs.User.parse(args.appId);

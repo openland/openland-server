@@ -2,9 +2,9 @@ type AppProfile {
     id: ID!
 
     name: String!
-    shortname: String!
     photoRef: ImageRef
     about: String
+    shortname: String
 
     token: AppToken!
 }
@@ -25,7 +25,7 @@ extend type Query {
 }
 
 extend type Mutation {
-    createApp(name: String!, shortname: String!): AppProfile!
+    createApp(name: String!, photoRef: ImageRefInput!, about: String!): AppProfile!
     refreshAppToken(appId: ID!): AppProfile!
     updateAppProfile(appId: ID!, input: AppProfileInput!): AppProfile!
 }

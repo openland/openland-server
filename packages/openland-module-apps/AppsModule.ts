@@ -2,6 +2,7 @@ import { injectable } from 'inversify';
 import { lazyInject } from '../openland-modules/Modules.container';
 import { AppsRepository } from './repositories/AppsRepository';
 import { Context } from '../openland-utils/Context';
+import { ImageRef } from '../openland-module-media/ImageRef';
 
 @injectable()
 export class AppsModule {
@@ -13,8 +14,8 @@ export class AppsModule {
         // Nothing to do
     }
 
-    async createApp(ctx: Context, uid: number, name: string, shortname: string) {
-        return this.repo.createApp(ctx, uid, name, shortname);
+    async createApp(ctx: Context, uid: number, name: string, photo: ImageRef, about: string) {
+        return this.repo.createApp(ctx, uid, name, photo, about);
     }
 
     async findAppsCreatedByUser(ctx: Context, uid: number) {

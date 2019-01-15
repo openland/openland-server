@@ -8,13 +8,14 @@ import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 import { errors } from 'elasticsearch';
 import InternalServerError = errors.InternalServerError;
 import { randomKey } from '../../openland-utils/random';
+import { ImageRef } from '../../openland-module-media/ImageRef';
 
 @injectable()
 export class AppsRepository {
     @lazyInject('FDB')
     private readonly entities!: AllEntities;
 
-    async createApp(parent: Context, uid: number, name: string, shortname: string) {
+    async createApp(parent: Context, uid: number, name: string, photo: ImageRef, about: string) {
         return await inTx(parent, async (ctx) => {
             if (!await this.canCreateApp(ctx, uid)) {
                 throw new AccessDeniedError();
@@ -30,7 +31,11 @@ export class AppsRepository {
 
             await Modules.Users.createUserProfile(ctx, appUser.id, { firstName: name, email: email });
             await Modules.Auth.createToken(ctx, appUser.id);
-            await Modules.Shortnames.setShortnameToUser(ctx, shortname, appUser.id);
+            let profile = await Modules.Users.profileById(ctx, appUser.id);
+            await Modules.Media.saveFile(ctx, photo.uuid);
+            profile!.about = about;
+            profile!.picture = photo;
+            // await Modules.Shortnames.setShortnameToUser(ctx, shortname, appUser.id);
 
             return appUser;
         });
