@@ -9,6 +9,7 @@ import { errors } from 'elasticsearch';
 import InternalServerError = errors.InternalServerError;
 import { randomKey } from '../../openland-utils/random';
 import { ImageRef } from '../../openland-module-media/ImageRef';
+import { stringNotEmpty, validate } from '../../openland-utils/NewInputValidator';
 
 @injectable()
 export class AppsRepository {
@@ -20,6 +21,12 @@ export class AppsRepository {
             if (!await this.canCreateApp(ctx, uid)) {
                 throw new AccessDeniedError();
             }
+
+            await validate(
+                stringNotEmpty('Name can\'t be empty!'),
+                name,
+                'input.name'
+            );
 
             let rnd = randomKey();
             let email = `app-${rnd}@openland.com`;
