@@ -15,7 +15,7 @@ export class AppsRepository {
     @lazyInject('FDB')
     private readonly entities!: AllEntities;
 
-    async createApp(parent: Context, uid: number, name: string, photo: ImageRef, about: string) {
+    async createApp(parent: Context, uid: number, name: string, extra: { photo?: ImageRef, about?: string, shortname?: string }) {
         return await inTx(parent, async (ctx) => {
             if (!await this.canCreateApp(ctx, uid)) {
                 throw new AccessDeniedError();
@@ -32,10 +32,17 @@ export class AppsRepository {
             await Modules.Users.createUserProfile(ctx, appUser.id, { firstName: name, email: email });
             await Modules.Auth.createToken(ctx, appUser.id);
             let profile = await Modules.Users.profileById(ctx, appUser.id);
-            await Modules.Media.saveFile(ctx, photo.uuid);
-            profile!.about = about;
-            profile!.picture = photo;
-            // await Modules.Shortnames.setShortnameToUser(ctx, shortname, appUser.id);
+
+            if (extra.about) {
+                profile!.about = extra.about;
+            }
+            if (extra.photo) {
+                await Modules.Media.saveFile(ctx, extra.photo.uuid);
+                profile!.picture = extra.photo;
+            }
+            if (extra.shortname) {
+                await Modules.Shortnames.setShortnameToUser(ctx, extra.shortname, appUser.id);
+            }
 
             return appUser;
         });

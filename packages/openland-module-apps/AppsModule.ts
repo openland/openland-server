@@ -14,8 +14,8 @@ export class AppsModule {
         // Nothing to do
     }
 
-    async createApp(ctx: Context, uid: number, name: string, photo: ImageRef, about: string) {
-        return this.repo.createApp(ctx, uid, name, photo, about);
+    async createApp(ctx: Context, uid: number, name: string, extra: { photo?: ImageRef, about?: string, shortname?: string }) {
+        return this.repo.createApp(ctx, uid, name, extra);
     }
 
     async findAppsCreatedByUser(ctx: Context, uid: number) {

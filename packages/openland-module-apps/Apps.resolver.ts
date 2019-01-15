@@ -36,7 +36,7 @@ export default {
 
     Mutation: {
         createApp: withAccount(async (ctx, args, uid, orgId) => {
-            return await Modules.Bots.createApp(ctx, uid, args.name, Sanitizer.sanitizeImageRef(args.photoRef)!, args.about);
+            return await Modules.Bots.createApp(ctx, uid, args.name, { about: args.about || undefined, shortname: args.shortname || undefined, photo: Sanitizer.sanitizeImageRef(args.photoRef) || undefined});
         }),
         refreshAppToken: withAccount(async (ctx, args, uid, orgId) => {
             let botId = IDs.User.parse(args.appId);
