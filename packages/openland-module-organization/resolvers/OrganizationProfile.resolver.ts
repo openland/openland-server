@@ -11,6 +11,7 @@ import { stringNotEmpty, validate } from 'openland-utils/NewInputValidator';
 import { Sanitizer } from 'openland-utils/Sanitizer';
 import { AppContext } from 'openland-modules/AppContext';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
+import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
 
 export default {
     OrganizationProfile: {
@@ -114,6 +115,11 @@ export default {
                     profile.about = Sanitizer.sanitizeString(args.input.about);
                 }
 
+                if (args.input.alphaPublished !== undefined || args.input.alphaEditorial !== undefined || args.input.alphaFeatured !== undefined) {
+                    if (!await Modules.Super.superRole(ctx, uid)) {
+                        throw new AccessDeniedError();
+                    }
+                }
                 let editorial = (await FDB.OrganizationEditorial.findById(ctx, orgId))!;
 
                 if (args.input.alphaPublished !== undefined) {
