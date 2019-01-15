@@ -66,7 +66,10 @@ export class UserSearch {
                     from: options && options.after ? parseInt(options.after, 10) : (options && options.page ? ((options.page - 1) * (options && options.limit ? options.limit : 20)) : 0),
                 });
                 let uids = hits.hits.hits.map((v) => parseInt(v._id, 10));
-                return uids;
+                return {
+                    uids,
+                    total: hits.hits.total
+                };
             });
         });
     }

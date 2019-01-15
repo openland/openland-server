@@ -7,7 +7,7 @@ export default {
     Query: {
         userSearch: withAny(async (ctx, args) => {
 
-            let uids = await Modules.Users.searchForUsers(ctx, args.query || '', { uid: ctx.auth.uid, limit: args.first, page: (args.page || undefined), after: (args.after || undefined) });
+            let {uids, total} = await Modules.Users.searchForUsers(ctx, args.query || '', { uid: ctx.auth.uid, limit: args.first, page: (args.page || undefined), after: (args.after || undefined) });
 
             if (uids.length === 0) {
                 return {
@@ -33,7 +33,6 @@ export default {
             } else if (args.page) {
                 offset = (args.page - 1) * args.first;
             }
-            let total = users.length;
 
             return {
                 edges: users.map((p, i) => {
@@ -55,7 +54,7 @@ export default {
         }),
         alphaProfiles: withAny(async (ctx, args) => {
 
-            let uids = await Modules.Users.searchForUsers(ctx, args.query || '', { uid: ctx.auth.uid });
+            let {uids, total} = await Modules.Users.searchForUsers(ctx, args.query || '', { uid: ctx.auth.uid });
 
             if (uids.length === 0) {
                 return {
@@ -81,7 +80,6 @@ export default {
             } else if (args.page) {
                 offset = (args.page - 1) * args.first;
             }
-            let total = users.length;
 
             return {
                 edges: users.map((p, i) => {
