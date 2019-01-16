@@ -13,7 +13,8 @@ export function declareAmplitudeIndexer() {
                     user_id: event.uid,
                     device_id: event.did,
                     event_type: event.name,
-                    event_properties:  event.args
+                    event_properties:  event.args,
+                    insert_id: event.id,
                 };
 
                 await new Promise((resolve, reject) => {
