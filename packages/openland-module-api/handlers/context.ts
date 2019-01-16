@@ -23,6 +23,7 @@ async function context(src: express.Request): Promise<AppContext> {
     if (src.user !== null && src.user !== undefined) {
         if (typeof src.user.sub === 'string') {
             uid = await Modules.Users.findUserByAuthId(createEmptyContext(), src.user.sub);
+            tid = src.user.sub;
         } else if (typeof src.user.uid === 'number' && typeof src.user.tid === 'number') {
             uid = src.user.uid;
             tid = src.user.tid;
