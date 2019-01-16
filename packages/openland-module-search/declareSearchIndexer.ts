@@ -74,7 +74,7 @@ export class SearchIndexer<T extends FEntity> {
                     });
                     if (res.errors) {
                         log.warn(ctx, JSON.stringify(res));
-                        throw new Error('Error during indexing');
+                        throw new Error('Error during indexing (' + this.name + ')');
                     }
                 } catch (e) {
                     log.warn(ctx, e);

@@ -45,9 +45,9 @@ export class SLogImpl implements SLog {
     warn = <C extends AnyFighter<C, never, Context>>(ctx: C, message?: any, ...optionalParams: any[]) => {
         let v = SLogContext.get(ctx);
         if (this.enabled) {
-            if (v.disabled) {
-                return;
-            }
+            // if (v.disabled) {
+            //     return;
+            // }
             logger.warn([...v.path, this.name, message, ...optionalParams].join(' '));
         }
     }
