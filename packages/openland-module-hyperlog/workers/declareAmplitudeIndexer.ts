@@ -26,8 +26,10 @@ export function declareAmplitudeIndexer() {
                         }
                     }, function (err: any, response: Response, body: any) {
                         if (err) {
+                            console.warn(err);
                             reject(err);
                         } else if (response.statusCode !== 200) {
+                            console.warn(response);
                             reject(Error('Amplitude status ' + response.statusCode + ': "' + body + '"'));
                         } else {
                             resolve();
