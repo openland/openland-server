@@ -5541,6 +5541,7 @@ export class HyperLogFactory extends FEntityFactory<HyperLog> {
         ],
         indexes: [
             { name: 'created', type: 'range', fields: ['createdAt'] },
+            { name: 'userEvents', type: 'range', fields: ['createdAt'] },
         ],
     };
 
@@ -5558,7 +5559,7 @@ export class HyperLogFactory extends FEntityFactory<HyperLog> {
         super(connection,
             new FNamespace('entity', 'hyperLog'),
             { enableVersioning: false, enableTimestamps: true, validator: HyperLogFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('created', ['createdAt'], false)],
+            [new FEntityIndex('created', ['createdAt'], false), new FEntityIndex('userEvents', ['createdAt'], false, (src) => src.type === 'track')],
             'HyperLog'
         );
     }
@@ -5586,6 +5587,18 @@ export class HyperLogFactory extends FEntityFactory<HyperLog> {
     }
     createCreatedStream(ctx: Context, limit: number, after?: string) {
         return this._createStream(ctx, ['entity', 'hyperLog', '__indexes', 'created'], limit, after); 
+    }
+    async rangeFromUserEvents(ctx: Context, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'userEvents'], limit, reversed);
+    }
+    async rangeFromUserEventsWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'userEvents'], limit, after, reversed);
+    }
+    async allFromUserEvents(ctx: Context, ) {
+        return await this._findAll(ctx, ['__indexes', 'userEvents']);
+    }
+    createUserEventsStream(ctx: Context, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'hyperLog', '__indexes', 'userEvents'], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new HyperLog(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'HyperLog');
