@@ -5541,7 +5541,7 @@ export class HyperLogFactory extends FEntityFactory<HyperLog> {
         ],
         indexes: [
             { name: 'created', type: 'range', fields: ['createdAt'] },
-            { name: 'userEvents', type: 'range', fields: ['createdAt'] },
+            { name: 'userEvents', type: 'range', fields: ['createdAt'], displayName: 'userEvents' },
         ],
     };
 

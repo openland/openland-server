@@ -535,7 +535,7 @@ const Schema = declareSchema(() => {
         field('date', 'number');
         field('body', 'json');
         rangeIndex('created', ['createdAt']);
-        rangeIndex('userEvents', ['createdAt']).withCondition((src) => src.type === 'track');
+        rangeIndex('userEvents', ['createdAt']).withCondition((src) => src.type === 'track').withDisplayName('userEvents');
         enableTimestamps();
     });
 

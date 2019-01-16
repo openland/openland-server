@@ -6,7 +6,7 @@ import request, { Response } from 'request';
 export function declareAmplitudeIndexer() {
     if (process.env.AMPLITUDE_KEY) {
         let apiKey = process.env.AMPLITUDE_KEY;
-        updateReader('amplitude-indexer', 1, FDB.HyperLog.createUserEventsStream(createEmptyContext(), 5), async (items) => {
+        updateReader('amplitude-indexer', 2, FDB.HyperLog.createUserEventsStream(createEmptyContext(), 5), async (items) => {
             for (let i of items) {
                 let event = i.body as { id: string, name: string, args: any, uid?: number, tid?: string, did: string };
                 var eventData = {
@@ -14,7 +14,7 @@ export function declareAmplitudeIndexer() {
                     device_id: event.did,
                     event_type: event.name,
                     event_properties: event.args,
-                    // insert_id: event.id,
+                    insert_id: event.id,
                 };
 
                 console.log('Trying to export... ' + event.id);
