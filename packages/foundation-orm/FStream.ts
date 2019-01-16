@@ -42,13 +42,18 @@ export class FStream<T extends FEntity> {
     }
 
     async next(): Promise<T[]> {
+        console.log('from');
+        console.log(FKeyEncoding.decodeFromString(this._cursor));
         if (this._cursor && this._cursor !== '') {
             let res = await resolveContext(this.ctx).rangeAfter(this.ctx, this.factory.connection, this._subspace, FKeyEncoding.decodeFromString(this._cursor) as any, { limit: this.limit });
             let d: T[] = [];
             for (let r of res) {
                 d.push(this.builder(r.item));
                 this._cursor = FKeyEncoding.encodeKeyToString(FKeyEncoding.decodeKey(r.key) as any);
+                console.log('next');
+                console.log(FKeyEncoding.decodeKey(r.key));
             }
+            console.log('end');
             return d;
         } else {
             let res = await resolveContext(this.ctx).range(this.ctx, this.factory.connection, FKeyEncoding.encodeKey(this._subspace), { limit: this.limit });
@@ -56,7 +61,10 @@ export class FStream<T extends FEntity> {
             for (let r of res) {
                 d.push(this.builder(r.item));
                 this._cursor = FKeyEncoding.encodeKeyToString(FKeyEncoding.decodeKey(r.key) as any);
+                console.log('next');
+                console.log(FKeyEncoding.decodeKey(r.key));
             }
+            console.log('end');
             return d;
         }
     }
