@@ -6,41 +6,38 @@ import request, { Response } from 'request';
 export function declareAmplitudeIndexer() {
     if (process.env.AMPLITUDE_KEY) {
         let apiKey = process.env.AMPLITUDE_KEY;
-        updateReader('amplitude-indexer', 2, FDB.HyperLog.createUserEventsStream(createEmptyContext(), 5), async (items) => {
-            for (let i of items) {
+        updateReader('amplitude-indexer', 2, FDB.HyperLog.createUserEventsStream(createEmptyContext(), 50), async (items) => {
+            let events = items.map((i) => {
                 let event = i.body as { id: string, name: string, args: any, uid?: number, tid?: string, did: string };
-                var eventData = {
+                return {
                     user_id: event.uid,
                     device_id: event.did,
                     event_type: event.name,
                     event_properties: event.args,
                     insert_id: event.id,
                 };
+            });
 
-                console.log('Trying to export... ' + event.id);
-                console.log(eventData);
-                await new Promise((resolve, reject) => {
-                    request.post({
-                        url: 'https://api.amplitude.com/httpapi',
-                        form: {
-                            api_key: apiKey,
-                            event: JSON.stringify(eventData)
-                        }
-                    }, function (err: any, response: Response, body: any) {
-                        if (err) {
-                            console.warn(err);
-                            reject(err);
-                        } else if (response.statusCode !== 200) {
-                            console.warn(response);
-                            reject(Error('Amplitude status ' + response.statusCode + ': "' + body + '"'));
-                        } else {
-                            console.log('Export successful...');
-                            resolve();
-                        }
-                    });
+            await new Promise((resolve, reject) => {
+                request.post({
+                    url: 'https://api.amplitude.com/httpapi',
+                    form: {
+                        api_key: apiKey,
+                        event: JSON.stringify(events)
+                    }
+                }, function (err: any, response: Response, body: any) {
+                    if (err) {
+                        console.warn(err);
+                        reject(err);
+                    } else if (response.statusCode !== 200) {
+                        console.warn(response);
+                        reject(Error('Amplitude status ' + response.statusCode + ': "' + body + '"'));
+                    } else {
+                        console.log('Export successful...');
+                        resolve();
+                    }
                 });
-                console.log('Export successful 2...' + event.id);
-            }
+            });
         });
     }
 }
