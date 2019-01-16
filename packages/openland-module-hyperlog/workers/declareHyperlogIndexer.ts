@@ -13,12 +13,15 @@ export function declareHyperlogIndexer() {
             }
         })
         .start(async (item) => {
+            let { tid, ...other } = item.body;
             return {
                 id: item.id!!,
                 doc: {
                     type: item.type,
                     date: item.date,
-                    body: item.body
+                    body: {
+                        ...other
+                    }
                 }
             };
         });
