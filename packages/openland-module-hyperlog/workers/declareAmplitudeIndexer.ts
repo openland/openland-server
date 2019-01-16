@@ -13,11 +13,12 @@ export function declareAmplitudeIndexer() {
                     user_id: event.uid,
                     device_id: event.did,
                     event_type: event.name,
-                    event_properties:  event.args,
-                    insert_id: event.id,
+                    event_properties: event.args,
+                    // insert_id: event.id,
                 };
 
-                console.log('Trying to export...');
+                console.log('Trying to export... ' + event.id);
+                console.log(eventData);
                 await new Promise((resolve, reject) => {
                     request.post({
                         url: 'https://api.amplitude.com/httpapi',
@@ -38,6 +39,7 @@ export function declareAmplitudeIndexer() {
                         }
                     });
                 });
+                console.log('Export successful 2...' + event.id);
             }
         });
     }
