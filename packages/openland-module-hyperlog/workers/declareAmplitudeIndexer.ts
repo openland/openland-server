@@ -17,6 +17,7 @@ export function declareAmplitudeIndexer() {
                     insert_id: event.id,
                 };
 
+                console.log('Trying to export...');
                 await new Promise((resolve, reject) => {
                     request.post({
                         url: 'https://api.amplitude.com/httpapi',
@@ -32,6 +33,7 @@ export function declareAmplitudeIndexer() {
                             console.warn(response);
                             reject(Error('Amplitude status ' + response.statusCode + ': "' + body + '"'));
                         } else {
+                            console.log('Export successful...');
                             resolve();
                         }
                     });
