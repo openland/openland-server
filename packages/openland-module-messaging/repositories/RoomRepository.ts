@@ -353,8 +353,23 @@ export class RoomRepository {
 
     async resolveConversationOrganization(parent: Context, cid: number) {
         return await inTx(parent, async (ctx) => {
+            //
+            // Legacy organization-type conversations
+            //
             let conversationOrganization = await this.entities.ConversationOrganization.findById(ctx, cid);
-            return conversationOrganization ? await this.entities.Organization.findById(ctx, conversationOrganization.oid) : null;
+            if (conversationOrganization) {
+                return await this.entities.Organization.findById(ctx, conversationOrganization.oid);
+            }
+
+            //
+            //  Modern rooms
+            //
+            let room = await this.entities.ConversationRoom.findById(ctx, cid);
+            if (room && room.oid) {
+                return await this.entities.Organization.findById(ctx, room.oid);
+            }
+
+            return null;
         });
     }
 
