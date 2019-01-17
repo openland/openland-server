@@ -236,7 +236,7 @@ export class RoomMediator {
             let typeName = conv.kind === 'group' ? 'group' : 'room';
 
             // TODO: Check Access
-            let res = await this.repo.updateRoomProfile(ctx, cid, profile);
+            let res = await this.repo.updateRoomProfile(ctx, cid, uid, profile);
             let roomProfile = (await this.entities.RoomProfile.findById(ctx, cid))!;
             if (res.updatedPhoto) {
                 await this.messaging.sendMessage(ctx, uid, cid, {

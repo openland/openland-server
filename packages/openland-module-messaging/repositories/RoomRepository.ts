@@ -159,7 +159,7 @@ export class RoomRepository {
         });
     }
 
-    async updateRoomProfile(parent: Context, cid: number, profile: Partial<RoomProfileInput>) {
+    async updateRoomProfile(parent: Context, cid: number, uid: number, profile: Partial<RoomProfileInput>) {
         return await inTx(parent, async (ctx) => {
             await this.checkRoomExists(ctx, cid);
 
@@ -219,6 +219,9 @@ export class RoomRepository {
             }
 
             if (profile.kind !== undefined && profile.kind !== null) {
+                if (!await Modules.Super.superRole(ctx, uid)) {
+                    throw new AccessDeniedError();
+                }
                 let room = await this.entities.ConversationRoom.findById(ctx, cid);
                 room!.kind = profile.kind!;
             }
