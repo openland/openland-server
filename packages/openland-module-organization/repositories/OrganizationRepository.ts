@@ -263,7 +263,6 @@ export class OrganizationRepository {
                 await this.entities.OrganizationIndexingQueue.create(ctx, oid, {});
             }
         });
-
     }
 
     //

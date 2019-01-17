@@ -92,6 +92,7 @@ export default {
             if (args.query || args.sort) {
                 let parser = new QueryParser();
                 parser.registerText('name', 'name');
+                parser.registerText('shortname', 'shortname');
                 parser.registerText('location', 'location');
                 parser.registerText('organizationType', 'organizationType');
                 parser.registerText('interest', 'interest');
