@@ -448,6 +448,28 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '38-reindex-messages',
+    migration: async (root, log) => {
+        let allKeys = await FDB.Message.findAllKeys(root);
+        let keyBatches = batch(allKeys, 100);
+        for (let kb of keyBatches) {
+            await inTx(root, async (ctx) => {
+                for (let a of kb) {
+                    let k = FKeyEncoding.decodeKey(a);
+                    k.splice(0, 2);
+                    let m = (await FDB.Message.findById(ctx, k[0] as number));
+                    if (!m) {
+                        log.warn(ctx, 'no message found! ' + JSON.stringify(k));
+                    } else {
+                        m.markDirty();
+                    }
+                }
+            });
+        }
+    }
+});
+
 export function startMigrationsWorker() {
     if (serverRoleEnabled('workers')) {
         staticWorker({ name: 'foundation-migrator' }, async (ctx) => {

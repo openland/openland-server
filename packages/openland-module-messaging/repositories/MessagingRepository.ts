@@ -3,6 +3,7 @@ import { inTx } from 'foundation-orm/inTx';
 import { MessageInput } from 'openland-module-messaging/MessageInput';
 import { injectable, inject } from 'inversify';
 import { Context } from 'openland-utils/Context';
+import { DoubleInvokeError } from '../../openland-errors/DoubleInvokeError';
 
 @injectable()
 export class MessagingRepository {
@@ -18,6 +19,10 @@ export class MessagingRepository {
             // 
             // Persist Messages
             //
+
+            if (message.repeatKey && await this.entities.Message.findFromRepeat(ctx, uid, cid, message.repeatKey)) {
+                throw new DoubleInvokeError();
+            }
 
             let mid = await this.fetchNextMessageId(ctx);
             let msg = await this.entities.Message.create(ctx, mid, {

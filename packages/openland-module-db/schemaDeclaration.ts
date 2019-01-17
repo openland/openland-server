@@ -431,6 +431,7 @@ const Schema = declareSchema(() => {
         field('deleted', 'boolean').nullable();
         rangeIndex('chat', ['cid', 'id']).withCondition((src) => !src.deleted);
         rangeIndex('updated', ['updatedAt']);
+        uniqueIndex('repeat', ['uid', 'cid', 'repeatKey']).withCondition((src) => !!src.repeatKey);
         enableVersioning();
         enableTimestamps();
     });

@@ -4497,6 +4497,7 @@ export class MessageFactory extends FEntityFactory<Message> {
         indexes: [
             { name: 'chat', type: 'range', fields: ['cid', 'id'] },
             { name: 'updated', type: 'range', fields: ['updatedAt'] },
+            { name: 'repeat', type: 'unique', fields: ['uid', 'cid', 'repeatKey'] },
         ],
     };
 
@@ -4526,7 +4527,7 @@ export class MessageFactory extends FEntityFactory<Message> {
         super(connection,
             new FNamespace('entity', 'message'),
             { enableVersioning: true, enableTimestamps: true, validator: MessageFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('chat', ['cid', 'id'], false, (src) => !src.deleted), new FEntityIndex('updated', ['updatedAt'], false)],
+            [new FEntityIndex('chat', ['cid', 'id'], false, (src) => !src.deleted), new FEntityIndex('updated', ['updatedAt'], false), new FEntityIndex('repeat', ['uid', 'cid', 'repeatKey'], true, (src) => !!src.repeatKey)],
             'Message'
         );
     }
@@ -4572,6 +4573,27 @@ export class MessageFactory extends FEntityFactory<Message> {
     }
     createUpdatedStream(ctx: Context, limit: number, after?: string) {
         return this._createStream(ctx, ['entity', 'message', '__indexes', 'updated'], limit, after); 
+    }
+    async findFromRepeat(ctx: Context, uid: number, cid: number, repeatKey: string) {
+        return await this._findFromIndex(ctx, ['__indexes', 'repeat', uid, cid, repeatKey]);
+    }
+    async allFromRepeatAfter(ctx: Context, uid: number, cid: number, after: string) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'repeat', uid, cid], after);
+    }
+    async rangeFromRepeatAfter(ctx: Context, uid: number, cid: number, after: string, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'repeat', uid, cid], after, limit, reversed);
+    }
+    async rangeFromRepeat(ctx: Context, uid: number, cid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'repeat', uid, cid], limit, reversed);
+    }
+    async rangeFromRepeatWithCursor(ctx: Context, uid: number, cid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'repeat', uid, cid], limit, after, reversed);
+    }
+    async allFromRepeat(ctx: Context, uid: number, cid: number) {
+        return await this._findAll(ctx, ['__indexes', 'repeat', uid, cid]);
+    }
+    createRepeatStream(ctx: Context, uid: number, cid: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'message', '__indexes', 'repeat', uid, cid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new Message(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Message');
