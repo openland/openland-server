@@ -3,11 +3,19 @@ import { container } from 'openland-modules/Modules.container';
 import { createEmptyContext } from 'openland-utils/Context';
 import { ShortnameRepository } from './ShortnameRepository';
 import { SuperModule } from '../../openland-module-super/SuperModule';
+import { UsersModule } from '../../openland-module-users/UsersModule';
+import { UserRepository } from '../../openland-module-users/repositories/UserRepository';
+import { OrganizationModule } from '../../openland-module-organization/OrganizationModule';
+import { OrganizationRepository } from '../../openland-module-organization/repositories/OrganizationRepository';
 
 describe('ShortnameRepository', () => {
     beforeAll(async () => {
         await testEnvironmentStart('shortnames');
         container.bind(SuperModule).toSelf().inSingletonScope();
+        container.bind(UsersModule).toSelf().inSingletonScope();
+        container.bind(OrganizationModule).toSelf().inSingletonScope();
+        container.bind('UserRepository').to(UserRepository).inSingletonScope();
+        container.bind('OrganizationRepository').to(OrganizationRepository).inSingletonScope();
         container.bind('ShortnameRepository').to(ShortnameRepository).inSingletonScope();
     });
     afterAll(() => {
