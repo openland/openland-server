@@ -524,21 +524,21 @@ export class RoomRepository {
                 }
             }
 
-            let availableRooms: number[] = [];
+            let availableRooms = new Set<number>();
 
             for (let org of organizations) {
                 let rooms = await this.entities.ConversationRoom.allFromOrganizationPublicRooms(ctx, org);
                 for (let room of rooms) {
                     if (room.kind === 'public') {
-                        availableRooms.push(room.id);
+                        availableRooms.add(room.id);
                     } else if (userOrgs.indexOf(org) > -1) {
-                        availableRooms.push(room.id);
+                        availableRooms.add(room.id);
                     }
                 }
-                availableRooms.push(...rooms.map(r => r.id));
+                rooms.map(r => availableRooms.add(r.id));
             }
 
-            return availableRooms;
+            return [...availableRooms];
         });
     }
 
