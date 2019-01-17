@@ -43,7 +43,7 @@ export const TokenChecker = async function (req: express.Request, response: expr
         if (accessToken) {
             let uid = await Modules.Auth.findToken(createEmptyContext(), accessToken as string);
             if (uid !== null) {
-                req.user = { uid: uid.uid, tid: uid.uid };
+                req.user = { uid: uid.uid, tid: uid.uuid };
             }
         }
     } catch (e) {
