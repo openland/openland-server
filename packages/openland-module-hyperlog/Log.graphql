@@ -1,0 +1,8 @@
+input Event {
+    id: String!
+    event: String!
+    params: String
+}
+extend type Mutation {
+    track(did: String!, events: [Event!]!): String!
+}
