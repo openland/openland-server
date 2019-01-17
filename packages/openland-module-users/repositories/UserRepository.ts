@@ -199,4 +199,18 @@ export class UserRepository {
             }
         }
     }
+
+    //
+    // Tools
+    //
+    async markForUndexing(parent: Context, uid: number) {
+        return await inTx(parent, async (ctx) => {
+            let existing = await this.entities.UserIndexingQueue.findById(ctx, uid);
+            if (existing) {
+                existing.markDirty();
+            } else {
+                await this.entities.UserIndexingQueue.create(ctx, uid, {});
+            }
+        });
+    }
 }

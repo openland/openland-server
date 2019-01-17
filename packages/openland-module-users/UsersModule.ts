@@ -92,4 +92,8 @@ export class UsersModule {
             return profile.firstName;
         }
     }
+
+    async markForUndexing(ctx: Context, uid: number) {
+        return this.repo.markForUndexing(ctx, uid);
+    }
 }

@@ -110,6 +110,7 @@ export default {
                 if (args.input.primaryOrganization) {
                     profile.primaryOrganization = IDs.Organization.parse(args.input.primaryOrganization);
                 }
+                await Modules.Users.markForUndexing(ctx, uid);
                 return user;
             });
         }),
@@ -204,6 +205,7 @@ export default {
                 // Call hook
                 await profile.flush();
                 await Modules.Hooks.onUserProfileUpdated(ctx, profile.id);
+                await Modules.Users.markForUndexing(ctx, uid);
 
                 return user;
             });

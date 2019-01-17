@@ -81,7 +81,11 @@ export class ShortnameRepository {
     }
 
     async setShortnameToUser(parent: Context, shortname: string, uid: number) {
-        return await this.setShortName(parent, shortname, uid, 'user', uid);
+        return await inTx(parent, async ctx => {
+            let res = await this.setShortName(parent, shortname, uid, 'user', uid);
+            await Modules.Users.markForUndexing(ctx, uid);
+            return res;
+        });
     }
 
     async setShortnameToOrganization(parent: Context, shortname: string, oid: number, uid: number) {

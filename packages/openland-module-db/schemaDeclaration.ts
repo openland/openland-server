@@ -197,6 +197,13 @@ const Schema = declareSchema(() => {
         enableVersioning();
     });
 
+    entity('UserIndexingQueue', () => {
+        primaryKey('id', 'number');
+        rangeIndex('updated', ['updatedAt']);
+        enableTimestamps();
+        enableVersioning();
+    });
+
     entity('Organization', () => {
         primaryKey('id', 'number');
         field('ownerId', 'number');

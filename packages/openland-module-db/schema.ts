@@ -2122,6 +2122,70 @@ export class UserProfileFactory extends FEntityFactory<UserProfile> {
         return new UserProfile(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserProfile');
     }
 }
+export interface UserIndexingQueueShape {
+}
+
+export class UserIndexingQueue extends FEntity {
+    readonly entityName: 'UserIndexingQueue' = 'UserIndexingQueue';
+    get id(): number { return this._value.id; }
+}
+
+export class UserIndexingQueueFactory extends FEntityFactory<UserIndexingQueue> {
+    static schema: FEntitySchema = {
+        name: 'UserIndexingQueue',
+        editable: false,
+        primaryKeys: [
+            { name: 'id', type: 'number' },
+        ],
+        fields: [
+        ],
+        indexes: [
+            { name: 'updated', type: 'range', fields: ['updatedAt'] },
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isNumber('id', src.id);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'userIndexingQueue'),
+            { enableVersioning: true, enableTimestamps: true, validator: UserIndexingQueueFactory.validate, hasLiveStreams: false },
+            [new FEntityIndex('updated', ['updatedAt'], false)],
+            'UserIndexingQueue'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
+        return { 'id': rawId[0] };
+    }
+    async findById(ctx: Context, id: number) {
+        return await this._findById(ctx, [id]);
+    }
+    async create(ctx: Context, id: number, shape: UserIndexingQueueShape) {
+        return await this._create(ctx, [id], { id, ...shape });
+    }
+    watch(ctx: Context, id: number, cb: () => void) {
+        return this._watch(ctx, [id], cb);
+    }
+    async rangeFromUpdated(ctx: Context, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'updated'], limit, reversed);
+    }
+    async rangeFromUpdatedWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'updated'], limit, after, reversed);
+    }
+    async allFromUpdated(ctx: Context, ) {
+        return await this._findAll(ctx, ['__indexes', 'updated']);
+    }
+    createUpdatedStream(ctx: Context, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'userIndexingQueue', '__indexes', 'updated'], limit, after); 
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new UserIndexingQueue(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserIndexingQueue');
+    }
+}
 export interface OrganizationShape {
     ownerId: number;
     status: 'pending' | 'activated' | 'suspended' | 'deleted';
@@ -7477,6 +7541,7 @@ export interface AllEntities {
     readonly UserProfilePrefil: UserProfilePrefilFactory;
     readonly User: UserFactory;
     readonly UserProfile: UserProfileFactory;
+    readonly UserIndexingQueue: UserIndexingQueueFactory;
     readonly Organization: OrganizationFactory;
     readonly OrganizationProfile: OrganizationProfileFactory;
     readonly OrganizationEditorial: OrganizationEditorialFactory;
@@ -7541,6 +7606,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         UserProfilePrefilFactory.schema,
         UserFactory.schema,
         UserProfileFactory.schema,
+        UserIndexingQueueFactory.schema,
         OrganizationFactory.schema,
         OrganizationProfileFactory.schema,
         OrganizationEditorialFactory.schema,
@@ -7604,6 +7670,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     UserProfilePrefil: UserProfilePrefilFactory;
     User: UserFactory;
     UserProfile: UserProfileFactory;
+    UserIndexingQueue: UserIndexingQueueFactory;
     Organization: OrganizationFactory;
     OrganizationProfile: OrganizationProfileFactory;
     OrganizationEditorial: OrganizationEditorialFactory;
@@ -7682,6 +7749,8 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         this.allEntities.push(this.User);
         this.UserProfile = new UserProfileFactory(connection);
         this.allEntities.push(this.UserProfile);
+        this.UserIndexingQueue = new UserIndexingQueueFactory(connection);
+        this.allEntities.push(this.UserIndexingQueue);
         this.Organization = new OrganizationFactory(connection);
         this.allEntities.push(this.Organization);
         this.OrganizationProfile = new OrganizationProfileFactory(connection);
@@ -7823,6 +7892,9 @@ export class AllEntitiesProxy implements AllEntities {
     }
     get UserProfile(): UserProfileFactory {
         return this.resolver().UserProfile;
+    }
+    get UserIndexingQueue(): UserIndexingQueueFactory {
+        return this.resolver().UserIndexingQueue;
     }
     get Organization(): OrganizationFactory {
         return this.resolver().Organization;

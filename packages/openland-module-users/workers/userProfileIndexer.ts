@@ -4,7 +4,7 @@ import { Modules } from 'openland-modules/Modules';
 import { createEmptyContext } from 'openland-utils/Context';
 
 export function userProfileIndexer() {
-    declareSearchIndexer('user-profile-index', 7, 'user_profile', FDB.UserProfile.createByUpdatedAtStream(createEmptyContext(), 50))
+    declareSearchIndexer('user-profile-index', 8, 'user_profile', FDB.UserIndexingQueue.createUpdatedStream(createEmptyContext(), 50))
         .withProperties({
             primaryOrganization: {
                 type: 'keyword'
@@ -45,14 +45,15 @@ export function userProfileIndexer() {
         })
         .start(async (item) => {
             let ctx = createEmptyContext();
+            let profile = (await FDB.UserProfile.findById(ctx, item.id))!;
             let shortName = await Modules.Shortnames.findUserShortname(ctx, item.id);
             let orgs = await Modules.Orgs.findUserOrganizations(ctx, item.id);
 
             let searchData: (string | undefined | null)[] = [];
-            searchData.push(item.firstName);
-            searchData.push(item.lastName);
+            searchData.push(profile.firstName);
+            searchData.push(profile.lastName);
             searchData.push(shortName ? shortName.shortname : undefined);
-            searchData.push(item.email);
+            searchData.push(profile.email);
 
             let invitedByName: string | undefined;
             let user = await FDB.User.findById(ctx, item.id);
@@ -66,13 +67,13 @@ export function userProfileIndexer() {
             return {
                 id: item.id!!,
                 doc: {
-                    firstName: item.firstName,
-                    lastName: item.lastName,
-                    name: (item.firstName || '') + (item.lastName || ''),
+                    firstName: profile.firstName,
+                    lastName: profile.lastName,
+                    name: (profile.firstName || '') + (profile.lastName || ''),
                     shortName: shortName ? shortName.shortname : undefined,
                     userId: item.id,
                     search: searchData.join(' '),
-                    primaryOrganization: item.primaryOrganization,
+                    primaryOrganization: profile.primaryOrganization,
                     organizations: orgs,
                     ivitedBy: user ? user.invitedBy : undefined,
                     letInvitedByName: invitedByName,
