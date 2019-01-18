@@ -179,5 +179,4 @@ extend type Mutation {
     # Admin tools
     betaRoomAlterFeatured(roomId: ID!, featured: Boolean!): RoomSuper!
     betaRoomAlterListed(roomId: ID!, listed: Boolean!): RoomSuper!
-    
 }

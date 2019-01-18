@@ -60,15 +60,18 @@ export default {
     },
     PrivateRoom: {
         id: (root: RoomRoot) => IDs.Conversation.serialize(typeof root === 'number' ? root : root.id),
-        user: async (root: RoomRoot, args: {}, ctx: AppContext) => {
-            let proom = (await FDB.ConversationPrivate.findById(ctx, typeof root === 'number' ? root : root.id))!;
-            if (proom.uid1 === ctx.auth.uid!) {
-                return proom.uid2;
-            } else if (proom.uid2 === ctx.auth.uid!) {
-                return proom.uid1;
-            } else {
-                throw new AccessDeniedError();
-            }
+        user: async (root: RoomRoot, args: {}, parent: AppContext) => {
+            // In some cases we can't get ConversationPrivate here because it's not available in previous transaction, so we create new one
+            return await inTx(parent, async (ctx) => {
+                let proom = (await FDB.ConversationPrivate.findById(ctx, typeof root === 'number' ? root : root.id))!;
+                if (proom.uid1 === parent.auth.uid!) {
+                    return proom.uid2;
+                } else if (proom.uid2 === parent.auth.uid!) {
+                    return proom.uid1;
+                } else {
+                    throw new AccessDeniedError();
+                }
+            });
         },
         settings: async (root: RoomRoot, args: {}, ctx: AppContext) => await Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, (typeof root === 'number' ? root : root.id))
     },
@@ -265,7 +268,7 @@ export default {
             if (id.type === IDs.Conversation) {
                 return id.id;
             } else if (id.type === IDs.User) {
-                return Modules.Messaging.room.resolvePrivateChat(ctx, id.id, uid);
+                return await Modules.Messaging.room.resolvePrivateChat(ctx, id.id, uid);
             } else if (id.type === IDs.Organization) {
                 let member = await FDB.OrganizationMember.findById(ctx, id.id, uid);
                 if (!member || member.status !== 'joined') {
@@ -487,6 +490,5 @@ export default {
         betaRoomAlterListed: withPermission('super-admin', async (ctx, args) => {
             return await Modules.Messaging.room.setListed(ctx, IDs.Conversation.parse(args.roomId), args.listed);
         }),
-
     }
 } as GQLResolver;
