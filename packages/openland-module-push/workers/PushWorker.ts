@@ -79,9 +79,9 @@ export function createPushWorker(repo: PushRepository) {
                         //
                         let iosTokens = await repo.getUserApplePushTokens(ctx, args.uid);
                         for (let t of iosTokens) {
-                            if (args.silent) {
-                                let unread = (await Modules.Messaging.getUserMessagingState(ctx, args.uid)).unread;
+                            let unread = (await Modules.Messaging.getUserMessagingState(ctx, args.uid)).unread;
 
+                            if (args.silent) {
                                 await Modules.Push.appleWorker.pushWork(ctx, {
                                     uid: args.uid,
                                     tokenId: t.id,
@@ -98,7 +98,7 @@ export function createPushWorker(repo: PushRepository) {
                                     tokenId: t.id,
                                     sound: args.mobileAlert ? 'default' : undefined,
                                     contentAvailable: true,
-                                    badge: args.counter,
+                                    badge: unread,
                                     alert: {
                                         title: args.title,
                                         body: mobileBody
