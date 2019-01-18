@@ -100,6 +100,17 @@ export class AppsRepository {
         });
     }
 
+    async deleteApp(parent: Context, uid: number, appId: number) {
+        return await inTx(parent, async (ctx) => {
+            if (!this.isAppOwner(ctx,  uid, appId)) {
+                throw new AccessDeniedError();
+            }
+            let appUser = await this.entities.User.findById(ctx, appId);
+            appUser!.status = 'deleted';
+            return true;
+        });
+    }
+
     private async canCreateApp(parent: Context, uid: number) {
         return await inTx(parent, async (ctx) => {
             let user = await this.entities.User.findById(ctx, uid);

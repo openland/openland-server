@@ -33,4 +33,8 @@ export class AppsModule {
     async isAppOwner(ctx: Context, uid: number, appId: number) {
         return this.repo.isAppOwner(ctx, uid, appId);
     }
+
+    async deleteApp(ctx: Context, uid: number, appId: number) {
+        return this.repo.deleteApp(ctx, uid, appId);
+    }
 }

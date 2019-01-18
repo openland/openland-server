@@ -85,5 +85,9 @@ export default {
                 return Modules.DB.entities.User.findById(ctx, botId);
             });
         }),
+        deleteApp: withAccount(async (ctx, args, uid, orgId) => {
+            let appId = IDs.User.parse(args.appId);
+            return Modules.Bots.deleteApp(ctx, uid, appId);
+        })
     },
 } as GQLResolver;
