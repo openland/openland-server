@@ -140,7 +140,7 @@ export function createPushWorker(repo: PushRepository) {
                                     ['message']: mobileBody,
                                     ['soundName']: args.mobileAlert ? 'default' : 'silence.mp3',
                                     ['id']: doSimpleHash(IDs.Conversation.serialize(args.conversationId)).toString(),
-                                    ['color']: '#4747EC',
+                                    // ['color']: '#4747EC',
                                     ...(args.picture ? { ['picture']: args.picture! } : {}),
                                 }
                             });
