@@ -43,7 +43,7 @@ export class ShortnameRepository {
         'communities',
         'marketplace',
         'mail',
-        'support',
+        // 'support',
         'super',
         'compatibility',
         'performance',
