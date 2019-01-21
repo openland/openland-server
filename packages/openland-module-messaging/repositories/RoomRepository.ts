@@ -245,6 +245,24 @@ export class RoomRepository {
         });
     }
 
+    async moveRoom(parent: Context, cid: number, uid: number, toOrg: number) {
+        return await inTx(parent, async (ctx) => {
+            let room = await this.entities.ConversationRoom.findById(ctx, cid);
+
+            if (!room) {
+                throw new NotFoundError();
+            }
+
+            if (!Modules.Orgs.isUserMember(ctx, uid, toOrg)) {
+                throw new AccessDeniedError();
+            }
+
+            room.oid = toOrg;
+
+            return (await this.entities.Conversation.findById(ctx, cid))!;
+        });
+    }
+
     //
     // Editorial
     //

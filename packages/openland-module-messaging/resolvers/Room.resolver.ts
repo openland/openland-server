@@ -391,6 +391,9 @@ export default {
 
             return room;
         }),
+        betaRoomMove: withUser(async (ctx, args, uid) => {
+            return await Modules.Messaging.room.moveRoom(ctx, IDs.Conversation.parse(args.roomId), uid, IDs.Organization.parse(args.toOrg));
+        }),
 
         //
         // Members mgmt

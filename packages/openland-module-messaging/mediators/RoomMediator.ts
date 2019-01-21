@@ -298,6 +298,10 @@ export class RoomMediator {
         await this.delivery.onDialogMuteChanged(ctx, uid, cid, mute);
     }
 
+    async moveRoom(ctx: Context, cid: number, uid: number, toOrg: number) {
+        return await this.repo.moveRoom(ctx, cid, uid, toOrg);
+    }
+
     //
     // Queries
     //
