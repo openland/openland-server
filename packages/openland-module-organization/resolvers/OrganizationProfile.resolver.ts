@@ -64,16 +64,14 @@ export default {
 
             let orgId = oid;
             if (args.id) {
-                let role = await Modules.Super.superRole(parent, uid);
-                if (!(role === 'super-admin' || role === 'editor')) {
-                    throw new UserError(ErrorText.permissionOnlyOwner);
-                }
                 orgId = IDs.Organization.parse(args.id);
-            } else {
-                let member = await FDB.OrganizationMember.findById(parent, oid, uid);
-                if (member === null || member.status !== 'joined' || member.role !== 'admin') {
-                    throw new UserError(ErrorText.permissionOnlyOwner);
-                }
+            }
+
+            let isSuper = ['super-admin', 'editor'].indexOf((await Modules.Super.superRole(parent, uid)) || 'none') > -1;
+
+            let member = await FDB.OrganizationMember.findById(parent, oid, uid);
+            if ((member === null || member.status !== 'joined' || member.role !== 'admin') && !isSuper) {
+                throw new UserError(ErrorText.permissionOnlyOwner);
             }
 
             return await inTx(parent, async (ctx) => {
