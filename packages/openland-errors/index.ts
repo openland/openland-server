@@ -5,6 +5,7 @@ import { UserError } from './UserError';
 import { InvalidInputError } from './InvalidInputError';
 import Raven from 'raven';
 import { DoubleInvokeError } from './DoubleInvokeError';
+import { AccessDeniedError } from './AccessDeniedError';
 
 interface FormattedError {
     uuid: string;
@@ -30,6 +31,11 @@ export function errorHandler(error: { message: string, originalError: any }): Fo
             uuid: uuid,
         };
     } else if (error.originalError instanceof UserError) {
+        return {
+            message: error.originalError.message,
+            uuid: uuid,
+        };
+    } else if (error.originalError instanceof AccessDeniedError) {
         return {
             message: error.originalError.message,
             uuid: uuid,
