@@ -144,7 +144,3 @@ function getLink(doc: CheerioStatic, rel: string): string | null {
 
     return data[0] ? data[0].attribs.href : null;
 }
-
-(async function () {
-    console.log(await fetchURLInfo('https://ru.wikipedia.org/wiki/%D0%AF%D0%B1%D0%BB%D0%BE%D0%BA%D0%BE'));
-})();
