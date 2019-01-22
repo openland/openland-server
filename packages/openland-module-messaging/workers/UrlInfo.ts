@@ -46,6 +46,8 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
     let text = await res.text();
     let doc = cheerio.load(text);
 
+    let { hostname, protocol } = URL.parse(url);
+
     let title =
         getMeta(doc, 'og:title') ||
         getMeta(doc, 'vk:title') ||
@@ -59,13 +61,15 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
         getMeta(doc, 'twitter:description') ||
         null;
 
+    if (hostname && hostname.endsWith('wikipedia.org')) {
+        description = doc('p', '.mw-parser-output').first().text();
+    }
+
     let imageURL =
         getMeta(doc, 'og:image') ||
         getMeta(doc, 'vk:image') ||
         getMeta(doc, 'twitter:image') ||
         null;
-
-    let { hostname, protocol } = URL.parse(url);
 
     let imageInfo: FileInfo | null = null;
     let imageRef: ImageRef | null = null;
@@ -140,3 +144,7 @@ function getLink(doc: CheerioStatic, rel: string): string | null {
 
     return data[0] ? data[0].attribs.href : null;
 }
+
+(async function () {
+    console.log(await fetchURLInfo('https://ru.wikipedia.org/wiki/%D0%AF%D0%B1%D0%BB%D0%BE%D0%BA%D0%BE'));
+})();
