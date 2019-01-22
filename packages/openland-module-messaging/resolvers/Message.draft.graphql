@@ -1,63 +1,127 @@
-type Message {
+interface BaseMessage {
+    #
+    #   State
+    #
     id: ID!
     date: Date!
     sender: User!
-    room: SharedRoom!
-    repeatKey: String!
-    edited: Boolean!
-    mentioned: Boolean!
 
     #
     #   Content
     #
     message: String
-    media: [MessageMedia!]
-    keyboard: MessageKeyboard
-    forwardMessages: [Message!]
-    mentions: [Mention!]
-    textDescription: String!
+    spans: [MessageSpan!]!
+    fallback: String!
+}
+
+type ServiceMessage implements Message  {
+    #
+    #   State
+    #
+    id: ID!
+    date: Date!
+    sender: User!
 
     #
-    #   Service metadata
+    #   Content
     #
-    service: Boolean!
+    message: String
+    spans: [MessageSpan!]!
     serviceMetadata: ServiceMetadata
+    fallback: String!
+}
 
-    reactions: [MessageReaction!]
+type Message implements Message {
+    #
+    #   State
+    #
+    id: ID!
+    date: Date!
+    sender: User!
+    edited: Boolean!
+    reactions: [MessageReaction!]!
+
+    #
+    #   Content
+    #
+    message: String
+    spans: [MessageSpan!]!
+    attachments: [MessageAttachment!]!
+    quotedMessages: [Message!]!
+    fallback: String!
 }
 
 extend type Mutation {
-    sendMessage(room: ID!, message: String, repeatKey: String, forwardMessages: [ID!], mentions: [ID!], media: [MessageMediaInput!]): Boolean!
+    sendMessage(room: ID!, message: String, repeatKey: String, forwardMessages: [ID!], spans: [MessageSpanInput!], attachments: [MessageAttachmentInput!]): Boolean!
 }
 
 #
-#   Media
+#   Attachments
 #
-union MessageMedia = MessageMediaFile | UrlAugmentation
 
-type MessageMediaFile {
+interface MessageAttachment {
+    id: ID!
+    fallback: String!
+}
+
+type MessageRichAttachment implements MessageAttachment {
+    id: ID!
+    title: String
+    titleLink: String
+    text: String
+    icon: String
+    image: String
+    keyboard: MessageKeyboard
+    fallback: String!
+}
+
+type MessageAttachmentFile implements MessageAttachment {
+    id: ID!
     fileId: String!
     fileMetadata: FileMetadata!
     filePreview: String
+    fallback: String!
 }
 
-union MessageMediaInput = MessageMediaFileInput
+type MessageAttachmentPost implements MessageAttachment {
+    id: ID!
+    post: FeedItem!
+    fallback: String!
+}
 
-input MessageMediaFileInput {
-    uuid: String!
+union MessageAttachmentInput = MessageRichAttachmentInput | MessageAttachmentFileInput | MessageAttachmentPostInput
+
+input MessageRichAttachmentInput {
+    title: String
+    titleLink: String
+    text: String
+    icon: String
+    image: String
+    keyboard: MessageKeyboardInput
+    fallback: String
+}
+
+type MessageAttachmentFileInput {
+    fileId: String!
+    fallback: String
+}
+
+type MessageAttachmentPostInput {
+    postId: ID!
+    fallback: String
 }
 
 #
 #   Keyboard
 #
 type MessageKeyboard {
-    buttons: [[MessageButton!]]
+    buttons: [[MessageButton!]]!
 }
 
 type MessageButton {
+    id: ID!
     title: String!
     style: MessageButtonStyle!
-    id: ID!
 }
 
 enum MessageButtonStyle {
@@ -65,23 +129,64 @@ enum MessageButtonStyle {
     LIGHT
 }
 
-#
-#   Mentions
-#
-type UserMention {
-    user: User!
+input MessageKeyboardInput {
+    buttons: [[MessageButton!]]!
 }
 
-type SharedRoomMention {
-    sharedRoom: SharedRoom!
+input MessageButtonInput {
+    id: ID!
+    title: String!
+    style: MessageButtonStyle!
 }
-
-union Mention = UserMention | SharedRoomMention
 
 #
 #   Reactions
 #
+
+enum MessageReactionType {
+    LIKE,
+    THUMB_UP,
+    JOY,
+    SCREAM,
+    ANGRY
+}
+
 type MessageReaction {
     user: User!,
-    reaction: String!
+    reaction: MessageReactionType!
+}
+
+#
+#   Rich text
+#
+
+interface MessageSpan {
+    offset: Int!
+    length: Int!
+}
+
+type MessageSpanUserMention implements MessageSpan {
+    offset: Int!
+    length: Int!
+    user: User!
+}
+
+type MessageSpanRoomMention implements MessageSpan {
+    offset: Int!
+    length: Int!
+    room: Room!
+}
+
+union MessageSpanInput = MessageSpanUserMentionInput | MessageSpanRoomMentionInput
+
+input MessageSpanUserMentionInput {
+    offset: Int!
+    length: Int!
+    userId: ID!
+}
+
+input MessageSpanRoomMentionInput {
+    offset: Int!
+    length: Int!
+    roomId: ID!
 }
