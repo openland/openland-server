@@ -41,6 +41,7 @@ export class InvitesOrganizationRepository {
             let existing = await this.entities.OrganizationInviteLink.findFromEmailInOrganization(ctx, email, oid);
             if (existing) {
                 existing.enabled = false;
+                await existing.flush();
             }
             let res = await this.entities.OrganizationInviteLink.create(ctx, randomGlobalInviteKey(), { oid, email, uid, firstName, lastName, text, enabled: true, joined: false, role, ttl: new Date().getTime() + 1000 * 60 * 60 * 24 * 7 });
             return res;
@@ -80,6 +81,7 @@ export class InvitesOrganizationRepository {
             let existing = await this.entities.OrganizationPublicInviteLink.findFromUserInOrganization(ctx, uid, oid);
             if (existing) {
                 existing.enabled = false;
+                await existing.flush();
             }
             let res = await this.entities.OrganizationPublicInviteLink.create(ctx, randomGlobalInviteKey(), { uid, oid, enabled: true });
             return res;
