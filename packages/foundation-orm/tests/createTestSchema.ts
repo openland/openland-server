@@ -43,6 +43,12 @@ const Schema = declareSchema(() => {
         primaryKey('id', 'number');
         field('flag', 'boolean').nullable();
     });
+
+    entity('RangeTest', () => {
+        primaryKey('id', 'number');
+        field('key', 'number');
+        rangeIndex('default', ['key', 'id']);
+    });
 });
 
 generate(Schema, __dirname + '/testSchema.ts');

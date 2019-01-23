@@ -599,6 +599,89 @@ export class NullableEntityFactory extends FEntityFactory<NullableEntity> {
         return new NullableEntity(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'NullableEntity');
     }
 }
+export interface RangeTestShape {
+    key: number;
+}
+
+export class RangeTest extends FEntity {
+    readonly entityName: 'RangeTest' = 'RangeTest';
+    get id(): number { return this._value.id; }
+    get key(): number {
+        return this._value.key;
+    }
+    set key(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.key) { return; }
+        this._value.key = value;
+        this.markDirty();
+    }
+}
+
+export class RangeTestFactory extends FEntityFactory<RangeTest> {
+    static schema: FEntitySchema = {
+        name: 'RangeTest',
+        editable: false,
+        primaryKeys: [
+            { name: 'id', type: 'number' },
+        ],
+        fields: [
+            { name: 'key', type: 'number' },
+        ],
+        indexes: [
+            { name: 'default', type: 'range', fields: ['key', 'id'] },
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isNumber('id', src.id);
+        validators.notNull('key', src.key);
+        validators.isNumber('key', src.key);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'rangeTest'),
+            { enableVersioning: false, enableTimestamps: false, validator: RangeTestFactory.validate, hasLiveStreams: false },
+            [new FEntityIndex('default', ['key', 'id'], false)],
+            'RangeTest'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
+        return { 'id': rawId[0] };
+    }
+    async findById(ctx: Context, id: number) {
+        return await this._findById(ctx, [id]);
+    }
+    async create(ctx: Context, id: number, shape: RangeTestShape) {
+        return await this._create(ctx, [id], { id, ...shape });
+    }
+    watch(ctx: Context, id: number, cb: () => void) {
+        return this._watch(ctx, [id], cb);
+    }
+    async allFromDefaultAfter(ctx: Context, key: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'default', key], after);
+    }
+    async rangeFromDefaultAfter(ctx: Context, key: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'default', key], after, limit, reversed);
+    }
+    async rangeFromDefault(ctx: Context, key: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'default', key], limit, reversed);
+    }
+    async rangeFromDefaultWithCursor(ctx: Context, key: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'default', key], limit, after, reversed);
+    }
+    async allFromDefault(ctx: Context, key: number) {
+        return await this._findAll(ctx, ['__indexes', 'default', key]);
+    }
+    createDefaultStream(ctx: Context, key: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'rangeTest', '__indexes', 'default', key], limit, after); 
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new RangeTest(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'RangeTest');
+    }
+}
 
 export interface AllEntities {
     readonly connection: FConnection;
@@ -609,6 +692,7 @@ export interface AllEntities {
     readonly IndexedRangeEntity: IndexedRangeEntityFactory;
     readonly IndexedPartialEntity: IndexedPartialEntityFactory;
     readonly NullableEntity: NullableEntityFactory;
+    readonly RangeTest: RangeTestFactory;
 }
 export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     static readonly schema: FEntitySchema[] = [
@@ -619,6 +703,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         IndexedRangeEntityFactory.schema,
         IndexedPartialEntityFactory.schema,
         NullableEntityFactory.schema,
+        RangeTestFactory.schema,
     ];
     allEntities: FEntityFactory<FEntity>[] = [];
     SimpleEntity: SimpleEntityFactory;
@@ -628,6 +713,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     IndexedRangeEntity: IndexedRangeEntityFactory;
     IndexedPartialEntity: IndexedPartialEntityFactory;
     NullableEntity: NullableEntityFactory;
+    RangeTest: RangeTestFactory;
 
     constructor(connection: FConnection) {
         super(connection);
@@ -645,6 +731,8 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         this.allEntities.push(this.IndexedPartialEntity);
         this.NullableEntity = new NullableEntityFactory(connection);
         this.allEntities.push(this.NullableEntity);
+        this.RangeTest = new RangeTestFactory(connection);
+        this.allEntities.push(this.RangeTest);
     }
 }
 export class AllEntitiesProxy implements AllEntities {
@@ -671,6 +759,9 @@ export class AllEntitiesProxy implements AllEntities {
     }
     get NullableEntity(): NullableEntityFactory {
         return this.resolver().NullableEntity;
+    }
+    get RangeTest(): RangeTestFactory {
+        return this.resolver().RangeTest;
     }
     private resolver: () => AllEntities;
     constructor(resolver: () => AllEntities) {

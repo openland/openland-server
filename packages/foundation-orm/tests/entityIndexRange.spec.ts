@@ -262,4 +262,29 @@ describe('FEntity with range index', () => {
         // expect(res6.items[0].id).toBe(8);
         // expect(res6.items[1].id).toBe(7);
     });
+
+    it('reversed paging should work correctly in tx', async () => {
+        let parent = createEmptyContext();
+        await inTx(parent, async (ctx) => {
+            await testEntities.RangeTest.create(ctx, 550, { key: 1 });
+            await testEntities.RangeTest.create(ctx, 551, { key: 1 });
+            await testEntities.RangeTest.create(ctx, 552, { key: 1 });
+            await testEntities.RangeTest.create(ctx, 553, { key: 1 });
+            await testEntities.RangeTest.create(ctx, 554, { key: 1 });
+            await testEntities.RangeTest.create(ctx, 555, { key: 1 });
+            await testEntities.RangeTest.create(ctx, 556, { key: 1 });
+            await testEntities.RangeTest.create(ctx, 557, { key: 1 });
+            await testEntities.RangeTest.create(ctx, 558, { key: 1 });
+            await testEntities.RangeTest.create(ctx, 559, { key: 1 });
+            await testEntities.RangeTest.create(ctx, 560, { key: 1 });
+            await testEntities.RangeTest.create(ctx, 561, { key: 1 });
+            await testEntities.RangeTest.create(ctx, 562, { key: 1 });
+        });
+
+        await inTx(parent, async (ctx) => {
+            let range = (await testEntities.RangeTest.rangeFromDefaultAfter(ctx, 1, 555, 1000, true)).map(e => e.id);
+
+            expect(range[0]).toBe(554);
+        });
+    });
 });
