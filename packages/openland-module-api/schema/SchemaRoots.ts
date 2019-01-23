@@ -9,6 +9,11 @@ import {
 } from '../../openland-module-db/schema';
 import { GQL } from './SchemaSpec';
 import { MessageMention } from '../../openland-module-messaging/MessageInput';
+import {
+    MessageSpan,
+    RoomMentionSpan,
+    UserMentionSpan
+} from '../../openland-module-messaging/resolvers/ModernMessage.resolver';
 
 //
 //  Root types
@@ -158,4 +163,22 @@ export namespace GQLRoots {
 
     export type AppProfileRoot = User;
     export type AppTokenRoot = AuthToken;
+
+    //
+    // Modern Messaging
+    //
+    export type BaseMessageRoot = Message;
+    export type ServiceMessageRoot = Message;
+    export type ModernMessageRoot = Message;
+    export type MessageSpanRoot = MessageSpan;
+    export type MessageRichAttachmentRoot = any;
+    export type MessageAttachmentFileRoot = any;
+    export type MessageAttachmentPostRoot = any;
+    export type MessageAttachmentFileInputRoot = any;
+    export type MessageAttachmentPostInputRoot = any;
+    export type MessageKeyboardRoot = any;
+    export type ModernMessageButtonRoot = any;
+    export type ModernMessageReactionRoot = { userId: number, reaction: string };
+    export type MessageSpanUserMentionRoot = UserMentionSpan;
+    export type MessageSpanRoomMentionRoot = RoomMentionSpan;
 }

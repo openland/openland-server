@@ -14,7 +14,7 @@ interface BaseMessage {
     fallback: String!
 }
 
-type ServiceMessage implements Message  {
+type ServiceMessage implements BaseMessage  {
     #
     #   State
     #
@@ -31,7 +31,7 @@ type ServiceMessage implements Message  {
     fallback: String!
 }
 
-type Message implements Message {
+type ModernMessage implements BaseMessage {
     #
     #   State
     #
@@ -39,7 +39,7 @@ type Message implements Message {
     date: Date!
     sender: User!
     edited: Boolean!
-    reactions: [MessageReaction!]!
+    reactions: [ModernMessageReaction!]!
 
     #
     #   Content
@@ -51,20 +51,24 @@ type Message implements Message {
     fallback: String!
 }
 
-extend type Mutation {
-    sendMessage(room: ID!, message: String, repeatKey: String, forwardMessages: [ID!], spans: [MessageSpanInput!], attachments: [MessageAttachmentInput!]): Boolean!
+extend type Query {
+    messages(roomId: ID!, first: Int, before: ID): [BaseMessage!]!
 }
+
+#extend type Mutation {
+#    modernSendMessage(room: ID!, message: String, repeatKey: String, forwardMessages: [ID!], spans: [MessageSpanInput!], attachments: [MessageAttachmentInput!]): Boolean!
+#}
 
 #
 #   Attachments
 #
 
-interface MessageAttachment {
+interface ModernMessageAttachment {
     id: ID!
     fallback: String!
 }
 
-type MessageRichAttachment implements MessageAttachment {
+type MessageRichAttachment implements ModernMessageAttachment {
     id: ID!
     title: String
     titleLink: String
@@ -75,7 +79,7 @@ type MessageRichAttachment implements MessageAttachment {
     fallback: String!
 }
 
-type MessageAttachmentFile implements MessageAttachment {
+type MessageAttachmentFile implements ModernMessageAttachment {
     id: ID!
     fileId: String!
     fileMetadata: FileMetadata!
@@ -83,13 +87,13 @@ type MessageAttachmentFile implements MessageAttachment {
     fallback: String!
 }
 
-type MessageAttachmentPost implements MessageAttachment {
+type MessageAttachmentPost implements ModernMessageAttachment {
     id: ID!
     post: FeedItem!
     fallback: String!
 }
 
-union MessageAttachmentInput = MessageRichAttachmentInput | MessageAttachmentFileInput | MessageAttachmentPostInput
+# union MessageAttachmentInput = MessageRichAttachmentInput | MessageAttachmentFileInput | MessageAttachmentPostInput
 
 input MessageRichAttachmentInput {
     title: String
@@ -115,28 +119,28 @@ type MessageAttachmentPostInput {
 #   Keyboard
 #
 type MessageKeyboard {
-    buttons: [[MessageButton!]]!
+    buttons: [[ModernMessageButton!]]!
 }
 
-type MessageButton {
+type ModernMessageButton {
     id: ID!
     title: String!
-    style: MessageButtonStyle!
+    style: ModernMessageButtonStyle!
 }
 
-enum MessageButtonStyle {
+enum ModernMessageButtonStyle {
     DEFAULT,
     LIGHT
 }
 
 input MessageKeyboardInput {
-    buttons: [[MessageButton!]]!
+    buttons: [[ModernMessageButtonInput!]]!
 }
 
-input MessageButtonInput {
+input ModernMessageButtonInput {
     id: ID!
     title: String!
-    style: MessageButtonStyle!
+    style: ModernMessageButtonStyle!
 }
 
 #
@@ -148,10 +152,11 @@ enum MessageReactionType {
     THUMB_UP,
     JOY,
     SCREAM,
+    CRYING,
     ANGRY
 }
 
-type MessageReaction {
+type ModernMessageReaction {
     user: User!,
     reaction: MessageReactionType!
 }
@@ -177,7 +182,7 @@ type MessageSpanRoomMention implements MessageSpan {
     room: Room!
 }
 
-union MessageSpanInput = MessageSpanUserMentionInput | MessageSpanRoomMentionInput
+# union MessageSpanInput = MessageSpanUserMentionInput | MessageSpanRoomMentionInput
 
 input MessageSpanUserMentionInput {
     offset: Int!
