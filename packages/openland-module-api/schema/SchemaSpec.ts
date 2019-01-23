@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, Nullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '6ddd33311e66a37f97c4bd83736092c8';
+export const GQL_SPEC_VERSION = '4e5cb8dd3c2840e90628b5bbfc00ff13';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1392,6 +1392,7 @@ export namespace GQL {
         location?: Nullable<string>;
         betaIsOwner?: boolean;
         betaIsAdmin?: boolean;
+        betaIsPrimary?: boolean;
         superAccountId?: string;
         alphaIsOwner?: boolean;
         alphaOrganizationMembers?: OrganizationJoinedMember[];
