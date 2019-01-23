@@ -8,6 +8,7 @@ import { MessagingMediator } from './MessagingMediator';
 import *  as ChatResolver from '../resolvers/Chat.resolver';
 import { createEmptyContext } from 'openland-utils/Context';
 import { UserRepository } from 'openland-module-users/repositories/UserRepository';
+import { Message } from 'openland-module-db/schema';
 
 describe('MessagingMediator', () => {
     beforeAll(async () => {
@@ -103,6 +104,31 @@ describe('MessagingMediator', () => {
         message = (await FDB.Message.findById(ctx, MSG_ID))!;
         augmentationResolved = await ChatResolver.default.ConversationMessage!.urlAugmentation!(message, {}, {} as any);
         expect(augmentationResolved).toBeNull();
+
+    });
+
+    it('history pagination should work correctly', async () => {
+        let ctx = createEmptyContext();
+        let roooms = container.get<RoomMediator>('RoomMediator');
+        let users = container.get<UsersModule>(UsersModule);
+        let mediator = container.get<MessagingMediator>('MessagingMediator');
+        let USER_ID = (await users.createUser(ctx, 'user_test_load_messages', 'email_user_test_load_messages')).id;
+        let room = await roooms.createRoom(ctx, 'public', 1, USER_ID, [], { title: 'Room' });
+
+        for (let i = 0; i < 4; i++) {
+            await FDB.Message.findById(ctx, (await mediator.sendMessage(ctx, USER_ID, room.id, { message: i.toString() })).mid!);
+        }
+
+        // load history first pack
+        let range = await FDB.Message.rangeFromChat(ctx, room.id, 2, true);
+        expect(range[0].text).toEqual('3');
+        expect(range[1].text).toEqual('2');
+
+        // load range before oldest message in prev range
+        range = await FDB.Message.rangeFromChatAfter(ctx, room.id, range[1].id, 2, true);
+
+        expect(range[0].text).toEqual('1');
+        expect(range[1].text).toEqual('0');
 
     });
 
