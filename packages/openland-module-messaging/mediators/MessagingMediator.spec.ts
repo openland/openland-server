@@ -8,7 +8,6 @@ import { MessagingMediator } from './MessagingMediator';
 import *  as ChatResolver from '../resolvers/Chat.resolver';
 import { createEmptyContext } from 'openland-utils/Context';
 import { UserRepository } from 'openland-module-users/repositories/UserRepository';
-import { Message } from 'openland-module-db/schema';
 
 describe('MessagingMediator', () => {
     beforeAll(async () => {
