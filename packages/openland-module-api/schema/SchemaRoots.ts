@@ -10,6 +10,7 @@ import {
 import { GQL } from './SchemaSpec';
 import { MessageMention } from '../../openland-module-messaging/MessageInput';
 import {
+    MessageAttachment, MessageAttachmentFile,
     MessageSpan,
     RoomMentionSpan,
     UserMentionSpan
@@ -171,9 +172,6 @@ export namespace GQLRoots {
     export type ServiceMessageRoot = Message;
     export type ModernMessageRoot = Message;
     export type MessageSpanRoot = MessageSpan;
-    export type MessageRichAttachmentRoot = any;
-    export type MessageAttachmentFileRoot = any;
-    export type MessageAttachmentPostRoot = any;
     export type MessageAttachmentFileInputRoot = any;
     export type MessageAttachmentPostInputRoot = any;
     export type MessageKeyboardRoot = any;
@@ -181,4 +179,8 @@ export namespace GQLRoots {
     export type ModernMessageReactionRoot = { userId: number, reaction: string };
     export type MessageSpanUserMentionRoot = UserMentionSpan;
     export type MessageSpanRoomMentionRoot = RoomMentionSpan;
+    export type ModernMessageAttachmentRoot = MessageAttachment;
+    export type MessageAttachmentFileRoot = MessageAttachmentFile;
+    export type MessageAttachmentPostRoot = any;
+    export type MessageRichAttachmentRoot = any;
 }

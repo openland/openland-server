@@ -8,6 +8,7 @@ import { createEmptyContext } from '../../openland-utils/Context';
 import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
 import MessageSpanRoot = GQLRoots.MessageSpanRoot;
 import { UserError } from '../../openland-errors/UserError';
+import ModernMessageAttachmentRoot = GQLRoots.ModernMessageAttachmentRoot;
 
 const REACTIONS_LEGACY = new Map([
     ['❤️', 'LIKE'],
@@ -19,7 +20,6 @@ const REACTIONS_LEGACY = new Map([
 ]);
 
 type IntermediateMention = { type: 'user', user: number } | { type: 'room', room: number };
-
 // Legacy user mentions
 function prepareLegacyMentions(mentions: number[]): IntermediateMention[] {
     let res: IntermediateMention[] = [];
@@ -30,7 +30,6 @@ function prepareLegacyMentions(mentions: number[]): IntermediateMention[] {
 
     return res;
 }
-
 // Legacy complex mentions
 function prepareLegacyComplexMentions(mentions: { type: 'User'|'SharedRoom', id: number }[]): IntermediateMention[] {
     let res: IntermediateMention[] = [];
@@ -50,9 +49,7 @@ function prepareLegacyComplexMentions(mentions: { type: 'User'|'SharedRoom', id:
 
 export type UserMentionSpan = { type: 'user_mention', offset: number, length: number, user: number };
 export type RoomMentionSpan = { type: 'room_mention', offset: number, length: number, room: number };
-
 export type MessageSpan = UserMentionSpan | RoomMentionSpan;
-
 async function mentionsToSpans(messageText: string, mentions: IntermediateMention[], uid: number): Promise<MessageSpan[]> {
     let ctx = createEmptyContext();
 
@@ -97,6 +94,9 @@ async function mentionsToSpans(messageText: string, mentions: IntermediateMentio
 
     return spans;
 }
+
+export type MessageAttachmentFile = { type: 'file_attachment', fileId: string, filePreview?: string, fileMetadata?: any, id: string };
+export type MessageAttachment = MessageAttachmentFile;
 
 export default {
     BaseMessage: {
@@ -175,7 +175,21 @@ export default {
 
             return spans;
         },
-        attachments: src => [],
+        attachments: async (src, args, ctx) => {
+            let attachments: MessageAttachment[] = [];
+
+            if (src.fileId) {
+                attachments.push({
+                    type: 'file_attachment',
+                    fileId: src.fileId,
+                    filePreview: src.filePreview || undefined,
+                    fileMetadata: src.fileMetadata,
+                    id: 'legacy'
+                });
+            }
+
+            return attachments;
+        },
         quotedMessages: async (src, args, ctx) => {
             if (src.replyMessages) {
                 let messages = await Promise.all((src.replyMessages as number[]).map(id => FDB.Message.findById(ctx, id)));
@@ -212,17 +226,31 @@ export default {
             }
         }
     },
-
     MessageSpanUserMention: {
         offset: src => src.offset,
         length: src => src.length,
         user: src => src.user
     },
-
     MessageSpanRoomMention: {
         offset: src => src.offset,
         length: src => src.length,
         room: src => src.room
+    },
+
+    ModernMessageAttachment: {
+        __resolveType(src: ModernMessageAttachmentRoot) {
+            if (src.type === 'file_attachment') {
+                return 'MessageAttachmentFile';
+            } else {
+                throw new UserError('Unknown message span type: ' + (src as any).type);
+            }
+        }
+    },
+    MessageAttachmentFile: {
+        fileId: src => src.fileId,
+        fileMetadata: src => src.fileMetadata,
+        filePreview: src => src.filePreview,
+        fallback: src => 'File attachment'
     },
 
     Query: {
