@@ -25,6 +25,7 @@ export default {
 
         betaIsOwner: (src: Organization, args: {}, ctx: AppContext) => ctx.auth.uid ? Modules.Orgs.isUserOwner(ctx, ctx.auth.uid!, src.id) : false,
         betaIsAdmin: (src: Organization, args: {}, ctx: AppContext) => ctx.auth.uid ? Modules.Orgs.isUserAdmin(ctx, ctx.auth.uid!, src.id) : false,
+        betaIsPrimary: async (src: Organization, args: {}, ctx: AppContext) => ctx.auth.uid ? (await FDB.UserProfile.findById(ctx, ctx.auth.uid))!.primaryOrganization === src.id : false,
 
         // Refactor?
         superAccountId: (src: Organization) => IDs.SuperAccount.serialize(src.id),
@@ -58,7 +59,7 @@ export default {
 
             if (shortname && shortname.enabled && shortname.ownerType === 'org') {
                 orgId = shortname.ownerId;
-            }  else {
+            } else {
                 orgId = IDs.Organization.parse(args.id);
             }
 
