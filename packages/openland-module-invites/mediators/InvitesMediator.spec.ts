@@ -106,7 +106,7 @@ describe('InvitesMediator', () => {
         await orgs.activateOrganization(ctx, USER_ORG_ID);
 
         let repo = container.get<InvitesOrganizationRepository>('InvitesOrganizationRepository');
-        let invite = await repo.createOrganizationInvite(ctx, USER_ORG_ID, USER_ID, '', '', '', '', 'MEMBER');
+        let invite = await repo.createOrganizationInvite(ctx, USER_ORG_ID, USER_ID, '', '', '', '');
 
         let mediator = container.get<InvitesMediator>('InvitesMediator');
 
