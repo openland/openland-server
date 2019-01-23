@@ -100,8 +100,7 @@ export default {
                         inviteRequest.firstName || '',
                         inviteRequest.lastName || '',
                         inviteRequest.email,
-                        inviteRequest.emailText || '',
-                        inviteRequest.role,
+                        inviteRequest.emailText || ''
                     );
 
                     await Emails.sendInviteEmail(ctx, oid, invite);

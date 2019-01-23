@@ -35,7 +35,6 @@ export class InvitesOrganizationRepository {
         lastName: string,
         email: string,
         text: string,
-        role: 'MEMBER' | 'OWNER',
     ): Promise<OrganizationInviteLink> {
         return await inTx(parent, async (ctx) => {
             let existing = await this.entities.OrganizationInviteLink.findFromEmailInOrganization(ctx, email, oid);
@@ -43,7 +42,7 @@ export class InvitesOrganizationRepository {
                 existing.enabled = false;
                 await existing.flush();
             }
-            let res = await this.entities.OrganizationInviteLink.create(ctx, randomGlobalInviteKey(), { oid, email, uid, firstName, lastName, text, enabled: true, joined: false, role, ttl: new Date().getTime() + 1000 * 60 * 60 * 24 * 7 });
+            let res = await this.entities.OrganizationInviteLink.create(ctx, randomGlobalInviteKey(), { oid, email, uid, firstName, lastName, text, enabled: true, joined: false, role: 'MEMBER', ttl: new Date().getTime() + 1000 * 60 * 60 * 24 * 7 });
             return res;
         });
     }

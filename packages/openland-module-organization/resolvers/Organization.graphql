@@ -21,6 +21,9 @@ type Organization {
     facebook: String
     linkedin: String
     location: String
+
+    betaIsOwner: Boolean!
+    betaIsAdmin: Boolean!
     
     ## Refactor?
     superAccountId: ID!

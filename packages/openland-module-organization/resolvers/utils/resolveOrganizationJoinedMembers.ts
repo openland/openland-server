@@ -3,14 +3,17 @@ import { FDB } from 'openland-module-db/FDB';
 import { OrganizationMember } from 'openland-module-db/schema';
 import { Context } from 'openland-utils/Context';
 
-async function resolveRoleInOrganization(members: OrganizationMember[]): Promise<string[]> {
+async function resolveRoleInOrganization(ctx: Context, oid: number, members: OrganizationMember[]): Promise<string[]> {
+    let org = (await FDB.Organization.findById(ctx, oid))!;
     let roles: string[] = [];
 
     for (let member of members) {
-        if (member.role === 'admin') {
-            roles.push(`OWNER`);
+        if (org.ownerId === member.uid) {
+            roles.push('OWNER');
+        } else if (member.role === 'admin') {
+            roles.push('ADMIN');
         } else {
-            roles.push(`MEMBER`);
+            roles.push('MEMBER');
         }
     }
 
@@ -20,7 +23,7 @@ async function resolveRoleInOrganization(members: OrganizationMember[]): Promise
 export async function resolveOrganizationJoinedMembers(ctx: Context, orgId: number) {
     let members = await Modules.Orgs.findOrganizationMembership(ctx, orgId);
 
-    let roles = await resolveRoleInOrganization(members);
+    let roles = await resolveRoleInOrganization(ctx, orgId, members);
 
     let result: any[] = [];
 
@@ -42,7 +45,7 @@ export async function resolveOrganizationJoinedMembers(ctx: Context, orgId: numb
 export async function resolveOrganizationMembersWithStatus(ctx: Context, orgId: number, status: 'requested' | 'joined' | 'left') {
     let members = await Modules.Orgs.findOrganizationMembersWithStatus(ctx, orgId, status);
 
-    let roles = await resolveRoleInOrganization(members);
+    let roles = await resolveRoleInOrganization(ctx, orgId, members);
 
     let result: any[] = [];
 

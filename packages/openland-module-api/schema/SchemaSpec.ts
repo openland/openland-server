@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, Nullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'cd7a5b75f47f34aca0708ee37c9d9455';
+export const GQL_SPEC_VERSION = '6ddd33311e66a37f97c4bd83736092c8';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -394,7 +394,7 @@ export namespace GQL {
         mute?: Nullable<boolean>;
         notificationsDelay?: NotificationsDelay;
     }
-    export type OrganizationMemberRole = 'OWNER' | 'MEMBER';
+    export type OrganizationMemberRole = 'OWNER' | 'ADMIN' | 'MEMBER';
     export interface OrganizationMember {
         email?: string;
         role?: OrganizationMemberRole;
@@ -1390,6 +1390,8 @@ export namespace GQL {
         facebook?: Nullable<string>;
         linkedin?: Nullable<string>;
         location?: Nullable<string>;
+        betaIsOwner?: boolean;
+        betaIsAdmin?: boolean;
         superAccountId?: string;
         alphaIsOwner?: boolean;
         alphaOrganizationMembers?: OrganizationJoinedMember[];
