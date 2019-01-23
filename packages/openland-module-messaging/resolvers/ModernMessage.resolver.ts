@@ -9,6 +9,7 @@ import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
 import MessageSpanRoot = GQLRoots.MessageSpanRoot;
 import { UserError } from '../../openland-errors/UserError';
 import ModernMessageAttachmentRoot = GQLRoots.ModernMessageAttachmentRoot;
+import { buildBaseImageUrl } from '../../openland-module-media/ImageRef';
 
 const REACTIONS_LEGACY = new Map([
     ['❤️', 'LIKE'],
@@ -96,7 +97,8 @@ async function mentionsToSpans(messageText: string, mentions: IntermediateMentio
 }
 
 export type MessageAttachmentFile = { type: 'file_attachment', fileId: string, filePreview?: string, fileMetadata?: any, id: string };
-export type MessageAttachment = MessageAttachmentFile;
+export type MessageRichAttachment = { type: 'rich_attachment', title?: string, subTitle?: string, titleLink?: string, text?: string, icon?: string, image?: string, id: string };
+export type MessageAttachment = MessageAttachmentFile | MessageRichAttachment;
 
 export default {
     BaseMessage: {
@@ -184,7 +186,19 @@ export default {
                     fileId: src.fileId,
                     filePreview: src.filePreview || undefined,
                     fileMetadata: src.fileMetadata,
-                    id: 'legacy'
+                    id: 'legacy_file'
+                });
+            }
+            if (src.augmentation) {
+                attachments.push({
+                    type: 'rich_attachment',
+                    title: src.augmentation.title,
+                    titleLink: src.augmentation.url,
+                    subTitle: src.augmentation.subtitle,
+                    text: src.augmentation.description,
+                    icon: buildBaseImageUrl(src.augmentation.iconRef) || undefined,
+                    image: buildBaseImageUrl(src.augmentation.photo) || undefined,
+                    id: 'legacy_rich'
                 });
             }
 
@@ -241,16 +255,30 @@ export default {
         __resolveType(src: ModernMessageAttachmentRoot) {
             if (src.type === 'file_attachment') {
                 return 'MessageAttachmentFile';
+            } else if (src.type === 'rich_attachment') {
+                return 'MessageRichAttachment';
             } else {
                 throw new UserError('Unknown message span type: ' + (src as any).type);
             }
         }
     },
     MessageAttachmentFile: {
+        id: src => src.id,
         fileId: src => src.fileId,
         fileMetadata: src => src.fileMetadata,
         filePreview: src => src.filePreview,
         fallback: src => 'File attachment'
+    },
+    MessageRichAttachment: {
+        id: src => src.id,
+        title: src => src.title,
+        subTitle: src => src.subTitle,
+        titleLink: src => src.titleLink,
+        text: src => src.text,
+        icon: src => src.icon,
+        image: src => src.image,
+        fallback: src => src.title ? src.title : src.text ? src.text : src.titleLink ? src.titleLink : 'unsupported',
+        keyboard: src => null
     },
 
     Query: {

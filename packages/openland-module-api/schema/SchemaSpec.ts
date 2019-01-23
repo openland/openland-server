@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, Nullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'f5172d43f2d2205c81bb9ed02870ea44';
+export const GQL_SPEC_VERSION = 'd61777ad366bce27e35ce194f558d22e';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -492,6 +492,7 @@ export namespace GQL {
     export interface MessageRichAttachment extends ModernMessageAttachment {
         id?: string;
         title?: Nullable<string>;
+        subTitle?: Nullable<string>;
         titleLink?: Nullable<string>;
         text?: Nullable<string>;
         icon?: Nullable<string>;

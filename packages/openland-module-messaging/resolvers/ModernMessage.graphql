@@ -71,6 +71,7 @@ interface ModernMessageAttachment {
 type MessageRichAttachment implements ModernMessageAttachment {
     id: ID!
     title: String
+    subTitle: String
     titleLink: String
     text: String
     icon: String
