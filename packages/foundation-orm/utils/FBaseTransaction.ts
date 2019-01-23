@@ -54,6 +54,8 @@ export abstract class FBaseTransaction implements FContext {
             let reversed = (options && options.reverse) ? true : false;
             let start = reversed ? FKeyEncoding.firstKeyInSubspace(prefix) : keySelector.firstGreaterThan(FKeyEncoding.encodeKey(afterKey));
             let end = reversed ? keySelector.lastLessOrEqual(FKeyEncoding.encodeKey(afterKey)) : FKeyEncoding.lastKeyInSubspace(prefix);
+            // Should be changed to this:
+            // let end = reversed ? keySelector.lastLessOrEqual(FKeyEncoding.lastKeyInSubspace(afterKey)) : FKeyEncoding.lastKeyInSubspace(prefix);
             let res = await (this.isReadOnly ? this.tx!.snapshot() : this.tx!).getRangeAll(start, end, options);
             return res.map((v) => ({ item: v[1] as any, key: v[0] }));
         });
