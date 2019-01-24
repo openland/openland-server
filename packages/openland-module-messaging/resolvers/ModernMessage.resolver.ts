@@ -283,14 +283,12 @@ export default {
 
     Query: {
         messages: withUser(async (ctx, args, uid) => {
-            let roomId = IDs.Conversation.parse(args.roomId);
+            let roomId = IDs.Conversation.parse(args.chatId);
+            let beforeId = args.before ? IDs.ConversationMessage.parse(args.before) : null;
             await Modules.Messaging.room.checkAccess(ctx, uid, roomId);
-            let beforeMessage: Message | null = null;
-            if (args.before) {
-                beforeMessage = await FDB.Message.findById(ctx, IDs.ConversationMessage.parse(args.before));
-            }
-            if (beforeMessage) {
-                return await FDB.Message.rangeFromChatAfter(ctx, roomId, beforeMessage.id, args.first!, true);
+
+            if (args.before && await FDB.Message.findById(ctx, beforeId!)) {
+                return await FDB.Message.rangeFromChatAfter(ctx, roomId, beforeId!, args.first!, true);
             }
             return await FDB.Message.rangeFromChat(ctx, roomId, args.first!, true);
         }),

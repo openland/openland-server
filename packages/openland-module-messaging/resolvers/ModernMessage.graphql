@@ -52,7 +52,7 @@ type ModernMessage implements BaseMessage {
 }
 
 extend type Query {
-    messages(roomId: ID!, first: Int, before: ID): [BaseMessage!]!
+    messages(chatId: ID!, first: Int!, before: ID): [BaseMessage!]!
 }
 
 #extend type Mutation {
