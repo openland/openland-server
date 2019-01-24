@@ -1,0 +1,40 @@
+type ChatUpdateSingle {
+    seq: Int!
+    state: String!
+    update: ChatUpdate!
+}
+
+type ChatUpdateBatch {
+    seq: Int!
+    state: String!
+    fromSeq: Int!
+    updates: [ChatUpdate!]!
+}
+
+union ChatUpdateContainer = ChatUpdateSingle | ChatUpdateBatch
+
+union ChatUpdate = ChatMessageReceived | ChatMessageUpdated | ChatMessageDeleted
+
+type ChatMessageReceived {
+    message: BaseMessage!
+}
+
+type ChatMessageUpdated {
+    message: BaseMessage!
+}
+
+type ChatMessageDeleted {
+    message: BaseMessage!
+}
+
+type ChatUpdateState {
+    state: String
+}
+
+extend type Query {
+    chatState(chatId: ID!): ChatUpdateState!
+}
+
+extend type Subscription {
+    chatUpdates(chatId: ID!, fromState: String): ChatUpdateContainer!
+}

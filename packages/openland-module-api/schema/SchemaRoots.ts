@@ -5,7 +5,7 @@ import {
     User, UserDialogEvent,
     UserDialogSettings,
     UserProfile,
-    FeedEvent, AuthToken
+    FeedEvent, AuthToken, ConversationEvent
 } from '../../openland-module-db/schema';
 import { GQL } from './SchemaSpec';
 import { MessageMention } from '../../openland-module-messaging/MessageInput';
@@ -16,6 +16,7 @@ import {
     UserMentionSpan
 } from '../../openland-module-messaging/resolvers/ModernMessage.resolver';
 import { FileInfo } from '../../openland-module-media/FileInfo';
+import { FLiveStreamItem } from '../../foundation-orm/FLiveStreamItem';
 
 //
 //  Root types
@@ -185,4 +186,16 @@ export namespace GQLRoots {
     export type MessageAttachmentPostRoot = any;
     export type MessageRichAttachmentRoot = MessageRichAttachment;
     export type ImageRoot = { uuid: string, metadata: FileInfo };
+
+    //
+    //  ChatUpdates
+    //
+    export type ChatUpdateRoot = ConversationEvent;
+    export type ChatUpdateBatchRoot = FLiveStreamItem<ConversationEvent>;
+    export type ChatUpdateSingleRoot = FLiveStreamItem<ConversationEvent>;
+    export type ChatMessageReceivedRoot = ConversationEvent;
+    export type ChatMessageUpdatedRoot = ConversationEvent;
+    export type ChatMessageDeletedRoot = ConversationEvent;
+    export type ChatUpdateStateRoot = any;
+    export type ChatUpdateContainerRoot = FLiveStreamItem<ConversationEvent>;
 }
