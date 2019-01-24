@@ -65,8 +65,13 @@ export default {
             return await FDB.Organization.findById(ctx, IDs.Organization.parse(args.organizationId));
         }),
         betaOrganizationMemberAdd: withAccount(async (ctx, args, uid) => {
-            await Modules.Orgs.addUserToOrganization(ctx, IDs.User.parse(args.userId), IDs.Organization.parse(args.organizationId), uid);
-            return await FDB.Organization.findById(ctx, IDs.Organization.parse(args.organizationId));
+            return await inTx(ctx, async (c) => {
+                let toAdd = [...args.userIds || [], ...args.userId ? [args.userId] : []];
+                for (let u of toAdd) {
+                    await Modules.Orgs.addUserToOrganization(c, IDs.User.parse(u), IDs.Organization.parse(args.organizationId), uid);
+                }
+                return await FDB.Organization.findById(c, IDs.Organization.parse(args.organizationId));
+            });
         }),
         // depricated
         alphaOrganizationRemoveMember: withAccount(async (ctx, args, uid) => {
