@@ -63,6 +63,11 @@ extend type Query {
 #   Attachments
 #
 
+type Image {
+    url: String!
+    metadata: FileMetadata
+}
+
 interface ModernMessageAttachment {
     id: ID!
     fallback: String!
@@ -74,8 +79,8 @@ type MessageRichAttachment implements ModernMessageAttachment {
     subTitle: String
     titleLink: String
     text: String
-    icon: String
-    image: String
+    icon: Image
+    image: Image
     keyboard: MessageKeyboard
     fallback: String!
 }

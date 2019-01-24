@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, Nullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '72667a0bcf33f77f8871a4f090036119';
+export const GQL_SPEC_VERSION = 'ee126cddaeeb6ac1c976aa4f521581b4';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -485,6 +485,10 @@ export namespace GQL {
         quotedMessages?: Message[];
         fallback?: string;
     }
+    export interface Image {
+        url?: string;
+        metadata?: Nullable<FileMetadata>;
+    }
     export interface ModernMessageAttachment {
         id?: string;
         fallback?: string;
@@ -495,8 +499,8 @@ export namespace GQL {
         subTitle?: Nullable<string>;
         titleLink?: Nullable<string>;
         text?: Nullable<string>;
-        icon?: Nullable<string>;
-        image?: Nullable<string>;
+        icon?: Nullable<Image>;
+        image?: Nullable<Image>;
         keyboard?: Nullable<MessageKeyboard>;
         fallback?: string;
     }
@@ -2136,7 +2140,8 @@ export interface GQLResolver {
     SuperAdmin?: ComplexTypedResolver<GQL.SuperAdmin, GQLRoots.SuperAdminRoot, {user: GQLRoots.UserRoot}, {}>;
     ServiceMessage?: ComplexTypedResolver<GQL.ServiceMessage, GQLRoots.ServiceMessageRoot, {sender: GQLRoots.UserRoot, spans: GQLRoots.MessageSpanRoot[], serviceMetadata: Nullable<GQLRoots.ServiceMetadataRoot>}, {}>;
     ModernMessage?: ComplexTypedResolver<GQL.ModernMessage, GQLRoots.ModernMessageRoot, {sender: GQLRoots.UserRoot, reactions: GQLRoots.ModernMessageReactionRoot[], spans: GQLRoots.MessageSpanRoot[], attachments: GQLRoots.ModernMessageAttachmentRoot[], quotedMessages: GQLRoots.MessageRoot[]}, {}>;
-    MessageRichAttachment?: ComplexTypedResolver<GQL.MessageRichAttachment, GQLRoots.MessageRichAttachmentRoot, {keyboard: Nullable<GQLRoots.MessageKeyboardRoot>}, {}>;
+    Image?: ComplexTypedResolver<GQL.Image, GQLRoots.ImageRoot, {metadata: Nullable<GQLRoots.FileMetadataRoot>}, {}>;
+    MessageRichAttachment?: ComplexTypedResolver<GQL.MessageRichAttachment, GQLRoots.MessageRichAttachmentRoot, {icon: Nullable<GQLRoots.ImageRoot>, image: Nullable<GQLRoots.ImageRoot>, keyboard: Nullable<GQLRoots.MessageKeyboardRoot>}, {}>;
     MessageAttachmentFile?: ComplexTypedResolver<GQL.MessageAttachmentFile, GQLRoots.MessageAttachmentFileRoot, {fileMetadata: GQLRoots.FileMetadataRoot}, {}>;
     MessageAttachmentPost?: ComplexTypedResolver<GQL.MessageAttachmentPost, GQLRoots.MessageAttachmentPostRoot, {post: GQLRoots.FeedItemRoot}, {}>;
     MessageAttachmentFileInput?: ComplexTypedResolver<GQL.MessageAttachmentFileInput, GQLRoots.MessageAttachmentFileInputRoot, {}, {}>;

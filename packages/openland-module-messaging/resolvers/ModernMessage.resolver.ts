@@ -9,7 +9,8 @@ import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
 import MessageSpanRoot = GQLRoots.MessageSpanRoot;
 import { UserError } from '../../openland-errors/UserError';
 import ModernMessageAttachmentRoot = GQLRoots.ModernMessageAttachmentRoot;
-import { buildBaseImageUrl } from '../../openland-module-media/ImageRef';
+import { buildBaseImageUrl, ImageRef } from '../../openland-module-media/ImageRef';
+import { FileInfo } from '../../openland-module-media/FileInfo';
 
 const REACTIONS_LEGACY = new Map([
     ['❤️', 'LIKE'],
@@ -97,7 +98,7 @@ async function mentionsToSpans(messageText: string, mentions: IntermediateMentio
 }
 
 export type MessageAttachmentFile = { type: 'file_attachment', fileId: string, filePreview?: string, fileMetadata?: any, id: string };
-export type MessageRichAttachment = { type: 'rich_attachment', title?: string, subTitle?: string, titleLink?: string, text?: string, icon?: string, image?: string, id: string };
+export type MessageRichAttachment = { type: 'rich_attachment', title?: string, subTitle?: string, titleLink?: string, text?: string, icon?: ImageRef, image?: ImageRef, iconInfo?: FileInfo, imageInfo?: FileInfo, id: string };
 export type MessageAttachment = MessageAttachmentFile | MessageRichAttachment;
 
 export default {
@@ -196,8 +197,10 @@ export default {
                     titleLink: src.augmentation.url,
                     subTitle: src.augmentation.subtitle,
                     text: src.augmentation.description,
-                    icon: buildBaseImageUrl(src.augmentation.iconRef) || undefined,
-                    image: buildBaseImageUrl(src.augmentation.photo) || undefined,
+                    icon: src.augmentation.iconRef || undefined,
+                    iconInfo: src.augmentation.iconInfo || undefined,
+                    image: src.augmentation.photo || undefined,
+                    imageInfo: src.augmentation.imageInfo || undefined,
                     id: 'legacy_rich'
                 });
             }
@@ -229,6 +232,9 @@ export default {
         }
     },
 
+    //
+    //  Rich text
+    //
     MessageSpan: {
         __resolveType(src: MessageSpanRoot) {
             if (src.type === 'user_mention') {
@@ -251,6 +257,13 @@ export default {
         room: src => src.room
     },
 
+    //
+    //  Attachments
+    //
+    Image: {
+        url: src => buildBaseImageUrl({ uuid: src.uuid, crop: null }),
+        metadata: src => src.metadata
+    },
     ModernMessageAttachment: {
         __resolveType(src: ModernMessageAttachmentRoot) {
             if (src.type === 'file_attachment') {
@@ -275,8 +288,8 @@ export default {
         subTitle: src => src.subTitle,
         titleLink: src => src.titleLink,
         text: src => src.text,
-        icon: src => src.icon,
-        image: src => src.image,
+        icon: src => src.icon && { uuid: src.icon.uuid, metadata: src.iconInfo },
+        image: src => src.image && { uuid: src.image.uuid, metadata: src.imageInfo },
         fallback: src => src.title ? src.title : src.text ? src.text : src.titleLink ? src.titleLink : 'unsupported',
         keyboard: src => null
     },

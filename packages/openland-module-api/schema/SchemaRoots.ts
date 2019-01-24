@@ -15,6 +15,7 @@ import {
     RoomMentionSpan,
     UserMentionSpan
 } from '../../openland-module-messaging/resolvers/ModernMessage.resolver';
+import { FileInfo } from '../../openland-module-media/FileInfo';
 
 //
 //  Root types
@@ -183,4 +184,5 @@ export namespace GQLRoots {
     export type MessageAttachmentFileRoot = MessageAttachmentFile;
     export type MessageAttachmentPostRoot = any;
     export type MessageRichAttachmentRoot = MessageRichAttachment;
+    export type ImageRoot = { uuid: string, metadata: FileInfo };
 }
