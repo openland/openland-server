@@ -226,6 +226,8 @@ export class RoomRepository {
                 room!.kind = profile.kind!;
             }
 
+            await conv.flush();
+
             return { updatedTitle, updatedPhoto };
         });
     }

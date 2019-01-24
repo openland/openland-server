@@ -351,45 +351,47 @@ export default {
                 image: imageRef
             }, args.message || '', args.listed || undefined);
         }),
-        betaRoomUpdate: withUser(async (ctx, args, uid) => {
-            await validate(
-                {
-                    title: optional(stringNotEmpty('Title can\'t be empty!'))
-                },
-                args.input
-            );
+        betaRoomUpdate: withUser(async (parent, args, uid) => {
+            return inTx(parent, async (ctx) => {
+                await validate(
+                    {
+                        title: optional(stringNotEmpty('Title can\'t be empty!'))
+                    },
+                    args.input
+                );
 
-            let imageRef = Sanitizer.sanitizeImageRef(args.input.photoRef);
-            if (args.input.photoRef) {
-                await Modules.Media.saveFile(ctx, args.input.photoRef.uuid);
-            }
-
-            let socialImageRef = Sanitizer.sanitizeImageRef(args.input.socialImageRef);
-            if (args.input.socialImageRef) {
-                await Modules.Media.saveFile(ctx, args.input.socialImageRef.uuid);
-            }
-
-            let kind: 'internal' | 'public' | 'group' | undefined;
-
-            if (args.input.kind) {
-                if (args.input.kind === 'INTERNAL') {
-                    kind = 'internal';
-                } else if (args.input.kind === 'PUBLIC') {
-                    kind = 'public';
-                } else if (args.input.kind === 'GROUP') {
-                    kind = 'group';
+                let imageRef = Sanitizer.sanitizeImageRef(args.input.photoRef);
+                if (args.input.photoRef) {
+                    await Modules.Media.saveFile(ctx, args.input.photoRef.uuid);
                 }
-            }
 
-            let room = await Modules.Messaging.room.updateRoomProfile(ctx, IDs.Conversation.parse(args.roomId), uid, {
-                title: args.input.title!,
-                description: Sanitizer.sanitizeString(args.input.description),
-                image: args.input.photoRef === undefined ? undefined : imageRef,
-                socialImage: args.input.socialImageRef === undefined ? undefined : socialImageRef,
-                kind: kind
+                let socialImageRef = Sanitizer.sanitizeImageRef(args.input.socialImageRef);
+                if (args.input.socialImageRef) {
+                    await Modules.Media.saveFile(ctx, args.input.socialImageRef.uuid);
+                }
+
+                let kind: 'internal' | 'public' | 'group' | undefined;
+
+                if (args.input.kind) {
+                    if (args.input.kind === 'INTERNAL') {
+                        kind = 'internal';
+                    } else if (args.input.kind === 'PUBLIC') {
+                        kind = 'public';
+                    } else if (args.input.kind === 'GROUP') {
+                        kind = 'group';
+                    }
+                }
+
+                let room = await Modules.Messaging.room.updateRoomProfile(ctx, IDs.Conversation.parse(args.roomId), uid, {
+                    title: args.input.title!,
+                    description: Sanitizer.sanitizeString(args.input.description),
+                    image: args.input.photoRef === undefined ? undefined : imageRef,
+                    socialImage: args.input.socialImageRef === undefined ? undefined : socialImageRef,
+                    kind: kind
+                });
+
+                return room;
             });
-
-            return room;
         }),
         betaRoomMove: withUser(async (ctx, args, uid) => {
             return await Modules.Messaging.room.moveRoom(ctx, IDs.Conversation.parse(args.roomId), uid, IDs.Organization.parse(args.toOrg));
