@@ -207,7 +207,7 @@ export default {
                 await Modules.Hooks.onUserProfileUpdated(ctx, profile.id);
                 await Modules.Users.markForUndexing(ctx, uid);
 
-                return user;
+                return Modules.Users.profileById(ctx, uid);
             });
         }),
     }
