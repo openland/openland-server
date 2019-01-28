@@ -47,7 +47,7 @@ export function createAppleWorker(repo: PushRepository) {
                     let not = new APN.Notification();
                     not.topic = token.bundleId;
                     not.contentAvailable = task.contentAvailable || false;
-                    if (task.badge) {
+                    if (task.badge !== undefined && task.badge !== null) {
                         not.badge = task.badge;
                     }
                     if (task.payload) {
