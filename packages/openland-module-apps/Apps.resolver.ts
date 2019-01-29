@@ -34,6 +34,20 @@ export default {
         })
     },
 
+    AppChat: {
+        chat: hook => hook.chatId,
+        webhook: hook => {
+            let domain = '';
+            if (process.env.APP_ENVIRONMENT === 'production') {
+                domain = 'https://api.openland.com';
+            } else {
+                domain = 'http://localhost:9000';
+            }
+
+            return `${domain}/apps/chat-hook/${hook.key}`;
+        }
+    },
+
     Mutation: {
         createApp: withAccount(async (ctx, args, uid, orgId) => {
             return await Modules.Bots.createApp(ctx, uid, args.name, { about: args.about || undefined, shortname: args.shortname || undefined, photo: Sanitizer.sanitizeImageRef(args.photoRef) || undefined});
@@ -88,6 +102,22 @@ export default {
         deleteApp: withAccount(async (ctx, args, uid, orgId) => {
             let appId = IDs.User.parse(args.appId);
             return Modules.Bots.deleteApp(ctx, uid, appId);
+        }),
+        addAppToChat: withAccount(async (parent, args, uid, orgId) => {
+            return await inTx(parent, async (ctx) => {
+                let chatId = IDs.Conversation.parse(args.chatId);
+                let appId = IDs.User.parse(args.appId);
+
+                if (!await Modules.Bots.isAppOwner(ctx, uid, appId)) {
+                    throw new AccessDeniedError();
+                }
+
+                await Modules.Messaging.room.checkAccess(ctx, uid, chatId);
+
+                await Modules.Messaging.room.inviteToRoom(ctx, chatId, uid, [appId]);
+
+                return await Modules.Bots.createChatHook(ctx, uid, appId, chatId);
+            });
         })
     },
 } as GQLResolver;

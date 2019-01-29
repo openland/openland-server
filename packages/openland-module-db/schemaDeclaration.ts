@@ -729,6 +729,15 @@ const Schema = declareSchema(() => {
         rangeIndex('topic', ['tid', 'createdAt']);
         rangeIndex('updated', ['updatedAt']);
     });
+
+    entity('AppHook', () => {
+        primaryKey('appId', 'number');
+        primaryKey('chatId', 'number');
+        field('key', 'string');
+        uniqueIndex('key', ['key']);
+        enableTimestamps();
+        enableVersioning();
+    });
 });
 
 generate(Schema, __dirname + '/../openland-module-db/schema.ts');

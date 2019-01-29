@@ -37,4 +37,8 @@ export class AppsModule {
     async deleteApp(ctx: Context, uid: number, appId: number) {
         return this.repo.deleteApp(ctx, uid, appId);
     }
+
+    async createChatHook(ctx: Context, uid: number, appId: number, cid: number) {
+        return this.repo.createChatHook(ctx, uid, appId, cid);
+    }
 }

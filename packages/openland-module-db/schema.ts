@@ -7524,6 +7524,90 @@ export class FeedEventFactory extends FEntityFactory<FeedEvent> {
         return new FeedEvent(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'FeedEvent');
     }
 }
+export interface AppHookShape {
+    key: string;
+}
+
+export class AppHook extends FEntity {
+    readonly entityName: 'AppHook' = 'AppHook';
+    get appId(): number { return this._value.appId; }
+    get chatId(): number { return this._value.chatId; }
+    get key(): string {
+        return this._value.key;
+    }
+    set key(value: string) {
+        this._checkIsWritable();
+        if (value === this._value.key) { return; }
+        this._value.key = value;
+        this.markDirty();
+    }
+}
+
+export class AppHookFactory extends FEntityFactory<AppHook> {
+    static schema: FEntitySchema = {
+        name: 'AppHook',
+        editable: false,
+        primaryKeys: [
+            { name: 'appId', type: 'number' },
+            { name: 'chatId', type: 'number' },
+        ],
+        fields: [
+            { name: 'key', type: 'string' },
+        ],
+        indexes: [
+            { name: 'key', type: 'unique', fields: ['key'] },
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('appId', src.appId);
+        validators.isNumber('appId', src.appId);
+        validators.notNull('chatId', src.chatId);
+        validators.isNumber('chatId', src.chatId);
+        validators.notNull('key', src.key);
+        validators.isString('key', src.key);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'appHook'),
+            { enableVersioning: true, enableTimestamps: true, validator: AppHookFactory.validate, hasLiveStreams: false },
+            [new FEntityIndex('key', ['key'], true)],
+            'AppHook'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 2) { throw Error('Invalid key length!'); }
+        return { 'appId': rawId[0], 'chatId': rawId[1] };
+    }
+    async findById(ctx: Context, appId: number, chatId: number) {
+        return await this._findById(ctx, [appId, chatId]);
+    }
+    async create(ctx: Context, appId: number, chatId: number, shape: AppHookShape) {
+        return await this._create(ctx, [appId, chatId], { appId, chatId, ...shape });
+    }
+    watch(ctx: Context, appId: number, chatId: number, cb: () => void) {
+        return this._watch(ctx, [appId, chatId], cb);
+    }
+    async findFromKey(ctx: Context, key: string) {
+        return await this._findFromIndex(ctx, ['__indexes', 'key', key]);
+    }
+    async rangeFromKey(ctx: Context, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'key'], limit, reversed);
+    }
+    async rangeFromKeyWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'key'], limit, after, reversed);
+    }
+    async allFromKey(ctx: Context, ) {
+        return await this._findAll(ctx, ['__indexes', 'key']);
+    }
+    createKeyStream(ctx: Context, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'appHook', '__indexes', 'key'], limit, after); 
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new AppHook(ctx, this.connection, this.namespace, this.directory, [value.appId, value.chatId], value, this.options, isNew, this.indexes, 'AppHook');
+    }
+}
 
 export interface AllEntities {
     readonly connection: FConnection;
@@ -7589,6 +7673,7 @@ export interface AllEntities {
     readonly FeedSubscription: FeedSubscriptionFactory;
     readonly FeedTopic: FeedTopicFactory;
     readonly FeedEvent: FeedEventFactory;
+    readonly AppHook: AppHookFactory;
 }
 export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     static readonly schema: FEntitySchema[] = [
@@ -7654,6 +7739,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         FeedSubscriptionFactory.schema,
         FeedTopicFactory.schema,
         FeedEventFactory.schema,
+        AppHookFactory.schema,
     ];
     allEntities: FEntityFactory<FEntity>[] = [];
     Environment: EnvironmentFactory;
@@ -7718,6 +7804,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     FeedSubscription: FeedSubscriptionFactory;
     FeedTopic: FeedTopicFactory;
     FeedEvent: FeedEventFactory;
+    AppHook: AppHookFactory;
 
     constructor(connection: FConnection) {
         super(connection);
@@ -7845,6 +7932,8 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         this.allEntities.push(this.FeedTopic);
         this.FeedEvent = new FeedEventFactory(connection);
         this.allEntities.push(this.FeedEvent);
+        this.AppHook = new AppHookFactory(connection);
+        this.allEntities.push(this.AppHook);
     }
 }
 export class AllEntitiesProxy implements AllEntities {
@@ -8036,6 +8125,9 @@ export class AllEntitiesProxy implements AllEntities {
     }
     get FeedEvent(): FeedEventFactory {
         return this.resolver().FeedEvent;
+    }
+    get AppHook(): AppHookFactory {
+        return this.resolver().AppHook;
     }
     private resolver: () => AllEntities;
     constructor(resolver: () => AllEntities) {

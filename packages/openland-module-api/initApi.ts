@@ -24,6 +24,7 @@ import { AppContext } from 'openland-modules/AppContext';
 import { createTracer } from 'openland-log/createTracer';
 import { withCache } from 'foundation-orm/withCache';
 import { initSafariPush } from '../openland-module-push/safari/handlers';
+import { initAppHandlers } from '../openland-module-apps/Apps.handler';
 
 const logger = createLogger('ws');
 const ws = createTracer('ws');
@@ -91,6 +92,11 @@ export async function initApi(isTest: boolean) {
     //  Safari push
     //
     initSafariPush(app);
+
+    //
+    //  Apps
+    //
+    initAppHandlers(app);
 
     //
     // Semaphore bot

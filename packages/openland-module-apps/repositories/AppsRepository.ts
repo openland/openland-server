@@ -111,6 +111,22 @@ export class AppsRepository {
         });
     }
 
+    async createChatHook(parent: Context, uid: number, appId: number, cid: number) {
+        return await inTx(parent, async (ctx) => {
+            if (!this.isAppOwner(ctx,  uid, appId)) {
+                throw new AccessDeniedError();
+            }
+            let hook = await this.entities.AppHook.findById(ctx, appId, cid);
+            if (hook) {
+                hook.key = randomKey();
+            } else {
+                hook = await this.entities.AppHook.create(ctx, appId, cid, { key: randomKey() });
+            }
+
+            return hook;
+        });
+    }
+
     private async canCreateApp(parent: Context, uid: number) {
         return await inTx(parent, async (ctx) => {
             let user = await this.entities.User.findById(ctx, uid);
