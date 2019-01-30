@@ -19,10 +19,6 @@ const sendError = (response: express.Response, error: { code: number, text: stri
 
 let parent = createEmptyContext();
 
-export function initAppHandlers(app: Express) {
-    app.post('/apps/chat-hook/:hookKey', bodyParser.json(), handleChatHook);
-}
-
 function handler(schema: JsonSchema, h: (req: express.Request, response: express.Response) => any) {
     return (req: express.Request, response: express.Response) => {
         try {
@@ -72,3 +68,7 @@ const handleChatHook = handler(
         });
     }
 );
+
+export function initAppHandlers(app: Express) {
+    app.post('/apps/chat-hook/:hookKey', bodyParser.json(), handleChatHook);
+}
