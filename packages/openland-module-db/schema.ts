@@ -5628,6 +5628,7 @@ export class HyperLogFactory extends FEntityFactory<HyperLog> {
         indexes: [
             { name: 'created', type: 'range', fields: ['createdAt'] },
             { name: 'userEvents', type: 'range', fields: ['createdAt'], displayName: 'userEvents' },
+            { name: 'presenceEvents', type: 'range', fields: ['createdAt'], displayName: 'presenceEvents' },
         ],
     };
 
@@ -5645,7 +5646,7 @@ export class HyperLogFactory extends FEntityFactory<HyperLog> {
         super(connection,
             new FNamespace('entity', 'hyperLog'),
             { enableVersioning: false, enableTimestamps: true, validator: HyperLogFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('created', ['createdAt'], false), new FEntityIndex('userEvents', ['createdAt'], false, (src) => src.type === 'track')],
+            [new FEntityIndex('created', ['createdAt'], false), new FEntityIndex('userEvents', ['createdAt'], false, (src) => src.type === 'track'), new FEntityIndex('presenceEvents', ['createdAt'], false, (src) => src.type === 'presence')],
             'HyperLog'
         );
     }
@@ -5685,6 +5686,18 @@ export class HyperLogFactory extends FEntityFactory<HyperLog> {
     }
     createUserEventsStream(ctx: Context, limit: number, after?: string) {
         return this._createStream(ctx, ['entity', 'hyperLog', '__indexes', 'userEvents'], limit, after); 
+    }
+    async rangeFromPresenceEvents(ctx: Context, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'presenceEvents'], limit, reversed);
+    }
+    async rangeFromPresenceEventsWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'presenceEvents'], limit, after, reversed);
+    }
+    async allFromPresenceEvents(ctx: Context, ) {
+        return await this._findAll(ctx, ['__indexes', 'presenceEvents']);
+    }
+    createPresenceEventsStream(ctx: Context, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'hyperLog', '__indexes', 'presenceEvents'], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new HyperLog(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'HyperLog');
