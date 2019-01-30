@@ -30,7 +30,7 @@ export default {
             let hits = await Modules.Search.elastic.client.search({
                 index: 'organization',
                 type: 'organization',
-                size: 20,
+                size: 10,
                 body: {
                     query: { bool: { must: [{ match_phrase_prefix: { name: args.query } }] } }
                 }
