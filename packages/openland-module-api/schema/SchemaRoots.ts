@@ -202,4 +202,9 @@ export namespace GQLRoots {
     export type ChatMessageDeletedRoot = ConversationEvent;
     export type ChatUpdateStateRoot = any;
     export type ChatUpdateContainerRoot = FLiveStreamItem<ConversationEvent>;
+
+    //
+    //  Search
+    //
+    export type GlobalSearchEntryRoot = User | Organization | Conversation;
 }

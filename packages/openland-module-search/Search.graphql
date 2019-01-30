@@ -1,0 +1,5 @@
+union GlobalSearchEntry = Organization | User | SharedRoom
+
+extend type Query {
+    alphaGlobalSearch(query: String!): [GlobalSearchEntry!]!
+}
