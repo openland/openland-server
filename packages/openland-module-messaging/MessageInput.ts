@@ -47,4 +47,5 @@ export interface MessageInput {
     attachments?: MessageAttachment[] | null;
     postType?: string | null;
     complexMentions?: MessageMention[] | null;
+    ignoreAugmentation?: boolean | null;
 }

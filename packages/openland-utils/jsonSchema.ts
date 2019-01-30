@@ -17,7 +17,8 @@ function tab(n: number, str: string) {
 class JsonField {
     constructor(
         readonly name: string,
-        readonly type: JsonType
+        readonly type: JsonType,
+        readonly nullable: boolean
     ) {
 
     }
@@ -76,7 +77,7 @@ class StringEnumType extends JsonType {
         return `stringEnum(${this.values.join(' | ')})`;
     }
 }
-class JsonSchema extends JsonType {
+export class JsonSchema extends JsonType {
     readonly fields: JsonField[] = [];
 
     addField(field: JsonField) {
@@ -125,8 +126,8 @@ export const jVec = (type: JsonType) => new VecType(type);
 export const jEnum = (...types: JsonType[]) => new EnumType(types);
 export const jEnumString = (...values: string[]) => new StringEnumType(values);
 
-export const jField = (name: string, type: JsonType) => {
-    schemas[currentSchemaIndex].addField(new JsonField(name, type));
+export const jField = (name: string, type: JsonType, nullable = false) => {
+    schemas[currentSchemaIndex].addField(new JsonField(name, type, nullable));
 };
 
 const Validators = {
@@ -218,7 +219,7 @@ function validateField(fieldsPath: string[] = [], value: any, type: JsonType) {
             fieldsPath.pop();
         }
 
-        let missingField = type.fields.find(f => value[f.name] === undefined || value[f.name] === null);
+        let missingField = type.fields.filter(f => !f.nullable).find(f => value[f.name] === undefined || value[f.name] === null);
 
         if (missingField) {
             throw new Error(`${[...fieldsPath, missingField.name].join('.')} field is missing"`);

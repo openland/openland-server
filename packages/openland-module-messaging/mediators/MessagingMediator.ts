@@ -47,8 +47,10 @@ export class MessagingMediator {
             // Delivery
             await this.delivery.onNewMessage(ctx, res.message);
 
-            // Augment
-            await this.augmentation.onNewMessage(ctx, res.message);
+            if (!message.ignoreAugmentation) {
+                // Augment
+                await this.augmentation.onNewMessage(ctx, res.message);
+            }
 
             // Cancel typings
             // TODO: Remove
