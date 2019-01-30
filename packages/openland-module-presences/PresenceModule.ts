@@ -24,7 +24,7 @@ export class PresenceModule {
     private fdbSubscriptions = new Map<number, { cancel: () => void }>();
     private localSub = new Pubsub<OnlineEvent>(false);
     private FDB: AllEntities = FDB;
-    private onlineEventsState = new Map<number, { online: boolean, timer?: Timer }>();
+    // private onlineEventsState = new Map<number, { online: boolean, timer?: Timer }>();
 
     start = (fdb?: AllEntities) => {
         // Nothing to do
@@ -54,7 +54,8 @@ export class PresenceModule {
                 online.active = active;
             }
 
-            await this.handleOnlineChangeLocal(ctx, uid, true, timeout);
+            await presenceEvent.event(ctx, { uid, online: true });
+            // await this.handleOnlineChangeLocal(ctx, uid, true, timeout);
         });
     }
 
@@ -65,7 +66,8 @@ export class PresenceModule {
                 online.lastSeen = Date.now();
                 online.active = false;
             }
-            await this.handleOnlineChangeLocal(ctx, uid, false, 0);
+            await presenceEvent.event(ctx, { uid, online: false });
+            // await this.handleOnlineChangeLocal(ctx, uid, false, 0);
         });
     }
 
@@ -173,23 +175,23 @@ export class PresenceModule {
         }
     }
 
-    private async handleOnlineChangeLocal(ctx: Context, uid: number, online: boolean, timeout: number) {
-        let state = this.onlineEventsState.get(uid);
-
-        if (state && state.timer) {
-            clearTimeout(state.timer);
-        }
-
-        if (online) {
-            let timer = setTimeout(async () => {
-                this.onlineEventsState.set(uid, { online: false });
-                await presenceEvent.event(ctx, { uid, online: false });
-            }, timeout);
-            this.onlineEventsState.set(uid, { online, timer });
-            await presenceEvent.event(ctx, { uid, online: true });
-        } else {
-            this.onlineEventsState.set(uid, { online });
-            await presenceEvent.event(ctx, { uid, online: false });
-        }
-    }
+    // private async handleOnlineChangeLocal(ctx: Context, uid: number, online: boolean, timeout: number) {
+    //     let state = this.onlineEventsState.get(uid);
+    //
+    //     if (state && state.timer) {
+    //         clearTimeout(state.timer);
+    //     }
+    //
+    //     if (online) {
+    //         let timer = setTimeout(async () => {
+    //             this.onlineEventsState.set(uid, { online: false });
+    //             await presenceEvent.event(ctx, { uid, online: false });
+    //         }, timeout);
+    //         this.onlineEventsState.set(uid, { online, timer });
+    //         await presenceEvent.event(ctx, { uid, online: true });
+    //     } else {
+    //         this.onlineEventsState.set(uid, { online });
+    //         await presenceEvent.event(ctx, { uid, online: false });
+    //     }
+    // }
 }
