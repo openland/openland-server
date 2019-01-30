@@ -10,6 +10,7 @@ import { createLogger } from 'openland-log/createLogger';
 import { Context, createEmptyContext } from 'openland-utils/Context';
 
 const presenceEvent = createHyperlogger<{ uid: number, online: boolean }>('presence');
+const onlineStatusEvent = createHyperlogger<{ uid: number, online: boolean }>('online_status');
 const log = createLogger('presences');
 
 export interface OnlineEvent {
@@ -24,7 +25,7 @@ export class PresenceModule {
     private fdbSubscriptions = new Map<number, { cancel: () => void }>();
     private localSub = new Pubsub<OnlineEvent>(false);
     private FDB: AllEntities = FDB;
-    // private onlineEventsState = new Map<number, { online: boolean, timer?: Timer }>();
+    private onlineEventsState = new Map<number, { online: boolean, timer?: Timer }>();
 
     start = (fdb?: AllEntities) => {
         // Nothing to do
@@ -55,7 +56,7 @@ export class PresenceModule {
             }
 
             await presenceEvent.event(ctx, { uid, online: true });
-            // await this.handleOnlineChangeLocal(ctx, uid, true, timeout);
+            await this.handleOnlineChangeLocal(ctx, uid, true, timeout);
         });
     }
 
@@ -67,7 +68,7 @@ export class PresenceModule {
                 online.active = false;
             }
             await presenceEvent.event(ctx, { uid, online: false });
-            // await this.handleOnlineChangeLocal(ctx, uid, false, 0);
+            await this.handleOnlineChangeLocal(ctx, uid, false, 0);
         });
     }
 
@@ -175,23 +176,27 @@ export class PresenceModule {
         }
     }
 
-    // private async handleOnlineChangeLocal(ctx: Context, uid: number, online: boolean, timeout: number) {
-    //     let state = this.onlineEventsState.get(uid);
-    //
-    //     if (state && state.timer) {
-    //         clearTimeout(state.timer);
-    //     }
-    //
-    //     if (online) {
-    //         let timer = setTimeout(async () => {
-    //             this.onlineEventsState.set(uid, { online: false });
-    //             await presenceEvent.event(ctx, { uid, online: false });
-    //         }, timeout);
-    //         this.onlineEventsState.set(uid, { online, timer });
-    //         await presenceEvent.event(ctx, { uid, online: true });
-    //     } else {
-    //         this.onlineEventsState.set(uid, { online });
-    //         await presenceEvent.event(ctx, { uid, online: false });
-    //     }
-    // }
+    private async handleOnlineChangeLocal(ctx: Context, uid: number, online: boolean, timeout: number) {
+        let state = this.onlineEventsState.get(uid);
+
+        if (state && state.timer) {
+            clearTimeout(state.timer);
+        }
+
+        let isChanged = online ? (!state || !state.online) : (state && state.online);
+
+        if (online) {
+            let timer = setTimeout(async () => {
+                this.onlineEventsState.set(uid, { online: false });
+                await onlineStatusEvent.event(ctx, { uid, online: false });
+            }, timeout);
+            this.onlineEventsState.set(uid, { online, timer });
+        } else {
+            this.onlineEventsState.set(uid, { online });
+        }
+
+        if (isChanged) {
+            await onlineStatusEvent.event(ctx, { uid, online: false });
+        }
+    }
 }
