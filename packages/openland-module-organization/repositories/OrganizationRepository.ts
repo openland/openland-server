@@ -10,6 +10,7 @@ import { UserError } from '../../openland-errors/UserError';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { Modules } from '../../openland-modules/Modules';
 import { lazyInject } from '../../openland-modules/Modules.container';
+import { FDB } from '../../openland-module-db/FDB';
 
 @injectable()
 export class OrganizationRepository {
@@ -177,6 +178,16 @@ export class OrganizationRepository {
 
             if (members.length > 1) {
                 throw new UserError('Can\'t delete organization with active members');
+            }
+
+            let chats = await FDB.ConversationRoom.allFromOrganization(ctx);
+
+            if (chats.length > 0) {
+                for (let chat of chats) {
+                    if (await Modules.Messaging.roomMembersCount(ctx, chat.id) > 0) {
+                        throw new UserError('Can\'t delete organization with active chats');
+                    }
+                }
             }
 
             let userOrganizations = await this.findUserOrganizations(ctx, uid);
