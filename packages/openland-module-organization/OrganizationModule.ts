@@ -11,6 +11,7 @@ import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
 import { organizationProfileIndexer } from './workers/organizationProfileIndexer';
 import { Context } from 'openland-utils/Context';
 import { lazyInject } from '../openland-modules/Modules.container';
+import { UserError } from '../openland-errors/UserError';
 
 @injectable()
 export class OrganizationModule {
@@ -166,7 +167,7 @@ export class OrganizationModule {
 
             // Disallow owner kick
             if (await this.isUserOwner(ctx, uid, oid)) {
-                throw new AccessDeniedError(ErrorText.permissionDenied);
+                throw new UserError('Can\'t kick organization owner');
             }
 
             if (await this.repo.removeUserFromOrganization(ctx, uid, oid)) {
