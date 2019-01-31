@@ -11,7 +11,6 @@ import { NotFoundError } from '../../openland-errors/NotFoundError';
 import { Modules } from '../../openland-modules/Modules';
 import { lazyInject } from '../../openland-modules/Modules.container';
 import { FDB } from '../../openland-module-db/FDB';
-import { IDs } from '../../openland-module-api/IDs';
 
 @injectable()
 export class OrganizationRepository {
