@@ -155,7 +155,7 @@ export class OrganizationModule {
 
             // Check permissions
             let isAdmin = await this.isUserAdmin(ctx, by, oid);
-            let invitedByUser = (member.invitedBy && (member.invitedBy === uid)) || false;
+            let invitedByUser = (member.invitedBy && (member.invitedBy === by)) || false;
             if (!isAdmin && !invitedByUser && superRoles !== 'super-admin') {
                 throw new AccessDeniedError(ErrorText.permissionDenied);
             }
