@@ -341,6 +341,7 @@ export class RoomRepository {
     }
 
     async roomMembersCount(ctx: Context, conversationId: number, status?: string): Promise<number> {
+        console.log((await this.entities.RoomParticipant.allFromActive(ctx, conversationId)));
         return (await this.entities.RoomParticipant.allFromActive(ctx, conversationId)).filter(m => status === undefined || m.status === status).length;
     }
 
