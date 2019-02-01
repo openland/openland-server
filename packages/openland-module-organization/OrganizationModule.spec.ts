@@ -173,7 +173,7 @@ describe('OrganizationModule', () => {
         expect(user2p.primaryOrganization).toEqual(org.id);
     });
 
-    it('should remove primary organization when removing from the only organization', async () => {
+    it('should not remove user from organization if it is last organization for user', async () => {
         let ctx = createEmptyContext();
         let user1 = await createUser(ctx, 6);
         let user2 = await createUser(ctx, 7);
@@ -181,17 +181,9 @@ describe('OrganizationModule', () => {
         await Modules.Users.activateUser(ctx, user2.id);
         let org = await Modules.Orgs.createOrganization(ctx, user1.id, { name: 'hey' });
         await Modules.Orgs.addUserToOrganization(ctx, user2.id, org.id, user1.id);
-        let user1p = (await FDB.UserProfile.findById(ctx, user1.id))!;
-        let user2p = (await FDB.UserProfile.findById(ctx, user2.id))!;
-        expect(user1p.primaryOrganization).toEqual(org.id);
-        expect(user2p.primaryOrganization).toEqual(org.id);
 
-        await Modules.Orgs.removeUserFromOrganization(ctx, user2.id, org.id, user1.id);
-
-        user1p = (await FDB.UserProfile.findById(ctx, user1.id))!;
-        user2p = (await FDB.UserProfile.findById(ctx, user2.id))!;
-        expect(user1p.primaryOrganization).toEqual(org.id);
-        expect(user2p.primaryOrganization).toBeNull();
+        // Disallow kicking admin by non-admin
+        await expect(Modules.Orgs.removeUserFromOrganization(ctx, user2.id, org.id, user2.id)).rejects.toThrowError();
     });
 
     it('should pick another primary organization when removing primary one', async () => {
@@ -227,8 +219,12 @@ describe('OrganizationModule', () => {
         await Modules.Users.activateUser(ctx, user2.id);
         await Modules.Users.activateUser(ctx, user3.id);
         await Modules.Users.activateUser(ctx, user4.id);
+        let initialOrganization = await Modules.Orgs.createOrganization(ctx, user1.id, { name: 'initialOrganization' });
         let org = await Modules.Orgs.createOrganization(ctx, user1.id, { name: 'hey' });
+        
+        await Modules.Orgs.addUserToOrganization(ctx, user2.id, initialOrganization.id, user1.id);
         await Modules.Orgs.addUserToOrganization(ctx, user2.id, org.id, user1.id);
+        await Modules.Orgs.addUserToOrganization(ctx, user4.id, initialOrganization.id, user1.id);
         await Modules.Orgs.addUserToOrganization(ctx, user4.id, org.id, user1.id);
         await Modules.Orgs.updateMemberRole(ctx, user4.id, org.id, 'admin', user1.id);
 
@@ -274,11 +270,15 @@ describe('OrganizationModule', () => {
         await Modules.Users.activateUser(ctx, user1.id);
         await Modules.Users.activateUser(ctx, user2.id);
         await Modules.Users.activateUser(ctx, user3.id);
+        let initialOrganization = await Modules.Orgs.createOrganization(ctx, user1.id, { name: 'initialOrganization' });
         let org = await Modules.Orgs.createOrganization(ctx, user1.id, { name: 'hey' });
+        await Modules.Orgs.addUserToOrganization(ctx, user2.id, initialOrganization.id, user1.id);
         await Modules.Orgs.addUserToOrganization(ctx, user2.id, org.id, user1.id);
+        await Modules.Orgs.addUserToOrganization(ctx, user3.id, initialOrganization.id, user1.id);
         await Modules.Orgs.addUserToOrganization(ctx, user3.id, org.id, user1.id);
         await Modules.Orgs.updateMemberRole(ctx, user3.id, org.id, 'admin', user1.id);
         await Modules.Orgs.removeUserFromOrganization(ctx, user3.id, org.id, user1.id);
+        
         await Modules.Orgs.addUserToOrganization(ctx, user3.id, org.id, user1.id);
 
         expect(await Modules.Orgs.isUserOwner(ctx, user3.id, org.id)).toBe(false);
@@ -322,9 +322,13 @@ describe('OrganizationModule', () => {
         await Modules.Users.activateUser(ctx, user1.id);
         await Modules.Users.activateUser(ctx, user2.id);
         await Modules.Users.activateUser(ctx, user3.id);
+        let initialOrganization = await Modules.Orgs.createOrganization(ctx, user1.id, { name: 'initialOrganization' });
         let org = await Modules.Orgs.createOrganization(ctx, user1.id, { name: 'hey' });
+        await Modules.Orgs.addUserToOrganization(ctx, user2.id, initialOrganization.id, user1.id);
         await Modules.Orgs.addUserToOrganization(ctx, user2.id, org.id, user1.id);
+        await Modules.Orgs.addUserToOrganization(ctx, user3.id, initialOrganization.id, user2.id);
         await Modules.Orgs.addUserToOrganization(ctx, user3.id, org.id, user2.id);
+        await Modules.Orgs.addUserToOrganization(ctx, user4.id, initialOrganization.id, user1.id);
         await Modules.Orgs.addUserToOrganization(ctx, user4.id, org.id, user1.id);
         await Modules.Orgs.updateMemberRole(ctx, user3.id, org.id, 'admin', user1.id);
 
