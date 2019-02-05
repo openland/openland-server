@@ -452,21 +452,22 @@ migrations.push({
 migrations.push({
     key: '38-reindex-messages',
     migration: async (root, log) => {
-        let allKeys = await FDB.Message.findAllKeys(root);
-        let keyBatches = batch(allKeys, 100);
+        let messagesCount = (await FDB.Sequence.findById(root, 'message-id'))!.value;
+
+        let allIds = Array.from(Array(messagesCount + 1).keys()).slice(1);
+
+        let keyBatches = batch(allIds, 100);
         let i = 0;
         for (let kb of keyBatches) {
             await inTx(root, async (ctx) => {
-                for (let a of kb) {
-                    let k = FKeyEncoding.decodeKey(a);
-                    k.splice(0, 2);
-                    let m = (await FDB.Message.findById(ctx, k[0] as number));
+                for (let id of kb) {
+                    let m = (await FDB.Message.findById(ctx, id));
                     if (!m) {
-                        log.warn(ctx, 'no message found! ' + JSON.stringify(k));
+                        log.warn(ctx, 'no message found! id: %d', id);
                     } else {
                         if (m.repeatKey) {
                             if (await FDB.Message.findFromRepeat(ctx, m.id, m.cid, m.repeatKey)) {
-                                log.warn(ctx, 'repeat message found! ' + JSON.stringify(k));
+                                log.warn(ctx, 'repeat message found! id: %d', id);
                                 m.repeatKey = randomKey();
                             }
                         }
