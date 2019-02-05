@@ -174,7 +174,7 @@ export class OrganizationModule {
             if (await this.findUserOrganizations(ctx, uid)) {
                 let orgs = await this.repo.findUserOrganizations(ctx, uid);
                 if (orgs.length === 1) {
-                    throw new UserError('Can\'t delete your last organization');
+                    throw new UserError('You cannot leave your only organization');
                 }
             }
 
