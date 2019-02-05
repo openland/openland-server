@@ -6,6 +6,7 @@ import { inTx } from 'foundation-orm/inTx';
 import { Modules } from 'openland-modules/Modules';
 import { batch } from 'openland-utils/batch';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
+import { randomKey } from '../openland-utils/random';
 // import { createEmptyContext } from 'openland-utils/Context';
 
 var migrations: FMigration[] = [];
@@ -462,6 +463,12 @@ migrations.push({
                     if (!m) {
                         log.warn(ctx, 'no message found! ' + JSON.stringify(k));
                     } else {
+                        if (m.repeatKey) {
+                            if (await FDB.Message.findFromRepeat(ctx, m.id, m.cid, m.repeatKey)) {
+                                log.warn(ctx, 'repeat message found! ' + JSON.stringify(k));
+                                m.repeatKey = randomKey();
+                            }
+                        }
                         m.markDirty();
                     }
                 }
