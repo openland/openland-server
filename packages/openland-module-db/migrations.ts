@@ -454,6 +454,7 @@ migrations.push({
     migration: async (root, log) => {
         let allKeys = await FDB.Message.findAllKeys(root);
         let keyBatches = batch(allKeys, 100);
+        let i = 0;
         for (let kb of keyBatches) {
             await inTx(root, async (ctx) => {
                 for (let a of kb) {
@@ -471,7 +472,9 @@ migrations.push({
                         }
                         m.markDirty();
                     }
+                    i++;
                 }
+                log.warn(ctx, '38-reindex-messages, done ' + i);
             });
         }
     }
