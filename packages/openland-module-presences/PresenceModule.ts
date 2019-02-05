@@ -8,6 +8,7 @@ import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent'
 import { injectable } from 'inversify';
 import { createLogger } from 'openland-log/createLogger';
 import { Context, createEmptyContext } from 'openland-utils/Context';
+import { Modules } from '../openland-modules/Modules';
 
 const presenceEvent = createHyperlogger<{ uid: number, online: boolean }>('presence');
 const onlineStatusEvent = createHyperlogger<{ uid: number, online: boolean }>('online_status');
@@ -74,6 +75,9 @@ export class PresenceModule {
 
     public async getLastSeen(ctx: Context, uid: number): Promise<'online' | 'never_online' | number> {
         log.debug(ctx, 'get last seen');
+        if (uid === Modules.Users.SUPPORT_USER_ID) {
+            return 'online';
+        }
         let res = await this.FDB.Online.findById(ctx, uid);
         if (res) {
             if (res.lastSeen > Date.now()) {
@@ -87,6 +91,9 @@ export class PresenceModule {
     }
 
     public async isActive(ctx: Context, uid: number): Promise<boolean> {
+        if (uid === Modules.Users.SUPPORT_USER_ID) {
+            return true;
+        }
         let res = await this.FDB.Online.findById(ctx, uid);
         if (res) {
             if (res.lastSeen > Date.now()) {

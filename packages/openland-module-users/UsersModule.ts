@@ -14,6 +14,8 @@ import { NotFoundError } from '../openland-errors/NotFoundError';
 @injectable()
 export class UsersModule {
 
+    public readonly SUPPORT_USER_ID = 1564;
+
     private readonly repo: UserRepository;
     private readonly search = new UserSearch();
 
