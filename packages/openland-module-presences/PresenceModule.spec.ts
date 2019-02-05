@@ -7,11 +7,15 @@ import { FDB } from 'openland-module-db/FDB';
 import { container } from 'openland-modules/Modules.container';
 import { PresenceModule } from './PresenceModule';
 import { createEmptyContext } from 'openland-utils/Context';
+import { UsersModule } from '../openland-module-users/UsersModule';
+import { UserRepository } from '../openland-module-users/repositories/UserRepository';
 
 describe('PresenceModule', () => {
     beforeAll(async () => {
         await testEnvironmentStart('presence');
         container.bind(PresenceModule).toSelf().inSingletonScope();
+        container.bind(UsersModule).toSelf().inSingletonScope();
+        container.bind('UserRepository').to(UserRepository).inSingletonScope();
     });
     afterAll(() => {
         testEnvironmentEnd();
