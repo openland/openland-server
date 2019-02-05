@@ -170,6 +170,14 @@ export class OrganizationModule {
                 throw new UserError('Can\'t kick organization owner');
             }
 
+            // Disallow kick if it is last user organization
+            if (await this.findUserOrganizations(ctx, uid)) {
+                let orgs = await this.repo.findUserOrganizations(ctx, uid);
+                if (orgs.length === 1) {
+                    throw new UserError('You cannot leave your only organization');
+                }
+            }
+
             if (await this.repo.removeUserFromOrganization(ctx, uid, oid)) {
                 let profile = (await FDB.UserProfile.findById(ctx, uid))!;
                 if (profile.primaryOrganization === oid) {

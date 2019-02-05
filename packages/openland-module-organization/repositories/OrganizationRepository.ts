@@ -177,7 +177,7 @@ export class OrganizationRepository {
             let members = await this.findOrganizationMembers(ctx, oid);
 
             if (members.length > 1) {
-                throw new UserError('Can\'t delete organization with active members');
+                throw new UserError('Organization that has active members cannot be deleted');
             }
 
             let chats = await FDB.ConversationRoom.allFromOrganizationPublicRooms(ctx, oid);
@@ -185,7 +185,7 @@ export class OrganizationRepository {
             if (chats.length > 0) {
                 for (let chat of chats) {
                     if (await Modules.Messaging.roomMembersCount(ctx, chat.id) > 0) {
-                        throw new UserError('Can\'t delete organization with active chats');
+                        throw new UserError('Organization that has active chat rooms cannot be deleted');
                     }
                 }
             }
@@ -193,7 +193,7 @@ export class OrganizationRepository {
             let userOrganizations = await this.findUserOrganizations(ctx, uid);
 
             if (userOrganizations.length === 1) {
-                throw new UserError('Can\'t delete last organization');
+                throw new UserError('Can\'t delete your last organization ');
             }
 
             // Mark deleted
