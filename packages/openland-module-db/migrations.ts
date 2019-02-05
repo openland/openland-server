@@ -470,6 +470,32 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '39-fix-room-creator',
+    migration: async (root, log) => {
+        let allKeys = await FDB.ConversationRoom.findAllKeys(root);
+        let keyBatches = batch(allKeys, 100);
+        for (let kb of keyBatches) {
+            await inTx(root, async (ctx) => {
+                for (let a of kb) {
+                    let k = FKeyEncoding.decodeKey(a);
+                    k.splice(0, 2);
+                    let room = (await FDB.ConversationRoom.findById(ctx, k[0] as number));
+                    if (!room) {
+                        log.warn(ctx, 'no room found! ' + JSON.stringify(k));
+                    } else {
+                        let member = room.ownerId ? await FDB.RoomParticipant.findById(ctx, room.id, room.ownerId) : null;
+
+                        if (member) {
+                            member.role = 'owner';
+                        }
+                    }
+                }
+            });
+        }
+    }
+});
+
 export function startMigrationsWorker() {
     if (serverRoleEnabled('workers')) {
         staticWorker({ name: 'foundation-migrator' }, async (ctx) => {
