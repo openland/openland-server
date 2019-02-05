@@ -207,4 +207,9 @@ export namespace GQLRoots {
     //  Search
     //
     export type GlobalSearchEntryRoot = User | Organization | Conversation;
+
+    //
+    //  Debug
+    //
+    export type DebugIDRoot = any;
 }

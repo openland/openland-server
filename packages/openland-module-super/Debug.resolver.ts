@@ -3,10 +3,19 @@ import { withPermission } from '../openland-module-api/Resolvers';
 import { Emails } from '../openland-module-email/Emails';
 import { FDB } from '../openland-module-db/FDB';
 import { Message } from '../openland-module-db/schema';
-import { IDs } from '../openland-module-api/IDs';
+import { IDs, IdsFactory } from '../openland-module-api/IDs';
 import { Modules } from '../openland-modules/Modules';
 
 export default {
+    Query: {
+        debugParseID: withPermission('super-admin', async (ctx, args) => {
+            let id = IdsFactory.resolve(args.id);
+            return {
+                internalID: id.id,
+                type: id.type.typeName
+            };
+        })
+    },
     Mutation: {
         debugSendEmail: withPermission('super-admin', async (ctx, args) => {
             let uid = ctx.auth.uid!;

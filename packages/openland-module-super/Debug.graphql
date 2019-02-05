@@ -15,6 +15,15 @@ enum DebugEmailType {
     ROOM_INVITE_ACCEPTED
 }
 
+type DebugID {
+    internalID: Int!
+    type: String!
+}
+
+extend type Query {
+    debugParseID(id: ID!): DebugID!
+}
+
 extend type Mutation {
     debugSendEmail(type: DebugEmailType!): Boolean
     debugCreateTestUser(key: String!, name: String!): Boolean
