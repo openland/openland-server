@@ -115,6 +115,13 @@ export class PresenceModule {
 
         // Send initial state
         for (let userId of users) {
+            if (userId === Modules.Users.SUPPORT_USER_ID) {
+                iterator.push({
+                    userId,
+                    timeout: 0,
+                    online: true
+                });
+            }
             if (this.onlines.get(userId)) {
                 let online = this.onlines.get(userId)!;
                 iterator.push({
