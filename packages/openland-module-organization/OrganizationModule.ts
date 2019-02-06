@@ -68,9 +68,9 @@ export class OrganizationModule {
     async activateOrganization(parent: Context, id: number) {
         return await inTx(parent, async (ctx) => {
             if (await this.repo.activateOrganization(ctx, id)) {
+                await Emails.sendAccountActivatedEmail(ctx, id);
                 for (let m of await FDB.OrganizationMember.allFromOrganization(ctx, 'joined', id)) {
                     await Modules.Users.activateUser(ctx, m.uid);
-                    await Emails.sendAccountActivatedEmail(ctx, id);
                     let profile = await FDB.UserProfile.findById(ctx, m.uid);
                     if (profile && !profile.primaryOrganization) {
                         profile.primaryOrganization = id;
