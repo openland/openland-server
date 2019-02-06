@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '1c2805e43312d32a964172a0946d96df';
+export const GQL_SPEC_VERSION = '554ea93dfe7c14afb6f5c0e6fc9c2d05';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1708,6 +1708,7 @@ export namespace GQL {
         alphaAppInviteInfo?: Nullable<AppInviteInfo>;
         alphaInvitesHistory?: Nullable<InviteHistotyInfo[]>;
         debugParseID?: DebugID;
+        debugCrashQuery?: string;
         alphaChats?: ConversationConnection;
         dialogs?: DialogsConnection;
         settings?: Settings;

@@ -14,7 +14,10 @@ export default {
                 internalID: id.id,
                 type: id.type.typeName
             };
-        })
+        }),
+        debugCrashQuery: () => {
+            throw new Error('Test crash!');
+        }
     },
     Mutation: {
         debugSendEmail: withPermission('super-admin', async (ctx, args) => {

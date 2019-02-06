@@ -22,6 +22,7 @@ type DebugID {
 
 extend type Query {
     debugParseID(id: ID!): DebugID!
+    debugCrashQuery: String!
 }
 
 extend type Mutation {
