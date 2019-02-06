@@ -46,6 +46,7 @@ export class RoomRepository {
                 invitedBy: uid,
                 status: 'joined'
             });
+            await this.onRoomJoin(ctx, id, uid, uid);
             for (let m of members) {
                 if (m === uid) {
                     continue; // Just in case of bad input
@@ -55,6 +56,7 @@ export class RoomRepository {
                     invitedBy: uid,
                     status: 'joined'
                 });
+                await this.onRoomJoin(ctx, id, uid, uid);
             }
 
             return conv;
@@ -75,6 +77,7 @@ export class RoomRepository {
                 } else {
                     p.status = 'joined';
                     p.invitedBy = by;
+                    await this.onRoomJoin(ctx, cid, uid, by);
                     return true;
                 }
             } else {
@@ -83,6 +86,7 @@ export class RoomRepository {
                     invitedBy: by,
                     role: 'member'
                 });
+                await this.onRoomJoin(ctx, cid, uid, by);
                 return true;
             }
         });
@@ -146,6 +150,9 @@ export class RoomRepository {
                 } else {
                     p.invitedBy = uid;
                     p.status = targetStatus;
+                    if (targetStatus === 'joined') {
+                        await this.onRoomJoin(ctx, cid, uid, uid);
+                    }
                     return true;
                 }
             } else {
@@ -154,6 +161,7 @@ export class RoomRepository {
                     role: 'member',
                     invitedBy: uid
                 });
+                await this.onRoomJoin(ctx, cid, uid, uid);
                 return true;
             }
         });
@@ -593,6 +601,36 @@ export class RoomRepository {
                 await sequence.flush();
             }
             return ++sequence.value;
+        });
+    }
+
+    //
+    //  Events
+    //
+    private async onRoomJoin(parent: Context, cid: number, uid: number, by: number) {
+        return await inTx(parent, async (ctx) => {
+            let room = await this.entities.ConversationRoom.findById(ctx, cid);
+
+            if (!room) {
+                throw new Error('Room not found');
+            }
+
+            if (!room.oid) {
+                return;
+            }
+
+            let org = await this.entities.Organization.findById(ctx, room.oid);
+
+            if (!org) {
+                return;
+            }
+
+            //
+            //  Join community if not already
+            //
+            if (org.kind === 'community') {
+                await Modules.Orgs.addUserToOrganization(ctx, uid, org.id, by, true);
+            }
         });
     }
 }

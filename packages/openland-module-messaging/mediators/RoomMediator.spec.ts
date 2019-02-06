@@ -7,6 +7,8 @@ import { UsersModule } from 'openland-module-users/UsersModule';
 import { createEmptyContext } from 'openland-utils/Context';
 import { SuperModule } from '../../openland-module-super/SuperModule';
 import { UserRepository } from 'openland-module-users/repositories/UserRepository';
+import { OrganizationRepository } from '../../openland-module-organization/repositories/OrganizationRepository';
+import { OrganizationModule } from '../../openland-module-organization/OrganizationModule';
 
 describe('RoomMediator', () => {
     beforeAll(async () => {
@@ -15,7 +17,8 @@ describe('RoomMediator', () => {
         container.bind(UsersModule).toSelf().inSingletonScope();
         container.bind('UserRepository').to(UserRepository).inSingletonScope();
         container.bind(SuperModule).toSelf().inSingletonScope();
-
+        container.bind('OrganizationRepository').to(OrganizationRepository).inSingletonScope();
+        container.bind(OrganizationModule).toSelf().inSingletonScope();
     });
     afterAll(() => {
         testEnvironmentEnd();
@@ -65,6 +68,46 @@ describe('RoomMediator', () => {
                 expect(m.invitedBy).toBe(USER2_ID);
             }
         }
+    });
+
+    it('should join community on room join', async () => {
+        let ctx = createEmptyContext();
+        let mediator = container.get<RoomMediator>('RoomMediator');
+        let users = container.get<UsersModule>(UsersModule);
+        let USER_ID = (await users.createUser(ctx, 'user111111111', 'email777')).id;
+        let USER2_ID = (await users.createUser(ctx, 'user112222222', 'email888')).id;
+        await users.createUserProfile(ctx, USER_ID, { firstName: 'User Name' });
+        await users.createUserProfile(ctx, USER2_ID, { firstName: 'User Name 2' });
+
+        let orgs = await container.get<OrganizationModule>(OrganizationModule);
+
+        let org = await orgs.createOrganization(ctx, USER_ID, { name: 'Org', isCommunity: true });
+        await orgs.activateOrganization(ctx, org.id);
+
+        let room = await mediator.createRoom(ctx, 'public', 1, USER_ID, [], { title: 'Room' });
+        await mediator.joinRoom(ctx, room.id, USER2_ID);
+
+        expect(await orgs.isUserMember(ctx, USER2_ID, org.id)).toEqual(true);
+    });
+
+    it('should not join organization on room join', async () => {
+        let ctx = createEmptyContext();
+        let mediator = container.get<RoomMediator>('RoomMediator');
+        let users = container.get<UsersModule>(UsersModule);
+        let USER_ID = (await users.createUser(ctx, 'user7777777', 'email7777')).id;
+        let USER2_ID = (await users.createUser(ctx, 'user8888888', 'email8888')).id;
+        await users.createUserProfile(ctx, USER_ID, { firstName: 'User Name' });
+        await users.createUserProfile(ctx, USER2_ID, { firstName: 'User Name 2' });
+
+        let orgs = await container.get<OrganizationModule>(OrganizationModule);
+
+        let org = await orgs.createOrganization(ctx, USER_ID, { name: 'Org', isCommunity: false });
+        await orgs.activateOrganization(ctx, org.id);
+
+        let room = await mediator.createRoom(ctx, 'public', 1, USER_ID, [], { title: 'Room' });
+        await mediator.joinRoom(ctx, room.id, USER2_ID);
+
+        expect(await orgs.isUserMember(ctx, USER2_ID, org.id)).toEqual(false);
     });
 
     it('should be able to manage join requests', async () => {

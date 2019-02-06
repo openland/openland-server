@@ -95,7 +95,7 @@ export class OrganizationModule {
         });
     }
 
-    async addUserToOrganization(parent: Context, uid: number, oid: number, by: number) {
+    async addUserToOrganization(parent: Context, uid: number, oid: number, by: number, skipChecks: boolean = false) {
         return await inTx(parent, async (ctx) => {
 
             // Check user state
@@ -113,7 +113,7 @@ export class OrganizationModule {
 
             let member = await Modules.DB.entities.OrganizationMember.findById(ctx, oid, by);
             let isSuperAdmin = (await Modules.Super.superRole(ctx, by)) === 'super-admin';
-            let canAdd = (member && member.status === 'joined') || isSuperAdmin;
+            let canAdd = (member && member.status === 'joined') || isSuperAdmin || skipChecks;
             if (!canAdd) {
                 throw new AccessDeniedError('Only members can add members');
             }
