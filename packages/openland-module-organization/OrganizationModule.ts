@@ -123,12 +123,30 @@ export class OrganizationModule {
                 let org = (await Modules.DB.entities.Organization.findById(ctx, oid))!;
                 if (org.status === 'activated') {
 
-                    // Activate user if organization is in activated state
-                    await Modules.Users.activateUser(ctx, uid);
+                    if (org.kind === 'organization') {
+                        // Activate user if organization is in activated state
+                        await Modules.Users.activateUser(ctx, uid);
 
-                    // Update primary organization if needed
-                    if (!profile.primaryOrganization) {
-                        profile.primaryOrganization = oid;
+                        // Update primary organization if needed
+                        if (!profile.primaryOrganization) {
+                            profile.primaryOrganization = oid;
+                        }
+                    } else if (org.kind === 'community') {
+                        // Find organization created by user
+                        let userOrgs = await Promise.all((await this.findUserOrganizations(ctx, uid)).map(orgId => Modules.DB.entities.Organization.findById(ctx, orgId)));
+                        let userOrg = userOrgs.find(o => o!.ownerId === uid);
+
+                        if (!userOrg) {
+                            throw Error('Unable to find user created organization');
+                        }
+
+                        // Activate user organization
+                        await this.activateOrganization(ctx, userOrg.id);
+
+                        // Update primary organization if needed
+                        if (!profile.primaryOrganization) {
+                            profile.primaryOrganization = userOrg.id;
+                        }
                     }
                 }
                 return org;
