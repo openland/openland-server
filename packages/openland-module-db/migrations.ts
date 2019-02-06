@@ -530,6 +530,11 @@ migrations.push({
                             let members = await Modules.Messaging.room.findConversationMembers(ctx, chat.id);
 
                             for (let member of members) {
+                                let user = await FDB.User.findById(ctx, member);
+
+                                if (!user || user.status === 'deleted') {
+                                    continue;
+                                }
                                 await Modules.Orgs.addUserToOrganization(ctx, member, org.id, member, true);
                             }
                         }
