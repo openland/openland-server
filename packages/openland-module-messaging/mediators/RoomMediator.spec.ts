@@ -74,17 +74,18 @@ describe('RoomMediator', () => {
         let ctx = createEmptyContext();
         let mediator = container.get<RoomMediator>('RoomMediator');
         let users = container.get<UsersModule>(UsersModule);
+        let orgs = await container.get<OrganizationModule>(OrganizationModule);
         let USER_ID = (await users.createUser(ctx, 'user111111111', 'email777')).id;
         let USER2_ID = (await users.createUser(ctx, 'user112222222', 'email888')).id;
         await users.createUserProfile(ctx, USER_ID, { firstName: 'User Name' });
         await users.createUserProfile(ctx, USER2_ID, { firstName: 'User Name 2' });
-
-        let orgs = await container.get<OrganizationModule>(OrganizationModule);
+        await orgs.createOrganization(ctx, USER_ID, { name: 'Org', isCommunity: false });
+        await orgs.createOrganization(ctx, USER2_ID, { name: 'Org', isCommunity: false });
 
         let org = await orgs.createOrganization(ctx, USER_ID, { name: 'Org', isCommunity: true });
         await orgs.activateOrganization(ctx, org.id);
 
-        let room = await mediator.createRoom(ctx, 'public', 1, USER_ID, [], { title: 'Room' });
+        let room = await mediator.createRoom(ctx, 'public', org.id, USER_ID, [], { title: 'Room' });
         await mediator.joinRoom(ctx, room.id, USER2_ID);
 
         expect(await orgs.isUserMember(ctx, USER2_ID, org.id)).toEqual(true);
@@ -104,7 +105,7 @@ describe('RoomMediator', () => {
         let org = await orgs.createOrganization(ctx, USER_ID, { name: 'Org', isCommunity: false });
         await orgs.activateOrganization(ctx, org.id);
 
-        let room = await mediator.createRoom(ctx, 'public', 1, USER_ID, [], { title: 'Room' });
+        let room = await mediator.createRoom(ctx, 'public', org.id, USER_ID, [], { title: 'Room' });
         await mediator.joinRoom(ctx, room.id, USER2_ID);
 
         expect(await orgs.isUserMember(ctx, USER2_ID, org.id)).toEqual(false);
@@ -150,11 +151,13 @@ describe('RoomMediator', () => {
         let ctx = createEmptyContext();
         let mediator = container.get<RoomMediator>('RoomMediator');
         let users = container.get<UsersModule>(UsersModule);
+        let orgs = await container.get<OrganizationModule>(OrganizationModule);
         let USER_ID = (await users.createUser(ctx, 'user2111', 'email11155')).id;
         let USER2_ID = (await users.createUser(ctx, 'user2112', 'email1125')).id;
         await users.createUserProfile(ctx, USER_ID, { firstName: 'User Name' });
         await users.createUserProfile(ctx, USER2_ID, { firstName: 'User Name 2' });
-        let room = await mediator.createRoom(ctx, 'public', 1, USER_ID, [], { title: 'Room' });
+        let org = await orgs.createOrganization(ctx, USER_ID, { name: 'Org', isCommunity: true });
+        let room = await mediator.createRoom(ctx, 'public', org.id, USER_ID, [], { title: 'Room' });
         await mediator.joinRoom(ctx, room.id, USER2_ID);
         let messages = await FDB.Message.allFromChat(ctx, room.id);
         expect(messages.length).toBe(2);

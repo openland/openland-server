@@ -122,11 +122,10 @@ export class OrganizationModule {
             if (await this.repo.addUserToOrganization(ctx, uid, oid, by)) {
                 let org = (await Modules.DB.entities.Organization.findById(ctx, oid))!;
                 if (org.status === 'activated') {
+                    // Activate user if organization is in activated state
+                    await Modules.Users.activateUser(ctx, uid);
 
                     if (org.kind === 'organization') {
-                        // Activate user if organization is in activated state
-                        await Modules.Users.activateUser(ctx, uid);
-
                         // Update primary organization if needed
                         if (!profile.primaryOrganization) {
                             profile.primaryOrganization = oid;
