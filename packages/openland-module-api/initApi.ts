@@ -9,7 +9,7 @@ import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { Schema } from './schema/Schema';
 import { execute, subscribe, GraphQLSchema, DocumentNode, GraphQLFieldResolver, OperationDefinitionNode } from 'graphql';
 import { fetchWebSocketParameters, buildWebSocketContext } from './handlers/websocket';
-import { errorHandler } from '../openland-errors';
+import { errorHandler, QueryInfo } from '../openland-errors';
 // import { Rate } from '../utils/rateLimit';
 import { Server as HttpServer } from 'http';
 // import { delay } from '../utils/timer';
@@ -119,10 +119,10 @@ export async function initApi(isTest: boolean) {
     if (dport > 0) {
         console.info('Binding to port ' + dport);
 
-        let formatError = (err: any) => {
+        let formatError = (err: any, info: QueryInfo) => {
             console.warn(err);
             return {
-                ...errorHandler(err),
+                ...errorHandler(err, info),
                 locations: err.locations,
                 path: err.path
             };
@@ -182,10 +182,22 @@ export async function initApi(isTest: boolean) {
                     return {
                         ...params,
                         context: ctx,
-                        formatResponse: (value: any) => ({
-                            ...value,
-                            errors: value.errors && value.errors.map(formatError),
-                        })
+                        formatResponse: (value: any) => {
+                            let errors: any[]|undefined;
+                            if (value.errors) {
+                                let info: QueryInfo = {
+                                    uid: ctx && ctx.auth && ctx.auth.uid,
+                                    oid: ctx && ctx.auth && ctx.auth.oid,
+                                    query: JSON.stringify(message.payload),
+                                    transport: 'ws'
+                                };
+                                errors = value.errors && value.errors.map((e: any) => formatError(e, info));
+                            }
+                            return ({
+                                ...value,
+                                errors: errors,
+                            });
+                        }
                     };
                 },
                 validationRules: [

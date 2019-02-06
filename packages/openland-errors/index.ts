@@ -6,6 +6,9 @@ import { InvalidInputError } from './InvalidInputError';
 import Raven from 'raven';
 import { DoubleInvokeError } from './DoubleInvokeError';
 import { AccessDeniedError } from './AccessDeniedError';
+import { IDs } from '../openland-module-api/IDs';
+import { Modules } from '../openland-modules/Modules';
+import { createEmptyContext } from '../openland-utils/Context';
 
 interface FormattedError {
     uuid: string;
@@ -16,7 +19,17 @@ interface FormattedError {
     shouldRetry?: boolean;
 }
 
-export function errorHandler(error: { message: string, originalError: any }): FormattedError {
+export interface QueryInfo {
+    uid?: number;
+    oid?: number;
+    query: string;
+    transport: 'http' | 'ws';
+}
+
+const ERROR_REPORT_CHAT = IDs.Conversation.parse('av6pa90nyruoPV77gnaRhVLWrv');
+const ERROR_REPORT_BOT = IDs.User.parse('qlO16E1R00cLaQyAmxzgt9xKeR');
+
+export function errorHandler(error: { message: string, originalError: any }, info?: QueryInfo): FormattedError {
     let uuid = UUID();
     if (error.originalError instanceof IDMailformedError) {
         return {
@@ -59,7 +72,25 @@ export function errorHandler(error: { message: string, originalError: any }): Fo
         };
     }
     Raven.captureException(error.originalError);
-    console.warn('unexpected_error', error.originalError);
+    console.warn('unexpected_error', uuid, error.originalError);
+
+    if (process.env.APP_ENVIRONMENT === 'production') {
+        let report =
+            ':rotating_light: API Error:\n' +
+            '\n' +
+            ('User: ' + (info && info.uid && 'https://next.openland.com/directory/u/' + IDs.User.serialize(info.uid)) || 'ANON') + '\n' +
+            ('Org: ' + (info && info.oid && 'https://next.openland.com/directory/o/' + IDs.Organization.serialize(info.oid)) || 'ANON') + '\n' +
+            'Query: ' + ((info && info.query) || 'null') + '\n' +
+            'Transport: ' + ((info && info.transport) || 'unknown') + '\n' +
+            '\n' +
+            'Error: ' + error.originalError.message + '\n' +
+            'UUID: ' + uuid;
+
+        (async () => {
+            await Modules.Messaging.sendMessage(createEmptyContext(), ERROR_REPORT_CHAT, ERROR_REPORT_BOT, { message: report, ignoreAugmentation: true });
+        })();
+    }
+
     return {
         message: 'An unexpected error occurred. Please, try again. If the problem persists, please contact support@openland.com.',
         uuid: uuid,

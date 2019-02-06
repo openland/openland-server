@@ -4,7 +4,7 @@ import { GraphQLOptions } from 'apollo-server-core';
 import { graphqlExpress } from 'apollo-server-express';
 import { Schema } from '../../openland-module-api/schema/Schema';
 import { callContextMiddleware } from './context';
-import { errorHandler } from '../../openland-errors';
+import { errorHandler, QueryInfo } from '../../openland-errors';
 // import { CallContext } from '../../openland-module-api/CallContext';
 // import { Rate } from '../../openland-utils/rateLimit';
 // import { delay } from '../../openland-utils/timer';
@@ -51,8 +51,16 @@ function handleRequest(withEngine: boolean) {
                 cacheControl: withEngine,
                 tracing: withEngine,
                 formatError: (err: any) => {
+                    let ctx = res.locals.ctx;
+                    let info: QueryInfo = {
+                        uid: res.locals.ctx && ctx.auth && ctx.auth.uid,
+                        oid: ctx && ctx.auth && ctx.auth.oid,
+                        query: JSON.stringify(req.body),
+                        transport: 'http'
+                    };
+
                     return {
-                        ...errorHandler(err),
+                        ...errorHandler(err, info),
                         locations: err.locations,
                         path: err.path
                     };
