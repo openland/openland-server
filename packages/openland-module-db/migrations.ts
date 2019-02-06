@@ -507,6 +507,39 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '40-add-community-room-members-to-community',
+    migration: async (root, log) => {
+        let allKeys = await FDB.Organization.findAllKeys(root);
+        let keyBatches = batch(allKeys, 100);
+        for (let kb of keyBatches) {
+            await inTx(root, async (ctx) => {
+                for (let a of kb) {
+                    let k = FKeyEncoding.decodeKey(a);
+                    k.splice(0, 2);
+                    let org = (await FDB.Organization.findById(ctx, k[0] as number));
+                    if (!org) {
+                        log.warn(ctx, 'no org found! ' + JSON.stringify(k));
+                    } else {
+                        if (org.kind !== 'community') {
+                            continue;
+                        }
+                        let chats = await FDB.ConversationRoom.allFromOrganizationPublicRooms(ctx, org.id);
+
+                        for (let chat of chats) {
+                            let members = await Modules.Messaging.room.findConversationMembers(ctx, chat.id);
+
+                            for (let member of members) {
+                                await Modules.Orgs.addUserToOrganization(ctx, member, org.id, member, true);
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+});
+
 export function startMigrationsWorker() {
     if (serverRoleEnabled('workers')) {
         staticWorker({ name: 'foundation-migrator' }, async (ctx) => {
