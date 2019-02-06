@@ -25,9 +25,10 @@ export interface QueryInfo {
     query: string;
     transport: 'http' | 'ws';
 }
+const IS_PROD = process.env.APP_ENVIRONMENT === 'production';
 
-const ERROR_REPORT_CHAT = IDs.Conversation.parse('av6pa90nyruoPV77gnaRhVLWrv');
-const ERROR_REPORT_BOT = IDs.User.parse('qlO16E1R00cLaQyAmxzgt9xKeR');
+const ERROR_REPORT_CHAT = IS_PROD ? IDs.Conversation.parse('av6pa90nyruoPV77gnaRhVLWrv') : null;
+const ERROR_REPORT_BOT = IS_PROD ? IDs.User.parse('qlO16E1R00cLaQyAmxzgt9xKeR') : null;
 
 export function errorHandler(error: { message: string, originalError: any }, info?: QueryInfo): FormattedError {
     let uuid = UUID();
@@ -74,7 +75,7 @@ export function errorHandler(error: { message: string, originalError: any }, inf
     Raven.captureException(error.originalError);
     console.warn('unexpected_error', uuid, error.originalError);
 
-    if (process.env.APP_ENVIRONMENT === 'production') {
+    if (IS_PROD) {
         let report =
             ':rotating_light: API Error:\n' +
             '\n' +
@@ -87,7 +88,7 @@ export function errorHandler(error: { message: string, originalError: any }, inf
             'UUID: ' + uuid;
 
         (async () => {
-            await Modules.Messaging.sendMessage(createEmptyContext(), ERROR_REPORT_CHAT, ERROR_REPORT_BOT, { message: report, ignoreAugmentation: true });
+            await Modules.Messaging.sendMessage(createEmptyContext(), ERROR_REPORT_CHAT!, ERROR_REPORT_BOT!, { message: report, ignoreAugmentation: true });
         })();
     }
 
