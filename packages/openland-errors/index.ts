@@ -87,6 +87,7 @@ export function errorHandler(error: { message: string, originalError: any }, inf
             'Error: ' + error.originalError.message + '\n' +
             'UUID: ' + uuid;
 
+        // tslint:disable:no-floating-promises
         (async () => {
             await Modules.Messaging.sendMessage(createEmptyContext(), ERROR_REPORT_CHAT!, ERROR_REPORT_BOT!, { message: report, ignoreAugmentation: true });
         })();
