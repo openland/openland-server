@@ -40,6 +40,7 @@ export default {
                 creator: invite.uid ? await FDB.User.findById(ctx, invite.uid) : null,
                 forEmail: invite.email,
                 forName: invite.firstName,
+                description: profile.about
             };
         }),
         appInviteInfo: withAny(async (ctx, args) => {

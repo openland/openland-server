@@ -19,6 +19,7 @@ type InviteInfo {
     creator: User
     forEmail: String
     forName: String
+    description: String
 }
 
 type AppInvite {
