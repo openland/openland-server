@@ -20,8 +20,11 @@ export default {
         alphaInviteInfo: withAny(async (ctx, args) => {
             let orgInvite = await Modules.Invites.orgInvitesRepo.getOrganizationInviteNonJoined(ctx, args.key);
             let publicOrginvite = await Modules.Invites.orgInvitesRepo.getOrganizationInviteLinkByKey(ctx, args.key);
-            let invite: { oid: number, uid: number, ttl?: number | null, role?: string, joined?: boolean, email?: string, firstName?: string | null } | null = orgInvite || publicOrginvite;
+            let invite: { oid: number, uid: number, enabled: boolean, ttl?: number | null, role?: string, joined?: boolean, email?: string, firstName?: string | null } | null = orgInvite || publicOrginvite;
             if (!invite) {
+                return null;
+            }
+            if (!invite.enabled) {
                 return null;
             }
             let org = await FDB.Organization.findById(ctx, invite.oid);
