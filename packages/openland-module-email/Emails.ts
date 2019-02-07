@@ -245,7 +245,7 @@ export const Emails = {
                 throw Error('Internal inconsistency');
             }
 
-            let domain = process.env.APP_ENVIRONMENT === 'production' ? 'https://app.openland.com/join/' : 'http://localhost:3000/join/';
+            let domain = process.env.APP_ENVIRONMENT === 'production' ? 'https://openland.com/join/' : 'http://localhost:3000/join/';
             let orgProfile = (await FDB.OrganizationProfile.findById(ctx, oid))!;
             let avatar = await genAvatar(ctx, invite.uid);
 
@@ -301,7 +301,7 @@ export const Emails = {
                         memberName: memberProfile.firstName || '',
                         firstName: memberProfile.firstName || '',
                         lastName: memberProfile.lastName || '',
-                        link: 'https://app.openland.com/mail/' + IDs.User.serialize(memberId),
+                        link: 'https://openland.com/mail/' + IDs.User.serialize(memberId),
                         'organizationName': orgProfile.name!!,
                     }
                 });
@@ -339,7 +339,7 @@ export const Emails = {
         let userProfile = await Modules.Users.profileById(ctx, uid);
 
         let org = userProfile!.primaryOrganization ? await FDB.OrganizationProfile.findById(ctx, userProfile!.primaryOrganization!) : null;
-        let domain = process.env.APP_ENVIRONMENT === 'production' ? 'https://app.openland.com/joinChannel/' : 'http://localhost:3000/joinChannel/';
+        let domain = process.env.APP_ENVIRONMENT === 'production' ? 'https://openland.com/joinChannel/' : 'http://localhost:3000/joinChannel/';
 
         await Modules.Email.enqueueEmail(ctx, {
             subject: `Join ${roomTitle} room at Openland`,

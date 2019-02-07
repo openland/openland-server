@@ -24,7 +24,7 @@ export const ChannelInviteEmails = {
             throw Error('Internal inconsistency');
         }
 
-        let domain = process.env.APP_ENVIRONMENT === 'production' ? 'https://app.openland.com/joinChannel/' : 'http://localhost:3000/joinChannel/';
+        let domain = process.env.APP_ENVIRONMENT === 'production' ? 'https://openland.com/joinChannel/' : 'http://localhost:3000/joinChannel/';
 
         await Modules.Email.enqueueEmail(ctx, {
             subject: `Join ${channel.title} at Openland`,
