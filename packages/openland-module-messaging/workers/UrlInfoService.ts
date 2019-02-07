@@ -25,9 +25,9 @@ export interface URLAugmentation {
 }
 
 export default class UrlInfoService {
-    private userRegexp = /^(http:\/\/localhost:3000|https:\/\/app.openland.com)\/mail\/u\/(.*)/;
-    private orgRegexp = /^(http:\/\/localhost:3000|https:\/\/app.openland.com)\/(directory\/)?o\/(.*)/;
-    private channelRegexp = /^(http:\/\/localhost:3000|https:\/\/app.openland.com)\/mail\/(.*)/;
+    private userRegexp = /^(http:\/\/localhost:3000|https:\/\/(app.)?openland.com)\/mail\/u\/(.*)/;
+    private orgRegexp = /^(http:\/\/localhost:3000|https:\/\/(app.)?openland.com)\/(directory\/)?o\/(.*)/;
+    private channelRegexp = /^(http:\/\/localhost:3000|https:\/\/(app.)?openland.com)\/mail\/(.*)/;
     private cache = new CacheRepository<URLAugmentation>('url_info');
 
     public async fetchURLInfo(url: string): Promise<URLAugmentation> {
