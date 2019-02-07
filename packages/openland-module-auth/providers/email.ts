@@ -11,19 +11,19 @@ import { FDB } from 'openland-module-db/FDB';
 import { createEmptyContext } from 'openland-utils/Context';
 
 const Errors = {
-    wrong_arg: { code: 0, text: 'Wrong arguments passed' },
-    server_error: { code: 1, text: 'Server error' },
-    session_not_found: { code: 2, text: 'Session not found' },
-    code_expired: { code: 3, text: 'Code expired' },
-    wrong_code: { code: 4, text: 'Wrong code' },
-    no_email_or_phone: { code: 5, text: 'No email or phone passed' },
-    no_session: { code: 6, text: 'No session passed' },
-    no_code: { code: 7, text: 'No code passed' },
-    no_auth_token: { code: 8, text: 'No authToken passed' },
-    invalid_email: { code: 9, text: 'Invalid email' },
-    invalid_auth_token: { code: 10, text: 'Invalid auth token' },
-    session_expired: { code: 11, text: 'Session expired' },
-    wrong_code_length: { code: 4, text: 'Wrong code length' },
+    wrong_arg: { code: 0, text: 'An unexpected error occurred. Please try again.' },
+    server_error: { code: 1, text: 'An unexpected error occurred. Please try again.' },
+    session_not_found: { code: 2, text: 'An unexpected error occurred. Please try again.' },
+    code_expired: { code: 3, text: 'This code has expired. Please click Resend and we\'ll send you a new verification email.' },
+    wrong_code: { code: 4, text: 'The code you entered is incorrect. Please check the code in the email and try again.' },
+    no_email_or_phone: { code: 5, text: 'Please enter your email address' },
+    no_session: { code: 6, text: 'An unexpected error occurred. Please try again.' },
+    no_code: { code: 7, text: 'Please enter the 6-digit code we\'ve just sent to your email' },
+    no_auth_token: { code: 8, text: 'An unexpected error occurred. Please try again.' },
+    invalid_email: { code: 9, text: 'It looks like this email is incorrect. Please check your email address and try again.' },
+    invalid_auth_token: { code: 10, text: 'An unexpected error occurred. Please try again.' },
+    session_expired: { code: 11, text: 'An unexpected error occurred. Please try again.' },
+    wrong_code_length: { code: 4, text: 'The code you entered is incorrect. Please check the code in the email and try again.' },
 };
 
 const CODE_LEN = 5;
