@@ -25,6 +25,8 @@ export interface QueryInfo {
     query: string;
     transport: 'http' | 'ws';
 }
+
+const ERROR_REPORING_ENABLED = false;
 const IS_PROD = process.env.APP_ENVIRONMENT === 'production';
 
 const ERROR_REPORT_CHAT = IS_PROD ? IDs.Conversation.parse('av6pa90nyruoPV77gnaRhVLWrv') : null;
@@ -75,7 +77,7 @@ export function errorHandler(error: { message: string, originalError: any }, inf
     Raven.captureException(error.originalError);
     console.warn('unexpected_error', uuid, error.originalError);
 
-    if (IS_PROD) {
+    if (IS_PROD && ERROR_REPORING_ENABLED) {
         let report =
             ':rotating_light: API Error:\n' +
             '\n' +
