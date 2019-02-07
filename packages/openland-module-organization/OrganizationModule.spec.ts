@@ -127,6 +127,26 @@ describe('OrganizationModule', () => {
         expect(user5p.primaryOrganization).toEqual(org.id);
     });
 
+    it('should not activate deleted organization', async () => {
+        let ctx = createEmptyContext();
+
+        // Create User and Org
+        let user = await Modules.Users.createUser(ctx, 'test____1', 'some____3@email.comn');
+        await Modules.Users.createUserProfile(ctx, user.id, { firstName: 'Some Name' });
+
+        // Create Organization
+        let org = await Modules.Orgs.createOrganization(ctx, user.id, { name: 'hey' });
+        // create second org, because we can't delete our last organization
+        await Modules.Orgs.createOrganization(ctx, user.id, { name: 'hey' });
+        await Modules.Orgs.addUserToOrganization(ctx, user.id, org.id, user.id);
+        await Modules.Orgs.activateOrganization(ctx, org.id);
+        await Modules.Orgs.deleteOrganization(ctx, user.id, org.id);
+        await Modules.Orgs.activateOrganization(ctx, org.id);
+        org = (await FDB.Organization.findById(ctx, org.id))!;
+
+        expect(org.status).toEqual('deleted');
+    });
+
     it('should suspend organization and DO NOT suspend user', async () => {
         let ctx = createEmptyContext();
 

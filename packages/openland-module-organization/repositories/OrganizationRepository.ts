@@ -86,7 +86,7 @@ export class OrganizationRepository {
     async activateOrganization(parent: Context, id: number) {
         return await inTx(parent, async (ctx) => {
             let org = (await this.entities.Organization.findById(ctx, id))!;
-            if (org.status !== 'activated') {
+            if (org.status !== 'activated' && org.status !== 'deleted') {
                 org.status = 'activated';
                 await org.flush();
                 return true;
