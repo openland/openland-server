@@ -185,7 +185,17 @@ export function startPushNotificationWorker() {
                         pushBody += message.text;
                     }
                     if (message.fileMetadata) {
-                        pushBody += message.fileMetadata.isImage ? Texts.Notifications.IMAGE_ATTACH : Texts.Notifications.FILE_ATTACH;
+                        let mime = message.fileMetadata.mimeType;
+
+                        if (!mime) {
+                            pushBody += Texts.Notifications.DOCUMENT_ATTACH;
+                        } else if (mime === 'image/gif') {
+                            pushBody += Texts.Notifications.GIF_ATTACH;
+                        } else if (message.fileMetadata.isImage) {
+                            pushBody += Texts.Notifications.IMAGE_ATTACH;
+                        } else if (mime.startsWith('video/')) {
+                            pushBody += Texts.Notifications.VIDEO_ATTACH;
+                        }
                     }
 
                     let push = {
