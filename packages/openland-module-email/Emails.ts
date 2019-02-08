@@ -207,7 +207,7 @@ export const Emails = {
                 throw Error('Unable to find organization');
             }
 
-            let levelName = member.role === 'admin' ? 'owner' : 'member';
+            let levelName = member.role === 'admin' ? 'admin' : 'member';
 
             let user = await loadUserState(ctx, uid);
 

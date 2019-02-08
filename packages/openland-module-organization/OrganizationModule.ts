@@ -232,8 +232,9 @@ export class OrganizationModule {
             if (await this.isUserOwner(ctx, uid, oid)) {
                 throw new AccessDeniedError('Owner role can\'t be changed');
             }
+            let res = await this.repo.updateMembershipRole(ctx, uid, oid, role);
             await Emails.sendMembershipLevelChangedEmail(ctx, oid, uid);
-            return await this.repo.updateMembershipRole(ctx, uid, oid, role);
+            return res;
         });
     }
 
