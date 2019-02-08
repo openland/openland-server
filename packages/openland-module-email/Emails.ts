@@ -290,6 +290,9 @@ export const Emails = {
 
             let orgProfile = (await FDB.OrganizationProfile.findById(ctx, oid))!;
             for (let member of members) {
+                if (member === memberId) {
+                    continue;
+                }
                 let user = await loadUserState(ctx, member);
 
                 await Modules.Email.enqueueEmail(ctx, {
