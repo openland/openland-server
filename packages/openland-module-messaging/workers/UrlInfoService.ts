@@ -119,7 +119,7 @@ export default class UrlInfoService {
     }
 
     private async parseOrgUrl(url: string): Promise<URLAugmentation> {
-        let [, , , _orgId] = this.orgRegexp.exec(url)!;
+        let [, , , , _orgId] = this.orgRegexp.exec(url)!;
         let { hostname } = URL.parse(url);
 
         let orgId = IDs.Organization.parse(_orgId);
@@ -143,7 +143,7 @@ export default class UrlInfoService {
     }
 
     private async parseChannelUrl(url: string): Promise<URLAugmentation | null> {
-        let [, , _channelId] = this.channelRegexp.exec(url)!;
+        let [, , , _channelId] = this.channelRegexp.exec(url)!;
         let { hostname } = URL.parse(url);
 
         let channelId = IDs.Conversation.parse(_channelId);
