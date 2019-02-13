@@ -68,7 +68,8 @@ export class UserSearch {
                 let uids = hits.hits.hits.map((v) => parseInt(v._id, 10));
                 return {
                     uids,
-                    total: hits.hits.total
+                    total: hits.hits.total,
+                    hits
                 };
             });
         });

@@ -24,36 +24,60 @@ export default {
     },
     Query: {
         alphaGlobalSearch: withAccount(async (ctx, args, uid, oid) => {
+            let query = args.query.trim();
+
             //
             // Organizations
             //
-            let hits = await Modules.Search.elastic.client.search({
+            let userOrgs = await Modules.Orgs.findUserOrganizations(ctx, uid);
+            let orgsHitsPromise = Modules.Search.elastic.client.search({
                 index: 'organization',
                 type: 'organization',
                 size: 10,
                 body: {
-                    query: { bool: { must: [{ match_phrase_prefix: { name: args.query } }] } }
+                    query: {
+                        function_score: {
+                            query: { bool: { must: [{ match_phrase_prefix: { name: query } }] } },
+                            functions: userOrgs.map(_oid => ({
+                                filter: { match: { _id: _oid } },
+                                weight: 2
+                            })),
+                            boost_mode: 'multiply'
+                        }
+                    }
                 }
             });
-            let orgs = hits.hits.hits.map((v) => FDB.Organization.findById(ctx, parseInt(v._id, 10)));
 
             //
             // Users
             //
-            let uids = await Modules.Users.searchForUsers(ctx, args.query, { limit: 10, uid });
-            let users = uids.uids.map(id => FDB.User.findById(ctx, id));
+            let usersHitsPromise = (await Modules.Users.searchForUsers(ctx, query, { limit: 10, uid })).hits;
 
-            let roomIds = new Set<number>();
             //
             // User dialog rooms
             //
-            let localRoomIds = await Modules.Messaging.search.searchForRooms(ctx, args.query, { uid, limit: 10 });
-            localRoomIds.forEach(id => roomIds.add(id));
+
+            let localRoomsHitsPromise = await Modules.Search.elastic.client.search({
+                index: 'dialog',
+                type: 'dialog',
+                size: 10,
+                body: {
+                    query: {
+                        bool: {
+                            must: [
+                                { match_phrase_prefix: { title: query } },
+                                { term: { uid: uid } },
+                                { term: { visible: true } }
+                            ]
+                        }
+                    }
+                }
+            });
 
             //
             // Global rooms
             //
-            let globalRoomHits = await Modules.Search.elastic.client.search({
+            let globalRoomHitsPromise = await Modules.Search.elastic.client.search({
                 index: 'room',
                 type: 'room',
                 size: 10,
@@ -61,12 +85,57 @@ export default {
                     query: { bool: { must: [{ match_phrase_prefix: { title: args.query } }, { term: { listed: true} }] } }
                 }
             });
-            globalRoomHits.hits.hits.forEach(v => roomIds.add(parseInt(v._id, 10)));
 
-            let rooms = await Promise.all([...roomIds].map(id => FDB.Conversation.findById(ctx, id)));
-            rooms = rooms.filter(r => r && r!.kind !== 'private');
+            let allHits = (await Promise.all([orgsHitsPromise, usersHitsPromise, localRoomsHitsPromise, globalRoomHitsPromise]))
+                .map(d => d.hits.hits)
+                .reduce((a, v) => a.concat(v), []);
 
-            return [...orgs, ...users, ...rooms];
+            let rooms = new Set<number>();
+            let users = new Set<number>();
+
+            allHits = allHits.filter(hit => {
+               if (hit._type === 'dialog' || hit._type === 'room') {
+                   let cid = (hit._source as any).cid;
+                   if (!rooms.has(cid)) {
+                       rooms.add(cid);
+                       return true;
+                   } else {
+                       return false;
+                   }
+               }
+
+               if (hit._type === 'user_profile') {
+                   let userId = parseInt(hit._id, 10);
+                   users.add(userId);
+               }
+               return true;
+            });
+
+            let dataPromises = allHits.map(hit => {
+               if (hit._type === 'user_profile') {
+                   return FDB.User.findById(ctx, parseInt(hit._id, 10));
+               } else if (hit._type === 'organization') {
+                    return FDB.Organization.findById(ctx, parseInt(hit._id, 10));
+               } else if (hit._type === 'dialog' || hit._type === 'room') {
+                   return FDB.Conversation.findById(ctx, (hit._source as any).cid);
+               } else {
+                   return null;
+               }
+            });
+
+            let data = await Promise.all(dataPromises as Promise<User | Organization | Conversation>[]);
+
+            data = data.filter(item => {
+                if (!item) {
+                    return false;
+                }
+                if (item instanceof Conversation) {
+                    return item.kind !== 'private';
+                }
+                return true;
+            });
+
+            return data;
         })
     }
 } as GQLResolver;
