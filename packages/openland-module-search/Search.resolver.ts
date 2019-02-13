@@ -117,7 +117,11 @@ export default {
                } else if (hit._type === 'organization') {
                     return FDB.Organization.findById(ctx, parseInt(hit._id, 10));
                } else if (hit._type === 'dialog' || hit._type === 'room') {
-                   return FDB.Conversation.findById(ctx, (hit._source as any).cid);
+                   let cid = (hit._source as any).cid;
+                   if (!cid) {
+                       return null;
+                   }
+                   return FDB.Conversation.findById(ctx, cid);
                } else {
                    return null;
                }
