@@ -28,7 +28,7 @@ const Errors = {
 
 type ErrorsEnum = keyof typeof Errors;
 
-const CODE_LEN = 5;
+const CODE_LEN = 6;
 
 const sendError = (response: express.Response, error: ErrorsEnum) => {
     if (!Errors[error]) {
