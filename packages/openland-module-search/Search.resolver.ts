@@ -51,13 +51,13 @@ export default {
             //
             // Users
             //
-            let usersHitsPromise = (await Modules.Users.searchForUsers(ctx, query, { limit: 10, uid })).hits;
+            let usersHitsPromise = Modules.Users.searchForUsers(ctx, query, { byName: true, limit: 10, uid, });
 
             //
             // User dialog rooms
             //
 
-            let localRoomsHitsPromise = await Modules.Search.elastic.client.search({
+            let localRoomsHitsPromise = Modules.Search.elastic.client.search({
                 index: 'dialog',
                 type: 'dialog',
                 size: 10,
@@ -77,7 +77,7 @@ export default {
             //
             // Global rooms
             //
-            let globalRoomHitsPromise = await Modules.Search.elastic.client.search({
+            let globalRoomHitsPromise = Modules.Search.elastic.client.search({
                 index: 'room',
                 type: 'room',
                 size: 10,
@@ -86,9 +86,9 @@ export default {
                 }
             });
 
-            let allHits = (await Promise.all([usersHitsPromise, localRoomsHitsPromise, globalRoomHitsPromise, orgsHitsPromise]))
-                .map(d => d.hits.hits)
-                .reduce((a, v) => a.concat(v), []);
+            let [usersHits, localRoomsHits, globalRoomHits, orgsHits] = await Promise.all([usersHitsPromise, localRoomsHitsPromise, globalRoomHitsPromise, orgsHitsPromise]);
+
+            let allHits = [...usersHits.hits.hits.hits, ...localRoomsHits.hits.hits, ...globalRoomHits.hits.hits, ...orgsHits.hits.hits];
 
             let rooms = new Set<number>();
             let users = new Set<number>();

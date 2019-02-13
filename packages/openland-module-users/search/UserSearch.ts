@@ -5,7 +5,7 @@ import { Context } from 'openland-utils/Context';
 
 const tracer = createTracer('user-search');
 export class UserSearch {
-    async searchForUsers(parent: Context, query: string, options?: { uid?: number, limit?: number, after?: string, page?: number }) {
+    async searchForUsers(parent: Context, query: string, options?: { uid?: number, limit?: number, after?: string, page?: number, byName?: boolean }) {
         return await tracer.trace(parent, 'search', async (ctx) => {
 
             let normalized = query.trim();
@@ -13,7 +13,7 @@ export class UserSearch {
             let mainQuery: any = {
                 bool: {
                     should: normalized.length > 0 ? [
-                        { match_phrase_prefix: { search: query } }
+                        { match_phrase_prefix: options && options.byName ? { name: query } : { search: query } }
                     ] : [],
                     must_not: options && options.uid ? [
                         { match: { _id: options.uid } }
