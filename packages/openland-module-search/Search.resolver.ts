@@ -64,7 +64,7 @@ export default {
             globalRoomHits.hits.hits.forEach(v => roomIds.add(parseInt(v._id, 10)));
 
             let rooms = await Promise.all([...roomIds].map(id => FDB.Conversation.findById(ctx, id)));
-            rooms = rooms.filter(r => r!.kind !== 'private');
+            rooms = rooms.filter(r => r && r!.kind !== 'private');
 
             return [...orgs, ...users, ...rooms];
         })
