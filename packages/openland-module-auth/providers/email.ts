@@ -9,6 +9,7 @@ import { AuthCodeSession } from 'openland-module-db/schema';
 import { calculateBase64len } from '../../openland-utils/base64';
 import { FDB } from 'openland-module-db/FDB';
 import { createEmptyContext } from 'openland-utils/Context';
+import { emailValidator } from '../../openland-utils/NewInputValidator';
 
 const Errors = {
     wrong_arg: 'An unexpected error occurred. Please try again.',
@@ -57,7 +58,7 @@ const testEmailCode = (email: string) => {
     return num[num.length - 1].repeat(5);
 };
 
-const checkEmail = (email: any) => typeof email === 'string' && email.length <= 254; // according to rfc
+const checkEmail = (email: any) => emailValidator(email, '') === true;
 
 const checkSession = (session: any) => typeof session === 'string' && session.length === calculateBase64len(64);
 
