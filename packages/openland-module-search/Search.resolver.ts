@@ -86,7 +86,7 @@ export default {
                 }
             });
 
-            let allHits = (await Promise.all([orgsHitsPromise, usersHitsPromise, localRoomsHitsPromise, globalRoomHitsPromise]))
+            let allHits = (await Promise.all([usersHitsPromise, localRoomsHitsPromise, globalRoomHitsPromise, orgsHitsPromise]))
                 .map(d => d.hits.hits)
                 .reduce((a, v) => a.concat(v), []);
 
