@@ -11,25 +11,30 @@ import { FDB } from 'openland-module-db/FDB';
 import { createEmptyContext } from 'openland-utils/Context';
 
 const Errors = {
-    wrong_arg: { code: 0, text: 'An unexpected error occurred. Please try again.' },
-    server_error: { code: 1, text: 'An unexpected error occurred. Please try again.' },
-    session_not_found: { code: 2, text: 'An unexpected error occurred. Please try again.' },
-    code_expired: { code: 3, text: 'This code has expired. Please click Resend and we\'ll send you a new verification email.' },
-    wrong_code: { code: 4, text: 'The code you entered is incorrect. Please check the code in the email and try again.' },
-    no_email_or_phone: { code: 5, text: 'Please enter your email address' },
-    no_session: { code: 6, text: 'An unexpected error occurred. Please try again.' },
-    no_code: { code: 7, text: 'Please enter the 6-digit code we\'ve just sent to your email' },
-    no_auth_token: { code: 8, text: 'An unexpected error occurred. Please try again.' },
-    invalid_email: { code: 9, text: 'It looks like this email is incorrect. Please check your email address and try again.' },
-    invalid_auth_token: { code: 10, text: 'An unexpected error occurred. Please try again.' },
-    session_expired: { code: 11, text: 'An unexpected error occurred. Please try again.' },
-    wrong_code_length: { code: 4, text: 'The code you entered is incorrect. Please check the code in the email and try again.' },
+    wrong_arg: 'An unexpected error occurred. Please try again.',
+    server_error: 'An unexpected error occurred. Please try again.',
+    session_not_found: 'An unexpected error occurred. Please try again.',
+    code_expired: 'This code has expired. Please click Resend and we\'ll send you a new verification email.',
+    wrong_code: 'The code you entered is incorrect. Please check the code in the email and try again.',
+    no_email_or_phone: 'Please enter your email address',
+    no_session: 'An unexpected error occurred. Please try again.',
+    no_code: 'Please enter the 6-digit code we\'ve just sent to your email',
+    no_auth_token: 'An unexpected error occurred. Please try again.',
+    invalid_email: 'It looks like this email is incorrect. Please check your email address and try again.',
+    invalid_auth_token: 'An unexpected error occurred. Please try again.',
+    session_expired: 'An unexpected error occurred. Please try again.',
+    wrong_code_length: 'The code you entered is incorrect. Please check the code in the email and try again.',
 };
+
+type ErrorsEnum = keyof typeof Errors;
 
 const CODE_LEN = 5;
 
-const sendError = (response: express.Response, error: { code: number, text: string }) => {
-    response.json({ ok: false, errorCode: error.code, errorText: error.text });
+const sendError = (response: express.Response, error: ErrorsEnum) => {
+    if (!Errors[error]) {
+        response.json({ ok: false, errorCode: 'server_error', errorText: Errors.server_error });
+    }
+    response.json({ ok: false, errorCode: error, errorText: Errors[error] });
 };
 
 const TEST_EMAIL_REGEX = /^test(\d{4})@openland.com$/;
@@ -91,20 +96,20 @@ export async function sendCode(req: express.Request, response: express.Response)
         let authSession: AuthCodeSession | undefined;
         if (session) {
             if (!checkSession(session)) {
-                sendError(response, Errors.session_not_found);
+                sendError(response, 'session_not_found');
                 return;
             }
 
             let existing = await Modules.Auth.findAuthSession(ctx, session);
             if (!existing) {
-                sendError(response, Errors.session_not_found);
+                sendError(response, 'session_not_found');
                 return;
             }
             authSession = existing;
         }
 
         if (!email && !phone) {
-            sendError(response, Errors.no_email_or_phone);
+            sendError(response, 'no_email_or_phone');
             return;
         }
 
@@ -112,7 +117,7 @@ export async function sendCode(req: express.Request, response: express.Response)
 
         if (email) {
             if (!checkEmail(email)) {
-                sendError(response, Errors.invalid_email);
+                sendError(response, 'invalid_email');
             }
 
             email = (email as string).toLowerCase().trim();
@@ -136,7 +141,7 @@ export async function sendCode(req: express.Request, response: express.Response)
             response.json({ ok: true, session: authSession!.uid });
             return;
         } else {
-            sendError(response, Errors.server_error);
+            sendError(response, 'server_error');
         }
     });
 }
@@ -148,26 +153,26 @@ export async function checkCode(req: express.Request, response: express.Response
     } = req.body;
 
     if (!session) {
-        sendError(response, Errors.no_session);
+        sendError(response, 'no_session');
         return;
     } else if (!checkSession(session)) {
-        sendError(response, Errors.session_not_found);
+        sendError(response, 'session_not_found');
         return;
     }
 
     if (!code) {
-        sendError(response, Errors.no_code);
+        sendError(response, 'no_code');
         return;
     }
 
     if (typeof code !== 'string') {
-        sendError(response, Errors.wrong_code);
+        sendError(response, 'wrong_code');
         return;
     }
 
     code = code.trim();
     if (code.length !== CODE_LEN) {
-        sendError(response, Errors.wrong_code_length);
+        sendError(response, 'wrong_code_length');
         return;
     }
 
@@ -176,19 +181,19 @@ export async function checkCode(req: express.Request, response: express.Response
 
         // No session found
         if (!authSession) {
-            sendError(response, Errors.session_not_found);
+            sendError(response, 'session_not_found');
             return;
         }
 
         // Code expired
         if (Date.now() > authSession.expires) {
-            sendError(response, Errors.code_expired);
+            sendError(response, 'code_expired');
             return;
         }
 
         // Wrong code
         if (authSession.code! !== code) {
-            sendError(response, Errors.wrong_code);
+            sendError(response, 'wrong_code');
             return;
         }
 
@@ -207,18 +212,18 @@ export async function getAccessToken(req: express.Request, response: express.Res
     } = req.body;
 
     if (!session) {
-        sendError(response, Errors.no_session);
+        sendError(response, 'no_session');
         return;
     } else if (!checkSession(session)) {
-        sendError(response, Errors.no_session);
+        sendError(response, 'no_session');
         return;
     }
 
     if (!authToken) {
-        sendError(response, Errors.no_auth_token);
+        sendError(response, 'no_auth_token');
         return;
     } else if (!checkAuthToken(authToken)) {
-        sendError(response, Errors.invalid_auth_token);
+        sendError(response, 'invalid_auth_token');
         return;
     }
 
@@ -227,17 +232,17 @@ export async function getAccessToken(req: express.Request, response: express.Res
 
         // No session found
         if (!authSession) {
-            sendError(response, Errors.session_not_found);
+            sendError(response, 'session_not_found');
             return;
         }
 
         if (!authSession.enabled) {
-            sendError(response, Errors.session_expired);
+            sendError(response, 'session_expired');
         }
 
         // Wrong auth token
         if (authSession.tokenId !== authToken) {
-            sendError(response, Errors.invalid_auth_token);
+            sendError(response, 'invalid_auth_token');
             return;
         }
 
@@ -256,7 +261,7 @@ export async function getAccessToken(req: express.Request, response: express.Res
                 return;
             }
         } else {
-            sendError(response, Errors.server_error);
+            sendError(response, 'server_error');
         }
     });
 }
