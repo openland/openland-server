@@ -44,12 +44,11 @@ function handleRequest(withEngine: boolean) {
             // } else {
             //     Rate.HTTP.hit(clientId);
             // }
-
             return {
                 schema: schema,
                 context: res.locals.ctx,
                 cacheControl: withEngine,
-                tracing: withEngine,
+                tracing: true, // withEngine,
                 formatError: (err: any) => {
                     let ctx = res.locals.ctx;
                     let info: QueryInfo = {
