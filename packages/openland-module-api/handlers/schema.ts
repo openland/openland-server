@@ -48,7 +48,7 @@ function handleRequest(withEngine: boolean) {
                 schema: schema,
                 context: res.locals.ctx,
                 cacheControl: withEngine,
-                tracing: true, // withEngine,
+                tracing: withEngine,
                 formatError: (err: any) => {
                     let ctx = res.locals.ctx;
                     let info: QueryInfo = {
