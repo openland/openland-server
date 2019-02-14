@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '8a9e5b6df5ad67f19ea87c0ee3762501';
+export const GQL_SPEC_VERSION = 'd7f4ca445982dc300b68d6fd5dc4aced';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -573,6 +573,11 @@ export namespace GQL {
         offset?: number;
         length?: number;
         room?: Room;
+    }
+    export interface MessageSpanLink extends MessageSpan {
+        offset?: number;
+        length?: number;
+        url?: string;
     }
     export interface MessageSpanUserMentionInput {
         offset: number;
@@ -2213,6 +2218,7 @@ export interface GQLResolver {
     ModernMessageReaction?: ComplexTypedResolver<GQL.ModernMessageReaction, GQLRoots.ModernMessageReactionRoot, {user: GQLRoots.UserRoot}, {}>;
     MessageSpanUserMention?: ComplexTypedResolver<GQL.MessageSpanUserMention, GQLRoots.MessageSpanUserMentionRoot, {user: GQLRoots.UserRoot}, {}>;
     MessageSpanRoomMention?: ComplexTypedResolver<GQL.MessageSpanRoomMention, GQLRoots.MessageSpanRoomMentionRoot, {room: GQLRoots.RoomRoot}, {}>;
+    MessageSpanLink?: ComplexTypedResolver<GQL.MessageSpanLink, GQLRoots.MessageSpanLinkRoot, {}, {}>;
     PageInfo?: ComplexTypedResolver<GQL.PageInfo, GQLRoots.PageInfoRoot, {}, {}>;
     Task?: ComplexTypedResolver<GQL.Task, GQLRoots.TaskRoot, {}, {}>;
     ImageCrop?: ComplexTypedResolver<GQL.ImageCrop, GQLRoots.ImageCropRoot, {}, {}>;

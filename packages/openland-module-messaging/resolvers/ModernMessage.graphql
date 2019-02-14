@@ -188,6 +188,12 @@ type MessageSpanRoomMention implements MessageSpan {
     room: Room!
 }
 
+type MessageSpanLink implements MessageSpan {
+    offset: Int!
+    length: Int!
+    url: String!
+}
+
 # union MessageSpanInput = MessageSpanUserMentionInput | MessageSpanRoomMentionInput
 
 input MessageSpanUserMentionInput {

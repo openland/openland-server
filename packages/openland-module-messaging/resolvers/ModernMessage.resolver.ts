@@ -11,6 +11,8 @@ import { UserError } from '../../openland-errors/UserError';
 import ModernMessageAttachmentRoot = GQLRoots.ModernMessageAttachmentRoot;
 import { buildBaseImageUrl, ImageRef } from '../../openland-module-media/ImageRef';
 import { FileInfo } from '../../openland-module-media/FileInfo';
+import linkify from 'linkify-it';
+import tlds from 'tlds';
 
 const REACTIONS_LEGACY = new Map([
     ['❤️', 'LIKE'],
@@ -51,7 +53,8 @@ function prepareLegacyComplexMentions(mentions: { type: 'User'|'SharedRoom', id:
 
 export type UserMentionSpan = { type: 'user_mention', offset: number, length: number, user: number };
 export type RoomMentionSpan = { type: 'room_mention', offset: number, length: number, room: number };
-export type MessageSpan = UserMentionSpan | RoomMentionSpan;
+export type LinkSpan = { type: 'link', offset: number, length: number, url: string };
+export type MessageSpan = UserMentionSpan | RoomMentionSpan | LinkSpan;
 async function mentionsToSpans(messageText: string, mentions: IntermediateMention[], uid: number): Promise<MessageSpan[]> {
     let ctx = createEmptyContext();
 
@@ -101,6 +104,38 @@ export type MessageAttachmentFile = { type: 'file_attachment', fileId: string, f
 export type MessageRichAttachment = { type: 'rich_attachment', title?: string, subTitle?: string, titleLink?: string, text?: string, icon?: ImageRef, image?: ImageRef, iconInfo?: FileInfo, imageInfo?: FileInfo, id: string };
 export type MessageAttachment = MessageAttachmentFile | MessageRichAttachment;
 
+const linkifyInstance = linkify()
+    .tlds(tlds)
+    .tlds('onion', true);
+
+function parseLinks(message: string): MessageSpan[] {
+    let urls = linkifyInstance.match(message);
+
+    if (!urls) {
+        return [];
+    }
+
+    let offsets = new Set<number>();
+
+    function getOffset(str: string, n: number = 0): number {
+        let offset = message.indexOf(str, n);
+
+        if (offsets.has(offset)) {
+            return getOffset(str, n + 1);
+        }
+
+        offsets.add(offset);
+        return offset;
+    }
+
+    return urls.map(url => ({
+        type: 'link',
+        offset: getOffset(url.raw),
+        length: url.raw.length,
+        url: url.url
+    } as LinkSpan));
+}
+
 export default {
     BaseMessage: {
       __resolveType(src: Message) {
@@ -136,6 +171,11 @@ export default {
             if (src.complexMentions) {
                 spans.push(...await mentionsToSpans(src.text || '', prepareLegacyComplexMentions(src.complexMentions), uid));
             }
+
+            //
+            //  Links
+            //
+            spans.push(...parseLinks(src.text || ''));
 
             return spans;
         },
@@ -175,6 +215,11 @@ export default {
             if (src.complexMentions) {
                 spans.push(...await mentionsToSpans(src.text || '', prepareLegacyComplexMentions(src.complexMentions), uid));
             }
+
+            //
+            //  Links
+            //
+            spans.push(...parseLinks(src.text || ''));
 
             return spans;
         },
@@ -241,6 +286,8 @@ export default {
                 return 'MessageSpanUserMention';
             } else if (src.type === 'room_mention') {
                 return 'MessageSpanRoomMention';
+            } else if (src.type === 'link') {
+                return 'MessageSpanLink';
             } else {
                 throw new UserError('Unknown message span type: ' + (src as any).type);
             }
@@ -255,6 +302,11 @@ export default {
         offset: src => src.offset,
         length: src => src.length,
         room: src => src.room
+    },
+    MessageSpanLink: {
+        offset: src => src.offset,
+        length: src => src.length,
+        url: src => src.url
     },
 
     //
@@ -271,7 +323,7 @@ export default {
             } else if (src.type === 'rich_attachment') {
                 return 'MessageRichAttachment';
             } else {
-                throw new UserError('Unknown message span type: ' + (src as any).type);
+                throw new UserError('Unknown message attachment type: ' + (src as any).type);
             }
         }
     },
