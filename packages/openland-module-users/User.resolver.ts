@@ -7,13 +7,32 @@ import { withAny } from 'openland-module-api/Resolvers';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
 
-type UserRoot = User | UserProfile | number;
+type UserRoot = User | UserProfile | number | UserFullRoot;
+
+class UserFullRoot {
+    public readonly user: User;
+    public readonly profile: UserProfile;
+
+    constructor(user: User, profile: UserProfile) {
+        this.user = user;
+        this.profile = profile;
+    }
+}
+
+export async function userRootFull(ctx: AppContext, uid: number) {
+    let user = (await (FDB.User.findById(ctx, uid)))!;
+    let profile = (await (FDB.UserProfile.findById(ctx, uid)))!;
+
+    return new UserFullRoot(user, profile);
+}
 
 export function withUser(handler: (ctx: AppContext, user: User) => any) {
     return async (src: UserRoot, _params: {}, ctx: AppContext) => {
         if (typeof src === 'number') {
             let user = (await (FDB.User.findById(ctx, src)))!;
             return handler(ctx, user);
+        } else if (src instanceof UserFullRoot) {
+            return handler(ctx, src.user);
         } else if (src.entityName === 'User') {
             return handler(ctx, src);
         } else {
@@ -25,10 +44,13 @@ export function withUser(handler: (ctx: AppContext, user: User) => any) {
 
 export function withProfile(handler: (ctx: AppContext, user: User, profile: UserProfile | null) => any) {
     return async (src: UserRoot, _params: {}, ctx: AppContext) => {
+
         if (typeof src === 'number') {
             let user = (await (FDB.User.findById(ctx, src)))!;
             let profile = (await (FDB.UserProfile.findById(ctx, src)))!;
             return handler(ctx, user, profile);
+        } else if (src instanceof UserFullRoot) {
+            return handler(ctx, src.user, src.profile);
         } else if (src.entityName === 'User') {
             let profile = (await (FDB.UserProfile.findById(ctx, src.id)))!;
             return handler(ctx, src, profile);
@@ -42,7 +64,7 @@ export function withProfile(handler: (ctx: AppContext, user: User, profile: User
 
 export default {
     User: {
-        id: (src: UserRoot) => IDs.User.serialize(typeof src === 'number' ? src : src.id),
+        id: withUser((ctx, src) => IDs.User.serialize(src.id)),
         isBot: withUser((ctx, src) => src.isBot || false),
         isYou: withUser((ctx, src) => src.id === ctx.auth.uid),
 
@@ -77,7 +99,7 @@ export default {
             if (!ctx.auth.uid) {
                 return null;
             } else {
-                return FDB.User.findById(ctx, ctx.auth.uid);
+                return userRootFull(ctx, ctx.auth.uid);
             }
         },
         user: withAny(async (ctx, args) => {
