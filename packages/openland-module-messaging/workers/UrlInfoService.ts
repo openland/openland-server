@@ -160,7 +160,7 @@ export default class UrlInfoService {
             url,
             title: profile!.title || null,
             subtitle: profile!.title || null,
-            description: profile!.title || null,
+            description: profile!.description || null,
             imageURL: null,
             imageInfo: null,
             photo: profile!.image,
