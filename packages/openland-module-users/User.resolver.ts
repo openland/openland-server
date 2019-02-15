@@ -74,7 +74,7 @@ export default {
         photo: withProfile((ctx, src, profile) => profile && profile.picture ? buildBaseImageUrl(profile.picture) : null),
         photoRef: withProfile((ctx, src, profile) => profile && profile.picture),
 
-        email: withProfile((ctx, src, profile) => profile ? profile.email : null),
+        email: withProfile((ctx, src, profile) => profile ? (src.isBot ? null : profile.email) : null),
         phone: withProfile((ctx, src, profile) => profile ? profile.phone : null),
         about: withProfile((ctx, src, profile) => profile ? profile.about : null),
         website: withProfile((ctx, src, profile) => profile ? profile.website : null),
