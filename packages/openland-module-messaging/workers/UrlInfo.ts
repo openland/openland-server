@@ -77,7 +77,7 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
     if (imageURL) {
         try {
             let { file } = await Modules.Media.uploadFromUrl(createEmptyContext(), imageURL);
-            imageRef = { uuid: file, crop: undefined };
+            imageRef = { uuid: file, crop: null };
             imageInfo = await Modules.Media.fetchFileInfo(createEmptyContext(), file);
         } catch (e) {
             console.warn('Cant fetch image ' + imageURL);
@@ -98,7 +98,7 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
 
     try {
         let { file } = await Modules.Media.uploadFromUrl(createEmptyContext(), iconUrl);
-        iconRef = { uuid: file, crop: undefined };
+        iconRef = { uuid: file, crop: null };
         iconInfo = await Modules.Media.fetchFileInfo(createEmptyContext(), file);
     } catch (e) {
         console.warn('Cant fetch image ' + imageURL);

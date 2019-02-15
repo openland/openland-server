@@ -8,6 +8,8 @@ import { FEntityFactory } from 'foundation-orm/FEntityFactory';
 import { FConnection } from 'foundation-orm/FConnection';
 import { validators } from 'foundation-orm/utils/validators';
 import { Context } from 'openland-utils/Context';
+// @ts-ignore
+import { json, jField, jNumber, jString, jBool, jVec, jEnum, jEnumString } from 'openland-utils/jsonSchema';
 
 export interface EnvironmentShape {
     comment: string;
@@ -2291,7 +2293,7 @@ export class OrganizationFactory extends FEntityFactory<Organization> {
 }
 export interface OrganizationProfileShape {
     name: string;
-    photo?: any| null;
+    photo?: { uuid: string, crop: { x: number, y: number, w: number, h: number, } | null, }| null;
     about?: string| null;
     twitter?: string| null;
     facebook?: string| null;
@@ -2311,12 +2313,12 @@ export class OrganizationProfile extends FEntity {
         this._value.name = value;
         this.markDirty();
     }
-    get photo(): any | null {
+    get photo(): { uuid: string, crop: { x: number, y: number, w: number, h: number, } | null, } | null {
         let res = this._value.photo;
         if (res !== null && res !== undefined) { return res; }
         return null;
     }
-    set photo(value: any | null) {
+    set photo(value: { uuid: string, crop: { x: number, y: number, w: number, h: number, } | null, } | null) {
         this._checkIsWritable();
         if (value === this._value.photo) { return; }
         this._value.photo = value;
@@ -2404,6 +2406,15 @@ export class OrganizationProfileFactory extends FEntityFactory<OrganizationProfi
         validators.isNumber('id', src.id);
         validators.notNull('name', src.name);
         validators.isString('name', src.name);
+        validators.isJson('photo', src.photo, json(() => {
+            jField('uuid', jString());
+            jField('crop', json(() => {
+            jField('x', jNumber());
+            jField('y', jNumber());
+            jField('w', jNumber());
+            jField('h', jNumber());
+        }), true);
+        }));
         validators.isString('about', src.about);
         validators.isString('twitter', src.twitter);
         validators.isString('facebook', src.facebook);

@@ -1,5 +1,18 @@
 import { generate } from '../foundation-orm-gen/generate';
-import { declareSchema, entity, field, primaryKey, enableTimestamps, enableVersioning, enumField, rangeIndex, uniqueIndex, allowAdminEdit } from '../foundation-orm-gen';
+import {
+    declareSchema,
+    entity,
+    field,
+    primaryKey,
+    enableTimestamps,
+    enableVersioning,
+    enumField,
+    rangeIndex,
+    uniqueIndex,
+    allowAdminEdit,
+    jsonField
+} from '../foundation-orm-gen';
+import { jField, jNumber, json, jString } from '../openland-utils/jsonSchema';
 
 const Schema = declareSchema(() => {
 
@@ -217,7 +230,15 @@ const Schema = declareSchema(() => {
     entity('OrganizationProfile', () => {
         primaryKey('id', 'number');
         field('name', 'string');
-        field('photo', 'json').nullable();
+        jsonField('photo', () => {
+            jField('uuid', jString());
+            jField('crop', json(() => {
+                jField('x', jNumber());
+                jField('y', jNumber());
+                jField('w', jNumber());
+                jField('h', jNumber());
+            }), true);
+        }).nullable();
         field('about', 'string').nullable();
         field('twitter', 'string').nullable();
         field('facebook', 'string').nullable();

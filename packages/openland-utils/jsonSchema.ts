@@ -245,7 +245,11 @@ export function generateJsonSchema(schema: JsonSchema): string {
 
         res += 'json(() => {\n';
         for (let field of schema.fields) {
-            res += `${genTab(1)}jField('${field.name}', ${generateJsonSchema(field.type)});\n`;
+            if (field.nullable) {
+                res += `${genTab(1)}jField('${field.name}', ${generateJsonSchema(field.type)}, true);\n`;
+            } else {
+                res += `${genTab(1)}jField('${field.name}', ${generateJsonSchema(field.type)});\n`;
+            }
         }
         res += '})';
 
@@ -273,7 +277,7 @@ export function generateJsonSchemaInterface(schema: JsonSchema): string {
 
         res += '{ ';
         for (let field of schema.fields) {
-            res += `${field.name}: ${generateJsonSchemaInterface(field.type)}, `;
+            res += `${field.name}: ${generateJsonSchemaInterface(field.type)}${field.nullable ? ' | null' : ''}, `;
         }
         res += '}';
 

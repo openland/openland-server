@@ -132,7 +132,7 @@ export default class UrlInfoService {
             subtitle: (org!.about || null),
             description: (org!.about) || null,
             imageURL: null,
-            imageInfo: org!.photo ? await Modules.Media.fetchFileInfo(createEmptyContext(), org!.photo.uuid) : null,
+            imageInfo: org!.photo ? await Modules.Media.fetchFileInfo(createEmptyContext(), org!.photo!.uuid) : null,
             photo: org!.photo || null,
             hostname: hostname || null,
             type: 'org',
