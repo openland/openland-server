@@ -1,3 +1,5 @@
+import { JsonSchema, validateJson } from '../../openland-utils/jsonSchema';
+
 export class FDBValidationError extends Error {
     constructor(message: string) {
         super(message);
@@ -37,5 +39,14 @@ export const validators = {
             }
             throw new FDBValidationError('\'' + name + '\' string \'' + value + '\' is matched with known enum values');
         }
-    }
+    },
+    isJson: (name: string, value: any, schema: JsonSchema) => {
+        if ((value !== undefined && value !== null)) {
+            try {
+                validateJson(schema, value);
+            } catch (e) {
+                throw new FDBValidationError(e.message);
+            }
+        }
+    },
 };

@@ -1,5 +1,16 @@
 import { generate } from '../../foundation-orm-gen/generate';
-import { declareSchema, entity, field, primaryKey, enableVersioning, enableTimestamps, uniqueIndex, rangeIndex } from '../../foundation-orm-gen';
+import {
+    declareSchema,
+    entity,
+    field,
+    primaryKey,
+    enableVersioning,
+    enableTimestamps,
+    uniqueIndex,
+    rangeIndex,
+    jsonField
+} from '../../foundation-orm-gen';
+import { jField, jNumber, jString } from '../../openland-utils/jsonSchema';
 
 const Schema = declareSchema(() => {
     entity('SimpleEntity', () => {
@@ -48,6 +59,16 @@ const Schema = declareSchema(() => {
         primaryKey('id', 'number');
         field('key', 'number');
         rangeIndex('default', ['key', 'id']);
+    });
+
+    entity('JsonTest', () => {
+        primaryKey('id', 'number');
+        jsonField('test', () => {
+            jField('type', jString('link'));
+            jField('offset', jNumber());
+            jField('length', jNumber());
+            jField('url', jString());
+        });
     });
 });
 

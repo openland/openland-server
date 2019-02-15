@@ -8,6 +8,8 @@ import { FEntityFactory } from 'foundation-orm/FEntityFactory';
 import { FConnection } from 'foundation-orm/FConnection';
 import { validators } from 'foundation-orm/utils/validators';
 import { Context } from 'openland-utils/Context';
+// @ts-ignore
+import { json, jField, jNumber, jString, jBool, jVec, jEnum, jEnumString } from 'openland-utils/jsonSchema';
 
 export interface SimpleEntityShape {
     data: string;
@@ -682,6 +684,75 @@ export class RangeTestFactory extends FEntityFactory<RangeTest> {
         return new RangeTest(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'RangeTest');
     }
 }
+export interface JsonTestShape {
+    test: { type: 'link', offset: number, length: number, url: string, };
+}
+
+export class JsonTest extends FEntity {
+    readonly entityName: 'JsonTest' = 'JsonTest';
+    get id(): number { return this._value.id; }
+    get test(): { type: 'link', offset: number, length: number, url: string, } {
+        return this._value.test;
+    }
+    set test(value: { type: 'link', offset: number, length: number, url: string, }) {
+        this._checkIsWritable();
+        if (value === this._value.test) { return; }
+        this._value.test = value;
+        this.markDirty();
+    }
+}
+
+export class JsonTestFactory extends FEntityFactory<JsonTest> {
+    static schema: FEntitySchema = {
+        name: 'JsonTest',
+        editable: false,
+        primaryKeys: [
+            { name: 'id', type: 'number' },
+        ],
+        fields: [
+            { name: 'test', type: 'json' },
+        ],
+        indexes: [
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isNumber('id', src.id);
+        validators.notNull('test', src.test);
+        validators.isJson('test', src.test, json(() => {
+            jField('type', jString('link'));
+            jField('offset', jNumber());
+            jField('length', jNumber());
+            jField('url', jString());
+        }));
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'jsonTest'),
+            { enableVersioning: false, enableTimestamps: false, validator: JsonTestFactory.validate, hasLiveStreams: false },
+            [],
+            'JsonTest'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
+        return { 'id': rawId[0] };
+    }
+    async findById(ctx: Context, id: number) {
+        return await this._findById(ctx, [id]);
+    }
+    async create(ctx: Context, id: number, shape: JsonTestShape) {
+        return await this._create(ctx, [id], { id, ...shape });
+    }
+    watch(ctx: Context, id: number, cb: () => void) {
+        return this._watch(ctx, [id], cb);
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new JsonTest(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'JsonTest');
+    }
+}
 
 export interface AllEntities {
     readonly connection: FConnection;
@@ -693,6 +764,7 @@ export interface AllEntities {
     readonly IndexedPartialEntity: IndexedPartialEntityFactory;
     readonly NullableEntity: NullableEntityFactory;
     readonly RangeTest: RangeTestFactory;
+    readonly JsonTest: JsonTestFactory;
 }
 export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     static readonly schema: FEntitySchema[] = [
@@ -704,6 +776,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         IndexedPartialEntityFactory.schema,
         NullableEntityFactory.schema,
         RangeTestFactory.schema,
+        JsonTestFactory.schema,
     ];
     allEntities: FEntityFactory<FEntity>[] = [];
     SimpleEntity: SimpleEntityFactory;
@@ -714,6 +787,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     IndexedPartialEntity: IndexedPartialEntityFactory;
     NullableEntity: NullableEntityFactory;
     RangeTest: RangeTestFactory;
+    JsonTest: JsonTestFactory;
 
     constructor(connection: FConnection) {
         super(connection);
@@ -733,6 +807,8 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         this.allEntities.push(this.NullableEntity);
         this.RangeTest = new RangeTestFactory(connection);
         this.allEntities.push(this.RangeTest);
+        this.JsonTest = new JsonTestFactory(connection);
+        this.allEntities.push(this.JsonTest);
     }
 }
 export class AllEntitiesProxy implements AllEntities {
@@ -762,6 +838,9 @@ export class AllEntitiesProxy implements AllEntities {
     }
     get RangeTest(): RangeTestFactory {
         return this.resolver().RangeTest;
+    }
+    get JsonTest(): JsonTestFactory {
+        return this.resolver().JsonTest;
     }
     private resolver: () => AllEntities;
     constructor(resolver: () => AllEntities) {

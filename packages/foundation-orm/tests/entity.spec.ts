@@ -140,4 +140,24 @@ describe('FEntity', () => {
             });
         });
     });
+
+    it('should save valid json field', async () => {
+        let rctx = createEmptyContext();
+        let res = await inTx(rctx, async (ctx) => {
+            return await testEntities.JsonTest.create(ctx, 1, { test: { type: 'link', length: 0, offset: 0, url: '_' } });
+        });
+
+        expect(res.test.type).toEqual('link');
+        expect(res.test.length).toEqual(0);
+        expect(res.test.offset).toEqual(0);
+        expect(res.test.url).toEqual('_');
+    });
+
+    it('should not save invalid json field', async () => {
+        let rctx = createEmptyContext();
+        let res = inTx(rctx, async (ctx) => {
+            return await testEntities.JsonTest.create(ctx, 1, { test: { type: 'link', length: true, offset: 0, url: '_' } as any });
+        });
+        expect(res).rejects.toThrowError('Field root.length must be number, got: true');
+    });
 });

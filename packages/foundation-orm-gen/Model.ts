@@ -1,18 +1,21 @@
 import { FEntitySchemaReference } from 'foundation-orm/FEntitySchema';
+import { JsonSchema } from '../openland-utils/jsonSchema';
 
 export class EntityField {
     readonly name: string;
     readonly type: 'string' | 'number' | 'boolean' | 'enum' | 'json';
     readonly enumValues: string[];
+    readonly jsonSchema: JsonSchema|null;
     isNullable: boolean = false;
     isSecure: boolean = false;
     dispName?: string;
     reference?: FEntitySchemaReference;
 
-    constructor(name: string, type: 'string' | 'number' | 'boolean' | 'enum' | 'json', enumValues: string[]) {
+    constructor(name: string, type: 'string' | 'number' | 'boolean' | 'enum' | 'json', enumValues: string[], jsonSchema: JsonSchema|null) {
         this.name = name;
         this.type = type;
         this.enumValues = enumValues;
+        this.jsonSchema = jsonSchema;
     }
 
     withReference(name: string, type: string) {
@@ -84,8 +87,8 @@ export class EntityModel {
         this.name = name;
     }
 
-    addField(name: string, type: 'string' | 'number' | 'boolean' | 'enum' | 'json', enumValues: string[]) {
-        let res = new EntityField(name, type, enumValues);
+    addField(name: string, type: 'string' | 'number' | 'boolean' | 'enum' | 'json', enumValues: string[], jsonSchema: JsonSchema|null) {
+        let res = new EntityField(name, type, enumValues, jsonSchema);
         this.fields.push(res);
         return res;
     }
@@ -97,7 +100,7 @@ export class EntityModel {
     }
 
     addKey(name: string, type: 'string' | 'number' | 'boolean') {
-        let res = new EntityField(name, type, []);
+        let res = new EntityField(name, type, [], null);
         this.keys.push(res);
         return res;
     }

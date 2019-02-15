@@ -1,4 +1,11 @@
-import { jEnum, jField, jNumber, json, jString, validateJson } from './jsonSchema';
+import {
+    jEnum,
+    jField,
+    jNumber,
+    json,
+    jString,
+    validateJson
+} from './jsonSchema';
 
 describe('jsonSchema', () => {
     it('should validate basic object', async () => {

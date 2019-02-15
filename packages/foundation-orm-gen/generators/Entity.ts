@@ -1,5 +1,7 @@
 import { EntityModel, EntityField, EntityIndex } from '../Model';
 import * as Case from 'change-case';
+import { generateJsonSchema, generateJsonSchemaInterface } from '../../openland-utils/jsonSchema';
+import { tab } from '../../openland-utils/string';
 
 function resolveFieldType(field: EntityField) {
     let type: string = field.type;
@@ -7,7 +9,11 @@ function resolveFieldType(field: EntityField) {
         type = field.enumValues.map((v) => '\'' + v + '\'').join(' | ');
     }
     if (field.type === 'json') {
-        type = 'any';
+        if (field.jsonSchema) {
+            type = generateJsonSchemaInterface(field.jsonSchema);
+        } else {
+            type = 'any';
+        }
     }
     return type;
 }
@@ -25,10 +31,10 @@ function resolveIndexField(entity: EntityModel, name: string) {
     }
     if (entity.enableTimestamps) {
         if (name === 'createdAt') {
-            return new EntityField(name, 'number', []);
+            return new EntityField(name, 'number', [], null);
         }
         if (name === 'updatedAt') {
-            return new EntityField(name, 'number', []);
+            return new EntityField(name, 'number', [], null);
         }
     }
     throw Error('Unable to find field ' + name);
@@ -152,6 +158,10 @@ export function generateEntity(entity: EntityModel): string {
         } else if (k.type === 'boolean') {
             res += '        validators.isBoolean(\'' + k.name + '\', src.' + k.name + ');\n';
         } else if (k.type === 'json') {
+            if (k.jsonSchema) {
+                let schema = generateJsonSchema(k.jsonSchema);
+                res += '        validators.isJson(\'' + k.name + '\', src.' + k.name + ', ' + tab(2, schema, true) + ');\n';
+            }
             // Nothing to validate
         } else if (k.type === 'enum') {
             res += '        validators.isEnum(\'' + k.name + '\', src.' + k.name + ', [' + k.enumValues.map((v) => `'${v}'`).join(', ') + ']);\n';

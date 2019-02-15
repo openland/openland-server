@@ -1,4 +1,5 @@
 import { SchemaModel, EntityModel } from './Model';
+import { json, JsonSchema } from '../openland-utils/jsonSchema';
 
 let currentSchema: SchemaModel | null = null;
 let currentEntity: EntityModel | null = null;
@@ -22,11 +23,22 @@ export function entity(name: string, schema: () => void) {
 }
 
 export function field(name: string, type: 'number' | 'string' | 'boolean' | 'json') {
-    return currentEntity!!.addField(name, type, []);
+    return currentEntity!!.addField(name, type, [], null);
 }
 
+export function jsonField(name: string, schema: JsonSchema | (() => void) ) {
+    let jsonSchema: JsonSchema;
+
+    if (schema instanceof Function) {
+        jsonSchema = json(schema);
+    } else {
+        jsonSchema = schema;
+    }
+
+    return currentEntity!!.addField(name, 'json', [], jsonSchema);
+}
 export function enumField(name: string, values: string[]) {
-    return currentEntity!!.addField(name, 'enum', values);
+    return currentEntity!!.addField(name, 'enum', values, null);
 }
 
 export function primaryKey(name: string, type: 'number' | 'string') {

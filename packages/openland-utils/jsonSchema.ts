@@ -1,20 +1,5 @@
 import { inspect } from 'util';
-
-function genTab(n: number): string {
-    return new Array(n).fill('    ').join('');
-}
-
-function tab(n: number, str: string) {
-    let out: string[] = [];
-    let parts = str.split('\n');
-    for (let part of parts) {
-        if (part.length === 0) {
-            continue;
-        }
-        out.push(genTab(n) + part);
-    }
-    return out.join('\n');
-}
+import { genTab, tab } from './string';
 
 class JsonField {
     constructor(
@@ -26,7 +11,7 @@ class JsonField {
     }
 }
 
-class JsonType {
+export class JsonType {
     public toText(): string {
         return 'BasicType';
     }
@@ -85,7 +70,7 @@ class StringEnumType extends JsonType {
         return `stringEnum(${this.values.join(' | ')})`;
     }
 }
-export class JsonSchema extends JsonType {
+class ObjectType extends JsonType {
     readonly fields: JsonField[] = [];
 
     addField(field: JsonField) {
@@ -95,7 +80,7 @@ export class JsonSchema extends JsonType {
     toText() {
         let out = '{\n';
         for (let field of this.fields) {
-            if (field.type instanceof JsonSchema) {
+            if (field.type instanceof ObjectType) {
                 out += `${genTab(1)}"${field.name}": ${tab(1, field.type.toText())}\n`;
 
             } else {
@@ -107,10 +92,12 @@ export class JsonSchema extends JsonType {
     }
 }
 
-let schemas: JsonSchema[] = [];
+export type JsonSchema = NumberType | StringType | BoolType | VecType | EnumType | StringEnumType | ObjectType;
+
+let schemas: ObjectType[] = [];
 
 export const json = (schema: () => void) => {
-    let _schema = new JsonSchema();
+    let _schema = new ObjectType();
     schemas.push(_schema);
     schema();
     schemas.pop();
@@ -209,7 +196,7 @@ function validateField(fieldsPath: string[] = [], value: any, type: JsonType) {
             fieldsPath.pop();
             i++;
         }
-    } else if (type instanceof JsonSchema) {
+    } else if (type instanceof ObjectType) {
         if (typeof value !== 'object') {
             throw new Error(`${fieldName} must be object`);
         }
@@ -238,6 +225,62 @@ function validateField(fieldsPath: string[] = [], value: any, type: JsonType) {
 export function validateJson(schema: JsonType, input: any) {
     validateField(['root'], input, schema);
     return true;
+}
+
+export function generateJsonSchema(schema: JsonSchema): string {
+    if (schema instanceof NumberType) {
+        return 'jNumber()';
+    } else if (schema instanceof StringType) {
+        return schema.exactValue ? `jString('${schema.exactValue}')` : 'jString()';
+    } else if (schema instanceof BoolType) {
+        return 'jBool()';
+    } else if (schema instanceof VecType) {
+        return `jVec(${generateJsonSchema(schema.type)})`;
+    } else if (schema instanceof EnumType) {
+        return `jEnum(\n${tab(1, schema.types.map(generateJsonSchema).join(', \n'))}\n)`;
+    } else if (schema instanceof StringEnumType) {
+        return `jEnumString(${schema.values.join(', ')})`;
+    } else if (schema instanceof ObjectType) {
+        let res = '';
+
+        res += 'json(() => {\n';
+        for (let field of schema.fields) {
+            res += `${genTab(1)}jField('${field.name}', ${generateJsonSchema(field.type)});\n`;
+        }
+        res += '})';
+
+        return res;
+    }
+
+    throw new Error('Can\'t generate schema');
+}
+
+export function generateJsonSchemaInterface(schema: JsonSchema): string {
+    if (schema instanceof NumberType) {
+        return 'number';
+    } else if (schema instanceof StringType) {
+        return schema.exactValue ? `'${schema.exactValue}'` : 'string';
+    } else if (schema instanceof BoolType) {
+        return 'boolean';
+    } else if (schema instanceof VecType) {
+        return `${generateJsonSchemaInterface(schema.type)}[]`;
+    } else if (schema instanceof EnumType) {
+        return schema.types.map(generateJsonSchemaInterface).join(' | ');
+    } else if (schema instanceof StringEnumType) {
+        return schema.values.join(' | ');
+    } else if (schema instanceof ObjectType) {
+        let res = '';
+
+        res += '{ ';
+        for (let field of schema.fields) {
+            res += `${field.name}: ${generateJsonSchemaInterface(field.type)}, `;
+        }
+        res += '}';
+
+        return res;
+    }
+
+    throw new Error('Can\'t generate schema');
 }
 
 // json(() => {
