@@ -4,7 +4,7 @@ import { Modules } from 'openland-modules/Modules';
 import { createEmptyContext } from 'openland-utils/Context';
 
 export function userProfileIndexer() {
-    declareSearchIndexer('user-profile-index', 12, 'user_profile', FDB.UserIndexingQueue.createUpdatedStream(createEmptyContext(), 50))
+    declareSearchIndexer('user-profile-index', 13, 'user_profile', FDB.UserIndexingQueue.createUpdatedStream(createEmptyContext(), 50))
         .withProperties({
             primaryOrganization: {
                 type: 'keyword'
