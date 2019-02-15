@@ -120,7 +120,7 @@ for (let e of AllEntitiesDirect.schema) {
         if (!f.secure) {
             fields[f.name] = {
                 type: buildType(f.type),
-                ...(f.type === 'json' ? { resolve: (entity: any) => JSON.stringify(entity[f.name]) } : {})
+                ...(f.type === 'json' ? { resolve: (entity: any) => entity[f.name] === null ? null : JSON.stringify(entity[f.name]) } : {})
             };
             inputFields[f.name] = {
                 type: buildType(f.type)
