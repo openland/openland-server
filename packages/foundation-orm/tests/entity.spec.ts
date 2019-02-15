@@ -156,7 +156,7 @@ describe('FEntity', () => {
     it('should not save invalid json field', async () => {
         let rctx = createEmptyContext();
         let res = inTx(rctx, async (ctx) => {
-            return await testEntities.JsonTest.create(ctx, 1, { test: { type: 'link', length: true, offset: 0, url: '_' } as any });
+            return await testEntities.JsonTest.create(ctx, 2, { test: { type: 'link', length: true, offset: 0, url: '_' } as any });
         });
         expect(res).rejects.toThrowError('Field root.length must be number, got: true');
     });
