@@ -1,3 +1,5 @@
+import { inspect } from 'util';
+
 function genTab(n: number): string {
     return new Array(n).fill('    ').join('');
 }
@@ -35,6 +37,12 @@ class NumberType extends JsonType {
     }
 }
 class StringType extends JsonType {
+    readonly exactValue?: string;
+    constructor(exactValue?: string) {
+        super();
+        this.exactValue = exactValue;
+    }
+
     toText() {
         return 'string';
     }
@@ -63,7 +71,7 @@ class EnumType extends JsonType {
     }
 
     toText() {
-        return `enum(${this.types.map(t => t.toText()).join(' | ')})`;
+        return tab(1, `enum(${this.types.map(t => t.toText()).join(' | ')})`);
     }
 }
 class StringEnumType extends JsonType {
@@ -99,27 +107,16 @@ export class JsonSchema extends JsonType {
     }
 }
 
-let currentSchemaIndex = -1;
 let schemas: JsonSchema[] = [];
 
 export const json = (schema: () => void) => {
-    currentSchemaIndex++;
     let _schema = new JsonSchema();
     schemas.push(_schema);
     schema();
-    currentSchemaIndex--;
-    return _schema;
-};
-export const inJson = (schema: () => void) => {
-    currentSchemaIndex++;
-    let _schema = new JsonSchema();
-    schemas.push(_schema);
-    schema();
-    currentSchemaIndex--;
     schemas.pop();
     return _schema;
 };
-export const jString = () => new StringType();
+export const jString = (value?: string) => new StringType(value);
 export const jNumber = () => new NumberType();
 export const jBool = () => new BoolType();
 export const jVec = (type: JsonType) => new VecType(type);
@@ -127,13 +124,22 @@ export const jEnum = (...types: JsonType[]) => new EnumType(types);
 export const jEnumString = (...values: string[]) => new StringEnumType(values);
 
 export const jField = (name: string, type: JsonType, nullable = false) => {
-    schemas[currentSchemaIndex].addField(new JsonField(name, type, nullable));
+    let schema = schemas[schemas.length - 1];
+
+    if (!schema) {
+        throw new Error('jField can\'t be called outside of json()');
+    }
+    schema.addField(new JsonField(name, type, nullable));
 };
 
+class JsonExtraFieldError extends Error { }
+
 const Validators = {
-    isString: (field: string, value: any) => {
+    isString: (field: string, value: any, expected?: string) => {
         if (value === undefined || value === null || typeof value !== 'string') {
             throw new Error(`Field ${field} must be string, got: ${value}`);
+        } else if (expected && value !== expected) {
+            throw new Error(`Field ${field} must be ${expected}, got: ${value}`);
         }
     },
     isNumber: (field: string, value: any) => {
@@ -171,7 +177,7 @@ function validateField(fieldsPath: string[] = [], value: any, type: JsonType) {
     let fieldName = fieldsPath.join('.');
 
     if (type instanceof StringType) {
-        Validators.isString(fieldName, value);
+        Validators.isString(fieldName, value, type.exactValue);
     } else if (type instanceof NumberType) {
         Validators.isNumber(fieldName, value);
     } else if (type instanceof BoolType) {
@@ -181,16 +187,18 @@ function validateField(fieldsPath: string[] = [], value: any, type: JsonType) {
     } else if (type instanceof EnumType) {
         Validators.isEnum(fieldName, value);
         let pass = false;
+        let errors: Error[] = [];
         for (let enumType of type.types) {
             try {
                 validateField([], value, enumType);
                 pass = true;
             } catch (e) {
-                // nothing to do here
+                errors.push(e);
             }
         }
         if (!pass) {
-            throw new Error(`Field ${fieldName} should be ${type.toText()}, got: ${value}`);
+            errors.sort((a, b) => a instanceof JsonExtraFieldError ? 1 : -1);
+            throw new Error(`Field ${fieldName} should be ${type.toText()}, got: ${inspect(value)}, possible error: ${errors[0].message}`);
         }
     } else if (type instanceof VecType) {
         Validators.isVec(fieldName, value);
@@ -212,7 +220,7 @@ function validateField(fieldsPath: string[] = [], value: any, type: JsonType) {
             let field = type.fields.find(f => f.name === key);
 
             if (!field) {
-                throw new Error(`Extra field "${key}"`);
+                throw new JsonExtraFieldError(`Extra field "${key}"`);
             }
             fieldsPath.push(key);
             validateField(fieldsPath, v, field.type);
