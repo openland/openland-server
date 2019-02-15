@@ -545,6 +545,28 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '41-reindex-user-profiles',
+    migration: async (root, log) => {
+        let allKeys = await FDB.UserProfile.findAllKeys(root);
+        let keyBatches = batch(allKeys, 100);
+        for (let kb of keyBatches) {
+            await inTx(root, async (ctx) => {
+                for (let a of kb) {
+                    let k = FKeyEncoding.decodeKey(a);
+                    k.splice(0, 2);
+                    let r = (await FDB.UserProfile.findById(ctx, k[0] as number));
+                    if (!r) {
+                        log.warn(ctx, 'no user profile found! ' + JSON.stringify(k));
+                    } else {
+                        r.markDirty();
+                    }
+                }
+            });
+        }
+    }
+});
+
 export function startMigrationsWorker() {
     if (serverRoleEnabled('workers')) {
         staticWorker({ name: 'foundation-migrator' }, async (ctx) => {
