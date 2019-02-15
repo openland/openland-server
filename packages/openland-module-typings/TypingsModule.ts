@@ -49,7 +49,7 @@ export class TypingsModule {
     }
 
     public async createTypingStream(uid: number, conversationId?: number) {
-
+        
         let sub: PubsubSubcription | undefined;
 
         let iterator = createIterator<TypingEvent>(() => sub ? sub.cancel() : {});

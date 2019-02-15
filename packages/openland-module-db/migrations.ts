@@ -567,6 +567,16 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '42-reindex-users',
+    migration: async (root, log) => {
+        let k = await FDB.Organization.findAll(root);
+        for (let o of k) {
+            await Modules.Users.markForUndexing(root, o.id);
+        }
+    }
+});
+
 export function startMigrationsWorker() {
     if (serverRoleEnabled('workers')) {
         staticWorker({ name: 'foundation-migrator' }, async (ctx) => {
