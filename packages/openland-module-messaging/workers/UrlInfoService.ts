@@ -27,7 +27,8 @@ export interface URLAugmentation {
 export default class UrlInfoService {
     private userRegexp = /(localhost:3000|(app.)?openland.com)\/(mail|directory)\/u\/(.*)/;
     private orgRegexp = /(localhost:3000|(app.)?openland.com)\/(directory\/)?o\/(.*)/;
-    private channelRegexp = /(localhost:3000|(app.)?openland.com)\/mail\/(.*)/;
+    private channelRegexp = /(localhost:3000|(app.|next)?openland.com)\/(mail\/)(p\/)?(.*)/;
+
     private cache = new CacheRepository<URLAugmentation>('url_info');
 
     public async fetchURLInfo(url: string): Promise<URLAugmentation> {
@@ -143,7 +144,8 @@ export default class UrlInfoService {
     }
 
     private async parseChannelUrl(url: string): Promise<URLAugmentation | null> {
-        let [, , , _channelId] = this.channelRegexp.exec(url)!;
+        let [, , , , , _channelId] = this.channelRegexp.exec(url)!;
+
         let { hostname } = URL.parse(url);
 
         let channelId = IDs.Conversation.parse(_channelId);
