@@ -50,6 +50,8 @@ export class AugmentationMediator {
                 let urlInfo = await service.fetchURLInfo(firstUrl.url);
                 if (urlInfo.title) {
                     await this.messaging.editMessage(createEmptyContext(), item.messageId, { urlAugmentation: urlInfo }, false);
+                } else if (urlInfo.imageInfo) {
+                    await this.messaging.editMessage(createEmptyContext(), item.messageId, { file: urlInfo.photo!.uuid, fileMetadata: urlInfo.imageInfo! as any }, false);
                 }
                 return { result: 'ok' };
             });

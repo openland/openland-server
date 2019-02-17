@@ -43,6 +43,34 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
         };
     }
 
+    let contentType = res.headers.get('content-type');
+
+    if (contentType && contentType.startsWith('image')) {
+        let imgInfo: FileInfo | null = null;
+        let imgRef: ImageRef | null = null;
+
+        try {
+            let { file } = await Modules.Media.uploadFromUrl(createEmptyContext(), url);
+            imgRef = { uuid: file, crop: null };
+            imgInfo = await Modules.Media.fetchFileInfo(createEmptyContext(), file);
+        } catch (e) {
+            console.warn('Cant fetch image ' + url);
+        }
+
+        return {
+            url,
+            title: null,
+            subtitle: null,
+            description: null,
+            imageURL: null,
+            imageInfo: imgInfo,
+            photo: imgRef,
+            hostname: null,
+            iconRef: null,
+            iconInfo: null
+        };
+    }
+
     let text = await res.text();
     let doc = cheerio.load(text);
 
