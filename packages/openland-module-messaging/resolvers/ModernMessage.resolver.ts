@@ -159,6 +159,13 @@ export default {
         //
         message: src => src.text,
         spans: async (src, args, ctx) => {
+            //
+            //  Modern spans
+            //
+            if (src.spans) {
+                return src.spans;
+            }
+
             let uid = ctx.auth.uid!;
             let spans: MessageSpan[] = [];
 
@@ -203,6 +210,13 @@ export default {
         //
         message: src => src.text,
         spans: async (src, args, ctx) => {
+            //
+            //  Modern spans
+            //
+            if (src.spans) {
+                return src.spans;
+            }
+
             let uid = ctx.auth.uid!;
             let spans: MessageSpan[] = [];
 
@@ -356,6 +370,24 @@ export default {
                 return await FDB.Message.rangeFromChatAfter(ctx, roomId, beforeId!, args.first!, true);
             }
             return await FDB.Message.rangeFromChat(ctx, roomId, args.first!, true);
+        }),
+    },
+
+    Mutation: {
+        sendMessage: withUser(async (ctx, args, uid) => {
+            let cid = IDs.Conversation.parse(args.chatId);
+
+            let spans: MessageSpan[] = [];
+            spans.push(...parseLinks(args.message || ''));
+
+            // Send message
+            await Modules.Messaging.sendMessage(ctx, cid, uid!, {
+                message: args.message,
+                repeatKey: args.repeatKey,
+                spans
+            });
+
+            return true;
         }),
     }
 } as GQLResolver;

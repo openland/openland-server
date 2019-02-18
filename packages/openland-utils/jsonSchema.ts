@@ -267,7 +267,7 @@ export function generateJsonSchemaInterface(schema: JsonSchema): string {
     } else if (schema instanceof BoolType) {
         return 'boolean';
     } else if (schema instanceof VecType) {
-        return `${generateJsonSchemaInterface(schema.type)}[]`;
+        return `(${generateJsonSchemaInterface(schema.type)})[]`;
     } else if (schema instanceof EnumType) {
         return schema.types.map(generateJsonSchemaInterface).join(' | ');
     } else if (schema instanceof StringEnumType) {

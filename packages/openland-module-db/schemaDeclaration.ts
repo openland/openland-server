@@ -12,7 +12,7 @@ import {
     allowAdminEdit,
     jsonField
 } from '../foundation-orm-gen';
-import { jField, jNumber, json, jString } from '../openland-utils/jsonSchema';
+import { jEnum, jField, jNumber, json, jString, jVec } from '../openland-utils/jsonSchema';
 
 const Schema = declareSchema(() => {
 
@@ -453,6 +453,27 @@ const Schema = declareSchema(() => {
         field('title', 'string').nullable();
         field('postType', 'string').nullable();
         field('complexMentions', 'json').nullable();
+
+        jsonField('spans', jVec(jEnum(
+            json(() => {
+                jField('type', jString('user_mention'));
+                jField('offset', jNumber());
+                jField('length', jNumber());
+                jField('user', jNumber());
+            }),
+            json(() => {
+                jField('type', jString('room_mention'));
+                jField('offset', jNumber());
+                jField('length', jNumber());
+                jField('room', jNumber());
+            }),
+            json(() => {
+                jField('type', jString('link'));
+                jField('offset', jNumber());
+                jField('length', jNumber());
+                jField('url', jString());
+            }),
+        ))).nullable();
 
         field('isMuted', 'boolean');
         field('isService', 'boolean');

@@ -28,6 +28,11 @@ export type MessageMention = {
     id: number;
 };
 
+export type UserMentionSpan = { type: 'user_mention', offset: number, length: number, user: number };
+export type RoomMentionSpan = { type: 'room_mention', offset: number, length: number, room: number };
+export type LinkSpan = { type: 'link', offset: number, length: number, url: string };
+export type MessageSpan = UserMentionSpan | RoomMentionSpan | LinkSpan;
+
 export interface MessageInput {
     message?: string | null;
     file?: string | null;
@@ -48,4 +53,5 @@ export interface MessageInput {
     postType?: string | null;
     complexMentions?: MessageMention[] | null;
     ignoreAugmentation?: boolean | null;
+    spans?: MessageSpan[] | null;
 }

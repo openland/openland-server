@@ -4294,6 +4294,7 @@ export interface MessageShape {
     title?: string| null;
     postType?: string| null;
     complexMentions?: any| null;
+    spans?: ({ type: 'user_mention', offset: number, length: number, user: number, } | { type: 'room_mention', offset: number, length: number, room: number, } | { type: 'link', offset: number, length: number, url: string, })[]| null;
     isMuted: boolean;
     isService: boolean;
     deleted?: boolean| null;
@@ -4507,6 +4508,17 @@ export class Message extends FEntity {
         this._value.complexMentions = value;
         this.markDirty();
     }
+    get spans(): ({ type: 'user_mention', offset: number, length: number, user: number, } | { type: 'room_mention', offset: number, length: number, room: number, } | { type: 'link', offset: number, length: number, url: string, })[] | null {
+        let res = this._value.spans;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set spans(value: ({ type: 'user_mention', offset: number, length: number, user: number, } | { type: 'room_mention', offset: number, length: number, room: number, } | { type: 'link', offset: number, length: number, url: string, })[] | null) {
+        this._checkIsWritable();
+        if (value === this._value.spans) { return; }
+        this._value.spans = value;
+        this.markDirty();
+    }
     get isMuted(): boolean {
         return this._value.isMuted;
     }
@@ -4565,6 +4577,7 @@ export class MessageFactory extends FEntityFactory<Message> {
             { name: 'title', type: 'string' },
             { name: 'postType', type: 'string' },
             { name: 'complexMentions', type: 'json' },
+            { name: 'spans', type: 'json' },
             { name: 'isMuted', type: 'boolean' },
             { name: 'isService', type: 'boolean' },
             { name: 'deleted', type: 'boolean' },
@@ -4591,6 +4604,26 @@ export class MessageFactory extends FEntityFactory<Message> {
         validators.isString('type', src.type);
         validators.isString('title', src.title);
         validators.isString('postType', src.postType);
+        validators.isJson('spans', src.spans, jVec(jEnum(
+            json(() => {
+                jField('type', jString('user_mention'));
+                jField('offset', jNumber());
+                jField('length', jNumber());
+                jField('user', jNumber());
+            }), 
+            json(() => {
+                jField('type', jString('room_mention'));
+                jField('offset', jNumber());
+                jField('length', jNumber());
+                jField('room', jNumber());
+            }), 
+            json(() => {
+                jField('type', jString('link'));
+                jField('offset', jNumber());
+                jField('length', jNumber());
+                jField('url', jString());
+            })
+        )));
         validators.notNull('isMuted', src.isMuted);
         validators.isBoolean('isMuted', src.isMuted);
         validators.notNull('isService', src.isService);

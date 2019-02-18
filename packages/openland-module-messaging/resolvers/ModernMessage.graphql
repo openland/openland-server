@@ -59,6 +59,14 @@ extend type Query {
 #    modernSendMessage(room: ID!, message: String, repeatKey: String, forwardMessages: [ID!], spans: [MessageSpanInput!], attachments: [MessageAttachmentInput!]): Boolean!
 #}
 
+input MentionInput {
+    chatId: ID
+    userId: ID
+}
+
+extend type Mutation {
+    sendMessage(chatId: ID!, message: String, repeatKey: String, mentions: [MentionInput!]): Boolean!
+}
 #
 #   Attachments
 #

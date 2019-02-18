@@ -46,7 +46,8 @@ export class MessagingRepository {
                 buttons: message.buttons,
                 postType: message.postType,
                 attachments: message.attachments,
-                complexMentions: message.complexMentions
+                complexMentions: message.complexMentions,
+                spans: message.spans
             });
 
             //
