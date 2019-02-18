@@ -28,7 +28,7 @@ export interface URLAugmentation {
 export default class UrlInfoService {
     private userRegexp = /(localhost:3000|(app.)?openland.com)\/(mail|directory)\/u\/(.*)/;
     private orgRegexp = /(localhost:3000|(app.)?openland.com)\/(directory\/)?o\/(.*)/;
-    private channelRegexp = /(localhost:3000|(app.|next)?openland.com)\/(mail\/)(p\/)?(.*)/;
+    private channelRegexp = /(localhost:3000|(app.|next.)openland.com)\/((mail|directory)\/)(p\/)?(.*)/;
     private shortnameRegexp = /(localhost:3000|(app.|next)?openland.com)\/(.*)/;
 
     private cache = new CacheRepository<URLAugmentation>('url_info');
@@ -161,9 +161,7 @@ export default class UrlInfoService {
             subtitle: org!.about || null,
             description: org!.about || null,
             imageURL: null,
-            imageInfo: org!.photo
-                ? await Modules.Media.fetchFileInfo(createEmptyContext(), org!.photo!.uuid)
-                : null,
+            imageInfo: org!.photo ? await Modules.Media.fetchFileInfo(createEmptyContext(), org!.photo!.uuid) : null,
             photo: org!.photo || null,
             hostname: hostname || null,
             type: 'org',
@@ -174,7 +172,7 @@ export default class UrlInfoService {
     }
 
     private async parseChannelUrl(url: string): Promise<URLAugmentation | null> {
-        let [, , , , , _channelId] = this.channelRegexp.exec(url)!;
+        let [, , , , , , _channelId] = this.channelRegexp.exec(url)!;
 
         let { hostname } = URL.parse(url);
 
@@ -194,9 +192,7 @@ export default class UrlInfoService {
             subtitle: profile!.title || null,
             description: profile!.description || null,
             imageURL: null,
-            imageInfo: profile!.image
-                ? await Modules.Media.fetchFileInfo(createEmptyContext(), profile!.image.uuid)
-                : null,
+            imageInfo: profile!.image ? await Modules.Media.fetchFileInfo(createEmptyContext(), profile!.image.uuid) : null,
             photo: profile!.image,
             hostname: hostname || null,
             type: 'channel',
