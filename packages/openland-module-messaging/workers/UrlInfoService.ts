@@ -7,6 +7,7 @@ import { fetchURLInfo } from './UrlInfo';
 import { FileInfo } from 'openland-module-media/FileInfo';
 import { ImageRef } from 'openland-module-media/ImageRef';
 import { createEmptyContext } from 'openland-utils/Context';
+import { UserProfile } from 'openland-module-db/schema';
 
 export interface URLAugmentation {
     url: string;
@@ -28,6 +29,7 @@ export default class UrlInfoService {
     private userRegexp = /(localhost:3000|(app.)?openland.com)\/(mail|directory)\/u\/(.*)/;
     private orgRegexp = /(localhost:3000|(app.)?openland.com)\/(directory\/)?o\/(.*)/;
     private channelRegexp = /(localhost:3000|(app.|next)?openland.com)\/(mail\/)(p\/)?(.*)/;
+    private shortnameRegexp = /(localhost:3000|(app.|next)?openland.com)\/(.*)/;
 
     private cache = new CacheRepository<URLAugmentation>('url_info');
 
@@ -66,17 +68,27 @@ export default class UrlInfoService {
             }
         }
 
+        if (this.shortnameRegexp.test(url)) {
+            let info = await this.parseShortnameUrl(url);
+
+            if (info) {
+                await this.cache.write(ctx, url, info);
+
+                return info;
+            }
+        }
+
         try {
             let info = await fetchURLInfo(url);
 
             await this.cache.write(ctx, url, {
                 ...info,
-                type: 'url'
+                type: 'url',
             });
 
             return {
                 ...info,
-                type: 'url'
+                type: 'url',
             };
         } catch (e) {
             return {
@@ -90,9 +102,38 @@ export default class UrlInfoService {
                 hostname: null,
                 iconRef: null,
                 iconInfo: null,
-                type: 'none'
+                type: 'none',
             };
         }
+    }
+
+    private async getURLAugmentationForUser({
+        hostname,
+        url,
+        userId,
+        user,
+    }: {
+        hostname: string | undefined;
+        url: string;
+        userId: number;
+        user: UserProfile | null;
+    }): Promise<URLAugmentation> {
+        return {
+            url,
+            title: user!.firstName + ' ' + user!.lastName,
+            subtitle: user!.about || null,
+            description: user!.about || null,
+            imageURL: null,
+            imageInfo: user!.picture
+                ? await Modules.Media.fetchFileInfo(createEmptyContext(), user!.picture.uuid)
+                : null,
+            photo: user!.picture,
+            hostname: hostname || null,
+            type: 'user',
+            extra: userId,
+            iconRef: null,
+            iconInfo: null,
+        };
     }
 
     private async parseUserUrl(url: string): Promise<URLAugmentation> {
@@ -103,20 +144,7 @@ export default class UrlInfoService {
 
         let user = await Modules.Users.profileById(createEmptyContext(), userId);
 
-        return {
-            url,
-            title: user!.firstName + ' ' + user!.lastName,
-            subtitle: user!.about || null,
-            description: user!.about || null,
-            imageURL: null,
-            imageInfo: user!.picture ? await Modules.Media.fetchFileInfo(createEmptyContext(), user!.picture.uuid) : null,
-            photo: user!.picture,
-            hostname: hostname || null,
-            type: 'user',
-            extra: userId,
-            iconRef: null,
-            iconInfo: null,
-        };
+        return await this.getURLAugmentationForUser({ hostname, url, userId, user });
     }
 
     private async parseOrgUrl(url: string): Promise<URLAugmentation> {
@@ -130,10 +158,12 @@ export default class UrlInfoService {
         return {
             url,
             title: org!.name || null,
-            subtitle: (org!.about || null),
-            description: (org!.about) || null,
+            subtitle: org!.about || null,
+            description: org!.about || null,
             imageURL: null,
-            imageInfo: org!.photo ? await Modules.Media.fetchFileInfo(createEmptyContext(), org!.photo!.uuid) : null,
+            imageInfo: org!.photo
+                ? await Modules.Media.fetchFileInfo(createEmptyContext(), org!.photo!.uuid)
+                : null,
             photo: org!.photo || null,
             hostname: hostname || null,
             type: 'org',
@@ -156,7 +186,7 @@ export default class UrlInfoService {
             return null;
         }
 
-        let profile = (await FDB.RoomProfile.findById(createEmptyContext(), channelId));
+        let profile = await FDB.RoomProfile.findById(createEmptyContext(), channelId);
 
         return {
             url,
@@ -164,7 +194,9 @@ export default class UrlInfoService {
             subtitle: profile!.title || null,
             description: profile!.description || null,
             imageURL: null,
-            imageInfo: profile!.image ? await Modules.Media.fetchFileInfo(createEmptyContext(), profile!.image.uuid) : null,
+            imageInfo: profile!.image
+                ? await Modules.Media.fetchFileInfo(createEmptyContext(), profile!.image.uuid)
+                : null,
             photo: profile!.image,
             hostname: hostname || null,
             type: 'channel',
@@ -172,5 +204,23 @@ export default class UrlInfoService {
             iconRef: null,
             iconInfo: null,
         };
+    }
+
+    private async parseShortnameUrl(url: string): Promise<URLAugmentation | null> {
+        let [, , , _shortname] = this.shortnameRegexp.exec(url)!;
+
+        let { hostname } = URL.parse(url);
+
+        let shortname = await Modules.Shortnames.findShortname(createEmptyContext(), _shortname);
+
+        if (!shortname) {
+            return null;
+        }
+
+        const userId = shortname.ownerId;
+
+        let user = await Modules.Users.profileById(createEmptyContext(), shortname.ownerId);
+
+        return await this.getURLAugmentationForUser({ hostname, url, userId, user });
     }
 }
