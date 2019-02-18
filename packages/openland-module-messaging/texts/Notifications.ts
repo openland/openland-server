@@ -7,5 +7,6 @@ export const Notifications = {
     VIDEO_ATTACH: '🎬 Video',
     GIF_ATTACH: '🎥 GIF',
     DOCUMENT_ATTACH: '📎 Document',
+    REPLY_ATTACH: '↪️ Reply',
     GROUP_PUSH_TITLE: templated<{senderName: string, chatTitle: string}>('{{senderName}}@{{chatTitle}}')
 };

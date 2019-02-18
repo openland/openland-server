@@ -198,6 +198,10 @@ export function startPushNotificationWorker() {
                         }
                     }
 
+                    if (pushBody.length === 0 && message.replyMessages) {
+                        pushBody += Texts.Notifications.REPLY_ATTACH;
+                    }
+
                     let push = {
                         uid: u.uid,
                         title: pushTitle,
