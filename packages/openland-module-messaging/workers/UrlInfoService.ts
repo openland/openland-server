@@ -124,9 +124,7 @@ export default class UrlInfoService {
             subtitle: user!.about || null,
             description: user!.about || null,
             imageURL: null,
-            imageInfo: user!.picture
-                ? await Modules.Media.fetchFileInfo(createEmptyContext(), user!.picture.uuid)
-                : null,
+            imageInfo: user!.picture ? await Modules.Media.fetchFileInfo(createEmptyContext(), user!.picture.uuid) : null,
             photo: user!.picture,
             hostname: hostname || null,
             type: 'user',
