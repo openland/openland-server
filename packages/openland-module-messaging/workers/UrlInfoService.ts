@@ -26,10 +26,10 @@ export interface URLAugmentation {
 }
 
 export default class UrlInfoService {
-    private userRegexp = /(localhost:3000|(app.)?openland.com)\/(mail|directory)\/u\/(.*)/;
-    private orgRegexp = /(localhost:3000|(app.)?openland.com)\/(directory\/)?o\/(.*)/;
-    private channelRegexp = /(localhost:3000|(app.|next.)openland.com)\/((mail|directory)\/)(p\/)?(.*)/;
-    private shortnameRegexp = /(localhost:3000|(app.|next)?openland.com)\/(.*)/;
+    private userRegexp = /(localhost:3000|(app.|next.)?openland.com)\/(mail|directory)\/u\/(.*)/;
+    private orgRegexp = /(localhost:3000|(app.|next.)?openland.com)\/(directory\/)?o\/(.*)/;
+    private channelRegexp = /(localhost:3000|(app.|next.)?openland.com)\/((mail|directory)\/)(p\/)?(.*)/;
+    private shortnameRegexp = /(localhost:3000|(app.|next.)?openland.com)\/(.*)/;
 
     private cache = new CacheRepository<URLAugmentation>('url_info');
 
