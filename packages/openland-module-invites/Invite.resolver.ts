@@ -1,4 +1,9 @@
-import { OrganizationInviteLink, OrganizationPublicInviteLink } from 'openland-module-db/schema';
+import {
+    ChannelInvitation,
+    ChannelLink,
+    OrganizationInviteLink,
+    OrganizationPublicInviteLink
+} from 'openland-module-db/schema';
 import { withUser, withAny, withAccount } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { FDB } from 'openland-module-db/FDB';
@@ -6,6 +11,37 @@ import { IDs } from 'openland-module-api/IDs';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { AuthContext } from 'openland-module-auth/AuthContext';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
+import { Context } from '../openland-utils/Context';
+
+async function resolveOrgInvite(ctx: Context, key: string) {
+    let orgInvite = await Modules.Invites.orgInvitesRepo.getOrganizationInviteNonJoined(ctx, key);
+    let publicOrginvite = await Modules.Invites.orgInvitesRepo.getOrganizationInviteLinkByKey(ctx, key);
+    let invite: { oid: number, uid: number, enabled: boolean, ttl?: number | null, role?: string, joined?: boolean, email?: string, firstName?: string | null } | null = orgInvite || publicOrginvite;
+    if (!invite) {
+        return null;
+    }
+    if (!invite.enabled) {
+        return null;
+    }
+    let org = await FDB.Organization.findById(ctx, invite.oid);
+    if (!org) {
+        return null;
+    }
+    let profile = (await FDB.OrganizationProfile.findById(ctx, invite.oid))!;
+    return {
+        id: key,
+        key: key,
+        orgId: IDs.Organization.serialize(org.id!!),
+        title: profile.name,
+        photo: profile.photo ? buildBaseImageUrl(profile.photo) : null,
+        photoRef: profile.photo,
+        joined: !!invite.joined,
+        creator: invite.uid ? await FDB.User.findById(ctx, invite.uid) : null,
+        forEmail: invite.email,
+        forName: invite.firstName,
+        description: profile.about
+    };
+}
 
 export default {
     Invite: {
@@ -13,38 +49,25 @@ export default {
         key: (src: OrganizationInviteLink | OrganizationPublicInviteLink) => src.id,
         ttl: (src: OrganizationInviteLink | OrganizationPublicInviteLink) => String((src as any).ttl)
     },
+    ResolveInviteEntry: {
+        __resolveType: obj => {
+            if (obj instanceof ChannelInvitation || obj instanceof ChannelLink) {
+                return 'RoomInvite';
+            } else if (obj.type === 'org') {
+                return 'InviteInfo';
+            } else if (obj.type === 'app') {
+                return 'AppInvite';
+            }
+
+            throw new Error('Unknown invite type');
+        }
+    },
     Query: {
         alphaInvites: withUser(async (ctx, args, uid) => {
             return [];
         }),
         alphaInviteInfo: withAny(async (ctx, args) => {
-            let orgInvite = await Modules.Invites.orgInvitesRepo.getOrganizationInviteNonJoined(ctx, args.key);
-            let publicOrginvite = await Modules.Invites.orgInvitesRepo.getOrganizationInviteLinkByKey(ctx, args.key);
-            let invite: { oid: number, uid: number, enabled: boolean, ttl?: number | null, role?: string, joined?: boolean, email?: string, firstName?: string | null } | null = orgInvite || publicOrginvite;
-            if (!invite) {
-                return null;
-            }
-            if (!invite.enabled) {
-                return null;
-            }
-            let org = await FDB.Organization.findById(ctx, invite.oid);
-            if (!org) {
-                return null;
-            }
-            let profile = (await FDB.OrganizationProfile.findById(ctx, invite.oid))!;
-            return {
-                id: args.key,
-                key: args.key,
-                orgId: IDs.Organization.serialize(org.id!!),
-                title: profile.name,
-                photo: profile.photo ? buildBaseImageUrl(profile.photo) : null,
-                photoRef: profile.photo,
-                joined: !!invite.joined,
-                creator: invite.uid ? await FDB.User.findById(ctx, invite.uid) : null,
-                forEmail: invite.email,
-                forName: invite.firstName,
-                description: profile.about
-            };
+            return await resolveOrgInvite(ctx, args.key);
         }),
         appInviteInfo: withAny(async (ctx, args) => {
             let invite = await Modules.Invites.orgInvitesRepo.getAppInvteLinkData(ctx, args.key);
@@ -70,6 +93,34 @@ export default {
             //     });
             // });
             return [];
+        }),
+        alphaResolveInvite: withUser(async (ctx, args, uid) => {
+            let orgInvite = await resolveOrgInvite(ctx, args.key);
+
+            if (orgInvite) {
+                return {
+                    type: 'org',
+                    ...orgInvite
+                };
+            }
+
+            let appInvite = await Modules.Invites.orgInvitesRepo.getAppInvteLinkData(ctx, args.key);
+
+            if (appInvite) {
+                let inviter = await FDB.User.findById(ctx, appInvite.uid);
+                return {
+                    type: 'app',
+                    inviter: inviter,
+                };
+            }
+
+            let roomInvite = await Modules.Invites.resolveInvite(ctx, args.key);
+
+            if (roomInvite) {
+                return roomInvite;
+            }
+
+            return null;
         }),
     },
     Mutation: {

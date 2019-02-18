@@ -36,6 +36,8 @@ type InviteHistotyInfo {
     isGlobal: Boolean!
 }
 
+union ResolveInviteEntry = InviteInfo | AppInvite | RoomInvite
+
 extend type Query {
     alphaInvites: [Invite!]
     alphaInviteInfo(key: String!): InviteInfo
@@ -44,6 +46,7 @@ extend type Query {
     alphaAppInvite: String! @deprecated(reason: "renamed to 'appInvite'")
     alphaAppInviteInfo(key: String!): AppInviteInfo @deprecated(reason: "renamed to 'appInviteInfo'")
     alphaInvitesHistory: [InviteHistotyInfo!]
+    alphaResolveInvite(key: String!): ResolveInviteEntry
 }
 
 extend type Mutation {

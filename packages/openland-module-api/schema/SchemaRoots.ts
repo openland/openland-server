@@ -76,6 +76,7 @@ export namespace GQLRoots {
     export type ProfileRoot = any;
     export type AlphaSignupDataRoot = any;
     export type InviteRoot = any;
+    export type ResolveInviteEntryRoot = { type: 'org' | 'chat' | 'app' };
     export type InviteInfoRoot = any;
     export type AppInviteRoot = any;
     export type AppInviteInfoRoot = any;
