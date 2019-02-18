@@ -62,6 +62,8 @@ extend type Query {
 input MentionInput {
     chatId: ID
     userId: ID
+    offset: Int!
+    length: Int!
 }
 
 extend type Mutation {

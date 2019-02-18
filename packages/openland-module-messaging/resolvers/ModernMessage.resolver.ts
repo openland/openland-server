@@ -380,6 +380,19 @@ export default {
             let spans: MessageSpan[] = [];
             spans.push(...parseLinks(args.message || ''));
 
+            if (args.mentions) {
+                let mentions = args.mentions.map(m => {
+                    if (m.userId) {
+                        return { type: 'user_mention', offset: m.offset, length: m.length, user: IDs.User.parse(m.userId!) };
+                    } else if (m.chatId) {
+                        return { type: 'room_mention', offset: m.offset, length: m.length, room: IDs.Conversation.parse(m.chatId!) };
+                    } else {
+                        return null;
+                    }
+                }).filter(m => !!m);
+                spans.push(...mentions as MessageSpan[]);
+            }
+
             // Send message
             await Modules.Messaging.sendMessage(ctx, cid, uid!, {
                 message: args.message,

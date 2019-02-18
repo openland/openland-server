@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'd2cbd005e2ce895ddab3f7844c739032';
+export const GQL_SPEC_VERSION = '6999325bed2ee2f454571d4e653fb63c';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -494,6 +494,8 @@ export namespace GQL {
     export interface MentionInput {
         chatId: Nullable<string>;
         userId: Nullable<string>;
+        offset: number;
+        length: number;
     }
     export interface Image {
         url?: string;
