@@ -12,7 +12,7 @@ export class CacheRepository<T> {
 
     async read(ctx: Context, key: string): Promise<T | null> {
         let ex = await FDB.ServiceCache.findById(ctx, this.service, key);
-        if (ex) {
+        if (ex && ex.value) {
             return JSON.parse(ex.value) as any;
         }
         return null;
@@ -25,6 +25,24 @@ export class CacheRepository<T> {
                 await FDB.ServiceCache.create(ctx, this.service, key, { value: JSON.stringify(value) });
             } else {
                 ex.value = JSON.stringify(value);
+            }
+        });
+    }
+
+    async delete(parent: Context, key: string) {
+        await inTx(parent, async (ctx) => {
+            let ex = await FDB.ServiceCache.findById(ctx, this.service, key);
+            if (ex) {
+                ex.value = null;
+            }
+        });
+    }
+
+    async deleteAll(parent: Context) {
+        await inTx(parent, async (ctx) => {
+            let all = await FDB.ServiceCache.allFromFromService(ctx, this.service);
+            for (let entry of all) {
+                entry.value = null;
             }
         });
     }

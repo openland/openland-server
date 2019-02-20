@@ -107,6 +107,12 @@ export default class UrlInfoService {
         }
     }
 
+    public async deleteURLInfoCache(url: string): Promise<boolean> {
+        let ctx = createEmptyContext();
+        await this.cache.delete(ctx, url);
+        return true;
+    }
+
     private async getURLAugmentationForUser({
         hostname,
         url,

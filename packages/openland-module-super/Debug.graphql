@@ -29,4 +29,5 @@ extend type Query {
 extend type Mutation {
     debugSendEmail(type: DebugEmailType!): Boolean
     debugCreateTestUser(key: String!, name: String!): Boolean
+    debugDeleteUrlInfoCache(url: String!): Boolean
 }

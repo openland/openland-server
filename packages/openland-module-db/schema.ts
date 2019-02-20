@@ -387,17 +387,19 @@ export class AuthTokenFactory extends FEntityFactory<AuthToken> {
     }
 }
 export interface ServiceCacheShape {
-    value: string;
+    value?: string| null;
 }
 
 export class ServiceCache extends FEntity {
     readonly entityName: 'ServiceCache' = 'ServiceCache';
     get service(): string { return this._value.service; }
     get key(): string { return this._value.key; }
-    get value(): string {
-        return this._value.value;
+    get value(): string | null {
+        let res = this._value.value;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
     }
-    set value(value: string) {
+    set value(value: string | null) {
         this._checkIsWritable();
         if (value === this._value.value) { return; }
         this._value.value = value;
@@ -417,6 +419,7 @@ export class ServiceCacheFactory extends FEntityFactory<ServiceCache> {
             { name: 'value', type: 'string' },
         ],
         indexes: [
+            { name: 'fromService', type: 'range', fields: ['service', 'key'] },
         ],
     };
 
@@ -425,7 +428,6 @@ export class ServiceCacheFactory extends FEntityFactory<ServiceCache> {
         validators.isString('service', src.service);
         validators.notNull('key', src.key);
         validators.isString('key', src.key);
-        validators.notNull('value', src.value);
         validators.isString('value', src.value);
     }
 
@@ -433,7 +435,7 @@ export class ServiceCacheFactory extends FEntityFactory<ServiceCache> {
         super(connection,
             new FNamespace('entity', 'serviceCache'),
             { enableVersioning: true, enableTimestamps: true, validator: ServiceCacheFactory.validate, hasLiveStreams: false },
-            [],
+            [new FEntityIndex('fromService', ['service', 'key'], false)],
             'ServiceCache'
         );
     }
@@ -449,6 +451,24 @@ export class ServiceCacheFactory extends FEntityFactory<ServiceCache> {
     }
     watch(ctx: Context, service: string, key: string, cb: () => void) {
         return this._watch(ctx, [service, key], cb);
+    }
+    async allFromFromServiceAfter(ctx: Context, service: string, after: string) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'fromService', service], after);
+    }
+    async rangeFromFromServiceAfter(ctx: Context, service: string, after: string, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'fromService', service], after, limit, reversed);
+    }
+    async rangeFromFromService(ctx: Context, service: string, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'fromService', service], limit, reversed);
+    }
+    async rangeFromFromServiceWithCursor(ctx: Context, service: string, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'fromService', service], limit, after, reversed);
+    }
+    async allFromFromService(ctx: Context, service: string) {
+        return await this._findAll(ctx, ['__indexes', 'fromService', service]);
+    }
+    createFromServiceStream(ctx: Context, service: string, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'serviceCache', '__indexes', 'fromService', service], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new ServiceCache(ctx, this.connection, this.namespace, this.directory, [value.service, value.key], value, this.options, isNew, this.indexes, 'ServiceCache');

@@ -7,6 +7,8 @@ import { IDs, IdsFactory } from '../openland-module-api/IDs';
 import { Modules } from '../openland-modules/Modules';
 import UrlInfoService from '../openland-module-messaging/workers/UrlInfoService';
 
+const URLInfoService = new UrlInfoService();
+
 export default {
     Query: {
         debugParseID: withPermission('super-admin', async (ctx, args) => {
@@ -20,8 +22,7 @@ export default {
             throw new Error('Test crash!');
         },
         debugUrlInfo: withPermission('super-admin', async (ctx, args) => {
-            let service = new UrlInfoService();
-            return service.fetchURLInfo(args.url);
+            return URLInfoService.fetchURLInfo(args.url);
         })
     },
     Mutation: {
@@ -105,6 +106,10 @@ export default {
         }),
         debugCreateTestUser: withPermission('super-admin', async (ctx, args) => {
             await Modules.Users.createTestUser(ctx, args.key, args.name);
+            return true;
+        }),
+        debugDeleteUrlInfoCache: withPermission('super-admin', async (ctx, args) => {
+            await URLInfoService.deleteURLInfoCache(args.url);
             return true;
         }),
     }

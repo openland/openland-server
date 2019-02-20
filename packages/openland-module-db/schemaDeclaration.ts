@@ -53,7 +53,8 @@ const Schema = declareSchema(() => {
     entity('ServiceCache', () => {
         primaryKey('service', 'string');
         primaryKey('key', 'string');
-        field('value', 'string');
+        field('value', 'string').nullable();
+        rangeIndex('fromService', ['service', 'key']);
         enableTimestamps();
         enableVersioning();
     });
