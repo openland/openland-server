@@ -5,6 +5,7 @@ import { FDB } from '../openland-module-db/FDB';
 import { Message } from '../openland-module-db/schema';
 import { IDs, IdsFactory } from '../openland-module-api/IDs';
 import { Modules } from '../openland-modules/Modules';
+import UrlInfoService from '../openland-module-messaging/workers/UrlInfoService';
 
 export default {
     Query: {
@@ -17,7 +18,11 @@ export default {
         }),
         debugCrashQuery: () => {
             throw new Error('Test crash!');
-        }
+        },
+        debugUrlInfo: withPermission('super-admin', async (ctx, args) => {
+            let service = new UrlInfoService();
+            return service.fetchURLInfo(args.url);
+        })
     },
     Mutation: {
         debugSendEmail: withPermission('super-admin', async (ctx, args) => {

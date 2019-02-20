@@ -23,6 +23,7 @@ type DebugID {
 extend type Query {
     debugParseID(id: ID!): DebugID!
     debugCrashQuery: String!
+    debugUrlInfo(url: String!): UrlAugmentation
 }
 
 extend type Mutation {

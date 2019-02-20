@@ -38,7 +38,7 @@ export default class UrlInfoService {
         let existing = await this.cache.read(ctx, url);
         let creationTime = await this.cache.getCreationTime(ctx, url);
 
-        if (existing && creationTime! < 1000 * 60 * 60 * 24 * 7) {
+        if (existing && (creationTime! + 1000 * 60 * 60 * 24 * 7) >= Date.now()) {
             return existing;
         }
 
