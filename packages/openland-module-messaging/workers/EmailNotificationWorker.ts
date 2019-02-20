@@ -97,7 +97,7 @@ export function startEmailNotificationWorker() {
 
                         // Ignore service messages for big rooms
                         if (message.isService) {
-                            if (await Modules.Messaging.roomMembersCount(ctx, message.cid) > 50) {
+                            if (await Modules.Messaging.roomMembersCount(ctx, message.cid) >= 50) {
                                 continue;
                             }
                         }
