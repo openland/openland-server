@@ -11,6 +11,7 @@ import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { RoomMediator } from './RoomMediator';
 import { Context } from 'openland-utils/Context';
 import { createTracer } from 'openland-log/createTracer';
+import { UserError } from '../../openland-errors/UserError';
 
 const trace = createTracer('messaging');
 
@@ -30,7 +31,9 @@ export class MessagingMediator {
 
     sendMessage = async (parent: Context, uid: number, cid: number, message: MessageInput, skipAccessCheck?: boolean) => {
         return trace.trace(parent, 'sendMessage', async (ctx2) => await inTx(ctx2, async (ctx) => {
-
+            if (message.message && message.message.trim().length === 0) {
+                throw new UserError('Can\'t send empty message');
+            }
             // Check for bad words. Useful for debug.
             if (message.message === 'fuck') {
                 throw Error('');
