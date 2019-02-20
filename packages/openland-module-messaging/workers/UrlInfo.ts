@@ -80,6 +80,7 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
         getMeta(doc, 'og:title') ||
         getMeta(doc, 'vk:title') ||
         getMeta(doc, 'twitter:title') ||
+        getMeta(doc, 'title') ||
         getHTMLTitle(doc) ||
         null;
 
@@ -87,6 +88,7 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
         getMeta(doc, 'og:description') ||
         getMeta(doc, 'vk:description') ||
         getMeta(doc, 'twitter:description') ||
+        getMeta(doc, 'description') ||
         null;
 
     if (hostname && hostname.endsWith('wikipedia.org')) {
@@ -97,6 +99,7 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
         getMeta(doc, 'og:image') ||
         getMeta(doc, 'vk:image') ||
         getMeta(doc, 'twitter:image') ||
+        getMeta(doc, 'image') ||
         null;
 
     let imageInfo: FileInfo | null = null;
@@ -148,8 +151,9 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
 
 function getMeta(doc: CheerioStatic, metaName: string): string | null {
     let data = doc(`meta[property="${metaName}"]`);
+    let data2 = doc(`meta[name="${metaName}"]`);
 
-    return data[0] ? data[0].attribs.content : null;
+    return (data[0] ? data[0].attribs.content : null) || (data2[0] ? data2[0].attribs.content : null);
 }
 
 function getHTMLTitle(doc: CheerioStatic): string | null {

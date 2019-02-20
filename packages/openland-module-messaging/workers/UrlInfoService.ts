@@ -33,12 +33,12 @@ export default class UrlInfoService {
 
     private cache = new CacheRepository<URLAugmentation>('url_info');
 
-    public async fetchURLInfo(url: string): Promise<URLAugmentation> {
+    public async fetchURLInfo(url: string, useCached: boolean = true): Promise<URLAugmentation> {
         let ctx = createEmptyContext();
         let existing = await this.cache.read(ctx, url);
         let creationTime = await this.cache.getCreationTime(ctx, url);
 
-        if (existing && (creationTime! + 1000 * 60 * 60 * 24 * 7) >= Date.now()) {
+        if (useCached && existing && (creationTime! + 1000 * 60 * 60 * 24 * 7) >= Date.now()) {
             return existing;
         }
 

@@ -22,7 +22,7 @@ export default {
             throw new Error('Test crash!');
         },
         debugUrlInfo: withPermission('super-admin', async (ctx, args) => {
-            return URLInfoService.fetchURLInfo(args.url);
+            return URLInfoService.fetchURLInfo(args.url, false);
         })
     },
     Mutation: {
