@@ -124,7 +124,7 @@ export default {
         id: (src: Message) => {
             return IDs.ConversationMessage.serialize(src.id);
         },
-        message: (src: Message) => src.text || '',
+        message: (src: Message) => src.text,
         file: (src: Message) => src.fileId as any,
         fileMetadata: (src: Message) => {
             if (src.fileId && src.fileMetadata) {
