@@ -552,43 +552,53 @@ export class RoomRepository {
     //
     async findAvailableRooms(parent: Context, uid: number) {
         return await inTx(parent, async (ctx) => {
-            let organizations = new Set<number>();
+            let availableRooms = new Set<number>();
 
             //
-            //  Organizations with membership
+            //  Find organizations with membership
             //
             let userOrgs = await Modules.Orgs.findUserOrganizations(ctx, uid);
-            userOrgs.forEach(o => organizations.add(o));
 
             //
-            //  Organizations in which chats user exists
+            //  Rooms in which user exists
             //
             let userDialogs = await this.entities.UserDialog.allFromUser(ctx, uid);
             for (let dialog of userDialogs) {
                 let room = await this.entities.ConversationRoom.findById(ctx, dialog.cid);
-                if (room && room.oid) {
-                    organizations.add(room.oid);
+                if (room) {
+                    availableRooms.add(dialog.cid);
                 }
             }
 
-            let availableRooms = new Set<number>();
-
-            for (let orgId of organizations) {
+            //
+            //  Rooms from orgs & communities
+            //
+            for (let orgId of userOrgs) {
                 let org = await this.entities.Organization.findById(ctx, orgId);
 
-                if (!org || org.kind !== 'community') {
+                if (!org) {
                     continue;
                 }
 
-                let rooms = await this.entities.ConversationRoom.allFromOrganizationPublicRooms(ctx, orgId);
-                for (let room of rooms) {
-                    if (room.kind === 'public') {
-                        availableRooms.add(room.id);
-                    } else if (userOrgs.indexOf(orgId) > -1) {
-                        availableRooms.add(room.id);
+                let isUserMember = userOrgs.indexOf(orgId) > -1;
+
+                //
+                //  Add all rooms from communities
+                //
+                if (org.kind === 'community') {
+                    let rooms = await this.entities.ConversationRoom.allFromOrganizationPublicRooms(ctx, orgId);
+                    rooms.map(r => availableRooms.add(r.id));
+                } else if (isUserMember) {
+                    //
+                    //  Add public rooms from org if user is member
+                    //
+                    let rooms = await this.entities.ConversationRoom.allFromOrganizationPublicRooms(ctx, orgId);
+                    for (let room of rooms) {
+                        if (room.kind === 'public') {
+                            availableRooms.add(room.id);
+                        }
                     }
                 }
-                rooms.map(r => availableRooms.add(r.id));
             }
 
             return [...availableRooms];
