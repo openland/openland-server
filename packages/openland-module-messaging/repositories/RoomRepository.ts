@@ -573,12 +573,18 @@ export class RoomRepository {
 
             let availableRooms = new Set<number>();
 
-            for (let org of organizations) {
-                let rooms = await this.entities.ConversationRoom.allFromOrganizationPublicRooms(ctx, org);
+            for (let orgId of organizations) {
+                let org = await this.entities.Organization.findById(ctx, orgId);
+
+                if (!org || org.kind !== 'community') {
+                    continue;
+                }
+
+                let rooms = await this.entities.ConversationRoom.allFromOrganizationPublicRooms(ctx, orgId);
                 for (let room of rooms) {
                     if (room.kind === 'public') {
                         availableRooms.add(room.id);
-                    } else if (userOrgs.indexOf(org) > -1) {
+                    } else if (userOrgs.indexOf(orgId) > -1) {
                         availableRooms.add(room.id);
                     }
                 }
