@@ -82,8 +82,8 @@ export class MessagingModule {
         return await this.messaging.findTopMessage(ctx, cid);
     }
 
-    async sendMessage(ctx: Context, cid: number, uid: number, message: MessageInput): Promise<ConversationEvent> {
-        return await this.messaging.sendMessage(ctx, uid, cid, message);
+    async sendMessage(ctx: Context, cid: number, uid: number, message: MessageInput, skipAccessCheck?: boolean): Promise<ConversationEvent> {
+        return await this.messaging.sendMessage(ctx, uid, cid, message, skipAccessCheck);
     }
 
     async editMessage(ctx: Context, mid: number, uid: number, newMessage: MessageInput, markAsEdited: boolean): Promise<ConversationEvent> {

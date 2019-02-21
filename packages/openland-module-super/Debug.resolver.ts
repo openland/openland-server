@@ -105,8 +105,7 @@ export default {
             return true;
         }),
         debugCreateTestUser: withPermission('super-admin', async (ctx, args) => {
-            await Modules.Users.createTestUser(ctx, args.key, args.name);
-            return true;
+            return await Modules.Users.createTestUser(ctx, args.key, args.name);
         }),
         debugDeleteUrlInfoCache: withPermission('super-admin', async (ctx, args) => {
             await URLInfoService.deleteURLInfoCache(args.url);

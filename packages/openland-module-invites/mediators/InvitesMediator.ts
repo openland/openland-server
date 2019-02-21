@@ -57,7 +57,13 @@ export class InvitesMediator {
         let name1 = await Modules.Users.getUserFullName(ctx, uid);
         let name2 = await Modules.Users.getUserFullName(ctx, inviteData.uid);
 
-        await Modules.Messaging.sendMessage(ctx, chat.id, uid, { message: `🙌 ${name2} — ${name1} has accepted your invite. Now you can chat!`, isService: true });
+        await Modules.Messaging.sendMessage(
+            ctx,
+            chat.id,
+            Modules.Users.SUPPORT_USER_ID,
+            { message: `🙌 ${name2} — ${name1} has accepted your invite. Now you can chat!`, isService: true },
+            true
+        );
         return 'ok';
     }
 

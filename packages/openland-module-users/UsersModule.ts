@@ -14,7 +14,7 @@ import { NotFoundError } from '../openland-errors/NotFoundError';
 @injectable()
 export class UsersModule {
 
-    public readonly SUPPORT_USER_ID = 1564;
+    public readonly SUPPORT_USER_ID = process.env.NODE_ENV === 'production' ? 1564 : 167;
 
     private readonly repo: UserRepository;
     private readonly search = new UserSearch();
