@@ -562,7 +562,7 @@ export class RoomRepository {
             //
             //  Rooms in which user exists
             //
-            let userDialogs = await this.entities.UserDialog.allFromUser(ctx, uid);
+            let userDialogs = await this.entities.RoomParticipant.allFromUserActive(ctx, uid);
             for (let dialog of userDialogs) {
                 let room = await this.entities.ConversationRoom.findById(ctx, dialog.cid);
                 if (room) {
