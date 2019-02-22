@@ -221,6 +221,31 @@ describe('RoomMediator', () => {
         }
     });
 
+    it('should be able to join secret chat if was invited', async () => {
+        let ctx = createEmptyContext();
+        let mediator = container.get<RoomMediator>('RoomMediator');
+        let USER_ID = await randomUser(ctx);
+        let USER2_ID = await randomUser(ctx);
+        let USER3_ID = await randomUser(ctx);
+        let orgs = await container.get<OrganizationModule>(OrganizationModule);
+        let org = await orgs.createOrganization(ctx, USER_ID, { name: 'Org', isCommunity: false });
+        await orgs.addUserToOrganization(ctx, USER2_ID, org.id, USER_ID);
+
+        let room = await mediator.createRoom(ctx, 'group', org.id, USER_ID, [], { title: 'Room' });
+        expect(mediator.joinRoom(ctx, room.id, USER2_ID, true)).rejects.toThrowError('You can\'t join non-public room');
+        await mediator.inviteToRoom(ctx, room.id, USER_ID, [ USER3_ID ]);
+        await mediator.joinRoom(ctx, room.id, USER3_ID, false, true);
+        let members = await FDB.RoomParticipant.allFromActive(ctx, room.id);
+        expect(members.length).toBe(2);
+        for (let m of members) {
+            if (m.uid === USER_ID) {
+                expect(m.status).toEqual('joined');
+            } else if (m.uid === USER3_ID) {
+                expect(m.status).toEqual('joined');
+            }
+        }
+    });
+
     it('should be able to kick from room', async () => {
         let ctx = createEmptyContext();
         let mediator = container.get<RoomMediator>('RoomMediator');
