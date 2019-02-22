@@ -224,6 +224,7 @@ const Schema = declareSchema(() => {
         enumField('status', ['pending', 'activated', 'suspended', 'deleted']);
         enumField('kind', ['organization', 'community']);
         field('editorial', 'boolean');
+        rangeIndex('community', []).withCondition((src) => src.kind === 'community' && src.status === 'activated');
         enableTimestamps();
         enableVersioning();
     });

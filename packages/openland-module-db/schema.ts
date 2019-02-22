@@ -2270,6 +2270,7 @@ export class OrganizationFactory extends FEntityFactory<Organization> {
             { name: 'editorial', type: 'boolean' },
         ],
         indexes: [
+            { name: 'community', type: 'range', fields: [] },
         ],
     };
 
@@ -2290,7 +2291,7 @@ export class OrganizationFactory extends FEntityFactory<Organization> {
         super(connection,
             new FNamespace('entity', 'organization'),
             { enableVersioning: true, enableTimestamps: true, validator: OrganizationFactory.validate, hasLiveStreams: false },
-            [],
+            [new FEntityIndex('community', [], false, (src) => src.kind === 'community' && src.status === 'activated')],
             'Organization'
         );
     }
@@ -2306,6 +2307,18 @@ export class OrganizationFactory extends FEntityFactory<Organization> {
     }
     watch(ctx: Context, id: number, cb: () => void) {
         return this._watch(ctx, [id], cb);
+    }
+    async rangeFromCommunity(ctx: Context, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'community'], limit, reversed);
+    }
+    async rangeFromCommunityWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'community'], limit, after, reversed);
+    }
+    async allFromCommunity(ctx: Context, ) {
+        return await this._findAll(ctx, ['__indexes', 'community']);
+    }
+    createCommunityStream(ctx: Context, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'organization', '__indexes', 'community'], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new Organization(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Organization');

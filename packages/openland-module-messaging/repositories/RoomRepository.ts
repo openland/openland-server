@@ -548,7 +548,7 @@ export class RoomRepository {
     }
 
     //
-    //  Returns all rooms from all organizations/communities user joined
+    //  Returns chats available to user
     //
     async findAvailableRooms(parent: Context, uid: number) {
         return await inTx(parent, async (ctx) => {
@@ -571,9 +571,16 @@ export class RoomRepository {
             }
 
             //
+            //  Find all communities
+            //
+            let allCommunities = await this.entities.Organization.allFromCommunity(ctx);
+
+            let organizations = [...userOrgs, ...allCommunities.map(c => c.id)];
+
+            //
             //  Rooms from orgs & communities
             //
-            for (let orgId of userOrgs) {
+            for (let orgId of organizations) {
                 let org = await this.entities.Organization.findById(ctx, orgId);
 
                 if (!org) {
@@ -590,7 +597,7 @@ export class RoomRepository {
                     rooms.map(r => availableRooms.add(r.id));
                 } else if (isUserMember) {
                     //
-                    //  Add public rooms from org if user is member
+                    //  Add rooms from org if user is member
                     //
                     let rooms = await this.entities.ConversationRoom.allFromOrganizationPublicRooms(ctx, orgId);
                     for (let room of rooms) {

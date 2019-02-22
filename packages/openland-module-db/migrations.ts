@@ -7,6 +7,10 @@ import { Modules } from 'openland-modules/Modules';
 import { batch } from 'openland-utils/batch';
 import { FKeyEncoding } from 'foundation-orm/utils/FKeyEncoding';
 import { randomKey } from '../openland-utils/random';
+import { FEntityFactory } from '../foundation-orm/FEntityFactory';
+import { FEntity } from '../foundation-orm/FEntity';
+import { Context } from '../openland-utils/Context';
+import { SLog } from '../openland-log/SLog';
 // import { createEmptyContext } from 'openland-utils/Context';
 
 var migrations: FMigration[] = [];
@@ -576,6 +580,35 @@ migrations.push({
         }
     }
 });
+
+migrations.push({
+    key: '43-reindex-organizations',
+    migration: async (root, log) => {
+        await reindexAllEntityWithOnePrimaryKey(root, log, FDB.Organization, 100);
+    }
+});
+
+//
+// !! Run only on entities with one primary key !!
+//
+async function reindexAllEntityWithOnePrimaryKey<T extends FEntity>(parent: Context, log: SLog, entity: FEntityFactory<T>, batchSize: number) {
+    let allKeys = await entity.findAllKeys(parent);
+    let keyBatches = batch(allKeys, batchSize);
+    for (let kb of keyBatches) {
+        await inTx(parent, async (ctx) => {
+            for (let a of kb) {
+                let k = FKeyEncoding.decodeKey(a);
+                k.splice(0, 2);
+                let r = await ((entity as any).findById(ctx, k[0] as number));
+                if (!r) {
+                    log.warn(ctx, 'no entity found! ' + JSON.stringify(k));
+                } else {
+                    r.markDirty();
+                }
+            }
+        });
+    }
+}
 
 export function startMigrationsWorker() {
     if (serverRoleEnabled('workers')) {
