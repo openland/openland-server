@@ -44,7 +44,7 @@ describe('RoomMediator', () => {
         await users.createUserProfile(ctx, USER_ID, { firstName: 'User Name' });
         await users.createUserProfile(ctx, USER2_ID, { firstName: 'User Name' });
         let room = await mediator.createRoom(ctx, 'group', 1, USER_ID, [], { title: 'Room' });
-        await mediator.joinRoom(ctx, room.id, USER2_ID, true);
+        expect(mediator.joinRoom(ctx, room.id, USER2_ID, true)).rejects.toThrowError('You can\'t join non-public room');
         let members = await FDB.RoomParticipant.allFromActive(ctx, room.id);
         expect(members.length).toBe(1);
         for (let m of members) {

@@ -50,16 +50,20 @@ export class RoomMediator {
             if (!conv) {
                 throw new NotFoundError();
             }
-            if (conv.kind !== 'public' && conv.kind !== 'group' && !invited) {
+
+            let isPublic = conv.kind === 'public' && (conv.oid && (await this.entities.Organization.findById(ctx, conv.oid))!.kind === 'community');
+            let isMemberOfOrg = (conv.oid && await Modules.Orgs.isUserMember(ctx, uid, conv.oid)) || false;
+            if (!isPublic && !invited && !isMemberOfOrg) {
                 throw new UserError('You can\'t join non-public room');
             }
 
-            if (conv.kind === 'public') {
-                // Any one can join public rooms
+            // Any one can join public rooms from community
+            // Member of org can join any rooms
+            if (isPublic || isMemberOfOrg) {
                 request = false;
             }
 
-            // Check if was kicked
+            // Check if was kickedshould return own profile
             let participant = await this.entities.RoomParticipant.findById(ctx, cid, uid);
             if (participant && participant.status === 'kicked' && !request) {
                 throw new UserError('You was kicked from this room');
@@ -83,6 +87,7 @@ export class RoomMediator {
 
             return (await this.entities.Conversation.findById(ctx, cid))!;
         });
+
     }
 
     async inviteToRoom(parent: Context, cid: number, uid: number, invites: number[]) {
