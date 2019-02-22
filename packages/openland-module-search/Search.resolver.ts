@@ -140,6 +140,39 @@ export default {
             });
 
             return data;
-        })
+        }),
+        featuredGroups: withAccount(async (ctx, args, uid, oid) => {
+            let globalRoomHits = await Modules.Search.elastic.client.search({
+                index: 'room',
+                type: 'room',
+                body: {
+                    query: { bool: { must: [{ term: { featured: true } }] } }
+                }
+            });
+            return globalRoomHits.hits.hits.map(hit => parseInt(hit._id, 10));
+        }),
+        featuredCommunities: withAccount(async (ctx, args, uid, oid) => {
+            let hits = await Modules.Search.elastic.client.search({
+                index: 'organization',
+                type: 'organization',
+                body: {
+                    query: {
+                        bool: {
+                            must: [
+                                {
+                                    term: { kind: 'community' }
+                                },
+                                {
+                                    term: { featured: true }
+                                },
+                            ]
+                        }
+                    }
+                }
+            });
+            let oids = hits.hits.hits.map(hit => parseInt(hit._id, 10));
+            let orgs = oids.map(o => FDB.Organization.findById(ctx, o)!);
+            return await Promise.all(orgs);
+        }),
     }
 } as GQLResolver;
