@@ -11,7 +11,6 @@ import { FEntityFactory } from '../foundation-orm/FEntityFactory';
 import { FEntity } from '../foundation-orm/FEntity';
 import { Context } from '../openland-utils/Context';
 import { SLog } from '../openland-log/SLog';
-// import { createEmptyContext } from 'openland-utils/Context';
 
 var migrations: FMigration[] = [];
 migrations.push({
