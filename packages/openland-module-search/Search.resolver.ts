@@ -82,7 +82,7 @@ export default {
                 type: 'room',
                 size: 10,
                 body: {
-                    query: { bool: { must: [{ match_phrase_prefix: { title: args.query } }, { term: { listed: true} }] } }
+                    query: { bool: { must: [{ match_phrase_prefix: { title: args.query } }, { term: { listed: true } }] } }
                 }
             });
 
