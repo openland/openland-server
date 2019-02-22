@@ -35,12 +35,19 @@ export default {
         alphaFeatured: async (src: Organization, args: {}, ctx: AppContext) => ((await FDB.OrganizationEditorial.findById(ctx, src.id)))!.featured,
         alphaIsCommunity: (src: Organization) => src.kind === 'community',
         alphaCreatedChannels: async (src: Organization, args: {}, ctx: AppContext) => {
-            return FDB.ConversationRoom.allFromOrganizationPublicRooms(ctx, src.id);
+            let haveAccess = src.kind === 'community' ? true : (ctx.auth.uid && ctx.auth.oid && await Modules.Orgs.isUserMember(ctx, ctx.auth.uid, ctx.auth.oid));
+            if (!haveAccess) {
+                return [];
+            }
+            return await FDB.ConversationRoom.allFromOrganizationPublicRooms(ctx, src.id);
         },
 
         betaPublicRooms: async (src: Organization, args: {}, ctx: AppContext) => {
-            let isMember = ctx.auth.uid && ctx.auth.oid && await Modules.Orgs.isUserMember(ctx, ctx.auth.uid, ctx.auth.oid);
-            return (await FDB.ConversationRoom.allFromOrganizationPublicRooms(ctx, src.id)).filter(r => isMember || r.listed);
+            let haveAccess = src.kind === 'community' ? true : (ctx.auth.uid && ctx.auth.oid && await Modules.Orgs.isUserMember(ctx, ctx.auth.uid, ctx.auth.oid));
+            if (!haveAccess) {
+                return [];
+            }
+            return await FDB.ConversationRoom.allFromOrganizationPublicRooms(ctx, src.id);
         },
         status: async (src: Organization) => src.status
     },
