@@ -106,7 +106,7 @@ describe('RoomMediator', () => {
 
         let room = await mediator.createRoom(ctx, 'public', org.id, USER_ID, [], { title: 'Room' });
         let res = mediator.joinRoom(ctx, room.id, USER2_ID);
-        expect(res).rejects.toThrowError('You can\'t join non-public room');
+        await expect(res).rejects.toThrowError('You can\'t join non-public room');
 
         expect(await orgs.isUserMember(ctx, USER2_ID, org.id)).toEqual(false);
     });
@@ -161,7 +161,7 @@ describe('RoomMediator', () => {
         let room = await mediator.createRoom(ctx, 'public', org.id, USER_ID, [], { title: 'Room' });
         await mediator.joinRoom(ctx, room.id, USER2_ID, true);
         let res = mediator.joinRoom(ctx, room.id, USER3_ID, true);
-        expect(res).rejects.toThrowError('You can\'t join non-public room');
+        await expect(res).rejects.toThrowError('You can\'t join non-public room');
         let members = await FDB.RoomParticipant.allFromActive(ctx, room.id);
         expect(members.length).toBe(2);
         for (let m of members) {
@@ -210,8 +210,8 @@ describe('RoomMediator', () => {
         await orgs.addUserToOrganization(ctx, USER2_ID, org.id, USER_ID);
 
         let room = await mediator.createRoom(ctx, 'group', org.id, USER_ID, [], { title: 'Room' });
-        expect(mediator.joinRoom(ctx, room.id, USER2_ID, true)).rejects.toThrowError('You can\'t join non-public room');
-        expect(mediator.joinRoom(ctx, room.id, USER3_ID, true)).rejects.toThrowError('You can\'t join non-public room');
+        await expect(mediator.joinRoom(ctx, room.id, USER2_ID, true)).rejects.toThrowError('You can\'t join non-public room');
+        await expect(mediator.joinRoom(ctx, room.id, USER3_ID, true)).rejects.toThrowError('You can\'t join non-public room');
         let members = await FDB.RoomParticipant.allFromActive(ctx, room.id);
         expect(members.length).toBe(1);
         for (let m of members) {
@@ -232,7 +232,7 @@ describe('RoomMediator', () => {
         await orgs.addUserToOrganization(ctx, USER2_ID, org.id, USER_ID);
 
         let room = await mediator.createRoom(ctx, 'group', org.id, USER_ID, [], { title: 'Room' });
-        expect(mediator.joinRoom(ctx, room.id, USER2_ID, true)).rejects.toThrowError('You can\'t join non-public room');
+        await expect(mediator.joinRoom(ctx, room.id, USER2_ID, true)).rejects.toThrowError('You can\'t join non-public room');
         await mediator.inviteToRoom(ctx, room.id, USER_ID, [ USER3_ID ]);
         await mediator.joinRoom(ctx, room.id, USER3_ID, false, true);
         let members = await FDB.RoomParticipant.allFromActive(ctx, room.id);
