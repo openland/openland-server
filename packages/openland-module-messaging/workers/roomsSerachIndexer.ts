@@ -4,7 +4,7 @@ import { createEmptyContext } from 'openland-utils/Context';
 import { Modules } from '../../openland-modules/Modules';
 
 export function roomsSearchIndexer() {
-    declareSearchIndexer('room-index', 7, 'room', FDB.RoomProfile.createUpdatedStream(createEmptyContext(), 50))
+    declareSearchIndexer('room-index', 8, 'room', FDB.RoomProfile.createUpdatedStream(createEmptyContext(), 50))
         .withProperties({
             cid: {
                 type: 'integer'
@@ -38,6 +38,8 @@ export function roomsSearchIndexer() {
 
             let membersCount = await Modules.Messaging.roomMembersCount(ctx, room.id);
 
+            let isListed = room.kind === 'public' && (room.oid && (await FDB.Organization.findById(ctx, room.oid))!.kind === 'community');
+
             return {
                 id: item.id,
                 doc: {
@@ -46,7 +48,7 @@ export function roomsSearchIndexer() {
                     createdAt: item.createdAt,
                     updatedAt: item.updatedAt,
                     featured: room.featured === true,
-                    listed: room.listed === true,
+                    listed: isListed,
                     membersCount: membersCount
                 }
             };
