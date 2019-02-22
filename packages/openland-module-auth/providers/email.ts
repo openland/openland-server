@@ -50,7 +50,7 @@ const isTestEmail = (email: string) => {
 
 const testEmailCode = (email: string) => {
     if (email === 'appstore@apple.com') {
-        return '11111';
+        return '111111';
     }
 
     let [, num] = TEST_EMAIL_REGEX.exec(email)!;
