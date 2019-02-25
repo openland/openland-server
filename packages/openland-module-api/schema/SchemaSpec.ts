@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '1bb55a16caa48ab7406e09d66d54ab0e';
+export const GQL_SPEC_VERSION = 'ea9c74917a596dc71fd0bf020e8bd3bd';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1215,7 +1215,7 @@ export namespace GQL {
     }
     export interface MutationPresenceReportOnlineArgs {
         timeout: number;
-        platform: Nullable<Platform>;
+        platform: Nullable<string>;
         active: Nullable<boolean>;
     }
     export interface MutationPresenceReportOfflineArgs {
