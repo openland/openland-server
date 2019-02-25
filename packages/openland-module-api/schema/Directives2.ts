@@ -18,6 +18,7 @@ import { ErrorText } from 'openland-errors/ErrorText';
 import { withPermission } from 'openland-module-api/Resolvers';
 import { AuthContext } from 'openland-module-auth/AuthContext';
 import { AppContext } from 'openland-modules/AppContext';
+import { UserError } from '../../openland-errors/UserError';
 
 function createFieldDirective(
     resolver: (root: any, args: any, context: AppContext, info: any, originalResolver: GraphQLFieldResolver<any, any, any>, directiveArgs: any) => any
@@ -157,6 +158,10 @@ export const Directives = {
             permission,
             async (_ctx, _args) => resolve(root, _args, _ctx, info)
         )(root, args, ctx);
+    }),
+
+    disabled: createFieldDirective(async (root, args, ctx, info, resolve, dArgs) => {
+        throw new UserError('This API is deprecated');
     }),
 
     ...IDScalarDirectives

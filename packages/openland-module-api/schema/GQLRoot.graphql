@@ -8,3 +8,5 @@ directive @withAuth on FIELD_DEFINITION
 
 directive @withPermissions(permission: [String!]!) on FIELD_DEFINITION
 directive @withPermission(permission: String!) on FIELD_DEFINITION
+
+directive @disabled on FIELD_DEFINITION

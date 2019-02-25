@@ -82,33 +82,33 @@ input ChannelInviteRequest {
 }
 
 extend type Mutation {
-    alphaChannelCreate(title: String!, photoRef: ImageRefInput, message: String, description: String, oid: ID): Conversation!
+    alphaChannelCreate(title: String!, photoRef: ImageRefInput, message: String, description: String, oid: ID): Conversation! @disabled
 
-    alphaChannelSetFeatured(channelId: ID!, featured: Boolean!): Conversation!
-    alphaChannelHideFromSearch(channelId: ID!, hidden: Boolean!): Conversation!
+    alphaChannelSetFeatured(channelId: ID!, featured: Boolean!): Conversation! @disabled
+    alphaChannelHideFromSearch(channelId: ID!, hidden: Boolean!): Conversation! @disabled
     
-    alphaChannelInvite(channelId: ID!, userId: ID!): ConversationUpdateResponse!
-    alphaChannelJoin(channelId: ID!): ConversationUpdateResponse!
-    alphaChannelRevokeInvite(channelId: ID!, userId: ID!): String!
-    alphaChannelCancelRequest(channelId: ID!): String
+    alphaChannelInvite(channelId: ID!, userId: ID!): ConversationUpdateResponse! @disabled
+    alphaChannelJoin(channelId: ID!): ConversationUpdateResponse! @disabled
+    alphaChannelRevokeInvite(channelId: ID!, userId: ID!): String! @disabled
+    alphaChannelCancelRequest(channelId: ID!): String @disabled
 
-    alphaChannelInviteMembers(channelId: ID!, inviteRequests: [ChannelInviteRequest!]!): String!
-    alphaChannelJoinInvite(invite: String!): ID!
-    alphaChannelRenewInviteLink(channelId: ID!): String!
+    alphaChannelInviteMembers(channelId: ID!, inviteRequests: [ChannelInviteRequest!]!): String! @disabled
+    alphaChannelJoinInvite(invite: String!): ID! @disabled
+    alphaChannelRenewInviteLink(channelId: ID!): String! @disabled
 }
 
 extend type Query {
-    alphaChannelsList(first: Int!, after: String): ConversationConnection!
-    alphaChannelMembers(channelId: ID!): [ChannelMember!]!
-    alphaChannelsFeatured: [ChannelConversation!]!
+    alphaChannelsList(first: Int!, after: String): ConversationConnection! @disabled
+    alphaChannelMembers(channelId: ID!): [ChannelMember!]! @disabled
+    alphaChannelsFeatured: [ChannelConversation!]! @disabled
     alphaChannels(
         query: String,
         first: Int!,
         after: String,
         page: Int,
         sort: String
-    ): ChannelConversationConnection!
-    alphaChannelInviteInfo(uuid: String!): ChannelInvite
-    alphaChannelInviteLink(channelId: ID!): String!
+    ): ChannelConversationConnection! @disabled
+    alphaChannelInviteInfo(uuid: String!): ChannelInvite @disabled
+    alphaChannelInviteLink(channelId: ID!): String! @disabled
 }
 
