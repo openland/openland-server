@@ -36,6 +36,14 @@ export default {
         alphaIsCommunity: (src: Organization) => src.kind === 'community',
         alphaCreatedChannels: async (src: Organization, args: {}, ctx: AppContext) => {
             let haveAccess = src.kind === 'community' ? true : (ctx.auth.uid && ctx.auth.oid && await Modules.Orgs.isUserMember(ctx, ctx.auth.uid, ctx.auth.oid));
+            console.log(
+                'P1DZIOb09a6ts4hsoiHK',
+                src.kind,
+                ctx.auth.uid,
+                ctx.auth.oid,
+                await Modules.Orgs.isUserMember(ctx, ctx.auth.uid!, ctx.auth.oid!),
+                haveAccess
+            );
             if (!haveAccess) {
                 return [];
             }
