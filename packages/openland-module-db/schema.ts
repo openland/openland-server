@@ -157,6 +157,7 @@ export interface PresenceShape {
     lastSeen: number;
     lastSeenTimeout: number;
     platform: string;
+    active?: boolean| null;
 }
 
 export class Presence extends FEntity {
@@ -190,6 +191,17 @@ export class Presence extends FEntity {
         this._value.platform = value;
         this.markDirty();
     }
+    get active(): boolean | null {
+        let res = this._value.active;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set active(value: boolean | null) {
+        this._checkIsWritable();
+        if (value === this._value.active) { return; }
+        this._value.active = value;
+        this.markDirty();
+    }
 }
 
 export class PresenceFactory extends FEntityFactory<Presence> {
@@ -204,6 +216,7 @@ export class PresenceFactory extends FEntityFactory<Presence> {
             { name: 'lastSeen', type: 'number' },
             { name: 'lastSeenTimeout', type: 'number' },
             { name: 'platform', type: 'string' },
+            { name: 'active', type: 'boolean' },
         ],
         indexes: [
         ],
@@ -220,6 +233,7 @@ export class PresenceFactory extends FEntityFactory<Presence> {
         validators.isNumber('lastSeenTimeout', src.lastSeenTimeout);
         validators.notNull('platform', src.platform);
         validators.isString('platform', src.platform);
+        validators.isBoolean('active', src.active);
     }
 
     constructor(connection: FConnection) {

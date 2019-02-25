@@ -34,6 +34,7 @@ const Schema = declareSchema(() => {
         field('lastSeen', 'number');
         field('lastSeenTimeout', 'number');
         field('platform', 'string');
+        field('active', 'boolean').nullable();
     });
 
     entity('AuthToken', () => {
