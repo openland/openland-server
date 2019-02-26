@@ -25,6 +25,7 @@ const Schema = declareSchema(() => {
     entity('Online', () => {
         primaryKey('uid', 'number');
         field('lastSeen', 'number');
+        field('activeExpires', 'number').nullable();
         field('active', 'boolean').nullable();
     });
 

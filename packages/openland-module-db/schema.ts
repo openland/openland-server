@@ -77,6 +77,7 @@ export class EnvironmentFactory extends FEntityFactory<Environment> {
 }
 export interface OnlineShape {
     lastSeen: number;
+    activeExpires?: number| null;
     active?: boolean| null;
 }
 
@@ -90,6 +91,17 @@ export class Online extends FEntity {
         this._checkIsWritable();
         if (value === this._value.lastSeen) { return; }
         this._value.lastSeen = value;
+        this.markDirty();
+    }
+    get activeExpires(): number | null {
+        let res = this._value.activeExpires;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set activeExpires(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.activeExpires) { return; }
+        this._value.activeExpires = value;
         this.markDirty();
     }
     get active(): boolean | null {
@@ -114,6 +126,7 @@ export class OnlineFactory extends FEntityFactory<Online> {
         ],
         fields: [
             { name: 'lastSeen', type: 'number' },
+            { name: 'activeExpires', type: 'number' },
             { name: 'active', type: 'boolean' },
         ],
         indexes: [
@@ -125,6 +138,7 @@ export class OnlineFactory extends FEntityFactory<Online> {
         validators.isNumber('uid', src.uid);
         validators.notNull('lastSeen', src.lastSeen);
         validators.isNumber('lastSeen', src.lastSeen);
+        validators.isNumber('activeExpires', src.activeExpires);
         validators.isBoolean('active', src.active);
     }
 
