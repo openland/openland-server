@@ -587,6 +587,28 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '44-reindex-presence',
+    migration: async (root, log) => {
+        let allKeys = await FDB.Presence.findAllKeys(root);
+        let keyBatches = batch(allKeys, 100);
+        for (let kb of keyBatches) {
+            await inTx(root, async (ctx) => {
+                for (let a of kb) {
+                    let k = FKeyEncoding.decodeKey(a);
+                    k.splice(0, 2);
+                    let r = await FDB.Presence.findById(ctx, k[0] as number, k[1] as string);
+                    if (!r) {
+                        log.warn(ctx, 'no presence found! ' + JSON.stringify(k));
+                    } else {
+                        r.markDirty();
+                    }
+                }
+            });
+        }
+    }
+});
+
 //
 // !! Run only on entities with one primary key !!
 //

@@ -20,10 +20,20 @@ type DebugID {
     type: String!
 }
 
+type DebugUserPresence {
+    user: User!
+    lastSeen: Date!
+    lastSeenStr: String!
+    lastSeenTimeout: Int!
+    platform: String
+    active: Boolean
+}
+
 extend type Query {
     debugParseID(id: ID!): DebugID!
     debugCrashQuery: String!
     debugUrlInfo(url: String!): UrlAugmentation
+    userPresence(uid: ID!, lastSeenFiveMinute: Boolean): [DebugUserPresence!]!
 }
 
 extend type Mutation {

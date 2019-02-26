@@ -35,6 +35,7 @@ const Schema = declareSchema(() => {
         field('lastSeenTimeout', 'number');
         field('platform', 'string');
         field('active', 'boolean').nullable();
+        rangeIndex('user', ['uid', 'lastSeen']);
     });
 
     entity('AuthToken', () => {

@@ -10,6 +10,14 @@ import UrlInfoService from '../openland-module-messaging/workers/UrlInfoService'
 const URLInfoService = new UrlInfoService();
 
 export default {
+    DebugUserPresence: {
+        user: src => src.uid,
+        lastSeen: src => src.lastSeen,
+        lastSeenStr: src => new Date(src.lastSeen).toString(),
+        lastSeenTimeout: src => src.lastSeenTimeout,
+        platform: src => src.platform,
+        active: src => src.active,
+    },
     Query: {
         debugParseID: withPermission('super-admin', async (ctx, args) => {
             let id = IdsFactory.resolve(args.id);
@@ -23,7 +31,18 @@ export default {
         },
         debugUrlInfo: withPermission('super-admin', async (ctx, args) => {
             return URLInfoService.fetchURLInfo(args.url, false);
-        })
+        }),
+        userPresence: withPermission('super-admin', async (ctx, args) => {
+            let uid = IDs.User.parse(args.uid);
+            let presence = await FDB.Presence.allFromUser(ctx, uid);
+
+            if (args.lastSeenFiveMinute === true) {
+                let now = Date.now();
+                return presence.filter(p => (now - p.lastSeen) <= 1000 * 60 * 5);
+            }
+
+            return presence;
+        }),
     },
     Mutation: {
         debugSendEmail: withPermission('super-admin', async (ctx, args) => {

@@ -219,6 +219,7 @@ export class PresenceFactory extends FEntityFactory<Presence> {
             { name: 'active', type: 'boolean' },
         ],
         indexes: [
+            { name: 'user', type: 'range', fields: ['uid', 'lastSeen'] },
         ],
     };
 
@@ -240,7 +241,7 @@ export class PresenceFactory extends FEntityFactory<Presence> {
         super(connection,
             new FNamespace('entity', 'presence'),
             { enableVersioning: false, enableTimestamps: false, validator: PresenceFactory.validate, hasLiveStreams: false },
-            [],
+            [new FEntityIndex('user', ['uid', 'lastSeen'], false)],
             'Presence'
         );
     }
@@ -256,6 +257,24 @@ export class PresenceFactory extends FEntityFactory<Presence> {
     }
     watch(ctx: Context, uid: number, tid: string, cb: () => void) {
         return this._watch(ctx, [uid, tid], cb);
+    }
+    async allFromUserAfter(ctx: Context, uid: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'user', uid], after);
+    }
+    async rangeFromUserAfter(ctx: Context, uid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'user', uid], after, limit, reversed);
+    }
+    async rangeFromUser(ctx: Context, uid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'user', uid], limit, reversed);
+    }
+    async rangeFromUserWithCursor(ctx: Context, uid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'user', uid], limit, after, reversed);
+    }
+    async allFromUser(ctx: Context, uid: number) {
+        return await this._findAll(ctx, ['__indexes', 'user', uid]);
+    }
+    createUserStream(ctx: Context, uid: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'presence', '__indexes', 'user', uid], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new Presence(ctx, this.connection, this.namespace, this.directory, [value.uid, value.tid], value, this.options, isNew, this.indexes, 'Presence');

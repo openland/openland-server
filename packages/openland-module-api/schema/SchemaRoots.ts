@@ -5,7 +5,7 @@ import {
     User, UserDialogEvent,
     UserDialogSettings,
     UserProfile,
-    FeedEvent, AuthToken, ConversationEvent, AppHook
+    FeedEvent, AuthToken, ConversationEvent, AppHook, Presence
 } from '../../openland-module-db/schema';
 import { GQL } from './SchemaSpec';
 import { MessageMention } from '../../openland-module-messaging/MessageInput';
@@ -214,4 +214,5 @@ export namespace GQLRoots {
     //  Debug
     //
     export type DebugIDRoot = any;
+    export type DebugUserPresenceRoot = Presence;
 }
