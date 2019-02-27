@@ -53,17 +53,17 @@ export class PresenceModule {
             if (!online) {
                 await this.FDB.Online.create(ctx, uid, { lastSeen: expires, active });
             } else if (online.lastSeen < expires) {
-                let isPrevActiveActual = online && online.activeExpires && online.activeExpires > Date.now();
-                if (isPrevActiveActual) {
-                    if (!online.active && active) {
-                        online.active = true;
-                        online.activeExpires = expires;
-                    }
+                let userPresences = await this.FDB.Presence.allFromUser(ctx, uid);
+                let haveActivePresence = userPresences.find(p => (p.active || false) && (p.lastSeen + p.lastSeenTimeout) > Date.now() );
+
+                if (haveActivePresence) {
+                    online.active = true;
+                    online.activeExpires = expires;
                 } else {
                     online.active = active;
-                    online.activeExpires = expires;
                 }
                 online.lastSeen = expires;
+                online.activeExpires = expires;
             }
 
             await presenceEvent.event(ctx, { uid, online: true });
@@ -107,7 +107,6 @@ export class PresenceModule {
         let res = await this.FDB.Online.findById(ctx, uid);
         if (res) {
             if (res.lastSeen > Date.now()) {
-                console.log(7777, res.active);
                 return res.active || false;
             } else {
                 return false;
