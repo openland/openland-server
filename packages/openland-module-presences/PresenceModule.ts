@@ -44,6 +44,7 @@ export class PresenceModule {
                 ex.lastSeenTimeout = timeout;
                 ex.platform = platform;
                 ex.active = active;
+                await ex.flush();
             } else {
                 await this.FDB.Presence.create(ctx, uid, tid, { lastSeen: Date.now(), lastSeenTimeout: timeout, platform, active });
             }

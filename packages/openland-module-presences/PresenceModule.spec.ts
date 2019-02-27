@@ -69,14 +69,14 @@ describe('PresenceModule', () => {
     it('should return active status', async () => {
         let ctx = createEmptyContext();
         await withLogDisabled(async () => {
-            await Modules.Presence.setOnline(ctx, 7, '1', 5000, 'test', true);
-            let active = await Modules.Presence.isActive(ctx, 7);
+            await Modules.Presence.setOnline(ctx, 8, '1', 5000, 'test', true);
+            let active = await Modules.Presence.isActive(ctx, 8);
             expect(active).toEqual(true);
-            await Modules.Presence.setOffline(ctx, 7);
-            active = await Modules.Presence.isActive(ctx, 7);
+            await Modules.Presence.setOffline(ctx, 8);
+            active = await Modules.Presence.isActive(ctx, 8);
             expect(active).toEqual(false);
-            await Modules.Presence.setOnline(ctx, 7, '1', 5000, 'test', false);
-            active = await Modules.Presence.isActive(ctx, 7);
+            await Modules.Presence.setOnline(ctx, 8, '1', 5000, 'test', false);
+            active = await Modules.Presence.isActive(ctx, 8);
             expect(active).toEqual(false);
         });
     });
