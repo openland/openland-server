@@ -97,7 +97,7 @@ export class UserRepository {
             );
 
             // Create pfofile
-            return await this.entities.UserProfile.create(ctx, user.id!, {
+            let profile = await this.entities.UserProfile.create(ctx, user.id!, {
                 firstName: Sanitizer.sanitizeString(input.firstName)!,
                 lastName: Sanitizer.sanitizeString(input.lastName),
                 picture: Sanitizer.sanitizeImageRef(input.photoRef),
@@ -107,6 +107,9 @@ export class UserRepository {
                 about: Sanitizer.sanitizeString(input.about),
                 location: Sanitizer.sanitizeString(input.location)
             });
+            await profile.flush();
+            await this.markForUndexing(ctx, uid);
+            return profile;
         });
     }
 
