@@ -74,6 +74,9 @@ export default {
         cid: async (src: UserDialogEvent, args: {}, ctx: AppContext) => IDs.Conversation.serialize(src.cid || (await FDB.Message.findById(ctx, src.mid!))!.cid),
         message: (src: UserDialogEvent, args: {}, ctx: AppContext) => FDB.Message.findById(ctx, src.mid!),
         betaMessage: (src: UserDialogEvent, args: {}, ctx: AppContext) => FDB.Message.findById(ctx, src.mid!),
+        prevMessage: async (src: UserDialogEvent, args: {}, ctx: AppContext) => {
+            return (await FDB.Message.rangeFromChat(ctx, src.cid!, 1, true))[0];
+        },
         unread: (src: UserDialogEvent) => src.unread || 0,
         globalUnread: (src: UserDialogEvent) => src.allUnread || 0
     },

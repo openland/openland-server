@@ -33,6 +33,7 @@ type DialogMessageDeleted {
     cid: ID!
     message: ConversationMessage!
     betaMessage: RoomMessage!
+    prevMessage: RoomMessage
     unread: Int!
     globalUnread: Int!
 }
