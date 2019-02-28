@@ -23,9 +23,10 @@ describe('MessagingMediator', () => {
     it('should send message', async () => {
         let ctx = createEmptyContext();
         let roooms = container.get<RoomMediator>('RoomMediator');
-        let users = container.get<UsersModule>(UsersModule);
         let mediator = container.get<MessagingMediator>('MessagingMediator');
-        let USER_ID = (await users.createUser(ctx, 'user_test_messages_1', 'email_user_test_messages_1')).id;
+        let users = container.get<UsersModule>(UsersModule);
+        let USER_ID = (await users.createUser(ctx, 'user' + Math.random(), 'email' + Math.random())).id;
+        await users.createUserProfile(ctx, USER_ID, { firstName: 'User Name' + Math.random() });
         let room = await roooms.createRoom(ctx, 'public', 1, USER_ID, [], { title: 'Room' });
 
         let text = 'boom';
@@ -42,7 +43,8 @@ describe('MessagingMediator', () => {
         let roooms = container.get<RoomMediator>('RoomMediator');
         let users = container.get<UsersModule>(UsersModule);
         let mediator = container.get<MessagingMediator>('MessagingMediator');
-        let USER_ID = (await users.createUser(ctx, 'user_test_messages_2', 'email_user_test_messages_2')).id;
+        let USER_ID = (await users.createUser(ctx, 'user' + Math.random(), 'email' + Math.random())).id;
+        await users.createUserProfile(ctx, USER_ID, { firstName: 'User Name' + Math.random() });
         let room = await roooms.createRoom(ctx, 'public', 1, USER_ID, [], { title: 'Room' });
 
         let text = 'boom';
@@ -66,7 +68,8 @@ describe('MessagingMediator', () => {
         let roooms = container.get<RoomMediator>('RoomMediator');
         let users = container.get<UsersModule>(UsersModule);
         let mediator = container.get<MessagingMediator>('MessagingMediator');
-        let USER_ID = (await users.createUser(ctx, 'user_test_messages_edit_message', 'email_user_test_messages_edit_message')).id;
+        let USER_ID = (await users.createUser(ctx, 'user' + Math.random(), 'email' + Math.random())).id;
+        await users.createUserProfile(ctx, USER_ID, { firstName: 'User Name' + Math.random() });
         let room = await roooms.createRoom(ctx, 'public', 1, USER_ID, [], { title: 'Room' });
 
         let MSG_ID = (await mediator.sendMessage(ctx, USER_ID, room.id, { message: 'boom' })).mid!;
@@ -88,7 +91,8 @@ describe('MessagingMediator', () => {
         let roooms = container.get<RoomMediator>('RoomMediator');
         let users = container.get<UsersModule>(UsersModule);
         let mediator = container.get<MessagingMediator>('MessagingMediator');
-        let USER_ID = (await users.createUser(ctx, 'user_test_messages_del_aug', 'email_user_test_messages_del_aug')).id;
+        let USER_ID = (await users.createUser(ctx, 'user' + Math.random(), 'email' + Math.random())).id;
+        await users.createUserProfile(ctx, USER_ID, { firstName: 'User Name' + Math.random() });
         let room = await roooms.createRoom(ctx, 'public', 1, USER_ID, [], { title: 'Room' });
 
         let augmentation = { url: 'openland.com', title: 'openland' };
@@ -109,9 +113,10 @@ describe('MessagingMediator', () => {
     it('history pagination should work correctly', async () => {
         let ctx = createEmptyContext();
         let roooms = container.get<RoomMediator>('RoomMediator');
-        let users = container.get<UsersModule>(UsersModule);
         let mediator = container.get<MessagingMediator>('MessagingMediator');
-        let USER_ID = (await users.createUser(ctx, 'user_test_load_messages', 'email_user_test_load_messages')).id;
+        let users = container.get<UsersModule>(UsersModule);
+        let USER_ID = (await users.createUser(ctx, 'user' + Math.random(), 'email' + Math.random())).id;
+        await users.createUserProfile(ctx, USER_ID, { firstName: 'User Name' + Math.random() });
         let room = await roooms.createRoom(ctx, 'public', 1, USER_ID, [], { title: 'Room' });
 
         for (let i = 0; i < 4; i++) {

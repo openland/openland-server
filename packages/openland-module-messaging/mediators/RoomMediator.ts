@@ -35,7 +35,7 @@ export class RoomMediator {
             let res = await this.repo.createRoom(ctx, kind, oid, uid, members, profile, listed);
             // Send initial messages
             let userName = await Modules.Users.getUserFullName(parent, uid);
-            await this.messaging.sendMessage(ctx, uid, res.id, { message: `@${userName} created the group ${profile.title}`, isService: true, complexMentions: [{ type: 'User', id: uid }] });
+            await this.messaging.sendMessage(ctx, uid, res.id, {message: `@${userName} created the group ${profile.title}`, isService: true, complexMentions: [{ type: 'User', id: uid }] });
             if (message) {
                 await this.messaging.sendMessage(ctx, uid, res.id, { message: message });
             }

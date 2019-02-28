@@ -9,6 +9,7 @@ import { SuperModule } from '../../openland-module-super/SuperModule';
 import { UserRepository } from 'openland-module-users/repositories/UserRepository';
 import { OrganizationRepository } from '../../openland-module-organization/repositories/OrganizationRepository';
 import { OrganizationModule } from '../../openland-module-organization/OrganizationModule';
+import { Modules } from '../../openland-modules/Modules';
 
 describe('RoomMediator', () => {
     beforeAll(async () => {
@@ -34,7 +35,9 @@ describe('RoomMediator', () => {
     it('should create room', async () => {
         let ctx = createEmptyContext();
         let mediator = container.get<RoomMediator>('RoomMediator');
-        let USER_ID = 2;
+        let users = container.get<UsersModule>(UsersModule);
+        let USER_ID = (await users.createUser(ctx, 'user' + Math.random(), 'email' + Math.random())).id;
+        await users.createUserProfile(ctx, USER_ID, { firstName: 'User Name' + Math.random() });
         let room = await mediator.createRoom(ctx, 'public', 1, USER_ID, [], { title: 'Room' });
         expect(room.kind).toEqual('room');
         let profile = (await FDB.ConversationRoom.findById(ctx, room.id))!;
@@ -45,7 +48,8 @@ describe('RoomMediator', () => {
         expect(messages.length).toBe(1);
         expect(messages[0].uid).toBe(USER_ID);
         expect(messages[0].cid).toBe(room.id);
-        expect(messages[0].text).toBe('Room created');
+        let userName = await Modules.Users.getUserFullName(ctx, USER_ID);
+        expect(messages[0].text).toBe(`@${userName} created the group Room`);
     });
 
     it('should be able to join room', async () => {
