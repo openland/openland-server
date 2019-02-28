@@ -21,7 +21,7 @@ export interface URLInfo {
 
 export async function fetchURLInfo(url: string): Promise<URLInfo> {
 
-    let res = await fetch(url, {
+    let res = await fetch(encodeURI(url), {
         timeout: 5000,
         headers: {
             'User-Agent': 'Mozilla/5.0 (compatible; openlandShare;)'
@@ -72,6 +72,7 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
     }
 
     let text = await res.text();
+    console.log(text);
     let doc = cheerio.load(text);
 
     let { hostname, protocol } = URL.parse(url);
