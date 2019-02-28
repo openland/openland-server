@@ -619,6 +619,16 @@ migrations.push({
     }
 });
 
+migrations.push({
+    key: '46-reindex-users',
+    migration: async (root, log) => {
+        let k = await FDB.User.findAll(root);
+        for (let o of k) {
+            await Modules.Users.markForUndexing(root, o.id);
+        }
+    }
+});
+
 //
 // !! Run only on entities with one primary key !!
 //
