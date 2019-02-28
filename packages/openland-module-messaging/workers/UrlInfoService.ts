@@ -91,7 +91,6 @@ export default class UrlInfoService {
                 type: 'url',
             };
         } catch (e) {
-            console.log(e);
             return {
                 url,
                 title: null,

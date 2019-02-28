@@ -72,7 +72,6 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
     }
 
     let text = await res.text();
-    console.log(text);
     let doc = cheerio.load(text);
 
     let { hostname, protocol } = URL.parse(url);
