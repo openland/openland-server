@@ -547,6 +547,56 @@ export class RoomRepository {
         }
     }
 
+    async checkCanUserSeeChat(ctx: Context, uid: number, cid: number) {
+        let conv = await this.entities.Conversation.findById(ctx, cid);
+        if (!conv) {
+            throw new AccessDeniedError();
+        }
+        if (conv.kind === 'private') {
+            let p = await this.entities.ConversationPrivate.findById(ctx, cid);
+            if (!p) {
+                throw new AccessDeniedError();
+            }
+            if (p.uid1 !== uid && p.uid2 !== uid) {
+                throw new AccessDeniedError();
+            }
+        } else if (conv.kind === 'room') {
+            let conversation = (await this.entities.ConversationRoom.findById(ctx, cid))!;
+
+            //
+            //  User can see secret chat only if he is a member
+            //
+            if (conversation.kind === 'group') {
+                let member = await this.entities.RoomParticipant.findById(ctx, cid, uid);
+                if (!member || member.status !== 'joined') {
+                    throw new AccessDeniedError();
+                }
+            } else if (conversation.kind === 'public') {
+                //
+                //   User can see organization group only if he is a member of org
+                //   User can see any community group
+                //
+                let org = (await this.entities.Organization.findById(ctx, conversation.oid!))!;
+                if (org.kind === 'organization') {
+                    if (!await Modules.Orgs.isUserMember(ctx, uid, org.id)) {
+                        throw new AccessDeniedError();
+                    }
+                }
+            }
+        } else if (conv.kind === 'organization') {
+            let org = await this.entities.ConversationOrganization.findById(ctx, cid);
+            if (!org) {
+                throw new AccessDeniedError();
+            }
+            let member = await this.entities.OrganizationMember.findById(ctx, org.oid, uid);
+            if (!member || member.status !== 'joined') {
+                throw new AccessDeniedError();
+            }
+        } else {
+            throw new AccessDeniedError();
+        }
+    }
+
     //
     //  Returns chats available to user
     //

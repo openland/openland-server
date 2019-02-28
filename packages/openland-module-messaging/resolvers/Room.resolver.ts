@@ -265,6 +265,7 @@ export default {
     Query: {
         room: withAccount(async (ctx, args, uid, oid) => {
             let id = IdsFactory.resolve(args.id);
+            await Modules.Messaging.room.checkCanUserSeeChat(ctx, uid, id.id);
             if (id.type === IDs.Conversation) {
                 return id.id;
             } else if (id.type === IDs.User) {
