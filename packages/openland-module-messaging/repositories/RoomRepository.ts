@@ -562,15 +562,18 @@ export class RoomRepository {
             }
         } else if (conv.kind === 'room') {
             let conversation = (await this.entities.ConversationRoom.findById(ctx, cid))!;
+            let member = await this.entities.RoomParticipant.findById(ctx, cid, uid);
+            let isMember = member && member.status === 'joined';
+
+            if (isMember) {
+                return;
+            }
 
             //
             //  User can see secret chat only if he is a member
             //
             if (conversation.kind === 'group') {
-                let member = await this.entities.RoomParticipant.findById(ctx, cid, uid);
-                if (!member || member.status !== 'joined') {
-                    throw new AccessDeniedError();
-                }
+                throw new AccessDeniedError();
             } else if (conversation.kind === 'public') {
                 //
                 //   User can see organization group only if he is a member of org
