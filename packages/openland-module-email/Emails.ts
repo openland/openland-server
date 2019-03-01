@@ -387,7 +387,7 @@ export const Emails = {
     },
 };
 
-const AvatarColorusArr = [
+const AvatarColorsArr = [
     'linear-gradient(138deg, #ffb600, #ff8d00)',
     'linear-gradient(138deg, #ff655d, #ff3d33)',
     'linear-gradient(138deg, #59d23c, #21ac00)',
@@ -413,7 +413,7 @@ async function genAvatar(ctx: Context, uid: number) {
         return `<img style="display: inline-block; vertical-align: top; width: 26px; height: 26px; margin-top: 6px; border-radius: 13px; margin-right: 6px;" src="${url}" />`;
     } else {
         let name = profile!.firstName[0] + (profile!.lastName ? profile!.lastName![0] : '');
-        let color = AvatarColorusArr[Math.abs(doSimpleHash(IDs.User.serialize(uid))) % AvatarColorusArr.length];
+        let color = AvatarColorsArr[Math.abs(doSimpleHash(IDs.User.serialize(uid))) % AvatarColorsArr.length];
         return `<span style="display: inline-block; vertical-align: top; width: 26px; height: 26px; margin-top: 6px; border-radius: 13px; margin-right: 6px; background-image: ${color}; color: #ffffff; text-align: center; font-size: 11px; font-weight: 600; line-height: 26px;">${name}</span>`;
     }
 }
