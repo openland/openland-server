@@ -6,7 +6,6 @@ import { ErrorText } from 'openland-errors/ErrorText';
 import { validate, defined, emailValidator } from 'openland-utils/NewInputValidator';
 import { Modules } from 'openland-modules/Modules';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
-import { Emails } from 'openland-module-email/Emails';
 import { resolveOrganizationJoinedMembers } from './utils/resolveOrganizationJoinedMembers';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { FDB } from 'openland-module-db/FDB';
@@ -93,22 +92,7 @@ export default {
 
             return await inTx(parent, async (ctx) => {
                 for (let inviteRequest of args.inviteRequests) {
-                    let isMemberDuplicate = await Modules.Orgs.hasMemberWithEmail(ctx, oid, inviteRequest.email);
-                    if (isMemberDuplicate) {
-                        throw new UserError(ErrorText.memberWithEmailAlreadyExists);
-                    }
-
-                    let invite = await Modules.Invites.orgInvitesRepo.createOrganizationInvite(
-                        ctx,
-                        oid,
-                        uid,
-                        inviteRequest.firstName || '',
-                        inviteRequest.lastName || '',
-                        inviteRequest.email,
-                        inviteRequest.emailText || ''
-                    );
-
-                    await Emails.sendInviteEmail(ctx, oid, invite);
+                    await Modules.Invites.createOrganizationInvite(ctx, oid, uid, { email: inviteRequest.email, emailText: inviteRequest.emailText || undefined, firstName: inviteRequest.firstName || undefined,lastName: inviteRequest.firstName || undefined });
                 }
                 return 'ok';
             });

@@ -84,12 +84,7 @@ export class OrganizationModule {
     async suspendOrganization(parent: Context, id: number) {
         return await inTx(parent, async (ctx) => {
             if (await this.repo.suspendOrganization(ctx, id)) {
-                for (let m of await FDB.OrganizationMember.allFromOrganization(ctx, 'joined', id)) {
-                    let u = (await FDB.User.findById(ctx, m.uid))!;
-                    if (u.status === 'activated') {
-                        await Emails.sendAccountDeactivatedEmail(ctx, u.id);
-                    }
-                }
+                await Emails.sendAccountDeactivatedEmail(ctx, id);
             }
             return (await FDB.Organization.findById(ctx, id))!;
         });

@@ -60,6 +60,10 @@ export class InvitesModule {
         return await this.invitesMediator.joinAppInvite(ctx, uid, invite);
     }
 
+    async createOrganizationInvite(ctx: Context, oid: number, uid: number, inviteReq: { email: string; emailText?: string, firstName?: string; lastName?: string }) {
+        return await this.invitesMediator.createOrganizationInvite(ctx, oid, uid, inviteReq);
+    }
+
     async joinOrganizationInvite(ctx: Context, uid: number, invite: string) {
         return await this.invitesMediator.joinOrganizationInvite(ctx, uid, invite);
     }

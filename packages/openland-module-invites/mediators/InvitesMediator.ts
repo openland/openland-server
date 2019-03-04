@@ -11,6 +11,7 @@ import { ErrorText } from 'openland-errors/ErrorText';
 import { InvitesOrganizationRepository } from 'openland-module-invites/repositories/InvitesOrganizationRepository';
 import { Context } from 'openland-utils/Context';
 import { Emails } from '../../openland-module-email/Emails';
+import { UserError } from '../../openland-errors/UserError';
 
 @injectable()
 export class InvitesMediator {
@@ -67,6 +68,26 @@ export class InvitesMediator {
         return 'ok';
     }
 
+    async createOrganizationInvite(ctx: Context, oid: number, uid: number, inviteReq: { email: string; emailText?: string, firstName?: string; lastName?: string }) {
+        let isMemberDuplicate = await Modules.Orgs.hasMemberWithEmail(ctx, oid, inviteReq.email);
+        if (isMemberDuplicate) {
+            throw new UserError(ErrorText.memberWithEmailAlreadyExists);
+        }
+
+        let invite = await Modules.Invites.orgInvitesRepo.createOrganizationInvite(
+            ctx,
+            oid,
+            uid,
+            inviteReq.firstName || '',
+            inviteReq.lastName || '',
+            inviteReq.email,
+            inviteReq.emailText || ''
+        );
+
+        await Emails.sendInviteEmail(ctx, oid, invite);
+
+        return invite;
+    }
     async joinOrganizationInvite(parent: Context, uid: number, inviteString: string) {
         return await inTx(parent, async (ctx) => {
             let orgInvite = await Modules.Invites.orgInvitesRepo.getOrganizationInviteNonJoined(ctx, inviteString);
