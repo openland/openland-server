@@ -92,7 +92,7 @@ export default {
 
             return await inTx(parent, async (ctx) => {
                 for (let inviteRequest of args.inviteRequests) {
-                    await Modules.Invites.createOrganizationInvite(ctx, oid, uid, { email: inviteRequest.email, emailText: inviteRequest.emailText || undefined, firstName: inviteRequest.firstName || undefined,lastName: inviteRequest.firstName || undefined });
+                    await Modules.Invites.createOrganizationInvite(ctx, oid, uid, { email: inviteRequest.email, emailText: inviteRequest.emailText || undefined, firstName: inviteRequest.firstName || undefined, lastName: inviteRequest.firstName || undefined });
                 }
                 return 'ok';
             });
