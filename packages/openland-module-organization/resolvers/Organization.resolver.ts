@@ -1,4 +1,4 @@
-import { Organization } from 'openland-module-db/schema';
+import { ConversationRoom, Organization } from 'openland-module-db/schema';
 import { IDs } from 'openland-module-api/IDs';
 import { FDB } from 'openland-module-db/FDB';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
@@ -8,6 +8,22 @@ import { NotFoundError } from 'openland-errors/NotFoundError';
 import { resolveOrganizationJoinedMembers, resolveOrganizationMembersWithStatus } from './utils/resolveOrganizationJoinedMembers';
 import { AppContext } from 'openland-modules/AppContext';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
+
+const resolveOrganizationRooms = async (src: Organization, args: {}, ctx: AppContext) => {
+    let haveAccess = src.kind === 'community' ? true : (ctx.auth.uid && ctx.auth.oid && await Modules.Orgs.isUserMember(ctx, ctx.auth.uid, src.id));
+    if (!haveAccess) {
+        return [];
+    }
+
+    let roomsFull: { room: ConversationRoom, membersCount: number }[] = [];
+    let rooms = await FDB.ConversationRoom.allFromOrganizationPublicRooms(ctx, src.id);
+    for (let room of rooms) {
+        roomsFull.push({ room, membersCount: await Modules.Messaging.roomMembersCount(ctx, room.id) });
+    }
+    roomsFull.sort((a, b) => b.membersCount - a.membersCount);
+
+    return roomsFull.map(r => r.room);
+};
 
 export default {
     Organization: {
@@ -34,21 +50,8 @@ export default {
         alphaOrganizationMemberRequests: async (src: Organization, args: {}, ctx: AppContext) => await resolveOrganizationMembersWithStatus(ctx, src.id, 'requested'),
         alphaFeatured: async (src: Organization, args: {}, ctx: AppContext) => ((await FDB.OrganizationEditorial.findById(ctx, src.id)))!.featured,
         alphaIsCommunity: (src: Organization) => src.kind === 'community',
-        alphaCreatedChannels: async (src: Organization, args: {}, ctx: AppContext) => {
-            let haveAccess = src.kind === 'community' ? true : (ctx.auth.uid && ctx.auth.oid && await Modules.Orgs.isUserMember(ctx, ctx.auth.uid, src.id));
-            if (!haveAccess) {
-                return [];
-            }
-            return await FDB.ConversationRoom.allFromOrganizationPublicRooms(ctx, src.id);
-        },
-
-        betaPublicRooms: async (src: Organization, args: {}, ctx: AppContext) => {
-            let haveAccess = src.kind === 'community' ? true : (ctx.auth.uid && ctx.auth.oid && await Modules.Orgs.isUserMember(ctx, ctx.auth.uid, src.id));
-            if (!haveAccess) {
-                return [];
-            }
-            return await FDB.ConversationRoom.allFromOrganizationPublicRooms(ctx, src.id);
-        },
+        alphaCreatedChannels: resolveOrganizationRooms,
+        betaPublicRooms: resolveOrganizationRooms,
         status: async (src: Organization) => src.status
     },
     Query: {
