@@ -267,7 +267,7 @@ export const Emails = {
         });
     },
 
-    async sendMemberJoinedEmails(parent: Context, oid: number, memberId: number, uid?: number) {
+    async sendMemberJoinedEmails(parent: Context, oid: number, memberId: number, uid?: number, debug: boolean = false) {
         await inTx(parent, async (ctx) => {
             let org = await FDB.Organization.findById(ctx, oid);
             if (!org) {
@@ -290,7 +290,7 @@ export const Emails = {
 
             let orgProfile = (await FDB.OrganizationProfile.findById(ctx, oid))!;
             for (let member of members) {
-                if (member === memberId) {
+                if (member === memberId && !debug) {
                     continue;
                 }
                 let user = await loadUserState(ctx, member);

@@ -81,7 +81,7 @@ export default {
 
                 await Emails.sendInviteEmail(ctx, oid, invite as any);
             } else if (type === 'MEMBER_JOINED') {
-                await Emails.sendMemberJoinedEmails(ctx, oid, uid, uid);
+                await Emails.sendMemberJoinedEmails(ctx, oid, uid, uid, true);
             } else if (type === 'SIGNUP_CODE') {
                 await Emails.sendActivationCodeEmail(ctx, email, '00000', false);
             } else if (type === 'SIGIN_CODE') {
