@@ -143,7 +143,7 @@ export namespace GQLRoots {
     export type UserConnectionRoot = any;
     export type RoomRoot = any;
     export type PrivateRoomRoot = any;
-    export type SharedRoomRoot = any;
+    export type SharedRoomRoot = ConversationRoom | Conversation | number;
     export type ShortNameDestinationRoot = any;
 
     export type RoomMemberRoot = any;

@@ -49,7 +49,7 @@ export function withAccount<T, R>(resolver: (ctx: AppContext, args: T, uid: numb
             throw new AccessDeniedError(ErrorText.permissionDenied);
         }
 
-        return resolver(ctx, args, ctx.auth.uid, res);
+        return await resolver(ctx, args, ctx.auth.uid, res);
     };
 }
 
