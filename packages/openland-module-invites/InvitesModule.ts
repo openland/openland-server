@@ -52,19 +52,19 @@ export class InvitesModule {
         return await this.invitesMediator.createRoomInvite(ctx, channelId, uid, email, emailText, firstName, lastName);
     }
 
-    async joinRoomInvite(ctx: Context, uid: number, invite: string) {
-        return await this.invitesMediator.joinRoomInvite(ctx, uid, invite);
+    async joinRoomInvite(ctx: Context, uid: number, invite: string, isNewUser: boolean) {
+        return await this.invitesMediator.joinRoomInvite(ctx, uid, invite, isNewUser);
     }
 
-    async joinAppInvite(ctx: Context, uid: number, invite: string) {
-        return await this.invitesMediator.joinAppInvite(ctx, uid, invite);
+    async joinAppInvite(ctx: Context, uid: number, invite: string, isNewUser: boolean) {
+        return await this.invitesMediator.joinAppInvite(ctx, uid, invite, isNewUser);
     }
 
     async createOrganizationInvite(ctx: Context, oid: number, uid: number, inviteReq: { email: string; emailText?: string, firstName?: string; lastName?: string }) {
         return await this.invitesMediator.createOrganizationInvite(ctx, oid, uid, inviteReq);
     }
 
-    async joinOrganizationInvite(ctx: Context, uid: number, invite: string) {
-        return await this.invitesMediator.joinOrganizationInvite(ctx, uid, invite);
+    async joinOrganizationInvite(ctx: Context, uid: number, invite: string, isNewUser: boolean) {
+        return await this.invitesMediator.joinOrganizationInvite(ctx, uid, invite, isNewUser);
     }
 }

@@ -171,7 +171,7 @@ extend type Mutation {
 
     # Invite links
     betaRoomInviteLinkSendEmail(roomId: ID!, inviteRequests: [RoomInviteEmailRequest!]!): String!
-    betaRoomInviteLinkJoin(invite: String!): Room!
+    betaRoomInviteLinkJoin(invite: String!, isNewUser: Boolean): Room!
     betaRoomInviteLinkRenew(roomId: ID!): String!
 
     # User settings

@@ -89,7 +89,7 @@ describe('RoomMediator', () => {
         await orgs.createOrganization(ctx, USER2_ID, { name: 'Org', isCommunity: false });
 
         let org = await orgs.createOrganization(ctx, USER_ID, { name: 'Org', isCommunity: true });
-        await orgs.activateOrganization(ctx, org.id);
+        await orgs.activateOrganization(ctx, org.id, true);
 
         let room = await mediator.createRoom(ctx, 'public', org.id, USER_ID, [], { title: 'Room' });
         await mediator.joinRoom(ctx, room.id, USER2_ID);
@@ -106,7 +106,7 @@ describe('RoomMediator', () => {
         let orgs = await container.get<OrganizationModule>(OrganizationModule);
 
         let org = await orgs.createOrganization(ctx, USER_ID, { name: 'Org', isCommunity: false });
-        await orgs.activateOrganization(ctx, org.id);
+        await orgs.activateOrganization(ctx, org.id, true);
 
         let room = await mediator.createRoom(ctx, 'public', org.id, USER_ID, [], { title: 'Room' });
         let res = mediator.joinRoom(ctx, room.id, USER2_ID);

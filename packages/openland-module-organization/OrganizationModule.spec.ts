@@ -72,7 +72,7 @@ describe('OrganizationModule', () => {
         let ctx = createEmptyContext();
         let user = await Modules.Users.createUser(ctx, 'tes2', 'som2@email.comn');
         await Modules.Users.createUserProfile(ctx, user.id, { firstName: 'Some Name' });
-        await Modules.Users.activateUser(ctx, user.id);
+        await Modules.Users.activateUser(ctx, user.id, true);
         let org1 = await Modules.Orgs.createOrganization(ctx, user.id, { name: 'hey' });
         await Modules.Orgs.createOrganization(ctx, user.id, { name: 'hey' });
         let profile2 = (await FDB.UserProfile.findById(ctx, user.id))!;
@@ -88,9 +88,9 @@ describe('OrganizationModule', () => {
         let org1 = await Modules.Orgs.createOrganization(ctx, user.id, { name: 'hey' });
         let org2 = await Modules.Orgs.createOrganization(ctx, user.id, { name: 'hey' });
         let org3 = await Modules.Orgs.createOrganization(ctx, user.id, { name: 'hey' });
-        await Modules.Orgs.activateOrganization(ctx, org2.id);
-        await Modules.Orgs.activateOrganization(ctx, org1.id);
-        await Modules.Orgs.activateOrganization(ctx, org3.id);
+        await Modules.Orgs.activateOrganization(ctx, org2.id, true);
+        await Modules.Orgs.activateOrganization(ctx, org1.id, true);
+        await Modules.Orgs.activateOrganization(ctx, org3.id, true);
 
         let profile2 = (await FDB.UserProfile.findById(ctx, user.id))!;
         expect(profile2.primaryOrganization).toBe(org2.id);
@@ -114,7 +114,7 @@ describe('OrganizationModule', () => {
         await Modules.Orgs.addUserToOrganization(ctx, user2.id, org.id, user.id);
 
         // Activate Org
-        await Modules.Orgs.activateOrganization(ctx, org.id);
+        await Modules.Orgs.activateOrganization(ctx, org.id, true);
 
         // Check users status
         let user4 = (await FDB.User.findById(ctx, user.id))!;
@@ -139,9 +139,9 @@ describe('OrganizationModule', () => {
         // create second org, because we can't delete our last organization
         await Modules.Orgs.createOrganization(ctx, user.id, { name: 'hey' });
         await Modules.Orgs.addUserToOrganization(ctx, user.id, org.id, user.id);
-        await Modules.Orgs.activateOrganization(ctx, org.id);
+        await Modules.Orgs.activateOrganization(ctx, org.id, true);
         await Modules.Orgs.deleteOrganization(ctx, user.id, org.id);
-        await Modules.Orgs.activateOrganization(ctx, org.id);
+        await Modules.Orgs.activateOrganization(ctx, org.id, true);
         org = (await FDB.Organization.findById(ctx, org.id))!;
 
         expect(org.status).toEqual('deleted');
@@ -153,7 +153,7 @@ describe('OrganizationModule', () => {
         // Create User and Org
         let user = await Modules.Users.createUser(ctx, 'test5', 'some5@email.comn');
         await Modules.Users.createUserProfile(ctx, user.id, { firstName: 'Some Name' });
-        await Modules.Users.activateUser(ctx, user.id);
+        await Modules.Users.activateUser(ctx, user.id, true);
         user = (await FDB.User.findById(ctx, user.id))!;
         expect(user.status).toEqual('activated');
 
@@ -177,7 +177,7 @@ describe('OrganizationModule', () => {
         // Create Owner and Org
         let user = await Modules.Users.createUser(ctx, 'test6', 'some6@email.comn');
         await Modules.Users.createUserProfile(ctx, user.id, { firstName: 'Some Name' });
-        await Modules.Users.activateUser(ctx, user.id);
+        await Modules.Users.activateUser(ctx, user.id, true);
         user = (await FDB.User.findById(ctx, user.id))!;
         expect(user.status).toEqual('activated');
         let org = await Modules.Orgs.createOrganization(ctx, user.id, { name: 'hey' });
@@ -197,8 +197,8 @@ describe('OrganizationModule', () => {
         let ctx = createEmptyContext();
         let user1 = await createUser(ctx, 6);
         let user2 = await createUser(ctx, 7);
-        await Modules.Users.activateUser(ctx, user1.id);
-        await Modules.Users.activateUser(ctx, user2.id);
+        await Modules.Users.activateUser(ctx, user1.id, true);
+        await Modules.Users.activateUser(ctx, user2.id, true);
         let org = await Modules.Orgs.createOrganization(ctx, user1.id, { name: 'hey' });
         await Modules.Orgs.addUserToOrganization(ctx, user2.id, org.id, user1.id);
 
@@ -210,8 +210,8 @@ describe('OrganizationModule', () => {
         let ctx = createEmptyContext();
         let user1 = await createUser(ctx, 8);
         let user2 = await createUser(ctx, 9);
-        await Modules.Users.activateUser(ctx, user1.id);
-        await Modules.Users.activateUser(ctx, user2.id);
+        await Modules.Users.activateUser(ctx, user1.id, true);
+        await Modules.Users.activateUser(ctx, user2.id, true);
         let org = await Modules.Orgs.createOrganization(ctx, user1.id, { name: 'hey' });
         await Modules.Orgs.addUserToOrganization(ctx, user2.id, org.id, user1.id);
         let org2 = await Modules.Orgs.createOrganization(ctx, user1.id, { name: 'hey' });
@@ -235,10 +235,10 @@ describe('OrganizationModule', () => {
         let user2 = await createUser(ctx, 11);
         let user3 = await createUser(ctx, 12);
         let user4 = await createUser(ctx, 14);
-        await Modules.Users.activateUser(ctx, user1.id);
-        await Modules.Users.activateUser(ctx, user2.id);
-        await Modules.Users.activateUser(ctx, user3.id);
-        await Modules.Users.activateUser(ctx, user4.id);
+        await Modules.Users.activateUser(ctx, user1.id, true);
+        await Modules.Users.activateUser(ctx, user2.id, true);
+        await Modules.Users.activateUser(ctx, user3.id, true);
+        await Modules.Users.activateUser(ctx, user4.id, true);
         let initialOrganization = await Modules.Orgs.createOrganization(ctx, user1.id, { name: 'initialOrganization' });
         let org = await Modules.Orgs.createOrganization(ctx, user1.id, { name: 'hey' });
         
@@ -287,9 +287,9 @@ describe('OrganizationModule', () => {
         let user1 = await createUser(ctx, 15);
         let user2 = await createUser(ctx, 16);
         let user3 = await createUser(ctx, 17);
-        await Modules.Users.activateUser(ctx, user1.id);
-        await Modules.Users.activateUser(ctx, user2.id);
-        await Modules.Users.activateUser(ctx, user3.id);
+        await Modules.Users.activateUser(ctx, user1.id, true);
+        await Modules.Users.activateUser(ctx, user2.id, true);
+        await Modules.Users.activateUser(ctx, user3.id, true);
         let initialOrganization = await Modules.Orgs.createOrganization(ctx, user1.id, { name: 'initialOrganization' });
         let org = await Modules.Orgs.createOrganization(ctx, user1.id, { name: 'hey' });
         await Modules.Orgs.addUserToOrganization(ctx, user2.id, initialOrganization.id, user1.id);
@@ -312,9 +312,9 @@ describe('OrganizationModule', () => {
         let user2 = await createUser(ctx, 19);
         let user3 = await createUser(ctx, 20);
         let user4 = await createUser(ctx, 21);
-        await Modules.Users.activateUser(ctx, user1.id);
-        await Modules.Users.activateUser(ctx, user2.id);
-        await Modules.Users.activateUser(ctx, user3.id);
+        await Modules.Users.activateUser(ctx, user1.id, true);
+        await Modules.Users.activateUser(ctx, user2.id, true);
+        await Modules.Users.activateUser(ctx, user3.id, true);
         let org = await Modules.Orgs.createOrganization(ctx, user1.id, { name: 'hey' });
         await Modules.Orgs.addUserToOrganization(ctx, user2.id, org.id, user1.id);
         await Modules.Orgs.addUserToOrganization(ctx, user3.id, org.id, user1.id);
@@ -339,9 +339,9 @@ describe('OrganizationModule', () => {
         let user2 = await createUser(ctx, 23);
         let user3 = await createUser(ctx, 24);
         let user4 = await createUser(ctx, 25);
-        await Modules.Users.activateUser(ctx, user1.id);
-        await Modules.Users.activateUser(ctx, user2.id);
-        await Modules.Users.activateUser(ctx, user3.id);
+        await Modules.Users.activateUser(ctx, user1.id, true);
+        await Modules.Users.activateUser(ctx, user2.id, true);
+        await Modules.Users.activateUser(ctx, user3.id, true);
         let initialOrganization = await Modules.Orgs.createOrganization(ctx, user1.id, { name: 'initialOrganization' });
         let org = await Modules.Orgs.createOrganization(ctx, user1.id, { name: 'hey' });
         await Modules.Orgs.addUserToOrganization(ctx, user2.id, initialOrganization.id, user1.id);

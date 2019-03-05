@@ -39,7 +39,7 @@ export default {
             return Modules.Orgs.renameOrganization(ctx, IDs.SuperAccount.parse(args.id), args.title);
         }),
         superAccountActivate: withPermission('super-admin', (ctx, args) => {
-            return Modules.Orgs.activateOrganization(ctx, IDs.SuperAccount.parse(args.id));
+            return Modules.Orgs.activateOrganization(ctx, IDs.SuperAccount.parse(args.id), true);
         }),
         superAccountPend: withPermission('super-admin', (ctx, args) => {
             throw new UserError('Pend is unsupported');

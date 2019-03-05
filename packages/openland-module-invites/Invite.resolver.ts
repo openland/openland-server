@@ -125,14 +125,14 @@ export default {
     },
     Mutation: {
         alphaJoinInvite: withUser(async (ctx, args, uid) => {
-            return await Modules.Invites.joinOrganizationInvite(ctx, uid, args.key);
+            return await Modules.Invites.joinOrganizationInvite(ctx, uid, args.key, (args.isNewUser !== null && args.isNewUser !== undefined) ? args.isNewUser : false);
         }),
         joinAppInvite: withAny(async (ctx, args) => {
             let uid = AuthContext.get(ctx).uid;
             if (uid === undefined) {
                 return;
             }
-            return await Modules.Invites.joinAppInvite(ctx, uid, args.key);
+            return await Modules.Invites.joinAppInvite(ctx, uid, args.key, (args.isNewUser !== null && args.isNewUser !== undefined) ? args.isNewUser : false);
         }),
 
         // deperecated
@@ -153,6 +153,7 @@ export default {
             //     }
             // });
             // return 'ok';
+            return 'deprecated';
         })
     }
 } as GQLResolver;

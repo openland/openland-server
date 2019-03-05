@@ -135,6 +135,7 @@ export default {
             //     await Modules.Invites.orgInvitesRepo.deletePublicOrganizationInvite(oid, uid);
             //     return 'ok';
             // });
+            return 'deprecated';
         })
     }
 } as GQLResolver;

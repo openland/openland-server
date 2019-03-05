@@ -33,10 +33,12 @@ export class UsersModule {
         return this.repo.createUser(ctx, authId, email);
     }
 
-    async activateUser(parent: Context, uid: number) {
+    async activateUser(parent: Context, uid: number, sendEmail: boolean) {
         await inTx(parent, async (ctx) => {
             if (await this.repo.activateUser(ctx, uid)) {
-                await Emails.sendWelcomeEmail(ctx, uid);
+                if (sendEmail) {
+                    await Emails.sendWelcomeEmail(ctx, uid);
+                }
             }
         });
     }

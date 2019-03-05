@@ -346,11 +346,13 @@ export default {
             if (imageRef) {
                 await Modules.Media.saveFile(ctx, imageRef.uuid);
             }
-            return Modules.Messaging.room.createRoom(ctx, (args.kind).toLowerCase() as 'group' | 'public', oid, uid, args.members.map((v) => IDs.User.parse(v)), {
+            let room = await Modules.Messaging.room.createRoom(ctx, (args.kind).toLowerCase() as 'group' | 'public', oid, uid, args.members.map((v) => IDs.User.parse(v)), {
                 title: args.title!,
                 description: args.description,
                 image: imageRef
             }, args.message || '', args.listed || undefined);
+
+            return room;
         }),
         betaRoomUpdate: withUser(async (parent, args, uid) => {
             return inTx(parent, async (ctx) => {
@@ -383,15 +385,13 @@ export default {
                     }
                 }
 
-                let room = await Modules.Messaging.room.updateRoomProfile(ctx, IDs.Conversation.parse(args.roomId), uid, {
+                return await Modules.Messaging.room.updateRoomProfile(ctx, IDs.Conversation.parse(args.roomId), uid, {
                     title: args.input.title!,
                     description: Sanitizer.sanitizeString(args.input.description),
                     image: args.input.photoRef === undefined ? undefined : imageRef,
                     socialImage: args.input.socialImageRef === undefined ? undefined : socialImageRef,
                     kind: kind
                 });
-
-                return room;
             });
         }),
         betaRoomMove: withUser(async (ctx, args, uid) => {
@@ -468,7 +468,7 @@ export default {
             return await Modules.Invites.refreshRoomInviteLink(ctx, channelId, uid);
         }),
         betaRoomInviteLinkJoin: withUser(async (ctx, args, uid) => {
-            return await FDB.Conversation.findById(ctx, await Modules.Invites.joinRoomInvite(ctx, uid, args.invite));
+            return await FDB.Conversation.findById(ctx, await Modules.Invites.joinRoomInvite(ctx, uid, args.invite, (args.isNewUser !== null && args.isNewUser !== undefined) ? args.isNewUser : false));
         }),
 
         //

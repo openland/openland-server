@@ -93,7 +93,7 @@ extend type Mutation {
     alphaChannelCancelRequest(channelId: ID!): String @disabled
 
     alphaChannelInviteMembers(channelId: ID!, inviteRequests: [ChannelInviteRequest!]!): String! @disabled
-    alphaChannelJoinInvite(invite: String!): ID! @disabled
+    alphaChannelJoinInvite(invite: String!, isNewUser: Boolean): ID! @disabled
     alphaChannelRenewInviteLink(channelId: ID!): String! @disabled
 }
 

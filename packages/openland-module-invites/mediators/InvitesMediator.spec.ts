@@ -59,7 +59,7 @@ describe('InvitesMediator', () => {
 
         let mediator = container.get<InvitesMediator>('InvitesMediator');
 
-        await mediator.joinRoomInvite(ctx, USER2_ID, invite);
+        await mediator.joinRoomInvite(ctx, USER2_ID, invite, true);
         let members = await roomMediator.findConversationMembers(ctx, channel.id);
         expect(members).toContain(USER2_ID);
 
@@ -84,7 +84,7 @@ describe('InvitesMediator', () => {
 
         let mediator = container.get<InvitesMediator>('InvitesMediator');
 
-        await mediator.joinAppInvite(ctx, USER_ID, invite);
+        await mediator.joinAppInvite(ctx, USER_ID, invite, true);
 
         // should activate user
         let user = (await entities.User.findById(ctx, USER_ID))!;
@@ -103,14 +103,14 @@ describe('InvitesMediator', () => {
         await users.createUserProfile(ctx, USER2_ID, { firstName: 'User Name' });
 
         let USER_ORG_ID = (await orgs.createOrganization(ctx, USER_ID, { name: 'ACME' })).id;
-        await orgs.activateOrganization(ctx, USER_ORG_ID);
+        await orgs.activateOrganization(ctx, USER_ORG_ID, true);
 
         let repo = container.get<InvitesOrganizationRepository>('InvitesOrganizationRepository');
         let invite = await repo.createOrganizationInvite(ctx, USER_ORG_ID, USER_ID, '', '', '', '');
 
         let mediator = container.get<InvitesMediator>('InvitesMediator');
 
-        await mediator.joinOrganizationInvite(ctx, USER2_ID, invite.id);
+        await mediator.joinOrganizationInvite(ctx, USER2_ID, invite.id, true);
 
         // should add user to org
         let members = (await Modules.Orgs.findOrganizationMembers(ctx, USER_ORG_ID)).map(u => u.id);
@@ -133,14 +133,14 @@ describe('InvitesMediator', () => {
         await users.createUserProfile(ctx, USER2_ID, { firstName: 'User Name' });
 
         let USER_ORG_ID = (await orgs.createOrganization(ctx, USER_ID, { name: 'ACME' })).id;
-        await orgs.activateOrganization(ctx, USER_ORG_ID);
+        await orgs.activateOrganization(ctx, USER_ORG_ID, true);
 
         let repo = container.get<InvitesOrganizationRepository>('InvitesOrganizationRepository');
         let invite = await repo.refreshOrganizationInviteLink(ctx, USER_ORG_ID, USER_ID);
 
         let mediator = container.get<InvitesMediator>('InvitesMediator');
 
-        await mediator.joinOrganizationInvite(ctx, USER2_ID, invite.id);
+        await mediator.joinOrganizationInvite(ctx, USER2_ID, invite.id, true);
 
         // should add user to org
         let members = (await Modules.Orgs.findOrganizationMembers(ctx, USER_ORG_ID)).map(u => u.id);

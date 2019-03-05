@@ -31,15 +31,15 @@ export class InvitesMediator {
         });
     }
 
-    async joinRoomInvite(parent: Context, uid: number, inviteStr: string) {
+    async joinRoomInvite(parent: Context, uid: number, inviteStr: string, isNewUser: boolean) {
         return await inTx(parent, async (ctx) => {
             let invite = await this.repoChannels.resolveInvite(ctx, inviteStr);
             if (!invite) {
                 throw new NotFoundError('Invite not found');
             }
             await this.rooms.joinRoom(ctx, invite.channelId, uid, false, true);
-            await Modules.Users.activateUser(ctx, uid);
-            await this.activateUserOrgs(ctx, uid);
+            await Modules.Users.activateUser(ctx, uid, isNewUser);
+            await this.activateUserOrgs(ctx, uid, !isNewUser);
             if (invite.entityName === 'ChannelInvitation') {
                 await Emails.sendRoomInviteAcceptedEmail(ctx, uid, invite);
             }
@@ -47,13 +47,13 @@ export class InvitesMediator {
         });
     }
 
-    async joinAppInvite(ctx: Context, uid: number, inviteStr: string) {
+    async joinAppInvite(ctx: Context, uid: number, inviteStr: string, isNewUser: boolean) {
         let inviteData = await this.repoOrgs.getAppInvteLinkData(ctx, inviteStr);
         if (!inviteData) {
             throw new NotFoundError(ErrorText.unableToFindInvite);
         }
-        await Modules.Users.activateUser(ctx, uid);
-        await this.activateUserOrgs(ctx, uid);
+        await Modules.Users.activateUser(ctx, uid, isNewUser);
+        await this.activateUserOrgs(ctx, uid, !isNewUser);
         let chat = await Modules.Messaging.room.resolvePrivateChat(ctx, uid, inviteData.uid);
         let name1 = await Modules.Users.getUserFullName(ctx, uid);
         let name2 = await Modules.Users.getUserFullName(ctx, inviteData.uid);
@@ -88,7 +88,8 @@ export class InvitesMediator {
 
         return invite;
     }
-    async joinOrganizationInvite(parent: Context, uid: number, inviteString: string) {
+
+    async joinOrganizationInvite(parent: Context, uid: number, inviteString: string, isNewUser: boolean) {
         return await inTx(parent, async (ctx) => {
             let orgInvite = await Modules.Invites.orgInvitesRepo.getOrganizationInviteNonJoined(ctx, inviteString);
             let publicOrginvite = await Modules.Invites.orgInvitesRepo.getOrganizationInviteLinkByKey(ctx, inviteString);
@@ -102,7 +103,7 @@ export class InvitesMediator {
                 throw new NotFoundError(ErrorText.unableToFindInvite);
             }
 
-            await Modules.Orgs.addUserToOrganization(ctx, uid, invite.oid, invite.uid);
+            await Modules.Orgs.addUserToOrganization(ctx, uid, invite.oid, invite.uid, false, isNewUser);
 
             // invalidate invite
             if (orgInvite) {
@@ -115,7 +116,7 @@ export class InvitesMediator {
         });
     }
 
-    private async activateUserOrgs(ctx: Context, uid: number) {
-        await Promise.all((await Modules.Orgs.findUserOrganizations(ctx, uid)).map(async oid => await Modules.Orgs.activateOrganization(ctx, oid)));
+    private async activateUserOrgs(ctx: Context, uid: number, sendEmail: boolean) {
+        await Promise.all((await Modules.Orgs.findUserOrganizations(ctx, uid)).map(async oid => await Modules.Orgs.activateOrganization(ctx, oid, sendEmail)));
     }
 }

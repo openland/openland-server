@@ -165,7 +165,7 @@ export default {
             if (uid === undefined) {
                 return;
             }
-            return IDs.Conversation.serialize(await Modules.Invites.joinRoomInvite(ctx, uid, args.invite));
+            return IDs.Conversation.serialize(await Modules.Invites.joinRoomInvite(ctx, uid, args.invite, (args.isNewUser !== null && args.isNewUser !== undefined) ? args.isNewUser : false));
         }),
     },
 

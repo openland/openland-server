@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'd68fea2dd34228dd86b6933a811780a1';
+export const GQL_SPEC_VERSION = '8d41f9dc70c1cea6283c8b445255b246';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1351,6 +1351,7 @@ export namespace GQL {
     }
     export interface MutationAlphaChannelJoinInviteArgs {
         invite: string;
+        isNewUser: OptionalNullable<boolean>;
     }
     export interface MutationAlphaChannelRenewInviteLinkArgs {
         channelId: string;
@@ -1542,6 +1543,7 @@ export namespace GQL {
     }
     export interface MutationBetaRoomInviteLinkJoinArgs {
         invite: string;
+        isNewUser: OptionalNullable<boolean>;
     }
     export interface MutationBetaRoomInviteLinkRenewArgs {
         roomId: string;

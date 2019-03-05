@@ -29,6 +29,17 @@ import { OrganizationModule } from '../openland-module-organization/Organization
 import { SuperModule } from '../openland-module-super/SuperModule';
 import { loadInvitesModule } from '../openland-module-invites/Invites.container';
 
+// Welcome and Organization activated email delivery rules:
+//
+//  Welcome:
+//  - user signed up via invite (to org, chat or openland)
+//
+//  Organization activated:
+//  - user was activated by super-admin
+//  - user used invite after sign up (to org, chat or openland)
+//  - user was added to already activated org
+//
+
 describe('Emails', () => {
     beforeAll(async () => {
         await testEnvironmentStart('Emails');
@@ -64,7 +75,25 @@ describe('Emails', () => {
         let ctx = createEmptyContext();
         let spy = getSpy();
         let {uid, email} = await randomUser(ctx);
-        await Modules.Users.activateUser(ctx, uid);
+        await Modules.Users.activateUser(ctx, uid, true);
+        let args: EmailTask = spy.mock.calls[0][1];
+        expect(spy.mock.calls.length).toBe(1);
+        expect(args.templateId).toBe(TEMPLATE_WELCOME);
+        expect(args.to).toBe(email);
+    });
+
+    it('should send welcome email if joined with invite', async () => {
+        let ctx = createEmptyContext();
+        let {uid, email} = await randomUser(ctx);
+        let {uid: uid2} = await randomUser(ctx);
+
+        let org = await Modules.Orgs.createOrganization(ctx, uid2, { name: 'test' });
+        await Modules.Orgs.activateOrganization(ctx, org.id, false);
+        let invite = await Modules.Invites.orgInvitesRepo.getAppInviteLinkKey(ctx, uid2);
+
+        let spy = getSpy();
+
+        await Modules.Invites.joinAppInvite(ctx, uid, invite, true);
         let args: EmailTask = spy.mock.calls[0][1];
         expect(spy.mock.calls.length).toBe(1);
         expect(args.templateId).toBe(TEMPLATE_WELCOME);
@@ -117,9 +146,9 @@ describe('Emails', () => {
         let org = await Modules.Orgs.createOrganization(ctx, uid, { name: 'test' });
         await Modules.Orgs.addUserToOrganization(ctx, uid2, org.id, uid);
 
-        await Modules.Orgs.activateOrganization(ctx, org.id);
+        await Modules.Orgs.activateOrganization(ctx, org.id, true);
 
-        expect(spy.mock.calls.length).toBe(4);
+        expect(spy.mock.calls.length).toBe(2);
 
         //
         //  Organization Activated emails
@@ -131,17 +160,6 @@ describe('Emails', () => {
         let args2: EmailTask = spy.mock.calls[1][1];
         expect(args2.templateId).toBe(TEMPLATE_ACTIVATEED);
         expect(args2.to).toBe(email2);
-
-        //
-        //  Welcome emails
-        //
-        let args3: EmailTask = spy.mock.calls[2][1];
-        expect(args3.templateId).toBe(TEMPLATE_WELCOME);
-        expect(args3.to).toBe(email);
-
-        let args4: EmailTask = spy.mock.calls[3][1];
-        expect(args4.templateId).toBe(TEMPLATE_WELCOME);
-        expect(args4.to).toBe(email2);
     });
 
     it('should send account deactivated Email', async () => {
@@ -152,7 +170,7 @@ describe('Emails', () => {
         let org = await Modules.Orgs.createOrganization(ctx, uid, { name: 'test' });
         await Modules.Orgs.addUserToOrganization(ctx, uid2, org.id, uid);
 
-        await Modules.Orgs.activateOrganization(ctx, org.id);
+        await Modules.Orgs.activateOrganization(ctx, org.id, false);
 
         let spy = getSpy();
         await Modules.Orgs.suspendOrganization(ctx, org.id);
@@ -176,7 +194,7 @@ describe('Emails', () => {
         let org2 = await Modules.Orgs.createOrganization(ctx, uid, { name: 'test' });
         await Modules.Orgs.addUserToOrganization(ctx, uid2, org.id, uid);
         await Modules.Orgs.addUserToOrganization(ctx, uid2, org2.id, uid);
-        await Modules.Orgs.activateOrganization(ctx, org.id);
+        await Modules.Orgs.activateOrganization(ctx, org.id, false);
 
         let spy = getSpy();
         await Modules.Orgs.removeUserFromOrganization(ctx, uid2, org.id, uid);
@@ -194,7 +212,7 @@ describe('Emails', () => {
 
         let org = await Modules.Orgs.createOrganization(ctx, uid, { name: 'test' });
         await Modules.Orgs.addUserToOrganization(ctx, uid2, org.id, uid);
-        await Modules.Orgs.activateOrganization(ctx, org.id);
+        await Modules.Orgs.activateOrganization(ctx, org.id, false);
 
         let spy = getSpy();
         await Modules.Orgs.updateMemberRole(ctx, uid2, org.id, 'admin', uid);
@@ -211,7 +229,7 @@ describe('Emails', () => {
         let {email: email2} = await randomUser(ctx);
 
         let org = await Modules.Orgs.createOrganization(ctx, uid, { name: 'test' });
-        await Modules.Orgs.activateOrganization(ctx, org.id);
+        await Modules.Orgs.activateOrganization(ctx, org.id, false);
 
         let spy = getSpy();
         await Modules.Invites.createOrganizationInvite(ctx, org.id, uid, { email: email2 });
@@ -228,12 +246,12 @@ describe('Emails', () => {
         let {uid: uid2, email: email2} = await randomUser(ctx);
 
         let org = await Modules.Orgs.createOrganization(ctx, uid, { name: 'test' });
-        await Modules.Orgs.activateOrganization(ctx, org.id);
+        await Modules.Orgs.activateOrganization(ctx, org.id, false);
 
         let invite = await Modules.Invites.createOrganizationInvite(ctx, org.id, uid, { email: email2 });
 
         let spy = getSpy();
-        await Modules.Invites.joinOrganizationInvite(ctx, uid2, invite!.id);
+        await Modules.Invites.joinOrganizationInvite(ctx, uid2, invite!.id, true);
 
         expect(spy.mock.calls.length).toBe(2);
         //
@@ -301,7 +319,7 @@ describe('Emails', () => {
         let invite = await Modules.Invites.createRoomInvite(ctx, chat.id, uid, email2);
 
         let spy = getSpy();
-        await Modules.Invites.joinRoomInvite(ctx, uid2, invite.id);
+        await Modules.Invites.joinRoomInvite(ctx, uid2, invite.id, true);
         expect(spy.mock.calls.length).toBe(2);
         //
         //  Welcome email

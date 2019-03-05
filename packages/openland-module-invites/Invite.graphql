@@ -52,6 +52,6 @@ extend type Query {
 extend type Mutation {
     alphaCreateInvite: Invite!
     alphaDeleteInvite(id: ID!): String!
-    alphaJoinInvite(key: String!): ID!
-    joinAppInvite(key: String!): ID!
+    alphaJoinInvite(key: String!, isNewUser: Boolean): ID!
+    joinAppInvite(key: String!, isNewUser: Boolean): ID!
 }

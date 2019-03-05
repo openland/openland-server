@@ -32,7 +32,7 @@ export class AppsRepository {
             let email = `app-${rnd}@openland.com`;
 
             let appUser = await Modules.Users.createUser(ctx, 'user-app-' + rnd, email);
-            await Modules.Users.activateUser(ctx, appUser.id);
+            await Modules.Users.activateUser(ctx, appUser.id, false);
             appUser.isBot = true;
             appUser.botOwner = uid;
 
