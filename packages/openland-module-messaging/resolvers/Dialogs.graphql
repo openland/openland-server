@@ -18,6 +18,7 @@ type Dialog {
 
     topMessage: Message
     betaTopMessage: RoomMessage
+    alphaTopMessage: BaseMessage
     isMuted: Boolean!
     haveMention: Boolean!
 }
