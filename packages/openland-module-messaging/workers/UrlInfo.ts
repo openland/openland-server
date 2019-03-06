@@ -74,7 +74,7 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
     let text = await res.text();
     let doc = cheerio.load(text);
 
-    let { hostname, protocol } = URL.parse(url);
+    let { hostname } = URL.parse(url);
 
     let title =
         getMeta(doc, 'og:title') ||
@@ -106,6 +106,7 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
     let imageRef: ImageRef | null = null;
 
     if (imageURL) {
+        imageURL = URL.resolve(url, imageURL);
         try {
             let { file } = await Modules.Media.uploadFromUrl(createEmptyContext(), imageURL);
             imageRef = { uuid: file, crop: null };
@@ -120,9 +121,7 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
         getLink(doc, 'icon') ||
         '/favicon.ico';
 
-    if (!URL.parse(iconUrl).hostname) {
-        iconUrl = protocol! + '//' + hostname + iconUrl;
-    }
+    iconUrl = URL.resolve(url, iconUrl);
 
     let iconInfo: FileInfo | null = null;
     let iconRef: ImageRef | null = null;

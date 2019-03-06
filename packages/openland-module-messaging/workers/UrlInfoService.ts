@@ -86,6 +86,8 @@ export default class UrlInfoService {
                 type: 'url',
             });
 
+            console.log(info);
+
             return {
                 ...info,
                 type: 'url',
