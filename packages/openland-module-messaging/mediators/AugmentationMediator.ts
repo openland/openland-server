@@ -48,6 +48,11 @@ export class AugmentationMediator {
                 }
                 let firstUrl = urls[0];
                 let urlInfo = await service.fetchURLInfo(firstUrl.url);
+
+                if (urlInfo.type === 'none') {
+                    return { result: 'ok' };
+                }
+
                 if (urlInfo.title || urlInfo.type !== 'url') {
                     await this.messaging.editMessage(createEmptyContext(), item.messageId, { urlAugmentation: urlInfo }, false);
                 } else if (urlInfo.imageInfo) {
