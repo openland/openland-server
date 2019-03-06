@@ -23,9 +23,7 @@ export default {
         },
         photoRef: withProfile((ctx, src, profile) => profile && profile.picture),
         about: withProfile((ctx, src, profile) => profile && profile.about),
-        token: async (src, args, ctx) => {
-            return await Modules.Bots.getAppToken(ctx, ctx.auth!.uid!, src.id);
-        }
+        token: async (src, args, ctx) => await Modules.Bots.getAppToken(ctx, ctx.auth!.uid!, src.id)
     },
 
     Query: {

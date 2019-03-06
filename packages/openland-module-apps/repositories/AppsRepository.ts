@@ -70,9 +70,7 @@ export class AppsRepository {
 
     async getAppToken(parent: Context, uid: number, appId: number) {
         return await inTx(parent, async (ctx) => {
-            if (!this.isAppOwner(ctx,  uid, appId)) {
-                throw new AccessDeniedError();
-            }
+            await this.checkAppAccess(ctx, uid, appId);
             let tokens = await this.entities.AuthToken.allFromUser(ctx, appId);
 
             if (tokens.length === 0) {
@@ -89,9 +87,7 @@ export class AppsRepository {
 
     async refreshAppToken(parent: Context, uid: number, appId: number) {
         return await inTx(parent, async (ctx) => {
-            if (!this.isAppOwner(ctx,  uid, appId)) {
-                throw new AccessDeniedError();
-            }
+            await this.checkAppAccess(ctx, uid, appId);
             let token = await this.getAppToken(ctx, uid, appId);
             await Modules.Auth.revokeToken(ctx, token.salt);
             await Modules.Auth.createToken(ctx, appId);
@@ -113,9 +109,7 @@ export class AppsRepository {
 
     async deleteApp(parent: Context, uid: number, appId: number) {
         return await inTx(parent, async (ctx) => {
-            if (!this.isAppOwner(ctx,  uid, appId)) {
-                throw new AccessDeniedError();
-            }
+            await this.checkAppAccess(ctx, uid, appId);
             let appUser = await this.entities.User.findById(ctx, appId);
             appUser!.status = 'deleted';
             return true;
@@ -124,9 +118,7 @@ export class AppsRepository {
 
     async createChatHook(parent: Context, uid: number, appId: number, cid: number) {
         return await inTx(parent, async (ctx) => {
-            if (!this.isAppOwner(ctx,  uid, appId)) {
-                throw new AccessDeniedError();
-            }
+            await this.checkAppAccess(ctx, uid, appId);
             let hook = await this.entities.AppHook.findById(ctx, appId, cid);
             if (hook) {
                 hook.key = randomKey();
@@ -148,5 +140,11 @@ export class AppsRepository {
 
             return true;
         });
+    }
+
+    private async checkAppAccess(ctx: Context, uid: number, appId: number) {
+        if (!await this.isAppOwner(ctx,  uid, appId)) {
+            throw new AccessDeniedError();
+        }
     }
 }
