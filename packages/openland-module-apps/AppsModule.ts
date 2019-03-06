@@ -14,7 +14,7 @@ export class AppsModule {
         // Nothing to do
     }
 
-    async createApp(ctx: Context, uid: number, name: string, extra: { photo?: ImageRef, about?: string, shortname?: string }) {
+    async createApp(ctx: Context, uid: number, name: string, extra: { photo?: ImageRef, about?: string, shortname?: string, isSuperBot?: boolean }) {
         return this.repo.createApp(ctx, uid, name, extra);
     }
 

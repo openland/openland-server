@@ -187,11 +187,13 @@ const Schema = declareSchema(() => {
         field('isBot', 'boolean');
         field('invitedBy', 'number').nullable();
         field('botOwner', 'number').nullable();
+        field('isSuperBot', 'boolean').nullable();
         enumField('status', ['pending', 'activated', 'suspended', 'deleted']);
 
         uniqueIndex('authId', ['authId']).withCondition(src => src.status !== 'deleted');
         uniqueIndex('email', ['email']).withCondition(src => src.status !== 'deleted');
         rangeIndex('owner', ['botOwner', 'id']).withCondition(src => src.botOwner);
+        rangeIndex('superBots', []).withCondition(src => src.isBot === true && src.isSuperBot);
     });
 
     entity('UserProfile', () => {

@@ -31,6 +31,7 @@ extend type Query {
 
 extend type Mutation {
     createApp(name: String!, photoRef: ImageRefInput, about: String, shortname: String): AppProfile!
+    createSuperApp(name: String!, photoRef: ImageRefInput, about: String, shortname: String): AppProfile!
     refreshAppToken(appId: ID!): AppProfile!
     updateAppProfile(appId: ID!, input: AppProfileInput!): AppProfile!
     deleteApp(appId: ID!): Boolean!

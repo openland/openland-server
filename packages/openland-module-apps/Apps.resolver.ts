@@ -1,6 +1,6 @@
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { Modules } from '../openland-modules/Modules';
-import { withAccount } from '../openland-module-api/Resolvers';
+import { withAccount, withPermission } from '../openland-module-api/Resolvers';
 import { IDs } from '../openland-module-api/IDs';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 import { stringNotEmpty, validate } from '../openland-utils/NewInputValidator';
@@ -49,8 +49,11 @@ export default {
     },
 
     Mutation: {
-        createApp: withAccount(async (ctx, args, uid, orgId) => {
-            return await Modules.Bots.createApp(ctx, uid, args.name, { about: args.about || undefined, shortname: args.shortname || undefined, photo: Sanitizer.sanitizeImageRef(args.photoRef) || undefined});
+        createApp: withAccount(async (ctx, args, uid) => {
+            return await Modules.Bots.createApp(ctx, uid, args.name, { about: args.about || undefined, shortname: args.shortname || undefined, photo: Sanitizer.sanitizeImageRef(args.photoRef) || undefined, isSuperBot: false });
+        }),
+        createSuperApp: withPermission('super-admin', async (ctx, args) => {
+            return await Modules.Bots.createApp(ctx, ctx.auth.uid!, args.name, { about: args.about || undefined, shortname: args.shortname || undefined, photo: Sanitizer.sanitizeImageRef(args.photoRef) || undefined, isSuperBot: true });
         }),
         refreshAppToken: withAccount(async (ctx, args, uid, orgId) => {
             let botId = IDs.User.parse(args.appId);

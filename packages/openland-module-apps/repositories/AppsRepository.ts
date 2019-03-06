@@ -16,7 +16,7 @@ export class AppsRepository {
     @lazyInject('FDB')
     private readonly entities!: AllEntities;
 
-    async createApp(parent: Context, uid: number, name: string, extra: { photo?: ImageRef, about?: string, shortname?: string }) {
+    async createApp(parent: Context, uid: number, name: string, extra: { photo?: ImageRef, about?: string, shortname?: string, isSuperBot?: boolean }) {
         return await inTx(parent, async (ctx) => {
             if (!await this.canCreateApp(ctx, uid)) {
                 throw new AccessDeniedError();
@@ -35,6 +35,7 @@ export class AppsRepository {
             await Modules.Users.activateUser(ctx, appUser.id, false);
             appUser.isBot = true;
             appUser.botOwner = uid;
+            appUser.isSuperBot = extra.isSuperBot !== undefined ? extra.isSuperBot : false;
 
             await Modules.Users.createUserProfile(ctx, appUser.id, { firstName: name, email: email });
             await Modules.Auth.createToken(ctx, appUser.id);
@@ -58,6 +59,11 @@ export class AppsRepository {
     async findAppsCreatedByUser(parent: Context, uid: number) {
         return await inTx(parent, async (ctx) => {
             let apps = await this.entities.User.allFromOwner(ctx, uid);
+
+            let isSuperAdmin = (await Modules.Super.superRole(ctx, uid)) === 'super-admin';
+            if (isSuperAdmin) {
+                apps = [...apps, ...(await this.entities.User.allFromSuperBots(ctx)).filter(bot => bot.botOwner !== uid)];
+            }
             return apps.filter(app => app.status !== 'deleted');
         });
     }
@@ -94,6 +100,11 @@ export class AppsRepository {
 
     async isAppOwner(parent: Context, uid: number, appId: number) {
         return await inTx(parent, async (ctx) => {
+            let isSuperAdmin = (await Modules.Super.superRole(ctx, uid)) === 'super-admin';
+            if (isSuperAdmin) {
+                return true;
+            }
+
             let appUser = await this.entities.User.findById(ctx, appId);
 
             return appUser && appUser.botOwner === uid;

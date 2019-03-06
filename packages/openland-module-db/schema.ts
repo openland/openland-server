@@ -1772,6 +1772,7 @@ export interface UserShape {
     isBot: boolean;
     invitedBy?: number| null;
     botOwner?: number| null;
+    isSuperBot?: boolean| null;
     status: 'pending' | 'activated' | 'suspended' | 'deleted';
 }
 
@@ -1827,6 +1828,17 @@ export class User extends FEntity {
         this._value.botOwner = value;
         this.markDirty();
     }
+    get isSuperBot(): boolean | null {
+        let res = this._value.isSuperBot;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set isSuperBot(value: boolean | null) {
+        this._checkIsWritable();
+        if (value === this._value.isSuperBot) { return; }
+        this._value.isSuperBot = value;
+        this.markDirty();
+    }
     get status(): 'pending' | 'activated' | 'suspended' | 'deleted' {
         return this._value.status;
     }
@@ -1851,12 +1863,14 @@ export class UserFactory extends FEntityFactory<User> {
             { name: 'isBot', type: 'boolean' },
             { name: 'invitedBy', type: 'number' },
             { name: 'botOwner', type: 'number' },
+            { name: 'isSuperBot', type: 'boolean' },
             { name: 'status', type: 'enum', enumValues: ['pending', 'activated', 'suspended', 'deleted'] },
         ],
         indexes: [
             { name: 'authId', type: 'unique', fields: ['authId'] },
             { name: 'email', type: 'unique', fields: ['email'] },
             { name: 'owner', type: 'range', fields: ['botOwner', 'id'] },
+            { name: 'superBots', type: 'range', fields: [] },
         ],
     };
 
@@ -1871,6 +1885,7 @@ export class UserFactory extends FEntityFactory<User> {
         validators.isBoolean('isBot', src.isBot);
         validators.isNumber('invitedBy', src.invitedBy);
         validators.isNumber('botOwner', src.botOwner);
+        validators.isBoolean('isSuperBot', src.isSuperBot);
         validators.notNull('status', src.status);
         validators.isEnum('status', src.status, ['pending', 'activated', 'suspended', 'deleted']);
     }
@@ -1879,7 +1894,7 @@ export class UserFactory extends FEntityFactory<User> {
         super(connection,
             new FNamespace('entity', 'user'),
             { enableVersioning: false, enableTimestamps: false, validator: UserFactory.validate, hasLiveStreams: false },
-            [new FEntityIndex('authId', ['authId'], true, src => src.status !== 'deleted'), new FEntityIndex('email', ['email'], true, src => src.status !== 'deleted'), new FEntityIndex('owner', ['botOwner', 'id'], false, src => src.botOwner)],
+            [new FEntityIndex('authId', ['authId'], true, src => src.status !== 'deleted'), new FEntityIndex('email', ['email'], true, src => src.status !== 'deleted'), new FEntityIndex('owner', ['botOwner', 'id'], false, src => src.botOwner), new FEntityIndex('superBots', [], false, src => src.isBot === true && src.isSuperBot)],
             'User'
         );
     }
@@ -1943,6 +1958,18 @@ export class UserFactory extends FEntityFactory<User> {
     }
     createOwnerStream(ctx: Context, botOwner: number, limit: number, after?: string) {
         return this._createStream(ctx, ['entity', 'user', '__indexes', 'owner', botOwner], limit, after); 
+    }
+    async rangeFromSuperBots(ctx: Context, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'superBots'], limit, reversed);
+    }
+    async rangeFromSuperBotsWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'superBots'], limit, after, reversed);
+    }
+    async allFromSuperBots(ctx: Context, ) {
+        return await this._findAll(ctx, ['__indexes', 'superBots']);
+    }
+    createSuperBotsStream(ctx: Context, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'user', '__indexes', 'superBots'], limit, after); 
     }
     protected _createEntity(ctx: Context, value: any, isNew: boolean) {
         return new User(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'User');
