@@ -42,7 +42,7 @@ export default {
             if (ctx.auth.uid == null) {
                 return null;
             }
-            return Modules.Users.profileById(ctx, ctx.auth.uid);
+            return await Modules.Users.profileById(ctx, ctx.auth.uid);
         },
     },
     Mutation: {

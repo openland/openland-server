@@ -48,7 +48,7 @@ export class SuperModule {
     }
 
     async setEnvVar<T extends EnvVarValueType>(ctx: Context, name: string, value: T, rawValue: boolean = false) {
-        return this.envVarsRepo.set<T>(ctx, name, value);
+        return this.envVarsRepo.set<T>(ctx, name, value, rawValue);
     }
 
     start = () => {

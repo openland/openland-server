@@ -130,7 +130,7 @@ export class OrganizationModule {
                     for (let userOrg of userOrgs) {
                         // Activate user organization
                         if (await this.activateOrganization(ctx, userOrg!.id, !isNewUser)) {
-                            await Modules.Hooks.onOrganizationActivated(ctx, userOrg!.id, { type: 'OWNER_ADDED_TO_ORG', owner: uid, otherOid: oid });
+                            await Modules.Hooks.onOrganizationActivated(ctx, userOrg!.id, { type: 'OWNER_ADDED_TO_ORG', owner: by, otherOid: oid });
                         }
                     }
 

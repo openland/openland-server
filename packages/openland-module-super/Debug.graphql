@@ -38,6 +38,9 @@ extend type Query {
 
 enum SuperNotificationType {
     ON_SIGN_UP
+    ON_USER_PROFILE_CREATED
+    ON_ORG_ACTIVATED_BY_ADMIN
+    ON_ORG_ACTIVATED_VIA_INVITE
 }
 
 extend type Mutation {

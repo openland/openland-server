@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'c093839c3dbe016289192175ff784177';
+export const GQL_SPEC_VERSION = '33abc0e934b42bc2a2689e5e32a158d7';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -367,7 +367,7 @@ export namespace GQL {
         platform: Nullable<string>;
         active: Nullable<boolean>;
     }
-    export type SuperNotificationType = 'ON_SIGN_UP';
+    export type SuperNotificationType = 'ON_SIGN_UP' | 'ON_USER_PROFILE_CREATED' | 'ON_ORG_ACTIVATED_BY_ADMIN' | 'ON_ORG_ACTIVATED_VIA_INVITE';
     export type DialogKind = 'PRIVATE' | 'INTERNAL' | 'PUBLIC' | 'GROUP';
     export interface Dialog {
         id: string;
