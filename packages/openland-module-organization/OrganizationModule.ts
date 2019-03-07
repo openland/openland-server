@@ -78,8 +78,9 @@ export class OrganizationModule {
                         profile.primaryOrganization = id;
                     }
                 }
+                return true;
             }
-            return (await FDB.Organization.findById(ctx, id))!;
+            return false;
         });
     }
 
@@ -122,24 +123,24 @@ export class OrganizationModule {
                     // Activate user if organization is in activated state
                     await Modules.Users.activateUser(ctx, uid, isNewUser);
 
+                    // Find and activate organizations created by user if have one
+                    let userOrgs = await Promise.all((await this.findUserOrganizations(ctx, uid)).map(orgId => Modules.DB.entities.Organization.findById(ctx, orgId)));
+                    userOrgs = userOrgs.filter(o => o!.ownerId === uid);
+                    for (let userOrg of userOrgs) {
+                        // Activate user organization
+                        if (await this.activateOrganization(ctx, userOrg!.id, !isNewUser)) {
+                            await Modules.Hooks.onOrganizationActivated(ctx, userOrg!.id, { type: 'OWNER_ADDED_TO_ORG', owner: uid, otherOid: oid });
+                        }
+                    }
+
                     if (org.kind === 'organization') {
                         // Update primary organization if needed
                         if (!profile.primaryOrganization) {
                             profile.primaryOrganization = oid;
                         }
                     } else if (org.kind === 'community') {
-                        // Find and activate organization created by user if have one
-                        let userOrgs = await Promise.all((await this.findUserOrganizations(ctx, uid)).map(orgId => Modules.DB.entities.Organization.findById(ctx, orgId)));
-                        let userOrg = userOrgs.find(o => o!.ownerId === uid);
-
-                        if (userOrg) {
-                            // Activate user organization
-                            await this.activateOrganization(ctx, userOrg.id, !isNewUser);
-
-                            // Update primary organization if needed
-                            if (!profile.primaryOrganization) {
-                                profile.primaryOrganization = userOrg.id;
-                            }
+                        if (!profile.primaryOrganization && userOrgs.length > 0) {
+                            profile.primaryOrganization = userOrgs[0]!.id;
                         }
                     }
                 }
