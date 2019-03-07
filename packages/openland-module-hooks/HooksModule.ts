@@ -69,7 +69,7 @@ export class HooksModule {
         let message = '';
         // let orgUrl = 'openland.com/directory/o/' + IDs.Organization.serialize(oid);
         let orgProfile = await FDB.OrganizationProfile.findById(ctx, oid);
-        let orgSuperUrl = 'penland.com/super/orgs/' + IDs.SuperAccount.serialize(oid);
+        let orgSuperUrl = 'openland.com/super/orgs/' + IDs.SuperAccount.serialize(oid);
         // Organization <Org name> was activated by <Superadmin full name>. Link: <Link to org profile in directory>
 
         if (conditions.type === 'BY_SUPER_ADMIN') {
