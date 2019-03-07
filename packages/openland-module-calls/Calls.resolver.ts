@@ -6,6 +6,7 @@ import { Context } from 'openland-utils/Context';
 import { AppContext } from 'openland-modules/AppContext';
 import { FDB } from 'openland-module-db/FDB';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
+import { resolveTurnServices } from './services/TURNService';
 
 export default {
     Conference: {
@@ -16,31 +17,7 @@ export default {
             return res;
         },
         iceServers: () => {
-            return [{
-                urls: ['turn:35.237.41.98:443?transport=tcp'],
-                username: 'somecalluser',
-                credential: 'samplepassword',
-            }, {
-                urls: ['stun:35.237.41.98:443?transport=tcp'],
-                username: 'somecalluser',
-                credential: 'samplepassword',
-            }, {
-                urls: ['turn:35.228.111.16:443?transport=tcp'],
-                username: 'somecalluser',
-                credential: 'samplepassword',
-            }, {
-                urls: ['stun:35.228.111.16:443?transport=tcp'],
-                username: 'somecalluser',
-                credential: 'samplepassword',
-            }, {
-                urls: ['turn:35.241.89.108:443?transport=tcp'],
-                username: 'somecalluser',
-                credential: 'samplepassword',
-            }, {
-                urls: ['stun:35.241.89.108:443?transport=tcp'],
-                username: 'somecalluser',
-                credential: 'samplepassword',
-            }];
+            return resolveTurnServices();
         }
     },
     ConferencePeer: {
