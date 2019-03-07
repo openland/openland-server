@@ -101,6 +101,7 @@ export const Authenticator = async function (req: express.Request, response: exp
             let user = await FDB.User.findFromEmail(ctx, profile.email.toLowerCase());
             if (!user) {
                 user = await Modules.Users.createUser(ctx, userKey, profile.email);
+                await Modules.Hooks.onSignUp(ctx, user.id);
             }
 
             // Prefill

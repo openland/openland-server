@@ -94,4 +94,15 @@ export class HooksModule {
 
         await Modules.Messaging.sendMessage(ctx, SuperNotificationsChatId, SuperNotificationsAppId, { message, ignoreAugmentation: true });
     }
+
+    onSignUp = async (ctx: Context, uid: number) => {
+        if (process.env.APP_ENVIRONMENT !== 'production') {
+            return;
+        }
+
+        let userUrl = 'openland.com/directory/o/' + IDs.User.serialize(uid);
+        let message = `New signup: ${userUrl}`;
+
+        await Modules.Messaging.sendMessage(ctx, SuperNotificationsChatId, SuperNotificationsAppId, { message, ignoreAugmentation: true });
+    }
 }

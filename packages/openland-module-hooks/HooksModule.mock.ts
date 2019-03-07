@@ -35,4 +35,8 @@ export class HooksModuleMock {
     onOrganizationSuspended = async (ctx: Context, oid: number, conditions: { type: 'BY_SUPER_ADMIN', uid: number }) => {
         // Nothing to do
     }
+
+    onSignUp = async (ctx: Context, uid: number) => {
+
+    }
 }
