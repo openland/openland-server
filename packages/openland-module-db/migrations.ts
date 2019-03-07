@@ -455,7 +455,11 @@ migrations.push({
 migrations.push({
     key: '38-reindex-messages',
     migration: async (root, log) => {
-        let messagesCount = (await FDB.Sequence.findById(root, 'message-id'))!.value;
+        let messageSequence = await FDB.Sequence.findById(root, 'message-id');
+        if (!messageSequence) {
+            return;
+        }
+        let messagesCount = messageSequence.value;
 
         let allIds = Array.from(Array(messagesCount + 1).keys()).slice(1);
 
