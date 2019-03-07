@@ -80,7 +80,7 @@ export class HooksModule {
             let invitorId = conditions.type === 'BY_INVITE' ? conditions.inviteOwner : conditions.owner;
             let invitorName = await Modules.Users.getUserFullName(ctx, invitorId);
 
-            message = `Organization ${orgProfile!.name} was activated by @${invitorName} via invite. Link: ${orgSuperUrl}`;
+            message = `Organization ${orgProfile!.name} was activated by @${invitorName} via invite.\nLink: ${orgSuperUrl}`;
             await Modules.Messaging.sendMessage(ctx, chatId, botId, { message, ignoreAugmentation: true, complexMentions: [{ type: 'User', id: invitorId }] });
         }
     }
