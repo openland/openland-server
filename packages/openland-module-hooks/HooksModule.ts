@@ -9,9 +9,6 @@ const profileUpdated = createHyperlogger<{ uid: number }>('profile-updated');
 const organizationProfileUpdated = createHyperlogger<{ oid: number }>('organization-profile-updated');
 const organizationCreated = createHyperlogger<{ oid: number, uid: number }>('organization-created');
 
-// const SuperNotificationsAppId = 2498;
-// const SuperNotificationsChatId = 35525;
-
 @injectable()
 export class HooksModule {
 
@@ -67,10 +64,8 @@ export class HooksModule {
         }
 
         let message = '';
-        // let orgUrl = 'openland.com/directory/o/' + IDs.Organization.serialize(oid);
         let orgProfile = await FDB.OrganizationProfile.findById(ctx, oid);
         let orgSuperUrl = 'openland.com/super/orgs/' + IDs.SuperAccount.serialize(oid);
-        // Organization <Org name> was activated by <Superadmin full name>. Link: <Link to org profile in directory>
 
         if (conditions.type === 'BY_SUPER_ADMIN') {
             let adminName = await Modules.Users.getUserFullName(ctx, conditions.uid);
@@ -93,15 +88,12 @@ export class HooksModule {
             return;
         }
 
-        let message = '';
-        let orgUrl = 'openland.com/directory/o/' + IDs.Organization.serialize(oid);
+        let orgProfile = await FDB.OrganizationProfile.findById(ctx, oid);
+        let orgSuperUrl = 'openland.com/super/orgs/' + IDs.SuperAccount.serialize(oid);
+        let adminName = await Modules.Users.getUserFullName(ctx, conditions.uid);
+        let message = `Organization ${orgProfile!.name} was suspended by @${adminName}.\nLink: ${orgSuperUrl}`;
 
-        if (conditions.type === 'BY_SUPER_ADMIN') {
-            let adminUrl = 'openland.com/directory/u/' + IDs.User.serialize(conditions.uid);
-            message = `Organization ${orgUrl} was suspended by super-admin ${adminUrl}`;
-        }
-
-        await Modules.Messaging.sendMessage(ctx, chatId, botId, { message, ignoreAugmentation: true });
+        await Modules.Messaging.sendMessage(ctx, chatId, botId, { message, ignoreAugmentation: true, complexMentions: [{ type: 'User', id: conditions.uid }] });
     }
 
     onSignUp = async (ctx: Context, uid: number) => {

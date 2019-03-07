@@ -41,6 +41,7 @@ enum SuperNotificationType {
     ON_USER_PROFILE_CREATED
     ON_ORG_ACTIVATED_BY_ADMIN
     ON_ORG_ACTIVATED_VIA_INVITE
+    ON_ORG_SUSPEND
 }
 
 extend type Mutation {

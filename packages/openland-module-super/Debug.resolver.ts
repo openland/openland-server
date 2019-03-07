@@ -142,6 +142,8 @@ export default {
                 await Modules.Hooks.onOrganizationActivated(ctx, oid, { type: 'BY_SUPER_ADMIN', uid });
             } else if (args.type === 'ON_ORG_ACTIVATED_VIA_INVITE') {
                 await Modules.Hooks.onOrganizationActivated(ctx, oid, { type: 'BY_INVITE', inviteType: 'APP', inviteOwner: uid });
+            } else if (args.type === 'ON_ORG_SUSPEND') {
+                await Modules.Hooks.onOrganizationSuspended(ctx, oid, { type: 'BY_SUPER_ADMIN', uid });
             }
             return true;
         }),
