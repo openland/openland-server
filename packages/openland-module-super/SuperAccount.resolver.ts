@@ -38,14 +38,22 @@ export default {
         superAccountRename: withPermission('super-admin', (ctx, args) => {
             return Modules.Orgs.renameOrganization(ctx, IDs.SuperAccount.parse(args.id), args.title);
         }),
-        superAccountActivate: withPermission('super-admin', (ctx, args) => {
-            return Modules.Orgs.activateOrganization(ctx, IDs.SuperAccount.parse(args.id), true);
+        superAccountActivate: withPermission('super-admin', async (ctx, args) => {
+            let oid = IDs.SuperAccount.parse(args.id);
+            if (await Modules.Orgs.activateOrganization(ctx, oid, true)) {
+                await Modules.Hooks.onOrganizationActivated(ctx, oid, { type: 'BY_SUPER_ADMIN', uid: ctx.auth.uid! });
+            }
+            return FDB.Organization.findById(ctx, oid);
         }),
         superAccountPend: withPermission('super-admin', (ctx, args) => {
             throw new UserError('Pend is unsupported');
         }),
-        superAccountSuspend: withPermission('super-admin', (ctx, args) => {
-            return Modules.Orgs.suspendOrganization(ctx, IDs.SuperAccount.parse(args.id));
+        superAccountSuspend: withPermission('super-admin', async (ctx, args) => {
+            let oid = IDs.SuperAccount.parse(args.id);
+            if (await Modules.Orgs.suspendOrganization(ctx, IDs.SuperAccount.parse(args.id))) {
+                await Modules.Hooks.onOrganizationSuspended(ctx, oid, { type: 'BY_SUPER_ADMIN', uid: ctx.auth.uid! });
+            }
+            return FDB.Organization.findById(ctx, oid);
         }),
         superAccountMemberAdd: withPermission('super-admin', (ctx, args) => {
             return Modules.Orgs.addUserToOrganization(ctx, IDs.User.parse(args.userId), IDs.SuperAccount.parse(args.id), ctx.auth.uid!);

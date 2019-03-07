@@ -22,6 +22,13 @@ import { FLiveStreamItem } from '../../foundation-orm/FLiveStreamItem';
 //  Root types
 //
 export namespace GQLRoots {
+    //
+    //  Basic
+    //
+    export type MutationRoot = any;
+    export type QueryRoot = any;
+    export type SubscriptionRoot = any;
+
     export type DialogUpdateStateRoot = any;
     export type FeedItemRoot = FeedEvent;
     export type ICEServerRoot = any;
@@ -90,7 +97,7 @@ export namespace GQLRoots {
     export type OrganizationIvitedMemberRoot = any;
     export type OrganizationJoinedMemberRoot = any;
     export type OnlineEventRoot = any;
-    export type SuperAccountRoot = any;
+    export type SuperAccountRoot = Organization;
     export type SuperAdminRoot = any;
     export type PageInfoRoot = any;
     export type TaskRoot = any;
@@ -125,7 +132,6 @@ export namespace GQLRoots {
     export type DialogMuteChangedRoot = UserDialogEvent;
     export type DialogMentionedChangedRoot = UserDialogEvent;
     export type FeatureFlagRoot = FeatureFlag;
-    export type MutationRoot = any;
     export type OrganizationContactRoot = any;
     export type OrganizationRoot = Organization;
     export type OrganizationsEdgeRoot = any;
@@ -134,9 +140,7 @@ export namespace GQLRoots {
     export type PermissionsRoot = { roles: string[] };
     export type ProfilePrefillRoot = GQL.ProfilePrefill;
     export type PushSettingsRoot = any;
-    export type QueryRoot = any;
     export type SessionStateRoot = any;
-    export type SubscriptionRoot = any;
     export type TypingEventRoot = any;
     export type UserRoot = User | UserProfile | number;
     export type UserEdgeRoot = any;

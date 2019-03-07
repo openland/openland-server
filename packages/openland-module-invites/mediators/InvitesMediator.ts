@@ -39,7 +39,7 @@ export class InvitesMediator {
             }
             await this.rooms.joinRoom(ctx, invite.channelId, uid, false, true);
             await Modules.Users.activateUser(ctx, uid, isNewUser);
-            await this.activateUserOrgs(ctx, uid, !isNewUser);
+            await this.activateUserOrgs(ctx, uid, !isNewUser, 'ROOM');
             if (invite.entityName === 'ChannelInvitation') {
                 await Emails.sendRoomInviteAcceptedEmail(ctx, uid, invite);
             }
@@ -53,7 +53,7 @@ export class InvitesMediator {
             throw new NotFoundError(ErrorText.unableToFindInvite);
         }
         await Modules.Users.activateUser(ctx, uid, isNewUser);
-        await this.activateUserOrgs(ctx, uid, !isNewUser);
+        await this.activateUserOrgs(ctx, uid, !isNewUser, 'APP');
         let chat = await Modules.Messaging.room.resolvePrivateChat(ctx, uid, inviteData.uid);
         let name1 = await Modules.Users.getUserFullName(ctx, uid);
         let name2 = await Modules.Users.getUserFullName(ctx, inviteData.uid);
@@ -116,7 +116,12 @@ export class InvitesMediator {
         });
     }
 
-    private async activateUserOrgs(ctx: Context, uid: number, sendEmail: boolean) {
-        await Promise.all((await Modules.Orgs.findUserOrganizations(ctx, uid)).map(async oid => await Modules.Orgs.activateOrganization(ctx, oid, sendEmail)));
+    private async activateUserOrgs(ctx: Context, uid: number, sendEmail: boolean, inviteType: 'APP' | 'ROOM') {
+        let userOrgs = await Modules.Orgs.findUserOrganizations(ctx, uid);
+        for (let oid of userOrgs) {
+            if (await Modules.Orgs.activateOrganization(ctx, oid, sendEmail)) {
+                await Modules.Hooks.onOrganizationActivated(ctx, oid, { type: 'BY_INVITE', inviteType });
+            }
+        }
     }
 }

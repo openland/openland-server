@@ -88,8 +88,9 @@ export class OrganizationModule {
         return await inTx(parent, async (ctx) => {
             if (await this.repo.suspendOrganization(ctx, id)) {
                 await Emails.sendAccountDeactivatedEmail(ctx, id);
+                return true;
             }
-            return (await FDB.Organization.findById(ctx, id))!;
+            return false;
         });
     }
 
