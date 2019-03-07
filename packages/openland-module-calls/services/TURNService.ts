@@ -18,7 +18,7 @@ export async function resolveTurnServices() {
         let res = await twillioApi.tokens.create();
         let iceServersRaw = res.iceServers as any as [{ url: string, username?: string, credential?: string }];
         iceServers = iceServersRaw.map((v) => ({
-            urls: v.url,
+            urls: [v.url],
             username: v.username,
             credential: v.credential
         }));
