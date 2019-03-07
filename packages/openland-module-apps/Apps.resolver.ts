@@ -5,7 +5,6 @@ import { IDs } from '../openland-module-api/IDs';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 import { stringNotEmpty, validate } from '../openland-utils/NewInputValidator';
 import { Sanitizer } from '../openland-utils/Sanitizer';
-import { UserError } from '../openland-errors/UserError';
 import { inTx } from '../foundation-orm/inTx';
 import { withProfile } from '../openland-module-users/User.resolver';
 
@@ -91,10 +90,13 @@ export default {
                 }
                 if (args.input.shortname !== undefined) {
                     if (args.input.shortname === null) {
-                        throw new UserError('Bot should have shortname');
+                        let existing = await Modules.Shortnames.findUserShortname(ctx, botId);
+                        if (existing) {
+                            existing.enabled = false;
+                        }
+                    } else {
+                        await Modules.Shortnames.setShortnameToUser(ctx, args.input.shortname, botId);
                     }
-
-                    await Modules.Shortnames.setShortnameToUser(ctx, args.input.shortname, botId);
                 }
 
                 return Modules.DB.entities.User.findById(ctx, botId);
