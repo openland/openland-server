@@ -37,6 +37,6 @@ export class HooksModuleMock {
     }
 
     onSignUp = async (ctx: Context, uid: number) => {
-
+        // Nothing to do
     }
 }
