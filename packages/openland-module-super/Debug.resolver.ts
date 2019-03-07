@@ -130,5 +130,8 @@ export default {
             await URLInfoService.deleteURLInfoCache(args.url);
             return true;
         }),
+        debugSuperNotifications: withPermission('super-admin', async (ctx, args) => {
+            return true;
+        }),
     }
 } as GQLResolver;

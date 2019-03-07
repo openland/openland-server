@@ -5,11 +5,13 @@ import { startAdminInterface } from './startAdminInterface';
 import { PermissionsRepository } from './repositories/PermissionsRepository';
 import { injectable } from 'inversify';
 import { Context } from 'openland-utils/Context';
+import { EnvironmentVariablesRepository, EnvVarValueType } from './repositories/EnvironmentVariablesRepository';
 
 @injectable()
 export class SuperModule {
     private readonly repo = new SuperRepository(FDB);
     private readonly permissionsRepo = new PermissionsRepository(FDB);
+    private readonly envVarsRepo = new EnvironmentVariablesRepository(FDB);
 
     async findAllSuperAdmins(ctx: Context) {
         return this.repo.findAllSuperAdmins(ctx);
@@ -39,6 +41,14 @@ export class SuperModule {
 
     async superRole(ctx: Context, userId: number | null | undefined) {
         return this.permissionsRepo.superRole(ctx, userId);
+    }
+
+    async getEnvVar<T extends EnvVarValueType>(ctx: Context, name: string): Promise<T | null> {
+        return this.envVarsRepo.get<T>(ctx, name);
+    }
+
+    async setEnvVar<T extends EnvVarValueType>(ctx: Context, name: string, value: T, rawValue: boolean = false) {
+        return this.envVarsRepo.set<T>(ctx, name, value);
     }
 
     start = () => {

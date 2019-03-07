@@ -75,6 +75,70 @@ export class EnvironmentFactory extends FEntityFactory<Environment> {
         return new Environment(ctx, this.connection, this.namespace, this.directory, [value.production], value, this.options, isNew, this.indexes, 'Environment');
     }
 }
+export interface EnvironmentVariableShape {
+    value: string;
+}
+
+export class EnvironmentVariable extends FEntity {
+    readonly entityName: 'EnvironmentVariable' = 'EnvironmentVariable';
+    get name(): string { return this._value.name; }
+    get value(): string {
+        return this._value.value;
+    }
+    set value(value: string) {
+        this._checkIsWritable();
+        if (value === this._value.value) { return; }
+        this._value.value = value;
+        this.markDirty();
+    }
+}
+
+export class EnvironmentVariableFactory extends FEntityFactory<EnvironmentVariable> {
+    static schema: FEntitySchema = {
+        name: 'EnvironmentVariable',
+        editable: true,
+        primaryKeys: [
+            { name: 'name', type: 'string' },
+        ],
+        fields: [
+            { name: 'value', type: 'string' },
+        ],
+        indexes: [
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('name', src.name);
+        validators.isString('name', src.name);
+        validators.notNull('value', src.value);
+        validators.isString('value', src.value);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'environmentVariable'),
+            { enableVersioning: true, enableTimestamps: true, validator: EnvironmentVariableFactory.validate, hasLiveStreams: false },
+            [],
+            'EnvironmentVariable'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
+        return { 'name': rawId[0] };
+    }
+    async findById(ctx: Context, name: string) {
+        return await this._findById(ctx, [name]);
+    }
+    async create(ctx: Context, name: string, shape: EnvironmentVariableShape) {
+        return await this._create(ctx, [name], { name, ...shape });
+    }
+    watch(ctx: Context, name: string, cb: () => void) {
+        return this._watch(ctx, [name], cb);
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new EnvironmentVariable(ctx, this.connection, this.namespace, this.directory, [value.name], value, this.options, isNew, this.indexes, 'EnvironmentVariable');
+    }
+}
 export interface OnlineShape {
     lastSeen: number;
     activeExpires?: number| null;
@@ -7776,6 +7840,7 @@ export class AppHookFactory extends FEntityFactory<AppHook> {
 export interface AllEntities {
     readonly connection: FConnection;
     readonly Environment: EnvironmentFactory;
+    readonly EnvironmentVariable: EnvironmentVariableFactory;
     readonly Online: OnlineFactory;
     readonly Presence: PresenceFactory;
     readonly AuthToken: AuthTokenFactory;
@@ -7842,6 +7907,7 @@ export interface AllEntities {
 export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     static readonly schema: FEntitySchema[] = [
         EnvironmentFactory.schema,
+        EnvironmentVariableFactory.schema,
         OnlineFactory.schema,
         PresenceFactory.schema,
         AuthTokenFactory.schema,
@@ -7907,6 +7973,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     ];
     allEntities: FEntityFactory<FEntity>[] = [];
     Environment: EnvironmentFactory;
+    EnvironmentVariable: EnvironmentVariableFactory;
     Online: OnlineFactory;
     Presence: PresenceFactory;
     AuthToken: AuthTokenFactory;
@@ -7974,6 +8041,8 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         super(connection);
         this.Environment = new EnvironmentFactory(connection);
         this.allEntities.push(this.Environment);
+        this.EnvironmentVariable = new EnvironmentVariableFactory(connection);
+        this.allEntities.push(this.EnvironmentVariable);
         this.Online = new OnlineFactory(connection);
         this.allEntities.push(this.Online);
         this.Presence = new PresenceFactory(connection);
@@ -8106,6 +8175,9 @@ export class AllEntitiesProxy implements AllEntities {
     }
     get Environment(): EnvironmentFactory {
         return this.resolver().Environment;
+    }
+    get EnvironmentVariable(): EnvironmentVariableFactory {
+        return this.resolver().EnvironmentVariable;
     }
     get Online(): OnlineFactory {
         return this.resolver().Online;
