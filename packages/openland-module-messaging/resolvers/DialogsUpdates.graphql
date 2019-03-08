@@ -19,6 +19,7 @@ type DialogMessageReceived {
     cid: ID!
     message: ConversationMessage!
     betaMessage: RoomMessage!
+    alphaMessage: BaseMessage!
     unread: Int!
     globalUnread: Int!
 }
@@ -27,6 +28,7 @@ type DialogMessageUpdated {
     cid: ID!
     message: ConversationMessage!
     betaMessage: RoomMessage!
+    alphaMessage: BaseMessage!
 }
 
 type DialogMessageDeleted {
@@ -34,6 +36,8 @@ type DialogMessageDeleted {
     message: ConversationMessage!
     betaMessage: RoomMessage!
     prevMessage: RoomMessage
+    alphaPrevMessage: BaseMessage
+    alphaMessage: BaseMessage!
     unread: Int!
     globalUnread: Int!
 }
