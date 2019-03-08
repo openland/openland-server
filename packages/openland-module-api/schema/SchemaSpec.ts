@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '4f6ede8ffba5592fbff7086c06766f81';
+export const GQL_SPEC_VERSION = 'a344aa6e9e2df684c857e0184d3e8782';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -585,6 +585,11 @@ export namespace GQL {
         offset: number;
         length: number;
         user: User;
+    }
+    export interface MessageSpanMultiUserMention extends MessageSpan {
+        offset: number;
+        length: number;
+        users: User[];
     }
     export interface MessageSpanRoomMention extends MessageSpan {
         offset: number;
@@ -2288,6 +2293,7 @@ export interface GQLResolver {
     ModernMessageButton?: ComplexTypedResolver<GQL.ModernMessageButton, GQLRoots.ModernMessageButtonRoot, {}, {}>;
     ModernMessageReaction?: ComplexTypedResolver<GQL.ModernMessageReaction, GQLRoots.ModernMessageReactionRoot, {user: GQLRoots.UserRoot}, {}>;
     MessageSpanUserMention?: ComplexTypedResolver<GQL.MessageSpanUserMention, GQLRoots.MessageSpanUserMentionRoot, {user: GQLRoots.UserRoot}, {}>;
+    MessageSpanMultiUserMention?: ComplexTypedResolver<GQL.MessageSpanMultiUserMention, GQLRoots.MessageSpanMultiUserMentionRoot, {users: GQLRoots.UserRoot[]}, {}>;
     MessageSpanRoomMention?: ComplexTypedResolver<GQL.MessageSpanRoomMention, GQLRoots.MessageSpanRoomMentionRoot, {room: GQLRoots.RoomRoot}, {}>;
     MessageSpanLink?: ComplexTypedResolver<GQL.MessageSpanLink, GQLRoots.MessageSpanLinkRoot, {}, {}>;
     PageInfo?: ComplexTypedResolver<GQL.PageInfo, GQLRoots.PageInfoRoot, {}, {}>;

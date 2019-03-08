@@ -52,6 +52,7 @@ function prepareLegacyComplexMentions(mentions: { type: 'User'|'SharedRoom', id:
 }
 
 export type UserMentionSpan = { type: 'user_mention', offset: number, length: number, user: number };
+export type MultiUserMentionSpan = { type: 'user_mention', offset: number, length: number, users: number[] };
 export type RoomMentionSpan = { type: 'room_mention', offset: number, length: number, room: number };
 export type LinkSpan = { type: 'link', offset: number, length: number, url: string };
 export type MessageSpan = UserMentionSpan | RoomMentionSpan | LinkSpan;
@@ -64,13 +65,26 @@ async function mentionsToSpans(messageText: string, mentions: IntermediateMentio
 
     let spans: MessageSpan[] = [];
 
+    let offsets = new Set<number>();
+
+    function getOffset(str: string, n: number = 0): number {
+        let offset = messageText.indexOf(str, n);
+
+        if (offsets.has(offset)) {
+            return getOffset(str, n + 1);
+        }
+
+        offsets.add(offset);
+        return offset;
+    }
+
     for (let mention of mentions) {
         if (mention.type === 'user') {
             let profile = await Modules.Users.profileById(ctx, mention.user);
             let userName = [profile!.firstName, profile!.lastName].filter((v) => !!v).join(' ');
             let mentionText = '@' + userName;
 
-            let index = messageText.indexOf(mentionText);
+            let index = getOffset(mentionText);
 
             if (index > -1) {
                 spans.push({
@@ -84,7 +98,7 @@ async function mentionsToSpans(messageText: string, mentions: IntermediateMentio
             let roomName = await Modules.Messaging.room.resolveConversationTitle(ctx, mention.room, uid);
             let mentionText = '@' + roomName;
 
-            let index = messageText.indexOf(mentionText);
+            let index = getOffset(mentionText);
 
             if (index > -1) {
                 spans.push({
@@ -311,6 +325,11 @@ export default {
         offset: src => src.offset,
         length: src => src.length,
         user: src => src.user
+    },
+    MessageSpanMultiUserMention: {
+        offset: src => src.offset,
+        length: src => src.length,
+        users: src => src.users
     },
     MessageSpanRoomMention: {
         offset: src => src.offset,

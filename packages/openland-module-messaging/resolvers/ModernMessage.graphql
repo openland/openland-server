@@ -192,6 +192,12 @@ type MessageSpanUserMention implements MessageSpan {
     user: User!
 }
 
+type MessageSpanMultiUserMention implements MessageSpan {
+    offset: Int!
+    length: Int!
+    users: [User!]!
+}
+
 type MessageSpanRoomMention implements MessageSpan {
     offset: Int!
     length: Int!

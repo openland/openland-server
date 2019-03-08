@@ -13,7 +13,7 @@ import {
     MessageAttachment, MessageAttachmentFile, MessageRichAttachment,
     MessageSpan, LinkSpan,
     RoomMentionSpan,
-    UserMentionSpan
+    UserMentionSpan, MultiUserMentionSpan
 } from '../../openland-module-messaging/resolvers/ModernMessage.resolver';
 import { FileInfo } from '../../openland-module-media/FileInfo';
 import { FLiveStreamItem } from '../../foundation-orm/FLiveStreamItem';
@@ -189,6 +189,7 @@ export namespace GQLRoots {
     export type ModernMessageButtonRoot = any;
     export type ModernMessageReactionRoot = { userId: number, reaction: string };
     export type MessageSpanUserMentionRoot = UserMentionSpan;
+    export type MessageSpanMultiUserMentionRoot = MultiUserMentionSpan;
     export type MessageSpanRoomMentionRoot = RoomMentionSpan;
     export type MessageSpanLinkRoot = LinkSpan;
     export type ModernMessageAttachmentRoot = MessageAttachment;
