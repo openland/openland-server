@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'f74d202702f628d0ffb6f1763ed43d55';
+export const GQL_SPEC_VERSION = '4f6ede8ffba5592fbff7086c06766f81';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -870,12 +870,20 @@ export namespace GQL {
     export interface Conference {
         id: string;
         peers: ConferencePeer[];
+        streams: MediaStream[];
         iceServers: ICEServer[];
     }
     export interface ConferencePeer {
         id: string;
         user: User;
         connection: Nullable<ConferencePeerConnection>;
+    }
+    export type MediaStreamState = 'WAIT_OFFER' | 'NEED_OFFER' | 'WAIT_ANSWER' | 'NEED_ANSWER' | 'READY';
+    export interface MediaStream {
+        id: string;
+        state: MediaStreamState;
+        sdp: Nullable<string>;
+        ice: string[];
     }
     export type ConferencePeerConnectionState = 'WAIT_OFFER' | 'NEED_OFFER' | 'WAIT_ANSWER' | 'NEED_ANSWER' | 'READY';
     export interface ConferencePeerConnection {
@@ -2332,8 +2340,9 @@ export interface GQLResolver {
     FeatureFlag?: ComplexTypedResolver<GQL.FeatureFlag, GQLRoots.FeatureFlagRoot, {}, {}>;
     FeedItem?: ComplexTypedResolver<GQL.FeedItem, GQLRoots.FeedItemRoot, {alphaBy: GQLRoots.UserRoot}, {}>;
     ICEServer?: ComplexTypedResolver<GQL.ICEServer, GQLRoots.ICEServerRoot, {}, {}>;
-    Conference?: ComplexTypedResolver<GQL.Conference, GQLRoots.ConferenceRoot, {peers: GQLRoots.ConferencePeerRoot[], iceServers: GQLRoots.ICEServerRoot[]}, {}>;
+    Conference?: ComplexTypedResolver<GQL.Conference, GQLRoots.ConferenceRoot, {peers: GQLRoots.ConferencePeerRoot[], streams: GQLRoots.MediaStreamRoot[], iceServers: GQLRoots.ICEServerRoot[]}, {}>;
     ConferencePeer?: ComplexTypedResolver<GQL.ConferencePeer, GQLRoots.ConferencePeerRoot, {user: GQLRoots.UserRoot, connection: Nullable<GQLRoots.ConferencePeerConnectionRoot>}, {}>;
+    MediaStream?: ComplexTypedResolver<GQL.MediaStream, GQLRoots.MediaStreamRoot, {}, {}>;
     ConferencePeerConnection?: ComplexTypedResolver<GQL.ConferencePeerConnection, GQLRoots.ConferencePeerConnectionRoot, {}, {}>;
     ConferenceJoinResult?: ComplexTypedResolver<GQL.ConferenceJoinResult, GQLRoots.ConferenceJoinResultRoot, {conference: GQLRoots.ConferenceRoot}, {}>;
     MessageReaction?: ComplexTypedResolver<GQL.MessageReaction, GQLRoots.MessageReactionRoot, {user: GQLRoots.UserRoot}, {}>;

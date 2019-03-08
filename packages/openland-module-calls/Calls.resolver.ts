@@ -16,6 +16,53 @@ export default {
             res.sort((a, b) => a.createdAt - b.createdAt);
             return res;
         },
+        streams: async (src: ConferenceRoom, args: {}, ctx: AppContext) => {
+            let outgoing = await FDB.ConferencePeer.findFromAuth(ctx, src.id, ctx.auth.uid!, ctx.auth.tid!);
+            if (outgoing) {
+                let connections = await FDB.ConferenceConnection.allFromConference(ctx, src.id);
+                let res = [];
+                for (let c of connections) {
+                    if (c.peer1 === outgoing.id || c.peer2 === outgoing.id) {
+
+                        let id = c.peer1 === outgoing.id ? c.peer2 : c.peer1;
+                        let state: 'READY' | 'WAIT_OFFER' | 'NEED_OFFER' | 'WAIT_ANSWER' | 'NEED_ANSWER' = 'READY';
+                        let sdp: string | null = null;
+                        let isPrimary = src.id > outgoing.id;
+                        let ice: string[] = isPrimary ? c.ice2 : c.ice1;
+                        if (c.state === 'wait-offer') {
+                            if (isPrimary) {
+                                state = 'NEED_OFFER';
+                            } else {
+                                state = 'WAIT_OFFER';
+                            }
+                        } else if (c.state === 'wait-answer') {
+                            if (isPrimary) {
+                                state = 'WAIT_ANSWER';
+                            } else {
+                                state = 'NEED_ANSWER';
+                                sdp = c.offer;
+                            }
+                        } else if (c.state === 'online') {
+                            if (isPrimary) {
+                                sdp = c.answer;
+                            } else {
+                                sdp = c.offer;
+                            }
+                        } else {
+                            throw Error('Unkown state: ' + c.state);
+                        }
+                        res.push({
+                            id: IDs.MediaStream.serialize(id),
+                            state,
+                            sdp,
+                            ice
+                        });
+                    }
+                }
+                return res;
+            }
+            return [];
+        },
         iceServers: () => {
             return resolveTurnServices();
         }

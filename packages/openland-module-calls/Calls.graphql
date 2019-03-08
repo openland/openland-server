@@ -7,6 +7,7 @@ type ICEServer {
 type Conference {
     id: ID!
     peers: [ConferencePeer!]!
+    streams: [MediaStream!]!
     iceServers: [ICEServer!]!
 }
 
@@ -16,27 +17,22 @@ type ConferencePeer {
     connection: ConferencePeerConnection # Deprecated
 }
 
-# type MediaSession {
-#     id: ID!
-#     conference: Conference!
-#     streams: [MediaStream!]!
-# }
+enum MediaStreamState {
+    WAIT_OFFER
+    NEED_OFFER
+    WAIT_ANSWER
+    NEED_ANSWER
+    READY
+}
 
-# enum MediaStreamState {
-#     WAIT_OFFER
-#     NEED_OFFER
-#     WAIT_ANSWER
-#     NEED_ANSWER
-#     READY
-# }
+type MediaStream {
+    id: ID!
+    state: MediaStreamState!
+    sdp: String
+    ice: [String!]!
+}
 
-# type MediaStream {
-#     id: ID!
-#     state: MediaStreamState!
-#     sdp: String
-#     ice: [String!]!
-# }
-
+# Deprecated
 enum ConferencePeerConnectionState {
     WAIT_OFFER
     NEED_OFFER
@@ -45,6 +41,7 @@ enum ConferencePeerConnectionState {
     READY
 }
 
+# Deprecated
 type ConferencePeerConnection {
     state: ConferencePeerConnectionState!
     sdp: String
