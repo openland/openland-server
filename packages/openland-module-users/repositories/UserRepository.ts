@@ -9,6 +9,10 @@ import { Context } from 'openland-utils/Context';
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { Modules } from '../../openland-modules/Modules';
+import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
+
+const userCreated = createHyperlogger<{ uid: number }>('user_created');
+const userProfileCreated = createHyperlogger<{ uid: number }>('user_profile_created');
 
 @injectable()
 export class UserRepository {
@@ -34,6 +38,7 @@ export class UserRepository {
 
             let res = (await this.entities.User.create(ctx, id, { authId: authId, email: email.toLowerCase(), isBot: false, status: 'pending' }));
             await res.flush();
+            await userCreated.event(ctx, { uid: id });
             return res;
         });
     }
@@ -110,6 +115,7 @@ export class UserRepository {
             });
             await profile.flush();
             await this.markForUndexing(ctx, uid);
+            await userProfileCreated.event(ctx, { uid: uid });
             await Modules.Hooks.onUserProfileCreated(ctx, uid);
             return profile;
         });
