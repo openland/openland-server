@@ -3,13 +3,11 @@ import { injectable } from 'inversify';
 import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent';
 import { Context } from 'openland-utils/Context';
 import { IDs } from '../openland-module-api/IDs';
+import { FDB } from '../openland-module-db/FDB';
 
 const profileUpdated = createHyperlogger<{ uid: number }>('profile-updated');
 const organizationProfileUpdated = createHyperlogger<{ oid: number }>('organization-profile-updated');
 const organizationCreated = createHyperlogger<{ oid: number, uid: number }>('organization-created');
-
-const SuperNotificationsAppId = 2498;
-const SuperNotificationsChatId = 35525;
 
 @injectable()
 export class HooksModule {
@@ -57,52 +55,91 @@ export class HooksModule {
     /*
      * Orgs
      */
-    onOrganizationActivated = async (ctx: Context, oid: number, conditions: { type: 'BY_SUPER_ADMIN', uid: number } | { type: 'BY_INVITE', inviteType: 'APP' | 'ROOM' } | { type: 'OWNER_ADDED_TO_ORG', owner: number, otherOid: number }) => {
-        if (process.env.APP_ENVIRONMENT !== 'production') {
+    onOrganizationActivated = async (ctx: Context, oid: number, conditions: { type: 'BY_SUPER_ADMIN', uid: number } | { type: 'BY_INVITE', inviteType: 'APP' | 'ROOM', inviteOwner: number } | { type: 'OWNER_ADDED_TO_ORG', owner: number, otherOid: number }) => {
+        let botId = await this.getSuperNotificationsBotId(ctx);
+        let chatId = await this.getSuperNotificationsChatId(ctx);
+
+        if (!botId || !chatId) {
             return;
         }
 
         let message = '';
-        let orgUrl = 'openland.com/directory/o/' + IDs.Organization.serialize(oid);
+        let orgProfile = await FDB.OrganizationProfile.findById(ctx, oid);
+        let orgSuperUrl = 'openland.com/super/orgs/' + IDs.SuperAccount.serialize(oid);
 
         if (conditions.type === 'BY_SUPER_ADMIN') {
-            let adminUrl = 'openland.com/directory/u/' + IDs.User.serialize(conditions.uid);
-            message = `Organization ${orgUrl} was activated by super-admin ${adminUrl}`;
-        } else if (conditions.type === 'BY_INVITE') {
-            message = `Organization ${orgUrl} was activated by ${conditions.inviteType} invite`;
-        }  else if (conditions.type === 'OWNER_ADDED_TO_ORG') {
-            let ownerUrl = 'openland.com/directory/u/' + IDs.User.serialize(conditions.owner);
-            let otherOrgUrl = 'openland.com/directory/o/' + IDs.Organization.serialize(conditions.otherOid);
-            message = `Organization ${orgUrl} was activated because owner (${ownerUrl}) was invited to org ${otherOrgUrl}`;
-        }
+            let adminName = await Modules.Users.getUserFullName(ctx, conditions.uid);
+            message = `Organization ${orgProfile!.name} was activated by @${adminName}.\nLink: ${orgSuperUrl}`;
+            await Modules.Messaging.sendMessage(ctx, chatId, botId, { message, ignoreAugmentation: true, complexMentions: [{ type: 'User', id: conditions.uid }] });
+        } else if (conditions.type === 'BY_INVITE' || conditions.type === 'OWNER_ADDED_TO_ORG') {
+            let invitorId = conditions.type === 'BY_INVITE' ? conditions.inviteOwner : conditions.owner;
+            let invitorName = await Modules.Users.getUserFullName(ctx, invitorId);
 
-        await Modules.Messaging.sendMessage(ctx, SuperNotificationsChatId, SuperNotificationsAppId, { message, ignoreAugmentation: true });
+            message = `Organization ${orgProfile!.name} was activated by @${invitorName} via invite.\nLink: ${orgSuperUrl}`;
+            await Modules.Messaging.sendMessage(ctx, chatId, botId, { message, ignoreAugmentation: true, complexMentions: [{ type: 'User', id: invitorId }] });
+        }
     }
 
     onOrganizationSuspended = async (ctx: Context, oid: number, conditions: { type: 'BY_SUPER_ADMIN', uid: number }) => {
-        if (process.env.APP_ENVIRONMENT !== 'production') {
+        let botId = await this.getSuperNotificationsBotId(ctx);
+        let chatId = await this.getSuperNotificationsChatId(ctx);
+
+        if (!botId || !chatId) {
             return;
         }
 
-        let message = '';
-        let orgUrl = 'openland.com/directory/o/' + IDs.Organization.serialize(oid);
+        let orgProfile = await FDB.OrganizationProfile.findById(ctx, oid);
+        let orgSuperUrl = 'openland.com/super/orgs/' + IDs.SuperAccount.serialize(oid);
+        let adminName = await Modules.Users.getUserFullName(ctx, conditions.uid);
+        let message = `Organization ${orgProfile!.name} was suspended by @${adminName}.\nLink: ${orgSuperUrl}`;
 
-        if (conditions.type === 'BY_SUPER_ADMIN') {
-            let adminUrl = 'openland.com/directory/u/' + IDs.User.serialize(conditions.uid);
-            message = `Organization ${orgUrl} was suspended by super-admin ${adminUrl}`;
-        }
-
-        await Modules.Messaging.sendMessage(ctx, SuperNotificationsChatId, SuperNotificationsAppId, { message, ignoreAugmentation: true });
+        await Modules.Messaging.sendMessage(ctx, chatId, botId, { message, ignoreAugmentation: true, complexMentions: [{ type: 'User', id: conditions.uid }] });
     }
 
     onSignUp = async (ctx: Context, uid: number) => {
-        if (process.env.APP_ENVIRONMENT !== 'production') {
+        let botId = await this.getSuperNotificationsBotId(ctx);
+        let chatId = await this.getSuperNotificationsChatId(ctx);
+
+        if (!botId || !chatId) {
             return;
         }
 
-        let userUrl = 'openland.com/directory/o/' + IDs.User.serialize(uid);
-        let message = `New signup: ${userUrl}`;
+        let user = await FDB.User.findById(ctx, uid);
+        if (!user) {
+            return;
+        }
+        let message = `New user signing up: ${user.email}`;
 
-        await Modules.Messaging.sendMessage(ctx, SuperNotificationsChatId, SuperNotificationsAppId, { message, ignoreAugmentation: true });
+        await Modules.Messaging.sendMessage(ctx, chatId, botId, { message, ignoreAugmentation: true });
+    }
+
+    onUserProfileCreated = async (ctx: Context, uid: number) => {
+        let botId = await this.getSuperNotificationsBotId(ctx);
+        let chatId = await this.getSuperNotificationsChatId(ctx);
+
+        if (!botId || !chatId) {
+            return;
+        }
+
+        let userName = await Modules.Users.getUserFullName(ctx, uid);
+        let orgs = await Modules.Orgs.findUserOrganizations(ctx, uid);
+        let message = '';
+
+        if (orgs.length === 0) {
+            message = `New user in waitlist: @${userName} with no organization`;
+        } else {
+            let org = await FDB.OrganizationProfile.findById(ctx, orgs[0]);
+            message = `New user in waitlist: @${userName} at ${org!.name}.\nLink: openland.com/super/orgs/${IDs.SuperAccount.serialize(org!.id)}`;
+        }
+
+        await Modules.Messaging.sendMessage(ctx, chatId, botId, { message, ignoreAugmentation: true, complexMentions: [{ type: 'User', id: uid }]});
+    }
+
+    private async getSuperNotificationsBotId(ctx: Context) {
+        return Modules.Super.getEnvVar<number>(ctx, 'super-notifications-app-id');
+    }
+
+    private async getSuperNotificationsChatId(ctx: Context) {
+        return Modules.Super.getEnvVar<number>(ctx, 'super-notifications-chat-id');
     }
 }

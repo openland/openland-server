@@ -1,0 +1,13 @@
+type EnvVar {
+    name: String!
+    value: String!
+}
+
+extend type Query {
+    envVars: [EnvVar!]
+    envVar(name: String!): EnvVar
+}
+
+extend type Mutation {
+    setEnvVar(name: String!, value: String!): Boolean!
+}

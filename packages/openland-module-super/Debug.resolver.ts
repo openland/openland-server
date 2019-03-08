@@ -130,5 +130,22 @@ export default {
             await URLInfoService.deleteURLInfoCache(args.url);
             return true;
         }),
+        debugSuperNotifications: withPermission('super-admin', async (ctx, args) => {
+            let uid = ctx.auth.uid!;
+            let oid = ctx.auth.oid!;
+
+            if (args.type === 'ON_SIGN_UP') {
+                await Modules.Hooks.onSignUp(ctx, uid);
+            } else if (args.type === 'ON_USER_PROFILE_CREATED') {
+                await Modules.Hooks.onUserProfileCreated(ctx, uid);
+            } else if (args.type === 'ON_ORG_ACTIVATED_BY_ADMIN') {
+                await Modules.Hooks.onOrganizationActivated(ctx, oid, { type: 'BY_SUPER_ADMIN', uid });
+            } else if (args.type === 'ON_ORG_ACTIVATED_VIA_INVITE') {
+                await Modules.Hooks.onOrganizationActivated(ctx, oid, { type: 'BY_INVITE', inviteType: 'APP', inviteOwner: uid });
+            } else if (args.type === 'ON_ORG_SUSPEND') {
+                await Modules.Hooks.onOrganizationSuspended(ctx, oid, { type: 'BY_SUPER_ADMIN', uid });
+            }
+            return true;
+        }),
     }
 } as GQLResolver;

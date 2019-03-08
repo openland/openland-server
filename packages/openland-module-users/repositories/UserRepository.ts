@@ -8,6 +8,7 @@ import { ImageRef } from 'openland-module-media/ImageRef';
 import { Context } from 'openland-utils/Context';
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
+import { Modules } from '../../openland-modules/Modules';
 
 @injectable()
 export class UserRepository {
@@ -97,6 +98,7 @@ export class UserRepository {
             );
 
             // Create pfofile
+            await Modules.Hooks.onUserProfileCreated(ctx, uid);
             let profile = await this.entities.UserProfile.create(ctx, user.id!, {
                 firstName: Sanitizer.sanitizeString(input.firstName)!,
                 lastName: Sanitizer.sanitizeString(input.lastName),

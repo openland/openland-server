@@ -36,8 +36,17 @@ extend type Query {
     userPresence(uid: ID!, lastSeenFiveMinute: Boolean): [DebugUserPresence!]!
 }
 
+enum SuperNotificationType {
+    ON_SIGN_UP
+    ON_USER_PROFILE_CREATED
+    ON_ORG_ACTIVATED_BY_ADMIN
+    ON_ORG_ACTIVATED_VIA_INVITE
+    ON_ORG_SUSPEND
+}
+
 extend type Mutation {
     debugSendEmail(type: DebugEmailType!): Boolean
     debugCreateTestUser(key: String!, name: String!): User!
     debugDeleteUrlInfoCache(url: String!): Boolean
+    debugSuperNotifications(type: SuperNotificationType!): Boolean!
 }
