@@ -9,6 +9,7 @@ import { PresenceModule } from './PresenceModule';
 import { createEmptyContext } from 'openland-utils/Context';
 import { UsersModule } from '../openland-module-users/UsersModule';
 import { UserRepository } from '../openland-module-users/repositories/UserRepository';
+import { SuperModule } from '../openland-module-super/SuperModule';
 
 describe('PresenceModule', () => {
     beforeAll(async () => {
@@ -16,6 +17,7 @@ describe('PresenceModule', () => {
         container.bind(PresenceModule).toSelf().inSingletonScope();
         container.bind(UsersModule).toSelf().inSingletonScope();
         container.bind('UserRepository').to(UserRepository).inSingletonScope();
+        container.bind(SuperModule).toSelf().inSingletonScope();
     });
     afterAll(() => {
         testEnvironmentEnd();
