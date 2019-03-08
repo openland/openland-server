@@ -86,7 +86,7 @@ export class PresenceModule {
 
     public async getLastSeen(ctx: Context, uid: number): Promise<'online' | 'never_online' | number> {
         log.debug(ctx, 'get last seen');
-        if (uid === Modules.Users.SUPPORT_USER_ID) {
+        if (uid === await Modules.Users.getSupportUserId(ctx)) {
             return 'online';
         }
         let res = await this.FDB.Online.findById(ctx, uid);
@@ -102,7 +102,7 @@ export class PresenceModule {
     }
 
     public async isActive(ctx: Context, uid: number): Promise<boolean> {
-        if (uid === Modules.Users.SUPPORT_USER_ID) {
+        if (uid === await Modules.Users.getSupportUserId(ctx)) {
             return true;
         }
         let res = await this.FDB.Online.findById(ctx, uid);
@@ -126,7 +126,7 @@ export class PresenceModule {
 
         // Send initial state
         for (let userId of users) {
-            if (userId === Modules.Users.SUPPORT_USER_ID) {
+            if (userId === await Modules.Users.getSupportUserId(createEmptyContext())) {
                 iterator.push({
                     userId,
                     timeout: 0,

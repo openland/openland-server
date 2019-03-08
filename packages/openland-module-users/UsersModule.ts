@@ -10,12 +10,10 @@ import { Emails } from 'openland-module-email/Emails';
 import { ImageRef } from 'openland-module-media/ImageRef';
 import { Context } from 'openland-utils/Context';
 import { NotFoundError } from '../openland-errors/NotFoundError';
+import { Modules } from '../openland-modules/Modules';
 
 @injectable()
 export class UsersModule {
-
-    public readonly SUPPORT_USER_ID = process.env.NODE_ENV === 'production' ? 1564 : 167;
-
     private readonly repo: UserRepository;
     private readonly search = new UserSearch();
 
@@ -99,5 +97,9 @@ export class UsersModule {
 
     async markForUndexing(ctx: Context, uid: number) {
         return this.repo.markForUndexing(ctx, uid);
+    }
+
+    async getSupportUserId(ctx: Context) {
+        return (await Modules.Super.getEnvVar<number>(ctx, 'support-user-id'))!;
     }
 }
