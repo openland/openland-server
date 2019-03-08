@@ -14,9 +14,11 @@ export class CallRepository {
 
     getOrCreateConference = async (parent: Context, cid: number) => {
         return await inTx(parent, async (ctx) => {
+            let conv = (await this.entities.Conversation.findById(ctx, cid))!;
+            let strategy: 'direct' | 'bridged' = (!conv || conv.kind === 'private') ? 'direct' : 'bridged';
             let res = await this.entities.ConferenceRoom.findById(ctx, cid);
             if (!res) {
-                res = await this.entities.ConferenceRoom.create(ctx, cid, {});
+                res = await this.entities.ConferenceRoom.create(ctx, cid, { strategy });
             }
             return res;
         });
@@ -64,7 +66,7 @@ export class CallRepository {
 
     removePeer = async (parent: Context, pid: number) => {
         await inTx(parent, async (ctx) => {
-            
+
             // Disable peer itself
             let existing = await this.entities.ConferencePeer.findById(ctx, pid);
             if (!existing) {

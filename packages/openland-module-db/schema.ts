@@ -6772,11 +6772,23 @@ export class OrganizationInviteLinkFactory extends FEntityFactory<OrganizationIn
     }
 }
 export interface ConferenceRoomShape {
+    strategy?: 'direct' | 'bridged'| null;
 }
 
 export class ConferenceRoom extends FEntity {
     readonly entityName: 'ConferenceRoom' = 'ConferenceRoom';
     get id(): number { return this._value.id; }
+    get strategy(): 'direct' | 'bridged' | null {
+        let res = this._value.strategy;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set strategy(value: 'direct' | 'bridged' | null) {
+        this._checkIsWritable();
+        if (value === this._value.strategy) { return; }
+        this._value.strategy = value;
+        this.markDirty();
+    }
 }
 
 export class ConferenceRoomFactory extends FEntityFactory<ConferenceRoom> {
@@ -6787,6 +6799,7 @@ export class ConferenceRoomFactory extends FEntityFactory<ConferenceRoom> {
             { name: 'id', type: 'number' },
         ],
         fields: [
+            { name: 'strategy', type: 'enum', enumValues: ['direct', 'bridged'] },
         ],
         indexes: [
         ],
@@ -6795,6 +6808,7 @@ export class ConferenceRoomFactory extends FEntityFactory<ConferenceRoom> {
     private static validate(src: any) {
         validators.notNull('id', src.id);
         validators.isNumber('id', src.id);
+        validators.isEnum('strategy', src.strategy, ['direct', 'bridged']);
     }
 
     constructor(connection: FConnection) {
