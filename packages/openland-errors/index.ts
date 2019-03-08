@@ -26,12 +26,6 @@ export interface QueryInfo {
     transport: 'http' | 'ws';
 }
 
-const ERROR_REPORING_ENABLED = false;
-const IS_PROD = process.env.APP_ENVIRONMENT === 'production';
-
-const ERROR_REPORT_CHAT = IS_PROD ? IDs.Conversation.parse('av6pa90nyruoPV77gnaRhVLWrv') : null;
-const ERROR_REPORT_BOT = IS_PROD ? IDs.User.parse('qlO16E1R00cLaQyAmxzgt9xKeR') : null;
-
 export function errorHandler(error: { message: string, originalError: any }, info?: QueryInfo): FormattedError {
     let uuid = UUID();
     if (error.originalError instanceof IDMailformedError) {
@@ -77,7 +71,21 @@ export function errorHandler(error: { message: string, originalError: any }, inf
     Raven.captureException(error.originalError);
     console.warn('unexpected_error', uuid, error.originalError);
 
-    if (IS_PROD && ERROR_REPORING_ENABLED) {
+    // tslint:disable:no-floating-promises
+    (async () => {
+        let ctx = createEmptyContext();
+
+        if (!await Modules.Super.getEnvVar<boolean>(ctx, 'api-error-reporting-enabled')) {
+            return;
+        }
+
+        let chatId = await Modules.Super.getEnvVar<number>(ctx, 'api-error-reporting-chat-id');
+        let botId = await Modules.Super.getEnvVar<number>(ctx, 'api-error-reporting-bot-id');
+
+        if (!chatId || !botId) {
+            return;
+        }
+
         let report =
             ':rotating_light: API Error:\n' +
             '\n' +
@@ -89,11 +97,8 @@ export function errorHandler(error: { message: string, originalError: any }, inf
             'Error: ' + error.originalError.message + '\n' +
             'UUID: ' + uuid;
 
-        // tslint:disable:no-floating-promises
-        (async () => {
-            await Modules.Messaging.sendMessage(createEmptyContext(), ERROR_REPORT_CHAT!, ERROR_REPORT_BOT!, { message: report, ignoreAugmentation: true });
-        })();
-    }
+        await Modules.Messaging.sendMessage(createEmptyContext(), chatId, botId, { message: report, ignoreAugmentation: true });
+    })();
 
     return {
         message: 'An unexpected error occurred. Please, try again. If the problem persists, please contact support@openland.com.',
