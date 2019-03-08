@@ -98,7 +98,6 @@ export class UserRepository {
             );
 
             // Create pfofile
-            await Modules.Hooks.onUserProfileCreated(ctx, uid);
             let profile = await this.entities.UserProfile.create(ctx, user.id!, {
                 firstName: Sanitizer.sanitizeString(input.firstName)!,
                 lastName: Sanitizer.sanitizeString(input.lastName),
@@ -111,6 +110,7 @@ export class UserRepository {
             });
             await profile.flush();
             await this.markForUndexing(ctx, uid);
+            await Modules.Hooks.onUserProfileCreated(ctx, uid);
             return profile;
         });
     }
