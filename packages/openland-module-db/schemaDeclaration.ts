@@ -677,6 +677,7 @@ const Schema = declareSchema(() => {
 
     entity('ConferenceRoom', () => {
         primaryKey('id', 'number');
+        enumField('strategy', ['direct', 'bridged']).nullable();
         enableTimestamps();
         enableVersioning();
     });

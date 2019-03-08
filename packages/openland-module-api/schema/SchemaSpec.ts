@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '5f027d6676a560f08910f73784a51340';
+export const GQL_SPEC_VERSION = '3974dd7c9b155617ca6039d7d7b6457c';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -871,18 +871,6 @@ export namespace GQL {
         id: string;
         user: User;
         connection: Nullable<ConferencePeerConnection>;
-    }
-    export interface MediaSession {
-        id: string;
-        conference: Conference;
-        streams: MediaStream[];
-    }
-    export type MediaStreamState = 'WAIT_OFFER' | 'NEED_OFFER' | 'WAIT_ANSWER' | 'NEED_ANSWER' | 'READY';
-    export interface MediaStream {
-        id: string;
-        state: MediaStreamState;
-        sdp: Nullable<string>;
-        ice: string[];
     }
     export type ConferencePeerConnectionState = 'WAIT_OFFER' | 'NEED_OFFER' | 'WAIT_ANSWER' | 'NEED_ANSWER' | 'READY';
     export interface ConferencePeerConnection {
@@ -2326,8 +2314,6 @@ export interface GQLResolver {
     ICEServer?: ComplexTypedResolver<GQL.ICEServer, GQLRoots.ICEServerRoot, {}, {}>;
     Conference?: ComplexTypedResolver<GQL.Conference, GQLRoots.ConferenceRoot, {peers: GQLRoots.ConferencePeerRoot[], iceServers: GQLRoots.ICEServerRoot[]}, {}>;
     ConferencePeer?: ComplexTypedResolver<GQL.ConferencePeer, GQLRoots.ConferencePeerRoot, {user: GQLRoots.UserRoot, connection: Nullable<GQLRoots.ConferencePeerConnectionRoot>}, {}>;
-    MediaSession?: ComplexTypedResolver<GQL.MediaSession, GQLRoots.MediaSessionRoot, {conference: GQLRoots.ConferenceRoot, streams: GQLRoots.MediaStreamRoot[]}, {}>;
-    MediaStream?: ComplexTypedResolver<GQL.MediaStream, GQLRoots.MediaStreamRoot, {}, {}>;
     ConferencePeerConnection?: ComplexTypedResolver<GQL.ConferencePeerConnection, GQLRoots.ConferencePeerConnectionRoot, {}, {}>;
     ConferenceJoinResult?: ComplexTypedResolver<GQL.ConferenceJoinResult, GQLRoots.ConferenceJoinResultRoot, {conference: GQLRoots.ConferenceRoot}, {}>;
     MessageReaction?: ComplexTypedResolver<GQL.MessageReaction, GQLRoots.MessageReactionRoot, {user: GQLRoots.UserRoot}, {}>;
