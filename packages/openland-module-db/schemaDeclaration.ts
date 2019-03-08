@@ -477,6 +477,12 @@ const Schema = declareSchema(() => {
                 jField('user', jNumber());
             }),
             json(() => {
+                jField('type', jString('multi_user_mention'));
+                jField('offset', jNumber());
+                jField('length', jNumber());
+                jField('users', jVec(jNumber()));
+            }),
+            json(() => {
                 jField('type', jString('room_mention'));
                 jField('offset', jNumber());
                 jField('length', jNumber());

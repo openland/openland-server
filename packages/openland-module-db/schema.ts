@@ -4465,7 +4465,7 @@ export interface MessageShape {
     title?: string| null;
     postType?: string| null;
     complexMentions?: any| null;
-    spans?: ({ type: 'user_mention', offset: number, length: number, user: number, } | { type: 'room_mention', offset: number, length: number, room: number, } | { type: 'link', offset: number, length: number, url: string, })[]| null;
+    spans?: ({ type: 'user_mention', offset: number, length: number, user: number, } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[], } | { type: 'room_mention', offset: number, length: number, room: number, } | { type: 'link', offset: number, length: number, url: string, })[]| null;
     isMuted: boolean;
     isService: boolean;
     deleted?: boolean| null;
@@ -4679,12 +4679,12 @@ export class Message extends FEntity {
         this._value.complexMentions = value;
         this.markDirty();
     }
-    get spans(): ({ type: 'user_mention', offset: number, length: number, user: number, } | { type: 'room_mention', offset: number, length: number, room: number, } | { type: 'link', offset: number, length: number, url: string, })[] | null {
+    get spans(): ({ type: 'user_mention', offset: number, length: number, user: number, } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[], } | { type: 'room_mention', offset: number, length: number, room: number, } | { type: 'link', offset: number, length: number, url: string, })[] | null {
         let res = this._value.spans;
         if (res !== null && res !== undefined) { return res; }
         return null;
     }
-    set spans(value: ({ type: 'user_mention', offset: number, length: number, user: number, } | { type: 'room_mention', offset: number, length: number, room: number, } | { type: 'link', offset: number, length: number, url: string, })[] | null) {
+    set spans(value: ({ type: 'user_mention', offset: number, length: number, user: number, } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[], } | { type: 'room_mention', offset: number, length: number, room: number, } | { type: 'link', offset: number, length: number, url: string, })[] | null) {
         this._checkIsWritable();
         if (value === this._value.spans) { return; }
         this._value.spans = value;
@@ -4781,6 +4781,12 @@ export class MessageFactory extends FEntityFactory<Message> {
                 jField('offset', jNumber());
                 jField('length', jNumber());
                 jField('user', jNumber());
+            }), 
+            json(() => {
+                jField('type', jString('multi_user_mention'));
+                jField('offset', jNumber());
+                jField('length', jNumber());
+                jField('users', jVec(jNumber()));
             }), 
             json(() => {
                 jField('type', jString('room_mention'));

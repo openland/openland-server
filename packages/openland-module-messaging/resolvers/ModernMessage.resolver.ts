@@ -4,7 +4,7 @@ import { IDs } from '../../openland-module-api/IDs';
 import { Modules } from '../../openland-modules/Modules';
 import { Message } from '../../openland-module-db/schema';
 import { FDB } from '../../openland-module-db/FDB';
-import { createEmptyContext } from '../../openland-utils/Context';
+import { Context } from '../../openland-utils/Context';
 import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
 import MessageSpanRoot = GQLRoots.MessageSpanRoot;
 import { UserError } from '../../openland-errors/UserError';
@@ -24,46 +24,62 @@ const REACTIONS_LEGACY = new Map([
 ]);
 
 type IntermediateMention = { type: 'user', user: number } | { type: 'room', room: number };
-// Legacy user mentions
-function prepareLegacyMentions(mentions: number[]): IntermediateMention[] {
-    let res: IntermediateMention[] = [];
-
-    for (let m of mentions) {
-        res.push({ type: 'user', user: m });
-    }
-
-    return res;
-}
-// Legacy complex mentions
-function prepareLegacyComplexMentions(mentions: { type: 'User'|'SharedRoom', id: number }[]): IntermediateMention[] {
-    let res: IntermediateMention[] = [];
-
-    for (let m of mentions) {
-        if (m.type === 'User') {
-            res.push({ type: 'user', user: m.id });
-        } else if (m.type === 'SharedRoom') {
-            res.push({ type: 'room', room: m.id });
-        } else {
-            throw new Error('Unknown mention type: ' + m.type);
-        }
-    }
-
-    return res;
-}
-
 export type UserMentionSpan = { type: 'user_mention', offset: number, length: number, user: number };
-export type MultiUserMentionSpan = { type: 'user_mention', offset: number, length: number, users: number[] };
+export type MultiUserMentionSpan = { type: 'multi_user_mention', offset: number, length: number, users: number[] };
 export type RoomMentionSpan = { type: 'room_mention', offset: number, length: number, room: number };
 export type LinkSpan = { type: 'link', offset: number, length: number, url: string };
-export type MessageSpan = UserMentionSpan | RoomMentionSpan | LinkSpan;
-async function mentionsToSpans(messageText: string, mentions: IntermediateMention[], uid: number): Promise<MessageSpan[]> {
-    let ctx = createEmptyContext();
+export type MessageSpan = UserMentionSpan | MultiUserMentionSpan | RoomMentionSpan | LinkSpan;
+
+async function prepareLegacyMentions(ctx: Context, message: Message, uid: number): Promise<MessageSpan[]> {
+    let messageText = message.text || '';
 
     if (messageText.length === 0) {
         return [];
     }
 
+    let intermediateMentions: IntermediateMention[] = [];
     let spans: MessageSpan[] = [];
+
+    //
+    //  Legacy user mentions
+    //
+    if (message.mentions) {
+        for (let m of message.mentions) {
+            intermediateMentions.push({ type: 'user', user: m });
+        }
+    }
+
+    //
+    // Legacy complex mentions
+    //
+    if (message.complexMentions) {
+        for (let m of message.complexMentions) {
+            if (m.type === 'User') {
+                intermediateMentions.push({ type: 'user', user: m.id });
+            } else if (m.type === 'SharedRoom') {
+                intermediateMentions.push({ type: 'room', room: m.id });
+            } else {
+                throw new Error('Unknown mention type: ' + m.type);
+            }
+        }
+    }
+
+    //
+    // Multi-user join service message
+    //
+    let multiUserJoinRegexp = /along with (\d?) others/;
+    if (message.isService && message.serviceMetadata && message.serviceMetadata.type === 'user_invite' && multiUserJoinRegexp.test(messageText)) {
+        let [, _usersJoined] = multiUserJoinRegexp.exec(messageText)!;
+        let usersJoined = parseInt(_usersJoined, 10);
+        let othersLen = 'others'.length;
+        let othersMentions = intermediateMentions.splice(-usersJoined);
+        spans.push({
+            type: 'multi_user_mention',
+            offset: messageText.length - othersLen,
+            length: othersLen,
+            users: othersMentions.map((v: any) => v.user)
+        });
+    }
 
     let offsets = new Set<number>();
 
@@ -78,7 +94,7 @@ async function mentionsToSpans(messageText: string, mentions: IntermediateMentio
         return offset;
     }
 
-    for (let mention of mentions) {
+    for (let mention of intermediateMentions) {
         if (mention.type === 'user') {
             let profile = await Modules.Users.profileById(ctx, mention.user);
             let userName = [profile!.firstName, profile!.lastName].filter((v) => !!v).join(' ');
@@ -186,12 +202,7 @@ export default {
             //
             //  Legacy data support
             //
-            if (src.mentions) {
-                spans.push(...await mentionsToSpans(src.text || '', prepareLegacyMentions(src.mentions), uid));
-            }
-            if (src.complexMentions) {
-                spans.push(...await mentionsToSpans(src.text || '', prepareLegacyComplexMentions(src.complexMentions), uid));
-            }
+            spans.push(...await prepareLegacyMentions(ctx, src, uid));
 
             //
             //  Links
@@ -237,12 +248,7 @@ export default {
             //
             //  Legacy data support
             //
-            if (src.mentions) {
-                spans.push(...await mentionsToSpans(src.text || '', prepareLegacyMentions(src.mentions), uid));
-            }
-            if (src.complexMentions) {
-                spans.push(...await mentionsToSpans(src.text || '', prepareLegacyComplexMentions(src.complexMentions), uid));
-            }
+            spans.push(...await prepareLegacyMentions(ctx, src, uid));
 
             //
             //  Links
@@ -316,6 +322,8 @@ export default {
                 return 'MessageSpanRoomMention';
             } else if (src.type === 'link') {
                 return 'MessageSpanLink';
+            } else if (src.type === 'multi_user_mention') {
+                return 'MessageSpanMultiUserMention';
             } else {
                 throw new UserError('Unknown message span type: ' + (src as any).type);
             }
