@@ -8,7 +8,6 @@ import { ImageRef } from 'openland-module-media/ImageRef';
 import { Context } from 'openland-utils/Context';
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
-import { Modules } from '../../openland-modules/Modules';
 import { createHyperlogger } from '../../openland-module-hyperlog/createHyperlogEvent';
 
 const userCreated = createHyperlogger<{ uid: number }>('user_created');
