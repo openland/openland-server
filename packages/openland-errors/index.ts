@@ -3,7 +3,7 @@ import UUID from 'uuid/v4';
 import { NotFoundError } from './NotFoundError';
 import { UserError } from './UserError';
 import { InvalidInputError } from './InvalidInputError';
-import Raven from 'raven';
+// import Raven from 'raven';
 import { DoubleInvokeError } from './DoubleInvokeError';
 import { AccessDeniedError } from './AccessDeniedError';
 import { IDs } from '../openland-module-api/IDs';
@@ -68,7 +68,7 @@ export function errorHandler(error: { message: string, originalError: any }, inf
             uuid: uuid,
         };
     }
-    Raven.captureException(error.originalError);
+    // Raven.captureException(error.originalError);
     console.warn('unexpected_error', uuid, error.originalError);
 
     // tslint:disable:no-floating-promises
