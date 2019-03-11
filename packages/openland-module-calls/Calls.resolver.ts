@@ -83,7 +83,7 @@ export default {
                     let id = c.id;
                     let state: 'READY' | 'WAIT_OFFER' | 'NEED_OFFER' | 'WAIT_ANSWER' | 'NEED_ANSWER' = 'READY';
                     let sdp: string | null = null;
-                    let isPrimary = src.id > src.peerId;
+                    let isPrimary = src.peerId === c.peer1;
                     let ice: string[] = isPrimary ? c.ice2 : c.ice1;
                     if (c.state === 'wait-offer') {
                         if (isPrimary) {
@@ -153,24 +153,27 @@ export default {
         }),
 
         mediaStreamOffer: withUser(async (ctx, args, uid) => {
-            let coid = IDs.Conference.parse(args.id);
+            let mid = IDs.MediaStream.parse(args.id);
             let pid = IDs.ConferencePeer.parse(args.peerId);
-            await Modules.Calls.repo.streamOffer(ctx, coid, pid, args.offer);
-            return { id: coid, peerId: pid };
+            await Modules.Calls.repo.streamOffer(ctx, mid, pid, args.offer);
+            let cid = (await Modules.DB.entities.ConferenceMediaStream.findById(ctx, mid))!.cid;
+            return { id: cid, peerId: pid };
         }),
 
         mediaStreamAnswer: withUser(async (ctx, args, uid) => {
-            let coid = IDs.Conference.parse(args.id);
+            let mid = IDs.Conference.parse(args.id);
             let pid = IDs.ConferencePeer.parse(args.peerId);
-            await Modules.Calls.repo.streamAnswer(ctx, coid, pid, args.answer);
-            return { id: coid, peerId: pid };
+            await Modules.Calls.repo.streamAnswer(ctx, mid, pid, args.answer);
+            let cid = (await Modules.DB.entities.ConferenceMediaStream.findById(ctx, mid))!.cid;
+            return { id: cid, peerId: pid };
         }),
 
         mediaStreamCandidate: withUser(async (ctx, args, uid) => {
-            let coid = IDs.Conference.parse(args.id);
+            let mid = IDs.MediaStream.parse(args.id);
             let pid = IDs.ConferencePeer.parse(args.peerId);
-            await Modules.Calls.repo.streamCandidate(ctx, coid, pid, args.candidate);
-            return { id: coid, peerId: pid };
+            await Modules.Calls.repo.streamCandidate(ctx, mid, pid, args.candidate);
+            let cid = (await Modules.DB.entities.ConferenceMediaStream.findById(ctx, mid))!.cid;
+            return { id: cid, peerId: pid };
         }),
 
         peerConnectionOffer: withUser(async (ctx, args, uid) => {
