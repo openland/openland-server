@@ -27,10 +27,10 @@ export class CallRepository {
     addPeer = async (parent: Context, cid: number, uid: number, tid: string, timeout: number) => {
         return await inTx(parent, async (ctx) => {
 
-            let room = await this.entities.ConferenceRoom.findById(ctx, cid);
-            if (!room) {
-                throw Error('Unable to find room');
-            }
+            // let room = await this.entities.ConferenceRoom.findById(ctx, cid);
+            // if (!room) {
+            //     throw Error('Unable to find room');
+            // }
 
             // Disable existing for this auth
             let existing = await this.entities.ConferencePeer.findFromAuth(ctx, cid, uid, tid);
