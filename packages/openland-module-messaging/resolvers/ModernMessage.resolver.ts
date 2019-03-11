@@ -293,9 +293,9 @@ export default {
                 if (filtered.length > 0) {
                     return filtered;
                 }
-                return null;
+                return [];
             }
-            return null;
+            return [];
         },
         fallback: src => 'unsupported message'
     },

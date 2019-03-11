@@ -47,7 +47,7 @@ type ModernMessage implements BaseMessage {
     message: String
     spans: [MessageSpan!]!
     attachments: [ModernMessageAttachment!]!
-    quotedMessages: [Message!]!
+    quotedMessages: [BaseMessage!]!
     fallback: String!
 }
 
