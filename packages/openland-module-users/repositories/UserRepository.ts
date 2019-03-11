@@ -116,7 +116,6 @@ export class UserRepository {
             await profile.flush();
             await this.markForUndexing(ctx, uid);
             await userProfileCreated.event(ctx, { uid: uid });
-            await Modules.Hooks.onUserProfileCreated(ctx, uid);
             return profile;
         });
     }

@@ -61,6 +61,10 @@ export class OrganizationModule {
             // 6. Invoke Hook
             await Modules.Hooks.onOrganizationCreated(ctx, uid, res.id);
 
+            if (user.status !== 'activated' && (await this.findUserOrganizations(ctx, uid)).length === 1) {
+                await Modules.Hooks.onUserProfileCreated(ctx, uid);
+            }
+
             return res;
         });
     }

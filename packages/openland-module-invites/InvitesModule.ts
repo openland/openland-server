@@ -66,5 +66,6 @@ export class InvitesModule {
 
     async joinOrganizationInvite(ctx: Context, uid: number, invite: string, isNewUser: boolean) {
         return await this.invitesMediator.joinOrganizationInvite(ctx, uid, invite, isNewUser);
+
     }
 }
