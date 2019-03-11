@@ -371,7 +371,21 @@ export default {
     MessageAttachmentFile: {
         id: src => src.id,
         fileId: src => src.fileId,
-        fileMetadata: src => src.fileMetadata,
+        fileMetadata: src => {
+            if (src.fileId && src.fileMetadata) {
+                return {
+                    name: src.fileMetadata.name,
+                    mimeType: src.fileMetadata.mimeType,
+                    isImage: !!(src.fileMetadata.isImage),
+                    imageWidth: src.fileMetadata.imageWidth,
+                    imageHeight: src.fileMetadata.imageHeight,
+                    imageFormat: src.fileMetadata.imageFormat,
+                    size: src.fileMetadata.size
+                };
+            } else {
+                return null;
+            }
+        },
         filePreview: src => src.filePreview,
         fallback: src => 'File attachment'
     },
