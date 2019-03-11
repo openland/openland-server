@@ -27,6 +27,11 @@ export class CallRepository {
     addPeer = async (parent: Context, cid: number, uid: number, tid: string, timeout: number) => {
         return await inTx(parent, async (ctx) => {
 
+            let room = await this.entities.ConferenceRoom.findById(ctx, cid);
+            if (!room) {
+                throw Error('Unable to find room');
+            }
+
             // Disable existing for this auth
             let existing = await this.entities.ConferencePeer.findFromAuth(ctx, cid, uid, tid);
             if (existing) {
@@ -59,6 +64,26 @@ export class CallRepository {
                     ice2: []
                 });
             }
+
+            // Create streams
+            for (let cp of confPeers) {
+                if (cp.id === id) {
+                    continue;
+                }
+
+                // if (room.strategy === 'direct') {
+                await this.entities.ConferenceMediaStream.create(ctx, await this.nextStreamId(ctx), {
+                    kind: 'direct',
+                    peer1: Math.min(cp.id, id),
+                    peer2: Math.max(cp.id, id),
+                    cid: cid,
+                    state: 'wait-offer',
+                    ice1: [],
+                    ice2: []
+                });
+                // }
+            }
+
             await this.bumpVersion(ctx, cid);
             return res;
         });
@@ -78,6 +103,16 @@ export class CallRepository {
             let connections = await this.entities.ConferenceConnection.allFromConference(ctx, existing.cid);
             for (let c of connections) {
                 if (c.peer1 === pid || c.peer2 === pid) {
+                    c.state = 'completed';
+                }
+            }
+
+            // Kill all streams
+            let streams = await this.entities.ConferenceMediaStream.allFromConference(ctx, existing.cid);
+            for (let c of streams) {
+                if (c.kind === 'bridged' && c.peer1 === pid) {
+                    c.state = 'completed';
+                } else if (c.kind === 'direct' && (c.peer1 === pid || c.peer2 === pid)) {
                     c.state = 'completed';
                 }
             }
@@ -114,6 +149,96 @@ export class CallRepository {
                     await this.bumpVersion(ctx, a.cid);
                 }
             }
+        });
+    }
+
+    // Streams
+
+    streamOffer = async (parent: Context, id: number, peerId: number, offer: string) => {
+        await inTx(parent, async (ctx) => {
+            let peer = await this.entities.ConferencePeer.findById(ctx, peerId);
+            if (!peer || !peer.enabled) {
+                return;
+            }
+
+            let stream = await this.entities.ConferenceMediaStream.findById(ctx, id);
+            if (!stream) {
+                throw Error('Unable to find stream');
+            }
+
+            if (stream.kind === 'direct') {
+                if (stream.peer1 !== peerId) {
+                    throw Error('Invalid peerId');
+                }
+                if (stream.state !== 'wait-offer') {
+                    return;
+                }
+            } else {
+                throw Error('Invalid peerId');
+            }
+
+            stream.offer = offer;
+            stream.state = 'wait-answer';
+
+            await this.bumpVersion(ctx, stream!.cid);
+        });
+    }
+
+    streamAnswer = async (parent: Context, id: number, peerId: number, answer: string) => {
+        await inTx(parent, async (ctx) => {
+            let peer = await this.entities.ConferencePeer.findById(ctx, peerId);
+            if (!peer || !peer.enabled) {
+                return;
+            }
+            let stream = await this.entities.ConferenceMediaStream.findById(ctx, id);
+            if (!stream) {
+                throw Error('Unable to find stream');
+            }
+
+            if (stream.kind === 'direct') {
+                if (stream.peer2 !== peerId) {
+                    throw Error('Invalid peerId');
+                }
+                if (stream.state !== 'wait-answer') {
+                    return;
+                }
+                stream.answer = answer;
+                stream.state = 'online';
+            } else if (stream.kind === 'bridged') {
+                if (stream.peer1 !== peerId) {
+                    throw Error('Invalid peerId');
+                }
+                if (stream.state !== 'wait-answer') {
+                    return;
+                }
+                stream.answer = answer;
+                stream.state = 'online';
+            }
+
+            await this.bumpVersion(ctx, stream!.cid);
+        });
+    }
+
+    streamCandidate = async (parent: Context, id: number, peerId: number, candidate: string) => {
+        await inTx(parent, async (ctx) => {
+            let peer = await this.entities.ConferencePeer.findById(ctx, peerId);
+            if (!peer || !peer.enabled) {
+                return;
+            }
+            let stream = await this.entities.ConferenceMediaStream.findById(ctx, id);
+            if (!stream) {
+                throw Error('Unable to find stream');
+            }
+
+            if (stream.peer1 === peerId) {
+                stream.ice1 = [...stream.ice1, candidate];
+            } else if (stream.peer2 === peerId) {
+                stream.ice2 = [...stream.ice2, candidate];
+            } else {
+                throw Error('Unable to find stream');
+            }
+
+            await this.bumpVersion(ctx, stream!.cid);
         });
     }
 
@@ -211,6 +336,21 @@ export class CallRepository {
         await inTx(parent, async (ctx) => {
             let conf = await this.getOrCreateConference(ctx, cid);
             conf.markDirty();
+        });
+    }
+
+    private nextStreamId = async (parent: Context) => {
+        return await inTx(parent, async (ctx) => {
+            let ex = await this.entities.Sequence.findById(ctx, 'media-stream-id');
+            if (ex) {
+                ex.value++;
+                let res = ex.value;
+                await ex.flush();
+                return res;
+            } else {
+                await this.entities.Sequence.create(ctx, 'media-stream-id', { value: 1 });
+                return 1;
+            }
         });
     }
 }

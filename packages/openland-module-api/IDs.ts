@@ -42,6 +42,7 @@ export const IDs = {
     Dialog: IdsFactory.createId('Dialog'),
     Message: IdsFactory.createId('Message'),
     Conference: IdsFactory.createId('Conference'),
+    ConferenceMedia: IdsFactory.createId('ConferenceMedia'),
     ConferenceParticipant: IdsFactory.createId('ConferenceParticipant'),
     ConferencePeer: IdsFactory.createId('ConferencePeer'),
     FeedItem: IdsFactory.createId('FeedItem'),

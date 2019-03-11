@@ -7012,6 +7012,194 @@ export class ConferencePeerFactory extends FEntityFactory<ConferencePeer> {
         return new ConferencePeer(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConferencePeer');
     }
 }
+export interface ConferenceMediaStreamShape {
+    cid: number;
+    peer1: number;
+    peer2?: number| null;
+    kind: 'direct' | 'bridged';
+    state: 'wait-offer' | 'wait-answer' | 'online' | 'completed';
+    offer?: string| null;
+    answer?: string| null;
+    ice1: any;
+    ice2: any;
+}
+
+export class ConferenceMediaStream extends FEntity {
+    readonly entityName: 'ConferenceMediaStream' = 'ConferenceMediaStream';
+    get id(): number { return this._value.id; }
+    get cid(): number {
+        return this._value.cid;
+    }
+    set cid(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.cid) { return; }
+        this._value.cid = value;
+        this.markDirty();
+    }
+    get peer1(): number {
+        return this._value.peer1;
+    }
+    set peer1(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.peer1) { return; }
+        this._value.peer1 = value;
+        this.markDirty();
+    }
+    get peer2(): number | null {
+        let res = this._value.peer2;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set peer2(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.peer2) { return; }
+        this._value.peer2 = value;
+        this.markDirty();
+    }
+    get kind(): 'direct' | 'bridged' {
+        return this._value.kind;
+    }
+    set kind(value: 'direct' | 'bridged') {
+        this._checkIsWritable();
+        if (value === this._value.kind) { return; }
+        this._value.kind = value;
+        this.markDirty();
+    }
+    get state(): 'wait-offer' | 'wait-answer' | 'online' | 'completed' {
+        return this._value.state;
+    }
+    set state(value: 'wait-offer' | 'wait-answer' | 'online' | 'completed') {
+        this._checkIsWritable();
+        if (value === this._value.state) { return; }
+        this._value.state = value;
+        this.markDirty();
+    }
+    get offer(): string | null {
+        let res = this._value.offer;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set offer(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.offer) { return; }
+        this._value.offer = value;
+        this.markDirty();
+    }
+    get answer(): string | null {
+        let res = this._value.answer;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set answer(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.answer) { return; }
+        this._value.answer = value;
+        this.markDirty();
+    }
+    get ice1(): any {
+        return this._value.ice1;
+    }
+    set ice1(value: any) {
+        this._checkIsWritable();
+        if (value === this._value.ice1) { return; }
+        this._value.ice1 = value;
+        this.markDirty();
+    }
+    get ice2(): any {
+        return this._value.ice2;
+    }
+    set ice2(value: any) {
+        this._checkIsWritable();
+        if (value === this._value.ice2) { return; }
+        this._value.ice2 = value;
+        this.markDirty();
+    }
+}
+
+export class ConferenceMediaStreamFactory extends FEntityFactory<ConferenceMediaStream> {
+    static schema: FEntitySchema = {
+        name: 'ConferenceMediaStream',
+        editable: false,
+        primaryKeys: [
+            { name: 'id', type: 'number' },
+        ],
+        fields: [
+            { name: 'cid', type: 'number' },
+            { name: 'peer1', type: 'number' },
+            { name: 'peer2', type: 'number' },
+            { name: 'kind', type: 'enum', enumValues: ['direct', 'bridged'] },
+            { name: 'state', type: 'enum', enumValues: ['wait-offer', 'wait-answer', 'online', 'completed'] },
+            { name: 'offer', type: 'string' },
+            { name: 'answer', type: 'string' },
+            { name: 'ice1', type: 'json' },
+            { name: 'ice2', type: 'json' },
+        ],
+        indexes: [
+            { name: 'conference', type: 'range', fields: ['cid', 'createdAt'] },
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isNumber('id', src.id);
+        validators.notNull('cid', src.cid);
+        validators.isNumber('cid', src.cid);
+        validators.notNull('peer1', src.peer1);
+        validators.isNumber('peer1', src.peer1);
+        validators.isNumber('peer2', src.peer2);
+        validators.notNull('kind', src.kind);
+        validators.isEnum('kind', src.kind, ['direct', 'bridged']);
+        validators.notNull('state', src.state);
+        validators.isEnum('state', src.state, ['wait-offer', 'wait-answer', 'online', 'completed']);
+        validators.isString('offer', src.offer);
+        validators.isString('answer', src.answer);
+        validators.notNull('ice1', src.ice1);
+        validators.notNull('ice2', src.ice2);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'conferenceMediaStream'),
+            { enableVersioning: true, enableTimestamps: true, validator: ConferenceMediaStreamFactory.validate, hasLiveStreams: false },
+            [new FEntityIndex('conference', ['cid', 'createdAt'], false, (src) => src.state !== 'completed')],
+            'ConferenceMediaStream'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
+        return { 'id': rawId[0] };
+    }
+    async findById(ctx: Context, id: number) {
+        return await this._findById(ctx, [id]);
+    }
+    async create(ctx: Context, id: number, shape: ConferenceMediaStreamShape) {
+        return await this._create(ctx, [id], { id, ...shape });
+    }
+    watch(ctx: Context, id: number, cb: () => void) {
+        return this._watch(ctx, [id], cb);
+    }
+    async allFromConferenceAfter(ctx: Context, cid: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'conference', cid], after);
+    }
+    async rangeFromConferenceAfter(ctx: Context, cid: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'conference', cid], after, limit, reversed);
+    }
+    async rangeFromConference(ctx: Context, cid: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'conference', cid], limit, reversed);
+    }
+    async rangeFromConferenceWithCursor(ctx: Context, cid: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'conference', cid], limit, after, reversed);
+    }
+    async allFromConference(ctx: Context, cid: number) {
+        return await this._findAll(ctx, ['__indexes', 'conference', cid]);
+    }
+    createConferenceStream(ctx: Context, cid: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'conferenceMediaStream', '__indexes', 'conference', cid], limit, after); 
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new ConferenceMediaStream(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'ConferenceMediaStream');
+    }
+}
 export interface ConferenceConnectionShape {
     cid: number;
     state: 'wait-offer' | 'wait-answer' | 'online' | 'completed';
@@ -7914,6 +8102,7 @@ export interface AllEntities {
     readonly OrganizationInviteLink: OrganizationInviteLinkFactory;
     readonly ConferenceRoom: ConferenceRoomFactory;
     readonly ConferencePeer: ConferencePeerFactory;
+    readonly ConferenceMediaStream: ConferenceMediaStreamFactory;
     readonly ConferenceConnection: ConferenceConnectionFactory;
     readonly UserEdge: UserEdgeFactory;
     readonly UserInfluencerUserIndex: UserInfluencerUserIndexFactory;
@@ -7981,6 +8170,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         OrganizationInviteLinkFactory.schema,
         ConferenceRoomFactory.schema,
         ConferencePeerFactory.schema,
+        ConferenceMediaStreamFactory.schema,
         ConferenceConnectionFactory.schema,
         UserEdgeFactory.schema,
         UserInfluencerUserIndexFactory.schema,
@@ -8047,6 +8237,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     OrganizationInviteLink: OrganizationInviteLinkFactory;
     ConferenceRoom: ConferenceRoomFactory;
     ConferencePeer: ConferencePeerFactory;
+    ConferenceMediaStream: ConferenceMediaStreamFactory;
     ConferenceConnection: ConferenceConnectionFactory;
     UserEdge: UserEdgeFactory;
     UserInfluencerUserIndex: UserInfluencerUserIndexFactory;
@@ -8169,6 +8360,8 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         this.allEntities.push(this.ConferenceRoom);
         this.ConferencePeer = new ConferencePeerFactory(connection);
         this.allEntities.push(this.ConferencePeer);
+        this.ConferenceMediaStream = new ConferenceMediaStreamFactory(connection);
+        this.allEntities.push(this.ConferenceMediaStream);
         this.ConferenceConnection = new ConferenceConnectionFactory(connection);
         this.allEntities.push(this.ConferenceConnection);
         this.UserEdge = new UserEdgeFactory(connection);
@@ -8357,6 +8550,9 @@ export class AllEntitiesProxy implements AllEntities {
     }
     get ConferencePeer(): ConferencePeerFactory {
         return this.resolver().ConferencePeer;
+    }
+    get ConferenceMediaStream(): ConferenceMediaStreamFactory {
+        return this.resolver().ConferenceMediaStream;
     }
     get ConferenceConnection(): ConferenceConnectionFactory {
         return this.resolver().ConferenceConnection;

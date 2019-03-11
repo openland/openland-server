@@ -710,6 +710,22 @@ const Schema = declareSchema(() => {
         enableVersioning();
     });
 
+    entity('ConferenceMediaStream', () => {
+        primaryKey('id', 'number');
+        field('cid', 'number');
+        field('peer1', 'number');
+        field('peer2', 'number').nullable();
+        enumField('kind', ['direct', 'bridged']);
+        enumField('state', ['wait-offer', 'wait-answer', 'online', 'completed']);
+        field('offer', 'string').nullable();
+        field('answer', 'string').nullable();
+        field('ice1', 'json');
+        field('ice2', 'json');
+        rangeIndex('conference', ['cid', 'createdAt']).withCondition((src) => src.state !== 'completed');
+        enableTimestamps();
+        enableVersioning();
+    });
+
     entity('ConferenceConnection', () => {
         primaryKey('peer1', 'number');
         primaryKey('peer2', 'number');

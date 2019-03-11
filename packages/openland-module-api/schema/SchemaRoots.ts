@@ -42,6 +42,7 @@ export namespace GQLRoots {
     export type ConferenceMemberLeftRoot = any;
     export type ConferenceMemberJoinedRoot = any;
     export type ConferenceRoot = any;
+    export type ConferenceMediaRoot = { id: number, peerId: number };
     export type DialogDeletedRoot = any;
     export type ConversationSettingsRoot = UserDialogSettings;
     export type ConversationRoot = Conversation;
@@ -160,7 +161,7 @@ export namespace GQLRoots {
 
     export type RoomConnectionRoot = any;
     export type RoomConnectionEdgeRoot = any;
-    
+
     export type RoomSuperRoot = any;
     export type MessageAttachmentRoot = GQL.MessageAttachment;
     export type MessageButtonRoot = GQL.MessageButton;
