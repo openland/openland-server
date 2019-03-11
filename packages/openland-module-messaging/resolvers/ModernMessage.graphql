@@ -1,4 +1,4 @@
-interface BaseMessage {
+interface ModernMessage {
     #
     #   State
     #
@@ -14,7 +14,7 @@ interface BaseMessage {
     fallback: String!
 }
 
-type ServiceMessage implements BaseMessage  {
+type ServiceMessage implements ModernMessage  {
     #
     #   State
     #
@@ -31,7 +31,7 @@ type ServiceMessage implements BaseMessage  {
     fallback: String!
 }
 
-type ModernMessage implements BaseMessage {
+type GeneralMessage implements ModernMessage {
     #
     #   State
     #
@@ -47,12 +47,12 @@ type ModernMessage implements BaseMessage {
     message: String
     spans: [MessageSpan!]!
     attachments: [ModernMessageAttachment!]!
-    quotedMessages: [BaseMessage!]!
+    quotedMessages: [ModernMessage!]!
     fallback: String!
 }
 
 extend type Query {
-    messages(chatId: ID!, first: Int!, before: ID): [BaseMessage!]!
+    messages(chatId: ID!, first: Int!, before: ID): [ModernMessage!]!
 }
 
 #extend type Mutation {

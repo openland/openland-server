@@ -90,7 +90,6 @@ export namespace GQLRoots {
     export type AppInviteInfoRoot = any;
     export type InviteHistotyInfoRoot = any;
     export type ReactionRoot = any;
-    export type MessageRoot = any;
     export type DialogRoot = any;
     export type DialogsConnectionRoot = any;
     export type SettingsRoot = any;
@@ -180,9 +179,13 @@ export namespace GQLRoots {
     //
     // Modern Messaging
     //
-    export type BaseMessageRoot = Message;
-    export type ServiceMessageRoot = Message;
+
+    export type MessageRoot = Message;
     export type ModernMessageRoot = Message;
+    export type GeneralMessageRoot = Message;
+    // export type BaseMessageRoot = Message;
+    export type ServiceMessageRoot = Message;
+    // export type ModernMessageRoot = Message;
     export type MessageSpanRoot = MessageSpan;
     export type MessageAttachmentFileInputRoot = any;
     export type MessageAttachmentPostInputRoot = any;

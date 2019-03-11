@@ -167,12 +167,12 @@ function parseLinks(message: string): MessageSpan[] {
 }
 
 export default {
-    BaseMessage: {
+    ModernMessage: {
       __resolveType(src: Message) {
           if (src.isService) {
               return 'ServiceMessage';
           } else {
-              return 'ModernMessage';
+              return 'GeneralMessage';
           }
       }
     },
@@ -220,7 +220,7 @@ export default {
         },
         fallback: src => 'unsupported message'
     },
-    ModernMessage: {
+    GeneralMessage: {
         //
         //  State
         //

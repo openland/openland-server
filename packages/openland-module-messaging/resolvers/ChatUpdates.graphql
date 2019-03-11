@@ -16,15 +16,15 @@ union ChatUpdateContainer = ChatUpdateSingle | ChatUpdateBatch
 union ChatUpdate = ChatMessageReceived | ChatMessageUpdated | ChatMessageDeleted
 
 type ChatMessageReceived {
-    message: BaseMessage!
+    message: ModernMessage!
 }
 
 type ChatMessageUpdated {
-    message: BaseMessage!
+    message: ModernMessage!
 }
 
 type ChatMessageDeleted {
-    message: BaseMessage!
+    message: ModernMessage!
 }
 
 type ChatUpdateState {
