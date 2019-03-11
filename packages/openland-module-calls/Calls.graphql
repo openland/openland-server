@@ -7,7 +7,6 @@ type ICEServer {
 type Conference {
     id: ID!
     peers: [ConferencePeer!]!
-    streams: [MediaStream!]!
     iceServers: [ICEServer!]!
 }
 
@@ -15,6 +14,12 @@ type ConferencePeer {
     id: ID!
     user: User!
     connection: ConferencePeerConnection # Deprecated
+}
+
+type ConferenceMedia {
+    id: ID!
+    streams: [MediaStream!]!
+    iceServers: [ICEServer!]!    
 }
 
 enum MediaStreamState {
@@ -55,12 +60,17 @@ type ConferenceJoinResult {
 
 extend type Query {
     conference(id: ID!): Conference!
+    conferenceMedia(id: ID!, peerId: ID!): ConferenceMedia!
 }
 
 extend type Mutation {
     conferenceJoin(id: ID!): ConferenceJoinResult!
     conferenceKeepAlive(id: ID!, peerId: ID!): Conference!
     conferenceLeave(id: ID!, peerId: ID!): Conference!
+
+    mediaStreamOffer(id: ID!, peerId: ID!, offer: String!): ConferenceMedia!
+    mediaStreamAnswer(id: ID!, peerId: ID!, answer: String!): ConferenceMedia!
+    mediaStreamCandidate(id: ID!, peerId: ID!, candidate: String!): ConferenceMedia!
 
     peerConnectionOffer(id: ID!, ownPeerId: ID!, peerId: ID!, offer: String!): Conference!
     peerConnectionAnswer(id: ID!, ownPeerId: ID!, peerId: ID!, answer: String!): Conference!
@@ -69,4 +79,5 @@ extend type Mutation {
 
 extend type Subscription {
     alphaConferenceWatch(id: ID!): Conference!
+    alphaConferenceMediaWatch(id: ID!, peerId: ID!): ConferenceMedia!
 }

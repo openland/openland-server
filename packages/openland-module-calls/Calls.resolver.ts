@@ -16,53 +16,6 @@ export default {
             res.sort((a, b) => a.createdAt - b.createdAt);
             return res;
         },
-        streams: async (src: ConferenceRoom, args: {}, ctx: AppContext) => {
-            let outgoing = await FDB.ConferencePeer.findFromAuth(ctx, src.id, ctx.auth.uid!, ctx.auth.tid!);
-            if (outgoing) {
-                let connections = await FDB.ConferenceConnection.allFromConference(ctx, src.id);
-                let res = [];
-                for (let c of connections) {
-                    if (c.peer1 === outgoing.id || c.peer2 === outgoing.id) {
-
-                        let id = c.peer1 === outgoing.id ? c.peer2 : c.peer1;
-                        let state: 'READY' | 'WAIT_OFFER' | 'NEED_OFFER' | 'WAIT_ANSWER' | 'NEED_ANSWER' = 'READY';
-                        let sdp: string | null = null;
-                        let isPrimary = src.id > outgoing.id;
-                        let ice: string[] = isPrimary ? c.ice2 : c.ice1;
-                        if (c.state === 'wait-offer') {
-                            if (isPrimary) {
-                                state = 'NEED_OFFER';
-                            } else {
-                                state = 'WAIT_OFFER';
-                            }
-                        } else if (c.state === 'wait-answer') {
-                            if (isPrimary) {
-                                state = 'WAIT_ANSWER';
-                            } else {
-                                state = 'NEED_ANSWER';
-                                sdp = c.offer;
-                            }
-                        } else if (c.state === 'online') {
-                            if (isPrimary) {
-                                sdp = c.answer;
-                            } else {
-                                sdp = c.offer;
-                            }
-                        } else {
-                            throw Error('Unkown state: ' + c.state);
-                        }
-                        res.push({
-                            id: IDs.MediaStream.serialize(id),
-                            state,
-                            sdp,
-                            ice
-                        });
-                    }
-                }
-                return res;
-            }
-            return [];
-        },
         iceServers: () => {
             return resolveTurnServices();
         }
@@ -117,9 +70,67 @@ export default {
             }
         }
     },
+    ConferenceMedia: {
+        id: (src) => IDs.ConferenceMedia.serialize(src.id),
+        iceServers: resolveTurnServices,
+        streams: async (src, args: {}, ctx: AppContext) => {
+            let outgoing = await FDB.ConferencePeer.findFromAuth(ctx, src.id, ctx.auth.uid!, ctx.auth.tid!);
+            if (outgoing) {
+                let connections = await FDB.ConferenceConnection.allFromConference(ctx, src.id);
+                let res = [];
+                for (let c of connections) {
+                    if (c.peer1 === outgoing.id || c.peer2 === outgoing.id) {
+
+                        let id = c.peer1 === outgoing.id ? c.peer2 : c.peer1;
+                        let state: 'READY' | 'WAIT_OFFER' | 'NEED_OFFER' | 'WAIT_ANSWER' | 'NEED_ANSWER' = 'READY';
+                        let sdp: string | null = null;
+                        let isPrimary = src.id > outgoing.id;
+                        let ice: string[] = isPrimary ? c.ice2 : c.ice1;
+                        if (c.state === 'wait-offer') {
+                            if (isPrimary) {
+                                state = 'NEED_OFFER';
+                            } else {
+                                state = 'WAIT_OFFER';
+                            }
+                        } else if (c.state === 'wait-answer') {
+                            if (isPrimary) {
+                                state = 'WAIT_ANSWER';
+                            } else {
+                                state = 'NEED_ANSWER';
+                                sdp = c.offer;
+                            }
+                        } else if (c.state === 'online') {
+                            if (isPrimary) {
+                                sdp = c.answer;
+                            } else {
+                                sdp = c.offer;
+                            }
+                        } else {
+                            throw Error('Unkown state: ' + c.state);
+                        }
+                        res.push({
+                            id: IDs.MediaStream.serialize(id),
+                            state,
+                            sdp,
+                            ice
+                        });
+                    }
+                }
+                return res;
+            }
+            return [];
+        },
+
+    },
     Query: {
         conference: withUser(async (ctx, args, uid) => {
             return Modules.Calls.repo.getOrCreateConference(ctx, IDs.Conversation.parse(args.id));
+        }),
+        conferenceMedia: withUser(async (ctx, args, uid) => {
+            return {
+                id: IDs.Conference.parse(args.id),
+                peerId: IDs.ConferencePeer.parse(args.peerId)
+            };
         })
     },
     Mutation: {
@@ -143,6 +154,28 @@ export default {
             await Modules.Calls.repo.peerKeepAlive(ctx, coid, pid, 15000);
             return Modules.Calls.repo.getOrCreateConference(ctx, coid);
         }),
+
+        mediaStreamOffer: withUser(async (ctx, args, uid) => {
+            let coid = IDs.Conference.parse(args.id);
+            let pid = IDs.ConferencePeer.parse(args.peerId);
+            await Modules.Calls.repo.streamOffer(ctx, coid, pid, args.offer);
+            return { id: coid, peerId: pid };
+        }),
+
+        mediaStreamAnswer: withUser(async (ctx, args, uid) => {
+            let coid = IDs.Conference.parse(args.id);
+            let pid = IDs.ConferencePeer.parse(args.peerId);
+            await Modules.Calls.repo.streamAnswer(ctx, coid, pid, args.answer);
+            return { id: coid, peerId: pid };
+        }),
+
+        mediaStreamCandidate: withUser(async (ctx, args, uid) => {
+            let coid = IDs.Conference.parse(args.id);
+            let pid = IDs.ConferencePeer.parse(args.peerId);
+            await Modules.Calls.repo.streamCandidate(ctx, coid, pid, args.candidate);
+            return { id: coid, peerId: pid };
+        }),
+
         peerConnectionOffer: withUser(async (ctx, args, uid) => {
             let coid = IDs.Conference.parse(args.id);
             let srcPid = IDs.ConferencePeer.parse(args.ownPeerId);
@@ -178,6 +211,31 @@ export default {
                         while (!ended) {
                             let settings = await FDB.ConferenceRoom.findById(ctx, cid);
                             yield settings;
+                            await new Promise((resolve) => FDB.ConferenceRoom.watch(ctx, cid, () => {
+                                resolve();
+                            }));
+                        }
+                    })(),
+                    return: async () => {
+                        ended = true;
+                        return 'ok';
+                    }
+                };
+            }
+        },
+        alphaConferenceMediaWatch: {
+            resolve: async (msg: any) => {
+                return msg;
+            },
+            subscribe: async function (_: any, args: { id: string, peerId: string }, ctx: AppContext) {
+                let cid = IDs.Conference.parse(args.id);
+                let pid = IDs.ConferencePeer.parse(args.peerId);
+                let ended = false;
+                return {
+                    ...(async function* func() {
+                        while (!ended) {
+                            // let settings = await FDB.ConferenceRoom.findById(ctx, cid);
+                            yield { id: cid, peerId: pid };
                             await new Promise((resolve) => FDB.ConferenceRoom.watch(ctx, cid, () => {
                                 resolve();
                             }));
