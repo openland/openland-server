@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '7a8122e7a2f5f978f0ca808fe3d7f75a';
+export const GQL_SPEC_VERSION = '2c2ddadbc17844e77b87aaa3409fff1e';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -808,7 +808,7 @@ export namespace GQL {
         cid: string;
         message: ConversationMessage;
         betaMessage: RoomMessage;
-        alphaMessage: Message;
+        alphaMessage: ModernMessage;
         unread: number;
         globalUnread: number;
     }
@@ -816,15 +816,15 @@ export namespace GQL {
         cid: string;
         message: ConversationMessage;
         betaMessage: RoomMessage;
-        alphaMessage: Message;
+        alphaMessage: ModernMessage;
     }
     export interface DialogMessageDeleted {
         cid: string;
         message: ConversationMessage;
         betaMessage: RoomMessage;
         prevMessage: Nullable<RoomMessage>;
-        alphaPrevMessage: Nullable<Message>;
-        alphaMessage: Message;
+        alphaPrevMessage: Nullable<ModernMessage>;
+        alphaMessage: ModernMessage;
         unread: number;
         globalUnread: number;
     }
@@ -2368,9 +2368,9 @@ export interface GQLResolver {
     DialogUpdateBatch?: ComplexTypedResolver<GQL.DialogUpdateBatch, GQLRoots.DialogUpdateBatchRoot, {updates: GQLRoots.DialogUpdateRoot[]}, {}>;
     DialogUpdateContainer?: UnionTypeResolver<GQLRoots.DialogUpdateContainerRoot, 'DialogUpdateSingle' | 'DialogUpdateBatch'>;
     DialogUpdate?: UnionTypeResolver<GQLRoots.DialogUpdateRoot, 'DialogMessageReceived' | 'DialogMessageUpdated' | 'DialogMessageDeleted' | 'DialogMessageRead' | 'DialogTitleUpdated' | 'DialogDeleted' | 'DialogPhotoUpdated' | 'DialogMuteChanged' | 'DialogMentionedChanged'>;
-    DialogMessageReceived?: ComplexTypedResolver<GQL.DialogMessageReceived, GQLRoots.DialogMessageReceivedRoot, {message: GQLRoots.ConversationMessageRoot, betaMessage: GQLRoots.RoomMessageRoot, alphaMessage: GQLRoots.MessageRoot}, {}>;
-    DialogMessageUpdated?: ComplexTypedResolver<GQL.DialogMessageUpdated, GQLRoots.DialogMessageUpdatedRoot, {message: GQLRoots.ConversationMessageRoot, betaMessage: GQLRoots.RoomMessageRoot, alphaMessage: GQLRoots.MessageRoot}, {}>;
-    DialogMessageDeleted?: ComplexTypedResolver<GQL.DialogMessageDeleted, GQLRoots.DialogMessageDeletedRoot, {message: GQLRoots.ConversationMessageRoot, betaMessage: GQLRoots.RoomMessageRoot, prevMessage: Nullable<GQLRoots.RoomMessageRoot>, alphaPrevMessage: Nullable<GQLRoots.MessageRoot>, alphaMessage: GQLRoots.MessageRoot}, {}>;
+    DialogMessageReceived?: ComplexTypedResolver<GQL.DialogMessageReceived, GQLRoots.DialogMessageReceivedRoot, {message: GQLRoots.ConversationMessageRoot, betaMessage: GQLRoots.RoomMessageRoot, alphaMessage: GQLRoots.ModernMessageRoot}, {}>;
+    DialogMessageUpdated?: ComplexTypedResolver<GQL.DialogMessageUpdated, GQLRoots.DialogMessageUpdatedRoot, {message: GQLRoots.ConversationMessageRoot, betaMessage: GQLRoots.RoomMessageRoot, alphaMessage: GQLRoots.ModernMessageRoot}, {}>;
+    DialogMessageDeleted?: ComplexTypedResolver<GQL.DialogMessageDeleted, GQLRoots.DialogMessageDeletedRoot, {message: GQLRoots.ConversationMessageRoot, betaMessage: GQLRoots.RoomMessageRoot, prevMessage: Nullable<GQLRoots.RoomMessageRoot>, alphaPrevMessage: Nullable<GQLRoots.ModernMessageRoot>, alphaMessage: GQLRoots.ModernMessageRoot}, {}>;
     DialogMessageRead?: ComplexTypedResolver<GQL.DialogMessageRead, GQLRoots.DialogMessageReadRoot, {}, {}>;
     DialogTitleUpdated?: ComplexTypedResolver<GQL.DialogTitleUpdated, GQLRoots.DialogTitleUpdatedRoot, {}, {}>;
     DialogPhotoUpdated?: ComplexTypedResolver<GQL.DialogPhotoUpdated, GQLRoots.DialogPhotoUpdatedRoot, {}, {}>;
