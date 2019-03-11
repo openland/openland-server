@@ -161,7 +161,7 @@ export default {
         }),
 
         mediaStreamAnswer: withUser(async (ctx, args, uid) => {
-            let mid = IDs.Conference.parse(args.id);
+            let mid = IDs.MediaStream.parse(args.id);
             let pid = IDs.ConferencePeer.parse(args.peerId);
             await Modules.Calls.repo.streamAnswer(ctx, mid, pid, args.answer);
             let cid = (await Modules.DB.entities.ConferenceMediaStream.findById(ctx, mid))!.cid;
