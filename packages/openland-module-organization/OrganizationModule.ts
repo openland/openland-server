@@ -207,7 +207,23 @@ export class OrganizationModule {
                     }
                     await profile.flush();
                 }
+                let userGroups = await FDB.RoomParticipant.allFromUserActive(ctx, uid);
+                for (let group of userGroups) {
+                    let conv = await FDB.Conversation.findById(ctx, group.cid);
+                    if (!conv) {
+                        continue;
+                    }
+                    if (conv.kind === 'room') {
+                        let room = await FDB.ConversationRoom.findById(ctx, conv.id);
+                        if (!room) {
+                            continue;
+                        }
 
+                        if (room.oid && room.oid === oid) {
+                            await Modules.Messaging.room.kickFromRoom(ctx, room.id, uid, by);
+                        }
+                    }
+                }
                 await Emails.sendMemberRemovedEmail(ctx, oid, uid);
                 return true;
             }
