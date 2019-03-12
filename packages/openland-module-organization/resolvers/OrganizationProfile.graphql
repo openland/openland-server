@@ -47,8 +47,8 @@ type OrganizationProfile {
     alphaARSpecialAttributes: [String!]
     alphaARLandUse: [String!]
 
-    alphaJoinedChannels: [ChannelConversation]!
-    alphaCreatedChannels: [ChannelConversation]!
+    alphaJoinedChannels: [ChannelConversation]! @disabled
+    alphaCreatedChannels: [ChannelConversation]! @disabled
 }
 
 input CreateOrganizationInput {
