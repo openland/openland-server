@@ -232,6 +232,22 @@ export class RoomMediator {
         });
     }
 
+    async checkCanEditChat(parent: Context, cid: number, uid: number) {
+        return await inTx(parent, async (ctx) => {
+            let conv = await this.entities.ConversationRoom.findById(ctx, cid);
+            if (!conv) {
+                throw new Error('Room not found');
+            }
+
+            if (conv.kind === 'group') {
+                let member = await this.entities.RoomParticipant.findById(ctx, cid, uid);
+                if (!member || member.status !== 'joined') {
+                    throw new AccessDeniedError();
+                }
+            }
+        });
+    }
+
     async updateRoomProfile(parent: Context, cid: number, uid: number, profile: Partial<RoomProfileInput>) {
         return await inTx(parent, async (ctx) => {
             let conv = await this.entities.ConversationRoom.findById(ctx, cid);
@@ -239,10 +255,10 @@ export class RoomMediator {
                 throw new Error('Room not found');
             }
             let userName = await Modules.Users.getUserFullName(ctx, uid);
-
-            // TODO: Check Access
+            await this.checkCanEditChat(ctx, cid, uid);
             let res = await this.repo.updateRoomProfile(ctx, cid, uid, profile);
             let roomProfile = (await this.entities.RoomProfile.findById(ctx, cid))!;
+
             if (res.updatedPhoto) {
                 await this.messaging.sendMessage(ctx, uid, cid, {
                     message: `@${userName} changed group photo`,
