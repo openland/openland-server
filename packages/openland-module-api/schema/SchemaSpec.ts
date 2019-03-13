@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '2c2ddadbc17844e77b87aaa3409fff1e';
+export const GQL_SPEC_VERSION = '9a61bf3a097b614dbf1a7ace931aaeb9';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -753,6 +753,7 @@ export namespace GQL {
     export type ChatUpdate = ChatMessageReceived | ChatMessageUpdated | ChatMessageDeleted;
     export interface ChatMessageReceived {
         message: ModernMessage;
+        repeatKey: Nullable<string>;
     }
     export interface ChatMessageUpdated {
         message: ModernMessage;

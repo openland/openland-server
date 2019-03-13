@@ -43,6 +43,13 @@ export default {
 
     ChatMessageReceived: {
         message: (src, args, ctx) => FDB.Message.findById(ctx, src.mid!),
+        repeatKey: async (src, args, ctx) => {
+            let msg = await FDB.Message.findById(ctx, src.mid!);
+            if (msg) {
+                return msg.repeatKey;
+            }
+            return null;
+        }
     },
     ChatMessageUpdated: {
         message: (src, args, ctx) => FDB.Message.findById(ctx, src.mid!),

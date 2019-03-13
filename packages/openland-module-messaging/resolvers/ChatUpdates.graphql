@@ -17,6 +17,7 @@ union ChatUpdate = ChatMessageReceived | ChatMessageUpdated | ChatMessageDeleted
 
 type ChatMessageReceived {
     message: ModernMessage!
+    repeatKey: String
 }
 
 type ChatMessageUpdated {
