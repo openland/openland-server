@@ -220,7 +220,7 @@ export class OrganizationModule {
                         }
 
                         if (room.oid && room.oid === oid) {
-                            await Modules.Messaging.room.kickFromRoom(ctx, room.id, uid, by);
+                            await Modules.Messaging.room.kickFromRoom(ctx, room.id, by, uid);
                         }
                     }
                 }
