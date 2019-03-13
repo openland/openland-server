@@ -198,6 +198,7 @@ export default {
         user: async (src: RoomParticipant, args: {}, ctx: AppContext) => await FDB.User.findById(ctx, src.uid),
         role: async (src: RoomParticipant) => src.role.toUpperCase(),
         membership: async (src: RoomParticipant, args: {}, ctx: AppContext) => src.status as any,
+        invitedBy: async (src: RoomParticipant, args: {}, ctx: AppContext) => src.invitedBy,
     },
 
     RoomInvite: {

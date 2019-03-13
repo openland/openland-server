@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '9a61bf3a097b614dbf1a7ace931aaeb9';
+export const GQL_SPEC_VERSION = '4006770977f40f0c830afd98517d7c9c';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2228,6 +2228,7 @@ export namespace GQL {
         user: User;
         role: RoomMemberRole;
         membership: SharedRoomMembershipStatus;
+        invitedBy: User;
     }
     export interface RoomUserNotificaionSettings {
         id: string;
@@ -2417,7 +2418,7 @@ export interface GQLResolver {
     SharedRoomMention?: ComplexTypedResolver<GQL.SharedRoomMention, GQLRoots.SharedRoomMentionRoot, {sharedRoom: GQLRoots.SharedRoomRoot}, {}>;
     Mention?: UnionTypeResolver<GQLRoots.MentionRoot, 'UserMention' | 'SharedRoomMention'>;
     RoomMessage?: ComplexTypedResolver<GQL.RoomMessage, GQLRoots.RoomMessageRoot, {fileMetadata: Nullable<GQLRoots.FileMetadataRoot>, sender: GQLRoots.UserRoot, serviceMetadata: Nullable<GQLRoots.ServiceMetadataRoot>, urlAugmentation: Nullable<GQLRoots.UrlAugmentationRoot>, reactions: GQLRoots.MessageReactionRoot[], replyMessages: Nullable<GQLRoots.RoomMessageRoot[]>, mentions: Nullable<GQLRoots.UserRoot[]>, alphaAttachments: GQLRoots.MessageAttachmentRoot[], alphaButtons: Nullable<GQLRoots.MessageButtonRoot[]>[], alphaMentions: Nullable<GQLRoots.MentionRoot[]>}, {}>;
-    RoomMember?: ComplexTypedResolver<GQL.RoomMember, GQLRoots.RoomMemberRoot, {user: GQLRoots.UserRoot}, {}>;
+    RoomMember?: ComplexTypedResolver<GQL.RoomMember, GQLRoots.RoomMemberRoot, {user: GQLRoots.UserRoot, invitedBy: GQLRoots.UserRoot}, {}>;
     RoomUserNotificaionSettings?: ComplexTypedResolver<GQL.RoomUserNotificaionSettings, GQLRoots.RoomUserNotificaionSettingsRoot, {}, {}>;
     RoomConnectionEdge?: ComplexTypedResolver<GQL.RoomConnectionEdge, GQLRoots.RoomConnectionEdgeRoot, {node: GQLRoots.SharedRoomRoot}, {}>;
     RoomConnection?: ComplexTypedResolver<GQL.RoomConnection, GQLRoots.RoomConnectionRoot, {edges: GQLRoots.RoomConnectionEdgeRoot[], pageInfo: GQLRoots.PageInfoRoot}, {}>;
