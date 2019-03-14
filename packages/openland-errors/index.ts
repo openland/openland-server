@@ -15,6 +15,7 @@ interface FormattedError {
     message: string;
     invalidFields?: { key: string, message: string }[] | null;
     code?: number | null;
+    error_code?: string;
     doubleInvoke?: boolean;
     shouldRetry?: boolean;
 }
@@ -44,6 +45,7 @@ export function errorHandler(error: { message: string, originalError: any }, inf
         return {
             message: error.originalError.message,
             uuid: uuid,
+            ...(error.originalError.code ? { error_code: error.originalError.code } : {})
         };
     } else if (error.originalError instanceof AccessDeniedError) {
         return {

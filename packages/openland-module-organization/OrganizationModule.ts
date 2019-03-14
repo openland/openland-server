@@ -168,7 +168,6 @@ export class OrganizationModule {
                 return false;
             }
 
-            //
             let superRoles = await Modules.Super.superRole(ctx, by);
 
             // Check permissions
