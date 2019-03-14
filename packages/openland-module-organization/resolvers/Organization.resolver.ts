@@ -74,7 +74,7 @@ export default {
             }
 
             let res = await FDB.Organization.findById(ctx, orgId);
-            if (!res) {
+            if (!res || res.status === 'deleted') {
                 throw new NotFoundError('Unable to find organization');
             }
             return res;
