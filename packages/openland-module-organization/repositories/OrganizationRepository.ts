@@ -171,7 +171,7 @@ export class OrganizationRepository {
                 throw new NotFoundError();
             }
 
-            if (!await this.isUserAdmin(ctx, uid, oid)) {
+            if (!await this.isUserAdmin(ctx, uid, oid) && !(await Modules.Super.superRole(ctx, uid) === 'super-admin')) {
                 throw new AccessDeniedError();
             }
             let members = await this.findOrganizationMembers(ctx, oid);
@@ -198,6 +198,7 @@ export class OrganizationRepository {
 
             // Mark deleted
             organization.status = 'deleted';
+            await organization.flush();
 
             let userProfile = await Modules.Users.profileById(ctx, uid);
 
@@ -207,6 +208,8 @@ export class OrganizationRepository {
 
             // Change primary organization to other one
             userProfile.primaryOrganization = userOrganizations.filter(o => o !== oid)[0];
+
+            await this.markForUndexing(ctx, oid);
 
             return true;
         });
