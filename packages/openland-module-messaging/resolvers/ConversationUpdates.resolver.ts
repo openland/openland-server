@@ -2,9 +2,13 @@ import { IDs } from 'openland-module-api/IDs';
 import { ConversationEvent } from 'openland-module-db/schema';
 import { FDB } from 'openland-module-db/FDB';
 import { FLiveStreamItem } from 'foundation-orm/FLiveStreamItem';
-import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
+import { GQL, GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
 import { withUser } from 'openland-module-api/Resolvers';
+import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
+import { EventBus } from '../../openland-module-pubsub/EventBus';
+import { Modules } from '../../openland-modules/Modules';
+import { delay } from '../../openland-utils/timer';
 
 export default {
     /* 
@@ -35,13 +39,15 @@ export default {
      * Conversation Updates
      */
     ConversationUpdate: {
-        __resolveType(obj: ConversationEvent) {
+        __resolveType(obj: ConversationEvent | { kind: 'lost_access' }) {
             if (obj.kind === 'message_received') {
                 return 'ConversationMessageReceived';
             } else if (obj.kind === 'message_updated') {
                 return 'ConversationMessageUpdated';
             } else if (obj.kind === 'message_deleted') {
                 return 'ConversationMessageDeleted';
+            } else if (obj.kind === 'lost_access') {
+                return 'ConversationLostAccess';
             }
             throw Error('Unknown conversation update type: ' + obj.kind);
         }
@@ -59,6 +65,9 @@ export default {
         message: (src: ConversationEvent, args: {}, ctx: AppContext) => FDB.Message.findById(ctx, src.mid!),
         betaMessage: (src: ConversationEvent, args: {}, ctx: AppContext) => FDB.Message.findById(ctx, src.mid!),
     },
+    ConversationLostAccess: {
+        lostAccess: () => true
+    },
 
     Query: {
         conversationState: withUser(async (ctx, args, uid) => {
@@ -75,9 +84,38 @@ export default {
             resolve: async (msg: any) => {
                 return msg;
             },
-            subscribe: (r, args, ctx) => {
-                let conversationId = IDs.Conversation.parse(args.conversationId);
-                return FDB.ConversationEvent.createUserLiveStream(ctx, conversationId, 20, args.fromState || undefined);
+            subscribe: async function * (r: any, args: GQL.SubscriptionConversationUpdatesArgs, ctx: AppContext) {
+                let uid = ctx.auth.uid;
+                if (!uid) {
+                    throw new AccessDeniedError();
+                }
+                let chatId = IDs.Conversation.parse(args.conversationId);
+                const lostAccessEvent = { cursor: '', items: [{ kind: 'lost_access', seq: -1 }] };
+
+                // Can't trow error, current clients will retry connection in infinite loop
+                try {
+                    await Modules.Messaging.room.checkAccess(ctx, uid, chatId);
+                } catch (e) {
+                    while (true) {
+                        yield lostAccessEvent;
+                        await delay(5000);
+                    }
+                }
+
+                let generator = FDB.ConversationEvent.createUserLiveStream(ctx, chatId, 20, args.fromState || undefined);
+                let haveAccess = true;
+                await EventBus.subscribe(`chat_leave_${uid}_${chatId}`, (ev: { uid: number, cid: number }) => {
+                    haveAccess = false;
+                });
+
+                for await (let event of generator as any) {
+                    if (haveAccess) {
+                        yield event;
+                    } else {
+                        yield lostAccessEvent;
+                        return;
+                    }
+                }
             }
         },
     },

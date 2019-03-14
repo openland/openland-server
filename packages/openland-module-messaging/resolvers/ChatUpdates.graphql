@@ -32,6 +32,10 @@ type ChatUpdateState {
     state: String
 }
 
+type ChatLostAccess {
+    lostAccess: Boolean!
+}
+
 extend type Query {
     chatState(chatId: ID!): ChatUpdateState!
 }

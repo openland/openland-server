@@ -13,7 +13,7 @@ type ConversationUpdateBatch {
 
 union ConversationUpdateContainer = ConversationUpdateSingle | ConversationUpdateBatch
 
-union ConversationUpdate = ConversationMessageReceived | ConversationMessageUpdated | ConversationMessageDeleted
+union ConversationUpdate = ConversationMessageReceived | ConversationMessageUpdated | ConversationMessageDeleted | ConversationLostAccess
 
 type ConversationMessageReceived {
     message: ConversationMessage!
@@ -28,6 +28,10 @@ type ConversationMessageUpdated {
 type ConversationMessageDeleted {
     message: ConversationMessage!
     betaMessage: RoomMessage!
+}
+
+type ConversationLostAccess {
+    lostAccess: Boolean!
 }
 
 type ConversationUpdateState {

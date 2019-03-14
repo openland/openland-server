@@ -119,6 +119,7 @@ export namespace GQLRoots {
     export type ConversationMessageReceivedRoot = any;
     export type ConversationMessageUpdatedRoot = any;
     export type ConversationMessageDeletedRoot = any;
+    export type ConversationLostAccessRoot = any;
     export type DialogUpdateSingleRoot = any;
     export type DialogUpdateBatchRoot = any;
     export type DialogUpdateContainerRoot = any;
@@ -211,6 +212,7 @@ export namespace GQLRoots {
     export type ChatMessageReceivedRoot = ConversationEvent;
     export type ChatMessageUpdatedRoot = ConversationEvent;
     export type ChatMessageDeletedRoot = ConversationEvent;
+    export type ChatLostAccessRoot = ConversationEvent;
     export type ChatUpdateStateRoot = any;
     export type ChatUpdateContainerRoot = FLiveStreamItem<ConversationEvent>;
 

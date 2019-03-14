@@ -9,6 +9,7 @@ import { lazyInject } from 'openland-modules/Modules.container';
 import { RoomProfileInput } from 'openland-module-messaging/RoomProfileInput';
 import { Context } from 'openland-utils/Context';
 import { Modules } from '../../openland-modules/Modules';
+import { EventBus } from '../../openland-module-pubsub/EventBus';
 
 function doSimpleHash(key: string): number {
     var h = 0, l = key.length, i = 0;
@@ -103,6 +104,7 @@ export class RoomRepository {
                 return false;
             }
             participant.status = 'kicked';
+            await EventBus.publish(`chat_leave_${uid}_${cid}`, { uid, cid });
             return true;
         });
     }
@@ -133,6 +135,7 @@ export class RoomRepository {
                 return false;
             }
             p.status = 'left';
+            await EventBus.publish(`chat_leave_${uid}_${cid}`, { uid, cid });
             return true;
         });
     }

@@ -1,10 +1,15 @@
-import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
+import { GQL, GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { ConversationEvent } from '../../openland-module-db/schema';
 import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
 import ChatUpdateContainerRoot = GQLRoots.ChatUpdateContainerRoot;
 import { FDB } from '../../openland-module-db/FDB';
 import { withUser } from '../../openland-module-api/Resolvers';
 import { IDs } from '../../openland-module-api/IDs';
+import { AccessDeniedError } from '../../openland-errors/AccessDeniedError';
+import { Modules } from '../../openland-modules/Modules';
+import { delay } from '../../openland-utils/timer';
+import { EventBus } from '../../openland-module-pubsub/EventBus';
+import { AppContext } from '../../openland-modules/AppContext';
 
 export default {
     ChatUpdateContainer: {
@@ -57,6 +62,9 @@ export default {
     ChatMessageDeleted: {
         message: (src, args, ctx) => FDB.Message.findById(ctx, src.mid!),
     },
+    ChatLostAccess: {
+        lostAccess: () => true
+    },
 
     Query: {
         chatState: withUser(async (ctx, args, uid) => {
@@ -73,9 +81,38 @@ export default {
             resolve: async msg => {
                 return msg;
             },
-            subscribe: (r, args, ctx) => {
-                let conversationId = IDs.Conversation.parse(args.chatId);
-                return FDB.ConversationEvent.createUserLiveStream(ctx, conversationId, 20, args.fromState || undefined);
+            subscribe: async function * (r: any, args: GQL.SubscriptionChatUpdatesArgs, ctx: AppContext) {
+                let uid = ctx.auth.uid;
+                if (!uid) {
+                    throw new AccessDeniedError();
+                }
+                let chatId = IDs.Conversation.parse(args.chatId);
+                const lostAccessEvent = { cursor: '', items: [{ kind: 'lost_access', seq: -1 }] };
+
+                // Can't trow error, current clients will retry connection in infinite loop
+                try {
+                    await Modules.Messaging.room.checkAccess(ctx, uid, chatId);
+                } catch (e) {
+                    while (true) {
+                        yield lostAccessEvent;
+                        await delay(5000);
+                    }
+                }
+
+                let generator = FDB.ConversationEvent.createUserLiveStream(ctx, chatId, 20, args.fromState || undefined);
+                let haveAccess = true;
+                await EventBus.subscribe(`chat_leave_${uid}_${chatId}`, (ev: { uid: number, cid: number }) => {
+                    haveAccess = false;
+                });
+
+                for await (let event of generator as any) {
+                    if (haveAccess) {
+                        yield event;
+                    } else {
+                        yield lostAccessEvent;
+                        return;
+                    }
+                }
             }
         },
     },
