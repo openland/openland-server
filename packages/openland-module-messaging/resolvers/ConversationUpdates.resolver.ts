@@ -104,7 +104,7 @@ export default {
 
                 let generator = FDB.ConversationEvent.createUserLiveStream(ctx, chatId, 20, args.fromState || undefined);
                 let haveAccess = true;
-                await EventBus.subscribe(`chat_leave_${uid}_${chatId}`, (ev: { uid: number, cid: number }) => {
+                let subscription = EventBus.subscribe(`chat_leave_${uid}_${chatId}`, (ev: { uid: number, cid: number }) => {
                     haveAccess = false;
                 });
 
@@ -113,6 +113,7 @@ export default {
                         yield event;
                     } else {
                         yield lostAccessEvent;
+                        subscription.cancel();
                         return;
                     }
                 }
