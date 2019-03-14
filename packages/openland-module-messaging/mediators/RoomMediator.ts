@@ -150,8 +150,8 @@ export class RoomMediator {
             if (!existingMembership || existingMembership.status !== 'joined') {
                 throw new UserError('User are not member of a room');
             }
-            let kickerRole = await this.repo.resolveUserRole(ctx, uid, cid);
-            let canKick = isSuperAdmin || existingMembership.invitedBy === uid || (kickerRole === 'owner' || kickerRole === 'admin');
+
+            let canKick = await this.canKickFromRoom(ctx, cid, uid, kickedUid);
             if (!canKick) {
                 throw new UserError('Insufficient rights');
             }
@@ -178,6 +178,37 @@ export class RoomMediator {
             }
 
             return (await this.entities.Conversation.findById(ctx, cid))!;
+        });
+    }
+
+    async canKickFromRoom(parent: Context, cid: number, uid: number, kickedUid: number) {
+        return await inTx(parent, async (ctx) => {
+            let canKick = false;
+
+            let conv = await this.entities.ConversationRoom.findById(ctx, cid);
+            if (!conv) {
+                return false;
+            }
+
+            let isSuperAdmin = (await Modules.Super.superRole(ctx, uid)) === 'super-admin';
+            let existingMembership = await this.repo.findMembershipStatus(ctx, kickedUid, cid);
+            if (!existingMembership || existingMembership.status !== 'joined') {
+                return false;
+            }
+
+            if (isSuperAdmin) {
+                canKick = true;
+            } if (existingMembership.invitedBy === uid) {
+                canKick = true;
+            } else if (conv.oid && await Modules.Orgs.isUserOwner(ctx, uid, conv.oid)) {
+                canKick = true;
+            } else if (conv.ownerId === uid && (conv.oid ? !await Modules.Orgs.isUserOwner(ctx, kickedUid, conv.oid) : true)) {
+                canKick = true;
+            } else if (conv.oid && await Modules.Orgs.isUserAdmin(ctx, uid, conv.oid) && !await Modules.Orgs.isUserOwner(ctx, kickedUid, conv.oid) && conv.ownerId !== kickedUid) {
+                canKick = true;
+            }
+
+            return canKick;
         });
     }
 

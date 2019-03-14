@@ -199,6 +199,7 @@ export default {
         role: async (src: RoomParticipant) => src.role.toUpperCase(),
         membership: async (src: RoomParticipant, args: {}, ctx: AppContext) => src.status as any,
         invitedBy: async (src: RoomParticipant, args: {}, ctx: AppContext) => src.invitedBy,
+        canKick: async (src, args, ctx) => await Modules.Messaging.room.canKickFromRoom(ctx, src.cid, ctx.auth.uid!, src.uid)
     },
 
     RoomInvite: {
@@ -302,6 +303,7 @@ export default {
         }),
         roomMembers: withUser(async (ctx, args, uid) => {
             let roomId = IDs.Conversation.parse(args.roomId);
+            await Modules.Messaging.room.checkAccess(ctx, uid, roomId);
             let conversation = await FDB.Conversation.findById(ctx, roomId);
             if (!conversation) {
                 throw new Error('Room not found');

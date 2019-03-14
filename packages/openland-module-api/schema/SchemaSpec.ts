@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'aee621cf619a535771f101db45fb71ca';
+export const GQL_SPEC_VERSION = '5794626ec13441dcc9547b79b5e80cf8';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2235,6 +2235,7 @@ export namespace GQL {
         role: RoomMemberRole;
         membership: SharedRoomMembershipStatus;
         invitedBy: User;
+        canKick: boolean;
     }
     export interface RoomUserNotificaionSettings {
         id: string;
