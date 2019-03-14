@@ -227,7 +227,7 @@ export default {
         id: src => IDs.ConversationMessage.serialize(src.id),
         date: src => src.createdAt,
         sender: src => src.uid,
-        edited: src => src.edited,
+        edited: src => src.edited || false,
         reactions: src => src.reactions || [],
 
         //
