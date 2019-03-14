@@ -160,7 +160,7 @@ export abstract class FEntityFactory<T extends FEntity> {
     protected _createStream(ctx: Context, subspace: (string | number)[], limit: number, after?: string): FStream<T> {
         return new FStream(this, subspace, limit, (s) => this.doCreateEntity(ctx, s, false), after);
     }
-    protected _createLiveStream(ctx: Context, subspace: (string | number)[], limit: number, after?: string): AsyncIterator<FLiveStreamItem<T>> {
+    protected _createLiveStream(ctx: Context, subspace: (string | number)[], limit: number, after?: string): AsyncIterable<FLiveStreamItem<T>> {
         return new FLiveStream<T>(new FStream(this, subspace, limit, (s) => this.doCreateEntity(ctx, s, false), after)).generator();
     }
 

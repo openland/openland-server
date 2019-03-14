@@ -105,7 +105,7 @@ export default {
                     haveAccess = false;
                 });
 
-                for await (let event of generator as any) {
+                for await (let event of generator) {
                     if (haveAccess) {
                         yield event;
                     } else {

@@ -23,31 +23,35 @@ export class FLiveStream<T extends FEntity> {
         });
     }
 
-    generator(): AsyncIterator<FLiveStreamItem<T>> {
+    generator(): AsyncIterable<FLiveStreamItem<T>> {
         let t = this;
         return {
-            ...(async function* func(): AsyncIterator<FLiveStreamItem<T>> {
-                if (!t.baseStream.cursor) {
-                    let tail = await t.baseStream.tail();
-                    if (tail) {
-                        t.baseStream.seek(tail);
+            [Symbol.asyncIterator]() {
+                return {
+                    ...(async function* func() {
+                        if (!t.baseStream.cursor) {
+                            let tail = await t.baseStream.tail();
+                            if (tail) {
+                                t.baseStream.seek(tail);
+                            }
+                        }
+                        while (!t.ended) {
+                            let res = await t.baseStream.next();
+                            if (res.length > 0) {
+                                yield { items: res, cursor: t.baseStream.cursor };
+                            } else {
+                                let w = delayBreakable(1000 + Math.random() * 5000);
+                                t.awaiter = w.resolver;
+                                await w.promise;
+                                t.awaiter = undefined;
+                            }
+                        }
+                    })(),
+                    return: async () => {
+                        t.handleEnded();
+                        return { done: true, value: { items: [], cursor: t.baseStream.cursor } };
                     }
-                }
-                while (!t.ended) {
-                    let res = await t.baseStream.next();
-                    if (res.length > 0) {
-                        yield { items: res, cursor: t.baseStream.cursor };
-                    } else {
-                        let w = delayBreakable(1000 + Math.random() * 5000);
-                        t.awaiter = w.resolver;
-                        await w.promise;
-                        t.awaiter = undefined;
-                    }
-                }
-            })(),
-            return: async () => {
-                this.handleEnded();
-                return { done: true, value: { items: [], cursor: t.baseStream.cursor } };
+                };
             }
         };
     }
