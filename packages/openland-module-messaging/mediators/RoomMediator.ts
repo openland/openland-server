@@ -163,14 +163,15 @@ export class RoomMediator {
                 let cickerName = await Modules.Users.getUserFullName(parent, uid);
                 let cickedName = await Modules.Users.getUserFullName(parent, kickedUid);
                 await this.messaging.sendMessage(ctx, uid, cid, {
-                    message: `${cickerName} kicked ${cickedName}`,
+                    message: `@${cickerName} kicked @${cickedName}`,
                     isService: true,
                     isMuted: true,
                     serviceMetadata: {
                         type: 'user_kick',
                         userId: kickedUid,
                         kickedById: uid
-                    }
+                    },
+                    complexMentions: [{ type: 'User', id: uid }, { type: 'User', id: kickedUid }]
                 }, true);
 
                 // Deliver dialog deletion

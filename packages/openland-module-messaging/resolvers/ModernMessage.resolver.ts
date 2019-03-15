@@ -80,7 +80,6 @@ async function prepareLegacyMentions(ctx: Context, message: Message, uid: number
             users: othersMentions.map((v: any) => v.user)
         });
     }
-
     let offsets = new Set<number>();
 
     function getOffset(str: string, n: number = 0): number {
@@ -97,13 +96,37 @@ async function prepareLegacyMentions(ctx: Context, message: Message, uid: number
         return offset;
     }
 
+    //
+    //  Kick service message
+    //
+    if (message.isService && message.serviceMetadata && message.serviceMetadata.type === 'user_kick' && !message.complexMentions) {
+        let userName = await Modules.Users.getUserFullName(ctx, message.serviceMetadata.userId);
+        let kickerUserName = await Modules.Users.getUserFullName(ctx, message.serviceMetadata.kickedById);
+
+        let index1 = getOffset(userName);
+        if (index1 > -1) {
+            spans.push({
+                type: 'user_mention',
+                offset: index1,
+                length: userName.length,
+                user: message.serviceMetadata.userId
+            });
+        }
+        let index2 = getOffset(kickerUserName);
+        if (index2 > -1) {
+            spans.push({
+                type: 'user_mention',
+                offset: index2,
+                length: kickerUserName.length,
+                user: message.serviceMetadata.kickedById
+            });
+        }
+    }
+
     for (let mention of intermediateMentions) {
         if (mention.type === 'user') {
-            let profile = await Modules.Users.profileById(ctx, mention.user);
-            let userName = [profile!.firstName, profile!.lastName].filter((v) => !!v).join(' ');
+            let userName = await Modules.Users.getUserFullName(ctx, mention.user);
             let mentionText = '@' + userName;
-
-            console.log(mentionText);
 
             let index = getOffset(mentionText);
 
