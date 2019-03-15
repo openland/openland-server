@@ -71,12 +71,12 @@ async function prepareLegacyMentions(ctx: Context, message: Message, uid: number
     if (message.isService && message.serviceMetadata && message.serviceMetadata.type === 'user_invite' && multiUserJoinRegexp.test(messageText)) {
         let [, _usersJoined] = multiUserJoinRegexp.exec(messageText)!;
         let usersJoined = parseInt(_usersJoined, 10);
-        let othersLen = 'others'.length;
+        let othersText = usersJoined + ' others';
         let othersMentions = intermediateMentions.splice(-usersJoined);
         spans.push({
             type: 'multi_user_mention',
-            offset: messageText.length - othersLen,
-            length: othersLen,
+            offset: messageText.length - othersText.length,
+            length: othersText.length,
             users: othersMentions.map((v: any) => v.user)
         });
     }
@@ -303,7 +303,6 @@ export default {
                 });
             }
             if (src.augmentation) {
-                // console.log(src.augmentation);
                 attachments.push({
                     type: 'rich_attachment',
                     title: src.augmentation.title,
