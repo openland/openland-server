@@ -379,7 +379,7 @@ export default {
         }
     },
     PhotoChangeServiceMetadata: {
-        photo: (src: any) => src.picture ? buildBaseImageUrl(src.extras.picture as any) : null,
+        photo: (src: any) => src.picture ? buildBaseImageUrl(src.picture as any) : null,
         photoRef: (src: any) => src.picture,
     },
     ChatReadResult: {
