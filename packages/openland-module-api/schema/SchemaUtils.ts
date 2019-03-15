@@ -38,3 +38,7 @@ export type ComplexTypedSubscriptionResolver<T, Root, ReturnTypesMap extends any
 export type UnionTypeResolver<Root, ReturnType> = {
     __resolveType: (obj: Root, ctx: AppContext) => MaybePromise<ReturnType>
 };
+
+type PropertyNames<T> = { [K in keyof T]: K }[keyof T];
+type CommonProperty<T, U> = Extract<PropertyNames<T>, PropertyNames<U>>;
+export type LogicalAnd<T, U> = { [P in CommonProperty<T, U>]: T[P]|U[P]  };

@@ -238,7 +238,12 @@ export default {
         //
         //  Content
         //
-        message: src => src.text,
+        message: src => {
+            if (src.type && src.type === 'POST') {
+                return null;
+            }
+            return src.text;
+        },
         spans: async (src, args, ctx) => {
             //
             //  Modern spans
@@ -287,6 +292,33 @@ export default {
                     imageInfo: src.augmentation.imageInfo || undefined,
                     id: 'legacy_rich'
                 });
+            }
+            if (src.type && src.type === 'POST') {
+                attachments.push({
+                    type: 'rich_attachment',
+                    title: src.title || '',
+                    titleLink: undefined,
+                    subTitle: undefined,
+                    text: src.text || '',
+                    icon: undefined,
+                    iconInfo: undefined,
+                    image: undefined,
+                    imageInfo: undefined,
+                    id: 'legacy_post'
+                });
+            }
+            if (src.attachments) {
+                let i = 0;
+                for (let attachment of src.attachments) {
+                    attachments.push({
+                        type: 'file_attachment',
+                        fileId: attachment.fileId,
+                        filePreview: attachment.filePreview || undefined,
+                        fileMetadata: attachment.fileMetadata,
+                        id: 'legacy_file_' + i
+                    });
+                    i++;
+                }
             }
 
             return attachments;
