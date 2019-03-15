@@ -85,6 +85,9 @@ async function prepareLegacyMentions(ctx: Context, message: Message, uid: number
 
     function getOffset(str: string, n: number = 0): number {
         let offset = messageText.indexOf(str, n);
+        if (offset === -1) {
+            return -1;
+        }
 
         if (offsets.has(offset)) {
             return getOffset(str, n + 1);
@@ -99,6 +102,8 @@ async function prepareLegacyMentions(ctx: Context, message: Message, uid: number
             let profile = await Modules.Users.profileById(ctx, mention.user);
             let userName = [profile!.firstName, profile!.lastName].filter((v) => !!v).join(' ');
             let mentionText = '@' + userName;
+
+            console.log(mentionText);
 
             let index = getOffset(mentionText);
 
