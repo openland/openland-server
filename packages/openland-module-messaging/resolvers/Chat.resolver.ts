@@ -379,7 +379,7 @@ export default {
         }
     },
     PhotoChangeServiceMetadata: {
-        photo: (src: any) => src.picture ? buildBaseImageUrl(src.extras.picture as any) : null,
+        photo: (src: any) => src.extras && src.extras.picture ? buildBaseImageUrl(src.extras.picture as any) : null,
         photoRef: (src: any) => src.picture,
     },
     ChatReadResult: {
@@ -491,7 +491,7 @@ export default {
         alphaChatsSearchForCompose: withAccount(async (ctx, args, uid, oid) => {
 
             // Do search
-            let {uids} = await Modules.Users.searchForUsers(ctx, args.query || '', {
+            let { uids } = await Modules.Users.searchForUsers(ctx, args.query || '', {
                 uid,
                 limit: args.limit || 10
             });
