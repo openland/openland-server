@@ -201,7 +201,7 @@ export namespace GQLRoots {
     export type MessageAttachmentFileRoot = MessageAttachmentFile;
     export type MessageAttachmentPostRoot = any;
     export type MessageRichAttachmentRoot = MessageRichAttachment;
-    export type ImageRoot = { uuid: string, metadata: FileInfo };
+    export type ImageRoot = { uuid: string, metadata?: FileInfo };
 
     //
     //  ChatUpdates

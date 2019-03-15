@@ -280,6 +280,7 @@ export default {
                 });
             }
             if (src.augmentation) {
+                // console.log(src.augmentation);
                 attachments.push({
                     type: 'rich_attachment',
                     title: src.augmentation.title,
@@ -392,7 +393,20 @@ export default {
     //
     Image: {
         url: src => buildBaseImageUrl({ uuid: src.uuid, crop: null }),
-        metadata: src => src.metadata
+        metadata: src => {
+            if (src.metadata) {
+                return {
+                    name: src.metadata.name,
+                    mimeType: src.metadata.mimeType,
+                    isImage: !!(src.metadata.isImage),
+                    imageWidth: src.metadata.imageWidth,
+                    imageHeight: src.metadata.imageHeight,
+                    imageFormat: src.metadata.imageFormat,
+                    size: src.metadata.size
+                };
+            }
+            return null;
+        }
     },
     ModernMessageAttachment: {
         __resolveType(src: ModernMessageAttachmentRoot) {
