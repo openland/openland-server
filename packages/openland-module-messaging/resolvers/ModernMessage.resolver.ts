@@ -345,7 +345,7 @@ export default {
                 return REACTIONS_LEGACY.get(src.reaction);
             }
 
-            return src.reaction;
+            return 'LIKE';
         }
     },
 
