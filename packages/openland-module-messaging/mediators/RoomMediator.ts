@@ -267,7 +267,7 @@ export class RoomMediator {
     async checkCanEditChat(parent: Context, cid: number, uid: number) {
         return await inTx(parent, async (ctx) => {
             if (!await this.canEditRoom(ctx, cid, uid)) {
-                throw new AccessDeniedError()
+                throw new AccessDeniedError();
             }
         });
     }
