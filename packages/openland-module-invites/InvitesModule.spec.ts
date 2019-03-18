@@ -6,6 +6,8 @@ import { UsersModule } from 'openland-module-users/UsersModule';
 import { RoomMediator } from 'openland-module-messaging/mediators/RoomMediator';
 import { createEmptyContext } from 'openland-utils/Context';
 import { UserRepository } from 'openland-module-users/repositories/UserRepository';
+import { OrganizationModule } from 'openland-module-organization/OrganizationModule';
+import { OrganizationRepository } from 'openland-module-organization/repositories/OrganizationRepository';
 import { Modules } from '../openland-modules/Modules';
 
 describe('RoomMediator', () => {
@@ -14,6 +16,8 @@ describe('RoomMediator', () => {
         loadMessagingTestModule();
         container.bind(UsersModule).toSelf().inSingletonScope();
         container.bind('UserRepository').to(UserRepository).inSingletonScope();
+        container.bind(OrganizationModule).toSelf().inSingletonScope();
+        container.bind('OrganizationRepository').to(OrganizationRepository).inSingletonScope();
     });
     afterAll(() => {
         testEnvironmentEnd();

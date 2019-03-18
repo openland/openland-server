@@ -193,7 +193,7 @@ export class RoomMediator {
             
             if (isSuperAdmin) {
                 return true;
-            } else if (conv.oid && (await Modules.Orgs.isUserOwner(ctx, uid, conv.oid) || await Modules.Orgs.isUserAdmin(ctx, uid, conv.oid))) {
+            } else if (conv.oid && (await Modules.Orgs.isUserAdmin(ctx, uid, conv.oid))) {
                 return true;
             } 
 

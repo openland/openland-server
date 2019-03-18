@@ -536,11 +536,11 @@ export class RoomRepository {
                 if (convRoom.oid && (await Modules.Orgs.isUserOwner(ctx, uid, convRoom.oid) || await Modules.Orgs.isUserAdmin(ctx, uid, convRoom.oid))) {
                     return;
                 }
-            } else {
-                let member = await this.entities.RoomParticipant.findById(ctx, cid, uid); 
-                if (!member || member.status !== 'joined') {
-                    throw new AccessDeniedError();
-                }
+            } 
+            
+            let member = await this.entities.RoomParticipant.findById(ctx, cid, uid); 
+            if (!member || member.status !== 'joined') {
+                throw new AccessDeniedError();
             }
         } else if (conv.kind === 'organization') {
             let org = await this.entities.ConversationOrganization.findById(ctx, cid);
