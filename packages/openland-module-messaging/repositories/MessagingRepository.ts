@@ -174,7 +174,6 @@ export class MessagingRepository {
                     reactions = reactions.filter(r => !((r.userId === uid) && (r.reaction === reaction)));
                 } else {
                     return;
-
                 }
             } else {
                 reactions.push({ userId: uid, reaction });

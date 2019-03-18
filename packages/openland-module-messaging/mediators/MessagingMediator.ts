@@ -100,6 +100,10 @@ export class MessagingMediator {
             // Update
             let res = await this.repo.setReaction(ctx, mid, uid, reaction, reset);
 
+            if (!res) {
+                return;
+            }
+
             // Delivery
             let message = (await this.entities.Message.findById(ctx, res!.mid!))!;
             await this.delivery.onUpdateMessage(ctx, message);
