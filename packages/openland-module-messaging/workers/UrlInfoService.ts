@@ -126,7 +126,7 @@ export default class UrlInfoService {
         userId: number;
         user: UserProfile | null;
     }): Promise<URLAugmentation> {
-        let org = user!.primaryOrganization && await FDB.OrganizationProfile.findById(createEmptyContext(), user!.primaryOrganization);
+        let org = user!.primaryOrganization && await FDB.OrganizationProfile.findById(createEmptyContext(), user!.primaryOrganization!);
         return {
             url,
             title: user!.firstName + ' ' + user!.lastName,
