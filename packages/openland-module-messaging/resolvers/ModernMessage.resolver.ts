@@ -159,7 +159,7 @@ async function prepareLegacyMentions(ctx: Context, message: Message, uid: number
 }
 
 export type MessageAttachmentFile = { type: 'file_attachment', fileId: string, filePreview?: string, fileMetadata?: any, id: string };
-export type MessageRichAttachment = { type: 'rich_attachment', title?: string, subTitle?: string, titleLink?: string, text?: string, icon?: ImageRef, image?: ImageRef, iconInfo?: FileInfo, imageInfo?: FileInfo, id: string };
+export type MessageRichAttachment = { type: 'rich_attachment', title?: string, subTitle?: string, titleLink?: string, text?: string, icon?: ImageRef, image?: ImageRef, iconInfo?: FileInfo, imageInfo?: FileInfo, titleLinkHostname?: string, id: string };
 export type MessageAttachment = MessageAttachmentFile | MessageRichAttachment;
 
 const linkifyInstance = linkify()
@@ -307,6 +307,7 @@ export default {
                     type: 'rich_attachment',
                     title: src.augmentation.title,
                     titleLink: src.augmentation.url,
+                    titleLinkHostname: src.augmentation.hostname || undefined,
                     subTitle: src.augmentation.subtitle,
                     text: src.augmentation.description,
                     icon: src.augmentation.iconRef || undefined,
@@ -467,6 +468,7 @@ export default {
         title: src => src.title,
         subTitle: src => src.subTitle,
         titleLink: src => src.titleLink,
+        titleLinkHostname: src => src.titleLinkHostname,
         text: src => src.text,
         icon: src => src.icon && { uuid: src.icon.uuid, metadata: src.iconInfo },
         image: src => src.image && { uuid: src.image.uuid, metadata: src.imageInfo },

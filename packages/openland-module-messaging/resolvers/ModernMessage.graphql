@@ -88,6 +88,7 @@ type MessageRichAttachment implements ModernMessageAttachment {
     title: String
     subTitle: String
     titleLink: String
+    titleLinkHostname: String
     text: String
     icon: Image
     image: Image
