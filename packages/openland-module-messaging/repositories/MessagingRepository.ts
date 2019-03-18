@@ -207,7 +207,7 @@ export class MessagingRepository {
         }
     }
 
-    private async fetchConversationNextSeq(parent: Context, cid: number) {
+    async fetchConversationNextSeq(parent: Context, cid: number) {
         return await inTx(parent, async (ctx) => {
             let existing = await this.entities.ConversationSeq.findById(ctx, cid);
             let seq = 1;

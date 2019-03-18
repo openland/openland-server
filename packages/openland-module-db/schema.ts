@@ -4019,6 +4019,7 @@ export interface RoomProfileShape {
     image?: any| null;
     description?: string| null;
     socialImage?: any| null;
+    pinnedMessage?: number| null;
 }
 
 export class RoomProfile extends FEntity {
@@ -4066,6 +4067,17 @@ export class RoomProfile extends FEntity {
         this._value.socialImage = value;
         this.markDirty();
     }
+    get pinnedMessage(): number | null {
+        let res = this._value.pinnedMessage;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set pinnedMessage(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.pinnedMessage) { return; }
+        this._value.pinnedMessage = value;
+        this.markDirty();
+    }
 }
 
 export class RoomProfileFactory extends FEntityFactory<RoomProfile> {
@@ -4080,6 +4092,7 @@ export class RoomProfileFactory extends FEntityFactory<RoomProfile> {
             { name: 'image', type: 'json' },
             { name: 'description', type: 'string' },
             { name: 'socialImage', type: 'json' },
+            { name: 'pinnedMessage', type: 'number' },
         ],
         indexes: [
             { name: 'updated', type: 'range', fields: ['updatedAt'] },
@@ -4092,6 +4105,7 @@ export class RoomProfileFactory extends FEntityFactory<RoomProfile> {
         validators.notNull('title', src.title);
         validators.isString('title', src.title);
         validators.isString('description', src.description);
+        validators.isNumber('pinnedMessage', src.pinnedMessage);
     }
 
     constructor(connection: FConnection) {
@@ -4951,7 +4965,7 @@ export class ConversationSeqFactory extends FEntityFactory<ConversationSeq> {
 export interface ConversationEventShape {
     uid?: number| null;
     mid?: number| null;
-    kind: 'message_received' | 'message_updated' | 'message_deleted';
+    kind: 'chat_updated' | 'message_received' | 'message_updated' | 'message_deleted';
 }
 
 export class ConversationEvent extends FEntity {
@@ -4980,10 +4994,10 @@ export class ConversationEvent extends FEntity {
         this._value.mid = value;
         this.markDirty();
     }
-    get kind(): 'message_received' | 'message_updated' | 'message_deleted' {
+    get kind(): 'chat_updated' | 'message_received' | 'message_updated' | 'message_deleted' {
         return this._value.kind;
     }
-    set kind(value: 'message_received' | 'message_updated' | 'message_deleted') {
+    set kind(value: 'chat_updated' | 'message_received' | 'message_updated' | 'message_deleted') {
         this._checkIsWritable();
         if (value === this._value.kind) { return; }
         this._value.kind = value;
@@ -5002,7 +5016,7 @@ export class ConversationEventFactory extends FEntityFactory<ConversationEvent> 
         fields: [
             { name: 'uid', type: 'number' },
             { name: 'mid', type: 'number' },
-            { name: 'kind', type: 'enum', enumValues: ['message_received', 'message_updated', 'message_deleted'] },
+            { name: 'kind', type: 'enum', enumValues: ['chat_updated', 'message_received', 'message_updated', 'message_deleted'] },
         ],
         indexes: [
             { name: 'user', type: 'range', fields: ['cid', 'seq'] },
@@ -5017,7 +5031,7 @@ export class ConversationEventFactory extends FEntityFactory<ConversationEvent> 
         validators.isNumber('uid', src.uid);
         validators.isNumber('mid', src.mid);
         validators.notNull('kind', src.kind);
-        validators.isEnum('kind', src.kind, ['message_received', 'message_updated', 'message_deleted']);
+        validators.isEnum('kind', src.kind, ['chat_updated', 'message_received', 'message_updated', 'message_deleted']);
     }
 
     constructor(connection: FConnection) {

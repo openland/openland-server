@@ -55,9 +55,11 @@ extend type Query {
     messages(chatId: ID!, first: Int!, before: ID): [ModernMessage!]!
 }
 
-#extend type Mutation {
+extend type Mutation {
 #    modernSendMessage(room: ID!, message: String, repeatKey: String, forwardMessages: [ID!], spans: [MessageSpanInput!], attachments: [MessageAttachmentInput!]): Boolean!
-#}
+    pinMessage(chatId: ID!, messageId: ID!): Boolean!
+    unpinMessage(chatId: ID!): Boolean!
+}
 
 input MentionInput {
     chatId: ID

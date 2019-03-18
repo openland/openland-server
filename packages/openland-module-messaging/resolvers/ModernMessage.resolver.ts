@@ -499,9 +499,19 @@ export default {
             if (args.mentions) {
                 let mentions = args.mentions.map(m => {
                     if (m.userId) {
-                        return { type: 'user_mention', offset: m.offset, length: m.length, user: IDs.User.parse(m.userId!) };
+                        return {
+                            type: 'user_mention',
+                            offset: m.offset,
+                            length: m.length,
+                            user: IDs.User.parse(m.userId!)
+                        };
                     } else if (m.chatId) {
-                        return { type: 'room_mention', offset: m.offset, length: m.length, room: IDs.Conversation.parse(m.chatId!) };
+                        return {
+                            type: 'room_mention',
+                            offset: m.offset,
+                            length: m.length,
+                            room: IDs.Conversation.parse(m.chatId!)
+                        };
                     } else {
                         return null;
                     }
@@ -518,5 +528,14 @@ export default {
 
             return true;
         }),
+        pinMessage: withUser(async (ctx, args, uid) => {
+            let cid = IDs.Conversation.parse(args.chatId);
+            let mid = IDs.ConversationMessage.parse(args.messageId);
+            return await Modules.Messaging.room.pinMessage(ctx, cid, uid, mid);
+        }),
+        unpinMessage: withUser(async (ctx, args, uid) => {
+            let cid = IDs.Conversation.parse(args.chatId);
+            return await Modules.Messaging.room.unpinMessage(ctx, cid, uid);
+        })
     }
 } as GQLResolver;

@@ -116,6 +116,7 @@ export namespace GQLRoots {
     export type ConversationUpdateBatchRoot = any;
     export type ConversationUpdateContainerRoot = any;
     export type ConversationUpdateRoot = any;
+    export type ConversationUpdatedRoot = any;
     export type ConversationMessageReceivedRoot = any;
     export type ConversationMessageUpdatedRoot = any;
     export type ConversationMessageDeletedRoot = any;
@@ -204,11 +205,12 @@ export namespace GQLRoots {
     export type ImageRoot = { uuid: string, metadata?: FileInfo };
 
     //
-    //  ChatUpdates
+    //  Chat updates
     //
     export type ChatUpdateRoot = ConversationEvent;
     export type ChatUpdateBatchRoot = FLiveStreamItem<ConversationEvent>;
     export type ChatUpdateSingleRoot = FLiveStreamItem<ConversationEvent>;
+    export type ChatUpdatedRoot = ConversationEvent;
     export type ChatMessageReceivedRoot = ConversationEvent;
     export type ChatMessageUpdatedRoot = ConversationEvent;
     export type ChatMessageDeletedRoot = ConversationEvent;

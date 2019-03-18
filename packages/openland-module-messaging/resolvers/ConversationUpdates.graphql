@@ -13,7 +13,12 @@ type ConversationUpdateBatch {
 
 union ConversationUpdateContainer = ConversationUpdateSingle | ConversationUpdateBatch
 
-union ConversationUpdate = ConversationMessageReceived | ConversationMessageUpdated | ConversationMessageDeleted | ConversationLostAccess
+union ConversationUpdate = ConversationUpdated | ConversationMessageReceived | ConversationMessageUpdated | ConversationMessageDeleted | ConversationLostAccess
+
+type ConversationUpdated {
+    chat: Room!
+    by: User!
+}
 
 type ConversationMessageReceived {
     message: ConversationMessage!

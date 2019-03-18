@@ -109,9 +109,8 @@ export default {
         socialImage: withConverationId(async (ctx, id) => Modules.Messaging.room.resolveConversationSocialImage(ctx, id)),
         organization: withConverationId(async (ctx, id) => Modules.Messaging.room.resolveConversationOrganization(ctx, id)),
 
-        description: withRoomProfile((ctx, profile) => {
-            return profile && profile.description;
-        }),
+        description: withRoomProfile((ctx, profile) => profile && profile.description),
+        pinnedMessage: withRoomProfile((ctx, profile) => profile && profile.pinnedMessage && FDB.Message.findById(ctx, profile.pinnedMessage)),
 
         membership: withConverationId(async (ctx, id) => ctx.auth.uid ? await Modules.Messaging.room.resolveUserMembershipStatus(ctx, ctx.auth.uid, id) : 'none'),
         role: withConverationId(async (ctx, id) => (await Modules.Messaging.room.resolveUserRole(ctx, ctx.auth.uid!, id)).toUpperCase()),

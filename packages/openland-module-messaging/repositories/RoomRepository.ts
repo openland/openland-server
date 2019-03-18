@@ -10,6 +10,7 @@ import { RoomProfileInput } from 'openland-module-messaging/RoomProfileInput';
 import { Context } from 'openland-utils/Context';
 import { Modules } from '../../openland-modules/Modules';
 import { EventBus } from '../../openland-module-pubsub/EventBus';
+import { MessagingRepository } from './MessagingRepository';
 
 function doSimpleHash(key: string): number {
     var h = 0, l = key.length, i = 0;
@@ -24,6 +25,7 @@ function doSimpleHash(key: string): number {
 @injectable()
 export class RoomRepository {
     @lazyInject('FDB') private readonly entities!: AllEntities;
+    @lazyInject('MessagingRepository') private readonly messageRepo!: MessagingRepository;
 
     async createRoom(parent: Context, kind: 'public' | 'group', oid: number, uid: number, members: number[], profile: RoomProfileInput, listed?: boolean) {
         return await inTx(parent, async (ctx) => {
@@ -240,6 +242,48 @@ export class RoomRepository {
             await conv.flush();
 
             return { updatedTitle, updatedPhoto };
+        });
+    }
+
+    async pinMessage(parent: Context, cid: number, uid: number, mid: number) {
+        return await inTx(parent, async (ctx) => {
+            let profile = await this.entities.RoomProfile.findById(ctx, cid);
+            let message = await this.entities.Message.findById(ctx, mid);
+            if (!message || !profile) {
+                throw new NotFoundError();
+            }
+            if (message.cid !== cid) {
+                throw new AccessDeniedError();
+            }
+            profile.pinnedMessage = mid;
+            await profile.flush();
+            let seq = await this.messageRepo.fetchConversationNextSeq(ctx, cid);
+            await this.entities.ConversationEvent.create(ctx, cid, seq, {
+                kind: 'chat_updated',
+                uid
+            });
+            return true;
+        });
+    }
+
+    async unpinMessage(parent: Context, cid: number, uid: number) {
+        return await inTx(parent, async (ctx) => {
+            let profile = await this.entities.RoomProfile.findById(ctx, cid);
+            if (!profile) {
+                throw new NotFoundError();
+            }
+            if (!profile.pinnedMessage) {
+                return false;
+            } else {
+                profile.pinnedMessage = null;
+                await profile.flush();
+                let seq = await this.messageRepo.fetchConversationNextSeq(ctx, cid);
+                await this.entities.ConversationEvent.create(ctx, cid, seq, {
+                    kind: 'chat_updated',
+                    uid
+                });
+                return true;
+            }
         });
     }
 

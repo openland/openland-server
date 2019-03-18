@@ -33,6 +33,7 @@ type SharedRoom {
     photo: String!
     socialImage: String
     description: String
+    pinnedMessage: ModernMessage
     
     organization: Organization
   

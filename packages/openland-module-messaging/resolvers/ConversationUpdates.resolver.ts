@@ -38,6 +38,10 @@ export default {
     /*
      * Conversation Updates
      */
+    ConversationUpdated: {
+        chat: src => src.cid,
+        by: src => src.uid
+    },
     ConversationUpdate: {
         __resolveType(obj: ConversationEvent | { kind: 'lost_access' }) {
             if (obj.kind === 'message_received') {
@@ -48,6 +52,8 @@ export default {
                 return 'ConversationMessageDeleted';
             } else if (obj.kind === 'lost_access') {
                 return 'ConversationLostAccess';
+            } else if (obj.kind === 'chat_updated') {
+                return 'ConversationUpdated';
             }
             throw Error('Unknown conversation update type: ' + obj.kind);
         }

@@ -264,14 +264,6 @@ export class RoomMediator {
         });
     }
 
-    async checkCanEditChat(parent: Context, cid: number, uid: number) {
-        return await inTx(parent, async (ctx) => {
-            if (!await this.canEditRoom(ctx, cid, uid)) {
-                throw new AccessDeniedError();
-            }
-        });
-    }
-
     async canEditRoom(parent: Context, cid: number, uid: number) {
         return await inTx(parent, async (ctx) => {
             let conv = await this.entities.ConversationRoom.findById(ctx, cid);
@@ -316,6 +308,14 @@ export class RoomMediator {
             }
 
             return false;
+        });
+    }
+
+    async checkCanEditChat(parent: Context, cid: number, uid: number) {
+        return await inTx(parent, async (ctx) => {
+            if (!await this.canEditRoom(ctx, cid, uid)) {
+                throw new AccessDeniedError();
+            }
         });
     }
 
@@ -364,6 +364,20 @@ export class RoomMediator {
             }
 
             return (await this.entities.Conversation.findById(ctx, cid))!;
+        });
+    }
+
+    async pinMessage(parent: Context, cid: number, uid: number, mid: number) {
+        return await inTx(parent, async (ctx) => {
+            await this.checkCanEditChat(ctx, cid, uid);
+            return await this.repo.pinMessage(ctx, cid, uid, mid);
+        });
+    }
+
+    async unpinMessage(parent: Context, cid: number, uid: number) {
+        return await inTx(parent, async (ctx) => {
+            await this.checkCanEditChat(ctx, cid, uid);
+            return await this.repo.unpinMessage(ctx, cid, uid);
         });
     }
 

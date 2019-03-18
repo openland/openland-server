@@ -41,11 +41,17 @@ export default {
                 return 'ChatMessageUpdated';
             } else if (obj.kind === 'message_deleted') {
                 return 'ChatMessageDeleted';
+            }  else if (obj.kind === 'chat_updated') {
+                return 'ChatUpdated';
             }
             throw Error('Unknown chat update type: ' + obj.kind);
         }
     },
 
+    ChatUpdated: {
+        chat: src => src.cid,
+        by: src => src.uid
+    },
     ChatMessageReceived: {
         message: (src, args, ctx) => FDB.Message.findById(ctx, src.mid!),
         repeatKey: async (src, args, ctx) => {

@@ -409,6 +409,7 @@ const Schema = declareSchema(() => {
         field('image', 'json').nullable();
         field('description', 'string').nullable();
         field('socialImage', 'json').nullable();
+        field('pinnedMessage', 'number').nullable();
 
         rangeIndex('updated', ['updatedAt']);
         enableVersioning();
@@ -516,7 +517,7 @@ const Schema = declareSchema(() => {
         primaryKey('seq', 'number');
         field('uid', 'number').nullable();
         field('mid', 'number').nullable();
-        enumField('kind', ['message_received', 'message_updated', 'message_deleted']);
+        enumField('kind', ['chat_updated', 'message_received', 'message_updated', 'message_deleted']);
         rangeIndex('user', ['cid', 'seq']).withStreaming();
         enableVersioning();
         enableTimestamps();

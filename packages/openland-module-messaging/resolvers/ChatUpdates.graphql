@@ -13,7 +13,12 @@ type ChatUpdateBatch {
 
 union ChatUpdateContainer = ChatUpdateSingle | ChatUpdateBatch
 
-union ChatUpdate = ChatMessageReceived | ChatMessageUpdated | ChatMessageDeleted
+union ChatUpdate = ChatUpdated | ChatMessageReceived | ChatMessageUpdated | ChatMessageDeleted | ChatLostAccess
+
+type ChatUpdated {
+    chat: Room!
+    by: User!
+}
 
 type ChatMessageReceived {
     message: ModernMessage!
