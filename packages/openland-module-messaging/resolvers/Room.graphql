@@ -44,6 +44,7 @@ type SharedRoom {
     role: RoomMemberRole!
 
     settings: RoomUserNotificaionSettings!
+    canEdit: Boolean!
 }
 
 type RoomSuper {
@@ -102,7 +103,6 @@ type RoomMember {
     membership: SharedRoomMembershipStatus!
     invitedBy: User!
     canKick: Boolean!
-    canEdit: Boolean!
 }
 
 type RoomUserNotificaionSettings {

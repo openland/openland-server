@@ -59,8 +59,8 @@ export default {
         }
     },
     PrivateRoom: {
-        id: (root) => IDs.Conversation.serialize(typeof root === 'number' ? root : root.id),
-        user: async (root, args, parent: AppContext) => {
+        id: (root: RoomRoot) => IDs.Conversation.serialize(typeof root === 'number' ? root : root.id),
+        user: async (root: RoomRoot, args: {}, parent: AppContext) => {
             // In some cases we can't get ConversationPrivate here because it's not available in previous transaction, so we create new one
             return await inTx(parent, async (ctx) => {
                 let proom = (await FDB.ConversationPrivate.findById(ctx, typeof root === 'number' ? root : root.id))!;
@@ -73,7 +73,7 @@ export default {
                 }
             });
         },
-        settings: async (root, args, ctx) => await Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, (typeof root === 'number' ? root : root.id))
+        settings: async (root: RoomRoot, args: {}, ctx: AppContext) => await Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, (typeof root === 'number' ? root : root.id))
     },
     SharedRoomMembershipStatus: {
         MEMBER: 'joined',
@@ -83,7 +83,7 @@ export default {
         NONE: 'none',
     },
     SharedRoom: {
-        id: (root) => IDs.Conversation.serialize(typeof root === 'number' ? root : root.id),
+        id: (root: RoomRoot) => IDs.Conversation.serialize(typeof root === 'number' ? root : root.id),
         kind: withConverationId(async (ctx, id) => {
             let room = (await FDB.ConversationRoom.findById(ctx, id))!;
             // temp fix resolve openland internal chat
@@ -115,10 +115,11 @@ export default {
 
         membership: withConverationId(async (ctx, id) => ctx.auth.uid ? await Modules.Messaging.room.resolveUserMembershipStatus(ctx, ctx.auth.uid, id) : 'none'),
         role: withConverationId(async (ctx, id) => (await Modules.Messaging.room.resolveUserRole(ctx, ctx.auth.uid!, id)).toUpperCase()),
-        membersCount: async (root, args: {}, ctx) => (await FDB.RoomParticipant.allFromActive(ctx, (typeof root === 'number' ? root : root.id))).length,
+        membersCount: async (root: RoomRoot, args: {}, ctx: AppContext) => (await FDB.RoomParticipant.allFromActive(ctx, (typeof root === 'number' ? root : root.id))).length,
         members: withConverationId(async (ctx, id) => await FDB.RoomParticipant.allFromActive(ctx, id)),
         requests: withConverationId(async (ctx, id) => ctx.auth.uid && await Modules.Messaging.room.resolveRequests(ctx, ctx.auth.uid, id)),
-        settings: async (root, args: {}, ctx) => await Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, (typeof root === 'number' ? root : root.id))
+        settings: async (root: RoomRoot, args: {}, ctx: AppContext) => await Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, (typeof root === 'number' ? root : root.id)),
+        canEdit: async (root, args, ctx) => await Modules.Messaging.room.canEditRoom(ctx, (typeof root === 'number' ? root : root.id), ctx.auth.uid!)
     },
     RoomMessage: {
         id: (src: Message) => {
@@ -199,7 +200,6 @@ export default {
         role: async (src: RoomParticipant) => src.role.toUpperCase(),
         membership: async (src: RoomParticipant, args: {}, ctx: AppContext) => src.status as any,
         invitedBy: async (src: RoomParticipant, args: {}, ctx: AppContext) => src.invitedBy,
-        canEdit: async (src, args, ctx) => await Modules.Messaging.room.canEditRoom(ctx, src.cid, ctx.auth.uid!),
         canKick: async (src, args, ctx) => await Modules.Messaging.room.canKickFromRoom(ctx, src.cid, ctx.auth.uid!, src.uid)
     },
 
@@ -214,7 +214,7 @@ export default {
     },
 
     RoomSuper: {
-        id: (root) => IDs.Conversation.serialize(typeof root === 'number' ? root : root.id),
+        id: (root: RoomRoot) => IDs.Conversation.serialize(typeof root === 'number' ? root : root.id),
         featured: withConverationId(async (ctx, id) => {
             let room = await FDB.ConversationRoom.findById(ctx, id);
             return !!(room && room.featured);
