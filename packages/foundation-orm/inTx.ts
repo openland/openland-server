@@ -6,7 +6,7 @@ import { currentTime } from 'openland-utils/timer';
 import { Context } from 'openland-utils/Context';
 import { FTransactionContext } from './utils/contexts';
 
-const log = createLogger('tx');
+const log = createLogger('tx', false);
 
 export async function inTx<T>(ctx: Context, callback: (ctx: Context) => Promise<T>): Promise<T> {
     let ex = FTransactionContext.get(ctx);

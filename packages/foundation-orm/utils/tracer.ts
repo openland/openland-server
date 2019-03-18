@@ -3,4 +3,4 @@ import { createLogger } from 'openland-log/createLogger';
 
 export const tracer = createTracer('fdb');
 
-export const logger = createLogger('fdb');
+export const logger = createLogger('fdb', false);

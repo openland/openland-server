@@ -10,7 +10,7 @@ import { SLog } from 'openland-log/SLog';
 import { FKeyEncoding } from './FKeyEncoding';
 import { Context } from 'openland-utils/Context';
 
-const log = createLogger('tx');
+const log = createLogger('tx', false);
 
 export abstract class FBaseTransaction implements FContext {
     private static nextId = 1;

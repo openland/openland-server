@@ -6,7 +6,7 @@ import { tracer, logger } from './utils/tracer';
 import { FBaseTransaction } from './utils/FBaseTransaction';
 import { Context } from 'openland-utils/Context';
 
-const log = createLogger('tx');
+const log = createLogger('tx', false);
 
 export class FTransaction extends FBaseTransaction {
 

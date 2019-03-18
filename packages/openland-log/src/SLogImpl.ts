@@ -13,12 +13,13 @@ const logger = winston.createLogger({
 });
 
 export class SLogImpl implements SLog {
-    private readonly name: String;
+    private readonly name: string;
     private readonly enabled: boolean = true;
     private readonly production = process.env.NODE_ENV === 'production';
 
-    constructor(name: String) {
+    constructor(name: string, enabled: boolean) {
         this.name = name;
+        this.enabled = enabled;
     }
 
     log = <C extends AnyFighter<C, never, Context>>(ctx: C, message?: any, ...optionalParams: any[]) => {
