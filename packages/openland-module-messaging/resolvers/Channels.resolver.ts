@@ -8,7 +8,6 @@ import { inTx } from 'foundation-orm/inTx';
 import {
     ChannelInvitation,
     ChannelLink,
-    RoomParticipant,
     Conversation,
 } from 'openland-module-db/schema';
 import { FDB } from 'openland-module-db/FDB';
@@ -29,12 +28,12 @@ export default {
         none: 'left'
     },
     ChannelConversation: {
-        id: (src: Conversation) => IDs.Conversation.serialize(src.id),
-        flexibleId: (src: Conversation) => IDs.Conversation.serialize(src.id),
-        title: async (src: Conversation, args: {}, ctx: AppContext) => (await FDB.RoomProfile.findById(ctx, src.id))!.title,
+        id: (src) => IDs.Conversation.serialize(src.id),
+        flexibleId: (src) => IDs.Conversation.serialize(src.id),
+        title: async (src, args, ctx) => (await FDB.RoomProfile.findById(ctx, src.id))!.title,
         photos: () => [],
         members: () => [],
-        unreadCount: async (src: Conversation, _: any, ctx: AppContext) => {
+        unreadCount: async (src, args, ctx) => {
             let state = await FDB.UserDialog.findById(ctx, ctx.auth.uid!, src.id);
             if (state) {
                 return state.unread;
@@ -49,13 +48,13 @@ export default {
 
             return Modules.Messaging.findTopMessage(ctx, src.id!);
         },
-        membersCount: (src: Conversation, _: any, ctx: AppContext) => Modules.Messaging.roomMembersCount(ctx, src.id),
-        memberRequestsCount: (src: Conversation, _: any, ctx: AppContext) => Modules.Messaging.roomMembersCount(ctx, src.id, 'requested'),
-        featured: async (src: Conversation, args: {}, ctx: AppContext) => (await FDB.ConversationRoom.findById(ctx, src.id))!.featured || false,
-        hidden: async (src: Conversation, args: {}, ctx: AppContext) => !(await FDB.ConversationRoom.findById(ctx, src.id))!.listed || false,
-        description: async (src: Conversation, args: {}, ctx: AppContext) => (await FDB.RoomProfile.findById(ctx, src.id))!.description || '',
-        longDescription: (src: Conversation) => '',
-        myStatus: async (src: Conversation, _: any, ctx: AppContext) => {
+        membersCount: (src, args, ctx) => Modules.Messaging.roomMembersCount(ctx, src.id),
+        memberRequestsCount: (src, args, ctx) => Modules.Messaging.roomMembersCount(ctx, src.id, 'requested'),
+        featured: async (src, args, ctx) => (await FDB.ConversationRoom.findById(ctx, src.id))!.featured || false,
+        hidden: async (src, args, ctx) => !(await FDB.ConversationRoom.findById(ctx, src.id))!.listed || false,
+        description: async (src, args, ctx) => (await FDB.RoomProfile.findById(ctx, src.id))!.description || '',
+        longDescription: (src) => '',
+        myStatus: async (src, args, ctx) => {
             let member = ctx.auth.uid ? await Modules.Messaging.room.findMembershipStatus(ctx, ctx.auth.uid, src.id!) : undefined;
 
             if (!member || member.status === 'kicked') {
@@ -64,14 +63,14 @@ export default {
 
             return member.status;
         },
-        organization: async (src: Conversation, args: {}, ctx: AppContext) => FDB.Organization.findById(ctx, (await FDB.ConversationRoom.findById(ctx, src.id))!.oid!),
-        isRoot: (src: Conversation) => false,
-        settings: (src: Conversation, _: any, ctx: AppContext) => Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, src.id),
+        organization: async (src, args, ctx) => FDB.Organization.findById(ctx, (await FDB.ConversationRoom.findById(ctx, src.id))!.oid!),
+        isRoot: (src) => false,
+        settings: (src, args, ctx) => Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, src.id),
 
-        photo: async (src: Conversation, args: {}, ctx: AppContext) => buildBaseImageUrl((await FDB.RoomProfile.findById(ctx, src.id))!.image),
-        photoRef: async (src: Conversation, args: {}, ctx: AppContext) => (await FDB.RoomProfile.findById(ctx, src.id))!.image,
-        socialImage: async (src: Conversation, args: {}, ctx: AppContext) => buildBaseImageUrl((await FDB.RoomProfile.findById(ctx, src.id))!.socialImage),
-        socialImageRef: async (src: Conversation, args: {}, ctx: AppContext) => (await FDB.RoomProfile.findById(ctx, src.id))!.socialImage,
+        photo: async (src, args, ctx) => buildBaseImageUrl((await FDB.RoomProfile.findById(ctx, src.id))!.image),
+        photoRef: async (src, args, ctx) => (await FDB.RoomProfile.findById(ctx, src.id))!.image,
+        socialImage: async (src, args, ctx) => buildBaseImageUrl((await FDB.RoomProfile.findById(ctx, src.id))!.socialImage),
+        socialImageRef: async (src, args, ctx) => (await FDB.RoomProfile.findById(ctx, src.id))!.socialImage,
         pinnedMessage: (src: Conversation) => null,
         membersOnline: async (src, args, ctx) => {
             let members = await Modules.Messaging.room.findConversationMembers(ctx, src.id);
@@ -84,9 +83,9 @@ export default {
         }
     },
     ChannelMember: {
-        role: (src: RoomParticipant) => src.role,
-        status: (src: RoomParticipant) => src.status === 'joined' ? 'member' : 'left',
-        user: (src: RoomParticipant, args: {}, ctx: AppContext) => FDB.User.findById(ctx, src.uid)
+        role: (src) => src.role,
+        status: (src) => src.status === 'joined' ? 'member' : 'left',
+        user: (src, args, ctx) => FDB.User.findById(ctx, src.uid)
     },
     ChannelInvite: {
         channel: (src: ChannelInvitation | ChannelLink, args: {}, ctx: AppContext) => FDB.Conversation.findById(ctx, src.channelId),
