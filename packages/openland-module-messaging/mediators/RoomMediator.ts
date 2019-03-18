@@ -4,7 +4,7 @@ import { RoomRepository } from 'openland-module-messaging/repositories/RoomRepos
 import { RoomProfileInput } from 'openland-module-messaging/RoomProfileInput';
 import { inTx } from 'foundation-orm/inTx';
 import { MessagingMediator } from './MessagingMediator';
-import { AllEntities, ConversationRoom, Organization } from 'openland-module-db/schema';
+import { AllEntities, ConversationRoom } from 'openland-module-db/schema';
 import { Modules } from 'openland-modules/Modules';
 import { DeliveryMediator } from './DeliveryMediator';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
