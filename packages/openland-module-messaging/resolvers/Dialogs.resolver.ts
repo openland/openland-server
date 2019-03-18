@@ -78,6 +78,9 @@ export default {
     },
     Query: {
         dialogs: withUser(async (ctx, args, uid) => {
+            if (args.first <= 0) {
+                return [];
+            }
             return FDB.UserDialog.rangeFromUserWithCursor(ctx, uid, args.first, args.after ? args.after : undefined, true);
         }),
         alphaChats: withUser(async (ctx, args, uid) => {
