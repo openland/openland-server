@@ -189,6 +189,11 @@ export class RoomMediator {
                 return false;
             }
 
+            let existingMembership = await this.repo.findMembershipStatus(ctx, uid, cid);
+            if (!existingMembership || existingMembership.status !== 'joined') {
+                return false;
+            }
+            
             if (conv.kind === 'group') {
                 return true;
             }

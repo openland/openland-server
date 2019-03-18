@@ -118,7 +118,8 @@ export default {
         membersCount: async (root: RoomRoot, args: {}, ctx: AppContext) => (await FDB.RoomParticipant.allFromActive(ctx, (typeof root === 'number' ? root : root.id))).length,
         members: withConverationId(async (ctx, id) => await FDB.RoomParticipant.allFromActive(ctx, id)),
         requests: withConverationId(async (ctx, id) => ctx.auth.uid && await Modules.Messaging.room.resolveRequests(ctx, ctx.auth.uid, id)),
-        settings: async (root: RoomRoot, args: {}, ctx: AppContext) => await Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, (typeof root === 'number' ? root : root.id))
+        settings: async (root: RoomRoot, args: {}, ctx: AppContext) => await Modules.Messaging.getRoomSettings(ctx, ctx.auth.uid!, (typeof root === 'number' ? root : root.id)),
+        canEdit: async (root: RoomRoot, args: {}, ctx: AppContext) => await Modules.Messaging.room.canEditRoom(ctx, (typeof root === 'number' ? root : root.id), ctx.auth.uid!)
     },
     RoomMessage: {
         id: (src: Message) => {
@@ -199,7 +200,6 @@ export default {
         role: async (src: RoomParticipant) => src.role.toUpperCase(),
         membership: async (src: RoomParticipant, args: {}, ctx: AppContext) => src.status as any,
         invitedBy: async (src: RoomParticipant, args: {}, ctx: AppContext) => src.invitedBy,
-        canEdit: async (src, args, ctx) => await Modules.Messaging.room.canEditRoom(ctx, src.cid, ctx.auth.uid!),
         canKick: async (src, args, ctx) => await Modules.Messaging.room.canKickFromRoom(ctx, src.cid, ctx.auth.uid!, src.uid)
     },
 
