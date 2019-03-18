@@ -102,6 +102,7 @@ type RoomMember {
     membership: SharedRoomMembershipStatus!
     invitedBy: User!
     canKick: Boolean!
+    canEdit: Boolean!
 }
 
 type RoomUserNotificaionSettings {

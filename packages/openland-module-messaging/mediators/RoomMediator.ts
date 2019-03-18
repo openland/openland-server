@@ -4,7 +4,7 @@ import { RoomRepository } from 'openland-module-messaging/repositories/RoomRepos
 import { RoomProfileInput } from 'openland-module-messaging/RoomProfileInput';
 import { inTx } from 'foundation-orm/inTx';
 import { MessagingMediator } from './MessagingMediator';
-import { AllEntities, ConversationRoom } from 'openland-module-db/schema';
+import { AllEntities, ConversationRoom, Organization } from 'openland-module-db/schema';
 import { Modules } from 'openland-modules/Modules';
 import { DeliveryMediator } from './DeliveryMediator';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
@@ -179,6 +179,25 @@ export class RoomMediator {
             }
 
             return (await this.entities.Conversation.findById(ctx, cid))!;
+        });
+    }
+
+    async canEditRoom(parent: Context, cid: number, uid: number) {
+        return await inTx(parent, async (ctx) => {
+            let conv = await this.entities.ConversationRoom.findById(ctx, cid);
+            if (!conv) {
+                return false;
+            }
+            
+            let isSuperAdmin = (await Modules.Super.superRole(ctx, uid)) === 'super-admin';
+            
+            if (isSuperAdmin) {
+                return true;
+            } else if (conv.oid && (await Modules.Orgs.isUserOwner(ctx, uid, conv.oid) || await Modules.Orgs.isUserAdmin(ctx, uid, conv.oid))) {
+                return true;
+            } 
+
+            return false;
         });
     }
 
