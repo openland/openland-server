@@ -126,10 +126,11 @@ export default class UrlInfoService {
         userId: number;
         user: UserProfile | null;
     }): Promise<URLAugmentation> {
+        let org = user!.primaryOrganization && await FDB.OrganizationProfile.findById(createEmptyContext(), user!.primaryOrganization);
         return {
             url,
             title: user!.firstName + ' ' + user!.lastName,
-            subtitle: user!.about || null,
+            subtitle: org ? org.name : null,
             description: user!.about || null,
             imageURL: null,
             imageInfo: user!.picture ? await Modules.Media.fetchFileInfo(createEmptyContext(), user!.picture.uuid) : null,
