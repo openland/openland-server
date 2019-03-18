@@ -182,34 +182,6 @@ export class RoomMediator {
         });
     }
 
-    async canEditRoom(parent: Context, cid: number, uid: number) {
-        return await inTx(parent, async (ctx) => {
-            let conv = await this.entities.ConversationRoom.findById(ctx, cid);
-            if (!conv) {
-                return false;
-            }
-
-            let existingMembership = await this.repo.findMembershipStatus(ctx, uid, cid);
-            if (!existingMembership || existingMembership.status !== 'joined') {
-                return false;
-            }
-            
-            if (conv.kind === 'group') {
-                return true;
-            }
-            
-            let isSuperAdmin = (await Modules.Super.superRole(ctx, uid)) === 'super-admin';
-            
-            if (isSuperAdmin) {
-                return true;
-            } else if (conv.oid && (await Modules.Orgs.isUserAdmin(ctx, uid, conv.oid))) {
-                return true;
-            } 
-
-            return false;
-        });
-    }
-
     async canKickFromRoom(parent: Context, cid: number, uid: number, kickedUid: number) {
         return await inTx(parent, async (ctx) => {
             let canKick = false;
@@ -294,17 +266,56 @@ export class RoomMediator {
 
     async checkCanEditChat(parent: Context, cid: number, uid: number) {
         return await inTx(parent, async (ctx) => {
+            if (!await this.canEditRoom(ctx, cid, uid)) {
+                throw new AccessDeniedError()
+            }
+        });
+    }
+
+    async canEditRoom(parent: Context, cid: number, uid: number) {
+        return await inTx(parent, async (ctx) => {
             let conv = await this.entities.ConversationRoom.findById(ctx, cid);
             if (!conv) {
-                throw new Error('Room not found');
+                return false;
             }
 
-            if (conv.kind === 'group') {
-                let member = await this.entities.RoomParticipant.findById(ctx, cid, uid);
-                if (!member || member.status !== 'joined') {
-                    throw new AccessDeniedError();
-                }
+            //
+            //  Super-admin can edit any chat
+            //
+            if ((await Modules.Super.superRole(ctx, uid)) === 'super-admin') {
+                return true;
             }
+
+            //
+            //  Org/community admin can edit any chat in that org/community
+            //
+            if (conv.oid && (await Modules.Orgs.isUserAdmin(ctx, uid, conv.oid))) {
+                return true;
+            }
+
+            //
+            //  Group owner can edit chat
+            //
+            if (conv.ownerId === uid) {
+                return true;
+            }
+
+            //
+            // Check membership in chat
+            //
+            let existingMembership = await this.repo.findMembershipStatus(ctx, uid, cid);
+            if (!existingMembership || existingMembership.status !== 'joined') {
+                return false;
+            }
+
+            //
+            //  Anyone can edit secret group
+            //
+            if (conv.kind === 'group') {
+                return true;
+            }
+
+            return false;
         });
     }
 
