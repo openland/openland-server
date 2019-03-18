@@ -188,6 +188,10 @@ export class RoomMediator {
             if (!conv) {
                 return false;
             }
+
+            if (conv.kind === 'group') {
+                return true;
+            }
             
             let isSuperAdmin = (await Modules.Super.superRole(ctx, uid)) === 'super-admin';
             
