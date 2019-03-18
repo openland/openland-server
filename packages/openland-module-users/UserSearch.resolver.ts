@@ -25,7 +25,7 @@ export default {
             }
 
             // Fetch profiles
-            let users = uids.map((v) => FDB.User.findById(ctx, v));
+            let users = (await Promise.all(uids.map((v) => FDB.User.findById(ctx, v)))).filter(u => u);
 
             let offset = 0;
             if (args.after) {
@@ -72,7 +72,7 @@ export default {
             }
 
             // Fetch profiles
-            let users = uids.map((v) => FDB.User.findById(ctx, v));
+            let users = (await Promise.all(uids.map((v) => FDB.User.findById(ctx, v)))).filter(u => u);
 
             let offset = 0;
             if (args.after) {
