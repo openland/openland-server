@@ -199,8 +199,8 @@ export default {
         role: async (src: RoomParticipant) => src.role.toUpperCase(),
         membership: async (src: RoomParticipant, args: {}, ctx: AppContext) => src.status as any,
         invitedBy: async (src: RoomParticipant, args: {}, ctx: AppContext) => src.invitedBy,
-        canEdit: async (src: RoomParticipant, args: {}, ctx: AppContext) => await Modules.Messaging.room.canEditRoom(ctx, src.cid, ctx.auth.uid!),
-        canKick: async (src: RoomParticipant, args: {}, ctx: AppContext) => await Modules.Messaging.room.canKickFromRoom(ctx, src.cid, ctx.auth.uid!, src.uid)
+        canEdit: async (src, args, ctx) => await Modules.Messaging.room.canEditRoom(ctx, src.cid, ctx.auth.uid!),
+        canKick: async (src, args, ctx) => await Modules.Messaging.room.canKickFromRoom(ctx, src.cid, ctx.auth.uid!, src.uid)
     },
 
     RoomInvite: {
