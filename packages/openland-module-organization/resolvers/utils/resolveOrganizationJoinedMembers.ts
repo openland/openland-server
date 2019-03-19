@@ -42,6 +42,15 @@ export async function resolveOrganizationJoinedMembers(ctx: Context, orgId: numb
     return result;
 }
 
+export async function resolveOrganizationJoinedAdminMembers(ctx: Context, orgId: number) {
+    let members = await resolveOrganizationJoinedMembers(ctx, orgId);
+
+    return members.filter((organizationJoinedMember: any) => {
+        const role = organizationJoinedMember.role;
+        return role === 'OWNER' || role === 'ADMIN';
+    });
+}
+
 export async function resolveOrganizationMembersWithStatus(ctx: Context, orgId: number, status: 'requested' | 'joined' | 'left') {
     let members = await Modules.Orgs.findOrganizationMembersWithStatus(ctx, orgId, status);
 

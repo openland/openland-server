@@ -5,7 +5,7 @@ import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { Modules } from 'openland-modules/Modules';
 import { withAny } from 'openland-module-api/Resolvers';
 import { NotFoundError } from 'openland-errors/NotFoundError';
-import { resolveOrganizationJoinedMembers, resolveOrganizationMembersWithStatus } from './utils/resolveOrganizationJoinedMembers';
+import { resolveOrganizationJoinedMembers, resolveOrganizationJoinedAdminMembers, resolveOrganizationMembersWithStatus } from './utils/resolveOrganizationJoinedMembers';
 import { AppContext } from 'openland-modules/AppContext';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 
@@ -47,6 +47,7 @@ export default {
         superAccountId: (src: Organization) => IDs.SuperAccount.serialize(src.id),
         alphaIsOwner: (src: Organization, args: {}, ctx: AppContext) => ctx.auth.uid ? Modules.Orgs.isUserAdmin(ctx, ctx.auth.uid!, src.id) : false,
         alphaOrganizationMembers: async (src: Organization, args: {}, ctx: AppContext) => await resolveOrganizationJoinedMembers(ctx, src.id),
+        alphaOrganizationAdminMembers: async (src: Organization, args: {}, ctx: AppContext) => await resolveOrganizationJoinedAdminMembers(ctx, src.id),
         alphaOrganizationMemberRequests: async (src: Organization, args: {}, ctx: AppContext) => await resolveOrganizationMembersWithStatus(ctx, src.id, 'requested'),
         alphaFeatured: async (src: Organization, args: {}, ctx: AppContext) => ((await FDB.OrganizationEditorial.findById(ctx, src.id)))!.featured,
         alphaIsCommunity: (src: Organization) => src.kind === 'community',
