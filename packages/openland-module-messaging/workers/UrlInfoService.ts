@@ -8,6 +8,7 @@ import { FileInfo } from 'openland-module-media/FileInfo';
 import { ImageRef } from 'openland-module-media/ImageRef';
 import { createEmptyContext } from 'openland-utils/Context';
 import { UserProfile } from 'openland-module-db/schema';
+import { MessageKeyboard } from '../MessageInput';
 
 export interface URLAugmentation {
     url: string;
@@ -23,58 +24,30 @@ export interface URLAugmentation {
     type: 'org' | 'listing' | 'user' | 'url' | 'none' | 'channel' | 'intro';
     extra?: any;
     deleted?: boolean;
+    keyboard?: MessageKeyboard;
 }
 
-export default class UrlInfoService {
-    private userRegexp = /(localhost:3000|(app.|next.)?openland.com)\/(mail|directory)\/u\/(.*)/;
-    private orgRegexp = /(localhost:3000|(app.|next.)?openland.com)\/(directory\/)?o\/(.*)/;
-    private channelRegexp = /(localhost:3000|(app.|next.)?openland.com)\/((mail|directory)\/)(p\/)?(.*)/;
-    private shortnameRegexp = /(localhost:3000|(app.|next.)?openland.com)\/(.*)/;
+export class ModernUrlInfoService {
+    private specialUrls: { regexp: RegExp, handler: (url: string, data: any[]) => Promise<URLAugmentation | null> }[] = [];
 
     private cache = new CacheRepository<URLAugmentation>('url_info');
 
     public async fetchURLInfo(url: string, useCached: boolean = true): Promise<URLAugmentation> {
         let ctx = createEmptyContext();
-        let existing = await this.cache.read(ctx, url);
-        let creationTime = await this.cache.getCreationTime(ctx, url);
+        // let existing = await this.cache.read(ctx, url);
+        // let creationTime = await this.cache.getCreationTime(ctx, url);
 
-        if (useCached && existing && (creationTime! + 1000 * 60 * 60 * 24 * 7) >= Date.now()) {
-            return existing;
-        }
+        // if (useCached && existing && (creationTime! + 1000 * 60 * 60 * 24 * 7) >= Date.now()) {
+        //     return existing;
+        // }
 
-        if (this.userRegexp.test(url)) {
-            let info = await this.parseUserUrl(url);
-
-            await this.cache.write(ctx, url, info);
-
-            return info;
-        }
-
-        if (this.orgRegexp.test(url)) {
-            let info = await this.parseOrgUrl(url);
-
-            await this.cache.write(ctx, url, info);
-
-            return info;
-        }
-
-        if (this.channelRegexp.test(url)) {
-            let info = await this.parseChannelUrl(url);
-
-            if (info) {
-                await this.cache.write(ctx, url, info);
-
-                return info;
-            }
-        }
-
-        if (this.shortnameRegexp.test(url)) {
-            let info = await this.parseShortnameUrl(url);
-
-            if (info) {
-                await this.cache.write(ctx, url, info);
-
-                return info;
+        for (let specialUrl of this.specialUrls) {
+            if (specialUrl.regexp.test(url)) {
+                let info = await specialUrl.handler(url, specialUrl.regexp.exec(url)!);
+                if (info) {
+                    await this.cache.write(ctx, url, info);
+                    return info;
+                }
             }
         }
 
@@ -115,115 +88,150 @@ export default class UrlInfoService {
         return true;
     }
 
-    private async getURLAugmentationForUser({
-        hostname,
+    public specialUrl(regexp: RegExp, handler: (url: string, data: any[]) => Promise<URLAugmentation | null>) {
+        this.specialUrls.push({regexp, handler});
+        return this;
+    }
+}
+
+const getURLAugmentationForUser = async ({hostname, url, userId, user}: { hostname?: string; url: string; userId: number; user: UserProfile | null; }) => {
+    let org = user!.primaryOrganization && await FDB.OrganizationProfile.findById(createEmptyContext(), user!.primaryOrganization!);
+    return {
         url,
-        userId,
-        user,
-    }: {
-        hostname: string | undefined;
-        url: string;
-        userId: number;
-        user: UserProfile | null;
-    }): Promise<URLAugmentation> {
-        let org = user!.primaryOrganization && await FDB.OrganizationProfile.findById(createEmptyContext(), user!.primaryOrganization!);
-        return {
-            url,
-            title: user!.firstName + ' ' + user!.lastName,
-            subtitle: org ? org.name : null,
-            description: user!.about || null,
-            imageURL: null,
-            imageInfo: user!.picture ? await Modules.Media.fetchFileInfo(createEmptyContext(), user!.picture.uuid) : null,
-            photo: user!.picture,
-            hostname: hostname || null,
-            type: 'user',
-            extra: userId,
-            iconRef: null,
-            iconInfo: null,
-        };
-    }
+        title: user!.firstName + ' ' + user!.lastName,
+        subtitle: org ? org.name : null,
+        description: user!.about || null,
+        imageURL: null,
+        imageInfo: user!.picture ? await Modules.Media.fetchFileInfo(createEmptyContext(), user!.picture.uuid) : null,
+        photo: user!.picture,
+        hostname: hostname || null,
+        type: 'user',
+        extra: userId,
+        iconRef: null,
+        iconInfo: null,
+    } as URLAugmentation;
+};
 
-    private async parseUserUrl(url: string): Promise<URLAugmentation> {
-        let [, , , , _userId] = this.userRegexp.exec(url)!;
-        let { hostname } = URL.parse(url);
+export function createUrlInfoService() {
+    let service = new ModernUrlInfoService();
 
-        let userId = IDs.User.parse(_userId);
+    service
+        .specialUrl(/(localhost:3000|(app.|next.)?openland.com)\/(mail|directory)\/u\/(.*)/, async (url, data) => {
+            let [, , , , _userId] = data;
+            let {hostname} = URL.parse(url);
 
-        let user = await Modules.Users.profileById(createEmptyContext(), userId);
+            let userId = IDs.User.parse(_userId);
 
-        return await this.getURLAugmentationForUser({ hostname, url, userId, user });
-    }
+            let user = await Modules.Users.profileById(createEmptyContext(), userId);
 
-    private async parseOrgUrl(url: string): Promise<URLAugmentation> {
-        let [, , , , _orgId] = this.orgRegexp.exec(url)!;
-        let { hostname } = URL.parse(url);
+            return await getURLAugmentationForUser({hostname, url, userId, user});
+        })
+        .specialUrl(/(localhost:3000|(app.|next.)?openland.com)\/(directory\/)?o\/(.*)/, async (url, data) => {
+            let [, , , , _orgId] = data;
+            let {hostname} = URL.parse(url);
 
-        let orgId = IDs.Organization.parse(_orgId);
+            let orgId = IDs.Organization.parse(_orgId);
 
-        let org = await FDB.OrganizationProfile.findById(createEmptyContext(), orgId);
+            let org = await FDB.OrganizationProfile.findById(createEmptyContext(), orgId);
 
-        return {
-            url,
-            title: org!.name || null,
-            subtitle: org!.about || null,
-            description: org!.about || null,
-            imageURL: null,
-            imageInfo: org!.photo ? await Modules.Media.fetchFileInfo(createEmptyContext(), org!.photo!.uuid) : null,
-            photo: org!.photo || null,
-            hostname: hostname || null,
-            type: 'org',
-            extra: orgId,
-            iconRef: null,
-            iconInfo: null,
-        };
-    }
+            return {
+                url,
+                title: org!.name || null,
+                subtitle: org!.about || null,
+                description: org!.about || null,
+                imageURL: null,
+                imageInfo: org!.photo ? await Modules.Media.fetchFileInfo(createEmptyContext(), org!.photo!.uuid) : null,
+                photo: org!.photo || null,
+                hostname: hostname || null,
+                type: 'org',
+                extra: orgId,
+                iconRef: null,
+                iconInfo: null,
+            };
+        })
+        .specialUrl(/(localhost:3000|(app.|next.)?openland.com)\/((mail|directory)\/)(p\/)?(.*)/, async (url, data) => {
+            let [, , , , , , _channelId] = data;
 
-    private async parseChannelUrl(url: string): Promise<URLAugmentation | null> {
-        let [, , , , , , _channelId] = this.channelRegexp.exec(url)!;
+            let {hostname} = URL.parse(url);
 
-        let { hostname } = URL.parse(url);
+            let channelId = IDs.Conversation.parse(_channelId);
 
-        let channelId = IDs.Conversation.parse(_channelId);
+            let channel = await FDB.ConversationRoom.findById(createEmptyContext(), channelId);
 
-        let channel = await FDB.ConversationRoom.findById(createEmptyContext(), channelId);
+            if (!channel || channel!.kind !== 'public') {
+                return null;
+            }
 
-        if (!channel || channel!.kind !== 'public') {
-            return null;
-        }
+            let profile = await FDB.RoomProfile.findById(createEmptyContext(), channelId);
 
-        let profile = await FDB.RoomProfile.findById(createEmptyContext(), channelId);
+            return {
+                url,
+                title: profile!.title || null,
+                subtitle: profile!.title || null,
+                description: profile!.description || null,
+                imageURL: null,
+                imageInfo: profile!.image ? await Modules.Media.fetchFileInfo(createEmptyContext(), profile!.image.uuid) : null,
+                photo: profile!.image,
+                hostname: hostname || null,
+                type: 'channel',
+                extra: channelId,
+                iconRef: null,
+                iconInfo: null,
+            };
+        })
+        .specialUrl(/(localhost:3000|(app.|next.)?openland.com)\/joinChannel\/(.*)/, async (url, data) => {
+            let ctx = createEmptyContext();
+            let [, , , _invite] = data;
+            let {hostname} = URL.parse(url);
 
-        return {
-            url,
-            title: profile!.title || null,
-            subtitle: profile!.title || null,
-            description: profile!.description || null,
-            imageURL: null,
-            imageInfo: profile!.image ? await Modules.Media.fetchFileInfo(createEmptyContext(), profile!.image.uuid) : null,
-            photo: profile!.image,
-            hostname: hostname || null,
-            type: 'channel',
-            extra: channelId,
-            iconRef: null,
-            iconInfo: null,
-        };
-    }
+            let chatInvite = await Modules.Invites.resolveInvite(ctx, _invite);
 
-    private async parseShortnameUrl(url: string): Promise<URLAugmentation | null> {
-        let [, , , _shortname] = this.shortnameRegexp.exec(url)!;
+            if (!chatInvite || !chatInvite.enabled) {
+                return null;
+            }
 
-        let { hostname } = URL.parse(url);
+            let profile = await FDB.RoomProfile.findById(ctx, chatInvite.channelId);
 
-        let shortname = await Modules.Shortnames.findShortname(createEmptyContext(), _shortname);
+            if (!profile) {
+                return null;
+            }
 
-        if (!shortname) {
-            return null;
-        }
+            return {
+                url,
+                title: profile!.title || null,
+                subtitle: (await Modules.Messaging.roomMembersCount(ctx, profile.id)) + ' members',
+                description: profile!.description || null,
+                imageURL: null,
+                imageInfo: profile!.image ? await Modules.Media.fetchFileInfo(createEmptyContext(), profile!.image.uuid) : null,
+                photo: profile!.image,
+                hostname: hostname || null,
+                type: 'url',
+                iconRef: null,
+                iconInfo: null,
+                keyboard: {
+                    buttons: [[
+                        { id: 'chat_invite_link', title: 'Accept invite', style: 'DEFAULT', url }
+                    ]]
+                }
+            };
+        })
+        .specialUrl(/(localhost:3000|(app.|next.)?openland.com)\/(.*)/, async (url, data) => {
+            let [, , , _shortname] = data;
 
-        const userId = shortname.ownerId;
+            let {hostname} = URL.parse(url);
 
-        let user = await Modules.Users.profileById(createEmptyContext(), shortname.ownerId);
+            let shortname = await Modules.Shortnames.findShortname(createEmptyContext(), _shortname);
 
-        return await this.getURLAugmentationForUser({ hostname, url, userId, user });
-    }
+            if (!shortname) {
+                return null;
+            }
+
+            const userId = shortname.ownerId;
+
+            let user = await Modules.Users.profileById(createEmptyContext(), shortname.ownerId);
+
+            return await getURLAugmentationForUser({hostname, url, userId, user});
+        });
+
+    return service;
 }

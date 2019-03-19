@@ -5,9 +5,9 @@ import { FDB } from '../openland-module-db/FDB';
 import { Message } from '../openland-module-db/schema';
 import { IDs, IdsFactory } from '../openland-module-api/IDs';
 import { Modules } from '../openland-modules/Modules';
-import UrlInfoService from '../openland-module-messaging/workers/UrlInfoService';
+import { createUrlInfoService } from '../openland-module-messaging/workers/UrlInfoService';
 
-const URLInfoService = new UrlInfoService();
+const URLInfoService = createUrlInfoService();
 
 export default {
     DebugUserPresence: {

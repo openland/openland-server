@@ -9,12 +9,15 @@ export type ServiceMessageMetadataType =
 
 type MessageType = 'MESSAGE' | 'POST';
 
-export type MessageButtonStyle = 'DEFAULT';
-
 export type MessageButton = {
-    title: string;
-    style: MessageButtonStyle;
     id: string;
+    title: string;
+    style: 'DEFAULT' | 'LIGHT';
+    url?: string;
+};
+
+export type MessageKeyboard = {
+    buttons: MessageButton[][]
 };
 
 export type MessageAttachment = {

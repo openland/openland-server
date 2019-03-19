@@ -13,6 +13,8 @@ import { buildBaseImageUrl, ImageRef } from '../../openland-module-media/ImageRe
 import { FileInfo } from '../../openland-module-media/FileInfo';
 import linkify from 'linkify-it';
 import tlds from 'tlds';
+import { MessageKeyboard } from '../MessageInput';
+import { URLAugmentation } from '../workers/UrlInfoService';
 
 const REACTIONS_LEGACY = new Map([
     ['❤️', 'LIKE'],
@@ -159,7 +161,21 @@ async function prepareLegacyMentions(ctx: Context, message: Message, uid: number
 }
 
 export type MessageAttachmentFile = { type: 'file_attachment', fileId: string, filePreview?: string, fileMetadata?: any, id: string };
-export type MessageRichAttachment = { type: 'rich_attachment', title?: string, subTitle?: string, titleLink?: string, text?: string, icon?: ImageRef, image?: ImageRef, iconInfo?: FileInfo, imageInfo?: FileInfo, titleLinkHostname?: string, id: string };
+export type MessageRichAttachment = {
+    type: 'rich_attachment',
+    title?: string,
+    subTitle?: string,
+    titleLink?: string,
+    text?: string,
+    icon?: ImageRef,
+    image?: ImageRef,
+    iconInfo?: FileInfo,
+    imageInfo?: FileInfo,
+    titleLinkHostname?: string,
+    id: string,
+    keyboard?: MessageKeyboard
+};
+
 export type MessageAttachment = MessageAttachmentFile | MessageRichAttachment;
 
 const linkifyInstance = linkify()
@@ -303,17 +319,19 @@ export default {
                 });
             }
             if (src.augmentation) {
+                let augmentation: URLAugmentation = src.augmentation;
                 attachments.push({
                     type: 'rich_attachment',
-                    title: src.augmentation.title,
-                    titleLink: src.augmentation.url,
-                    titleLinkHostname: src.augmentation.hostname || undefined,
-                    subTitle: src.augmentation.subtitle,
-                    text: src.augmentation.description,
-                    icon: src.augmentation.iconRef || undefined,
-                    iconInfo: src.augmentation.iconInfo || undefined,
-                    image: src.augmentation.photo || undefined,
-                    imageInfo: src.augmentation.imageInfo || undefined,
+                    title: augmentation.title || undefined,
+                    titleLink: augmentation.url,
+                    titleLinkHostname: augmentation.hostname || undefined,
+                    subTitle: augmentation.subtitle || undefined,
+                    text: augmentation.description || undefined,
+                    icon: augmentation.iconRef || undefined,
+                    iconInfo: augmentation.iconInfo || undefined,
+                    image: augmentation.photo || undefined,
+                    imageInfo: augmentation.imageInfo || undefined,
+                    keyboard: augmentation.keyboard || undefined,
                     id: 'legacy_rich'
                 });
             }
@@ -473,7 +491,7 @@ export default {
         icon: src => src.icon && { uuid: src.icon.uuid, metadata: src.iconInfo },
         image: src => src.image && { uuid: src.image.uuid, metadata: src.imageInfo },
         fallback: src => src.title ? src.title : src.text ? src.text : src.titleLink ? src.titleLink : 'unsupported',
-        keyboard: src => null
+        keyboard: src => src.keyboard
     },
 
     Query: {
