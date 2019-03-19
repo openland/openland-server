@@ -26,6 +26,12 @@ enum RoomMemberRole {
     MEMBER
 }
 
+type WelcomeMessage {
+    isOn: Boolean!
+    sender: RoomMember
+    message: String
+}
+
 type SharedRoom {
     id: ID!
     kind: SharedRoomKind!
@@ -34,6 +40,7 @@ type SharedRoom {
     socialImage: String
     description: String
     pinnedMessage: ModernMessage
+    welcomeMessage: WelcomeMessage
     
     organization: Organization
   
@@ -184,4 +191,6 @@ extend type Mutation {
     # Admin tools
     betaRoomAlterFeatured(roomId: ID!, featured: Boolean!): RoomSuper!
     betaRoomAlterListed(roomId: ID!, listed: Boolean!): RoomSuper!
+
+    updateWelcomeMessage(roomId: ID!, welcomeMessageIsOn: Boolean!, welcomeMessageSender: ID, welcomeMessageText: String): Boolean!
 }

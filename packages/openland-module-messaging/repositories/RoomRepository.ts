@@ -1,4 +1,4 @@
-import { AllEntities } from 'openland-module-db/schema';
+import { AllEntities, RoomParticipant } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { buildBaseImageUrl, imageRefEquals } from 'openland-module-media/ImageRef';
@@ -559,6 +559,59 @@ export class RoomRepository {
 
         let profile = await this.entities.RoomProfile.findById(ctx, conv.id);
         return profile ? buildBaseImageUrl(profile.socialImage) : null;
+    }
+
+    async resolveConversationWelcomeMessageIsOn(ctx: Context, conversationId: number): Promise<boolean | null> {
+        let profile = await this.entities.RoomProfile.findById(ctx, conversationId);
+        if (!profile) {
+            throw new NotFoundError();
+        }
+        return !!profile.welcomeMessageIsOn;
+    }
+
+    async resolveConversationWelcomeSender(ctx: Context, conversationId: number): Promise<RoomParticipant | null> {
+        let profile = await this.entities.RoomProfile.findById(ctx, conversationId);
+        if (!profile) {
+            throw new NotFoundError();
+        }
+        const welcomeMessageSenderId = profile.welcomeMessageSender;
+        if (!welcomeMessageSenderId) {
+            return null;
+        }
+        let welcomeMessageSender = await this.entities.RoomParticipant.findById(ctx, conversationId, welcomeMessageSenderId); 
+        if (!welcomeMessageSender || welcomeMessageSender.status !== 'joined') {
+            throw new AccessDeniedError();
+        }
+        return welcomeMessageSender;
+    }
+
+    async resolveConversationWelcomeMessageText(ctx: Context, conversationId: number): Promise<string | null> {
+        let profile = await this.entities.RoomProfile.findById(ctx, conversationId);
+        if (!profile) {
+            throw new NotFoundError();
+        }
+        return profile.welcomeMessageText;
+    }
+
+    async updateWelcomeMessage(parent: Context, cid: number, welcomeMessageIsOn: boolean, welcomeMessageSender: number | null | undefined, welcomeMessageText: string | null | undefined) {
+        return await inTx(parent, async (ctx) => {
+            let profile = await this.entities.RoomProfile.findById(ctx, cid);
+            if (!profile) {
+                throw new NotFoundError();
+            }
+            
+            profile.welcomeMessageIsOn = welcomeMessageIsOn;
+            if (welcomeMessageSender !== undefined) {
+                profile.welcomeMessageSender = welcomeMessageSender;
+            }
+            
+            if (welcomeMessageText !== undefined) {
+                profile.welcomeMessageText = welcomeMessageText;
+            }
+            
+            await profile.flush();
+            return true;
+        });
     }
 
     async checkAccess(ctx: Context, uid: number, cid: number) {

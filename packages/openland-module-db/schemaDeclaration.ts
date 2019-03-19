@@ -410,6 +410,9 @@ const Schema = declareSchema(() => {
         field('description', 'string').nullable();
         field('socialImage', 'json').nullable();
         field('pinnedMessage', 'number').nullable();
+        field('welcomeMessageIsOn', 'boolean').nullable();
+        field('welcomeMessageSender', 'number').nullable();
+        field('welcomeMessageText', 'string').nullable();
 
         rangeIndex('updated', ['updatedAt']);
         enableVersioning();

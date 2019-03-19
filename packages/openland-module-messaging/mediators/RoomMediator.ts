@@ -4,7 +4,7 @@ import { RoomRepository } from 'openland-module-messaging/repositories/RoomRepos
 import { RoomProfileInput } from 'openland-module-messaging/RoomProfileInput';
 import { inTx } from 'foundation-orm/inTx';
 import { MessagingMediator } from './MessagingMediator';
-import { AllEntities, ConversationRoom } from 'openland-module-db/schema';
+import { AllEntities, ConversationRoom, RoomParticipant } from 'openland-module-db/schema';
 import { Modules } from 'openland-modules/Modules';
 import { DeliveryMediator } from './DeliveryMediator';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
@@ -367,6 +367,13 @@ export class RoomMediator {
         });
     }
 
+    async updateWelcomeMessage(parent: Context, cid: number, uid: number, welcomeMessageIsOn: boolean, welcomeMessageSender: number | null | undefined, welcomeMessageText: string | null | undefined) {
+        return await inTx(parent, async (ctx) => {
+            await this.checkCanEditChat(ctx, cid, uid);
+            return await this.repo.updateWelcomeMessage(ctx, cid, welcomeMessageIsOn, welcomeMessageSender, welcomeMessageText);
+        });
+    }
+
     async pinMessage(parent: Context, cid: number, uid: number, mid: number) {
         return await inTx(parent, async (ctx) => {
             await this.checkCanEditChat(ctx, cid, uid);
@@ -436,6 +443,18 @@ export class RoomMediator {
 
     async resolveConversationSocialImage(ctx: Context, conversationId: number): Promise<string | null> {
         return await this.repo.resolveConversationSocialImage(ctx, conversationId);
+    }
+
+    async resolveConversationWelcomeMessageIsOn(ctx: Context, conversationId: number): Promise<boolean | null> {
+        return await this.repo.resolveConversationWelcomeMessageIsOn(ctx, conversationId);
+    }
+
+    async resolveConversationWelcomeSender(ctx: Context, conversationId: number): Promise<RoomParticipant | null> {
+        return await this.repo.resolveConversationWelcomeSender(ctx, conversationId);
+    }
+
+    async resolveConversationWelcomeMessageText(ctx: Context, conversationId: number): Promise<string | null> {
+        return await this.repo.resolveConversationWelcomeMessageText(ctx, conversationId);
     }
 
     async resolveConversationOrganization(ctx: Context, cid: number) {

@@ -4020,6 +4020,9 @@ export interface RoomProfileShape {
     description?: string| null;
     socialImage?: any| null;
     pinnedMessage?: number| null;
+    welcomeMessageIsOn?: boolean| null;
+    welcomeMessageSender?: number| null;
+    welcomeMessageText?: string| null;
 }
 
 export class RoomProfile extends FEntity {
@@ -4078,6 +4081,39 @@ export class RoomProfile extends FEntity {
         this._value.pinnedMessage = value;
         this.markDirty();
     }
+    get welcomeMessageIsOn(): boolean | null {
+        let res = this._value.welcomeMessageIsOn;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set welcomeMessageIsOn(value: boolean | null) {
+        this._checkIsWritable();
+        if (value === this._value.welcomeMessageIsOn) { return; }
+        this._value.welcomeMessageIsOn = value;
+        this.markDirty();
+    }
+    get welcomeMessageSender(): number | null {
+        let res = this._value.welcomeMessageSender;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set welcomeMessageSender(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.welcomeMessageSender) { return; }
+        this._value.welcomeMessageSender = value;
+        this.markDirty();
+    }
+    get welcomeMessageText(): string | null {
+        let res = this._value.welcomeMessageText;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set welcomeMessageText(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.welcomeMessageText) { return; }
+        this._value.welcomeMessageText = value;
+        this.markDirty();
+    }
 }
 
 export class RoomProfileFactory extends FEntityFactory<RoomProfile> {
@@ -4093,6 +4129,9 @@ export class RoomProfileFactory extends FEntityFactory<RoomProfile> {
             { name: 'description', type: 'string' },
             { name: 'socialImage', type: 'json' },
             { name: 'pinnedMessage', type: 'number' },
+            { name: 'welcomeMessageIsOn', type: 'boolean' },
+            { name: 'welcomeMessageSender', type: 'number' },
+            { name: 'welcomeMessageText', type: 'string' },
         ],
         indexes: [
             { name: 'updated', type: 'range', fields: ['updatedAt'] },
@@ -4106,6 +4145,9 @@ export class RoomProfileFactory extends FEntityFactory<RoomProfile> {
         validators.isString('title', src.title);
         validators.isString('description', src.description);
         validators.isNumber('pinnedMessage', src.pinnedMessage);
+        validators.isBoolean('welcomeMessageIsOn', src.welcomeMessageIsOn);
+        validators.isNumber('welcomeMessageSender', src.welcomeMessageSender);
+        validators.isString('welcomeMessageText', src.welcomeMessageText);
     }
 
     constructor(connection: FConnection) {
