@@ -121,7 +121,7 @@ export class ShortnameRepository {
             let existing = await this.entities.ShortnameReservation.findById(ctx, normalized);
 
             if ((existing && existing.enabled) || this.reservedNames.has(normalized)) {
-                throw new UserError('This shortname is already used');
+                throw new UserError('Sorry, this shortname is already taken!\neverything else is good!');
             } else if (existing) {
                 existing.ownerId = ownerId;
                 existing.ownerType = ownerType;
