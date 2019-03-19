@@ -14,7 +14,7 @@ import { FileInfo } from '../../openland-module-media/FileInfo';
 import linkify from 'linkify-it';
 import tlds from 'tlds';
 import { MessageKeyboard } from '../MessageInput';
-import { URLAugmentation } from '../workers/UrlInfoService';
+import { createUrlInfoService, URLAugmentation } from '../workers/UrlInfoService';
 
 const REACTIONS_LEGACY = new Map([
     ['❤️', 'LIKE'],
@@ -210,6 +210,8 @@ function parseLinks(message: string): MessageSpan[] {
     } as LinkSpan));
 }
 
+const urlInfoService = createUrlInfoService();
+
 export default {
     ModernMessage: {
       __resolveType(src: Message) {
@@ -320,6 +322,10 @@ export default {
             }
             if (src.augmentation) {
                 let augmentation: URLAugmentation = src.augmentation;
+                if (augmentation.dynamic) {
+                    augmentation = await urlInfoService.fetchURLInfo(augmentation.url, false);
+                }
+
                 attachments.push({
                     type: 'rich_attachment',
                     title: augmentation.title || undefined,

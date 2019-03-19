@@ -25,27 +25,30 @@ export interface URLAugmentation {
     extra?: any;
     deleted?: boolean;
     keyboard?: MessageKeyboard;
+    dynamic?: boolean;
 }
 
 export class ModernUrlInfoService {
-    private specialUrls: { regexp: RegExp, handler: (url: string, data: any[]) => Promise<URLAugmentation | null> }[] = [];
+    private specialUrls: { regexp: RegExp, cache: boolean, handler: (url: string, data: any[]) => Promise<URLAugmentation | null> }[] = [];
 
     private cache = new CacheRepository<URLAugmentation>('url_info');
 
     public async fetchURLInfo(url: string, useCached: boolean = true): Promise<URLAugmentation> {
         let ctx = createEmptyContext();
-        // let existing = await this.cache.read(ctx, url);
-        // let creationTime = await this.cache.getCreationTime(ctx, url);
+        let existing = await this.cache.read(ctx, url);
+        let creationTime = await this.cache.getCreationTime(ctx, url);
 
-        // if (useCached && existing && (creationTime! + 1000 * 60 * 60 * 24 * 7) >= Date.now()) {
-        //     return existing;
-        // }
+        if (useCached && existing && (creationTime! + 1000 * 60 * 60 * 24 * 7) >= Date.now()) {
+            return existing;
+        }
 
         for (let specialUrl of this.specialUrls) {
             if (specialUrl.regexp.test(url)) {
                 let info = await specialUrl.handler(url, specialUrl.regexp.exec(url)!);
                 if (info) {
-                    await this.cache.write(ctx, url, info);
+                    if (specialUrl.cache) {
+                        await this.cache.write(ctx, url, info);
+                    }
                     return info;
                 }
             }
@@ -88,8 +91,8 @@ export class ModernUrlInfoService {
         return true;
     }
 
-    public specialUrl(regexp: RegExp, handler: (url: string, data: any[]) => Promise<URLAugmentation | null>) {
-        this.specialUrls.push({regexp, handler});
+    public specialUrl(regexp: RegExp, cache: boolean, handler: (url: string, data: any[]) => Promise<URLAugmentation | null>) {
+        this.specialUrls.push({ regexp, cache, handler });
         return this;
     }
 }
@@ -116,7 +119,7 @@ export function createUrlInfoService() {
     let service = new ModernUrlInfoService();
 
     service
-        .specialUrl(/(localhost:3000|(app.|next.)?openland.com)\/(mail|directory)\/u\/(.*)/, async (url, data) => {
+        .specialUrl(/(localhost:3000|(app.|next.)?openland.com)\/(mail|directory)\/u\/(.*)/, false, async (url, data) => {
             let [, , , , _userId] = data;
             let {hostname} = URL.parse(url);
 
@@ -126,7 +129,7 @@ export function createUrlInfoService() {
 
             return await getURLAugmentationForUser({hostname, url, userId, user});
         })
-        .specialUrl(/(localhost:3000|(app.|next.)?openland.com)\/(directory\/)?o\/(.*)/, async (url, data) => {
+        .specialUrl(/(localhost:3000|(app.|next.)?openland.com)\/(directory\/)?o\/(.*)/, false, async (url, data) => {
             let [, , , , _orgId] = data;
             let {hostname} = URL.parse(url);
 
@@ -149,7 +152,7 @@ export function createUrlInfoService() {
                 iconInfo: null,
             };
         })
-        .specialUrl(/(localhost:3000|(app.|next.)?openland.com)\/((mail|directory)\/)(p\/)?(.*)/, async (url, data) => {
+        .specialUrl(/(localhost:3000|(app.|next.)?openland.com)\/((mail|directory)\/)(p\/)?(.*)/, false, async (url, data) => {
             let [, , , , , , _channelId] = data;
 
             let {hostname} = URL.parse(url);
@@ -179,7 +182,7 @@ export function createUrlInfoService() {
                 iconInfo: null,
             };
         })
-        .specialUrl(/(localhost:3000|(app.|next.)?openland.com)\/joinChannel\/(.*)/, async (url, data) => {
+        .specialUrl(/(localhost:3000|(app.|next.)?openland.com)\/joinChannel\/(.*)/, false, async (url, data) => {
             let ctx = createEmptyContext();
             let [, , , _invite] = data;
             let {hostname} = URL.parse(url);
@@ -212,10 +215,11 @@ export function createUrlInfoService() {
                     buttons: [[
                         { id: 'chat_invite_link', title: 'Accept invite', style: 'DEFAULT', url }
                     ]]
-                }
+                },
+                dynamic: true
             };
         })
-        .specialUrl(/(localhost:3000|(app.|next.)?openland.com)\/(.*)/, async (url, data) => {
+        .specialUrl(/(localhost:3000|(app.|next.)?openland.com)\/(.*)/, false, async (url, data) => {
             let [, , , _shortname] = data;
 
             let {hostname} = URL.parse(url);
