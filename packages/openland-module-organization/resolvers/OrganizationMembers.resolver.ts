@@ -82,7 +82,7 @@ export default {
         alphaOrganizationChangeMemberRole: withAccount(async (ctx, args, uid) => {
             let oid = IDs.Organization.parse(args.organizationId);
             let memberId = IDs.User.parse(args.memberId);
-            await Modules.Orgs.updateMemberRole(ctx, memberId, oid, args.newRole === 'OWNER' ? 'admin' : 'member', uid);
+            await Modules.Orgs.updateMemberRole(ctx, memberId, oid, args.newRole === 'ADMIN' ? 'admin' : 'member', uid);
             return 'ok';
         }),
 
