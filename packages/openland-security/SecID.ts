@@ -119,7 +119,8 @@ function encrypt(value: SecIDv2ValueType, valueType: SecIDv2ValueTypeName, typeI
     return res;
 }
 
-function decrypt(valuestr: string, value: Buffer, type: number | Set<number>, encryptionKey: Buffer, encryptionIv: Buffer, hmacKey: Buffer) {  let decipher = Crypto.createDecipheriv('aes-128-ctr', encryptionKey, encryptionIv);
+function decrypt(valuestr: string, value: Buffer, type: number | Set<number>, encryptionKey: Buffer, encryptionIv: Buffer, hmacKey: Buffer) {
+    let decipher = Crypto.createDecipheriv('aes-128-ctr', encryptionKey, encryptionIv);
     let dataLen = value.byteLength - 8;
     let sourceContent = value.slice(0, dataLen);
     let sourceHmac = value.slice(dataLen, dataLen + 8);
@@ -143,7 +144,7 @@ function decrypt(valuestr: string, value: Buffer, type: number | Set<number>, en
     let valueVersion = decoded.readUInt8(0);
     let valueTypeId = decoded.readUInt16BE(1);
     let correctValueTypeId = false;
-    let valueRes: SecIDv2ValueType|undefined;
+    let valueRes: SecIDv2ValueType | undefined;
 
     if (valueVersion === NUMBER_VERSION) {
         correctValueTypeId = true;
@@ -163,7 +164,7 @@ function decrypt(valuestr: string, value: Buffer, type: number | Set<number>, en
         correctType = type.has(valueTypeId);
     }
     if (correctType && correctVersion && hmacCorrect && correctValueTypeId && valueRes) {
-        return { id: valueRes, type: valueTypeId };
+        return {id: valueRes, type: valueTypeId};
     }
     throw new IDMailformedError('Invalid id: ' + valuestr);
 }
