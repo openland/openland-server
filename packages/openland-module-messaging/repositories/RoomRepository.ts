@@ -22,6 +22,12 @@ function doSimpleHash(key: string): number {
     return Math.abs(h);
 }
 
+export type WelcomeMessageT = {
+    isOn: boolean,
+    sender: RoomParticipant | null,
+    message: string
+};
+
 @injectable()
 export class RoomRepository {
     @lazyInject('FDB') private readonly entities!: AllEntities;
@@ -561,28 +567,31 @@ export class RoomRepository {
         return profile ? buildBaseImageUrl(profile.socialImage) : null;
     }
 
-    async resolveConversationWelcomeMessageIsOn(ctx: Context, conversationId: number): Promise<boolean | null> {
+    async resolveConversationWelcomeMessage(ctx: Context, conversationId: number): Promise<WelcomeMessageT | null> {
         let profile = await this.entities.RoomProfile.findById(ctx, conversationId);
         if (!profile) {
             throw new NotFoundError();
         }
-        return !!profile.welcomeMessageIsOn;
-    }
 
-    async resolveConversationWelcomeSender(ctx: Context, conversationId: number): Promise<RoomParticipant | null> {
-        let profile = await this.entities.RoomProfile.findById(ctx, conversationId);
-        if (!profile) {
-            throw new NotFoundError();
+
+        const senderId = profile.welcomeMessageSender ? profile.welcomeMessageSender : null;
+        let sender = null;
+
+        if (senderId) {
+            sender = await this.entities.RoomParticipant.findById(ctx, conversationId, senderId); 
+            if (!sender || sender.status !== 'joined') {
+                throw new AccessDeniedError();
+            }
         }
-        const welcomeMessageSenderId = profile.welcomeMessageSender;
-        if (!welcomeMessageSenderId) {
-            return null;
-        }
-        let welcomeMessageSender = await this.entities.RoomParticipant.findById(ctx, conversationId, welcomeMessageSenderId); 
-        if (!welcomeMessageSender || welcomeMessageSender.status !== 'joined') {
-            throw new AccessDeniedError();
-        }
-        return welcomeMessageSender;
+
+        const isOn = !!profile.welcomeMessageIsOn;
+        const message = profile.welcomeMessageText || '';
+      
+        return {
+            isOn,
+            sender,
+            message
+        };
     }
 
     async resolveConversationWelcomeMessageText(ctx: Context, conversationId: number): Promise<string | null> {

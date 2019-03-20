@@ -110,19 +110,9 @@ export default {
         organization: withConverationId(async (ctx, id) => Modules.Messaging.room.resolveConversationOrganization(ctx, id)),
 
         description: withRoomProfile((ctx, profile) => profile && profile.description),
-        welcomeMessage: async (root: RoomRoot, args: {}, ctx: AppContext) => {
-            return await withConverationId(async (innerCtx, id) => {
-                const isOn = await Modules.Messaging.room.resolveConversationWelcomeMessageIsOn(innerCtx, id);
-                const sender = await Modules.Messaging.room.resolveConversationWelcomeSender(innerCtx, id);
-                const message = await Modules.Messaging.room.resolveConversationWelcomeMessageText(innerCtx, id);
-                return {
-                    isOn,
-                    sender,
-                    message
-                };
-                
-            })(root, args, ctx);
-        },
+        welcomeMessage: async (root: RoomRoot, args: {}, ctx: AppContext) => 
+            await Modules.Messaging.room.resolveConversationWelcomeMessage(ctx, typeof root === 'number' ? root : root.id),
+       
         pinnedMessage: withRoomProfile((ctx, profile) => profile && profile.pinnedMessage && FDB.Message.findById(ctx, profile.pinnedMessage)),
 
         membership: withConverationId(async (ctx, id) => ctx.auth.uid ? await Modules.Messaging.room.resolveUserMembershipStatus(ctx, ctx.auth.uid, id) : 'none'),

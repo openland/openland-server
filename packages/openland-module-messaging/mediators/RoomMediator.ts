@@ -1,10 +1,10 @@
 import { injectable } from 'inversify';
 import { lazyInject } from 'openland-modules/Modules.container';
-import { RoomRepository } from 'openland-module-messaging/repositories/RoomRepository';
+import { RoomRepository, WelcomeMessageT } from 'openland-module-messaging/repositories/RoomRepository';
 import { RoomProfileInput } from 'openland-module-messaging/RoomProfileInput';
 import { inTx } from 'foundation-orm/inTx';
 import { MessagingMediator } from './MessagingMediator';
-import { AllEntities, ConversationRoom, RoomParticipant } from 'openland-module-db/schema';
+import { AllEntities, ConversationRoom } from 'openland-module-db/schema';
 import { Modules } from 'openland-modules/Modules';
 import { DeliveryMediator } from './DeliveryMediator';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
@@ -445,16 +445,8 @@ export class RoomMediator {
         return await this.repo.resolveConversationSocialImage(ctx, conversationId);
     }
 
-    async resolveConversationWelcomeMessageIsOn(ctx: Context, conversationId: number): Promise<boolean | null> {
-        return await this.repo.resolveConversationWelcomeMessageIsOn(ctx, conversationId);
-    }
-
-    async resolveConversationWelcomeSender(ctx: Context, conversationId: number): Promise<RoomParticipant | null> {
-        return await this.repo.resolveConversationWelcomeSender(ctx, conversationId);
-    }
-
-    async resolveConversationWelcomeMessageText(ctx: Context, conversationId: number): Promise<string | null> {
-        return await this.repo.resolveConversationWelcomeMessageText(ctx, conversationId);
+    async resolveConversationWelcomeMessage(ctx: Context, conversationId: number): Promise<WelcomeMessageT | null> {
+        return await this.repo.resolveConversationWelcomeMessage(ctx, conversationId);
     }
 
     async resolveConversationOrganization(ctx: Context, cid: number) {
