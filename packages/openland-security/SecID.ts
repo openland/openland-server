@@ -14,12 +14,16 @@ const hmacSecretSalt = 'c15c63b812d78d8e368f2d702e43dd885f3bcf0e446203951b12cf3a
 // Randomly generated string for using as salt for hashds salt derivation
 const hashidsSalt = '11705939e5cad46fa04a6fc838a3fa25c0f50439c946101199b8506ff73a2ebe';
 
-// Contant for current version of an ID
-const CURRENT_VERSION = 1;
-// Expected Key Length
-const KEY_LENGTH = 15;
 // Truncated size of HMAC
 const HMAC_LENGTH = 8;
+// Expected minimum Key Length
+const MIN_KEY_LENGTH = 15;
+
+type SecIDv2ValueTypeName = 'number' | 'string';
+type SecIDv2ValueType = number | string;
+
+const NUMBER_VERSION = 1;
+const STRING_VERSION = 2;
 
 export type SecIDStyle = 'hex' | 'base64' | 'hashids';
 
@@ -44,25 +48,64 @@ function encodeStyle(value: Buffer, style: SecIDStyle, hashids: Hashids) {
     }
 }
 
-function encrypt(value: number, typeId: number, encryptionKey: Buffer, encryptionIv: Buffer, hmacKey: Buffer) {
+function encodeNumberIdBody(value: SecIDv2ValueType, typeId: number) {
     // Preflight check
+    if (typeof value !== 'number') {
+        throw new IDMailformedError('Id value and valueType mismatch');
+    }
     if (value < 0) {
         throw new IDMailformedError('Ids can\'t be negative!');
     }
     if (!Number.isInteger(value)) {
-        throw new IDMailformedError('Ids can\'t be float numbers! Got: ' + value);
+        throw new IDMailformedError('Ids can\'t be float numbers!');
     }
     if (value > 2147483647) {
         throw new IDMailformedError('Ids can\'t be bigger than 2147483647. Got: ' + value);
     }
 
-    let buf = new Buffer(7);
+    let buf = Buffer.alloc(7);
     // Write version
-    buf.writeInt8(CURRENT_VERSION, 0);
+    buf.writeInt8(NUMBER_VERSION, 0);
     // Write type id
     buf.writeUInt16BE(typeId, 1);
     // Write id
     buf.writeInt32BE(value, 3);
+
+    return buf;
+}
+
+function encodeStringIdBody(value: SecIDv2ValueType, typeId: number) {
+    // Preflight check
+    if (typeof value !== 'string') {
+        throw new IDMailformedError('Id value and valueType mismatch');
+    }
+    if (value.length > 65535) {
+        throw new IDMailformedError('Ids string value length can\'t be bigger than 65535. Got: ' + value.length);
+    }
+
+    let buf = Buffer.alloc(5);
+    // Write version
+    buf.writeInt8(STRING_VERSION, 0);
+    // Write type id
+    buf.writeUInt16BE(typeId, 1);
+    // Write string length
+    buf.writeUInt16BE(value.length, 3);
+    // Write string
+    buf = Buffer.concat([buf, Buffer.from(value, 'utf-8')]);
+
+    return buf;
+}
+
+function encrypt(value: SecIDv2ValueType, valueType: SecIDv2ValueTypeName, typeId: number, encryptionKey: Buffer, encryptionIv: Buffer, hmacKey: Buffer) {
+    let buf: Buffer;
+
+    if (valueType === 'number') {
+        buf = encodeNumberIdBody(value, typeId);
+    } else if (valueType === 'string') {
+        buf = encodeStringIdBody(value, typeId);
+    } else {
+        throw new IDMailformedError('Unknown id value type ' + valueType);
+    }
 
     // Encrypt
     let cipher = Crypto.createCipheriv('aes-128-ctr', encryptionKey, encryptionIv);
@@ -76,12 +119,10 @@ function encrypt(value: number, typeId: number, encryptionKey: Buffer, encryptio
     return res;
 }
 
-function decrypt(valuestr: string, value: Buffer, type: number | Set<number>, encryptionKey: Buffer, encryptionIv: Buffer, hmacKey: Buffer) {
-    // This code need to have constant time
-    let decipher = Crypto.createDecipheriv('aes-128-ctr', encryptionKey, encryptionIv);
-
-    let sourceContent = value.slice(0, 7);
-    let sourceHmac = value.slice(7);
+function decrypt(valuestr: string, value: Buffer, type: number | Set<number>, encryptionKey: Buffer, encryptionIv: Buffer, hmacKey: Buffer) {  let decipher = Crypto.createDecipheriv('aes-128-ctr', encryptionKey, encryptionIv);
+    let dataLen = value.byteLength - 8;
+    let sourceContent = value.slice(0, dataLen);
+    let sourceHmac = value.slice(dataLen, dataLen + 8);
 
     // Decryption
     let decoded = decipher.update(sourceContent);
@@ -91,28 +132,46 @@ function decrypt(valuestr: string, value: Buffer, type: number | Set<number>, en
     let hmacActual = Crypto.createHmac('sha256', hmacKey).update(sourceContent).digest().slice(0, HMAC_LENGTH);
 
     // For consant time read evertyhing before checking
+    if (hmacActual.byteLength !== sourceHmac.byteLength) {
+        if (hmacActual.length > sourceHmac.length) {
+            sourceHmac = Buffer.concat([sourceHmac, Buffer.alloc(hmacActual.length - sourceHmac.length)]);
+        } else {
+            hmacActual = Buffer.concat([hmacActual, Buffer.alloc(sourceHmac.length - hmacActual.length)]);
+        }
+    }
     let hmacCorrect = Crypto.timingSafeEqual(hmacActual, sourceHmac);
     let valueVersion = decoded.readUInt8(0);
     let valueTypeId = decoded.readUInt16BE(1);
-    let valueRes = decoded.readUInt32BE(3);
+    let correctValueTypeId = false;
+    let valueRes: SecIDv2ValueType|undefined;
+
+    if (valueVersion === NUMBER_VERSION) {
+        correctValueTypeId = true;
+        valueRes = decoded.readUInt32BE(3);
+    } else if (valueVersion === STRING_VERSION) {
+        correctValueTypeId = true;
+        let stringLen = decoded.readUInt16BE(3);
+        valueRes = decoded.slice(5, 5 + stringLen).toString('utf-8');
+    }
 
     // Constant time integrity check
-    let correctVersion = valueVersion === 1;
+    let correctVersion = valueVersion === NUMBER_VERSION || valueVersion === STRING_VERSION;
     let correctType = false;
     if (typeof type === 'number') {
         correctType = valueTypeId === type;
     } else {
         correctType = type.has(valueTypeId);
     }
-    if (correctType && correctVersion && hmacCorrect) {
+    if (correctType && correctVersion && hmacCorrect && correctValueTypeId && valueRes) {
         return { id: valueRes, type: valueTypeId };
     }
     throw new IDMailformedError('Invalid id: ' + valuestr);
 }
 
-export class SecID {
+export class SecID<T extends SecIDv2ValueType> {
     public readonly typeName: string;
     public readonly typeId: number;
+    private readonly valueType: SecIDv2ValueTypeName;
     private readonly encryptionKey: Buffer;
     private readonly encryptionIv: Buffer;
     private readonly hmacKey: Buffer;
@@ -122,13 +181,16 @@ export class SecID {
     constructor(
         typeName: string,
         typeId: number,
+        valueType: SecIDv2ValueTypeName,
         encryptionKey: Buffer,
         encryptionIv: Buffer,
         hmacKey: Buffer,
         style: SecIDStyle,
-        hashids: Hashids) {
+        hashids: Hashids
+    ) {
         this.typeName = typeName;
         this.typeId = typeId;
+        this.valueType = valueType;
         this.encryptionKey = encryptionKey;
         this.encryptionIv = encryptionIv;
         this.hmacKey = hmacKey;
@@ -136,20 +198,18 @@ export class SecID {
         this.hashids = hashids;
     }
 
-    serialize(value: number) {
-        let encrypted = encrypt(value, this.typeId, this.encryptionKey, this.encryptionIv, this.hmacKey);
+    serialize(value: T) {
+        let encrypted = encrypt(value, this.valueType, this.typeId, this.encryptionKey, this.encryptionIv, this.hmacKey);
         return encodeStyle(encrypted, this.style, this.hashids);
     }
 
-    parse(value: string) {
-
+    parse(value: string): T {
         // Decode style
         let source = decodeStyle(value, this.style, this.hashids);
-        if (source.length !== KEY_LENGTH) {
+        if (source.length < MIN_KEY_LENGTH) {
             throw new IDMailformedError('Invalid id');
         }
-
-        return decrypt(value, source, this.typeId, this.encryptionKey, this.encryptionIv, this.hmacKey).id;
+        return decrypt(value, source, this.typeId, this.encryptionKey, this.encryptionIv, this.hmacKey).id as T;
     }
 }
 
@@ -161,7 +221,7 @@ export class SecIDFactory {
     private readonly style: SecIDStyle;
     private readonly hashids: Hashids;
     private knownTypes = new Set<number>();
-    private knownSecIDS = new Map<number, SecID>();
+    private knownSecIDS = new Map<number, SecID<any>>();
 
     constructor(secret: string, style: SecIDStyle = 'hashids') {
         this.style = style;
@@ -172,9 +232,29 @@ export class SecIDFactory {
         this.hashids = new Hashids(Crypto.pbkdf2Sync(secret, hashidsSalt, 100000, 32, 'sha512').toString('hex'));
     }
 
+    resolve(value: string) {
+        let source = decodeStyle(value, this.style, this.hashids);
+        if (source.length < MIN_KEY_LENGTH) {
+            throw new IDMailformedError('Invalid id');
+        }
+        let res = decrypt(value, source, this.knownTypes, this.encryptionKey, this.encryptionIv, this.hmacKey);
+        return {
+            id: res.id,
+            type: this.knownSecIDS.get(res.type)!!
+        };
+    }
+
     createId(type: string) {
+        return this.doCreateId<number>(type, 'number');
+    }
+
+    createStringId(type: string) {
+        return this.doCreateId<string>(type, 'string');
+    }
+
+    private doCreateId<T extends SecIDv2ValueType>(type: string, valueType: SecIDv2ValueTypeName) {
         // Hashing of type name
-        // We don't need to make this hash secure. 
+        // We don't need to make this hash secure.
         // Just to "compress" and use hash instead of a full name.
 
         // Using simple hash: sha1
@@ -194,20 +274,8 @@ export class SecIDFactory {
         this.knownTypes.add(typeId);
 
         // Build SecID instance
-        let id = new SecID(type, typeId, this.encryptionKey, this.encryptionIv, this.hmacKey, this.style, this.hashids);
+        let id = new SecID<T>(type, typeId, valueType, this.encryptionKey, this.encryptionIv, this.hmacKey, this.style, this.hashids);
         this.knownSecIDS.set(typeId, id);
         return id;
-    }
-
-    resolve(value: string) {
-        let source = decodeStyle(value, this.style, this.hashids);
-        if (source.length !== KEY_LENGTH) {
-            throw new IDMailformedError('Invalid id');
-        }
-        let res = decrypt(value, source, this.knownTypes, this.encryptionKey, this.encryptionIv, this.hmacKey);
-        return {
-            id: res.id,
-            type: this.knownSecIDS.get(res.type)!!
-        };
     }
 }

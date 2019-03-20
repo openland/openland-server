@@ -272,16 +272,16 @@ export default {
         room: withAccount(async (ctx, args, uid, oid) => {
             let id = IdsFactory.resolve(args.id);
             if (id.type === IDs.Conversation) {
-                await Modules.Messaging.room.checkCanUserSeeChat(ctx, uid, id.id);
+                await Modules.Messaging.room.checkCanUserSeeChat(ctx, uid, id.id as number);
                 return id.id;
             } else if (id.type === IDs.User) {
-                return await Modules.Messaging.room.resolvePrivateChat(ctx, id.id, uid);
+                return await Modules.Messaging.room.resolvePrivateChat(ctx, id.id as number, uid);
             } else if (id.type === IDs.Organization) {
-                let member = await FDB.OrganizationMember.findById(ctx, id.id, uid);
+                let member = await FDB.OrganizationMember.findById(ctx, id.id as number, uid);
                 if (!member || member.status !== 'joined') {
                     throw new IDMailformedError('Invalid id');
                 }
-                return Modules.Messaging.room.resolveOrganizationChat(ctx, id.id);
+                return Modules.Messaging.room.resolveOrganizationChat(ctx, id.id as number);
             } else {
                 throw new IDMailformedError('Invalid id');
             }

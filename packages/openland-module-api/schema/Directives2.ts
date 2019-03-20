@@ -64,7 +64,7 @@ function createIDDirective(id: GraphQLScalarType) {
     };
 }
 
-export function IDType(type: SecID) {
+export function IDType(type: SecID<any>) {
     return new GraphQLScalarType({
         name: type.typeName + 'ID',
 

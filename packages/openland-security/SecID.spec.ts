@@ -13,6 +13,11 @@ describe('SecID Module', () => {
         let parsed = id.parse(serialized);
         expect(parsed).toEqual(123);
         expect(serialized).toEqual('7e1f9518ed46bbb81e74366583b6d0');
+        let stringId = factory.createStringId('IdType2');
+        serialized = stringId.serialize('test');
+        let parsed2 = stringId.parse(serialized);
+        expect(parsed2).toEqual('test');
+        expect(serialized).toEqual('7d225718e932a56b5ecc8283b6d7bce593');
     });
     it('Should handle crash on collisions', () => {
         let factory = new SecIDFactory('Shared Secret', 'hex');
@@ -67,6 +72,11 @@ describe('SecID Module', () => {
         let res = factory.resolve(type1.serialize(123));
         expect(res.id).toEqual(123);
         expect(res.type).toEqual(type1);
+
+        let type7 = factory.createStringId('type7');
+        res = factory.resolve(type7.serialize('123'));
+        expect(res.id).toEqual('123');
+        expect(res.type).toEqual(type7);
     });
 
     it('should handle large numbers', () => {

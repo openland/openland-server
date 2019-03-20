@@ -450,15 +450,15 @@ export default {
             } else if (args.conversationId) {
                 let id = IdsFactory.resolve(args.conversationId);
                 if (id.type === IDs.Conversation) {
-                    return FDB.Conversation.findById(ctx, id.id);
+                    return FDB.Conversation.findById(ctx, id.id as number);
                 } else if (id.type === IDs.User) {
-                    return Modules.Messaging.room.resolvePrivateChat(ctx, id.id, uid);
+                    return Modules.Messaging.room.resolvePrivateChat(ctx, id.id as number, uid);
                 } else if (id.type === IDs.Organization) {
-                    let member = await FDB.OrganizationMember.findById(ctx, id.id, uid);
+                    let member = await FDB.OrganizationMember.findById(ctx, id.id as number, uid);
                     if (!member || member.status !== 'joined') {
                         throw new IDMailformedError('Invalid id');
                     }
-                    return Modules.Messaging.room.resolveOrganizationChat(ctx, id.id);
+                    return Modules.Messaging.room.resolveOrganizationChat(ctx, id.id as number);
                 } else {
                     throw new IDMailformedError('Invalid id');
                 }
