@@ -162,6 +162,7 @@ extend type Query {
 }
 
 type RoomInvite {
+    id: ID!
     room: SharedRoom!
     invitedByUser: User!
 }

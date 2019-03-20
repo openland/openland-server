@@ -206,6 +206,7 @@ export default {
     },
 
     RoomInvite: {
+        id: (src: ChannelInvitation | ChannelLink) => src.id,
         room: (src: ChannelInvitation | ChannelLink, args: {}, ctx: AppContext) => FDB.Conversation.findById(ctx, src.channelId),
         invitedByUser: (src: ChannelInvitation | ChannelLink, args: {}, ctx: AppContext) => FDB.User.findById(ctx, src.creatorId)
     },
