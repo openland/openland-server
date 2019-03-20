@@ -573,7 +573,6 @@ export class RoomRepository {
             throw new NotFoundError();
         }
 
-
         const senderId = profile.welcomeMessageSender ? profile.welcomeMessageSender : null;
         let sender = null;
 
