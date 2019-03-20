@@ -222,7 +222,7 @@ export class SecIDFactory {
     private readonly style: SecIDStyle;
     private readonly hashids: Hashids;
     private knownTypes = new Set<number>();
-    private knownSecIDS = new Map<number, SecID<any>>();
+    private knownSecIDS = new Map<number, SecID>();
 
     constructor(secret: string, style: SecIDStyle = 'hashids') {
         this.style = style;
