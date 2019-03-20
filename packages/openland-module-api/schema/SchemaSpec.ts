@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'c49ac6c757825ceef2d9195b2474b3ca';
+export const GQL_SPEC_VERSION = '44fb4c24ebbbced8e46c5dc91c116649';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -2202,7 +2202,7 @@ export namespace GQL {
     export type RoomMemberRole = 'OWNER' | 'ADMIN' | 'MEMBER';
     export interface WelcomeMessage {
         isOn: boolean;
-        sender: Nullable<RoomMember>;
+        sender: Nullable<User>;
         message: Nullable<string>;
     }
     export interface SharedRoom {
@@ -2460,7 +2460,7 @@ export interface GQLResolver {
     GlobalSearchEntry?: UnionTypeResolver<GQLRoots.GlobalSearchEntryRoot, 'Organization' | 'User' | 'SharedRoom'>;
     Room?: UnionTypeResolver<GQLRoots.RoomRoot, 'PrivateRoom' | 'SharedRoom'>;
     PrivateRoom?: ComplexTypedResolver<GQL.PrivateRoom, GQLRoots.PrivateRoomRoot, {user: GQLRoots.UserRoot, settings: GQLRoots.RoomUserNotificaionSettingsRoot}, {}>;
-    WelcomeMessage?: ComplexTypedResolver<GQL.WelcomeMessage, GQLRoots.WelcomeMessageRoot, {sender: Nullable<GQLRoots.RoomMemberRoot>}, {}>;
+    WelcomeMessage?: ComplexTypedResolver<GQL.WelcomeMessage, GQLRoots.WelcomeMessageRoot, {sender: Nullable<GQLRoots.UserRoot>}, {}>;
     SharedRoom?: ComplexTypedResolver<GQL.SharedRoom, GQLRoots.SharedRoomRoot, {pinnedMessage: Nullable<GQLRoots.ModernMessageRoot>, welcomeMessage: Nullable<GQLRoots.WelcomeMessageRoot>, organization: Nullable<GQLRoots.OrganizationRoot>, members: GQLRoots.RoomMemberRoot[], requests: Nullable<GQLRoots.RoomMemberRoot[]>, settings: GQLRoots.RoomUserNotificaionSettingsRoot}, {}>;
     RoomSuper?: ComplexTypedResolver<GQL.RoomSuper, GQLRoots.RoomSuperRoot, {}, {}>;
     UserMention?: ComplexTypedResolver<GQL.UserMention, GQLRoots.UserMentionRoot, {user: GQLRoots.UserRoot}, {}>;
