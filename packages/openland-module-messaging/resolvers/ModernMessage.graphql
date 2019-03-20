@@ -145,6 +145,7 @@ type ModernMessageButton {
     id: ID!
     title: String!
     style: ModernMessageButtonStyle!
+    url: String
 }
 
 enum ModernMessageButtonStyle {

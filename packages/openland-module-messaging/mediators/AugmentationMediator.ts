@@ -4,7 +4,7 @@ import tlds from 'tlds';
 import { WorkQueue } from 'openland-module-workers/WorkQueue';
 import { AllEntities, Message } from 'openland-module-db/schema';
 import { serverRoleEnabled } from 'openland-utils/serverRoleEnabled';
-import UrlInfoService from 'openland-module-messaging/workers/UrlInfoService';
+import { createUrlInfoService } from 'openland-module-messaging/workers/UrlInfoService';
 import { MessagingRepository } from 'openland-module-messaging/repositories/MessagingRepository';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { createEmptyContext, Context } from 'openland-utils/Context';
@@ -29,7 +29,7 @@ export class AugmentationMediator {
         this.started = true;
 
         if (serverRoleEnabled('workers')) {
-            let service = new UrlInfoService();
+            let service = createUrlInfoService();
             this.queue.addWorker(async (item) => {
                 let message = await this.entities.Message.findById(createEmptyContext(), item.messageId);
 
