@@ -169,7 +169,7 @@ function decrypt(valuestr: string, value: Buffer, type: number | Set<number>, en
     throw new IDMailformedError('Invalid id: ' + valuestr);
 }
 
-export class SecID<T extends SecIDv2ValueType> {
+export class SecID<T extends SecIDv2ValueType = any> {
     public readonly typeName: string;
     public readonly typeId: number;
     private readonly valueType: SecIDv2ValueTypeName;
