@@ -580,7 +580,7 @@ export class RoomRepository {
         if (senderId) {
             sender = await this.entities.RoomParticipant.findById(ctx, conversationId, senderId); 
             if (!sender || sender.status !== 'joined') {
-                throw new AccessDeniedError();
+                sender = null;
             }
         }
 

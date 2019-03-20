@@ -370,6 +370,9 @@ export class RoomMediator {
     async updateWelcomeMessage(parent: Context, cid: number, uid: number, welcomeMessageIsOn: boolean, welcomeMessageSender: number | null | undefined, welcomeMessageText: string | null | undefined) {
         return await inTx(parent, async (ctx) => {
             await this.checkCanEditChat(ctx, cid, uid);
+            if (!!welcomeMessageSender) {
+                await this.checkCanEditChat(ctx, cid, welcomeMessageSender);
+            }
             return await this.repo.updateWelcomeMessage(ctx, cid, welcomeMessageIsOn, welcomeMessageSender, welcomeMessageText);
         });
     }
