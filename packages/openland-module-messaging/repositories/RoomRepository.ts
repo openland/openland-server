@@ -807,22 +807,34 @@ export class RoomRepository {
                 throw new Error('Room not found');
             }
 
-            if (!room.oid) {
-                return;
+            if (room.oid) {
+                let org = await this.entities.Organization.findById(ctx, room.oid);
+
+                if (!org) {
+                    return;
+                }
+    
+                //
+                //  Join community if not already
+                //
+                if (org.kind === 'community') {
+                    await Modules.Orgs.addUserToOrganization(ctx, uid, org.id, by, true);
+                }
             }
 
-            let org = await this.entities.Organization.findById(ctx, room.oid);
-
-            if (!org) {
-                return;
-            }
-
-            //
-            //  Join community if not already
-            //
-            if (org.kind === 'community') {
-                await Modules.Orgs.addUserToOrganization(ctx, uid, org.id, by, true);
-            }
+            try {
+                const welcomeMessage = await this.resolveConversationWelcomeMessage(ctx, cid);
+                
+                if (welcomeMessage && welcomeMessage.isOn && welcomeMessage.sender) {
+                    const conv = await this.resolvePrivateChat(ctx, welcomeMessage.sender.uid, uid);
+                    if (conv) {
+                        await Modules.Messaging.sendMessage(ctx, conv.id, welcomeMessage.sender.uid, { message: welcomeMessage.message });
+                    }
+                    
+                }
+            } catch (error) {
+                console.warn(error);
+            }   
         });
     }
 }
