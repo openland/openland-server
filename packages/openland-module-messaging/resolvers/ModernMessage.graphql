@@ -212,6 +212,7 @@ type MessageSpanLink implements MessageSpan {
     offset: Int!
     length: Int!
     url: String!
+    text: String
 }
 
 # union MessageSpanInput = MessageSpanUserMentionInput | MessageSpanRoomMentionInput

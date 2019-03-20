@@ -1,4 +1,4 @@
-import { AllEntities, RoomParticipant } from 'openland-module-db/schema';
+import { AllEntities, User } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { buildBaseImageUrl, imageRefEquals } from 'openland-module-media/ImageRef';
@@ -25,7 +25,7 @@ function doSimpleHash(key: string): number {
 export type WelcomeMessageT = {
     type: 'WelcomeMessage',
     isOn: boolean,
-    sender: RoomParticipant | null,
+    sender: User | null,
     message: string
 };
 
@@ -578,9 +578,10 @@ export class RoomRepository {
         let sender = null;
 
         if (senderId) {
-            sender = await this.entities.RoomParticipant.findById(ctx, conversationId, senderId); 
-            if (!sender || sender.status !== 'joined') {
-                throw new AccessDeniedError();
+            sender = await this.entities.User.findById(ctx, senderId);
+
+            if (!sender) {
+                sender = null;
             }
         }
 
@@ -826,9 +827,9 @@ export class RoomRepository {
                 const welcomeMessage = await this.resolveConversationWelcomeMessage(ctx, cid);
                 
                 if (welcomeMessage && welcomeMessage.isOn && welcomeMessage.sender) {
-                    const conv = await this.resolvePrivateChat(ctx, welcomeMessage.sender.uid, uid);
+                    const conv = await this.resolvePrivateChat(ctx, welcomeMessage.sender.id, uid);
                     if (conv) {
-                        await Modules.Messaging.sendMessage(ctx, conv.id, welcomeMessage.sender.uid, { message: welcomeMessage.message });
+                        await Modules.Messaging.sendMessage(ctx, conv.id, welcomeMessage.sender.id, { message: welcomeMessage.message });
                     }
                     
                 }

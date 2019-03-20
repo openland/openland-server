@@ -28,7 +28,7 @@ enum RoomMemberRole {
 
 type WelcomeMessage {
     isOn: Boolean!
-    sender: RoomMember
+    sender: User
     message: String
 }
 
