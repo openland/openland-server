@@ -9,6 +9,7 @@ import {
 } from '../../openland-module-db/schema';
 import { GQL } from './SchemaSpec';
 import { MessageMention } from '../../openland-module-messaging/MessageInput';
+import { WelcomeMessageT } from '../../openland-module-messaging/repositories/RoomRepository';
 import {
     MessageAttachment, MessageAttachmentFile, MessageRichAttachment,
     MessageSpan, LinkSpan,
@@ -149,7 +150,7 @@ export namespace GQLRoots {
     export type UserConnectionRoot = any;
     export type RoomRoot = any;
     export type PrivateRoomRoot = any;
-    export type WelcomeMessageRoot = any;
+    export type WelcomeMessageRoot = WelcomeMessageT;
     export type SharedRoomRoot = ConversationRoom | Conversation | number;
     export type ShortNameDestinationRoot = any;
 

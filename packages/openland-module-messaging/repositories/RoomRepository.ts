@@ -23,6 +23,7 @@ function doSimpleHash(key: string): number {
 }
 
 export type WelcomeMessageT = {
+    type: 'WelcomeMessage',
     isOn: boolean,
     sender: RoomParticipant | null,
     message: string
@@ -587,6 +588,7 @@ export class RoomRepository {
         const message = profile.welcomeMessageText || '';
       
         return {
+            type: 'WelcomeMessage',
             isOn,
             sender,
             message
