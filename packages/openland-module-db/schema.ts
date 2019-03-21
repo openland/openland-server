@@ -4508,7 +4508,7 @@ export interface MessageShape {
     text?: string| null;
     replyMessages?: (number)[]| null;
     serviceMetadata?: any| null;
-    reactions?: any| null;
+    reactions?: ({ userId: number, reaction: string, })[]| null;
     edited?: boolean| null;
     isMuted: boolean;
     isService: boolean;
@@ -4592,12 +4592,12 @@ export class Message extends FEntity {
         this._value.serviceMetadata = value;
         this.markDirty();
     }
-    get reactions(): any | null {
+    get reactions(): ({ userId: number, reaction: string, })[] | null {
         let res = this._value.reactions;
         if (res !== null && res !== undefined) { return res; }
         return null;
     }
-    set reactions(value: any | null) {
+    set reactions(value: ({ userId: number, reaction: string, })[] | null) {
         this._checkIsWritable();
         if (value === this._value.reactions) { return; }
         this._value.reactions = value;
@@ -4791,7 +4791,7 @@ export class MessageFactory extends FEntityFactory<Message> {
             { name: 'text', type: 'string', secure: true },
             { name: 'replyMessages', type: 'json' },
             { name: 'serviceMetadata', type: 'json' },
-            { name: 'reactions', type: 'json', secure: true },
+            { name: 'reactions', type: 'json' },
             { name: 'edited', type: 'boolean' },
             { name: 'isMuted', type: 'boolean' },
             { name: 'isService', type: 'boolean' },
@@ -4826,6 +4826,10 @@ export class MessageFactory extends FEntityFactory<Message> {
         validators.isString('repeatKey', src.repeatKey);
         validators.isString('text', src.text);
         validators.isJson('replyMessages', src.replyMessages, jVec(jNumber()));
+        validators.isJson('reactions', src.reactions, jVec(json(() => {
+            jField('userId', jNumber());
+            jField('reaction', jString());
+        })));
         validators.isBoolean('edited', src.edited);
         validators.notNull('isMuted', src.isMuted);
         validators.isBoolean('isMuted', src.isMuted);

@@ -459,7 +459,10 @@ const Schema = declareSchema(() => {
         field('text', 'string').nullable().secure();
         jsonField('replyMessages', jVec(jNumber())).nullable();
         field('serviceMetadata', 'json').nullable();
-        field('reactions', 'json').nullable().secure();
+        jsonField('reactions', jVec(json(() => {
+            jField('userId', jNumber());
+            jField('reaction', jString());
+        }))).nullable();
         field('edited', 'boolean').nullable();
         field('isMuted', 'boolean');
         field('isService', 'boolean');
