@@ -129,6 +129,11 @@ export class MessagingMediator {
             message = (await this.entities.Message.findById(ctx, res!.mid!))!;
             await this.delivery.onDeleteMessage(ctx, message);
 
+            let chatProfile = await this.entities.RoomProfile.findById(ctx, message.cid);
+            if (chatProfile && chatProfile.pinnedMessage && chatProfile.pinnedMessage === message.id) {
+                await this.room.unpinMessage(ctx, message.cid, uid);
+            }
+
             return res;
         });
     }
