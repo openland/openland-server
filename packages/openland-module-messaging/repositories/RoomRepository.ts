@@ -256,7 +256,7 @@ export class RoomRepository {
         return await inTx(parent, async (ctx) => {
             let profile = await this.entities.RoomProfile.findById(ctx, cid);
             let message = await this.entities.Message.findById(ctx, mid);
-            if (!message || !profile) {
+            if (!message || !profile || message.deleted) {
                 throw new NotFoundError();
             }
             if (message.cid !== cid) {
