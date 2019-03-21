@@ -4506,15 +4506,18 @@ export interface MessageShape {
     uid: number;
     repeatKey?: string| null;
     text?: string| null;
-    fileId?: string| null;
-    fileMetadata?: any| null;
-    filePreview?: string| null;
-    mentions?: any| null;
-    replyMessages?: any| null;
-    augmentation?: any| null;
+    replyMessages?: (number)[]| null;
     serviceMetadata?: any| null;
     reactions?: any| null;
     edited?: boolean| null;
+    isMuted: boolean;
+    isService: boolean;
+    deleted?: boolean| null;
+    fileId?: string| null;
+    fileMetadata?: any| null;
+    filePreview?: string| null;
+    augmentation?: any| null;
+    mentions?: any| null;
     attachments?: any| null;
     buttons?: any| null;
     type?: string| null;
@@ -4522,9 +4525,6 @@ export interface MessageShape {
     postType?: string| null;
     complexMentions?: any| null;
     spans?: ({ type: 'user_mention', offset: number, length: number, user: number, } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[], } | { type: 'room_mention', offset: number, length: number, room: number, } | { type: 'link', offset: number, length: number, url: string, })[]| null;
-    isMuted: boolean;
-    isService: boolean;
-    deleted?: boolean| null;
 }
 
 export class Message extends FEntity {
@@ -4570,70 +4570,15 @@ export class Message extends FEntity {
         this._value.text = value;
         this.markDirty();
     }
-    get fileId(): string | null {
-        let res = this._value.fileId;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set fileId(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.fileId) { return; }
-        this._value.fileId = value;
-        this.markDirty();
-    }
-    get fileMetadata(): any | null {
-        let res = this._value.fileMetadata;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set fileMetadata(value: any | null) {
-        this._checkIsWritable();
-        if (value === this._value.fileMetadata) { return; }
-        this._value.fileMetadata = value;
-        this.markDirty();
-    }
-    get filePreview(): string | null {
-        let res = this._value.filePreview;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set filePreview(value: string | null) {
-        this._checkIsWritable();
-        if (value === this._value.filePreview) { return; }
-        this._value.filePreview = value;
-        this.markDirty();
-    }
-    get mentions(): any | null {
-        let res = this._value.mentions;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set mentions(value: any | null) {
-        this._checkIsWritable();
-        if (value === this._value.mentions) { return; }
-        this._value.mentions = value;
-        this.markDirty();
-    }
-    get replyMessages(): any | null {
+    get replyMessages(): (number)[] | null {
         let res = this._value.replyMessages;
         if (res !== null && res !== undefined) { return res; }
         return null;
     }
-    set replyMessages(value: any | null) {
+    set replyMessages(value: (number)[] | null) {
         this._checkIsWritable();
         if (value === this._value.replyMessages) { return; }
         this._value.replyMessages = value;
-        this.markDirty();
-    }
-    get augmentation(): any | null {
-        let res = this._value.augmentation;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set augmentation(value: any | null) {
-        this._checkIsWritable();
-        if (value === this._value.augmentation) { return; }
-        this._value.augmentation = value;
         this.markDirty();
     }
     get serviceMetadata(): any | null {
@@ -4667,6 +4612,90 @@ export class Message extends FEntity {
         this._checkIsWritable();
         if (value === this._value.edited) { return; }
         this._value.edited = value;
+        this.markDirty();
+    }
+    get isMuted(): boolean {
+        return this._value.isMuted;
+    }
+    set isMuted(value: boolean) {
+        this._checkIsWritable();
+        if (value === this._value.isMuted) { return; }
+        this._value.isMuted = value;
+        this.markDirty();
+    }
+    get isService(): boolean {
+        return this._value.isService;
+    }
+    set isService(value: boolean) {
+        this._checkIsWritable();
+        if (value === this._value.isService) { return; }
+        this._value.isService = value;
+        this.markDirty();
+    }
+    get deleted(): boolean | null {
+        let res = this._value.deleted;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set deleted(value: boolean | null) {
+        this._checkIsWritable();
+        if (value === this._value.deleted) { return; }
+        this._value.deleted = value;
+        this.markDirty();
+    }
+    get fileId(): string | null {
+        let res = this._value.fileId;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set fileId(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.fileId) { return; }
+        this._value.fileId = value;
+        this.markDirty();
+    }
+    get fileMetadata(): any | null {
+        let res = this._value.fileMetadata;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set fileMetadata(value: any | null) {
+        this._checkIsWritable();
+        if (value === this._value.fileMetadata) { return; }
+        this._value.fileMetadata = value;
+        this.markDirty();
+    }
+    get filePreview(): string | null {
+        let res = this._value.filePreview;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set filePreview(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.filePreview) { return; }
+        this._value.filePreview = value;
+        this.markDirty();
+    }
+    get augmentation(): any | null {
+        let res = this._value.augmentation;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set augmentation(value: any | null) {
+        this._checkIsWritable();
+        if (value === this._value.augmentation) { return; }
+        this._value.augmentation = value;
+        this.markDirty();
+    }
+    get mentions(): any | null {
+        let res = this._value.mentions;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set mentions(value: any | null) {
+        this._checkIsWritable();
+        if (value === this._value.mentions) { return; }
+        this._value.mentions = value;
         this.markDirty();
     }
     get attachments(): any | null {
@@ -4746,35 +4775,6 @@ export class Message extends FEntity {
         this._value.spans = value;
         this.markDirty();
     }
-    get isMuted(): boolean {
-        return this._value.isMuted;
-    }
-    set isMuted(value: boolean) {
-        this._checkIsWritable();
-        if (value === this._value.isMuted) { return; }
-        this._value.isMuted = value;
-        this.markDirty();
-    }
-    get isService(): boolean {
-        return this._value.isService;
-    }
-    set isService(value: boolean) {
-        this._checkIsWritable();
-        if (value === this._value.isService) { return; }
-        this._value.isService = value;
-        this.markDirty();
-    }
-    get deleted(): boolean | null {
-        let res = this._value.deleted;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set deleted(value: boolean | null) {
-        this._checkIsWritable();
-        if (value === this._value.deleted) { return; }
-        this._value.deleted = value;
-        this.markDirty();
-    }
 }
 
 export class MessageFactory extends FEntityFactory<Message> {
@@ -4789,15 +4789,18 @@ export class MessageFactory extends FEntityFactory<Message> {
             { name: 'uid', type: 'number' },
             { name: 'repeatKey', type: 'string' },
             { name: 'text', type: 'string', secure: true },
-            { name: 'fileId', type: 'string', secure: true },
-            { name: 'fileMetadata', type: 'json', secure: true },
-            { name: 'filePreview', type: 'string', secure: true },
-            { name: 'mentions', type: 'json' },
             { name: 'replyMessages', type: 'json' },
-            { name: 'augmentation', type: 'json' },
             { name: 'serviceMetadata', type: 'json' },
             { name: 'reactions', type: 'json', secure: true },
             { name: 'edited', type: 'boolean' },
+            { name: 'isMuted', type: 'boolean' },
+            { name: 'isService', type: 'boolean' },
+            { name: 'deleted', type: 'boolean' },
+            { name: 'fileId', type: 'string', secure: true },
+            { name: 'fileMetadata', type: 'json', secure: true },
+            { name: 'filePreview', type: 'string', secure: true },
+            { name: 'augmentation', type: 'json' },
+            { name: 'mentions', type: 'json' },
             { name: 'attachments', type: 'json' },
             { name: 'buttons', type: 'json' },
             { name: 'type', type: 'string' },
@@ -4805,9 +4808,6 @@ export class MessageFactory extends FEntityFactory<Message> {
             { name: 'postType', type: 'string' },
             { name: 'complexMentions', type: 'json' },
             { name: 'spans', type: 'json' },
-            { name: 'isMuted', type: 'boolean' },
-            { name: 'isService', type: 'boolean' },
-            { name: 'deleted', type: 'boolean' },
         ],
         indexes: [
             { name: 'chat', type: 'range', fields: ['cid', 'id'] },
@@ -4825,9 +4825,15 @@ export class MessageFactory extends FEntityFactory<Message> {
         validators.isNumber('uid', src.uid);
         validators.isString('repeatKey', src.repeatKey);
         validators.isString('text', src.text);
+        validators.isJson('replyMessages', src.replyMessages, jVec(jNumber()));
+        validators.isBoolean('edited', src.edited);
+        validators.notNull('isMuted', src.isMuted);
+        validators.isBoolean('isMuted', src.isMuted);
+        validators.notNull('isService', src.isService);
+        validators.isBoolean('isService', src.isService);
+        validators.isBoolean('deleted', src.deleted);
         validators.isString('fileId', src.fileId);
         validators.isString('filePreview', src.filePreview);
-        validators.isBoolean('edited', src.edited);
         validators.isString('type', src.type);
         validators.isString('title', src.title);
         validators.isString('postType', src.postType);
@@ -4857,11 +4863,6 @@ export class MessageFactory extends FEntityFactory<Message> {
                 jField('url', jString());
             })
         )));
-        validators.notNull('isMuted', src.isMuted);
-        validators.isBoolean('isMuted', src.isMuted);
-        validators.notNull('isService', src.isService);
-        validators.isBoolean('isService', src.isService);
-        validators.isBoolean('deleted', src.deleted);
     }
 
     constructor(connection: FConnection) {

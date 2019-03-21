@@ -457,21 +457,27 @@ const Schema = declareSchema(() => {
         field('repeatKey', 'string').nullable();
 
         field('text', 'string').nullable().secure();
-        field('fileId', 'string').nullable().secure();
-        field('fileMetadata', 'json').nullable().secure();
-        field('filePreview', 'string').nullable().secure();
-        field('mentions', 'json').nullable();
-        field('replyMessages', 'json').nullable();
-        field('augmentation', 'json').nullable();
+        jsonField('replyMessages', jVec(jNumber())).nullable();
         field('serviceMetadata', 'json').nullable();
         field('reactions', 'json').nullable().secure();
         field('edited', 'boolean').nullable();
+        field('isMuted', 'boolean');
+        field('isService', 'boolean');
+        field('deleted', 'boolean').nullable();
+
+        // deprecated start
+        field('fileId', 'string').nullable().secure();
+        field('fileMetadata', 'json').nullable().secure();
+        field('filePreview', 'string').nullable().secure();
+        field('augmentation', 'json').nullable();
+        field('mentions', 'json').nullable();
         field('attachments', 'json').nullable();
         field('buttons', 'json').nullable();
         field('type', 'string').nullable();
         field('title', 'string').nullable();
         field('postType', 'string').nullable();
         field('complexMentions', 'json').nullable();
+        // deprecated end
 
         jsonField('spans', jVec(jEnum(
             json(() => {
@@ -500,9 +506,6 @@ const Schema = declareSchema(() => {
             }),
         ))).nullable();
 
-        field('isMuted', 'boolean');
-        field('isService', 'boolean');
-        field('deleted', 'boolean').nullable();
         rangeIndex('chat', ['cid', 'id']).withCondition((src) => !src.deleted);
         rangeIndex('updated', ['updatedAt']);
         uniqueIndex('repeat', ['uid', 'cid', 'repeatKey']).withCondition((src) => !!src.repeatKey);

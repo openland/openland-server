@@ -37,6 +37,7 @@ export function jsonField(name: string, schema: JsonSchema | (() => void) ) {
 
     return currentEntity!!.addField(name, 'json', [], jsonSchema);
 }
+
 export function enumField(name: string, values: string[]) {
     return currentEntity!!.addField(name, 'enum', values, null);
 }

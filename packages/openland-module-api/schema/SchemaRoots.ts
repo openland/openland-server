@@ -184,7 +184,7 @@ export namespace GQLRoots {
     // Modern Messaging
     //
 
-    export type MessageRoot = Message;
+    export type MessageRoot = Message | number;
     export type ModernMessageRoot = Message;
     export type GeneralMessageRoot = Message;
     // export type BaseMessageRoot = Message;
