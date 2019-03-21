@@ -19,6 +19,14 @@ describe('SecID Module', () => {
         expect(parsed2).toEqual('test');
         expect(serialized).toEqual('7d225718e932a56b5ecc8283b6d7bce593');
     });
+    it('Should serialize non-ASCII text correctly', () => {
+        let factory = new SecIDFactory('Shared Secret', 'hex');
+        let id = factory.createStringId('IdType');
+        let serialized = id.serialize('тест🤔');
+        let parsed = id.parse(serialized);
+        expect(parsed).toEqual('тест🤔');
+        expect(serialized).toEqual('7d1f9518e19742c89fc1f3f64aeee4599a14ba66c30d03bb48');
+    });
     it('Should handle crash on collisions', () => {
         let factory = new SecIDFactory('Shared Secret', 'hex');
         factory.createId('idtype');

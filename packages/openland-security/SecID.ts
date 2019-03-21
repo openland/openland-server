@@ -83,15 +83,16 @@ function encodeStringIdBody(value: SecIDv2ValueType, typeId: number) {
         throw new IDMailformedError('Ids string value length can\'t be bigger than 65535. Got: ' + value.length);
     }
 
+    let stringBuf = Buffer.from(value, 'utf-8');
     let buf = Buffer.alloc(5);
     // Write version
     buf.writeInt8(STRING_VERSION, 0);
     // Write type id
     buf.writeUInt16BE(typeId, 1);
     // Write string length
-    buf.writeUInt16BE(value.length, 3);
+    buf.writeUInt16BE(stringBuf.byteLength, 3);
     // Write string
-    buf = Buffer.concat([buf, Buffer.from(value, 'utf-8')]);
+    buf = Buffer.concat([buf, stringBuf]);
 
     return buf;
 }
