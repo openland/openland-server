@@ -1,9 +1,10 @@
 import {
-    jEnum,
+    jBool,
+    jEnum, jEnumString,
     jField,
     jNumber,
     json,
-    jString,
+    jString, jVec,
     validateJson
 } from './jsonSchema';
 
@@ -47,5 +48,51 @@ describe('jsonSchema', () => {
             user: 1
         };
         expect(validateJson(schema, input)).toEqual(true);
+    });
+
+    it('should crash on wrong type', async () => {
+        let schema = json(() => {
+            jField('test', jNumber());
+        });
+        expect(() => validateJson(schema, { test: true })).toThrow('Field root.test must be number, got: true');
+        schema = json(() => {
+            jField('test', jString());
+        });
+        expect(() => validateJson(schema, { test: true })).toThrow('Field root.test must be string, got: true');
+        schema = json(() => {
+            jField('test', jString('test'));
+        });
+        expect(() => validateJson(schema, { test: true })).toThrow('Field root.test must be string, got: true');
+        schema = json(() => {
+            jField('test', jBool());
+        });
+        expect(() => validateJson(schema, { test: 1 })).toThrow('Field root.test must be boolean, got: 1');
+    });
+
+    it('should work with non-object root type', async () => {
+        expect(validateJson(jNumber(), 1)).toEqual(true);
+        expect(validateJson(jString(), '1')).toEqual(true);
+        expect(validateJson(jBool(), true)).toEqual(true);
+        expect(validateJson(jEnumString('1', '2', '3'), '1')).toEqual(true);
+        expect(validateJson(jVec(jNumber()), [1])).toEqual(true);
+        expect(validateJson(jEnum(jNumber(), jString()), 1)).toEqual(true);
+    });
+
+    it('schema declaration should work correctly', async () => {
+        let schema = json(() => {
+            jField('test', jNumber());
+        });
+        let schema2 = json(() => {
+            jField('test', jString());
+        });
+        let schema3 = json(() => {
+            jField('test', json(() => {
+                jField('test', jString());
+            }));
+        });
+
+        expect(validateJson(schema, { test: 1 })).toEqual(true);
+        expect(validateJson(schema2, { test: '1' })).toEqual(true);
+        expect(validateJson(schema3, { test: { test: '1' } })).toEqual(true);
     });
 });
