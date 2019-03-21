@@ -22,7 +22,8 @@ export default {
         debugParseID: withPermission('super-admin', async (ctx, args) => {
             let id = IdsFactory.resolve(args.id);
             return {
-                internalID: id.id,
+                numberID: typeof id.id === 'number' && id.id,
+                stringID: typeof id.id === 'string' && id.id,
                 type: id.type.typeName
             };
         }),

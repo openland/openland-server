@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '44fb4c24ebbbced8e46c5dc91c116649';
+export const GQL_SPEC_VERSION = '464db48df39b2f4111112f6efd8e02b0';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -356,7 +356,8 @@ export namespace GQL {
     }
     export type DebugEmailType = 'WELCOME' | 'ACCOUNT_ACTIVATED' | 'ACCOUNT_DEACTIVATED' | 'MEMBER_REMOVED' | 'MEMBERSHIP_LEVEL_CHANGED' | 'INVITE' | 'MEMBER_JOINED' | 'SIGNUP_CODE' | 'SIGIN_CODE' | 'UNREAD_MESSAGE' | 'UNREAD_MESSAGES' | 'PUBLIC_ROOM_INVITE' | 'PRIVATE_ROOM_INVITE' | 'ROOM_INVITE_ACCEPTED';
     export interface DebugID {
-        internalID: number;
+        numberID: Nullable<number>;
+        stringID: Nullable<string>;
         type: string;
     }
     export interface DebugUserPresence {

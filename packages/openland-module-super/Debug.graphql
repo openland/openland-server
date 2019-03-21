@@ -16,7 +16,8 @@ enum DebugEmailType {
 }
 
 type DebugID {
-    internalID: Int!
+    numberID: Int
+    stringID: String
     type: String!
 }
 
