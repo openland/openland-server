@@ -318,7 +318,7 @@ export default {
                     fileId: src.fileId,
                     filePreview: src.filePreview || undefined,
                     fileMetadata: src.fileMetadata,
-                    id: 'legacy_file'
+                    id: src.id + '_legacy_file'
                 });
             }
             if (src.augmentation) {
@@ -339,7 +339,7 @@ export default {
                     image: augmentation.photo || undefined,
                     imageInfo: augmentation.imageInfo || undefined,
                     keyboard: augmentation.keyboard || undefined,
-                    id: 'legacy_rich'
+                    id: src.id + '_legacy_rich'
                 });
             }
             if (src.type && src.type === 'POST') {
@@ -353,7 +353,7 @@ export default {
                     iconInfo: undefined,
                     image: undefined,
                     imageInfo: undefined,
-                    id: 'legacy_post'
+                    id: src.id + '_legacy_post'
                 });
             }
             if (src.attachments) {
@@ -364,7 +364,7 @@ export default {
                         fileId: attachment.fileId,
                         filePreview: attachment.filePreview || undefined,
                         fileMetadata: attachment.fileMetadata,
-                        id: 'legacy_file_' + i
+                        id: src.id + '_legacy_file_' + i
                     });
                     i++;
                 }
