@@ -43,6 +43,8 @@ export default {
                 return 'ChatMessageDeleted';
             }  else if (obj.kind === 'chat_updated') {
                 return 'ChatUpdated';
+            } else if (obj.kind === 'lost_access') {
+                return 'ChatLostAccess';
             }
             throw Error('Unknown chat update type: ' + obj.kind);
         }
