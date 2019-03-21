@@ -100,14 +100,12 @@ export class RoomMediator {
 
             if (invites.length > 0) {
                 // Invite to room
-                let res = (await Promise.all(invites.map(async (v) => {
-                    if (await this.repo.addToRoom(ctx, cid, v, uid)) {
-                        return v;
-                    } else {
-                        return null;
+                let res: number[] = [];
+                for (let id of invites) {
+                    if (await this.repo.addToRoom(ctx, cid, id, uid)) {
+                        res.push(id);
                     }
-                }))).filter((v) => !!v).map((v) => v!);
-
+                }
                 // Send message about joining the room
                 if (res.length > 0) {
 

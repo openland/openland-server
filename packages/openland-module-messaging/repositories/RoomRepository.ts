@@ -825,13 +825,11 @@ export class RoomRepository {
 
             try {
                 const welcomeMessage = await this.resolveConversationWelcomeMessage(ctx, cid);
-                
                 if (welcomeMessage && welcomeMessage.isOn && welcomeMessage.sender) {
                     const conv = await this.resolvePrivateChat(ctx, welcomeMessage.sender.id, uid);
                     if (conv) {
                         await Modules.Messaging.sendMessage(ctx, conv.id, welcomeMessage.sender.id, { message: welcomeMessage.message });
                     }
-                    
                 }
             } catch (error) {
                 console.warn(error);
