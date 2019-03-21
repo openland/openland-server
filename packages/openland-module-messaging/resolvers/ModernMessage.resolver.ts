@@ -469,7 +469,7 @@ export default {
         }
     },
     MessageAttachmentFile: {
-        id: src => src.id,
+        id: src => IDs.MessageAttachment.serialize(src.id),
         fileId: src => src.fileId,
         fileMetadata: src => {
             if (src.fileId && src.fileMetadata) {
@@ -490,7 +490,7 @@ export default {
         fallback: src => 'File attachment'
     },
     MessageRichAttachment: {
-        id: src => src.id,
+        id: src => IDs.MessageAttachment.serialize(src.id),
         title: src => src.title,
         subTitle: src => src.subTitle,
         titleLink: src => src.titleLink,

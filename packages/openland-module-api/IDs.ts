@@ -47,4 +47,5 @@ export const IDs = {
     ConferencePeer: IdsFactory.createId('ConferencePeer'),
     FeedItem: IdsFactory.createId('FeedItem'),
     MediaStream: IdsFactory.createId('MediaStream'),
+    MessageAttachment: IdsFactory.createStringId('MessageAttachment')
 };
