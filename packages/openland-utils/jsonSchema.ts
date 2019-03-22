@@ -209,6 +209,9 @@ function validateField(fieldsPath: string[] = [], value: any, type: JsonType) {
             if (!field) {
                 throw new JsonExtraFieldError(`Extra field "${key}"`);
             }
+            if (field.nullable && v === undefined || v === null) {
+                continue;
+            }
             fieldsPath.push(key);
             validateField(fieldsPath, v, field.type);
             fieldsPath.pop();
@@ -277,7 +280,7 @@ export function generateJsonSchemaInterface(schema: JsonSchema): string {
 
         res += '{ ';
         for (let field of schema.fields) {
-            res += `${field.name}: ${generateJsonSchemaInterface(field.type)}${field.nullable ? ' | null' : ''}, `;
+            res += `${field.name}: ${generateJsonSchemaInterface(field.type)}${field.nullable ? ' | null | undefined' : ''}, `;
         }
         res += '}';
 

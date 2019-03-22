@@ -95,4 +95,13 @@ describe('jsonSchema', () => {
         expect(validateJson(schema2, { test: '1' })).toEqual(true);
         expect(validateJson(schema3, { test: { test: '1' } })).toEqual(true);
     });
+
+    it('should correctly validate nullable fields', async () => {
+        let schema = json(() => {
+            jField('isImage', jNumber(), true);
+        });
+        expect(validateJson(schema, {  })).toEqual(true);
+        expect(validateJson(schema, { isImage: null })).toEqual(true);
+        expect(validateJson(schema, { isImage: 1 })).toEqual(true);
+    });
 });
