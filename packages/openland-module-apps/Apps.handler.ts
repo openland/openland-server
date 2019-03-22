@@ -35,8 +35,8 @@ function handler(schema: JsonSchema, h: (req: express.Request, response: express
 const handleChatHook = handler(
     json(() => {
         jField('message', jString());
-        jField('ignoreLinkDetection', jBool(), true);
-        jField('repeatKey', jString(), true);
+        jField('ignoreLinkDetection', jBool()).undefinable();
+        jField('repeatKey', jString()).undefinable();
     }),
     async (req: express.Request, response: express.Response) => {
         return await inTx(parent, async (ctx) => {

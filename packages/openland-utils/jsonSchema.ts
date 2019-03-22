@@ -5,9 +5,18 @@ class JsonField {
     constructor(
         readonly name: string,
         readonly type: JsonType,
-        readonly nullable: boolean
+        public isNullable: boolean = false,
+        public isUndefinable: boolean = false,
     ) {
 
+    }
+
+    nullable() {
+        this.isNullable = true;
+    }
+
+    undefinable() {
+        this.isUndefinable = true;
     }
 }
 
@@ -110,13 +119,15 @@ export const jVec = (type: JsonType) => new VecType(type);
 export const jEnum = (...types: JsonType[]) => new EnumType(types);
 export const jEnumString = (...values: string[]) => new StringEnumType(values);
 
-export const jField = (name: string, type: JsonType, nullable = false) => {
+export const jField = (name: string, type: JsonType) => {
     let schema = schemas[schemas.length - 1];
 
     if (!schema) {
         throw new Error('jField can\'t be called outside of json()');
     }
-    schema.addField(new JsonField(name, type, nullable));
+    let field = new JsonField(name, type);
+    schema.addField(field);
+    return field;
 };
 
 class JsonExtraFieldError extends Error { }
@@ -209,7 +220,10 @@ function validateField(fieldsPath: string[] = [], value: any, type: JsonType) {
             if (!field) {
                 throw new JsonExtraFieldError(`Extra field "${key}"`);
             }
-            if (field.nullable && v === undefined || v === null) {
+            if (field.isNullable && v === null) {
+                continue;
+            }
+            if (field.isUndefinable && v === undefined) {
                 continue;
             }
             fieldsPath.push(key);
@@ -217,7 +231,7 @@ function validateField(fieldsPath: string[] = [], value: any, type: JsonType) {
             fieldsPath.pop();
         }
 
-        let missingField = type.fields.filter(f => !f.nullable).find(f => value[f.name] === undefined || value[f.name] === null);
+        let missingField = type.fields.filter(f => !f.isUndefinable).find(f => value[f.name] === undefined);
 
         if (missingField) {
             throw new Error(`${[...fieldsPath, missingField.name].join('.')} field is missing"`);
@@ -248,8 +262,10 @@ export function generateJsonSchema(schema: JsonSchema): string {
 
         res += 'json(() => {\n';
         for (let field of schema.fields) {
-            if (field.nullable) {
-                res += `${genTab(1)}jField('${field.name}', ${generateJsonSchema(field.type)}, true);\n`;
+            if (field.isNullable) {
+                res += `${genTab(1)}jField('${field.name}', ${generateJsonSchema(field.type)}).nullable();\n`;
+            } else if (field.isUndefinable) {
+                res += `${genTab(1)}jField('${field.name}', ${generateJsonSchema(field.type)}).undefinable();\n`;
             } else {
                 res += `${genTab(1)}jField('${field.name}', ${generateJsonSchema(field.type)});\n`;
             }
@@ -280,7 +296,7 @@ export function generateJsonSchemaInterface(schema: JsonSchema): string {
 
         res += '{ ';
         for (let field of schema.fields) {
-            res += `${field.name}: ${generateJsonSchemaInterface(field.type)}${field.nullable ? ' | null | undefined' : ''}, `;
+            res += `${field.name}: ${generateJsonSchemaInterface(field.type)}${field.isNullable ? ' | null' : field.isUndefinable ? ' | undefined' : ''}, `;
         }
         res += '}';
 

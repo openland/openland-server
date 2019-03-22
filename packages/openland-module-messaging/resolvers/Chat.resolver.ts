@@ -8,7 +8,6 @@ import {
     defined,
     mustBeArray,
 } from '../../openland-utils/NewInputValidator';
-import { JsonMap } from '../../openland-utils/json';
 import { IDMailformedError } from '../../openland-errors/IDMailformedError';
 import { UserError } from '../../openland-errors/UserError';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
@@ -23,7 +22,7 @@ import { FEntity } from 'foundation-orm/FEntity';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
-import { MessageAttachment } from '../MessageInput';
+import { FileMetadata, MessageAttachment } from '../MessageInput';
 
 export default {
     Conversation: {
@@ -567,12 +566,12 @@ export default {
             let ctx = withLogContext(parent, ['send-message']);
             let conversationId = IDs.Conversation.parse(args.conversationId);
 
-            let fileMetadata: JsonMap | null = null;
+            let fileMetadata: FileMetadata | null = null;
             let filePreview: string | null = null;
 
             if (args.file) {
                 let fileInfo = await Modules.Media.saveFile(ctx, args.file);
-                fileMetadata = fileInfo as any;
+                fileMetadata = fileInfo;
 
                 if (fileInfo.isImage) {
                     filePreview = await Modules.Media.fetchLowResPreview(ctx, args.file);
@@ -602,7 +601,7 @@ export default {
             let userId = IDs.User.parse(args.userId);
             let conversationId = IDs.Conversation.parse(args.conversationId);
 
-            let fileMetadata: JsonMap | null = null;
+            let fileMetadata: FileMetadata | null = null;
             let filePreview: string | null = null;
 
             if (args.file) {
@@ -654,7 +653,7 @@ export default {
             let userId = IDs.User.parse(args.userId);
             let messageId = IDs.ConversationMessage.parse(args.messageId);
 
-            let fileMetadata: JsonMap | null = null;
+            let fileMetadata: FileMetadata | null = null;
             let filePreview: string | null = null;
 
             if (args.file) {
@@ -694,7 +693,7 @@ export default {
             }, true);
         }),
         alphaEditMessage: withUser(async (ctx, args, uid) => {
-            let fileMetadata: JsonMap | null = null;
+            let fileMetadata: FileMetadata | null = null;
             let filePreview: string | null = null;
 
             if (args.file) {

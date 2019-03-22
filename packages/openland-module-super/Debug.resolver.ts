@@ -69,11 +69,11 @@ export default {
                 }
             }
             let fileMetadataSchema = json(() => {
-                jField('isStored', jBool(), true);
-                jField('isImage', jBool(), true);
-                jField('imageWidth', jNumber(), true);
-                jField('imageHeight', jNumber(), true);
-                jField('imageFormat', jString(), true);
+                jField('isStored', jBool()).undefinable();
+                jField('isImage', jBool()).nullable();
+                jField('imageWidth', jNumber()).nullable();
+                jField('imageHeight', jNumber()).nullable();
+                jField('imageFormat', jString()).nullable();
                 jField('mimeType', jString());
                 jField('name', jString());
                 jField('size', jNumber());

@@ -252,7 +252,7 @@ const Schema = declareSchema(() => {
                 jField('y', jNumber());
                 jField('w', jNumber());
                 jField('h', jNumber());
-            }), true);
+            })).nullable();
         }).nullable();
         field('about', 'string').nullable();
         field('twitter', 'string').nullable();
@@ -471,11 +471,11 @@ const Schema = declareSchema(() => {
         // deprecated start
         field('fileId', 'string').nullable().secure();
         jsonField('fileMetadata', json(() => {
-            jField('isStored', jBool(), true);
-            jField('isImage', jBool(), true);
-            jField('imageWidth', jNumber(), true);
-            jField('imageHeight', jNumber(), true);
-            jField('imageFormat', jString(), true);
+            jField('isStored', jBool()).undefinable();
+            jField('isImage', jBool()).nullable();
+            jField('imageWidth', jNumber()).nullable();
+            jField('imageHeight', jNumber()).nullable();
+            jField('imageFormat', jString()).nullable();
             jField('mimeType', jString());
             jField('name', jString());
             jField('size', jNumber());

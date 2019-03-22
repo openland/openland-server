@@ -2,11 +2,10 @@ import { withUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { GQLResolver } from 'openland-module-api/schema/SchemaSpec';
 import { IDs } from 'openland-module-api/IDs';
-import { JsonMap } from 'openland-utils/json';
 import { validate, defined, stringNotEmpty, isNumber } from 'openland-utils/NewInputValidator';
 import { NotFoundError } from 'openland-errors/NotFoundError';
 import { withLogContext } from '../../openland-log/withLogContext';
-import { MessageAttachment } from '../MessageInput';
+import { FileMetadata, MessageAttachment } from '../MessageInput';
 import { PostTemplates, PostTextTemplate } from '../texts/PostTemplates';
 import { inTx } from '../../foundation-orm/inTx';
 import { FDB } from '../../openland-module-db/FDB';
@@ -26,7 +25,7 @@ export default {
             let mentions = args.mentions && args.mentions.map(id => IDs.User.parse(id));
 
             // Prepare files
-            let fileMetadata: JsonMap | null = null;
+            let fileMetadata: FileMetadata | null = null;
             let filePreview: string | null = null;
             if (args.file) {
                 let fileInfo = await Modules.Media.saveFile(ctx, args.file);
@@ -56,7 +55,7 @@ export default {
             let mid = IDs.ConversationMessage.parse(args.mid);
             let replyMessages = args.replyMessages && args.replyMessages.map(id => IDs.ConversationMessage.parse(id));
             let mentions = args.mentions && args.mentions.map(id => IDs.User.parse(id));
-            let fileMetadata: JsonMap | null = null;
+            let fileMetadata: FileMetadata | null = null;
             let filePreview: string | null = null;
             if (args.file) {
                 let fileInfo = await Modules.Media.saveFile(ctx, args.file);
@@ -115,7 +114,7 @@ export default {
             let userId = IDs.User.parse(args.uid);
             let cid = IDs.Conversation.parse(args.room);
 
-            let fileMetadata: JsonMap | null = null;
+            let fileMetadata: FileMetadata | null = null;
             let filePreview: string | null = null;
 
             if (args.file) {
@@ -164,7 +163,7 @@ export default {
             let userId = IDs.User.parse(args.uid);
             let messageId = IDs.ConversationMessage.parse(args.mid);
 
-            let fileMetadata: JsonMap | null = null;
+            let fileMetadata: FileMetadata | null = null;
             let filePreview: string | null = null;
 
             if (args.file) {
@@ -217,7 +216,7 @@ export default {
 
             if (args.attachments) {
                 for (let file of args.attachments) {
-                    let fileMetadata: JsonMap | null = null;
+                    let fileMetadata: FileMetadata | null = null;
                     let filePreview: string | null = null;
 
                     let fileInfo = await Modules.Media.saveFile(ctx, file);
@@ -254,7 +253,7 @@ export default {
 
             if (args.attachments) {
                 for (let file of args.attachments) {
-                    let fileMetadata: JsonMap | null = null;
+                    let fileMetadata: FileMetadata | null = null;
                     let filePreview: string | null = null;
 
                     let fileInfo = await Modules.Media.saveFile(ctx, file);

@@ -1,5 +1,4 @@
 import { URLAugmentation } from './workers/UrlInfoService';
-import { JsonMap } from 'openland-utils/json';
 
 export type ServiceMessageMetadataType =
     'user_invite' |
@@ -22,7 +21,7 @@ export type MessageKeyboard = {
 
 export type MessageAttachment = {
     fileId: string;
-    fileMetadata: JsonMap | null;
+    fileMetadata: FileMetadata | null;
     filePreview?: string | null;
 };
 
@@ -37,10 +36,20 @@ export type RoomMentionSpan = { type: 'room_mention', offset: number, length: nu
 export type LinkSpan = { type: 'link', offset: number, length: number, url: string };
 export type MessageSpan = UserMentionSpan | MultiUserMentionSpan | RoomMentionSpan | LinkSpan;
 
+export type FileMetadata = {
+    isStored: boolean | undefined,
+    isImage: boolean | null,
+    imageWidth: number | null,
+    imageHeight: number | null,
+    imageFormat: string | null,
+    mimeType: string, name: string,
+    size: number,
+};
+
 export interface MessageInput {
     message?: string | null;
     file?: string | null;
-    fileMetadata?: JsonMap | null;
+    fileMetadata?: FileMetadata | null;
     filePreview?: string | null;
     isMuted?: boolean | null;
     isService?: boolean | null;

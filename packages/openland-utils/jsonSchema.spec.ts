@@ -13,7 +13,7 @@ describe('jsonSchema', () => {
         let schema = json(() => {
             jField('firstName', jString());
             jField('lastName', jString());
-            jField('hello', jString(), true);
+            jField('hello', jString()).undefinable();
         });
 
         expect(validateJson(schema, { firstName: '1', lastName: '2' })).toEqual(true);
@@ -96,12 +96,21 @@ describe('jsonSchema', () => {
         expect(validateJson(schema3, { test: { test: '1' } })).toEqual(true);
     });
 
-    it('should correctly validate nullable fields', async () => {
+    it('should correctly validate nullable and undefinable fields', async () => {
         let schema = json(() => {
-            jField('isImage', jNumber(), true);
+            jField('isImage', jNumber()).nullable();
         });
-        expect(validateJson(schema, {  })).toEqual(true);
-        expect(validateJson(schema, { isImage: null })).toEqual(true);
+        expect(() => validateJson(schema, { })).toThrow();
+        expect(() => validateJson(schema, { isImage: undefined })).toThrow();
         expect(validateJson(schema, { isImage: 1 })).toEqual(true);
+        expect(validateJson(schema, { isImage: null })).toEqual(true);
+
+        let schema2 = json(() => {
+            jField('isImage', jNumber()).undefinable();
+        });
+        expect(() => validateJson(schema2, { isImage: null })).toThrow();
+        expect(validateJson(schema2, { isImage: 1 })).toEqual(true);
+        expect(validateJson(schema2, { isImage: undefined })).toEqual(true);
+        expect(validateJson(schema2, { })).toEqual(true);
     });
 });
