@@ -133,7 +133,7 @@ export class MessagingRepository {
         return await inTx(parent, async (ctx) => {
             let message = (await this.entities.Message.findById(ctx, mid));
 
-            if (!message) {
+            if (!message || message.deleted) {
                 throw new Error('Message not found');
             }
 
