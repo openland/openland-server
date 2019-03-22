@@ -35,6 +35,7 @@ extend type Query {
     debugCrashQuery: String!
     debugUrlInfo(url: String!): UrlAugmentation
     userPresence(uid: ID!, lastSeenFiveMinute: Boolean): [DebugUserPresence!]!
+    debugValidateMessages: String!
 }
 
 enum SuperNotificationType {

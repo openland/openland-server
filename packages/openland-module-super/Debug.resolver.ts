@@ -44,6 +44,31 @@ export default {
 
             return presence;
         }),
+        debugValidateMessages: withPermission('super-admin', async (ctx, args) => {
+            let uid = ctx.auth.uid!;
+            let messages: Message[] = [];
+            let allDialogs = await FDB.UserDialog.allFromUser(ctx, uid);
+            let res = '';
+            for (let dialog of allDialogs) {
+                let conv = (await FDB.Conversation.findById(ctx, dialog.cid))!;
+                if (!conv) {
+                    continue;
+                }
+                if (conv.kind === 'room') {
+                    let pat = await FDB.RoomParticipant.findById(ctx, dialog.cid, uid);
+                    if (!pat || pat.status !== 'joined') {
+                        continue;
+                    }
+                }
+
+                try {
+                    messages.push(...await FDB.Message.allFromChat(ctx, dialog.cid));
+                } catch (e) {
+                    res += e.toString() + '\n\n';
+                }
+            }
+            return res;
+        })
     },
     Mutation: {
         debugSendEmail: withPermission('super-admin', async (ctx, args) => {
