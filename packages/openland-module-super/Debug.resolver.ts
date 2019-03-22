@@ -69,7 +69,7 @@ export default {
                 }
             }
             let fileMetadataSchema = json(() => {
-                jField('isStored', jBool());
+                jField('isStored', jBool(), true);
                 jField('isImage', jBool(), true);
                 jField('imageWidth', jNumber(), true);
                 jField('imageHeight', jNumber(), true);
