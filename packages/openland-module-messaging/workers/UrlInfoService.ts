@@ -198,11 +198,12 @@ export function createUrlInfoService() {
             if (!profile) {
                 return null;
             }
+            let membersCount = await Modules.Messaging.roomMembersCount(ctx, profile.id);
 
             return {
                 url,
                 title: profile!.title || null,
-                subtitle: (await Modules.Messaging.roomMembersCount(ctx, profile.id)) + ' members',
+                subtitle: membersCount < 10 ? (membersCount + ' members') : 'New group',
                 description: profile!.description || null,
                 imageURL: null,
                 imageInfo: profile!.image ? await Modules.Media.fetchFileInfo(createEmptyContext(), profile!.image.uuid) : null,
