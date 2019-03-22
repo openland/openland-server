@@ -29,7 +29,7 @@ type IntermediateMention = { type: 'user', user: number } | { type: 'room', room
 export type UserMentionSpan = { type: 'user_mention', offset: number, length: number, user: number };
 export type MultiUserMentionSpan = { type: 'multi_user_mention', offset: number, length: number, users: number[] };
 export type RoomMentionSpan = { type: 'room_mention', offset: number, length: number, room: number };
-export type LinkSpan = { type: 'link', offset: number, length: number, url: string, text: string };
+export type LinkSpan = { type: 'link', offset: number, length: number, url: string };
 export type MessageSpan = UserMentionSpan | MultiUserMentionSpan | RoomMentionSpan | LinkSpan;
 
 async function prepareLegacyMentions(ctx: Context, message: Message, uid: number): Promise<MessageSpan[]> {
@@ -434,7 +434,6 @@ export default {
         offset: src => src.offset,
         length: src => src.length,
         url: src => src.url,
-        text: src => src.text,
     },
 
     //

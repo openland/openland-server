@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '464db48df39b2f4111112f6efd8e02b0';
+export const GQL_SPEC_VERSION = '3a2ce2fa7e27813ca43b6b546cc6655d';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -603,7 +603,6 @@ export namespace GQL {
         offset: number;
         length: number;
         url: string;
-        text: Nullable<string>;
     }
     export interface MessageSpanUserMentionInput {
         offset: number;
