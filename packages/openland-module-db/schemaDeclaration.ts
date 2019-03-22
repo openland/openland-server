@@ -12,7 +12,7 @@ import {
     allowAdminEdit,
     jsonField
 } from '../foundation-orm-gen';
-import { jEnum, jField, jNumber, json, jString, jVec } from '../openland-utils/jsonSchema';
+import { jBool, jEnum, jField, jNumber, json, jString, jVec } from '../openland-utils/jsonSchema';
 
 const Schema = declareSchema(() => {
 
@@ -470,7 +470,16 @@ const Schema = declareSchema(() => {
 
         // deprecated start
         field('fileId', 'string').nullable().secure();
-        field('fileMetadata', 'json').nullable().secure();
+        jsonField('fileMetadata', json(() => {
+            jField('isStored', jBool(), true);
+            jField('isImage', jBool(), true);
+            jField('imageWidth', jNumber(), true);
+            jField('imageHeight', jNumber(), true);
+            jField('imageFormat', jString(), true);
+            jField('mimeType', jString());
+            jField('name', jString());
+            jField('size', jNumber());
+        })).nullable().secure();
         field('filePreview', 'string').nullable().secure();
         field('augmentation', 'json').nullable();
         field('mentions', 'json').nullable();

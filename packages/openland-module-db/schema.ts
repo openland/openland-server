@@ -2464,7 +2464,7 @@ export class OrganizationFactory extends FEntityFactory<Organization> {
 }
 export interface OrganizationProfileShape {
     name: string;
-    photo?: { uuid: string, crop: { x: number, y: number, w: number, h: number, } | null, }| null;
+    photo?: { uuid: string, crop: { x: number, y: number, w: number, h: number, } | null | undefined, }| null;
     about?: string| null;
     twitter?: string| null;
     facebook?: string| null;
@@ -2484,12 +2484,12 @@ export class OrganizationProfile extends FEntity {
         this._value.name = value;
         this.markDirty();
     }
-    get photo(): { uuid: string, crop: { x: number, y: number, w: number, h: number, } | null, } | null {
+    get photo(): { uuid: string, crop: { x: number, y: number, w: number, h: number, } | null | undefined, } | null {
         let res = this._value.photo;
         if (res !== null && res !== undefined) { return res; }
         return null;
     }
-    set photo(value: { uuid: string, crop: { x: number, y: number, w: number, h: number, } | null, } | null) {
+    set photo(value: { uuid: string, crop: { x: number, y: number, w: number, h: number, } | null | undefined, } | null) {
         this._checkIsWritable();
         if (value === this._value.photo) { return; }
         this._value.photo = value;
@@ -4514,7 +4514,7 @@ export interface MessageShape {
     isService: boolean;
     deleted?: boolean| null;
     fileId?: string| null;
-    fileMetadata?: any| null;
+    fileMetadata?: { isStored: boolean | null | undefined, isImage: boolean | null | undefined, imageWidth: number | null | undefined, imageHeight: number | null | undefined, imageFormat: string | null | undefined, mimeType: string, name: string, size: number, }| null;
     filePreview?: string| null;
     augmentation?: any| null;
     mentions?: any| null;
@@ -4654,12 +4654,12 @@ export class Message extends FEntity {
         this._value.fileId = value;
         this.markDirty();
     }
-    get fileMetadata(): any | null {
+    get fileMetadata(): { isStored: boolean | null | undefined, isImage: boolean | null | undefined, imageWidth: number | null | undefined, imageHeight: number | null | undefined, imageFormat: string | null | undefined, mimeType: string, name: string, size: number, } | null {
         let res = this._value.fileMetadata;
         if (res !== null && res !== undefined) { return res; }
         return null;
     }
-    set fileMetadata(value: any | null) {
+    set fileMetadata(value: { isStored: boolean | null | undefined, isImage: boolean | null | undefined, imageWidth: number | null | undefined, imageHeight: number | null | undefined, imageFormat: string | null | undefined, mimeType: string, name: string, size: number, } | null) {
         this._checkIsWritable();
         if (value === this._value.fileMetadata) { return; }
         this._value.fileMetadata = value;
@@ -4837,6 +4837,16 @@ export class MessageFactory extends FEntityFactory<Message> {
         validators.isBoolean('isService', src.isService);
         validators.isBoolean('deleted', src.deleted);
         validators.isString('fileId', src.fileId);
+        validators.isJson('fileMetadata', src.fileMetadata, json(() => {
+            jField('isStored', jBool(), true);
+            jField('isImage', jBool(), true);
+            jField('imageWidth', jNumber(), true);
+            jField('imageHeight', jNumber(), true);
+            jField('imageFormat', jString(), true);
+            jField('mimeType', jString());
+            jField('name', jString());
+            jField('size', jNumber());
+        }));
         validators.isString('filePreview', src.filePreview);
         validators.isString('type', src.type);
         validators.isString('title', src.title);
