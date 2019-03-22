@@ -203,7 +203,7 @@ export function createUrlInfoService() {
             return {
                 url,
                 title: profile!.title || null,
-                subtitle: membersCount < 10 ? (membersCount + ' members') : 'New group',
+                subtitle: membersCount < 10 ? 'New group' : (membersCount + ' members'),
                 description: profile!.description || null,
                 imageURL: null,
                 imageInfo: profile!.image ? await Modules.Media.fetchFileInfo(createEmptyContext(), profile!.image.uuid) : null,
