@@ -6,6 +6,7 @@ import { Message } from '../openland-module-db/schema';
 import { IDs, IdsFactory } from '../openland-module-api/IDs';
 import { Modules } from '../openland-modules/Modules';
 import { createUrlInfoService } from '../openland-module-messaging/workers/UrlInfoService';
+import { jBool, jField, jNumber, json, jString, validateJson } from '../openland-utils/jsonSchema';
 
 const URLInfoService = createUrlInfoService();
 
@@ -65,6 +66,26 @@ export default {
                     messages.push(...await FDB.Message.allFromChat(ctx, dialog.cid));
                 } catch (e) {
                     res += e.toString() + '\n\n';
+                }
+            }
+            let fileMetadataSchema = json(() => {
+                jField('isStored', jBool());
+                jField('isImage', jBool(), true);
+                jField('imageWidth', jNumber(), true);
+                jField('imageHeight', jNumber(), true);
+                jField('imageFormat', jString(), true);
+                jField('mimeType', jString());
+                jField('name', jString());
+                jField('size', jNumber());
+            });
+
+            for (let message of messages) {
+                try {
+                    if (message.fileMetadata) {
+                        validateJson(fileMetadataSchema, message.fileMetadata);
+                    }
+                } catch (e) {
+                    res += e + '\n\n';
                 }
             }
             return res;
