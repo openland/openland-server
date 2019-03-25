@@ -1,16 +1,18 @@
-type Comments {
+type CommentsPeer {
+    id: ID!
+    state: CommentUpdatesState!
     count: Int!
     comments: [CommentEntry!]!
 }
 
 type CommentEntry {
+    id: ID!
     comment: GeneralMessage!
     parentComment: CommentEntry
 }
 
 extend type Query {
-    messageComments(messageId: ID!): Comments!
-    messageCommentsState(messageId: ID!): CommentUpdatesState!
+    messageComments(messageId: ID!): CommentsPeer!
 }
 
 extend type Mutation {
@@ -43,5 +45,5 @@ type CommentReceived {
 union CommentUpdateContainer = CommentUpdateSingle | CommentUpdateBatch
 
 extend type Subscription {
-    messageCommentUpdates(messageId: ID!, fromState: String): CommentUpdateContainer
+    commentUpdates(peerId: ID!, fromState: String): CommentUpdateContainer
 }

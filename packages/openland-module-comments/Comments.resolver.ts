@@ -1,20 +1,33 @@
 import { GQL, GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { withUser } from '../openland-module-api/Resolvers';
 import { Modules } from '../openland-modules/Modules';
-import { IDs } from '../openland-module-api/IDs';
+import { IDs, IdsFactory } from '../openland-module-api/IDs';
 import { FDB } from '../openland-module-db/FDB';
 import { AppContext } from '../openland-modules/AppContext';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
 import { GQLRoots } from '../openland-module-api/schema/SchemaRoots';
 import CommentUpdateContainerRoot = GQLRoots.CommentUpdateContainerRoot;
 import { CommentEvent } from '../openland-module-db/schema';
+import { UserError } from '../openland-errors/UserError';
 
 export default {
-    Comments: {
-        count: src => src.length,
-        comments: src => src
+    CommentsPeer: {
+        id: src => {
+            if (src.peerType === 'message') {
+                return IDs.ConversationMessage.serialize(src.peerId);
+            } else {
+                throw new Error('Unknown comments peer type: ' + src.peerType);
+            }
+        },
+        state: async (src, args, ctx) => {
+            let tail = await FDB.CommentEvent.createUserStream(ctx, src.peerType, src.peerId, 1).tail();
+            return {state: tail};
+        },
+        count: src => src.comments.length,
+        comments: src => src.comments,
     },
     CommentEntry: {
+        id: src => IDs.Comment.serialize(src.id),
         comment: src => src,
         parentComment: (src, args, ctx) => src.parentCommentId !== 0 ? FDB.Comment.findById(ctx, src.parentCommentId!) : null
     },
@@ -24,7 +37,10 @@ export default {
             let messageId = IDs.ConversationMessage.parse(args.messageId);
             let replyToComment = args.replyComment ? IDs.Comment.parse(args.replyComment) : null;
 
-            await Modules.Comments.createComment(ctx, 'message', messageId, uid, { message: args.message, replyToComment });
+            await Modules.Comments.createComment(ctx, 'message', messageId, uid, {
+                message: args.message,
+                replyToComment
+            });
             return true;
         })
     },
@@ -32,15 +48,12 @@ export default {
     Query: {
         messageComments: withUser(async (ctx, args, uid) => {
             let messageId = IDs.ConversationMessage.parse(args.messageId);
-            return await FDB.Comment.allFromPeer(ctx, 'message', messageId);
-        }),
-        messageCommentsState: withUser(async (ctx, args, uid) => {
-            let id = IDs.ConversationMessage.parse(args.messageId);
-            let tail = await FDB.CommentEvent.createUserStream(ctx, 'message', id, 1).tail();
             return {
-                state: tail
+                comments: await FDB.Comment.allFromPeer(ctx, 'message', messageId),
+                peerType: 'message',
+                peerId: messageId
             };
-        })
+        }),
     },
 
     CommentUpdateContainer: {
@@ -72,21 +85,31 @@ export default {
         }
     },
     CommentReceived: {
-      comment: (src, args, ctx) => FDB.Comment.findById(ctx, src.commentId!)
+        comment: (src, args, ctx) => FDB.Comment.findById(ctx, src.commentId!)
     },
 
     Subscription: {
-        messageCommentUpdates: {
+        commentUpdates: {
             resolve: async msg => {
                 return msg;
             },
-            subscribe: async function * (r: any, args: GQL.SubscriptionMessageCommentUpdatesArgs, ctx: AppContext) {
+            subscribe: async function* (r: any, args: GQL.SubscriptionCommentUpdatesArgs, ctx: AppContext) {
                 let uid = ctx.auth.uid;
                 if (!uid) {
                     throw new AccessDeniedError();
                 }
-                let messageId = IDs.ConversationMessage.parse(args.messageId);
-                let generator = FDB.CommentEvent.createUserLiveStream(ctx, 'message', messageId, 20, args.fromState || undefined);
+                let id = IdsFactory.resolve(args.peerId);
+                let peerId: number | null;
+                let peerType: string | null;
+
+                if (id.type === IDs.ConversationMessage) {
+                    peerId = id.id as number;
+                    peerType = 'message';
+                } else {
+                    throw new UserError('Unknown peer');
+                }
+
+                let generator = FDB.CommentEvent.createUserLiveStream(ctx, peerType, peerId, 20, args.fromState || undefined);
 
                 for await (let event of generator) {
                     yield event;
