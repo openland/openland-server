@@ -308,7 +308,7 @@ export default {
         }),
         roomMembers: withUser(async (ctx, args, uid) => {
             let roomId = IDs.Conversation.parse(args.roomId);
-            await Modules.Messaging.room.checkAccess(ctx, uid, roomId);
+            await Modules.Messaging.room.checkCanUserSeeChat(ctx, uid, roomId);
             let conversation = await FDB.Conversation.findById(ctx, roomId);
             if (!conversation) {
                 throw new Error('Room not found');

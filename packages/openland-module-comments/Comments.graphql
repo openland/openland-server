@@ -8,10 +8,6 @@ type CommentEntry {
     parentComment: CommentEntry
 }
 
-type CommentUpdatesState {
-    state: String
-}
-
 extend type Query {
     messageComments(messageId: ID!): Comments!
     messageCommentsState(messageId: ID!): CommentUpdatesState!
@@ -19,6 +15,10 @@ extend type Query {
 
 extend type Mutation {
     addMessageComment(messageId: ID!, message: String, replyComment: ID): Boolean!
+}
+
+type CommentUpdatesState {
+    state: String
 }
 
 type CommentUpdateSingle {
