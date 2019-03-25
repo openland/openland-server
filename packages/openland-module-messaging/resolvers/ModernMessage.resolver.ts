@@ -2,7 +2,7 @@ import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { withUser } from '../../openland-module-api/Resolvers';
 import { IDs } from '../../openland-module-api/IDs';
 import { Modules } from '../../openland-modules/Modules';
-import { Message } from '../../openland-module-db/schema';
+import { Comment, Message } from '../../openland-module-db/schema';
 import { FDB } from '../../openland-module-db/FDB';
 import { Context } from '../../openland-utils/Context';
 import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
@@ -215,8 +215,10 @@ const urlInfoService = createUrlInfoService();
 
 export default {
     ModernMessage: {
-      __resolveType(src: Message) {
-          if (src.isService) {
+      __resolveType(src: Message | Comment) {
+          if (src instanceof Comment) {
+              return 'GeneralMessage';
+          } else if (src.isService) {
               return 'ServiceMessage';
           } else {
               return 'GeneralMessage';
@@ -271,22 +273,25 @@ export default {
         //
         //  State
         //
-        id: src => IDs.ConversationMessage.serialize(src.id),
+        id: src => src instanceof Comment ? IDs.Comment.serialize(src.id) : IDs.ConversationMessage.serialize(src.id),
         date: src => src.createdAt,
         sender: src => src.uid,
-        edited: src => src.edited || false,
-        reactions: src => src.reactions || [],
+        edited: src => src instanceof Comment ? false : src.edited || false,
+        reactions: src => src instanceof Comment ? [] : src.reactions || [],
 
         //
         //  Content
         //
         message: src => {
-            if (src.type && src.type === 'POST') {
+            if (src instanceof Message && src.type && src.type === 'POST') {
                 return null;
             }
             return src.text;
         },
         spans: async (src, args, ctx) => {
+            if (src instanceof Comment) {
+                return [];
+            }
             //
             //  Modern spans
             //
@@ -310,6 +315,9 @@ export default {
             return spans;
         },
         attachments: async (src, args, ctx) => {
+            if (src instanceof Comment) {
+                return [];
+            }
             let attachments: MessageAttachment[] = [];
 
             if (src.fileId) {
@@ -373,6 +381,9 @@ export default {
             return attachments;
         },
         quotedMessages: async (src, args, ctx) => {
+            if (src instanceof Comment) {
+                return [];
+            }
             if (src.replyMessages) {
                 let messages = await Promise.all((src.replyMessages as number[]).map(id => FDB.Message.findById(ctx, id)));
                 let filtered = messages.filter(m => !!m);

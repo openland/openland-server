@@ -4955,6 +4955,365 @@ export class MessageFactory extends FEntityFactory<Message> {
         return new Message(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Message');
     }
 }
+export interface CommentShape {
+    peerId: number;
+    peerType: 'message';
+    parentCommentId: number;
+    uid: number;
+    text?: string| null;
+    deleted?: boolean| null;
+}
+
+export class Comment extends FEntity {
+    readonly entityName: 'Comment' = 'Comment';
+    get id(): number { return this._value.id; }
+    get peerId(): number {
+        return this._value.peerId;
+    }
+    set peerId(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.peerId) { return; }
+        this._value.peerId = value;
+        this.markDirty();
+    }
+    get peerType(): 'message' {
+        return this._value.peerType;
+    }
+    set peerType(value: 'message') {
+        this._checkIsWritable();
+        if (value === this._value.peerType) { return; }
+        this._value.peerType = value;
+        this.markDirty();
+    }
+    get parentCommentId(): number {
+        return this._value.parentCommentId;
+    }
+    set parentCommentId(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.parentCommentId) { return; }
+        this._value.parentCommentId = value;
+        this.markDirty();
+    }
+    get uid(): number {
+        return this._value.uid;
+    }
+    set uid(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.uid) { return; }
+        this._value.uid = value;
+        this.markDirty();
+    }
+    get text(): string | null {
+        let res = this._value.text;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set text(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.text) { return; }
+        this._value.text = value;
+        this.markDirty();
+    }
+    get deleted(): boolean | null {
+        let res = this._value.deleted;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set deleted(value: boolean | null) {
+        this._checkIsWritable();
+        if (value === this._value.deleted) { return; }
+        this._value.deleted = value;
+        this.markDirty();
+    }
+}
+
+export class CommentFactory extends FEntityFactory<Comment> {
+    static schema: FEntitySchema = {
+        name: 'Comment',
+        editable: false,
+        primaryKeys: [
+            { name: 'id', type: 'number' },
+        ],
+        fields: [
+            { name: 'peerId', type: 'number' },
+            { name: 'peerType', type: 'enum', enumValues: ['message'] },
+            { name: 'parentCommentId', type: 'number' },
+            { name: 'uid', type: 'number' },
+            { name: 'text', type: 'string', secure: true },
+            { name: 'deleted', type: 'boolean' },
+        ],
+        indexes: [
+            { name: 'peer', type: 'range', fields: ['peerType', 'peerId', 'id'] },
+            { name: 'child', type: 'range', fields: ['parentCommentId', 'id'] },
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isNumber('id', src.id);
+        validators.notNull('peerId', src.peerId);
+        validators.isNumber('peerId', src.peerId);
+        validators.notNull('peerType', src.peerType);
+        validators.isEnum('peerType', src.peerType, ['message']);
+        validators.notNull('parentCommentId', src.parentCommentId);
+        validators.isNumber('parentCommentId', src.parentCommentId);
+        validators.notNull('uid', src.uid);
+        validators.isNumber('uid', src.uid);
+        validators.isString('text', src.text);
+        validators.isBoolean('deleted', src.deleted);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'comment'),
+            { enableVersioning: true, enableTimestamps: true, validator: CommentFactory.validate, hasLiveStreams: false },
+            [new FEntityIndex('peer', ['peerType', 'peerId', 'id'], false), new FEntityIndex('child', ['parentCommentId', 'id'], false)],
+            'Comment'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
+        return { 'id': rawId[0] };
+    }
+    async findById(ctx: Context, id: number) {
+        return await this._findById(ctx, [id]);
+    }
+    async create(ctx: Context, id: number, shape: CommentShape) {
+        return await this._create(ctx, [id], { id, ...shape });
+    }
+    watch(ctx: Context, id: number, cb: () => void) {
+        return this._watch(ctx, [id], cb);
+    }
+    async allFromPeerAfter(ctx: Context, peerType: 'message', peerId: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'peer', peerType, peerId], after);
+    }
+    async rangeFromPeerAfter(ctx: Context, peerType: 'message', peerId: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'peer', peerType, peerId], after, limit, reversed);
+    }
+    async rangeFromPeer(ctx: Context, peerType: 'message', peerId: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'peer', peerType, peerId], limit, reversed);
+    }
+    async rangeFromPeerWithCursor(ctx: Context, peerType: 'message', peerId: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'peer', peerType, peerId], limit, after, reversed);
+    }
+    async allFromPeer(ctx: Context, peerType: 'message', peerId: number) {
+        return await this._findAll(ctx, ['__indexes', 'peer', peerType, peerId]);
+    }
+    createPeerStream(ctx: Context, peerType: 'message', peerId: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'comment', '__indexes', 'peer', peerType, peerId], limit, after); 
+    }
+    async allFromChildAfter(ctx: Context, parentCommentId: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'child', parentCommentId], after);
+    }
+    async rangeFromChildAfter(ctx: Context, parentCommentId: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'child', parentCommentId], after, limit, reversed);
+    }
+    async rangeFromChild(ctx: Context, parentCommentId: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'child', parentCommentId], limit, reversed);
+    }
+    async rangeFromChildWithCursor(ctx: Context, parentCommentId: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'child', parentCommentId], limit, after, reversed);
+    }
+    async allFromChild(ctx: Context, parentCommentId: number) {
+        return await this._findAll(ctx, ['__indexes', 'child', parentCommentId]);
+    }
+    createChildStream(ctx: Context, parentCommentId: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'comment', '__indexes', 'child', parentCommentId], limit, after); 
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new Comment(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Comment');
+    }
+}
+export interface CommentSeqShape {
+    seq: number;
+}
+
+export class CommentSeq extends FEntity {
+    readonly entityName: 'CommentSeq' = 'CommentSeq';
+    get peerType(): string { return this._value.peerType; }
+    get peerId(): number { return this._value.peerId; }
+    get seq(): number {
+        return this._value.seq;
+    }
+    set seq(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.seq) { return; }
+        this._value.seq = value;
+        this.markDirty();
+    }
+}
+
+export class CommentSeqFactory extends FEntityFactory<CommentSeq> {
+    static schema: FEntitySchema = {
+        name: 'CommentSeq',
+        editable: false,
+        primaryKeys: [
+            { name: 'peerType', type: 'string' },
+            { name: 'peerId', type: 'number' },
+        ],
+        fields: [
+            { name: 'seq', type: 'number' },
+        ],
+        indexes: [
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('peerType', src.peerType);
+        validators.isString('peerType', src.peerType);
+        validators.notNull('peerId', src.peerId);
+        validators.isNumber('peerId', src.peerId);
+        validators.notNull('seq', src.seq);
+        validators.isNumber('seq', src.seq);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'commentSeq'),
+            { enableVersioning: false, enableTimestamps: false, validator: CommentSeqFactory.validate, hasLiveStreams: false },
+            [],
+            'CommentSeq'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 2) { throw Error('Invalid key length!'); }
+        return { 'peerType': rawId[0], 'peerId': rawId[1] };
+    }
+    async findById(ctx: Context, peerType: string, peerId: number) {
+        return await this._findById(ctx, [peerType, peerId]);
+    }
+    async create(ctx: Context, peerType: string, peerId: number, shape: CommentSeqShape) {
+        return await this._create(ctx, [peerType, peerId], { peerType, peerId, ...shape });
+    }
+    watch(ctx: Context, peerType: string, peerId: number, cb: () => void) {
+        return this._watch(ctx, [peerType, peerId], cb);
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new CommentSeq(ctx, this.connection, this.namespace, this.directory, [value.peerType, value.peerId], value, this.options, isNew, this.indexes, 'CommentSeq');
+    }
+}
+export interface CommentEventShape {
+    uid?: number| null;
+    commentId?: number| null;
+    kind: 'comment_received';
+}
+
+export class CommentEvent extends FEntity {
+    readonly entityName: 'CommentEvent' = 'CommentEvent';
+    get peerType(): string { return this._value.peerType; }
+    get peerId(): number { return this._value.peerId; }
+    get seq(): number { return this._value.seq; }
+    get uid(): number | null {
+        let res = this._value.uid;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set uid(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.uid) { return; }
+        this._value.uid = value;
+        this.markDirty();
+    }
+    get commentId(): number | null {
+        let res = this._value.commentId;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set commentId(value: number | null) {
+        this._checkIsWritable();
+        if (value === this._value.commentId) { return; }
+        this._value.commentId = value;
+        this.markDirty();
+    }
+    get kind(): 'comment_received' {
+        return this._value.kind;
+    }
+    set kind(value: 'comment_received') {
+        this._checkIsWritable();
+        if (value === this._value.kind) { return; }
+        this._value.kind = value;
+        this.markDirty();
+    }
+}
+
+export class CommentEventFactory extends FEntityFactory<CommentEvent> {
+    static schema: FEntitySchema = {
+        name: 'CommentEvent',
+        editable: false,
+        primaryKeys: [
+            { name: 'peerType', type: 'string' },
+            { name: 'peerId', type: 'number' },
+            { name: 'seq', type: 'number' },
+        ],
+        fields: [
+            { name: 'uid', type: 'number' },
+            { name: 'commentId', type: 'number' },
+            { name: 'kind', type: 'enum', enumValues: ['comment_received'] },
+        ],
+        indexes: [
+            { name: 'user', type: 'range', fields: ['peerType', 'peerId', 'seq'] },
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('peerType', src.peerType);
+        validators.isString('peerType', src.peerType);
+        validators.notNull('peerId', src.peerId);
+        validators.isNumber('peerId', src.peerId);
+        validators.notNull('seq', src.seq);
+        validators.isNumber('seq', src.seq);
+        validators.isNumber('uid', src.uid);
+        validators.isNumber('commentId', src.commentId);
+        validators.notNull('kind', src.kind);
+        validators.isEnum('kind', src.kind, ['comment_received']);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'commentEvent'),
+            { enableVersioning: true, enableTimestamps: true, validator: CommentEventFactory.validate, hasLiveStreams: true },
+            [new FEntityIndex('user', ['peerType', 'peerId', 'seq'], false)],
+            'CommentEvent'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 3) { throw Error('Invalid key length!'); }
+        return { 'peerType': rawId[0], 'peerId': rawId[1], 'seq': rawId[2] };
+    }
+    async findById(ctx: Context, peerType: string, peerId: number, seq: number) {
+        return await this._findById(ctx, [peerType, peerId, seq]);
+    }
+    async create(ctx: Context, peerType: string, peerId: number, seq: number, shape: CommentEventShape) {
+        return await this._create(ctx, [peerType, peerId, seq], { peerType, peerId, seq, ...shape });
+    }
+    watch(ctx: Context, peerType: string, peerId: number, seq: number, cb: () => void) {
+        return this._watch(ctx, [peerType, peerId, seq], cb);
+    }
+    async allFromUserAfter(ctx: Context, peerType: string, peerId: number, after: number) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'user', peerType, peerId], after);
+    }
+    async rangeFromUserAfter(ctx: Context, peerType: string, peerId: number, after: number, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'user', peerType, peerId], after, limit, reversed);
+    }
+    async rangeFromUser(ctx: Context, peerType: string, peerId: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'user', peerType, peerId], limit, reversed);
+    }
+    async rangeFromUserWithCursor(ctx: Context, peerType: string, peerId: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'user', peerType, peerId], limit, after, reversed);
+    }
+    async allFromUser(ctx: Context, peerType: string, peerId: number) {
+        return await this._findAll(ctx, ['__indexes', 'user', peerType, peerId]);
+    }
+    createUserStream(ctx: Context, peerType: string, peerId: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'commentEvent', '__indexes', 'user', peerType, peerId], limit, after); 
+    }
+    createUserLiveStream(ctx: Context, peerType: string, peerId: number, limit: number, after?: string) {
+        return this._createLiveStream(ctx, ['entity', 'commentEvent', '__indexes', 'user', peerType, peerId], limit, after); 
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new CommentEvent(ctx, this.connection, this.namespace, this.directory, [value.peerType, value.peerId, value.seq], value, this.options, isNew, this.indexes, 'CommentEvent');
+    }
+}
 export interface ConversationSeqShape {
     seq: number;
 }
@@ -8155,6 +8514,9 @@ export interface AllEntities {
     readonly ConversationReceiver: ConversationReceiverFactory;
     readonly Sequence: SequenceFactory;
     readonly Message: MessageFactory;
+    readonly Comment: CommentFactory;
+    readonly CommentSeq: CommentSeqFactory;
+    readonly CommentEvent: CommentEventFactory;
     readonly ConversationSeq: ConversationSeqFactory;
     readonly ConversationEvent: ConversationEventFactory;
     readonly UserDialog: UserDialogFactory;
@@ -8223,6 +8585,9 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         ConversationReceiverFactory.schema,
         SequenceFactory.schema,
         MessageFactory.schema,
+        CommentFactory.schema,
+        CommentSeqFactory.schema,
+        CommentEventFactory.schema,
         ConversationSeqFactory.schema,
         ConversationEventFactory.schema,
         UserDialogFactory.schema,
@@ -8290,6 +8655,9 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     ConversationReceiver: ConversationReceiverFactory;
     Sequence: SequenceFactory;
     Message: MessageFactory;
+    Comment: CommentFactory;
+    CommentSeq: CommentSeqFactory;
+    CommentEvent: CommentEventFactory;
     ConversationSeq: ConversationSeqFactory;
     ConversationEvent: ConversationEventFactory;
     UserDialog: UserDialogFactory;
@@ -8395,6 +8763,12 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         this.allEntities.push(this.Sequence);
         this.Message = new MessageFactory(connection);
         this.allEntities.push(this.Message);
+        this.Comment = new CommentFactory(connection);
+        this.allEntities.push(this.Comment);
+        this.CommentSeq = new CommentSeqFactory(connection);
+        this.allEntities.push(this.CommentSeq);
+        this.CommentEvent = new CommentEventFactory(connection);
+        this.allEntities.push(this.CommentEvent);
         this.ConversationSeq = new ConversationSeqFactory(connection);
         this.allEntities.push(this.ConversationSeq);
         this.ConversationEvent = new ConversationEventFactory(connection);
@@ -8567,6 +8941,15 @@ export class AllEntitiesProxy implements AllEntities {
     }
     get Message(): MessageFactory {
         return this.resolver().Message;
+    }
+    get Comment(): CommentFactory {
+        return this.resolver().Comment;
+    }
+    get CommentSeq(): CommentSeqFactory {
+        return this.resolver().CommentSeq;
+    }
+    get CommentEvent(): CommentEventFactory {
+        return this.resolver().CommentEvent;
     }
     get ConversationSeq(): ConversationSeqFactory {
         return this.resolver().ConversationSeq;

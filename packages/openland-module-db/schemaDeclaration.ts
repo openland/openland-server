@@ -525,6 +525,40 @@ const Schema = declareSchema(() => {
         enableTimestamps();
     });
 
+    entity('Comment', () => {
+        primaryKey('id', 'number');
+        field('peerId', 'number');
+        enumField('peerType', ['message']);
+        field('parentCommentId', 'number');
+        field('uid', 'number');
+
+        field('text', 'string').nullable().secure();
+        field('deleted', 'boolean').nullable();
+
+        rangeIndex('peer', ['peerType', 'peerId', 'id']);
+        rangeIndex('child', ['parentCommentId', 'id']);
+        enableVersioning();
+        enableTimestamps();
+    });
+
+    entity('CommentSeq', () => {
+        primaryKey('peerType', 'string');
+        primaryKey('peerId', 'number');
+        field('seq', 'number');
+    });
+
+    entity('CommentEvent', () => {
+        primaryKey('peerType', 'string');
+        primaryKey('peerId', 'number');
+        primaryKey('seq', 'number');
+        field('uid', 'number').nullable();
+        field('commentId', 'number').nullable();
+        enumField('kind', ['comment_received']);
+        rangeIndex('user', ['peerType', 'peerId', 'seq']).withStreaming();
+        enableVersioning();
+        enableTimestamps();
+    });
+
     entity('ConversationSeq', () => {
         primaryKey('cid', 'number');
         field('seq', 'number');

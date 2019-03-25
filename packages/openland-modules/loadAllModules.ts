@@ -40,6 +40,8 @@ import { loadShortnameModule } from '../openland-module-shortname/ShortnameModul
 import { loadBotsModule } from '../openland-module-apps/AppsModule.container';
 import { AppsModule } from '../openland-module-apps/AppsModule';
 import { loadOrganizationModule } from '../openland-module-organization/OrganizationModule.container';
+import { CommentsModule } from '../openland-module-comments/CommentsModule';
+import { loadCommentsModule } from '../openland-module-comments/CommentsModule.container';
 
 export function loadAllModules(loadDb: boolean = true) {
 
@@ -55,6 +57,7 @@ export function loadAllModules(loadDb: boolean = true) {
     loadSocialModule();
     loadShortnameModule();
     loadBotsModule();
+    loadCommentsModule();
     loadOrganizationModule();
 
     container.bind(DBModule).toSelf().inSingletonScope();
@@ -80,6 +83,7 @@ export function loadAllModules(loadDb: boolean = true) {
     loadInvitesModule();
     container.bind(PubsubModule).toSelf().inSingletonScope();
     container.bind(ApiModule).toSelf().inSingletonScope();
+    container.bind(CommentsModule).toSelf().inSingletonScope();
     loadCallsModule();
     loadFeedModule();
 }
@@ -109,4 +113,5 @@ export async function startAllModules() {
     await container.get(CallsModule).start();
     await container.get(FeedModule).start();
     await container.get(AppsModule).start();
+    await container.get(CommentsModule).start();
 }

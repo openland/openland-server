@@ -1,0 +1,47 @@
+type Comments {
+    count: Int!
+    comments: [CommentEntry!]!
+}
+
+type CommentEntry {
+    comment: GeneralMessage!
+    parentComment: CommentEntry
+}
+
+type CommentUpdatesState {
+    state: String
+}
+
+extend type Query {
+    messageComments(messageId: ID!): Comments!
+    messageCommentsState(messageId: ID!): CommentUpdatesState!
+}
+
+extend type Mutation {
+    addMessageComment(messageId: ID!, message: String, replyComment: ID): Boolean!
+}
+
+type CommentUpdateSingle {
+    seq: Int!
+    state: String!
+    update: CommentUpdate!
+}
+
+type CommentUpdateBatch {
+    seq: Int!
+    state: String!
+    fromSeq: Int!
+    updates: [CommentUpdate!]!
+}
+
+union CommentUpdate = CommentReceived
+
+type CommentReceived {
+    comment: CommentEntry!
+}
+
+union CommentUpdateContainer = CommentUpdateSingle | CommentUpdateBatch
+
+extend type Subscription {
+    messageCommentUpdates(messageId: ID!, fromState: String): CommentUpdateContainer
+}

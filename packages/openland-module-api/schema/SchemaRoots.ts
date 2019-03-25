@@ -5,7 +5,7 @@ import {
     User, UserDialogEvent,
     UserDialogSettings,
     UserProfile,
-    FeedEvent, AuthToken, ConversationEvent, AppHook, Presence, EnvironmentVariable
+    FeedEvent, AuthToken, ConversationEvent, AppHook, Presence, EnvironmentVariable, Comment, CommentEvent
 } from '../../openland-module-db/schema';
 import { GQL } from './SchemaSpec';
 import { MessageMention } from '../../openland-module-messaging/MessageInput';
@@ -185,11 +185,9 @@ export namespace GQLRoots {
     //
 
     export type MessageRoot = Message | number;
-    export type ModernMessageRoot = Message;
-    export type GeneralMessageRoot = Message;
-    // export type BaseMessageRoot = Message;
+    export type ModernMessageRoot = Message | Comment;
+    export type GeneralMessageRoot = Message | Comment;
     export type ServiceMessageRoot = Message;
-    // export type ModernMessageRoot = Message;
     export type MessageSpanRoot = MessageSpan;
     export type MessageAttachmentFileInputRoot = any;
     export type MessageAttachmentPostInputRoot = any;
@@ -231,4 +229,16 @@ export namespace GQLRoots {
     export type DebugIDRoot = any;
     export type DebugUserPresenceRoot = Presence;
     export type EnvVarRoot = EnvironmentVariable;
+
+    //
+    //  Comments
+    //
+    export type CommentsRoot = Comment[];
+    export type CommentEntryRoot = Comment;
+    export type CommentUpdateContainerRoot = FLiveStreamItem<CommentEvent>;
+    export type CommentUpdateSingleRoot = FLiveStreamItem<CommentEvent>;
+    export type CommentUpdateBatchRoot = FLiveStreamItem<CommentEvent>;
+    export type CommentUpdateRoot = CommentEvent;
+    export type CommentReceivedRoot = CommentEvent;
+    export type CommentUpdatesStateRoot = { state: string };
 }

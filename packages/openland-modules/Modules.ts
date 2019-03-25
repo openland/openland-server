@@ -24,6 +24,7 @@ import { CallsModule } from 'openland-module-calls/CallsModule';
 import { SocialModule } from 'openland-module-social/SocialModule';
 import { FeedModule } from 'openland-module-feed/FeedModule';
 import { AppsModule } from '../openland-module-apps/AppsModule';
+import { CommentsModule } from '../openland-module-comments/CommentsModule';
 
 class ModulesImpl {
 
@@ -101,6 +102,9 @@ class ModulesImpl {
     }
     get Bots() {
         return container.get(AppsModule);
+    }
+    get Comments() {
+        return container.get(CommentsModule);
     }
 }
 
