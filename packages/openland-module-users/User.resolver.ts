@@ -104,12 +104,17 @@ export default {
         },
         user: withAny(async (ctx, args) => {
             let shortname = await Modules.Shortnames.findShortname(ctx, args.id);
+            let user: User|null;
 
             if (shortname && shortname.enabled && shortname.ownerType === 'user') {
-                return FDB.User.findById(ctx, shortname.ownerId);
+                user = await FDB.User.findById(ctx, shortname.ownerId);
             }  else {
-                return FDB.User.findById(ctx, IDs.User.parse(args.id));
+                user = await FDB.User.findById(ctx, IDs.User.parse(args.id));
             }
+            if (user && user.status === 'deleted') {
+                return null;
+            }
+            return user;
         }),
     }
 } as GQLResolver;
