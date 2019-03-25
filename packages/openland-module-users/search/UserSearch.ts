@@ -13,10 +13,13 @@ export class UserSearch {
             let mainQuery: any = {
                 bool: {
                     should: normalized.length > 0 ? [
-                        { match_phrase_prefix: options && options.byName ? { name: query } : { search: query } }
+                        { match_phrase_prefix: options && options.byName ? { name: query } : { search: query } },
                     ] : [],
                     must_not: options && options.uid ? [
-                        { match: { _id: options.uid } }
+                        { match: { _id: options.uid } },
+                        { match: { status: 'deleted' } },
+                        { match: { status: 'suspended' } },
+                        { match: { status: 'pending' } },
                     ] : [],
                 }
             };
@@ -56,6 +59,8 @@ export class UserSearch {
                     };
                 }
             }
+
+            console.dir(mainQuery, {depth: null});
 
             return await tracer.trace(ctx, 'elastic', async () => {
                 let hits = await Modules.Search.elastic.client.search({
