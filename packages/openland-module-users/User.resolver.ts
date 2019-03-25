@@ -6,6 +6,7 @@ import { IDs } from 'openland-module-api/IDs';
 import { withAny } from 'openland-module-api/Resolvers';
 import { GQLResolver } from '../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
+import { NotFoundError } from '../openland-errors/NotFoundError';
 
 type UserRoot = User | UserProfile | number | UserFullRoot;
 
@@ -112,7 +113,7 @@ export default {
                 user = await FDB.User.findById(ctx, IDs.User.parse(args.id));
             }
             if (user && user.status === 'deleted') {
-                return null;
+                throw new NotFoundError();
             }
             return user;
         }),
