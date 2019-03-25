@@ -506,7 +506,9 @@ export default {
             let roomId = IDs.Conversation.parse(args.chatId);
             let beforeId = args.before ? IDs.ConversationMessage.parse(args.before) : null;
             await Modules.Messaging.room.checkAccess(ctx, uid, roomId);
-
+            if (!args.first || args.first <= 0) {
+                return [];
+            }
             if (args.before && await FDB.Message.findById(ctx, beforeId!)) {
                 return await FDB.Message.rangeFromChatAfter(ctx, roomId, beforeId!, args.first!, true);
             }

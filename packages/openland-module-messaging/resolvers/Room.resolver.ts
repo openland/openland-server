@@ -291,9 +291,10 @@ export default {
         }),
         roomMessages: withUser(async (ctx, args, uid) => {
             let roomId = IDs.Conversation.parse(args.roomId);
-
             await Modules.Messaging.room.checkAccess(ctx, uid, roomId);
-
+            if (!args.first || args.first <= 0) {
+                return [];
+            }
             let beforeMessage: Message | null = null;
             if (args.before) {
                 beforeMessage = await FDB.Message.findById(ctx, IDs.ConversationMessage.parse(args.before));
