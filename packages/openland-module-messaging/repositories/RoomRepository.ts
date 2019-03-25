@@ -571,7 +571,7 @@ export class RoomRepository {
     async resolveConversationWelcomeMessage(ctx: Context, conversationId: number): Promise<WelcomeMessageT | null> {
         let profile = await this.entities.RoomProfile.findById(ctx, conversationId);
         if (!profile) {
-            throw new NotFoundError();
+            return null;
         }
 
         const senderId = profile.welcomeMessageSender ? profile.welcomeMessageSender : null;
