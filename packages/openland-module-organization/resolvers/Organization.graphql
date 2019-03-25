@@ -34,7 +34,6 @@ type Organization {
     alphaOrganizationMemberRequests: [OrganizationRequestedMember!]!
     alphaFeatured: Boolean!
     alphaIsCommunity: Boolean!
-    alphaCreatedChannels: [ChannelConversation]! @disabled
 
     betaPublicRooms: [SharedRoom!]!
     status: String!

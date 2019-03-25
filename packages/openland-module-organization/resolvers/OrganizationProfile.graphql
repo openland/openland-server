@@ -16,39 +16,6 @@ type OrganizationProfile {
     alphaEditorial: Boolean!
     alphaFeatured: Boolean!
     alphaIsCommunity: Boolean!
-
-    alphaLocations: [String!]
-    alphaInterests: [String!]
-    alphaOrganizationType: [String!]
-
-    alphaPotentialSites: [Range!]
-    alphaSiteSizes: [Range!]
-    alphaDevelopmentModels: [String!]
-    alphaAvailability: [String!]
-    alphaLandUse: [String!]
-    alphaGoodFor: [String!]
-    alphaSpecialAttributes: [String!]
-    alphaLookingFor: [String!]
-    alphaGeographies: [String!]
-
-    alphaDOShapeAndForm: [String!]
-    alphaDOCurrentUse: [String!]
-    alphaDOGoodFitFor: [String!]
-    alphaDOSpecialAttributes: [String!]
-    alphaDOAvailability: [String!]
-
-    alphaARGeographies: [String!]
-    alphaARAreaRange: [String!]
-    alphaARHeightLimit: [String!]
-    alphaARActivityStatus: [String!]
-    alphaARAquisitionBudget: [String!]
-    alphaARAquisitionRate: [String!]
-    alphaARClosingTime: [String!]
-    alphaARSpecialAttributes: [String!]
-    alphaARLandUse: [String!]
-
-    alphaJoinedChannels: [ChannelConversation]! @disabled
-    alphaCreatedChannels: [ChannelConversation]! @disabled
 }
 
 input CreateOrganizationInput {
@@ -77,36 +44,6 @@ input UpdateOrganizationProfileInput {
     alphaPublished: Boolean
     alphaEditorial: Boolean
     alphaFeatured: Boolean
-
-    alphaLocations: [String!]
-    alphaInterests: [String!]
-    alphaOrganizationType: [String!]
-
-    alphaPotentialSites: [RangeInput]
-    alphaSiteSizes: [RangeInput]
-    alphaDevelopmentModels: [String]
-    alphaAvailability: [String]
-    alphaLandUse: [String]
-    alphaGoodFor: [String]
-    alphaSpecialAttributes: [String]
-    alphaLookingFor: [String!]
-    alphaGeographies: [String!]
-
-    alphaDOShapeAndForm: [String!]
-    alphaDOCurrentUse: [String!]
-    alphaDOGoodFitFor: [String!]
-    alphaDOSpecialAttributes: [String!]
-    alphaDOAvailability: [String!]
-
-    alphaARGeographies: [String!]
-    alphaARAreaRange: [String!]
-    alphaARHeightLimit: [String!]
-    alphaARActivityStatus: [String!]
-    alphaARAquisitionBudget: [String!]
-    alphaARAquisitionRate: [String!]
-    alphaARClosingTime: [String!]
-    alphaARSpecialAttributes: [String!]
-    alphaARLandUse: [String!]
 }
 
 input ContactPersonInput {

@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '0b43dbbd92a22964b0ceb634ccd46a18';
+export const GQL_SPEC_VERSION = '8bb64a54edaa835944698b057099e6fd';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1682,7 +1682,6 @@ export namespace GQL {
         alphaOrganizationMemberRequests: OrganizationRequestedMember[];
         alphaFeatured: boolean;
         alphaIsCommunity: boolean;
-        alphaCreatedChannels: Nullable<ChannelConversation>[];
         betaPublicRooms: SharedRoom[];
         status: string;
         shortname: Nullable<string>;
@@ -1703,34 +1702,6 @@ export namespace GQL {
         alphaEditorial: boolean;
         alphaFeatured: boolean;
         alphaIsCommunity: boolean;
-        alphaLocations: Nullable<string[]>;
-        alphaInterests: Nullable<string[]>;
-        alphaOrganizationType: Nullable<string[]>;
-        alphaPotentialSites: Nullable<Range[]>;
-        alphaSiteSizes: Nullable<Range[]>;
-        alphaDevelopmentModels: Nullable<string[]>;
-        alphaAvailability: Nullable<string[]>;
-        alphaLandUse: Nullable<string[]>;
-        alphaGoodFor: Nullable<string[]>;
-        alphaSpecialAttributes: Nullable<string[]>;
-        alphaLookingFor: Nullable<string[]>;
-        alphaGeographies: Nullable<string[]>;
-        alphaDOShapeAndForm: Nullable<string[]>;
-        alphaDOCurrentUse: Nullable<string[]>;
-        alphaDOGoodFitFor: Nullable<string[]>;
-        alphaDOSpecialAttributes: Nullable<string[]>;
-        alphaDOAvailability: Nullable<string[]>;
-        alphaARGeographies: Nullable<string[]>;
-        alphaARAreaRange: Nullable<string[]>;
-        alphaARHeightLimit: Nullable<string[]>;
-        alphaARActivityStatus: Nullable<string[]>;
-        alphaARAquisitionBudget: Nullable<string[]>;
-        alphaARAquisitionRate: Nullable<string[]>;
-        alphaARClosingTime: Nullable<string[]>;
-        alphaARSpecialAttributes: Nullable<string[]>;
-        alphaARLandUse: Nullable<string[]>;
-        alphaJoinedChannels: Nullable<ChannelConversation>[];
-        alphaCreatedChannels: Nullable<ChannelConversation>[];
         shortname: Nullable<string>;
     }
     export interface CreateOrganizationInput {
@@ -1756,32 +1727,6 @@ export namespace GQL {
         alphaPublished: Nullable<boolean>;
         alphaEditorial: Nullable<boolean>;
         alphaFeatured: Nullable<boolean>;
-        alphaLocations: Nullable<string[]>;
-        alphaInterests: Nullable<string[]>;
-        alphaOrganizationType: Nullable<string[]>;
-        alphaPotentialSites: Nullable<Nullable<RangeInput>[]>;
-        alphaSiteSizes: Nullable<Nullable<RangeInput>[]>;
-        alphaDevelopmentModels: Nullable<Nullable<string>[]>;
-        alphaAvailability: Nullable<Nullable<string>[]>;
-        alphaLandUse: Nullable<Nullable<string>[]>;
-        alphaGoodFor: Nullable<Nullable<string>[]>;
-        alphaSpecialAttributes: Nullable<Nullable<string>[]>;
-        alphaLookingFor: Nullable<string[]>;
-        alphaGeographies: Nullable<string[]>;
-        alphaDOShapeAndForm: Nullable<string[]>;
-        alphaDOCurrentUse: Nullable<string[]>;
-        alphaDOGoodFitFor: Nullable<string[]>;
-        alphaDOSpecialAttributes: Nullable<string[]>;
-        alphaDOAvailability: Nullable<string[]>;
-        alphaARGeographies: Nullable<string[]>;
-        alphaARAreaRange: Nullable<string[]>;
-        alphaARHeightLimit: Nullable<string[]>;
-        alphaARActivityStatus: Nullable<string[]>;
-        alphaARAquisitionBudget: Nullable<string[]>;
-        alphaARAquisitionRate: Nullable<string[]>;
-        alphaARClosingTime: Nullable<string[]>;
-        alphaARSpecialAttributes: Nullable<string[]>;
-        alphaARLandUse: Nullable<string[]>;
     }
     export interface ContactPersonInput {
         name: string;
@@ -2444,8 +2389,8 @@ export interface GQLResolver {
     MessageButton?: ComplexTypedResolver<GQL.MessageButton, GQLRoots.MessageButtonRoot, {}, {}>;
     Mutation?: ComplexTypedResolver<GQL.Mutation, GQLRoots.MutationRoot, {alphaSendMessage: GQLRoots.ConversationEventMessageRoot, alphaReadChat: GQLRoots.ChatReadResultRoot, alphaEditMessage: GQLRoots.ConversationEventEditMessageRoot, alphaSendIntro: GQLRoots.ConversationEventMessageRoot, alphaEditIntro: GQLRoots.ConversationEventMessageRoot, alphaDeleteMessageUrlAugmentation: GQLRoots.ConversationEventMessageRoot, alphaDeleteMessage: GQLRoots.ConversationEventDeleteRoot, alphaChatCreateGroup: GQLRoots.ConversationRoot, alphaChatUpdateGroup: GQLRoots.ConversationUpdateResponseRoot, alphaChatChangeGroupTitle: GQLRoots.GroupChatUpdateResponseRoot, alphaChatInviteToGroup: GQLRoots.GroupChatUpdateResponseRoot, alphaChatKickFromGroup: GQLRoots.GroupChatUpdateResponseRoot, alphaChatChangeRoleInGroup: GQLRoots.GroupChatUpdateResponseRoot, alphaChatCopyGroup: GQLRoots.GroupChatUpdateResponseRoot, alphaChatLeave: GQLRoots.ConversationUpdateResponseRoot, alphaUpdateConversationSettings: GQLRoots.ConversationSettingsRoot, profileCreate: GQLRoots.ProfileRoot, profileUpdate: GQLRoots.ProfileRoot, createProfile: GQLRoots.ProfileRoot, updateProfile: GQLRoots.ProfileRoot, alphaCreateUserProfileAndOrganization: GQLRoots.AlphaSignupDataRoot, alphaCreateInvite: GQLRoots.InviteRoot, debugCreateTestUser: GQLRoots.UserRoot, settingsUpdate: GQLRoots.SettingsRoot, updateSettings: GQLRoots.SettingsRoot, betaOrganizationMemberRequestApprove: GQLRoots.OrganizationRoot, betaOrganizationMemberRemove: GQLRoots.OrganizationRoot, betaOrganizationMemberAdd: GQLRoots.OrganizationRoot, alphaOrganizationRefreshInviteLink: GQLRoots.InviteRoot, alphaOrganizationCreatePublicInvite: GQLRoots.InviteRoot, superAccountAdd: GQLRoots.SuperAccountRoot, superAccountRename: GQLRoots.SuperAccountRoot, superAccountActivate: GQLRoots.SuperAccountRoot, superAccountSuspend: GQLRoots.SuperAccountRoot, superAccountPend: GQLRoots.SuperAccountRoot, superAccountMemberAdd: GQLRoots.SuperAccountRoot, superAccountMemberRemove: GQLRoots.SuperAccountRoot, alphaAlterPublished: GQLRoots.OrganizationRoot, createApp: GQLRoots.AppProfileRoot, createSuperApp: GQLRoots.AppProfileRoot, refreshAppToken: GQLRoots.AppProfileRoot, updateAppProfile: GQLRoots.AppProfileRoot, addAppToChat: GQLRoots.AppChatRoot, alphaChannelCreate: GQLRoots.ConversationRoot, alphaChannelSetFeatured: GQLRoots.ConversationRoot, alphaChannelHideFromSearch: GQLRoots.ConversationRoot, alphaChannelInvite: GQLRoots.ConversationUpdateResponseRoot, alphaChannelJoin: GQLRoots.ConversationUpdateResponseRoot, featureFlagAdd: GQLRoots.FeatureFlagRoot, superAccountFeatureAdd: GQLRoots.SuperAccountRoot, superAccountFeatureRemove: GQLRoots.SuperAccountRoot, alphaCreateFeedPost: GQLRoots.FeedItemRoot, conferenceJoin: GQLRoots.ConferenceJoinResultRoot, conferenceKeepAlive: GQLRoots.ConferenceRoot, conferenceLeave: GQLRoots.ConferenceRoot, mediaStreamOffer: GQLRoots.ConferenceMediaRoot, mediaStreamAnswer: GQLRoots.ConferenceMediaRoot, mediaStreamCandidate: GQLRoots.ConferenceMediaRoot, peerConnectionOffer: GQLRoots.ConferenceRoot, peerConnectionAnswer: GQLRoots.ConferenceRoot, peerConnectionCandidate: GQLRoots.ConferenceRoot, alphaSendPostMessage: GQLRoots.ConversationEventMessageRoot, alphaEditPostMessage: GQLRoots.ConversationEventMessageRoot, createOrganization: GQLRoots.OrganizationProfileRoot, updateOrganizationProfile: GQLRoots.OrganizationProfileRoot, betaRoomCreate: GQLRoots.SharedRoomRoot, betaRoomUpdate: GQLRoots.RoomRoot, betaRoomMove: GQLRoots.RoomRoot, betaRoomInvite: GQLRoots.RoomRoot, betaRoomKick: GQLRoots.RoomRoot, betaRoomLeave: GQLRoots.RoomRoot, betaRoomChangeRole: GQLRoots.RoomRoot, betaRoomJoin: GQLRoots.RoomRoot, betaRoomDeclineJoinRequest: GQLRoots.RoomRoot, betaRoomInviteLinkJoin: GQLRoots.RoomRoot, betaRoomUpdateUserNotificationSettings: GQLRoots.RoomUserNotificaionSettingsRoot, betaRoomAlterFeatured: GQLRoots.RoomSuperRoot, betaRoomAlterListed: GQLRoots.RoomSuperRoot}, {alphaSendMessage: GQL.MutationAlphaSendMessageArgs, alphaReadChat: GQL.MutationAlphaReadChatArgs, alphaEditMessage: GQL.MutationAlphaEditMessageArgs, alphaSendIntro: GQL.MutationAlphaSendIntroArgs, alphaEditIntro: GQL.MutationAlphaEditIntroArgs, alphaDeleteMessageUrlAugmentation: GQL.MutationAlphaDeleteMessageUrlAugmentationArgs, alphaDeleteMessage: GQL.MutationAlphaDeleteMessageArgs, alphaChatSetReaction: GQL.MutationAlphaChatSetReactionArgs, alphaChatUnsetReaction: GQL.MutationAlphaChatUnsetReactionArgs, alphaGlobalRead: GQL.MutationAlphaGlobalReadArgs, alphaBlockUser: GQL.MutationAlphaBlockUserArgs, alphaUnblockUser: GQL.MutationAlphaUnblockUserArgs, alphaChatCreateGroup: GQL.MutationAlphaChatCreateGroupArgs, alphaChatUpdateGroup: GQL.MutationAlphaChatUpdateGroupArgs, alphaChatChangeGroupTitle: GQL.MutationAlphaChatChangeGroupTitleArgs, alphaChatInviteToGroup: GQL.MutationAlphaChatInviteToGroupArgs, alphaChatKickFromGroup: GQL.MutationAlphaChatKickFromGroupArgs, alphaChatChangeRoleInGroup: GQL.MutationAlphaChatChangeRoleInGroupArgs, alphaChatCopyGroup: GQL.MutationAlphaChatCopyGroupArgs, alphaChatLeave: GQL.MutationAlphaChatLeaveArgs, alphaUpdateConversationSettings: GQL.MutationAlphaUpdateConversationSettingsArgs, profileCreate: GQL.MutationProfileCreateArgs, profileUpdate: GQL.MutationProfileUpdateArgs, createProfile: GQL.MutationCreateProfileArgs, updateProfile: GQL.MutationUpdateProfileArgs, alphaCreateUserProfileAndOrganization: GQL.MutationAlphaCreateUserProfileAndOrganizationArgs, alphaDeleteInvite: GQL.MutationAlphaDeleteInviteArgs, alphaJoinInvite: GQL.MutationAlphaJoinInviteArgs, joinAppInvite: GQL.MutationJoinAppInviteArgs, debugSendEmail: GQL.MutationDebugSendEmailArgs, debugCreateTestUser: GQL.MutationDebugCreateTestUserArgs, debugDeleteUrlInfoCache: GQL.MutationDebugDeleteUrlInfoCacheArgs, debugSuperNotifications: GQL.MutationDebugSuperNotificationsArgs, settingsUpdate: GQL.MutationSettingsUpdateArgs, updateSettings: GQL.MutationUpdateSettingsArgs, betaOrganizationMemberRequestApprove: GQL.MutationBetaOrganizationMemberRequestApproveArgs, betaOrganizationMemberRemove: GQL.MutationBetaOrganizationMemberRemoveArgs, betaOrganizationMemberAdd: GQL.MutationBetaOrganizationMemberAddArgs, alphaOrganizationChangeMemberRole: GQL.MutationAlphaOrganizationChangeMemberRoleArgs, alphaOrganizationInviteMembers: GQL.MutationAlphaOrganizationInviteMembersArgs, alphaOrganizationRefreshInviteLink: GQL.MutationAlphaOrganizationRefreshInviteLinkArgs, alphaOrganizationCreatePublicInvite: GQL.MutationAlphaOrganizationCreatePublicInviteArgs, alphaOrganizationRemoveMember: GQL.MutationAlphaOrganizationRemoveMemberArgs, alphaOrganizationDeletePublicInvite: GQL.MutationAlphaOrganizationDeletePublicInviteArgs, presenceReportOnline: GQL.MutationPresenceReportOnlineArgs, presenceReportOffline: GQL.MutationPresenceReportOfflineArgs, alphaReportActive: GQL.MutationAlphaReportActiveArgs, superAccountAdd: GQL.MutationSuperAccountAddArgs, superAccountRename: GQL.MutationSuperAccountRenameArgs, superAccountActivate: GQL.MutationSuperAccountActivateArgs, superAccountSuspend: GQL.MutationSuperAccountSuspendArgs, superAccountPend: GQL.MutationSuperAccountPendArgs, superAccountMemberAdd: GQL.MutationSuperAccountMemberAddArgs, superAccountMemberRemove: GQL.MutationSuperAccountMemberRemoveArgs, superAccountChannelMemberAdd: GQL.MutationSuperAccountChannelMemberAddArgs, superAdminAdd: GQL.MutationSuperAdminAddArgs, superAdminRemove: GQL.MutationSuperAdminRemoveArgs, alphaAlterPublished: GQL.MutationAlphaAlterPublishedArgs, betaFixCounter: GQL.MutationBetaFixCounterArgs, conversationDraftUpdate: GQL.MutationConversationDraftUpdateArgs, alphaSaveDraftMessage: GQL.MutationAlphaSaveDraftMessageArgs, track: GQL.MutationTrackArgs, pinMessage: GQL.MutationPinMessageArgs, unpinMessage: GQL.MutationUnpinMessageArgs, sendMessage: GQL.MutationSendMessageArgs, createApp: GQL.MutationCreateAppArgs, createSuperApp: GQL.MutationCreateSuperAppArgs, refreshAppToken: GQL.MutationRefreshAppTokenArgs, updateAppProfile: GQL.MutationUpdateAppProfileArgs, deleteApp: GQL.MutationDeleteAppArgs, addAppToChat: GQL.MutationAddAppToChatArgs, alphaChannelCreate: GQL.MutationAlphaChannelCreateArgs, alphaChannelSetFeatured: GQL.MutationAlphaChannelSetFeaturedArgs, alphaChannelHideFromSearch: GQL.MutationAlphaChannelHideFromSearchArgs, alphaChannelInvite: GQL.MutationAlphaChannelInviteArgs, alphaChannelJoin: GQL.MutationAlphaChannelJoinArgs, alphaChannelRevokeInvite: GQL.MutationAlphaChannelRevokeInviteArgs, alphaChannelCancelRequest: GQL.MutationAlphaChannelCancelRequestArgs, alphaChannelInviteMembers: GQL.MutationAlphaChannelInviteMembersArgs, alphaChannelJoinInvite: GQL.MutationAlphaChannelJoinInviteArgs, alphaChannelRenewInviteLink: GQL.MutationAlphaChannelRenewInviteLinkArgs, setEnvVar: GQL.MutationSetEnvVarArgs, featureFlagAdd: GQL.MutationFeatureFlagAddArgs, superAccountFeatureAdd: GQL.MutationSuperAccountFeatureAddArgs, superAccountFeatureRemove: GQL.MutationSuperAccountFeatureRemoveArgs, alphaCreateFeedPost: GQL.MutationAlphaCreateFeedPostArgs, conferenceJoin: GQL.MutationConferenceJoinArgs, conferenceKeepAlive: GQL.MutationConferenceKeepAliveArgs, conferenceLeave: GQL.MutationConferenceLeaveArgs, mediaStreamOffer: GQL.MutationMediaStreamOfferArgs, mediaStreamAnswer: GQL.MutationMediaStreamAnswerArgs, mediaStreamCandidate: GQL.MutationMediaStreamCandidateArgs, peerConnectionOffer: GQL.MutationPeerConnectionOfferArgs, peerConnectionAnswer: GQL.MutationPeerConnectionAnswerArgs, peerConnectionCandidate: GQL.MutationPeerConnectionCandidateArgs, roomRead: GQL.MutationRoomReadArgs, betaMessageSend: GQL.MutationBetaMessageSendArgs, betaMessageEdit: GQL.MutationBetaMessageEditArgs, betaMessageDeleteAugmentation: GQL.MutationBetaMessageDeleteAugmentationArgs, betaMessageDelete: GQL.MutationBetaMessageDeleteArgs, betaReactionSet: GQL.MutationBetaReactionSetArgs, betaReactionRemove: GQL.MutationBetaReactionRemoveArgs, betaIntroSend: GQL.MutationBetaIntroSendArgs, betaIntroEdit: GQL.MutationBetaIntroEditArgs, alphaSendPostMessage: GQL.MutationAlphaSendPostMessageArgs, alphaEditPostMessage: GQL.MutationAlphaEditPostMessageArgs, alphaRespondPostMessage: GQL.MutationAlphaRespondPostMessageArgs, createOrganization: GQL.MutationCreateOrganizationArgs, updateOrganizationProfile: GQL.MutationUpdateOrganizationProfileArgs, deleteOrganization: GQL.MutationDeleteOrganizationArgs, registerWebPush: GQL.MutationRegisterWebPushArgs, registerPush: GQL.MutationRegisterPushArgs, typingSend: GQL.MutationTypingSendArgs, typingCancel: GQL.MutationTypingCancelArgs, alphaSetTyping: GQL.MutationAlphaSetTypingArgs, betaRoomCreate: GQL.MutationBetaRoomCreateArgs, betaRoomUpdate: GQL.MutationBetaRoomUpdateArgs, betaRoomMove: GQL.MutationBetaRoomMoveArgs, betaRoomInvite: GQL.MutationBetaRoomInviteArgs, betaRoomKick: GQL.MutationBetaRoomKickArgs, betaRoomLeave: GQL.MutationBetaRoomLeaveArgs, betaRoomChangeRole: GQL.MutationBetaRoomChangeRoleArgs, betaRoomJoin: GQL.MutationBetaRoomJoinArgs, betaRoomDeclineJoinRequest: GQL.MutationBetaRoomDeclineJoinRequestArgs, betaRoomInviteLinkSendEmail: GQL.MutationBetaRoomInviteLinkSendEmailArgs, betaRoomInviteLinkJoin: GQL.MutationBetaRoomInviteLinkJoinArgs, betaRoomInviteLinkRenew: GQL.MutationBetaRoomInviteLinkRenewArgs, betaRoomUpdateUserNotificationSettings: GQL.MutationBetaRoomUpdateUserNotificationSettingsArgs, betaRoomAlterFeatured: GQL.MutationBetaRoomAlterFeaturedArgs, betaRoomAlterListed: GQL.MutationBetaRoomAlterListedArgs, updateWelcomeMessage: GQL.MutationUpdateWelcomeMessageArgs, alphaSetUserShortName: GQL.MutationAlphaSetUserShortNameArgs, alphaSetOrgShortName: GQL.MutationAlphaSetOrgShortNameArgs}>;
     OrganizationContact?: ComplexTypedResolver<GQL.OrganizationContact, GQLRoots.OrganizationContactRoot, {photoRef: Nullable<GQLRoots.ImageRefRoot>}, {}>;
-    Organization?: ComplexTypedResolver<GQL.Organization, GQLRoots.OrganizationRoot, {alphaOrganizationMembers: GQLRoots.OrganizationJoinedMemberRoot[], alphaOrganizationAdminMembers: GQLRoots.OrganizationJoinedMemberRoot[], alphaOrganizationMemberRequests: GQLRoots.OrganizationRequestedMemberRoot[], alphaCreatedChannels: Nullable<GQLRoots.ChannelConversationRoot>[], betaPublicRooms: GQLRoots.SharedRoomRoot[]}, {}>;
-    OrganizationProfile?: ComplexTypedResolver<GQL.OrganizationProfile, GQLRoots.OrganizationProfileRoot, {photoRef: Nullable<GQLRoots.ImageRefRoot>, contacts: GQLRoots.OrganizationContactRoot[], alphaPotentialSites: Nullable<GQLRoots.RangeRoot[]>, alphaSiteSizes: Nullable<GQLRoots.RangeRoot[]>, alphaJoinedChannels: Nullable<GQLRoots.ChannelConversationRoot>[], alphaCreatedChannels: Nullable<GQLRoots.ChannelConversationRoot>[]}, {}>;
+    Organization?: ComplexTypedResolver<GQL.Organization, GQLRoots.OrganizationRoot, {alphaOrganizationMembers: GQLRoots.OrganizationJoinedMemberRoot[], alphaOrganizationAdminMembers: GQLRoots.OrganizationJoinedMemberRoot[], alphaOrganizationMemberRequests: GQLRoots.OrganizationRequestedMemberRoot[], betaPublicRooms: GQLRoots.SharedRoomRoot[]}, {}>;
+    OrganizationProfile?: ComplexTypedResolver<GQL.OrganizationProfile, GQLRoots.OrganizationProfileRoot, {photoRef: Nullable<GQLRoots.ImageRefRoot>, contacts: GQLRoots.OrganizationContactRoot[]}, {}>;
     OrganizationsEdge?: ComplexTypedResolver<GQL.OrganizationsEdge, GQLRoots.OrganizationsEdgeRoot, {node: GQLRoots.OrganizationRoot}, {}>;
     OrganizationsConnection?: ComplexTypedResolver<GQL.OrganizationsConnection, GQLRoots.OrganizationsConnectionRoot, {edges: GQLRoots.OrganizationsEdgeRoot[], pageInfo: GQLRoots.PageInfoRoot}, {}>;
     Permissions?: ComplexTypedResolver<GQL.Permissions, GQLRoots.PermissionsRoot, {}, {}>;

@@ -30,15 +30,6 @@ export default {
         alphaEditorial: (src: Organization) => src.editorial,
         alphaFeatured: async (src: Organization, args: {}, ctx: AppContext) => ((await FDB.OrganizationEditorial.findById(ctx, src.id)))!.featured,
         alphaIsCommunity: (src: Organization) => src.kind === 'community',
-
-        alphaOrganizationType: (src: Organization) => [],
-
-        alphaJoinedChannels: async (src: Organization) => {
-            return [];
-        },
-        alphaCreatedChannels: async (src: Organization) => {
-            return [];
-        }
     },
     Query: {
         myOrganizationProfile: async (_: any, args: {}, ctx: AppContext) => {

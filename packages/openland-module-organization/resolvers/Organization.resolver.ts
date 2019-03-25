@@ -51,7 +51,7 @@ export default {
         alphaOrganizationMemberRequests: async (src: Organization, args: {}, ctx: AppContext) => await resolveOrganizationMembersWithStatus(ctx, src.id, 'requested'),
         alphaFeatured: async (src: Organization, args: {}, ctx: AppContext) => ((await FDB.OrganizationEditorial.findById(ctx, src.id)))!.featured,
         alphaIsCommunity: (src: Organization) => src.kind === 'community',
-        alphaCreatedChannels: resolveOrganizationRooms,
+
         betaPublicRooms: resolveOrganizationRooms,
         status: async (src: Organization) => src.status
     },
