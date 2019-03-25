@@ -66,5 +66,9 @@ export default {
             await Modules.Messaging.room.joinRoom(ctx, IDs.Conversation.parse(args.id), IDs.User.parse(args.userId));
             return 'ok';
         }),
+        superDeleteUser: withPermission('super-admin', async (ctx, args) => {
+            await Modules.Users.deleteUser(ctx, IDs.User.parse(args.id));
+            return true;
+        }),
     }
 } as GQLResolver;

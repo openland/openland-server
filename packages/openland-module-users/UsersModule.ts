@@ -41,6 +41,12 @@ export class UsersModule {
         });
     }
 
+    async deleteUser(parent: Context, uid: number) {
+        await inTx(parent, async (ctx) => {
+            return await this.repo.deleteUser(ctx, uid);
+        });
+    }
+
     async profileById(ctx: Context, uid: number) {
         return this.repo.findUserProfile(ctx, uid);
     }
