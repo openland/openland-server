@@ -5,6 +5,7 @@ import { Modules } from 'openland-modules/Modules';
 import { FileInfo } from 'openland-module-media/FileInfo';
 import { ImageRef } from 'openland-module-media/ImageRef';
 import { createEmptyContext } from 'openland-utils/Context';
+import { MessageKeyboard } from 'openland-module-messaging/MessageInput';
 
 export interface URLInfo {
     url: string;
@@ -17,6 +18,7 @@ export interface URLInfo {
     hostname: string | null;
     iconRef: ImageRef | null;
     iconInfo: FileInfo | null;
+    keyboard?: MessageKeyboard;
 }
 
 export async function fetchURLInfo(url: string): Promise<URLInfo> {
@@ -144,7 +146,12 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
         photo: imageRef,
         hostname: hostname || null,
         iconRef,
-        iconInfo
+        iconInfo,
+        keyboard: {
+            buttons: [[
+                { id: 'url', title: 'Open link', style: 'DEFAULT', url }
+            ]]
+        },
     };
 }
 
