@@ -109,7 +109,7 @@ export default {
         cid: (src: UserDialogEvent) => IDs.Conversation.serialize(src.cid!),
         globalUnread: (src: UserDialogEvent) => src.allUnread || 0,
         unread: (src: UserDialogEvent) => src.unread || 0,
-        message: async (src: UserDialogEvent, args: {}, ctx: AppContext) => {
+        topMessage: async (src: UserDialogEvent, args: {}, ctx: AppContext) => {
             return (await FDB.Message.rangeFromChat(ctx, src.cid!, 1, true))[0];
         },
     },
