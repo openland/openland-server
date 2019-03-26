@@ -3865,6 +3865,7 @@ export interface ConversationRoomShape {
     ownerId?: number| null;
     featured?: boolean| null;
     listed?: boolean| null;
+    isChannel?: boolean| null;
 }
 
 export class ConversationRoom extends FEntity {
@@ -3923,6 +3924,17 @@ export class ConversationRoom extends FEntity {
         this._value.listed = value;
         this.markDirty();
     }
+    get isChannel(): boolean | null {
+        let res = this._value.isChannel;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set isChannel(value: boolean | null) {
+        this._checkIsWritable();
+        if (value === this._value.isChannel) { return; }
+        this._value.isChannel = value;
+        this.markDirty();
+    }
 }
 
 export class ConversationRoomFactory extends FEntityFactory<ConversationRoom> {
@@ -3938,6 +3950,7 @@ export class ConversationRoomFactory extends FEntityFactory<ConversationRoom> {
             { name: 'ownerId', type: 'number' },
             { name: 'featured', type: 'boolean' },
             { name: 'listed', type: 'boolean' },
+            { name: 'isChannel', type: 'boolean' },
         ],
         indexes: [
             { name: 'organization', type: 'range', fields: ['oid'] },
@@ -3954,6 +3967,7 @@ export class ConversationRoomFactory extends FEntityFactory<ConversationRoom> {
         validators.isNumber('ownerId', src.ownerId);
         validators.isBoolean('featured', src.featured);
         validators.isBoolean('listed', src.listed);
+        validators.isBoolean('isChannel', src.isChannel);
     }
 
     constructor(connection: FConnection) {

@@ -393,6 +393,7 @@ const Schema = declareSchema(() => {
         field('ownerId', 'number').nullable();
         field('featured', 'boolean').nullable();
         field('listed', 'boolean').nullable();
+        field('isChannel', 'boolean').nullable();
         rangeIndex('organization', ['oid'])
             .withCondition((v) => v.kind === 'public' || v.kind === 'internal');
         uniqueIndex('organizationPublicRooms', ['oid', 'id'])

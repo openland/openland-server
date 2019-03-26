@@ -35,6 +35,7 @@ type WelcomeMessage {
 type SharedRoom {
     id: ID!
     kind: SharedRoomKind!
+    isChannel: Boolean!
     title: String!
     photo: String!
     socialImage: String
@@ -53,6 +54,7 @@ type SharedRoom {
 
     settings: RoomUserNotificaionSettings!
     canEdit: Boolean!
+    canSendMessage: Boolean!
 }
 
 type RoomSuper {
@@ -169,7 +171,7 @@ type RoomInvite {
 
 extend type Mutation {
     # Room mgmt
-    betaRoomCreate(kind: SharedRoomKind!, title: String, description: String, photoRef: ImageRefInput, members: [ID!]!, message: String, listed: Boolean, organizationId: ID): SharedRoom!
+    betaRoomCreate(kind: SharedRoomKind!, title: String, description: String, photoRef: ImageRefInput, members: [ID!]!, message: String, listed: Boolean, organizationId: ID, channel: Boolean): SharedRoom!
     betaRoomUpdate(roomId: ID!, input: RoomUpdateInput!): Room!
     betaRoomMove(roomId: ID!, toOrg: ID!): Room!
     

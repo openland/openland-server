@@ -35,7 +35,7 @@ export class RoomMediator {
             let res = await this.repo.createRoom(ctx, kind, oid, uid, members, profile, listed);
             // Send initial messages
             let userName = await Modules.Users.getUserFullName(parent, uid);
-            await this.messaging.sendMessage(ctx, uid, res.id, {message: `@${userName} created the group ${profile.title}`, isService: true, complexMentions: [{ type: 'User', id: uid }] });
+            await this.messaging.sendMessage(ctx, uid, res.id, { message: `@${userName} created the group ${profile.title}`, isService: true, complexMentions: [{ type: 'User', id: uid }] });
             if (message) {
                 await this.messaging.sendMessage(ctx, uid, res.id, { message: message });
             }
@@ -262,6 +262,31 @@ export class RoomMediator {
         });
     }
 
+    async userHaveAdminPermissionsInChat(ctx: Context, conv: ConversationRoom, uid: number) {
+        //
+        //  Super-admin can do everything
+        //
+        if ((await Modules.Super.superRole(ctx, uid)) === 'super-admin') {
+            return true;
+        }
+
+        //
+        //  Org/community admin can manage any chat in that org/community
+        //
+        if (conv.oid && (await Modules.Orgs.isUserAdmin(ctx, uid, conv.oid))) {
+            return true;
+        }
+
+        //
+        //  Group owner can manage chat
+        //
+        if (conv.ownerId === uid) {
+            return true;
+        }
+
+        return false;
+    }
+
     async canEditRoom(parent: Context, cid: number, uid: number) {
         return await inTx(parent, async (ctx) => {
             let conv = await this.entities.ConversationRoom.findById(ctx, cid);
@@ -269,24 +294,7 @@ export class RoomMediator {
                 return false;
             }
 
-            //
-            //  Super-admin can edit any chat
-            //
-            if ((await Modules.Super.superRole(ctx, uid)) === 'super-admin') {
-                return true;
-            }
-
-            //
-            //  Org/community admin can edit any chat in that org/community
-            //
-            if (conv.oid && (await Modules.Orgs.isUserAdmin(ctx, uid, conv.oid))) {
-                return true;
-            }
-
-            //
-            //  Group owner can edit chat
-            //
-            if (conv.ownerId === uid) {
+            if (await this.userHaveAdminPermissionsInChat(ctx, conv, uid)) {
                 return true;
             }
 
@@ -314,6 +322,33 @@ export class RoomMediator {
             if (!await this.canEditRoom(ctx, cid, uid)) {
                 throw new AccessDeniedError();
             }
+        });
+    }
+
+    async checkCanSendMessage(parent: Context, cid: number, uid: number) {
+        return await inTx(parent, async (ctx) => {
+            let conv = await this.entities.ConversationRoom.findById(ctx, cid);
+            if (!conv) {
+                return false;
+            }
+
+            if (await this.userHaveAdminPermissionsInChat(ctx, conv, uid)) {
+                return true;
+            }
+
+            //
+            // Check membership in chat
+            //
+            let existingMembership = await this.repo.findMembershipStatus(ctx, uid, cid);
+            if (!existingMembership || existingMembership.status !== 'joined') {
+                return false;
+            }
+
+            if (conv.isChannel) {
+                return false;
+            }
+
+            return true;
         });
     }
 
@@ -499,7 +534,7 @@ export class RoomMediator {
         return await this.repo.findAvailableRooms(ctx, uid);
     }
 
-    private async roomJoinMessageText(parent: Context, room: ConversationRoom, uids: number[], invitedBy: number|null) {
+    private async roomJoinMessageText(parent: Context, room: ConversationRoom, uids: number[], invitedBy: number | null) {
         let emojies = ['🖖', '🖐️', '✋', '🙌', '👏', '👋'];
         let emoji = emojies[Math.floor(Math.random() * emojies.length)];
 
@@ -522,7 +557,7 @@ export class RoomMediator {
         }
     }
 
-    private async roomJoinMessage(parent: Context, room: ConversationRoom, uid: number, uids: number[], invitedBy: number|null): Promise<MessageInput> {
+    private async roomJoinMessage(parent: Context, room: ConversationRoom, uid: number, uids: number[], invitedBy: number | null): Promise<MessageInput> {
         let mentions = uids.map(id => {
             return { type: 'User', id: id } as MessageMention;
         });

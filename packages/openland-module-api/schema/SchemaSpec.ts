@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'f4d2d16a642bf09d64a8cd2e9a93c1ab';
+export const GQL_SPEC_VERSION = '7f97b6a26861b7ea1834fa831a1d9821';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1622,6 +1622,7 @@ export namespace GQL {
         message: OptionalNullable<string>;
         listed: OptionalNullable<boolean>;
         organizationId: OptionalNullable<string>;
+        channel: OptionalNullable<boolean>;
     }
     export interface MutationBetaRoomUpdateArgs {
         roomId: string;
@@ -2203,6 +2204,7 @@ export namespace GQL {
     export interface SharedRoom {
         id: string;
         kind: SharedRoomKind;
+        isChannel: boolean;
         title: string;
         photo: string;
         socialImage: Nullable<string>;
@@ -2217,6 +2219,7 @@ export namespace GQL {
         role: RoomMemberRole;
         settings: RoomUserNotificaionSettings;
         canEdit: boolean;
+        canSendMessage: boolean;
     }
     export interface RoomSuper {
         id: string;

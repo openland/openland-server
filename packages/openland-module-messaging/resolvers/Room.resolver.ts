@@ -104,15 +104,17 @@ export default {
                 throw Error('Unknown room kind: ' + room.kind);
             }
         }),
+        isChannel: withConverationId(async (ctx, id) => !!((await FDB.ConversationRoom.findById(ctx, id))!.isChannel)),
+        canSendMessage: withConverationId(async (ctx, id) => !!(await Modules.Messaging.room.checkCanSendMessage(ctx, id, ctx.auth.uid!))),
         title: withConverationId(async (ctx, id) => Modules.Messaging.room.resolveConversationTitle(ctx, id, ctx.auth.uid!)),
         photo: withConverationId(async (ctx, id) => Modules.Messaging.room.resolveConversationPhoto(ctx, id, ctx.auth.uid!)),
         socialImage: withConverationId(async (ctx, id) => Modules.Messaging.room.resolveConversationSocialImage(ctx, id)),
         organization: withConverationId(async (ctx, id) => Modules.Messaging.room.resolveConversationOrganization(ctx, id)),
 
         description: withRoomProfile((ctx, profile) => profile && profile.description),
-        welcomeMessage: async (root: RoomRoot, args: {}, ctx: AppContext) => 
+        welcomeMessage: async (root: RoomRoot, args: {}, ctx: AppContext) =>
             await Modules.Messaging.room.resolveConversationWelcomeMessage(ctx, typeof root === 'number' ? root : root.id),
-       
+
         pinnedMessage: withRoomProfile((ctx, profile) => profile && profile.pinnedMessage && FDB.Message.findById(ctx, profile.pinnedMessage)),
 
         membership: withConverationId(async (ctx, id) => ctx.auth.uid ? await Modules.Messaging.room.resolveUserMembershipStatus(ctx, ctx.auth.uid, id) : 'none'),
@@ -328,7 +330,7 @@ export default {
         }),
 
         betaRoomSearch: withUser(async (ctx, args, uid) => {
-           return Modules.Messaging.search.globalSearchForRooms(ctx, args.query || '', { first: args.first, after: args.after || undefined, page: args.page || undefined, sort: args.sort || undefined });
+            return Modules.Messaging.search.globalSearchForRooms(ctx, args.query || '', { first: args.first, after: args.after || undefined, page: args.page || undefined, sort: args.sort || undefined });
         }),
         betaRoomInviteInfo: withAny(async (ctx, args) => {
             return await Modules.Invites.resolveInvite(ctx, args.invite);
@@ -510,7 +512,7 @@ export default {
             let welcomeMessageIsOn = args.welcomeMessageIsOn;
             let welcomeMessageSender = args.welcomeMessageSender ? IDs.User.parse(args.welcomeMessageSender) : null;
             let welcomeMessageText = args.welcomeMessageText;
-            
+
             return await Modules.Messaging.room.updateWelcomeMessage(ctx, cid, uid, welcomeMessageIsOn, welcomeMessageSender, welcomeMessageText);
         }),
     }
