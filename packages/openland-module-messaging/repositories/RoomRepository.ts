@@ -34,7 +34,7 @@ export class RoomRepository {
     @lazyInject('FDB') private readonly entities!: AllEntities;
     @lazyInject('MessagingRepository') private readonly messageRepo!: MessagingRepository;
 
-    async createRoom(parent: Context, kind: 'public' | 'group', oid: number, uid: number, members: number[], profile: RoomProfileInput, listed?: boolean) {
+    async createRoom(parent: Context, kind: 'public' | 'group', oid: number, uid: number, members: number[], profile: RoomProfileInput, listed?: boolean, channel?: boolean) {
         return await inTx(parent, async (ctx) => {
             let id = await this.fetchNextConversationId(ctx);
             let conv = await this.entities.Conversation.create(ctx, id, { kind: 'room' });
@@ -43,7 +43,8 @@ export class RoomRepository {
                 ownerId: uid,
                 oid: kind === 'public' ? oid : undefined,
                 featured: false,
-                listed: kind === 'public' && listed !== false
+                listed: kind === 'public' && listed !== false,
+                isChannel: channel,
             });
             await this.entities.RoomProfile.create(ctx, id, {
                 title: profile.title,
