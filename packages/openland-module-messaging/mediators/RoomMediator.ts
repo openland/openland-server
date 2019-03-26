@@ -70,20 +70,26 @@ export class RoomMediator {
                 throw new UserError(`Unfortunately, you cannot join ${await this.resolveConversationTitle(ctx, cid, uid)}. Someone kicked you from this group, and now you can only join it if a group member adds you.`, 'CANT_JOIN_GROUP');
             }
 
-            // Join room
-            if (await this.repo.joinRoom(ctx, cid, uid, request) && !request) {
+            let shouldSendJoinMessage = !conv.isChannel;
+            if (shouldSendJoinMessage) {
+                // Join room
+                if (await this.repo.joinRoom(ctx, cid, uid, request) && !request) {
 
-                // let prevMessage = await Modules.Messaging.findTopMessage(ctx, cid);
-                //
-                // if (prevMessage && prevMessage.serviceMetadata && prevMessage.serviceMetadata.type === 'user_invite') {
-                //     let uids: number[] = prevMessage.serviceMetadata.userIds;
-                //     uids.push(uid);
-                //
-                //     await this.messaging.editMessage(ctx, prevMessage.id, prevMessage.uid, await this.roomJoinMessage(ctx, conv, uid, uids), false);
-                // } else {
-                //     await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, [uid]));
-                // }
-                await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, [uid], null));
+                    // let prevMessage = await Modules.Messaging.findTopMessage(ctx, cid);
+                    //
+                    // if (prevMessage && prevMessage.serviceMetadata && prevMessage.serviceMetadata.type === 'user_invite') {
+                    //     let uids: number[] = prevMessage.serviceMetadata.userIds;
+                    //     uids.push(uid);
+                    //
+                    //     await this.messaging.editMessage(ctx, prevMessage.id, prevMessage.uid, await this.roomJoinMessage(ctx, conv, uid, uids), false);
+                    // } else {
+                    //     await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, [uid]));
+                    // }
+                    await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, [uid], null));
+                }
+            } else {
+                // message not sent to new members, move room up in dialog list other way
+                await this.messaging.bumpDialog(ctx, uid, cid);
             }
 
             return (await this.entities.Conversation.findById(ctx, cid))!;
@@ -106,21 +112,28 @@ export class RoomMediator {
                         res.push(id);
                     }
                 }
-                // Send message about joining the room
-                if (res.length > 0) {
+                let shouldSendJoinMessage = !conv.isChannel;
+                if (shouldSendJoinMessage) {
+                    // Send message about joining the room
+                    if (res.length > 0) {
 
-                    // let prevMessage = await Modules.Messaging.findTopMessage(ctx, cid);
-                    //
-                    // if (prevMessage && prevMessage.serviceMetadata && prevMessage.serviceMetadata.type === 'user_invite') {
-                    //     let uids: number[] = prevMessage.serviceMetadata.userIds;
-                    //     uids.push(...res);
-                    //
-                    //     await this.messaging.editMessage(ctx, prevMessage.id, prevMessage.uid, await this.roomJoinMessage(ctx, conv, uid, uids), false);
-                    // } else {
-                    //     await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, res));
-                    // }
-                    await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, res, uid));
+                        // let prevMessage = await Modules.Messaging.findTopMessage(ctx, cid);
+                        //
+                        // if (prevMessage && prevMessage.serviceMetadata && prevMessage.serviceMetadata.type === 'user_invite') {
+                        //     let uids: number[] = prevMessage.serviceMetadata.userIds;
+                        //     uids.push(...res);
+                        //
+                        //     await this.messaging.editMessage(ctx, prevMessage.id, prevMessage.uid, await this.roomJoinMessage(ctx, conv, uid, uids), false);
+                        // } else {
+                        //     await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, res));
+                        // }
+                        await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, res, uid));
+                    }
+                } else {
+                    // message not sent to new members, move room up in dialog list other way
+                    await this.messaging.bumpDialog(ctx, uid, cid);
                 }
+
             }
 
             return (await this.entities.Conversation.findById(ctx, cid))!;

@@ -628,7 +628,7 @@ const Schema = declareSchema(() => {
         field('photo', 'json').nullable();
         field('mute', 'boolean').nullable();
         field('haveMention', 'boolean').nullable();
-        enumField('kind', ['message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated', 'dialog_deleted', 'photo_updated', 'dialog_mute_changed', 'dialog_mentioned_changed']);
+        enumField('kind', ['message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated', 'dialog_deleted', 'dialog_bump', 'photo_updated', 'dialog_mute_changed', 'dialog_mentioned_changed']);
         rangeIndex('user', ['uid', 'seq']).withStreaming();
         enableVersioning();
         enableTimestamps();

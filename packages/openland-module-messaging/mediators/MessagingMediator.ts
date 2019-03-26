@@ -12,6 +12,7 @@ import { RoomMediator } from './RoomMediator';
 import { Context } from 'openland-utils/Context';
 import { createTracer } from 'openland-log/createTracer';
 import { UserError } from '../../openland-errors/UserError';
+import { currentTime } from 'openland-utils/timer';
 
 const trace = createTracer('messaging');
 
@@ -67,6 +68,12 @@ export class MessagingMediator {
             await Modules.Drafts.clearDraft(ctx, uid, cid);
 
             return res.event;
+        }));
+    }
+
+    bumpDialog = async (parent: Context, uid: number, cid: number) => {
+        return trace.trace(parent, 'bumpDialog', async (ctx2) => await inTx(ctx2, async (ctx) => {
+            await this.delivery.onDialogBump(ctx, uid, cid, currentTime());
         }));
     }
 

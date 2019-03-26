@@ -5837,7 +5837,7 @@ export interface UserDialogEventShape {
     photo?: any| null;
     mute?: boolean| null;
     haveMention?: boolean| null;
-    kind: 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' | 'dialog_deleted' | 'photo_updated' | 'dialog_mute_changed' | 'dialog_mentioned_changed';
+    kind: 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' | 'dialog_deleted' | 'dialog_bump' | 'photo_updated' | 'dialog_mute_changed' | 'dialog_mentioned_changed';
 }
 
 export class UserDialogEvent extends FEntity {
@@ -5932,10 +5932,10 @@ export class UserDialogEvent extends FEntity {
         this._value.haveMention = value;
         this.markDirty();
     }
-    get kind(): 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' | 'dialog_deleted' | 'photo_updated' | 'dialog_mute_changed' | 'dialog_mentioned_changed' {
+    get kind(): 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' | 'dialog_deleted' | 'dialog_bump' | 'photo_updated' | 'dialog_mute_changed' | 'dialog_mentioned_changed' {
         return this._value.kind;
     }
-    set kind(value: 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' | 'dialog_deleted' | 'photo_updated' | 'dialog_mute_changed' | 'dialog_mentioned_changed') {
+    set kind(value: 'message_received' | 'message_updated' | 'message_deleted' | 'message_read' | 'title_updated' | 'dialog_deleted' | 'dialog_bump' | 'photo_updated' | 'dialog_mute_changed' | 'dialog_mentioned_changed') {
         this._checkIsWritable();
         if (value === this._value.kind) { return; }
         this._value.kind = value;
@@ -5960,7 +5960,7 @@ export class UserDialogEventFactory extends FEntityFactory<UserDialogEvent> {
             { name: 'photo', type: 'json' },
             { name: 'mute', type: 'boolean' },
             { name: 'haveMention', type: 'boolean' },
-            { name: 'kind', type: 'enum', enumValues: ['message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated', 'dialog_deleted', 'photo_updated', 'dialog_mute_changed', 'dialog_mentioned_changed'] },
+            { name: 'kind', type: 'enum', enumValues: ['message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated', 'dialog_deleted', 'dialog_bump', 'photo_updated', 'dialog_mute_changed', 'dialog_mentioned_changed'] },
         ],
         indexes: [
             { name: 'user', type: 'range', fields: ['uid', 'seq'] },
@@ -5980,7 +5980,7 @@ export class UserDialogEventFactory extends FEntityFactory<UserDialogEvent> {
         validators.isBoolean('mute', src.mute);
         validators.isBoolean('haveMention', src.haveMention);
         validators.notNull('kind', src.kind);
-        validators.isEnum('kind', src.kind, ['message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated', 'dialog_deleted', 'photo_updated', 'dialog_mute_changed', 'dialog_mentioned_changed']);
+        validators.isEnum('kind', src.kind, ['message_received', 'message_updated', 'message_deleted', 'message_read', 'title_updated', 'dialog_deleted', 'dialog_bump', 'photo_updated', 'dialog_mute_changed', 'dialog_mentioned_changed']);
     }
 
     constructor(connection: FConnection) {

@@ -61,6 +61,10 @@ export class DeliveryMediator {
         await this.repo.deliverDialogPhotoUpadtedToUser(ctx, uid, cid, photo);
     }
 
+    onDialogBump = async (ctx: Context, uid: number, cid: number, date: number) => {
+        await this.repo.deliverDialogBumpToUser(ctx, uid, cid, date);
+    }
+
     onUserProfileUpdated = async (ctx: Context, uid: number) => {
         //
     }

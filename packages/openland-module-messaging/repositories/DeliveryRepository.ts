@@ -42,6 +42,25 @@ export class DeliveryRepository {
         });
     }
 
+    async deliverDialogBumpToUser(parent: Context, uid: number, cid: number, date: number) {
+        await inTx(parent, async (ctx) => {
+
+            // Update dialog and deliver update
+            let local = await this.userState.getUserDialogState(ctx, uid, cid);
+            let global = await this.userState.getUserMessagingState(ctx, uid);
+            local.date = date;
+            global.seq++;
+            await global.flush(); // Fix for delivery crashing
+
+            await this.entities.UserDialogEvent.create(ctx, uid, global.seq, {
+                kind: 'dialog_bump',
+                cid: cid,
+                allUnread: global.unread,
+                unread: local.unread
+            });
+        });
+    }
+
     async deliverMessageUpdateToUser(parent: Context, uid: number, mid: number) {
         await inTx(parent, async (ctx) => {
             let message = (await this.entities.Message.findById(ctx, mid));
