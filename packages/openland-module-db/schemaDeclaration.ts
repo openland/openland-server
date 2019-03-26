@@ -543,6 +543,12 @@ const Schema = declareSchema(() => {
         enableTimestamps();
     });
 
+    entity('CommentState', () => {
+        primaryKey('peerType', 'string');
+        primaryKey('peerId', 'number');
+        field('commentsCount', 'number');
+    });
+
     entity('CommentSeq', () => {
         primaryKey('peerType', 'string');
         primaryKey('peerId', 'number');

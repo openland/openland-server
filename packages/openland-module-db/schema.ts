@@ -5153,6 +5153,74 @@ export class CommentFactory extends FEntityFactory<Comment> {
         return new Comment(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'Comment');
     }
 }
+export interface CommentStateShape {
+    commentsCount: number;
+}
+
+export class CommentState extends FEntity {
+    readonly entityName: 'CommentState' = 'CommentState';
+    get peerType(): string { return this._value.peerType; }
+    get peerId(): number { return this._value.peerId; }
+    get commentsCount(): number {
+        return this._value.commentsCount;
+    }
+    set commentsCount(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.commentsCount) { return; }
+        this._value.commentsCount = value;
+        this.markDirty();
+    }
+}
+
+export class CommentStateFactory extends FEntityFactory<CommentState> {
+    static schema: FEntitySchema = {
+        name: 'CommentState',
+        editable: false,
+        primaryKeys: [
+            { name: 'peerType', type: 'string' },
+            { name: 'peerId', type: 'number' },
+        ],
+        fields: [
+            { name: 'commentsCount', type: 'number' },
+        ],
+        indexes: [
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('peerType', src.peerType);
+        validators.isString('peerType', src.peerType);
+        validators.notNull('peerId', src.peerId);
+        validators.isNumber('peerId', src.peerId);
+        validators.notNull('commentsCount', src.commentsCount);
+        validators.isNumber('commentsCount', src.commentsCount);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'commentState'),
+            { enableVersioning: false, enableTimestamps: false, validator: CommentStateFactory.validate, hasLiveStreams: false },
+            [],
+            'CommentState'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 2) { throw Error('Invalid key length!'); }
+        return { 'peerType': rawId[0], 'peerId': rawId[1] };
+    }
+    async findById(ctx: Context, peerType: string, peerId: number) {
+        return await this._findById(ctx, [peerType, peerId]);
+    }
+    async create(ctx: Context, peerType: string, peerId: number, shape: CommentStateShape) {
+        return await this._create(ctx, [peerType, peerId], { peerType, peerId, ...shape });
+    }
+    watch(ctx: Context, peerType: string, peerId: number, cb: () => void) {
+        return this._watch(ctx, [peerType, peerId], cb);
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new CommentState(ctx, this.connection, this.namespace, this.directory, [value.peerType, value.peerId], value, this.options, isNew, this.indexes, 'CommentState');
+    }
+}
 export interface CommentSeqShape {
     seq: number;
 }
@@ -8544,6 +8612,7 @@ export interface AllEntities {
     readonly Sequence: SequenceFactory;
     readonly Message: MessageFactory;
     readonly Comment: CommentFactory;
+    readonly CommentState: CommentStateFactory;
     readonly CommentSeq: CommentSeqFactory;
     readonly CommentEvent: CommentEventFactory;
     readonly ConversationSeq: ConversationSeqFactory;
@@ -8615,6 +8684,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         SequenceFactory.schema,
         MessageFactory.schema,
         CommentFactory.schema,
+        CommentStateFactory.schema,
         CommentSeqFactory.schema,
         CommentEventFactory.schema,
         ConversationSeqFactory.schema,
@@ -8685,6 +8755,7 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     Sequence: SequenceFactory;
     Message: MessageFactory;
     Comment: CommentFactory;
+    CommentState: CommentStateFactory;
     CommentSeq: CommentSeqFactory;
     CommentEvent: CommentEventFactory;
     ConversationSeq: ConversationSeqFactory;
@@ -8794,6 +8865,8 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         this.allEntities.push(this.Message);
         this.Comment = new CommentFactory(connection);
         this.allEntities.push(this.Comment);
+        this.CommentState = new CommentStateFactory(connection);
+        this.allEntities.push(this.CommentState);
         this.CommentSeq = new CommentSeqFactory(connection);
         this.allEntities.push(this.CommentSeq);
         this.CommentEvent = new CommentEventFactory(connection);
@@ -8973,6 +9046,9 @@ export class AllEntitiesProxy implements AllEntities {
     }
     get Comment(): CommentFactory {
         return this.resolver().Comment;
+    }
+    get CommentState(): CommentStateFactory {
+        return this.resolver().CommentState;
     }
     get CommentSeq(): CommentSeqFactory {
         return this.resolver().CommentSeq;

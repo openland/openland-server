@@ -394,6 +394,13 @@ export default {
             }
             return [];
         },
+        commentsCount: async (src, argx, ctx) => {
+            if (src instanceof Comment) {
+                return 0;
+            }
+
+            return await Modules.Comments.getMessageCommentsCount(ctx, src.id);
+        },
         fallback: src => 'unsupported message'
     },
 

@@ -21,4 +21,8 @@ export class CommentsModule {
     async editComment(ctx: Context, commentId: number, uid: number, commentInput: CommentInput, markEdited: boolean) {
         return this.mediator.editComment(ctx, commentId, uid, commentInput, markEdited);
     }
+
+    async getMessageCommentsCount(ctx: Context, messageId: number) {
+        return this.mediator.getMessageCommentsCount(ctx, messageId);
+    }
 }

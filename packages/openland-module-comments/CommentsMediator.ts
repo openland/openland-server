@@ -39,4 +39,8 @@ export class CommentsMediator {
             return this.repo.editComment(ctx, commentId, newComment, markEdited);
         });
     }
+
+    async getMessageCommentsCount(parent: Context, messageId: number) {
+        return (await this.repo.getCommentsState(parent, 'message', messageId)).commentsCount;
+    }
 }

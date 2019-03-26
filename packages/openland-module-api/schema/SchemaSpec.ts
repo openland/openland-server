@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'b510b4f7be8867b853b5f6670aa05ff2';
+export const GQL_SPEC_VERSION = '23edb4aa5836196fe499fd64c63e4556';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -500,6 +500,7 @@ export namespace GQL {
         spans: MessageSpan[];
         attachments: ModernMessageAttachment[];
         quotedMessages: ModernMessage[];
+        commentsCount: number;
         fallback: string;
     }
     export interface MentionInput {

@@ -48,6 +48,7 @@ type GeneralMessage implements ModernMessage {
     spans: [MessageSpan!]!
     attachments: [ModernMessageAttachment!]!
     quotedMessages: [ModernMessage!]!
+    commentsCount: Int!
     fallback: String!
 }
 

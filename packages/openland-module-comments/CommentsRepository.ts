@@ -10,12 +10,14 @@ export interface CommentInput {
     replyToComment?: number | null;
 }
 
+export type CommentPeerType = 'message';
+
 @injectable()
 export class CommentsRepository {
     @lazyInject('FDB')
     private readonly entities!: AllEntities;
 
-    async createComment(parent: Context, peerType: 'message', peerId: number, uid: number, commentInput: CommentInput) {
+    async createComment(parent: Context, peerType: CommentPeerType, peerId: number, uid: number, commentInput: CommentInput) {
         return await inTx(parent, async (ctx) => {
             //
             // Check reply comment exists
@@ -38,6 +40,13 @@ export class CommentsRepository {
                 uid,
                 text: commentInput.message || null,
             });
+
+            //
+            // Update state
+            //
+            let state = await this.getCommentsState(ctx, peerType, peerId);
+            console.log(state);
+            state.commentsCount++;
 
             //
             // Create event
@@ -83,6 +92,17 @@ export class CommentsRepository {
         });
     }
 
+    async getCommentsState(parent: Context, peerType: CommentPeerType, peerId: number) {
+        return await inTx(parent, async (ctx) => {
+            let existing = await this.entities.CommentState.findById(ctx, peerType, peerId);
+            if (existing) {
+                return existing;
+            } else {
+                return await this.entities.CommentState.create(ctx, peerType, peerId, { commentsCount: 0 });
+            }
+        });
+    }
+
     private async fetchNextCommentId(parent: Context) {
         return await inTx(parent, async (ctx) => {
             let ex = await this.entities.Sequence.findById(ctx, 'comment-id');
@@ -97,7 +117,7 @@ export class CommentsRepository {
         });
     }
 
-    private async fetchNextEventSeq(parent: Context, peerType: 'message', peerId: number) {
+    private async fetchNextEventSeq(parent: Context, peerType: CommentPeerType, peerId: number) {
         return await inTx(parent, async (ctx) => {
             let existing = await this.entities.CommentSeq.findById(ctx, peerType, peerId);
             let seq = 1;
