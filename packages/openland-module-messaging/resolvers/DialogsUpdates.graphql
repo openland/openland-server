@@ -13,7 +13,7 @@ type DialogUpdateBatch {
 
 union DialogUpdateContainer = DialogUpdateSingle | DialogUpdateBatch
 
-union DialogUpdate = DialogMessageReceived | DialogMessageUpdated | DialogMessageDeleted | DialogMessageRead | DialogTitleUpdated | DialogDeleted | DialogPhotoUpdated | DialogMuteChanged | DialogMentionedChanged
+union DialogUpdate = DialogMessageReceived | DialogMessageUpdated | DialogMessageDeleted | DialogMessageRead | DialogTitleUpdated | DialogDeleted | DialogPhotoUpdated | DialogMuteChanged | DialogMentionedChanged | DialogBump
 
 type DialogMessageReceived {
     cid: ID!
@@ -61,6 +61,12 @@ type DialogPhotoUpdated {
 type DialogDeleted {
     cid: ID!
     globalUnread: Int!
+}
+
+type DialogBump {
+    cid: ID!
+    globalUnread: Int!
+    unread: Int!
 }
 
 type DialogMuteChanged {

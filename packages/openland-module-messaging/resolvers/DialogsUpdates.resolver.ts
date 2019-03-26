@@ -50,6 +50,8 @@ export default {
                 return 'DialogPhotoUpdated';
             } else if (obj.kind === 'dialog_deleted') {
                 return 'DialogDeleted';
+            } else if (obj.kind === 'dialog_bump') {
+                return 'DialogBump';
             } else if (obj.kind === 'dialog_mute_changed') {
                 return 'DialogMuteChanged';
             } else if (obj.kind === 'dialog_mentioned_changed') {
@@ -102,6 +104,11 @@ export default {
     DialogDeleted: {
         cid: src => IDs.Conversation.serialize(src.cid!),
         globalUnread: src => src.allUnread || 0
+    },
+    DialogBump: {
+        cid: (src: UserDialogEvent) => IDs.Conversation.serialize(src.cid!),
+        globalUnread: (src: UserDialogEvent) => src.allUnread || 0,
+        unread: (src: UserDialogEvent) => src.unread || 0,
     },
     DialogMuteChanged: {
         cid: src => IDs.Conversation.serialize(src.cid!),
