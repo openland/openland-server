@@ -67,6 +67,7 @@ type DialogBump {
     cid: ID!
     globalUnread: Int!
     unread: Int!
+    message: RoomMessage
 }
 
 type DialogMuteChanged {

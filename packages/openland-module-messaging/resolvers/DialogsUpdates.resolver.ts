@@ -1,7 +1,7 @@
 import { IDs } from 'openland-module-api/IDs';
 import { FDB } from 'openland-module-db/FDB';
 import { FLiveStreamItem } from 'foundation-orm/FLiveStreamItem';
-import { UserDialogEvent } from 'openland-module-db/schema';
+import { UserDialogEvent, Message } from 'openland-module-db/schema';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
@@ -109,6 +109,9 @@ export default {
         cid: (src: UserDialogEvent) => IDs.Conversation.serialize(src.cid!),
         globalUnread: (src: UserDialogEvent) => src.allUnread || 0,
         unread: (src: UserDialogEvent) => src.unread || 0,
+        message: async (src: UserDialogEvent, args: {}, ctx: AppContext) => {
+            return (await FDB.Message.rangeFromChat(ctx, src.cid!, 1, true))[0];
+        },
     },
     DialogMuteChanged: {
         cid: src => IDs.Conversation.serialize(src.cid!),
