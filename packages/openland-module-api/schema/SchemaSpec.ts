@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'f8cc556386c7a4c9edce98a9b43fe442';
+export const GQL_SPEC_VERSION = 'c952b9e7f52fdc59ccddc190c5be500d';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -897,7 +897,7 @@ export namespace GQL {
         cid: string;
         globalUnread: number;
         unread: number;
-        message: Nullable<RoomMessage>;
+        topMessage: Nullable<ModernMessage>;
     }
     export interface DialogMuteChanged {
         cid: string;
@@ -2437,7 +2437,7 @@ export interface GQLResolver {
     DialogTitleUpdated?: ComplexTypedResolver<GQL.DialogTitleUpdated, GQLRoots.DialogTitleUpdatedRoot, {}, {}>;
     DialogPhotoUpdated?: ComplexTypedResolver<GQL.DialogPhotoUpdated, GQLRoots.DialogPhotoUpdatedRoot, {}, {}>;
     DialogDeleted?: ComplexTypedResolver<GQL.DialogDeleted, GQLRoots.DialogDeletedRoot, {}, {}>;
-    DialogBump?: ComplexTypedResolver<GQL.DialogBump, GQLRoots.DialogBumpRoot, {message: Nullable<GQLRoots.RoomMessageRoot>}, {}>;
+    DialogBump?: ComplexTypedResolver<GQL.DialogBump, GQLRoots.DialogBumpRoot, {topMessage: Nullable<GQLRoots.ModernMessageRoot>}, {}>;
     DialogMuteChanged?: ComplexTypedResolver<GQL.DialogMuteChanged, GQLRoots.DialogMuteChangedRoot, {}, {}>;
     DialogMentionedChanged?: ComplexTypedResolver<GQL.DialogMentionedChanged, GQLRoots.DialogMentionedChangedRoot, {}, {}>;
     DialogUpdateState?: ComplexTypedResolver<GQL.DialogUpdateState, GQLRoots.DialogUpdateStateRoot, {}, {}>;
