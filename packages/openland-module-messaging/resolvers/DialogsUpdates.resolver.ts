@@ -1,7 +1,7 @@
 import { IDs } from 'openland-module-api/IDs';
 import { FDB } from 'openland-module-db/FDB';
 import { FLiveStreamItem } from 'foundation-orm/FLiveStreamItem';
-import { UserDialogEvent, Message } from 'openland-module-db/schema';
+import { UserDialogEvent } from 'openland-module-db/schema';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
