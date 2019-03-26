@@ -6,6 +6,7 @@ import { inTx } from '../foundation-orm/inTx';
 import { AllEntities } from '../openland-module-db/schema';
 import { NotFoundError } from '../openland-errors/NotFoundError';
 import { AccessDeniedError } from '../openland-errors/AccessDeniedError';
+import { Modules } from '../openland-modules/Modules';
 
 @injectable()
 export class CommentsMediator {
@@ -22,7 +23,17 @@ export class CommentsMediator {
                 throw new NotFoundError();
             }
 
-            return this.repo.createComment(ctx, 'message', messageId, uid, commentInput);
+            //
+            // Create comment
+            //
+            let res =  this.repo.createComment(ctx, 'message', messageId, uid, commentInput);
+
+            //
+            // Send message updated event
+            //
+            await Modules.Messaging.markMessageUpdated(ctx, message.id);
+
+            return res;
         });
     }
 

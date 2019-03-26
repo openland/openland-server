@@ -90,6 +90,13 @@ export class MessagingModule {
         return await this.messaging.editMessage(ctx, mid, uid, newMessage, markAsEdited);
     }
 
+    //
+    // Sends message updated event only to chat sequence
+    //
+    async markMessageUpdated(ctx: Context, mid: number) {
+        return await this.messaging.markMessageUpdated(ctx, mid);
+    }
+
     async setReaction(ctx: Context, mid: number, uid: number, reaction: string, reset: boolean = false) {
         return await this.messaging.setReaction(ctx, mid, uid, reaction, reset);
     }

@@ -101,6 +101,10 @@ export class MessagingMediator {
         });
     }
 
+    markMessageUpdated = async (parent: Context, mid: number) => {
+        return await this.repo.markMessageUpdated(parent, mid);
+    }
+
     setReaction = async (parent: Context, mid: number, uid: number, reaction: string, reset: boolean = false) => {
         return await inTx(parent, async (ctx) => {
 

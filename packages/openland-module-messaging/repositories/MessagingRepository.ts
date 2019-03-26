@@ -194,6 +194,22 @@ export class MessagingRepository {
         });
     }
 
+    async markMessageUpdated(parent: Context, mid: number) {
+        return await inTx(parent, async (ctx) => {
+            let message = await this.entities.Message.findById(ctx, mid);
+
+            if (!message) {
+                throw new Error('Message not found');
+            }
+
+            let seq = await this.fetchConversationNextSeq(ctx, message!.cid);
+            return await this.entities.ConversationEvent.create(ctx, message!.cid, seq, {
+                kind: 'message_updated',
+                mid: message!.id
+            });
+        });
+    }
+
     /**
      * @deprecated top message should be persisted in dialog list
      * @param cid conversation id
