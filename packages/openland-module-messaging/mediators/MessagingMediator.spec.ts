@@ -10,6 +10,7 @@ import { createEmptyContext } from 'openland-utils/Context';
 import { OrganizationModule } from 'openland-module-organization/OrganizationModule';
 import { OrganizationRepository } from 'openland-module-organization/repositories/OrganizationRepository';
 import { UserRepository } from 'openland-module-users/repositories/UserRepository';
+import { SuperModule } from 'openland-module-super/SuperModule';
 
 describe('MessagingMediator', () => {
     beforeAll(async () => {
@@ -18,6 +19,7 @@ describe('MessagingMediator', () => {
         container.bind(UsersModule).toSelf().inSingletonScope();
         container.bind('UserRepository').to(UserRepository).inSingletonScope();
         container.bind(OrganizationModule).toSelf().inSingletonScope();
+        container.bind(SuperModule).toSelf().inSingletonScope();
         container.bind('OrganizationRepository').to(OrganizationRepository).inSingletonScope();
     });
     afterAll(() => {

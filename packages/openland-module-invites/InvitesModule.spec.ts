@@ -9,6 +9,7 @@ import { UserRepository } from 'openland-module-users/repositories/UserRepositor
 import { OrganizationModule } from 'openland-module-organization/OrganizationModule';
 import { OrganizationRepository } from 'openland-module-organization/repositories/OrganizationRepository';
 import { Modules } from '../openland-modules/Modules';
+import { SuperModule } from 'openland-module-super/SuperModule';
 
 describe('RoomMediator', () => {
     beforeAll(async () => {
@@ -17,6 +18,7 @@ describe('RoomMediator', () => {
         container.bind(UsersModule).toSelf().inSingletonScope();
         container.bind('UserRepository').to(UserRepository).inSingletonScope();
         container.bind(OrganizationModule).toSelf().inSingletonScope();
+        container.bind(SuperModule).toSelf().inSingletonScope();
         container.bind('OrganizationRepository').to(OrganizationRepository).inSingletonScope();
     });
     afterAll(() => {
