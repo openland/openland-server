@@ -241,5 +241,6 @@ export namespace GQLRoots {
     export type CommentUpdateBatchRoot = FLiveStreamItem<CommentEvent>;
     export type CommentUpdateRoot = CommentEvent;
     export type CommentReceivedRoot = CommentEvent;
+    export type CommentUpdatedRoot = CommentEvent;
     export type CommentUpdatesStateRoot = { state: string };
 }

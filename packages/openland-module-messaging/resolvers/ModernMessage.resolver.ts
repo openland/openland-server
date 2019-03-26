@@ -276,7 +276,7 @@ export default {
         id: src => src instanceof Comment ? IDs.Comment.serialize(src.id) : IDs.ConversationMessage.serialize(src.id),
         date: src => src.createdAt,
         sender: src => src.uid,
-        edited: src => src instanceof Comment ? false : src.edited || false,
+        edited: src => src.edited || false,
         reactions: src => src instanceof Comment ? [] : src.reactions || [],
 
         //

@@ -1,19 +1,24 @@
 import { injectable } from 'inversify';
 import { lazyInject } from '../openland-modules/Modules.container';
-import { CommentInput, CommentsRepository } from './CommentsRepository';
+import { CommentInput } from './CommentsRepository';
 import { Context } from '../openland-utils/Context';
+import { CommentsMediator } from './CommentsMediator';
 
 @injectable()
 export class CommentsModule {
-    @lazyInject('CommentsRepository')
-    private readonly repo!: CommentsRepository;
+    @lazyInject('CommentsMediator')
+    private readonly mediator!: CommentsMediator;
 
     start = () => {
 
         // Nothing to do
     }
 
-    async createComment(ctx: Context, peerType: 'message', peerId: number, uid: number, commentInput: CommentInput) {
-        return this.repo.createComment(ctx, peerType, peerId, uid, commentInput);
+    async addMessageComment(ctx: Context, messageId: number, uid: number, commentInput: CommentInput) {
+        return this.mediator.addMessageComment(ctx, messageId, uid, commentInput);
+    }
+
+    async editComment(ctx: Context, commentId: number, uid: number, commentInput: CommentInput, markEdited: boolean) {
+        return this.mediator.editComment(ctx, commentId, uid, commentInput, markEdited);
     }
 }

@@ -530,11 +530,12 @@ const Schema = declareSchema(() => {
         primaryKey('id', 'number');
         field('peerId', 'number');
         enumField('peerType', ['message']);
-        field('parentCommentId', 'number');
+        field('parentCommentId', 'number').nullable();
         field('uid', 'number');
 
         field('text', 'string').nullable().secure();
         field('deleted', 'boolean').nullable();
+        field('edited', 'boolean').nullable();
 
         rangeIndex('peer', ['peerType', 'peerId', 'id']);
         rangeIndex('child', ['parentCommentId', 'id']);
@@ -554,7 +555,7 @@ const Schema = declareSchema(() => {
         primaryKey('seq', 'number');
         field('uid', 'number').nullable();
         field('commentId', 'number').nullable();
-        enumField('kind', ['comment_received']);
+        enumField('kind', ['comment_received', 'comment_updated']);
         rangeIndex('user', ['peerType', 'peerId', 'seq']).withStreaming();
         enableVersioning();
         enableTimestamps();

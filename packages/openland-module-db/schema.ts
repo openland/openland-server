@@ -4972,10 +4972,11 @@ export class MessageFactory extends FEntityFactory<Message> {
 export interface CommentShape {
     peerId: number;
     peerType: 'message';
-    parentCommentId: number;
+    parentCommentId?: number| null;
     uid: number;
     text?: string| null;
     deleted?: boolean| null;
+    edited?: boolean| null;
 }
 
 export class Comment extends FEntity {
@@ -4999,10 +5000,12 @@ export class Comment extends FEntity {
         this._value.peerType = value;
         this.markDirty();
     }
-    get parentCommentId(): number {
-        return this._value.parentCommentId;
+    get parentCommentId(): number | null {
+        let res = this._value.parentCommentId;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
     }
-    set parentCommentId(value: number) {
+    set parentCommentId(value: number | null) {
         this._checkIsWritable();
         if (value === this._value.parentCommentId) { return; }
         this._value.parentCommentId = value;
@@ -5039,6 +5042,17 @@ export class Comment extends FEntity {
         this._value.deleted = value;
         this.markDirty();
     }
+    get edited(): boolean | null {
+        let res = this._value.edited;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set edited(value: boolean | null) {
+        this._checkIsWritable();
+        if (value === this._value.edited) { return; }
+        this._value.edited = value;
+        this.markDirty();
+    }
 }
 
 export class CommentFactory extends FEntityFactory<Comment> {
@@ -5055,6 +5069,7 @@ export class CommentFactory extends FEntityFactory<Comment> {
             { name: 'uid', type: 'number' },
             { name: 'text', type: 'string', secure: true },
             { name: 'deleted', type: 'boolean' },
+            { name: 'edited', type: 'boolean' },
         ],
         indexes: [
             { name: 'peer', type: 'range', fields: ['peerType', 'peerId', 'id'] },
@@ -5069,12 +5084,12 @@ export class CommentFactory extends FEntityFactory<Comment> {
         validators.isNumber('peerId', src.peerId);
         validators.notNull('peerType', src.peerType);
         validators.isEnum('peerType', src.peerType, ['message']);
-        validators.notNull('parentCommentId', src.parentCommentId);
         validators.isNumber('parentCommentId', src.parentCommentId);
         validators.notNull('uid', src.uid);
         validators.isNumber('uid', src.uid);
         validators.isString('text', src.text);
         validators.isBoolean('deleted', src.deleted);
+        validators.isBoolean('edited', src.edited);
     }
 
     constructor(connection: FConnection) {
@@ -5209,7 +5224,7 @@ export class CommentSeqFactory extends FEntityFactory<CommentSeq> {
 export interface CommentEventShape {
     uid?: number| null;
     commentId?: number| null;
-    kind: 'comment_received';
+    kind: 'comment_received' | 'comment_updated';
 }
 
 export class CommentEvent extends FEntity {
@@ -5239,10 +5254,10 @@ export class CommentEvent extends FEntity {
         this._value.commentId = value;
         this.markDirty();
     }
-    get kind(): 'comment_received' {
+    get kind(): 'comment_received' | 'comment_updated' {
         return this._value.kind;
     }
-    set kind(value: 'comment_received') {
+    set kind(value: 'comment_received' | 'comment_updated') {
         this._checkIsWritable();
         if (value === this._value.kind) { return; }
         this._value.kind = value;
@@ -5262,7 +5277,7 @@ export class CommentEventFactory extends FEntityFactory<CommentEvent> {
         fields: [
             { name: 'uid', type: 'number' },
             { name: 'commentId', type: 'number' },
-            { name: 'kind', type: 'enum', enumValues: ['comment_received'] },
+            { name: 'kind', type: 'enum', enumValues: ['comment_received', 'comment_updated'] },
         ],
         indexes: [
             { name: 'user', type: 'range', fields: ['peerType', 'peerId', 'seq'] },
@@ -5279,7 +5294,7 @@ export class CommentEventFactory extends FEntityFactory<CommentEvent> {
         validators.isNumber('uid', src.uid);
         validators.isNumber('commentId', src.commentId);
         validators.notNull('kind', src.kind);
-        validators.isEnum('kind', src.kind, ['comment_received']);
+        validators.isEnum('kind', src.kind, ['comment_received', 'comment_updated']);
     }
 
     constructor(connection: FConnection) {
