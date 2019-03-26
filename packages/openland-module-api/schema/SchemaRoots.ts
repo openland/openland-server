@@ -133,6 +133,7 @@ export namespace GQLRoots {
     export type DialogTitleUpdatedRoot = UserDialogEvent;
     export type DialogPhotoUpdatedRoot = UserDialogEvent;
     export type DialogMuteChangedRoot = UserDialogEvent;
+    export type DialogBumpRoot = UserDialogEvent;
     export type DialogMentionedChangedRoot = UserDialogEvent;
     export type FeatureFlagRoot = FeatureFlag;
     export type OrganizationContactRoot = any;
