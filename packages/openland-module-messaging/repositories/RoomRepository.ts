@@ -1,4 +1,4 @@
-import { AllEntities, User } from 'openland-module-db/schema';
+import { AllEntities, User, ConversationRoom } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
 import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { buildBaseImageUrl, imageRefEquals } from 'openland-module-media/ImageRef';
@@ -587,7 +587,7 @@ export class RoomRepository {
 
         const isOn = !!profile.welcomeMessageIsOn;
         const message = profile.welcomeMessageText || '';
-      
+
         return {
             type: 'WelcomeMessage',
             isOn,
@@ -610,19 +610,44 @@ export class RoomRepository {
             if (!profile) {
                 throw new NotFoundError();
             }
-            
+
             profile.welcomeMessageIsOn = welcomeMessageIsOn;
             if (welcomeMessageSender !== undefined) {
                 profile.welcomeMessageSender = welcomeMessageSender;
             }
-            
+
             if (welcomeMessageText !== undefined) {
                 profile.welcomeMessageText = welcomeMessageText;
             }
-            
+
             await profile.flush();
             return true;
         });
+    }
+
+    async userHaveAdminPermissionsInChat(ctx: Context, conv: ConversationRoom, uid: number) {
+        //
+        //  Super-admin can do everything
+        //
+        if ((await Modules.Super.superRole(ctx, uid)) === 'super-admin') {
+            return true;
+        }
+
+        //
+        //  Org/community admin can manage any chat in that org/community
+        //
+        if (conv.oid && (await Modules.Orgs.isUserAdmin(ctx, uid, conv.oid))) {
+            return true;
+        }
+
+        //
+        //  Group owner can manage chat
+        //
+        if (conv.ownerId === uid) {
+            return true;
+        }
+
+        return false;
     }
 
     async checkAccess(ctx: Context, uid: number, cid: number) {
@@ -640,14 +665,16 @@ export class RoomRepository {
             }
         } else if (conv.kind === 'room') {
             let convRoom = await this.entities.ConversationRoom.findById(ctx, cid);
-            if (convRoom) {
-                if (convRoom.oid && (await Modules.Orgs.isUserOwner(ctx, uid, convRoom.oid) || await Modules.Orgs.isUserAdmin(ctx, uid, convRoom.oid))) {
-                    return;
-                }
-            } 
-            
-            let member = await this.entities.RoomParticipant.findById(ctx, cid, uid); 
+            if (convRoom && await this.userHaveAdminPermissionsInChat(ctx, convRoom, uid)) {
+                return;
+            }
+
+            let member = await this.entities.RoomParticipant.findById(ctx, cid, uid);
             if (!member || member.status !== 'joined') {
+                throw new AccessDeniedError();
+            }
+
+            if (convRoom && convRoom.isChannel) {
                 throw new AccessDeniedError();
             }
         } else if (conv.kind === 'organization') {
@@ -814,7 +841,7 @@ export class RoomRepository {
                 if (!org) {
                     return;
                 }
-    
+
                 //
                 //  Join community if not already
                 //
@@ -822,7 +849,7 @@ export class RoomRepository {
                     await Modules.Orgs.addUserToOrganization(ctx, uid, org.id, by, true);
                 }
             }
-            
+
             const welcomeMessage = await this.resolveConversationWelcomeMessage(ctx, cid);
             if (welcomeMessage && welcomeMessage.isOn && welcomeMessage.sender) {
                 const conv = await this.resolvePrivateChat(ctx, welcomeMessage.sender.id, uid);

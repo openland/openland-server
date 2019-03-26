@@ -275,31 +275,6 @@ export class RoomMediator {
         });
     }
 
-    async userHaveAdminPermissionsInChat(ctx: Context, conv: ConversationRoom, uid: number) {
-        //
-        //  Super-admin can do everything
-        //
-        if ((await Modules.Super.superRole(ctx, uid)) === 'super-admin') {
-            return true;
-        }
-
-        //
-        //  Org/community admin can manage any chat in that org/community
-        //
-        if (conv.oid && (await Modules.Orgs.isUserAdmin(ctx, uid, conv.oid))) {
-            return true;
-        }
-
-        //
-        //  Group owner can manage chat
-        //
-        if (conv.ownerId === uid) {
-            return true;
-        }
-
-        return false;
-    }
-
     async canEditRoom(parent: Context, cid: number, uid: number) {
         return await inTx(parent, async (ctx) => {
             let conv = await this.entities.ConversationRoom.findById(ctx, cid);
@@ -307,7 +282,7 @@ export class RoomMediator {
                 return false;
             }
 
-            if (await this.userHaveAdminPermissionsInChat(ctx, conv, uid)) {
+            if (await this.repo.userHaveAdminPermissionsInChat(ctx, conv, uid)) {
                 return true;
             }
 
@@ -345,7 +320,7 @@ export class RoomMediator {
                 return false;
             }
 
-            if (await this.userHaveAdminPermissionsInChat(ctx, conv, uid)) {
+            if (await this.repo.userHaveAdminPermissionsInChat(ctx, conv, uid)) {
                 return true;
             }
 
