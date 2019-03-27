@@ -4,11 +4,8 @@ import { GQLResolver } from 'openland-module-api/schema/SchemaSpec';
 import { IDs } from 'openland-module-api/IDs';
 import { validate, defined, stringNotEmpty, isNumber } from 'openland-utils/NewInputValidator';
 import { NotFoundError } from 'openland-errors/NotFoundError';
-import { withLogContext } from '../../openland-log/withLogContext';
-import { FileMetadata, MessageAttachment } from '../MessageInput';
-import { PostTemplates, PostTextTemplate } from '../texts/PostTemplates';
-import { inTx } from '../../foundation-orm/inTx';
-import { FDB } from '../../openland-module-db/FDB';
+import { FileMetadata } from '../MessageInput';
+import { UserError } from '../../openland-errors/UserError';
 
 export default {
     Mutation: {
@@ -209,140 +206,13 @@ export default {
         //
 
         alphaSendPostMessage: withUser(async (parent, args, uid) => {
-            let ctx = withLogContext(parent, ['send-post-message']);
-            let conversationId = IDs.Conversation.parse(args.conversationId);
-
-            let attachments: MessageAttachment[] = [];
-
-            if (args.attachments) {
-                for (let file of args.attachments) {
-                    let fileMetadata: FileMetadata | null = null;
-                    let filePreview: string | null = null;
-
-                    let fileInfo = await Modules.Media.saveFile(ctx, file);
-                    fileMetadata = fileInfo as any;
-
-                    if (fileInfo.isImage) {
-                        filePreview = await Modules.Media.fetchLowResPreview(ctx, file);
-                    }
-
-                    attachments.push({ fileId: file, filePreview, fileMetadata: fileMetadata || null });
-                }
-            }
-
-            let postTemplate = (PostTemplates as any)[args.postType];
-            if (!postTemplate) {
-                throw new Error('Invalid post type');
-            }
-
-            return Modules.Messaging.sendMessage(ctx, conversationId, uid!, {
-                title: args.title,
-                message: args.text,
-                attachments: attachments,
-                postType: args.postType,
-                repeatKey: args.repeatKey,
-                buttons: postTemplate.buttons,
-                type: 'POST'
-            });
+            throw new UserError('Deprecated api');
         }),
         alphaEditPostMessage: withUser(async (parent, args, uid) => {
-            let ctx = withLogContext(parent, ['send-post-message']);
-            let messageId = IDs.ConversationMessage.parse(args.messageId);
-
-            let attachments: MessageAttachment[] = [];
-
-            if (args.attachments) {
-                for (let file of args.attachments) {
-                    let fileMetadata: FileMetadata | null = null;
-                    let filePreview: string | null = null;
-
-                    let fileInfo = await Modules.Media.saveFile(ctx, file);
-                    fileMetadata = fileInfo as any;
-
-                    if (fileInfo.isImage) {
-                        filePreview = await Modules.Media.fetchLowResPreview(ctx, file);
-                    }
-
-                    attachments.push({ fileId: file, filePreview, fileMetadata: fileMetadata || null });
-                }
-            }
-
-            let postTemplate = (PostTemplates as any)[args.postType];
-            if (!postTemplate) {
-                throw new Error('Invalid post type');
-            }
-
-            return Modules.Messaging.editMessage(ctx, messageId, uid!, {
-                title: args.title,
-                message: args.text,
-                attachments: attachments,
-                postType: args.postType,
-                buttons: postTemplate.buttons,
-                type: 'POST'
-            }, true);
+            throw new UserError('Deprecated api');
         }),
         alphaRespondPostMessage: withUser(async (parent, args, uid) => {
-            return inTx(parent, async ctx => {
-                let messageId = IDs.ConversationMessage.parse(args.messageId);
-                let message = await FDB.Message.findById(ctx, messageId);
-
-                if (!message) {
-                    throw new Error('Post not found');
-                }
-                if (message.type !== 'POST') {
-                    throw new Error('Message is not a post');
-                }
-
-                let postTemplate = (PostTemplates as any)[message.postType!];
-                let postText: PostTextTemplate = postTemplate[args.buttonId + '_TEXT'];
-
-                if (!postTemplate || !postText) {
-                    throw new Error('invalid buttonId');
-                }
-
-                let room = await Modules.Messaging.room.resolvePrivateChat(ctx, uid, message.uid);
-
-                let postAuthor = await Modules.Users.profileById(ctx, message.uid);
-                let responder = await Modules.Users.profileById(ctx, uid!);
-                let chatTitle = await Modules.Messaging.room.resolveConversationTitle(ctx, message.cid, uid!);
-
-                // let isNewChat = (await FDB.Message.rangeFromChat(ctx, room.id, 1, true)).length === 0;
-
-                let textVars =  {
-                    post_author: postAuthor!.firstName + ' ' + postAuthor!.lastName,
-                    post_title: message.title!,
-                    chat: chatTitle,
-                    responder: responder!.firstName + ' ' + responder!.lastName,
-                    post_author_name: postAuthor!.firstName,
-                    responder_name: responder!.firstName
-                };
-
-                await Modules.Messaging.sendMessage(ctx, room.id, uid!, {
-                    message: postText(textVars),
-                    isService: true,
-                    complexMentions: [
-                        { type: 'User', id: postAuthor!.id },
-                        { type: 'User', id: responder!.id },
-                        { type: 'SharedRoom', id: message.cid },
-                    ],
-                    serviceMetadata: {
-                        type: 'post_respond',
-                        postId: messageId,
-                        postRoomId: message.cid,
-                        responderId: uid!,
-                        respondType: args.buttonId
-                    }
-                });
-
-                // if (isNewChat) {
-                //     await Modules.Messaging.sendMessage(ctx, room.id, uid!, {
-                //         message: 'Now you can chat!',
-                //         isService: true
-                //     });
-                // }
-
-                return true;
-            });
+            throw new UserError('Deprecated api');
         })
     }
 } as GQLResolver;
