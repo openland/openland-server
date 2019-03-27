@@ -2,9 +2,7 @@ import { withUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { GQLResolver } from 'openland-module-api/schema/SchemaSpec';
 import { IDs } from 'openland-module-api/IDs';
-import { validate, defined, stringNotEmpty, isNumber } from 'openland-utils/NewInputValidator';
-import { NotFoundError } from 'openland-errors/NotFoundError';
-import { FileMetadata } from '../MessageInput';
+import { MessageAttachmentInput } from '../MessageInput';
 import { UserError } from '../../openland-errors/UserError';
 
 export default {
@@ -17,57 +15,60 @@ export default {
         }),
 
         betaMessageSend: withUser(async (ctx, args, uid) => {
-            let cid = IDs.Conversation.parse(args.room);
+            let conversationId = IDs.Conversation.parse(args.room);
+
             let replyMessages = args.replyMessages && args.replyMessages.map(id => IDs.ConversationMessage.parse(id));
             let mentions = args.mentions && args.mentions.map(id => IDs.User.parse(id));
 
-            // Prepare files
-            let fileMetadata: FileMetadata | null = null;
-            let filePreview: string | null = null;
+            let attachments: MessageAttachmentInput[] = [];
+
             if (args.file) {
                 let fileInfo = await Modules.Media.saveFile(ctx, args.file);
-                fileMetadata = fileInfo as any;
-
+                let filePreview: string | null = null;
                 if (fileInfo.isImage) {
                     filePreview = await Modules.Media.fetchLowResPreview(ctx, args.file);
                 }
+                attachments.push({
+                    type: 'file_attachment',
+                    fileId: args.file,
+                    fileMetadata: fileInfo,
+                    filePreview
+                });
             }
 
-            // Send message
-            await Modules.Messaging.sendMessage(ctx, cid, uid!, {
+            await Modules.Messaging.sendMessage(ctx, conversationId, uid!, {
                 message: args.message,
-                file: args.file,
-                fileMetadata,
-                repeatKey: args.repeatKey,
-                filePreview,
+                attachments,
                 replyMessages,
-                mentions
+                mentions,
+                repeatKey: args.repeatKey
             });
-
             return true;
         }),
         betaMessageEdit: withUser(async (ctx, args, uid) => {
-
-            // Resolve arguments
             let mid = IDs.ConversationMessage.parse(args.mid);
             let replyMessages = args.replyMessages && args.replyMessages.map(id => IDs.ConversationMessage.parse(id));
             let mentions = args.mentions && args.mentions.map(id => IDs.User.parse(id));
-            let fileMetadata: FileMetadata | null = null;
-            let filePreview: string | null = null;
+
+            let attachments: MessageAttachmentInput[] = [];
+
             if (args.file) {
                 let fileInfo = await Modules.Media.saveFile(ctx, args.file);
-                fileMetadata = fileInfo as any;
-
+                let filePreview: string | null = null;
                 if (fileInfo.isImage) {
                     filePreview = await Modules.Media.fetchLowResPreview(ctx, args.file);
                 }
+                attachments.push({
+                    type: 'file_attachment',
+                    fileId: args.file,
+                    fileMetadata: fileInfo,
+                    filePreview
+                });
             }
 
             await Modules.Messaging.editMessage(ctx, mid, uid, {
                 message: args.message,
-                file: args.file,
-                fileMetadata,
-                filePreview,
+                attachments,
                 replyMessages,
                 mentions
             }, true);
@@ -103,102 +104,10 @@ export default {
         }),
 
         betaIntroSend: withUser(async (ctx, args, uid) => {
-            await validate({
-                about: defined(stringNotEmpty(`About can't be empty!`)),
-                uid: defined(isNumber('Select user'))
-            }, { ...args, uid: IDs.User.parse(args.uid) });
-
-            let userId = IDs.User.parse(args.uid);
-            let cid = IDs.Conversation.parse(args.room);
-
-            let fileMetadata: FileMetadata | null = null;
-            let filePreview: string | null = null;
-
-            if (args.file) {
-                let fileInfo = await Modules.Media.saveFile(ctx, args.file);
-                fileMetadata = fileInfo as any;
-
-                if (fileInfo.isImage) {
-                    filePreview = await Modules.Media.fetchLowResPreview(ctx, args.file);
-                }
-            }
-
-            let profile = (await Modules.Users.profileById(ctx, userId))!;
-            if (!profile) {
-                throw new NotFoundError();
-            }
-
-            await Modules.Messaging.sendMessage(ctx, cid, uid!, {
-                message: args.message,
-                file: args.file,
-                fileMetadata,
-                repeatKey: args.repeatKey,
-                filePreview,
-                urlAugmentation: {
-                    type: 'intro',
-                    extra: userId,
-                    url: `https://next.openland.com/mail/u/${IDs.User.serialize(userId)}`,
-                    title: profile.firstName + ' ' + profile.lastName,
-                    subtitle: 'intro',
-                    description: args.about || '',
-                    imageURL: null,
-                    imageInfo: null,
-                    photo: profile!.picture,
-                    hostname: 'openland.com',
-                    iconRef: null,
-                    iconInfo: null,
-                }
-            });
-            return true;
+            throw new UserError('Deprecated API');
         }),
         betaIntroEdit: withUser(async (ctx, args, uid) => {
-            await validate({
-                about: defined(stringNotEmpty(`About can't be empty!`)),
-                uid: defined(isNumber('Select user'))
-            }, { ...args, uid: IDs.User.parse(args.uid) });
-
-            let userId = IDs.User.parse(args.uid);
-            let messageId = IDs.ConversationMessage.parse(args.mid);
-
-            let fileMetadata: FileMetadata | null = null;
-            let filePreview: string | null = null;
-
-            if (args.file) {
-                let fileInfo = await Modules.Media.saveFile(ctx, args.file);
-                fileMetadata = fileInfo as any;
-
-                if (fileInfo.isImage) {
-                    filePreview = await Modules.Media.fetchLowResPreview(ctx, args.file);
-                }
-            }
-
-            let profile = (await Modules.Users.profileById(ctx, userId))!;
-
-            if (!profile) {
-                throw new NotFoundError();
-            }
-
-            await Modules.Messaging.editMessage(ctx, messageId, uid!, {
-                message: args.message,
-                file: args.file,
-                fileMetadata,
-                filePreview,
-                urlAugmentation: {
-                    type: 'intro',
-                    extra: IDs.User.parse(args.uid),
-                    url: `https://next.openland.com/mail/u/${IDs.User.serialize(userId)}`,
-                    title: profile.firstName + ' ' + profile.lastName,
-                    subtitle: 'intro',
-                    description: args.about || '',
-                    imageURL: null,
-                    imageInfo: null,
-                    photo: profile!.picture,
-                    hostname: 'openland.com',
-                    iconRef: null,
-                    iconInfo: null,
-                }
-            }, true);
-            return true;
+            throw new UserError('Deprecated API');
         }),
 
         //

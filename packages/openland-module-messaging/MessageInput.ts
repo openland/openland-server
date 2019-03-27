@@ -106,9 +106,9 @@ export interface MessageInput {
     //
     // Deprecated
     //
-    file?: string | null;
-    fileMetadata?: FileMetadata | null;
-    filePreview?: string | null;
+    // file?: string | null;
+    // fileMetadata?: FileMetadata | null;
+    // filePreview?: string | null;
     urlAugmentation?: URLAugmentation | null | false;
     complexMentions?: MessageMention[] | null;
     mentions?: number[] | null;

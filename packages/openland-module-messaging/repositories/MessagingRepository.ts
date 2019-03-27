@@ -32,9 +32,9 @@ export class MessagingRepository {
                 uid: uid,
                 isMuted: message.isMuted || false,
                 isService: message.isService || false,
-                fileId: message.file,
-                fileMetadata: message.fileMetadata,
-                filePreview: message.filePreview,
+                // fileId: message.file,
+                // fileMetadata: message.fileMetadata,
+                // filePreview: message.filePreview,
                 text: message.message,
                 serviceMetadata: message.serviceMetadata || null,
                 augmentation: message.urlAugmentation,
@@ -85,15 +85,15 @@ export class MessagingRepository {
             if (newMessage.message) {
                 message.text = newMessage.message;
             }
-            if (newMessage.file) {
-                message.fileId = newMessage.file;
-            }
-            if (newMessage.fileMetadata) {
-                message.fileMetadata = newMessage.fileMetadata;
-            }
-            if (newMessage.filePreview) {
-                message.filePreview = newMessage.filePreview;
-            }
+            // if (newMessage.file) {
+            //     message.fileId = newMessage.file;
+            // }
+            // if (newMessage.fileMetadata) {
+            //     message.fileMetadata = newMessage.fileMetadata;
+            // }
+            // if (newMessage.filePreview) {
+            //     message.filePreview = newMessage.filePreview;
+            // }
             if (newMessage.replyMessages) {
                 message.replyMessages = newMessage.replyMessages;
             }
