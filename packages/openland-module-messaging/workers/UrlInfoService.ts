@@ -154,7 +154,6 @@ export function createUrlInfoService() {
         .specialUrl(/(localhost:3000|(app.|next.)?openland.com)\/((mail|directory)\/)(p\/)?(.*)/, false, async (url, data) => {
             let [, , , , , , _channelId] = data;
 
-
             let channelId = IDs.Conversation.parse(_channelId);
 
             let channel = await FDB.ConversationRoom.findById(createEmptyContext(), channelId);
