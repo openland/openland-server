@@ -4,6 +4,8 @@ import { GQLResolver } from 'openland-module-api/schema/SchemaSpec';
 import { IDs } from 'openland-module-api/IDs';
 import { MessageAttachmentInput } from '../MessageInput';
 import { UserError } from '../../openland-errors/UserError';
+import { FDB } from '../../openland-module-db/FDB';
+import { NotFoundError } from '../../openland-errors/NotFoundError';
 
 export default {
     Mutation: {
@@ -88,9 +90,26 @@ export default {
 
         }),
         betaMessageDeleteAugmentation: withUser(async (ctx, args, uid) => {
+            let mid = IDs.ConversationMessage.parse(args.mid);
+
+            let message = await FDB.Message.findById(ctx, mid);
+            if (!message || message.deleted) {
+                throw new NotFoundError();
+            }
+
+            let newAttachments: MessageAttachmentInput[] = [];
+
+            if (message.attachmentsModern) {
+                newAttachments = message.attachmentsModern.filter(a => a.type !== 'rich_attachment').map(a => {
+                    delete a.id;
+                    return a;
+                });
+            }
+
             await Modules.Messaging.editMessage(ctx, IDs.ConversationMessage.parse(args.mid), uid, {
-                urlAugmentation: false
-            }, false);
+                attachments: newAttachments,
+                ignoreAugmentation: true,
+            }, true);
             return true;
         }),
 

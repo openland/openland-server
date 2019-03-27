@@ -98,8 +98,10 @@ export class MessagingMediator {
             // Delivery
             await this.delivery.onUpdateMessage(ctx, message);
 
-            // Augment
-            await this.augmentation.onMessageUpdated(ctx, message);
+            if (!newMessage.ignoreAugmentation) {
+                // Augment
+                await this.augmentation.onNewMessage(ctx, message);
+            }
 
             return res;
         });

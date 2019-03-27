@@ -37,7 +37,7 @@ export class MessagingRepository {
                 // filePreview: message.filePreview,
                 text: message.message,
                 serviceMetadata: message.serviceMetadata || null,
-                augmentation: message.urlAugmentation,
+                // augmentation: message.urlAugmentation,
                 replyMessages: message.replyMessages,
                 mentions: message.mentions,
                 repeatKey: message.repeatKey,
@@ -97,9 +97,9 @@ export class MessagingRepository {
             if (newMessage.replyMessages) {
                 message.replyMessages = newMessage.replyMessages;
             }
-            if (newMessage.urlAugmentation !== undefined) {
-                message.augmentation = newMessage.urlAugmentation;
-            }
+            // if (newMessage.urlAugmentation !== undefined) {
+            //     message.augmentation = newMessage.urlAugmentation;
+            // }
             if (newMessage.mentions) {
                 message.mentions = newMessage.mentions;
             }

@@ -1,4 +1,3 @@
-import { URLAugmentation } from './workers/UrlInfoService';
 import { ImageRef } from '../openland-module-media/ImageRef';
 import { FileInfo } from '../openland-module-media/FileInfo';
 
@@ -109,7 +108,7 @@ export interface MessageInput {
     // file?: string | null;
     // fileMetadata?: FileMetadata | null;
     // filePreview?: string | null;
-    urlAugmentation?: URLAugmentation | null | false;
+    // urlAugmentation?: URLAugmentation | null | false;
     complexMentions?: MessageMention[] | null;
     mentions?: number[] | null;
 

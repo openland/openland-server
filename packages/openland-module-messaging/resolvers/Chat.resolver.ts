@@ -602,9 +602,26 @@ export default {
             throw new UserError('Deprecated API');
         }),
         alphaDeleteMessageUrlAugmentation: withUser(async (ctx, args, uid) => {
+            let mid = IDs.ConversationMessage.parse(args.messageId);
+
+            let message = await FDB.Message.findById(ctx, mid);
+            if (!message || message.deleted) {
+                throw new NotFoundError();
+            }
+
+            let newAttachments: MessageAttachmentInput[] = [];
+
+            if (message.attachmentsModern) {
+                newAttachments = message.attachmentsModern.filter(a => a.type !== 'rich_attachment').map(a => {
+                    delete a.id;
+                    return a;
+                });
+            }
+
             return await Modules.Messaging.editMessage(ctx, IDs.ConversationMessage.parse(args.messageId), uid, {
-                urlAugmentation: false
-            }, false);
+                attachments: newAttachments,
+                ignoreAugmentation: true,
+            }, true);
         }),
         alphaDeleteMessage: withUser(async (ctx, args, uid) => {
             let messageId = IDs.ConversationMessage.parse(args.messageId);
