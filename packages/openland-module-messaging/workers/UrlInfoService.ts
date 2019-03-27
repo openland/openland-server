@@ -217,7 +217,7 @@ export function createUrlInfoService() {
                 iconInfo: null,
                 keyboard: {
                     buttons: [[
-                        { id: 'chat_invite_link', title: 'Accept invite', style: 'DEFAULT', url }
+                        { title: 'Accept invite', style: 'DEFAULT', url }
                     ]]
                 },
                 dynamic: true
