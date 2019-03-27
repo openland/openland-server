@@ -97,7 +97,7 @@ export class ModernUrlInfoService {
     }
 }
 
-const getURLAugmentationForUser = async ({hostname, url, userId, user}: { hostname?: string; url: string; userId: number; user: UserProfile | null; }) => {
+const getURLAugmentationForUser = async ({ hostname, url, userId, user }: { hostname?: string; url: string; userId: number; user: UserProfile | null; }) => {
     let org = user!.primaryOrganization && await FDB.OrganizationProfile.findById(createEmptyContext(), user!.primaryOrganization!);
     return {
         url,
@@ -107,7 +107,7 @@ const getURLAugmentationForUser = async ({hostname, url, userId, user}: { hostna
         imageURL: null,
         imageInfo: user!.picture ? await Modules.Media.fetchFileInfo(createEmptyContext(), user!.picture.uuid) : null,
         photo: user!.picture,
-        hostname: hostname || null,
+        hostname: null,
         type: 'user',
         extra: userId,
         iconRef: null,
@@ -121,17 +121,16 @@ export function createUrlInfoService() {
     service
         .specialUrl(/(localhost:3000|(app.|next.)?openland.com)\/(mail|directory)\/u\/(.*)/, false, async (url, data) => {
             let [, , , , _userId] = data;
-            let {hostname} = URL.parse(url);
+            let { hostname } = URL.parse(url);
 
             let userId = IDs.User.parse(_userId);
 
             let user = await Modules.Users.profileById(createEmptyContext(), userId);
 
-            return await getURLAugmentationForUser({hostname, url, userId, user});
+            return await getURLAugmentationForUser({ hostname, url, userId, user });
         })
         .specialUrl(/(localhost:3000|(app.|next.)?openland.com)\/(directory\/)?o\/(.*)/, false, async (url, data) => {
             let [, , , , _orgId] = data;
-            let {hostname} = URL.parse(url);
 
             let orgId = IDs.Organization.parse(_orgId);
 
@@ -145,7 +144,7 @@ export function createUrlInfoService() {
                 imageURL: null,
                 imageInfo: org!.photo ? await Modules.Media.fetchFileInfo(createEmptyContext(), org!.photo!.uuid) : null,
                 photo: org!.photo || null,
-                hostname: hostname || null,
+                hostname: null,
                 type: 'org',
                 extra: orgId,
                 iconRef: null,
@@ -155,7 +154,6 @@ export function createUrlInfoService() {
         .specialUrl(/(localhost:3000|(app.|next.)?openland.com)\/((mail|directory)\/)(p\/)?(.*)/, false, async (url, data) => {
             let [, , , , , , _channelId] = data;
 
-            let {hostname} = URL.parse(url);
 
             let channelId = IDs.Conversation.parse(_channelId);
 
@@ -175,7 +173,7 @@ export function createUrlInfoService() {
                 imageURL: null,
                 imageInfo: profile!.image ? await Modules.Media.fetchFileInfo(createEmptyContext(), profile!.image.uuid) : null,
                 photo: profile!.image,
-                hostname: hostname || null,
+                hostname: null,
                 type: 'channel',
                 extra: channelId,
                 iconRef: null,
@@ -185,7 +183,6 @@ export function createUrlInfoService() {
         .specialUrl(/(localhost:3000|(app.|next.)?openland.com)\/joinChannel\/(.*)/, false, async (url, data) => {
             let ctx = createEmptyContext();
             let [, , , _invite] = data;
-            let {hostname} = URL.parse(url);
 
             let chatInvite = await Modules.Invites.resolveInvite(ctx, _invite);
 
@@ -208,7 +205,7 @@ export function createUrlInfoService() {
                 imageURL: null,
                 imageInfo: profile!.image ? await Modules.Media.fetchFileInfo(createEmptyContext(), profile!.image.uuid) : null,
                 photo: profile!.image,
-                hostname: hostname || null,
+                hostname: null,
                 type: 'url',
                 iconRef: null,
                 iconInfo: null,
@@ -223,7 +220,7 @@ export function createUrlInfoService() {
         .specialUrl(/(localhost:3000|(app.|next.)?openland.com)\/(.*)/, false, async (url, data) => {
             let [, , , _shortname] = data;
 
-            let {hostname} = URL.parse(url);
+            let { hostname } = URL.parse(url);
 
             let shortname = await Modules.Shortnames.findShortname(createEmptyContext(), _shortname);
 
@@ -235,7 +232,7 @@ export function createUrlInfoService() {
 
             let user = await Modules.Users.profileById(createEmptyContext(), shortname.ownerId);
 
-            return await getURLAugmentationForUser({hostname, url, userId, user});
+            return await getURLAugmentationForUser({ hostname, url, userId, user });
         });
 
     return service;
