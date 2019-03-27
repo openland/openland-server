@@ -190,6 +190,7 @@ export function createUrlInfoService() {
             }
 
             let profile = await FDB.RoomProfile.findById(ctx, chatInvite.channelId);
+            let conv = await FDB.ConversationRoom.findById(ctx, chatInvite.channelId);
 
             if (!profile) {
                 return null;
@@ -199,7 +200,7 @@ export function createUrlInfoService() {
             return {
                 url,
                 title: profile!.title || null,
-                subtitle: membersCount < 10 ? 'New group' : (membersCount + ' members'),
+                subtitle: membersCount < 10 ? `New ${conv && conv.isChannel ? 'channel' : 'group'}` : (membersCount + ' members'),
                 description: profile!.description || null,
                 imageURL: null,
                 imageInfo: profile!.image ? await Modules.Media.fetchFileInfo(createEmptyContext(), profile!.image.uuid) : null,
