@@ -10,7 +10,7 @@ type Dialog {
     cid: ID!
     fid: ID!
     kind: DialogKind!
-    
+    isChannel: Boolean!
     title: String!
     photo: String!
 

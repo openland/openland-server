@@ -104,7 +104,10 @@ export default {
                 throw Error('Unknown room kind: ' + room.kind);
             }
         }),
-        isChannel: withConverationId(async (ctx, id) => !!((await FDB.ConversationRoom.findById(ctx, id))!.isChannel)),
+        isChannel: withConverationId(async (ctx, id) => {
+            let room = await FDB.ConversationRoom.findById(ctx, id);
+            return !!(room && room.isChannel);
+        }),
         canSendMessage: withConverationId(async (ctx, id) => !!(await Modules.Messaging.room.checkCanSendMessage(ctx, id, ctx.auth.uid!))),
         title: withConverationId(async (ctx, id) => Modules.Messaging.room.resolveConversationTitle(ctx, id, ctx.auth.uid!)),
         photo: withConverationId(async (ctx, id) => Modules.Messaging.room.resolveConversationPhoto(ctx, id, ctx.auth.uid!)),
@@ -360,7 +363,7 @@ export default {
                 title: args.title!,
                 description: args.description,
                 image: imageRef
-            }, args.message || '', args.listed || undefined);
+            }, args.message || '', args.listed || undefined, args.channel || undefined);
 
             return room;
         }),
@@ -397,7 +400,7 @@ export default {
 
                 return await Modules.Messaging.room.updateRoomProfile(ctx, IDs.Conversation.parse(args.roomId), uid, {
                     title: args.input.title!,
-                    description: Sanitizer.sanitizeString(args.input.description),
+                    description: args.input.description === undefined ? undefined : Sanitizer.sanitizeString(args.input.description),
                     image: args.input.photoRef === undefined ? undefined : imageRef,
                     socialImage: args.input.socialImageRef === undefined ? undefined : socialImageRef,
                     kind: kind

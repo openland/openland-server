@@ -52,6 +52,10 @@ export default {
                 throw Error('Unknwon conversation type');
             }
         },
+        isChannel: async (src: UserDialog, args: {}, ctx: AppContext) => {
+            let room = await FDB.ConversationRoom.findById(ctx, src.cid);
+            return !!(room && room.isChannel);
+        },
 
         title: async (src: UserDialog, args: {}, ctx: AppContext) => {
             return Modules.Messaging.room.resolveConversationTitle(ctx, src.cid, ctx.auth.uid!);
