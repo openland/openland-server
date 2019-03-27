@@ -363,7 +363,7 @@ export default {
                 title: args.title!,
                 description: args.description,
                 image: imageRef
-            }, args.message || '', args.listed || undefined);
+            }, args.message || '', args.listed || undefined, args.channel || undefined);
 
             return room;
         }),

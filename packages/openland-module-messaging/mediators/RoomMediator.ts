@@ -29,13 +29,14 @@ export class RoomMediator {
         return await this.repo.isActiveMember(ctx, uid, cid);
     }
 
-    async createRoom(parent: Context, kind: 'public' | 'group', oid: number, uid: number, members: number[], profile: RoomProfileInput, message?: string, listed?: boolean) {
+    async createRoom(parent: Context, kind: 'public' | 'group', oid: number, uid: number, members: number[], profile: RoomProfileInput, message?: string, listed?: boolean, channel?: boolean) {
         return await inTx(parent, async (ctx) => {
             // Create room
-            let res = await this.repo.createRoom(ctx, kind, oid, uid, members, profile, listed);
+            let res = await this.repo.createRoom(ctx, kind, oid, uid, members, profile, listed, channel);
             // Send initial messages
             let userName = await Modules.Users.getUserFullName(parent, uid);
-            await this.messaging.sendMessage(ctx, uid, res.id, { message: `@${userName} created the group ${profile.title}`, isService: true, complexMentions: [{ type: 'User', id: uid }] });
+            let chatTypeString = channel ? 'channel' : 'group';
+            await this.messaging.sendMessage(ctx, uid, res.id, { message: `@${userName} created the ${chatTypeString} ${profile.title}`, isService: true, complexMentions: [{ type: 'User', id: uid }] });
             if (message) {
                 await this.messaging.sendMessage(ctx, uid, res.id, { message: message });
             }
