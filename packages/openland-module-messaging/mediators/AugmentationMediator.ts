@@ -8,6 +8,7 @@ import { createUrlInfoService } from 'openland-module-messaging/workers/UrlInfoS
 import { MessagingRepository } from 'openland-module-messaging/repositories/MessagingRepository';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { createEmptyContext, Context } from 'openland-utils/Context';
+import { MessageRichAttachmentInput } from '../MessageInput';
 
 const linkifyInstance = linkify()
     .tlds(tlds)
@@ -54,9 +55,43 @@ export class AugmentationMediator {
                 }
 
                 if (urlInfo.title || urlInfo.type !== 'url') {
-                    await this.messaging.editMessage(createEmptyContext(), item.messageId, { urlAugmentation: urlInfo }, false);
+                    // await this.messaging.editMessage(createEmptyContext(), item.messageId, { urlAugmentation: urlInfo }, false);
+                    let richAttachment: MessageRichAttachmentInput = {
+                        type: 'rich_attachment',
+                        title: urlInfo.title || null,
+                        titleLink: urlInfo.url,
+                        titleLinkHostname: urlInfo.hostname || null,
+                        subTitle: urlInfo.subtitle || null,
+                        text: urlInfo.description || null,
+                        icon: urlInfo.iconRef || null,
+                        iconInfo: urlInfo.iconInfo || null,
+                        image: urlInfo.photo || null,
+                        imageInfo: urlInfo.imageInfo || null,
+                        keyboard: urlInfo.keyboard || null,
+                    };
+                    if (richAttachment.keyboard) {
+                        for (let line of richAttachment.keyboard.buttons) {
+                            for (let button of line) {
+                                // for cached url-infos
+                                if ((button as any).id) {
+                                    delete (button as any).id;
+                                }
+                            }
+                        }
+                    }
+                    await this.messaging.editMessage(
+                        createEmptyContext(),
+                        item.messageId,
+                        { attachments: [richAttachment] },
+                        false
+                    );
                 } else if (urlInfo.imageInfo) {
-                    await this.messaging.editMessage(createEmptyContext(), item.messageId, { file: urlInfo.photo!.uuid, fileMetadata: urlInfo.imageInfo! as any }, false);
+                    await this.messaging.editMessage(
+                        createEmptyContext(),
+                        item.messageId,
+                        { attachments: [{ type: 'file_attachment', fileId: urlInfo.photo!.uuid, fileMetadata: urlInfo.imageInfo!, filePreview: null }] },
+                        false
+                    );
                 }
                 return { result: 'ok' };
             });

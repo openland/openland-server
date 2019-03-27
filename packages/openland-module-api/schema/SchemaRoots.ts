@@ -8,14 +8,14 @@ import {
     FeedEvent, AuthToken, ConversationEvent, AppHook, Presence, EnvironmentVariable, Comment, CommentEvent
 } from '../../openland-module-db/schema';
 import { GQL } from './SchemaSpec';
-import { MessageMention } from '../../openland-module-messaging/MessageInput';
-import { WelcomeMessageT } from '../../openland-module-messaging/repositories/RoomRepository';
 import {
-    MessageAttachment, MessageAttachmentFile, MessageRichAttachment,
-    MessageSpan, LinkSpan,
-    RoomMentionSpan,
-    UserMentionSpan, MultiUserMentionSpan
-} from '../../openland-module-messaging/resolvers/ModernMessage.resolver';
+    LinkSpan, MessageAttachment, MessageAttachmentFile, MessageButton,
+    MessageMention, MessageRichAttachment,
+    MessageSpan,
+    MultiUserMentionSpan, RoomMentionSpan,
+    UserMentionSpan
+} from '../../openland-module-messaging/MessageInput';
+import { WelcomeMessageT } from '../../openland-module-messaging/repositories/RoomRepository';
 import { FileInfo } from '../../openland-module-media/FileInfo';
 import { FLiveStreamItem } from '../../foundation-orm/FLiveStreamItem';
 
@@ -192,17 +192,17 @@ export namespace GQLRoots {
     export type MessageSpanRoot = MessageSpan;
     export type MessageAttachmentFileInputRoot = any;
     export type MessageAttachmentPostInputRoot = any;
-    export type MessageKeyboardRoot = any;
+    export type MessageKeyboardRoot = { buttons: MessageButton & { id: string } };
     export type ModernMessageButtonRoot = any;
     export type ModernMessageReactionRoot = { userId: number, reaction: string };
     export type MessageSpanUserMentionRoot = UserMentionSpan;
     export type MessageSpanMultiUserMentionRoot = MultiUserMentionSpan;
     export type MessageSpanRoomMentionRoot = RoomMentionSpan;
     export type MessageSpanLinkRoot = LinkSpan;
-    export type ModernMessageAttachmentRoot = MessageAttachment;
-    export type MessageAttachmentFileRoot = MessageAttachmentFile;
+    export type ModernMessageAttachmentRoot = { attachment: MessageAttachment, message: Message };
+    export type MessageAttachmentFileRoot = { attachment: MessageAttachmentFile, message: Message };
     export type MessageAttachmentPostRoot = any;
-    export type MessageRichAttachmentRoot = MessageRichAttachment;
+    export type MessageRichAttachmentRoot = { attachment: MessageRichAttachment, message: Message };
     export type ImageRoot = { uuid: string, metadata?: FileInfo };
 
     //

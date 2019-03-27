@@ -1,6 +1,6 @@
 import { AllEntities, ConversationEvent, Message } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
-import { MessageInput } from 'openland-module-messaging/MessageInput';
+import { MessageAttachment, MessageAttachmentInput, MessageInput } from 'openland-module-messaging/MessageInput';
 import { injectable, inject } from 'inversify';
 import { Context } from 'openland-utils/Context';
 import { DoubleInvokeError } from '../../openland-errors/DoubleInvokeError';
@@ -24,6 +24,8 @@ export class MessagingRepository {
                 throw new DoubleInvokeError();
             }
 
+            let attachments: MessageAttachment[] = await this.prepateAttachments(ctx, message.attachments || []);
+
             let mid = await this.fetchNextMessageId(ctx);
             let msg = await this.entities.Message.create(ctx, mid, {
                 cid: cid,
@@ -41,13 +43,15 @@ export class MessagingRepository {
                 repeatKey: message.repeatKey,
                 deleted: false,
 
-                type: message.type || 'MESSAGE',
-                title: message.title,
-                buttons: message.buttons,
-                postType: message.postType,
-                attachments: message.attachments,
+                // type: message.type || 'MESSAGE',
+                // title: message.title,
+                // buttons: message.buttons,
+                // postType: message.postType,
+                // attachments: message.attachments,
+
                 complexMentions: message.complexMentions,
-                spans: message.spans
+                spans: message.spans,
+                attachmentsModern: attachments.length > 0 ? attachments : null
             });
 
             //
@@ -102,11 +106,11 @@ export class MessagingRepository {
             if (markAsEdited) {
                 message.edited = true;
             }
-            if (newMessage.title) {
-                message.title = newMessage.title;
-            }
             if (newMessage.attachments) {
-                message.attachments = newMessage.attachments;
+                message.attachmentsModern = await this.prepateAttachments(ctx, newMessage.attachments || []);
+            }
+            if (newMessage.spans) {
+                message.spans = newMessage.spans;
             }
             if (newMessage.serviceMetadata) {
                 message.serviceMetadata = newMessage.serviceMetadata;
@@ -151,6 +155,21 @@ export class MessagingRepository {
                 kind: 'message_deleted',
                 mid: message!.id
             });
+
+            return res;
+        });
+    }
+
+    async prepateAttachments(parent: Context, attachments: MessageAttachmentInput[]) {
+        return await inTx(parent, async (ctx) => {
+            let res: MessageAttachment[] = [];
+
+            for (let attachInput of attachments) {
+                res.push({
+                    ...attachInput,
+                    id: await this.entities.connection.nextRandomId()
+                });
+            }
 
             return res;
         });

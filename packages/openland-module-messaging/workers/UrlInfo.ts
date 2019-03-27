@@ -149,7 +149,7 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
         iconInfo,
         keyboard: {
             buttons: [[
-                { id: 'url', title: 'Open link', style: 'DEFAULT', url }
+                { title: 'Open link', style: 'DEFAULT', url }
             ]]
         },
     };

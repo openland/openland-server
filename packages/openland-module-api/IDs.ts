@@ -48,5 +48,6 @@ export const IDs = {
     FeedItem: IdsFactory.createId('FeedItem'),
     MediaStream: IdsFactory.createId('MediaStream'),
     MessageAttachment: IdsFactory.createStringId('MessageAttachment'),
-    Comment: IdsFactory.createId('Comment')
+    Comment: IdsFactory.createId('Comment'),
+    KeyboardButton: IdsFactory.createStringId('KeyboardButton'),
 };

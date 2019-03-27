@@ -4527,6 +4527,8 @@ export interface MessageShape {
     isMuted: boolean;
     isService: boolean;
     deleted?: boolean| null;
+    spans?: ({ type: 'user_mention', offset: number, length: number, user: number, } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[], } | { type: 'room_mention', offset: number, length: number, room: number, } | { type: 'link', offset: number, length: number, url: string, })[]| null;
+    attachmentsModern?: ({ type: 'file_attachment', fileId: string, filePreview: string | null, fileMetadata: { isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, } | null, id: string, } | { type: 'rich_attachment', title: string | null, subTitle: string | null, titleLink: string | null, text: string | null, icon: { uuid: string, crop: { x: number, y: number, w: number, h: number, } | null, } | null, image: { uuid: string, crop: { x: number, y: number, w: number, h: number, } | null, } | null, iconInfo: { isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, } | null, imageInfo: { isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, } | null, titleLinkHostname: string | null, keyboard: { buttons: (({ title: string, style: 'DEFAULT' | 'LIGHT', url: string | null, })[])[], } | null, id: string, })[]| null;
     fileId?: string| null;
     fileMetadata?: { isStored: boolean | undefined, isImage: boolean | null, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, }| null;
     filePreview?: string| null;
@@ -4538,7 +4540,6 @@ export interface MessageShape {
     title?: string| null;
     postType?: string| null;
     complexMentions?: any| null;
-    spans?: ({ type: 'user_mention', offset: number, length: number, user: number, } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[], } | { type: 'room_mention', offset: number, length: number, room: number, } | { type: 'link', offset: number, length: number, url: string, })[]| null;
 }
 
 export class Message extends FEntity {
@@ -4655,6 +4656,28 @@ export class Message extends FEntity {
         this._checkIsWritable();
         if (value === this._value.deleted) { return; }
         this._value.deleted = value;
+        this.markDirty();
+    }
+    get spans(): ({ type: 'user_mention', offset: number, length: number, user: number, } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[], } | { type: 'room_mention', offset: number, length: number, room: number, } | { type: 'link', offset: number, length: number, url: string, })[] | null {
+        let res = this._value.spans;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set spans(value: ({ type: 'user_mention', offset: number, length: number, user: number, } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[], } | { type: 'room_mention', offset: number, length: number, room: number, } | { type: 'link', offset: number, length: number, url: string, })[] | null) {
+        this._checkIsWritable();
+        if (value === this._value.spans) { return; }
+        this._value.spans = value;
+        this.markDirty();
+    }
+    get attachmentsModern(): ({ type: 'file_attachment', fileId: string, filePreview: string | null, fileMetadata: { isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, } | null, id: string, } | { type: 'rich_attachment', title: string | null, subTitle: string | null, titleLink: string | null, text: string | null, icon: { uuid: string, crop: { x: number, y: number, w: number, h: number, } | null, } | null, image: { uuid: string, crop: { x: number, y: number, w: number, h: number, } | null, } | null, iconInfo: { isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, } | null, imageInfo: { isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, } | null, titleLinkHostname: string | null, keyboard: { buttons: (({ title: string, style: 'DEFAULT' | 'LIGHT', url: string | null, })[])[], } | null, id: string, })[] | null {
+        let res = this._value.attachmentsModern;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set attachmentsModern(value: ({ type: 'file_attachment', fileId: string, filePreview: string | null, fileMetadata: { isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, } | null, id: string, } | { type: 'rich_attachment', title: string | null, subTitle: string | null, titleLink: string | null, text: string | null, icon: { uuid: string, crop: { x: number, y: number, w: number, h: number, } | null, } | null, image: { uuid: string, crop: { x: number, y: number, w: number, h: number, } | null, } | null, iconInfo: { isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, } | null, imageInfo: { isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, } | null, titleLinkHostname: string | null, keyboard: { buttons: (({ title: string, style: 'DEFAULT' | 'LIGHT', url: string | null, })[])[], } | null, id: string, })[] | null) {
+        this._checkIsWritable();
+        if (value === this._value.attachmentsModern) { return; }
+        this._value.attachmentsModern = value;
         this.markDirty();
     }
     get fileId(): string | null {
@@ -4778,17 +4801,6 @@ export class Message extends FEntity {
         this._value.complexMentions = value;
         this.markDirty();
     }
-    get spans(): ({ type: 'user_mention', offset: number, length: number, user: number, } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[], } | { type: 'room_mention', offset: number, length: number, room: number, } | { type: 'link', offset: number, length: number, url: string, })[] | null {
-        let res = this._value.spans;
-        if (res !== null && res !== undefined) { return res; }
-        return null;
-    }
-    set spans(value: ({ type: 'user_mention', offset: number, length: number, user: number, } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[], } | { type: 'room_mention', offset: number, length: number, room: number, } | { type: 'link', offset: number, length: number, url: string, })[] | null) {
-        this._checkIsWritable();
-        if (value === this._value.spans) { return; }
-        this._value.spans = value;
-        this.markDirty();
-    }
 }
 
 export class MessageFactory extends FEntityFactory<Message> {
@@ -4810,6 +4822,8 @@ export class MessageFactory extends FEntityFactory<Message> {
             { name: 'isMuted', type: 'boolean' },
             { name: 'isService', type: 'boolean' },
             { name: 'deleted', type: 'boolean' },
+            { name: 'spans', type: 'json' },
+            { name: 'attachmentsModern', type: 'json' },
             { name: 'fileId', type: 'string', secure: true },
             { name: 'fileMetadata', type: 'json', secure: true },
             { name: 'filePreview', type: 'string', secure: true },
@@ -4821,7 +4835,6 @@ export class MessageFactory extends FEntityFactory<Message> {
             { name: 'title', type: 'string' },
             { name: 'postType', type: 'string' },
             { name: 'complexMentions', type: 'json' },
-            { name: 'spans', type: 'json' },
         ],
         indexes: [
             { name: 'chat', type: 'range', fields: ['cid', 'id'] },
@@ -4850,21 +4863,6 @@ export class MessageFactory extends FEntityFactory<Message> {
         validators.notNull('isService', src.isService);
         validators.isBoolean('isService', src.isService);
         validators.isBoolean('deleted', src.deleted);
-        validators.isString('fileId', src.fileId);
-        validators.isJson('fileMetadata', src.fileMetadata, json(() => {
-            jField('isStored', jBool()).undefinable();
-            jField('isImage', jBool()).nullable();
-            jField('imageWidth', jNumber()).nullable();
-            jField('imageHeight', jNumber()).nullable();
-            jField('imageFormat', jString()).nullable();
-            jField('mimeType', jString());
-            jField('name', jString());
-            jField('size', jNumber());
-        }));
-        validators.isString('filePreview', src.filePreview);
-        validators.isString('type', src.type);
-        validators.isString('title', src.title);
-        validators.isString('postType', src.postType);
         validators.isJson('spans', src.spans, jVec(jEnum(
             json(() => {
                 jField('type', jString('user_mention'));
@@ -4891,6 +4889,93 @@ export class MessageFactory extends FEntityFactory<Message> {
                 jField('url', jString());
             })
         )));
+        validators.isJson('attachmentsModern', src.attachmentsModern, jVec(jEnum(
+            json(() => {
+                jField('type', jString('file_attachment'));
+                jField('fileId', jString());
+                jField('filePreview', jString()).nullable();
+                jField('fileMetadata', json(() => {
+                jField('isImage', jBool());
+                jField('isStored', jBool());
+                jField('imageWidth', jNumber()).nullable();
+                jField('imageHeight', jNumber()).nullable();
+                jField('imageFormat', jString()).nullable();
+                jField('mimeType', jString());
+                jField('name', jString());
+                jField('size', jNumber());
+            })).nullable();
+                jField('id', jString());
+            }), 
+            json(() => {
+                jField('type', jString('rich_attachment'));
+                jField('title', jString()).nullable();
+                jField('subTitle', jString()).nullable();
+                jField('titleLink', jString()).nullable();
+                jField('text', jString()).nullable();
+                jField('icon', json(() => {
+                jField('uuid', jString());
+                jField('crop', json(() => {
+                jField('x', jNumber());
+                jField('y', jNumber());
+                jField('w', jNumber());
+                jField('h', jNumber());
+            })).nullable();
+            })).nullable();
+                jField('image', json(() => {
+                jField('uuid', jString());
+                jField('crop', json(() => {
+                jField('x', jNumber());
+                jField('y', jNumber());
+                jField('w', jNumber());
+                jField('h', jNumber());
+            })).nullable();
+            })).nullable();
+                jField('iconInfo', json(() => {
+                jField('isImage', jBool());
+                jField('isStored', jBool());
+                jField('imageWidth', jNumber()).nullable();
+                jField('imageHeight', jNumber()).nullable();
+                jField('imageFormat', jString()).nullable();
+                jField('mimeType', jString());
+                jField('name', jString());
+                jField('size', jNumber());
+            })).nullable();
+                jField('imageInfo', json(() => {
+                jField('isImage', jBool());
+                jField('isStored', jBool());
+                jField('imageWidth', jNumber()).nullable();
+                jField('imageHeight', jNumber()).nullable();
+                jField('imageFormat', jString()).nullable();
+                jField('mimeType', jString());
+                jField('name', jString());
+                jField('size', jNumber());
+            })).nullable();
+                jField('titleLinkHostname', jString()).nullable();
+                jField('keyboard', json(() => {
+                jField('buttons', jVec(jVec(json(() => {
+                jField('title', jString());
+                jField('style', jEnumString('DEFAULT', 'LIGHT'));
+                jField('url', jString()).nullable();
+            }))));
+            })).nullable();
+                jField('id', jString());
+            })
+        )));
+        validators.isString('fileId', src.fileId);
+        validators.isJson('fileMetadata', src.fileMetadata, json(() => {
+            jField('isStored', jBool()).undefinable();
+            jField('isImage', jBool()).nullable();
+            jField('imageWidth', jNumber()).nullable();
+            jField('imageHeight', jNumber()).nullable();
+            jField('imageFormat', jString()).nullable();
+            jField('mimeType', jString());
+            jField('name', jString());
+            jField('size', jNumber());
+        }));
+        validators.isString('filePreview', src.filePreview);
+        validators.isString('type', src.type);
+        validators.isString('title', src.title);
+        validators.isString('postType', src.postType);
     }
 
     constructor(connection: FConnection) {

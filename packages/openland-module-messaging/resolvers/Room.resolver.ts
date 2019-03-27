@@ -18,7 +18,7 @@ import { Sanitizer } from 'openland-utils/Sanitizer';
 import { validate, defined, stringNotEmpty, enumString, optional, mustBeArray, emailValidator } from 'openland-utils/NewInputValidator';
 import { inTx } from 'foundation-orm/inTx';
 import { AppContext } from 'openland-modules/AppContext';
-import { MessageAttachment, MessageMention } from '../MessageInput';
+import { MessageMention } from '../MessageInput';
 
 type RoomRoot = Conversation | number;
 
@@ -177,7 +177,7 @@ export default {
         mentions: async (src: Message, args: {}, ctx: AppContext) => src.mentions ? (src.mentions as number[]).map(id => FDB.User.findById(ctx, id)) : null,
 
         alphaAttachments: async (src: Message) => {
-            let attachments: MessageAttachment[] = [];
+            let attachments: { fileId: string, fileMetadata: any, filePreview?: string | null }[] = [];
 
             if (src.fileId) {
                 attachments.push({

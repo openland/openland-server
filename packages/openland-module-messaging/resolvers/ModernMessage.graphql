@@ -57,6 +57,7 @@ extend type Query {
 }
 
 extend type Mutation {
+    sendMessage(chatId: ID!, message: String, repeatKey: String, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!]): Boolean!
 #    modernSendMessage(room: ID!, message: String, repeatKey: String, forwardMessages: [ID!], spans: [MessageSpanInput!], attachments: [MessageAttachmentInput!]): Boolean!
     pinMessage(chatId: ID!, messageId: ID!): Boolean!
     unpinMessage(chatId: ID!): Boolean!
@@ -65,13 +66,15 @@ extend type Mutation {
 input MentionInput {
     chatId: ID
     userId: ID
+    userIds: [ID!]
     offset: Int!
     length: Int!
 }
 
-extend type Mutation {
-    sendMessage(chatId: ID!, message: String, repeatKey: String, mentions: [MentionInput!]): Boolean!
+input FileAttachmentInput {
+    fileId: String!
 }
+
 #
 #   Attachments
 #

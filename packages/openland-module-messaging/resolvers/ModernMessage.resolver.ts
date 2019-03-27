@@ -9,11 +9,10 @@ import { GQLRoots } from '../../openland-module-api/schema/SchemaRoots';
 import MessageSpanRoot = GQLRoots.MessageSpanRoot;
 import { UserError } from '../../openland-errors/UserError';
 import ModernMessageAttachmentRoot = GQLRoots.ModernMessageAttachmentRoot;
-import { buildBaseImageUrl, ImageRef } from '../../openland-module-media/ImageRef';
-import { FileInfo } from '../../openland-module-media/FileInfo';
+import { buildBaseImageUrl } from '../../openland-module-media/ImageRef';
 import linkify from 'linkify-it';
 import tlds from 'tlds';
-import { MessageKeyboard } from '../MessageInput';
+import { LinkSpan, MessageAttachment, MessageAttachmentInput, MessageSpan } from '../MessageInput';
 import { createUrlInfoService, URLAugmentation } from '../workers/UrlInfoService';
 
 const REACTIONS_LEGACY = new Map([
@@ -26,11 +25,6 @@ const REACTIONS_LEGACY = new Map([
 ]);
 
 type IntermediateMention = { type: 'user', user: number } | { type: 'room', room: number };
-export type UserMentionSpan = { type: 'user_mention', offset: number, length: number, user: number };
-export type MultiUserMentionSpan = { type: 'multi_user_mention', offset: number, length: number, users: number[] };
-export type RoomMentionSpan = { type: 'room_mention', offset: number, length: number, room: number };
-export type LinkSpan = { type: 'link', offset: number, length: number, url: string };
-export type MessageSpan = UserMentionSpan | MultiUserMentionSpan | RoomMentionSpan | LinkSpan;
 
 async function prepareLegacyMentions(ctx: Context, message: Message, uid: number): Promise<MessageSpan[]> {
     let messageText = message.text || '';
@@ -160,24 +154,6 @@ async function prepareLegacyMentions(ctx: Context, message: Message, uid: number
     return spans;
 }
 
-export type MessageAttachmentFile = { type: 'file_attachment', fileId: string, filePreview?: string, fileMetadata?: any, id: string };
-export type MessageRichAttachment = {
-    type: 'rich_attachment',
-    title?: string,
-    subTitle?: string,
-    titleLink?: string,
-    text?: string,
-    icon?: ImageRef,
-    image?: ImageRef,
-    iconInfo?: FileInfo,
-    imageInfo?: FileInfo,
-    titleLinkHostname?: string,
-    id: string,
-    keyboard?: MessageKeyboard
-};
-
-export type MessageAttachment = MessageAttachmentFile | MessageRichAttachment;
-
 const linkifyInstance = linkify()
     .tlds(tlds)
     .tlds('onion', true);
@@ -207,7 +183,6 @@ function parseLinks(message: string): MessageSpan[] {
         offset: getOffset(url.raw),
         length: url.raw.length,
         url: url.url,
-        text: url.text
     } as LinkSpan));
 }
 
@@ -318,15 +293,28 @@ export default {
             if (src instanceof Comment) {
                 return [];
             }
-            let attachments: MessageAttachment[] = [];
+
+            let attachments: { attachment: MessageAttachment, message: Message }[] = [];
 
             if (src.fileId) {
                 attachments.push({
-                    type: 'file_attachment',
-                    fileId: src.fileId,
-                    filePreview: src.filePreview || undefined,
-                    fileMetadata: src.fileMetadata,
-                    id: src.id + '_legacy_file'
+                    message: src,
+                    attachment: {
+                        type: 'file_attachment',
+                        fileId: src.fileId,
+                        filePreview: src.filePreview || null,
+                        fileMetadata: src.fileMetadata ? {
+                            name: src.fileMetadata.name,
+                            mimeType: src.fileMetadata.mimeType,
+                            isStored: src.fileMetadata.isStored || true,
+                            isImage: !!(src.fileMetadata.isImage),
+                            imageWidth: src.fileMetadata.imageWidth,
+                            imageHeight: src.fileMetadata.imageHeight,
+                            imageFormat: src.fileMetadata.imageFormat,
+                            size: src.fileMetadata.size
+                        } : null,
+                        id: src.id + '_legacy_file'
+                    }
                 });
             }
             if (src.augmentation) {
@@ -336,46 +324,60 @@ export default {
                 }
 
                 attachments.push({
-                    type: 'rich_attachment',
-                    title: augmentation.title || undefined,
-                    titleLink: augmentation.url,
-                    titleLinkHostname: augmentation.hostname || undefined,
-                    subTitle: augmentation.subtitle || undefined,
-                    text: augmentation.description || undefined,
-                    icon: augmentation.iconRef || undefined,
-                    iconInfo: augmentation.iconInfo || undefined,
-                    image: augmentation.photo || undefined,
-                    imageInfo: augmentation.imageInfo || undefined,
-                    keyboard: augmentation.keyboard || undefined,
-                    id: src.id + '_legacy_rich'
+                    message: src,
+                    attachment: {
+                        type: 'rich_attachment',
+                        title: augmentation.title || null,
+                        titleLink: augmentation.url,
+                        titleLinkHostname: augmentation.hostname || null,
+                        subTitle: augmentation.subtitle || null,
+                        text: augmentation.description || null,
+                        icon: augmentation.iconRef || null,
+                        iconInfo: augmentation.iconInfo || null,
+                        image: augmentation.photo || null,
+                        imageInfo: augmentation.imageInfo || null,
+                        keyboard: augmentation.keyboard || null,
+                        id: src.id + '_legacy_rich'
+                    }
                 });
             }
             if (src.type && src.type === 'POST') {
                 attachments.push({
-                    type: 'rich_attachment',
-                    title: src.title || '',
-                    titleLink: undefined,
-                    subTitle: undefined,
-                    text: src.text || '',
-                    icon: undefined,
-                    iconInfo: undefined,
-                    image: undefined,
-                    imageInfo: undefined,
-                    id: src.id + '_legacy_post'
+                    message: src,
+                    attachment: {
+                        type: 'rich_attachment',
+                        title: src.title || '',
+                        titleLink: null,
+                        titleLinkHostname: null,
+                        subTitle: null,
+                        text: src.text || '',
+                        icon: null,
+                        iconInfo: null,
+                        image: null,
+                        imageInfo: null,
+                        keyboard: null,
+                        id: src.id + '_legacy_post'
+                    }
                 });
             }
             if (src.attachments) {
                 let i = 0;
                 for (let attachment of src.attachments) {
                     attachments.push({
-                        type: 'file_attachment',
-                        fileId: attachment.fileId,
-                        filePreview: attachment.filePreview || undefined,
-                        fileMetadata: attachment.fileMetadata,
-                        id: src.id + '_legacy_file_' + i
+                        message: src,
+                        attachment: {
+                            type: 'file_attachment',
+                            fileId: attachment.fileId,
+                            filePreview: attachment.filePreview || undefined,
+                            fileMetadata: attachment.fileMetadata,
+                            id: src.id + '_legacy_file_' + i
+                        }
                     });
                     i++;
                 }
+            }
+            if (src.attachmentsModern) {
+                attachments.push(...(src.attachmentsModern.map(a => ({ message: src, attachment: a }))));
             }
 
             return attachments;
@@ -476,9 +478,9 @@ export default {
     },
     ModernMessageAttachment: {
         __resolveType(src: ModernMessageAttachmentRoot) {
-            if (src.type === 'file_attachment') {
+            if (src.attachment.type === 'file_attachment') {
                 return 'MessageAttachmentFile';
-            } else if (src.type === 'rich_attachment') {
+            } else if (src.attachment.type === 'rich_attachment') {
                 return 'MessageRichAttachment';
             } else {
                 throw new UserError('Unknown message attachment type: ' + (src as any).type);
@@ -486,37 +488,52 @@ export default {
         }
     },
     MessageAttachmentFile: {
-        id: src => IDs.MessageAttachment.serialize(src.id),
-        fileId: src => src.fileId,
+        id: src => IDs.MessageAttachment.serialize(src.attachment.id),
+        fileId: src => src.attachment.fileId,
         fileMetadata: src => {
-            if (src.fileId && src.fileMetadata) {
+            if (src.attachment.fileId && src.attachment.fileMetadata) {
+                let metadata = src.attachment.fileMetadata;
                 return {
-                    name: src.fileMetadata.name,
-                    mimeType: src.fileMetadata.mimeType,
-                    isImage: !!(src.fileMetadata.isImage),
-                    imageWidth: src.fileMetadata.imageWidth,
-                    imageHeight: src.fileMetadata.imageHeight,
-                    imageFormat: src.fileMetadata.imageFormat,
-                    size: src.fileMetadata.size
+                    name: metadata.name,
+                    mimeType: metadata.mimeType,
+                    isImage: !!(metadata.isImage),
+                    imageWidth: metadata.imageWidth,
+                    imageHeight: metadata.imageHeight,
+                    imageFormat: metadata.imageFormat,
+                    size: metadata.size
                 };
             } else {
                 return null;
             }
         },
-        filePreview: src => src.filePreview,
+        filePreview: src => src.attachment.filePreview,
         fallback: src => 'File attachment'
     },
     MessageRichAttachment: {
-        id: src => IDs.MessageAttachment.serialize(src.id),
-        title: src => src.title,
-        subTitle: src => src.subTitle,
-        titleLink: src => src.titleLink,
-        titleLinkHostname: src => src.titleLinkHostname,
-        text: src => src.text,
-        icon: src => src.icon && { uuid: src.icon.uuid, metadata: src.iconInfo },
-        image: src => src.image && { uuid: src.image.uuid, metadata: src.imageInfo },
-        fallback: src => src.title ? src.title : src.text ? src.text : src.titleLink ? src.titleLink : 'unsupported',
-        keyboard: src => src.keyboard
+        id: src => IDs.MessageAttachment.serialize(src.attachment.id),
+        title: src => src.attachment.title,
+        subTitle: src => src.attachment.subTitle,
+        titleLink: src => src.attachment.titleLink,
+        titleLinkHostname: src => src.attachment.titleLinkHostname,
+        text: src => src.attachment.text,
+        icon: src => src.attachment.icon && { uuid: src.attachment.icon.uuid, metadata: src.attachment.iconInfo },
+        image: src => src.attachment.image && { uuid: src.attachment.image.uuid, metadata: src.attachment.imageInfo },
+        fallback: src => src.attachment.title ? src.attachment.title : src.attachment.text ? src.attachment.text : src.attachment.titleLink ? src.attachment.titleLink : 'unsupported',
+        keyboard: src => {
+            if (!src.attachment.keyboard) {
+                return null;
+            }
+
+            let btnIndex = 0;
+            for (let line of src.attachment.keyboard.buttons) {
+                for (let button of line) {
+                    (button as any).id = IDs.KeyboardButton.serialize(`${src.message.id}_${src.attachment.id}_${btnIndex}`);
+                    btnIndex++;
+                }
+            }
+
+            return src.attachment.keyboard;
+        }
     },
 
     Query: {
@@ -539,35 +556,73 @@ export default {
             let cid = IDs.Conversation.parse(args.chatId);
 
             let spans: MessageSpan[] = [];
+
+            //
+            // Parse links
+            //
             spans.push(...parseLinks(args.message || ''));
 
+            //
+            // Mentions
+            //
             if (args.mentions) {
-                let mentions = args.mentions.map(m => {
-                    if (m.userId) {
-                        return {
+                let mentions: MessageSpan[] = [];
+
+                for (let mention of args.mentions) {
+                    if (mention.userId) {
+                        mentions.push({
                             type: 'user_mention',
-                            offset: m.offset,
-                            length: m.length,
-                            user: IDs.User.parse(m.userId!)
-                        };
-                    } else if (m.chatId) {
-                        return {
+                            offset: mention.offset,
+                            length: mention.length,
+                            user: IDs.User.parse(mention.userId!)
+                        });
+                    } else if (mention.chatId) {
+                        mentions.push({
                             type: 'room_mention',
-                            offset: m.offset,
-                            length: m.length,
-                            room: IDs.Conversation.parse(m.chatId!)
-                        };
-                    } else {
-                        return null;
+                            offset: mention.offset,
+                            length: mention.length,
+                            room: IDs.Conversation.parse(mention.chatId!)
+                        });
+                    } else if (mention.userIds) {
+                        mentions.push({
+                            type: 'multi_user_mention',
+                            offset: mention.offset,
+                            length: mention.length,
+                            users: mention.userIds.map(id => IDs.User.parse(id))
+                        });
                     }
-                }).filter(m => !!m);
-                spans.push(...mentions as MessageSpan[]);
+                }
+
+                spans.push(...mentions);
+            }
+
+            //
+            // File attachments
+            //
+            let attachments: MessageAttachmentInput[] = [];
+            if (args.fileAttachments) {
+                for (let fileInput of args.fileAttachments) {
+                    let fileMetadata = await Modules.Media.saveFile(ctx, fileInput.fileId);
+                    let filePreview: string | null = null;
+
+                    if (fileMetadata.isImage) {
+                        filePreview = await Modules.Media.fetchLowResPreview(ctx, fileInput.fileId);
+                    }
+
+                    attachments.push({
+                        type: 'file_attachment',
+                        fileId: fileInput.fileId,
+                        fileMetadata: fileMetadata || null,
+                        filePreview: filePreview || null
+                    });
+                }
             }
 
             // Send message
             await Modules.Messaging.sendMessage(ctx, cid, uid!, {
                 message: args.message,
                 repeatKey: args.repeatKey,
+                attachments,
                 spans
             });
 

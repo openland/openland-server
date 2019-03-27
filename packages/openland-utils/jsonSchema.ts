@@ -256,7 +256,7 @@ export function generateJsonSchema(schema: JsonSchema): string {
     } else if (schema instanceof EnumType) {
         return `jEnum(\n${tab(1, schema.types.map(generateJsonSchema).join(', \n'))}\n)`;
     } else if (schema instanceof StringEnumType) {
-        return `jEnumString(${schema.values.join(', ')})`;
+        return `jEnumString(${schema.values.map(v => `'${v}'`).join(', ')})`;
     } else if (schema instanceof ObjectType) {
         let res = '';
 
@@ -290,7 +290,7 @@ export function generateJsonSchemaInterface(schema: JsonSchema): string {
     } else if (schema instanceof EnumType) {
         return schema.types.map(generateJsonSchemaInterface).join(' | ');
     } else if (schema instanceof StringEnumType) {
-        return schema.values.join(' | ');
+        return schema.values.map(v => `'${v}'`).join(' | ');
     } else if (schema instanceof ObjectType) {
         let res = '';
 

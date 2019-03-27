@@ -12,7 +12,36 @@ import {
     allowAdminEdit,
     jsonField
 } from '../foundation-orm-gen';
-import { jBool, jEnum, jField, jNumber, json, jString, jVec } from '../openland-utils/jsonSchema';
+import {
+    jBool,
+    jEnum, jEnumString,
+    jField,
+    jNumber,
+    json,
+    jString,
+    jVec
+} from '../openland-utils/jsonSchema';
+
+const ImageRef = json(() => {
+    jField('uuid', jString());
+    jField('crop', json(() => {
+        jField('x', jNumber());
+        jField('y', jNumber());
+        jField('w', jNumber());
+        jField('h', jNumber());
+    })).nullable();
+});
+
+const FileInfo = json(() => {
+    jField('isImage', jBool());
+    jField('isStored', jBool());
+    jField('imageWidth', jNumber()).nullable();
+    jField('imageHeight', jNumber()).nullable();
+    jField('imageFormat', jString()).nullable();
+    jField('mimeType', jString());
+    jField('name', jString());
+    jField('size', jNumber());
+});
 
 const Schema = declareSchema(() => {
 
@@ -468,30 +497,6 @@ const Schema = declareSchema(() => {
         field('isMuted', 'boolean');
         field('isService', 'boolean');
         field('deleted', 'boolean').nullable();
-
-        // deprecated start
-        field('fileId', 'string').nullable().secure();
-        jsonField('fileMetadata', json(() => {
-            jField('isStored', jBool()).undefinable();
-            jField('isImage', jBool()).nullable();
-            jField('imageWidth', jNumber()).nullable();
-            jField('imageHeight', jNumber()).nullable();
-            jField('imageFormat', jString()).nullable();
-            jField('mimeType', jString());
-            jField('name', jString());
-            jField('size', jNumber());
-        })).nullable().secure();
-        field('filePreview', 'string').nullable().secure();
-        field('augmentation', 'json').nullable();
-        field('mentions', 'json').nullable();
-        field('attachments', 'json').nullable();
-        field('buttons', 'json').nullable();
-        field('type', 'string').nullable();
-        field('title', 'string').nullable();
-        field('postType', 'string').nullable();
-        field('complexMentions', 'json').nullable();
-        // deprecated end
-
         jsonField('spans', jVec(jEnum(
             json(() => {
                 jField('type', jString('user_mention'));
@@ -518,6 +523,58 @@ const Schema = declareSchema(() => {
                 jField('url', jString());
             }),
         ))).nullable();
+        jsonField('attachmentsModern', jVec(jEnum(
+            json(() => {
+                jField('type', jString('file_attachment'));
+                jField('fileId', jString());
+                jField('filePreview', jString()).nullable();
+                jField('fileMetadata', FileInfo).nullable();
+                jField('id', jString());
+            }),
+            json(() => {
+                jField('type', jString('rich_attachment'));
+                jField('title', jString()).nullable();
+                jField('subTitle', jString()).nullable();
+                jField('titleLink', jString()).nullable();
+                jField('text', jString()).nullable();
+                jField('icon', ImageRef).nullable();
+                jField('image', ImageRef).nullable();
+                jField('iconInfo', FileInfo).nullable();
+                jField('imageInfo', FileInfo).nullable();
+                jField('titleLinkHostname', jString()).nullable();
+                jField('keyboard', json(() => {
+                    jField('buttons', jVec(jVec(json(() => {
+                        jField('title', jString());
+                        jField('style', jEnumString('DEFAULT', 'LIGHT'));
+                        jField('url', jString()).nullable();
+                    }))));
+                })).nullable();
+                jField('id', jString());
+            }),
+        ))).nullable();
+
+        // deprecated start
+        field('fileId', 'string').nullable().secure();
+        jsonField('fileMetadata', json(() => {
+            jField('isStored', jBool()).undefinable();
+            jField('isImage', jBool()).nullable();
+            jField('imageWidth', jNumber()).nullable();
+            jField('imageHeight', jNumber()).nullable();
+            jField('imageFormat', jString()).nullable();
+            jField('mimeType', jString());
+            jField('name', jString());
+            jField('size', jNumber());
+        })).nullable().secure();
+        field('filePreview', 'string').nullable().secure();
+        field('augmentation', 'json').nullable();
+        field('mentions', 'json').nullable();
+        field('attachments', 'json').nullable();
+        field('buttons', 'json').nullable();
+        field('type', 'string').nullable();
+        field('title', 'string').nullable();
+        field('postType', 'string').nullable();
+        field('complexMentions', 'json').nullable();
+        // deprecated end
 
         rangeIndex('chat', ['cid', 'id']).withCondition((src) => !src.deleted);
         rangeIndex('updated', ['updatedAt']);
@@ -525,6 +582,10 @@ const Schema = declareSchema(() => {
         enableVersioning();
         enableTimestamps();
     });
+
+    //
+    // Comments
+    //
 
     entity('Comment', () => {
         primaryKey('id', 'number');
@@ -566,6 +627,10 @@ const Schema = declareSchema(() => {
         enableVersioning();
         enableTimestamps();
     });
+
+    //
+    //  Comments end
+    //
 
     entity('ConversationSeq', () => {
         primaryKey('cid', 'number');

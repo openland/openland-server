@@ -22,7 +22,7 @@ import { FEntity } from 'foundation-orm/FEntity';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
-import { FileMetadata, MessageAttachment } from '../MessageInput';
+import { FileMetadata } from '../MessageInput';
 
 export default {
     Conversation: {
@@ -324,7 +324,7 @@ export default {
         plainText: async (src: Message) => null,
         mentions: async (src: Message, args: {}, ctx: AppContext) => src.mentions ? (src.mentions as number[]).map(id => FDB.User.findById(ctx, id)) : null,
         alphaAttachments: async (src: Message) => {
-            let attachments: MessageAttachment[] = [];
+            let attachments: any[] = [];
 
             if (src.fileId) {
                 attachments.push({

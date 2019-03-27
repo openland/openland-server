@@ -1,4 +1,6 @@
 import { URLAugmentation } from './workers/UrlInfoService';
+import { ImageRef } from '../openland-module-media/ImageRef';
+import { FileInfo } from '../openland-module-media/FileInfo';
 
 export type ServiceMessageMetadataType =
     'user_invite' |
@@ -6,28 +8,16 @@ export type ServiceMessageMetadataType =
     'title_change' |
     'photo_change';
 
-type MessageType = 'MESSAGE' | 'POST';
+// type MessageType = 'MESSAGE' | 'POST';
 
 export type MessageButton = {
-    id: string;
     title: string;
     style: 'DEFAULT' | 'LIGHT';
-    url?: string;
+    url: string | null;
 };
 
 export type MessageKeyboard = {
     buttons: MessageButton[][]
-};
-
-export type MessageAttachment = {
-    fileId: string;
-    fileMetadata: FileMetadata | null;
-    filePreview?: string | null;
-};
-
-export type MessageMention = {
-    type: 'User' | 'SharedRoom'
-    id: number;
 };
 
 export type UserMentionSpan = { type: 'user_mention', offset: number, length: number, user: number };
@@ -42,29 +32,91 @@ export type FileMetadata = {
     imageWidth: number | null,
     imageHeight: number | null,
     imageFormat: string | null,
-    mimeType: string, name: string,
+    mimeType: string,
+    name: string,
     size: number,
+};
+
+export type MessageAttachmentFile = {
+    type: 'file_attachment',
+    fileId: string,
+    filePreview: string | null,
+    fileMetadata: FileInfo | null,
+    id: string
+};
+
+export type MessageRichAttachment = {
+    type: 'rich_attachment',
+    title: string | null,
+    subTitle: string | null,
+    titleLink: string | null,
+    text: string | null,
+    icon: ImageRef | null,
+    image: ImageRef | null,
+    iconInfo: FileInfo | null,
+    imageInfo: FileInfo | null,
+    titleLinkHostname: string | null,
+    id: string,
+    keyboard: MessageKeyboard | null
+};
+
+export type MessageAttachment = MessageAttachmentFile | MessageRichAttachment;
+
+export type MessageAttachmentFileInput = {
+    type: 'file_attachment',
+    fileId: string,
+    filePreview: string | null,
+    fileMetadata: FileInfo | null,
+};
+
+export type MessageRichAttachmentInput = {
+    type: 'rich_attachment',
+    title: string | null,
+    subTitle: string | null,
+    titleLink: string | null,
+    text: string | null,
+    icon: ImageRef | null,
+    image: ImageRef | null,
+    iconInfo: FileInfo | null,
+    imageInfo: FileInfo | null,
+    titleLinkHostname: string | null,
+    keyboard: MessageKeyboard | null
+};
+
+export type MessageAttachmentInput = MessageAttachmentFileInput | MessageRichAttachmentInput;
+
+// Deprecated
+export type MessageMention = {
+    type: 'User' | 'SharedRoom'
+    id: number;
 };
 
 export interface MessageInput {
     message?: string | null;
-    file?: string | null;
-    fileMetadata?: FileMetadata | null;
-    filePreview?: string | null;
+
     isMuted?: boolean | null;
     isService?: boolean | null;
     repeatKey?: string | null;
     serviceMetadata?: any & { type: ServiceMessageMetadataType };
-    urlAugmentation?: URLAugmentation | null | false;
     replyMessages?: number[] | null;
+
+    spans?: MessageSpan[] | null;
+    attachments?: MessageAttachmentInput[] | null;
+    ignoreAugmentation?: boolean | null;
+
+    //
+    // Deprecated
+    //
+    file?: string | null;
+    fileMetadata?: FileMetadata | null;
+    filePreview?: string | null;
+    urlAugmentation?: URLAugmentation | null | false;
+    complexMentions?: MessageMention[] | null;
     mentions?: number[] | null;
 
-    type?: MessageType;
-    title?: string | null;
-    buttons?: MessageButton[][] | null;
-    attachments?: MessageAttachment[] | null;
-    postType?: string | null;
-    complexMentions?: MessageMention[] | null;
-    ignoreAugmentation?: boolean | null;
-    spans?: MessageSpan[] | null;
+    // type?: MessageType;
+    // title?: string | null;
+    // buttons?: MessageButton[][] | null;
+    // attachments?: MessageAttachment[] | null;
+    // postType?: string | null;
 }
