@@ -104,7 +104,10 @@ export default {
                 throw Error('Unknown room kind: ' + room.kind);
             }
         }),
-        isChannel: withConverationId(async (ctx, id) => !!((await FDB.ConversationRoom.findById(ctx, id))!.isChannel)),
+        isChannel: withConverationId(async (ctx, id) => {
+            let room = await FDB.ConversationRoom.findById(ctx, id);
+            return !!(room && room.isChannel);
+        }),
         canSendMessage: withConverationId(async (ctx, id) => !!(await Modules.Messaging.room.checkCanSendMessage(ctx, id, ctx.auth.uid!))),
         title: withConverationId(async (ctx, id) => Modules.Messaging.room.resolveConversationTitle(ctx, id, ctx.auth.uid!)),
         photo: withConverationId(async (ctx, id) => Modules.Messaging.room.resolveConversationPhoto(ctx, id, ctx.auth.uid!)),
