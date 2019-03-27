@@ -71,26 +71,27 @@ export class RoomMediator {
                 throw new UserError(`Unfortunately, you cannot join ${await this.resolveConversationTitle(ctx, cid, uid)}. Someone kicked you from this group, and now you can only join it if a group member adds you.`, 'CANT_JOIN_GROUP');
             }
 
-            let shouldSendJoinMessage = !conv.isChannel;
-            if (shouldSendJoinMessage) {
-                // Join room
-                if (await this.repo.joinRoom(ctx, cid, uid, request) && !request) {
+            // Join room
+            if (await this.repo.joinRoom(ctx, cid, uid, request) && !request) {
 
-                    // let prevMessage = await Modules.Messaging.findTopMessage(ctx, cid);
-                    //
-                    // if (prevMessage && prevMessage.serviceMetadata && prevMessage.serviceMetadata.type === 'user_invite') {
-                    //     let uids: number[] = prevMessage.serviceMetadata.userIds;
-                    //     uids.push(uid);
-                    //
-                    //     await this.messaging.editMessage(ctx, prevMessage.id, prevMessage.uid, await this.roomJoinMessage(ctx, conv, uid, uids), false);
-                    // } else {
-                    //     await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, [uid]));
-                    // }
+                // let prevMessage = await Modules.Messaging.findTopMessage(ctx, cid);
+                //
+                // if (prevMessage && prevMessage.serviceMetadata && prevMessage.serviceMetadata.type === 'user_invite') {
+                //     let uids: number[] = prevMessage.serviceMetadata.userIds;
+                //     uids.push(uid);
+                //
+                //     await this.messaging.editMessage(ctx, prevMessage.id, prevMessage.uid, await this.roomJoinMessage(ctx, conv, uid, uids), false);
+                // } else {
+                //     await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, [uid]));
+                // }
+                let shouldSendJoinMessage = !conv.isChannel;
+                if (shouldSendJoinMessage) {
                     await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, [uid], null));
+                } else {
+                    // message not sent to new members, move room up in dialog list other way
+                    await this.messaging.bumpDialog(ctx, uid, cid);
                 }
-            } else {
-                // message not sent to new members, move room up in dialog list other way
-                await this.messaging.bumpDialog(ctx, uid, cid);
+
             }
 
             return (await this.entities.Conversation.findById(ctx, cid))!;
@@ -113,26 +114,29 @@ export class RoomMediator {
                         res.push(id);
                     }
                 }
-                let shouldSendJoinMessage = !conv.isChannel;
-                if (shouldSendJoinMessage) {
-                    // Send message about joining the room
-                    if (res.length > 0) {
 
-                        // let prevMessage = await Modules.Messaging.findTopMessage(ctx, cid);
-                        //
-                        // if (prevMessage && prevMessage.serviceMetadata && prevMessage.serviceMetadata.type === 'user_invite') {
-                        //     let uids: number[] = prevMessage.serviceMetadata.userIds;
-                        //     uids.push(...res);
-                        //
-                        //     await this.messaging.editMessage(ctx, prevMessage.id, prevMessage.uid, await this.roomJoinMessage(ctx, conv, uid, uids), false);
-                        // } else {
-                        //     await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, res));
-                        // }
+                // Send message about joining the room
+                if (res.length > 0) {
+
+                    // let prevMessage = await Modules.Messaging.findTopMessage(ctx, cid);
+                    //
+                    // if (prevMessage && prevMessage.serviceMetadata && prevMessage.serviceMetadata.type === 'user_invite') {
+                    //     let uids: number[] = prevMessage.serviceMetadata.userIds;
+                    //     uids.push(...res);
+                    //
+                    //     await this.messaging.editMessage(ctx, prevMessage.id, prevMessage.uid, await this.roomJoinMessage(ctx, conv, uid, uids), false);
+                    // } else {
+                    //     await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, res));
+                    // }
+                    let shouldSendJoinMessage = !conv.isChannel;
+                    if (shouldSendJoinMessage) {
                         await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, res, uid));
+                    } else {
+                        // message not sent to new members, move room up in dialog list other way
+                        for (let u of res) {
+                            await this.messaging.bumpDialog(ctx, u, cid);
+                        }
                     }
-                } else {
-                    // message not sent to new members, move room up in dialog list other way
-                    await this.messaging.bumpDialog(ctx, uid, cid);
                 }
 
             }
@@ -256,17 +260,23 @@ export class RoomMediator {
             if (await this.repo.leaveRoom(ctx, cid, uid)) {
                 // Send message
                 let userName = await Modules.Users.getUserFullName(ctx, uid);
-                await this.messaging.sendMessage(ctx, uid, cid, {
-                    message: `@${userName} left the group`,
-                    isService: true,
-                    isMuted: true,
-                    serviceMetadata: {
-                        type: 'user_kick',
-                        userId: uid,
-                        kickedById: uid
-                    },
-                    complexMentions: [{ type: 'User', id: uid }]
-                }, true);
+
+                let conv = await this.entities.ConversationRoom.findById(ctx, cid);
+                let isChannel = !!(conv && conv.isChannel);
+
+                if (!isChannel) {
+                    await this.messaging.sendMessage(ctx, uid, cid, {
+                        message: `@${userName} left the group`,
+                        isService: true,
+                        isMuted: true,
+                        serviceMetadata: {
+                            type: 'user_kick',
+                            userId: uid,
+                            kickedById: uid
+                        },
+                        complexMentions: [{ type: 'User', id: uid }]
+                    }, true);
+                }
 
                 // Deliver dialog deletion
                 await this.delivery.onDialogDelete(ctx, uid, cid);
