@@ -397,7 +397,7 @@ export default {
 
                 return await Modules.Messaging.room.updateRoomProfile(ctx, IDs.Conversation.parse(args.roomId), uid, {
                     title: args.input.title!,
-                    description: Sanitizer.sanitizeString(args.input.description),
+                    description: args.input.description === undefined ? undefined : Sanitizer.sanitizeString(args.input.description),
                     image: args.input.photoRef === undefined ? undefined : imageRef,
                     socialImage: args.input.socialImageRef === undefined ? undefined : socialImageRef,
                     kind: kind
