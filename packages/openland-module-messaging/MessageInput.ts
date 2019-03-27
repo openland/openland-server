@@ -105,16 +105,7 @@ export interface MessageInput {
     //
     // Deprecated
     //
-    // file?: string | null;
-    // fileMetadata?: FileMetadata | null;
-    // filePreview?: string | null;
-    // urlAugmentation?: URLAugmentation | null | false;
+
     complexMentions?: MessageMention[] | null;
     mentions?: number[] | null;
-
-    // type?: MessageType;
-    // title?: string | null;
-    // buttons?: MessageButton[][] | null;
-    // attachments?: MessageAttachment[] | null;
-    // postType?: string | null;
 }

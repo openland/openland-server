@@ -32,26 +32,17 @@ export class MessagingRepository {
                 uid: uid,
                 isMuted: message.isMuted || false,
                 isService: message.isService || false,
-                // fileId: message.file,
-                // fileMetadata: message.fileMetadata,
-                // filePreview: message.filePreview,
                 text: message.message,
                 serviceMetadata: message.serviceMetadata || null,
-                // augmentation: message.urlAugmentation,
                 replyMessages: message.replyMessages,
-                mentions: message.mentions,
                 repeatKey: message.repeatKey,
                 deleted: false,
 
-                // type: message.type || 'MESSAGE',
-                // title: message.title,
-                // buttons: message.buttons,
-                // postType: message.postType,
-                // attachments: message.attachments,
+                spans: message.spans,
+                attachmentsModern: attachments.length > 0 ? attachments : null,
 
                 complexMentions: message.complexMentions,
-                spans: message.spans,
-                attachmentsModern: attachments.length > 0 ? attachments : null
+                mentions: message.mentions,
             });
 
             //
@@ -85,21 +76,9 @@ export class MessagingRepository {
             if (newMessage.message) {
                 message.text = newMessage.message;
             }
-            // if (newMessage.file) {
-            //     message.fileId = newMessage.file;
-            // }
-            // if (newMessage.fileMetadata) {
-            //     message.fileMetadata = newMessage.fileMetadata;
-            // }
-            // if (newMessage.filePreview) {
-            //     message.filePreview = newMessage.filePreview;
-            // }
             if (newMessage.replyMessages) {
                 message.replyMessages = newMessage.replyMessages;
             }
-            // if (newMessage.urlAugmentation !== undefined) {
-            //     message.augmentation = newMessage.urlAugmentation;
-            // }
             if (newMessage.mentions) {
                 message.mentions = newMessage.mentions;
             }
