@@ -50,6 +50,19 @@ export class MediaModule {
         };
     }
 
+    sanitizeFileInfo(input: any): FileInfo {
+        return {
+            isStored: Boolean(input.isStored),
+            isImage:  Boolean(input.isImage),
+            imageWidth: Number(input.imageWidth) || null,
+            imageHeight: Number(input.imageHeight) || null,
+            imageFormat: String(input.imageFormat) || null,
+            mimeType: String(input.imageFormat) || 'unknown',
+            name: String(input.name) || 'unknown',
+            size: Number(input.size) || 0
+        };
+    }
+
     async saveFile(ctx: Context, uuid: string): Promise<FileInfo> {
         let fileInfo = await this.fetchFileInfo(ctx, uuid);
 

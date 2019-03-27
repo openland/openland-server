@@ -50,5 +50,6 @@ extend type Mutation {
     debugSendEmail(type: DebugEmailType!): Boolean
     debugCreateTestUser(key: String!, name: String!): User!
     debugDeleteUrlInfoCache(url: String!): Boolean
+    debugDeleteUrlInfoCacheAll: Boolean
     debugSuperNotifications(type: SuperNotificationType!): Boolean!
 }

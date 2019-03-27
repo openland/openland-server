@@ -8,7 +8,7 @@ import { createUrlInfoService } from 'openland-module-messaging/workers/UrlInfoS
 import { MessagingRepository } from 'openland-module-messaging/repositories/MessagingRepository';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { createEmptyContext, Context } from 'openland-utils/Context';
-import { MessageRichAttachmentInput } from '../MessageInput';
+import { MessageAttachmentFileInput, MessageRichAttachmentInput } from '../MessageInput';
 
 const linkifyInstance = linkify()
     .tlds(tlds)
@@ -55,7 +55,6 @@ export class AugmentationMediator {
                 }
 
                 if (urlInfo.title || urlInfo.type !== 'url') {
-                    // await this.messaging.editMessage(createEmptyContext(), item.messageId, { urlAugmentation: urlInfo }, false);
                     let richAttachment: MessageRichAttachmentInput = {
                         type: 'rich_attachment',
                         title: urlInfo.title || null,
@@ -69,16 +68,7 @@ export class AugmentationMediator {
                         imageInfo: urlInfo.imageInfo || null,
                         keyboard: urlInfo.keyboard || null,
                     };
-                    if (richAttachment.keyboard) {
-                        for (let line of richAttachment.keyboard.buttons) {
-                            for (let button of line) {
-                                // for cached url-infos
-                                if ((button as any).id) {
-                                    delete (button as any).id;
-                                }
-                            }
-                        }
-                    }
+
                     await this.messaging.editMessage(
                         createEmptyContext(),
                         item.messageId,
@@ -86,10 +76,17 @@ export class AugmentationMediator {
                         false
                     );
                 } else if (urlInfo.imageInfo) {
+                    let fileAttachment: MessageAttachmentFileInput = {
+                        type: 'file_attachment',
+                        fileId: urlInfo.photo!.uuid,
+                        fileMetadata: urlInfo.imageInfo!,
+                        filePreview: null
+                    };
+
                     await this.messaging.editMessage(
                         createEmptyContext(),
                         item.messageId,
-                        { attachments: [{ type: 'file_attachment', fileId: urlInfo.photo!.uuid, fileMetadata: urlInfo.imageInfo!, filePreview: null }] },
+                        { attachments: [fileAttachment] },
                         false
                     );
                 }

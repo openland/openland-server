@@ -6,9 +6,10 @@ import { FDB } from 'openland-module-db/FDB';
 import { fetchURLInfo } from './UrlInfo';
 import { FileInfo } from 'openland-module-media/FileInfo';
 import { ImageRef } from 'openland-module-media/ImageRef';
-import { createEmptyContext } from 'openland-utils/Context';
+import { Context, createEmptyContext } from 'openland-utils/Context';
 import { UserProfile } from 'openland-module-db/schema';
 import { MessageKeyboard } from '../MessageInput';
+import { inTx } from '../../foundation-orm/inTx';
 
 export interface URLAugmentation {
     url: string;
@@ -62,8 +63,6 @@ export class ModernUrlInfoService {
                 type: 'url',
             });
 
-            console.log(info);
-
             return {
                 ...info,
                 type: 'url',
@@ -89,6 +88,13 @@ export class ModernUrlInfoService {
         let ctx = createEmptyContext();
         await this.cache.delete(ctx, url);
         return true;
+    }
+
+    public async deleteURLInfoCacheAll(parent: Context): Promise<boolean> {
+        return inTx(parent, async ctx => {
+            await this.cache.deleteAll(ctx);
+            return true;
+        });
     }
 
     public specialUrl(regexp: RegExp, cache: boolean, handler: (url: string, data: any[]) => Promise<URLAugmentation | null>) {

@@ -177,6 +177,9 @@ export default {
             await URLInfoService.deleteURLInfoCache(args.url);
             return true;
         }),
+        debugDeleteUrlInfoCacheAll: withPermission('super-admin', async (ctx, args) => {
+            return await URLInfoService.deleteURLInfoCacheAll(ctx);
+        }),
         debugSuperNotifications: withPermission('super-admin', async (ctx, args) => {
             let uid = ctx.auth.uid!;
             let oid = ctx.auth.oid!;

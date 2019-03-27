@@ -142,11 +142,11 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
         subtitle: null,
         description,
         imageURL,
-        imageInfo,
+        imageInfo: Modules.Media.sanitizeFileInfo(imageInfo),
         photo: imageRef,
         hostname: hostname || null,
         iconRef,
-        iconInfo,
+        iconInfo: Modules.Media.sanitizeFileInfo(iconInfo),
         keyboard: {
             buttons: [[
                 { title: 'Open link', style: 'DEFAULT', url }
