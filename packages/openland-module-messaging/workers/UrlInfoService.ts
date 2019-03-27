@@ -29,7 +29,7 @@ export interface URLAugmentation {
     dynamic?: boolean;
 }
 
-export class ModernUrlInfoService {
+export class UrlInfoService {
     private specialUrls: { regexp: RegExp, cache: boolean, handler: (url: string, data: any[]) => Promise<URLAugmentation | null> }[] = [];
 
     private cache = new CacheRepository<URLAugmentation>('url_info');
@@ -122,7 +122,7 @@ const getURLAugmentationForUser = async ({ hostname, url, userId, user }: { host
 };
 
 export function createUrlInfoService() {
-    let service = new ModernUrlInfoService();
+    let service = new UrlInfoService();
 
     service
         .specialUrl(/(localhost:3000|(app.|next.)?openland.com)\/(mail|directory)\/u\/(.*)/, false, async (url, data) => {
