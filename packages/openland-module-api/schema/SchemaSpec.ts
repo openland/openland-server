@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '3966e6d1d1a68903d2c8580596b6cc44';
+export const GQL_SPEC_VERSION = '088c3c7de00ab8d2daca55fc45992e97';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -504,16 +504,6 @@ export namespace GQL {
         commentsCount: number;
         fallback: string;
     }
-    export interface MentionInput {
-        chatId: Nullable<string>;
-        userId: Nullable<string>;
-        userIds: Nullable<string[]>;
-        offset: number;
-        length: number;
-    }
-    export interface FileAttachmentInput {
-        fileId: string;
-    }
     export interface Image {
         url: string;
         metadata: Nullable<FileMetadata>;
@@ -546,22 +536,8 @@ export namespace GQL {
         post: FeedItem;
         fallback: string;
     }
-    export interface MessageRichAttachmentInput {
-        title: Nullable<string>;
-        titleLink: Nullable<string>;
-        text: Nullable<string>;
-        icon: Nullable<string>;
-        image: Nullable<string>;
-        keyboard: Nullable<MessageKeyboardInput>;
-        fallback: Nullable<string>;
-    }
-    export interface MessageAttachmentFileInput {
+    export interface FileAttachmentInput {
         fileId: string;
-        fallback: Nullable<string>;
-    }
-    export interface MessageAttachmentPostInput {
-        postId: string;
-        fallback: Nullable<string>;
     }
     export interface MessageKeyboard {
         buttons: Nullable<ModernMessageButton[]>[];
@@ -610,15 +586,16 @@ export namespace GQL {
         length: number;
         url: string;
     }
-    export interface MessageSpanUserMentionInput {
+    export interface MessageBoldText extends MessageSpan {
         offset: number;
         length: number;
-        userId: string;
     }
-    export interface MessageSpanRoomMentionInput {
+    export interface MentionInput {
+        chatId: Nullable<string>;
+        userId: Nullable<string>;
+        userIds: Nullable<string[]>;
         offset: number;
         length: number;
-        roomId: string;
     }
     export interface PageInfo {
         hasNextPage: boolean;
@@ -1390,9 +1367,9 @@ export namespace GQL {
     export interface MutationSendMessageArgs {
         chatId: string;
         message: OptionalNullable<string>;
-        repeatKey: OptionalNullable<string>;
         mentions: OptionalNullable<MentionInput[]>;
         fileAttachments: OptionalNullable<FileAttachmentInput[]>;
+        repeatKey: OptionalNullable<string>;
     }
     export interface MutationPinMessageArgs {
         chatId: string;
@@ -2389,8 +2366,6 @@ export interface GQLResolver {
     MessageRichAttachment?: ComplexTypedResolver<GQL.MessageRichAttachment, GQLRoots.MessageRichAttachmentRoot, {icon: Nullable<GQLRoots.ImageRoot>, image: Nullable<GQLRoots.ImageRoot>, keyboard: Nullable<GQLRoots.MessageKeyboardRoot>}, {}>;
     MessageAttachmentFile?: ComplexTypedResolver<GQL.MessageAttachmentFile, GQLRoots.MessageAttachmentFileRoot, {fileMetadata: GQLRoots.FileMetadataRoot}, {}>;
     MessageAttachmentPost?: ComplexTypedResolver<GQL.MessageAttachmentPost, GQLRoots.MessageAttachmentPostRoot, {post: GQLRoots.FeedItemRoot}, {}>;
-    MessageAttachmentFileInput?: ComplexTypedResolver<GQL.MessageAttachmentFileInput, GQLRoots.MessageAttachmentFileInputRoot, {}, {}>;
-    MessageAttachmentPostInput?: ComplexTypedResolver<GQL.MessageAttachmentPostInput, GQLRoots.MessageAttachmentPostInputRoot, {}, {}>;
     MessageKeyboard?: ComplexTypedResolver<GQL.MessageKeyboard, GQLRoots.MessageKeyboardRoot, {buttons: Nullable<GQLRoots.ModernMessageButtonRoot[]>[]}, {}>;
     ModernMessageButton?: ComplexTypedResolver<GQL.ModernMessageButton, GQLRoots.ModernMessageButtonRoot, {}, {}>;
     ModernMessageReaction?: ComplexTypedResolver<GQL.ModernMessageReaction, GQLRoots.ModernMessageReactionRoot, {user: GQLRoots.UserRoot}, {}>;
@@ -2398,6 +2373,7 @@ export interface GQLResolver {
     MessageSpanMultiUserMention?: ComplexTypedResolver<GQL.MessageSpanMultiUserMention, GQLRoots.MessageSpanMultiUserMentionRoot, {users: GQLRoots.UserRoot[]}, {}>;
     MessageSpanRoomMention?: ComplexTypedResolver<GQL.MessageSpanRoomMention, GQLRoots.MessageSpanRoomMentionRoot, {room: GQLRoots.RoomRoot}, {}>;
     MessageSpanLink?: ComplexTypedResolver<GQL.MessageSpanLink, GQLRoots.MessageSpanLinkRoot, {}, {}>;
+    MessageBoldText?: ComplexTypedResolver<GQL.MessageBoldText, GQLRoots.MessageBoldTextRoot, {}, {}>;
     PageInfo?: ComplexTypedResolver<GQL.PageInfo, GQLRoots.PageInfoRoot, {}, {}>;
     Task?: ComplexTypedResolver<GQL.Task, GQLRoots.TaskRoot, {}, {}>;
     ImageCrop?: ComplexTypedResolver<GQL.ImageCrop, GQLRoots.ImageCropRoot, {}, {}>;

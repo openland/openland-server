@@ -522,6 +522,11 @@ const Schema = declareSchema(() => {
                 jField('length', jNumber());
                 jField('url', jString());
             }),
+            json(() => {
+                jField('type', jString('bold_text'));
+                jField('offset', jNumber());
+                jField('length', jNumber());
+            }),
         ))).nullable();
         jsonField('attachmentsModern', jVec(jEnum(
             json(() => {

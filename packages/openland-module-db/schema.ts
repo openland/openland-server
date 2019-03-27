@@ -4527,7 +4527,7 @@ export interface MessageShape {
     isMuted: boolean;
     isService: boolean;
     deleted?: boolean| null;
-    spans?: ({ type: 'user_mention', offset: number, length: number, user: number, } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[], } | { type: 'room_mention', offset: number, length: number, room: number, } | { type: 'link', offset: number, length: number, url: string, })[]| null;
+    spans?: ({ type: 'user_mention', offset: number, length: number, user: number, } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[], } | { type: 'room_mention', offset: number, length: number, room: number, } | { type: 'link', offset: number, length: number, url: string, } | { type: 'bold_text', offset: number, length: number, })[]| null;
     attachmentsModern?: ({ type: 'file_attachment', fileId: string, filePreview: string | null, fileMetadata: { isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, } | null, id: string, } | { type: 'rich_attachment', title: string | null, subTitle: string | null, titleLink: string | null, text: string | null, icon: { uuid: string, crop: { x: number, y: number, w: number, h: number, } | null, } | null, image: { uuid: string, crop: { x: number, y: number, w: number, h: number, } | null, } | null, iconInfo: { isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, } | null, imageInfo: { isImage: boolean, isStored: boolean, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, } | null, titleLinkHostname: string | null, keyboard: { buttons: (({ title: string, style: 'DEFAULT' | 'LIGHT', url: string | null, })[])[], } | null, id: string, })[]| null;
     fileId?: string| null;
     fileMetadata?: { isStored: boolean | undefined, isImage: boolean | null, imageWidth: number | null, imageHeight: number | null, imageFormat: string | null, mimeType: string, name: string, size: number, }| null;
@@ -4658,12 +4658,12 @@ export class Message extends FEntity {
         this._value.deleted = value;
         this.markDirty();
     }
-    get spans(): ({ type: 'user_mention', offset: number, length: number, user: number, } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[], } | { type: 'room_mention', offset: number, length: number, room: number, } | { type: 'link', offset: number, length: number, url: string, })[] | null {
+    get spans(): ({ type: 'user_mention', offset: number, length: number, user: number, } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[], } | { type: 'room_mention', offset: number, length: number, room: number, } | { type: 'link', offset: number, length: number, url: string, } | { type: 'bold_text', offset: number, length: number, })[] | null {
         let res = this._value.spans;
         if (res !== null && res !== undefined) { return res; }
         return null;
     }
-    set spans(value: ({ type: 'user_mention', offset: number, length: number, user: number, } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[], } | { type: 'room_mention', offset: number, length: number, room: number, } | { type: 'link', offset: number, length: number, url: string, })[] | null) {
+    set spans(value: ({ type: 'user_mention', offset: number, length: number, user: number, } | { type: 'multi_user_mention', offset: number, length: number, users: (number)[], } | { type: 'room_mention', offset: number, length: number, room: number, } | { type: 'link', offset: number, length: number, url: string, } | { type: 'bold_text', offset: number, length: number, })[] | null) {
         this._checkIsWritable();
         if (value === this._value.spans) { return; }
         this._value.spans = value;
@@ -4887,6 +4887,11 @@ export class MessageFactory extends FEntityFactory<Message> {
                 jField('offset', jNumber());
                 jField('length', jNumber());
                 jField('url', jString());
+            }), 
+            json(() => {
+                jField('type', jString('bold_text'));
+                jField('offset', jNumber());
+                jField('length', jNumber());
             })
         )));
         validators.isJson('attachmentsModern', src.attachmentsModern, jVec(jEnum(

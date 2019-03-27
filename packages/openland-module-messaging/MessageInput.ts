@@ -8,8 +8,6 @@ export type ServiceMessageMetadataType =
     'title_change' |
     'photo_change';
 
-// type MessageType = 'MESSAGE' | 'POST';
-
 export type MessageButton = {
     title: string;
     style: 'DEFAULT' | 'LIGHT';
@@ -24,7 +22,8 @@ export type UserMentionSpan = { type: 'user_mention', offset: number, length: nu
 export type MultiUserMentionSpan = { type: 'multi_user_mention', offset: number, length: number, users: number[] };
 export type RoomMentionSpan = { type: 'room_mention', offset: number, length: number, room: number };
 export type LinkSpan = { type: 'link', offset: number, length: number, url: string };
-export type MessageSpan = UserMentionSpan | MultiUserMentionSpan | RoomMentionSpan | LinkSpan;
+export type BoldTextSpan = { type: 'bold_text', offset: number, length: number };
+export type MessageSpan = UserMentionSpan | MultiUserMentionSpan | RoomMentionSpan | LinkSpan | BoldTextSpan;
 
 export type FileMetadata = {
     isStored: boolean | undefined,

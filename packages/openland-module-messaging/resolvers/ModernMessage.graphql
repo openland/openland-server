@@ -188,6 +188,11 @@ type MessageSpanLink implements MessageSpan {
     url: String!
 }
 
+type MessageBoldText implements MessageSpan {
+    offset: Int!
+    length: Int!
+}
+
 input MentionInput {
     chatId: ID
     userId: ID
