@@ -43,6 +43,9 @@ export class MessagingMediator {
             // Permissions
             if (!skipAccessCheck) {
                 await this.room.checkAccess(ctx, uid, cid);
+                if (!(await this.room.checkCanSendMessage(ctx, cid, uid))) {
+                    throw new AccessDeniedError();
+                }
             }
 
             // Create

@@ -674,10 +674,6 @@ export class RoomRepository {
             if (!member || member.status !== 'joined') {
                 throw new AccessDeniedError();
             }
-
-            if (convRoom && convRoom.isChannel) {
-                throw new AccessDeniedError();
-            }
         } else if (conv.kind === 'organization') {
             let org = await this.entities.ConversationOrganization.findById(ctx, cid);
             if (!org) {
