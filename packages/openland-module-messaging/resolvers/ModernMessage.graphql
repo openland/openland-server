@@ -57,22 +57,9 @@ extend type Query {
 }
 
 extend type Mutation {
-    sendMessage(chatId: ID!, message: String, repeatKey: String, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!]): Boolean!
-#    modernSendMessage(room: ID!, message: String, repeatKey: String, forwardMessages: [ID!], spans: [MessageSpanInput!], attachments: [MessageAttachmentInput!]): Boolean!
+    sendMessage(chatId: ID!, message: String, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], repeatKey: String): Boolean!
     pinMessage(chatId: ID!, messageId: ID!): Boolean!
     unpinMessage(chatId: ID!): Boolean!
-}
-
-input MentionInput {
-    chatId: ID
-    userId: ID
-    userIds: [ID!]
-    offset: Int!
-    length: Int!
-}
-
-input FileAttachmentInput {
-    fileId: String!
 }
 
 #
@@ -116,31 +103,14 @@ type MessageAttachmentPost implements ModernMessageAttachment {
     fallback: String!
 }
 
-# union MessageAttachmentInput = MessageRichAttachmentInput | MessageAttachmentFileInput | MessageAttachmentPostInput
-
-input MessageRichAttachmentInput {
-    title: String
-    titleLink: String
-    text: String
-    icon: String
-    image: String
-    keyboard: MessageKeyboardInput
-    fallback: String
-}
-
-type MessageAttachmentFileInput {
+input FileAttachmentInput {
     fileId: String!
-    fallback: String
-}
-
-type MessageAttachmentPostInput {
-    postId: ID!
-    fallback: String
 }
 
 #
 #   Keyboard
 #
+
 type MessageKeyboard {
     buttons: [[ModernMessageButton!]]!
 }
@@ -218,16 +188,10 @@ type MessageSpanLink implements MessageSpan {
     url: String!
 }
 
-# union MessageSpanInput = MessageSpanUserMentionInput | MessageSpanRoomMentionInput
-
-input MessageSpanUserMentionInput {
+input MentionInput {
+    chatId: ID
+    userId: ID
+    userIds: [ID!]
     offset: Int!
     length: Int!
-    userId: ID!
-}
-
-input MessageSpanRoomMentionInput {
-    offset: Int!
-    length: Int!
-    roomId: ID!
 }
