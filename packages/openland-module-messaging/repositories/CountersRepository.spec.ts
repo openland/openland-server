@@ -96,8 +96,8 @@ describe('CountersRepository', () => {
         let mrepo = container.get<MessagingRepository>('MessagingRepository');
         let repo = container.get<CountersRepository>('CountersRepository');
 
-        let mid1 = (await mrepo.createMessage(ctx, 4, 1, { message: '1', mentions: [3] })).message.id!;
-        let mid2 = (await mrepo.createMessage(ctx, 4, 1, { message: '1', mentions: [3] })).message.id!;
+        let mid1 = (await mrepo.createMessage(ctx, 4, 1, { message: '1', spans: [{ type: 'user_mention', offset: 0, length: 1, user: 3 }] })).message.id!;
+        let mid2 = (await mrepo.createMessage(ctx, 4, 1, { message: '1', spans: [{ type: 'user_mention', offset: 0, length: 1, user: 3 }] })).message.id!;
         let mid3 = (await mrepo.createMessage(ctx, 4, 1, { message: '1' })).message.id!;
 
         expect((await repo.onMessageReceived(ctx, 3, mid1)).delta).toBe(1);
@@ -119,9 +119,9 @@ describe('CountersRepository', () => {
         let mrepo = container.get<MessagingRepository>('MessagingRepository');
         let repo = container.get<CountersRepository>('CountersRepository');
 
-        let mid1 = (await mrepo.createMessage(ctx, 5, 1, { message: '1', mentions: [6] })).message.id!;
+        let mid1 = (await mrepo.createMessage(ctx, 5, 1, { message: '1', spans: [{ type: 'user_mention', offset: 0, length: 1, user: 6 }] })).message.id!;
         let mid2 = (await mrepo.createMessage(ctx, 5, 1, { message: '1' })).message.id!;
-        let mid3 = (await mrepo.createMessage(ctx, 5, 1, { message: '1', mentions: [6] })).message.id!;
+        let mid3 = (await mrepo.createMessage(ctx, 5, 1, { message: '1', spans: [{ type: 'user_mention', offset: 0, length: 1, user: 6 }] })).message.id!;
 
         // After fisrt mention
         expect((await repo.onMessageReceived(ctx, 6, mid1)).delta).toBe(1);
@@ -150,9 +150,9 @@ describe('CountersRepository', () => {
         const CID = 7;
         const S_UID = 8;
         const R_UID = 9;
-        let mid1 = (await mrepo.createMessage(ctx, CID, S_UID, { message: '1', mentions: [R_UID] })).message.id!;
+        let mid1 = (await mrepo.createMessage(ctx, CID, S_UID, { message: '1', spans: [{ type: 'user_mention', offset: 0, length: 1, user: R_UID }] })).message.id!;
         let mid2 = (await mrepo.createMessage(ctx, CID, S_UID, { message: '1' })).message.id!;
-        let mid3 = (await mrepo.createMessage(ctx, CID, S_UID, { message: '1', mentions: [R_UID] })).message.id!;
+        let mid3 = (await mrepo.createMessage(ctx, CID, S_UID, { message: '1', spans: [{ type: 'user_mention', offset: 0, length: 1, user: R_UID }] })).message.id!;
 
         // Should not reset mention as there are more messages
         expect((await repo.onMessageReceived(ctx, R_UID, mid1)).delta).toBe(1);
