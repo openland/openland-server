@@ -2,11 +2,11 @@ import { withUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { GQLResolver } from 'openland-module-api/schema/SchemaSpec';
 import { IDs } from 'openland-module-api/IDs';
-import { MessageAttachmentInput } from '../MessageInput';
+import { MessageAttachmentInput, MessageSpan } from '../MessageInput';
 import { UserError } from '../../openland-errors/UserError';
 import { FDB } from '../../openland-module-db/FDB';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
-import { prepareLegacyMentionsInput } from './ModernMessage.resolver';
+import { parseLinks, prepareLegacyMentionsInput } from './ModernMessage.resolver';
 
 export default {
     Mutation: {
@@ -39,11 +39,19 @@ export default {
                 });
             }
 
+            let spans: MessageSpan[] = [];
+
+            if (mentions) {
+                spans.push(...await prepareLegacyMentionsInput(ctx, args.message || '', mentions));
+            }
+
+            spans.push(...parseLinks(args.message || ''));
+
             await Modules.Messaging.sendMessage(ctx, conversationId, uid!, {
                 message: args.message,
                 attachments,
                 replyMessages,
-                spans: mentions ? await prepareLegacyMentionsInput(ctx, args.message || '', mentions) : [],
+                spans,
                 repeatKey: args.repeatKey
             });
             return true;

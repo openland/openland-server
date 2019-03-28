@@ -22,8 +22,8 @@ import { FEntity } from 'foundation-orm/FEntity';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
-import { MessageAttachmentInput } from '../MessageInput';
-import { prepareLegacyMentionsInput } from './ModernMessage.resolver';
+import { MessageAttachmentInput, MessageSpan } from '../MessageInput';
+import { parseLinks, prepareLegacyMentionsInput } from './ModernMessage.resolver';
 
 export default {
     Conversation: {
@@ -585,11 +585,19 @@ export default {
                 });
             }
 
+            let spans: MessageSpan[] = [];
+
+            if (mentions) {
+                spans.push(...await prepareLegacyMentionsInput(ctx, args.message || '', mentions));
+            }
+
+            spans.push(...parseLinks(args.message || ''));
+
             return Modules.Messaging.sendMessage(ctx, conversationId, uid!, {
                 message: args.message,
                 attachments,
                 replyMessages,
-                spans: mentions ? await prepareLegacyMentionsInput(ctx, args.message || '', mentions) : [],
+                spans,
                 repeatKey: args.repeatKey
             });
         }),

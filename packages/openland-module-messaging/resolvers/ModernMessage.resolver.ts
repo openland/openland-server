@@ -196,7 +196,7 @@ const linkifyInstance = linkify()
     .tlds(tlds)
     .tlds('onion', true);
 
-function parseLinks(message: string): MessageSpan[] {
+export function parseLinks(message: string): MessageSpan[] {
     let urls = linkifyInstance.match(message);
 
     if (!urls) {
