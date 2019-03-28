@@ -144,7 +144,7 @@ export class HooksModule {
     }
 
     onAppHookCreated = async (ctx: Context, uid: number, hook: AppHook) => {
-        let message = `created hook ${hook.key} \n for chat: openland.com/mail/${IDs.Conversation.serialize(hook.chatId)}`;
+        let message = `created hook https://api.openland.com/apps/chat-hook/${hook.key} \nfor chat: openland.com/mail/${IDs.Conversation.serialize(hook.chatId)}`;
         let privateChat = await Modules.Messaging.room.resolvePrivateChat(ctx, hook.appId, uid);
         await Modules.Messaging.sendMessage(ctx, privateChat.id, hook.appId, { message, ignoreAugmentation: true });
     }

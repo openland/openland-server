@@ -628,11 +628,11 @@ export class RoomRepository {
 
     async userHaveAdminPermissionsInChat(ctx: Context, conv: ConversationRoom, uid: number) {
         //
-        //  Super-admin can do everything
+        //  Super-admin can do everything (but not now)
         //
-        if ((await Modules.Super.superRole(ctx, uid)) === 'super-admin') {
-            return true;
-        }
+        // if ((await Modules.Super.superRole(ctx, uid)) === 'super-admin') {
+        //     return true;
+        // }
 
         //
         //  Org/community admin can manage any chat in that org/community
@@ -645,6 +645,14 @@ export class RoomRepository {
         //  Group owner can manage chat
         //
         if (conv.ownerId === uid) {
+            return true;
+        }
+
+        //
+        //  Group admin can manage chat
+        //
+        let userRole = await this.resolveUserRole(ctx, uid, conv.id);
+        if (userRole === 'admin' || userRole === 'owner') {
             return true;
         }
 
