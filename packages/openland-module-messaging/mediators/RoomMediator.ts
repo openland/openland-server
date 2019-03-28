@@ -100,7 +100,6 @@ export class RoomMediator {
 
             return (await this.entities.Conversation.findById(ctx, cid))!;
         });
-
     }
 
     async inviteToRoom(parent: Context, cid: number, uid: number, invites: number[]) {
@@ -543,17 +542,22 @@ export class RoomMediator {
                 let name = await Modules.Users.getUserFullName(parent, uids[0]);
                 let inviterName = await Modules.Users.getUserFullName(parent, invitedBy);
                 return buildMessage(emoji, userMention(inviterName, invitedBy!), ' invited ', userMention(name, uids[0]));
-            } else {
+            } else if (invitedBy !== uids[0]) {
                 let name = await Modules.Users.getUserFullName(parent, uids[0]);
                 return buildMessage(emoji, userMention(name, uids[0]), ' joined the group');
+            } else {
+                let name = await Modules.Users.getUserFullName(parent, uids[0]);
+                return buildMessage(emoji, userMention(name, uids[0]), ' joined the group via invite link');
             }
         } else if (uids.length === 2) {
+            let inviterName = await Modules.Users.getUserFullName(parent, invitedBy!);
             let name1 = await Modules.Users.getUserFullName(parent, uids[0]);
             let name2 = await Modules.Users.getUserFullName(parent, uids[1]);
-            return buildMessage(emoji, userMention(name1, uids[0]), ' joined the group along with ', userMention(name2, uids[1]));
+            return buildMessage(emoji, userMention(inviterName, invitedBy!), ' invited ', userMention(name1, uids[0]), ' and ', userMention(name2, uids[1]));
         } else {
+            let inviterName = await Modules.Users.getUserFullName(parent, invitedBy!);
             let name = await Modules.Users.getUserFullName(parent, uids[0]);
-            return buildMessage(emoji, userMention(name, uids[0]), ' joined the group along with ', usersMention(`${uids.length - 1} others`, uids.splice(2)));
+            return buildMessage(emoji, userMention(inviterName, invitedBy!), ' invited ', userMention(name, uids[0]), ' along with ', usersMention(`${uids.length - 1} others`, uids.splice(1)));
         }
     }
 
