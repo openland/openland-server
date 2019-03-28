@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'fbb68e922da04eb560e2d8a7512a2ec2';
+export const GQL_SPEC_VERSION = 'bfeb84df4e838ac793368722f43841ed';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -1376,6 +1376,7 @@ export namespace GQL {
     export interface MutationEditMessageArgs {
         messageId: string;
         message: OptionalNullable<string>;
+        replyMessages: OptionalNullable<string[]>;
         mentions: OptionalNullable<MentionInput[]>;
         fileAttachments: OptionalNullable<FileAttachmentInput[]>;
     }
