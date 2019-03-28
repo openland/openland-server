@@ -5,6 +5,7 @@ import { Context } from 'openland-utils/Context';
 import { IDs } from '../openland-module-api/IDs';
 import { FDB } from '../openland-module-db/FDB';
 import { AppHook } from 'openland-module-db/schema';
+import { buildMessage, userMention } from '../openland-utils/MessageBuilder';
 
 const profileUpdated = createHyperlogger<{ uid: number }>('profile-updated');
 const organizationProfileUpdated = createHyperlogger<{ oid: number }>('organization-profile-updated');
@@ -64,20 +65,22 @@ export class HooksModule {
             return;
         }
 
-        let message = '';
         let orgProfile = await FDB.OrganizationProfile.findById(ctx, oid);
         let orgSuperUrl = 'openland.com/super/orgs/' + IDs.SuperAccount.serialize(oid);
 
         if (conditions.type === 'BY_SUPER_ADMIN') {
             let adminName = await Modules.Users.getUserFullName(ctx, conditions.uid);
-            message = `Organization ${orgProfile!.name} was activated by @${adminName}.\nLink: ${orgSuperUrl}`;
-            await Modules.Messaging.sendMessage(ctx, chatId, botId, { message, ignoreAugmentation: true, complexMentions: [{ type: 'User', id: conditions.uid }] });
+            await Modules.Messaging.sendMessage(ctx, chatId, botId, {
+                ...buildMessage(`Organization ${orgProfile!.name} was activated by `, userMention(adminName, conditions.uid), `\nLink: ${orgSuperUrl}`),
+                ignoreAugmentation: true,
+            });
         } else if (conditions.type === 'BY_INVITE' || conditions.type === 'OWNER_ADDED_TO_ORG') {
             let invitorId = conditions.type === 'BY_INVITE' ? conditions.inviteOwner : conditions.owner;
             let invitorName = await Modules.Users.getUserFullName(ctx, invitorId);
 
-            message = `Organization ${orgProfile!.name} was activated by @${invitorName} via invite.\nLink: ${orgSuperUrl}`;
-            await Modules.Messaging.sendMessage(ctx, chatId, botId, { message, ignoreAugmentation: true, complexMentions: [{ type: 'User', id: invitorId }] });
+            await Modules.Messaging.sendMessage(ctx, chatId, botId, {
+                ...buildMessage(`Organization ${orgProfile!.name} was activated by `, userMention(invitorName, invitorId), `via invite.\nLink: ${orgSuperUrl}`),
+            });
         }
     }
 
@@ -92,9 +95,10 @@ export class HooksModule {
         let orgProfile = await FDB.OrganizationProfile.findById(ctx, oid);
         let orgSuperUrl = 'openland.com/super/orgs/' + IDs.SuperAccount.serialize(oid);
         let adminName = await Modules.Users.getUserFullName(ctx, conditions.uid);
-        let message = `Organization ${orgProfile!.name} was suspended by @${adminName}.\nLink: ${orgSuperUrl}`;
-
-        await Modules.Messaging.sendMessage(ctx, chatId, botId, { message, ignoreAugmentation: true, complexMentions: [{ type: 'User', id: conditions.uid }] });
+        await Modules.Messaging.sendMessage(ctx, chatId, botId, {
+            ...buildMessage(`Organization ${orgProfile!.name} was suspended by `, userMention(adminName, conditions.uid), `\nLink: ${orgSuperUrl}`),
+            ignoreAugmentation: true,
+        });
     }
 
     onSignUp = async (ctx: Context, uid: number) => {
@@ -124,16 +128,19 @@ export class HooksModule {
 
         let userName = await Modules.Users.getUserFullName(ctx, uid);
         let orgs = await Modules.Orgs.findUserOrganizations(ctx, uid);
-        let message = '';
 
         if (orgs.length === 0) {
-            message = `New user in waitlist: @${userName} with no organization`;
+            await Modules.Messaging.sendMessage(ctx, chatId, botId, {
+                ...buildMessage(`New user in waitlist: `, userMention(userName, uid), ` with no organization`),
+                ignoreAugmentation: true,
+            });
         } else {
             let org = await FDB.OrganizationProfile.findById(ctx, orgs[0]);
-            message = `New user in waitlist: @${userName} at ${org!.name}.\nLink: openland.com/super/orgs/${IDs.SuperAccount.serialize(org!.id)}`;
+            await Modules.Messaging.sendMessage(ctx, chatId, botId, {
+                ...buildMessage(`New user in waitlist: `, userMention(userName, uid), ` at ${org!.name}.\nLink: openland.com/super/orgs/${IDs.SuperAccount.serialize(org!.id)}`),
+                ignoreAugmentation: true,
+            });
         }
-
-        await Modules.Messaging.sendMessage(ctx, chatId, botId, { message, ignoreAugmentation: true, complexMentions: [{ type: 'User', id: uid }] });
     }
 
     onAppHookCreated = async (ctx: Context, uid: number, hook: AppHook) => {
