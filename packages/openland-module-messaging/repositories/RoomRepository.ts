@@ -628,11 +628,11 @@ export class RoomRepository {
 
     async userHaveAdminPermissionsInChat(ctx: Context, conv: ConversationRoom, uid: number) {
         //
-        //  Super-admin can do everything
+        //  Super-admin can do everything (but not now)
         //
-        if ((await Modules.Super.superRole(ctx, uid)) === 'super-admin') {
-            return true;
-        }
+        // if ((await Modules.Super.superRole(ctx, uid)) === 'super-admin') {
+        //     return true;
+        // }
 
         //
         //  Org/community admin can manage any chat in that org/community
