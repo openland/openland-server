@@ -648,6 +648,14 @@ export class RoomRepository {
             return true;
         }
 
+        //
+        //  Group admin can manage chat
+        //
+        let userRole = await this.resolveUserRole(ctx, uid, conv.id);
+        if (userRole === 'admin' || userRole === 'owner') {
+            return true;
+        }
+
         return false;
     }
 
