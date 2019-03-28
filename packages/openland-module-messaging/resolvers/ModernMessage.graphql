@@ -190,7 +190,7 @@ type MessageSpanLink implements MessageSpan {
     url: String!
 }
 
-type MessageBoldText implements MessageSpan {
+type MessageSpanBold implements MessageSpan {
     offset: Int!
     length: Int!
 }

@@ -198,7 +198,7 @@ export namespace GQLRoots {
     export type MessageSpanMultiUserMentionRoot = MultiUserMentionSpan;
     export type MessageSpanRoomMentionRoot = RoomMentionSpan;
     export type MessageSpanLinkRoot = LinkSpan;
-    export type MessageBoldTextRoot = BoldTextSpan;
+    export type MessageSpanBoldRoot = BoldTextSpan;
     export type ModernMessageAttachmentRoot = { attachment: MessageAttachment, message: Message };
     export type MessageAttachmentFileRoot = { attachment: MessageAttachmentFile, message: Message };
     export type MessageAttachmentPostRoot = any;

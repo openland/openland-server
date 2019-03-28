@@ -469,7 +469,7 @@ export default {
             } else if (src.type === 'multi_user_mention') {
                 return 'MessageSpanMultiUserMention';
             } else if (src.type === 'bold_text') {
-                return 'MessageBoldText';
+                return 'MessageSpanBold';
             } else {
                 throw new UserError('Unknown message span type: ' + (src as any).type);
             }
@@ -495,7 +495,7 @@ export default {
         length: src => src.length,
         url: src => src.url,
     },
-    MessageBoldText: {
+    MessageSpanBold: {
         offset: src => src.offset,
         length: src => src.length,
     },

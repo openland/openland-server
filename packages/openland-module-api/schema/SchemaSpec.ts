@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = 'bfeb84df4e838ac793368722f43841ed';
+export const GQL_SPEC_VERSION = 'f1808709e0b94c04ad41ba4bc5b0b8d5';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -586,7 +586,7 @@ export namespace GQL {
         length: number;
         url: string;
     }
-    export interface MessageBoldText extends MessageSpan {
+    export interface MessageSpanBold extends MessageSpan {
         offset: number;
         length: number;
     }
@@ -2382,7 +2382,7 @@ export interface GQLResolver {
     MessageSpanMultiUserMention?: ComplexTypedResolver<GQL.MessageSpanMultiUserMention, GQLRoots.MessageSpanMultiUserMentionRoot, {users: GQLRoots.UserRoot[]}, {}>;
     MessageSpanRoomMention?: ComplexTypedResolver<GQL.MessageSpanRoomMention, GQLRoots.MessageSpanRoomMentionRoot, {room: GQLRoots.RoomRoot}, {}>;
     MessageSpanLink?: ComplexTypedResolver<GQL.MessageSpanLink, GQLRoots.MessageSpanLinkRoot, {}, {}>;
-    MessageBoldText?: ComplexTypedResolver<GQL.MessageBoldText, GQLRoots.MessageBoldTextRoot, {}, {}>;
+    MessageSpanBold?: ComplexTypedResolver<GQL.MessageSpanBold, GQLRoots.MessageSpanBoldRoot, {}, {}>;
     PageInfo?: ComplexTypedResolver<GQL.PageInfo, GQLRoots.PageInfoRoot, {}, {}>;
     Task?: ComplexTypedResolver<GQL.Task, GQLRoots.TaskRoot, {}, {}>;
     ImageCrop?: ComplexTypedResolver<GQL.ImageCrop, GQLRoots.ImageCropRoot, {}, {}>;
