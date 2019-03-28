@@ -4,6 +4,7 @@ import { createHyperlogger } from 'openland-module-hyperlog/createHyperlogEvent'
 import { Context } from 'openland-utils/Context';
 import { IDs } from '../openland-module-api/IDs';
 import { FDB } from '../openland-module-db/FDB';
+import { AppHook } from 'openland-module-db/schema';
 
 const profileUpdated = createHyperlogger<{ uid: number }>('profile-updated');
 const organizationProfileUpdated = createHyperlogger<{ oid: number }>('organization-profile-updated');
@@ -132,7 +133,13 @@ export class HooksModule {
             message = `New user in waitlist: @${userName} at ${org!.name}.\nLink: openland.com/super/orgs/${IDs.SuperAccount.serialize(org!.id)}`;
         }
 
-        await Modules.Messaging.sendMessage(ctx, chatId, botId, { message, ignoreAugmentation: true, complexMentions: [{ type: 'User', id: uid }]});
+        await Modules.Messaging.sendMessage(ctx, chatId, botId, { message, ignoreAugmentation: true, complexMentions: [{ type: 'User', id: uid }] });
+    }
+
+    onAppHookCreated = async (ctx: Context, uid: number, hook: AppHook) => {
+        let message = `created hook ${hook.key} \n for chat: openland.com/mail/${IDs.Conversation.serialize(hook.chatId)}`;
+        let privateChat = await Modules.Messaging.room.resolvePrivateChat(ctx, hook.appId, uid);
+        await Modules.Messaging.sendMessage(ctx, privateChat.id, hook.appId, { message, ignoreAugmentation: true });
     }
 
     private async getSuperNotificationsBotId(ctx: Context) {

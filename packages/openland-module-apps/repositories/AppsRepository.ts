@@ -126,6 +126,8 @@ export class AppsRepository {
                 hook = await this.entities.AppHook.create(ctx, appId, cid, { key: randomKey() });
             }
 
+            await Modules.Hooks.onAppHookCreated(parent, uid, hook);
+
             return hook;
         });
     }
@@ -143,7 +145,7 @@ export class AppsRepository {
     }
 
     private async checkAppAccess(ctx: Context, uid: number, appId: number) {
-        if (!await this.isAppOwner(ctx,  uid, appId)) {
+        if (!await this.isAppOwner(ctx, uid, appId)) {
             throw new AccessDeniedError();
         }
     }
