@@ -535,14 +535,14 @@ export class RoomMediator {
 
     private async roomJoinMessageText(parent: Context, room: ConversationRoom, uids: number[], invitedBy: number | null) {
         let emojies = ['🖖', '🖐️', '✋', '🙌', '👏', '👋'];
-        let emoji = emojies[Math.floor(Math.random() * emojies.length)];
+        let emoji = emojies[Math.floor(Math.random() * emojies.length)] + ' ';
 
         if (uids.length === 1) {
             if (invitedBy && invitedBy !== uids[0]) {
                 let name = await Modules.Users.getUserFullName(parent, uids[0]);
                 let inviterName = await Modules.Users.getUserFullName(parent, invitedBy);
                 return buildMessage(emoji, userMention(inviterName, invitedBy!), ' invited ', userMention(name, uids[0]));
-            } else if (invitedBy !== uids[0]) {
+            } else if (invitedBy && invitedBy === uids[0]) {
                 let name = await Modules.Users.getUserFullName(parent, uids[0]);
                 return buildMessage(emoji, userMention(name, uids[0]), ' joined the group');
             } else {
