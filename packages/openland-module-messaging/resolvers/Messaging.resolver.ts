@@ -2,10 +2,11 @@ import { withUser } from 'openland-module-api/Resolvers';
 import { Modules } from 'openland-modules/Modules';
 import { GQLResolver } from 'openland-module-api/schema/SchemaSpec';
 import { IDs } from 'openland-module-api/IDs';
-import { MessageAttachmentInput } from '../MessageInput';
+import { MessageAttachmentInput, MessageSpan } from '../MessageInput';
 import { UserError } from '../../openland-errors/UserError';
 import { FDB } from '../../openland-module-db/FDB';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
+import { prepareLegacyMentionsInput } from './ModernMessage.resolver';
 
 export default {
     Mutation: {
@@ -42,7 +43,7 @@ export default {
                 message: args.message,
                 attachments,
                 replyMessages,
-                mentions,
+                spans: mentions ? await prepareLegacyMentionsInput(ctx, args.message || '', mentions) : [],
                 repeatKey: args.repeatKey
             });
             return true;
@@ -72,7 +73,7 @@ export default {
                 message: args.message,
                 attachments,
                 replyMessages,
-                mentions
+                spans: mentions ? await prepareLegacyMentionsInput(ctx, args.message || '', mentions) : [],
             }, true);
             return true;
         }),

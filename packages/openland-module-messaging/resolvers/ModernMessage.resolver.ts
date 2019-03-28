@@ -26,6 +26,44 @@ const REACTIONS_LEGACY = new Map([
 
 type IntermediateMention = { type: 'user', user: number } | { type: 'room', room: number };
 
+export async function prepareLegacyMentionsInput(ctx: Context, messageText: string, mentions: number[]): Promise<MessageSpan[]> {
+    let spans: MessageSpan[] = [];
+    if (mentions.length > 0) {
+        let offsets = new Set<number>();
+
+        function getOffset(str: string, n: number = 0): number {
+            let offset = messageText.indexOf(str, n);
+            if (offset === -1) {
+                return -1;
+            }
+
+            if (offsets.has(offset)) {
+                return getOffset(str, n + 1);
+            }
+
+            offsets.add(offset);
+            return offset;
+        }
+        for (let mention of mentions) {
+            let userName = await Modules.Users.getUserFullName(ctx, mention);
+            let mentionText = '@' + userName;
+
+            let index = getOffset(mentionText);
+
+            if (index > -1) {
+                spans.push({
+                    type: 'user_mention',
+                    offset: index,
+                    length: mentionText.length,
+                    user: mention
+                });
+            }
+        }
+    }
+
+    return spans;
+}
+
 async function prepareLegacyMentions(ctx: Context, message: Message, uid: number): Promise<MessageSpan[]> {
     let messageText = message.text || '';
 

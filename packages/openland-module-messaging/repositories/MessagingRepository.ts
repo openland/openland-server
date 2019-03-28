@@ -42,7 +42,6 @@ export class MessagingRepository {
                 attachmentsModern: attachments.length > 0 ? attachments : null,
 
                 complexMentions: message.complexMentions,
-                mentions: message.mentions,
             });
 
             //
@@ -78,9 +77,6 @@ export class MessagingRepository {
             }
             if (newMessage.replyMessages) {
                 message.replyMessages = newMessage.replyMessages;
-            }
-            if (newMessage.mentions) {
-                message.mentions = newMessage.mentions;
             }
             if (markAsEdited) {
                 message.edited = true;

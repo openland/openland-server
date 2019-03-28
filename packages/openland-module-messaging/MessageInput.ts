@@ -107,5 +107,4 @@ export interface MessageInput {
     //
 
     complexMentions?: MessageMention[] | null;
-    mentions?: number[] | null;
 }

@@ -23,6 +23,7 @@ import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
 import { MessageAttachmentInput } from '../MessageInput';
+import { prepareLegacyMentionsInput } from './ModernMessage.resolver';
 
 export default {
     Conversation: {
@@ -588,7 +589,7 @@ export default {
                 message: args.message,
                 attachments,
                 replyMessages,
-                mentions,
+                spans: mentions ? await prepareLegacyMentionsInput(ctx, args.message || '', mentions) : [],
                 repeatKey: args.repeatKey
             });
         }),
