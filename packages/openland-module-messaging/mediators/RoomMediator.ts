@@ -11,7 +11,8 @@ import { AccessDeniedError } from 'openland-errors/AccessDeniedError';
 import { NotFoundError } from 'openland-errors/NotFoundError';
 import { UserError } from 'openland-errors/UserError';
 import { Context } from 'openland-utils/Context';
-import { MessageInput, MessageMention } from '../MessageInput';
+import { MessageInput } from '../MessageInput';
+import { buildMessage, userMention, usersMention } from '../../openland-utils/MessageBuilder';
 
 @injectable()
 export class RoomMediator {
@@ -36,9 +37,12 @@ export class RoomMediator {
             // Send initial messages
             let userName = await Modules.Users.getUserFullName(parent, uid);
             let chatTypeString = channel ? 'channel' : 'group';
-            await this.messaging.sendMessage(ctx, uid, res.id, { message: `@${userName} created the ${chatTypeString} ${profile.title}`, isService: true, complexMentions: [{ type: 'User', id: uid }] });
+            await this.messaging.sendMessage(ctx, uid, res.id, {
+                ...buildMessage(userMention(userName, uid), ` created the ${chatTypeString} ${profile.title}`),
+                isService: true,
+            });
             if (message) {
-                await this.messaging.sendMessage(ctx, uid, res.id, { message: message });
+                await this.messaging.sendMessage(ctx, uid, res.id, {message: message});
             }
             return res;
         });
@@ -179,7 +183,7 @@ export class RoomMediator {
                 let cickerName = await Modules.Users.getUserFullName(parent, uid);
                 let cickedName = await Modules.Users.getUserFullName(parent, kickedUid);
                 await this.messaging.sendMessage(ctx, uid, cid, {
-                    message: `@${cickerName} kicked @${cickedName}`,
+                    ...buildMessage(userMention(cickerName, uid), ' kicked ', userMention(cickedName, kickedUid)),
                     isService: true,
                     isMuted: true,
                     serviceMetadata: {
@@ -187,7 +191,6 @@ export class RoomMediator {
                         userId: kickedUid,
                         kickedById: uid
                     },
-                    complexMentions: [{ type: 'User', id: uid }, { type: 'User', id: kickedUid }]
                 }, true);
 
                 // Deliver dialog deletion
@@ -215,7 +218,8 @@ export class RoomMediator {
 
             if (isSuperAdmin) {
                 canKick = true;
-            } if (existingMembership.invitedBy === uid) {
+            }
+            if (existingMembership.invitedBy === uid) {
                 canKick = true;
             } else if (conv.oid && await Modules.Orgs.isUserOwner(ctx, uid, conv.oid)) {
                 canKick = true;
@@ -266,7 +270,7 @@ export class RoomMediator {
 
                 if (!isChannel) {
                     await this.messaging.sendMessage(ctx, uid, cid, {
-                        message: `@${userName} left the group`,
+                        ...buildMessage(userMention(userName, uid), ` left the group`),
                         isService: true,
                         isMuted: true,
                         serviceMetadata: {
@@ -274,7 +278,6 @@ export class RoomMediator {
                             userId: uid,
                             kickedById: uid
                         },
-                        complexMentions: [{ type: 'User', id: uid }]
                     }, true);
                 }
 
@@ -364,14 +367,13 @@ export class RoomMediator {
 
             if (res.updatedPhoto) {
                 await this.messaging.sendMessage(ctx, uid, cid, {
-                    message: `@${userName} changed group photo`,
+                    ...buildMessage(userMention(userName, uid), ` changed group photo`),
                     isService: true,
                     isMuted: true,
                     serviceMetadata: {
                         type: 'photo_change',
                         picture: roomProfile.image
                     },
-                    complexMentions: [{ type: 'User', id: uid }]
                 });
                 let members = await this.entities.RoomParticipant.allFromActive(parent, cid);
                 for (let m of members) {
@@ -380,14 +382,13 @@ export class RoomMediator {
             }
             if (res.updatedTitle) {
                 await this.messaging.sendMessage(ctx, uid, cid, {
-                    message: `@${userName} changed group name to ${roomProfile.title}`,
+                    ...buildMessage(userMention(userName, uid), ` changed group name to ${roomProfile.title}`),
                     isService: true,
                     isMuted: true,
                     serviceMetadata: {
                         type: 'title_change',
                         title: roomProfile.title
                     },
-                    complexMentions: [{ type: 'User', id: uid }]
                 });
                 let members = await this.entities.RoomParticipant.allFromActive(parent, cid);
                 for (let m of members) {
@@ -541,40 +542,31 @@ export class RoomMediator {
             if (invitedBy && invitedBy !== uids[0]) {
                 let name = await Modules.Users.getUserFullName(parent, uids[0]);
                 let inviterName = await Modules.Users.getUserFullName(parent, invitedBy);
-                return `${emoji} @${inviterName} invited @${name}`;
+                return buildMessage(emoji, userMention(inviterName, invitedBy!), ' invited ', userMention(name, uids[0]));
             } else {
                 let name = await Modules.Users.getUserFullName(parent, uids[0]);
-                return `${emoji} @${name} joined the group`;
+                return buildMessage(emoji, userMention(name, uids[0]), ' joined the group');
             }
         } else if (uids.length === 2) {
             let name1 = await Modules.Users.getUserFullName(parent, uids[0]);
             let name2 = await Modules.Users.getUserFullName(parent, uids[1]);
-            return `${emoji} @${name1} joined the group along with @${name2}`;
+            return buildMessage(emoji, userMention(name1, uids[0]), ' joined the group along with ', userMention(name2, uids[1]));
         } else {
             let name = await Modules.Users.getUserFullName(parent, uids[0]);
-            return `${emoji} @${name} joined the group along with ${uids.length - 1} others`;
+            return buildMessage(emoji, userMention(name, uids[0]), ' joined the group along with ', usersMention(`${uids.length - 1} others`, uids.splice(2)));
         }
     }
 
     private async roomJoinMessage(parent: Context, room: ConversationRoom, uid: number, uids: number[], invitedBy: number | null): Promise<MessageInput> {
-        let mentions = uids.map(id => {
-            return { type: 'User', id: id } as MessageMention;
-        });
-
-        if (invitedBy && uids.length === 1) {
-            mentions.push({ type: 'User', id: invitedBy } as MessageMention);
-        }
-
         return {
-            message: await this.roomJoinMessageText(parent, room, uids, invitedBy),
+            ...await this.roomJoinMessageText(parent, room, uids, invitedBy),
             isService: true,
             isMuted: true,
             serviceMetadata: {
                 type: 'user_invite',
                 userIds: uids,
                 invitedById: uid
-            },
-            complexMentions: mentions
+            }
         };
     }
 }

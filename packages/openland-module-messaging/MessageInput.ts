@@ -83,12 +83,6 @@ export type MessageRichAttachmentInput = {
 
 export type MessageAttachmentInput = MessageAttachmentFileInput | MessageRichAttachmentInput;
 
-// Deprecated
-export type MessageMention = {
-    type: 'User' | 'SharedRoom'
-    id: number;
-};
-
 export interface MessageInput {
     message?: string | null;
 
@@ -101,10 +95,4 @@ export interface MessageInput {
     spans?: MessageSpan[] | null;
     attachments?: MessageAttachmentInput[] | null;
     ignoreAugmentation?: boolean | null;
-
-    //
-    // Deprecated
-    //
-
-    complexMentions?: MessageMention[] | null;
 }

@@ -40,8 +40,6 @@ export class MessagingRepository {
 
                 spans: message.spans,
                 attachmentsModern: attachments.length > 0 ? attachments : null,
-
-                complexMentions: message.complexMentions,
             });
 
             //
@@ -89,9 +87,6 @@ export class MessagingRepository {
             }
             if (newMessage.serviceMetadata) {
                 message.serviceMetadata = newMessage.serviceMetadata;
-            }
-            if (newMessage.complexMentions) {
-                message.complexMentions = newMessage.complexMentions;
             }
 
             //
