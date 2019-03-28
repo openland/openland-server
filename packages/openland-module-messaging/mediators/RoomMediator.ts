@@ -12,7 +12,7 @@ import { NotFoundError } from 'openland-errors/NotFoundError';
 import { UserError } from 'openland-errors/UserError';
 import { Context } from 'openland-utils/Context';
 import { MessageInput } from '../MessageInput';
-import { buildMessage, userMention, usersMention } from '../../openland-utils/MessageBuilder';
+import { boldString, buildMessage, userMention, usersMention } from '../../openland-utils/MessageBuilder';
 
 @injectable()
 export class RoomMediator {
@@ -38,7 +38,7 @@ export class RoomMediator {
             let userName = await Modules.Users.getUserFullName(parent, uid);
             let chatTypeString = channel ? 'channel' : 'group';
             await this.messaging.sendMessage(ctx, uid, res.id, {
-                ...buildMessage(userMention(userName, uid), ` created the ${chatTypeString} ${profile.title}`),
+                ...buildMessage(userMention(userName, uid), ` created the ${chatTypeString} `, boldString(profile.title)),
                 isService: true,
             });
             if (message) {
@@ -381,7 +381,7 @@ export class RoomMediator {
             }
             if (res.updatedTitle) {
                 await this.messaging.sendMessage(ctx, uid, cid, {
-                    ...buildMessage(userMention(userName, uid), ` changed group name to ${roomProfile.title}`),
+                    ...buildMessage(userMention(userName, uid), ` changed group name to `, boldString(roomProfile.title)),
                     isService: true,
                     isMuted: true,
                     serviceMetadata: {
