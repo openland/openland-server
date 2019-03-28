@@ -57,7 +57,9 @@ extend type Query {
 }
 
 extend type Mutation {
-    sendMessage(chatId: ID!, message: String, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], repeatKey: String): Boolean!
+    sendMessage(chatId: ID!, message: String, replyMessages: [ID!], mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!], repeatKey: String): Boolean!
+    editMessage(messageId: ID!, message: String, mentions: [MentionInput!], fileAttachments: [FileAttachmentInput!]): Boolean!
+
     pinMessage(chatId: ID!, messageId: ID!): Boolean!
     unpinMessage(chatId: ID!): Boolean!
 }

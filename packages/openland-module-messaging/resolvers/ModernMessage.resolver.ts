@@ -618,11 +618,17 @@ export default {
                 }
             }
 
+            //
+            // Reply messages
+            //
+            let replyMessages = args.replyMessages && args.replyMessages.map(id => IDs.ConversationMessage.parse(id));
+
             // Send message
             await Modules.Messaging.sendMessage(ctx, cid, uid!, {
                 message: args.message,
                 repeatKey: args.repeatKey,
                 attachments,
+                replyMessages,
                 spans
             });
 
