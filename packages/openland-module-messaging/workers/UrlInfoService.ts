@@ -140,12 +140,14 @@ export function createUrlInfoService() {
 
             let orgId = IDs.Organization.parse(_orgId);
 
-            let org = await FDB.OrganizationProfile.findById(createEmptyContext(), orgId);
+            let ctx = createEmptyContext();
+            let org = await FDB.OrganizationProfile.findById(ctx, orgId);
+            let membersCount = (await Modules.Orgs.findOrganizationMembers(ctx, org!.id)).length;
 
             return {
                 url,
                 title: org!.name || null,
-                subtitle: org!.about || null,
+                subtitle: `${membersCount} ${membersCount === 1 ? 'member' : 'members'}`,
                 description: org!.about || null,
                 imageURL: null,
                 imageInfo: org!.photo ? await Modules.Media.fetchFileInfo(createEmptyContext(), org!.photo!.uuid) : null,
