@@ -657,7 +657,7 @@ migrations.push({
 });
 
 migrations.push({
-    key: '47-reindex-users',
+    key: '48-reindex-users',
     migration: async (root, log) => {
         let k = await FDB.User.findAll(root);
         for (let o of k) {
