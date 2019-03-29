@@ -59,8 +59,13 @@ export class ShortnameRepository {
     ]);
 
     async findShortname(ctx: Context, shortname: string) {
-        return await this.entities.ShortnameReservation.findById(ctx, shortname);
-    }
+        let record =  await this.entities.ShortnameReservation.findById(ctx, shortname);
+        if (record && record.enabled) {
+            return record;
+        } else {
+            return null;
+        }
+     }
 
     async findUserShortname(ctx: Context, uid: number) {
         let existing = await this.entities.ShortnameReservation.findFromUser(ctx, uid);
