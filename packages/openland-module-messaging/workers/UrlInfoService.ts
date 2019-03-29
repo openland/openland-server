@@ -49,7 +49,6 @@ export class UrlInfoService {
 
         for (let specialUrl of this.specialUrls) {
             if (specialUrl.regexp.test(url)) {
-                console.log(specialUrl);
                 let info = await specialUrl.handler(url, specialUrl.regexp.exec(url)!);
                 if (info) {
                     if (specialUrl.cache) {
@@ -146,9 +145,10 @@ export function createUrlInfoService() {
 
             return await getURLAugmentationForUser({ hostname, url, userId, user });
         })
-        .specialUrl(/(localhost:3000|(app.|next.)?openland.com)\/(directory\/)?o\/(.*)/, false, async (url, data) => {
-            let [, , , , _orgId] = data;
+        .specialUrl(/(localhost:3000|(app.|next.)?openland.com)\/(directory\/)?(o|c)\/(.*)/, false, async (url, data) => {
+            let [, , , , , _orgId] = data;
 
+            console.log(_orgId);
             let orgId = IDs.Organization.parse(_orgId);
 
             let ctx = createEmptyContext();
