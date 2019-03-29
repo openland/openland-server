@@ -108,14 +108,18 @@ export class MessagingMediator {
             //
             // Parse links
             //
-            let spans = newMessage.spans ? [...newMessage.spans] : [];
-            let links = this.parseLinks(newMessage.message || '');
-            if (links.length > 0) {
-                spans.push(...links);
+            let spans: MessageSpan[] | null = null;
+
+            if (newMessage.message) {
+                spans = newMessage.spans ? [...newMessage.spans] : [];
+                let links = this.parseLinks(newMessage.message || '');
+                if (links.length > 0) {
+                    spans.push(...links);
+                }
             }
 
             // Update
-            let res = await this.repo.editMessage(ctx, mid, { ...newMessage, spans }, markAsEdited);
+            let res = await this.repo.editMessage(ctx, mid, { ...newMessage, ... (spans ? { spans } : {}) }, markAsEdited);
             message = (await this.entities.Message.findById(ctx, mid!))!;
 
             // Delivery

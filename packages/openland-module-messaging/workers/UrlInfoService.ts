@@ -16,17 +16,21 @@ export interface URLAugmentation {
     title: string | null;
     subtitle: string | null;
     description: string | null;
-    imageURL: string | null;
     imageInfo: FileInfo | null;
     photo: ImageRef | null;
     iconRef: ImageRef | null;
     iconInfo: FileInfo | null;
     hostname: string | null;
+    keyboard?: MessageKeyboard;
+    dynamic?: boolean;
+
+    //
+    // deprecated
+    //
+    imageURL: string | null;
     type: 'org' | 'listing' | 'user' | 'url' | 'none' | 'channel' | 'intro';
     extra?: any;
     deleted?: boolean;
-    keyboard?: MessageKeyboard;
-    dynamic?: boolean;
 }
 
 export class UrlInfoService {
