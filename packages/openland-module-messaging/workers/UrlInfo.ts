@@ -147,11 +147,6 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
         hostname: hostname || null,
         iconRef,
         iconInfo: Modules.Media.sanitizeFileInfo(iconInfo),
-        keyboard: {
-            buttons: [[
-                { title: 'Open link', style: 'DEFAULT', url }
-            ]]
-        },
     };
 }
 
