@@ -144,7 +144,12 @@ export class HooksModule {
     }
 
     onAppHookCreated = async (ctx: Context, uid: number, hook: AppHook) => {
-        let message = `created hook https://api.openland.com/apps/chat-hook/${hook.key} \nfor chat: openland.com/mail/${IDs.Conversation.serialize(hook.chatId)}`;
+        let conv = await FDB.RoomProfile.findById(ctx, hook.chatId);
+        if (!conv) {
+            return;
+        }
+
+        let message = `${conv.title}\nopenland.com/mail/${IDs.Conversation.serialize(hook.chatId)}\nHook created 👉 https://api.openland.com/apps/chat-hook/${hook.key}`;
         let privateChat = await Modules.Messaging.room.resolvePrivateChat(ctx, hook.appId, uid);
         await Modules.Messaging.sendMessage(ctx, privateChat.id, hook.appId, { message, ignoreAugmentation: true });
     }
