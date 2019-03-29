@@ -50,6 +50,8 @@ export class UserRepository {
             }
             if (user.status !== 'activated') {
                 user.status = 'activated';
+                await user.flush();
+                await this.markForUndexing(ctx, uid);
                 return true;
             } else {
                 return false;
@@ -64,6 +66,8 @@ export class UserRepository {
                 throw new NotFoundError('Unable to find user');
             }
             user.status = 'suspended';
+            await user.flush();
+            await this.markForUndexing(ctx, uid);
             return user;
         });
     }
@@ -75,6 +79,8 @@ export class UserRepository {
                 throw new NotFoundError('Unable to find user');
             }
             user.status = 'deleted';
+            await user.flush();
+            await this.markForUndexing(ctx, uid);
             return user;
         });
     }
