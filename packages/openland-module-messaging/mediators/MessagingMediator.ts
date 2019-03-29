@@ -62,10 +62,9 @@ export class MessagingMediator {
             if (links.length > 0) {
                 spans.push(...links);
             }
-            message.spans = spans;
 
             // Create
-            let res = await this.repo.createMessage(ctx, cid, uid, message);
+            let res = await this.repo.createMessage(ctx, cid, uid, { ...message, spans });
 
             // Delivery
             await this.delivery.onNewMessage(ctx, res.message);
@@ -114,10 +113,9 @@ export class MessagingMediator {
             if (links.length > 0) {
                 spans.push(...links);
             }
-            newMessage.spans = spans;
 
             // Update
-            let res = await this.repo.editMessage(ctx, mid, newMessage, markAsEdited);
+            let res = await this.repo.editMessage(ctx, mid, { ...newMessage, spans }, markAsEdited);
             message = (await this.entities.Message.findById(ctx, mid!))!;
 
             // Delivery
