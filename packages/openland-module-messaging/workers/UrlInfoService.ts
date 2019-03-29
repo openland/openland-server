@@ -240,11 +240,36 @@ export function createUrlInfoService() {
                 return null;
             }
 
-            const userId = shortname.ownerId;
+            if (shortname.ownerType === 'user') {
+                const userId = shortname.ownerId;
 
-            let user = await Modules.Users.profileById(createEmptyContext(), shortname.ownerId);
+                let user = await Modules.Users.profileById(createEmptyContext(), shortname.ownerId);
 
-            return await getURLAugmentationForUser({ hostname, url, userId, user });
+                return await getURLAugmentationForUser({ hostname, url, userId, user });
+            } else if (shortname.ownerType === 'org') {
+                let orgId = shortname.ownerId;
+
+                let ctx = createEmptyContext();
+                let org = await FDB.OrganizationProfile.findById(ctx, orgId);
+                let membersCount = (await Modules.Orgs.findOrganizationMembers(ctx, org!.id)).length;
+
+                return {
+                    url,
+                    title: org!.name || null,
+                    subtitle: `${membersCount} ${membersCount === 1 ? 'member' : 'members'}`,
+                    description: org!.about || null,
+                    imageURL: null,
+                    imageInfo: org!.photo ? await Modules.Media.fetchFileInfo(createEmptyContext(), org!.photo!.uuid) : null,
+                    photo: org!.photo || null,
+                    hostname: null,
+                    type: 'org',
+                    extra: orgId,
+                    iconRef: null,
+                    iconInfo: null,
+                };
+            } else {
+                return null;
+            }
         });
 
     return service;
