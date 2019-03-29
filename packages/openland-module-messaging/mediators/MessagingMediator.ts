@@ -1,5 +1,5 @@
 import { injectable } from 'inversify';
-import { MessageInput } from 'openland-module-messaging/MessageInput';
+import { LinkSpan, MessageInput, MessageSpan } from 'openland-module-messaging/MessageInput';
 import { MessagingRepository } from 'openland-module-messaging/repositories/MessagingRepository';
 import { lazyInject } from 'openland-modules/Modules.container';
 import { inTx } from 'foundation-orm/inTx';
@@ -13,8 +13,13 @@ import { Context } from 'openland-utils/Context';
 import { createTracer } from 'openland-log/createTracer';
 import { UserError } from '../../openland-errors/UserError';
 import { currentTime } from 'openland-utils/timer';
+import linkify from 'linkify-it';
+import tlds from 'tlds';
 
 const trace = createTracer('messaging');
+const linkifyInstance = linkify()
+    .tlds(tlds)
+    .tlds('onion', true);
 
 @injectable()
 export class MessagingMediator {
@@ -48,6 +53,16 @@ export class MessagingMediator {
                     throw new AccessDeniedError();
                 }
             }
+
+            //
+            // Parse links
+            //
+            let spans = message.spans ? [...message.spans] : [];
+            let links = this.parseLinks(message.message || '');
+            if (links.length > 0) {
+                spans.push(...links);
+            }
+            message.spans = spans;
 
             // Create
             let res = await this.repo.createMessage(ctx, cid, uid, message);
@@ -90,6 +105,16 @@ export class MessagingMediator {
                     throw new AccessDeniedError();
                 }
             }
+
+            //
+            // Parse links
+            //
+            let spans = newMessage.spans ? [...newMessage.spans] : [];
+            let links = this.parseLinks(newMessage.message || '');
+            if (links.length > 0) {
+                spans.push(...links);
+            }
+            newMessage.spans = spans;
 
             // Update
             let res = await this.repo.editMessage(ctx, mid, newMessage, markAsEdited);
@@ -179,5 +204,33 @@ export class MessagingMediator {
 
     findTopMessage = async (ctx: Context, cid: number) => {
         return await this.repo.findTopMessage(ctx, cid);
+    }
+
+    private parseLinks(message: string): MessageSpan[] {
+        let urls = linkifyInstance.match(message);
+
+        if (!urls) {
+            return [];
+        }
+
+        let offsets = new Set<number>();
+
+        function getOffset(str: string, n: number = 0): number {
+            let offset = message.indexOf(str, n);
+
+            if (offsets.has(offset)) {
+                return getOffset(str, n + 1);
+            }
+
+            offsets.add(offset);
+            return offset;
+        }
+
+        return urls.map(url => ({
+            type: 'link',
+            offset: getOffset(url.raw),
+            length: url.raw.length,
+            url: url.url,
+        } as LinkSpan));
     }
 }

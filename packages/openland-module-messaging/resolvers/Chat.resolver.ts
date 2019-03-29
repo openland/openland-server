@@ -23,7 +23,7 @@ import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { GQLResolver } from '../../openland-module-api/schema/SchemaSpec';
 import { AppContext } from 'openland-modules/AppContext';
 import { MessageAttachmentInput, MessageSpan } from '../MessageInput';
-import { parseLinks, prepareLegacyMentionsInput } from './ModernMessage.resolver';
+import { prepareLegacyMentionsInput } from './ModernMessage.resolver';
 
 export default {
     Conversation: {
@@ -590,8 +590,6 @@ export default {
             if (mentions) {
                 spans.push(...await prepareLegacyMentionsInput(ctx, args.message || '', mentions));
             }
-
-            spans.push(...parseLinks(args.message || ''));
 
             return Modules.Messaging.sendMessage(ctx, conversationId, uid!, {
                 message: args.message,

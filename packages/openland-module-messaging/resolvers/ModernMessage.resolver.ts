@@ -602,11 +602,6 @@ export default {
             let spans: MessageSpan[] = [];
 
             //
-            // Parse links
-            //
-            spans.push(...parseLinks(args.message || ''));
-
-            //
             // Mentions
             //
             if (args.mentions) {
@@ -682,11 +677,6 @@ export default {
             let mid = IDs.ConversationMessage.parse(args.messageId);
 
             let spans: MessageSpan[] = [];
-
-            //
-            // Parse links
-            //
-            spans.push(...parseLinks(args.message || ''));
 
             //
             // Mentions

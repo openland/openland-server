@@ -1,6 +1,10 @@
 import { AllEntities, ConversationEvent, Message } from 'openland-module-db/schema';
 import { inTx } from 'foundation-orm/inTx';
-import { MessageAttachment, MessageAttachmentInput, MessageInput } from 'openland-module-messaging/MessageInput';
+import {
+    MessageAttachment,
+    MessageAttachmentInput,
+    MessageInput,
+} from 'openland-module-messaging/MessageInput';
 import { injectable, inject } from 'inversify';
 import { Context } from 'openland-utils/Context';
 import { DoubleInvokeError } from '../../openland-errors/DoubleInvokeError';
@@ -16,16 +20,21 @@ export class MessagingRepository {
     async createMessage(parent: Context, cid: number, uid: number, message: MessageInput): Promise<{ event: ConversationEvent, message: Message }> {
         return await inTx(parent, async (ctx) => {
 
-            // 
-            // Persist Messages
             //
-
+            // Check for duplicates
+            //
             if (message.repeatKey && await this.entities.Message.findFromRepeat(ctx, uid, cid, message.repeatKey)) {
                 throw new DoubleInvokeError();
             }
 
+            //
+            // Prepare attachments
+            //
             let attachments: MessageAttachment[] = await this.prepateAttachments(ctx, message.attachments || []);
 
+            //
+            // Persist Messages
+            //
             let mid = await this.fetchNextMessageId(ctx);
             let msg = await this.entities.Message.create(ctx, mid, {
                 cid: cid,
@@ -38,7 +47,7 @@ export class MessagingRepository {
                 repeatKey: message.repeatKey,
                 deleted: false,
 
-                spans: message.spans,
+                spans: (message.spans && message.spans.length > 0) ? message.spans : null,
                 attachmentsModern: attachments.length > 0 ? attachments : null,
             });
 

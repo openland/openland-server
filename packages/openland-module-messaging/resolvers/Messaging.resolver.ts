@@ -6,7 +6,7 @@ import { MessageAttachmentInput, MessageSpan } from '../MessageInput';
 import { UserError } from '../../openland-errors/UserError';
 import { FDB } from '../../openland-module-db/FDB';
 import { NotFoundError } from '../../openland-errors/NotFoundError';
-import { parseLinks, prepareLegacyMentionsInput } from './ModernMessage.resolver';
+import { prepareLegacyMentionsInput } from './ModernMessage.resolver';
 
 export default {
     Mutation: {
@@ -44,8 +44,6 @@ export default {
             if (mentions) {
                 spans.push(...await prepareLegacyMentionsInput(ctx, args.message || '', mentions));
             }
-
-            spans.push(...parseLinks(args.message || ''));
 
             await Modules.Messaging.sendMessage(ctx, conversationId, uid!, {
                 message: args.message,
