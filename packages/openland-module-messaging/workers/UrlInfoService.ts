@@ -49,6 +49,7 @@ export class UrlInfoService {
 
         for (let specialUrl of this.specialUrls) {
             if (specialUrl.regexp.test(url)) {
+                console.log(specialUrl);
                 let info = await specialUrl.handler(url, specialUrl.regexp.exec(url)!);
                 if (info) {
                     if (specialUrl.cache) {
@@ -172,11 +173,12 @@ export function createUrlInfoService() {
         .specialUrl(/(localhost:3000|(app.|next.)?openland.com)\/((mail|directory)\/)(p\/)?(.*)/, false, async (url, data) => {
             let [, , , , , , _channelId] = data;
 
+            let ctx = createEmptyContext();
             let channelId = IDs.Conversation.parse(_channelId);
 
             let channel = await FDB.ConversationRoom.findById(createEmptyContext(), channelId);
 
-            if (!channel || channel!.kind !== 'public') {
+            if (!channel || channel!.kind !== 'public' || (channel.oid && (await FDB.Organization.findById(ctx, channel.oid))!.kind !== 'community')) {
                 return null;
             }
 
