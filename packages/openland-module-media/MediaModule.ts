@@ -50,7 +50,10 @@ export class MediaModule {
         };
     }
 
-    sanitizeFileInfo(input: any): FileInfo {
+    sanitizeFileInfo(input: any): FileInfo|null {
+        if (input === null) {
+            return null;
+        }
         return {
             isStored: Boolean(input.isStored),
             isImage:  Boolean(input.isImage),
