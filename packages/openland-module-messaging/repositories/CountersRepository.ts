@@ -112,7 +112,7 @@ export class CountersRepository {
                 if (remainingCount === 0) { // Just additional case for self-healing of a broken counters
                     delta = -local.unread;
                 } else {
-                    delta = - (remainingCount - local.unread);
+                    delta = - (local.unread - remainingCount);
                 }
                 // Crazy hack to avoid -0 values
                 if (delta === 0) {

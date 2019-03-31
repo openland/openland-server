@@ -50,6 +50,42 @@ describe('CountersRepository', () => {
         expect((await repo.onMessageRead(ctx, 1, mid3)).delta).toBe(0);
     });
 
+    it('should properly decrement on middle-read', async () => {
+        let ctx = createEmptyContext();
+        let urepo = container.get<UserStateRepository>('UserStateRepository');
+        let mrepo = container.get<MessagingRepository>('MessagingRepository');
+        let repo = container.get<CountersRepository>('CountersRepository');
+
+        let mid1 = (await mrepo.createMessage(ctx, 1, 1, { message: '1' })).message.id!;
+        let mid2 = (await mrepo.createMessage(ctx, 1, 1, { message: '1' })).message.id!;
+        let mid3 = (await mrepo.createMessage(ctx, 1, 1, { message: '1' })).message.id!;
+        let mid4 = (await mrepo.createMessage(ctx, 1, 1, { message: '1' })).message.id!;
+        let mid5 = (await mrepo.createMessage(ctx, 1, 1, { message: '1' })).message.id!;
+        let mid6 = (await mrepo.createMessage(ctx, 1, 1, { message: '1' })).message.id!;
+        // Receiver
+        expect((await repo.onMessageReceived(ctx, 2, mid1)).delta).toBe(1);
+        expect((await repo.onMessageReceived(ctx, 2, mid2)).delta).toBe(1);
+        expect((await repo.onMessageReceived(ctx, 2, mid3)).delta).toBe(1);
+        expect((await repo.onMessageReceived(ctx, 2, mid4)).delta).toBe(1);
+        expect((await repo.onMessageReceived(ctx, 2, mid5)).delta).toBe(1);
+        expect((await repo.onMessageReceived(ctx, 2, mid6)).delta).toBe(1);
+
+        let receiverState = await urepo.getUserDialogState(ctx, 2, 1);
+        let receiverGlobal = await urepo.getUserMessagingState(ctx, 2);
+
+        expect(receiverState.unread).toBe(6);
+        expect(receiverGlobal.unread).toBe(6);
+
+        // Read
+        expect((await repo.onMessageRead(ctx, 2, mid3)).delta).toBe(-3);
+
+        receiverState = await urepo.getUserDialogState(ctx, 2, 1);
+        receiverGlobal = await urepo.getUserMessagingState(ctx, 2);
+
+        expect(receiverState.unread).toBe(3);
+        expect(receiverGlobal.unread).toBe(3);
+    });
+
     it('should be order-independent', async () => {
         let ctx = createEmptyContext();
         let urepo = container.get<UserStateRepository>('UserStateRepository');
@@ -97,12 +133,13 @@ describe('CountersRepository', () => {
         let repo = container.get<CountersRepository>('CountersRepository');
 
         let mid1 = (await mrepo.createMessage(ctx, 4, 1, { message: '1', spans: [{ type: 'user_mention', offset: 0, length: 1, user: 3 }] })).message.id!;
-        let mid2 = (await mrepo.createMessage(ctx, 4, 1, { message: '1', spans: [{ type: 'user_mention', offset: 0, length: 1, user: 3 }] })).message.id!;
-        let mid3 = (await mrepo.createMessage(ctx, 4, 1, { message: '1' })).message.id!;
 
         expect((await repo.onMessageReceived(ctx, 3, mid1)).delta).toBe(1);
         expect((await repo.onMessageRead(ctx, 3, mid1)).delta).toBe(-1);
         expect(await repo.onMessageDeleted(ctx, 3, mid1)).toBe(0); // Should ignore if already read
+
+        let mid2 = (await mrepo.createMessage(ctx, 4, 1, { message: '1', spans: [{ type: 'user_mention', offset: 0, length: 1, user: 3 }] })).message.id!;
+        let mid3 = (await mrepo.createMessage(ctx, 4, 1, { message: '1' })).message.id!;
 
         expect((await repo.onMessageReceived(ctx, 3, mid2)).delta).toBe(1);
         expect(await repo.onMessageDeleted(ctx, 3, mid2)).toBe(-1);
@@ -151,14 +188,15 @@ describe('CountersRepository', () => {
         const S_UID = 8;
         const R_UID = 9;
         let mid1 = (await mrepo.createMessage(ctx, CID, S_UID, { message: '1', spans: [{ type: 'user_mention', offset: 0, length: 1, user: R_UID }] })).message.id!;
-        let mid2 = (await mrepo.createMessage(ctx, CID, S_UID, { message: '1' })).message.id!;
-        let mid3 = (await mrepo.createMessage(ctx, CID, S_UID, { message: '1', spans: [{ type: 'user_mention', offset: 0, length: 1, user: R_UID }] })).message.id!;
 
         // Should not reset mention as there are more messages
         expect((await repo.onMessageReceived(ctx, R_UID, mid1)).delta).toBe(1);
         let r = await repo.onMessageRead(ctx, R_UID, mid1);
         expect(r.delta).toBe(-1);
         expect(r.mentionReset).toBe(false);
+
+        let mid2 = (await mrepo.createMessage(ctx, CID, S_UID, { message: '1' })).message.id!;
+        let mid3 = (await mrepo.createMessage(ctx, CID, S_UID, { message: '1', spans: [{ type: 'user_mention', offset: 0, length: 1, user: R_UID }] })).message.id!;
 
         // Receive other
         expect((await repo.onMessageReceived(ctx, R_UID, mid2)).delta).toBe(1);
