@@ -25,6 +25,7 @@ import { ApolloServer } from 'apollo-server-express';
 import { callContextMiddleware } from './handlers/context';
 import * as http from 'http';
 import { TokenChecker } from '../openland-module-auth/authV2';
+import { parseCookies } from '../openland-utils/parseCookies';
 
 const logger = createLogger('ws');
 const ws = createTracer('ws');
@@ -177,6 +178,12 @@ export async function initApi(isTest: boolean) {
                 subscribe,
                 keepAlive: 10000,
                 onConnect: async (args: any, webSocket: any) => {
+                    if (Object.keys(args).length === 0) {
+                        let cookies = parseCookies(webSocket.upgradeReq.headers.cookie);
+                        args = {
+                            'x-openland-token': cookies['x-openland-token']
+                        };
+                    }
                     webSocket.__params = await fetchWebSocketParameters(args, webSocket);
                 },
                 onOperation: async (message: any, params: any, webSocket: any) => {
