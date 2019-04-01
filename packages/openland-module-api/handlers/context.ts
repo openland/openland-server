@@ -73,7 +73,7 @@ export async function callContextMiddleware(isTest: boolean, req: express.Reques
     const originalEnd = res.end;
     res.end = function (...args: any[]) {
         res.end = originalEnd;
-        const returned = res.end.call(this, ...args);
+        const returned = res.end.bind(this)(...args);
         let span = TracingContext.get(ctx).span;
         if (span) {
             span.finish();
