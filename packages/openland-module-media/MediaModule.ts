@@ -29,7 +29,7 @@ export class MediaModule {
     async fetchFileInfo(ctx: Context, uuid: string): Promise<FileInfo> {
         let res = await this.call(ctx, 'files/' + uuid + '/');
 
-        let isImage = (!!(res.is_image) || res.image_info);
+        let isImage = !!(res.is_image || res.image_info);
         let imageWidth = isImage ? res.image_info.width as number : null;
         let imageHeight = isImage ? res.image_info.height as number : null;
         let imageFormat = isImage ? res.image_info.format as string : null;
