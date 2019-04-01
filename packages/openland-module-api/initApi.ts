@@ -122,7 +122,6 @@ export async function initApi(isTest: boolean) {
             let ctx = context as any;
             // WS
             if (ctx.connection) {
-                console.log(ctx.connection);
                 let wsctx = ctx.connection.context;
                 let ctx2 = buildWebSocketContext(wsctx || {});
                 return ctx2;
