@@ -17,7 +17,7 @@ import { AppContext } from 'openland-modules/AppContext';
 
 @injectable()
 export class ApiModule {
-    private schema = Schema(true);
+    private schema = Schema(process.env.TESTING === 'true');
 
     start = async () => {
         console.log('start API Module');
