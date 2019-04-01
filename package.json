@@ -167,7 +167,7 @@
     "prepare": "patch-package"
   },
   "resolutions": {
-    "apollo-server-core": "2.0.4"
+    "apollo-server-core": "1.4.0"
   },
   "devDependencies": {},
   "_moduleAliases": {
