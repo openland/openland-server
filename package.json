@@ -56,6 +56,7 @@
     "apollo-client": "^2.4.7",
     "apollo-link": "^1.2.4",
     "apollo-link-schema": "^1.1.2",
+    "apollo-server": "^2.4.8",
     "apollo-server-express": "^1.3.6",
     "base-64": "^0.1.0",
     "base64-url": "^2.1.0",
@@ -164,6 +165,9 @@
     "benchmark": "./node_modules/.bin/ts-node --no-force-async-hooks-checks ./packages/openland-benchmarks/index.ts",
     "benchmark:parallel": "./node_modules/.bin/concurrently \"node ./build/openland-benchmarks/index.js\" \"node ./build/openland-benchmarks/index.js\" \"node ./build/openland-benchmarks/index.js\" \"node ./build/openland-benchmarks/index.js\" \"node ./build/openland-benchmarks/index.js\" \"node ./build/openland-benchmarks/index.js\" \"node ./build/openland-benchmarks/index.js\" \"node ./build/openland-benchmarks/index.js\" \"node ./build/openland-benchmarks/index.js\" \"node ./build/openland-benchmarks/index.js\"",
     "prepare": "patch-package"
+  },
+  "resolutions": {
+    "apollo-server-core": "2.0.4"
   },
   "devDependencies": {},
   "_moduleAliases": {

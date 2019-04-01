@@ -47,7 +47,7 @@ function handleRequest(withEngine: boolean) {
             return {
                 schema: schema,
                 context: res.locals.ctx,
-                cacheControl: withEngine,
+                // cacheControl: withEngine,
                 tracing: withEngine,
                 formatError: (err: any) => {
                     let ctx = res.locals.ctx;
