@@ -22,6 +22,11 @@ export interface URLInfo {
 }
 
 export async function fetchURLInfo(url: string): Promise<URLInfo> {
+    let { hostname } = URL.parse(url);
+
+    if (hostname && hostname.endsWith('linkedin.com')) {
+        url = 'https://www.linkedin.com/';
+    }
 
     let res = await fetch(encodeURI(url), {
         timeout: 5000,
@@ -75,8 +80,6 @@ export async function fetchURLInfo(url: string): Promise<URLInfo> {
 
     let text = await res.text();
     let doc = cheerio.load(text);
-
-    let { hostname } = URL.parse(url);
 
     let title =
         getMeta(doc, 'og:title') ||
