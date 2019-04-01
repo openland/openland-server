@@ -110,6 +110,7 @@ export async function initApi(isTest: boolean) {
 
     const Server = new ApolloServer({
         schema: Schema(),
+        introspection: true,
         formatError: (err: any) => {
             console.warn(err);
             return {
@@ -138,7 +139,7 @@ export async function initApi(isTest: boolean) {
         //     path: '/api',
         // },
         playground: {
-            endpoint: 'http://localhost:3000/graphql',
+            endpoint: process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3000/graphql',
             settings: {
                 'request.credentials': 'include'
             } as any
