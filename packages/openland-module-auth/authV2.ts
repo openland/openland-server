@@ -37,7 +37,7 @@ export const JWTChecker = jwt({
 // OpenToken checker
 //
 
-export const TokenChecker = async function (req: express.Request, response: express.Response, next: express.NextFunction) {
+export const TokenChecker = async function (req: express.Request, response: express.Response) {
     try {
         let accessToken = fetchKeyFromRequest(req, 'x-openland-token');
         if (accessToken) {
@@ -51,7 +51,6 @@ export const TokenChecker = async function (req: express.Request, response: expr
         response.status(500).send({ error: 'Internal server error' });
         return;
     }
-    next();
 };
 
 //

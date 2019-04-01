@@ -75,7 +75,7 @@ export function resolveUser<T extends { userId: number }>() {
 }
 
 type FieldHandler = (field: GraphQLField<any, any>, originalResolver: GraphQLFieldResolver<any, any, any>, root: any, args: any, context: any, info: any) => any;
-export function wrapAllResolvers(schema: GraphQLSchema, f: FieldHandler) {
+export function wrapAllResolvers(schema: GraphQLSchema, handler: FieldHandler) {
     let types = schema.getTypeMap();
 
     for (let typeName in types) {
@@ -85,7 +85,7 @@ export function wrapAllResolvers(schema: GraphQLSchema, f: FieldHandler) {
 
         let type = types[typeName];
 
-        if (type instanceof GraphQLObjectType) {
+        if (type instanceof GraphQLObjectType && !type.name.startsWith('__')) {
             let fields = type.getFields();
 
             for (let fieldName in fields) {
@@ -103,7 +103,7 @@ export function wrapAllResolvers(schema: GraphQLSchema, f: FieldHandler) {
                             res = CacheContext.set(res, new Map());
                             context = new AppContext(res);
                         }
-                        return f(field, fieldResolve!, root, args, context, info);
+                        return await handler(field, fieldResolve!, root, args, context, info);
                     };
                 }
             }

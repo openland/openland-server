@@ -1,16 +1,12 @@
-import * as bodyParser from 'body-parser';
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import compression from 'compression';
-import { graphqlExpress, graphiqlExpress } from 'apollo-server-express';
+import { ApolloServer } from 'apollo-server-express';
 import { FDBGraphqlSchema } from 'openland-module-db/tools/GraphEndpoint';
-import { SubscriptionServer } from 'subscriptions-transport-ws';
-import { execute, subscribe } from 'graphql';
 import { Modules } from 'openland-modules/Modules';
 import { createEmptyContext } from 'openland-utils/Context';
-import url from 'url';
-// import expressPlayground from 'graphql-playground-middleware-express';
+import * as http from 'http';
 
 export function startAdminInterface() {
     console.log('Starting Admin Interface...');
@@ -27,25 +23,19 @@ export function startAdminInterface() {
     app.get('/', (req, res) => res.send('Welcome to Closedland API!'));
     app.get('/stats', async (req, res) => res.json(await Modules.Super.calculateStats(createEmptyContext())));
 
-    let gqlMiddleware = graphqlExpress({ schema: FDBGraphqlSchema });
-    app.use('/api', bodyParser.json({ limit: '5mb' }), gqlMiddleware);
-    app.use('/sandbox', bodyParser.json({ limit: '5mb' }),
-        graphiqlExpress((req) => ({
-            endpointURL: '/api',
-            subscriptionsEndpoint: url.format({
-                host: req!!.get('host'),
-                protocol: req!!.get('host') !== 'localhost' ? 'wss' : 'ws',
-                pathname: '/api'
-            })
-        })));
-    // app.use('/sandbox', expressPlayground({ endpoint: '/api' }));
-
-    // Start listening
-
-    new SubscriptionServer({
+    const Server = new ApolloServer({
         schema: FDBGraphqlSchema,
-        subscribe,
-        execute,
-        keepAlive: 10000
-    }, { server: app.listen(8319), path: '/api' });
+        playground: {
+            endpoint: 'http://localhost:8319/api',
+            settings: {
+                'request.credentials': 'include'
+            } as any
+        }
+    });
+
+    const httpServer = http.createServer(app);
+    Server.applyMiddleware({ app, path: '/graphql' });
+    Server.applyMiddleware({ app, path: '/api' });
+    Server.installSubscriptionHandlers(httpServer);
+    httpServer.listen(8319);
 }

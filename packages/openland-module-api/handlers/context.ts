@@ -53,7 +53,7 @@ async function context(src: express.Request): Promise<AppContext> {
     return new AppContext(res);
 }
 
-export async function callContextMiddleware(isTest: boolean, req: express.Request, res: express.Response, next: express.NextFunction) {
+export async function callContextMiddleware(isTest: boolean, req: express.Request, res: express.Response) {
     let ctx: AppContext;
     try {
         ctx = await context(req);
@@ -73,13 +73,11 @@ export async function callContextMiddleware(isTest: boolean, req: express.Reques
     const originalEnd = res.end;
     res.end = function (...args: any[]) {
         res.end = originalEnd;
-        const returned = res.end.bind(this)(...args);
+        const returned = (res.end as any).call(this, ...args);
         let span = TracingContext.get(ctx).span;
         if (span) {
             span.finish();
         }
         return returned;
     };
-
-    next();
 }

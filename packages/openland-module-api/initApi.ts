@@ -2,7 +2,6 @@ import * as bodyParser from 'body-parser';
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
-// import compression from 'compression';
 import * as Auth2 from '../openland-module-auth/authV2';
 import * as Auth from '../openland-module-auth/providers/email';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
@@ -10,14 +9,11 @@ import { Schema } from './schema/Schema';
 import { execute, subscribe, GraphQLSchema, DocumentNode, GraphQLFieldResolver, OperationDefinitionNode } from 'graphql';
 import { fetchWebSocketParameters, buildWebSocketContext } from './handlers/websocket';
 import { errorHandler, QueryInfo } from '../openland-errors';
-// import { Rate } from '../utils/rateLimit';
 import { Server as HttpServer } from 'http';
-// import { delay } from '../utils/timer';
 import { withAudit } from '../openland-module-auth/providers/email';
 import { IDs } from './IDs';
 import { inTx } from 'foundation-orm/inTx';
 import { Modules } from 'openland-modules/Modules';
-import { schemaHandler } from './handlers/schema';
 import { createLogger } from 'openland-log/createLogger';
 import { createEmptyContext } from 'openland-utils/Context';
 import { AppContext } from 'openland-modules/AppContext';
@@ -25,6 +21,10 @@ import { createTracer } from 'openland-log/createTracer';
 import { withCache } from 'foundation-orm/withCache';
 import { initSafariPush } from '../openland-module-push/safari/handlers';
 import { initAppHandlers } from '../openland-module-apps/Apps.handler';
+import { ApolloServer } from 'apollo-server-express';
+import { callContextMiddleware } from './handlers/context';
+import * as http from 'http';
+import { TokenChecker } from '../openland-module-auth/authV2';
 
 const logger = createLogger('ws');
 const ws = createTracer('ws');
@@ -73,13 +73,6 @@ export async function initApi(isTest: boolean) {
     app.get('/robots.txt', (req, res) => res.send(404));
 
     //
-    // API
-    //
-    let graphqlMiddleware = schemaHandler(isTest, !!engineKey);
-    app.use('/api', Auth2.TokenChecker, bodyParser.json({ limit: '5mb' }), graphqlMiddleware);
-    app.use('/graphql', Auth2.TokenChecker, bodyParser.json({ limit: '5mb' }), graphqlMiddleware);
-
-    //
     // Authenticaton
     //
     app.post('/v2/auth', Auth2.JWTChecker, bodyParser.json(), Auth2.Authenticator);
@@ -114,6 +107,44 @@ export async function initApi(isTest: boolean) {
             }
         });
     }));
+
+    const Server = new ApolloServer({
+        schema: Schema(),
+        formatError: (err: any) => {
+            console.warn(err);
+            return {
+                ...errorHandler(err),
+                locations: err.locations,
+                path: err.path
+            };
+        },
+        context: async (context) => {
+            let ctx = context as any;
+            // WS
+            if (ctx.connection) {
+                console.log(ctx.connection);
+                let wsctx = ctx.connection.context;
+                let ctx2 = buildWebSocketContext(wsctx || {});
+                return ctx2;
+            }
+            await TokenChecker(context.req, context.res);
+            await callContextMiddleware(isTest, context.req, context.res);
+
+            return context.res.locals.ctx;
+        },
+        // subscriptions: {
+        //     onConnect: async (connectionParams, websocket, context) => {
+        //         return await fetchWebSocketParameters(connectionParams, websocket);
+        //     },
+        //     path: '/api',
+        // },
+        playground: {
+            endpoint: 'http://localhost:3000/graphql',
+            settings: {
+                'request.credentials': 'include'
+            } as any
+        }
+    });
 
     // Starting Api
     if (dport > 0) {
@@ -207,7 +238,12 @@ export async function initApi(isTest: boolean) {
         }
 
         // Starting server
-        createWebSocketServer(app.listen(dport));
+        const httpServer = http.createServer(app);
+        Server.applyMiddleware({ app, path: '/graphql' });
+        Server.applyMiddleware({ app, path: '/api' });
+        // Server.installSubscriptionHandlers(httpServer);
+        httpServer.listen(dport);
+        createWebSocketServer(httpServer);
 
     } else {
         await new Promise((resolver) => app.listen(0, () => resolver()));
