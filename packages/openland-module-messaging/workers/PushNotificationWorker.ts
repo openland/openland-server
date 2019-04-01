@@ -6,6 +6,7 @@ import { createLogger } from 'openland-log/createLogger';
 import { FDB } from 'openland-module-db/FDB';
 import { buildBaseImageUrl } from 'openland-module-media/ImageRef';
 import { Texts } from '../texts';
+import { MessageAttachmentFile } from '../MessageInput';
 
 const Delays = {
     'none': 10 * 1000,
@@ -184,17 +185,22 @@ export function startPushNotificationWorker() {
                     if (message.text) {
                         pushBody += message.text;
                     }
-                    if (message.fileMetadata) {
-                        let mime = message.fileMetadata.mimeType;
+                    if (message.attachmentsModern) {
+                        let fileAttachment = message.attachmentsModern.find(a => a.type === 'file_attachment');
 
-                        if (!mime) {
-                            pushBody += Texts.Notifications.DOCUMENT_ATTACH;
-                        } else if (mime === 'image/gif') {
-                            pushBody += Texts.Notifications.GIF_ATTACH;
-                        } else if (message.fileMetadata.isImage) {
-                            pushBody += Texts.Notifications.IMAGE_ATTACH;
-                        } else if (mime.startsWith('video/')) {
-                            pushBody += Texts.Notifications.VIDEO_ATTACH;
+                        if (fileAttachment) {
+                            let attach = fileAttachment as MessageAttachmentFile;
+                            let mime = attach.fileMetadata && attach.fileMetadata.mimeType;
+
+                            if (!mime) {
+                                pushBody += Texts.Notifications.DOCUMENT_ATTACH;
+                            } else if (mime === 'image/gif') {
+                                pushBody += Texts.Notifications.GIF_ATTACH;
+                            } else if (attach.fileMetadata && attach.fileMetadata.isImage) {
+                                pushBody += Texts.Notifications.IMAGE_ATTACH;
+                            } else if (mime.startsWith('video/')) {
+                                pushBody += Texts.Notifications.VIDEO_ATTACH;
+                            }
                         }
                     }
 
