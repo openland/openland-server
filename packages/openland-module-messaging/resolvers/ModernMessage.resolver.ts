@@ -758,6 +758,15 @@ export default {
         unpinMessage: withUser(async (ctx, args, uid) => {
             let cid = IDs.Conversation.parse(args.chatId);
             return await Modules.Messaging.room.unpinMessage(ctx, cid, uid);
-        })
+        }),
+
+        messageReactionAdd: withUser(async (ctx, args, uid) => {
+            await Modules.Messaging.setReaction(ctx, IDs.ConversationMessage.parse(args.messageId), uid, args.reaction);
+            return true;
+        }),
+        messageReactionRemove: withUser(async (ctx, args, uid) => {
+            await Modules.Messaging.setReaction(ctx, IDs.ConversationMessage.parse(args.messageId), uid, args.reaction, true);
+            return true;
+        }),
     }
 } as GQLResolver;
