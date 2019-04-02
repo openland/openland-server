@@ -80,6 +80,7 @@ export class HooksModule {
 
             await Modules.Messaging.sendMessage(ctx, chatId, botId, {
                 ...buildMessage(`Organization ${orgProfile!.name} was activated by `, userMention(invitorName, invitorId), ` via invite.\nLink: ${orgSuperUrl}`),
+                ignoreAugmentation: true,
             });
         }
     }
