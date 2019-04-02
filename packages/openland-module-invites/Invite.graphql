@@ -45,8 +45,7 @@ extend type Query {
     appInvite: String!
     appInviteInfo(key: String!): AppInvite
     alphaAppInvite: String! @deprecated(reason: "renamed to 'appInvite'")
-    alphaAppInviteInfo(key: String!): AppInviteInfo
-        @deprecated(reason: "renamed to 'appInviteInfo'")
+    alphaAppInviteInfo(key: String!): AppInviteInfo @deprecated(reason: "renamed to 'appInviteInfo'")
     alphaInvitesHistory: [InviteHistotyInfo!]
     alphaResolveInvite(key: String!): ResolveInviteEntry
 }
