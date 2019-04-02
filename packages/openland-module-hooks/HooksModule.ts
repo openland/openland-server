@@ -79,7 +79,7 @@ export class HooksModule {
             let invitorName = await Modules.Users.getUserFullName(ctx, invitorId);
 
             await Modules.Messaging.sendMessage(ctx, chatId, botId, {
-                ...buildMessage(`Organization ${orgProfile!.name} was activated by `, userMention(invitorName, invitorId), `via invite.\nLink: ${orgSuperUrl}`),
+                ...buildMessage(`Organization ${orgProfile!.name} was activated by `, userMention(invitorName, invitorId), ` via invite.\nLink: ${orgSuperUrl}`),
             });
         }
     }
