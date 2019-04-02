@@ -252,6 +252,10 @@ export class OrganizationRepository {
             .map((v) => v!);
     }
 
+    async organizationMembersCount(ctx: Context, oid: number): Promise<number> {
+        return (await this.findOrganizationMembers(ctx, oid)).length;
+    }
+
     async findUserOrganizations(ctx: Context, uid: number): Promise<number[]> {
         return (await this.entities.OrganizationMember.allFromUser(ctx, 'joined', uid)).map((v) => v.oid);
     }

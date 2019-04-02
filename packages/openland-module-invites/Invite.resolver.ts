@@ -28,6 +28,9 @@ async function resolveOrgInvite(ctx: Context, key: string) {
         return null;
     }
     let profile = (await FDB.OrganizationProfile.findById(ctx, invite.oid))!;
+
+    let membersCount = await Modules.Orgs.organizationMembersCount(ctx, invite.oid);
+
     return {
         id: key,
         key: key,
@@ -36,6 +39,7 @@ async function resolveOrgInvite(ctx: Context, key: string) {
         photo: profile.photo ? buildBaseImageUrl(profile.photo) : null,
         photoRef: profile.photo,
         joined: !!invite.joined,
+        membersCount: membersCount,
         creator: invite.uid ? await FDB.User.findById(ctx, invite.uid) : null,
         forEmail: invite.email,
         forName: invite.firstName,

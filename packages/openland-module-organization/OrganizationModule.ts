@@ -270,6 +270,10 @@ export class OrganizationModule {
         return this.repo.isUserOwner(ctx, uid, oid);
     }
 
+    async organizationMembersCount(ctx: Context, oid: number) {
+        return this.repo.organizationMembersCount(ctx, oid);
+    }
+
     //
     // Queries
     //
