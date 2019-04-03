@@ -2,7 +2,7 @@
 import { ComplexTypedResolver, ComplexTypedSubscriptionResolver, UnionTypeResolver, Nullable, OptionalNullable } from './SchemaUtils';
 import { GQLRoots } from './SchemaRoots';
 
-export const GQL_SPEC_VERSION = '0b3f185456ba8eecd38acc995622690d';
+export const GQL_SPEC_VERSION = '309123a3d94e05fecc4b49cf4265f46c';
 
 export namespace GQL {
     export interface UpdateConversationSettingsInput {
@@ -329,6 +329,7 @@ export namespace GQL {
         forName: Nullable<string>;
         description: Nullable<string>;
         membersCount: Nullable<number>;
+        organization: Nullable<Organization>;
     }
     export interface AppInvite {
         inviter: User;
@@ -2362,7 +2363,7 @@ export interface GQLResolver {
     Profile?: ComplexTypedResolver<GQL.Profile, GQLRoots.ProfileRoot, {photoRef: Nullable<GQLRoots.ImageRefRoot>, alphaInvitedBy: Nullable<GQLRoots.UserRoot>, primaryOrganization: Nullable<GQLRoots.OrganizationRoot>, alphaPrimaryOrganization: Nullable<GQLRoots.OrganizationRoot>}, {}>;
     AlphaSignupData?: ComplexTypedResolver<GQL.AlphaSignupData, GQLRoots.AlphaSignupDataRoot, {user: Nullable<GQLRoots.UserRoot>, organization: Nullable<GQLRoots.OrganizationRoot>}, {}>;
     Invite?: ComplexTypedResolver<GQL.Invite, GQLRoots.InviteRoot, {}, {}>;
-    InviteInfo?: ComplexTypedResolver<GQL.InviteInfo, GQLRoots.InviteInfoRoot, {photoRef: Nullable<GQLRoots.ImageRefRoot>, creator: Nullable<GQLRoots.UserRoot>}, {}>;
+    InviteInfo?: ComplexTypedResolver<GQL.InviteInfo, GQLRoots.InviteInfoRoot, {photoRef: Nullable<GQLRoots.ImageRefRoot>, creator: Nullable<GQLRoots.UserRoot>, organization: Nullable<GQLRoots.OrganizationRoot>}, {}>;
     AppInvite?: ComplexTypedResolver<GQL.AppInvite, GQLRoots.AppInviteRoot, {inviter: GQLRoots.UserRoot}, {}>;
     AppInviteInfo?: ComplexTypedResolver<GQL.AppInviteInfo, GQLRoots.AppInviteInfoRoot, {inviter: GQLRoots.UserRoot}, {}>;
     InviteHistotyInfo?: ComplexTypedResolver<GQL.InviteHistotyInfo, GQLRoots.InviteHistotyInfoRoot, {acceptedBy: Nullable<GQLRoots.UserRoot>}, {}>;

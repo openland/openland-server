@@ -21,6 +21,7 @@ type InviteInfo {
     forName: String
     description: String
     membersCount: Int
+    organization: Organization
 }
 
 type AppInvite {

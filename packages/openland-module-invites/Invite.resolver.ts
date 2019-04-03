@@ -43,11 +43,27 @@ async function resolveOrgInvite(ctx: Context, key: string) {
         creator: invite.uid ? await FDB.User.findById(ctx, invite.uid) : null,
         forEmail: invite.email,
         forName: invite.firstName,
-        description: profile.about
+        description: profile.about,
+        organization: org,
     };
 }
 
 export default {
+    InviteInfo: {
+        id: src => src.id,
+        key: src => src.key,
+        orgId: src => src.orgId,
+        title: src => src.title,
+        photo: src => src.photo,
+        photoRef: src => src.photoRef,
+        joined: src => src.joined,
+        membersCount: src => src.membersCount,
+        creator: src => src.creator,
+        forEmail: src => src.forEmail,
+        forName: src => src.forName,
+        description: src => src.description,
+        organization: src => src.organization,
+    },
     Invite: {
         id: (src: OrganizationInviteLink | OrganizationPublicInviteLink) => src.id,
         key: (src: OrganizationInviteLink | OrganizationPublicInviteLink) => src.id,
