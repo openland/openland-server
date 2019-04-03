@@ -98,7 +98,7 @@ export default {
             // });
             return [];
         }),
-        alphaResolveInvite: withUser(async (ctx, args, uid) => {
+        alphaResolveInvite: withAny(async (ctx, args) => {
             let orgInvite = await resolveOrgInvite(ctx, args.key);
 
             if (orgInvite) {
