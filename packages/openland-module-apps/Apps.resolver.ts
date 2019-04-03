@@ -28,6 +28,9 @@ export default {
     Query: {
         myApps: withAccount(async (ctx, args, uid, orgId) => {
             return await Modules.Bots.findAppsCreatedByUser(ctx, uid);
+        }),
+        userStorage: withAccount(async (ctx, args, uid, orgId) => {
+            return await Modules.Bots.fetchKeys(ctx, uid, args.namespace, args.keys);
         })
     },
 
@@ -121,6 +124,11 @@ export default {
 
                 return await Modules.Bots.createChatHook(ctx, uid, appId, chatId);
             });
-        })
+        }),
+        userStorageSet: withAccount(async (parent, args, uid) => {
+            return await inTx(parent, async (ctx) => {
+                return await Modules.Bots.writeKeys(ctx, uid, args.namespace, args.data);
+            });
+        }),
     },
 } as GQLResolver;

@@ -41,4 +41,12 @@ export class AppsModule {
     async createChatHook(ctx: Context, uid: number, appId: number, cid: number) {
         return this.repo.createChatHook(ctx, uid, appId, cid);
     }
+
+    async fetchKeys(parent: Context, uid: number, namespace: string, keys: string[]) {
+        return this.repo.fetchKeys(parent, uid, namespace, keys);
+    }
+
+    async writeKeys(parent: Context, uid: number, namespace: string, data: { key: string, value?: null | undefined | string }[]) {
+        return this.repo.writeKeys(parent, uid, namespace, data);
+    }
 }

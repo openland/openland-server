@@ -1,6 +1,6 @@
 import { injectable } from 'inversify';
 import { lazyInject } from '../../openland-modules/Modules.container';
-import { AllEntities } from '../../openland-module-db/schema';
+import { AllEntities, UserStorageRecord } from '../../openland-module-db/schema';
 import { Context } from '../../openland-utils/Context';
 import { inTx } from '../../foundation-orm/inTx';
 import { Modules } from '../../openland-modules/Modules';
@@ -10,6 +10,7 @@ import InternalServerError = errors.InternalServerError;
 import { randomKey } from '../../openland-utils/random';
 import { ImageRef } from '../../openland-module-media/ImageRef';
 import { stringNotEmpty, validate } from '../../openland-utils/NewInputValidator';
+import { resolveSequenceNumber } from 'openland-module-db/resolveSequenceNumber';
 
 @injectable()
 export class AppsRepository {
@@ -133,6 +134,50 @@ export class AppsRepository {
             await Modules.Hooks.onAppHookCreated(parent, uid, hook);
 
             return hook;
+        });
+    }
+
+    async writeKeys(parent: Context, uid: number, namespace: string, data: { key: string, value?: null | undefined | string }[]) {
+        return await inTx(parent, async (ctx) => {
+            let keys = await this.fetchKeys(ctx, uid, namespace, data.map((v) => v.key));
+            for (let k of keys) {
+                let upd = data.find((v) => v.key === k.key)!;
+                if (upd.value) {
+                    k.value = upd.value;
+                } else {
+                    k.value = null;
+                }
+            }
+            return keys;
+        });
+    }
+
+    async fetchKeys(parent: Context, uid: number, namespace: string, keys: string[]) {
+        return await inTx(parent, async (ctx) => {
+            let ns = await this.resolveNamespace(ctx, namespace);
+            let res: UserStorageRecord[] = [];
+            for (let k of keys) {
+                let ex = await this.entities.UserStorageRecord.findFromKey(ctx, uid, ns, k);
+                if (ex) {
+                    res.push(ex);
+                } else {
+                    let id = await resolveSequenceNumber(ctx, this.entities, 'user-record-id');
+                    res.push(await this.entities.UserStorageRecord.create(ctx, uid, id, { key: k, ns, value: null }));
+                }
+            }
+            return res;
+        });
+    }
+
+    private async resolveNamespace(parent: Context, namespace: string) {
+        return await inTx(parent, async (ctx) => {
+            let existing = await this.entities.UserStorageNamespace.findFromNamespace(ctx, namespace);
+            if (existing) {
+                return existing.id;
+            }
+            let id = await resolveSequenceNumber(ctx, this.entities, 'namespace-id');
+            await this.entities.UserStorageNamespace.create(ctx, id, { ns: namespace });
+            return id;
         });
     }
 
