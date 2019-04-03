@@ -90,7 +90,7 @@ export class RoomMediator {
                 // }
                 let shouldSendJoinMessage = !conv.isChannel;
                 if (shouldSendJoinMessage) {
-                    await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, [uid], null));
+                    await this.messaging.sendMessage(ctx, uid, cid, await this.roomJoinMessage(ctx, conv, uid, [uid], invited ? null : uid));
                 } else {
                     // message not sent to new members, move room up in dialog list other way
                     await this.messaging.bumpDialog(ctx, uid, cid);
