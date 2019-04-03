@@ -8,8 +8,8 @@ import { AppContext } from 'openland-modules/AppContext';
 
 export async function fetchWebSocketParameters(args: any, websocket: any) {
     let res: any = {};
-    if ('x-openland-token' in args) {
-        let token = args['x-openland-token'] as string;
+    let token = args['x-openland-token'] as string | undefined;
+    if (token) {
         let uid = await Modules.Auth.findToken(createEmptyContext(), token);
         if (uid !== null) {
             res.uid = uid.uid;
