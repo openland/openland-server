@@ -125,8 +125,9 @@ export class PresenceModule {
         let iterator = createIterator<OnlineEvent>(() => subscriptions.forEach(s => s.cancel()));
 
         // Send initial state
+        let ctx = createEmptyContext();
         for (let userId of users) {
-            if (userId === await Modules.Users.getSupportUserId(createEmptyContext())) {
+            if (userId === await Modules.Users.getSupportUserId(ctx)) {
                 iterator.push({
                     userId,
                     timeout: 0,
