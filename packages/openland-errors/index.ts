@@ -71,7 +71,7 @@ export function errorHandler(error: { message: string, originalError: any }, inf
         };
     }
     // Raven.captureException(error.originalError);
-    console.warn('unexpected_error', uuid, error.originalError);
+    console.warn('unexpected_error', uuid, error.originalError, error);
 
     // tslint:disable:no-floating-promises
     (async () => {
