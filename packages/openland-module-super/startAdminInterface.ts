@@ -25,8 +25,9 @@ export function startAdminInterface() {
 
     const Server = new ApolloServer({
         schema: FDBGraphqlSchema,
+        introspection: true,
         playground: {
-            endpoint: 'http://localhost:8319/api',
+            endpoint: 'https://db.openland.io/graphql',
             settings: {
                 'request.credentials': 'include'
             } as any
