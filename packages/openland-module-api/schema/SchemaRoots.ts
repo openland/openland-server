@@ -5,7 +5,7 @@ import {
     User, UserDialogEvent,
     UserDialogSettings,
     UserProfile,
-    FeedEvent, AuthToken, ConversationEvent, AppHook, Presence, EnvironmentVariable, Comment, CommentEvent
+    FeedEvent, AuthToken, ConversationEvent, AppHook, Presence, EnvironmentVariable, Comment, CommentEvent, UserStorageRecord
 } from '../../openland-module-db/schema';
 import { GQL } from './SchemaSpec';
 import {
@@ -181,6 +181,7 @@ export namespace GQLRoots {
     export type AppProfileRoot = User;
     export type AppTokenRoot = AuthToken;
     export type AppChatRoot = AppHook;
+    export type AppStorageValueRoot = UserStorageRecord;
 
     //
     // Modern Messaging

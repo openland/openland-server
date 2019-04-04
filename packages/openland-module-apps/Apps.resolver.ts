@@ -25,12 +25,6 @@ export default {
         token: async (src, args, ctx) => await Modules.Bots.getAppToken(ctx, ctx.auth!.uid!, src.id)
     },
 
-    Query: {
-        myApps: withAccount(async (ctx, args, uid, orgId) => {
-            return await Modules.Bots.findAppsCreatedByUser(ctx, uid);
-        })
-    },
-
     AppChat: {
         chat: hook => hook.chatId,
         webhook: hook => {
@@ -43,6 +37,21 @@ export default {
 
             return `${domain}/apps/chat-hook/${hook.key}`;
         }
+    },
+
+    AppStorageValue: {
+        id: (src) => IDs.UserStorageRecord.serialize(src.id),
+        key: (src) => src.key,
+        value: (src) => src.value
+    },
+
+    Query: {
+        myApps: withAccount(async (ctx, args, uid, orgId) => {
+            return await Modules.Bots.findAppsCreatedByUser(ctx, uid);
+        }),
+        userStorage: withAccount(async (ctx, args, uid, orgId) => {
+            return await Modules.Bots.fetchKeys(ctx, uid, args.namespace, args.keys);
+        })
     },
 
     Mutation: {
@@ -121,6 +130,11 @@ export default {
 
                 return await Modules.Bots.createChatHook(ctx, uid, appId, chatId);
             });
-        })
+        }),
+        userStorageSet: withAccount(async (parent, args, uid) => {
+            return await inTx(parent, async (ctx) => {
+                return await Modules.Bots.writeKeys(ctx, uid, args.namespace, args.data);
+            });
+        }),
     },
 } as GQLResolver;

@@ -8661,6 +8661,203 @@ export class AppHookFactory extends FEntityFactory<AppHook> {
         return new AppHook(ctx, this.connection, this.namespace, this.directory, [value.appId, value.chatId], value, this.options, isNew, this.indexes, 'AppHook');
     }
 }
+export interface UserStorageNamespaceShape {
+    ns: string;
+}
+
+export class UserStorageNamespace extends FEntity {
+    readonly entityName: 'UserStorageNamespace' = 'UserStorageNamespace';
+    get id(): number { return this._value.id; }
+    get ns(): string {
+        return this._value.ns;
+    }
+    set ns(value: string) {
+        this._checkIsWritable();
+        if (value === this._value.ns) { return; }
+        this._value.ns = value;
+        this.markDirty();
+    }
+}
+
+export class UserStorageNamespaceFactory extends FEntityFactory<UserStorageNamespace> {
+    static schema: FEntitySchema = {
+        name: 'UserStorageNamespace',
+        editable: false,
+        primaryKeys: [
+            { name: 'id', type: 'number' },
+        ],
+        fields: [
+            { name: 'ns', type: 'string' },
+        ],
+        indexes: [
+            { name: 'namespace', type: 'unique', fields: ['ns'] },
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('id', src.id);
+        validators.isNumber('id', src.id);
+        validators.notNull('ns', src.ns);
+        validators.isString('ns', src.ns);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'userStorageNamespace'),
+            { enableVersioning: true, enableTimestamps: true, validator: UserStorageNamespaceFactory.validate, hasLiveStreams: false },
+            [new FEntityIndex('namespace', ['ns'], true)],
+            'UserStorageNamespace'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 1) { throw Error('Invalid key length!'); }
+        return { 'id': rawId[0] };
+    }
+    async findById(ctx: Context, id: number) {
+        return await this._findById(ctx, [id]);
+    }
+    async create(ctx: Context, id: number, shape: UserStorageNamespaceShape) {
+        return await this._create(ctx, [id], { id, ...shape });
+    }
+    watch(ctx: Context, id: number, cb: () => void) {
+        return this._watch(ctx, [id], cb);
+    }
+    async findFromNamespace(ctx: Context, ns: string) {
+        return await this._findFromIndex(ctx, ['__indexes', 'namespace', ns]);
+    }
+    async rangeFromNamespace(ctx: Context, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'namespace'], limit, reversed);
+    }
+    async rangeFromNamespaceWithCursor(ctx: Context, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'namespace'], limit, after, reversed);
+    }
+    async allFromNamespace(ctx: Context, ) {
+        return await this._findAll(ctx, ['__indexes', 'namespace']);
+    }
+    createNamespaceStream(ctx: Context, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'userStorageNamespace', '__indexes', 'namespace'], limit, after); 
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new UserStorageNamespace(ctx, this.connection, this.namespace, this.directory, [value.id], value, this.options, isNew, this.indexes, 'UserStorageNamespace');
+    }
+}
+export interface UserStorageRecordShape {
+    ns: number;
+    key: string;
+    value?: string| null;
+}
+
+export class UserStorageRecord extends FEntity {
+    readonly entityName: 'UserStorageRecord' = 'UserStorageRecord';
+    get uid(): number { return this._value.uid; }
+    get id(): number { return this._value.id; }
+    get ns(): number {
+        return this._value.ns;
+    }
+    set ns(value: number) {
+        this._checkIsWritable();
+        if (value === this._value.ns) { return; }
+        this._value.ns = value;
+        this.markDirty();
+    }
+    get key(): string {
+        return this._value.key;
+    }
+    set key(value: string) {
+        this._checkIsWritable();
+        if (value === this._value.key) { return; }
+        this._value.key = value;
+        this.markDirty();
+    }
+    get value(): string | null {
+        let res = this._value.value;
+        if (res !== null && res !== undefined) { return res; }
+        return null;
+    }
+    set value(value: string | null) {
+        this._checkIsWritable();
+        if (value === this._value.value) { return; }
+        this._value.value = value;
+        this.markDirty();
+    }
+}
+
+export class UserStorageRecordFactory extends FEntityFactory<UserStorageRecord> {
+    static schema: FEntitySchema = {
+        name: 'UserStorageRecord',
+        editable: false,
+        primaryKeys: [
+            { name: 'uid', type: 'number' },
+            { name: 'id', type: 'number' },
+        ],
+        fields: [
+            { name: 'ns', type: 'number' },
+            { name: 'key', type: 'string' },
+            { name: 'value', type: 'string' },
+        ],
+        indexes: [
+            { name: 'key', type: 'unique', fields: ['uid', 'ns', 'key'] },
+        ],
+    };
+
+    private static validate(src: any) {
+        validators.notNull('uid', src.uid);
+        validators.isNumber('uid', src.uid);
+        validators.notNull('id', src.id);
+        validators.isNumber('id', src.id);
+        validators.notNull('ns', src.ns);
+        validators.isNumber('ns', src.ns);
+        validators.notNull('key', src.key);
+        validators.isString('key', src.key);
+        validators.isString('value', src.value);
+    }
+
+    constructor(connection: FConnection) {
+        super(connection,
+            new FNamespace('entity', 'userStorageRecord'),
+            { enableVersioning: true, enableTimestamps: true, validator: UserStorageRecordFactory.validate, hasLiveStreams: false },
+            [new FEntityIndex('key', ['uid', 'ns', 'key'], true)],
+            'UserStorageRecord'
+        );
+    }
+    extractId(rawId: any[]) {
+        if (rawId.length !== 2) { throw Error('Invalid key length!'); }
+        return { 'uid': rawId[0], 'id': rawId[1] };
+    }
+    async findById(ctx: Context, uid: number, id: number) {
+        return await this._findById(ctx, [uid, id]);
+    }
+    async create(ctx: Context, uid: number, id: number, shape: UserStorageRecordShape) {
+        return await this._create(ctx, [uid, id], { uid, id, ...shape });
+    }
+    watch(ctx: Context, uid: number, id: number, cb: () => void) {
+        return this._watch(ctx, [uid, id], cb);
+    }
+    async findFromKey(ctx: Context, uid: number, ns: number, key: string) {
+        return await this._findFromIndex(ctx, ['__indexes', 'key', uid, ns, key]);
+    }
+    async allFromKeyAfter(ctx: Context, uid: number, ns: number, after: string) {
+        return await this._findRangeAllAfter(ctx, ['__indexes', 'key', uid, ns], after);
+    }
+    async rangeFromKeyAfter(ctx: Context, uid: number, ns: number, after: string, limit: number, reversed?: boolean) {
+        return await this._findRangeAfter(ctx, ['__indexes', 'key', uid, ns], after, limit, reversed);
+    }
+    async rangeFromKey(ctx: Context, uid: number, ns: number, limit: number, reversed?: boolean) {
+        return await this._findRange(ctx, ['__indexes', 'key', uid, ns], limit, reversed);
+    }
+    async rangeFromKeyWithCursor(ctx: Context, uid: number, ns: number, limit: number, after?: string, reversed?: boolean) {
+        return await this._findRangeWithCursor(ctx, ['__indexes', 'key', uid, ns], limit, after, reversed);
+    }
+    async allFromKey(ctx: Context, uid: number, ns: number) {
+        return await this._findAll(ctx, ['__indexes', 'key', uid, ns]);
+    }
+    createKeyStream(ctx: Context, uid: number, ns: number, limit: number, after?: string) {
+        return this._createStream(ctx, ['entity', 'userStorageRecord', '__indexes', 'key', uid, ns], limit, after); 
+    }
+    protected _createEntity(ctx: Context, value: any, isNew: boolean) {
+        return new UserStorageRecord(ctx, this.connection, this.namespace, this.directory, [value.uid, value.id], value, this.options, isNew, this.indexes, 'UserStorageRecord');
+    }
+}
 
 export interface AllEntities {
     readonly connection: FConnection;
@@ -8733,6 +8930,8 @@ export interface AllEntities {
     readonly FeedTopic: FeedTopicFactory;
     readonly FeedEvent: FeedEventFactory;
     readonly AppHook: AppHookFactory;
+    readonly UserStorageNamespace: UserStorageNamespaceFactory;
+    readonly UserStorageRecord: UserStorageRecordFactory;
 }
 export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     static readonly schema: FEntitySchema[] = [
@@ -8805,6 +9004,8 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         FeedTopicFactory.schema,
         FeedEventFactory.schema,
         AppHookFactory.schema,
+        UserStorageNamespaceFactory.schema,
+        UserStorageRecordFactory.schema,
     ];
     allEntities: FEntityFactory<FEntity>[] = [];
     Environment: EnvironmentFactory;
@@ -8876,6 +9077,8 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
     FeedTopic: FeedTopicFactory;
     FeedEvent: FeedEventFactory;
     AppHook: AppHookFactory;
+    UserStorageNamespace: UserStorageNamespaceFactory;
+    UserStorageRecord: UserStorageRecordFactory;
 
     constructor(connection: FConnection) {
         super(connection);
@@ -9017,6 +9220,10 @@ export class AllEntitiesDirect extends FDBInstance implements AllEntities {
         this.allEntities.push(this.FeedEvent);
         this.AppHook = new AppHookFactory(connection);
         this.allEntities.push(this.AppHook);
+        this.UserStorageNamespace = new UserStorageNamespaceFactory(connection);
+        this.allEntities.push(this.UserStorageNamespace);
+        this.UserStorageRecord = new UserStorageRecordFactory(connection);
+        this.allEntities.push(this.UserStorageRecord);
     }
 }
 export class AllEntitiesProxy implements AllEntities {
@@ -9229,6 +9436,12 @@ export class AllEntitiesProxy implements AllEntities {
     }
     get AppHook(): AppHookFactory {
         return this.resolver().AppHook;
+    }
+    get UserStorageNamespace(): UserStorageNamespaceFactory {
+        return this.resolver().UserStorageNamespace;
+    }
+    get UserStorageRecord(): UserStorageRecordFactory {
+        return this.resolver().UserStorageRecord;
     }
     private resolver: () => AllEntities;
     constructor(resolver: () => AllEntities) {

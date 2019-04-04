@@ -1,3 +1,14 @@
+type AppStorageValue {
+    id: ID!
+    key: String!
+    value: String
+}
+
+input AppStorageValueInput {
+    key: String!
+    value: String
+}
+
 type AppProfile {
     id: ID!
 
@@ -27,6 +38,8 @@ type AppChat {
 
 extend type Query {
     myApps: [AppProfile!]!
+    
+    userStorage(namespace: String!, keys: [String!]!): [AppStorageValue!]!
 }
 
 extend type Mutation {
@@ -36,4 +49,6 @@ extend type Mutation {
     updateAppProfile(appId: ID!, input: AppProfileInput!): AppProfile!
     deleteApp(appId: ID!): Boolean!
     addAppToChat(appId: ID!, chatId: ID!): AppChat!
+
+    userStorageSet(namespace: String!, data: [AppStorageValueInput!]!): [AppStorageValue!]!
 }

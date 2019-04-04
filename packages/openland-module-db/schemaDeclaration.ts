@@ -950,6 +950,25 @@ const Schema = declareSchema(() => {
         enableTimestamps();
         enableVersioning();
     });
+
+    entity('UserStorageNamespace', () => {
+        primaryKey('id', 'number');
+        field('ns', 'string');
+        uniqueIndex('namespace', ['ns']);
+        enableTimestamps();
+        enableVersioning();
+    });
+
+    entity('UserStorageRecord', () => {
+        primaryKey('uid', 'number');
+        primaryKey('id', 'number');
+        field('ns', 'number');
+        field('key', 'string');
+        field('value', 'string').nullable();
+        uniqueIndex('key', ['uid', 'ns', 'key']);
+        enableTimestamps();
+        enableVersioning();
+    });
 });
 
 generate(Schema, __dirname + '/../openland-module-db/schema.ts');
