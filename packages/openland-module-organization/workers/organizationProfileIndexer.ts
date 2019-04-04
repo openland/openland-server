@@ -4,7 +4,7 @@ import { createEmptyContext } from 'openland-utils/Context';
 import { Modules } from '../../openland-modules/Modules';
 
 export function organizationProfileIndexer() {
-    declareSearchIndexer('organization-profile-index', 7, 'organization', FDB.OrganizationIndexingQueue.createUpdatedStream(createEmptyContext(), 50))
+    declareSearchIndexer('organization-profile-index', 8, 'organization', FDB.OrganizationIndexingQueue.createUpdatedStream(createEmptyContext(), 50))
         .withProperties({
             name: {
                 type: 'text'
@@ -26,6 +26,9 @@ export function organizationProfileIndexer() {
             },
             shortname: {
                 type: 'text'
+            },
+            status: {
+                type: 'text'
             }
         })
         .start(async (item) => {
@@ -44,7 +47,8 @@ export function organizationProfileIndexer() {
                     listed: editorial.listed,
                     createdAt: item.createdAt,
                     updatedAt: item.updatedAt,
-                    shortname: shortname ? shortname.shortname : null
+                    shortname: shortname ? shortname.shortname : null,
+                    status: org.status
                 }
             };
         });
